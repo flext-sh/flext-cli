@@ -19,7 +19,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import cli
-from flext_cli.settings import FlextCliSettings
+from flext_cli import FlextCliSettings
 from tests.constants import c
 from tests.protocols import p
 

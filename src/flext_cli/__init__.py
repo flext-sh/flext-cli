@@ -40,10 +40,11 @@ if TYPE_CHECKING:
     from flext_cli.services.rules import FlextCliRules as FlextCliRules
     from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
     from flext_cli.services.tables import FlextCliTables as FlextCliTables
-    from flext_cli.settings import (
+    from flext_cli._settings import (
         FlextCliSettings as FlextCliSettings,
         settings as settings,
     )
+    from flext_cli._config import FlextCliConfig as FlextCliConfig, config as config
     from flext_cli.typings import FlextCliTypes as FlextCliTypes, t as t
     from flext_cli.utilities import FlextCliUtilities as FlextCliUtilities, u as u
     from flext_core._root_typing_parts.facades import (
@@ -78,6 +79,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "p",
             ),
             "._settings": ("FlextCliSettings", "settings"),
+            "._config": ("FlextCliConfig", "config"),
             ".services._prompts_parts.flextcliprompts_part_03": ("FlextCliPrompts",),
             ".services._prompts_parts.flextcliprompts_support": (
                 "FlextCliPromptsSupport",
@@ -140,6 +142,7 @@ __all__: tuple[str, ...] = (
     "FlextCliAuth",
     "FlextCliCli",
     "FlextCliCmd",
+    "FlextCliConfig",
     "FlextCliCommonParams",
     "FlextCliConstants",
     "FlextCliFileTools",
@@ -165,6 +168,7 @@ __all__: tuple[str, ...] = (
     "__version_info__",
     "c",
     "cli",
+    "config",
     "d",
     "e",
     "h",

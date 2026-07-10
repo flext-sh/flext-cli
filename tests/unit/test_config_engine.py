@@ -8,14 +8,11 @@ Covers ``u.Cli.template_render`` (Jinja2, StrictUndefined, sandboxed),
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from tests.constants import c
 from tests.models import m
 from tests.utilities import u
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 class TestsFlextCliConfigEngine:
@@ -109,3 +106,116 @@ class TestsFlextCliConfigEngine:
         assert set(docs.keys()) == {"agents", "mcp"}
         assert docs["mcp"].schema_ref == str(schemas / "mcp.schema.json")
         assert docs["agents"].schema_ref is None
+
+
+class TestsFlextCliTemplateRenderDir:
+    """Behavior contract for the generic folder engine ``template_render_dir``."""
+
+    def test_render_dir_ok_and_strips_suffix(self, tmp_path: Path) -> None:
+        root = tmp_path / "tpl"
+        (root / "sub").mkdir(parents=True)
+        (root / "a.txt.j2").write_text("A={{ x }}\n", encoding="utf-8")
+        (root / "sub" / "b.txt.j2").write_text("B={{ y }}\n", encoding="utf-8")
+        out = tmp_path / "out"
+        entries = (
+            m.Cli.TemplateRenderEntry(
+                relpath_template=Path("a.txt.j2"),
+                output_relpath=Path("a.txt.j2"),
+            ),
+            m.Cli.TemplateRenderEntry(
+                relpath_template=Path("sub/b.txt.j2"),
+                output_relpath=Path("sub/b.txt.j2"),
+            ),
+        )
+        result = u.Cli.template_render_dir(root, out, {"x": 1, "y": 2}, entries)
+        assert result.success
+        report = result.unwrap()
+        assert report.ok
+        assert len(report.created) == 2
+        assert (out / "a.txt").read_text(encoding="utf-8") == "A=1\n"
+        assert (out / "sub" / "b.txt").read_text(encoding="utf-8") == "B=2\n"
+
+    def test_render_dir_when_false_skips(self, tmp_path: Path) -> None:
+        root = tmp_path / "tpl"
+        root.mkdir()
+        (root / "a.j2").write_text("x", encoding="utf-8")
+        out = tmp_path / "out"
+        entries = (
+            m.Cli.TemplateRenderEntry(
+                relpath_template=Path("a.j2"),
+                output_relpath=Path("a"),
+                when=False,
+            ),
+        )
+        report = u.Cli.template_render_dir(root, out, {}, entries).unwrap()
+        assert len(report.skipped) == 1
+        assert not report.created
+        assert not (out / "a").exists()
+
+    def test_render_dir_overwrite_policy(self, tmp_path: Path) -> None:
+        root = tmp_path / "tpl"
+        root.mkdir()
+        (root / "a.j2").write_text("new={{ v }}", encoding="utf-8")
+        out = tmp_path / "out"
+        out.mkdir()
+        (out / "a").write_text("old", encoding="utf-8")
+        skip_entries = (
+            m.Cli.TemplateRenderEntry(
+                relpath_template=Path("a.j2"),
+                output_relpath=Path("a"),
+            ),
+        )
+        skipped = u.Cli.template_render_dir(
+            root, out, {"v": 1}, skip_entries,
+        ).unwrap()
+        assert len(skipped.skipped) == 1
+        assert (out / "a").read_text(encoding="utf-8") == "old"
+        over_entries = (
+            m.Cli.TemplateRenderEntry(
+                relpath_template=Path("a.j2"),
+                output_relpath=Path("a"),
+                overwrite=True,
+            ),
+        )
+        created = u.Cli.template_render_dir(
+            root, out, {"v": 2}, over_entries,
+        ).unwrap()
+        assert len(created.created) == 1
+        assert (out / "a").read_text(encoding="utf-8") == "new=2"
+
+    def test_render_dir_blocks_escape(self, tmp_path: Path) -> None:
+        root = tmp_path / "tpl"
+        root.mkdir()
+        (root / "a.j2").write_text("x", encoding="utf-8")
+        out = tmp_path / "out"
+        entries = (
+            m.Cli.TemplateRenderEntry(
+                relpath_template=Path("a.j2"),
+                output_relpath=Path("../escape"),
+            ),
+        )
+        report = u.Cli.template_render_dir(root, out, {}, entries).unwrap()
+        assert not report.ok
+        assert c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE in report.failed[0][1]
+        assert not (tmp_path / "escape").exists()
+
+    def test_render_dir_missing_root_fails(self, tmp_path: Path) -> None:
+        result = u.Cli.template_render_dir(
+            tmp_path / "nope", tmp_path / "out", {}, (),
+        )
+        assert result.failure
+
+    def test_render_dir_collects_render_failures(self, tmp_path: Path) -> None:
+        root = tmp_path / "tpl"
+        root.mkdir()
+        (root / "bad.j2").write_text("{{ missing }}\n", encoding="utf-8")
+        out = tmp_path / "out"
+        entries = (
+            m.Cli.TemplateRenderEntry(
+                relpath_template=Path("bad.j2"),
+                output_relpath=Path("bad"),
+            ),
+        )
+        report = u.Cli.template_render_dir(root, out, {}, entries).unwrap()
+        assert not report.ok
+        assert len(report.failed) == 1

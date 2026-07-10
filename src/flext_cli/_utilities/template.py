@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from jinja2 import StrictUndefined
 from jinja2.exceptions import TemplateError
@@ -18,11 +18,8 @@ from jinja2.loaders import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
-from flext_cli import c, p, r, t
+from flext_cli import c, m, p, r, t
 from flext_core import u
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 class FlextCliUtilitiesTemplate:
@@ -79,6 +76,70 @@ class FlextCliUtilitiesTemplate:
             catch=OSError,
             op_name="template_render_to",
         )
+
+    @staticmethod
+    def template_render_dir(
+        templates_root: Path,
+        output_root: Path,
+        context: t.JsonMapping,
+        entries: t.SequenceOf[m.Cli.TemplateRenderEntry],
+        *,
+        strip_suffix: str = c.Cli.TEMPLATE_SUFFIX,
+        overwrite: bool = False,
+    ) -> p.Result[m.Cli.TemplateRenderReport]:
+        """Render every entry from ``templates_root`` into ``output_root``.
+
+        Generic, folder-parameterized engine (ADR-005): the caller supplies the
+        templates folder, an ordered list of entries (data), and a context; the
+        engine mirrors the tree, strips the template suffix, and reports
+        created/skipped/failed per entry. It carries no FLEXT naming policy —
+        output paths and context are fully resolved by the caller.
+
+        Fail-closed on a missing templates root. Per-entry render failures and
+        path-escape attempts are accumulated in ``TemplateRenderReport.failed``;
+        the caller decides the fail policy (the report is always returned).
+        """
+        if not templates_root.is_dir():
+            return r[m.Cli.TemplateRenderReport].fail(
+                f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}",
+            )
+        root = output_root.resolve()
+        created: list[Path] = []
+        skipped: list[Path] = []
+        failed: list[tuple[Path, str]] = []
+        for entry in entries:
+            out_rel = entry.output_relpath
+            if strip_suffix and str(out_rel).endswith(strip_suffix):
+                out_rel = Path(str(out_rel)[: -len(strip_suffix)])
+            dest = output_root / out_rel
+            try:
+                if not dest.resolve().is_relative_to(root):
+                    failed.append((dest, c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE))
+                    continue
+            except (OSError, ValueError):
+                failed.append((dest, c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE))
+                continue
+            if not entry.when:
+                skipped.append(dest)
+                continue
+            if dest.exists() and not (entry.overwrite or overwrite):
+                skipped.append(dest)
+                continue
+            src = templates_root / entry.relpath_template
+            result = FlextCliUtilitiesTemplate.template_render_to(src, dest, context)
+            if result.failure:
+                failed.append((
+                    dest,
+                    result.error or c.Cli.ERR_TEMPLATE_RENDER_FAILED,
+                ))
+                continue
+            created.append(dest)
+        report = m.Cli.TemplateRenderReport(
+            created=tuple(created),
+            skipped=tuple(skipped),
+            failed=tuple(failed),
+        )
+        return r[m.Cli.TemplateRenderReport].ok(report)
 
     @staticmethod
     def _write(dest: Path, content: str) -> bool:

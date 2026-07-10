@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, TypeAlias
 from flext_cli._models.base import FlextCliModelsBase
 from flext_cli._models.pipeline import FlextCliModelsPipeline
 from flext_cli._models.rules import FlextCliModelsRules
+from flext_cli._models.template import FlextCliModelsTemplate
 from flext_core import FlextModels
 
 if TYPE_CHECKING:
@@ -19,7 +20,12 @@ class FlextCliModels(FlextModels):
     ConfigDict: TypeAlias = FlextModels.ConfigDict
     SettingsConfigDict: TypeAlias = FlextModels.SettingsConfigDict
 
-    class Cli(FlextCliModelsPipeline, FlextCliModelsRules, FlextCliModelsBase):
+    class Cli(
+        FlextCliModelsPipeline,
+        FlextCliModelsRules,
+        FlextCliModelsBase,
+        FlextCliModelsTemplate,
+    ):
         """CLI project namespace."""
 
 
