@@ -26,6 +26,7 @@ _LAZY_IMPORTS = build_lazy_import_map(
             "TestsFlextCliCmdRuntimeValidationBranchCov",
         ),
         ".test_commands_utils_cov": ("TestsFlextCliCommands",),
+        ".test_config_engine": ("TestsFlextCliConfigEngine",),
         ".test_constants": ("TestsFlextCliConstants",),
         ".test_conversion_cov": ("TestsFlextCliConversion",),
         ".test_examples_models_utilities_cov": (

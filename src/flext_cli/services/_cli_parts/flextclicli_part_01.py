@@ -39,33 +39,23 @@ class FlextCliCli:
 
         __name__: str
         __signature__: Signature
-        config: t.Cli.ModelLike | None
         _handler: p.Cli.ModelCommandHandler[M]
         _model_cls: t.Cli.ModelType[M]
 
         def __init__(
             self,
             *,
-            settings: t.Cli.ModelLike | None,
             handler: p.Cli.ModelCommandHandler[M],
             model_cls: t.Cli.ModelType[M],
             parameters: t.SequenceOf[Parameter],
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
             self.__signature__ = Signature(parameters)
-            self.config = settings
             self._handler = handler
             self._model_cls = model_cls
 
         def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
             model = self._model_cls.model_validate(kwargs)
-            if self.config is not None:
-                config_field_names = frozenset(type(self.config).model_fields)
-                for field_name, field_value in model.model_dump(
-                    exclude_none=True,
-                ).items():
-                    if field_name in config_field_names:
-                        setattr(self.config, field_name, field_value)
             return self._handler(model)
 
     @classmethod

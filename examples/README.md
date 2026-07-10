@@ -77,7 +77,7 @@ from examples import p, r, s, t
 
 class Demo(s):
     def execute(self) -> p.Result[t.JsonMapping]:
-        return r[t.JsonMapping].ok({"output_format": self.settings.output_format})
+        return r[t.JsonMapping].ok({"output_format": settings.output_format})
 ```
 
 This is the shortest path to typed settings access and a consistent result contract.

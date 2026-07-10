@@ -74,6 +74,9 @@ if TYPE_CHECKING:
     from tests.unit.test_commands_utils_cov import (
         TestsFlextCliCommands as TestsFlextCliCommands,
     )
+    from tests.unit.test_config_engine import (
+        TestsFlextCliConfigEngine as TestsFlextCliConfigEngine,
+    )
     from tests.unit.test_conversion_cov import (
         TestsFlextCliConversion as TestsFlextCliConversion,
     )
@@ -219,6 +222,7 @@ _LAZY_IMPORTS = merge_lazy_imports(
                 "TestsFlextCliCmdRuntimeValidationBranchCov",
             ),
             ".unit.test_commands_utils_cov": ("TestsFlextCliCommands",),
+            ".unit.test_config_engine": ("TestsFlextCliConfigEngine",),
             ".unit.test_conversion_cov": ("TestsFlextCliConversion",),
             ".unit.test_examples_models_utilities_cov": (
                 "TestsFlextCliExampleModelsUtilitiesCov",

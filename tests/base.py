@@ -17,7 +17,6 @@ class TestsFlextCliServiceBase(tests_s):
     @override
     def fetch_settings(cls) -> TestsFlextCliSettings:
         """Return the typed CLI+Tests settings singleton for test services."""
-        return TestsFlextCliSettings.fetch_global()
 
     @classmethod
     @override

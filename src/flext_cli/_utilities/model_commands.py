@@ -4,12 +4,9 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
 
-from flext_cli import p, t
-
-if TYPE_CHECKING:
-    from flext_core import m
+from flext_cli import p, settings, t
+from flext_core import m
 
 
 class FlextCliUtilitiesModelCommands:
@@ -22,13 +19,11 @@ class FlextCliUtilitiesModelCommands:
             self,
             model_class: t.Cli.ModelType[M],
             handler: p.Cli.ModelCommandHandler[M],
-            settings: t.Cli.ModelLike | None = None,
         ) -> None:
             """Store the canonical inputs for deferred command construction."""
             super().__init__()
             self.model_class = model_class
             self.handler = handler
-            self.settings = settings
 
         def _resolve_default(
             self,
@@ -37,8 +32,6 @@ class FlextCliUtilitiesModelCommands:
         ) -> t.Cli.CliValue | type:
             if field_info.is_required():
                 return inspect.Parameter.empty
-            if self.settings is not None and hasattr(self.settings, field_name):
-                return getattr(self.settings, field_name)
             return field_info.get_default(call_default_factory=True)
 
         def build(self) -> t.Cli.CliCommand:
@@ -57,16 +50,15 @@ class FlextCliUtilitiesModelCommands:
             signature = inspect.Signature(parameters)
 
             def command(**kwargs: t.Cli.CliValue) -> t.JsonValue:
-                current_settings = self.settings
-                if isinstance(current_settings, p.Cli.Settings):
-                    current_settings_fields = current_settings.model_dump()
+                if isinstance(settings, p.Cli.Settings):
+                    settings_fields = settings.model_dump()
                     applicable_overrides = {
                         field_name: field_value
                         for field_name, field_value in kwargs.items()
-                        if field_name in current_settings_fields
+                        if field_name in settings_fields
                     }
                     if applicable_overrides:
-                        current_settings.update_global(**applicable_overrides)
+                        settings.update_global(**applicable_overrides)
                 model = self.model_class.model_validate(kwargs)
                 return self.handler(model)
 

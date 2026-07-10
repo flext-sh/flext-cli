@@ -54,7 +54,6 @@ class FlextCliCli(FlextCliCliPart02):
             parameters.append(parameter)
             annotations[field_name] = annotation
         command: FlextCliCliPart01._ModelCommand[M] = cls._ModelCommand(
-            settings=settings,
             handler=handler,
             model_cls=model_cls,
             parameters=parameters,

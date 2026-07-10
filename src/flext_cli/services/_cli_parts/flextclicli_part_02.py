@@ -10,10 +10,11 @@ from typing import TYPE_CHECKING
 
 import typer
 
-from flext_cli import m, p, t, u
+from flext_cli import m, p, settings, t, u
 from flext_cli.services._cli_parts.flextclicli_part_01 import (
     FlextCliCli as FlextCliCliPart01,
 )
+from flext_cli._settings import FlextCliSettings
 from flext_cli.services.cli_params import FlextCliCommonParams
 
 if TYPE_CHECKING:
@@ -25,11 +26,10 @@ class FlextCliCli(FlextCliCliPart01):
 
     def _apply_common_params_to_config(
         self,
-        settings: p.Cli.Settings,
         *,
         params: m.Cli.CliParamsConfig,
     ) -> None:
-        """Apply global CLI flags to the shared settings model."""
+        """Apply global CLI flags to the shared settings singleton."""
         resolved_log_level: str = (
             params.log_level
             if params.log_level is not None
@@ -67,15 +67,13 @@ class FlextCliCli(FlextCliCliPart01):
         *,
         name: str,
         help_text: str,
-        settings: p.Cli.Settings | None = None,
         add_completion: bool = True,
     ) -> t.Cli.CliApp:
         """Create a Typer app with the shared global FLEXT CLI parameters."""
         app = typer.Typer(name=name, help=help_text, add_completion=add_completion)
 
         def apply_common_params(params: m.Cli.CliParamsConfig) -> bool:
-            if settings is not None:
-                self._apply_common_params_to_config(settings, params=params)
+            self._apply_common_params_to_config(params=params)
             return True
 
         field_names = ("debug", "trace", "verbose", "quiet", "log_level")
@@ -91,7 +89,6 @@ class FlextCliCli(FlextCliCliPart01):
             annotations[field_name] = annotation
         global_callback: FlextCliCli._ModelCommand[m.Cli.CliParamsConfig] = (
             self._ModelCommand(
-                settings=None,
                 handler=apply_common_params,
                 model_cls=m.Cli.CliParamsConfig,
                 parameters=parameters,
