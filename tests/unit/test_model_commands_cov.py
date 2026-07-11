@@ -1,9 +1,10 @@
 """Behavioral tests for the public model-command DSL on ``cli``.
 
 Covers the observable contract of ``cli.derive_model`` and ``cli.model_command``:
-returned/validated model state, handler dispatch, settings mutation, default
-resolution, and error propagation via the Pydantic validation family. No private
-attribute access, no internal-collaborator spying, no signature introspection.
+returned/validated model state, handler dispatch, settings-seeded defaults,
+default resolution, and error propagation via the Pydantic validation family.
+No private attribute access, no internal-collaborator spying, no signature
+introspection.
 """
 
 from __future__ import annotations
@@ -115,7 +116,10 @@ class TestsFlextCliModelCommandsCov:
 
         assert cmd(name="y") == 42
 
-    def test_model_command_updates_settings_with_resolved_values(self) -> None:
+    def test_model_command_resolves_values_without_mutating_settings(self) -> None:
+        # Invocation no longer writes parsed values back into the settings
+        # model (commit f5f83dee): settings seeds option defaults only, and
+        # resolved values reach the handler through the validated model.
         settings = self._SampleModel(name="from_settings", value=0)
 
         def handler(model: TestsFlextCliModelCommandsCov._SampleModel) -> str:
@@ -125,8 +129,8 @@ class TestsFlextCliModelCommandsCov:
         result = cmd(name="override", value=1)
 
         assert result == "override"
-        assert settings.name == "override"
-        assert settings.value == 1
+        assert settings.name == "from_settings"
+        assert settings.value == 0
 
     def test_model_command_raises_validation_error_for_missing_required(self) -> None:
         def handler(model: TestsFlextCliModelCommandsCov._SampleModelNoDefaults) -> str:
