@@ -13,13 +13,18 @@ from __future__ import annotations
 from typing import ClassVar
 
 from click import Abort, ClickException
+from ruamel.yaml import YAMLError as RuamelYAMLError
 from typer import Exit
 from yaml import YAMLError
 
-from flext_core._exceptions.types import FlextExceptionsTypes
+from flext_core import e
 
 
-class CliDefinitionError(FlextExceptionsTypes.ValidationError):
+# NOTE (multi-agent): base classes come from the PUBLIC ``flext_core.e`` facade.
+# ``e.ValidationError`` IS ``FlextExceptionsTypes.ValidationError`` (same class
+# object via MRO) — verified, behavior-preserving. Do not re-import the private
+# ``flext_core._exceptions.types`` module (ruff PLC2701).
+class CliDefinitionError(e.ValidationError):
     """Located CLI definition-time failure (route/model/field).
 
     Raised while building/registering the automatic CLI so that consumers
@@ -31,7 +36,7 @@ class CliDefinitionError(FlextExceptionsTypes.ValidationError):
     _default_error_code: ClassVar[str] = "CLI_DEFINITION_ERROR"
 
 
-class CliValidationError(FlextExceptionsTypes.ValidationError):
+class CliValidationError(e.ValidationError):
     """Located CLI runtime input failure (command/field).
 
     Raised when ``model_validate`` rejects user input so that consumers
@@ -57,6 +62,7 @@ class FlextCliConstantsExceptions:
     CliCommandError: ClassVar[type[BaseException]] = ClickException
     CliExit: ClassVar[type[BaseException]] = Exit
     YamlParseError: ClassVar[type[Exception]] = YAMLError
+    YamlRoundtripError: ClassVar[type[Exception]] = RuamelYAMLError
     CliDefinitionError: ClassVar[type[BaseException]] = CliDefinitionError
     CliValidationError: ClassVar[type[BaseException]] = CliValidationError
 

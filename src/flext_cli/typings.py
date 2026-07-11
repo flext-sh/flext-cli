@@ -15,6 +15,11 @@ class FlextCliTypes(FlextTypes):
         """CLI types namespace for cross-project access."""
 
 
-t: type[FlextCliTypes] = FlextCliTypes
+# NOTE (multi-agent): bare assignment, NOT ``t: type[FlextCliTypes] = ...``.
+# Pyright cannot resolve nested class-scope PEP 695 aliases through an
+# explicitly annotated ``type[X]`` variable (every ``t.Cli.*`` alias became
+# Unknown — proven via reveal_type on the pre-existing TomlMappingSource).
+# The bare form keeps mypy/pyrefly/pyright resolution correct for all aliases.
+t = FlextCliTypes
 
 __all__: list[str] = ["FlextCliTypes", "t"]

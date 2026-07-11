@@ -22,6 +22,18 @@ class FlextCliProtocolsDomain:
             """Transform one JSON-compatible value."""
             ...
 
+    class YamlAnchorNode(Protocol):
+        """ruamel.yaml node surface that can carry YAML anchors.
+
+        NOTE (multi-agent): mirrors the minimal ``yaml_set_anchor`` contract of
+        ruamel ``CommentedBase``. Consumed through a ``TypeGuard`` + ``hasattr``
+        check (not ``isinstance``) so leaf modules never import ruamel classes.
+        """
+
+        def yaml_set_anchor(self, value: str | None) -> None:
+            """Set or clear the YAML anchor on the node."""
+            ...
+
     @runtime_checkable
     class ModelCommandHandler[TParams: t.Cli.ModelLike](Protocol):
         """Protocol for model-driven CLI command execution."""

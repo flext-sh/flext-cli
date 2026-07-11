@@ -4,10 +4,12 @@ from __future__ import annotations
 
 from collections.abc import (
     Callable,
+    Mapping,
     MutableMapping,
 )
 from pathlib import Path
 
+from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
@@ -18,9 +20,23 @@ from flext_cli._typings.base import FlextCliTypesBase as tb
 from flext_core.protocols import p
 from flext_core.typings import t
 
+# NOTE (multi-agent): YAML round-trip aliases live at module level because a
+# self-referencing PEP 695 alias in CLASS scope breaks pyrefly/pyright (proven
+# in cosmos-charts). The class body only re-exports them as ``t.Cli.Yaml*``;
+# never inline the recursion into the class body.
+type _YamlScalar = str | int | float | bool | None
+type _YamlValue = _YamlScalar | list[_YamlValue] | Mapping[str, _YamlValue]
+type _YamlNode = CommentedMap | CommentedSeq | _YamlScalar
+type _YamlSequence = CommentedSeq | list[_YamlValue]
+
 
 class FlextCliTypesDomain:
     """Composite CLI aliases built from canonical protocols and core types."""
+
+    type YamlScalar = _YamlScalar
+    type YamlValue = _YamlValue
+    type YamlNode = _YamlNode
+    type YamlSequence = _YamlSequence
 
     type ResultValue = t.JsonPayload
     type RuleDefinitions = t.SequenceOf[t.JsonMapping]

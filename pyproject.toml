@@ -32,6 +32,10 @@ dependencies = [
   "pydantic>=2.13.3",
   "pyyaml>=6.0.3",
   "rich>=14,<15",
+  # NOTE (multi-agent): ruamel.yaml is the round-trip YAML engine behind
+  # u.Cli.yaml_roundtrip_* (comment/quote-preserving). Do not downgrade below
+  # the cosmos-charts pin (>=0.18.16).
+  "ruamel.yaml>=0.18.16",
   "tabulate>=0.10.0",
   "tomlkit>=0.14.0",
   "typer>=0.25.1",
