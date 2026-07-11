@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from flext_cli._protocols.base import FlextCliProtocolsBase
+from flext_cli._protocols.config import FlextCliProtocolsConfig
 from flext_cli._protocols.domain import FlextCliProtocolsDomain
 from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
 from flext_core import FlextProtocols
@@ -11,6 +12,7 @@ from flext_core import FlextProtocols
 class FlextCliProtocols(
     FlextCliProtocolsBase,
     FlextProtocols,
+    FlextCliProtocolsConfig,
     FlextCliProtocolsDomain,
     FlextCliProtocolsPipeline,
 ):
@@ -24,6 +26,7 @@ class FlextCliProtocols(
         FlextCliProtocolsPipeline,
         FlextCliProtocolsDomain,
         FlextCliProtocolsBase,
+        FlextCliProtocolsConfig,
     ):
         """Unified CLI protocol namespace."""
 

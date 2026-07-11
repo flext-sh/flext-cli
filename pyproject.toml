@@ -539,6 +539,10 @@ split-on-trailing-comma = true
 
 [tool.ruff.lint.per-file-ignores]
 "**/.vulture_whitelist.py" = [ "ALL" ]
+# PascalCase domain accessors (config.Cli / settings namespaces) are the
+# canonical FLEXT project-namespace contract — same proven, general exception
+# as cosmos-main (`config.CosmosMain`): intentional domain names, not methods.
+"**/flext_cli/_config.py" = [ "N802" ]
 "**/*_pb2*.py" = [ "ALL" ]
 "**/*dispatcher*" = [  ]
 "**/*docs*" = [ "INP001", "S404", "S603", "T201" ]

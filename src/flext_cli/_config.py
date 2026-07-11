@@ -1,8 +1,10 @@
-"""FlextCliConfig — frozen config singleton for flext-cli (ADR-005 §7).
+"""FlextCliConfig — frozen, validated config singleton for flext-cli (§2.0b).
 
-Model-less: business rules live in ``config/*.yaml`` under the ``Cli:`` key and
-are exposed through the open ``config.Cli`` namespace (``extra="allow"``), with
-no per-domain model. Access is ``config.Cli.<domain>[<key>...]``.
+Every ``config/*.yaml`` file is auto-discovered and deep-merged at first
+``fetch_global`` call (model-less, ``extra=allow`` at the FlextConfig base).
+The flat YAML is then validated into the pure-Pydantic ``_models.config``
+shapes and exposed as typed domain objects (``config.Cli.name`` /
+``config.Cli.version``) — never a model-less dict subscript (§2.2/§2.4).
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,21 +12,31 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from functools import cached_property
+from pathlib import Path
+from typing import TYPE_CHECKING, ClassVar
 
+from flext_cli._models.config import FlextCliConfigModels
 from flext_core import FlextConfig
 
-
-class _CliNamespace(BaseModel):
-    """Open, frozen namespace exposing every ``config/*.yaml`` domain model-less."""
-
-    model_config = ConfigDict(extra="allow", frozen=True)
+if TYPE_CHECKING:
+    # NOTE (multi-agent): accessor typed by PROTOCOL (p), never the model
+    # class; the protocol module enters under TYPE_CHECKING only (§2.5/§3.4).
+    from flext_cli._protocols.config import FlextCliProtocolsConfig
 
 
 class FlextCliConfig(FlextConfig):
-    """Cli config auto-loaded model-less from ``config/*.yaml``."""
+    """Cli config auto-loaded from ``config/*.yaml`` and validated via models."""
 
-    Cli: _CliNamespace = _CliNamespace()
+    # NOTE (multi-agent): anchored to the package dir so the YAML SSOT loads
+    # regardless of the caller's CWD (library code must not depend on CWD).
+    CONFIG_DIR: ClassVar[str] = str(Path(__file__).resolve().parent / "config")
+
+    @cached_property
+    def Cli(self) -> FlextCliProtocolsConfig.Cli:
+        """Validated ``Cli`` config domain (name/version identity metadata)."""
+        root = FlextCliConfigModels.Root.model_validate(dict(self.model_extra or {}))
+        return root.Cli
 
 
 config: FlextCliConfig = FlextCliConfig.fetch_global()
