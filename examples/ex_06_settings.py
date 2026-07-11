@@ -9,13 +9,14 @@ WHEN TO USE THIS:
 
 FLEXT-CLI PROVIDES:
 - cli - Settings management class
-- cli.settings - Direct access to current settings
+- settings - Canonical FlextCliSettings singleton (flat cli_* fields)
 - Environment variable loading (FLEXT_*)
 - Built-in validation with r
 - Profile-based settings
 
 HOW TO USE IN YOUR CLI:
-Access settings through cli.settings and customize for YOUR application
+Access settings through the canonical ``settings`` singleton and customize
+for YOUR application
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -27,7 +28,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from examples import c, m, t, u
-from flext_cli import cli, p
+from flext_cli import cli, p, settings
 from flext_core import r
 
 
@@ -39,28 +40,28 @@ class Ex06Settings:
         """Access flext-cli settings in YOUR application."""
         cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
         cli.print(
-            f"   Debug Mode: {cli.settings.debug}",
+            f"   Debug Mode: {settings.debug}",
             style=c.Cli.MessageStyles.CYAN,
         )
         cli.print(
-            f"   Log Level: {cli.settings.Cli.cli_log_level}",
+            f"   Log Level: {settings.cli_log_level}",
             style=c.Cli.MessageStyles.CYAN,
         )
         cli.print(
-            f"   Output Format: {cli.settings.Cli.output_format}",
+            f"   Output Format: {settings.cli_output_format}",
             style=c.Cli.MessageStyles.CYAN,
         )
         cli.print(
-            f"   App Name: {cli.settings.Cli.app_name}",
+            f"   App Name: {settings.cli_app_name}",
             style=c.Cli.MessageStyles.CYAN,
         )
-        return cli.settings
+        return settings
 
     @staticmethod
     def show_settings_locations() -> m.Cli.DisplayData:
         """Display settings file locations for YOUR application."""
         home_dir = Path.home()
-        token_file_path = u.Cli.auth_token_file_path(cli.settings.Cli.token_file)
+        token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         display_payload = u.to_json_dict({
             "Home Directory": str(home_dir),
             "Settings Directory": str(home_dir / c.Cli.PATH_FLEXT_DIR_NAME),
@@ -92,9 +93,9 @@ class Ex06Settings:
             case _:
                 debug = profile_name == c.DeploymentEnvironment.DEVELOPMENT
                 output_format = c.Cli.OutputFormats.TABLE
-        profile_config = cli.settings.clone(
+        profile_config = settings.clone(
             debug=debug,
-            Cli={"output_format": output_format},
+            cli_output_format=output_format,
         )
         cli.print(
             f"✅ Profile '{profile_name.value}' loaded successfully",
@@ -104,8 +105,8 @@ class Ex06Settings:
             config_data=u.to_json_dict({
                 "Profile": profile_name.value,
                 "Debug": str(profile_config.debug),
-                "Output": profile_config.Cli.output_format,
-                "App Name": profile_config.Cli.app_name,
+                "Output": profile_config.cli_output_format,
+                "App Name": profile_config.cli_app_name,
             }),
         )
         return r[p.Cli.Settings].ok(profile_config)
