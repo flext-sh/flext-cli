@@ -92,9 +92,7 @@ class FlextCliUtilitiesValidation:
         """Render pydantic errors as located command/model/field lines."""
         lines: list[str] = []
         for error in exc.errors():
-            loc = ".".join(
-                str(part) for part in error.get("loc", ()) if part != "body"
-            )
+            loc = ".".join(str(part) for part in error.get("loc", ()) if part != "body")
             field = loc or "<input>"
             message = str(error.get("msg", "invalid value"))
             lines.append(
@@ -119,9 +117,7 @@ class FlextCliUtilitiesValidation:
         errors = exc.errors()
         if not errors:
             return None
-        loc = ".".join(
-            str(part) for part in errors[0].get("loc", ()) if part != "body"
-        )
+        loc = ".".join(str(part) for part in errors[0].get("loc", ()) if part != "body")
         return loc or None
 
     @staticmethod

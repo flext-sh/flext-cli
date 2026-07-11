@@ -166,7 +166,10 @@ class TestsFlextCliTemplateRenderDir:
             ),
         )
         skipped = u.Cli.template_render_dir(
-            root, out, {"v": 1}, skip_entries,
+            root,
+            out,
+            {"v": 1},
+            skip_entries,
         ).unwrap()
         assert len(skipped.skipped) == 1
         assert (out / "a").read_text(encoding="utf-8") == "old"
@@ -178,7 +181,10 @@ class TestsFlextCliTemplateRenderDir:
             ),
         )
         created = u.Cli.template_render_dir(
-            root, out, {"v": 2}, over_entries,
+            root,
+            out,
+            {"v": 2},
+            over_entries,
         ).unwrap()
         assert len(created.created) == 1
         assert (out / "a").read_text(encoding="utf-8") == "new=2"
@@ -201,7 +207,10 @@ class TestsFlextCliTemplateRenderDir:
 
     def test_render_dir_missing_root_fails(self, tmp_path: Path) -> None:
         result = u.Cli.template_render_dir(
-            tmp_path / "nope", tmp_path / "out", {}, (),
+            tmp_path / "nope",
+            tmp_path / "out",
+            {},
+            (),
         )
         assert result.failure
 

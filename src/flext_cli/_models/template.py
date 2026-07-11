@@ -24,7 +24,9 @@ class FlextCliModelsTemplate:
 
         relpath_template: Annotated[
             Path,
-            m.Field(description="Template path relative to templates_root (ends with .j2)"),
+            m.Field(
+                description="Template path relative to templates_root (ends with .j2)"
+            ),
         ]
         output_relpath: Annotated[
             Path,
@@ -42,7 +44,9 @@ class FlextCliModelsTemplate:
         ] = True
         overwrite: Annotated[
             bool,
-            m.Field(default=False, description="Overwrite an existing destination file"),
+            m.Field(
+                default=False, description="Overwrite an existing destination file"
+            ),
         ] = False
 
     class TemplateRenderReport(m.ArbitraryTypesModel):

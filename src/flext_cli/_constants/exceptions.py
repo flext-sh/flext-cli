@@ -13,9 +13,10 @@ from __future__ import annotations
 from typing import ClassVar
 
 from click import Abort, ClickException
-from flext_core._exceptions.types import FlextExceptionsTypes
 from typer import Exit
 from yaml import YAMLError
+
+from flext_core._exceptions.types import FlextExceptionsTypes
 
 
 class CliDefinitionError(FlextExceptionsTypes.ValidationError):
