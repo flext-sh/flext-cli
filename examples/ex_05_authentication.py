@@ -24,7 +24,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, cli, u
+from flext_cli import c, cli, settings, u
 from flext_core import p, r
 
 
@@ -44,7 +44,7 @@ class Ex05Authentication:
                 style=c.Cli.MessageStyles.BOLD_RED,
             )
             return r[bool].fail(auth_result.error or "Login failed")
-        token_file_path = u.Cli.auth_token_file_path(cli.settings.Cli.token_file)
+        token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         cli.print("✅ Login successful!", style=c.Cli.MessageStyles.GREEN)
         cli.print(
             f"   Token saved to: {token_file_path}",
@@ -75,7 +75,7 @@ class Ex05Authentication:
         if len(token) < 20:
             cli.print("❌ Invalid token format", style=c.Cli.MessageStyles.BOLD_RED)
             return r[bool].fail("Invalid token format")
-        token_file_path = u.Cli.auth_token_file_path(cli.settings.Cli.token_file)
+        token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         cli.print("✅ Token is valid", style=c.Cli.MessageStyles.GREEN)
         cli.print(f"   Token: {token[:30]}...", style=c.Cli.MessageStyles.CYAN)
         cli.print(
@@ -87,7 +87,7 @@ class Ex05Authentication:
     @staticmethod
     def logout() -> p.Result[bool]:
         """Logout and clear the saved token if a session exists."""
-        token_file_path = u.Cli.auth_token_file_path(cli.settings.Cli.token_file)
+        token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         if not token_file_path.exists():
             cli.print("⚠️  No active session", style=c.Cli.MessageStyles.YELLOW)
             return r[bool].fail("No active session")
