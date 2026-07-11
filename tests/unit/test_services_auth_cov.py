@@ -2,8 +2,9 @@
 
 Exercises the public ``p.Cli.AuthService`` contract only: r[T] outcomes,
 persisted-token roundtrips, generated-token invariants, and error paths.
-The token file is isolated per test through the ``FLEXT_CLI_CLI__TOKEN_FILE``
-environment boundary pointed at ``tmp_path`` — no shared/global state.
+The token file is isolated per test by pointing the canonical settings
+singleton's ``cli_token_file`` at ``tmp_path`` and restoring the original
+value afterwards — no shared/global state leaks between tests.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -15,10 +16,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from flext_cli import settings
 from flext_cli.services.auth import FlextCliAuth
 from tests.constants import c
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from pathlib import Path
 
     from tests.protocols import p
@@ -28,11 +31,19 @@ class TestsFlextCliServicesAuthCov:
     """Behavioral tests for the FlextCliAuth authentication service."""
 
     @pytest.fixture
-    def token_file(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-        """Isolate the auth token file inside the test's tmp dir via env config."""
+    def token_file(self, tmp_path: Path) -> Iterator[Path]:
+        """Isolate the auth token file inside the test's tmp dir."""
         path = tmp_path / "auth_token.json"
-        monkeypatch.setenv("FLEXT_CLI_CLI__TOKEN_FILE", str(path))
-        return path
+        # NOTE (multi-agent): the auth service reads the module-level
+        # ``settings`` object directly, so isolation must mutate that very
+        # instance (update_global would only replace the class singleton,
+        # which the service never re-reads); the original value is restored.
+        original_token_file = settings.cli_token_file
+        settings.cli_token_file = str(path)
+        try:
+            yield path
+        finally:
+            settings.cli_token_file = original_token_file
 
     @pytest.fixture
     def auth(self, token_file: Path) -> p.Cli.AuthService:
