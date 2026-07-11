@@ -63,9 +63,9 @@ class TestsFlextCliCliParams:
 
         tm.ok(result)
         updated = result.value
-        tm.that(updated.Cli.verbose is True, eq=True)
+        tm.that(updated.cli_verbose is True, eq=True)
         tm.that(updated.debug is True, eq=True)
-        tm.that(updated.Cli.cli_log_level, eq=c.LogLevel.DEBUG)
+        tm.that(updated.cli_log_level, eq=c.LogLevel.DEBUG)
 
     def test_apply_to_config_trace_with_debug_enables_trace(
         self,
@@ -92,8 +92,8 @@ class TestsFlextCliCliParams:
             log_level=c.LogLevel.DEBUG,
         )
         tm.ok(second)
-        tm.that(second.value.Cli.verbose is True, eq=True)
-        tm.that(second.value.Cli.cli_log_level, eq=c.LogLevel.DEBUG)
+        tm.that(second.value.cli_verbose is True, eq=True)
+        tm.that(second.value.cli_log_level, eq=c.LogLevel.DEBUG)
 
     # ── apply_to_config: failure paths ───────────────────────────────
 
