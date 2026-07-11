@@ -7,8 +7,9 @@ Every assertion targets an observable contract of the public API:
   annotations, and resolved defaults) -- this signature *is* the return
   contract of the builder, not private state; and
 * invoking the built command drives the real end-to-end flow: the handler
-  receives a validated model, settings are mutated from parsed values, and
-  the handler return value flows back to the caller.
+  receives a validated model built from parsed values, the settings model
+  used to seed option defaults is left untouched (invocation never writes
+  back into it), and the handler return value flows back to the caller.
 
 No private attribute access, collaborator spying, or patching is used.
 """
@@ -218,17 +219,32 @@ class TestsFlextCliOptionsUtilsCov:
         with pytest.raises(m.ValidationError):
             command(shout=True)
 
-    def test_invoking_command_writes_parsed_values_back_into_settings(self) -> None:
+    def test_invoking_command_uses_parsed_values_without_mutating_settings(
+        self,
+    ) -> None:
+        # Write-back into the settings model was removed (commit f5f83dee);
+        # the observable contract is now: parsed values reach the handler
+        # through the validated model and the settings instance stays intact.
         settings = self.OptionsDefaultsModel(name="start-name")
+        received: dict[str, TestsFlextCliOptionsUtilsCov.OptionsDefaultsModel] = {}
+
+        def _capture(
+            params: TestsFlextCliOptionsUtilsCov.OptionsDefaultsModel,
+        ) -> str:
+            received["model"] = params
+            return params.name
+
         command = cli.model_command(
             self.OptionsDefaultsModel,
-            self._noop_handler,
+            _capture,
             settings=settings,
         )
 
-        command(name="parsed-name")
+        result = command(name="parsed-name")
 
-        assert settings.name == "parsed-name"
+        assert result == "parsed-name"
+        assert received["model"].name == "parsed-name"
+        assert settings.name == "start-name"
 
 
 __all__: list[str] = ["TestsFlextCliOptionsUtilsCov"]
