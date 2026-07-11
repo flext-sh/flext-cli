@@ -4,14 +4,32 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import overload
+from typing import TYPE_CHECKING, overload
 
 from flext_cli import c, m, t
 from flext_core import u
 
+if TYPE_CHECKING:
+    from flext_cli import p
+
 
 class FlextCliUtilitiesSettings:
     """Settings and selector methods exposed directly on ``u.Cli``."""
+
+    @staticmethod
+    def cli_test_env(cli_settings: p.Cli.CliSettings) -> bool:
+        """Detect test/CI runtime from the flat CLI settings scalars.
+
+        NOTE (multi-agent): replaces the removed ``settings.Cli.test_env``
+        computed field — behavior lives in the utilities layer, settings stay
+        pure flat data (§2.6).
+        """
+        normalized_shell = (cli_settings.cli_shell_command or "").strip().lower()
+        return (
+            cli_settings.cli_pytest_current_test is not None
+            or "pytest" in normalized_shell
+            or cli_settings.cli_ci
+        )
 
     @staticmethod
     def project_names_from_values(

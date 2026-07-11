@@ -60,6 +60,13 @@ class FlextCliCli(FlextCliCliPart03):
                 if exc.exit_code == 0
                 else r[bool].fail(f"CLI exited with code {exc.exit_code}")
             )
+        except SystemExit as exc:
+            exit_code = exc.code if isinstance(exc.code, int) else 1
+            result = (
+                r[bool].ok(True)
+                if exit_code == 0
+                else r[bool].fail(f"CLI exited with code {exit_code}")
+            )
         except Exception as exc:
             result = r[bool].fail(
                 u.Cli.normalize_required_text(
@@ -91,10 +98,25 @@ class FlextCliCli(FlextCliCliPart03):
         ``__main__.py`` entry points after ``execute_app`` has returned),
         delegates to ``sys.exit(code)`` for a clean process exit without a
         ``typer.Exit`` traceback.
+
+        NOTE (multi-agent, mro-wkii.19.4): the supported Typer runtime shares
+        Click's public context. Private ``typer._click`` imports are invalid and
+        would break every consumer before command registration.
+
+        NOTE (multi-agent, cosmos-main-66s5): typer 0.26.8 (cosmos workspace
+        venv) runs callbacks under a VENDORED click (``typer._click``) whose
+        context local is separate from real click — probing only real click
+        took the ``sys.exit`` path inside callbacks and leaked ``SystemExit``
+        out of ``execute_app``, breaking ``main() -> int`` for every consumer.
+        Probe the vendored globals via ``sys.modules`` (already loaded by
+        typer when present; no private import, version-tolerant).
         """
-        try:
-            click.get_current_context(silent=False)
-        except RuntimeError:
+        vendored = sys.modules.get("typer._click.globals")
+        in_context = click.get_current_context(silent=True) is not None or (
+            vendored is not None
+            and vendored.get_current_context(silent=True) is not None
+        )
+        if not in_context:
             sys.exit(code)
         raise typer.Exit(code=code)
 

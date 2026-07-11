@@ -32,7 +32,7 @@ class FlextCliCli(FlextCliCliPart01):
         resolved_log_level: str = (
             params.log_level
             if params.log_level is not None
-            else settings.Cli.cli_log_level
+            else settings.cli_log_level
         )
         next_params = params.model_copy(
             update={"log_level": resolved_log_level},
@@ -52,7 +52,8 @@ class FlextCliCli(FlextCliCliPart01):
         # NOTE (multi-agent): the ``settings`` singleton is always the
         # concrete FlextCliSettings, which provably satisfies the Settings
         # protocol — the old isinstance guard was dead code (pyright
-        # reportUnnecessaryIsInstance).
+        # reportUnnecessaryIsInstance). Settings are flat scalars (§2.6):
+        # field-level diff drives ``update_global`` directly.
         if updated_settings is settings:
             return
         overrides: dict[str, t.SettingsOverride | None] = {}
@@ -60,8 +61,17 @@ class FlextCliCli(FlextCliCliPart01):
             overrides["debug"] = updated_settings.debug
         if updated_settings.trace != settings.trace:
             overrides["trace"] = updated_settings.trace
-        if updated_settings.Cli != settings.Cli:
-            overrides["Cli"] = updated_settings.Cli
+        for field in (
+            "cli_verbose",
+            "cli_quiet",
+            "cli_no_color",
+            "cli_log_level",
+            "cli_log_verbosity",
+            "cli_output_format",
+        ):
+            updated_value = getattr(updated_settings, field)
+            if updated_value != getattr(settings, field):
+                overrides[field] = updated_value
         if overrides:
             settings.update_global(**overrides)
 

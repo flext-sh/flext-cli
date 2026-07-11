@@ -35,12 +35,13 @@ class FlextCliPromptsSupport(s):
         NOTE (multi-agent): this method was lost in a refactor; every
         ``prompt()`` call hit AttributeError at runtime. The override private
         attr wins when set (tests pin it via ``override_test_env``); otherwise
-        delegate to the canonical ``settings.Cli.test_env`` computed field —
-        do not reimplement pytest/CI detection here.
+        delegate to the canonical ``u.Cli.cli_test_env`` utility — settings
+        stay pure flat data (§2.6), detection logic lives in the utilities
+        layer, never reimplemented here.
         """
         if self._test_env_override is not None:
             return self._test_env_override
-        return settings.Cli.test_env
+        return u.Cli.cli_test_env(settings)
 
     def _fatal(
         self,
