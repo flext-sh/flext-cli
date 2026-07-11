@@ -19,7 +19,16 @@ class FlextCliProtocolsBase:
 
     @runtime_checkable
     class CliSettings(p.Model, Protocol):
-        """Namespaced CLI runtime settings branch."""
+        """Namespaced CLI runtime settings branch.
+
+        NOTE (multi-agent): published structural contract for the branch
+        (composed into ``p.Cli``). ``p.Cli.Settings.Cli`` is typed as the
+        CONCRETE ``FlextCliSettings.CliSettings`` instead of this protocol —
+        pyrefly cannot reconcile any pydantic ``BaseModel`` with ``p.Model``
+        (``model_fields`` metaclass descriptor mismatch, proven against
+        instance/ClassVar/property forms), so the hot path uses the exact
+        type and this protocol stays for external DI/structural typing.
+        """
 
         @property
         def app_name(self) -> str:

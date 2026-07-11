@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import typer
 
-from flext_cli import m, p, settings, t, u
+from flext_cli import m, settings, t, u
 from flext_cli.services._cli_parts.flextclicli_part_01 import (
     FlextCliCli as FlextCliCliPart01,
 )
@@ -32,7 +32,7 @@ class FlextCliCli(FlextCliCliPart01):
         resolved_log_level: str = (
             params.log_level
             if params.log_level is not None
-            else str(settings.Cli.cli_log_level)
+            else settings.Cli.cli_log_level
         )
         next_params = params.model_copy(
             update={"log_level": resolved_log_level},
@@ -49,7 +49,11 @@ class FlextCliCli(FlextCliCliPart01):
             return
 
         updated_settings = result.value
-        if updated_settings is settings or not isinstance(settings, p.Cli.Settings):
+        # NOTE (multi-agent): the ``settings`` singleton is always the
+        # concrete FlextCliSettings, which provably satisfies the Settings
+        # protocol — the old isinstance guard was dead code (pyright
+        # reportUnnecessaryIsInstance).
+        if updated_settings is settings:
             return
         overrides: dict[str, t.SettingsOverride | None] = {}
         if updated_settings.debug != settings.debug:

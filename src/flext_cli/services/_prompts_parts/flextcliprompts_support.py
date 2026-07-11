@@ -5,7 +5,7 @@ from __future__ import annotations
 import getpass
 from typing import Annotated, Self
 
-from flext_cli import c, m, p, r, s, t, u
+from flext_cli import c, m, p, r, s, settings, t, u
 
 
 class FlextCliPromptsSupport(s):
@@ -28,6 +28,19 @@ class FlextCliPromptsSupport(s):
         """Replace prompt runtime state using the canonical CLI model."""
         self.state = state
         return self
+
+    def _is_test_env(self) -> bool:
+        """Whether prompt logging must use test-safe behavior.
+
+        NOTE (multi-agent): this method was lost in a refactor; every
+        ``prompt()`` call hit AttributeError at runtime. The override private
+        attr wins when set (tests pin it via ``override_test_env``); otherwise
+        delegate to the canonical ``settings.Cli.test_env`` computed field —
+        do not reimplement pytest/CI detection here.
+        """
+        if self._test_env_override is not None:
+            return self._test_env_override
+        return settings.Cli.test_env
 
     def _fatal(
         self,

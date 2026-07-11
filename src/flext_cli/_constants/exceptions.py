@@ -58,13 +58,18 @@ class FlextCliConstantsExceptions:
             ...
     """
 
+    # NOTE (multi-agent): local exception classes MUST keep their exact
+    # ``type[<Class>]`` annotation. Widening to ``type[BaseException]`` hides
+    # the real ``FlextBaseError.__init__`` (with **extra_kwargs) from pyrefly,
+    # which then rejects ``command=``/``model=`` kwargs at raise sites
+    # (validation.py). External framework classes keep the framework type.
     CliAbortError: ClassVar[type[BaseException]] = Abort
     CliCommandError: ClassVar[type[BaseException]] = ClickException
     CliExit: ClassVar[type[BaseException]] = Exit
     YamlParseError: ClassVar[type[Exception]] = YAMLError
     YamlRoundtripError: ClassVar[type[Exception]] = RuamelYAMLError
-    CliDefinitionError: ClassVar[type[BaseException]] = CliDefinitionError
-    CliValidationError: ClassVar[type[BaseException]] = CliValidationError
+    CliDefinitionError: ClassVar[type[CliDefinitionError]] = CliDefinitionError
+    CliValidationError: ClassVar[type[CliValidationError]] = CliValidationError
 
 
 __all__: list[str] = [
