@@ -1,10 +1,11 @@
 """Behavioral tests for the FLEXT CLI service base through the public facade.
 
 Exercises the OBSERVABLE public contract of the ``cli`` facade
-(``flext_cli.api.FlextCli``): clean instantiation, the settings singleton
-contract, the fresh-settings factory contract, and the ``r[T]`` outcomes of
-the settings validation / snapshot operations. Also verifies the test service
-base exposes the CLI+Tests namespaced settings tree.
+(``flext_cli.api.FlextCli``): clean instantiation, the canonical settings
+singleton contract, fresh-instance creation via ``model_validate``, and the
+``r[T]`` outcomes of the settings validation / snapshot operations. Also
+verifies the test service base composes the flat CLI settings with the Tests
+namespace.
 
 Modules tested: flext_cli.api (public ``cli`` facade), tests.base
 Scope: Public base-service behavior — no private attributes, no internal spies.
@@ -18,10 +19,10 @@ from __future__ import annotations
 
 import pytest
 from flext_tests import tm
+from pydantic import BaseModel
 
-from flext_cli import FlextCli, cli
+from flext_cli import FlextCli, cli, settings
 from tests.base import s
-from tests.models import m
 from tests.protocols import p
 
 
@@ -39,9 +40,8 @@ class TestsFlextCliBase:
         tm.that(service, none=False)
         tm.that(service, is_=type(cli))
 
-    def test_settings_property_returns_typed_settings(self, facade: FlextCli) -> None:
-        """`settings` returns an object satisfying the public Cli settings protocol."""
-        settings = facade.settings
+    def test_canonical_settings_satisfies_cli_protocol(self) -> None:
+        """The canonical ``settings`` singleton satisfies the Cli settings protocol."""
         tm.that(settings, none=False)
         tm.that(settings, is_=p.Cli.Settings)
 
@@ -59,14 +59,14 @@ class TestsFlextCliBase:
         service2 = type(cli)()
         assert service1.settings is service2.settings
 
-    def test_new_settings_returns_fresh_typed_instances(self, facade: FlextCli) -> None:
-        """`new_settings` is a factory: each call yields a distinct typed instance."""
-        first = facade.new_settings()
-        second = facade.new_settings()
+    def test_clone_returns_fresh_typed_instances(self) -> None:
+        """``clone`` is the factory: each call yields a distinct typed instance."""
+        first = settings.clone()
+        second = settings.clone()
         tm.that(first, is_=p.Cli.Settings)
         tm.that(second, is_=p.Cli.Settings)
         assert first is not second
-        assert first is not facade.settings
+        assert first is not settings
 
     def test_validate_settings_reports_success_outcome(self, facade: FlextCli) -> None:
         """`validate_settings` returns a successful r[bool] carrying True."""
@@ -97,12 +97,13 @@ class TestsFlextCliBase:
         assert directory.success
         assert directory.unwrap() == facade.settings_snapshot().unwrap().settings_dir
 
-    @pytest.mark.parametrize("namespace", ["Cli", "Tests"])
-    def test_service_base_exposes_namespaced_settings_tree(
-        self, namespace: str
-    ) -> None:
-        """The test service base surfaces both Cli and Tests settings namespaces."""
-        settings = s.fetch_settings()
-        tm.that(settings, is_=p.Cli.Settings)
-        section = getattr(settings, namespace)
-        assert isinstance(section, m.SettingsValue)
+    def test_service_base_settings_satisfy_cli_protocol(self) -> None:
+        """The test service base settings expose the flat CLI settings surface."""
+        test_settings = s.fetch_settings()
+        tm.that(test_settings, is_=p.Cli.Settings)
+
+    def test_service_base_settings_expose_tests_namespace(self) -> None:
+        """The test service base settings compose the Tests settings namespace."""
+        test_settings = s.fetch_settings()
+        section = test_settings.Tests
+        assert isinstance(section, BaseModel)
