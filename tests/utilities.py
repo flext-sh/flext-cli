@@ -18,9 +18,9 @@ from flext_cli import (
     cli,
     u,
 )
-from tests.base import s
 from tests.constants import c
 from tests.protocols import p
+from tests.settings import TestsFlextCliSettings
 from tests.typings import t
 
 
@@ -107,16 +107,16 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
         @staticmethod
         def create_test_settings() -> p.Result[p.Cli.Settings]:
             """Create test settings via Railway pattern."""
-            return r[p.Cli.Settings].create_from_callable(s.fetch_settings)
+            return r[p.Cli.Settings].ok(TestsFlextCliSettings())
 
         @staticmethod
         def create_cli_app() -> p.Result[t.Cli.CliApp]:
             """Create CLI app via Railway pattern."""
+            # NOTE (multi-agent, mro-wkii.19.4): the CLI owns global settings.
             return r[t.Cli.CliApp].ok(
                 cli.create_app_with_common_params(
                     name="tests-cli",
                     help_text="Test CLI app",
-                    settings=cli.settings,
                 ),
             )
 
