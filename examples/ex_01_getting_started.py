@@ -11,7 +11,7 @@ from tempfile import TemporaryDirectory
 from typing import override
 
 from examples import c, m, p, r, s, t, u
-from flext_cli import cli
+from flext_cli import cli, settings
 
 
 class ExamplesFlextCliGettingStarted(s):
@@ -58,10 +58,10 @@ class ExamplesFlextCliGettingStarted(s):
 
         cli.print("\n1. Setup via s/base.py", style=c.Cli.MessageStyles.BOLD_CYAN)
         runtime_snapshot: t.JsonMapping = {
-            "output_format": cli.settings.Cli.output_format,
-            "cli_log_level": cli.settings.Cli.cli_log_level,
-            "verbose": cli.settings.Cli.verbose,
-            "quiet": cli.settings.Cli.quiet,
+            "output_format": settings.cli_output_format,
+            "cli_log_level": settings.cli_log_level,
+            "verbose": settings.cli_verbose,
+            "quiet": settings.cli_quiet,
         }
         u.display_config_table(
             u.to_json_dict(runtime_snapshot),
@@ -122,7 +122,7 @@ class ExamplesFlextCliGettingStarted(s):
 
         summary: t.JsonMapping = {
             "app_name": app_settings.app_name,
-            "output_format": cli.settings.Cli.output_format,
+            "output_format": settings.cli_output_format,
             "loaded_field_count": len(loaded_config.content),
             "result_contract": "public-r",
         }
