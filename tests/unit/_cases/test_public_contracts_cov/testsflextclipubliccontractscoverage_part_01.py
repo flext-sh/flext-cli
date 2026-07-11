@@ -8,7 +8,7 @@ from tests.constants import c
 from tests.protocols import p
 from tests.utilities import u
 
-from flext_cli import cli, m
+from flext_cli import FlextCliSettings, cli, m, settings
 
 
 class TestsFlextCliPublicContractsCoverage:
@@ -27,46 +27,29 @@ class TestsFlextCliPublicContractsCoverage:
         debug: bool | None = None
 
     def test_public_facade_and_settings_contract(self) -> None:
-        cli.settings.reset_for_testing()
+        # NOTE (multi-agent): flat cli_* settings (§2.6) — fresh instances come
+        # from ``settings.clone()`` and test-runtime detection lives in
+        # ``u.Cli.cli_test_env`` (behavior moved off the settings model).
+        FlextCliSettings.reset_for_testing()
 
-        fresh_settings = cli.new_settings()
+        fresh_settings = settings.clone()
         assert isinstance(fresh_settings, p.Cli.Settings)
-        assert fresh_settings.Cli.test_env is False
+        assert u.Cli.cli_test_env(fresh_settings) is False
 
-        cli.settings.reset_for_testing()
-        shell_settings = cli.new_settings()
-        shell_settings = shell_settings.model_copy(
-            update={
-                "Cli": shell_settings.Cli.model_copy(
-                    update={"shell_command": "pytest -k smoke"},
-                ),
-            },
+        shell_settings = settings.clone(cli_shell_command="pytest -k smoke")
+        assert u.Cli.cli_test_env(shell_settings) is True
+
+        pytest_settings = settings.clone(
+            cli_pytest_current_test=(
+                "tests/unit/test_public_contracts_cov.py::test_public_facade"
+            ),
         )
-        assert shell_settings.Cli.test_env is True
+        assert u.Cli.cli_test_env(pytest_settings) is True
 
-        cli.settings.reset_for_testing()
-        pytest_settings = cli.new_settings()
-        pytest_settings = pytest_settings.model_copy(
-            update={
-                "Cli": pytest_settings.Cli.model_copy(
-                    update={
-                        "pytest_current_test": (
-                            "tests/unit/test_public_contracts_cov.py::test_public_facade"
-                        ),
-                    },
-                ),
-            },
-        )
-        assert pytest_settings.Cli.test_env is True
+        ci_settings = settings.clone(cli_ci=True)
+        assert u.Cli.cli_test_env(ci_settings) is True
 
-        cli.settings.reset_for_testing()
-        ci_settings = cli.new_settings()
-        ci_settings = ci_settings.model_copy(
-            update={"Cli": ci_settings.Cli.model_copy(update={"ci": True})},
-        )
-        assert ci_settings.Cli.test_env is True
-
-        cli.settings.reset_for_testing()
+        FlextCliSettings.reset_for_testing()
 
         facade_result = cli.execute()
 
@@ -80,7 +63,7 @@ class TestsFlextCliPublicContractsCoverage:
         assert components["prompts"] == "available"
 
     def test_public_model_command_utility_contract(self) -> None:
-        settings = self._CommandModel(label="configured", debug=True)
+        command_settings = self._CommandModel(label="configured", debug=True)
 
         def handler(
             model: TestsFlextCliPublicContractsCoverage._CommandModel,
@@ -90,12 +73,15 @@ class TestsFlextCliPublicContractsCoverage:
         command = u.Cli.build_model_command(
             self._CommandModel,
             handler,
-            settings=settings,
+            settings=command_settings,
         )
         signature = inspect.signature(command)
 
+        # NOTE (multi-agent): ``u.Cli.build_model_command`` renders model-field
+        # defaults into the signature; settings-seeded defaults are the
+        # ``cli.model_command`` contract, not this utility's.
         assert signature.parameters["label"].default is inspect.Parameter.empty
-        assert signature.parameters["debug"].default is True
+        assert signature.parameters["debug"].default is False
         assert u.Cli.model_source_data(
             self._CommandModel,
             self._CommandSource(label="mapped", debug=None),
