@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli import c, cli, m, p, u
+from flext_cli import FlextCliSettings, c, m, p, u
 from tests.constants import c as tc
 
 
@@ -44,7 +44,7 @@ class TestsFlextCliParams:
     # -- params_set_bool ----------------------------------------------------
 
     def test_set_bool_applies_root_and_cli_flags(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(
             debug=True,
             trace=True,
@@ -56,42 +56,42 @@ class TestsFlextCliParams:
         assert result.success
         updated = result.value
         assert updated.debug is True
-        assert updated.Cli.verbose is True
-        assert updated.Cli.quiet is True
-        assert updated.Cli.no_color is True
+        assert updated.cli_verbose is True
+        assert updated.cli_quiet is True
+        assert updated.cli_no_color is True
 
     def test_set_bool_trace_without_debug_fails(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(trace=True)
         result = u.Cli.params_set_bool(settings, params)
         assert result.failure
         assert result.error == tc.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG
 
     def test_set_bool_no_flags_returns_settings_unchanged(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         result = u.Cli.params_set_bool(settings, m.Cli.CliParamsConfig())
         assert result.success
         assert result.value.debug is settings.debug
-        assert result.value.Cli.verbose is settings.Cli.verbose
+        assert result.value.cli_verbose is settings.cli_verbose
 
     # -- params_set_log_level ----------------------------------------------
 
     @pytest.mark.parametrize("level", ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
     def test_set_log_level_applies_valid_level(self, level: str) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(log_level=level)
         result = u.Cli.params_set_log_level(settings, params)
         assert result.success
-        assert result.value.Cli.cli_log_level == level
+        assert result.value.cli_log_level == level
 
     def test_set_log_level_none_returns_settings_unchanged(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         result = u.Cli.params_set_log_level(settings, m.Cli.CliParamsConfig())
         assert result.success
-        assert result.value.Cli.cli_log_level == settings.Cli.cli_log_level
+        assert result.value.cli_log_level == settings.cli_log_level
 
     def test_set_log_level_invalid_fails_with_options_message(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(log_level="BOGUS")
         result = u.Cli.params_set_log_level(settings, params)
         assert result.failure
@@ -106,32 +106,32 @@ class TestsFlextCliParams:
 
     @pytest.mark.parametrize("log_format", ["compact", "detailed", "full"])
     def test_set_format_applies_valid_log_format(self, log_format: str) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(log_format=log_format)
         result = u.Cli.params_set_format(settings, params)
         assert result.success
-        assert result.value.Cli.log_verbosity == log_format
+        assert result.value.cli_log_verbosity == log_format
 
     @pytest.mark.parametrize(
         "output_format",
         ["json", "yaml", "csv", "table", "plain", "xml", "text"],
     )
     def test_set_format_applies_valid_output_format(self, output_format: str) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(output_format=output_format)
         result = u.Cli.params_set_format(settings, params)
         assert result.success
-        assert result.value.Cli.output_format == output_format
+        assert result.value.cli_output_format == output_format
 
     def test_set_format_none_returns_settings_unchanged(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         result = u.Cli.params_set_format(settings, m.Cli.CliParamsConfig())
         assert result.success
-        assert result.value.Cli.log_verbosity == settings.Cli.log_verbosity
-        assert result.value.Cli.output_format == settings.Cli.output_format
+        assert result.value.cli_log_verbosity == settings.cli_log_verbosity
+        assert result.value.cli_output_format == settings.cli_output_format
 
     def test_set_format_invalid_log_format_fails(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(log_format="BAD")
         result = u.Cli.params_set_format(settings, params)
         assert result.failure
@@ -143,7 +143,7 @@ class TestsFlextCliParams:
         assert result.error == expected
 
     def test_set_format_invalid_output_format_fails(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(output_format="BAD")
         result = u.Cli.params_set_format(settings, params)
         assert result.failure
@@ -157,7 +157,7 @@ class TestsFlextCliParams:
     # -- params_apply -------------------------------------------------------
 
     def test_apply_chains_all_stages_on_valid_params(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(
             debug=True,
             log_level="INFO",
@@ -168,19 +168,19 @@ class TestsFlextCliParams:
         assert result.success
         updated = result.value
         assert updated.debug is True
-        assert updated.Cli.cli_log_level == "INFO"
-        assert updated.Cli.output_format == "yaml"
-        assert updated.Cli.log_verbosity == "detailed"
+        assert updated.cli_log_level == "INFO"
+        assert updated.cli_output_format == "yaml"
+        assert updated.cli_log_verbosity == "detailed"
 
     def test_apply_short_circuits_on_first_stage_failure(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(trace=True)
         result = u.Cli.params_apply(settings, params)
         assert result.failure
         assert result.error == tc.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG
 
     def test_apply_returns_result_type(self) -> None:
-        settings = cli.new_settings()
+        settings = FlextCliSettings.model_validate({})
         result = u.Cli.params_apply(settings, m.Cli.CliParamsConfig())
         assert isinstance(result, p.Result)
         assert result.success

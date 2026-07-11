@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Self, override
 import pytest
 from flext_tests import reset_settings
 
-from flext_cli import cli
+from flext_cli import FlextCliSettings
 from flext_cli.services.prompts import FlextCliPrompts
 from tests.models import m
 
@@ -144,13 +144,13 @@ def make_failing_prompts() -> Callable[..., TestsFlextCliFailingLogPrompts]:
 def pytest_runtest_setup(item: pytest.Item) -> None:
     """Reset CLI settings before each test item."""
     _ = item
-    cli.settings.reset_for_testing()
+    FlextCliSettings.reset_for_testing()
 
 
 def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item | None) -> None:
     """Reset CLI settings after each test item."""
     _ = item, nextitem
-    cli.settings.reset_for_testing()
+    FlextCliSettings.reset_for_testing()
 
 
 __all__: list[str] = [

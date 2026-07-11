@@ -23,6 +23,12 @@ class FlextCliConstantsSettings:
     CLI_DEFAULT_NO_COLOR: Final[bool] = False
     CLI_DEFAULT_VERBOSE: Final[bool] = False
     CLI_DEFAULT_QUIET: Final[bool] = False
+    # NOTE (multi-agent): canonical scalar defaults consumed by _settings.py —
+    # the settings foundation imports this PURE private module directly
+    # (no facade cycle) so defaults stay SSOT with the enums (§1.8/§2.5).
+    CLI_DEFAULT_LOG_VERBOSITY: Final[str] = ce.LogVerbosity.COMPACT.value
+    CLI_DEFAULT_LOG_LEVEL: Final[str] = c.LogLevel.INFO.value
+    CLI_DEFAULT_OUTPUT_FORMAT: Final[str] = ce.OutputFormats.TABLE.value
     ENV_DEFAULT_CI: Final[bool] = False
     ENV_VAR_CI: Final[str] = "CI"
     ENV_VAR_PYTEST_CURRENT_TEST: Final[str] = "PYTEST_CURRENT_TEST"

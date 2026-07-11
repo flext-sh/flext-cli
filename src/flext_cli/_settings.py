@@ -17,6 +17,7 @@ from typing import Annotated, ClassVar
 from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 
+from flext_cli._constants.settings import FlextCliConstantsSettings
 from flext_core import FlextSettings
 
 
@@ -28,21 +29,29 @@ class FlextCliSettings(FlextSettings):
         extra="ignore",
     )
 
-    cli_verbose: Annotated[bool, Field(description="Verbose output")] = False
-    cli_quiet: Annotated[bool, Field(description="Quiet output")] = False
+    cli_verbose: Annotated[bool, Field(description="Verbose output")] = (
+        FlextCliConstantsSettings.CLI_DEFAULT_VERBOSE
+    )
+    cli_quiet: Annotated[bool, Field(description="Quiet output")] = (
+        FlextCliConstantsSettings.CLI_DEFAULT_QUIET
+    )
     cli_app_name: Annotated[str, Field(description="CLI application name")] = (
-        "flext-cli"
+        FlextCliConstantsSettings.FLEXT_CLI
     )
     cli_log_verbosity: Annotated[
         str,
         Field(description="Log format (compact, detailed, full)"),
-    ] = "compact"
-    cli_log_level: Annotated[str, Field(description="CLI log level")] = "info"
-    cli_no_color: Annotated[bool, Field(description="Disable colored output")] = False
+    ] = FlextCliConstantsSettings.CLI_DEFAULT_LOG_VERBOSITY
+    cli_log_level: Annotated[str, Field(description="CLI log level")] = (
+        FlextCliConstantsSettings.CLI_DEFAULT_LOG_LEVEL
+    )
+    cli_no_color: Annotated[bool, Field(description="Disable colored output")] = (
+        FlextCliConstantsSettings.CLI_DEFAULT_NO_COLOR
+    )
     cli_output_format: Annotated[
         str,
         Field(description="Output format (table, json, yaml, csv, plain)"),
-    ] = "table"
+    ] = FlextCliConstantsSettings.CLI_DEFAULT_OUTPUT_FORMAT
     cli_config_file: Annotated[
         str | None,
         Field(description="Path to settings file"),
