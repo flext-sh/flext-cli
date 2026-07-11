@@ -6,7 +6,9 @@ from flext_tests import tm
 from tests.constants import c
 from tests.models import m
 
-from flext_cli import cli
+from flext_cli import cli, settings
+
+# NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
 
 class TestsFlextCliService:
@@ -20,7 +22,6 @@ class TestsFlextCliService:
         app = cli.create_app_with_common_params(
             name="exclude-app",
             help_text="Exclude app",
-            settings=cli.settings,
         )
         cli.register_command(
             app,
@@ -39,11 +40,9 @@ class TestsFlextCliService:
     def test_create_app_with_common_params_handles_invalid_trace_without_debug(
         self,
     ) -> None:
-        settings = cli.new_settings()
         app = cli.create_app_with_common_params(
             name="warn-app",
             help_text="Warn app",
-            settings=settings,
         )
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
 
@@ -55,11 +54,9 @@ class TestsFlextCliService:
         tm.that(settings.trace, eq=False)
 
     def test_create_app_with_common_params_no_flags_keeps_settings(self) -> None:
-        settings = cli.new_settings()
         app = cli.create_app_with_common_params(
             name="identity-app",
             help_text="Identity app",
-            settings=settings,
         )
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
 
@@ -100,7 +97,6 @@ class TestsFlextCliService:
         app = cli.create_app_with_common_params(
             name="abort-app",
             help_text="Abort app",
-            settings=cli.settings,
         )
         cli.register_command(
             app,
@@ -118,7 +114,6 @@ class TestsFlextCliService:
         app = cli.create_app_with_common_params(
             name="error-app",
             help_text="Error app",
-            settings=cli.settings,
         )
         cli.register_command(
             app,

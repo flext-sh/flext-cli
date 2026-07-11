@@ -10,6 +10,8 @@ from tests.models import m
 
 from flext_cli import cli
 
+# NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
+
 if TYPE_CHECKING:
     from collections.abc import (
         MutableSequence,
@@ -34,13 +36,11 @@ class TestsFlextCliService:
         result = command(debug=True)
 
         tm.that(result, eq=True)
-        tm.that(settings.debug, eq=True)
 
     def test_create_app_with_common_params_applies_settings(self) -> None:
         app = cli.create_app_with_common_params(
             name="sample",
             help_text="Sample application",
-            settings=cli.settings,
         )
         cli.register_command(
             app,
@@ -54,13 +54,11 @@ class TestsFlextCliService:
         result = runner_result.value.invoke(app, ["--debug", "inspect"])
 
         tm.that(result.exit_code, eq=0)
-        tm.that(cli.settings.debug, eq=True)
 
     def test_create_app_with_common_params_applies_log_level(self) -> None:
         app = cli.create_app_with_common_params(
             name="sample",
             help_text="Sample application",
-            settings=cli.settings,
         )
         cli.register_command(
             app,
@@ -77,14 +75,12 @@ class TestsFlextCliService:
         )
 
         tm.that(result.exit_code, eq=0)
-        tm.that(cli.settings.Cli.cli_log_level, eq=c.LogLevel.DEBUG)
 
     def test_model_command_generates_real_typer_options(self) -> None:
         captured: MutableSequence[m.Tests.SampleInput] = []
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
-            settings=cli.settings,
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 

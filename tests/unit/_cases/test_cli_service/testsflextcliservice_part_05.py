@@ -9,6 +9,8 @@ from tests.models import m
 
 from flext_cli import cli
 
+# NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
+
 if TYPE_CHECKING:
     from tests.protocols import p
 
@@ -20,7 +22,6 @@ class TestsFlextCliService:
         app = cli.create_app_with_common_params(
             name="result-app",
             help_text="Result application",
-            settings=cli.settings,
         )
         group = cli.create_group(help_text="Grouped commands", name="group")
 
@@ -76,7 +77,6 @@ class TestsFlextCliService:
         app = cli.create_app_with_common_params(
             name="result-app",
             help_text="Result application",
-            settings=cli.settings,
         )
 
         def fail_handler(

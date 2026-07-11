@@ -10,6 +10,8 @@ from tests.models import m
 
 from flext_cli import cli
 
+# NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
+
 if TYPE_CHECKING:
     from collections.abc import (
         MutableSequence,
@@ -26,7 +28,6 @@ class TestsFlextCliService:
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
-            settings=cli.settings,
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
@@ -99,7 +100,6 @@ class TestsFlextCliService:
         app = cli.create_app_with_common_params(
             name="decl-app",
             help_text="Decl app",
-            settings=cli.settings,
         )
         cli.register_command(
             app,

@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
+import pytest
 from examples import (
     Ex05Authentication,
     Ex06Settings,
@@ -19,14 +20,24 @@ from examples.ex_04_file_operations import (
 )
 from flext_tests import tm
 
-from flext_cli import cli
+from flext_cli import cli, settings
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
     from pathlib import Path
 
 
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
+
+    @pytest.fixture(autouse=True)
+    def _restore_token_file(self) -> Iterator[None]:
+        """Restore the canonical token file setting after each example run."""
+        original_token_file = settings.cli_token_file
+        try:
+            yield
+        finally:
+            settings.cli_token_file = original_token_file
 
     def test_file_operation_examples_surface_failure_paths(
         self,
@@ -78,19 +89,17 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(incomplete_import)
 
     def test_authentication_and_settings_examples(self, tmp_path: Path) -> None:
-        """Auth and settings examples must work through cli.settings and cli auth APIs."""
-        cli.settings.update_global(
-            Cli={"token_file": str(tmp_path / "auth_token.json")},
-        )
+        """Auth and settings examples must work through settings and cli auth APIs."""
+        settings.cli_token_file = str(tmp_path / "auth_token.json")
 
-        settings = Ex06Settings.show_cli_settings()
+        shown_settings = Ex06Settings.show_cli_settings()
         tm.that(
-            settings,
+            shown_settings,
             is_=ep.Cli.Settings,
         )
         tm.that(
-            settings.Cli.token_file,
-            eq=cli.settings.Cli.token_file,
+            shown_settings.cli_token_file,
+            eq=settings.cli_token_file,
         )
 
         login_result = Ex05Authentication.login_to_service(
@@ -124,7 +133,7 @@ class TestsFlextCliExamplesSmoke:
             eq=True,
         )
         tm.that(
-            profile_result.value.Cli.output_format,
+            profile_result.value.cli_output_format,
             eq=ec.Cli.OutputFormats.TABLE,
         )
 
