@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar
 
 from examples import c, t
-from flext_cli import m, u
+from flext_cli import m, settings, u
 
 
 class ExamplesFlextCliModelsExamplesCommon:
@@ -96,15 +96,14 @@ class ExamplesFlextCliModelsExamplesCommon:
             )
 
         def display(self, cli: t.CliApi) -> None:
-            """Display app settings; uses cli for base settings."""
-            settings = cli.settings
+            """Display app settings; uses the canonical CLI settings singleton."""
             payload_data: t.JsonMapping = {
                 "App Name": self.app_name,
                 "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
                 "Max Workers": str(self.max_workers),
                 "Timeout": f"{self.timeout}s",
                 "Debug": str(settings.debug),
-                "App": settings.Cli.app_name,
+                "App": settings.cli_app_name,
             }
             payload = m.Cli.DisplayData(
                 data=payload_data,
