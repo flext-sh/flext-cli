@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 import pytest
 from flext_tests import tm
 
-from flext_cli import FlextCli, cli
+from flext_cli import FlextCli, cli, settings
 from tests.constants import c
 
 if TYPE_CHECKING:
@@ -29,17 +29,18 @@ class TestsFlextCliServicesAuth:
     def service(self) -> Iterator[FlextCli]:
         """Fresh facade whose global token_file is restored after each test."""
         instance = type(cli)()
-        original_token_file = instance.settings.Cli.token_file
+        # NOTE (multi-agent): flat cli_* settings (§2.6) — the auth service
+        # reads the module-level ``settings`` object, so isolation mutates
+        # that instance's ``cli_token_file`` and restores it afterwards.
+        original_token_file = settings.cli_token_file
         try:
             yield instance
         finally:
-            instance.settings.update_global(
-                Cli={"token_file": original_token_file},
-            )
+            settings.cli_token_file = original_token_file
 
     @staticmethod
-    def _point_token_file(service: FlextCli, path: Path) -> None:
-        service.settings.update_global(Cli={"token_file": str(path)})
+    def _point_token_file(path: Path) -> None:
+        settings.cli_token_file = str(path)
 
     def test_authenticate_with_token_persists_and_round_trips(
         self,
@@ -47,7 +48,7 @@ class TestsFlextCliServicesAuth:
         tmp_path: Path,
     ) -> None:
         # Arrange
-        self._point_token_file(service, tmp_path / "token.json")
+        self._point_token_file(tmp_path / "token.json")
 
         # Act
         authenticated = service.authenticate({
@@ -64,7 +65,7 @@ class TestsFlextCliServicesAuth:
         tmp_path: Path,
     ) -> None:
         # Arrange
-        self._point_token_file(service, tmp_path / "token.json")
+        self._point_token_file(tmp_path / "token.json")
 
         # Act
         authenticated = service.authenticate({
@@ -95,7 +96,7 @@ class TestsFlextCliServicesAuth:
         credentials: dict[str, str],
     ) -> None:
         # Arrange
-        self._point_token_file(service, tmp_path / "token.json")
+        self._point_token_file(tmp_path / "token.json")
 
         # Act
         result = service.authenticate(credentials)
@@ -129,7 +130,7 @@ class TestsFlextCliServicesAuth:
         missing_field: str,
     ) -> None:
         # Arrange
-        self._point_token_file(service, tmp_path / "token.json")
+        self._point_token_file(tmp_path / "token.json")
 
         # Act
         result = service.authenticate(credentials)
@@ -164,7 +165,7 @@ class TestsFlextCliServicesAuth:
         # Arrange: point token_file at a directory so the write cannot succeed.
         token_dir = tmp_path / "token-as-dir"
         token_dir.mkdir()
-        self._point_token_file(service, token_dir)
+        self._point_token_file(token_dir)
 
         # Act
         result = service.authenticate(credentials)
@@ -179,7 +180,7 @@ class TestsFlextCliServicesAuth:
         tmp_path: Path,
     ) -> None:
         # Arrange
-        self._point_token_file(service, tmp_path / "token.json")
+        self._point_token_file(tmp_path / "token.json")
 
         # Act
         result = service.save_auth_token("   ")
@@ -206,7 +207,7 @@ class TestsFlextCliServicesAuth:
         tmp_path: Path,
     ) -> None:
         # Arrange
-        self._point_token_file(service, tmp_path / "missing-token.json")
+        self._point_token_file(tmp_path / "missing-token.json")
 
         # Act
         result = service.fetch_auth_token()
@@ -223,7 +224,7 @@ class TestsFlextCliServicesAuth:
         # Arrange
         token_dir = tmp_path / "read-as-dir"
         token_dir.mkdir()
-        self._point_token_file(service, token_dir)
+        self._point_token_file(token_dir)
 
         # Act
         result = service.fetch_auth_token()
@@ -238,7 +239,7 @@ class TestsFlextCliServicesAuth:
         tmp_path: Path,
     ) -> None:
         # Arrange
-        self._point_token_file(service, tmp_path / "missing-token.json")
+        self._point_token_file(tmp_path / "missing-token.json")
 
         # Act
         result = service.clear_auth_tokens()
@@ -253,7 +254,7 @@ class TestsFlextCliServicesAuth:
         tmp_path: Path,
     ) -> None:
         # Arrange: persist a token first.
-        self._point_token_file(service, tmp_path / "token.json")
+        self._point_token_file(tmp_path / "token.json")
         tm.ok(service.authenticate({c.Cli.DICT_KEY_AUTH_TOKEN: "token-123"}))
 
         # Act: clearing removes the token so it can no longer be fetched.
