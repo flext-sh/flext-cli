@@ -2,10 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
-
 from typer.models import OptionInfo
 
 from flext_cli import c, m, p, t
@@ -27,7 +23,7 @@ class FlextCliUtilitiesOptionBuilder:
     def build(self) -> p.Cli.CliOptionSpec:
         """Build one CLI option spec from field metadata."""
         field_meta_raw = self.registry.get(self.field_name, {})
-        if not isinstance(field_meta_raw, Mapping) or not field_meta_raw:
+        if not field_meta_raw:
             msg = "Option registry metadata must support key lookup"
             raise TypeError(msg)
         field_meta = m.Cli.OptionMetadata.model_validate(field_meta_raw)

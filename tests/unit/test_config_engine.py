@@ -19,26 +19,35 @@ class TestsFlextCliConfigEngine:
     def test_template_render_ok(self, tmp_path: Path) -> None:
         tpl = tmp_path / "greeting.j2"
         tpl.write_text("port={{ server.port }}\n", encoding="utf-8")
-        result = u.Cli.template_render(tpl, {"server": {"port": 8080}})
+        server = m.Tests.TemplateServer(port=8080)
+        context = m.Tests.TemplateServerContext(server=server)
+        result = u.Cli.template_render(tpl, context)
         assert result.success
         assert result.unwrap() == "port=8080\n"
 
     def test_template_render_strict_undefined_fails(self, tmp_path: Path) -> None:
         tpl = tmp_path / "greeting.j2"
         tpl.write_text("{{ missing_var }}\n", encoding="utf-8")
-        result = u.Cli.template_render(tpl, {})
+        result = u.Cli.template_render(tpl, m.Tests.TemplateEmpty())
         assert result.failure
 
     def test_template_render_missing_source_fails(self, tmp_path: Path) -> None:
-        result = u.Cli.template_render(tmp_path / "absent.j2", {})
+        result = u.Cli.template_render(
+            tmp_path / "absent.j2",
+            m.Tests.TemplateEmpty(),
+        )
         assert result.failure
         assert c.Cli.ERR_TEMPLATE_NOT_FOUND in (result.error or "")
 
     def test_template_render_to_writes(self, tmp_path: Path) -> None:
         tpl = tmp_path / "t.j2"
-        tpl.write_text("value={{ x }}", encoding="utf-8")
+        tpl.write_text("value={{ value }}", encoding="utf-8")
         dest = tmp_path / "out" / "rendered.txt"
-        result = u.Cli.template_render_to(tpl, dest, {"x": 42})
+        result = u.Cli.template_render_to(
+            tpl,
+            dest,
+            m.Tests.TemplateValue(value=42),
+        )
         assert result.success
         assert dest.read_text(encoding="utf-8") == "value=42"
 
@@ -114,8 +123,11 @@ class TestsFlextCliTemplateRenderDir:
     def test_render_dir_ok_and_strips_suffix(self, tmp_path: Path) -> None:
         root = tmp_path / "tpl"
         (root / "sub").mkdir(parents=True)
-        (root / "a.txt.j2").write_text("A={{ x }}\n", encoding="utf-8")
-        (root / "sub" / "b.txt.j2").write_text("B={{ y }}\n", encoding="utf-8")
+        (root / "a.txt.j2").write_text("A={{ value }}\n", encoding="utf-8")
+        (root / "sub" / "b.txt.j2").write_text(
+            "B={{ value }}\n",
+            encoding="utf-8",
+        )
         out = tmp_path / "out"
         entries = (
             m.Cli.TemplateRenderEntry(
@@ -127,13 +139,18 @@ class TestsFlextCliTemplateRenderDir:
                 output_relpath=Path("sub/b.txt.j2"),
             ),
         )
-        result = u.Cli.template_render_dir(root, out, {"x": 1, "y": 2}, entries)
+        result = u.Cli.template_render_dir(
+            root,
+            out,
+            m.Tests.TemplateValue(value=1),
+            entries,
+        )
         assert result.success
         report = result.unwrap()
-        assert report.ok
+        assert not report.failed
         assert len(report.created) == 2
         assert (out / "a.txt").read_text(encoding="utf-8") == "A=1\n"
-        assert (out / "sub" / "b.txt").read_text(encoding="utf-8") == "B=2\n"
+        assert (out / "sub" / "b.txt").read_text(encoding="utf-8") == "B=1\n"
 
     def test_render_dir_when_false_skips(self, tmp_path: Path) -> None:
         root = tmp_path / "tpl"
@@ -147,7 +164,12 @@ class TestsFlextCliTemplateRenderDir:
                 when=False,
             ),
         )
-        report = u.Cli.template_render_dir(root, out, {}, entries).unwrap()
+        report = u.Cli.template_render_dir(
+            root,
+            out,
+            m.Tests.TemplateEmpty(),
+            entries,
+        ).unwrap()
         assert len(report.skipped) == 1
         assert not report.created
         assert not (out / "a").exists()
@@ -155,7 +177,7 @@ class TestsFlextCliTemplateRenderDir:
     def test_render_dir_overwrite_policy(self, tmp_path: Path) -> None:
         root = tmp_path / "tpl"
         root.mkdir()
-        (root / "a.j2").write_text("new={{ v }}", encoding="utf-8")
+        (root / "a.j2").write_text("new={{ value }}", encoding="utf-8")
         out = tmp_path / "out"
         out.mkdir()
         (out / "a").write_text("old", encoding="utf-8")
@@ -168,7 +190,7 @@ class TestsFlextCliTemplateRenderDir:
         skipped = u.Cli.template_render_dir(
             root,
             out,
-            {"v": 1},
+            m.Tests.TemplateValue(value=1),
             skip_entries,
         ).unwrap()
         assert len(skipped.skipped) == 1
@@ -183,7 +205,7 @@ class TestsFlextCliTemplateRenderDir:
         created = u.Cli.template_render_dir(
             root,
             out,
-            {"v": 2},
+            m.Tests.TemplateValue(value=2),
             over_entries,
         ).unwrap()
         assert len(created.created) == 1
@@ -200,8 +222,13 @@ class TestsFlextCliTemplateRenderDir:
                 output_relpath=Path("../escape"),
             ),
         )
-        report = u.Cli.template_render_dir(root, out, {}, entries).unwrap()
-        assert not report.ok
+        report = u.Cli.template_render_dir(
+            root,
+            out,
+            m.Tests.TemplateEmpty(),
+            entries,
+        ).unwrap()
+        assert report.failed
         assert c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE in report.failed[0][1]
         assert not (tmp_path / "escape").exists()
 
@@ -209,7 +236,7 @@ class TestsFlextCliTemplateRenderDir:
         result = u.Cli.template_render_dir(
             tmp_path / "nope",
             tmp_path / "out",
-            {},
+            m.Tests.TemplateEmpty(),
             (),
         )
         assert result.failure
@@ -225,6 +252,13 @@ class TestsFlextCliTemplateRenderDir:
                 output_relpath=Path("bad"),
             ),
         )
-        report = u.Cli.template_render_dir(root, out, {}, entries).unwrap()
-        assert not report.ok
+        report = u.Cli.template_render_dir(
+            root,
+            out,
+            m.Tests.TemplateEmpty(),
+            entries,
+        ).unwrap()
+        # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): assert the
+        # public failure payload directly; TemplateRenderReport has no behavior.
+        assert report.failed
         assert len(report.failed) == 1

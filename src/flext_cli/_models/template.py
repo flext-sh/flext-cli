@@ -52,6 +52,8 @@ class FlextCliModelsTemplate:
     class TemplateRenderReport(m.ArbitraryTypesModel):
         """Outcome of a generic folder render."""
 
+        # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): callers
+        # consume the declared failure field directly; models remain behavior-free.
         created: Annotated[
             tuple[Path, ...],
             m.Field(default_factory=tuple, description="Destination paths written"),
@@ -70,11 +72,6 @@ class FlextCliModelsTemplate:
                 description="(destination, error) pairs that failed to render",
             ),
         ]
-
-        @property
-        def ok(self) -> bool:
-            """True when no entry failed."""
-            return not self.failed
 
 
 __all__: list[str] = ["FlextCliModelsTemplate"]

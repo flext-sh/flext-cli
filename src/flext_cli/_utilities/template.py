@@ -29,7 +29,8 @@ if TYPE_CHECKING:
 class FlextCliUtilitiesTemplate:
     """Generic Jinja2 render helpers (ADR-005 template SSOT)."""
 
-    # NOTE (multi-agent): mro-i6nq.10 keeps result typing on the public protocol.
+    # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): template
+    # contexts retain their validated model identity until the Jinja egress.
     @staticmethod
     def _environment(search_path: Path) -> SandboxedEnvironment:
         """Build the shared strict, sandboxed Jinja environment for a directory."""
@@ -45,7 +46,7 @@ class FlextCliUtilitiesTemplate:
     @staticmethod
     def template_render(
         path: Path,
-        context: t.JsonMapping,
+        context: p.Model,
     ) -> p.Result[str]:
         """Render a ``templates/*.j2`` file with ``context`` → ``r[str]``.
 
@@ -56,7 +57,9 @@ class FlextCliUtilitiesTemplate:
             return r[str].fail(f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {path}")
         env = FlextCliUtilitiesTemplate._environment(path.parent)
         rendered = u.try_(
-            lambda: env.get_template(path.name).render(dict(context)),
+            lambda: env.get_template(path.name).render(
+                context.model_dump(mode="json"),
+            ),
             catch=(TemplateError, OSError),
             op_name="template_render",
         )
@@ -70,7 +73,7 @@ class FlextCliUtilitiesTemplate:
     def template_render_to(
         path: Path,
         dest: Path,
-        context: t.JsonMapping,
+        context: p.Model,
     ) -> p.Result[bool]:
         """Render ``path`` with ``context`` and write it to ``dest`` → ``r[bool]``."""
         rendered = FlextCliUtilitiesTemplate.template_render(path, context)
@@ -86,7 +89,7 @@ class FlextCliUtilitiesTemplate:
     def template_render_dir(
         templates_root: Path,
         output_root: Path,
-        context: t.JsonMapping,
+        context: p.Model,
         entries: t.SequenceOf[m.Cli.TemplateRenderEntry],
         *,
         strip_suffix: str = c.Cli.TEMPLATE_SUFFIX,

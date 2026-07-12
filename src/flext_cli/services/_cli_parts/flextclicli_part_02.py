@@ -30,9 +30,7 @@ class FlextCliCli(FlextCliCliPart01):
     ) -> None:
         """Apply global CLI flags to the shared settings singleton."""
         resolved_log_level: str = (
-            params.log_level
-            if params.log_level is not None
-            else settings.cli_log_level
+            params.log_level if params.log_level is not None else settings.cli_log_level
         )
         next_params = params.model_copy(
             update={"log_level": resolved_log_level},
