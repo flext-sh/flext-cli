@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from jinja2 import StrictUndefined
 from jinja2.exceptions import TemplateError
@@ -18,13 +19,17 @@ from jinja2.loaders import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, r, t
 from flext_core import u
+
+if TYPE_CHECKING:
+    from flext_core.protocols import p
 
 
 class FlextCliUtilitiesTemplate:
     """Generic Jinja2 render helpers (ADR-005 template SSOT)."""
 
+    # NOTE (multi-agent): mro-i6nq.10 keeps result typing on the public protocol.
     @staticmethod
     def _environment(search_path: Path) -> SandboxedEnvironment:
         """Build the shared strict, sandboxed Jinja environment for a directory."""
