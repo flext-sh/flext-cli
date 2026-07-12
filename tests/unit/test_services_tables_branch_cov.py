@@ -23,12 +23,12 @@ class TestsFlextCliServicesTablesBranchCov:
 
     @pytest.fixture
     def mapping_payload(self) -> t.Cli.TableDataSource:
-        """A key/value mapping table payload."""
+        """Return a key/value mapping table payload."""
         return {"a": 1, "b": 2}
 
     @pytest.fixture
     def rows_payload(self) -> t.Cli.TableDataSource:
-        """A header-plus-rows list payload."""
+        """Return a header-plus-rows list payload."""
         return [["col1", "col2"], ["a", "b"]]
 
     # ---- format_table: success contract (returns r[str]) ----

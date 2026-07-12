@@ -28,7 +28,7 @@ class TestsFlextCliServicesTablesCov:
 
     @pytest.fixture
     def record_rows(self) -> t.Cli.TableDataSource:
-        """A list of homogeneous mappings rendered as a column table."""
+        """Return a list of homogeneous mappings rendered as a column table."""
         return [{"col": "val1"}, {"col": "val2"}]
 
     # ── format_table: return contract ─────────────────────────────────

@@ -125,19 +125,19 @@ def _prompt_factory[TPrompt: TestsFlextCliScriptedPrompts](
 
 @pytest.fixture
 def make_prompts() -> Callable[..., TestsFlextCliScriptedPrompts]:
-    """Factory fixture for scripted prompt test doubles."""
+    """Provide a factory for scripted prompt test doubles."""
     return _prompt_factory(TestsFlextCliScriptedPrompts)
 
 
 @pytest.fixture
 def make_capture_prompts() -> Callable[..., TestsFlextCliCaptureLogPrompts]:
-    """Factory fixture for prompt doubles that capture log output."""
+    """Provide a factory for prompt doubles that capture log output."""
     return _prompt_factory(TestsFlextCliCaptureLogPrompts)
 
 
 @pytest.fixture
 def make_failing_prompts() -> Callable[..., TestsFlextCliFailingLogPrompts]:
-    """Factory fixture for prompt doubles that can fail selected log calls."""
+    """Provide a factory for prompt doubles that can fail selected log calls."""
     return _prompt_factory(TestsFlextCliFailingLogPrompts)
 
 

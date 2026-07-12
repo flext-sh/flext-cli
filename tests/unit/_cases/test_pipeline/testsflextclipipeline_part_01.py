@@ -21,7 +21,7 @@ class TestsFlextCliPipeline:
 
     @staticmethod
     def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
-        """Factory for a handler that succeeds and writes to shared."""
+        """Build a handler that succeeds and writes to shared."""
 
         def handler(
             ctx: p.Cli.PipelineStageContext,
@@ -37,7 +37,7 @@ class TestsFlextCliPipeline:
 
     @staticmethod
     def _fail_handler(stage_id: str) -> t.Cli.PipelineHandler:
-        """Factory for a handler that fails."""
+        """Build a handler that fails."""
 
         def handler(
             ctx: p.Cli.PipelineStageContext,

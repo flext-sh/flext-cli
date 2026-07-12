@@ -139,7 +139,7 @@ class TestsFlextCliCliParams:
 
     @pytest.fixture
     def runner_and_app(self) -> tuple[t.Cli.TyperRunner, t.Cli.CliApp]:
-        """A CLI runner plus an app carrying the common-params decorated command."""
+        """Build a CLI runner plus an app carrying the common-params decorated command."""
         app_result = u.Tests.create_cli_app()
         tm.ok(app_result)
         app = app_result.value

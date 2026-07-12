@@ -26,7 +26,7 @@ def _raise_on_zero(value: int) -> int:
 
 
 def _raise_on_zero_kv(_key: str, value: int) -> int:
-    """Mapping processor variant of :func:`_raise_on_zero`."""
+    """Delegate key/value arguments to :func:`_raise_on_zero`."""
     return _raise_on_zero(value)
 
 

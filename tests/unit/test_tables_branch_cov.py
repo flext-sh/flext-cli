@@ -15,7 +15,7 @@ class TestsFlextCliTablesBranchCov:
 
     @pytest.fixture
     def two_column_config(self) -> m.Cli.TableConfig:
-        """A minimal two-column table configuration."""
+        """Return a minimal two-column table configuration."""
         return m.Cli.TableConfig(headers=("Key", "Value"))
 
     def test_normalize_mapping_input_yields_key_value_rows(self) -> None:
