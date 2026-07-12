@@ -75,6 +75,7 @@ class FlextCliSettings(FlextSettings):
 
 
 settings: FlextCliSettings = FlextCliSettings.fetch_global()
+"""Process-wide CLI settings singleton (env-bound, validated at fetch time)."""
 
 
 __all__: list[str] = ["FlextCliSettings", "settings"]
