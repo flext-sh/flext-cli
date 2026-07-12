@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
+import traceback
 
 import click
 import typer
@@ -68,12 +69,14 @@ class FlextCliCli(FlextCliCliPart03):
                 else r[bool].fail(f"CLI exited with code {exit_code}")
             )
         except Exception as exc:
-            result = r[bool].fail(
-                u.Cli.normalize_required_text(
-                    str(exc),
-                    default=exc.__class__.__name__,
-                ),
+            # mro-o6h5 (agent: kimi) — unexpected exceptions must carry their
+            # traceback: bare str(exc) ("list index out of range") hides the
+            # failing frame and made the CI docs-audit crash undiagnosable.
+            detail = u.Cli.normalize_required_text(
+                str(exc),
+                default=exc.__class__.__name__,
             )
+            result = r[bool].fail(f"{detail}\n{traceback.format_exc().strip()}")
         else:
             if (
                 isinstance(exit_result, int)
