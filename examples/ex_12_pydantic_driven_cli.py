@@ -30,6 +30,9 @@ from examples import c, m, t, u
 from flext_cli import cli
 from flext_core import p, r
 
+# NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): the example enters
+# the railway as one validated model and retains that object through services.
+
 
 def _report_step_success[T](value: T, message: str) -> T:
     """Emit a success message while preserving the pipeline value."""
@@ -51,25 +54,23 @@ def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseCon
         "\n🗄️  Database Configuration with Railway Pattern:",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )
-    cli_args = {
-        "host": "db.example.com",
-        "port": 5432,
-        "name": "production_db",
-        "username": "example_user",
-        "password": "example_password",
-        "ssl_enabled": True,
-        "connection_pool": 20,
-    }
+    cli_args = m.Examples.AdvancedDatabaseConfig(
+        host="db.example.com",
+        port=5432,
+        name="production_db",
+        username="example_user",
+        password="example_password",
+        ssl_enabled=True,
+        connection_pool=20,
+    )
     return (
-        validate_required_fields(cli_args)
-        .map_error(
-            lambda error: error or "Required field validation failed",
-        )
+        r[m.Examples.AdvancedDatabaseConfig]
+        .ok(cli_args)
         .map(
-            lambda data: _report_step_success(data, "✅ Required fields validated"),
-        )
-        .flat_map(
-            convert_and_validate_with_pydantic,
+            lambda settings: _report_step_success(
+                settings,
+                "✅ Required fields validated",
+            ),
         )
         .map(
             lambda settings: _report_step_success(
