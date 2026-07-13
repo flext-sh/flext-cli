@@ -25,6 +25,8 @@ class FlextCliUtilitiesOptions:
                 [
                     get_origin(Sequence[str]),
                     get_origin(list[str]),
+                    # mro-j2yt (codex): Typer repeats canonical tuple model fields.
+                    get_origin(tuple[str, ...]),
                     get_origin(t.StrSequence),
                     t.SequenceOf,
                     t.MutableSequenceOf,

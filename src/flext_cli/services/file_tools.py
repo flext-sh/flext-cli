@@ -2,16 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-from flext_cli import FlextCliServiceBase, c, m, p, r, t, u
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence
+from flext_cli import c, m, p, r, s, t, u
 
 
-class FlextCliFileTools(FlextCliServiceBase):
+class FlextCliFileTools(s):
     """File operations with r."""
 
     @staticmethod
@@ -48,6 +45,20 @@ class FlextCliFileTools(FlextCliServiceBase):
         if normalized_path is None:
             return r[t.JsonValue].fail(c.Cli.ERR_FILE_PATH_EMPTY)
         return u.Cli.files_read_yaml(Path(normalized_path))
+
+    @staticmethod
+    def read_yaml_model[M: t.Cli.ModelLike](
+        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+    ) -> p.Result[M]:
+        """Read YAML and validate it once into the requested model type."""
+        return u.Cli.files_read_yaml_model(Path(file_path), model_type)
+
+    @staticmethod
+    def read_yaml_model_chain[M: t.Cli.ModelLike](
+        file_paths: Sequence[t.Cli.TextPath], model_type: t.ModelClass[M]
+    ) -> p.Result[M]:
+        """Merge ordered YAML sources and validate the final payload once."""
+        return u.Cli.files_read_yaml_model_chain(file_paths, model_type)
 
     @staticmethod
     def write_json_file(

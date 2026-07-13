@@ -35,6 +35,8 @@ if TYPE_CHECKING:
     from flext_cli.services.rules import FlextCliRules as FlextCliRules
     from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
     from flext_cli.services.tables import FlextCliTables as FlextCliTables
+    from flext_cli.services.xlsx import FlextCliXlsx as FlextCliXlsx
+    from flext_cli.services.yaml_model import FlextCliYamlModel as FlextCliYamlModel
 
     # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.
     __all__: tuple[str, ...]

@@ -2,16 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+from flext_cli import s, t
 from flext_cli._utilities.rules import FlextCliUtilitiesRules
-from flext_cli.base import FlextCliServiceBase
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
-class FlextCliRules(FlextCliServiceBase, FlextCliUtilitiesRules):
+class FlextCliRules(s, FlextCliUtilitiesRules):
     """Expose the generic rule-loading DSL through ``cli`` and ``u.Cli``."""
 
 

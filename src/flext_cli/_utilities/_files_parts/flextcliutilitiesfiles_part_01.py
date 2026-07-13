@@ -8,7 +8,8 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import c, p, t
+import flext_core
+from flext_cli import c, p, r, t
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
@@ -99,6 +100,32 @@ class FlextCliUtilitiesFiles:
         return uy.yaml_safe_load(Path(file_path)).map(
             t.Cli.JSON_VALUE_ADAPTER.validate_python
         )
+
+    @staticmethod
+    def files_read_yaml_model[M: t.Cli.ModelLike](
+        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+    ) -> p.Result[M]:
+        """Read YAML directly into one caller-supplied validated model."""
+        return uy.yaml_safe_load(Path(file_path)).map(model_type.model_validate)
+
+    @staticmethod
+    def files_read_yaml_model_chain[M: t.Cli.ModelLike](
+        file_paths: t.SequenceOf[t.Cli.TextPath], model_type: t.ModelClass[M]
+    ) -> p.Result[M]:
+        """Merge ordered YAML sources and validate the final payload once."""
+        sources = tuple(Path(file_path) for file_path in file_paths)
+        if not sources:
+            return r[M].fail(c.Cli.ERR_FILE_PATH_EMPTY)
+        first = uy.yaml_safe_load(sources[0])
+        if first.failure:
+            return first.map(model_type.model_validate)
+        merged: t.JsonMapping = first.value
+        for source in sources[1:]:
+            loaded = uy.yaml_safe_load(source)
+            if loaded.failure:
+                return loaded.map(model_type.model_validate)
+            merged = flext_core.u.config_merge(merged, loaded.value)
+        return r[t.JsonMapping].ok(merged).map(model_type.model_validate)
 
     @staticmethod
     def files_write_csv(

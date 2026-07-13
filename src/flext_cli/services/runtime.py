@@ -2,16 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+from flext_cli import s, t
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-from flext_cli.base import FlextCliServiceBase
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
-class FlextCliRuntime(FlextCliServiceBase, FlextCliUtilitiesRuntime):
+class FlextCliRuntime(s, FlextCliUtilitiesRuntime):
     """Expose process execution helpers through ``cli`` and ``FlextCli``."""
 
 

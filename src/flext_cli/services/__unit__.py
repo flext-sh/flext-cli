@@ -20,6 +20,8 @@ LAZY_MODULES: dict[str, tuple[str, ...]] = {
     ".rules": ("FlextCliRules",),
     ".runtime": ("FlextCliRuntime",),
     ".tables": ("FlextCliTables",),
+    ".xlsx": ("FlextCliXlsx",),
+    ".yaml_model": ("FlextCliYamlModel",),
 }
 
 
@@ -45,5 +47,7 @@ PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliRules",
     "FlextCliRuntime",
     "FlextCliTables",
+    "FlextCliXlsx",
+    "FlextCliYamlModel",
     "_cli_parts",
 )

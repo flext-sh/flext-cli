@@ -29,7 +29,9 @@ from flext_cli._utilities.tables import FlextCliUtilitiesTables
 from flext_cli._utilities.template import FlextCliUtilitiesTemplate
 from flext_cli._utilities.toml import FlextCliUtilitiesToml
 from flext_cli._utilities.validation import FlextCliUtilitiesValidation
+from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
+from flext_cli._utilities.yaml_model import FlextCliUtilitiesYamlModel
 
 
 class FlextCliUtilitiesCli(
@@ -58,7 +60,9 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesTables,
     FlextCliUtilitiesToml,
     FlextCliUtilitiesValidation,
+    FlextCliUtilitiesXlsx,
     FlextCliUtilitiesYaml,
+    FlextCliUtilitiesYamlModel,
 ):
     """Command line interface specific utilities composed via MRO."""
 

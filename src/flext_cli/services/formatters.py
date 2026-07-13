@@ -10,10 +10,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliServiceBase, m, t, u
+from flext_cli import m, s, t, u
 
 
-class FlextCliFormatters(FlextCliServiceBase):
+class FlextCliFormatters(s):
     """Thin Rich formatters facade - delegates to Rich library directly."""
 
     @classmethod

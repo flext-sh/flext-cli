@@ -21,6 +21,8 @@ from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.rules import FlextCliRules
 from flext_cli.services.runtime import FlextCliRuntime
 from flext_cli.services.tables import FlextCliTables
+from flext_cli.services.xlsx import FlextCliXlsx
+from flext_cli.services.yaml_model import FlextCliYamlModel
 
 
 class FlextCli(
@@ -36,11 +38,14 @@ class FlextCli(
     FlextCliRules,
     FlextCliRuntime,
     FlextCliTables,
+    FlextCliXlsx,
+    FlextCliYamlModel,
 ):
     """Coordinate CLI operations and expose domain services.
 
     MRO facade over CLI services (cli, cmd, params, file_tools,
-    formatters, output, pipeline, prompts, rules, runtime, settings, tables).
+    formatters, output, pipeline, prompts, rules, runtime, settings, tables,
+    xlsx, yaml-model).
     All operations return r[T].
     """
 
