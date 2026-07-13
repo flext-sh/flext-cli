@@ -27,7 +27,7 @@ if TYPE_CHECKING:
         _options_parts as _options_parts,
         _rules_parts as _rules_parts,
         _toml_parts as _toml_parts,
-        _yaml_roundtrip_parts as _yaml_roundtrip_parts,
+        _yaml as _yaml,
     )
     from flext_cli._utilities._cli_namespace import (
         FlextCliUtilitiesCli as FlextCliUtilitiesCli,
@@ -53,8 +53,14 @@ if TYPE_CHECKING:
     from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_07 import (
         FlextCliUtilitiesToml as FlextCliUtilitiesToml,
     )
-    from flext_cli._utilities._yaml_roundtrip_parts.flextcliutilitiesyamlroundtrip_part_02 import (
-        FlextCliUtilitiesYamlRoundtrip as FlextCliUtilitiesYamlRoundtrip,
+    from flext_cli._utilities._yaml._convert import (
+        FlextCliUtilitiesYamlConvertMixin as FlextCliUtilitiesYamlConvertMixin,
+    )
+    from flext_cli._utilities._yaml._editing import (
+        FlextCliUtilitiesYamlEditingMixin as FlextCliUtilitiesYamlEditingMixin,
+    )
+    from flext_cli._utilities._yaml._engine import (
+        FlextCliUtilitiesYamlEngineMixin as FlextCliUtilitiesYamlEngineMixin,
     )
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth as FlextCliUtilitiesAuth
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd as FlextCliUtilitiesCmd
@@ -109,7 +115,77 @@ if TYPE_CHECKING:
     from flext_cli._utilities.validation import (
         FlextCliUtilitiesValidation as FlextCliUtilitiesValidation,
     )
+    from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx as FlextCliUtilitiesXlsx
+    from flext_cli._utilities.xlsx_addresses import (
+        FlextCliUtilitiesXlsxAddresses as FlextCliUtilitiesXlsxAddresses,
+    )
+    from flext_cli._utilities.xlsx_archive import (
+        FlextCliUtilitiesXlsxArchive as FlextCliUtilitiesXlsxArchive,
+    )
+    from flext_cli._utilities.xlsx_archive_checks import (
+        FlextCliUtilitiesXlsxArchiveChecks as FlextCliUtilitiesXlsxArchiveChecks,
+    )
+    from flext_cli._utilities.xlsx_cells import (
+        FlextCliUtilitiesXlsxCells as FlextCliUtilitiesXlsxCells,
+    )
+    from flext_cli._utilities.xlsx_conditional import (
+        FlextCliUtilitiesXlsxConditional as FlextCliUtilitiesXlsxConditional,
+    )
+    from flext_cli._utilities.xlsx_formula_codec import (
+        FlextCliUtilitiesXlsxFormulaCodec as FlextCliUtilitiesXlsxFormulaCodec,
+    )
+    from flext_cli._utilities.xlsx_layout import (
+        FlextCliUtilitiesXlsxLayout as FlextCliUtilitiesXlsxLayout,
+    )
+    from flext_cli._utilities.xlsx_protection import (
+        FlextCliUtilitiesXlsxProtection as FlextCliUtilitiesXlsxProtection,
+    )
+    from flext_cli._utilities.xlsx_renderer import (
+        FlextCliUtilitiesXlsxRenderer as FlextCliUtilitiesXlsxRenderer,
+    )
+    from flext_cli._utilities.xlsx_rules import (
+        FlextCliUtilitiesXlsxRules as FlextCliUtilitiesXlsxRules,
+    )
+    from flext_cli._utilities.xlsx_snapshot import (
+        FlextCliUtilitiesXlsxSnapshot as FlextCliUtilitiesXlsxSnapshot,
+    )
+    from flext_cli._utilities.xlsx_snapshot_sheet import (
+        FlextCliUtilitiesXlsxSnapshotSheet as FlextCliUtilitiesXlsxSnapshotSheet,
+    )
+    from flext_cli._utilities.xlsx_snapshot_structure import (
+        FlextCliUtilitiesXlsxSnapshotStructure as FlextCliUtilitiesXlsxSnapshotStructure,
+    )
+    from flext_cli._utilities.xlsx_snapshot_values import (
+        FlextCliUtilitiesXlsxSnapshotValues as FlextCliUtilitiesXlsxSnapshotValues,
+    )
+    from flext_cli._utilities.xlsx_style_builders import (
+        FlextCliUtilitiesXlsxStyleBuilders as FlextCliUtilitiesXlsxStyleBuilders,
+    )
+    from flext_cli._utilities.xlsx_style_catalog import (
+        FlextCliUtilitiesXlsxStyleCatalog as FlextCliUtilitiesXlsxStyleCatalog,
+    )
+    from flext_cli._utilities.xlsx_style_codec import (
+        FlextCliUtilitiesXlsxStyleCodec as FlextCliUtilitiesXlsxStyleCodec,
+    )
+    from flext_cli._utilities.xlsx_style_readers import (
+        FlextCliUtilitiesXlsxStyleReaders as FlextCliUtilitiesXlsxStyleReaders,
+    )
+    from flext_cli._utilities.xlsx_tables import (
+        FlextCliUtilitiesXlsxTables as FlextCliUtilitiesXlsxTables,
+    )
+    from flext_cli._utilities.xlsx_validations import (
+        FlextCliUtilitiesXlsxValidations as FlextCliUtilitiesXlsxValidations,
+    )
+    from flext_cli._utilities.xlsx_workbook_io import (
+        FlextCliUtilitiesXlsxWorkbookIo as FlextCliUtilitiesXlsxWorkbookIo,
+    )
+    from flext_cli._utilities.xlsx_workbook_plan import (
+        FlextCliUtilitiesXlsxWorkbookPlan as FlextCliUtilitiesXlsxWorkbookPlan,
+    )
     from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as FlextCliUtilitiesYaml
+    from flext_cli._utilities.yaml_model import (
+        FlextCliUtilitiesYamlModel as FlextCliUtilitiesYamlModel,
+    )
 
     # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.
     __all__: tuple[str, ...]

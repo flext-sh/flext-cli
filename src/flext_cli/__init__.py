@@ -55,6 +55,8 @@ if TYPE_CHECKING:
     from flext_cli.services.rules import FlextCliRules as FlextCliRules
     from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
     from flext_cli.services.tables import FlextCliTables as FlextCliTables
+    from flext_cli.services.xlsx import FlextCliXlsx as FlextCliXlsx
+    from flext_cli.services.yaml_model import FlextCliYamlModel as FlextCliYamlModel
     from flext_cli.typings import FlextCliTypes as FlextCliTypes, t as t
     from flext_cli.utilities import FlextCliUtilities as FlextCliUtilities, u as u
     from flext_core._root_typing_parts.facades import (

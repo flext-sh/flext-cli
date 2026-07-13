@@ -16,12 +16,7 @@ from typing import ClassVar
 from yaml import safe_dump, safe_load
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities._yaml_roundtrip_parts.flextcliutilitiesyamlroundtrip_part_01 import (
-    FlextCliUtilitiesYamlRoundtrip as FlextCliUtilitiesYamlRoundtripPart01,
-)
-from flext_cli._utilities._yaml_roundtrip_parts.flextcliutilitiesyamlroundtrip_part_02 import (
-    FlextCliUtilitiesYamlRoundtrip as FlextCliUtilitiesYamlRoundtripPart02,
-)
+from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_core import u
 
@@ -29,17 +24,16 @@ _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 _EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()
 
 
-class FlextCliUtilitiesYaml(
-    FlextCliUtilitiesYamlRoundtripPart01, FlextCliUtilitiesYamlRoundtripPart02
-):
+class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
     """Generic YAML read, parse, dump, and validation helpers.
 
     All YAML operations across the workspace delegate here.
     Projects needing domain-specific normalization wrap these methods.
 
-    NOTE (multi-agent): round-trip (comment/quote-preserving) operations are
-    composed from the ``_yaml_roundtrip_parts`` MRO parts above; the one-way
-    PyYAML helpers in this class body stay for plain read/write. Do not add a
+    NOTE (multi-agent): mro-i6nq.13 — round-trip (comment/quote-preserving)
+    operations are composed from the _yaml/{_editing,_engine,_convert} mixin
+    chain (replacing the numbered _yaml_roundtrip_parts); the one-way PyYAML
+    helpers in this class body stay for plain read/write. Do not add a
     second ruamel engine in this class or in any leaf module.
     """
 
