@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import inspect
 
-from tests.constants import c
-from tests.protocols import p
-from tests.utilities import u
+from tests import c
+from tests import p
+from tests import u
 
 from flext_cli import FlextCliSettings, cli, m, settings
+from flext_tests import tm
 
 
 class TestsFlextCliPublicContractsCoverage:
@@ -33,47 +34,44 @@ class TestsFlextCliPublicContractsCoverage:
         FlextCliSettings.reset_for_testing()
 
         fresh_settings = settings.clone()
-        assert isinstance(fresh_settings, p.Cli.Settings)
-        assert u.Cli.cli_test_env(fresh_settings) is False
+        tm.that(fresh_settings, is_=p.Cli.Settings)
+        tm.that(u.Cli.cli_test_env(fresh_settings), eq=False)
 
         shell_settings = settings.clone(cli_shell_command="pytest -k smoke")
-        assert u.Cli.cli_test_env(shell_settings) is True
+        tm.that(u.Cli.cli_test_env(shell_settings), eq=True)
 
         pytest_settings = settings.clone(
             cli_pytest_current_test=(
                 "tests/unit/test_public_contracts_cov.py::test_public_facade"
-            ),
+            )
         )
-        assert u.Cli.cli_test_env(pytest_settings) is True
+        tm.that(u.Cli.cli_test_env(pytest_settings), eq=True)
 
         ci_settings = settings.clone(cli_ci=True)
-        assert u.Cli.cli_test_env(ci_settings) is True
+        tm.that(u.Cli.cli_test_env(ci_settings), eq=True)
 
         FlextCliSettings.reset_for_testing()
 
         facade_result = cli.execute()
 
-        assert facade_result.success
-        assert facade_result.value[c.Cli.DICT_KEY_STATUS] == (
-            c.Cli.ServiceStatus.OPERATIONAL
+        tm.ok(facade_result)
+        tm.that(
+            facade_result.value[c.Cli.DICT_KEY_STATUS],
+            eq=(c.Cli.ServiceStatus.OPERATIONAL),
         )
-        assert facade_result.value[c.Cli.DICT_KEY_SERVICE] == c.Cli.FLEXT_CLI
+        tm.that(facade_result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.FLEXT_CLI)
         components = facade_result.value.get("components")
-        assert isinstance(components, dict)
-        assert components["prompts"] == "available"
+        tm.that(components, is_=dict)
+        tm.that(components["prompts"], eq="available")
 
     def test_public_model_command_utility_contract(self) -> None:
         command_settings = self._CommandModel(label="configured", debug=True)
 
-        def handler(
-            model: TestsFlextCliPublicContractsCoverage._CommandModel,
-        ) -> str:
+        def handler(model: TestsFlextCliPublicContractsCoverage._CommandModel) -> str:
             return f"{model.label}:{model.debug}"
 
         command = u.Cli.build_model_command(
-            self._CommandModel,
-            handler,
-            settings=command_settings,
+            self._CommandModel, handler, settings=command_settings
         )
         signature = inspect.signature(command)
 
@@ -81,11 +79,13 @@ class TestsFlextCliPublicContractsCoverage:
         # defaults into the signature; settings-seeded defaults are the
         # ``cli.model_command`` contract, not this utility's.
         assert signature.parameters["label"].default is inspect.Parameter.empty
-        assert signature.parameters["debug"].default is False
-        assert u.Cli.model_source_data(
-            self._CommandModel,
-            self._CommandSource(label="mapped", debug=None),
-        ) == {"label": "mapped"}
+        tm.that(signature.parameters["debug"].default, eq=False)
+        tm.that(
+            u.Cli.model_source_data(
+                self._CommandModel, self._CommandSource(label="mapped", debug=None)
+            ),
+            eq={"label": "mapped"},
+        )
 
         derived = u.Cli.derive_model(
             self._CommandModel,
@@ -94,9 +94,9 @@ class TestsFlextCliPublicContractsCoverage:
             overrides={"label": "override"},
         )
 
-        assert derived.label == "override"
-        assert derived.debug is True
-        assert command(label="runtime", debug=True) == "runtime:True"
+        tm.that(derived.label, eq="override")
+        tm.that(derived.debug, eq=True)
+        tm.that(command(label="runtime", debug=True), eq="runtime:True")
 
 
 __all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]

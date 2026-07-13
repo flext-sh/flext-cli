@@ -18,13 +18,14 @@ import pytest
 
 from flext_cli import settings
 from flext_cli.services.auth import FlextCliAuth
-from tests.constants import c
+from tests import c
+from flext_tests import tm
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
-    from tests.protocols import p
+    from tests import p
 
 
 class TestsFlextCliServicesAuthCov:
@@ -53,21 +54,16 @@ class TestsFlextCliServicesAuthCov:
     # ── validate_credentials ──────────────────────────────────────────
 
     @pytest.mark.parametrize(
-        ("username", "password", "expect_ok"),
-        c.Tests.AUTH_CRED_CASES,
+        ("username", "password", "expect_ok"), c.Tests.AUTH_CRED_CASES
     )
     def test_validate_credentials_reports_success_per_case(
-        self,
-        auth: p.Cli.AuthService,
-        username: str,
-        password: str,
-        expect_ok: bool,
+        self, auth: p.Cli.AuthService, username: str, password: str, expect_ok: bool
     ) -> None:
         result = auth.validate_credentials(username, password)
 
         assert result.success is expect_ok
         if expect_ok:
-            assert result.value is True
+            tm.that(result.value, eq=True)
         else:
             assert result.error
 
@@ -89,82 +85,70 @@ class TestsFlextCliServicesAuthCov:
     ) -> None:
         result = auth.validate_credentials(username, password)
 
-        assert result.failure
-        assert message_fragment in (result.error or "")
+        tm.fail(result)
+        tm.that((result.error or ""), has=message_fragment)
 
     # ── save_auth_token / fetch_auth_token roundtrip ──────────────────
 
     def test_save_then_fetch_returns_persisted_token(
-        self,
-        auth: p.Cli.AuthService,
+        self, auth: p.Cli.AuthService
     ) -> None:
         save_result = auth.save_auth_token("valid-token-abc123")
 
-        assert save_result.success
+        tm.ok(save_result)
 
         fetch_result = auth.fetch_auth_token()
 
-        assert fetch_result.success
-        assert fetch_result.value == "valid-token-abc123"
+        tm.ok(fetch_result)
+        tm.that(fetch_result.value, eq="valid-token-abc123")
 
-    def test_save_overwrites_previous_token(
-        self,
-        auth: p.Cli.AuthService,
-    ) -> None:
-        assert auth.save_auth_token("first-token").success
-        assert auth.save_auth_token("second-token").success
+    def test_save_overwrites_previous_token(self, auth: p.Cli.AuthService) -> None:
+        tm.ok(auth.save_auth_token("first-token"))
+        tm.ok(auth.save_auth_token("second-token"))
 
-        assert auth.fetch_auth_token().value == "second-token"
+        tm.that(auth.fetch_auth_token().value, eq="second-token")
 
     @pytest.mark.parametrize("token", ["", "   ", "\t\n"])
     def test_save_auth_token_rejects_blank_token(
-        self,
-        auth: p.Cli.AuthService,
-        token: str,
+        self, auth: p.Cli.AuthService, token: str
     ) -> None:
         result = auth.save_auth_token(token)
 
-        assert result.failure
-        assert "token" in (result.error or "").lower()
+        tm.fail(result)
+        tm.that((result.error or "").lower(), has="token")
 
     def test_blank_save_does_not_create_token_file(
-        self,
-        auth: p.Cli.AuthService,
-        token_file: Path,
+        self, auth: p.Cli.AuthService, token_file: Path
     ) -> None:
         auth.save_auth_token("")
 
         assert not token_file.exists()
 
     def test_fetch_without_saved_token_fails(
-        self,
-        auth: p.Cli.AuthService,
-        token_file: Path,
+        self, auth: p.Cli.AuthService, token_file: Path
     ) -> None:
         assert not token_file.exists()
 
         result = auth.fetch_auth_token()
 
-        assert result.failure
+        tm.fail(result)
         assert result.error
 
     # ── authenticate ──────────────────────────────────────────────────
 
     def test_authenticate_with_direct_token_returns_and_persists_it(
-        self,
-        auth: p.Cli.AuthService,
+        self, auth: p.Cli.AuthService
     ) -> None:
         credentials = {c.Cli.DICT_KEY_AUTH_TOKEN: "direct-token-abc"}
 
         result = auth.authenticate(credentials)
 
-        assert result.success
-        assert result.value == "direct-token-abc"
-        assert auth.fetch_auth_token().value == "direct-token-abc"
+        tm.ok(result)
+        tm.that(result.value, eq="direct-token-abc")
+        tm.that(auth.fetch_auth_token().value, eq="direct-token-abc")
 
     def test_authenticate_with_valid_credentials_generates_persisted_token(
-        self,
-        auth: p.Cli.AuthService,
+        self, auth: p.Cli.AuthService
     ) -> None:
         credentials = {
             c.Cli.DICT_KEY_USERNAME: "admin",
@@ -173,12 +157,12 @@ class TestsFlextCliServicesAuthCov:
 
         result = auth.authenticate(credentials)
 
-        assert result.success
+        tm.ok(result)
         generated = result.value
-        assert isinstance(generated, str)
+        tm.that(generated, is_=str)
         assert generated
         # The generated token is the one persisted and later fetchable.
-        assert auth.fetch_auth_token().value == generated
+        tm.that(auth.fetch_auth_token().value, eq=generated)
 
     @pytest.mark.parametrize(
         "credentials",
@@ -190,19 +174,15 @@ class TestsFlextCliServicesAuthCov:
         ],
     )
     def test_authenticate_rejects_incomplete_credentials(
-        self,
-        auth: p.Cli.AuthService,
-        credentials: dict[str, str],
+        self, auth: p.Cli.AuthService, credentials: dict[str, str]
     ) -> None:
         result = auth.authenticate(credentials)
 
-        assert result.failure
+        tm.fail(result)
         assert result.error
 
     def test_authenticate_failure_does_not_persist_token(
-        self,
-        auth: p.Cli.AuthService,
-        token_file: Path,
+        self, auth: p.Cli.AuthService, token_file: Path
     ) -> None:
         auth.authenticate({})
 
@@ -211,39 +191,32 @@ class TestsFlextCliServicesAuthCov:
     # ── clear_auth_tokens ─────────────────────────────────────────────
 
     def test_clear_removes_persisted_token_file(
-        self,
-        auth: p.Cli.AuthService,
-        token_file: Path,
+        self, auth: p.Cli.AuthService, token_file: Path
     ) -> None:
-        assert auth.save_auth_token("clear-me-token").success
+        tm.ok(auth.save_auth_token("clear-me-token"))
         assert token_file.exists()
 
         result = auth.clear_auth_tokens()
 
-        assert result.success
+        tm.ok(result)
         assert not token_file.exists()
 
     def test_clear_is_idempotent_when_no_token_file(
-        self,
-        auth: p.Cli.AuthService,
-        token_file: Path,
+        self, auth: p.Cli.AuthService, token_file: Path
     ) -> None:
         assert not token_file.exists()
 
         first = auth.clear_auth_tokens()
         second = auth.clear_auth_tokens()
 
-        assert first.success
-        assert second.success
+        tm.ok(first)
+        tm.ok(second)
 
-    def test_fetch_after_clear_fails(
-        self,
-        auth: p.Cli.AuthService,
-    ) -> None:
-        assert auth.save_auth_token("temp-token").success
-        assert auth.clear_auth_tokens().success
+    def test_fetch_after_clear_fails(self, auth: p.Cli.AuthService) -> None:
+        tm.ok(auth.save_auth_token("temp-token"))
+        tm.ok(auth.clear_auth_tokens())
 
-        assert auth.fetch_auth_token().failure
+        tm.fail(auth.fetch_auth_token())
 
 
 __all__: list[str] = ["TestsFlextCliServicesAuthCov"]

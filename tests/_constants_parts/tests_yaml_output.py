@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Final
 from flext_cli import c
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliConstantsYamlOutput:
@@ -66,11 +66,7 @@ class TestsFlextCliConstantsYamlOutput:
     )
 
     # ── FORMATTERS ─────────────────────────────────────────────────
-    FORMATTER_TREE_LABELS: Final[t.StrSequence] = (
-        "Root",
-        "Branch",
-        "",
-    )
+    FORMATTER_TREE_LABELS: Final[t.StrSequence] = ("Root", "Branch", "")
 
     # (columns, rows, title)
     FORMATTER_TABLE_CASES: Final[
@@ -86,11 +82,7 @@ class TestsFlextCliConstantsYamlOutput:
         ("No title content", ""),
     )
 
-    FORMATTER_RULE_LABELS: Final[t.StrSequence] = (
-        "Section Header",
-        "Done",
-        "",
-    )
+    FORMATTER_RULE_LABELS: Final[t.StrSequence] = ("Section Header", "Done", "")
 
     # ── OUTPUT (services/output.py) ────────────────────────────────
     # display_message: (message, message_type | None)
@@ -111,11 +103,7 @@ class TestsFlextCliConstantsYamlOutput:
     )
 
     # header / text display
-    OUTPUT_HEADER_LABELS: Final[t.StrSequence] = (
-        "Section Start",
-        "Processing",
-        "",
-    )
+    OUTPUT_HEADER_LABELS: Final[t.StrSequence] = ("Section Start", "Processing", "")
 
     OUTPUT_TEXT_CASES: Final[tuple[tuple[str, str | None], ...]] = (
         ("plain text", None),

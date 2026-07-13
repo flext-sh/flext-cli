@@ -8,13 +8,13 @@ from typing import TYPE_CHECKING
 import pytest
 from flext_tests import tm
 
-from tests.models import m
-from tests.utilities import u
+from tests import m
+from tests import u
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliRuntimeUtilitiesCore:
@@ -26,9 +26,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         return u.Cli()
 
     def test_run_raw_remove_env_keys_strips_inherited_values(
-        self,
-        runner: u.Cli,
-        monkeypatch: pytest.MonkeyPatch,
+        self, runner: u.Cli, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("TEST_RUNTIME_INHERITED", "should-not-leak")
 
@@ -38,7 +36,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         )
 
         output_raw: t.JsonPayload | None = tm.ok(result)
-        assert isinstance(output_raw, m.Cli.CommandOutput)
+        tm.that(output_raw, is_=m.Cli.CommandOutput)
         tm.that(output_raw.stdout, eq="missing")
 
     @pytest.mark.parametrize(
@@ -47,10 +45,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_run_raw_cases(
-        self,
-        runner: u.Cli,
-        tmp_path: Path,
-        case: m.Tests.RuntimeCommandCase,
+        self, runner: u.Cli, tmp_path: Path, case: m.Tests.RuntimeCommandCase
     ) -> None:
         cwd = tmp_path if case.use_tmp_path else None
         result = runner.run_raw(
@@ -62,7 +57,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         )
         if case.expect_success:
             output_raw: t.JsonPayload | None = tm.ok(result)
-            assert isinstance(output_raw, m.Cli.CommandOutput)
+            tm.that(output_raw, is_=m.Cli.CommandOutput)
             output: m.Cli.CommandOutput = output_raw
             if case.stdout_has:
                 tm.that(output.stdout, has=case.stdout_has)
@@ -81,16 +76,13 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_run_cases(
-        self,
-        runner: u.Cli,
-        tmp_path: Path,
-        case: m.Tests.RuntimeCommandCase,
+        self, runner: u.Cli, tmp_path: Path, case: m.Tests.RuntimeCommandCase
     ) -> None:
         cwd = tmp_path if case.use_tmp_path else None
         result = runner.run(case.command, cwd=cwd, timeout=case.timeout, env=case.env)
         if case.expect_success:
             output_raw: t.JsonPayload | None = tm.ok(result)
-            assert isinstance(output_raw, m.Cli.CommandOutput)
+            tm.that(output_raw, is_=m.Cli.CommandOutput)
             output: m.Cli.CommandOutput = output_raw
             if case.stdout_has:
                 tm.that(output.stdout, has=case.stdout_has)
@@ -105,21 +97,15 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_capture_cases(
-        self,
-        runner: u.Cli,
-        tmp_path: Path,
-        case: m.Tests.RuntimeCommandCase,
+        self, runner: u.Cli, tmp_path: Path, case: m.Tests.RuntimeCommandCase
     ) -> None:
         cwd = tmp_path if case.use_tmp_path else None
         result = runner.capture(
-            case.command,
-            cwd=cwd,
-            timeout=case.timeout,
-            env=case.env,
+            case.command, cwd=cwd, timeout=case.timeout, env=case.env
         )
         if case.expect_success:
             output_raw: t.JsonPayload | None = tm.ok(result)
-            assert isinstance(output_raw, str)
+            tm.that(output_raw, is_=str)
             output: str = output_raw
             if case.use_tmp_path:
                 tm.that(output, eq=str(tmp_path))
@@ -129,9 +115,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.fail(result, has=case.error_has)
 
     def test_process_start_wait_captures_stdout(self, runner: u.Cli) -> None:
-        result = runner.process_start(
-            [sys.executable, "-c", "print('managed-ok')"],
-        )
+        result = runner.process_start([sys.executable, "-c", "print('managed-ok')"])
         tm.ok(result)
         process = result.value
 
@@ -145,9 +129,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.stderr, eq="")
 
     def test_process_start_honors_cwd_env_and_stderr(
-        self,
-        runner: u.Cli,
-        tmp_path: Path,
+        self, runner: u.Cli, tmp_path: Path
     ) -> None:
         script = (
             "import os, pathlib, sys; "
@@ -165,7 +147,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
 
         tm.that(process.cwd, eq=tmp_path)
         process_env = process.env
-        assert process_env is not None
+        tm.that(process_env, none=False)
         tm.that(process_env["FLEXT_CLI_PROCESS_TEST"], eq="env-ok")
         wait_result = process.wait(timeout=5)
         tm.ok(wait_result)
@@ -175,9 +157,11 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.stderr.strip(), eq="err-marker")
 
     def test_process_start_timeout_then_terminate(self, runner: u.Cli) -> None:
-        result = runner.process_start(
-            [sys.executable, "-c", "import time; time.sleep(10)"],
-        )
+        result = runner.process_start([
+            sys.executable,
+            "-c",
+            "import time; time.sleep(10)",
+        ])
         tm.ok(result)
         process = result.value
 
@@ -190,9 +174,11 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.returncode is not None, eq=True)
 
     def test_process_start_kill_lifecycle(self, runner: u.Cli) -> None:
-        result = runner.process_start(
-            [sys.executable, "-c", "import time; time.sleep(10)"],
-        )
+        result = runner.process_start([
+            sys.executable,
+            "-c",
+            "import time; time.sleep(10)",
+        ])
         tm.ok(result)
         process = result.value
 

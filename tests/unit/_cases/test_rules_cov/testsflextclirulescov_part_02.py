@@ -5,8 +5,9 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from tests.constants import c
-from tests.utilities import u
+from tests import c
+from tests import u
+from flext_tests import tm
 
 
 class TestsFlextCliRulesCov:
@@ -24,7 +25,7 @@ class TestsFlextCliRulesCov:
                 rule_filters=(),
                 rule_catalog={},
             )
-            assert result.failure
+            tm.fail(result)
 
     def test_rules_load_local_definitions_with_rules(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -41,7 +42,7 @@ class TestsFlextCliRulesCov:
                 rule_filters=(),
                 rule_catalog=catalog,
             )
-            assert result.success
+            tm.ok(result)
 
     def test_rules_load_local_definitions_with_filter(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -58,7 +59,7 @@ class TestsFlextCliRulesCov:
                 rule_filters=("rule-*",),
                 rule_catalog=catalog,
             )
-            assert result.success
+            tm.ok(result)
 
     def test_rules_load_local_definitions_filter_excludes(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -75,7 +76,7 @@ class TestsFlextCliRulesCov:
                 rule_filters=("nonmatch-*",),
                 rule_catalog=catalog,
             )
-            assert result.success
+            tm.ok(result)
 
     def test_rules_load_local_definitions_skips_registry_missing_id_disabled_and_empty_matchers(
         self,
@@ -87,7 +88,7 @@ class TestsFlextCliRulesCov:
             (rules_dir / "no-id.yml").write_text(c.Tests.RULES_FILE_NO_ID_YAML)
             (rules_dir / "disabled.yml").write_text(c.Tests.RULES_FILE_DISABLED_YAML)
             (rules_dir / "empty.yml").write_text(
-                c.Tests.RULES_FILE_NO_MATCHER_KEYS_YAML,
+                c.Tests.RULES_FILE_NO_MATCHER_KEYS_YAML
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
@@ -97,8 +98,8 @@ class TestsFlextCliRulesCov:
                 rule_filters=(),
                 rule_catalog=c.Tests.RULES_CATALOG_BASIC,
             )
-            assert result.success
-            assert result.value == ([], [])
+            tm.ok(result)
+            tm.that(result.value, eq=([], []))
 
     def test_rules_load_local_definitions_unknown_rule_fails(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -113,8 +114,8 @@ class TestsFlextCliRulesCov:
                 rule_filters=(),
                 rule_catalog=c.Tests.RULES_CATALOG_BASIC,
             )
-            assert result.failure
-            assert "rule-unknown" in (result.error or "")
+            tm.fail(result)
+            tm.that((result.error or ""), has="rule-unknown")
 
 
 __all__: list[str] = ["TestsFlextCliRulesCov"]

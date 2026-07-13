@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Final
 from flext_cli import c
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliConstantsCore:

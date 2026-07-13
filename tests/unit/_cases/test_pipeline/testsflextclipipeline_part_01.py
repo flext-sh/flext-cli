@@ -4,16 +4,17 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tests.constants import c
-from tests.models import m
+from tests import c
+from tests import m
 
 from flext_cli import cli, r
+from flext_tests import tm
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests.protocols import p
-    from tests.typings import t
+    from tests import p
+    from tests import t
 
 
 class TestsFlextCliPipeline:
@@ -28,9 +29,7 @@ class TestsFlextCliPipeline:
         ) -> p.Result[m.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
-                stage_id,
-                output={output_key: stage_id},
-                duration_ms=1.0,
+                stage_id, output={output_key: stage_id}, duration_ms=1.0
             )
 
         return handler
@@ -52,19 +51,14 @@ class TestsFlextCliPipeline:
 
     def test_single_stage_ok(self, tmp_path: Path) -> None:
         """Single stage executes and returns ok."""
-        stages = [
-            cli.stage(
-                "alpha",
-                handler=self._ok_handler("alpha"),
-            ),
-        ]
+        stages = [cli.stage("alpha", handler=self._ok_handler("alpha"))]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
-        assert result.success
+        tm.ok(result)
         pipeline = result.value
-        assert pipeline.success
-        assert len(pipeline.stages) == 1
-        assert pipeline.stages[0].stage_id == "alpha"
-        assert pipeline.stages[0].status == c.Cli.PipelineStageStatus.OK
+        tm.ok(pipeline)
+        tm.that(len(pipeline.stages), eq=1)
+        tm.that(pipeline.stages[0].stage_id, eq="alpha")
+        tm.that(pipeline.stages[0].status, eq=c.Cli.PipelineStageStatus.OK)
 
     def test_dependency_order(self, tmp_path: Path) -> None:
         """Stages execute in topological order — B depends on A."""
@@ -81,15 +75,11 @@ class TestsFlextCliPipeline:
             return handler
 
         stages = cli.linear_pipeline(
-            ("a", "b"),
-            {
-                "a": tracking_handler("a"),
-                "b": tracking_handler("b"),
-            },
+            ("a", "b"), {"a": tracking_handler("a"), "b": tracking_handler("b")}
         )
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
-        assert result.success
-        assert execution_order == ["a", "b"]
+        tm.ok(result)
+        tm.that(execution_order, eq=["a", "b"])
 
     def test_shared_state_propagation(self, tmp_path: Path) -> None:
         """Stage B can read what stage A wrote to shared."""
@@ -109,36 +99,26 @@ class TestsFlextCliPipeline:
 
         stages = [
             cli.stage("a", handler=writer),
-            cli.stage(
-                "b",
-                depends_on=frozenset({"a"}),
-                handler=reader,
-            ),
+            cli.stage("b", depends_on=frozenset({"a"}), handler=reader),
         ]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
-        assert result.success
-        assert received["from_a"] == "hello"
+        tm.ok(result)
+        tm.that(received["from_a"], eq="hello")
 
     def test_fail_fast_stops_on_failure(self, tmp_path: Path) -> None:
         """With fail_fast=True, pipeline stops after first failure."""
         stages = [
             cli.stage("a", handler=self._fail_handler("a")),
-            cli.stage(
-                "b",
-                depends_on=frozenset({"a"}),
-                handler=self._ok_handler("b"),
-            ),
+            cli.stage("b", depends_on=frozenset({"a"}), handler=self._ok_handler("b")),
         ]
         result = cli.pipeline(
-            stages,
-            context=cli.stage_context(tmp_path),
-            fail_fast=True,
+            stages, context=cli.stage_context(tmp_path), fail_fast=True
         )
-        assert result.success
+        tm.ok(result)
         pipeline = result.value
-        assert not pipeline.success
-        assert len(pipeline.failed_stages) == 1
-        assert pipeline.failed_stages[0].stage_id == "a"
+        tm.fail(pipeline)
+        tm.that(len(pipeline.failed_stages), eq=1)
+        tm.that(pipeline.failed_stages[0].stage_id, eq="a")
 
     def test_skip_predicate(self, tmp_path: Path) -> None:
         """Stage with skip_if returning True is skipped."""
@@ -147,13 +127,13 @@ class TestsFlextCliPipeline:
                 "skippable",
                 handler=self._ok_handler("skippable"),
                 skip_if=self._skip_always,
-            ),
+            )
         ]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
-        assert result.success
+        tm.ok(result)
         pipeline = result.value
-        assert pipeline.success
-        assert pipeline.stages[0].status == c.Cli.PipelineStageStatus.SKIPPED
+        tm.ok(pipeline)
+        tm.that(pipeline.stages[0].status, eq=c.Cli.PipelineStageStatus.SKIPPED)
 
 
 __all__: list[str] = ["TestsFlextCliPipeline"]

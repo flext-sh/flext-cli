@@ -19,11 +19,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests.constants import c
-from tests.utilities import u
+from tests import c
+from tests import u
+from flext_tests import tm
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliAuthUtilsCov:
@@ -37,14 +38,13 @@ class TestsFlextCliAuthUtilsCov:
 
     @pytest.mark.parametrize("token_file", [None, "", "   ", "\t\n"])
     def test_token_file_path_defaults_to_canonical_when_blank(
-        self,
-        token_file: str | None,
+        self, token_file: str | None
     ) -> None:
         # Arrange / Act
         path = u.Cli.auth_token_file_path(token_file)
 
         # Assert — blank/absent input yields the documented default location
-        assert path == self._canonical_default()
+        tm.that(path, eq=self._canonical_default())
 
     @pytest.mark.parametrize(
         "token_file",
@@ -55,25 +55,21 @@ class TestsFlextCliAuthUtilsCov:
         path = u.Cli.auth_token_file_path(token_file)
 
         # Assert — a non-blank path is returned verbatim as a Path
-        assert path == Path(token_file)
+        tm.that(path, eq=Path(token_file))
 
     def test_token_file_path_is_deterministic(self) -> None:
         # Invariant: same input always maps to the same path
         first = u.Cli.auth_token_file_path(None)
         second = u.Cli.auth_token_file_path(None)
-        assert first == second
+        tm.that(first, eq=second)
 
     # ── auth_validate_credentials ─────────────────────────────────────
 
     @pytest.mark.parametrize(
-        ("username", "password", "expect_ok"),
-        c.Tests.AUTH_CRED_CASES,
+        ("username", "password", "expect_ok"), c.Tests.AUTH_CRED_CASES
     )
     def test_validate_credentials_success_reflects_non_blank_fields(
-        self,
-        username: str,
-        password: str,
-        expect_ok: bool,
+        self, username: str, password: str, expect_ok: bool
     ) -> None:
         # Act
         result = u.Cli.auth_validate_credentials(username, password)
@@ -82,76 +78,65 @@ class TestsFlextCliAuthUtilsCov:
         assert result.success is expect_ok
         assert result.failure is (not expect_ok)
         if expect_ok:
-            assert result.unwrap() is True
+            tm.that(result.unwrap(), eq=True)
 
     def test_validate_credentials_reports_empty_username(self) -> None:
         result = u.Cli.auth_validate_credentials("", "secret123")
-        assert result.failure
-        assert result.error is not None
-        assert "Username" in result.error
+        tm.fail(result)
+        tm.that(result.error, none=False)
+        tm.that(result.error, has="Username")
 
     def test_validate_credentials_reports_empty_password(self) -> None:
         result = u.Cli.auth_validate_credentials("admin", "   ")
-        assert result.failure
-        assert result.error is not None
-        assert "Password" in result.error
+        tm.fail(result)
+        tm.that(result.error, none=False)
+        tm.that(result.error, has="Password")
 
     # ── auth_extract_token ────────────────────────────────────────────
 
     def test_extract_token_returns_token_from_mapping(self) -> None:
         # Arrange
-        payload: dict[str, t.JsonValue] = {
-            c.Cli.DICT_KEY_AUTH_TOKEN: "my-secret-token",
-        }
+        payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_AUTH_TOKEN: "my-secret-token"}
 
         # Act
         result = u.Cli.auth_extract_token(payload)
 
         # Assert — the exact token value is delivered on success
-        assert result.success
-        assert result.unwrap() == "my-secret-token"
+        tm.ok(result)
+        tm.that(result.unwrap(), eq="my-secret-token")
 
     @pytest.mark.parametrize(
-        "payload",
-        [
-            {"user": "admin"},
-            {c.Cli.DICT_KEY_AUTH_TOKEN: ""},
-        ],
+        "payload", [{"user": "admin"}, {c.Cli.DICT_KEY_AUTH_TOKEN: ""}]
     )
     def test_extract_token_fails_when_no_usable_token(
-        self,
-        payload: dict[str, t.JsonValue],
+        self, payload: dict[str, t.JsonValue]
     ) -> None:
         # Act
         result = u.Cli.auth_extract_token(payload)
 
         # Assert — missing or empty token is a typed failure, not a value
-        assert result.failure
-        assert result.error is not None
-        assert "token" in result.error.lower()
+        tm.fail(result)
+        tm.that(result.error, none=False)
+        tm.that(result.error.lower(), has="token")
 
-    @pytest.mark.parametrize(
-        "payload",
-        ["not-a-mapping", ["token", "value"], 42, None],
-    )
+    @pytest.mark.parametrize("payload", ["not-a-mapping", ["token", "value"], 42, None])
     def test_extract_token_rejects_non_mapping_payload(
-        self,
-        payload: t.JsonValue,
+        self, payload: t.JsonValue
     ) -> None:
         # Act
         result = u.Cli.auth_extract_token(payload)
 
         # Assert — only mappings are accepted; anything else fails with mapping msg
-        assert result.failure
-        assert result.error is not None
-        assert "mapping" in result.error.lower()
+        tm.fail(result)
+        tm.that(result.error, none=False)
+        tm.that(result.error.lower(), has="mapping")
 
     def test_extract_token_success_chains_through_map(self) -> None:
         # Behavioral: a successful result composes with r[T] combinators
         payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_AUTH_TOKEN: "abc"}
         length = u.Cli.auth_extract_token(payload).map(len)
-        assert length.success
-        assert length.unwrap() == 3
+        tm.ok(length)
+        tm.that(length.unwrap(), eq=3)
 
 
 __all__: list[str] = ["TestsFlextCliAuthUtilsCov"]

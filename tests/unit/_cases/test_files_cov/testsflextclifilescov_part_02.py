@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_tests import tm
-from tests.utilities import u
+from tests import u
 
 from flext_cli import cli
 
@@ -43,8 +43,7 @@ class TestsFlextCliFilesCov:
 
     def test_atomic_write_text_file_invalid_dir(self) -> None:
         result = u.Cli.atomic_write_text_file(
-            "/nonexistent_root_dir/x/y/z/file.txt",
-            "x",
+            "/nonexistent_root_dir/x/y/z/file.txt", "x"
         )
         tm.fail(result)
 
@@ -91,8 +90,7 @@ class TestsFlextCliFilesCov:
 
     def test_files_create_temporary_directory(self, tmp_path: Path) -> None:
         result = u.Cli.files_create_temporary_directory(
-            prefix="flext-cli-test-",
-            parent_path=tmp_path,
+            prefix="flext-cli-test-", parent_path=tmp_path
         )
         tm.ok(result)
         tm.that(result.value.is_dir(), eq=True)
@@ -112,9 +110,7 @@ class TestsFlextCliFilesCov:
         blocked_result = u.Cli.files_copy_directory(source, destination)
         tm.fail(blocked_result)
         copied_result = u.Cli.files_copy_directory(
-            source,
-            destination,
-            dirs_exist_ok=True,
+            source, destination, dirs_exist_ok=True
         )
         tm.ok(copied_result)
         tm.that((destination / "payload.txt").read_text(encoding="utf-8"), eq="new")

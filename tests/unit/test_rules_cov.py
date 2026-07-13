@@ -13,13 +13,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests.constants import c
-from tests.utilities import u
+from tests import c
+from tests import u
+from flext_tests import tm
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliRulesCov:
@@ -44,7 +45,7 @@ class TestsFlextCliRulesCov:
             scope_key="lint",
             allowed_keys=("rule_a", "rule_b"),
         )
-        assert result == {"rule_a": True, "rule_b": False}
+        tm.that(result, eq={"rule_a": True, "rule_b": False})
 
     @pytest.mark.parametrize(
         ("settings", "scope_key", "allowed_keys", "expected_len"),
@@ -58,33 +59,25 @@ class TestsFlextCliRulesCov:
         expected_len: int,
     ) -> None:
         result = u.Cli.rules_resolve_scope(
-            settings,
-            scope_key=scope_key,
-            allowed_keys=allowed_keys,
+            settings, scope_key=scope_key, allowed_keys=allowed_keys
         )
-        assert len(result) == expected_len
+        tm.that(len(result), eq=expected_len)
         assert all(key in allowed_keys for key in result)
 
-    def test_load_scoped_config_returns_normalized_scope(
-        self,
-        tmp_path: Path,
-    ) -> None:
+    def test_load_scoped_config_returns_normalized_scope(self, tmp_path: Path) -> None:
         config_path = tmp_path / "config.yml"
         config_path.write_text("lint:\n  rule_a: true\n  rule_b: false\n")
         result = u.Cli.rules_load_scoped_config(
-            config_path,
-            scope_key="lint",
-            allowed_keys=("rule_a", "rule_b"),
+            config_path, scope_key="lint", allowed_keys=("rule_a", "rule_b")
         )
-        assert result.success
-        assert result.value["lint"] == {"rule_a": True, "rule_b": False}
+        tm.ok(result)
+        tm.that(result.value["lint"], eq={"rule_a": True, "rule_b": False})
 
     # --------------------------------------------------------------- registry
 
     def test_load_registry_from_local_rules_dir(self, tmp_path: Path) -> None:
         config_path = self._seed(
-            tmp_path,
-            {"engine-registry.yml": c.Tests.RULES_REGISTRY_YAML},
+            tmp_path, {"engine-registry.yml": c.Tests.RULES_REGISTRY_YAML}
         )
         result = u.Cli.rules_load_registry(
             config_path,
@@ -92,15 +85,13 @@ class TestsFlextCliRulesCov:
             registry_filename="engine-registry.yml",
             rules_dir_name="rules",
         )
-        assert result.success
-        assert result.value == {"rules": [{"id": "rule-a", "kind": "lint"}]}
+        tm.ok(result)
+        tm.that(result.value, eq={"rules": [{"id": "rule-a", "kind": "lint"}]})
 
     def test_load_registry_falls_back_to_package_dir(self, tmp_path: Path) -> None:
         pkg_rules_dir = tmp_path / "pkg_rules"
         pkg_rules_dir.mkdir()
-        (pkg_rules_dir / "engine-registry.yml").write_text(
-            c.Tests.RULES_REGISTRY_YAML,
-        )
+        (pkg_rules_dir / "engine-registry.yml").write_text(c.Tests.RULES_REGISTRY_YAML)
         config_path = tmp_path / "config.yml"
         config_path.write_text("project: test\n")
         result = u.Cli.rules_load_registry(
@@ -108,30 +99,28 @@ class TestsFlextCliRulesCov:
             package_rules_dir=pkg_rules_dir,
             registry_filename="engine-registry.yml",
         )
-        assert result.success
-        assert result.value == {"rules": [{"id": "rule-a", "kind": "lint"}]}
+        tm.ok(result)
+        tm.that(result.value, eq={"rules": [{"id": "rule-a", "kind": "lint"}]})
 
     def test_load_registry_prefers_local_over_package(self, tmp_path: Path) -> None:
         package_rules_dir = tmp_path / "pkg_rules"
         package_rules_dir.mkdir()
         (package_rules_dir / "engine-registry.yml").write_text(
-            "rules:\n  - id: package-rule\n",
+            "rules:\n  - id: package-rule\n"
         )
         config_path = self._seed(
-            tmp_path,
-            {"engine-registry.yml": c.Tests.RULES_REGISTRY_YAML},
+            tmp_path, {"engine-registry.yml": c.Tests.RULES_REGISTRY_YAML}
         )
         result = u.Cli.rules_load_registry(
             config_path,
             package_rules_dir=package_rules_dir,
             registry_filename="engine-registry.yml",
         )
-        assert result.success
-        assert result.value == {"rules": [{"id": "rule-a", "kind": "lint"}]}
+        tm.ok(result)
+        tm.that(result.value, eq={"rules": [{"id": "rule-a", "kind": "lint"}]})
 
     def test_load_registry_missing_file_fails_with_message(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         pkg_rules_dir = tmp_path / "pkg_rules"
         pkg_rules_dir.mkdir()
@@ -142,8 +131,8 @@ class TestsFlextCliRulesCov:
             package_rules_dir=pkg_rules_dir,
             registry_filename="engine-registry.yml",
         )
-        assert result.failure
-        assert "engine-registry.yml" in (result.error or "")
+        tm.fail(result)
+        tm.that((result.error or ""), has="engine-registry.yml")
 
     # ------------------------------------------------- local rule definitions
 
@@ -156,66 +145,51 @@ class TestsFlextCliRulesCov:
             rule_filters=(),
             rule_catalog={},
         )
-        assert result.failure
-        assert "not found" in (result.error or "")
+        tm.fail(result)
+        tm.that((result.error or ""), has="not found")
 
-    def test_load_local_definitions_loads_matching_rule(
-        self,
-        tmp_path: Path,
-    ) -> None:
-        config_path = self._seed(
-            tmp_path,
-            {"test-rule.yml": c.Tests.RULES_FILE_YAML},
-        )
+    def test_load_local_definitions_loads_matching_rule(self, tmp_path: Path) -> None:
+        config_path = self._seed(tmp_path, {"test-rule.yml": c.Tests.RULES_FILE_YAML})
         result = u.Cli.rules_load_local_definitions(
             config_path,
             package_rules_dir=tmp_path / "rules",
             rule_filters=(),
             rule_catalog=c.Tests.RULES_CATALOG_BASIC,
         )
-        assert result.success
+        tm.ok(result)
         loaded_rules, loaded_file_rules = result.value
-        assert loaded_file_rules == []
-        assert loaded_rules[0][0] == "lint"
-        assert loaded_rules[0][1]["id"] == "rule-a"
+        tm.that(loaded_file_rules, eq=[])
+        tm.that(loaded_rules[0][0], eq="lint")
+        tm.that(loaded_rules[0][1]["id"], eq="rule-a")
 
     def test_load_local_definitions_keeps_rule_when_filter_matches(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
-        config_path = self._seed(
-            tmp_path,
-            {"test-rule.yml": c.Tests.RULES_FILE_YAML},
-        )
+        config_path = self._seed(tmp_path, {"test-rule.yml": c.Tests.RULES_FILE_YAML})
         result = u.Cli.rules_load_local_definitions(
             config_path,
             package_rules_dir=tmp_path / "rules",
             rule_filters=("rule-*",),
             rule_catalog=c.Tests.RULES_CATALOG_BASIC,
         )
-        assert result.success
-        assert result.value[0][0][0] == "lint"
+        tm.ok(result)
+        tm.that(result.value[0][0][0], eq="lint")
 
     def test_load_local_definitions_drops_rule_when_filter_excludes(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
-        config_path = self._seed(
-            tmp_path,
-            {"test-rule.yml": c.Tests.RULES_FILE_YAML},
-        )
+        config_path = self._seed(tmp_path, {"test-rule.yml": c.Tests.RULES_FILE_YAML})
         result = u.Cli.rules_load_local_definitions(
             config_path,
             package_rules_dir=tmp_path / "rules",
             rule_filters=("nonmatch-*",),
             rule_catalog=c.Tests.RULES_CATALOG_BASIC,
         )
-        assert result.success
-        assert result.value == ([], [])
+        tm.ok(result)
+        tm.that(result.value, eq=([], []))
 
     def test_load_local_definitions_skips_registry_noid_disabled_empty(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         config_path = self._seed(
             tmp_path,
@@ -232,16 +206,12 @@ class TestsFlextCliRulesCov:
             rule_filters=(),
             rule_catalog=c.Tests.RULES_CATALOG_BASIC,
         )
-        assert result.success
-        assert result.value == ([], [])
+        tm.ok(result)
+        tm.that(result.value, eq=([], []))
 
-    def test_load_local_definitions_unknown_rule_fails(
-        self,
-        tmp_path: Path,
-    ) -> None:
+    def test_load_local_definitions_unknown_rule_fails(self, tmp_path: Path) -> None:
         config_path = self._seed(
-            tmp_path,
-            {"unknown.yml": c.Tests.RULES_FILE_UNKNOWN_YAML},
+            tmp_path, {"unknown.yml": c.Tests.RULES_FILE_UNKNOWN_YAML}
         )
         result = u.Cli.rules_load_local_definitions(
             config_path,
@@ -249,16 +219,14 @@ class TestsFlextCliRulesCov:
             rule_filters=(),
             rule_catalog=c.Tests.RULES_CATALOG_BASIC,
         )
-        assert result.failure
-        assert "rule-unknown" in (result.error or "")
+        tm.fail(result)
+        tm.that((result.error or ""), has="rule-unknown")
 
     def test_load_local_definitions_matcher_validation_fails(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         config_path = self._seed(
-            tmp_path,
-            {"invalid.yml": c.Tests.RULES_FILE_INVALID_MAPPING_YAML},
+            tmp_path, {"invalid.yml": c.Tests.RULES_FILE_INVALID_MAPPING_YAML}
         )
         result = u.Cli.rules_load_local_definitions(
             config_path,
@@ -266,17 +234,13 @@ class TestsFlextCliRulesCov:
             rule_filters=(),
             rule_catalog=c.Tests.RULES_CATALOG_MAPPING,
         )
-        assert result.failure
-        assert "config must be a mapping" in (result.error or "")
+        tm.fail(result)
+        tm.that((result.error or ""), has="config must be a mapping")
 
     def test_load_local_definitions_routes_to_file_catalog(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
-        config_path = self._seed(
-            tmp_path,
-            {"file.yml": c.Tests.RULES_FILE_YAML},
-        )
+        config_path = self._seed(tmp_path, {"file.yml": c.Tests.RULES_FILE_YAML})
         result = u.Cli.rules_load_local_definitions(
             config_path,
             package_rules_dir=tmp_path / "rules",
@@ -284,18 +248,16 @@ class TestsFlextCliRulesCov:
             rule_catalog=c.Tests.RULES_CATALOG_BASIC,
             file_rule_catalog=c.Tests.RULES_FILE_CATALOG_BASIC,
         )
-        assert result.success
+        tm.ok(result)
         loaded_rules, loaded_file_rules = result.value
-        assert loaded_rules == []
-        assert loaded_file_rules[0][0] == "file-lint"
+        tm.that(loaded_rules, eq=[])
+        tm.that(loaded_file_rules[0][0], eq="file-lint")
 
     def test_load_local_definitions_file_catalog_validation_fails(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         config_path = self._seed(
-            tmp_path,
-            {"file-invalid.yml": c.Tests.RULES_FILE_INVALID_MAPPING_YAML},
+            tmp_path, {"file-invalid.yml": c.Tests.RULES_FILE_INVALID_MAPPING_YAML}
         )
         result = u.Cli.rules_load_local_definitions(
             config_path,
@@ -304,23 +266,19 @@ class TestsFlextCliRulesCov:
             rule_catalog=c.Tests.RULES_CATALOG_BASIC,
             file_rule_catalog=c.Tests.RULES_FILE_CATALOG_MAPPING,
         )
-        assert result.failure
-        assert "config must be a mapping" in (result.error or "")
+        tm.fail(result)
+        tm.that((result.error or ""), has="config must be a mapping")
 
     # ----------------------------------------------------------------- filters
 
     def test_matches_filters_empty_filter_matches_any(self) -> None:
-        assert u.Cli.rules_matches_filters("rule-a", ()) is True
+        tm.that(u.Cli.rules_matches_filters("rule-a", ()), eq=True)
 
     @pytest.mark.parametrize(
-        ("rule_id", "rule_filters", "expected"),
-        c.Tests.RULES_MATCH_FILTER_CASES,
+        ("rule_id", "rule_filters", "expected"), c.Tests.RULES_MATCH_FILTER_CASES
     )
     def test_matches_filters_glob_and_substring(
-        self,
-        rule_id: str,
-        rule_filters: t.StrSequence,
-        expected: bool,
+        self, rule_id: str, rule_filters: t.StrSequence, expected: bool
     ) -> None:
         assert u.Cli.rules_matches_filters(rule_id, rule_filters) is expected
 
@@ -336,7 +294,7 @@ class TestsFlextCliRulesCov:
             package_rules_dir=tmp_path / "pkg_rules",
             rules_dir_name="rules",
         )
-        assert result == rules_dir
+        tm.that(result, eq=rules_dir)
 
     def test_resolve_directory_falls_back_to_package(self, tmp_path: Path) -> None:
         pkg_rules = tmp_path / "pkg_rules"
@@ -344,70 +302,56 @@ class TestsFlextCliRulesCov:
         config_path = tmp_path / "config.yml"
         config_path.write_text("project: test\n")
         result = u.Cli.rules_resolve_directory(
-            config_path,
-            package_rules_dir=pkg_rules,
-            rules_dir_name="rules",
+            config_path, package_rules_dir=pkg_rules, rules_dir_name="rules"
         )
-        assert result == pkg_rules
+        tm.that(result, eq=pkg_rules)
 
     # ------------------------------------------------------------- catalog lookup
 
     def test_match_catalog_entry_by_action(self) -> None:
         result = u.Cli.rules_match_catalog_entry(
-            "check",
-            "",
-            c.Tests.RULES_CATALOG_BASIC,
+            "check", "", c.Tests.RULES_CATALOG_BASIC
         )
-        assert result is not None
-        assert result[0] == "lint"
+        tm.that(result, none=False)
+        tm.that(result[0], eq="lint")
 
     def test_match_catalog_entry_by_check(self) -> None:
         result = u.Cli.rules_match_catalog_entry(
-            "",
-            "lint",
-            c.Tests.RULES_CATALOG_BASIC,
+            "", "lint", c.Tests.RULES_CATALOG_BASIC
         )
-        assert result is not None
-        assert result[0] == "lint"
+        tm.that(result, none=False)
+        tm.that(result[0], eq="lint")
 
     def test_match_catalog_entry_no_match_returns_none(self) -> None:
         result = u.Cli.rules_match_catalog_entry(
-            "unknown",
-            "unknown",
-            c.Tests.RULES_CATALOG_BASIC,
+            "unknown", "unknown", c.Tests.RULES_CATALOG_BASIC
         )
-        assert result is None
+        tm.that(result, none=True)
 
     # ------------------------------------------------------- matcher validation
 
     def test_validate_matcher_valid_returns_none(self) -> None:
         rule_def: t.JsonMapping = {"id": "rule-a", "actions": ["check"]}
         result = u.Cli.rules_validate_matcher(
-            rule_def,
-            c.Tests.RULES_BASIC_MATCHER,
-            rule_id_key="id",
+            rule_def, c.Tests.RULES_BASIC_MATCHER, rule_id_key="id"
         )
-        assert result is None
+        tm.that(result, none=True)
 
     def test_validate_matcher_reports_non_mapping_field(self) -> None:
         rule_def: t.JsonMapping = {"id": "rule-a", "config": "not-a-mapping"}
         result = u.Cli.rules_validate_matcher(
-            rule_def,
-            c.Tests.RULES_MAPPING_MATCHER,
-            rule_id_key="id",
+            rule_def, c.Tests.RULES_MAPPING_MATCHER, rule_id_key="id"
         )
-        assert result is not None
-        assert "config must be a mapping" in result
+        tm.that(result, none=False)
+        tm.that(result, has="config must be a mapping")
 
     def test_validate_matcher_reports_empty_required_list(self) -> None:
         rule_def: t.JsonMapping = {"id": "rule-a", "actions": []}
         result = u.Cli.rules_validate_matcher(
-            rule_def,
-            c.Tests.RULES_LIST_MATCHER,
-            rule_id_key="id",
+            rule_def, c.Tests.RULES_LIST_MATCHER, rule_id_key="id"
         )
-        assert result is not None
-        assert "actions must be a non-empty list" in result
+        tm.that(result, none=False)
+        tm.that(result, has="actions must be a non-empty list")
 
 
 __all__: list[str] = ["TestsFlextCliRulesCov"]

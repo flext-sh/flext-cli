@@ -16,7 +16,8 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import cli
-from tests.constants import c
+from tests import c
+from flext_tests import tm
 
 type Capture = pytest.CaptureFixture[str]
 
@@ -46,90 +47,71 @@ class TestsFlextCliServicesOutputCov:
         cli.display_message("payload text", message_type)
 
         out = capsys.readouterr().out
-        assert "payload text" in out
-        assert expected_marker in out
+        tm.that(out, has="payload text")
+        tm.that(out, has=expected_marker)
 
     # ── display_text ──────────────────────────────────────────────────
 
     @pytest.mark.parametrize("style", ["bold red", "dim", None])
     def test_display_text_emits_text_regardless_of_style(
-        self,
-        capsys: Capture,
-        style: str | None,
+        self, capsys: Capture, style: str | None
     ) -> None:
         if style is not None:
             cli.display_text("visible words", style=style)
         else:
             cli.display_text("visible words")
 
-        assert "visible words" in capsys.readouterr().out
+        tm.that(capsys.readouterr().out, has="visible words")
 
     def test_display_text_is_repeatable(self, capsys: Capture) -> None:
         cli.display_text("echo")
         cli.display_text("echo")
 
-        assert capsys.readouterr().out.count("echo") == 2
+        tm.that(capsys.readouterr().out.count("echo"), eq=2)
 
     # ── print_message ─────────────────────────────────────────────────
 
     @pytest.mark.parametrize("style", ["bold red", None])
     def test_print_message_emits_message_with_or_without_style(
-        self,
-        capsys: Capture,
-        style: str | None,
+        self, capsys: Capture, style: str | None
     ) -> None:
         cli.print_message("raw message", style)
 
-        assert "raw message" in capsys.readouterr().out
+        tm.that(capsys.readouterr().out, has="raw message")
 
     # ── display_header ────────────────────────────────────────────────
 
     @pytest.mark.parametrize("label", ["Setup", "Results", "Done"])
     def test_display_header_renders_label_in_rule(
-        self,
-        capsys: Capture,
-        label: str,
+        self, capsys: Capture, label: str
     ) -> None:
         cli.display_header(label)
 
-        assert label in capsys.readouterr().out
+        tm.that(capsys.readouterr().out, has=label)
 
     # ── display_progress ──────────────────────────────────────────────
 
     @pytest.mark.parametrize(
         ("current", "total", "expected_counter"),
-        [
-            (3, 10, "[03/10]"),
-            (5, 5, "[5/5]"),
-            (1, 100, "[001/100]"),
-            (0, 8, "[0/8]"),
-        ],
+        [(3, 10, "[03/10]"), (5, 5, "[5/5]"), (1, 100, "[001/100]"), (0, 8, "[0/8]")],
     )
     def test_display_progress_zero_pads_counter_to_total_width(
-        self,
-        capsys: Capture,
-        current: int,
-        total: int,
-        expected_counter: str,
+        self, capsys: Capture, current: int, total: int, expected_counter: str
     ) -> None:
         cli.display_progress(current, total, "Processing")
 
         out = capsys.readouterr().out
-        assert expected_counter in out
-        assert "Processing" in out
+        tm.that(out, has=expected_counter)
+        tm.that(out, has="Processing")
 
     def test_display_progress_appends_detail_when_present(
-        self,
-        capsys: Capture,
+        self, capsys: Capture
     ) -> None:
         cli.display_progress(3, 10, "Steps", detail="loading")
 
-        assert "loading" in capsys.readouterr().out
+        tm.that(capsys.readouterr().out, has="loading")
 
-    def test_display_progress_omits_detail_when_empty(
-        self,
-        capsys: Capture,
-    ) -> None:
+    def test_display_progress_omits_detail_when_empty(self, capsys: Capture) -> None:
         cli.display_progress(3, 10, "Steps")
 
         out = capsys.readouterr().out.strip()
@@ -138,43 +120,34 @@ class TestsFlextCliServicesOutputCov:
     # ── display_status ────────────────────────────────────────────────
 
     @pytest.mark.parametrize(
-        ("success", "expected_symbol"),
-        [(True, "✓"), (False, "✗")],
+        ("success", "expected_symbol"), [(True, "✓"), (False, "✗")]
     )
     def test_display_status_symbol_reflects_outcome(
-        self,
-        capsys: Capture,
-        success: bool,
-        expected_symbol: str,
+        self, capsys: Capture, success: bool, expected_symbol: str
     ) -> None:
         cli.display_status(success, "lint", "clean")
 
         out = capsys.readouterr().out
-        assert expected_symbol in out
-        assert "lint" in out
-        assert "clean" in out
+        tm.that(out, has=expected_symbol)
+        tm.that(out, has="lint")
+        tm.that(out, has="clean")
 
     @pytest.mark.parametrize(
-        ("elapsed", "expected_timing"),
-        [(1.23, "(1.23s)"), (0.5, "(0.50s)")],
+        ("elapsed", "expected_timing"), [(1.23, "(1.23s)"), (0.5, "(0.50s)")]
     )
     def test_display_status_formats_elapsed_to_two_decimals(
-        self,
-        capsys: Capture,
-        elapsed: float,
-        expected_timing: str,
+        self, capsys: Capture, elapsed: float, expected_timing: str
     ) -> None:
         cli.display_status(True, "build", "ok", elapsed=elapsed)
 
-        assert expected_timing in capsys.readouterr().out
+        tm.that(capsys.readouterr().out, has=expected_timing)
 
     def test_display_status_omits_timing_when_elapsed_absent(
-        self,
-        capsys: Capture,
+        self, capsys: Capture
     ) -> None:
         cli.display_status(True, "build", "ok")
 
-        assert "s)" not in capsys.readouterr().out
+        tm.that(capsys.readouterr().out, lacks="s)")
 
     # ── display_summary ───────────────────────────────────────────────
 
@@ -182,83 +155,68 @@ class TestsFlextCliServicesOutputCov:
         cli.display_summary("Run Summary", total=10, success=8, failed=2)
 
         out = capsys.readouterr().out
-        assert "Run Summary" in out
-        assert "Total: 10" in out
-        assert "Success: 8" in out
-        assert "Failed: 2" in out
-        assert "Skipped: 0" in out
+        tm.that(out, has="Run Summary")
+        tm.that(out, has="Total: 10")
+        tm.that(out, has="Success: 8")
+        tm.that(out, has="Failed: 2")
+        tm.that(out, has="Skipped: 0")
 
-    def test_display_summary_reflects_explicit_skipped(
-        self,
-        capsys: Capture,
-    ) -> None:
+    def test_display_summary_reflects_explicit_skipped(self, capsys: Capture) -> None:
         cli.display_summary("Summary", total=10, success=7, failed=1, skipped=2)
 
-        assert "Skipped: 2" in capsys.readouterr().out
+        tm.that(capsys.readouterr().out, has="Skipped: 2")
 
     # ── display_gate ──────────────────────────────────────────────────
 
     def test_display_gate_passed_shows_success_symbol_and_name(
-        self,
-        capsys: Capture,
+        self, capsys: Capture
     ) -> None:
         cli.display_gate("ruff", True)
 
         out = capsys.readouterr().out
-        assert "✓" in out
-        assert "ruff" in out
+        tm.that(out, has="✓")
+        tm.that(out, has="ruff")
 
     def test_display_gate_failed_shows_failure_symbol_name_and_message(
-        self,
-        capsys: Capture,
+        self, capsys: Capture
     ) -> None:
         cli.display_gate("pyrefly", False, message="2 errors")
 
         out = capsys.readouterr().out
-        assert "✗" in out
-        assert "pyrefly" in out
-        assert "2 errors" in out
+        tm.that(out, has="✗")
+        tm.that(out, has="pyrefly")
+        tm.that(out, has="2 errors")
 
     # ── display_metrics ───────────────────────────────────────────────
 
-    def test_display_metrics_emits_each_key_value_pair(
-        self,
-        capsys: Capture,
-    ) -> None:
+    def test_display_metrics_emits_each_key_value_pair(self, capsys: Capture) -> None:
         cli.display_metrics({"total": 100, "passed": 95, "failed": 5})
 
         out = capsys.readouterr().out
-        assert "total=100" in out
-        assert "passed=95" in out
-        assert "failed=5" in out
+        tm.that(out, has="total=100")
+        tm.that(out, has="passed=95")
+        tm.that(out, has="failed=5")
 
-    def test_display_metrics_empty_mapping_emits_nothing(
-        self,
-        capsys: Capture,
-    ) -> None:
+    def test_display_metrics_empty_mapping_emits_nothing(self, capsys: Capture) -> None:
         cli.display_metrics({})
 
-        assert capsys.readouterr().out == ""
+        tm.that(capsys.readouterr().out, eq="")
 
     # ── display_debug ─────────────────────────────────────────────────
 
-    def test_display_debug_is_noop_when_not_verbose(
-        self,
-        capsys: Capture,
-    ) -> None:
+    def test_display_debug_is_noop_when_not_verbose(self, capsys: Capture) -> None:
         cli.display_debug("hidden", verbose=False)
 
-        assert capsys.readouterr().out == ""
+        tm.that(capsys.readouterr().out, eq="")
 
     def test_display_debug_emits_labelled_line_when_verbose(
-        self,
-        capsys: Capture,
+        self, capsys: Capture
     ) -> None:
         cli.display_debug("visible", verbose=True)
 
         out = capsys.readouterr().out
-        assert "DEBUG" in out
-        assert "visible" in out
+        tm.that(out, has="DEBUG")
+        tm.that(out, has="visible")
 
 
 __all__: list[str] = ["TestsFlextCliServicesOutputCov"]

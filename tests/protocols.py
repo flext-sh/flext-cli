@@ -13,7 +13,7 @@ from flext_tests import FlextTestsProtocols
 from flext_cli import p
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliProtocols(FlextTestsProtocols, p):
@@ -36,38 +36,23 @@ class TestsFlextCliProtocols(FlextTestsProtocols, p):
             def use_password_error(self, error: Exception) -> Self: ...
 
             def configure_state(
-                self,
-                *,
-                interactive: bool = True,
-                quiet: bool = False,
+                self, *, interactive: bool = True, quiet: bool = False
             ) -> Self: ...
 
             def execute(self) -> p.Result[t.MappingKV[str, t.JsonValue]]: ...
 
-            def prompt(
-                self,
-                message: str,
-                default: str = "",
-            ) -> p.Result[str]: ...
+            def prompt(self, message: str, default: str = "") -> p.Result[str]: ...
 
             def confirm(
-                self,
-                message: str,
-                *,
-                default: bool = False,
+                self, message: str, *, default: bool = False
             ) -> p.Result[bool]: ...
 
             def prompt_choice(
-                self,
-                message: str,
-                choices: t.StrSequence,
-                default: str | None = None,
+                self, message: str, choices: t.StrSequence, default: str | None = None
             ) -> p.Result[str]: ...
 
             def prompt_password(
-                self,
-                message: str,
-                min_length: int = 8,
+                self, message: str, min_length: int = 8
             ) -> p.Result[str]: ...
 
             def print_success(self, message: str) -> p.Result[None]: ...

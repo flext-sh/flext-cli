@@ -18,7 +18,7 @@ from flext_tests import tm
 import flext_cli
 from flext_cli import cli
 from flext_cli.__version__ import FlextCliVersion
-from tests.constants import c
+from tests import c
 
 
 class TestsFlextCliVersion:
@@ -69,8 +69,7 @@ class TestsFlextCliVersion:
         both public attributes describe the same release.
         """
         tm.that(
-            flext_cli.__version_info__,
-            eq=self._parse_version(flext_cli.__version__),
+            flext_cli.__version_info__, eq=self._parse_version(flext_cli.__version__)
         )
 
     def test_facade_class_and_module_version_agree(self) -> None:
@@ -127,11 +126,7 @@ class TestsFlextCliVersion:
             ("not-a-version", False),
         ],
     )
-    def test_semver_pattern_contract(
-        self,
-        candidate: str,
-        is_valid: bool,
-    ) -> None:
+    def test_semver_pattern_contract(self, candidate: str, is_valid: bool) -> None:
         """The published semver pattern accepts valid and rejects invalid strings."""
         matched = c.PATTERN_SEMVER_RE.match(candidate) is not None
         tm.that(matched, eq=is_valid)

@@ -19,8 +19,8 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCliSettings, settings, t, u
-from tests.constants import c
-from tests.protocols import p
+from tests import c
+from tests import p
 
 
 class TestsFlextCliSettingsUnit:
@@ -38,10 +38,7 @@ class TestsFlextCliSettingsUnit:
 
     def test_fetch_global_returns_shared_singleton(self) -> None:
         """fetch_global returns the same process-wide instance each call."""
-        tm.that(
-            FlextCliSettings.fetch_global(),
-            eq=FlextCliSettings.fetch_global(),
-        )
+        tm.that(FlextCliSettings.fetch_global(), eq=FlextCliSettings.fetch_global())
 
     @pytest.mark.parametrize(
         ("field_name", "expected"),
@@ -59,9 +56,7 @@ class TestsFlextCliSettingsUnit:
         ],
     )
     def test_flat_default_field_state(
-        self,
-        field_name: str,
-        expected: t.Scalar | None,
+        self, field_name: str, expected: t.Scalar | None
     ) -> None:
         """A freshly validated settings object exposes documented defaults."""
         built = FlextCliSettings.model_validate({})
@@ -106,8 +101,7 @@ class TestsFlextCliSettingsUnit:
 
     @pytest.mark.parametrize("verbosity", list(c.Cli.LogVerbosity))
     def test_log_verbosity_preserves_each_mode(
-        self,
-        verbosity: c.Cli.LogVerbosity,
+        self, verbosity: c.Cli.LogVerbosity
     ) -> None:
         """Every declared log verbosity mode is retained as public state."""
         built = FlextCliSettings.model_validate({"cli_log_verbosity": verbosity.value})

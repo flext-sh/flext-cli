@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import m
-from tests.typings import t
+from tests import t
 
 
 class TestsFlextCliModelsRuntime:
@@ -16,10 +16,7 @@ class TestsFlextCliModelsRuntime:
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         status: Annotated[str, m.Field(description="Status")]
-        data: Annotated[
-            t.JsonMapping | None,
-            m.Field(description="Payload"),
-        ] = None
+        data: Annotated[t.JsonMapping | None, m.Field(description="Payload")] = None
         message: Annotated[str, m.Field(description="Message")]
         error: Annotated[str | None, m.Field(description="Error")] = None
 
@@ -31,45 +28,32 @@ class TestsFlextCliModelsRuntime:
         case_id: Annotated[str, m.Field(description="Pytest case id")]
         command: Annotated[t.StrSequence, m.Field(description="Command argv")]
         timeout: Annotated[
-            int | None,
-            m.Field(description="Optional timeout in seconds"),
+            int | None, m.Field(description="Optional timeout in seconds")
         ] = None
         env: Annotated[
             t.StrMapping | None,
             m.Field(description="Optional child environment overrides"),
         ] = None
         use_tmp_path: Annotated[
-            bool,
-            m.Field(description="Use pytest tmp_path as cwd"),
+            bool, m.Field(description="Use pytest tmp_path as cwd")
         ] = False
         input_data: Annotated[
-            bytes | None,
-            m.Field(description="Optional stdin payload"),
+            bytes | None, m.Field(description="Optional stdin payload")
         ] = None
         expect_success: Annotated[
-            bool,
-            m.Field(description="Whether command should succeed"),
+            bool, m.Field(description="Whether command should succeed")
         ] = True
-        stdout_has: Annotated[
-            str,
-            m.Field(description="Expected stdout substring"),
-        ] = ""
-        stderr_has: Annotated[
-            str,
-            m.Field(description="Expected stderr substring"),
-        ] = ""
+        stdout_has: Annotated[str, m.Field(description="Expected stdout substring")] = (
+            ""
+        )
+        stderr_has: Annotated[str, m.Field(description="Expected stderr substring")] = (
+            ""
+        )
         exit_code: Annotated[
-            int | None,
-            m.Field(description="Expected exit code when applicable"),
+            int | None, m.Field(description="Expected exit code when applicable")
         ] = None
-        expected: Annotated[
-            str,
-            m.Field(description="Expected captured output"),
-        ] = ""
-        error_has: Annotated[
-            str,
-            m.Field(description="Expected error substring"),
-        ] = ""
+        expected: Annotated[str, m.Field(description="Expected captured output")] = ""
+        error_has: Annotated[str, m.Field(description="Expected error substring")] = ""
 
         @staticmethod
         def id_for(case: TestsFlextCliModelsRuntime.RuntimeCommandCase) -> str:

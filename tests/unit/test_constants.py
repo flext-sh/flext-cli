@@ -21,8 +21,8 @@ from enum import StrEnum
 import pytest
 from flext_tests import tm
 
-from tests.constants import c
-from tests.utilities import u
+from tests import c
+from tests import u
 
 
 class TestsFlextCliConstants:
@@ -127,10 +127,7 @@ class TestsFlextCliConstants:
 
     def test_log_levels_authority_contract(self) -> None:
         """LOG_LEVELS lists the canonical logging severities in order."""
-        tm.that(
-            c.Cli.LOG_LEVELS,
-            eq=("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"),
-        )
+        tm.that(c.Cli.LOG_LEVELS, eq=("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"))
 
     # ---- output defaults resolve to enum members --------------------------
 
@@ -152,8 +149,7 @@ class TestsFlextCliConstants:
             tm.that(description, empty=False)
 
     @pytest.mark.parametrize(
-        "message_map",
-        [c.Cli.MESSAGE_STYLE_MAP, c.Cli.MESSAGE_EMOJI_MAP],
+        "message_map", [c.Cli.MESSAGE_STYLE_MAP, c.Cli.MESSAGE_EMOJI_MAP]
     )
     def test_message_maps_cover_every_message_type(
         self, message_map: Mapping[c.Cli.MessageTypes, object]

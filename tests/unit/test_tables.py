@@ -14,7 +14,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import cli
-from tests.constants import c
+from tests import c
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -31,7 +31,7 @@ class TestsFlextCliTables:
                 headers=["Field", "Value"],
                 colalign=["left", "right"],
                 table_format=c.Cli.TabularFormat.GRID,
-            ),
+            )
         )
         tm.that(table, has=["Field", "status", "ok"])
 
@@ -42,7 +42,7 @@ class TestsFlextCliTables:
                 [{"identifier": "row-1", "display_name": "Alpha"}],
                 show_header=False,
                 table_format=c.Cli.TabularFormat.PLAIN,
-            ),
+            )
         )
         tm.that(table, has=["row-1", "Alpha"])
         tm.that("identifier" in table, eq=False)
@@ -58,15 +58,13 @@ class TestsFlextCliTables:
         ],
     )
     def test_format_table_renders_row_values_across_formats(
-        self,
-        table_format: c.Cli.TabularFormat,
+        self, table_format: c.Cli.TabularFormat
     ) -> None:
         """Every supported tabular format renders the underlying row values."""
         table: str = tm.ok(
             cli.format_table(
-                [{"name": "Alice", "status": "active"}],
-                table_format=table_format,
-            ),
+                [{"name": "Alice", "status": "active"}], table_format=table_format
+            )
         )
         tm.that(table, has=["Alice", "active"])
 
@@ -76,18 +74,16 @@ class TestsFlextCliTables:
             cli.format_table(
                 [{"n": "first"}, {"n": "second"}, {"n": "third"}],
                 table_format=c.Cli.TabularFormat.PLAIN,
-            ),
+            )
         )
         tm.that(table, has=["first", "second", "third"])
         tm.that(
-            table.index("first") < table.index("second") < table.index("third"),
-            eq=True,
+            table.index("first") < table.index("second") < table.index("third"), eq=True
         )
 
     @pytest.mark.parametrize("empty_data", [[], {}])
     def test_format_table_returns_empty_string_for_empty_data(
-        self,
-        empty_data: t.Cli.TableDataSource,
+        self, empty_data: t.Cli.TableDataSource
     ) -> None:
         """Empty input is a success carrying an empty rendered table."""
         table: str = tm.ok(cli.format_table(empty_data))
@@ -100,20 +96,17 @@ class TestsFlextCliTables:
             cli.format_table(rows, table_format=c.Cli.TabularFormat.GRID)
         )
         second: str = tm.ok(
-            cli.format_table(rows, table_format=c.Cli.TabularFormat.GRID),
+            cli.format_table(rows, table_format=c.Cli.TabularFormat.GRID)
         )
         tm.that(first == second, eq=True)
 
     def test_format_table_fails_on_unknown_configuration_kwarg(self) -> None:
         """An unrecognized config kwarg surfaces a validation failure, not a render."""
-        error: str = tm.fail(
-            cli.format_table([{"name": "Alice"}], bogus_kwarg=1),
-        )
+        error: str = tm.fail(cli.format_table([{"name": "Alice"}], bogus_kwarg=1))
         tm.that(error, has=["table configuration", "bogus_kwarg"])
 
     def test_show_table_prints_title_before_rendered_table(
-        self,
-        capsys: pytest.CaptureFixture[str],
+        self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """show_table prints the title ahead of the rendered table body."""
         cli.show_table(
@@ -126,8 +119,7 @@ class TestsFlextCliTables:
         tm.that(output.index("Current State") < output.index("service"), eq=True)
 
     def test_show_table_reports_configuration_failure_to_console(
-        self,
-        capsys: pytest.CaptureFixture[str],
+        self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """An invalid configuration is surfaced on the console rather than raising."""
         cli.show_table([{"name": "Alice"}], bogus_kwarg=1)

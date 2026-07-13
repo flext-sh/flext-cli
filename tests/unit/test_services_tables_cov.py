@@ -14,6 +14,7 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import c, cli, m, t
+from flext_tests import tm
 
 
 class TestsFlextCliServicesTablesCov:
@@ -40,8 +41,8 @@ class TestsFlextCliServicesTablesCov:
         result = cli.format_table(single_record)
 
         # Assert — fallible op returns a successful r[str]
-        assert result.success
-        assert isinstance(result.unwrap(), str)
+        tm.ok(result)
+        tm.that(result.unwrap(), is_=str)
 
     def test_format_table_dict_renders_keys_and_values(
         self, single_record: t.Cli.TableDataSource
@@ -50,10 +51,10 @@ class TestsFlextCliServicesTablesCov:
         rendered = cli.format_table(single_record).unwrap()
 
         # Assert — every key and value appears in the rendered output
-        assert "name" in rendered
-        assert "Alice" in rendered
-        assert "age" in rendered
-        assert "30" in rendered
+        tm.that(rendered, has="name")
+        tm.that(rendered, has="Alice")
+        tm.that(rendered, has="age")
+        tm.that(rendered, has="30")
 
     def test_format_table_list_of_dicts_renders_every_row(
         self, record_rows: t.Cli.TableDataSource
@@ -62,18 +63,15 @@ class TestsFlextCliServicesTablesCov:
         rendered = cli.format_table(record_rows).unwrap()
 
         # Assert — column header plus each row value present
-        assert "col" in rendered
-        assert "val1" in rendered
-        assert "val2" in rendered
+        tm.that(rendered, has="col")
+        tm.that(rendered, has="val1")
+        tm.that(rendered, has="val2")
 
     # ── format_table: edge cases / invariants ─────────────────────────
 
     @pytest.mark.parametrize(
         "empty_source",
-        [
-            pytest.param({}, id="empty-dict"),
-            pytest.param([], id="empty-list"),
-        ],
+        [pytest.param({}, id="empty-dict"), pytest.param([], id="empty-list")],
     )
     def test_format_table_empty_source_yields_empty_string(
         self, empty_source: t.Cli.TableDataSource
@@ -82,8 +80,8 @@ class TestsFlextCliServicesTablesCov:
         result = cli.format_table(empty_source)
 
         # Assert — empty input is valid and renders to an empty table
-        assert result.success
-        assert result.unwrap() == ""
+        tm.ok(result)
+        tm.that(result.unwrap(), eq="")
 
     def test_format_table_is_idempotent_for_equal_input(
         self, single_record: t.Cli.TableDataSource
@@ -93,7 +91,7 @@ class TestsFlextCliServicesTablesCov:
         second = cli.format_table(single_record).unwrap()
 
         # Assert — deterministic rendering
-        assert first == second
+        tm.that(first, eq=second)
 
     # ── format_table: configuration behavior ──────────────────────────
 
@@ -107,7 +105,7 @@ class TestsFlextCliServicesTablesCov:
         rendered = cli.format_table(single_record, config).unwrap()
 
         # Assert — format_table returns the table body only, without the title
-        assert "My Report" not in rendered
+        tm.that(rendered, lacks="My Report")
 
     @pytest.mark.parametrize(
         "table_format",
@@ -118,9 +116,7 @@ class TestsFlextCliServicesTablesCov:
         ],
     )
     def test_format_table_format_changes_rendered_output(
-        self,
-        single_record: t.Cli.TableDataSource,
-        table_format: c.Cli.TabularFormat,
+        self, single_record: t.Cli.TableDataSource, table_format: c.Cli.TabularFormat
     ) -> None:
         # Arrange
         default_rendered = cli.format_table(single_record).unwrap()
@@ -131,8 +127,8 @@ class TestsFlextCliServicesTablesCov:
 
         # Assert — a non-default table format produces distinct output that
         # still carries the underlying data
-        assert styled_rendered != default_rendered
-        assert "Alice" in styled_rendered
+        tm.that(styled_rendered, ne=default_rendered)
+        tm.that(styled_rendered, has="Alice")
 
     def test_format_table_accepts_config_via_keyword_argument(
         self, single_record: t.Cli.TableDataSource
@@ -146,7 +142,7 @@ class TestsFlextCliServicesTablesCov:
         ).unwrap()
 
         # Assert
-        assert via_kwarg == via_model
+        tm.that(via_kwarg, eq=via_model)
 
     def test_format_table_custom_headers_appear_in_output(self) -> None:
         # Arrange
@@ -156,8 +152,8 @@ class TestsFlextCliServicesTablesCov:
         rendered = cli.format_table({"a": 1}, config).unwrap()
 
         # Assert — supplied headers override default Key/Value labels
-        assert "K" in rendered
-        assert "V" in rendered
+        tm.that(rendered, has="K")
+        tm.that(rendered, has="V")
 
     # ── show_table: return + observable output ────────────────────────
 
@@ -165,25 +161,21 @@ class TestsFlextCliServicesTablesCov:
         self, single_record: t.Cli.TableDataSource
     ) -> None:
         # Act / Assert — display is a side-effecting command returning None
-        assert cli.show_table(single_record) is None
+        tm.that(cli.show_table(single_record), none=True)
 
     def test_show_table_writes_data_to_stdout(
-        self,
-        record_rows: t.Cli.TableDataSource,
-        capsys: pytest.CaptureFixture[str],
+        self, record_rows: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Act
         cli.show_table(record_rows)
 
         # Assert — rendered rows reach the console
         out = capsys.readouterr().out
-        assert "val1" in out
-        assert "val2" in out
+        tm.that(out, has="val1")
+        tm.that(out, has="val2")
 
     def test_show_table_prints_title_when_configured(
-        self,
-        single_record: t.Cli.TableDataSource,
-        capsys: pytest.CaptureFixture[str],
+        self, single_record: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Arrange
         config = m.Cli.TableConfig(title="Quarterly Numbers")
@@ -193,8 +185,8 @@ class TestsFlextCliServicesTablesCov:
 
         # Assert — the title is emitted alongside the table body
         out = capsys.readouterr().out
-        assert "Quarterly Numbers" in out
-        assert "Alice" in out
+        tm.that(out, has="Quarterly Numbers")
+        tm.that(out, has="Alice")
 
 
 __all__: list[str] = ["TestsFlextCliServicesTablesCov"]

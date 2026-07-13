@@ -15,27 +15,24 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import c as cli_c, cli
-from tests.constants import c
-from tests.models import m
-from tests.utilities import u
+from tests import c
+from tests import m
+from tests import u
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliFilesCov:
     """Public file-IO contract of ``cli`` file helpers and ``u.Cli``."""
 
     @pytest.mark.parametrize(
-        ("filename", "expected_format"),
-        c.Tests.FILES_DETECT_FORMAT_CASES,
+        ("filename", "expected_format"), c.Tests.FILES_DETECT_FORMAT_CASES
     )
     def test_detect_file_format_returns_known_format(
-        self,
-        filename: str,
-        expected_format: cli_c.OutputFormats,
+        self, filename: str, expected_format: cli_c.OutputFormats
     ) -> None:
         result = cli.detect_file_format(filename)
         tm.ok(result)
@@ -43,8 +40,7 @@ class TestsFlextCliFilesCov:
 
     @pytest.mark.parametrize("filename", c.Tests.FILES_DETECT_FORMAT_FAIL_CASES)
     def test_detect_file_format_fails_for_unknown_extension(
-        self,
-        filename: str,
+        self, filename: str
     ) -> None:
         result = cli.detect_file_format(filename)
         tm.fail(result)
@@ -95,11 +91,7 @@ class TestsFlextCliFilesCov:
 
     def test_write_then_read_csv_preserves_data_rows(self, tmp_path: Path) -> None:
         path = tmp_path / "data.csv"
-        rows: list[t.StrSequence] = [
-            ["name", "age"],
-            ["alice", "30"],
-            ["bob", "25"],
-        ]
+        rows: list[t.StrSequence] = [["name", "age"], ["alice", "30"], ["bob", "25"]]
         tm.ok(cli.write_csv_file(path, rows))
         read_result = cli.read_csv_file_with_headers(path)
         tm.ok(read_result)
@@ -118,10 +110,7 @@ class TestsFlextCliFilesCov:
     def test_read_binary_fails_for_missing_file(self, tmp_path: Path) -> None:
         tm.fail(cli.read_binary_file(tmp_path / "missing.bin"))
 
-    def test_copy_file_duplicates_content_to_destination(
-        self,
-        tmp_path: Path,
-    ) -> None:
+    def test_copy_file_duplicates_content_to_destination(self, tmp_path: Path) -> None:
         src = tmp_path / "src.txt"
         dst = tmp_path / "dst.txt"
         src.write_text("content", encoding="utf-8")
@@ -156,10 +145,7 @@ class TestsFlextCliFilesCov:
         tm.ok(u.Cli.ensure_symlink(link, source))
         tm.ok(u.Cli.ensure_symlink(link, source))
 
-    def test_ensure_symlink_replaces_existing_directory(
-        self,
-        tmp_path: Path,
-    ) -> None:
+    def test_ensure_symlink_replaces_existing_directory(self, tmp_path: Path) -> None:
         source = tmp_path / "source_dir"
         source.mkdir()
         target = tmp_path / "target_dir"
@@ -183,13 +169,10 @@ class TestsFlextCliFilesCov:
 
     def test_atomic_write_text_fails_for_unwritable_dir(self) -> None:
         tm.fail(
-            u.Cli.atomic_write_text_file("/nonexistent_root_dir/x/y/z/file.txt", "x"),
+            u.Cli.atomic_write_text_file("/nonexistent_root_dir/x/y/z/file.txt", "x")
         )
 
-    def test_service_atomic_write_text_persists_content(
-        self,
-        tmp_path: Path,
-    ) -> None:
+    def test_service_atomic_write_text_persists_content(self, tmp_path: Path) -> None:
         target = tmp_path / "service_atomic.txt"
         tm.ok(cli.atomic_write_text_file(target, "ok"))
         tm.that(target.read_text(encoding="utf-8"), eq="ok")
@@ -203,17 +186,10 @@ class TestsFlextCliFilesCov:
         tm.that(u.Cli.sha256_file(path), eq=u.Cli.sha256_content("hello"))
 
     @pytest.mark.parametrize(
-        ("filename", "payload"),
-        [
-            ("data.json", '{"a": 1}'),
-            ("data.yaml", "a: 1\n"),
-        ],
+        ("filename", "payload"), [("data.json", '{"a": 1}'), ("data.yaml", "a: 1\n")]
     )
     def test_load_file_auto_dict_reads_supported_mappings(
-        self,
-        tmp_path: Path,
-        filename: str,
-        payload: str,
+        self, tmp_path: Path, filename: str, payload: str
     ) -> None:
         path = tmp_path / filename
         path.write_text(payload, encoding="utf-8")
@@ -222,16 +198,14 @@ class TestsFlextCliFilesCov:
         tm.that(result.value, eq={"a": 1})
 
     def test_load_file_auto_dict_fails_for_unsupported_extension(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         path = tmp_path / "data.xml"
         path.write_text("<root/>", encoding="utf-8")
         tm.fail(cli.load_file_auto_dict(path))
 
     def test_load_file_auto_dict_fails_for_non_mapping_payload(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         path = tmp_path / "list.json"
         path.write_text("[1,2,3]", encoding="utf-8")
@@ -239,8 +213,7 @@ class TestsFlextCliFilesCov:
 
     def test_create_and_remove_temporary_directory(self, tmp_path: Path) -> None:
         result = u.Cli.files_create_temporary_directory(
-            prefix="flext-cli-test-",
-            parent_path=tmp_path,
+            prefix="flext-cli-test-", parent_path=tmp_path
         )
         tm.ok(result)
         tm.that(result.value.is_dir(), eq=True)

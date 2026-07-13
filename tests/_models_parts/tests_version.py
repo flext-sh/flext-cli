@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated, ClassVar, Self
 
 from flext_cli import m
-from tests.constants import c
+from tests import c
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliModelsVersion:
@@ -21,16 +21,14 @@ class TestsFlextCliModelsVersion:
 
         name: Annotated[str, m.Field(description="Scenario name")]
         version_string: Annotated[
-            str | None,
-            m.Field(description="Version string under test"),
+            str | None, m.Field(description="Version string under test")
         ] = None
         version_info: Annotated[
             tuple[int | str, ...] | None,
             m.Field(description="Version info tuple under test"),
         ] = None
         should_pass: Annotated[
-            bool,
-            m.Field(description="Whether scenario should pass validation"),
+            bool, m.Field(description="Whether scenario should pass validation")
         ] = True
 
         @classmethod

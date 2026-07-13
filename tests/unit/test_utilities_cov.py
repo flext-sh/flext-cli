@@ -13,8 +13,8 @@ from __future__ import annotations
 import pytest
 from flext_tests import tm
 
-from tests.typings import t
-from tests.utilities import u
+from tests import t
+from tests import u
 
 
 def _raise_on_zero(value: int) -> int:
@@ -49,11 +49,7 @@ class TestsFlextCliUtilitiesCov:
         tm.that(list(result.unwrap()), eq=[10, 2])
 
     def test_process_predicate_excludes_items_before_processing(self) -> None:
-        result = u.process(
-            [1, 0, 5],
-            _raise_on_zero,
-            predicate=lambda x: x != 0,
-        )
+        result = u.process([1, 0, 5], _raise_on_zero, predicate=lambda x: x != 0)
         tm.ok(result)
         tm.that(list(result.unwrap()), eq=[10, 2])
 
@@ -64,50 +60,34 @@ class TestsFlextCliUtilitiesCov:
 
     def test_process_mapping_fail_policy_reports_offending_key(self) -> None:
         result = u.Cli.process_mapping(
-            {"ok": 2, "bad": 0},
-            _raise_on_zero_kv,
-            on_error="fail",
+            {"ok": 2, "bad": 0}, _raise_on_zero_kv, on_error="fail"
         )
         tm.fail(result)
         tm.that(result.error or "", has="bad")
 
     def test_process_mapping_collect_policy_reports_offending_key(self) -> None:
         result = u.Cli.process_mapping(
-            {"ok": 2, "bad": 0},
-            _raise_on_zero_kv,
-            on_error="collect",
+            {"ok": 2, "bad": 0}, _raise_on_zero_kv, on_error="collect"
         )
         tm.fail(result)
         tm.that(result.error or "", has="bad")
 
     def test_process_mapping_skip_policy_keeps_only_successes(self) -> None:
         result = u.Cli.process_mapping(
-            {"ok": 2, "bad": 0},
-            _raise_on_zero_kv,
-            on_error="skip",
+            {"ok": 2, "bad": 0}, _raise_on_zero_kv, on_error="skip"
         )
         tm.ok(result)
         tm.that(result.unwrap(), eq={"ok": 5})
 
-    @pytest.mark.parametrize(
-        "value",
-        [None, "", "   "],
-    )
-    def test_validate_not_empty_fails_for_empty_inputs(
-        self,
-        value: str | None,
-    ) -> None:
+    @pytest.mark.parametrize("value", [None, "", "   "])
+    def test_validate_not_empty_fails_for_empty_inputs(self, value: str | None) -> None:
         result = u.Cli.validate_not_empty(value, name="project")
         tm.fail(result)
         tm.that(result.error or "", has="project")
 
-    @pytest.mark.parametrize(
-        "value",
-        ["name", " padded ", 0, 42],
-    )
+    @pytest.mark.parametrize("value", ["name", " padded ", 0, 42])
     def test_validate_not_empty_succeeds_for_present_values(
-        self,
-        value: t.Cli.CliValue,
+        self, value: t.Cli.CliValue
     ) -> None:
         result = u.Cli.validate_not_empty(value, name="project")
         tm.ok(result)

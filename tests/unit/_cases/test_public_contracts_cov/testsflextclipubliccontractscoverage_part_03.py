@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tests.constants import c
-from tests.protocols import p
+from tests import c
+from tests import p
 
 from flext_cli import cli, m, r
+from flext_tests import tm
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -27,49 +28,35 @@ class TestsFlextCliPublicContractsCoverage:
                     "stage_id": "build",
                     "status": c.Cli.PipelineStageStatus.OK,
                     "output": {"workspace": str(current.workspace_root)},
-                }),
+                })
             )
 
-        spec = cli.stage(
-            "build",
-            handler=stage_handler,
-            depends_on=("fetch",),
-            retry=1,
-        )
+        spec = cli.stage("build", handler=stage_handler, depends_on=("fetch",), retry=1)
         pipeline = m.Cli.PipelineResult(
             stages=[
+                cli.stage_result("ok", status=c.Cli.PipelineStageStatus.OK),
                 cli.stage_result(
-                    "ok",
-                    status=c.Cli.PipelineStageStatus.OK,
+                    "fail", status=c.Cli.PipelineStageStatus.FAILED, error="boom"
                 ),
-                cli.stage_result(
-                    "fail",
-                    status=c.Cli.PipelineStageStatus.FAILED,
-                    error="boom",
-                ),
-                cli.stage_result(
-                    "skip",
-                    status=c.Cli.PipelineStageStatus.SKIPPED,
-                ),
+                cli.stage_result("skip", status=c.Cli.PipelineStageStatus.SKIPPED),
             ],
             total_duration_ms=10.5,
         )
         stage_result = spec.handler(context)
         pipeline_run = cli.pipeline(
-            (spec,),
-            context=cli.stage_context(tmp_path, settings={"mode": "test"}),
+            (spec,), context=cli.stage_context(tmp_path, settings={"mode": "test"})
         )
 
-        assert isinstance(cli, p.Cli.PipelineService)
-        assert context.settings == {"mode": "test"}
-        assert spec.retry == 1
-        assert pipeline.success is False
-        assert [stage.stage_id for stage in pipeline.failed_stages] == ["fail"]
-        assert [stage.stage_id for stage in pipeline.skipped_stages] == ["skip"]
-        assert stage_result.success
-        assert stage_result.value.output == {"workspace": str(tmp_path)}
-        assert pipeline_run.success
-        assert pipeline_run.value.success
+        tm.that(cli, is_=p.Cli.PipelineService)
+        tm.that(context.settings, eq={"mode": "test"})
+        tm.that(spec.retry, eq=1)
+        tm.that(pipeline.success, eq=False)
+        tm.that([stage.stage_id for stage in pipeline.failed_stages], eq=["fail"])
+        tm.that([stage.stage_id for stage in pipeline.skipped_stages], eq=["skip"])
+        tm.ok(stage_result)
+        tm.that(stage_result.value.output, eq={"workspace": str(tmp_path)})
+        tm.ok(pipeline_run)
+        tm.ok(pipeline_run.value)
 
 
 __all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]

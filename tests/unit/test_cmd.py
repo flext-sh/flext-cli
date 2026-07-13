@@ -24,8 +24,8 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import cli, m
-from tests.constants import c
-from tests.protocols import p
+from tests import c
+from tests import p
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -62,9 +62,7 @@ class TestsFlextCliCmd:
         tm.that(first["version"], eq=second["version"])
 
     def test_settings_snapshot_reports_absent_home_state(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """A missing settings dir must yield a fully-negative snapshot."""
         monkeypatch.setenv("HOME", str(tmp_path))
@@ -82,9 +80,7 @@ class TestsFlextCliCmd:
         )
 
     def test_settings_snapshot_reports_present_home_state(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """An existing, accessible settings dir must yield a positive snapshot."""
         settings_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
@@ -104,9 +100,7 @@ class TestsFlextCliCmd:
         )
 
     def test_settings_snapshot_timestamp_is_iso8601(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """The snapshot timestamp must be a parseable ISO-8601 instant."""
         monkeypatch.setenv("HOME", str(tmp_path))
@@ -117,9 +111,7 @@ class TestsFlextCliCmd:
         tm.that(parsed, is_=datetime)
 
     def test_settings_snapshot_is_a_settings_snapshot_model(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """The snapshot value must be the public SettingsSnapshot model."""
         monkeypatch.setenv("HOME", str(tmp_path))
@@ -140,11 +132,7 @@ class TestsFlextCliCmd:
 
     @pytest.mark.parametrize("dir_present", [False, True])
     def test_show_settings_succeeds_for_any_home_state(
-        self,
-        *,
-        dir_present: bool,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+        self, *, dir_present: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """show_settings() must report success regardless of settings-dir presence."""
         if dir_present:
@@ -154,9 +142,7 @@ class TestsFlextCliCmd:
         tm.that(tm.ok(cli.show_settings()), eq=True)
 
     def test_show_settings_reflects_snapshot_presence(
-        self,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """show_settings() success must coincide with the snapshot it displays."""
         (tmp_path / c.Cli.PATH_FLEXT_DIR_NAME).mkdir()
@@ -170,11 +156,7 @@ class TestsFlextCliCmd:
 
     @pytest.mark.parametrize("with_subdirs", [False, True])
     def test_validate_settings_succeeds_for_any_structure(
-        self,
-        *,
-        with_subdirs: bool,
-        tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+        self, *, with_subdirs: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         """validate_settings() must succeed whether or not subdirs exist."""
         settings_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME

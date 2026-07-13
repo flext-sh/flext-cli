@@ -6,29 +6,26 @@ from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
-from tests.constants import c
-from tests.models import m
-from tests.utilities import u
+from tests import c
+from tests import m
+from tests import u
 
 from flext_cli import cli
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliFilesCov:
     """Implementation part for TestsFlextCliFilesCov."""
 
     @pytest.mark.parametrize(
-        ("filename", "expected_format"),
-        c.Tests.FILES_DETECT_FORMAT_CASES,
+        ("filename", "expected_format"), c.Tests.FILES_DETECT_FORMAT_CASES
     )
     def test_files_detect_format_known(
-        self,
-        filename: str,
-        expected_format: str,
+        self, filename: str, expected_format: str
     ) -> None:
         result = cli.detect_file_format(filename)
         tm.ok(result)

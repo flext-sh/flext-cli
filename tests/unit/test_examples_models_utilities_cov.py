@@ -38,8 +38,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     # ------------------------------------------------------------------
 
     def test_my_app_settings_defaults_when_no_env(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
+        self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         for env_key in (
             c.EXAMPLE_ENV_KEY_APP_NAME,
@@ -56,8 +55,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         tm.that(settings.timeout, eq=c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS)
 
     def test_my_app_settings_reads_and_coerces_env_overrides(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
+        self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_APP_NAME, "env-tool")
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_API_KEY, "env-secret")
@@ -73,8 +71,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         tm.that(settings.timeout, eq=45)
 
     def test_my_app_settings_explicit_arg_overrides_environment(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
+        self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_APP_NAME, "env-tool")
 
@@ -88,41 +85,31 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     # ------------------------------------------------------------------
 
     def test_merge_env_overrides_applies_env_over_defaults(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
+        self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TIMEOUT, "77")
 
         merged = m.Examples.merge_env_overrides(
-            {"timeout": 10},
-            {"timeout": c.EXAMPLE_ENV_KEY_TIMEOUT},
-            {"timeout": int},
+            {"timeout": 10}, {"timeout": c.EXAMPLE_ENV_KEY_TIMEOUT}, {"timeout": int}
         )
 
         # Explicit mapping value takes precedence over the env override.
         tm.that(merged, eq={"timeout": 10})
 
     def test_merge_env_overrides_fills_missing_field_from_env(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
+        self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TIMEOUT, "77")
 
         merged = m.Examples.merge_env_overrides(
-            {},
-            {"timeout": c.EXAMPLE_ENV_KEY_TIMEOUT},
-            {"timeout": int},
+            {}, {"timeout": c.EXAMPLE_ENV_KEY_TIMEOUT}, {"timeout": int}
         )
 
         tm.that(merged, eq={"timeout": 77})
 
-    def test_merge_env_overrides_passes_non_mapping_through_unchanged(
-        self,
-    ) -> None:
+    def test_merge_env_overrides_passes_non_mapping_through_unchanged(self) -> None:
         merged = m.Examples.merge_env_overrides(
-            ["raw"],
-            {"timeout": c.EXAMPLE_ENV_KEY_TIMEOUT},
-            {"timeout": int},
+            ["raw"], {"timeout": c.EXAMPLE_ENV_KEY_TIMEOUT}, {"timeout": int}
         )
 
         tm.that(merged, eq=["raw"])
@@ -132,17 +119,13 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     # ------------------------------------------------------------------
 
     def test_advanced_settings_fail_when_api_key_missing_in_production(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: Path,
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         monkeypatch.setenv(
-            c.EXAMPLE_ENV_KEY_ENVIRONMENT,
-            c.EXAMPLE_ENV_VALUE_PRODUCTION,
+            c.EXAMPLE_ENV_KEY_ENVIRONMENT, c.EXAMPLE_ENV_VALUE_PRODUCTION
         )
         monkeypatch.setenv(
-            c.EXAMPLE_ENV_KEY_TEMP_DIR,
-            str(tmp_path / "created-temp-dir"),
+            c.EXAMPLE_ENV_KEY_TEMP_DIR, str(tmp_path / "created-temp-dir")
         )
 
         outcome = m.Examples.AppSettingsAdvanced().validate_to_mapping()
@@ -150,9 +133,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         tm.fail(outcome, has="API_KEY is required in production")
 
     def test_advanced_settings_fail_when_temp_dir_is_a_file(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: Path,
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         bad_temp_dir = tmp_path / "not-a-dir"
         bad_temp_dir.write_text("broken", encoding="utf-8")
@@ -160,27 +141,22 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TEMP_DIR, str(bad_temp_dir))
 
         outcome = m.Examples.AppSettingsAdvanced(
-            api_key="valid-api-key",
+            api_key="valid-api-key"
         ).validate_to_mapping()
 
         tm.fail(outcome, has="TEMP_DIR must be a directory")
 
     def test_advanced_settings_success_masks_api_key(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        tmp_path: Path,
+        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
         good_temp_dir = tmp_path / "temp-ok"
         monkeypatch.setenv(
-            c.EXAMPLE_ENV_KEY_ENVIRONMENT,
-            c.EXAMPLE_ENV_VALUE_PRODUCTION,
+            c.EXAMPLE_ENV_KEY_ENVIRONMENT, c.EXAMPLE_ENV_VALUE_PRODUCTION
         )
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TEMP_DIR, str(good_temp_dir))
 
         mapping = tm.ok(
-            m.Examples.AppSettingsAdvanced(
-                api_key="super-secret",
-            ).validate_to_mapping(),
+            m.Examples.AppSettingsAdvanced(api_key="super-secret").validate_to_mapping()
         )
 
         # Success payload masks the secret and creates the temp directory.
@@ -201,26 +177,17 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ],
     )
     def test_advanced_settings_rejects_invalid_field(
-        self,
-        monkeypatch: pytest.MonkeyPatch,
-        kwargs: dict[str, str],
-        match: str,
+        self, monkeypatch: pytest.MonkeyPatch, kwargs: dict[str, str], match: str
     ) -> None:
         monkeypatch.delenv(c.EXAMPLE_ENV_KEY_ENVIRONMENT, raising=False)
 
         with pytest.raises(ValueError, match=match):
             m.Examples.AppSettingsAdvanced(**kwargs)
 
-    @pytest.mark.parametrize(
-        "host",
-        ["127.0.0.1", "localhost", "db.example.com"],
-    )
+    @pytest.mark.parametrize("host", ["127.0.0.1", "localhost", "db.example.com"])
     def test_database_config_accepts_valid_host(self, host: str) -> None:
         config = m.Examples.AdvancedDatabaseConfig(
-            host=host,
-            name="production",
-            username="db-user",
-            password="secret-pass",
+            host=host, name="production", username="db-user", password="secret-pass"
         )
 
         tm.that(config.host, eq=host)
@@ -247,10 +214,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ],
     )
     def test_to_json_dict_preserves_values(
-        self,
-        payload: dict[str, object],
-        key: str,
-        expected: object,
+        self, payload: dict[str, object], key: str, expected: object
     ) -> None:
         display = u.to_json_dict(payload)
 
@@ -258,10 +222,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
 
     def test_public_renderers_do_not_raise(self) -> None:
         settings = m.Examples.MyAppSettings(
-            app_name="demo",
-            api_key="demo-secret",
-            max_workers=4,
-            timeout=30,
+            app_name="demo", api_key="demo-secret", max_workers=4, timeout=30
         )
 
         # Void public rendering helpers must complete through their public
@@ -272,8 +233,5 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         u.print_demo_completion("Demo", ("feature-a", "feature-b"))
         u.display_success_summary(
             "Database configuration",
-            m.Cli.SuccessSummaryDetails({
-                "host": "db.example.com",
-                "port": "5432",
-            }),
+            m.Cli.SuccessSummaryDetails({"host": "db.example.com", "port": "5432"}),
         )

@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from flext_tests import tm
-from tests.constants import c
-from tests.models import m
+from tests import c
+from tests import m
 
 from flext_cli import cli, settings
 
@@ -22,8 +22,7 @@ class TestsFlextCliService:
             hidden: str = m.Field("secret", exclude=True, validate_default=True)
 
         app = cli.create_app_with_common_params(
-            name="exclude-app",
-            help_text="Exclude app",
+            name="exclude-app", help_text="Exclude app"
         )
         cli.register_command(
             app,
@@ -42,10 +41,7 @@ class TestsFlextCliService:
     def test_create_app_with_common_params_handles_invalid_trace_without_debug(
         self,
     ) -> None:
-        app = cli.create_app_with_common_params(
-            name="warn-app",
-            help_text="Warn app",
-        )
+        app = cli.create_app_with_common_params(name="warn-app", help_text="Warn app")
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
 
         runner_result = cli.create_cli_runner()
@@ -57,8 +53,7 @@ class TestsFlextCliService:
 
     def test_create_app_with_common_params_no_flags_keeps_settings(self) -> None:
         app = cli.create_app_with_common_params(
-            name="identity-app",
-            help_text="Identity app",
+            name="identity-app", help_text="Identity app"
         )
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
 
@@ -78,18 +73,12 @@ class TestsFlextCliService:
     def test_derive_model_merges_canonical_model_sources(self) -> None:
         first_source = m.Tests.SampleInputPatch(name="alice", count=2)
         model_from_instance = m.Tests.SampleInput(
-            name="bob",
-            count=7,
-            dry_run=True,
-            output_format=c.Cli.OutputFormats.JSON,
+            name="bob", count=7, dry_run=True, output_format=c.Cli.OutputFormats.JSON
         )
         final_source = m.Tests.SampleInputPatch(name="carol", count=9)
 
         derived = cli.derive_model(
-            m.Tests.SampleInput,
-            first_source,
-            model_from_instance,
-            final_source,
+            m.Tests.SampleInput, first_source, model_from_instance, final_source
         )
 
         tm.that(derived.name, eq="carol")
@@ -97,10 +86,7 @@ class TestsFlextCliService:
         tm.that(derived.dry_run, eq=True)
 
     def test_execute_app_handles_abort_exception(self) -> None:
-        app = cli.create_app_with_common_params(
-            name="abort-app",
-            help_text="Abort app",
-        )
+        app = cli.create_app_with_common_params(name="abort-app", help_text="Abort app")
         cli.register_command(
             app,
             name="abort",
@@ -114,10 +100,7 @@ class TestsFlextCliService:
         tm.that(result.error, has="Abort")
 
     def test_execute_app_handles_unexpected_exception(self) -> None:
-        app = cli.create_app_with_common_params(
-            name="error-app",
-            help_text="Error app",
-        )
+        app = cli.create_app_with_common_params(name="error-app", help_text="Error app")
         cli.register_command(
             app,
             name="boom",

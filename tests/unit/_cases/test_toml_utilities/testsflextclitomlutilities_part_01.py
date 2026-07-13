@@ -9,14 +9,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_tests import tm
-from tests.utilities import u
+from tests import u
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Generator,
-    )
+    from collections.abc import Generator
 
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliTomlUtilities:
@@ -24,9 +22,7 @@ class TestsFlextCliTomlUtilities:
 
     @staticmethod
     @contextmanager
-    def _temporary_environment(
-        overrides: t.StrMapping,
-    ) -> Generator[None]:
+    def _temporary_environment(overrides: t.StrMapping) -> Generator[None]:
         original_values = {key: os.environ.get(key) for key in overrides}
         try:
             for key, value in overrides.items():
@@ -42,15 +38,14 @@ class TestsFlextCliTomlUtilities:
     def test_read_existing_file(self, tmp_path: Path) -> None:
         toml_file = tmp_path / "test.toml"
         toml_file.write_text(
-            '[section]\nkey = "value"\nnumber = 42\n',
-            encoding="utf-8",
+            '[section]\nkey = "value"\nnumber = 42\n', encoding="utf-8"
         )
 
         doc = u.Cli.toml_read(toml_file)
 
-        assert doc is not None
+        tm.that(doc, none=False)
         section = u.Cli.toml_table_child(doc, "section")
-        assert section is not None
+        tm.that(section, none=False)
         tm.that(u.Cli.toml_value(section, "key"), eq="value")
         tm.that(u.Cli.toml_value(section, "number"), eq=42)
 
@@ -70,14 +65,11 @@ class TestsFlextCliTomlUtilities:
 
         tm.ok(result)
         section = u.Cli.toml_table_child(result.value, "section")
-        assert section is not None
+        tm.that(section, none=False)
         tm.that(u.Cli.toml_value(section, "key"), eq="value")
 
     def test_read_document_nonexistent_file(self, tmp_path: Path) -> None:
-        tm.fail(
-            u.Cli.toml_read_document(tmp_path / "missing.toml"),
-            has="not found",
-        )
+        tm.fail(u.Cli.toml_read_document(tmp_path / "missing.toml"), has="not found")
 
     def test_write_document(self, tmp_path: Path) -> None:
         toml_file = tmp_path / "doc.toml"
@@ -117,7 +109,7 @@ class TestsFlextCliTomlUtilities:
         doc = u.Cli.toml_document()
         doc["project"] = {"name": "demo"}
         with self._temporary_environment({
-            "PATH": f"{bin_dir}:{os.environ.get('PATH', '')}",
+            "PATH": f"{bin_dir}:{os.environ.get('PATH', '')}"
         }):
             tm.ok(u.Cli.toml_write_document(pyproject, doc))
         logged_command = command_log.read_text(encoding="utf-8").splitlines()

@@ -5,29 +5,23 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_tests import tm
-from tests.models import m
+from tests import m
 
 from flext_cli import cli
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
     def test_execute_app_handles_nonzero_int_result(self) -> None:
-        app = cli.create_app_with_common_params(
-            name="int-app",
-            help_text="Int app",
-        )
+        app = cli.create_app_with_common_params(name="int-app", help_text="Int app")
         cli.register_command(
-            app,
-            name="return-two",
-            help_text="Return int",
-            command=lambda: 2,
+            app, name="return-two", help_text="Return int", command=lambda: 2
         )
 
         result = cli.execute_app(app, prog_name="int-app", args=["return-two"])
@@ -36,10 +30,7 @@ class TestsFlextCliService:
         tm.that(result.error, has="CLI exited with code 2")
 
     def test_execute_app_handles_typer_exit_zero_branch(self) -> None:
-        app = cli.create_app_with_common_params(
-            name="zero-app",
-            help_text="Zero app",
-        )
+        app = cli.create_app_with_common_params(name="zero-app", help_text="Zero app")
         cli.register_command(
             app,
             name="exit-zero",
@@ -53,14 +44,10 @@ class TestsFlextCliService:
 
     def test_execute_app_handles_typer_exit_nonzero_branch_real(self) -> None:
         app = cli.create_app_with_common_params(
-            name="nonzero-app",
-            help_text="Non-zero app",
+            name="nonzero-app", help_text="Non-zero app"
         )
         cli.register_command(
-            app,
-            name="exit-one",
-            help_text="Exit one",
-            command=lambda: cli.exit(code=1),
+            app, name="exit-one", help_text="Exit one", command=lambda: cli.exit(code=1)
         )
 
         result = cli.execute_app(app, prog_name="nonzero-app", args=["exit-one"])
@@ -70,8 +57,7 @@ class TestsFlextCliService:
 
     def test_execute_app_prefers_real_failure_message(self) -> None:
         app = cli.create_app_with_common_params(
-            name="sample",
-            help_text="Failure group",
+            name="sample", help_text="Failure group"
         )
         group = cli.create_group(help_text="Grouped failure commands", name="group")
 
@@ -87,9 +73,7 @@ class TestsFlextCliService:
         )
         cli.add_group(app, name="group", group=group)
         result = cli.execute_app(
-            app,
-            prog_name="sample",
-            args=["group", "fail", "--name", "alice"],
+            app, prog_name="sample", args=["group", "fail", "--name", "alice"]
         )
 
         tm.fail(result)
@@ -97,23 +81,17 @@ class TestsFlextCliService:
 
     def test_execute_app_preserves_click_usage_errors(self) -> None:
         app = cli.create_app_with_common_params(
-            name="sample",
-            help_text="Failure group",
+            name="sample", help_text="Failure group"
         )
         group = cli.create_group(help_text="Grouped failure commands", name="group")
 
         cli.register_command(
-            group,
-            name="ok",
-            help_text="Successful command",
-            command=lambda: True,
+            group, name="ok", help_text="Successful command", command=lambda: True
         )
         cli.add_group(app, name="group", group=group)
 
         result = cli.execute_app(
-            app,
-            prog_name="sample",
-            args=["group", "missing-command"],
+            app, prog_name="sample", args=["group", "missing-command"]
         )
 
         tm.fail(result)

@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 import pytest
 from flext_tests import tm
 
-from tests.models import m
-from tests.utilities import u
+from tests import m
+from tests import u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -24,33 +24,22 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
     @pytest.mark.parametrize(
         ("stdout", "stderr", "exit_code"),
-        [
-            ("out", "err", 0),
-            ("", "", 0),
-            ("data", "warning", 2),
-        ],
+        [("out", "err", 0), ("", "", 0), ("data", "warning", 2)],
     )
     def test_command_output_exposes_constructor_values_via_public_state(
-        self,
-        stdout: str,
-        stderr: str,
-        exit_code: int,
+        self, stdout: str, stderr: str, exit_code: int
     ) -> None:
         # Arrange / Act
-        output = m.Cli.CommandOutput(
-            stdout=stdout,
-            stderr=stderr,
-            exit_code=exit_code,
-        )
+        output = m.Cli.CommandOutput(stdout=stdout, stderr=stderr, exit_code=exit_code)
 
         # Assert — public fields and model_dump round-trip
-        assert output.stdout == stdout
-        assert output.stderr == stderr
-        assert output.exit_code == exit_code
+        tm.that(output.stdout, eq=stdout)
+        tm.that(output.stderr, eq=stderr)
+        tm.that(output.exit_code, eq=exit_code)
         dumped = output.model_dump()
-        assert dumped["stdout"] == stdout
-        assert dumped["stderr"] == stderr
-        assert dumped["exit_code"] == exit_code
+        tm.that(dumped["stdout"], eq=stdout)
+        tm.that(dumped["stderr"], eq=stderr)
+        tm.that(dumped["exit_code"], eq=exit_code)
 
     def test_run_checked_returns_true_on_zero_exit(self) -> None:
         # Arrange / Act
@@ -58,25 +47,19 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert
         tm.ok(result)
-        assert result.value is True
+        tm.that(result.value, eq=True)
 
     @pytest.mark.parametrize("exit_code", [1, 2, 42])
-    def test_run_checked_fails_with_error_naming_failure(
-        self,
-        exit_code: int,
-    ) -> None:
+    def test_run_checked_fails_with_error_naming_failure(self, exit_code: int) -> None:
         # Arrange / Act
         result = u.Cli().run_checked(["sh", "-c", f"exit {exit_code}"])
 
         # Assert — failure surfaces as typed error mentioning the failure
         tm.fail(result)
-        assert isinstance(result.error, str)
-        assert "failed" in result.error.lower()
+        tm.that(result.error, is_=str)
+        tm.that(result.error.lower(), has="failed")
 
-    def test_run_to_file_writes_stdout_and_returns_zero(
-        self,
-        tmp_path: Path,
-    ) -> None:
+    def test_run_to_file_writes_stdout_and_returns_zero(self, tmp_path: Path) -> None:
         # Arrange
         output_file = tmp_path / "output.txt"
 
@@ -85,13 +68,12 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert — return value is the return code; file holds the output
         tm.ok(result)
-        assert result.value == 0
+        tm.that(result.value, eq=0)
         assert output_file.exists()
-        assert "hello" in output_file.read_text()
+        tm.that(output_file.read_text(), has="hello")
 
     def test_run_to_file_returns_nonzero_returncode_as_success(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         # Arrange
         output_file = tmp_path / "output.txt"
@@ -101,12 +83,11 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert
         tm.ok(result)
-        assert result.value == 7
+        tm.that(result.value, eq=7)
         assert output_file.exists()
 
     def test_run_to_file_creates_missing_parent_directories(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         # Arrange — nested path whose parents do not yet exist
         output_file = tmp_path / "nested" / "deep" / "output.txt"
@@ -117,11 +98,10 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         # Assert
         tm.ok(result)
         assert output_file.exists()
-        assert "nested" in output_file.read_text()
+        tm.that(output_file.read_text(), has="nested")
 
     def test_run_to_file_fails_with_timeout_error_on_slow_command(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         # Arrange
         output_file = tmp_path / "output.txt"
@@ -131,12 +111,11 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert
         tm.fail(result)
-        assert isinstance(result.error, str)
-        assert "timeout" in result.error.lower()
+        tm.that(result.error, is_=str)
+        tm.that(result.error.lower(), has="timeout")
 
     def test_run_to_file_fails_with_execution_error_on_unwritable_target(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         # Arrange — read-only directory makes opening the output file fail
         readonly_dir = tmp_path / "readonly"
@@ -149,26 +128,21 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
             # Assert
             tm.fail(result)
-            assert isinstance(result.error, str)
-            assert "execution error" in result.error.lower()
+            tm.that(result.error, is_=str)
+            tm.that(result.error.lower(), has="execution error")
         finally:
             readonly_dir.chmod(0o755)
 
     def test_run_to_file_fails_with_execution_error_on_invalid_env(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         # Arrange — NUL byte in an env value raises ValueError inside subprocess
         output_file = tmp_path / "output.txt"
 
         # Act
-        result = u.Cli().run_to_file(
-            ["echo", "test"],
-            output_file,
-            env={"BAD": "x\0y"},
-        )
+        result = u.Cli().run_to_file(["echo", "test"], output_file, env={"BAD": "x\0y"})
 
         # Assert
         tm.fail(result)
-        assert isinstance(result.error, str)
-        assert "execution error" in result.error.lower()
+        tm.that(result.error, is_=str)
+        tm.that(result.error.lower(), has="execution error")

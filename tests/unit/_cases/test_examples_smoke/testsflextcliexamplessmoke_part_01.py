@@ -4,9 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from examples import (
-    ExamplesFlextCliGettingStarted,
-)
+from examples import ExamplesFlextCliGettingStarted
 from examples.ex_02_output_formatting import export_report
 from examples.ex_04_file_operations import (
     load_deployment_config,
@@ -16,7 +14,7 @@ from examples.ex_04_file_operations import (
     validate_and_import_data,
 )
 from flext_tests import tm
-from tests.models import m
+from tests import m
 
 from flext_cli import cli
 
@@ -45,27 +43,18 @@ class TestsFlextCliExamplesSmoke:
 
         execute_result = example.execute()
         tm.ok(execute_result)
-        tm.that(
-            execute_result.value["app_name"],
-            eq=settings_result.value.app_name,
-        )
+        tm.that(execute_result.value["app_name"], eq=settings_result.value.app_name)
 
         report_rows = (
             m.Tests.ReportRow(id=1, name="Alice", status="active"),
             m.Tests.ReportRow(id=2, name="Bob", status="inactive"),
         )
         report_result = export_report(
-            tuple(row.model_dump(mode="json") for row in report_rows),
+            tuple(row.model_dump(mode="json") for row in report_rows)
         )
         tm.ok(report_result)
-        tm.that(
-            report_result.value,
-            has="Alice",
-        )
-        tm.that(
-            report_result.value,
-            has="Bob",
-        )
+        tm.that(report_result.value, has="Alice")
+        tm.that(report_result.value, has="Bob")
 
     def test_file_operation_examples(self, tmp_path: Path) -> None:
         """File-oriented examples must use cli file APIs successfully."""
@@ -81,19 +70,15 @@ class TestsFlextCliExamplesSmoke:
         preferences_result = load_user_preferences(config_dir)
         tm.ok(preferences_result)
         loaded_preferences = m.Tests.UserPreferences.model_validate(
-            preferences_result.value.content,
+            preferences_result.value.content
         )
         tm.that(loaded_preferences, eq=preferences)
 
         deployment_file = tmp_path / "deployment.yaml"
-        deployment_config = m.Tests.DeploymentConfig(
-            environment="dev",
-            replicas=2,
-        )
+        deployment_config = m.Tests.DeploymentConfig(environment="dev", replicas=2)
         tm.that(
             save_deployment_config(
-                deployment_config.model_dump(mode="json"),
-                deployment_file,
+                deployment_config.model_dump(mode="json"), deployment_file
             ),
             eq=True,
         )
@@ -101,21 +86,18 @@ class TestsFlextCliExamplesSmoke:
         deployment_result = load_deployment_config(deployment_file)
         tm.ok(deployment_result)
         loaded_deployment = m.Tests.DeploymentConfig.model_validate(
-            deployment_result.value.content,
+            deployment_result.value.content
         )
         tm.that(loaded_deployment, eq=deployment_config)
 
         import_file = tmp_path / "record.json"
         record = m.Tests.ImportRecord(id=1, name="Alice", value="ok")
-        write_result = cli.write_json_file(
-            import_file,
-            record.model_dump(mode="json"),
-        )
+        write_result = cli.write_json_file(import_file, record.model_dump(mode="json"))
         tm.ok(write_result)
         validation_result = validate_and_import_data(import_file)
         tm.ok(validation_result)
         loaded_record = m.Tests.ImportRecord.model_validate(
-            validation_result.value.content,
+            validation_result.value.content
         )
         tm.that(loaded_record, eq=record)
 

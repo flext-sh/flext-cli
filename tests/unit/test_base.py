@@ -23,7 +23,7 @@ from pydantic import BaseModel
 
 from flext_cli import FlextCli, cli, settings
 from tests.base import s
-from tests.protocols import p
+from tests import p
 
 
 class TestsFlextCliBase:
@@ -71,13 +71,13 @@ class TestsFlextCliBase:
     def test_validate_settings_reports_success_outcome(self, facade: FlextCli) -> None:
         """`validate_settings` returns a successful r[bool] carrying True."""
         result = facade.validate_settings()
-        assert result.success
-        assert result.unwrap() is True
+        tm.ok(result)
+        tm.that(result.unwrap(), eq=True)
 
     def test_settings_snapshot_exposes_public_state(self, facade: FlextCli) -> None:
         """`settings_snapshot` returns r[Snapshot] whose public fields are populated."""
         result = facade.settings_snapshot()
-        assert result.success
+        tm.ok(result)
         snapshot = result.unwrap()
         dumped = snapshot.model_dump()
         assert set(dumped) >= {
@@ -87,15 +87,15 @@ class TestsFlextCliBase:
             "settings_writable",
             "timestamp",
         }
-        assert isinstance(snapshot.settings_exists, bool)
-        assert isinstance(snapshot.settings_dir, str)
+        tm.that(snapshot.settings_exists, is_=bool)
+        tm.that(snapshot.settings_dir, is_=str)
         assert snapshot.settings_dir
 
     def test_snapshot_map_composes_over_success(self, facade: FlextCli) -> None:
         """The r[T] snapshot value flows through `map` without losing success."""
         directory = facade.settings_snapshot().map(lambda snap: snap.settings_dir)
-        assert directory.success
-        assert directory.unwrap() == facade.settings_snapshot().unwrap().settings_dir
+        tm.ok(directory)
+        tm.that(directory.unwrap(), eq=facade.settings_snapshot().unwrap().settings_dir)
 
     def test_service_base_settings_satisfy_cli_protocol(self) -> None:
         """The test service base settings expose the flat CLI settings surface."""
@@ -106,4 +106,4 @@ class TestsFlextCliBase:
         """The test service base settings compose the Tests settings namespace."""
         test_settings = s.fetch_settings()
         section = test_settings.Tests
-        assert isinstance(section, BaseModel)
+        tm.that(section, is_=BaseModel)

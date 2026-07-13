@@ -15,7 +15,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCli, cli, settings
-from tests.constants import c
+from tests import c
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -43,26 +43,20 @@ class TestsFlextCliServicesAuth:
         settings.cli_token_file = str(path)
 
     def test_authenticate_with_token_persists_and_round_trips(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
+        self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
         self._point_token_file(tmp_path / "token.json")
 
         # Act
-        authenticated = service.authenticate({
-            c.Cli.DICT_KEY_AUTH_TOKEN: "token-123",
-        })
+        authenticated = service.authenticate({c.Cli.DICT_KEY_AUTH_TOKEN: "token-123"})
 
         # Assert: the supplied token is returned and reloadable verbatim.
-        assert tm.ok(authenticated) == "token-123"
-        assert tm.ok(service.fetch_auth_token()) == "token-123"
+        tm.that(tm.ok(authenticated), eq="token-123")
+        tm.that(tm.ok(service.fetch_auth_token()), eq="token-123")
 
     def test_authenticate_with_username_password_returns_reloadable_token(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
+        self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
         self._point_token_file(tmp_path / "token.json")
@@ -75,9 +69,9 @@ class TestsFlextCliServicesAuth:
 
         # Assert: a non-empty token is generated and persisted for reload.
         generated = tm.ok(authenticated)
-        assert isinstance(generated, str)
+        tm.that(generated, is_=str)
         assert generated
-        assert tm.ok(service.fetch_auth_token()) == generated
+        tm.that(tm.ok(service.fetch_auth_token()), eq=generated)
 
     @pytest.mark.parametrize(
         "credentials",
@@ -90,10 +84,7 @@ class TestsFlextCliServicesAuth:
         ],
     )
     def test_authenticate_rejects_malformed_credentials_payload(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
-        credentials: dict[str, str],
+        self, service: FlextCli, tmp_path: Path, credentials: dict[str, str]
     ) -> None:
         # Arrange
         self._point_token_file(tmp_path / "token.json")
@@ -111,14 +102,10 @@ class TestsFlextCliServicesAuth:
         [
             pytest.param({}, "username", id="empty-payload"),
             pytest.param(
-                {c.Cli.DICT_KEY_USERNAME: "user"},
-                "password",
-                id="username-only",
+                {c.Cli.DICT_KEY_USERNAME: "user"}, "password", id="username-only"
             ),
             pytest.param(
-                {c.Cli.DICT_KEY_USER_SECRET: "secret"},
-                "username",
-                id="secret-only",
+                {c.Cli.DICT_KEY_USER_SECRET: "secret"}, "username", id="secret-only"
             ),
         ],
     )
@@ -143,24 +130,15 @@ class TestsFlextCliServicesAuth:
     @pytest.mark.parametrize(
         "credentials",
         [
+            pytest.param({c.Cli.DICT_KEY_AUTH_TOKEN: "token-123"}, id="token"),
             pytest.param(
-                {c.Cli.DICT_KEY_AUTH_TOKEN: "token-123"},
-                id="token",
-            ),
-            pytest.param(
-                {
-                    c.Cli.DICT_KEY_USERNAME: "user",
-                    c.Cli.DICT_KEY_USER_SECRET: "secret",
-                },
+                {c.Cli.DICT_KEY_USERNAME: "user", c.Cli.DICT_KEY_USER_SECRET: "secret"},
                 id="username-password",
             ),
         ],
     )
     def test_authenticate_fails_when_token_cannot_be_persisted(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
-        credentials: dict[str, str],
+        self, service: FlextCli, tmp_path: Path, credentials: dict[str, str]
     ) -> None:
         # Arrange: point token_file at a directory so the write cannot succeed.
         token_dir = tmp_path / "token-as-dir"
@@ -175,9 +153,7 @@ class TestsFlextCliServicesAuth:
         tm.that(result.error, has="json_write:")
 
     def test_save_auth_token_rejects_blank_token(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
+        self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
         self._point_token_file(tmp_path / "token.json")
@@ -191,8 +167,7 @@ class TestsFlextCliServicesAuth:
         tm.that(result.error, has="empty")
 
     def test_validate_credentials_rejects_empty_password(
-        self,
-        service: FlextCli,
+        self, service: FlextCli
     ) -> None:
         # Act
         result = service.validate_credentials("user", "")
@@ -202,9 +177,7 @@ class TestsFlextCliServicesAuth:
         tm.that((result.error or "").lower(), has="password")
 
     def test_fetch_auth_token_fails_when_file_missing(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
+        self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
         self._point_token_file(tmp_path / "missing-token.json")
@@ -217,9 +190,7 @@ class TestsFlextCliServicesAuth:
         tm.that((result.error or "").lower(), has="load")
 
     def test_fetch_auth_token_fails_when_path_is_directory(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
+        self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
         token_dir = tmp_path / "read-as-dir"
@@ -234,9 +205,7 @@ class TestsFlextCliServicesAuth:
         tm.that((result.error or "").lower(), has="load")
 
     def test_clear_auth_tokens_is_ok_when_file_missing(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
+        self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
         self._point_token_file(tmp_path / "missing-token.json")
@@ -249,9 +218,7 @@ class TestsFlextCliServicesAuth:
         tm.that(result.value, eq=True)
 
     def test_clear_auth_tokens_removes_persisted_token_and_is_idempotent(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
+        self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange: persist a token first.
         self._point_token_file(tmp_path / "token.json")

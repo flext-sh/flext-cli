@@ -13,20 +13,19 @@ from typing import TYPE_CHECKING
 import pytest
 from flext_tests import tm
 
-from tests.constants import c
+from tests import c
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tests.protocols import p
+    from tests import p
 
 
 class TestsFlextCliPromptsCov:
     """Behavior contract for the prompt service public surface."""
 
     def test_prompt_returns_typed_input_regardless_of_test_env(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
         prompts = (
             make_prompts(interactive_mode=True)
@@ -60,10 +59,7 @@ class TestsFlextCliPromptsCov:
 
     @pytest.mark.parametrize("quiet", [True, False])
     def test_prompt_returns_default_when_non_interactive(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
-        *,
-        quiet: bool,
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts], *, quiet: bool
     ) -> None:
         prompts = make_prompts(interactive_mode=False, quiet=quiet)
         result = prompts.prompt("message", default="fallback")
@@ -71,11 +67,10 @@ class TestsFlextCliPromptsCov:
         tm.that(result.value, eq="fallback")
 
     def test_prompt_fails_when_input_reader_raises(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
         prompts = make_prompts(interactive_mode=True).use_input_error(
-            ValueError("boom"),
+            ValueError("boom")
         )
         result = prompts.prompt("message", default="default")
         tm.fail(result, has="boom")
@@ -105,22 +100,20 @@ class TestsFlextCliPromptsCov:
         tm.that(result.value, eq=expected)
 
     def test_confirm_retries_past_invalid_input_until_valid(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
-        prompts = make_prompts(interactive_mode=True).use_input_values(
-            ["maybe", "huh", "y"],
-        )
+        prompts = make_prompts(interactive_mode=True).use_input_values([
+            "maybe",
+            "huh",
+            "y",
+        ])
         result = prompts.confirm("message", default=False)
         tm.ok(result)
         tm.that(result.value, eq=True)
 
     @pytest.mark.parametrize("default", [True, False])
     def test_confirm_returns_default_when_non_interactive(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
-        *,
-        default: bool,
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts], *, default: bool
     ) -> None:
         prompts = make_prompts(interactive_mode=False)
         result = prompts.confirm("message", default=default)
@@ -146,8 +139,7 @@ class TestsFlextCliPromptsCov:
         tm.fail(result, has=expected)
 
     def test_prompt_choice_returns_default_when_present(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
         prompts = make_prompts(interactive_mode=True)
         result = prompts.prompt_choice("Choose", choices=("a", "b"), default="a")
@@ -155,32 +147,28 @@ class TestsFlextCliPromptsCov:
         tm.that(result.value, eq="a")
 
     def test_prompt_choice_fails_with_empty_choices(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
         prompts = make_prompts(interactive_mode=True)
         result = prompts.prompt_choice("Choose", choices=(), default=None)
         tm.fail(result, has=c.Cli.ERR_NO_CHOICES)
 
     def test_prompt_choice_fails_when_default_not_in_choices(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
         prompts = make_prompts(interactive_mode=True)
         result = prompts.prompt_choice("Choose", choices=("a", "b"), default="z")
         tm.fail(result, has="z")
 
     def test_prompt_choice_fails_when_default_required(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
         prompts = make_prompts(interactive_mode=True)
         result = prompts.prompt_choice("Choose", choices=("a", "b"), default=None)
         tm.fail(result)
 
     def test_prompt_password_returns_value_meeting_min_length(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
         prompts = make_prompts(interactive_mode=True).use_password("s3cret")
         result = prompts.prompt_password("Password:", min_length=4)
@@ -188,27 +176,24 @@ class TestsFlextCliPromptsCov:
         tm.that(result.value, eq="s3cret")
 
     def test_prompt_password_fails_when_too_short(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
         prompts = make_prompts(interactive_mode=True).use_password("ab")
         result = prompts.prompt_password("Password:", min_length=5)
         tm.fail(result)
 
     def test_prompt_password_fails_when_non_interactive(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
         prompts = make_prompts(interactive_mode=False)
         result = prompts.prompt_password("Password:")
         tm.fail(result, has=c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED)
 
     def test_prompt_password_fails_when_reader_raises(
-        self,
-        make_prompts: Callable[..., p.Tests.ScriptedPrompts],
+        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
         prompts = make_prompts(interactive_mode=True).use_password_error(
-            ValueError("no tty"),
+            ValueError("no tty")
         )
         result = prompts.prompt_password("Password:")
         tm.fail(result, has="no tty")

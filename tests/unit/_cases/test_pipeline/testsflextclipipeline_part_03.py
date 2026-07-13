@@ -5,13 +5,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_cli import cli
+from flext_tests import tm
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests.models import m
-    from tests.protocols import p
-    from tests.typings import t
+    from tests import m
+    from tests import p
+    from tests import t
 
 # ── Fixtures ────────────────────────────────────────────────────────
 
@@ -35,27 +36,15 @@ class TestsFlextCliPipeline:
 
         stages = [
             cli.stage("a", handler=track("a")),
-            cli.stage(
-                "b",
-                depends_on=frozenset({"a"}),
-                handler=track("b"),
-            ),
-            cli.stage(
-                "c",
-                depends_on=frozenset({"a"}),
-                handler=track("c"),
-            ),
-            cli.stage(
-                "d",
-                depends_on=frozenset({"b", "c"}),
-                handler=track("d"),
-            ),
+            cli.stage("b", depends_on=frozenset({"a"}), handler=track("b")),
+            cli.stage("c", depends_on=frozenset({"a"}), handler=track("c")),
+            cli.stage("d", depends_on=frozenset({"b", "c"}), handler=track("d")),
         ]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
-        assert result.success
-        assert order[0] == "a"
-        assert order[-1] == "d"
-        assert set(order[1:3]) == {"b", "c"}
+        tm.ok(result)
+        tm.that(order[0], eq="a")
+        tm.that(order[-1], eq="d")
+        tm.that(set(order[1:3]), eq={"b", "c"})
 
 
 __all__: list[str] = ["TestsFlextCliPipeline"]

@@ -5,19 +5,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_tests import tm
-from tests.constants import c
-from tests.models import m
+from tests import c
+from tests import m
 
 from flext_cli import cli
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        MutableSequence,
-    )
+    from collections.abc import MutableSequence
 
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliService:
@@ -26,8 +24,7 @@ class TestsFlextCliService:
     def test_model_command_accepts_repeatable_list_options(self) -> None:
         captured: MutableSequence[m.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
-            name="root",
-            help_text="Root application",
+            name="root", help_text="Root application"
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
@@ -72,10 +69,7 @@ class TestsFlextCliService:
 
         command = cli.model_command(m.Tests.SampleInput, handle)
         result = command(
-            name="alice",
-            count=3,
-            dry_run=True,
-            output_format=c.Cli.OutputFormats.JSON,
+            name="alice", count=3, dry_run=True, output_format=c.Cli.OutputFormats.JSON
         )
 
         tm.that(
@@ -97,10 +91,7 @@ class TestsFlextCliService:
                 json_schema_extra={"typer_param_decls": ["-f", "--flaggy"]},
             )
 
-        app = cli.create_app_with_common_params(
-            name="decl-app",
-            help_text="Decl app",
-        )
+        app = cli.create_app_with_common_params(name="decl-app", help_text="Decl app")
         cli.register_command(
             app,
             name="run",

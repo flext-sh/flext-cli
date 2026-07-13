@@ -8,52 +8,40 @@ from typing import TYPE_CHECKING
 import pytest
 from flext_tests import tm
 
-from tests.constants import c
-from tests.models import m
-from tests.utilities import u
+from tests import c
+from tests import m
+from tests import u
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliConversion:
     """Behavioral contract of ``u.Cli`` conversion helpers."""
 
     @pytest.mark.parametrize(
-        ("kind", "default", "expected"),
-        c.Tests.CONVERSION_STR_CASES,
+        ("kind", "default", "expected"), c.Tests.CONVERSION_STR_CASES
     )
     def test_default_for_type_kind_str(
-        self,
-        kind: t.Cli.TypeKind,
-        default: t.JsonValue | None,
-        expected: t.JsonValue,
+        self, kind: t.Cli.TypeKind, default: t.JsonValue | None, expected: t.JsonValue
     ) -> None:
         result = u.Cli.default_for_type_kind(kind, default)
         tm.that(result, eq=expected)
 
     @pytest.mark.parametrize(
-        ("kind", "default", "expected"),
-        c.Tests.CONVERSION_BOOL_CASES,
+        ("kind", "default", "expected"), c.Tests.CONVERSION_BOOL_CASES
     )
     def test_default_for_type_kind_bool(
-        self,
-        kind: t.Cli.TypeKind,
-        default: t.JsonValue | None,
-        expected: t.JsonValue,
+        self, kind: t.Cli.TypeKind, default: t.JsonValue | None, expected: t.JsonValue
     ) -> None:
         result = u.Cli.default_for_type_kind(kind, default)
         tm.that(result, eq=expected)
 
     @pytest.mark.parametrize(
-        ("kind", "default", "expected"),
-        c.Tests.CONVERSION_DICT_CASES,
+        ("kind", "default", "expected"), c.Tests.CONVERSION_DICT_CASES
     )
     def test_default_for_type_kind_dict(
-        self,
-        kind: t.Cli.TypeKind,
-        default: t.JsonValue | None,
-        expected: t.JsonValue,
+        self, kind: t.Cli.TypeKind, default: t.JsonValue | None, expected: t.JsonValue
     ) -> None:
         result = u.Cli.default_for_type_kind(kind, default)
         tm.that(result, eq=expected)
@@ -76,7 +64,7 @@ class TestsFlextCliConversion:
     def test_cli_args_to_model_validation_failure_reports_model(self) -> None:
         result = u.Cli.cli_args_to_model(m.Tests.SampleInput, {"name": 123})
         error = tm.fail(result)
-        assert "SampleInput" in error
+        tm.that(error, has="SampleInput")
 
     def test_resolve_optional_path_with_path(self, tmp_path: Path) -> None:
         result = u.Cli.resolve_optional_path(tmp_path, default=Path("/fallback"))

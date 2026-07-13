@@ -12,7 +12,8 @@ from typing import TYPE_CHECKING
 import pytest
 
 from flext_cli import cli, m
-from tests.constants import c
+from tests import c
+from flext_tests import tm
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -34,37 +35,32 @@ class TestsFlextCliServicesTablesBranchCov:
     # ---- format_table: success contract (returns r[str]) ----
 
     def test_format_table_default_config_succeeds_with_rendered_content(
-        self,
-        mapping_payload: t.Cli.TableDataSource,
+        self, mapping_payload: t.Cli.TableDataSource
     ) -> None:
         result = cli.format_table(mapping_payload)
 
-        assert result.success
+        tm.ok(result)
         rendered = result.unwrap()
-        assert "a" in rendered
-        assert "1" in rendered
-        assert "b" in rendered
-        assert "2" in rendered
+        tm.that(rendered, has="a")
+        tm.that(rendered, has="1")
+        tm.that(rendered, has="b")
+        tm.that(rendered, has="2")
 
     def test_format_table_list_payload_renders_all_cells(
-        self,
-        rows_payload: t.Cli.TableDataSource,
+        self, rows_payload: t.Cli.TableDataSource
     ) -> None:
         result = cli.format_table(rows_payload)
 
-        assert result.success
+        tm.ok(result)
         rendered = result.unwrap()
-        assert "col1" in rendered
-        assert "col2" in rendered
-        assert "a" in rendered
-        assert "b" in rendered
+        tm.that(rendered, has="col1")
+        tm.that(rendered, has="col2")
+        tm.that(rendered, has="a")
+        tm.that(rendered, has="b")
 
     @pytest.mark.parametrize(
         ("table_format", "expected_marker"),
-        [
-            (c.Cli.TabularFormat.GRID, "+"),
-            (c.Cli.TabularFormat.PIPE, "|"),
-        ],
+        [(c.Cli.TabularFormat.GRID, "+"), (c.Cli.TabularFormat.PIPE, "|")],
     )
     def test_format_table_honors_requested_format_via_settings(
         self,
@@ -76,78 +72,67 @@ class TestsFlextCliServicesTablesBranchCov:
 
         result = cli.format_table(mapping_payload, settings=settings)
 
-        assert result.success
-        assert expected_marker in result.unwrap()
+        tm.ok(result)
+        tm.that(result.unwrap(), has=expected_marker)
 
     def test_format_table_is_idempotent_for_equal_input(
-        self,
-        mapping_payload: t.Cli.TableDataSource,
+        self, mapping_payload: t.Cli.TableDataSource
     ) -> None:
         first = cli.format_table(mapping_payload)
         second = cli.format_table(mapping_payload)
 
-        assert first.success
-        assert second.success
-        assert first.unwrap() == second.unwrap()
+        tm.ok(first)
+        tm.ok(second)
+        tm.that(first.unwrap(), eq=second.unwrap())
 
     # ---- format_table: failure contract ----
 
     @pytest.mark.parametrize("bad_format", ["invalid", "not-a-format", ""])
     def test_format_table_rejects_invalid_format_string(
-        self,
-        mapping_payload: t.Cli.TableDataSource,
-        bad_format: str,
+        self, mapping_payload: t.Cli.TableDataSource, bad_format: str
     ) -> None:
         result = cli.format_table(mapping_payload, table_format=bad_format)
 
-        assert result.failure
-        assert c.Cli.OUTPUT_TABLE_CONFIG_INVALID in (result.error or "")
+        tm.fail(result)
+        tm.that((result.error or ""), has=c.Cli.OUTPUT_TABLE_CONFIG_INVALID)
 
     # ---- show_table: console rendering contract ----
 
     def test_show_table_prints_rendered_table(
-        self,
-        mapping_payload: t.Cli.TableDataSource,
-        capsys: pytest.CaptureFixture[str],
+        self, mapping_payload: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
         cli.show_table(mapping_payload)
 
         captured = capsys.readouterr().out
-        assert "a" in captured
-        assert "1" in captured
+        tm.that(captured, has="a")
+        tm.that(captured, has="1")
 
     def test_show_table_prints_title_above_table(
-        self,
-        mapping_payload: t.Cli.TableDataSource,
-        capsys: pytest.CaptureFixture[str],
+        self, mapping_payload: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
         cli.show_table(mapping_payload, title="My Title")
 
         captured = capsys.readouterr().out
-        assert "My Title" in captured
-        assert "a" in captured
-        assert "1" in captured
+        tm.that(captured, has="My Title")
+        tm.that(captured, has="a")
+        tm.that(captured, has="1")
 
     def test_show_table_prints_list_payload(
-        self,
-        rows_payload: t.Cli.TableDataSource,
-        capsys: pytest.CaptureFixture[str],
+        self, rows_payload: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
         cli.show_table(rows_payload)
 
         captured = capsys.readouterr().out
-        assert "col1" in captured
-        assert "a" in captured
+        tm.that(captured, has="col1")
+        tm.that(captured, has="a")
 
     def test_show_table_emits_config_error_on_invalid_format(
-        self,
-        mapping_payload: t.Cli.TableDataSource,
-        capsys: pytest.CaptureFixture[str],
+        self, mapping_payload: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
         cli.show_table(mapping_payload, table_format="invalid")
 
         captured = capsys.readouterr().out
-        assert c.Cli.OUTPUT_TABLE_CONFIG_INVALID in captured
+        tm.that(captured, has=c.Cli.OUTPUT_TABLE_CONFIG_INVALID)
 
 
 __all__: list[str] = ["TestsFlextCliServicesTablesBranchCov"]

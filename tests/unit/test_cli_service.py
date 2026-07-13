@@ -25,6 +25,7 @@ from ._cases.test_cli_service.testsflextcliservice_part_04 import (
     TestsFlextCliService as _CliServicePart04,
 )
 from ._cases.test_cli_service.testsflextcliservice_part_05 import (
+from flext_tests import tm
     TestsFlextCliService as _CliServicePart05,
 )
 

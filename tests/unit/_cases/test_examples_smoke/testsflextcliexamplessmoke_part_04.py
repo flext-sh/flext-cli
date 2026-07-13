@@ -5,9 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
-from examples import (
-    DataManagerCLI,
-)
+from examples import DataManagerCLI
 from flext_tests import r, tm
 
 from flext_cli import cli
@@ -15,15 +13,14 @@ from flext_cli import cli
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests.protocols import p
+    from tests import p
 
 
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
     def test_complete_integration_example_persists_validated_workflow_data(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         """Complete integration example must persist and reload real workflow data."""
         app = DataManagerCLI()
@@ -31,21 +28,14 @@ class TestsFlextCliExamplesSmoke:
 
         workflow_result = app.run_workflow()
         tm.ok(workflow_result)
-        tm.that(
-            app.data_file.exists(),
-            eq=True,
-        )
+        tm.that(app.data_file.exists(), eq=True)
 
         load_result = app.load_data()
         tm.ok(load_result)
-        tm.that(
-            load_result.value["sample_key"],
-            eq="sample_value",
-        )
+        tm.that(load_result.value["sample_key"], eq="sample_value")
 
     def test_complete_integration_example_surfaces_load_and_save_failures(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         """Complete integration example must fail honestly for missing, invalid, and unwritable data files."""
         app = DataManagerCLI()
@@ -67,8 +57,7 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(save_result)
 
     def test_complete_integration_example_surfaces_prompt_and_runtime_failures(
-        self,
-        tmp_path: Path,
+        self, tmp_path: Path
     ) -> None:
         """Complete integration example must surface prompt and invalid-JSON failures through public APIs."""
         app = DataManagerCLI()
@@ -80,9 +69,7 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(invalid_load)
 
         def fail_prompt(
-            _self: object,
-            _message: str,
-            default: str | None = None,
+            _self: object, _message: str, default: str | None = None
         ) -> p.Result[str]:
             _ = default
             return r[str].fail("prompt failed")
@@ -92,20 +79,13 @@ class TestsFlextCliExamplesSmoke:
             tm.fail(first_prompt_failure)
 
             workflow_prompt_failure = app.run_workflow()
-            tm.fail(
-                workflow_prompt_failure,
-            )
-            tm.that(
-                workflow_prompt_failure.error,
-                has="Add entry failed",
-            )
+            tm.fail(workflow_prompt_failure)
+            tm.that(workflow_prompt_failure.error, has="Add entry failed")
 
         prompt_calls: list[str] = []
 
         def fail_second_prompt(
-            _self: object,
-            _message: str,
-            default: str | None = None,
+            _self: object, _message: str, default: str | None = None
         ) -> p.Result[str]:
             if not prompt_calls:
                 prompt_calls.append("first")
@@ -117,9 +97,7 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(second_prompt_failure)
 
         def ok_prompt(
-            _self: object,
-            _message: str,
-            default: str | None = None,
+            _self: object, _message: str, default: str | None = None
         ) -> p.Result[str]:
             return r[str].ok(default or "sample")
 

@@ -17,9 +17,10 @@ from __future__ import annotations
 
 import pytest
 
-from tests.constants import c
-from tests.typings import t
-from tests.utilities import u
+from tests import c
+from tests import t
+from tests import u
+from flext_tests import tm
 
 
 class TestsFlextCliCommands:
@@ -32,13 +33,11 @@ class TestsFlextCliCommands:
 
         # Act
         resolved = u.Cli.commands_resolve_success_message(
-            result_value=7,
-            success_message="fallback",
-            success_formatter=formatter,
+            result_value=7, success_message="fallback", success_formatter=formatter
         )
 
         # Assert
-        assert resolved == "14"
+        tm.that(resolved, eq="14")
 
     @pytest.mark.parametrize(
         ("result_value", "expected"),
@@ -62,9 +61,7 @@ class TestsFlextCliCommands:
         ],
     )
     def test_resolve_without_formatter_follows_value_then_fallback_order(
-        self,
-        result_value: t.Cli.ResultValue,
-        expected: str,
+        self, result_value: t.Cli.ResultValue, expected: str
     ) -> None:
         # Act
         resolved = u.Cli.commands_resolve_success_message(
@@ -74,18 +71,16 @@ class TestsFlextCliCommands:
         )
 
         # Assert
-        assert resolved == expected
+        tm.that(resolved, eq=expected)
 
     def test_resolve_returns_none_fallback_when_message_is_none(self) -> None:
         # Act
         resolved = u.Cli.commands_resolve_success_message(
-            result_value=0,
-            success_message=None,
-            success_formatter=None,
+            result_value=0, success_message=None, success_formatter=None
         )
 
         # Assert
-        assert resolved is None
+        tm.that(resolved, none=True)
 
     @pytest.mark.parametrize(
         "payload",
@@ -96,40 +91,36 @@ class TestsFlextCliCommands:
         ],
     )
     def test_structured_payload_is_emitted_verbatim_with_newline(
-        self,
-        payload: str,
-        capsys: pytest.CaptureFixture[str],
+        self, payload: str, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Act
         u.Cli.commands_emit_success_message(payload, c.Cli.MessageTypes.SUCCESS)
 
         # Assert
-        assert capsys.readouterr().out == f"{payload}\n"
+        tm.that(capsys.readouterr().out, eq=f"{payload}\n")
 
     def test_plain_success_text_is_styled_and_newline_terminated(
-        self,
-        capsys: pytest.CaptureFixture[str],
+        self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Act
         u.Cli.commands_emit_success_message("all good", c.Cli.MessageTypes.SUCCESS)
 
         # Assert
         out = capsys.readouterr().out
-        assert "all good" in out
-        assert out != "all good\n"
+        tm.that(out, has="all good")
+        tm.that(out, ne="all good\n")
         assert out.endswith("\n")
 
     def test_error_message_is_styled_and_newline_terminated(
-        self,
-        capsys: pytest.CaptureFixture[str],
+        self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Act
         u.Cli.commands_emit_error_message("boom")
 
         # Assert
         out = capsys.readouterr().out
-        assert "boom" in out
-        assert out != "boom\n"
+        tm.that(out, has="boom")
+        tm.that(out, ne="boom\n")
         assert out.endswith("\n")
 
 

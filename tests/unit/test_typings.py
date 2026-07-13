@@ -16,8 +16,8 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
-from tests.models import m
-from tests.typings import t
+from tests import m
+from tests import t
 
 
 class TestsFlextCliTypings:
@@ -27,28 +27,20 @@ class TestsFlextCliTypings:
 
     @pytest.mark.parametrize(
         ("payload", "expected"),
-        [
-            (["alpha", "beta"], ["alpha", "beta"]),
-            ([], []),
-            (("x", "y"), ["x", "y"]),
-        ],
+        [(["alpha", "beta"], ["alpha", "beta"]), ([], []), (("x", "y"), ["x", "y"])],
     )
     def test_str_sequence_adapter_accepts_string_sequences(
-        self,
-        payload: Sequence[str],
-        expected: list[str],
+        self, payload: Sequence[str], expected: list[str]
     ) -> None:
         """STR_SEQUENCE_ADAPTER validates string sequences to a list."""
         result = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
         tm.that(list(result), eq=expected)
 
     @pytest.mark.parametrize(
-        "payload",
-        [123, "not-a-sequence-of-str-only", [1, 2, 3], {"k": "v"}],
+        "payload", [123, "not-a-sequence-of-str-only", [1, 2, 3], {"k": "v"}]
     )
     def test_str_sequence_adapter_rejects_non_string_sequences(
-        self,
-        payload: object,
+        self, payload: object
     ) -> None:
         """STR_SEQUENCE_ADAPTER raises ValidationError on invalid input."""
         with pytest.raises(m.ValidationError):
@@ -59,30 +51,22 @@ class TestsFlextCliTypings:
         [{"id": 1}, {"nested": {"a": [1, 2]}}, {}, {"flag": True, "name": "x"}],
     )
     def test_json_mapping_adapter_accepts_json_objects(
-        self,
-        payload: dict[str, object],
+        self, payload: dict[str, object]
     ) -> None:
         """JSON_MAPPING_ADAPTER validates JSON object mappings unchanged."""
         result = t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
         tm.that(result, eq=payload)
 
     @pytest.mark.parametrize("payload", [["a", "list"], "string", 42, True])
-    def test_json_mapping_adapter_rejects_non_mappings(
-        self,
-        payload: object,
-    ) -> None:
+    def test_json_mapping_adapter_rejects_non_mappings(self, payload: object) -> None:
         """JSON_MAPPING_ADAPTER raises ValidationError for non-object input."""
         with pytest.raises(m.ValidationError):
             t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
 
     @pytest.mark.parametrize(
-        "payload",
-        [[1, 2, 3], ["a", "b"], [], [{"k": "v"}, [1, 2]]],
+        "payload", [[1, 2, 3], ["a", "b"], [], [{"k": "v"}, [1, 2]]]
     )
-    def test_json_list_adapter_accepts_json_arrays(
-        self,
-        payload: list[object],
-    ) -> None:
+    def test_json_list_adapter_accepts_json_arrays(self, payload: list[object]) -> None:
         """JSON_LIST_ADAPTER validates JSON arrays unchanged."""
         result = t.Cli.JSON_LIST_ADAPTER.validate_python(payload)
         tm.that(result, eq=payload)
@@ -98,9 +82,7 @@ class TestsFlextCliTypings:
         ],
     )
     def test_cli_default_source_adapter_accepts_cli_value_kinds(
-        self,
-        payload: object,
-        expected: object,
+        self, payload: object, expected: object
     ) -> None:
         """CLI_DEFAULT_SOURCE_ADAPTER accepts scalars, sequences, and paths."""
         result = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)
@@ -131,7 +113,7 @@ class TestsFlextCliTypings:
     def test_optional_str_sequence_alias_accepts_value_and_none(self) -> None:
         """A ``StrSequence | None`` alias accepts both a sequence and None."""
         adapter: m.TypeAdapter[t.StrSequence | None] = m.TypeAdapter(
-            t.StrSequence | None,
+            t.StrSequence | None
         )
         tm.that(adapter.validate_python(["alpha", "beta"]), eq=["alpha", "beta"])
         tm.that(adapter.validate_python(None), none=True)
@@ -139,7 +121,7 @@ class TestsFlextCliTypings:
     def test_mapping_alias_validates_sequence_of_typed_mappings(self) -> None:
         """MappingKV composes into a validatable sequence-of-mappings alias."""
         adapter: m.TypeAdapter[Sequence[t.MappingKV[str, str | int]]] = m.TypeAdapter(
-            Sequence[t.MappingKV[str, str | int]],
+            Sequence[t.MappingKV[str, str | int]]
         )
         validated = adapter.validate_python([{"name": "entry", "count": 1}])
         tm.that(validated, eq=[{"name": "entry", "count": 1}])

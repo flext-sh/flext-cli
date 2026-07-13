@@ -20,10 +20,11 @@ import pytest
 from rich.tree import Tree as RichTree
 
 from flext_cli import cli
-from tests.constants import c
+from tests import c
+from flext_tests import tm
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliFormattersCov:
@@ -35,43 +36,37 @@ class TestsFlextCliFormattersCov:
     def test_create_tree_succeeds_and_preserves_label(self, label: str) -> None:
         result = cli.create_tree(label)
 
-        assert result.success
+        tm.ok(result)
         tree = result.unwrap()
-        assert isinstance(tree, RichTree)
-        assert tree.label == label
+        tm.that(tree, is_=RichTree)
+        tm.that(tree.label, eq=label)
 
     def test_create_tree_value_matches_unwrap(self) -> None:
         result = cli.create_tree("Root")
 
-        assert result.success
+        tm.ok(result)
         assert result.value is result.unwrap()
 
     def test_create_tree_result_maps_to_label(self) -> None:
         # r[T] monadic contract: map projects the success value.
         mapped = cli.create_tree("Branch").map(lambda tree: tree.label)
 
-        assert mapped.success
-        assert mapped.unwrap() == "Branch"
+        tm.ok(mapped)
+        tm.that(mapped.unwrap(), eq="Branch")
 
     def test_create_tree_children_can_be_attached(self) -> None:
         # Public Rich Tree contract: the returned root accepts children.
         root = cli.create_tree("Root").unwrap()
         child = root.add("Leaf")
 
-        assert child.label == "Leaf"
+        tm.that(child.label, eq="Leaf")
         assert root.children[0] is child
 
     # ── print: message rendered to stdout ────────────────────────────
 
-    @pytest.mark.parametrize(
-        ("msg", "style"),
-        c.Tests.FORMATTERS_PRINT_CASES,
-    )
+    @pytest.mark.parametrize(("msg", "style"), c.Tests.FORMATTERS_PRINT_CASES)
     def test_print_renders_message_to_stdout(
-        self,
-        capsys: pytest.CaptureFixture[str],
-        msg: str,
-        style: str | None,
+        self, capsys: pytest.CaptureFixture[str], msg: str, style: str | None
     ) -> None:
         if style is not None:
             cli.print(msg, style)
@@ -79,45 +74,36 @@ class TestsFlextCliFormattersCov:
             cli.print(msg)
 
         out = capsys.readouterr().out
-        assert msg in out
+        tm.that(out, has=msg)
 
     # ── render_rule: label rendered to stdout ────────────────────────
 
     @pytest.mark.parametrize("label", c.Tests.FORMATTER_RULE_LABELS)
     def test_render_rule_renders_label_to_stdout(
-        self,
-        capsys: pytest.CaptureFixture[str],
-        label: str,
+        self, capsys: pytest.CaptureFixture[str], label: str
     ) -> None:
         cli.render_rule(label)
 
         out = capsys.readouterr().out
         # A rule always emits a horizontal line; its text appears when present.
-        assert out.strip() != ""
-        assert label in out
+        tm.that(out.strip(), ne="")
+        tm.that(out, has=label)
 
     # ── render_panel: content rendered to stdout ─────────────────────
 
-    @pytest.mark.parametrize(
-        ("content", "title"),
-        c.Tests.FORMATTER_PANEL_CASES,
-    )
+    @pytest.mark.parametrize(("content", "title"), c.Tests.FORMATTER_PANEL_CASES)
     def test_render_panel_renders_content_to_stdout(
-        self,
-        capsys: pytest.CaptureFixture[str],
-        content: str,
-        title: str,
+        self, capsys: pytest.CaptureFixture[str], content: str, title: str
     ) -> None:
         cli.render_panel(content, title=title)
 
         out = capsys.readouterr().out
-        assert content in out
+        tm.that(out, has=content)
 
     # ── render_table: columns and cells rendered to stdout ───────────
 
     @pytest.mark.parametrize(
-        ("columns", "rows", "title"),
-        c.Tests.FORMATTER_TABLE_CASES,
+        ("columns", "rows", "title"), c.Tests.FORMATTER_TABLE_CASES
     )
     def test_render_table_renders_columns_and_cells(
         self,
@@ -127,19 +113,15 @@ class TestsFlextCliFormattersCov:
         title: str,
     ) -> None:
         cli.render_table(
-            columns=list(columns),
-            rows=[list(row) for row in rows],
-            title=title,
+            columns=list(columns), rows=[list(row) for row in rows], title=title
         )
 
         out = capsys.readouterr().out
         for column in columns:
-            assert column in out
+            tm.that(out, has=column)
         for row in rows:
             for cell in row:
-                assert cell in out
+                tm.that(out, has=cell)
 
 
-__all__: list[str] = [
-    "TestsFlextCliFormattersCov",
-]
+__all__: list[str] = ["TestsFlextCliFormattersCov"]

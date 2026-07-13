@@ -12,7 +12,8 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import cli
-from tests.models import m
+from tests import m
+from flext_tests import tm
 
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): model-command
 # coverage consumes the owning field-only test models directly.
@@ -27,11 +28,7 @@ class TestsFlextCliModelCommandsCov:
         ("payload", "expected_name", "expected_value"),
         [
             (m.Tests.ModelCommandSource(name="hello", value=7), "hello", 7),
-            (
-                m.Tests.ModelCommandSource(name="only-required"),
-                "only-required",
-                42,
-            ),
+            (m.Tests.ModelCommandSource(name="only-required"), "only-required", 42),
             (m.Tests.ModelCommandSource(name="zero", value=0), "zero", 0),
         ],
     )
@@ -43,17 +40,17 @@ class TestsFlextCliModelCommandsCov:
     ) -> None:
         result = cli.derive_model(m.Tests.ModelCommandSample, payload)
 
-        assert isinstance(result, m.Tests.ModelCommandSample)
-        assert result.name == expected_name
-        assert result.value == expected_value
+        tm.that(result, is_=m.Tests.ModelCommandSample)
+        tm.that(result.name, eq=expected_name)
+        tm.that(result.value, eq=expected_value)
 
     def test_derive_model_from_model_instance_preserves_field_values(self) -> None:
         source = m.Tests.ModelCommandNullable(name="test", optional=None)
 
         result = cli.derive_model(m.Tests.ModelCommandNullable, source)
 
-        assert result.name == "test"
-        assert result.optional is None
+        tm.that(result.name, eq="test")
+        tm.that(result.optional, none=True)
 
     def test_derive_model_partial_source_takes_precedence(self) -> None:
         result = cli.derive_model(
@@ -62,8 +59,8 @@ class TestsFlextCliModelCommandsCov:
             m.Tests.ModelCommandSource(value=99),
         )
 
-        assert result.name == "base"
-        assert result.value == 99
+        tm.that(result.name, eq="base")
+        tm.that(result.value, eq=99)
 
     def test_derive_model_later_source_wins_over_earlier(self) -> None:
         result = cli.derive_model(
@@ -72,13 +69,12 @@ class TestsFlextCliModelCommandsCov:
             m.Tests.ModelCommandSource(name="second", value=5),
         )
 
-        assert result.name == "second"
-        assert result.value == 5
+        tm.that(result.name, eq="second")
+        tm.that(result.value, eq=5)
 
     def test_derive_model_rejects_invalid_data_with_validation_error(self) -> None:
         command = cli.model_command(
-            m.Tests.ModelCommandSample,
-            lambda model: model.value,
+            m.Tests.ModelCommandSample, lambda model: model.value
         )
 
         with pytest.raises(m.ValidationError):
@@ -87,17 +83,13 @@ class TestsFlextCliModelCommandsCov:
     def test_derive_model_rejects_missing_required_field(self) -> None:
         with pytest.raises(m.ValidationError):
             cli.derive_model(
-                m.Tests.ModelCommandSample,
-                m.Tests.ModelCommandSource(value=1),
+                m.Tests.ModelCommandSample, m.Tests.ModelCommandSource(value=1)
             )
 
     # ---- model_command --------------------------------------------------
 
     def test_model_command_returns_callable(self) -> None:
-        cmd = cli.model_command(
-            m.Tests.ModelCommandSample,
-            lambda model: model.name,
-        )
+        cmd = cli.model_command(m.Tests.ModelCommandSample, lambda model: model.name)
 
         assert callable(cmd)
 
@@ -107,7 +99,7 @@ class TestsFlextCliModelCommandsCov:
 
         cmd = cli.model_command(m.Tests.ModelCommandSample, handler)
 
-        assert cmd(name="x", value=3) == "x-3"
+        tm.that(cmd(name="x", value=3), eq="x-3")
 
     def test_model_command_applies_field_default_for_omitted_optional(self) -> None:
         def handler(model: m.Tests.ModelCommandSample) -> int:
@@ -115,7 +107,7 @@ class TestsFlextCliModelCommandsCov:
 
         cmd = cli.model_command(m.Tests.ModelCommandSample, handler)
 
-        assert cmd(name="y") == 42
+        tm.that(cmd(name="y"), eq=42)
 
     def test_model_command_resolves_values_without_mutating_settings(self) -> None:
         # Invocation no longer writes parsed values back into the settings
@@ -126,16 +118,12 @@ class TestsFlextCliModelCommandsCov:
         def handler(model: m.Tests.ModelCommandSample) -> str:
             return model.name
 
-        cmd = cli.model_command(
-            m.Tests.ModelCommandSample,
-            handler,
-            settings=settings,
-        )
+        cmd = cli.model_command(m.Tests.ModelCommandSample, handler, settings=settings)
         result = cmd(name="override", value=1)
 
-        assert result == "override"
-        assert settings.name == "from_settings"
-        assert settings.value == 0
+        tm.that(result, eq="override")
+        tm.that(settings.name, eq="from_settings")
+        tm.that(settings.value, eq=0)
 
     def test_model_command_raises_validation_error_for_missing_required(self) -> None:
         def handler(model: m.Tests.ModelCommandRequired) -> str:
@@ -152,4 +140,4 @@ class TestsFlextCliModelCommandsCov:
 
         cmd = cli.model_command(m.Tests.ModelCommandRequired, handler)
 
-        assert cmd(key="a", count=5) == "a=5"
+        tm.that(cmd(key="a", count=5), eq="a=5")

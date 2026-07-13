@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_tests import tm
-from tests.utilities import u
+from tests import u
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliTomlUtilities:
@@ -32,7 +32,7 @@ class TestsFlextCliTomlUtilities:
 
         resolved = u.Cli.toml_table_path(doc, ("tool", "ruff", "lint"))
 
-        assert resolved is not None
+        tm.that(resolved, none=False)
         tm.that(
             u.Cli.toml_as_string_list(u.Cli.toml_item_child(resolved, "select")),
             eq=["E", "F"],
@@ -51,8 +51,7 @@ class TestsFlextCliTomlUtilities:
         )
         tm.that(
             u.Cli.toml_value(
-                u.Cli.toml_navigate_path(doc, ["pytest", "ini_options"]),
-                "addopts",
+                u.Cli.toml_navigate_path(doc, ["pytest", "ini_options"]), "addopts"
             ),
             eq="-q",
         )
@@ -82,7 +81,7 @@ class TestsFlextCliTomlUtilities:
         resolved = u.Cli.toml_mapping_path(doc, ["tool", "pytest"])
 
         tm.that(resolved, none=False)
-        assert resolved is not None
+        tm.that(resolved, none=False)
         tm.that(resolved["addopts"], eq="-q")
 
     def test_mapping_from_text_and_document_builder_round_trip(self) -> None:
@@ -98,11 +97,11 @@ class TestsFlextCliTomlUtilities:
         mapping = u.Cli.toml_mapping_from_text(text)
 
         tm.that(mapping, none=False)
-        assert mapping is not None
+        tm.that(mapping, none=False)
         document = u.Cli.toml_document_from_mapping(mapping)
         project = u.Cli.toml_table_child(document, "project")
         tm.that(project is not None, eq=True)
-        assert project is not None
+        tm.that(project, none=False)
         tm.that(u.Cli.toml_value(project, "name"), eq="demo")
         tm.that(
             u.Cli.toml_as_string_list(u.Cli.toml_item_child(project, "dependencies")),

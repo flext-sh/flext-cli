@@ -20,7 +20,8 @@ from pathlib import Path
 import pytest
 
 from flext_cli import t
-from tests.protocols import p
+from tests import p
+from flext_tests import tm
 
 
 class _ConformingSummary:
@@ -68,17 +69,15 @@ class TestsFlextCliProtocols:
 
     def test_data_protocol_accepts_structurally_conforming_object(self) -> None:
         """A fully-populated object satisfies the data-attribute protocol."""
-        assert isinstance(_ConformingSummary(), p.Cli.SummaryStats)
+        tm.that(_ConformingSummary(), is_=p.Cli.SummaryStats)
 
-    def test_data_protocol_rejects_object_missing_required_attributes(
-        self,
-    ) -> None:
+    def test_data_protocol_rejects_object_missing_required_attributes(self) -> None:
         """An object missing declared attributes fails the protocol check."""
         assert not isinstance(_PartialSummary(), p.Cli.SummaryStats)
 
     def test_method_protocol_accepts_object_exposing_method(self) -> None:
         """An object exposing ``dump`` satisfies ``YamlModule``."""
-        assert isinstance(_ConformingYamlModule(), p.Cli.YamlModule)
+        tm.that(_ConformingYamlModule(), is_=p.Cli.YamlModule)
 
     def test_method_protocol_rejects_object_without_method(self) -> None:
         """An object lacking ``dump`` is rejected by ``YamlModule``."""
@@ -86,11 +85,11 @@ class TestsFlextCliProtocols:
 
     def test_callable_protocol_accepts_plain_callable(self) -> None:
         """Any single-arg callable conforms to ``JsonValueProcessor``."""
-        assert isinstance(lambda value: value, p.Cli.JsonValueProcessor)
+        tm.that(lambda value: value, is_=p.Cli.JsonValueProcessor)
 
     def test_property_protocol_accepts_object_exposing_properties(self) -> None:
         """An object exposing all context properties satisfies the protocol."""
-        assert isinstance(_ConformingContext(), p.Cli.PipelineStageContext)
+        tm.that(_ConformingContext(), is_=p.Cli.PipelineStageContext)
 
     def test_property_protocol_rejects_object_missing_a_property(self) -> None:
         """Missing a single required property fails ``PipelineStageContext``."""
@@ -120,9 +119,9 @@ class TestsFlextCliProtocols:
     def test_cli_protocols_are_runtime_checkable(self, protocol_name: str) -> None:
         """Each published protocol supports runtime ``isinstance`` without error."""
         protocol = getattr(p.Cli, protocol_name)
-        assert isinstance(protocol, type)
+        tm.that(protocol, is_=type)
         # A runtime-checkable protocol answers isinstance instead of raising.
-        assert isinstance(object(), protocol) in {True, False}
+        tm.that({True, False}, has=isinstance(object(), protocol))
 
     @pytest.mark.parametrize(
         "protocol_name",
@@ -143,5 +142,5 @@ class TestsFlextCliProtocols:
 
     def test_result_protocol_inherited_from_core_facade(self) -> None:
         """The CLI facade re-exposes the core ``Result`` protocol contract."""
-        assert p.Result is not None
-        assert isinstance(p.Result, type)
+        tm.that(p.Result, none=False)
+        tm.that(p.Result, is_=type)

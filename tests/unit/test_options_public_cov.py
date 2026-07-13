@@ -13,8 +13,9 @@ from pathlib import Path
 import pytest
 
 from flext_cli import c, m
-from tests.typings import t
-from tests.utilities import u
+from tests import t
+from tests import u
+from flext_tests import tm
 
 
 class TestsFlextCliOptions:
@@ -39,16 +40,12 @@ class TestsFlextCliOptions:
         ],
     )
     def test_resolve_typer_annotation_maps_scalars_unions_and_collections(
-        self,
-        annotation: t.Cli.RuntimeAnnotation,
-        expected: type,
+        self, annotation: t.Cli.RuntimeAnnotation, expected: type
     ) -> None:
         assert u.Cli.resolve_typer_annotation(annotation) is expected
 
-    def test_resolve_typer_annotation_maps_string_sequence_to_list_of_str(
-        self,
-    ) -> None:
-        assert u.Cli.resolve_typer_annotation(t.StrSequence) == list[str]
+    def test_resolve_typer_annotation_maps_string_sequence_to_list_of_str(self) -> None:
+        tm.that(u.Cli.resolve_typer_annotation(t.StrSequence), eq=list[str])
 
     @pytest.mark.parametrize(
         ("value", "expected"),
@@ -64,11 +61,9 @@ class TestsFlextCliOptions:
         ],
     )
     def test_normalize_cli_atom_returns_typer_ready_value_or_none(
-        self,
-        value: t.Cli.CliDefaultSource,
-        expected: t.Cli.DefaultAtom | None,
+        self, value: t.Cli.CliDefaultSource, expected: t.Cli.DefaultAtom | None
     ) -> None:
-        assert u.Cli.normalize_cli_atom(value) == expected
+        tm.that(u.Cli.normalize_cli_atom(value), eq=expected)
 
     @pytest.mark.parametrize(
         ("value", "expected"),
@@ -83,9 +78,7 @@ class TestsFlextCliOptions:
         ],
     )
     def test_is_string_sequence_recognizes_only_str_sequences(
-        self,
-        value: t.Cli.CliDefaultSource,
-        expected: bool,
+        self, value: t.Cli.CliDefaultSource, expected: bool
     ) -> None:
         assert u.Cli.is_string_sequence(value) is expected
 
@@ -102,18 +95,18 @@ class TestsFlextCliOptions:
         settings = self._OptionSettings()
         fields = self._OptionSettings.model_fields
 
-        assert u.Cli.field_default("tags", fields["tags"], settings) == (
-            "lint",
-            "typecheck",
+        tm.that(
+            u.Cli.field_default("tags", fields["tags"], settings),
+            eq=("lint", "typecheck"),
         )
 
     def test_field_default_normalizes_mapping_field_preserving_entries(self) -> None:
         settings = self._OptionSettings()
         fields = self._OptionSettings.model_fields
 
-        assert u.Cli.field_default("flags", fields["flags"], settings) == {
-            "debug": True,
-        }
+        tm.that(
+            u.Cli.field_default("flags", fields["flags"], settings), eq={"debug": True}
+        )
 
     def test_field_default_falls_back_to_field_metadata_without_settings(self) -> None:
         fields = self._OptionSettings.model_fields
@@ -127,17 +120,17 @@ class TestsFlextCliOptions:
         option = u.Cli.build_option("project", {"project": {"short": "p"}})
 
         param_decls = option.param_decls
-        assert param_decls is not None
-        assert "--project" in param_decls
-        assert "--projects" in param_decls
-        assert "-p" in param_decls
+        tm.that(param_decls, none=False)
+        tm.that(param_decls, has="--project")
+        tm.that(param_decls, has="--projects")
+        tm.that(param_decls, has="-p")
 
     def test_build_option_reads_canonical_registry_contract(self) -> None:
         option = u.Cli.build_option("debug", c.Cli.CLI_PARAM_REGISTRY)
 
         param_decls = option.param_decls
-        assert param_decls is not None
-        assert "--debug" in param_decls
+        tm.that(param_decls, none=False)
+        tm.that(param_decls, has="--debug")
 
     def test_reorder_prefixed_options_moves_shared_flags_after_subcommand(self) -> None:
         reordered = u.Cli.reorder_prefixed_options(
@@ -146,7 +139,7 @@ class TestsFlextCliOptions:
             value_options=("--log-level",),
         )
 
-        assert reordered == ["check", "--debug", "--log-level", "DEBUG", "--all"]
+        tm.that(reordered, eq=["check", "--debug", "--log-level", "DEBUG", "--all"])
 
     def test_reorder_prefixed_options_handles_equals_joined_value_option(self) -> None:
         reordered = u.Cli.reorder_prefixed_options(
@@ -155,24 +148,15 @@ class TestsFlextCliOptions:
             value_options=("--log-level",),
         )
 
-        assert reordered == ["check", "--log-level=DEBUG", "--all"]
+        tm.that(reordered, eq=["check", "--log-level=DEBUG", "--all"])
 
-    @pytest.mark.parametrize(
-        "args",
-        [
-            ["check", "--all"],
-            [],
-        ],
-    )
+    @pytest.mark.parametrize("args", [["check", "--all"], []])
     def test_reorder_prefixed_options_is_identity_without_leading_prefixes(
-        self,
-        args: list[str],
+        self, args: list[str]
     ) -> None:
         assert (
             u.Cli.reorder_prefixed_options(
-                args,
-                bool_options=("--debug",),
-                value_options=("--log-level",),
+                args, bool_options=("--debug",), value_options=("--log-level",)
             )
             == args
         )
@@ -184,9 +168,7 @@ class TestsFlextCliOptions:
             value_options=("--log-level",),
         )
         twice = u.Cli.reorder_prefixed_options(
-            once,
-            bool_options=("--debug",),
-            value_options=("--log-level",),
+            once, bool_options=("--debug",), value_options=("--log-level",)
         )
 
-        assert once == twice == ["check", "--debug", "--all"]
+        tm.that(once, eq=twice)

@@ -6,7 +6,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
 if TYPE_CHECKING:
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliConstantsRulesOptions:
@@ -16,12 +16,7 @@ class TestsFlextCliConstantsRulesOptions:
     RULES_SCOPE_CASES: Final[
         tuple[tuple[t.JsonValue, str, t.StrSequence, int], ...]
     ] = (
-        (
-            {"lint": {"rule_a": True, "rule_b": False}},
-            "lint",
-            ("rule_a", "rule_b"),
-            2,
-        ),
+        ({"lint": {"rule_a": True, "rule_b": False}}, "lint", ("rule_a", "rule_b"), 2),
         ({}, "lint", ("rule_a",), 0),
         ({"lint": {"extra": 1}}, "lint", ("rule_a",), 0),
         ({"lint": {"rule_a": 99, "unrelated": "x"}}, "lint", ("rule_a",), 1),
@@ -80,28 +75,24 @@ class TestsFlextCliConstantsRulesOptions:
         frozenset({"actions"}),
     )
     RULES_CATALOG_BASIC: Final[t.Cli.RuleCatalog[str]] = MappingProxyType({
-        "lint": (RULES_BASIC_MATCHER,),
+        "lint": (RULES_BASIC_MATCHER,)
     })
     RULES_CATALOG_MAPPING: Final[t.Cli.RuleCatalog[str]] = MappingProxyType({
-        "lint": (RULES_MAPPING_MATCHER,),
+        "lint": (RULES_MAPPING_MATCHER,)
     })
     RULES_FILE_CATALOG_BASIC: Final[t.Cli.RuleCatalog[str]] = MappingProxyType({
-        "file-lint": (RULES_BASIC_MATCHER,),
+        "file-lint": (RULES_BASIC_MATCHER,)
     })
     RULES_FILE_CATALOG_MAPPING: Final[t.Cli.RuleCatalog[str]] = MappingProxyType({
-        "file-lint": (RULES_MAPPING_MATCHER,),
+        "file-lint": (RULES_MAPPING_MATCHER,)
     })
 
     # ── OPTIONS (utilities/options.py) ─────────────────────────────
     OPTIONS_FIELD_DEFAULT_VALID_MAPPING: Final[t.Cli.DefaultMapping] = (
-        MappingProxyType({
-            "name": "alpha",
-            "count": 3,
-            "tags": ("x", "y"),
-        })
+        MappingProxyType({"name": "alpha", "count": 3, "tags": ("x", "y")})
     )
     OPTIONS_FIELD_DEFAULT_INVALID_MAPPING: Final[t.JsonMapping] = {
-        "nested": {"ignore": True},
+        "nested": {"ignore": True}
     }
 
     # ── TOML ───────────────────────────────────────────────────────

@@ -9,14 +9,12 @@ from flext_tests import reset_settings
 
 from flext_cli import FlextCliSettings
 from flext_cli.services.prompts import FlextCliPrompts
-from tests.models import m
+from tests import m
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Callable,
-    )
+    from collections.abc import Callable
 
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliScriptedPrompts(FlextCliPrompts):
@@ -49,18 +47,8 @@ class TestsFlextCliScriptedPrompts(FlextCliPrompts):
         self._password_reader = raise_password
         return self
 
-    def configure_state(
-        self,
-        *,
-        interactive: bool = True,
-        quiet: bool = False,
-    ) -> Self:
-        self.configure(
-            m.Cli.PromptRuntimeState(
-                interactive=interactive,
-                quiet=quiet,
-            ),
-        )
+    def configure_state(self, *, interactive: bool = True, quiet: bool = False) -> Self:
+        self.configure(m.Cli.PromptRuntimeState(interactive=interactive, quiet=quiet))
         return self
 
 
@@ -74,12 +62,7 @@ class TestsFlextCliCaptureLogPrompts(TestsFlextCliScriptedPrompts):
         return self._records
 
     @override
-    def _log(
-        self,
-        log_level: str,
-        message: str,
-        **context: t.LogValue,
-    ) -> None:
+    def _log(self, log_level: str, message: str, **context: t.LogValue) -> None:
         self._records.append((log_level, message))
 
 
@@ -95,12 +78,7 @@ class TestsFlextCliFailingLogPrompts(TestsFlextCliScriptedPrompts):
         return self
 
     @override
-    def _log(
-        self,
-        log_level: str,
-        message: str,
-        **context: t.LogValue,
-    ) -> None:
+    def _log(self, log_level: str, message: str, **context: t.LogValue) -> None:
         if log_level == self._failure_level:
             raise ValueError(self._failure_message)
         super()._log(log_level, message, **context)
@@ -111,11 +89,7 @@ def _prompt_factory[TPrompt: TestsFlextCliScriptedPrompts](
 ) -> Callable[..., TPrompt]:
     """Build a prompt-double factory that configures interactive/quiet flags."""
 
-    def _make(
-        *,
-        interactive_mode: bool = True,
-        quiet: bool = False,
-    ) -> TPrompt:
+    def _make(*, interactive_mode: bool = True, quiet: bool = False) -> TPrompt:
         instance = prompt_cls()
         instance.configure_state(interactive=interactive_mode, quiet=quiet)
         return instance

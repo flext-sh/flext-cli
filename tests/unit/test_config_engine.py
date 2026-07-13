@@ -10,9 +10,10 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from tests.constants import c
-from tests.models import m
-from tests.utilities import u
+from tests import c
+from tests import m
+from tests import u
+from flext_tests import tm
 
 
 class TestsFlextCliConfigEngine:
@@ -22,34 +23,27 @@ class TestsFlextCliConfigEngine:
         server = m.Tests.TemplateServer(port=8080)
         context = m.Tests.TemplateServerContext(server=server)
         result = u.Cli.template_render(tpl, context)
-        assert result.success
-        assert result.unwrap() == "port=8080\n"
+        tm.ok(result)
+        tm.that(result.unwrap(), eq="port=8080\n")
 
     def test_template_render_strict_undefined_fails(self, tmp_path: Path) -> None:
         tpl = tmp_path / "greeting.j2"
         tpl.write_text("{{ missing_var }}\n", encoding="utf-8")
         result = u.Cli.template_render(tpl, m.Tests.TemplateEmpty())
-        assert result.failure
+        tm.fail(result)
 
     def test_template_render_missing_source_fails(self, tmp_path: Path) -> None:
-        result = u.Cli.template_render(
-            tmp_path / "absent.j2",
-            m.Tests.TemplateEmpty(),
-        )
-        assert result.failure
-        assert c.Cli.ERR_TEMPLATE_NOT_FOUND in (result.error or "")
+        result = u.Cli.template_render(tmp_path / "absent.j2", m.Tests.TemplateEmpty())
+        tm.fail(result)
+        tm.that((result.error or ""), has=c.Cli.ERR_TEMPLATE_NOT_FOUND)
 
     def test_template_render_to_writes(self, tmp_path: Path) -> None:
         tpl = tmp_path / "t.j2"
         tpl.write_text("value={{ value }}", encoding="utf-8")
         dest = tmp_path / "out" / "rendered.txt"
-        result = u.Cli.template_render_to(
-            tpl,
-            dest,
-            m.Tests.TemplateValue(value=42),
-        )
-        assert result.success
-        assert dest.read_text(encoding="utf-8") == "value=42"
+        result = u.Cli.template_render_to(tpl, dest, m.Tests.TemplateValue(value=42))
+        tm.ok(result)
+        tm.that(dest.read_text(encoding="utf-8"), eq="value=42")
 
     def test_config_load_yaml_expands_env(self, tmp_path: Path) -> None:
         source = tmp_path / "app.yaml"
@@ -59,26 +53,26 @@ class TestsFlextCliConfigEngine:
             result = u.Cli.config_load(source)
         finally:
             os.environ.pop("CFG_ENGINE_HOME", None)
-        assert result.success
+        tm.ok(result)
         doc = result.unwrap()
-        assert isinstance(doc, m.ConfigDocument)
-        assert doc.data["path"] == "/eng/data"
-        assert doc.source_path == str(source)
+        tm.that(doc, is_=m.ConfigDocument)
+        tm.that(doc.data["path"], eq="/eng/data")
+        tm.that(doc.source_path, eq=str(source))
 
     def test_config_load_json_and_toml(self, tmp_path: Path) -> None:
         j = tmp_path / "a.json"
         j.write_text('{"k": 1}', encoding="utf-8")
         t_src = tmp_path / "a.toml"
         t_src.write_text("k = 2\n", encoding="utf-8")
-        assert u.Cli.config_load(j).unwrap().data["k"] == 1
-        assert u.Cli.config_load(t_src).unwrap().data["k"] == 2
+        tm.that(u.Cli.config_load(j).unwrap().data["k"], eq=1)
+        tm.that(u.Cli.config_load(t_src).unwrap().data["k"], eq=2)
 
     def test_config_load_unsupported_format_fails(self, tmp_path: Path) -> None:
         bad = tmp_path / "a.ini"
         bad.write_text("k=1", encoding="utf-8")
         result = u.Cli.config_load(bad)
-        assert result.failure
-        assert c.Cli.ERR_CONFIG_UNSUPPORTED_FORMAT in (result.error or "")
+        tm.fail(result)
+        tm.that((result.error or ""), has=c.Cli.ERR_CONFIG_UNSUPPORTED_FORMAT)
 
     def test_schema_validate_valid_and_invalid(self, tmp_path: Path) -> None:
         schema = tmp_path / "s.schema.json"
@@ -87,8 +81,8 @@ class TestsFlextCliConfigEngine:
             '"properties":{"port":{"type":"integer"}}}',
             encoding="utf-8",
         )
-        assert u.Cli.schema_validate({"port": 8080}, schema).success
-        assert u.Cli.schema_validate({"port": "x"}, schema).failure
+        tm.ok(u.Cli.schema_validate({"port": 8080}, schema))
+        tm.fail(u.Cli.schema_validate({"port": "x"}, schema))
 
     def test_config_load_with_schema_pairs(self, tmp_path: Path) -> None:
         source = tmp_path / "app.yaml"
@@ -96,8 +90,8 @@ class TestsFlextCliConfigEngine:
         schema = tmp_path / "app.schema.json"
         schema.write_text('{"type":"object","required":["port"]}', encoding="utf-8")
         ok = u.Cli.config_load(source, schema_path=schema)
-        assert ok.success
-        assert ok.unwrap().schema_ref == str(schema)
+        tm.ok(ok)
+        tm.that(ok.unwrap().schema_ref, eq=str(schema))
 
     def test_config_load_dir_auto_pairs_schemas(self, tmp_path: Path) -> None:
         cfg = tmp_path / "config"
@@ -110,11 +104,11 @@ class TestsFlextCliConfigEngine:
             '{"type":"object","required":["enabled"]}', encoding="utf-8"
         )
         result = u.Cli.config_load_dir(cfg)
-        assert result.success
+        tm.ok(result)
         docs = result.unwrap()
-        assert set(docs.keys()) == {"agents", "mcp"}
-        assert docs["mcp"].schema_ref == str(schemas / "mcp.schema.json")
-        assert docs["agents"].schema_ref is None
+        tm.that(set(docs.keys()), eq={"agents", "mcp"})
+        tm.that(docs["mcp"].schema_ref, eq=str(schemas / "mcp.schema.json"))
+        tm.that(docs["agents"].schema_ref, none=True)
 
 
 class TestsFlextCliTemplateRenderDir:
@@ -124,15 +118,11 @@ class TestsFlextCliTemplateRenderDir:
         root = tmp_path / "tpl"
         (root / "sub").mkdir(parents=True)
         (root / "a.txt.j2").write_text("A={{ value }}\n", encoding="utf-8")
-        (root / "sub" / "b.txt.j2").write_text(
-            "B={{ value }}\n",
-            encoding="utf-8",
-        )
+        (root / "sub" / "b.txt.j2").write_text("B={{ value }}\n", encoding="utf-8")
         out = tmp_path / "out"
         entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("a.txt.j2"),
-                output_relpath=Path("a.txt.j2"),
+                relpath_template=Path("a.txt.j2"), output_relpath=Path("a.txt.j2")
             ),
             m.Cli.TemplateRenderEntry(
                 relpath_template=Path("sub/b.txt.j2"),
@@ -140,17 +130,14 @@ class TestsFlextCliTemplateRenderDir:
             ),
         )
         result = u.Cli.template_render_dir(
-            root,
-            out,
-            m.Tests.TemplateValue(value=1),
-            entries,
+            root, out, m.Tests.TemplateValue(value=1), entries
         )
-        assert result.success
+        tm.ok(result)
         report = result.unwrap()
         assert not report.failed
-        assert len(report.created) == 2
-        assert (out / "a.txt").read_text(encoding="utf-8") == "A=1\n"
-        assert (out / "sub" / "b.txt").read_text(encoding="utf-8") == "B=1\n"
+        tm.that(len(report.created), eq=2)
+        tm.that((out / "a.txt").read_text(encoding="utf-8"), eq="A=1\n")
+        tm.that((out / "sub" / "b.txt").read_text(encoding="utf-8"), eq="B=1\n")
 
     def test_render_dir_when_false_skips(self, tmp_path: Path) -> None:
         root = tmp_path / "tpl"
@@ -159,18 +146,13 @@ class TestsFlextCliTemplateRenderDir:
         out = tmp_path / "out"
         entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("a.j2"),
-                output_relpath=Path("a"),
-                when=False,
+                relpath_template=Path("a.j2"), output_relpath=Path("a"), when=False
             ),
         )
         report = u.Cli.template_render_dir(
-            root,
-            out,
-            m.Tests.TemplateEmpty(),
-            entries,
+            root, out, m.Tests.TemplateEmpty(), entries
         ).unwrap()
-        assert len(report.skipped) == 1
+        tm.that(len(report.skipped), eq=1)
         assert not report.created
         assert not (out / "a").exists()
 
@@ -183,33 +165,24 @@ class TestsFlextCliTemplateRenderDir:
         (out / "a").write_text("old", encoding="utf-8")
         skip_entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("a.j2"),
-                output_relpath=Path("a"),
+                relpath_template=Path("a.j2"), output_relpath=Path("a")
             ),
         )
         skipped = u.Cli.template_render_dir(
-            root,
-            out,
-            m.Tests.TemplateValue(value=1),
-            skip_entries,
+            root, out, m.Tests.TemplateValue(value=1), skip_entries
         ).unwrap()
-        assert len(skipped.skipped) == 1
-        assert (out / "a").read_text(encoding="utf-8") == "old"
+        tm.that(len(skipped.skipped), eq=1)
+        tm.that((out / "a").read_text(encoding="utf-8"), eq="old")
         over_entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("a.j2"),
-                output_relpath=Path("a"),
-                overwrite=True,
+                relpath_template=Path("a.j2"), output_relpath=Path("a"), overwrite=True
             ),
         )
         created = u.Cli.template_render_dir(
-            root,
-            out,
-            m.Tests.TemplateValue(value=2),
-            over_entries,
+            root, out, m.Tests.TemplateValue(value=2), over_entries
         ).unwrap()
-        assert len(created.created) == 1
-        assert (out / "a").read_text(encoding="utf-8") == "new=2"
+        tm.that(len(created.created), eq=1)
+        tm.that((out / "a").read_text(encoding="utf-8"), eq="new=2")
 
     def test_render_dir_blocks_escape(self, tmp_path: Path) -> None:
         root = tmp_path / "tpl"
@@ -218,28 +191,21 @@ class TestsFlextCliTemplateRenderDir:
         out = tmp_path / "out"
         entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("a.j2"),
-                output_relpath=Path("../escape"),
+                relpath_template=Path("a.j2"), output_relpath=Path("../escape")
             ),
         )
         report = u.Cli.template_render_dir(
-            root,
-            out,
-            m.Tests.TemplateEmpty(),
-            entries,
+            root, out, m.Tests.TemplateEmpty(), entries
         ).unwrap()
         assert report.failed
-        assert c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE in report.failed[0][1]
+        tm.that(report.failed[0][1], has=c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE)
         assert not (tmp_path / "escape").exists()
 
     def test_render_dir_missing_root_fails(self, tmp_path: Path) -> None:
         result = u.Cli.template_render_dir(
-            tmp_path / "nope",
-            tmp_path / "out",
-            m.Tests.TemplateEmpty(),
-            (),
+            tmp_path / "nope", tmp_path / "out", m.Tests.TemplateEmpty(), ()
         )
-        assert result.failure
+        tm.fail(result)
 
     def test_render_dir_collects_render_failures(self, tmp_path: Path) -> None:
         root = tmp_path / "tpl"
@@ -248,17 +214,13 @@ class TestsFlextCliTemplateRenderDir:
         out = tmp_path / "out"
         entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("bad.j2"),
-                output_relpath=Path("bad"),
+                relpath_template=Path("bad.j2"), output_relpath=Path("bad")
             ),
         )
         report = u.Cli.template_render_dir(
-            root,
-            out,
-            m.Tests.TemplateEmpty(),
-            entries,
+            root, out, m.Tests.TemplateEmpty(), entries
         ).unwrap()
         # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): assert the
         # public failure payload directly; TemplateRenderReport has no behavior.
         assert report.failed
-        assert len(report.failed) == 1
+        tm.that(len(report.failed), eq=1)

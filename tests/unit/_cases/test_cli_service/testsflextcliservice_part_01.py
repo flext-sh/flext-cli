@@ -5,19 +5,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_tests import tm
-from tests.constants import c
-from tests.models import m
+from tests import c
+from tests import m
 
 from flext_cli import cli
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        MutableSequence,
-    )
+    from collections.abc import MutableSequence
 
-    from tests.typings import t
+    from tests import t
 
 
 class TestsFlextCliService:
@@ -39,14 +37,10 @@ class TestsFlextCliService:
 
     def test_create_app_with_common_params_applies_settings(self) -> None:
         app = cli.create_app_with_common_params(
-            name="sample",
-            help_text="Sample application",
+            name="sample", help_text="Sample application"
         )
         cli.register_command(
-            app,
-            name="inspect",
-            help_text="Inspect settings",
-            command=lambda: True,
+            app, name="inspect", help_text="Inspect settings", command=lambda: True
         )
 
         runner_result = cli.create_cli_runner()
@@ -57,21 +51,16 @@ class TestsFlextCliService:
 
     def test_create_app_with_common_params_applies_log_level(self) -> None:
         app = cli.create_app_with_common_params(
-            name="sample",
-            help_text="Sample application",
+            name="sample", help_text="Sample application"
         )
         cli.register_command(
-            app,
-            name="inspect",
-            help_text="Inspect settings",
-            command=lambda: True,
+            app, name="inspect", help_text="Inspect settings", command=lambda: True
         )
 
         runner_result = cli.create_cli_runner()
         tm.ok(runner_result)
         result = runner_result.value.invoke(
-            app,
-            ["--log-level", c.LogLevel.DEBUG, "inspect"],
+            app, ["--log-level", c.LogLevel.DEBUG, "inspect"]
         )
 
         tm.that(result.exit_code, eq=0)
@@ -79,8 +68,7 @@ class TestsFlextCliService:
     def test_model_command_generates_real_typer_options(self) -> None:
         captured: MutableSequence[m.Tests.SampleInput] = []
         app = cli.create_app_with_common_params(
-            name="root",
-            help_text="Root application",
+            name="root", help_text="Root application"
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
@@ -90,10 +78,7 @@ class TestsFlextCliService:
 
         command = cli.model_command(m.Tests.SampleInput, handle)
         cli.register_command(
-            group,
-            name="run",
-            help_text="Run sample command",
-            command=command,
+            group, name="run", help_text="Run sample command", command=command
         )
         cli.add_group(app, name="sample", group=group)
         runner_result = cli.create_cli_runner()
