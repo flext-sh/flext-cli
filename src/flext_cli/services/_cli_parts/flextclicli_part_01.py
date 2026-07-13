@@ -40,13 +40,13 @@ class FlextCliCli:
         __name__: str
         __signature__: Signature
         _handler: p.Cli.ModelCommandHandler[M]
-        _model_cls: t.Cli.ModelType[M]
+        _model_cls: p.Cli.ModelType[M]
 
         def __init__(
             self,
             *,
             handler: p.Cli.ModelCommandHandler[M],
-            model_cls: t.Cli.ModelType[M],
+            model_cls: p.Cli.ModelType[M],
             parameters: t.SequenceOf[Parameter],
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)

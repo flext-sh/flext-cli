@@ -19,7 +19,7 @@ from tomlkit.toml_document import TOMLDocument
 from typer import Typer
 from typer.models import OptionInfo
 
-from flext_core.typings import t
+from flext_core import t
 
 
 @runtime_checkable

@@ -15,6 +15,19 @@ class FlextCliProtocolsDomain:
     """CLI domain protocols layered on top of base callable contracts."""
 
     @runtime_checkable
+    class ModelType[TModel](Protocol):
+        """Validated model-class contract consumed by CLI command routing."""
+
+        __name__: str
+
+        def model_validate(
+            self,
+            value: t.MappingKV[str, t.Cli.CliValue],
+        ) -> TModel:
+            """Validate CLI values into the canonical request model."""
+            ...
+
+    @runtime_checkable
     class JsonValueProcessor(Protocol):
         """Protocol for JSON-compatible value processors."""
 
