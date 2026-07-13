@@ -13,7 +13,8 @@ from flext_core import m, u
 class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
 
-    class CommandOutput(m.Value):
+    # mro-wkii.17.26: Preserve subprocess streams byte-for-byte for Git patches.
+    class CommandOutput(m.ImmutableValueModel):
         """Standardized external command execution payload. Use m.Cli.CommandOutput."""
 
         stdout: Annotated[str, m.Field("", description="Captured standard output")] = ""
