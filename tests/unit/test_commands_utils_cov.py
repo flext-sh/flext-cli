@@ -123,5 +123,48 @@ class TestsFlextCliCommands:
         tm.that(out, ne="boom\n")
         assert out.endswith("\n")
 
+    def test_error_message_surfaces_code_without_traceback_in_normal_mode(
+        self,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        # Act
+        u.Cli.commands_emit_error_message(
+            "proposal config ausente: /x.yaml",
+            error_code="missing_config",
+            exception=FileNotFoundError("nope"),
+            verbose=False,
+        )
+
+        # Assert
+        out = capsys.readouterr().out
+        tm.that(out, has="proposal config ausente: /x.yaml")
+        tm.that(out, has="missing_config")
+        assert "Traceback" not in out
+        assert "FileNotFoundError" not in out
+
+    def test_error_message_adds_traceback_in_verbose_mode(
+        self,
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
+        # Arrange
+        try:
+            raise FileNotFoundError("nope")
+        except FileNotFoundError as exc:
+            captured_exception: BaseException = exc
+
+        # Act
+        u.Cli.commands_emit_error_message(
+            "proposal config ausente: /x.yaml",
+            error_code="missing_config",
+            exception=captured_exception,
+            verbose=True,
+        )
+
+        # Assert
+        out = capsys.readouterr().out
+        tm.that(out, has="missing_config")
+        tm.that(out, has="FileNotFoundError")
+        tm.that(out, has="Traceback (most recent call last)")
+
 
 __all__: list[str] = ["TestsFlextCliCommands"]
