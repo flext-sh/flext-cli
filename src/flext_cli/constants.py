@@ -11,21 +11,10 @@ from flext_cli._constants.files import FlextCliConstantsFiles
 from flext_cli._constants.output import FlextCliConstantsOutput
 from flext_cli._constants.pipeline import FlextCliConstantsPipeline
 from flext_cli._constants.settings import FlextCliConstantsSettings
-from flext_core import FlextConstants, t
+from flext_core import c, t
 
 
-class FlextCliConstants(
-    FlextConstants,
-    FlextCliConstantsBase,
-    FlextCliConstantsConfig,
-    FlextCliConstantsEnums,
-    FlextCliConstantsErrors,
-    FlextCliConstantsExceptions,
-    FlextCliConstantsFiles,
-    FlextCliConstantsOutput,
-    FlextCliConstantsPipeline,
-    FlextCliConstantsSettings,
-):
+class FlextCliConstants(c):
     """Constants for Flext CLI."""
 
     class Cli(
@@ -42,6 +31,6 @@ class FlextCliConstants(
         """CLI related constants."""
 
 
-__all__: t.StrSequence = ("FlextCliConstants", "c")
-
 c = FlextCliConstants
+
+__all__: t.StrSequence = ("FlextCliConstants", "c")

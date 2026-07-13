@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
-from flext_core.utilities import FlextUtilities as _FlextCoreUtilitiesBase
+from flext_core import FlextUtilities as _FlextCoreUtilitiesBase
 
 
 class FlextCliUtilities(_FlextCoreUtilitiesBase):

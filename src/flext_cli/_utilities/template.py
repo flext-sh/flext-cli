@@ -23,7 +23,7 @@ from flext_cli import c, m, r, t
 from flext_core import u
 
 if TYPE_CHECKING:
-    from flext_core.protocols import p
+    from flext_core import p
 
 
 class FlextCliUtilitiesTemplate:

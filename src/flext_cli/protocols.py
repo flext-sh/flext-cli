@@ -6,16 +6,10 @@ from flext_cli._protocols.base import FlextCliProtocolsBase
 from flext_cli._protocols.config import FlextCliProtocolsConfig
 from flext_cli._protocols.domain import FlextCliProtocolsDomain
 from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
-from flext_core import FlextProtocols
+from flext_core import p
 
 
-class FlextCliProtocols(
-    FlextCliProtocolsBase,
-    FlextProtocols,
-    FlextCliProtocolsConfig,
-    FlextCliProtocolsDomain,
-    FlextCliProtocolsPipeline,
-):
+class FlextCliProtocols(p):
     """CLI protocol definitions extending FlextProtocols.
 
     CLI protocol refinements take precedence in MRO while ``Result`` and the

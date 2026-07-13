@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_cli import p, t, u
+from flext_cli import p, r, t, u
 from flext_cli.services.auth import FlextCliAuth
 from flext_cli.services.cli import FlextCliCli
 from flext_cli.services.cli_params import FlextCliCommonParams
@@ -21,7 +21,6 @@ from flext_cli.services.prompts import FlextCliPrompts
 from flext_cli.services.rules import FlextCliRules
 from flext_cli.services.runtime import FlextCliRuntime
 from flext_cli.services.tables import FlextCliTables
-from flext_core import r
 
 
 class FlextCli(

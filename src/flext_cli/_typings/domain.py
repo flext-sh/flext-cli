@@ -17,8 +17,7 @@ from tomlkit.toml_document import TOMLDocument
 from flext_cli._constants.enums import FlextCliConstantsEnums
 from flext_cli._protocols.base import FlextCliProtocolsBase as pb
 from flext_cli._typings.base import FlextCliTypesBase as tb
-from flext_core.protocols import p
-from flext_core.typings import t
+from flext_core import p, t
 
 # NOTE (multi-agent): YAML round-trip aliases live at module level because a
 # self-referencing PEP 695 alias in CLASS scope breaks pyrefly/pyright (proven

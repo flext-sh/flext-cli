@@ -2,23 +2,16 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeAlias
-
+from flext_cli import t
 from flext_cli._models.base import FlextCliModelsBase
 from flext_cli._models.pipeline import FlextCliModelsPipeline
 from flext_cli._models.rules import FlextCliModelsRules
 from flext_cli._models.template import FlextCliModelsTemplate
-from flext_core import FlextModels
-
-if TYPE_CHECKING:
-    from flext_cli.typings import t
+from flext_core import m
 
 
-class FlextCliModels(FlextModels):
+class FlextCliModels(m):
     """FlextCli models extending FlextModels."""
-
-    ConfigDict: TypeAlias = FlextModels.ConfigDict
-    SettingsConfigDict: TypeAlias = FlextModels.SettingsConfigDict
 
     class Cli(
         FlextCliModelsPipeline,
