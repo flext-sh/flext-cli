@@ -55,39 +55,39 @@ class FlextCliProtocolsDomain:
         # mro-j47u (codex): read-only properties preserve frozen-model covariance.
         @property
         def name(self) -> str:
-            """Return the command name."""
+            """The command name."""
             ...
 
         @property
         def help_text(self) -> str:
-            """Return the user-facing help text."""
+            """The user-facing help text."""
             ...
 
         @property
         def model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
-            """Return the validated input model class."""
+            """The validated input model class."""
             ...
 
         @property
         def handler(self) -> t.Cli.ResultRouteHandler:
-            """Return the type-erased result handler."""
+            """The type-erased result handler."""
             ...
 
         @property
         def success_message(self) -> str | None:
-            """Return the static success message, when configured."""
+            """The static success message, when configured."""
             ...
 
         @property
         def success_formatter(
             self,
         ) -> t.Cli.SuccessMessageFormatter[t.Cli.ResultValue] | None:
-            """Return the dynamic success formatter, when configured."""
+            """The dynamic success formatter, when configured."""
             ...
 
         @property
         def success_type(self) -> t.Cli.MessageType:
-            """Return the success output style."""
+            """The success output style."""
             ...
 
     @runtime_checkable

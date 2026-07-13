@@ -29,12 +29,12 @@ class _TyperApplication:
 
     @property
     def name(self) -> str | None:
-        """Return the configured application name."""
+        """The configured application name."""
         return self._name
 
     @property
     def backend(self) -> typer.Typer:
-        """Return the backend object inside this private adapter module."""
+        """The backend object inside this private adapter module."""
         return self._app
 
     def callback(

@@ -129,7 +129,7 @@ class FlextCliModelsPipeline:
         def failed_stages(
             self,
         ) -> t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult]:
-            """Return only failed stage results."""
+            """Only the failed stage results."""
             return [
                 s for s in self.stages if s.status == c.Cli.PipelineStageStatus.FAILED
             ]
@@ -139,7 +139,7 @@ class FlextCliModelsPipeline:
         def skipped_stages(
             self,
         ) -> t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult]:
-            """Return only skipped stage results."""
+            """Only the skipped stage results."""
             return [
                 s for s in self.stages if s.status == c.Cli.PipelineStageStatus.SKIPPED
             ]
