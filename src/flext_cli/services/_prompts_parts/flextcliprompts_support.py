@@ -19,7 +19,7 @@ class FlextCliPromptsSupport(s):
     _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(default_factory=lambda: input)
 
     _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(
-        default_factory=lambda: getpass.getpass,
+        default_factory=lambda: getpass.getpass
     )
 
     _test_env_override: bool | None = m.PrivateAttr(default_factory=lambda: None)
@@ -44,11 +44,7 @@ class FlextCliPromptsSupport(s):
         return u.Cli.cli_test_env(settings)
 
     def _fatal(
-        self,
-        operation: str,
-        message: str,
-        exc: Exception,
-        consequence: str,
+        self, operation: str, message: str, exc: Exception, consequence: str
     ) -> None:
         self._log(
             c.LogLevel.ERROR,
@@ -61,12 +57,7 @@ class FlextCliPromptsSupport(s):
             severity="critical",
         )
 
-    def _log(
-        self,
-        log_level: str,
-        message: str,
-        **context: t.LogValue,
-    ) -> None:
+    def _log(self, log_level: str, message: str, **context: t.LogValue) -> None:
         match log_level:
             case c.LogLevel.DEBUG:
                 self.logger.debug(message, **context)
@@ -101,18 +92,11 @@ class FlextCliPromptsSupport(s):
             return r[bool].fail(error_message_template.format(error=exc))
 
     def _read_confirmation_input(
-        self,
-        message: str,
-        prompt_text: str,
-        *,
-        default: bool,
+        self, message: str, prompt_text: str, *, default: bool
     ) -> p.Result[bool]:
         while True:
             input_text = self._input_reader(prompt_text)
-            parsed = u.Cli.prompts_parse_confirmation(
-                input_text,
-                default=default,
-            )
+            parsed = u.Cli.prompts_parse_confirmation(input_text, default=default)
             if parsed is not None:
                 return r[bool].ok(parsed)
             self._log(

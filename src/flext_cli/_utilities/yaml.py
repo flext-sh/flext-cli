@@ -30,8 +30,7 @@ _EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()
 
 
 class FlextCliUtilitiesYaml(
-    FlextCliUtilitiesYamlRoundtripPart01,
-    FlextCliUtilitiesYamlRoundtripPart02,
+    FlextCliUtilitiesYamlRoundtripPart01, FlextCliUtilitiesYamlRoundtripPart02
 ):
     """Generic YAML read, parse, dump, and validation helpers.
 
@@ -83,7 +82,7 @@ class FlextCliUtilitiesYaml(
             return r[t.JsonMapping].fail("YAML content is empty")
         if not u.mapping(parsed):
             return r[t.JsonMapping].fail(
-                f"YAML content is not a mapping: {type(parsed).__name__}",
+                f"YAML content is not a mapping: {type(parsed).__name__}"
             )
         try:
             validated = t.Cli.YAML_DICT_ADAPTER.validate_python(parsed)
@@ -93,16 +92,14 @@ class FlextCliUtilitiesYaml(
 
     @staticmethod
     def yaml_load_mapping(
-        path: Path,
-        *,
-        default: t.JsonMapping | None = None,
+        path: Path, *, default: t.JsonMapping | None = None
     ) -> t.JsonMapping:
         """Load YAML file returning a mapping, or *default* (empty dict) on any error.
 
         Ergonomic shorthand — use ``yaml_safe_load`` when you need ``r[T]`` semantics.
         """
         return FlextCliUtilitiesYaml.yaml_safe_load(path).unwrap_or(
-            default if default is not None else _EMPTY_JSON_MAPPING,
+            default if default is not None else _EMPTY_JSON_MAPPING
         )
 
     @staticmethod
@@ -114,7 +111,7 @@ class FlextCliUtilitiesYaml(
             msg = f"YAML content is not a list: {type(parsed).__name__}"
             raise TypeError(msg)
         validated: t.SequenceOf[t.JsonValue] = t.Cli.YAML_SEQ_ADAPTER.validate_python(
-            parsed,
+            parsed
         )
         return validated
 
@@ -140,11 +137,7 @@ class FlextCliUtilitiesYaml(
 
     @staticmethod
     def yaml_dump(
-        path: Path,
-        data: t.JsonPayload,
-        *,
-        sort_keys: bool = False,
-        indent: int = 2,
+        path: Path, data: t.JsonPayload, *, sort_keys: bool = False, indent: int = 2
     ) -> p.Result[bool]:
         """Write *data* to a YAML file → ``r[bool]``.
 
@@ -172,10 +165,7 @@ class FlextCliUtilitiesYaml(
 
     @staticmethod
     def yaml_dump_str(
-        data: t.JsonPayload,
-        *,
-        sort_keys: bool = False,
-        indent: int = 2,
+        data: t.JsonPayload, *, sort_keys: bool = False, indent: int = 2
     ) -> str:
         """Serialize *data* to a YAML string.
 

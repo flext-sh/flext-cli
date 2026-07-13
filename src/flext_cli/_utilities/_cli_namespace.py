@@ -13,6 +13,7 @@ from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
 from flext_cli._utilities.file_test_helpers import FlextCliUtilitiesFileTestHelpersMixin
 from flext_cli._utilities.files import FlextCliUtilitiesFiles
 from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
+from flext_cli._utilities.framework import FlextCliUtilitiesFramework
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_cli._utilities.matching import FlextCliUtilitiesMatching
 from flext_cli._utilities.model_commands import FlextCliUtilitiesModelCommands
@@ -40,6 +41,7 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesTemplate,
     FlextCliUtilitiesFileTestHelpersMixin,
     FlextCliUtilitiesFiles,
+    FlextCliUtilitiesFramework,
     FlextCliUtilitiesFormatters,
     FlextCliUtilitiesJson,
     FlextCliUtilitiesMatching,

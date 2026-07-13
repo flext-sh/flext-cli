@@ -16,30 +16,24 @@ class FlextCliUtilitiesRuntime:
 
     @staticmethod
     def process_env(
-        *,
-        overrides: t.StrMapping | None = None,
-        remove_keys: t.StrSequence = (),
+        *, overrides: t.StrMapping | None = None, remove_keys: t.StrSequence = ()
     ) -> dict[str, str]:
         """Return one inherited process environment with optional overrides."""
-        return m.Cli.ProcessEnvironmentSpec.model_validate(
-            {
-                "base_env": dict(os.environ),
-                "overrides": overrides if overrides is not None else {},
-                "remove_keys": tuple(remove_keys),
-            },
-        ).resolve()
+        return m.Cli.ProcessEnvironmentSpec.model_validate({
+            "base_env": dict(os.environ),
+            "overrides": overrides if overrides is not None else {},
+            "remove_keys": tuple(remove_keys),
+        }).resolve()
 
     @staticmethod
     def _resolved_env(
-        env: t.StrMapping | None,
-        remove_env_keys: t.StrSequence = (),
+        env: t.StrMapping | None, remove_env_keys: t.StrSequence = ()
     ) -> dict[str, str] | None:
         """Resolve the child environment with overrides and optional removals."""
         if env is None and not remove_env_keys:
             return None
         return FlextCliUtilitiesRuntime.process_env(
-            overrides=env,
-            remove_keys=remove_env_keys,
+            overrides=env, remove_keys=remove_env_keys
         )
 
     @staticmethod
@@ -66,7 +60,7 @@ class FlextCliUtilitiesRuntime:
             )
         except subprocess.TimeoutExpired as exc:
             return r[m.Cli.CommandOutput].fail(
-                f"timeout {exc.timeout}s: {shlex.join(list(cmd))}",
+                f"timeout {exc.timeout}s: {shlex.join(list(cmd))}"
             )
         except c.EXC_OS_VALUE as exc:
             return r[m.Cli.CommandOutput].fail(f"execution error: {exc}")
@@ -83,7 +77,7 @@ class FlextCliUtilitiesRuntime:
                 else stderr_raw,
                 exit_code=result.returncode,
                 duration=duration,
-            ),
+            )
         )
 
     @staticmethod
@@ -101,19 +95,13 @@ class FlextCliUtilitiesRuntime:
         ) -> p.Result[m.Cli.CommandOutput]:
             if output.exit_code != 0:
                 return r[m.Cli.CommandOutput].fail(
-                    f"failed ({output.exit_code}): {shlex.join(list(cmd))}: {(output.stderr or output.stdout).strip()}",
+                    f"failed ({output.exit_code}): {shlex.join(list(cmd))}: {(output.stderr or output.stdout).strip()}"
                 )
             return r[m.Cli.CommandOutput].ok(output)
 
         return FlextCliUtilitiesRuntime.run_raw(
-            cmd,
-            cwd=cwd,
-            timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-        ).flat_map(
-            require_zero_exit,
-        )
+            cmd, cwd=cwd, timeout=timeout, env=env, remove_env_keys=remove_env_keys
+        ).flat_map(require_zero_exit)
 
     @staticmethod
     def run_checked(
@@ -125,11 +113,7 @@ class FlextCliUtilitiesRuntime:
     ) -> p.Result[bool]:
         """Run a command and return a success flag."""
         return FlextCliUtilitiesRuntime.run(
-            cmd,
-            cwd=cwd,
-            timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
+            cmd, cwd=cwd, timeout=timeout, env=env, remove_env_keys=remove_env_keys
         ).map(lambda _: True)
 
     @staticmethod
@@ -142,11 +126,7 @@ class FlextCliUtilitiesRuntime:
     ) -> p.Result[str]:
         """Run a command and return stripped stdout."""
         return FlextCliUtilitiesRuntime.run(
-            cmd,
-            cwd=cwd,
-            timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
+            cmd, cwd=cwd, timeout=timeout, env=env, remove_env_keys=remove_env_keys
         ).map(lambda output: output.stdout.strip())
 
     @staticmethod

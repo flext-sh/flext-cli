@@ -30,8 +30,7 @@ class FlextCliUtilitiesRules:
     ) -> p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]:
         """Load local YAML rule definitions using declarative matcher catalogs."""
         options = m.Cli.LocalDefinitionsOptions[
-            TRuleKind,
-            TFileRuleKind,
+            TRuleKind, TFileRuleKind
         ].model_validate(kwargs)
         rules_dir = FlextCliUtilitiesRulesPart03.rules_resolve_directory(
             config_path,
@@ -40,7 +39,7 @@ class FlextCliUtilitiesRules:
         )
         if not rules_dir.is_dir():
             return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].fail(
-                f"Rules directory not found: {rules_dir}",
+                f"Rules directory not found: {rules_dir}"
             )
         file_catalog = options.file_rule_catalog or {}
         loaded_rules: t.MutableSequenceOf[t.Pair[TRuleKind, t.JsonMapping]] = []
@@ -53,7 +52,7 @@ class FlextCliUtilitiesRules:
             if rule_file.name == options.registry_filename:
                 continue
             rule_config = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-                uy.yaml_load_mapping(rule_file),
+                uy.yaml_load_mapping(rule_file)
             )
             typed_rules = uj.json_as_mapping_list(rule_config.get(options.rules_key))
             for typed_rule_def in typed_rules:
@@ -63,31 +62,25 @@ class FlextCliUtilitiesRules:
                 if not typed_rule_def.get(options.enabled_key, True):
                     continue
                 if not FlextCliUtilitiesRulesPart03.rules_matches_filters(
-                    rule_id,
-                    options.rule_filters,
+                    rule_id, options.rule_filters
                 ):
                     continue
                 action_name = uj.json_get_str_key(
                     typed_rule_def,
                     options.action_key,
                     default=uj.json_get_str_key(
-                        typed_rule_def,
-                        options.fallback_action_key,
+                        typed_rule_def, options.fallback_action_key
                     ),
                     case="lower",
                 )
                 check_name = uj.json_get_str_key(
-                    typed_rule_def,
-                    options.check_key,
-                    case="lower",
+                    typed_rule_def, options.check_key, case="lower"
                 )
                 if not action_name and not check_name:
                     continue
                 file_match: t.Pair[TFileRuleKind, t.Cli.RuleMatcher] | None = (
                     FlextCliUtilitiesRulesPart03.rules_match_catalog_entry(
-                        action_name,
-                        check_name,
-                        file_catalog,
+                        action_name, check_name, file_catalog
                     )
                 )
                 if file_match is not None:
@@ -109,9 +102,7 @@ class FlextCliUtilitiesRules:
                     continue
                 rule_match: t.Pair[TRuleKind, t.Cli.RuleMatcher] | None = (
                     FlextCliUtilitiesRulesPart03.rules_match_catalog_entry(
-                        action_name,
-                        check_name,
-                        options.rule_catalog,
+                        action_name, check_name, options.rule_catalog
                     )
                 )
                 if rule_match is None:
@@ -119,9 +110,7 @@ class FlextCliUtilitiesRules:
                     continue
                 rule_kind, rule_matcher = rule_match
                 rule_validation = FlextCliUtilitiesRulesPart03.rules_validate_matcher(
-                    typed_rule_def,
-                    rule_matcher,
-                    rule_id_key=options.rule_id_key,
+                    typed_rule_def, rule_matcher, rule_id_key=options.rule_id_key
                 )
                 if rule_validation is not None:
                     unknown_rules.append(rule_validation)
@@ -130,11 +119,12 @@ class FlextCliUtilitiesRules:
         if unknown_rules:
             unknown = ", ".join(sorted(unknown_rules))
             return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].fail(
-                f"Unknown rule mapping for: {unknown}",
+                f"Unknown rule mapping for: {unknown}"
             )
-        return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].ok(
-            (loaded_rules, loaded_file_rules),
-        )
+        return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].ok((
+            loaded_rules,
+            loaded_file_rules,
+        ))
 
 
 __all__: list[str] = ["FlextCliUtilitiesRules"]

@@ -110,9 +110,7 @@ class FlextCliConstantsSettings:
             CLI_PARAM_KEY_CHOICES: list(OUTPUT_FORMATS),
             CLI_PARAM_KEY_CASE_SENSITIVE: CLI_PARAM_CASE_INSENSITIVE,
         },
-        "no_color": {
-            CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_NO_COLOR,
-        },
+        "no_color": {CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_NO_COLOR},
         "config_file": {
             CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_CONFIG_FILE,
             CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_CONFIG_FILE,

@@ -28,29 +28,22 @@ class FlextCliUtilitiesOutput:
 
     @staticmethod
     def output_message_payload(
-        message: str,
-        message_type: c.Cli.MessageTypes | None,
+        message: str, message_type: c.Cli.MessageTypes | None
     ) -> t.Pair[str, str]:
         """Build one canonical display payload and style from message type."""
         final_type = FlextCliUtilitiesOutput.output_resolve_message_type(message_type)
         default_type = c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
         style = c.Cli.MESSAGE_STYLE_MAP.get(
-            final_type,
-            c.Cli.MESSAGE_STYLE_MAP[default_type],
+            final_type, c.Cli.MESSAGE_STYLE_MAP[default_type]
         )
         emoji = c.Cli.MESSAGE_EMOJI_MAP.get(
-            final_type,
-            c.Cli.MESSAGE_EMOJI_MAP[default_type],
+            final_type, c.Cli.MESSAGE_EMOJI_MAP[default_type]
         )
         return f"{emoji} {message}", style
 
     @staticmethod
     def output_progress_line(
-        current: int,
-        total: int,
-        label: str,
-        *,
-        detail: str,
+        current: int, total: int, label: str, *, detail: str
     ) -> str:
         """Build one canonical progress line text."""
         width = len(str(total))
@@ -59,11 +52,7 @@ class FlextCliUtilitiesOutput:
 
     @staticmethod
     def output_summary_content(
-        *,
-        total: int,
-        success: int,
-        failed: int,
-        skipped: int,
+        *, total: int, success: int, failed: int, skipped: int
     ) -> str:
         """Build one canonical summary content string."""
         return (

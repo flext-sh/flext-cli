@@ -10,8 +10,6 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, ClassVar, Final
 
-from rich.errors import ConsoleError, LiveError, StyleError
-
 if TYPE_CHECKING:
     from flext_core import t
 
@@ -25,9 +23,6 @@ class FlextCliConstantsBase:
         ValueError,
         TypeError,
         KeyError,
-        ConsoleError,
-        StyleError,
-        LiveError,
     )
 
     PATH_FLEXT_DIR_NAME: Final[str] = ".flext"

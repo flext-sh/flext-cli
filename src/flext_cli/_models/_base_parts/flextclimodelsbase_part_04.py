@@ -25,7 +25,7 @@ class FlextCliModelsBase:
                 description=(
                     "Table headers (string like 'keys', 'firstrow' "
                     "or sequence of header names)"
-                ),
+                )
             ),
         ] = "keys"
         title: Annotated[
@@ -33,16 +33,13 @@ class FlextCliModelsBase:
             m.Field(description="Optional title printed before the rendered table"),
         ] = None
         show_header: Annotated[
-            bool,
-            m.Field(description="Whether to show table header"),
+            bool, m.Field(description="Whether to show table header")
         ] = True
 
         # Format configuration
         table_format: Annotated[
             c.Cli.TabularFormat,
-            m.Field(
-                description="Table format enum-derived literal authority",
-            ),
+            m.Field(description="Table format enum-derived literal authority"),
         ] = c.Cli.TabularFormat.SIMPLE
 
         @u.computed_field()
@@ -56,30 +53,23 @@ class FlextCliModelsBase:
             )
 
         # Number formatting
-        floatfmt: Annotated[
-            str,
-            m.Field(description="Float format string"),
-        ] = ".4g"
+        floatfmt: Annotated[str, m.Field(description="Float format string")] = ".4g"
         numalign: Annotated[
-            str,
-            m.Field(description="Number alignment (right, center, left, decimal)"),
+            str, m.Field(description="Number alignment (right, center, left, decimal)")
         ] = "decimal"
 
         # String formatting
         stralign: Annotated[
-            str,
-            m.Field(description="String alignment (left, center, right)"),
+            str, m.Field(description="String alignment (left, center, right)")
         ] = "left"
 
         align: Annotated[
-            str,
-            m.Field(description="General alignment (left, center, right, decimal)"),
+            str, m.Field(description="General alignment (left, center, right, decimal)")
         ] = "left"
 
         # Missing values
         missingval: Annotated[
-            str,
-            m.Field(description="String to use for missing values"),
+            str, m.Field(description="String to use for missing values")
         ] = ""
 
         # Index display
@@ -95,9 +85,7 @@ class FlextCliModelsBase:
         # Column alignment
         colalign: Annotated[
             t.Cli.TableColAlign,
-            m.Field(
-                description="Per-column alignment (left, center, right, decimal)",
-            ),
+            m.Field(description="Per-column alignment (left, center, right, decimal)"),
         ] = None
 
         # Number parsing

@@ -4,13 +4,10 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, overload
+from typing import overload
 
-from flext_cli import c, m, t
+from flext_cli import c, m, p, t
 from flext_core import u
-
-if TYPE_CHECKING:
-    from flext_cli import p
 
 
 class FlextCliUtilitiesSettings:
@@ -51,15 +48,13 @@ class FlextCliUtilitiesSettings:
     @overload
     @staticmethod
     def project_numbers_from_values(
-        *values: t.Cli.ProjectNamesValue | None,
-        default: t.SequenceOf[int],
+        *values: t.Cli.ProjectNamesValue | None, default: t.SequenceOf[int]
     ) -> t.MutableSequenceOf[int]: ...
 
     @overload
     @staticmethod
     def project_numbers_from_values(
-        *values: t.Cli.ProjectNamesValue | None,
-        default: None = None,
+        *values: t.Cli.ProjectNamesValue | None, default: None = None
     ) -> t.MutableSequenceOf[int] | None: ...
 
     @staticmethod
@@ -95,21 +90,16 @@ class FlextCliUtilitiesSettings:
         lines = [
             f"{ok} Settings directory exists"
             if base.exists()
-            else f"{fail} Settings directory missing",
+            else f"{fail} Settings directory missing"
         ]
         for subdir in c.Cli.STANDARD_SUBDIRS:
             path = base / subdir
             lines.append(
                 c.Cli.MSG_SUBDIR_EXISTS.format(symbol=ok, subdir=subdir)
                 if path.exists()
-                else c.Cli.MSG_SUBDIR_MISSING.format(
-                    symbol=fail,
-                    subdir=subdir,
-                ),
+                else c.Cli.MSG_SUBDIR_MISSING.format(symbol=fail, subdir=subdir)
             )
         return lines
 
 
-__all__: t.MutableSequenceOf[str] = [
-    "FlextCliUtilitiesSettings",
-]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesSettings"]

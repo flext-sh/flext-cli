@@ -7,9 +7,7 @@ from flext_cli.services._prompts_parts.flextcliprompts_part_03 import (
 )
 
 
-class FlextCliPrompts(
-    FlextCliPromptsPart03,
-):
+class FlextCliPrompts(FlextCliPromptsPart03):
     """Public facade for FlextCliPrompts."""
 
 

@@ -22,22 +22,17 @@ class FlextCliUtilitiesFiles:
 
         def _load() -> t.SequenceOf[t.StrMapping]:
             with Path(file_path).open(
-                encoding=c.Cli.ENCODING_DEFAULT,
-                newline="",
+                encoding=c.Cli.ENCODING_DEFAULT, newline=""
             ) as handle:
                 return [dict(row) for row in csv.DictReader(handle)]
 
-        return FlextCliUtilitiesFiles.files_execute(
-            _load,
-            c.Cli.ERR_CSV_READ_FAILED,
-        )
+        return FlextCliUtilitiesFiles.files_execute(_load, c.Cli.ERR_CSV_READ_FAILED)
 
     @staticmethod
     def files_read_binary(file_path: t.Cli.TextPath) -> p.Result[bytes]:
         """Read one binary file."""
         return FlextCliUtilitiesFiles.files_execute(
-            lambda: Path(file_path).read_bytes(),
-            c.Cli.ERR_BINARY_READ_FAILED,
+            lambda: Path(file_path).read_bytes(), c.Cli.ERR_BINARY_READ_FAILED
         )
 
     @staticmethod
@@ -47,7 +42,7 @@ class FlextCliUtilitiesFiles:
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
         if ensure_result.failure:
             return r[bool].fail(
-                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED,
+                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED
             )
         try:
             FlextCliUtilitiesFiles._write_temp_and_replace(path, data)
@@ -57,24 +52,22 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def atomic_write_text_file(
-        file_path: t.Cli.TextPath,
-        content: str,
+        file_path: t.Cli.TextPath, content: str
     ) -> p.Result[bool]:
         """Write a text file atomically via the shared byte primitive."""
         path = Path(file_path)
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
         if ensure_result.failure:
             return r[bool].fail(
-                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED,
+                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED
             )
         try:
             FlextCliUtilitiesFiles._write_temp_and_replace(
-                path,
-                content.encode(c.Cli.ENCODING_DEFAULT),
+                path, content.encode(c.Cli.ENCODING_DEFAULT)
             )
         except OSError as exc:
             return r[bool].fail(
-                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
+                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc)
             )
         return r[bool].ok(True)
 
@@ -93,8 +86,7 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_copy(
-        source_path: t.Cli.TextPath,
-        destination_path: t.Cli.TextPath,
+        source_path: t.Cli.TextPath, destination_path: t.Cli.TextPath
     ) -> p.Result[bool]:
         """Copy one file preserving metadata."""
 
@@ -102,10 +94,7 @@ class FlextCliUtilitiesFiles:
             shutil.copy2(source_path, destination_path)
             return True
 
-        return FlextCliUtilitiesFiles.files_execute(
-            _copy,
-            c.Cli.ERR_FILE_COPY_FAILED,
-        )
+        return FlextCliUtilitiesFiles.files_execute(_copy, c.Cli.ERR_FILE_COPY_FAILED)
 
     @staticmethod
     def files_execute[T](
@@ -132,9 +121,7 @@ class FlextCliUtilitiesFiles:
             return True
 
         return FlextCliUtilitiesFiles.files_execute(
-            _run,
-            error_template,
-            **format_kwargs,
+            _run, error_template, **format_kwargs
         )
 
     @staticmethod
@@ -144,9 +131,7 @@ class FlextCliUtilitiesFiles:
         try:
             target.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
-            return r[Path].fail(
-                c.Cli.ERR_ENSURE_DIR_FAILED.format(error=exc),
-            )
+            return r[Path].fail(c.Cli.ERR_ENSURE_DIR_FAILED.format(error=exc))
         return r[Path].ok(target)
 
 

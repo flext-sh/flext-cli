@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 import fnmatch
-from collections.abc import (
-    Mapping,
-    MutableSequence,
-)
+from collections.abc import Mapping, MutableSequence
 from typing import TYPE_CHECKING
 
 from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
@@ -33,10 +30,7 @@ class FlextCliUtilitiesRules:
 
     @staticmethod
     def rules_resolve_directory(
-        config_path: Path,
-        *,
-        package_rules_dir: Path,
-        rules_dir_name: str,
+        config_path: Path, *, package_rules_dir: Path, rules_dir_name: str
     ) -> Path:
         local_rules_dir = config_path.parent / rules_dir_name
         if local_rules_dir.is_dir():
@@ -45,9 +39,7 @@ class FlextCliUtilitiesRules:
 
     @staticmethod
     def rules_match_catalog_entry[TKind](
-        action_name: str,
-        check_name: str,
-        rule_catalog: t.Cli.RuleCatalog[TKind],
+        action_name: str, check_name: str, rule_catalog: t.Cli.RuleCatalog[TKind]
     ) -> t.Pair[TKind, t.Cli.RuleMatcher] | None:
         for rule_kind, matchers in rule_catalog.items():
             for matcher in matchers:
@@ -60,10 +52,7 @@ class FlextCliUtilitiesRules:
 
     @staticmethod
     def rules_validate_matcher(
-        rule_def: t.JsonMapping,
-        matcher: t.Cli.RuleMatcher,
-        *,
-        rule_id_key: str,
+        rule_def: t.JsonMapping, matcher: t.Cli.RuleMatcher, *, rule_id_key: str
     ) -> str | None:
         rule_id = uj.json_get_str_key(rule_def, rule_id_key)
         _, _, required_mapping_keys, required_non_empty_list_keys = matcher

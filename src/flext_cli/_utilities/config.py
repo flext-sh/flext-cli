@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
@@ -25,9 +25,6 @@ from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06 import (
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 from flext_core import u
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 class FlextCliUtilitiesConfig:
@@ -47,10 +44,7 @@ class FlextCliUtilitiesConfig:
 
     @staticmethod
     def config_load(
-        path: Path,
-        *,
-        schema_path: Path | None = None,
-        expand_env: bool = True,
+        path: Path, *, schema_path: Path | None = None, expand_env: bool = True
     ) -> p.Result[m.ConfigDocument]:
         """Load a YAML/JSON/TOML config into a validated ``m.ConfigDocument``.
 
@@ -78,7 +72,7 @@ class FlextCliUtilitiesConfig:
                 data=data,
                 source_path=str(path),
                 schema_ref=str(schema_path) if schema_path is not None else None,
-            ),
+            )
         )
 
     @staticmethod
@@ -92,28 +86,24 @@ class FlextCliUtilitiesConfig:
         """
         if not config_dir.is_dir():
             return r[t.MappingKV[str, m.ConfigDocument]].fail(
-                f"{c.ERR_CONFIG_READ_FAILED}: {config_dir}",
+                f"{c.ERR_CONFIG_READ_FAILED}: {config_dir}"
             )
         schemas_dir = config_dir.parent / c.CONFIG_SCHEMAS_DIR_NAME
         documents: dict[str, m.ConfigDocument] = {}
         for source in sorted(config_dir.glob(f"*{c.CONFIG_YAML_SUFFIX}")):
             schema = schemas_dir / f"{source.stem}{c.CONFIG_SCHEMA_SUFFIX}"
             loaded = FlextCliUtilitiesConfig.config_load(
-                source,
-                schema_path=schema if schema.is_file() else None,
+                source, schema_path=schema if schema.is_file() else None
             )
             if loaded.failure:
                 return r[t.MappingKV[str, m.ConfigDocument]].fail(
-                    loaded.error or f"{c.ERR_CONFIG_PARSE_FAILED}: {source}",
+                    loaded.error or f"{c.ERR_CONFIG_PARSE_FAILED}: {source}"
                 )
             documents[source.stem] = loaded.value
         return r[t.MappingKV[str, m.ConfigDocument]].ok(documents)
 
     @staticmethod
-    def schema_validate(
-        data: t.JsonMapping,
-        schema_path: Path,
-    ) -> p.Result[bool]:
+    def schema_validate(data: t.JsonMapping, schema_path: Path) -> p.Result[bool]:
         """Validate ``data`` against the JSON Schema at ``schema_path`` → ``r[bool]``."""
         schema_read = FlextCliUtilitiesJson.json_read(schema_path)
         if schema_read.failure:

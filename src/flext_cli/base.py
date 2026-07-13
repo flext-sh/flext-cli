@@ -9,24 +9,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import override
-
-from flext_cli import p, r, t
+from flext_cli import m, t
 from flext_core import s
 
 
-class FlextCliServiceBase(s[t.JsonMapping]):
+class FlextCliServiceBase(s[m.Cli.RuntimeStatus]):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the
     `execute` method from s.
     """
-
-    @override
-    def execute(self) -> p.Result[t.JsonMapping]:
-        """Default service execution surface for mixins without an active command."""
-        empty_payload: t.JsonMapping = {}
-        return r[t.JsonMapping].ok(empty_payload)
 
 
 s = FlextCliServiceBase

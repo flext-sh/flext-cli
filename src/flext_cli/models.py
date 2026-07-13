@@ -22,9 +22,7 @@ class FlextCliModels(m):
         """CLI project namespace."""
 
 
-m: type[FlextCliModels] = FlextCliModels
+# mro-j47u (codex): canonical facade rebinding is intentionally unannotated.
+m = FlextCliModels
 
-__all__: t.MutableSequenceOf[str] = [
-    "FlextCliModels",
-    "m",
-]
+__all__: t.MutableSequenceOf[str] = ["FlextCliModels", "m"]

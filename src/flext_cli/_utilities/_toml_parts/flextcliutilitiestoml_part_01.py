@@ -3,10 +3,7 @@
 from __future__ import annotations
 
 import tomllib
-from collections.abc import (
-    Mapping,
-    Sequence,
-)
+from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
 import tomlkit
@@ -26,9 +23,7 @@ class FlextCliUtilitiesToml:
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
     @staticmethod
-    def toml_as_mapping(
-        value: t.Cli.TomlMappingSource | None,
-    ) -> t.JsonMapping | None:
+    def toml_as_mapping(value: t.Cli.TomlMappingSource | None) -> t.JsonMapping | None:
         """Normalize a TOML mapping into a typed plain mapping."""
         normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
         if normalized is None or not u.mapping(normalized):
@@ -50,9 +45,7 @@ class FlextCliUtilitiesToml:
         return u.normalize_to_json_value(normalized)
 
     @staticmethod
-    def toml_as_string_list(
-        value: t.Cli.TomlStringListSource | None,
-    ) -> t.StrSequence:
+    def toml_as_string_list(value: t.Cli.TomlStringListSource | None) -> t.StrSequence:
         """Normalize a TOML array into a string sequence."""
         normalized: t.Cli.TomlStringListSource | None = (
             value.unwrap() if isinstance(value, TOMLDocument | Item) else value

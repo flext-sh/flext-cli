@@ -6,9 +6,7 @@ All methods use the ``json_`` prefix for namespace consistency.
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
+from collections.abc import Mapping
 
 from flext_cli import c, p, r, t
 
@@ -18,20 +16,14 @@ class FlextCliUtilitiesJson:
 
     @staticmethod
     def json_dumps(
-        value: t.JsonValue,
-        *,
-        sort_keys: bool = False,
-        indent: int | None = None,
+        value: t.JsonValue, *, sort_keys: bool = False, indent: int | None = None
     ) -> p.Result[str]:
         """Serialize a JSON-compatible value to a string via canonical adapters."""
         try:
             normalized = (
                 FlextCliUtilitiesJson.json_sort_keys(value) if sort_keys else value
             )
-            payload = t.Cli.JSON_VALUE_ADAPTER.dump_json(
-                normalized,
-                indent=indent,
-            )
+            payload = t.Cli.JSON_VALUE_ADAPTER.dump_json(normalized, indent=indent)
         except (c.ValidationError, ValueError, TypeError) as exc:
             return r[str].fail(f"json_dumps: {exc}")
         return r[str].ok(payload.decode(c.Cli.ENCODING_DEFAULT))
@@ -52,7 +44,7 @@ class FlextCliUtilitiesJson:
             validated = t.Cli.JSON_MAPPING_ADAPTER.validate_python(data)
             return {
                 key: FlextCliUtilitiesJson.json_sort_keys(
-                    t.Cli.JSON_VALUE_ADAPTER.validate_python(value),
+                    t.Cli.JSON_VALUE_ADAPTER.validate_python(value)
                 )
                 for key, value in sorted(validated.items())
             }
@@ -60,7 +52,7 @@ class FlextCliUtilitiesJson:
             items = t.Cli.JSON_LIST_ADAPTER.validate_python(data)
             return [
                 FlextCliUtilitiesJson.json_sort_keys(
-                    t.Cli.JSON_VALUE_ADAPTER.validate_python(item),
+                    t.Cli.JSON_VALUE_ADAPTER.validate_python(item)
                 )
                 for item in items
             ]

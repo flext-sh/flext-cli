@@ -23,14 +23,12 @@ if TYPE_CHECKING:
     )
 _LAZY_IMPORTS = merge_lazy_imports(
     ("._base_parts",),
-    build_lazy_import_map(
-        {
-            "._base_parts": ("_base_parts",),
-            "._base_parts.flextcliprotocolsbase_part_05": ("FlextCliProtocolsBase",),
-            ".domain": ("FlextCliProtocolsDomain",),
-            ".pipeline": ("FlextCliProtocolsPipeline",),
-        },
-    ),
+    build_lazy_import_map({
+        "._base_parts": ("_base_parts",),
+        "._base_parts.flextcliprotocolsbase_part_05": ("FlextCliProtocolsBase",),
+        ".domain": ("FlextCliProtocolsDomain",),
+        ".pipeline": ("FlextCliProtocolsPipeline",),
+    }),
     exclude_names=(
         "cleanup_submodule_namespace",
         "install_lazy_exports",
@@ -54,9 +52,4 @@ _LAZY_IMPORTS = merge_lazy_imports(
 )
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    publish_all=False,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

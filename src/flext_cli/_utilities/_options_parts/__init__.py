@@ -14,17 +14,10 @@ if TYPE_CHECKING:
     from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
         FlextCliUtilitiesOptions as FlextCliUtilitiesOptions,
     )
-_LAZY_IMPORTS = build_lazy_import_map(
-    {
-        ".flextcliutilitiesoptionbuilder_part_01": ("FlextCliUtilitiesOptionBuilder",),
-        ".flextcliutilitiesoptions_part_02": ("FlextCliUtilitiesOptions",),
-    },
-)
+_LAZY_IMPORTS = build_lazy_import_map({
+    ".flextcliutilitiesoptionbuilder_part_01": ("FlextCliUtilitiesOptionBuilder",),
+    ".flextcliutilitiesoptions_part_02": ("FlextCliUtilitiesOptions",),
+})
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    publish_all=False,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

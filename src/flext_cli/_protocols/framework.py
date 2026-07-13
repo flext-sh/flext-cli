@@ -1,0 +1,49 @@
+"""Framework-neutral contracts for the CLI backend boundary."""
+
+from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Protocol, Self, runtime_checkable
+
+from flext_core import t
+
+
+class FlextCliProtocolsFramework:
+    """Structural contracts implemented by the private CLI framework adapter."""
+
+    @runtime_checkable
+    class Application(Protocol):
+        """Opaque CLI application owned by the private framework adapter."""
+
+        def callback(
+            self,
+        ) -> Callable[[Callable[..., t.JsonPayload]], Callable[..., t.JsonPayload]]:
+            """Return the application callback decorator."""
+            ...
+
+        def command[TCommand: Callable[..., t.JsonPayload]](
+            self, name: str | None = None, *, help: str | None = None
+        ) -> Callable[[TCommand], TCommand]:
+            """Return a named command decorator."""
+            ...
+
+        def add_typer(self, typer_instance: Self, *, name: str | None = None) -> None:
+            """Attach a child application under ``name``."""
+            ...
+
+    @runtime_checkable
+    class ExternalCommand(Protocol):
+        """Executable command contract used by framework integrations."""
+
+        def main(
+            self,
+            args: t.StrSequence | None = None,
+            prog_name: str | None = None,
+            *,
+            standalone_mode: bool = True,
+        ) -> t.JsonPayload:
+            """Execute one command."""
+            ...
+
+
+__all__: list[str] = ["FlextCliProtocolsFramework"]

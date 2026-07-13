@@ -25,8 +25,7 @@ class FlextCliSettings(FlextSettings):
     """CLI settings: flat scalars under the ``FLEXT_CLI_`` env prefix."""
 
     model_config: ClassVar[SettingsConfigDict] = SettingsConfigDict(
-        env_prefix="FLEXT_CLI_",
-        extra="ignore",
+        env_prefix="FLEXT_CLI_", extra="ignore"
     )
 
     cli_verbose: Annotated[bool, Field(description="Verbose output")] = (
@@ -39,8 +38,7 @@ class FlextCliSettings(FlextSettings):
         FlextCliConstantsSettings.FLEXT_CLI
     )
     cli_log_verbosity: Annotated[
-        str,
-        Field(description="Log format (compact, detailed, full)"),
+        str, Field(description="Log format (compact, detailed, full)")
     ] = FlextCliConstantsSettings.CLI_DEFAULT_LOG_VERBOSITY
     cli_log_level: Annotated[str, Field(description="CLI log level")] = (
         FlextCliConstantsSettings.CLI_DEFAULT_LOG_LEVEL
@@ -49,24 +47,19 @@ class FlextCliSettings(FlextSettings):
         FlextCliConstantsSettings.CLI_DEFAULT_NO_COLOR
     )
     cli_output_format: Annotated[
-        str,
-        Field(description="Output format (table, json, yaml, csv, plain)"),
+        str, Field(description="Output format (table, json, yaml, csv, plain)")
     ] = FlextCliConstantsSettings.CLI_DEFAULT_OUTPUT_FORMAT
     cli_config_file: Annotated[
-        str | None,
-        Field(description="Path to settings file"),
+        str | None, Field(description="Path to settings file")
     ] = None
     cli_token_file: Annotated[
-        str | None,
-        Field(description="Path to auth token file"),
+        str | None, Field(description="Path to auth token file")
     ] = None
     cli_ci: Annotated[
-        bool,
-        Field(description="Whether the current runtime is a CI environment."),
+        bool, Field(description="Whether the current runtime is a CI environment.")
     ] = False
     cli_pytest_current_test: Annotated[
-        str | None,
-        Field(description="Current pytest test identifier."),
+        str | None, Field(description="Current pytest test identifier.")
     ] = None
     cli_shell_command: Annotated[
         str | None,

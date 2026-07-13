@@ -29,14 +29,12 @@ class FlextCliUtilitiesFiles:
             return tuple(names)
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _list,
-            c.Cli.ERR_TEXT_READ_FAILED,
+            _list, c.Cli.ERR_TEXT_READ_FAILED
         )
 
     @staticmethod
     def ensure_symlink(
-        target: t.Cli.TextPath,
-        source: t.Cli.TextPath,
+        target: t.Cli.TextPath, source: t.Cli.TextPath
     ) -> p.Result[bool]:
         """Ensure target points to source via directory symlink."""
         target_path = Path(target)
@@ -45,9 +43,7 @@ class FlextCliUtilitiesFiles:
         if ensure_result.failure:
             return r[bool].fail(
                 ensure_result.error
-                or c.Cli.ERR_CREATE_PARENT_DIR_FAILED.format(
-                    target_path=target_path,
-                ),
+                or c.Cli.ERR_CREATE_PARENT_DIR_FAILED.format(target_path=target_path)
             )
         if target_path.is_symlink() and target_path.resolve() == source_path:
             return r[bool].ok(True)
@@ -57,9 +53,8 @@ class FlextCliUtilitiesFiles:
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ENSURE_SYMLINK_FAILED.format(
-                    target_path=target_path,
-                    error=exc,
-                ),
+                    target_path=target_path, error=exc
+                )
             )
         return r[bool].ok(True)
 

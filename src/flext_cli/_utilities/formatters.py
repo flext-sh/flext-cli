@@ -7,27 +7,14 @@ from typing import ClassVar
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table as RichTable
-from rich.tree import Tree as RichTree
 
-from flext_cli import m, p, r, t
+from flext_cli import m
 
 
 class FlextCliUtilitiesFormatters:
     """Rich-backed formatter helpers for CLI services."""
 
-    class TableRenderRequest(m.BaseModel):
-        """Typed table render input envelope."""
-
-        columns: t.StrSequence
-        rows: t.SequenceOf[t.StrSequence]
-        title: str = ""
-
-    _console: ClassVar[t.Cli.RichConsoleType] = Console()
-
-    @classmethod
-    def formatters_create_tree(cls, label: str) -> p.Result[t.Cli.RichTreeType]:
-        """Create one Rich tree."""
-        return r[t.Cli.RichTreeType].ok(RichTree(label))
+    _console: ClassVar[Console] = Console()
 
     @classmethod
     def formatters_print(cls, message: str, style: str | None = None) -> None:
@@ -45,7 +32,7 @@ class FlextCliUtilitiesFormatters:
         cls._console.print(Panel(content, title=title or None))
 
     @classmethod
-    def formatters_render_table(cls, request: TableRenderRequest) -> None:
+    def formatters_render_table(cls, request: m.Cli.TableRenderRequest) -> None:
         """Render one table via Rich."""
         table = RichTable(title=request.title or None)
         for col in request.columns:
@@ -55,4 +42,4 @@ class FlextCliUtilitiesFormatters:
         cls._console.print(table)
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesFormatters"]
+__all__: list[str] = ["FlextCliUtilitiesFormatters"]

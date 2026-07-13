@@ -35,7 +35,7 @@ class FlextCliModelsTemplate:
                     "Output path relative to output_root; a trailing template "
                     "suffix is stripped by the engine. Path tokens are resolved by "
                     "the caller before invocation."
-                ),
+                )
             ),
         ]
         when: Annotated[

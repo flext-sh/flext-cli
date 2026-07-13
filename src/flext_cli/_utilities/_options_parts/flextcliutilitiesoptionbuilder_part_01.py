@@ -2,25 +2,19 @@
 
 from __future__ import annotations
 
-from typer.models import OptionInfo
-
-from flext_cli import c, m, p, t
+from flext_cli import c, m, t
 
 
 class FlextCliUtilitiesOptionBuilder:
     """Implementation part for FlextCliUtilitiesOptionBuilder."""
 
-    def __init__(
-        self,
-        field_name: str,
-        registry: t.Cli.OptionRegistry,
-    ) -> None:
+    def __init__(self, field_name: str, registry: t.Cli.OptionRegistry) -> None:
         """Initialize the option builder."""
         super().__init__()
         self.field_name = field_name
         self.registry = registry
 
-    def build(self) -> p.Cli.CliOptionSpec:
+    def build(self) -> m.Cli.OptionSpec:
         """Build one CLI option spec from field metadata."""
         field_meta_raw = self.registry.get(self.field_name, {})
         if not field_meta_raw:
@@ -29,9 +23,7 @@ class FlextCliUtilitiesOptionBuilder:
         field_meta = m.Cli.OptionMetadata.model_validate(field_meta_raw)
         help_text = field_meta.help
         short_flag = field_meta.short
-        default_value = (
-            field_meta.default if c.Cli.CLI_PARAM_KEY_DEFAULT in field_meta_raw else ...
-        )
+        has_default = c.Cli.CLI_PARAM_KEY_DEFAULT in field_meta_raw
 
         cli_param_name: str = (
             field_meta.field_name_override
@@ -40,17 +32,18 @@ class FlextCliUtilitiesOptionBuilder:
         )
 
         option_args: t.MutableSequenceOf[str] = [
-            f"--{cli_param_name.replace('_', '-')}",
+            f"--{cli_param_name.replace('_', '-')}"
         ]
         if cli_param_name == "project":
             option_args.append("--projects")
         if short_flag:
             option_args.append(f"-{short_flag}")
 
-        return OptionInfo(
-            default=default_value,
-            param_decls=option_args,
-            help=help_text,
+        return m.Cli.OptionSpec(
+            declarations=tuple(option_args),
+            help_text=help_text,
+            default=field_meta.default if has_default else None,
+            required=not has_default,
         )
 
 

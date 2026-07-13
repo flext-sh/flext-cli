@@ -13,18 +13,11 @@ if TYPE_CHECKING:
     from flext_cli._typings.pipeline import (
         FlextCliTypesPipeline as FlextCliTypesPipeline,
     )
-_LAZY_IMPORTS = build_lazy_import_map(
-    {
-        ".base": ("FlextCliTypesBase",),
-        ".domain": ("FlextCliTypesDomain",),
-        ".pipeline": ("FlextCliTypesPipeline",),
-    },
-)
+_LAZY_IMPORTS = build_lazy_import_map({
+    ".base": ("FlextCliTypesBase",),
+    ".domain": ("FlextCliTypesDomain",),
+    ".pipeline": ("FlextCliTypesPipeline",),
+})
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    publish_all=False,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

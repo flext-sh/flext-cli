@@ -14,17 +14,10 @@ if TYPE_CHECKING:
     from flext_cli.services._prompts_parts.flextcliprompts_support import (
         FlextCliPromptsSupport as FlextCliPromptsSupport,
     )
-_LAZY_IMPORTS = build_lazy_import_map(
-    {
-        ".flextcliprompts_part_03": ("FlextCliPrompts",),
-        ".flextcliprompts_support": ("FlextCliPromptsSupport",),
-    },
-)
+_LAZY_IMPORTS = build_lazy_import_map({
+    ".flextcliprompts_part_03": ("FlextCliPrompts",),
+    ".flextcliprompts_support": ("FlextCliPromptsSupport",),
+})
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    publish_all=False,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

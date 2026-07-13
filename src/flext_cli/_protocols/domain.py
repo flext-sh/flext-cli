@@ -3,41 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from flext_cli import t
-
-if TYPE_CHECKING:
-    from flext_cli import m
-    from flext_cli._protocols.base import FlextCliProtocolsBase
+from flext_cli._protocols.base import FlextCliProtocolsBase
 
 
 class FlextCliProtocolsDomain:
     """CLI domain protocols layered on top of base callable contracts."""
-
-    @runtime_checkable
-    class ModelType[TModel](Protocol):
-        """Validated model-class contract consumed by CLI command routing."""
-
-        # NOTE (multi-agent): One class protocol owns JSON and Python validation.
-        __name__: str
-        model_fields: t.MappingKV[str, m.FieldInfo]
-
-        def model_validate(
-            self,
-            value: t.MappingKV[str, t.Cli.CliValue],
-        ) -> TModel:
-            """Validate CLI values into the canonical request model."""
-            ...
-
-        def model_validate_json(
-            self,
-            value: str | bytes,
-            *,
-            strict: bool | None = None,
-        ) -> TModel:
-            """Validate serialized JSON into the canonical request model."""
-            ...
 
     @runtime_checkable
     class JsonValueProcessor(Protocol):
@@ -72,7 +45,8 @@ class FlextCliProtocolsDomain:
         """Protocol for command registry entries."""
 
         name: str
-        handler: t.Cli.JsonCommandFn
+        # mro-j47u (codex): callable behavior remains in the p facade.
+        handler: FlextCliProtocolsBase.CliCommandWrapper
 
     @runtime_checkable
     class ResultCommandRoute(Protocol):
@@ -80,8 +54,10 @@ class FlextCliProtocolsDomain:
 
         name: str
         help_text: str
-        model_cls: t.Cli.ModelType[t.Cli.ModelLike]
-        handler: t.Cli.ResultRouteHandler
+        model_cls: t.ModelClass[t.Cli.ModelLike]
+        handler: FlextCliProtocolsBase.ResultCommandHandler[
+            t.Cli.ModelLike, t.Cli.ResultValue
+        ]
         success_message: str | None
         success_formatter: (
             FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ResultValue] | None

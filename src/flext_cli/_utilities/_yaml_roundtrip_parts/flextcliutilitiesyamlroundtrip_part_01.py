@@ -206,11 +206,11 @@ class FlextCliUtilitiesYamlRoundtrip:
 
     @overload
     @staticmethod
-    def yaml_deep_to_commented(data: t.Cli.YamlScalar) -> t.Cli.YamlScalar: ...
+    def yaml_deep_to_commented(data: list[t.Cli.YamlValue]) -> CommentedSeq: ...
 
     @overload
     @staticmethod
-    def yaml_deep_to_commented(data: list[t.Cli.YamlValue]) -> CommentedSeq: ...
+    def yaml_deep_to_commented(data: t.Cli.YamlScalar) -> t.Cli.YamlScalar: ...
 
     @staticmethod
     def yaml_deep_to_commented(data: t.Cli.YamlValue) -> t.Cli.YamlNode:
@@ -312,8 +312,7 @@ class FlextCliUtilitiesYamlRoundtrip:
         if value is None:
             return None
         if isinstance(
-            value,
-            Mapping,
+            value, Mapping
         ) or FlextCliUtilitiesYamlRoundtrip.yaml_is_sequence(value):
             return FlextCliUtilitiesYamlRoundtrip.yaml_deep_to_commented(value)
         msg = f"unsupported YAML root type: {type(value).__name__}"

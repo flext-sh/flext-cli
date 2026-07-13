@@ -22,15 +22,13 @@ if TYPE_CHECKING:
     from flext_cli._models.rules import FlextCliModelsRules as FlextCliModelsRules
 _LAZY_IMPORTS = merge_lazy_imports(
     ("._base_parts",),
-    build_lazy_import_map(
-        {
-            "._base_parts": ("_base_parts",),
-            "._base_parts.flextclimodelsbase_part_07": ("FlextCliModelsBase",),
-            "._test_tmp": ("X",),
-            ".pipeline": ("FlextCliModelsPipeline",),
-            ".rules": ("FlextCliModelsRules",),
-        },
-    ),
+    build_lazy_import_map({
+        "._base_parts": ("_base_parts",),
+        "._base_parts.flextclimodelsbase_part_07": ("FlextCliModelsBase",),
+        "._test_tmp": ("X",),
+        ".pipeline": ("FlextCliModelsPipeline",),
+        ".rules": ("FlextCliModelsRules",),
+    }),
     exclude_names=(
         "cleanup_submodule_namespace",
         "install_lazy_exports",
@@ -54,9 +52,4 @@ _LAZY_IMPORTS = merge_lazy_imports(
 )
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    publish_all=False,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

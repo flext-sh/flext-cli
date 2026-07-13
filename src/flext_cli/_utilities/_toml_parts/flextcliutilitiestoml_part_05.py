@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
+from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 from tomlkit.items import Item, Table
@@ -42,7 +40,7 @@ class FlextCliUtilitiesToml:
             existing
             if existing is not None
             and (u.mapping(existing) or isinstance(existing, TOMLDocument | Item))
-            else None,
+            else None
         )
         normalized_expected = {
             item_key: expected[item_key]
@@ -68,7 +66,7 @@ class FlextCliUtilitiesToml:
     ) -> bool:
         """Synchronize a plain string-list field; return True if mutated."""
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            container.get(key, None),
+            container.get(key, None)
         )
         normalized_expected = sorted(expected) if sort_values else [*expected]
         normalized_current = sorted(current) if sort_values else [*current]
@@ -89,7 +87,7 @@ class FlextCliUtilitiesToml:
         """Synchronize a plain mapping-table field; return True if mutated."""
         existing = container.get(key, None)
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
-            existing if isinstance(existing, Mapping) else None,
+            existing if isinstance(existing, Mapping) else None
         )
         normalized_expected = {
             item_key: expected[item_key]
@@ -110,10 +108,7 @@ class FlextCliUtilitiesToml:
         return True
 
     @staticmethod
-    def toml_navigate_path(
-        doc: TOMLDocument,
-        path: t.StrSequence,
-    ) -> Table:
+    def toml_navigate_path(doc: TOMLDocument, path: t.StrSequence) -> Table:
         """Navigate to a nested TOML table by path segments.
 
         Always roots at [tool]. Skips "tool" in path if present.
@@ -133,8 +128,7 @@ class FlextCliUtilitiesToml:
     def toml_table_prefix(path: t.StrSequence) -> str:
         """Build a dotted prefix string from table path (e.g. "tool.ruff.lint")."""
         return FlextCliUtilitiesToml.toml_dot_path(
-            "tool",
-            *(segment for segment in path if segment != "tool"),
+            "tool", *(segment for segment in path if segment != "tool")
         )
 
 

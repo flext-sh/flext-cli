@@ -8,9 +8,7 @@ from typing import TYPE_CHECKING
 from flext_cli import FlextCliServiceBase, c, m, p, r, t, u
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Sequence,
-    )
+    from collections.abc import Sequence
 
 
 class FlextCliFileTools(FlextCliServiceBase):
@@ -23,8 +21,7 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def atomic_write_text_file(
-        file_path: t.Cli.TextPath,
-        content: str,
+        file_path: t.Cli.TextPath, content: str
     ) -> p.Result[bool]:
         """Write text file atomically via the canonical ``u.Cli`` utility surface."""
         return u.Cli.atomic_write_text_file(file_path, content)
@@ -40,10 +37,9 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def read_json_model[M: t.Cli.ModelLike](
-        file_path: t.Cli.TextPath,
-        model_type: t.Cli.ModelType[M],
+        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
     ) -> p.Result[M]:
-        """Read JSON file directly into a Pydantic model via model_validate_json."""
+        """Read JSON into the canonical structural model-class contract."""
         return u.Cli.files_read_json_model(Path(file_path), model_type)
 
     @staticmethod
@@ -59,23 +55,17 @@ class FlextCliFileTools(FlextCliServiceBase):
         data: t.Cli.JsonWriteData,
         options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
-        return u.Cli.json_write(
-            Path(file_path),
-            data,
-            options=options,
-        )
+        return u.Cli.json_write(Path(file_path), data, options=options)
 
     @staticmethod
     def write_yaml_file(
-        file_path: t.Cli.TextPath,
-        data: t.Cli.JsonWriteData,
+        file_path: t.Cli.TextPath, data: t.Cli.JsonWriteData
     ) -> p.Result[bool]:
         return u.Cli.yaml_dump(Path(file_path), data)
 
     @staticmethod
     def write_csv_file(
-        file_path: t.Cli.TextPath,
-        rows: t.SequenceOf[t.StrSequence],
+        file_path: t.Cli.TextPath, rows: t.SequenceOf[t.StrSequence]
     ) -> p.Result[bool]:
         return u.Cli.files_write_csv(Path(file_path), rows)
 
@@ -95,13 +85,9 @@ class FlextCliFileTools(FlextCliServiceBase):
 
     @staticmethod
     def copy_file(
-        source_path: t.Cli.TextPath,
-        destination_path: t.Cli.TextPath,
+        source_path: t.Cli.TextPath, destination_path: t.Cli.TextPath
     ) -> p.Result[bool]:
-        return u.Cli.files_copy(
-            Path(source_path),
-            Path(destination_path),
-        )
+        return u.Cli.files_copy(Path(source_path), Path(destination_path))
 
     @staticmethod
     def detect_file_format(file_path: t.Cli.TextPath) -> p.Result[str]:
@@ -113,9 +99,7 @@ class FlextCliFileTools(FlextCliServiceBase):
         return u.Cli.files_delete(Path(file_path))
 
     @staticmethod
-    def list_directory_names(
-        file_path: t.Cli.TextPath,
-    ) -> p.Result[Sequence[str]]:
+    def list_directory_names(file_path: t.Cli.TextPath) -> p.Result[Sequence[str]]:
         """Return sorted child directory names for one path."""
         return u.Cli.files_list_directory_names(Path(file_path))
 

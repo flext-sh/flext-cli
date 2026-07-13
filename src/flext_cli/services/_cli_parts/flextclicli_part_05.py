@@ -6,13 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import (
-    c,
-    p,
-    r,
-    t,
-    u,
-)
+from flext_cli import c, p, r, t, u
 from flext_cli.services._cli_parts.flextclicli_part_04 import (
     FlextCliCli as FlextCliCliPart04,
 )
@@ -22,13 +16,37 @@ class FlextCliCli(FlextCliCliPart04):
     """Implementation part for FlextCliCli."""
 
     @classmethod
+    def register_result_callback[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
+        cls,
+        app: p.Cli.Application,
+        *,
+        handler: p.Cli.ResultCommandHandler[M, TResult],
+        model_cls: t.ModelClass[M],
+        settings: t.Cli.ModelLike | None = None,
+        success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
+        success_message: str | None = None,
+        success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
+    ) -> None:
+        """Register one model/result handler as the application root callback."""
+        execute = cls._build_result_executor(
+            handler=handler,
+            success_formatter=success_formatter,
+            success_message=success_message,
+            success_type=success_type,
+        )
+        cls.register_callback(
+            app, command=cls.model_command(model_cls, execute, settings=settings)
+        )
+
+    @classmethod
     def register_result_command[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
         cls,
-        app: t.Cli.CliApp,
+        app: p.Cli.Application,
         *,
         handler: p.Cli.ResultCommandHandler[M, TResult],
         help_text: str,
-        model_cls: t.Cli.ModelType[M],
+        # mro-j47u (codex): route registration preserves the model protocol.
+        model_cls: t.ModelClass[M],
         name: str,
         settings: t.Cli.ModelLike | None = None,
         success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
@@ -83,10 +101,7 @@ class FlextCliCli(FlextCliCliPart04):
 
     @classmethod
     def register_result_route(
-        cls,
-        app: t.Cli.CliApp,
-        *,
-        route: p.Cli.ResultCommandRoute,
+        cls, app: p.Cli.Application, *, route: p.Cli.ResultCommandRoute
     ) -> None:
         """Register a declarative result route on a Typer app."""
 
@@ -109,9 +124,7 @@ class FlextCliCli(FlextCliCliPart04):
 
     @classmethod
     def register_result_routes(
-        cls,
-        app: t.Cli.CliApp,
-        routes: t.SequenceOf[p.Cli.ResultCommandRoute],
+        cls, app: p.Cli.Application, routes: t.SequenceOf[p.Cli.ResultCommandRoute]
     ) -> None:
         """Register multiple heterogeneous result routes in one call."""
         for route in routes:

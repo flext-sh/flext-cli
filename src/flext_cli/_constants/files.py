@@ -37,9 +37,14 @@ class FlextCliConstantsFiles:
     FILE_FORMAT_CSV: Final[FileFormat] = FileFormat.CSV
     FILE_FORMAT_UNKNOWN: Final[FileFormat] = FileFormat.UNKNOWN
 
-    KNOWN_FORMATS: Final[frozenset[str]] = frozenset(
-        {"auto", "text", "bin", "json", "yaml", "csv"},
-    )
+    KNOWN_FORMATS: Final[frozenset[str]] = frozenset({
+        "auto",
+        "text",
+        "bin",
+        "json",
+        "yaml",
+        "csv",
+    })
 
     EXT_TO_FMT: Final[t.StrMapping] = MappingProxyType({
         ".txt": "text",

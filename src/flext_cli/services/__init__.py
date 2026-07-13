@@ -32,29 +32,24 @@ if TYPE_CHECKING:
     from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
     from flext_cli.services.tables import FlextCliTables as FlextCliTables
 _LAZY_IMPORTS = merge_lazy_imports(
-    (
-        "._cli_parts",
-        "._prompts_parts",
-    ),
-    build_lazy_import_map(
-        {
-            "._cli_parts": ("_cli_parts",),
-            "._prompts_parts": ("_prompts_parts",),
-            "._prompts_parts.flextcliprompts_part_03": ("FlextCliPrompts",),
-            "._prompts_parts.flextcliprompts_support": ("FlextCliPromptsSupport",),
-            ".auth": ("FlextCliAuth",),
-            ".cli": ("FlextCliCli",),
-            ".cli_params": ("FlextCliCommonParams",),
-            ".cmd": ("FlextCliCmd",),
-            ".file_tools": ("FlextCliFileTools",),
-            ".formatters": ("FlextCliFormatters",),
-            ".output": ("FlextCliOutput",),
-            ".pipeline": ("FlextCliPipeline",),
-            ".rules": ("FlextCliRules",),
-            ".runtime": ("FlextCliRuntime",),
-            ".tables": ("FlextCliTables",),
-        },
-    ),
+    ("._cli_parts", "._prompts_parts"),
+    build_lazy_import_map({
+        "._cli_parts": ("_cli_parts",),
+        "._prompts_parts": ("_prompts_parts",),
+        "._prompts_parts.flextcliprompts_part_03": ("FlextCliPrompts",),
+        "._prompts_parts.flextcliprompts_support": ("FlextCliPromptsSupport",),
+        ".auth": ("FlextCliAuth",),
+        ".cli": ("FlextCliCli",),
+        ".cli_params": ("FlextCliCommonParams",),
+        ".cmd": ("FlextCliCmd",),
+        ".file_tools": ("FlextCliFileTools",),
+        ".formatters": ("FlextCliFormatters",),
+        ".output": ("FlextCliOutput",),
+        ".pipeline": ("FlextCliPipeline",),
+        ".rules": ("FlextCliRules",),
+        ".runtime": ("FlextCliRuntime",),
+        ".tables": ("FlextCliTables",),
+    }),
     exclude_names=(
         "cleanup_submodule_namespace",
         "install_lazy_exports",
@@ -78,9 +73,4 @@ _LAZY_IMPORTS = merge_lazy_imports(
 )
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    publish_all=False,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

@@ -56,62 +56,31 @@ if TYPE_CHECKING:
     )
 _LAZY_IMPORTS = merge_lazy_imports(
     (".services",),
-    build_lazy_import_map(
-        {
-            ".api": (
-                "FlextCli",
-                "cli",
-            ),
-            ".base": (
-                "FlextCliServiceBase",
-                "s",
-            ),
-            ".constants": (
-                "FlextCliConstants",
-                "c",
-            ),
-            ".models": (
-                "FlextCliModels",
-                "m",
-            ),
-            ".protocols": (
-                "FlextCliProtocols",
-                "p",
-            ),
-            "._settings": ("FlextCliSettings", "settings"),
-            "._config": ("FlextCliConfig", "config"),
-            ".services._prompts_parts.flextcliprompts_part_03": ("FlextCliPrompts",),
-            ".services._prompts_parts.flextcliprompts_support": (
-                "FlextCliPromptsSupport",
-            ),
-            ".services.auth": ("FlextCliAuth",),
-            ".services.cli": ("FlextCliCli",),
-            ".services.cli_params": ("FlextCliCommonParams",),
-            ".services.cmd": ("FlextCliCmd",),
-            ".services.file_tools": ("FlextCliFileTools",),
-            ".services.formatters": ("FlextCliFormatters",),
-            ".services.output": ("FlextCliOutput",),
-            ".services.pipeline": ("FlextCliPipeline",),
-            ".services.rules": ("FlextCliRules",),
-            ".services.runtime": ("FlextCliRuntime",),
-            ".services.tables": ("FlextCliTables",),
-            ".typings": (
-                "FlextCliTypes",
-                "t",
-            ),
-            ".utilities": (
-                "FlextCliUtilities",
-                "u",
-            ),
-            "flext_core._root_typing_parts.facades": (
-                "d",
-                "e",
-                "h",
-                "r",
-                "x",
-            ),
-        },
-    ),
+    build_lazy_import_map({
+        ".api": ("FlextCli", "cli"),
+        ".base": ("FlextCliServiceBase", "s"),
+        ".constants": ("FlextCliConstants", "c"),
+        ".models": ("FlextCliModels", "m"),
+        ".protocols": ("FlextCliProtocols", "p"),
+        "._settings": ("FlextCliSettings", "settings"),
+        "._config": ("FlextCliConfig", "config"),
+        ".services._prompts_parts.flextcliprompts_part_03": ("FlextCliPrompts",),
+        ".services._prompts_parts.flextcliprompts_support": ("FlextCliPromptsSupport",),
+        ".services.auth": ("FlextCliAuth",),
+        ".services.cli": ("FlextCliCli",),
+        ".services.cli_params": ("FlextCliCommonParams",),
+        ".services.cmd": ("FlextCliCmd",),
+        ".services.file_tools": ("FlextCliFileTools",),
+        ".services.formatters": ("FlextCliFormatters",),
+        ".services.output": ("FlextCliOutput",),
+        ".services.pipeline": ("FlextCliPipeline",),
+        ".services.rules": ("FlextCliRules",),
+        ".services.runtime": ("FlextCliRuntime",),
+        ".services.tables": ("FlextCliTables",),
+        ".typings": ("FlextCliTypes", "t"),
+        ".utilities": ("FlextCliUtilities", "u"),
+        "flext_core._root_typing_parts.facades": ("d", "e", "h", "r", "x"),
+    }),
     exclude_names=(
         "_cli_parts",
         "_prompts_parts",
@@ -183,9 +152,4 @@ __all__: tuple[str, ...] = (
 )
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    public_exports=__all__,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

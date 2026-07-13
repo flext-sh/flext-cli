@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from jinja2 import StrictUndefined
 from jinja2.exceptions import TemplateError
@@ -19,11 +18,8 @@ from jinja2.loaders import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
-from flext_cli import c, m, r, t
+from flext_cli import c, m, p, r, t
 from flext_core import u
-
-if TYPE_CHECKING:
-    from flext_core import p
 
 
 class FlextCliUtilitiesTemplate:
@@ -44,10 +40,7 @@ class FlextCliUtilitiesTemplate:
         )
 
     @staticmethod
-    def template_render(
-        path: Path,
-        context: p.Model,
-    ) -> p.Result[str]:
+    def template_render(path: Path, context: p.Model) -> p.Result[str]:
         """Render a ``templates/*.j2`` file with ``context`` → ``r[str]``.
 
         Fail-closed: a missing template or any Jinja error (including undefined
@@ -57,24 +50,18 @@ class FlextCliUtilitiesTemplate:
             return r[str].fail(f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {path}")
         env = FlextCliUtilitiesTemplate._environment(path.parent)
         rendered = u.try_(
-            lambda: env.get_template(path.name).render(
-                context.model_dump(mode="json"),
-            ),
+            lambda: env.get_template(path.name).render(context.model_dump(mode="json")),
             catch=(TemplateError, OSError),
             op_name="template_render",
         )
         if rendered.failure:
             return r[str].fail(
-                rendered.error or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {path}",
+                rendered.error or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {path}"
             )
         return r[str].ok(rendered.value)
 
     @staticmethod
-    def template_render_to(
-        path: Path,
-        dest: Path,
-        context: p.Model,
-    ) -> p.Result[bool]:
+    def template_render_to(path: Path, dest: Path, context: p.Model) -> p.Result[bool]:
         """Render ``path`` with ``context`` and write it to ``dest`` → ``r[bool]``."""
         rendered = FlextCliUtilitiesTemplate.template_render(path, context)
         if rendered.failure:
@@ -109,7 +96,7 @@ class FlextCliUtilitiesTemplate:
         """
         if not templates_root.is_dir():
             return r[m.Cli.TemplateRenderReport].fail(
-                f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}",
+                f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}"
             )
         root = output_root.resolve()
         created: list[Path] = []
@@ -136,16 +123,11 @@ class FlextCliUtilitiesTemplate:
             src = templates_root / entry.relpath_template
             result = FlextCliUtilitiesTemplate.template_render_to(src, dest, context)
             if result.failure:
-                failed.append((
-                    dest,
-                    result.error or c.Cli.ERR_TEMPLATE_RENDER_FAILED,
-                ))
+                failed.append((dest, result.error or c.Cli.ERR_TEMPLATE_RENDER_FAILED))
                 continue
             created.append(dest)
         report = m.Cli.TemplateRenderReport(
-            created=tuple(created),
-            skipped=tuple(skipped),
-            failed=tuple(failed),
+            created=tuple(created), skipped=tuple(skipped), failed=tuple(failed)
         )
         return r[m.Cli.TemplateRenderReport].ok(report)
 

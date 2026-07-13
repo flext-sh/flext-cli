@@ -6,10 +6,7 @@ All methods use the ``json_`` prefix for namespace consistency.
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-    Sequence,
-)
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
@@ -36,8 +33,7 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
 
     @staticmethod
     def _json_write_content(
-        payload: t.JsonPayload,
-        options: m.Cli.JsonWriteOptions,
+        payload: t.JsonPayload, options: m.Cli.JsonWriteOptions
     ) -> str:
         """Serialize a JSON payload using canonical write options."""
         validated = FlextCliUtilitiesJson.normalize_json_value(payload)
@@ -47,9 +43,7 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
             else validated
         )
         payload_bytes: bytes = t.Cli.JSON_VALUE_ADAPTER.dump_json(
-            normalized,
-            indent=options.indent,
-            ensure_ascii=options.ensure_ascii,
+            normalized, indent=options.indent, ensure_ascii=options.ensure_ascii
         )
         return payload_bytes.decode(c.Cli.ENCODING_DEFAULT) + "\n"
 
@@ -84,9 +78,7 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
             _ = path.write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
         except c.EXC_OS_VALIDATION as exc:
             FlextCliUtilitiesJson._module_logger.debug(
-                "json_write failed",
-                error=str(exc),
-                exc_info=False,
+                "json_write failed", error=str(exc), exc_info=False
             )
             return r[bool].fail(f"json_write: {exc}")
         return r[bool].ok(True)
@@ -95,16 +87,12 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
     def json_parse(text: str) -> p.Result[t.JsonValue]:
         """Parse a JSON string into a validated JsonValue."""
         try:
-            return r[t.JsonValue].ok(
-                t.Cli.JSON_VALUE_ADAPTER.validate_json(text),
-            )
+            return r[t.JsonValue].ok(t.Cli.JSON_VALUE_ADAPTER.validate_json(text))
         except c.EXC_VALIDATION_VALUE as exc:
             return r[t.JsonValue].fail(f"json_parse: {exc}")
 
     @staticmethod
-    def json_as_mapping(
-        value: t.JsonPayload | None,
-    ) -> t.JsonMapping:
+    def json_as_mapping(value: t.JsonPayload | None) -> t.JsonMapping:
         """Normalize any JSON-compatible value into a mapping."""
         if value is None:
             return _EMPTY_JSON_MAPPING
@@ -114,9 +102,7 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
         return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
 
     @staticmethod
-    def json_as_sequence(
-        value: t.JsonPayload | None,
-    ) -> t.SequenceOf[t.JsonValue]:
+    def json_as_sequence(value: t.JsonPayload | None) -> t.SequenceOf[t.JsonValue]:
         """Normalize any JSON-compatible value into a JSON sequence."""
         if value is None:
             return _EMPTY_JSON_SEQUENCE

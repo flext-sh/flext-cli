@@ -22,10 +22,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
     """Implementation part for FlextCliUtilitiesFileTestHelpersMixin."""
 
     @staticmethod
-    def files_parse_content(
-        path: Path,
-        fmt: str,
-    ) -> p.Result[object]:
+    def files_parse_content(path: Path, fmt: str) -> p.Result[object]:
         """Parse JSON/YAML file content for ``files_info``."""
         if fmt == c.Cli.FILE_FORMAT_JSON:
             result = uj.json_read(path)

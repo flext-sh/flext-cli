@@ -32,8 +32,7 @@ class FlextCliUtilitiesCommands:
 
     @staticmethod
     def commands_emit_success_message(
-        message: str,
-        success_type: c.Cli.MessageTypes,
+        message: str, success_type: c.Cli.MessageTypes
     ) -> None:
         """Emit success output as raw payload or styled CLI message."""
         rendered = (
@@ -47,7 +46,7 @@ class FlextCliUtilitiesCommands:
     def commands_emit_error_message(error: str) -> None:
         """Emit standardized CLI error output."""
         uo.emit_raw(
-            f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
+            f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n"
         )
 
 

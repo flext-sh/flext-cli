@@ -26,7 +26,7 @@ class FlextCliUtilitiesModelCommands:
 
         def __init__(
             self,
-            model_class: p.Cli.ModelType[M],
+            model_class: t.ModelClass[M],
             handler: Callable[[M], t.JsonValue],
             settings: t.Cli.ModelLike | None = None,
         ) -> None:
@@ -36,10 +36,7 @@ class FlextCliUtilitiesModelCommands:
             self.handler = handler
             self.settings = settings
 
-        def _resolve_default(
-            self,
-            field_info: m.FieldInfo,
-        ) -> t.Cli.CliValue | type:
+        def _resolve_default(self, field_info: m.FieldInfo) -> t.Cli.CliValue | type:
             if field_info.is_required():
                 return inspect.Parameter.empty
             # NOTE (multi-agent): ``FieldInfo.get_default`` is typed ``Any``
@@ -94,8 +91,7 @@ class FlextCliUtilitiesModelCommands:
 
     @staticmethod
     def model_source_data(
-        model_cls: p.Cli.ModelType[t.Cli.ModelLike],
-        source: t.Cli.ModelSource,
+        model_cls: t.ModelClass[t.Cli.ModelLike], source: t.Cli.ModelSource
     ) -> t.JsonMapping:
         """Extract only target-compatible fields from a model or mapping source."""
         raw_source: t.JsonMapping | t.ScalarMapping
@@ -118,9 +114,6 @@ class FlextCliUtilitiesModelCommands:
         overrides: t.ScalarMapping | None = None,
     ) -> M:
         """Derive a target model from ordered model/mapping sources."""
-        if not isinstance(model_cls, p.Cli.ModelType):
-            message = "model_cls must implement p.Cli.ModelType"
-            raise TypeError(message)
         merged: t.MutableJsonMapping = {}
         for source in sources:
             merged.update(cls.model_source_data(model_cls, source))
@@ -131,19 +124,15 @@ class FlextCliUtilitiesModelCommands:
 
     @staticmethod
     def build_model_command[M: t.Cli.ModelLike](
-        model_class: p.Cli.ModelType[M],
+        model_class: t.ModelClass[M],
         handler: Callable[[M], t.JsonValue],
         settings: t.Cli.ModelLike | None = None,
     ) -> t.Cli.CliCommand:
         """Build a model command through the canonical CLI service."""
-        # NOTE (multi-agent): All model-class ingress uses p.Cli.ModelType.
+        # NOTE (multi-agent): All model-class ingress uses t.ModelClass.
         return FlextCliUtilitiesModelCommands.Builder(
-            model_class=model_class,
-            handler=handler,
-            settings=settings,
+            model_class=model_class, handler=handler, settings=settings
         ).build()
 
 
-__all__: t.MutableSequenceOf[str] = [
-    "FlextCliUtilitiesModelCommands",
-]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesModelCommands"]

@@ -20,10 +20,7 @@ class FlextCliUtilitiesRules:
 
     @staticmethod
     def rules_resolve_scope(
-        settings: t.JsonValue,
-        *,
-        scope_key: str,
-        allowed_keys: t.StrSequence,
+        settings: t.JsonValue, *, scope_key: str, allowed_keys: t.StrSequence
     ) -> t.JsonMapping:
         """Extract and normalize one declarative rules scope from settings."""
         normalized = uj.json_as_mapping(settings)
@@ -35,25 +32,18 @@ class FlextCliUtilitiesRules:
 
     @staticmethod
     def rules_load_scoped_config(
-        config_path: Path,
-        *,
-        scope_key: str,
-        allowed_keys: t.StrSequence,
+        config_path: Path, *, scope_key: str, allowed_keys: t.StrSequence
     ) -> p.Result[t.JsonMapping]:
         """Load one YAML config file and normalize a scoped rule section."""
         normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-            uy.yaml_load_mapping(config_path),
+            uy.yaml_load_mapping(config_path)
         )
         normalized_scope = FlextCliUtilitiesRules.rules_resolve_scope(
-            dict(normalized),
-            scope_key=scope_key,
-            allowed_keys=allowed_keys,
+            dict(normalized), scope_key=scope_key, allowed_keys=allowed_keys
         )
         payload = dict(normalized)
         payload[scope_key] = dict(normalized_scope)
-        return r[t.JsonMapping].ok(
-            t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload),
-        )
+        return r[t.JsonMapping].ok(t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload))
 
     @staticmethod
     def rules_load_registry(
@@ -71,7 +61,7 @@ class FlextCliUtilitiesRules:
                 package_rules_dir=package_rules_dir,
                 rules_dir_name=rules_dir_name,
             )
-            / registry_filename,
+            / registry_filename
         ]
         if package_registry not in candidates:
             candidates.append(package_registry)
@@ -79,11 +69,11 @@ class FlextCliUtilitiesRules:
             if not registry_path.is_file():
                 continue
             normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-                uy.yaml_load_mapping(registry_path),
+                uy.yaml_load_mapping(registry_path)
             )
             return r[t.JsonMapping].ok(normalized)
         return r[t.JsonMapping].fail(
-            f"Failed to load rules registry: no {registry_filename} found",
+            f"Failed to load rules registry: no {registry_filename} found"
         )
 
 

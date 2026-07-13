@@ -13,16 +13,14 @@ class FlextCliUtilitiesConversion:
 
     @staticmethod
     def default_for_type_kind(
-        type_kind: t.Cli.TypeKind,
-        default: t.JsonValue | None,
+        type_kind: t.Cli.TypeKind, default: t.JsonValue | None
     ) -> t.Cli.TypedExtractValue:
         """Return a canonical default for one type kind."""
         return m.Cli.TypedExtract(type_kind=type_kind, default=default).resolved
 
     @staticmethod
     def cli_args_to_model[M: t.Cli.ModelLike](
-        model_class: p.Cli.ModelType[M],
-        cli_args: t.JsonMapping,
+        model_class: t.ModelClass[M], cli_args: t.JsonMapping
     ) -> p.Result[M]:
         """Convert a CLI args mapping into a validated Pydantic model."""
         # NOTE (multi-agent): Keep one model-class protocol across CLI utilities.
@@ -33,11 +31,7 @@ class FlextCliUtilitiesConversion:
             return r[M].fail(f"Validation error for {model_class.__name__}: {exc}")
 
     @staticmethod
-    def resolve_optional_path(
-        value: t.Cli.TextPath | None,
-        *,
-        default: Path,
-    ) -> Path:
+    def resolve_optional_path(value: t.Cli.TextPath | None, *, default: Path) -> Path:
         """Resolve an optional text/path value while preserving a default path."""
         if isinstance(value, Path):
             return value
@@ -55,11 +49,7 @@ class FlextCliUtilitiesConversion:
         return normalized or None
 
     @staticmethod
-    def normalize_required_text(
-        value: t.JsonValue | Path,
-        *,
-        default: str,
-    ) -> str:
+    def normalize_required_text(value: t.JsonValue | Path, *, default: str) -> str:
         """Normalize required text-like values, falling back to ``default``."""
         normalized = FlextCliUtilitiesConversion.normalize_optional_text(value)
         return normalized if normalized is not None else default

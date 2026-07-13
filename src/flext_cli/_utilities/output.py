@@ -12,18 +12,13 @@ from flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_02 import (
 
 
 class FlextCliUtilitiesOutput(
-    FlextCliUtilitiesOutputPart01,
-    FlextCliUtilitiesOutputPart02,
+    FlextCliUtilitiesOutputPart01, FlextCliUtilitiesOutputPart02
 ):
     """Public facade for FlextCliUtilitiesOutput."""
 
     @staticmethod
     def output_status_line(
-        success: bool,
-        label: str,
-        detail: str,
-        *,
-        elapsed: float | None,
+        success: bool, label: str, detail: str, *, elapsed: float | None
     ) -> t.Pair[str, str]:
         """Build one canonical status line and style."""
         symbol = c.Cli.SYMBOL_SUCCESS_MARK if success else c.Cli.SYMBOL_FAILURE_MARK

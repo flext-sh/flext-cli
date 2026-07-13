@@ -6,15 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, Self, override, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_01 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart01,
 )
 from flext_core import p
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
@@ -38,56 +35,6 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
         @property
         def trace(self) -> bool:
             """Check if trace mode is enabled."""
-            ...
-
-        @override
-        def model_dump(
-            self,
-            *,
-            mode: str = "python",
-            exclude_none: bool = False,
-        ) -> t.JsonMapping:
-            """Dump the settings model into a JSON-compatible mapping."""
-            ...
-
-        @override
-        def clone(self, **overrides: t.SettingsOverride | None) -> Self:
-            """Return a cloned settings instance with overrides applied."""
-            ...
-
-        @classmethod
-        @override
-        def fetch_global(
-            cls,
-            *,
-            overrides: t.ScalarMapping | None = None,
-        ) -> Self:
-            """Return the process-wide singleton settings instance."""
-            ...
-
-        @classmethod
-        @override
-        def update_global(cls, **overrides: t.SettingsOverride | None) -> Self:
-            """Replace the singleton via Pydantic-2 ``model_copy(update=…)``."""
-            ...
-
-        @classmethod
-        def reset_for_testing(cls) -> None:
-            """Reset the process-wide singleton (test isolation only)."""
-            ...
-
-    @runtime_checkable
-    class SettingsType(p.SettingsType, Protocol):
-        """Concrete CLI settings classes with singleton/test hooks."""
-
-        @classmethod
-        @override
-        def fetch_global(
-            cls,
-            *,
-            overrides: t.ScalarMapping | None = None,
-        ) -> FlextCliProtocolsBase.Settings:
-            """Return the process-wide singleton settings instance."""
             ...
 
         @classmethod

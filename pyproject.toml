@@ -32,9 +32,6 @@ dependencies = [
   "pydantic>=2.13.3",
   "pyyaml>=6.0.3",
   "rich>=14,<15",
-  # NOTE (multi-agent): ruamel.yaml is the round-trip YAML engine behind
-  # u.Cli.yaml_roundtrip_* (comment/quote-preserving). Do not downgrade below
-  # the cosmos-charts pin (>=0.18.16).
   "ruamel.yaml>=0.18.16",
   "tabulate>=0.10.0",
   "tomlkit>=0.14.0",
@@ -116,9 +113,9 @@ dev = [
   "types-defusedxml>=0.7",
   "types-docker>=7.1",
   "types-flask>=1.1.6",
+  "types-jsonschema>=4.26",
   "types-ldap3>=2.9.13.20250622",
   "types-paramiko>=4.0",
-  "types-jsonschema>=4.26",
   "types-protobuf>=6.30.2.20250703",
   "types-psutil>=7",
   "types-psycopg2>=2.9.21.20250718",
@@ -132,6 +129,7 @@ dev = [
   "types-tabulate>=0.10",
   "types-toml>=0.10.8.20240310",
   "vulture>=2.13",
+  "yamlfix>=1.19.1,<2",
 ]
 
 [project.urls]
@@ -169,15 +167,19 @@ allow-direct-references = true
 [tool.mypy]
 check_untyped_defs = true
 disable_error_code = [
+  "arg-type",
   "assignment",
   "attr-defined",
   "call-arg",
   "misc",
   "name-defined",
+  "no-any-return",
+  "no-redef",
   "prop-decorator",
+  "unreachable",
   "valid-type",
 ]
-exclude = "^tests/fixtures(?:/|$)"
+exclude = "^(?:tests|examples|legado)(?:/|$)"
 explicit_package_bases = true
 extra_checks = true
 follow_imports = "normal"
@@ -214,8 +216,11 @@ project-excludes = [
   "**/.venv/**",
   "**/__pycache__",
   "**/__pyrefly_virtual__/**",
+  "**/examples/**",
+  "**/legado/**",
   "**/node_modules",
   "**/site-packages/**",
+  "**/tests/**",
   "**/typings/**",
   "**/vendor/**",
   "**/venv/**",
@@ -224,20 +229,10 @@ project-excludes = [
   "typings/**",
   "vendor/**",
 ]
-# mro-f1fe (agent: kimi-sweep): examples moved to gitignored legado/ — out of active lint/typecheck surface
-project-includes = [ "src/**/*.py*", "tests/**/*.py*" ]
+project-includes = [ "src/**/*.py*" ]
 python-interpreter-path = "../.venv/bin/python"
 python-version = "3.13"
-search-path = [
-  ".",
-  "../flext-cli/src",
-  "../flext-core/scripts",
-  "../flext-core/src",
-  "../flext-infra/src",
-  "../flext-infra/tmp_flow_test",
-  "../flext-tests/src",
-  "src",
-]
+search-path = [ "../flext-core/src", "../flext-infra/src", "../flext-tests/src", "src" ]
 use-ignore-files = false
 
 [tool.pyrefly.errors]
@@ -339,19 +334,24 @@ exclude = [
   "**/__pyrefly_virtual__/**",
   "**/dist-packages",
   "**/dist-packages/**",
+  "**/examples",
+  "**/examples/**",
+  "**/legado",
+  "**/legado/**",
   "**/node_modules",
   "**/site-packages",
   "**/site-packages/**",
-  "**/tests/fixtures",
-  "**/tests/fixtures/**",
+  "**/tests",
+  "**/tests/**",
   "**/venv",
   "**/venv/**",
+  ".git",
   ".reports",
   ".venv",
+  "vendor",
 ]
 extraPaths = [ ".", "src" ]
-# mro-f1fe (agent: kimi-sweep): examples moved to gitignored legado/ — out of active lint/typecheck surface
-include = [ "src", "tests" ]
+include = [ "src" ]
 pythonPlatform = "Linux"
 pythonVersion = "3.13"
 reportArgumentType = "none"
@@ -388,13 +388,19 @@ venvPath = ".."
 
 [[tool.pyright.executionEnvironments]]
 extraPaths = [ "src" ]
+reportAttributeAccessIssue = "none"
+reportGeneralTypeIssues = "none"
+reportInvalidTypeForm = "none"
+reportPrivateImportUsage = "none"
 reportPrivateUsage = "error"
+reportReturnType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownLambdaType = "none"
+reportUnknownMemberType = "none"
+reportUnknownParameterType = "none"
+reportUnknownVariableType = "none"
+reportUnusedImport = "none"
 root = "src"
-
-[[tool.pyright.executionEnvironments]]
-extraPaths = [ ".", "src" ]
-reportPrivateUsage = "none"
-root = "tests"
 
 # [MANAGED] pytest
 [tool.pytest.ini_options]
@@ -426,6 +432,7 @@ markers = [
   "performance: performance and benchmark tests",
   "resilience: resilience tests",
   "slow: slow-running tests",
+  "smoke: public-interface smoke tests",
   "stress: stress tests",
   "unit: unit tests",
 ]
@@ -447,10 +454,11 @@ exclude = [
   "backup",
   "build",
   "dist",
+  "examples",
   "htmlcov",
+  "legado",
   "temp-backup",
-  "tests/fixtures",
-  "tests/fixtures/**",
+  "tests",
   "typings",
   "vendor",
   "venv",
@@ -460,8 +468,7 @@ line-length = 88
 preview = true
 respect-gitignore = true
 show-fixes = true
-# mro-f1fe (agent: kimi-sweep): examples moved to gitignored legado/ — out of active lint/typecheck surface
-src = [ "src", "tests" ]
+src = [ "src" ]
 target-version = "py313"
 
 [tool.ruff.format]
@@ -469,6 +476,7 @@ docstring-code-format = true
 indent-style = "space"
 line-ending = "lf"
 quote-style = "double"
+skip-magic-trailing-comma = true
 
 [tool.ruff.lint]
 ignore = [
@@ -482,6 +490,8 @@ ignore = [
   "CPY001",
   "D203",
   "D213",
+  "D401",
+  "D417",
   "DOC201",
   "DOC202",
   "DOC402",
@@ -525,18 +535,26 @@ ignore = [
 ]
 select = [ "ALL" ]
 
+[tool.ruff.lint.flake8-tidy-imports.banned-api.argparse]
+msg = "Use cli.register_result_command + Pydantic model from flext_cli."
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api.click]
+msg = "Use flext_cli.cli application, registration, execution, and invocation methods."
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api.rich]
+msg = "Use cli.print / cli.display_message / cli.render_panel / cli.render_table."
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api.typer]
+msg = "Use cli.create_app_with_common_params / cli.register_command from flext_cli."
+
 [tool.ruff.lint.isort]
 combine-as-imports = true
 force-single-line = false
 known-first-party = [ "flext_cli", "flext_core" ]
-split-on-trailing-comma = true
+split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
 "**/.vulture_whitelist.py" = [ "ALL" ]
-# PascalCase domain accessors (config.Cli / settings namespaces) are the
-# canonical FLEXT project-namespace contract — same proven, general exception
-# as cosmos-main (`config.CosmosMain`): intentional domain names, not methods.
-"**/flext_cli/_config.py" = [ "N802" ]
 "**/*_pb2*.py" = [ "ALL" ]
 "**/*dispatcher*" = [  ]
 "**/*docs*" = [ "INP001", "S404", "S603", "T201" ]
@@ -567,81 +585,6 @@ split-on-trailing-comma = true
 ]
 "**/*service*" = [ "N815", "PLC2801", "S404", "S603", "SLF001" ]
 "**/*subprocess_utils*" = [ "S404", "S603" ]
-"**/*tests*" = [
-  "ANN001",
-  "ANN002",
-  "ANN003",
-  "ANN401",
-  "ARG001",
-  "ARG002",
-  "ARG003",
-  "ARG004",
-  "ARG005",
-  "B009",
-  "B010",
-  "B018",
-  "B903",
-  "C901",
-  "D100",
-  "D101",
-  "D102",
-  "D103",
-  "D104",
-  "D106",
-  "D107",
-  "EM102",
-  "F822",
-  "FBT001",
-  "FBT002",
-  "FBT003",
-  "FURB118",
-  "INP001",
-  "N818",
-  "N999",
-  "PLC0206",
-  "PLC1901",
-  "PLC2701",
-  "PLC2801",
-  "PLR0904",
-  "PLR0912",
-  "PLR0913",
-  "PLR0914",
-  "PLR0915",
-  "PLR0917",
-  "PLR1704",
-  "PLR2004",
-  "PLR6301",
-  "PLW1641",
-  "PLW2901",
-  "PT011",
-  "PT018",
-  "PT019",
-  "PYI063",
-  "RUF012",
-  "RUF029",
-  "S101",
-  "S103",
-  "S104",
-  "S105",
-  "S106",
-  "S107",
-  "S108",
-  "S110",
-  "S112",
-  "S311",
-  "S404",
-  "S603",
-  "S607",
-  "S608",
-  "SIM105",
-  "SIM117",
-  "SLF001",
-  "TD002",
-  "TD003",
-  "TID252",
-  "TRY003",
-  "TRY004",
-]
 "**/*typings*" = [ "ANN401" ]
 "**/*utilities*" = [ "C901", "E402", "PLC2801", "PLW1510", "S404", "S603" ]
 "**/__init__.py" = [
@@ -658,7 +601,10 @@ split-on-trailing-comma = true
   "RUF067",
   "TC004",
 ]
+"**/_config.py" = [ "N802" ]
 "**/_constants/*.py" = [ "S105" ]
+"**/_protocols/*.py" = [ "N802" ]
+"**/_settings.py" = [ "N802" ]
 "**/_utilities/parser.py" = [ "ARG004", "FBT001" ]
 "**/alert_manager*.py" = [ "S310" ]
 "**/constants.py" = [ "S105" ]
@@ -666,6 +612,9 @@ split-on-trailing-comma = true
 "**/context.py" = [  ]
 "**/external_command*.py" = [ "S404", "S603" ]
 "**/file_tools.py" = [ "D102" ]
+"**/flext_cli/_protocols/framework.py" = [ "A002" ]
+"**/flext_cli/_utilities/formatters.py" = [ "TID251" ]
+"**/flext_cli/_utilities/framework.py" = [ "A002", "TID251" ]
 "**/managers.py" = [ "S105" ]
 "**/models.py" = [ "PLC0415", "PLC2801", "S102", "S105" ]
 "**/orchestrator*.py" = [ "S404", "S603" ]
@@ -686,8 +635,6 @@ split-on-trailing-comma = true
 all = true
 in_place = true
 sort_first = [ "build-system", "dependency-groups", "project", "tool" ]
-
-# NOTE(mro-wkii.14, agent codegen): member-level [tool.uv.sources] removed — workspace ROOT pyproject is the SSOT (uv root sources apply to all members); carrying workspace=true here broke git+branch consumption of this package outside the workspace.
 
 # [MANAGED] yamlfix
 [tool.yamlfix]

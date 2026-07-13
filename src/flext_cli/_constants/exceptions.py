@@ -1,8 +1,4 @@
-"""Re-export framework exceptions through canonical c.Cli.* namespace.
-
-flext-cli is the SSOT owner of Click/Typer abstraction. Click and Typer
-exceptions captured by consumer code MUST be referenced through these
-canonical aliases instead of importing click/typer directly.
+"""Canonical CLI validation and serialization exceptions.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -12,9 +8,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from click import Abort, ClickException
 from ruamel.yaml import YAMLError as RuamelYAMLError
-from typer import Exit
 from yaml import YAMLError
 
 from flext_core import e
@@ -48,24 +42,13 @@ class CliValidationError(e.ValidationError):
 
 
 class FlextCliConstantsExceptions:
-    """Canonical CLI exception aliases for cross-project consumption.
-
-    Usage:
-        from flext_cli import c
-        try:
-            ...
-        except c.Cli.CliAbortError:
-            ...
-    """
+    """Canonical owned exception types for cross-project consumption."""
 
     # NOTE (multi-agent): local exception classes MUST keep their exact
-    # ``type[<Class>]`` annotation. Widening to ``type[BaseException]`` hides
+    # ``type[<Class>]`` annotation. Widening to a generic exception hides
     # the real ``FlextBaseError.__init__`` (with **extra_kwargs) from pyrefly,
     # which then rejects ``command=``/``model=`` kwargs at raise sites
-    # (validation.py). External framework classes keep the framework type.
-    CliAbortError: ClassVar[type[BaseException]] = Abort
-    CliCommandError: ClassVar[type[BaseException]] = ClickException
-    CliExit: ClassVar[type[BaseException]] = Exit
+    # (validation.py).
     YamlParseError: ClassVar[type[Exception]] = YAMLError
     YamlRoundtripError: ClassVar[type[Exception]] = RuamelYAMLError
     CliDefinitionError: ClassVar[type[CliDefinitionError]] = CliDefinitionError

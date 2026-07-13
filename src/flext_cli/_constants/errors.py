@@ -97,9 +97,6 @@ class FlextCliConstantsErrors:
     ERR_CLI_DEFINITION_FIELD: Final[str] = (
         "command '{command}' model '{model}' field '{field}': {reason}"
     )
-    ERR_CLI_RUNNER_ECHO_STDIN_UNSUPPORTED: Final[str] = (
-        "Typer CliRunner does not support echo_stdin"
-    )
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliConstantsErrors"]

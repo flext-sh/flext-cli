@@ -2,37 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    MutableMapping,
-)
+from collections.abc import MutableMapping
 from pathlib import Path
 from types import GenericAlias, UnionType
-from typing import ClassVar, Protocol, TypeAliasType, runtime_checkable
+from typing import ClassVar, TypeAliasType
 
-from click.core import Command as ClickCommand
-from click.testing import CliRunner as ClickCliRunner, Result as TyperCliResult
-from rich.console import Console as RichConsole
-from rich.tree import Tree as RichTree
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
-from typer import Typer
-from typer.models import OptionInfo
 
 from flext_core import t
-
-
-@runtime_checkable
-class FlextCliTyperRunner(Protocol):
-    """Typed public protocol for Typer CLI runner invocations."""
-
-    def invoke(
-        self,
-        app: Typer,
-        args: t.StrSequence | None = None,
-    ) -> TyperCliResult:
-        """Invoke a Typer application and return its typed result."""
-        ...
 
 
 class FlextCliTypesBase:
@@ -55,15 +34,6 @@ class FlextCliTypesBase:
     type CliValue = t.Scalar | t.StrSequence | DefaultMapping
     type CliDefaultSource = CliValue | Path
     type CliAnnotations = MutableMapping[str, type | GenericAlias]
-    type CliApp = Typer
-    type CliOptionInfo = OptionInfo
-
-    type TyperRunner = FlextCliTyperRunner
-    type TyperResult = TyperCliResult
-    ExternalCli: ClassVar[type] = ClickCommand
-    """Class alias for click.Command — external CLI integrations (Singer SDK)."""
-    ExternalCliRunner: ClassVar[type] = ClickCliRunner
-    """Class alias for click.testing.CliRunner — boundary tests."""
     type TomlDocument = TOMLDocument
     type TomlTable = Table
     type TomlItem = Item
@@ -72,9 +42,6 @@ class FlextCliTypesBase:
     type TomlContainer = Container
     type TomlParent = TOMLDocument | Table
     type TomlValue = TOMLDocument | Table | Item | Array | AoT | Container
-    type RichTreeType = RichTree
-    type RichConsoleType = RichConsole
-
     type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType
 
     PRIMITIVE_TYPES: ClassVar[tuple[type[str], type[int], type[float], type[bool]]] = (

@@ -33,24 +33,17 @@ if TYPE_CHECKING:
     from flext_cli._constants.settings import (
         FlextCliConstantsSettings as FlextCliConstantsSettings,
     )
-_LAZY_IMPORTS = build_lazy_import_map(
-    {
-        ".base": ("FlextCliConstantsBase",),
-        ".config": ("FlextCliConstantsConfig",),
-        ".enums": ("FlextCliConstantsEnums",),
-        ".errors": ("FlextCliConstantsErrors",),
-        ".exceptions": ("FlextCliConstantsExceptions",),
-        ".files": ("FlextCliConstantsFiles",),
-        ".output": ("FlextCliConstantsOutput",),
-        ".pipeline": ("FlextCliConstantsPipeline",),
-        ".settings": ("FlextCliConstantsSettings",),
-    },
-)
+_LAZY_IMPORTS = build_lazy_import_map({
+    ".base": ("FlextCliConstantsBase",),
+    ".config": ("FlextCliConstantsConfig",),
+    ".enums": ("FlextCliConstantsEnums",),
+    ".errors": ("FlextCliConstantsErrors",),
+    ".exceptions": ("FlextCliConstantsExceptions",),
+    ".files": ("FlextCliConstantsFiles",),
+    ".output": ("FlextCliConstantsOutput",),
+    ".pipeline": ("FlextCliConstantsPipeline",),
+    ".settings": ("FlextCliConstantsSettings",),
+})
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    publish_all=False,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

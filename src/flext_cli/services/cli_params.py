@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli import c, p, r, s, t, u
+from flext_cli import c, m, p, r, s, t, u
 
 
 class FlextCliCommonParams(s):
@@ -34,16 +34,14 @@ class FlextCliCommonParams(s):
             return u.Cli.params_apply(settings, params_to_use)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             return r[p.Cli.Settings].fail(
-                c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc),
+                c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc)
             )
 
     @classmethod
-    def create_option(cls, field_name: str) -> p.Cli.CliOptionSpec:
-        """Create typer.Option() from FlextCliSettings field metadata."""
+    def create_option(cls, field_name: str) -> m.Cli.OptionSpec:
+        """Create one validated framework-neutral option model."""
         if field_name not in c.Cli.CLI_PARAM_REGISTRY:
-            msg = c.Cli.CLI_PARAM_ERR_FIELD_NOT_FOUND_FMT.format(
-                field_name=field_name,
-            )
+            msg = c.Cli.CLI_PARAM_ERR_FIELD_NOT_FOUND_FMT.format(field_name=field_name)
             raise ValueError(msg)
         return u.Cli.build_option(field_name, c.Cli.CLI_PARAM_REGISTRY)
 

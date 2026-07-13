@@ -4,13 +4,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_cli import (
-    c,
-    p,
-    r,
-    t,
-    u,
-)
+from flext_cli import c, m, p, r, u
 from flext_cli.services._prompts_parts.flextcliprompts_support import (
     FlextCliPromptsSupport,
 )
@@ -23,10 +17,7 @@ class FlextCliPrompts(FlextCliPromptsSupport):
         try:
             if self.state.quiet or not self.state.interactive:
                 return r[bool].ok(default)
-            prompt_text = u.Cli.prompts_confirmation_text(
-                message,
-                default=default,
-            )
+            prompt_text = u.Cli.prompts_confirmation_text(message, default=default)
             return self._read_confirmation_input(message, prompt_text, default=default)
         except KeyboardInterrupt:
             return r[bool].fail(c.Cli.ERR_USER_CANCELLED_CONFIRMATION)
@@ -34,13 +25,11 @@ class FlextCliPrompts(FlextCliPromptsSupport):
             return r[bool].fail(c.Cli.ERR_INPUT_STREAM_ENDED)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             self._fatal("confirm", message, exc, "Confirmation failed completely")
-            return r[bool].fail(
-                c.Cli.ERR_CONFIRMATION_FAILED_FMT.format(error=exc),
-            )
+            return r[bool].fail(c.Cli.ERR_CONFIRMATION_FAILED_FMT.format(error=exc))
 
     @override
-    def execute(self) -> p.Result[t.JsonMapping]:
-        return r[t.JsonMapping].ok(u.Cli.cmd_status_payload())
+    def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
+        return r[m.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
 
     def print_error(self, message: str) -> p.Result[bool]:
         return self._print_message(

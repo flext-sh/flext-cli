@@ -32,10 +32,7 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):
         ]
 
     @staticmethod
-    def json_walk_path(
-        data: t.JsonMapping,
-        keys: t.StrSequence,
-    ) -> t.JsonValue | None:
+    def json_walk_path(data: t.JsonMapping, keys: t.StrSequence) -> t.JsonValue | None:
         """Walk a path over nested mappings and return the leaf value."""
         current: t.JsonMapping = data
         for key in keys[:-1]:
@@ -54,10 +51,7 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):
         return u.normalize_to_json_value(leaf)
 
     @staticmethod
-    def json_deep_mapping(
-        data: t.JsonMapping,
-        *keys: str,
-    ) -> t.JsonMapping:
+    def json_deep_mapping(data: t.JsonMapping, *keys: str) -> t.JsonMapping:
         """Navigate nested mappings and normalize the final node as mapping."""
         if not keys:
             return FlextCliUtilitiesJson.json_as_mapping(data)
@@ -66,65 +60,41 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):
 
     @staticmethod
     def json_deep_mapping_list(
-        data: t.JsonMapping,
-        *keys: str,
+        data: t.JsonMapping, *keys: str
     ) -> t.SequenceOf[t.JsonMapping]:
         """Navigate nested mappings and normalize the final node as mapping list."""
         raw = FlextCliUtilitiesJson.json_walk_path(data, keys)
         return FlextCliUtilitiesJson.json_as_mapping_list(raw)
 
     @staticmethod
-    def json_pick_str(
-        data: t.JsonMapping,
-        key: str,
-        default: str = "",
-    ) -> str:
+    def json_pick_str(data: t.JsonMapping, key: str, default: str = "") -> str:
         """Extract a string value from mapping with safe coercion."""
         return u.norm_str(data.get(key, default), default=default).strip()
 
     @staticmethod
-    def json_pick_int(
-        data: t.JsonMapping,
-        key: str,
-        default: int = 0,
-    ) -> int:
+    def json_pick_int(data: t.JsonMapping, key: str, default: int = 0) -> int:
         """Extract an integer value from mapping with safe coercion."""
         parsed = u.parse(data.get(key, default), int, default=default).unwrap_or(
-            default,
+            default
         )
         return int(parsed) if isinstance(parsed, bool) else parsed
 
     @staticmethod
-    def json_pick_bool(
-        data: t.JsonMapping,
-        key: str,
-        *,
-        default: bool = False,
-    ) -> bool:
+    def json_pick_bool(data: t.JsonMapping, key: str, *, default: bool = False) -> bool:
         """Extract a boolean value from mapping with string/int coercion."""
         return u.parse(data.get(key, None), bool, default=default).unwrap_or(default)
 
     @staticmethod
-    def json_nested_int(
-        data: t.JsonMapping,
-        *keys: str,
-        default: int = 0,
-    ) -> int:
+    def json_nested_int(data: t.JsonMapping, *keys: str, default: int = 0) -> int:
         """Extract an integer from a nested mapping path."""
         parsed = u.parse(
-            FlextCliUtilitiesJson.json_walk_path(data, keys),
-            int,
-            default=default,
+            FlextCliUtilitiesJson.json_walk_path(data, keys), int, default=default
         ).unwrap_or(default)
         return int(parsed) if isinstance(parsed, bool) else parsed
 
     @staticmethod
     def json_get_str_key(
-        mapping: t.JsonMapping,
-        key: str,
-        *,
-        default: str = "",
-        case: str | None = None,
+        mapping: t.JsonMapping, key: str, *, default: str = "", case: str | None = None
     ) -> str:
         """Extract and normalize a string key from a mapping."""
         raw = FlextCliUtilitiesJson.json_pick_str(mapping, key, default)
