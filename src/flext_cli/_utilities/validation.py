@@ -80,7 +80,7 @@ class FlextCliUtilitiesValidation:
         for error in exc.errors():
             loc = ".".join(str(part) for part in error.get("loc", ()) if part != "body")
             field = loc or "<input>"
-            message = str(error.get("msg", "invalid value"))
+            message = error.get("msg", "invalid value")
             lines.append(
                 c.Cli.ERR_CLI_DEFINITION_FIELD.format(
                     command=command, model=model, field=field, reason=message

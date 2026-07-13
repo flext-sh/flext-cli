@@ -25,7 +25,7 @@ if TYPE_CHECKING:
         _files_parts as _files_parts,
         _json as _json,
         _options_parts as _options_parts,
-        _rules_parts as _rules_parts,
+        _rules as _rules,
         _toml_parts as _toml_parts,
         _yaml as _yaml,
     )
@@ -50,8 +50,11 @@ if TYPE_CHECKING:
     from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
         FlextCliUtilitiesOptions as FlextCliUtilitiesOptions,
     )
-    from flext_cli._utilities._rules_parts.flextcliutilitiesrules_part_03 import (
-        FlextCliUtilitiesRules as FlextCliUtilitiesRules,
+    from flext_cli._utilities._rules._loaders import (
+        FlextCliUtilitiesRulesLoadersMixin as FlextCliUtilitiesRulesLoadersMixin,
+    )
+    from flext_cli._utilities._rules._matchers import (
+        FlextCliUtilitiesRulesMatchersMixin as FlextCliUtilitiesRulesMatchersMixin,
     )
     from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_07 import (
         FlextCliUtilitiesToml as FlextCliUtilitiesToml,
@@ -103,6 +106,9 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities.prompts import (
         FlextCliUtilitiesPrompts as FlextCliUtilitiesPrompts,
+    )
+    from flext_cli._utilities.rules import (
+        FlextCliUtilitiesRules as FlextCliUtilitiesRules,
     )
     from flext_cli._utilities.runtime import (
         FlextCliUtilitiesRuntime as FlextCliUtilitiesRuntime,
