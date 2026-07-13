@@ -37,6 +37,22 @@ class FlextCliConstantsXlsx:
         "false",
         "off",
     ))
+    XLSX_ERROR_CELL_PREFIX: Final[str] = "#"
+    XLSX_PACKAGE_PREFIX: Final[str] = "xl/"
+    XLSX_RECALC_COMMAND: Final[tuple[str, ...]] = (
+        "soffice",
+        "--headless",
+        "--convert-to",
+        "xlsx",
+        "--outdir",
+    )
+    XLSX_RECALC_SOURCE_NAME: Final[str] = "source.xlsx"
+    XLSX_RECALC_TEMP_PREFIX: Final[str] = "flext-xlsx-recalc-"
+    XLSX_RECALC_TIMEOUT_SECONDS: Final[float] = 120.0
+    XLSX_RELATIONSHIPS_ID_ATTRIBUTE: Final[str] = (
+        "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
+    )
+    XLSX_WORKBOOK_RELS_MEMBER: Final[str] = "xl/_rels/workbook.xml.rels"
 
     @unique
     class XlsxError(StrEnum):
@@ -49,8 +65,10 @@ class FlextCliConstantsXlsx:
         DUPLICATE_SHEET = "xlsx_duplicate_sheet"
         DUPLICATE_TABLE = "xlsx_duplicate_table"
         NAMED_STYLE_MISSING = "xlsx_named_style_missing"
+        PARITY_FAILED = "xlsx_parity_failed"
         PLAN_INVALID = "xlsx_plan_invalid"
         RANGE_INVALID = "xlsx_range_invalid"
+        RECALC_FAILED = "xlsx_recalc_failed"
         RENDER_FAILED = "xlsx_render_failed"
         SERIALIZE_FAILED = "xlsx_serialize_failed"
         SHEET_MISSING = "xlsx_sheet_missing"

@@ -28,6 +28,7 @@ class FlextCliProtocolsXlsxArchive:
     @runtime_checkable
     class XlsxXmlElement(Protocol):
         tag: str
+        text: str | None
 
         @overload
         def get(self, key: str, default: None = None) -> str | None: ...

@@ -1,24 +1,27 @@
-"""Generic JSON helpers shared through ``u.Cli.json_*``.
+"""JSON navigation and typed extraction helpers behind ``u.Cli.json_*``.
 
-Follows the same pattern as ``_utilities/toml.py`` for TOML helpers.
-All methods use the ``json_`` prefix for namespace consistency.
+Path-walking over nested mappings and safe scalar extraction. Composed into
+``FlextCliUtilitiesJson`` via MRO in ``json.py``; consumes the core mixin
+through the base class.
+
+NOTE (multi-agent): mro-i6nq.13 — extracted from the removed numbered
+``_json_parts`` navigation half (part_02).
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities._json_parts.flextcliutilitiesjson_part_01 import (
-    FlextCliUtilitiesJson as FlextCliUtilitiesJsonPart01,
-)
 from flext_core import u
+
+from ._core import FlextCliUtilitiesJsonCoreMixin
 
 if TYPE_CHECKING:
     from flext_cli import t
 
 
-class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):
-    """Implementation part for FlextCliUtilitiesJson."""
+class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
+    """Navigate nested JSON mappings and extract typed scalar values."""
 
     @staticmethod
     def json_as_mapping_list(
@@ -27,8 +30,8 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):
         """Normalize any JSON-compatible value into a list of mappings."""
         return [
             mapping
-            for item in FlextCliUtilitiesJson.json_as_sequence(value)
-            if (mapping := FlextCliUtilitiesJson.json_as_mapping(item))
+            for item in FlextCliUtilitiesJsonNavigateMixin.json_as_sequence(value)
+            if (mapping := FlextCliUtilitiesJsonNavigateMixin.json_as_mapping(item))
         ]
 
     @staticmethod
@@ -39,7 +42,7 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):
             raw = current.get(key, None)
             if raw is None:
                 return None
-            nested = FlextCliUtilitiesJson.json_as_mapping(raw)
+            nested = FlextCliUtilitiesJsonNavigateMixin.json_as_mapping(raw)
             if not nested:
                 return None
             current = nested
@@ -54,17 +57,17 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):
     def json_deep_mapping(data: t.JsonMapping, *keys: str) -> t.JsonMapping:
         """Navigate nested mappings and normalize the final node as mapping."""
         if not keys:
-            return FlextCliUtilitiesJson.json_as_mapping(data)
-        raw = FlextCliUtilitiesJson.json_walk_path(data, keys)
-        return FlextCliUtilitiesJson.json_as_mapping(raw)
+            return FlextCliUtilitiesJsonNavigateMixin.json_as_mapping(data)
+        raw = FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys)
+        return FlextCliUtilitiesJsonNavigateMixin.json_as_mapping(raw)
 
     @staticmethod
     def json_deep_mapping_list(
         data: t.JsonMapping, *keys: str
     ) -> t.SequenceOf[t.JsonMapping]:
         """Navigate nested mappings and normalize the final node as mapping list."""
-        raw = FlextCliUtilitiesJson.json_walk_path(data, keys)
-        return FlextCliUtilitiesJson.json_as_mapping_list(raw)
+        raw = FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys)
+        return FlextCliUtilitiesJsonNavigateMixin.json_as_mapping_list(raw)
 
     @staticmethod
     def json_pick_str(data: t.JsonMapping, key: str, default: str = "") -> str:
@@ -88,7 +91,9 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):
     def json_nested_int(data: t.JsonMapping, *keys: str, default: int = 0) -> int:
         """Extract an integer from a nested mapping path."""
         parsed = u.parse(
-            FlextCliUtilitiesJson.json_walk_path(data, keys), int, default=default
+            FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys),
+            int,
+            default=default,
         ).unwrap_or(default)
         return int(parsed) if isinstance(parsed, bool) else parsed
 
@@ -97,8 +102,8 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart01):
         mapping: t.JsonMapping, key: str, *, default: str = "", case: str | None = None
     ) -> str:
         """Extract and normalize a string key from a mapping."""
-        raw = FlextCliUtilitiesJson.json_pick_str(mapping, key, default)
+        raw = FlextCliUtilitiesJsonNavigateMixin.json_pick_str(mapping, key, default)
         return u.normalize(raw, case=case)
 
 
-__all__: list[str] = ["FlextCliUtilitiesJson"]
+__all__: list[str] = ["FlextCliUtilitiesJsonNavigateMixin"]

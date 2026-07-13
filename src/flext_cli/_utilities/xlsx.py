@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from .xlsx_archive import FlextCliUtilitiesXlsxArchive
+from .xlsx_recalc import FlextCliUtilitiesXlsxRecalc
 from .xlsx_renderer import FlextCliUtilitiesXlsxRenderer
 from .xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
 from .xlsx_style_catalog import FlextCliUtilitiesXlsxStyleCatalog
 
 
 class FlextCliUtilitiesXlsx(
+    FlextCliUtilitiesXlsxRecalc,
     FlextCliUtilitiesXlsxSnapshot,
     FlextCliUtilitiesXlsxRenderer,
     FlextCliUtilitiesXlsxStyleCatalog,

@@ -1,12 +1,12 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Utilities. Json Parts package."""
+"""Flext Cli. Utilities. Json package."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 # mro-i6nq.10: The package consumes its manifest's public-export contract.
-from flext_cli._utilities._json_parts.__unit__ import (
+from flext_cli._utilities._json.__unit__ import (
     LAZY_ALIAS_GROUPS as _LAZY_ALIAS_GROUPS,
     LAZY_MODULES as _LAZY_MODULES,
     PUBLIC_EXPORTS as _PUBLIC_EXPORTS,
@@ -14,8 +14,11 @@ from flext_cli._utilities._json_parts.__unit__ import (
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._utilities._json_parts.flextcliutilitiesjson_part_03 import (
-        FlextCliUtilitiesJson as FlextCliUtilitiesJson,
+    from flext_cli._utilities._json._core import (
+        FlextCliUtilitiesJsonCoreMixin as FlextCliUtilitiesJsonCoreMixin,
+    )
+    from flext_cli._utilities._json._navigate import (
+        FlextCliUtilitiesJsonNavigateMixin as FlextCliUtilitiesJsonNavigateMixin,
     )
 
     # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.

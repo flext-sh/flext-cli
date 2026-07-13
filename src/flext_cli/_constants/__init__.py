@@ -41,6 +41,10 @@ if TYPE_CHECKING:
     from flext_cli._constants.settings import (
         FlextCliConstantsSettings as FlextCliConstantsSettings,
     )
+    from flext_cli._constants.xlsx import FlextCliConstantsXlsx as FlextCliConstantsXlsx
+    from flext_cli._constants.xlsx_future_functions import (
+        FlextCliConstantsXlsxFutureFunctions as FlextCliConstantsXlsxFutureFunctions,
+    )
 
     # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.
     __all__: tuple[str, ...]

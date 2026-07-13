@@ -33,6 +33,46 @@ if TYPE_CHECKING:
     from flext_cli._models.template import (
         FlextCliModelsTemplate as FlextCliModelsTemplate,
     )
+    from flext_cli._models.xlsx import FlextCliModelsXlsx as FlextCliModelsXlsx
+    from flext_cli._models.xlsx_archive import (
+        FlextCliModelsXlsxArchive as FlextCliModelsXlsxArchive,
+    )
+    from flext_cli._models.xlsx_cells import (
+        FlextCliModelsXlsxCells as FlextCliModelsXlsxCells,
+    )
+    from flext_cli._models.xlsx_layout import (
+        FlextCliModelsXlsxLayout as FlextCliModelsXlsxLayout,
+    )
+    from flext_cli._models.xlsx_recalc import (
+        FlextCliModelsXlsxRecalc as FlextCliModelsXlsxRecalc,
+    )
+    from flext_cli._models.xlsx_rules import (
+        FlextCliModelsXlsxRules as FlextCliModelsXlsxRules,
+    )
+    from flext_cli._models.xlsx_snapshot import (
+        FlextCliModelsXlsxSnapshot as FlextCliModelsXlsxSnapshot,
+    )
+    from flext_cli._models.xlsx_style_catalog import (
+        FlextCliModelsXlsxStyleCatalog as FlextCliModelsXlsxStyleCatalog,
+    )
+    from flext_cli._models.xlsx_style_fills import (
+        FlextCliModelsXlsxStyleFills as FlextCliModelsXlsxStyleFills,
+    )
+    from flext_cli._models.xlsx_style_primitives import (
+        FlextCliModelsXlsxStylePrimitives as FlextCliModelsXlsxStylePrimitives,
+    )
+    from flext_cli._models.xlsx_styles import (
+        FlextCliModelsXlsxStyles as FlextCliModelsXlsxStyles,
+    )
+    from flext_cli._models.xlsx_tables import (
+        FlextCliModelsXlsxTables as FlextCliModelsXlsxTables,
+    )
+    from flext_cli._models.xlsx_validation import (
+        FlextCliModelsXlsxValidation as FlextCliModelsXlsxValidation,
+    )
+    from flext_cli._models.xlsx_workbook import (
+        FlextCliModelsXlsxWorkbook as FlextCliModelsXlsxWorkbook,
+    )
 
     # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.
     __all__: tuple[str, ...]

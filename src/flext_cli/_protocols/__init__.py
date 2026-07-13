@@ -36,6 +36,22 @@ if TYPE_CHECKING:
     from flext_cli._protocols.pipeline import (
         FlextCliProtocolsPipeline as FlextCliProtocolsPipeline,
     )
+    from flext_cli._protocols.xlsx import FlextCliProtocolsXlsx as FlextCliProtocolsXlsx
+    from flext_cli._protocols.xlsx_archive import (
+        FlextCliProtocolsXlsxArchive as FlextCliProtocolsXlsxArchive,
+    )
+    from flext_cli._protocols.xlsx_rules import (
+        FlextCliProtocolsXlsxRules as FlextCliProtocolsXlsxRules,
+    )
+    from flext_cli._protocols.xlsx_snapshot import (
+        FlextCliProtocolsXlsxSnapshot as FlextCliProtocolsXlsxSnapshot,
+    )
+    from flext_cli._protocols.xlsx_snapshot_structure import (
+        FlextCliProtocolsXlsxSnapshotStructure as FlextCliProtocolsXlsxSnapshotStructure,
+    )
+    from flext_cli._protocols.xlsx_workbook import (
+        FlextCliProtocolsXlsxWorkbook as FlextCliProtocolsXlsxWorkbook,
+    )
 
     # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.
     __all__: tuple[str, ...]

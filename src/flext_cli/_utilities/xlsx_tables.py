@@ -10,6 +10,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 from flext_cli import c, m, p, r
 
 from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
 
 
 class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
@@ -71,7 +72,9 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
                     f"{cls._sheet_ref(plan.sheet)}!{cls._absolute_range_ref(plan.area)}"
                 )
             else:
-                expression = plan.expression
+                expression = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
+                    plan.expression
+                )
             workbook.defined_names.add(
                 DefinedName(name=plan.name, attr_text=expression)
             )

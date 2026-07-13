@@ -13,6 +13,12 @@ LAZY_MODULES: dict[str, tuple[str, ...]] = {
     ".domain": ("FlextCliProtocolsDomain",),
     ".framework": ("FlextCliProtocolsFramework",),
     ".pipeline": ("FlextCliProtocolsPipeline",),
+    ".xlsx": ("FlextCliProtocolsXlsx",),
+    ".xlsx_archive": ("FlextCliProtocolsXlsxArchive",),
+    ".xlsx_rules": ("FlextCliProtocolsXlsxRules",),
+    ".xlsx_snapshot": ("FlextCliProtocolsXlsxSnapshot",),
+    ".xlsx_snapshot_structure": ("FlextCliProtocolsXlsxSnapshotStructure",),
+    ".xlsx_workbook": ("FlextCliProtocolsXlsxWorkbook",),
 }
 
 
@@ -31,5 +37,11 @@ PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliProtocolsDomain",
     "FlextCliProtocolsFramework",
     "FlextCliProtocolsPipeline",
+    "FlextCliProtocolsXlsx",
+    "FlextCliProtocolsXlsxArchive",
+    "FlextCliProtocolsXlsxRules",
+    "FlextCliProtocolsXlsxSnapshot",
+    "FlextCliProtocolsXlsxSnapshotStructure",
+    "FlextCliProtocolsXlsxWorkbook",
     "_base_parts",
 )

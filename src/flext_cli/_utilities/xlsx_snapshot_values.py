@@ -18,7 +18,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
     # NOTE (multi-agent, mro-j2yt.1): external cell primitives are validated
     # once into XlsxCellValue and vendor instances never leave this utility.
     @staticmethod
-    def _style_name(cell: Cell) -> str | None:
+    def _snapshot_style_name(cell: Cell) -> str | None:
         try:
             return cell.style
         except IndexError:
@@ -125,7 +125,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                 ),
                 value=value,
                 formula=formula,
-                style_name=cls._style_name(formula_cell),
+                style_name=cls._snapshot_style_name(formula_cell),
                 style_id=formula_cell.style_id,
                 number_format=formula_cell.number_format,
                 locked=formula_cell.protection.locked,

@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities import (
         _file_test_helper_parts as _file_test_helper_parts,
         _files_parts as _files_parts,
-        _json_parts as _json_parts,
+        _json as _json,
         _options_parts as _options_parts,
         _rules_parts as _rules_parts,
         _toml_parts as _toml_parts,
@@ -38,8 +38,11 @@ if TYPE_CHECKING:
     from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04 import (
         FlextCliUtilitiesFiles as FlextCliUtilitiesFiles,
     )
-    from flext_cli._utilities._json_parts.flextcliutilitiesjson_part_03 import (
-        FlextCliUtilitiesJson as FlextCliUtilitiesJson,
+    from flext_cli._utilities._json._core import (
+        FlextCliUtilitiesJsonCoreMixin as FlextCliUtilitiesJsonCoreMixin,
+    )
+    from flext_cli._utilities._json._navigate import (
+        FlextCliUtilitiesJsonNavigateMixin as FlextCliUtilitiesJsonNavigateMixin,
     )
     from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
         FlextCliUtilitiesOptionBuilder as FlextCliUtilitiesOptionBuilder,
@@ -79,6 +82,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities.framework import (
         FlextCliUtilitiesFramework as FlextCliUtilitiesFramework,
     )
+    from flext_cli._utilities.json import FlextCliUtilitiesJson as FlextCliUtilitiesJson
     from flext_cli._utilities.matching import (
         FlextCliUtilitiesMatching as FlextCliUtilitiesMatching,
     )
@@ -139,6 +143,12 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities.xlsx_protection import (
         FlextCliUtilitiesXlsxProtection as FlextCliUtilitiesXlsxProtection,
+    )
+    from flext_cli._utilities.xlsx_recalc import (
+        FlextCliUtilitiesXlsxRecalc as FlextCliUtilitiesXlsxRecalc,
+    )
+    from flext_cli._utilities.xlsx_recalc_evidence import (
+        FlextCliUtilitiesXlsxRecalcEvidence as FlextCliUtilitiesXlsxRecalcEvidence,
     )
     from flext_cli._utilities.xlsx_renderer import (
         FlextCliUtilitiesXlsxRenderer as FlextCliUtilitiesXlsxRenderer,

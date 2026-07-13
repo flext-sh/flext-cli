@@ -8,6 +8,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 from flext_cli import c, m, p, r, t
 
 from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
 
 
 class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
@@ -69,18 +70,28 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
             formula1 = (
                 cls._inline_formula(plan.source.values)
                 if plan.source.kind == "values"
-                else plan.source.expression
+                else FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
+                    plan.source.expression
+                )
             )
         elif plan.kind == "custom":
-            formula1 = plan.expression
+            formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
+                plan.expression
+            )
         else:
             comparison = plan.comparison
             operator = cls._comparison_operator(comparison.mode)
             if isinstance(comparison, m.Cli.XlsxRangeComparison):
-                formula1 = comparison.minimum
-                formula2 = comparison.maximum
+                formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
+                    comparison.minimum
+                )
+                formula2 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
+                    comparison.maximum
+                )
             else:
-                formula1 = comparison.expression
+                formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
+                    comparison.expression
+                )
         return DataValidation(
             type=cls._validation_type(plan.kind),
             formula1=formula1,

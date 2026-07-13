@@ -15,7 +15,7 @@ from flext_cli import cli, m, p
 
 def test_xlsx_datetime_rejects_unrepresentable_timezone() -> None:
     """XLSX ingress fails before vendor serialization for aware datetimes."""
-    with pytest.raises(ValueError, match="must not contain timezone"):
+    with pytest.raises(ValueError, match="Input should not have timezone info"):
         m.Cli.XlsxDateTimeValue(value=dt.datetime(2026, 7, 13, tzinfo=dt.UTC))
 
 

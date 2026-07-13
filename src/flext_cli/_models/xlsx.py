@@ -5,6 +5,7 @@ from __future__ import annotations
 from .xlsx_archive import FlextCliModelsXlsxArchive
 from .xlsx_cells import FlextCliModelsXlsxCells
 from .xlsx_layout import FlextCliModelsXlsxLayout
+from .xlsx_recalc import FlextCliModelsXlsxRecalc
 from .xlsx_rules import FlextCliModelsXlsxRules
 from .xlsx_snapshot import FlextCliModelsXlsxSnapshot
 from .xlsx_style_catalog import FlextCliModelsXlsxStyleCatalog
@@ -16,6 +17,7 @@ from .xlsx_workbook import FlextCliModelsXlsxWorkbook
 
 class FlextCliModelsXlsx(
     FlextCliModelsXlsxSnapshot,
+    FlextCliModelsXlsxRecalc,
     FlextCliModelsXlsxWorkbook,
     FlextCliModelsXlsxArchive,
     FlextCliModelsXlsxStyleCatalog,

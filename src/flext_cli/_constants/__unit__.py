@@ -21,6 +21,8 @@ LAZY_MODULES: dict[str, tuple[str, ...]] = {
     ".output": ("FlextCliConstantsOutput",),
     ".pipeline": ("FlextCliConstantsPipeline",),
     ".settings": ("FlextCliConstantsSettings",),
+    ".xlsx": ("FlextCliConstantsXlsx",),
+    ".xlsx_future_functions": ("FlextCliConstantsXlsxFutureFunctions",),
 }
 
 
@@ -45,4 +47,6 @@ PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliConstantsOutput",
     "FlextCliConstantsPipeline",
     "FlextCliConstantsSettings",
+    "FlextCliConstantsXlsx",
+    "FlextCliConstantsXlsxFutureFunctions",
 )
