@@ -31,8 +31,11 @@ from flext_core.lazy import (
 
 if TYPE_CHECKING:
     from flext_cli import services as services
-    from flext_cli._config import config as config
-    from flext_cli._settings import settings as settings
+    from flext_cli._config import FlextCliConfig as FlextCliConfig, config as config
+    from flext_cli._settings import (
+        FlextCliSettings as FlextCliSettings,
+        settings as settings,
+    )
     from flext_cli.api import FlextCli as FlextCli, cli as cli
     from flext_cli.base import FlextCliServiceBase as FlextCliServiceBase, s as s
     from flext_cli.constants import FlextCliConstants as FlextCliConstants, c as c

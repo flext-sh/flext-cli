@@ -8,8 +8,8 @@ lazy (PEP 562) import access; sibling ``__all__`` discovery is the upstream sour
 from __future__ import annotations
 
 LAZY_MODULES: dict[str, tuple[str, ...]] = {
-    "._config": ("config",),
-    "._settings": ("settings",),
+    "._config": ("FlextCliConfig", "config"),
+    "._settings": ("FlextCliSettings", "settings"),
     ".api": ("FlextCli", "cli"),
     ".base": ("FlextCliServiceBase", "s"),
     ".constants": ("FlextCliConstants", "c"),
@@ -49,6 +49,7 @@ PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommonParams",
+    "FlextCliConfig",
     "FlextCliConstants",
     "FlextCliFileTools",
     "FlextCliFormatters",
@@ -61,6 +62,7 @@ PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliRules",
     "FlextCliRuntime",
     "FlextCliServiceBase",
+    "FlextCliSettings",
     "FlextCliTables",
     "FlextCliTypes",
     "FlextCliUtilities",
