@@ -31,22 +31,13 @@ from flext_core.lazy import (
 
 if TYPE_CHECKING:
     from flext_cli import services as services
-    from flext_cli._config import FlextCliConfig as FlextCliConfig, config as config
-    from flext_cli._settings import (
-        FlextCliSettings as FlextCliSettings,
-        settings as settings,
-    )
+    from flext_cli._config import config as config
+    from flext_cli._settings import settings as settings
     from flext_cli.api import FlextCli as FlextCli, cli as cli
     from flext_cli.base import FlextCliServiceBase as FlextCliServiceBase, s as s
     from flext_cli.constants import FlextCliConstants as FlextCliConstants, c as c
     from flext_cli.models import FlextCliModels as FlextCliModels, m as m
     from flext_cli.protocols import FlextCliProtocols as FlextCliProtocols, p as p
-    from flext_cli.services._prompts_parts.flextcliprompts_part_03 import (
-        FlextCliPrompts as FlextCliPrompts,
-    )
-    from flext_cli.services._prompts_parts.flextcliprompts_support import (
-        FlextCliPromptsSupport as FlextCliPromptsSupport,
-    )
     from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
     from flext_cli.services.cli import FlextCliCli as FlextCliCli
     from flext_cli.services.cli_params import (
@@ -57,6 +48,7 @@ if TYPE_CHECKING:
     from flext_cli.services.formatters import FlextCliFormatters as FlextCliFormatters
     from flext_cli.services.output import FlextCliOutput as FlextCliOutput
     from flext_cli.services.pipeline import FlextCliPipeline as FlextCliPipeline
+    from flext_cli.services.prompts import FlextCliPrompts as FlextCliPrompts
     from flext_cli.services.rules import FlextCliRules as FlextCliRules
     from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
     from flext_cli.services.tables import FlextCliTables as FlextCliTables

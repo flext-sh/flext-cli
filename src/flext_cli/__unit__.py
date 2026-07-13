@@ -8,15 +8,13 @@ lazy (PEP 562) import access; sibling ``__all__`` discovery is the upstream sour
 from __future__ import annotations
 
 LAZY_MODULES: dict[str, tuple[str, ...]] = {
-    "._config": ("FlextCliConfig", "config"),
-    "._settings": ("FlextCliSettings", "settings"),
+    "._config": ("config",),
+    "._settings": ("settings",),
     ".api": ("FlextCli", "cli"),
     ".base": ("FlextCliServiceBase", "s"),
     ".constants": ("FlextCliConstants", "c"),
     ".models": ("FlextCliModels", "m"),
     ".protocols": ("FlextCliProtocols", "p"),
-    ".services._prompts_parts.flextcliprompts_part_03": ("FlextCliPrompts",),
-    ".services._prompts_parts.flextcliprompts_support": ("FlextCliPromptsSupport",),
     ".services.auth": ("FlextCliAuth",),
     ".services.cli": ("FlextCliCli",),
     ".services.cli_params": ("FlextCliCommonParams",),
@@ -25,6 +23,7 @@ LAZY_MODULES: dict[str, tuple[str, ...]] = {
     ".services.formatters": ("FlextCliFormatters",),
     ".services.output": ("FlextCliOutput",),
     ".services.pipeline": ("FlextCliPipeline",),
+    ".services.prompts": ("FlextCliPrompts",),
     ".services.rules": ("FlextCliRules",),
     ".services.runtime": ("FlextCliRuntime",),
     ".services.tables": ("FlextCliTables",),
@@ -40,7 +39,7 @@ LAZY_ALIAS_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {}
 CHILD_MODULE_PATHS: tuple[str, ...] = (".services",)
 
 
-EXCLUDED_LAZY_NAMES: tuple[str, ...] = ("_cli_parts", "_prompts_parts")
+EXCLUDED_LAZY_NAMES: tuple[str, ...] = ("_cli_parts",)
 
 
 PUBLIC_EXPORTS: tuple[str, ...] = (
@@ -49,7 +48,6 @@ PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliCli",
     "FlextCliCmd",
     "FlextCliCommonParams",
-    "FlextCliConfig",
     "FlextCliConstants",
     "FlextCliFileTools",
     "FlextCliFormatters",
@@ -57,12 +55,10 @@ PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliOutput",
     "FlextCliPipeline",
     "FlextCliPrompts",
-    "FlextCliPromptsSupport",
     "FlextCliProtocols",
     "FlextCliRules",
     "FlextCliRuntime",
     "FlextCliServiceBase",
-    "FlextCliSettings",
     "FlextCliTables",
     "FlextCliTypes",
     "FlextCliUtilities",

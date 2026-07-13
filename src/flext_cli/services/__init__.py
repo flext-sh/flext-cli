@@ -20,16 +20,7 @@ from flext_core.lazy import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli.services import (
-        _cli_parts as _cli_parts,
-        _prompts_parts as _prompts_parts,
-    )
-    from flext_cli.services._prompts_parts.flextcliprompts_part_03 import (
-        FlextCliPrompts as FlextCliPrompts,
-    )
-    from flext_cli.services._prompts_parts.flextcliprompts_support import (
-        FlextCliPromptsSupport as FlextCliPromptsSupport,
-    )
+    from flext_cli.services import _cli_parts as _cli_parts
     from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
     from flext_cli.services.cli import FlextCliCli as FlextCliCli
     from flext_cli.services.cli_params import (
@@ -40,6 +31,7 @@ if TYPE_CHECKING:
     from flext_cli.services.formatters import FlextCliFormatters as FlextCliFormatters
     from flext_cli.services.output import FlextCliOutput as FlextCliOutput
     from flext_cli.services.pipeline import FlextCliPipeline as FlextCliPipeline
+    from flext_cli.services.prompts import FlextCliPrompts as FlextCliPrompts
     from flext_cli.services.rules import FlextCliRules as FlextCliRules
     from flext_cli.services.runtime import FlextCliRuntime as FlextCliRuntime
     from flext_cli.services.tables import FlextCliTables as FlextCliTables
