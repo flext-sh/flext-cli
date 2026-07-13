@@ -26,6 +26,7 @@ class FlextCliConstantsFiles:
         BIN = "bin"
         JSON = "json"
         YAML = "yaml"
+        TOML = "toml"
         CSV = "csv"
         UNKNOWN = "unknown"
 
@@ -34,6 +35,7 @@ class FlextCliConstantsFiles:
     FILE_FORMAT_BIN: Final[FileFormat] = FileFormat.BIN
     FILE_FORMAT_JSON: Final[FileFormat] = FileFormat.JSON
     FILE_FORMAT_YAML: Final[FileFormat] = FileFormat.YAML
+    FILE_FORMAT_TOML: Final[FileFormat] = FileFormat.TOML
     FILE_FORMAT_CSV: Final[FileFormat] = FileFormat.CSV
     FILE_FORMAT_UNKNOWN: Final[FileFormat] = FileFormat.UNKNOWN
 
