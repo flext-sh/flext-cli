@@ -10,7 +10,9 @@ from collections.abc import (
     Mapping,
     Sequence,
 )
-from typing import TYPE_CHECKING, ClassVar
+from pathlib import Path
+from types import MappingProxyType
+from typing import ClassVar
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._json_parts.flextcliutilitiesjson_part_03 import (
@@ -18,8 +20,8 @@ from flext_cli._utilities._json_parts.flextcliutilitiesjson_part_03 import (
 )
 from flext_core import u
 
-if TYPE_CHECKING:
-    from pathlib import Path
+_EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
+_EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()
 
 
 class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
@@ -55,10 +57,10 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
     def json_read(path: Path) -> p.Result[t.JsonMapping]:
         """Read and parse a JSON file.
 
-        Returns empty mapping if file does not exist.
+        Missing files fail loud; callers decide whether absence is valid.
         """
         if not path.exists():
-            return r[t.JsonMapping].ok({})
+            return r[t.JsonMapping].fail(f"json_read: file not found: {path}")
         try:
             raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
             loaded: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
@@ -105,10 +107,10 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
     ) -> t.JsonMapping:
         """Normalize any JSON-compatible value into a mapping."""
         if value is None:
-            return {}
+            return _EMPTY_JSON_MAPPING
         normalized: t.JsonValue = u.normalize_to_json_value(value)
         if not isinstance(normalized, Mapping):
-            return {}
+            return _EMPTY_JSON_MAPPING
         return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
 
     @staticmethod
@@ -117,10 +119,10 @@ class FlextCliUtilitiesJson(FlextCliUtilitiesJsonPart03):
     ) -> t.SequenceOf[t.JsonValue]:
         """Normalize any JSON-compatible value into a JSON sequence."""
         if value is None:
-            return []
+            return _EMPTY_JSON_SEQUENCE
         normalized: t.JsonValue = u.normalize_to_json_value(value)
         if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
-            return []
+            return _EMPTY_JSON_SEQUENCE
         return t.Cli.JSON_LIST_ADAPTER.validate_python(normalized)
 
 

@@ -58,10 +58,11 @@ class FlextCliUtilitiesToml:
             value.unwrap() if isinstance(value, TOMLDocument | Item) else value
         )
         if normalized is None or isinstance(normalized, str | bytes):
-            return []
+            return ()
         if not isinstance(normalized, Sequence):
-            return []
-        return [str(item) for item in normalized]
+            return ()
+        # NOTE (multi-agent): String sequences are immutable at this boundary.
+        return tuple(str(item) for item in normalized)
 
     @staticmethod
     def toml_array(items: t.StrSequence) -> Array:

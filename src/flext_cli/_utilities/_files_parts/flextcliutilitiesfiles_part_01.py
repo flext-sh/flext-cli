@@ -83,9 +83,10 @@ class FlextCliUtilitiesFiles:
     @staticmethod
     def files_read_json_model[M: t.Cli.ModelLike](
         file_path: t.Cli.TextPath,
-        model_type: type[M],
+        model_type: p.Cli.ModelType[M],
     ) -> p.Result[M]:
         """Read one JSON file directly into one Pydantic model."""
+        # NOTE (multi-agent): Model classes use the canonical p.Cli contract.
 
         def _load() -> M:
             raw = Path(file_path).read_bytes()

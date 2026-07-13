@@ -5,10 +5,13 @@ from __future__ import annotations
 from collections.abc import (
     Mapping,
 )
+from types import MappingProxyType
 from typing import Annotated, ClassVar
 
 from flext_cli import c, t
 from flext_core import m, u
+
+_EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 
 
 class FlextCliModelsBase:
@@ -92,7 +95,7 @@ class FlextCliModelsBase:
                             for k, vv in source_mapping.items()
                         }
                         if source_mapping is not None
-                        else {}
+                        else _EMPTY_JSON_MAPPING
                     )
                 case _:
                     resolved_value = default_value
@@ -109,7 +112,8 @@ class FlextCliModelsBase:
                     k: t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
                     for k, vv in self.default.items()
                 }
-            return {}
+            # NOTE (multi-agent): Empty mapping is immutable and typed once.
+            return _EMPTY_JSON_MAPPING
 
     class JsonWriteOptions(m.BaseModel):
         """Options for JSON file write operations."""

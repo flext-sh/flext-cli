@@ -134,11 +134,12 @@ class FlextCliUtilitiesTables:
         """Render normalized rows to a tabulated string."""
         headers: str | t.StrSequence
         if not settings.show_header or settings.headers is None:
-            headers = []
+            # NOTE (multi-agent): Empty headers use the immutable sequence contract.
+            headers = ()
         elif isinstance(settings.headers, str):
             headers = settings.headers
         else:
-            headers = list(settings.headers)
+            headers = tuple(settings.headers)
 
         colalign = settings.colalign
         if isinstance(headers, str):

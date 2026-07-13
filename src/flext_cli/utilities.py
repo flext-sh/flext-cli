@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
-from flext_core import FlextUtilities as _FlextCoreUtilitiesBase
+from flext_core import u
 
 
-class FlextCliUtilities(_FlextCoreUtilitiesBase):
+class FlextCliUtilities(u):
     """CLI utility facade composed from internal utility mixins."""
 
     # NOTE (multi-agent): mro-wkii.17.17 publishes the canonical class directly.

@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from inspect import Parameter
 from typing import TYPE_CHECKING
 
 from typer.testing import CliRunner
@@ -22,8 +23,8 @@ from flext_cli.services._cli_parts.flextclicli_part_02 import (
 )
 
 if TYPE_CHECKING:
-    from inspect import Parameter
-
+    # mro-j47u (codex): the earlier MRO part is referenced only by annotation;
+    # inspect.Parameter remains runtime because it constructs the CLI signature.
     from flext_cli.services._cli_parts.flextclicli_part_01 import (
         FlextCliCli as FlextCliCliPart01,
     )
@@ -35,7 +36,7 @@ class FlextCliCli(FlextCliCliPart02):
     @classmethod
     def model_command[M: t.Cli.ModelLike](
         cls,
-        model_cls: t.Cli.ModelType[M],
+        model_cls: p.Cli.ModelType[M],
         handler: p.Cli.ModelCommandHandler[M],
         settings: t.Cli.ModelLike | None = None,
     ) -> t.Cli.CliCommand:
@@ -69,6 +70,10 @@ class FlextCliCli(FlextCliCliPart02):
         overrides: t.ScalarMapping | None = None,
     ) -> M:
         """Derive a target Pydantic model from ordered model/mapping sources."""
+        # NOTE (multi-agent): Route model classes through the canonical protocol.
+        if not isinstance(model_cls, p.Cli.ModelType):
+            message = "model_cls must implement p.Cli.ModelType"
+            raise TypeError(message)
         merged: t.MutableJsonMapping = {}
         for source in sources:
             merged.update(u.Cli.model_source_data(model_cls, source))

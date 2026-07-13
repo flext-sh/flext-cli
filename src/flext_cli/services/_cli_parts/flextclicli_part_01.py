@@ -11,7 +11,7 @@ from collections.abc import (
     Sequence,
 )
 from inspect import Parameter, Signature
-from typing import TYPE_CHECKING
+from types import EllipsisType, GenericAlias
 
 from typer.models import OptionInfo
 
@@ -21,9 +21,6 @@ from flext_cli import (
     t,
     u,
 )
-
-if TYPE_CHECKING:
-    from types import EllipsisType, GenericAlias
 
 
 class FlextCliCli:

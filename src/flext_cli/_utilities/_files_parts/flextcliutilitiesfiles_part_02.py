@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import csv
+import os
 import shutil
+import tempfile
 from pathlib import Path
 
 from flext_cli import c, p, r, t
@@ -40,16 +42,54 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_write_binary(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
-        """Write one binary file."""
+        """Write one binary file atomically in its destination directory."""
+        path = Path(file_path)
+        ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
+        if ensure_result.failure:
+            return r[bool].fail(
+                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED,
+            )
+        try:
+            FlextCliUtilitiesFiles._write_temp_and_replace(path, data)
+        except OSError as exc:
+            return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
+        return r[bool].ok(True)
 
-        def _write() -> bool:
-            Path(file_path).write_bytes(data)
-            return True
+    @staticmethod
+    def atomic_write_text_file(
+        file_path: t.Cli.TextPath,
+        content: str,
+    ) -> p.Result[bool]:
+        """Write a text file atomically via the shared byte primitive."""
+        path = Path(file_path)
+        ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
+        if ensure_result.failure:
+            return r[bool].fail(
+                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED,
+            )
+        try:
+            FlextCliUtilitiesFiles._write_temp_and_replace(
+                path,
+                content.encode(c.Cli.ENCODING_DEFAULT),
+            )
+        except OSError as exc:
+            return r[bool].fail(
+                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
+            )
+        return r[bool].ok(True)
 
-        return FlextCliUtilitiesFiles.files_execute(
-            _write,
-            c.Cli.ERR_BINARY_WRITE_FAILED,
-        )
+    @staticmethod
+    def _write_temp_and_replace(path: Path, content: bytes) -> None:
+        """Persist bytes to a sibling temporary file, then atomically replace."""
+        # NOTE (multi-agent): Text and binary share this one atomic-write owner.
+        fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
+        try:
+            with os.fdopen(fd, "wb") as handle:
+                handle.write(content)
+            Path(tmp_path).replace(path)
+        except BaseException:
+            Path(tmp_path).unlink(missing_ok=True)
+            raise
 
     @staticmethod
     def files_copy(

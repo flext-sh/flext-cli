@@ -21,10 +21,11 @@ class FlextCliUtilitiesConversion:
 
     @staticmethod
     def cli_args_to_model[M: t.Cli.ModelLike](
-        model_class: t.Cli.ModelType[M],
+        model_class: p.Cli.ModelType[M],
         cli_args: t.JsonMapping,
     ) -> p.Result[M]:
         """Convert a CLI args mapping into a validated Pydantic model."""
+        # NOTE (multi-agent): Keep one model-class protocol across CLI utilities.
         try:
             instance: M = model_class.model_validate(cli_args)
             return r[M].ok(instance)

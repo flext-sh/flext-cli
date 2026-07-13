@@ -26,7 +26,7 @@ class FlextCliUtilitiesModelCommands:
 
         def __init__(
             self,
-            model_class: t.Cli.ModelType[M],
+            model_class: p.Cli.ModelType[M],
             handler: Callable[[M], t.JsonValue],
             settings: t.Cli.ModelLike | None = None,
         ) -> None:
@@ -94,7 +94,7 @@ class FlextCliUtilitiesModelCommands:
 
     @staticmethod
     def model_source_data(
-        model_cls: t.Cli.ModelType[t.Cli.ModelLike],
+        model_cls: p.Cli.ModelType[t.Cli.ModelLike],
         source: t.Cli.ModelSource,
     ) -> t.JsonMapping:
         """Extract only target-compatible fields from a model or mapping source."""
@@ -118,6 +118,9 @@ class FlextCliUtilitiesModelCommands:
         overrides: t.ScalarMapping | None = None,
     ) -> M:
         """Derive a target model from ordered model/mapping sources."""
+        if not isinstance(model_cls, p.Cli.ModelType):
+            message = "model_cls must implement p.Cli.ModelType"
+            raise TypeError(message)
         merged: t.MutableJsonMapping = {}
         for source in sources:
             merged.update(cls.model_source_data(model_cls, source))
@@ -128,11 +131,12 @@ class FlextCliUtilitiesModelCommands:
 
     @staticmethod
     def build_model_command[M: t.Cli.ModelLike](
-        model_class: t.Cli.ModelType[M],
+        model_class: p.Cli.ModelType[M],
         handler: Callable[[M], t.JsonValue],
         settings: t.Cli.ModelLike | None = None,
     ) -> t.Cli.CliCommand:
         """Build a model command through the canonical CLI service."""
+        # NOTE (multi-agent): All model-class ingress uses p.Cli.ModelType.
         return FlextCliUtilitiesModelCommands.Builder(
             model_class=model_class,
             handler=handler,

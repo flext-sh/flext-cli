@@ -5,7 +5,9 @@ from __future__ import annotations
 from collections.abc import (
     MutableMapping,
 )
-from typing import TYPE_CHECKING
+
+from tomlkit.items import Table
+from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import t
 from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
@@ -15,10 +17,6 @@ from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_02 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart02,
 )
 from flext_core import u
-
-if TYPE_CHECKING:
-    from tomlkit.items import Table
-    from tomlkit.toml_document import TOMLDocument
 
 
 class FlextCliUtilitiesToml:
@@ -78,9 +76,12 @@ class FlextCliUtilitiesToml:
             return existing
         if u.mapping(existing):
             normalized_mapping = FlextCliUtilitiesTomlPart01.toml_as_mapping(existing)
-            normalized_table = dict(normalized_mapping) if normalized_mapping else {}
+            normalized_table: t.JsonDict = (
+                dict(normalized_mapping) if normalized_mapping else {}
+            )
             parent[key] = normalized_table
             return normalized_table
+        # NOTE (multi-agent): TOML mutation requires this explicitly typed table.
         table: t.JsonDict = {}
         parent[key] = table
         return table

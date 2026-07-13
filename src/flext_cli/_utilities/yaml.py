@@ -9,7 +9,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from pathlib import Path
+from types import MappingProxyType
+from typing import ClassVar
 
 from yaml import safe_dump, safe_load
 
@@ -23,8 +25,8 @@ from flext_cli._utilities._yaml_roundtrip_parts.flextcliutilitiesyamlroundtrip_p
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_core import u
 
-if TYPE_CHECKING:
-    from pathlib import Path
+_EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
+_EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()
 
 
 class FlextCliUtilitiesYaml(
@@ -78,7 +80,7 @@ class FlextCliUtilitiesYaml(
         except c.Cli.YamlParseError as exc:
             return r[t.JsonMapping].fail(f"YAML parse error: {exc}")
         if parsed is None:
-            return r[t.JsonMapping].ok({})
+            return r[t.JsonMapping].fail("YAML content is empty")
         if not u.mapping(parsed):
             return r[t.JsonMapping].fail(
                 f"YAML content is not a mapping: {type(parsed).__name__}",
@@ -100,7 +102,7 @@ class FlextCliUtilitiesYaml(
         Ergonomic shorthand — use ``yaml_safe_load`` when you need ``r[T]`` semantics.
         """
         return FlextCliUtilitiesYaml.yaml_safe_load(path).unwrap_or(
-            default if default is not None else {},
+            default if default is not None else _EMPTY_JSON_MAPPING,
         )
 
     @staticmethod
@@ -125,12 +127,12 @@ class FlextCliUtilitiesYaml(
         ``u.try_`` at the boundary rather than swallowed inline.
         """
         if not path.is_file():
-            return []
+            return _EMPTY_JSON_SEQUENCE
         return u.try_(
             lambda: FlextCliUtilitiesYaml._yaml_parse_list(path),
             catch=(OSError, c.Cli.YamlParseError, TypeError, c.ValidationError),
             op_name="yaml_load_list",
-        ).unwrap_or([])
+        ).unwrap_or(_EMPTY_JSON_SEQUENCE)
 
     # ------------------------------------------------------------------
     # Writing
