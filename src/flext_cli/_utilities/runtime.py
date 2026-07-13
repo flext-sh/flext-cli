@@ -81,6 +81,44 @@ class FlextCliUtilitiesRuntime:
         )
 
     @staticmethod
+    def run_bytes(
+        cmd: t.StrSequence,
+        cwd: t.Cli.TextPath | None = None,
+        timeout: int | None = None,
+        env: t.StrMapping | None = None,
+        remove_env_keys: t.StrSequence = (),
+        input_data: bytes | None = None,
+    ) -> p.Result[m.Cli.CommandBytesOutput]:
+        """Run a command capturing byte-exact stdout/stderr (no text decoding)."""
+        start = time.monotonic()
+        try:
+            result = subprocess.run(
+                list(cmd),
+                cwd=cwd,
+                capture_output=True,
+                text=False,
+                check=False,
+                timeout=timeout,
+                env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
+                input=input_data,
+            )
+        except subprocess.TimeoutExpired as exc:
+            return r[m.Cli.CommandBytesOutput].fail(
+                f"timeout {exc.timeout}s: {shlex.join(list(cmd))}"
+            )
+        except c.EXC_OS_VALUE as exc:
+            return r[m.Cli.CommandBytesOutput].fail(f"execution error: {exc}")
+        duration = max(0.0, time.monotonic() - start)
+        return r[m.Cli.CommandBytesOutput].ok(
+            m.Cli.CommandBytesOutput(
+                stdout=result.stdout or b"",
+                stderr=result.stderr or b"",
+                exit_code=result.returncode,
+                duration=duration,
+            )
+        )
+
+    @staticmethod
     def run(
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
