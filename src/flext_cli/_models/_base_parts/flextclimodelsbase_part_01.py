@@ -23,6 +23,20 @@ class FlextCliModelsBase:
             t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
         ] = 0.0
 
+    class CommandBytesOutput(m.Value):
+        """Byte-exact external command payload. Use m.Cli.CommandBytesOutput."""
+
+        stdout: Annotated[
+            bytes, m.Field(b"", description="Captured standard output as raw bytes")
+        ] = b""
+        stderr: Annotated[
+            bytes, m.Field(b"", description="Captured standard error as raw bytes")
+        ] = b""
+        exit_code: Annotated[int, m.Field(description="Command exit code")] = 0
+        duration: Annotated[
+            t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
+        ] = 0.0
+
     class RuntimeComponents(m.BaseModel):
         """Availability state for canonical CLI runtime components."""
 
