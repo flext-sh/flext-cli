@@ -8,13 +8,11 @@ from openpyxl.styles.differential import DifferentialStyle
 from openpyxl.styles.numbers import NumberFormat, builtin_format_id
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli._constants.xlsx import FlextCliConstantsXlsx
-from flext_cli._models.xlsx_rules import FlextCliModelsXlsxRules
-from flext_cli._models.xlsx_styles import FlextCliModelsXlsxStyles
-from flext_cli._models.xlsx_validation import FlextCliModelsXlsxValidation
-from flext_core import p, r
+# mro-j47u (kimi): utilities consume local facades only, never private modules.
+from flext_cli import c, m, p, r
 
 from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
 from .xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
 from .xlsx_validations import FlextCliUtilitiesXlsxValidations
 
@@ -31,27 +29,25 @@ class FlextCliUtilitiesXlsxConditional(
     @classmethod
     def _registered_style(
         cls, worksheet: Worksheet, name: str
-    ) -> p.Result[FlextCliModelsXlsxStyles.XlsxNamedStyleSpec]:
+    ) -> p.Result[m.Cli.XlsxNamedStyleSpec]:
         try:
             probe = Cell(worksheet, row=1, column=1)
             probe.style = name
         except (KeyError, ValueError):
-            return r[FlextCliModelsXlsxStyles.XlsxNamedStyleSpec].fail(
-                f"{FlextCliConstantsXlsx.XlsxError.NAMED_STYLE_MISSING}: {name}"
+            return r[m.Cli.XlsxNamedStyleSpec].fail(
+                f"{c.Cli.XlsxError.NAMED_STYLE_MISSING}: {name}"
             )
         visual = cls._visual_from_styleable(probe)
         if visual.failure:
-            return r[FlextCliModelsXlsxStyles.XlsxNamedStyleSpec].fail(
+            return r[m.Cli.XlsxNamedStyleSpec].fail(
                 visual.error or f"Failed to read registered style: {name}"
             )
-        return r[FlextCliModelsXlsxStyles.XlsxNamedStyleSpec].ok(
-            FlextCliModelsXlsxStyles.XlsxNamedStyleSpec(name=name, visual=visual.value)
+        return r[m.Cli.XlsxNamedStyleSpec].ok(
+            m.Cli.XlsxNamedStyleSpec(name=name, visual=visual.value)
         )
 
     @classmethod
-    def _differential_style(
-        cls, spec: FlextCliModelsXlsxStyles.XlsxNamedStyleSpec
-    ) -> DifferentialStyle:
+    def _differential_style(cls, spec: m.Cli.XlsxNamedStyleSpec) -> DifferentialStyle:
         visual = spec.visual
         number_format_id = builtin_format_id(visual.number_format) or 0
         return DifferentialStyle(
@@ -66,9 +62,7 @@ class FlextCliUtilitiesXlsxConditional(
 
     @classmethod
     def _rule(
-        cls,
-        plan: FlextCliModelsXlsxRules.XlsxConditionalFormatPlan,
-        style: FlextCliModelsXlsxStyles.XlsxNamedStyleSpec,
+        cls, plan: m.Cli.XlsxConditionalFormatPlan, style: m.Cli.XlsxNamedStyleSpec
     ) -> Rule:
         differential = cls._differential_style(style)
         if plan.kind == "contains_text":
@@ -86,12 +80,15 @@ class FlextCliUtilitiesXlsxConditional(
         if plan.kind == "formula":
             return Rule(
                 type="expression",
-                formula=plan.expressions,
+                formula=tuple(
+                    FlextCliUtilitiesXlsxFormulaCodec.storage_formula(expression)
+                    for expression in plan.expressions
+                ),
                 stopIfTrue=plan.stop_if_true,
                 dxf=differential,
             )
         comparison = plan.comparison
-        if isinstance(comparison, FlextCliModelsXlsxValidation.XlsxRangeComparison):
+        if isinstance(comparison, m.Cli.XlsxRangeComparison):
             formulae = (comparison.minimum, comparison.maximum)
         else:
             formulae = (comparison.expression,)
@@ -105,9 +102,7 @@ class FlextCliUtilitiesXlsxConditional(
 
     @classmethod
     def _apply_conditional_formats(
-        cls,
-        worksheet: Worksheet,
-        plans: tuple[FlextCliModelsXlsxRules.XlsxConditionalFormatPlan, ...],
+        cls, worksheet: Worksheet, plans: tuple[m.Cli.XlsxConditionalFormatPlan, ...]
     ) -> p.Result[bool]:
         try:
             for plan in plans:
@@ -119,9 +114,7 @@ class FlextCliUtilitiesXlsxConditional(
                 )
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[bool].fail(
-                f"{FlextCliConstantsXlsx.XlsxError.RENDER_FAILED}: {detail}"
-            )
+            return r[bool].fail(f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}")
         return r[bool].ok(True)
 
 
