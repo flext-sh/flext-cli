@@ -81,7 +81,7 @@ class FlextCliProtocolsDomain:
         @property
         def success_formatter(
             self,
-        ) -> FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ResultValue] | None:
+        ) -> t.Cli.SuccessMessageFormatter[t.Cli.ResultValue] | None:
             """Return the dynamic success formatter, when configured."""
             ...
 

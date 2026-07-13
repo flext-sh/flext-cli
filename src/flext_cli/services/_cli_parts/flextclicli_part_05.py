@@ -23,7 +23,7 @@ class FlextCliCli(FlextCliCliPart04):
         handler: p.Cli.ResultCommandHandler[M, TResult],
         model_cls: t.ModelClass[M],
         settings: t.Cli.ModelLike | None = None,
-        success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
+        success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
     ) -> None:
@@ -49,7 +49,7 @@ class FlextCliCli(FlextCliCliPart04):
         model_cls: t.ModelClass[M],
         name: str,
         settings: t.Cli.ModelLike | None = None,
-        success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
+        success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
     ) -> None:
@@ -72,7 +72,7 @@ class FlextCliCli(FlextCliCliPart04):
         cls,
         *,
         handler: p.Cli.ResultCommandHandler[M, TResult],
-        success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None = None,
+        success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
     ) -> p.Cli.ModelCommandHandler[M]:

@@ -125,13 +125,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             """Expose the successful payload for message formatting."""
             ...
 
-    @runtime_checkable
-    class SuccessMessageFormatter[TResult: t.Cli.ResultValue](Protocol):
-        """Protocol for rendering a success result into a CLI message."""
-
-        def __call__(self, value: TResult) -> str:
-            """Return the success message to display."""
-            ...
+    # mro-j47u (codex): formatter callables have one owner in t.Cli.
 
 
 __all__: list[str] = ["FlextCliProtocolsBase"]

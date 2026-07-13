@@ -72,11 +72,12 @@ class FlextCliTypesDomain:
     type NullaryOperation[T] = Callable[[], T]
     type PromptTextReader = Callable[[str], str]
     type CliCommand = Callable[..., t.JsonPayload]
-    # mro-j47u (codex): models store erased callable data through upstream
-    # contracts; public CLI interfaces use the sharper local p.Cli protocols.
+    # mro-j47u (codex): one generic alias owns formatter data and call contracts.
     type JsonCommandFn = Callable[..., p.Result[t.JsonPayload]]
     type ResultRouteHandler = Callable[..., p.Result[ResultValue]]
-    type SuccessMessageFormatter = Callable[[ResultValue], str]
+    type SuccessMessageFormatter[TResult: ResultValue = ResultValue] = Callable[
+        [TResult], str
+    ]
     type MappingProcessor[T, U] = Callable[[str, T], U]
     type TomlMappingSource = (
         t.JsonPayload | t.JsonMapping | t.ScalarMapping | Item | TOMLDocument

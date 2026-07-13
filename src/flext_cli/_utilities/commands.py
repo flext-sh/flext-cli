@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from flext_cli import c, p, t
+# mro-j47u (codex): formatter contracts are owned once by the t facade.
+from flext_cli import c, t
 from flext_cli._utilities.output import FlextCliUtilitiesOutput as uo
 from flext_core import u
 
@@ -15,7 +16,7 @@ class FlextCliUtilitiesCommands:
         *,
         result_value: TResult,
         success_message: str | None,
-        success_formatter: p.Cli.SuccessMessageFormatter[TResult] | None,
+        success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None,
     ) -> str | None:
         """Resolve success message using formatter/value fallback order."""
         if success_formatter is not None:
