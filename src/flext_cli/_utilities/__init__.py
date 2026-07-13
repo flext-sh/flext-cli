@@ -1,10 +1,18 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Utilities package."""
+"""Flext Cli. Utilities package."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+# mro-i6nq.10: The package consumes its manifest's public-export contract.
+from flext_cli._utilities.__unit__ import (
+    CHILD_MODULE_PATHS as _CHILD_MODULE_PATHS,
+    EXCLUDED_LAZY_NAMES as _EXCLUDED_LAZY_NAMES,
+    LAZY_ALIAS_GROUPS as _LAZY_ALIAS_GROUPS,
+    LAZY_MODULES as _LAZY_MODULES,
+    PUBLIC_EXPORTS as _PUBLIC_EXPORTS,
+)
 from flext_core.lazy import (
     build_lazy_import_map,
     install_lazy_exports,
@@ -12,6 +20,15 @@ from flext_core.lazy import (
 )
 
 if TYPE_CHECKING:
+    from flext_cli._utilities import (
+        _file_test_helper_parts as _file_test_helper_parts,
+        _files_parts as _files_parts,
+        _json_parts as _json_parts,
+        _options_parts as _options_parts,
+        _rules_parts as _rules_parts,
+        _toml_parts as _toml_parts,
+        _yaml_roundtrip_parts as _yaml_roundtrip_parts,
+    )
     from flext_cli._utilities._cli_namespace import (
         FlextCliUtilitiesCli as FlextCliUtilitiesCli,
     )
@@ -30,14 +47,14 @@ if TYPE_CHECKING:
     from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
         FlextCliUtilitiesOptions as FlextCliUtilitiesOptions,
     )
-    from flext_cli._utilities._output_parts.flextcliutilitiesoutput_part_02 import (
-        FlextCliUtilitiesOutput as FlextCliUtilitiesOutput,
-    )
     from flext_cli._utilities._rules_parts.flextcliutilitiesrules_part_03 import (
         FlextCliUtilitiesRules as FlextCliUtilitiesRules,
     )
     from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_07 import (
         FlextCliUtilitiesToml as FlextCliUtilitiesToml,
+    )
+    from flext_cli._utilities._yaml_roundtrip_parts.flextcliutilitiesyamlroundtrip_part_02 import (
+        FlextCliUtilitiesYamlRoundtrip as FlextCliUtilitiesYamlRoundtrip,
     )
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth as FlextCliUtilitiesAuth
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd as FlextCliUtilitiesCmd
@@ -53,11 +70,17 @@ if TYPE_CHECKING:
     from flext_cli._utilities.formatters import (
         FlextCliUtilitiesFormatters as FlextCliUtilitiesFormatters,
     )
+    from flext_cli._utilities.framework import (
+        FlextCliUtilitiesFramework as FlextCliUtilitiesFramework,
+    )
     from flext_cli._utilities.matching import (
         FlextCliUtilitiesMatching as FlextCliUtilitiesMatching,
     )
     from flext_cli._utilities.model_commands import (
         FlextCliUtilitiesModelCommands as FlextCliUtilitiesModelCommands,
+    )
+    from flext_cli._utilities.output import (
+        FlextCliUtilitiesOutput as FlextCliUtilitiesOutput,
     )
     from flext_cli._utilities.params import (
         FlextCliUtilitiesParams as FlextCliUtilitiesParams,
@@ -87,79 +110,20 @@ if TYPE_CHECKING:
         FlextCliUtilitiesValidation as FlextCliUtilitiesValidation,
     )
     from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as FlextCliUtilitiesYaml
+
+    # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.
+    __all__: tuple[str, ...]
+
+
 _LAZY_IMPORTS = merge_lazy_imports(
-    (
-        "._file_test_helper_parts",
-        "._files_parts",
-        "._json_parts",
-        "._options_parts",
-        "._output_parts",
-        "._rules_parts",
-        "._toml_parts",
+    _CHILD_MODULE_PATHS,
+    build_lazy_import_map(
+        _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
     ),
-    build_lazy_import_map({
-        "._cli_namespace": ("FlextCliUtilitiesCli",),
-        "._file_test_helper_parts": ("_file_test_helper_parts",),
-        "._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04": (
-            "FlextCliUtilitiesFileTestHelpersMixin",
-        ),
-        "._files_parts": ("_files_parts",),
-        "._files_parts.flextcliutilitiesfiles_part_04": ("FlextCliUtilitiesFiles",),
-        "._json_parts": ("_json_parts",),
-        "._json_parts.flextcliutilitiesjson_part_03": ("FlextCliUtilitiesJson",),
-        "._options_parts": ("_options_parts",),
-        "._options_parts.flextcliutilitiesoptionbuilder_part_01": (
-            "FlextCliUtilitiesOptionBuilder",
-        ),
-        "._options_parts.flextcliutilitiesoptions_part_02": (
-            "FlextCliUtilitiesOptions",
-        ),
-        "._output_parts": ("_output_parts",),
-        "._output_parts.flextcliutilitiesoutput_part_02": ("FlextCliUtilitiesOutput",),
-        "._rules_parts": ("_rules_parts",),
-        "._rules_parts.flextcliutilitiesrules_part_03": ("FlextCliUtilitiesRules",),
-        "._toml_parts": ("_toml_parts",),
-        "._toml_parts.flextcliutilitiestoml_part_07": ("FlextCliUtilitiesToml",),
-        ".auth": ("FlextCliUtilitiesAuth",),
-        ".cmd": ("FlextCliUtilitiesCmd",),
-        ".commands": ("FlextCliUtilitiesCommands",),
-        ".config": ("FlextCliUtilitiesConfig",),
-        ".conversion": ("FlextCliUtilitiesConversion",),
-        ".formatters": ("FlextCliUtilitiesFormatters",),
-        ".matching": ("FlextCliUtilitiesMatching",),
-        ".model_commands": ("FlextCliUtilitiesModelCommands",),
-        ".params": ("FlextCliUtilitiesParams",),
-        ".pipeline": ("FlextCliUtilitiesPipeline",),
-        ".processes": ("FlextCliUtilitiesProcesses",),
-        ".prompts": ("FlextCliUtilitiesPrompts",),
-        ".runtime": ("FlextCliUtilitiesRuntime",),
-        ".settings": ("FlextCliUtilitiesSettings",),
-        ".tables": ("FlextCliUtilitiesTables",),
-        ".template": ("FlextCliUtilitiesTemplate",),
-        ".validation": ("FlextCliUtilitiesValidation",),
-        ".yaml": ("FlextCliUtilitiesYaml",),
-    }),
-    exclude_names=(
-        "cleanup_submodule_namespace",
-        "install_lazy_exports",
-        "lazy_getattr",
-        "logger",
-        "merge_lazy_imports",
-        "output",
-        "output_reporting",
-        "pytest_addoption",
-        "pytest_collect_file",
-        "pytest_collection_modifyitems",
-        "pytest_configure",
-        "pytest_runtest_setup",
-        "pytest_runtest_teardown",
-        "pytest_sessionfinish",
-        "pytest_sessionstart",
-        "pytest_terminal_summary",
-        "pytest_warning_recorded",
-    ),
+    exclude_names=_EXCLUDED_LAZY_NAMES,
     module_name=__name__,
 )
 
 
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)
+# mro-i6nq.10: The installer publishes __all__ from the manifest's literal ABI.
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=_PUBLIC_EXPORTS)

@@ -5,15 +5,23 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+# mro-i6nq.10: The package consumes its manifest's public-export contract.
+from flext_cli.__unit__ import (
+    CHILD_MODULE_PATHS as _CHILD_MODULE_PATHS,
+    EXCLUDED_LAZY_NAMES as _EXCLUDED_LAZY_NAMES,
+    LAZY_ALIAS_GROUPS as _LAZY_ALIAS_GROUPS,
+    LAZY_MODULES as _LAZY_MODULES,
+    PUBLIC_EXPORTS as _PUBLIC_EXPORTS,
+)
 from flext_cli.__version__ import (
-    __author__,
-    __author_email__,
-    __description__,
-    __license__,
-    __title__,
-    __url__,
-    __version__,
-    __version_info__,
+    __author__ as __author__,
+    __author_email__ as __author_email__,
+    __description__ as __description__,
+    __license__ as __license__,
+    __title__ as __title__,
+    __url__ as __url__,
+    __version__ as __version__,
+    __version_info__ as __version_info__,
 )
 from flext_core.lazy import (
     build_lazy_import_map,
@@ -22,16 +30,20 @@ from flext_core.lazy import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli._config import FlextCliConfig as FlextCliConfig, config as config
-    from flext_cli._settings import (
-        FlextCliSettings as FlextCliSettings,
-        settings as settings,
-    )
+    from flext_cli import services as services
+    from flext_cli._config import config as config
+    from flext_cli._settings import settings as settings
     from flext_cli.api import FlextCli as FlextCli, cli as cli
     from flext_cli.base import FlextCliServiceBase as FlextCliServiceBase, s as s
     from flext_cli.constants import FlextCliConstants as FlextCliConstants, c as c
     from flext_cli.models import FlextCliModels as FlextCliModels, m as m
     from flext_cli.protocols import FlextCliProtocols as FlextCliProtocols, p as p
+    from flext_cli.services._prompts_parts.flextcliprompts_part_03 import (
+        FlextCliPrompts as FlextCliPrompts,
+    )
+    from flext_cli.services._prompts_parts.flextcliprompts_support import (
+        FlextCliPromptsSupport as FlextCliPromptsSupport,
+    )
     from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
     from flext_cli.services.cli import FlextCliCli as FlextCliCli
     from flext_cli.services.cli_params import (
@@ -54,102 +66,20 @@ if TYPE_CHECKING:
         r as r,
         x as x,
     )
+
+    # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.
+    __all__: tuple[str, ...]
+
+
 _LAZY_IMPORTS = merge_lazy_imports(
-    (".services",),
-    build_lazy_import_map({
-        ".api": ("FlextCli", "cli"),
-        ".base": ("FlextCliServiceBase", "s"),
-        ".constants": ("FlextCliConstants", "c"),
-        ".models": ("FlextCliModels", "m"),
-        ".protocols": ("FlextCliProtocols", "p"),
-        "._settings": ("FlextCliSettings", "settings"),
-        "._config": ("FlextCliConfig", "config"),
-        ".services._prompts_parts.flextcliprompts_part_03": ("FlextCliPrompts",),
-        ".services._prompts_parts.flextcliprompts_support": ("FlextCliPromptsSupport",),
-        ".services.auth": ("FlextCliAuth",),
-        ".services.cli": ("FlextCliCli",),
-        ".services.cli_params": ("FlextCliCommonParams",),
-        ".services.cmd": ("FlextCliCmd",),
-        ".services.file_tools": ("FlextCliFileTools",),
-        ".services.formatters": ("FlextCliFormatters",),
-        ".services.output": ("FlextCliOutput",),
-        ".services.pipeline": ("FlextCliPipeline",),
-        ".services.rules": ("FlextCliRules",),
-        ".services.runtime": ("FlextCliRuntime",),
-        ".services.tables": ("FlextCliTables",),
-        ".typings": ("FlextCliTypes", "t"),
-        ".utilities": ("FlextCliUtilities", "u"),
-        "flext_core._root_typing_parts.facades": ("d", "e", "h", "r", "x"),
-    }),
-    exclude_names=(
-        "_cli_parts",
-        "_prompts_parts",
-        "cleanup_submodule_namespace",
-        "install_lazy_exports",
-        "lazy_getattr",
-        "logger",
-        "merge_lazy_imports",
-        "output",
-        "output_reporting",
-        "pytest_addoption",
-        "pytest_collect_file",
-        "pytest_collection_modifyitems",
-        "pytest_configure",
-        "pytest_runtest_setup",
-        "pytest_runtest_teardown",
-        "pytest_sessionfinish",
-        "pytest_sessionstart",
-        "pytest_terminal_summary",
-        "pytest_warning_recorded",
+    _CHILD_MODULE_PATHS,
+    build_lazy_import_map(
+        _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
     ),
+    exclude_names=_EXCLUDED_LAZY_NAMES,
     module_name=__name__,
 )
 
 
-__all__: tuple[str, ...] = (
-    "FlextCli",
-    "FlextCliAuth",
-    "FlextCliCli",
-    "FlextCliCmd",
-    "FlextCliCommonParams",
-    "FlextCliConfig",
-    "FlextCliConstants",
-    "FlextCliFileTools",
-    "FlextCliFormatters",
-    "FlextCliModels",
-    "FlextCliOutput",
-    "FlextCliPipeline",
-    "FlextCliProtocols",
-    "FlextCliRules",
-    "FlextCliRuntime",
-    "FlextCliServiceBase",
-    "FlextCliSettings",
-    "FlextCliTables",
-    "FlextCliTypes",
-    "FlextCliUtilities",
-    "__author__",
-    "__author_email__",
-    "__description__",
-    "__license__",
-    "__title__",
-    "__url__",
-    "__version__",
-    "__version_info__",
-    "c",
-    "cli",
-    "config",
-    "d",
-    "e",
-    "h",
-    "m",
-    "p",
-    "r",
-    "s",
-    "settings",
-    "t",
-    "u",
-    "x",
-)
-
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)
+# mro-i6nq.10: The installer publishes __all__ from the manifest's literal ABI.
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=_PUBLIC_EXPORTS)
