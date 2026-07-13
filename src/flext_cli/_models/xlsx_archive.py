@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from flext_cli._typings.xlsx import FlextCliTypesXlsx
+# mro-j47u (kimi): models consume the local t facade; m -> t is forward at runtime.
+from flext_cli import t
 from flext_core import m
 
 
@@ -51,9 +52,7 @@ class FlextCliModelsXlsxArchive:
         )
 
     class XlsxArchiveViolation(m.FrozenModel):
-        kind: FlextCliTypesXlsx.XlsxArchiveViolationKind = m.Field(
-            description="Violation kind."
-        )
+        kind: t.Cli.XlsxArchiveViolationKind = m.Field(description="Violation kind.")
         location: Annotated[
             str, m.Field(min_length=1, description="Archive violation location.")
         ]

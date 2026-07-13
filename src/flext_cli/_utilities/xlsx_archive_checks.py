@@ -5,11 +5,8 @@ from __future__ import annotations
 from defusedxml import ElementTree as DefusedET
 from defusedxml.common import DefusedXmlException
 
-from flext_cli._constants.xlsx import FlextCliConstantsXlsx
-from flext_cli._models.xlsx_archive import FlextCliModelsXlsxArchive
-from flext_cli._protocols.xlsx_archive import FlextCliProtocolsXlsxArchive
-from flext_cli._typings.xlsx import FlextCliTypesXlsx
-from flext_core import p, r
+# mro-j47u (kimi): utilities consume local facades only, never private modules.
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesXlsxArchiveChecks:
@@ -19,11 +16,9 @@ class FlextCliUtilitiesXlsxArchiveChecks:
     # narrow protocols; proposal-specific member or tag rules stay in config.
     @staticmethod
     def _violation(
-        kind: FlextCliTypesXlsx.XlsxArchiveViolationKind, location: str, detail: str
-    ) -> FlextCliModelsXlsxArchive.XlsxArchiveViolation:
-        return FlextCliModelsXlsxArchive.XlsxArchiveViolation(
-            kind=kind, location=location, detail=detail
-        )
+        kind: t.Cli.XlsxArchiveViolationKind, location: str, detail: str
+    ) -> m.Cli.XlsxArchiveViolation:
+        return m.Cli.XlsxArchiveViolation(kind=kind, location=location, detail=detail)
 
     @staticmethod
     def _local_name(tag: str) -> str:
@@ -32,8 +27,8 @@ class FlextCliUtilitiesXlsxArchiveChecks:
 
     @classmethod
     def _xml_root(
-        cls, archive: FlextCliProtocolsXlsxArchive.XlsxArchiveReader, member: str
-    ) -> p.Result[FlextCliProtocolsXlsxArchive.XlsxXmlElement]:
+        cls, archive: p.Cli.XlsxArchiveReader, member: str
+    ) -> p.Result[p.Cli.XlsxXmlElement]:
         """Read and safely parse one XML archive member."""
         try:
             raw_root = DefusedET.fromstring(
@@ -44,20 +39,17 @@ class FlextCliUtilitiesXlsxArchiveChecks:
             )
         except (DefusedET.ParseError, DefusedXmlException, KeyError, OSError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[FlextCliProtocolsXlsxArchive.XlsxXmlElement].fail(
+            return r[p.Cli.XlsxXmlElement].fail(
                 f"Invalid OOXML member {member}: {detail}"
             )
         # mro-j47u (codex): defusedxml's parsed Element implements the exact port.
-        return r[FlextCliProtocolsXlsxArchive.XlsxXmlElement].ok(raw_root)
+        return r[p.Cli.XlsxXmlElement].ok(raw_root)
 
     @classmethod
     def _worksheet_violations(
-        cls,
-        root: FlextCliProtocolsXlsxArchive.XlsxXmlElement,
-        member: str,
-        policy: FlextCliModelsXlsxArchive.XlsxArchivePolicy,
-    ) -> tuple[FlextCliModelsXlsxArchive.XlsxArchiveViolation, ...]:
-        violations: tuple[FlextCliModelsXlsxArchive.XlsxArchiveViolation, ...] = ()
+        cls, root: p.Cli.XlsxXmlElement, member: str, policy: m.Cli.XlsxArchivePolicy
+    ) -> tuple[m.Cli.XlsxArchiveViolation, ...]:
+        violations: tuple[m.Cli.XlsxArchiveViolation, ...] = ()
         for element in root.iter():
             tag = cls._local_name(element.tag)
             if tag in policy.forbidden_worksheet_tags:
@@ -66,11 +58,8 @@ class FlextCliUtilitiesXlsxArchiveChecks:
 
     @classmethod
     def _workbook_violations(
-        cls,
-        root: FlextCliProtocolsXlsxArchive.XlsxXmlElement,
-        member: str,
-        policy: FlextCliModelsXlsxArchive.XlsxArchivePolicy,
-    ) -> tuple[FlextCliModelsXlsxArchive.XlsxArchiveViolation, ...]:
+        cls, root: p.Cli.XlsxXmlElement, member: str, policy: m.Cli.XlsxArchivePolicy
+    ) -> tuple[m.Cli.XlsxArchiveViolation, ...]:
         if not policy.reject_defined_names:
             return ()
         return tuple(
@@ -81,18 +70,15 @@ class FlextCliUtilitiesXlsxArchiveChecks:
 
     @classmethod
     def _style_violations(
-        cls,
-        root: FlextCliProtocolsXlsxArchive.XlsxXmlElement,
-        member: str,
-        policy: FlextCliModelsXlsxArchive.XlsxArchivePolicy,
-    ) -> tuple[FlextCliModelsXlsxArchive.XlsxArchiveViolation, ...]:
+        cls, root: p.Cli.XlsxXmlElement, member: str, policy: m.Cli.XlsxArchivePolicy
+    ) -> tuple[m.Cli.XlsxArchiveViolation, ...]:
         if not policy.reject_style_protection:
             return ()
-        violations: tuple[FlextCliModelsXlsxArchive.XlsxArchiveViolation, ...] = ()
+        violations: tuple[m.Cli.XlsxArchiveViolation, ...] = ()
         for group in root.iter():
             if (
                 cls._local_name(group.tag)
-                not in FlextCliConstantsXlsx.XLSX_STYLE_GROUPS_WITH_PROTECTION
+                not in c.Cli.XLSX_STYLE_GROUPS_WITH_PROTECTION
             ):
                 continue
             for element in group.iter():

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import p
 
+from .xlsx_archive import FlextCliProtocolsXlsxArchive
 from .xlsx_rules import FlextCliProtocolsXlsxRules
 from .xlsx_snapshot import FlextCliProtocolsXlsxSnapshot
 from .xlsx_workbook import FlextCliProtocolsXlsxWorkbook
@@ -16,6 +17,7 @@ if TYPE_CHECKING:
 
 
 class FlextCliProtocolsXlsx(
+    FlextCliProtocolsXlsxArchive,
     FlextCliProtocolsXlsxSnapshot,
     FlextCliProtocolsXlsxWorkbook,
     FlextCliProtocolsXlsxRules,
