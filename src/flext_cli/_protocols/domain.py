@@ -52,17 +52,43 @@ class FlextCliProtocolsDomain:
     class ResultCommandRoute(Protocol):
         """Protocol for declarative result-route registration."""
 
-        name: str
-        help_text: str
-        model_cls: t.ModelClass[t.Cli.ModelLike]
-        handler: FlextCliProtocolsBase.ResultCommandHandler[
-            t.Cli.ModelLike, t.Cli.ResultValue
-        ]
-        success_message: str | None
-        success_formatter: (
-            FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ResultValue] | None
-        )
-        success_type: t.Cli.MessageType
+        # mro-j47u (codex): read-only properties preserve frozen-model covariance.
+        @property
+        def name(self) -> str:
+            """Return the command name."""
+            ...
+
+        @property
+        def help_text(self) -> str:
+            """Return the user-facing help text."""
+            ...
+
+        @property
+        def model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
+            """Return the validated input model class."""
+            ...
+
+        @property
+        def handler(self) -> t.Cli.ResultRouteHandler:
+            """Return the type-erased result handler."""
+            ...
+
+        @property
+        def success_message(self) -> str | None:
+            """Return the static success message, when configured."""
+            ...
+
+        @property
+        def success_formatter(
+            self,
+        ) -> FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ResultValue] | None:
+            """Return the dynamic success formatter, when configured."""
+            ...
+
+        @property
+        def success_type(self) -> t.Cli.MessageType:
+            """Return the success output style."""
+            ...
 
     @runtime_checkable
     class DeclarativeRuleType[TRule](Protocol):

@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Protocol, Self, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-from flext_core import t
+# mro-j47u (codex): consume the earlier local t facade through the package root.
+from flext_cli import t
 
 
 class FlextCliProtocolsFramework:
@@ -27,7 +28,10 @@ class FlextCliProtocolsFramework:
             """Return a named command decorator."""
             ...
 
-        def add_typer(self, typer_instance: Self, *, name: str | None = None) -> None:
+        # mro-j47u (codex): match the sole adapter and mandatory named-group API.
+        def add_typer(
+            self, group: FlextCliProtocolsFramework.Application, *, name: str
+        ) -> None:
             """Attach a child application under ``name``."""
             ...
 
