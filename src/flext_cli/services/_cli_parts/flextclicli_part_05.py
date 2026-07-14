@@ -6,10 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, p, r, settings, t, u
+from typing import TYPE_CHECKING
+
+from flext_cli import c, r, settings, t, u
 from flext_cli.services._cli_parts.flextclicli_part_04 import (
     FlextCliCli as FlextCliCliPart04,
 )
+
+if TYPE_CHECKING:
+    from flext_cli import p
 
 
 class FlextCliCli(FlextCliCliPart04):
@@ -79,14 +84,10 @@ class FlextCliCli(FlextCliCliPart04):
         """Build the shared executor used by single and batched route registration."""
 
         def _exit_with_failure(result: p.Result[TResult]) -> None:
-            if result.error:
-                u.Cli.commands_emit_error_message(
-                    result.error,
-                    error_code=result.error_code,
-                    exception=result.exception,
-                    verbose=settings.cli_verbose,
-                )
-            cls.exit(code=1)
+            # NOTE (multi-agent): programmatic execution propagates the original
+            # Result; direct framework execution finalizes it at this boundary.
+            if not u.Cli.framework_exit_result(result):
+                cls.exit(code=cls.finalize_result(result))
 
         def execute(params: M) -> t.JsonValue:
             result: p.Result[TResult] = handler(params)
@@ -113,7 +114,7 @@ class FlextCliCli(FlextCliCliPart04):
         def route_execute(params: t.Cli.ModelLike) -> p.Result[t.Cli.ResultValue]:
             result = route.handler(params)
             if result.failure:
-                return result
+                return r[t.Cli.ResultValue].from_failure(result)
             return r[t.Cli.ResultValue].ok(result.value)
 
         cls.register_result_command(
@@ -134,6 +135,14 @@ class FlextCliCli(FlextCliCliPart04):
         """Register multiple heterogeneous result routes in one call."""
         for route in routes:
             cls.register_result_route(app, route=route)
+
+    @staticmethod
+    def finalize_result[TResult: t.Cli.ResultValue](result: p.Result[TResult]) -> int:
+        """Finalize one public CLI Result into output/logging and an exit code."""
+        if result.success:
+            return c.Cli.EXIT_CODE_SUCCESS
+        u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)
+        return c.Cli.EXIT_CODE_FAILURE
 
 
 __all__: list[str] = ["FlextCliCli"]
