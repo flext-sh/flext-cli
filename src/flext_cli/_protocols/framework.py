@@ -41,7 +41,9 @@ class FlextCliProtocolsFramework:
 
         def main(
             self,
-            args: t.StrSequence | None = None,
+            # mro-wkii.17 (codex): Click's concrete boundary consumes a mutable
+            # list; the public facade accepts any t.StrSequence and adapts once.
+            args: list[str] | None = None,
             prog_name: str | None = None,
             *,
             standalone_mode: bool = True,

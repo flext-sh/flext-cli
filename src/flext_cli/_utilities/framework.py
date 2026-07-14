@@ -70,16 +70,14 @@ class _ClickCommand:
 
     def main(
         self,
-        args: t.StrSequence | None = None,
+        args: list[str] | None = None,
         prog_name: str | None = None,
         *,
         standalone_mode: bool = True,
     ) -> t.JsonPayload:
         """Execute and validate the backend command result at the boundary."""
         result = self._command.main(
-            args=list(args) if args is not None else None,
-            prog_name=prog_name,
-            standalone_mode=standalone_mode,
+            args=args, prog_name=prog_name, standalone_mode=standalone_mode
         )
         return t.Cli.JSON_VALUE_ADAPTER.validate_python(result)
 
@@ -254,8 +252,12 @@ class FlextCliUtilitiesFramework:
     ) -> p.Result[bool]:
         """Execute a foreign Click-compatible command inside the boundary."""
         try:
+            # mro-wkii.17 (codex): normalize the public immutable sequence once
+            # at the private Click boundary instead of weakening its protocol.
             exit_result = command.main(
-                args=args, prog_name=prog_name, standalone_mode=False
+                args=list(args) if args is not None else None,
+                prog_name=prog_name,
+                standalone_mode=False,
             )
         except click.ClickException as exc:
             return e.fail_validation(error=exc, result_type=r[bool])
