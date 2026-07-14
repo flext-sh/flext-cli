@@ -18,10 +18,13 @@ from flext_cli.__version__ import (
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._config import FlextCliConfig as FlextCliConfig, config as config
-    from flext_cli._settings import FlextCliSettings, settings
-    from flext_cli.api import FlextCli as FlextCli, cli as cli
     from flext_cli import services as services
+    from flext_cli._config import FlextCliConfig as FlextCliConfig, config as config
+    from flext_cli._settings import (
+        FlextCliSettings as FlextCliSettings,
+        settings as settings,
+    )
+    from flext_cli.api import FlextCli as FlextCli, cli as cli
     from flext_cli.base import FlextCliServiceBase as FlextCliServiceBase, s as s
     from flext_cli.constants import FlextCliConstants as FlextCliConstants, c as c
     from flext_cli.models import FlextCliModels as FlextCliModels, m as m
@@ -44,13 +47,7 @@ if TYPE_CHECKING:
     from flext_cli.services.yaml_model import FlextCliYamlModel as FlextCliYamlModel
     from flext_cli.typings import FlextCliTypes as FlextCliTypes, t as t
     from flext_cli.utilities import FlextCliUtilities as FlextCliUtilities, u as u
-    from flext_core._root_typing_parts.facades import (
-        d as d,
-        e as e,
-        h as h,
-        r as r,
-        x as x,
-    )
+    from flext_core import d as d, e as e, h as h, r as r, x as x
 
 _LAZY_MODULES: dict[str, tuple[str, ...]] = {
     "._config": ("FlextCliConfig", "config"),
@@ -77,7 +74,7 @@ _LAZY_MODULES: dict[str, tuple[str, ...]] = {
     ".services.yaml_model": ("FlextCliYamlModel",),
     ".typings": ("FlextCliTypes", "t"),
     ".utilities": ("FlextCliUtilities", "u"),
-    "flext_core._root_typing_parts.facades": ("d", "e", "h", "r", "x"),
+    "flext_core": ("d", "e", "h", "r", "x"),
 }
 
 _LAZY_ALIAS_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {}
