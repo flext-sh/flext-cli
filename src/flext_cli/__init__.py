@@ -41,16 +41,10 @@ if TYPE_CHECKING:
         r as r,
         x as x,
     )
-    from flext_cli.base import (
-        FlextCliServiceBase as s,
-        FlextCliServiceBase as FlextCliServiceBase,
-    )
+    from flext_cli.base import s as s, FlextCliServiceBase as FlextCliServiceBase
     from flext_cli import services as services
     from flext_cli._config import FlextCliConfig as FlextCliConfig, config as config
-    from flext_cli._settings import (
-        FlextCliSettings as FlextCliSettings,
-        settings as settings,
-    )
+    from flext_cli._settings import FlextCliSettings,settings
     from flext_cli.api import FlextCli as FlextCli, cli as cli
     from flext_cli.services.auth import FlextCliAuth as FlextCliAuth
     from flext_cli.services.cli import FlextCliCli as FlextCliCli
