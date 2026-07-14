@@ -91,7 +91,7 @@ class TestsFlextCliModelCommandsCov:
     def test_model_command_returns_callable(self) -> None:
         cmd = cli.model_command(m.Tests.ModelCommandSample, lambda model: model.name)
 
-        assert callable(cmd)
+        tm.that(callable(cmd), eq=True)
 
     def test_model_command_dispatches_to_handler_with_bound_model(self) -> None:
         def handler(model: m.Tests.ModelCommandSample) -> str:
