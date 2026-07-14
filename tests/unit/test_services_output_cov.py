@@ -79,6 +79,12 @@ class TestsFlextCliServicesOutputCov:
 
         tm.that(capsys.readouterr().out, has="raw message")
 
+    def test_print_message_preserves_literal_brackets(self, capsys: Capture) -> None:
+        """Diagnostic glob patterns are output literally, not parsed as Rich markup."""
+        cli.print_message("ignored: [path/**/*.py]")
+
+        tm.that(capsys.readouterr().out, has="[path/**/*.py]")
+
     # ── display_header ────────────────────────────────────────────────
 
     @pytest.mark.parametrize("label", ["Setup", "Results", "Done"])
