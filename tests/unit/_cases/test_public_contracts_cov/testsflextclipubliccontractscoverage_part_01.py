@@ -28,6 +28,7 @@ class TestsFlextCliPublicContractsCoverage:
         debug: bool | None = None
 
     def test_public_facade_and_settings_contract(self) -> None:
+        """Expose settings behavior and typed runtime status through public facades."""
         # NOTE (multi-agent): flat cli_* settings (§2.6) — fresh instances come
         # from ``settings.clone()`` and test-runtime detection lives in
         # ``u.Cli.cli_test_env`` (behavior moved off the settings model).
@@ -52,19 +53,17 @@ class TestsFlextCliPublicContractsCoverage:
 
         FlextCliSettings.reset_for_testing()
 
-        facade_result = cli.execute()
+        result = cli.execute()
+        tm.ok(result, is_=m.Cli.RuntimeStatus)
+        status = result.value
 
-        tm.ok(facade_result)
-        tm.that(
-            facade_result.value[c.Cli.DICT_KEY_STATUS],
-            eq=(c.Cli.ServiceStatus.OPERATIONAL),
-        )
-        tm.that(facade_result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.FLEXT_CLI)
-        components = facade_result.value.get("components")
-        tm.that(components, is_=dict)
-        tm.that(components["prompts"], eq="available")
+        tm.that(status.status, eq=c.Cli.ServiceStatus.OPERATIONAL)
+        tm.that(status.service, eq=c.Cli.FLEXT_CLI)
+        tm.that(status.components, is_=m.Cli.RuntimeComponents)
+        tm.that(status.components.prompts, eq="available")
 
     def test_public_model_command_utility_contract(self) -> None:
+        """Build and execute model commands through the public utility contract."""
         command_settings = self._CommandModel(label="configured", debug=True)
 
         def handler(model: TestsFlextCliPublicContractsCoverage._CommandModel) -> str:
@@ -78,7 +77,7 @@ class TestsFlextCliPublicContractsCoverage:
         # NOTE (multi-agent): ``u.Cli.build_model_command`` renders model-field
         # defaults into the signature; settings-seeded defaults are the
         # ``cli.model_command`` contract, not this utility's.
-        assert signature.parameters["label"].default is inspect.Parameter.empty
+        tm.that(signature.parameters["label"].default, eq=inspect.Parameter.empty)
         tm.that(signature.parameters["debug"].default, eq=False)
         tm.that(
             u.Cli.model_source_data(

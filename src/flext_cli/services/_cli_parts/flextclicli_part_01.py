@@ -42,7 +42,9 @@ class FlextCliCli:
             self._model_cls = model_cls
 
         def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
-            model = self._model_cls.model_validate(kwargs)
+            # mro-wkii.17.26 (codex): the adapter supplies field names while
+            # external callers may use declared aliases at this single boundary.
+            model = self._model_cls.model_validate(kwargs, by_alias=True, by_name=True)
             return self._handler(model)
 
     @classmethod

@@ -40,26 +40,33 @@ class TestsFlextCliCmd:
 
     def test_execute_reports_operational_runtime_payload(self) -> None:
         """execute() must succeed and expose the canonical status payload."""
-        data = tm.ok(cli.execute(), is_=dict)
+        result = cli.execute()
+        tm.ok(result, is_=m.Cli.RuntimeStatus)
+        status = result.value
 
         tm.that(
-            data,
-            kv={
-                c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
-                c.Cli.DICT_KEY_SERVICE: c.Cli.FLEXT_CLI,
+            status,
+            attr_eq={
+                "status": c.Cli.ServiceStatus.OPERATIONAL,
+                "service": c.Cli.FLEXT_CLI,
                 "version": c.Cli.CLI_VERSION,
             },
-            keys=("timestamp", "components"),
         )
+        tm.that(status.timestamp, is_=str)
+        tm.that(status.components, is_=m.Cli.RuntimeComponents)
 
     def test_execute_is_deterministic_across_calls(self) -> None:
         """Repeated execute() calls must report identical stable identity fields."""
-        first = tm.ok(cli.execute())
-        second = tm.ok(cli.execute())
+        first_result = cli.execute()
+        second_result = cli.execute()
+        tm.ok(first_result, is_=m.Cli.RuntimeStatus)
+        tm.ok(second_result, is_=m.Cli.RuntimeStatus)
+        first = first_result.value
+        second = second_result.value
 
-        tm.that(first[c.Cli.DICT_KEY_STATUS], eq=second[c.Cli.DICT_KEY_STATUS])
-        tm.that(first[c.Cli.DICT_KEY_SERVICE], eq=second[c.Cli.DICT_KEY_SERVICE])
-        tm.that(first["version"], eq=second["version"])
+        tm.that(first.status, eq=second.status)
+        tm.that(first.service, eq=second.service)
+        tm.that(first.version, eq=second.version)
 
     def test_settings_snapshot_reports_absent_home_state(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -67,7 +74,9 @@ class TestsFlextCliCmd:
         """A missing settings dir must yield a fully-negative snapshot."""
         monkeypatch.setenv("HOME", str(tmp_path))
 
-        info = tm.ok(cli.settings_snapshot())
+        result = cli.settings_snapshot()
+        tm.ok(result)
+        info = result.value
 
         tm.that(
             info,
@@ -87,7 +96,9 @@ class TestsFlextCliCmd:
         settings_dir.mkdir()
         monkeypatch.setenv("HOME", str(tmp_path))
 
-        info = tm.ok(cli.settings_snapshot())
+        result = cli.settings_snapshot()
+        tm.ok(result)
+        info = result.value
 
         tm.that(
             info,
@@ -105,7 +116,9 @@ class TestsFlextCliCmd:
         """The snapshot timestamp must be a parseable ISO-8601 instant."""
         monkeypatch.setenv("HOME", str(tmp_path))
 
-        info = tm.ok(cli.settings_snapshot())
+        result = cli.settings_snapshot()
+        tm.ok(result)
+        info = result.value
         parsed = datetime.fromisoformat(info.timestamp)
 
         tm.that(parsed, is_=datetime)
@@ -148,8 +161,12 @@ class TestsFlextCliCmd:
         (tmp_path / c.Cli.PATH_FLEXT_DIR_NAME).mkdir()
         monkeypatch.setenv("HOME", str(tmp_path))
 
-        displayed = tm.ok(cli.show_settings())
-        snapshot = tm.ok(cli.settings_snapshot())
+        displayed_result = cli.show_settings()
+        snapshot_result = cli.settings_snapshot()
+        tm.ok(displayed_result)
+        tm.ok(snapshot_result)
+        displayed = displayed_result.value
+        snapshot = snapshot_result.value
 
         tm.that(displayed, eq=True)
         tm.that(snapshot.settings_exists, eq=True)

@@ -15,12 +15,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pytest
 
 from flext_cli import t
-from tests import p
+from tests import p, u
 from flext_tests import tm
 
 
@@ -44,7 +45,8 @@ class _PartialSummary:
 class _ConformingYamlModule:
     """Object structurally conforming to ``YamlModule``."""
 
-    def dump(self, data: object, *, default_flow_style: bool = True) -> str:
+    def dump(self, data: t.JsonPayload, *, default_flow_style: bool = True) -> str:
+        _ = data, default_flow_style
         return ""
 
 
@@ -73,7 +75,7 @@ class TestsFlextCliProtocols:
 
     def test_data_protocol_rejects_object_missing_required_attributes(self) -> None:
         """An object missing declared attributes fails the protocol check."""
-        assert not isinstance(_PartialSummary(), p.Cli.SummaryStats)
+        tm.that(isinstance(_PartialSummary(), p.Cli.SummaryStats), eq=False)
 
     def test_method_protocol_accepts_object_exposing_method(self) -> None:
         """An object exposing ``dump`` satisfies ``YamlModule``."""
@@ -81,7 +83,7 @@ class TestsFlextCliProtocols:
 
     def test_method_protocol_rejects_object_without_method(self) -> None:
         """An object lacking ``dump`` is rejected by ``YamlModule``."""
-        assert not isinstance(object(), p.Cli.YamlModule)
+        tm.that(isinstance(_PartialSummary(), p.Cli.YamlModule), eq=False)
 
     def test_callable_protocol_accepts_plain_callable(self) -> None:
         """Any single-arg callable conforms to ``JsonValueProcessor``."""
@@ -96,12 +98,24 @@ class TestsFlextCliProtocols:
 
         class _MissingSettings:
             @property
-            def workspace_root(self) -> object: ...
+            def workspace_root(self) -> Path:
+                return Path()
 
             @property
-            def shared(self) -> object: ...
+            def shared(self) -> t.MutableJsonMapping:
+                return {}
 
-        assert not isinstance(_MissingSettings(), p.Cli.PipelineStageContext)
+        tm.that(isinstance(_MissingSettings(), p.Cli.PipelineStageContext), eq=False)
+
+    def test_command_runner_preserves_byte_exact_output(self) -> None:
+        """The public runner returns its byte-output structural contract."""
+        result = u.Cli.run_bytes((sys.executable, "-c", "print('bytes')"))
+        tm.that(result.success, eq=True)
+        payload = result.value
+        tm.that(payload, is_=p.Cli.CommandBytesOutput)
+        tm.that(u.Cli, is_=p.Cli.CommandRunner)
+        tm.that(payload.stdout, eq=b"bytes\n")
+        tm.that(payload.stderr, eq=b"")
 
     @pytest.mark.parametrize(
         "protocol_name",
@@ -134,11 +148,12 @@ class TestsFlextCliProtocols:
             "PipelineService",
         ],
     )
-    def test_top_level_protocol_is_same_object_as_cli_namespace(
+    def test_protocol_is_exposed_only_by_cli_namespace(
         self, protocol_name: str
     ) -> None:
-        """MRO exposure guarantees one shared protocol object across namespaces."""
-        assert getattr(p, protocol_name) is getattr(p.Cli, protocol_name)
+        """CLI protocols stay namespaced without flat compatibility aliases."""
+        tm.that(hasattr(p, protocol_name), eq=False)
+        tm.that(getattr(p.Cli, protocol_name), is_=type)
 
     def test_result_protocol_inherited_from_core_facade(self) -> None:
         """The CLI facade re-exposes the core ``Result`` protocol contract."""

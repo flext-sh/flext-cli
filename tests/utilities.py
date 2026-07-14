@@ -18,7 +18,6 @@ from flext_cli import cli, u
 from tests import c
 from tests import p
 from tests.settings import TestsFlextCliSettings
-from tests import t
 
 
 class TestsFlextCliUtilities(FlextTestsUtilities, u):
@@ -32,6 +31,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
 
             @staticmethod
             def validate_version_string(version: str) -> p.Result[str]:
+                """Validate one semantic-version string."""
                 if not version:
                     return r[str].fail(c.Tests.VERSION_EMPTY_MSG)
                 if not c.PATTERN_SEMVER_RE.match(version):
@@ -44,7 +44,8 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
             def validate_version_info(
                 version_info: tuple[int | str, ...],
             ) -> p.Result[tuple[int | str, ...]]:
-                if len(version_info) < 3:
+                """Validate one structured semantic-version tuple."""
+                if len(version_info) < len(c.Tests.VERSION_INFO_VALID_TUPLE):
                     return r[tuple[int | str, ...]].fail(
                         c.Tests.VERSION_INFO_TOO_SHORT_MSG
                     )
@@ -67,6 +68,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
             def validate_consistency(
                 cls, version_string: str, version_info: tuple[int | str, ...]
             ) -> p.Result[tuple[str, tuple[int | str, ...]]]:
+                """Validate matching string and tuple version representations."""
                 pair_t = tuple[str, tuple[int | str, ...]]
                 string_check = cls.validate_version_string(version_string)
                 if string_check.failure:
@@ -103,10 +105,10 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
             return r[p.Cli.Settings].ok(TestsFlextCliSettings())
 
         @staticmethod
-        def create_cli_app() -> p.Result[t.Cli.CliApp]:
+        def create_cli_app() -> p.Result[p.Cli.Application]:
             """Create CLI app via Railway pattern."""
             # NOTE (multi-agent, mro-wkii.19.4): the CLI owns global settings.
-            return r[t.Cli.CliApp].ok(
+            return r[p.Cli.Application].ok(
                 cli.create_app_with_common_params(
                     name="tests-cli", help_text="Test CLI app"
                 )
@@ -114,11 +116,12 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
 
         @staticmethod
         def create_decorated_command(
-            app: t.Cli.CliApp, command_name: str = "test"
+            app: p.Cli.Application, command_name: str = "test"
         ) -> p.Result[Callable[..., None]]:
             """Register a real flag-driven command on ``app`` for tests."""
 
             def command(
+                *,
                 verbose: Annotated[bool, cli.create_option("verbose")] = False,
                 debug: Annotated[bool, cli.create_option("debug")] = False,
                 log_level: Annotated[

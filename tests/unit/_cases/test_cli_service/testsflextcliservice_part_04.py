@@ -19,6 +19,7 @@ class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
     def test_execute_app_handles_nonzero_int_result(self) -> None:
+        """Report a nonzero integer command result as a CLI failure."""
         app = cli.create_app_with_common_params(name="int-app", help_text="Int app")
         cli.register_command(
             app, name="return-two", help_text="Return int", command=lambda: 2
@@ -30,6 +31,7 @@ class TestsFlextCliService:
         tm.that(result.error, has="CLI exited with code 2")
 
     def test_execute_app_handles_typer_exit_zero_branch(self) -> None:
+        """Treat an explicit zero exit as successful execution."""
         app = cli.create_app_with_common_params(name="zero-app", help_text="Zero app")
         cli.register_command(
             app,
@@ -43,6 +45,7 @@ class TestsFlextCliService:
         tm.ok(result)
 
     def test_execute_app_handles_typer_exit_nonzero_branch_real(self) -> None:
+        """Report an explicit nonzero exit as a CLI failure."""
         app = cli.create_app_with_common_params(
             name="nonzero-app", help_text="Non-zero app"
         )
@@ -56,6 +59,7 @@ class TestsFlextCliService:
         tm.that(result.error, has="CLI exited with code 1")
 
     def test_execute_app_prefers_real_failure_message(self) -> None:
+        """Preserve the real exit code in a command failure message."""
         app = cli.create_app_with_common_params(
             name="sample", help_text="Failure group"
         )
@@ -80,6 +84,7 @@ class TestsFlextCliService:
         tm.that(result.error, has="CLI exited with code 1")
 
     def test_execute_app_preserves_click_usage_errors(self) -> None:
+        """Preserve Click usage details for an unknown command."""
         app = cli.create_app_with_common_params(
             name="sample", help_text="Failure group"
         )

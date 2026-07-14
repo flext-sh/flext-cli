@@ -48,22 +48,47 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
 
         @property
         def duration(self) -> float:
-            """Return the command duration in seconds."""
+            """Command duration in seconds."""
             ...
 
         @property
         def exit_code(self) -> int:
-            """Return the command exit code."""
+            """Command exit status."""
             ...
 
         @property
         def stderr(self) -> str:
-            """Return the command standard error."""
+            """Command standard-error text."""
             ...
 
         @property
         def stdout(self) -> str:
-            """Return the command standard output."""
+            """Command standard-output text."""
+            ...
+
+    # mro-wkii.17.26 (codex): expose byte-exact process output structurally.
+    @runtime_checkable
+    class CommandBytesOutput(Protocol):
+        """Minimal byte-exact external command execution output contract."""
+
+        @property
+        def duration(self) -> float:
+            """Command duration in seconds."""
+            ...
+
+        @property
+        def exit_code(self) -> int:
+            """Command exit status."""
+            ...
+
+        @property
+        def stderr(self) -> bytes:
+            """Byte-exact command standard error."""
+            ...
+
+        @property
+        def stdout(self) -> bytes:
+            """Byte-exact command standard output."""
             ...
 
 

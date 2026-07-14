@@ -17,12 +17,11 @@ class FlextCliUtilitiesXlsxSnapshotValues:
 
     # NOTE (multi-agent, mro-j2yt.1): external cell primitives are validated
     # once into XlsxCellValue and vendor instances never leave this utility.
+    # NOTE (multi-agent, mro-wkii.17.26): narrow exception boundaries retain
+    # the exact failing vendor/model operation and never default missing data.
     @staticmethod
     def _snapshot_style_name(cell: Cell) -> str | None:
-        try:
-            return cell.style
-        except IndexError:
-            return None
+        return cell.style
 
     @staticmethod
     def _require_success[T](result: p.Result[T]) -> T:
@@ -38,33 +37,38 @@ class FlextCliUtilitiesXlsxSnapshotValues:
     def _snapshot_value(
         value: t.Cli.XlsxCellPrimitive, *, formula_view: bool
     ) -> p.Result[m.Cli.XlsxCellValue]:
+        formula = (
+            value
+            if formula_view and isinstance(value, str) and value.startswith("=")
+            else None
+        )
+        if formula_view and formula is None:
+            return r[m.Cli.XlsxCellValue].fail(
+                f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: "
+                "formula cell has no formula expression"
+            )
         try:
-            if formula_view:
-                if isinstance(value, str) and value.startswith("="):
-                    converted: m.Cli.XlsxCellValue = m.Cli.XlsxFormulaValue(value=value)
-                    return r[m.Cli.XlsxCellValue].ok(converted)
-                return r[m.Cli.XlsxCellValue].fail(
-                    f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: "
-                    "formula cell has no formula expression"
-                )
-            if value is None:
-                converted = m.Cli.XlsxBlankValue()
-            elif isinstance(value, bool):
-                converted = m.Cli.XlsxBooleanValue(value=value)
-            elif isinstance(value, int):
-                converted = m.Cli.XlsxIntegerValue(value=value)
-            elif isinstance(value, (float, Decimal)):
-                converted = m.Cli.XlsxDecimalValue(value=Decimal(str(value)))
-            elif isinstance(value, dt.datetime):
-                converted = m.Cli.XlsxDateTimeValue(value=value)
-            elif isinstance(value, dt.date):
-                converted = m.Cli.XlsxDateValue(value=value)
-            else:
-                converted = m.Cli.XlsxTextValue(value=value)
+            converted: m.Cli.XlsxCellValue = (
+                m.Cli.XlsxFormulaValue(value=formula)
+                if formula is not None
+                else m.Cli.XlsxBlankValue()
+                if value is None
+                else m.Cli.XlsxBooleanValue(value=value)
+                if isinstance(value, bool)
+                else m.Cli.XlsxIntegerValue(value=value)
+                if isinstance(value, int)
+                else m.Cli.XlsxDecimalValue(value=Decimal(str(value)))
+                if isinstance(value, (float, Decimal))
+                else m.Cli.XlsxDateTimeValue(value=value)
+                if isinstance(value, dt.datetime)
+                else m.Cli.XlsxDateValue(value=value)
+                if isinstance(value, dt.date)
+                else m.Cli.XlsxTextValue(value=value)
+            )
         except (InvalidOperation, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxCellValue].fail(
-                f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: {detail}"
+                f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: {detail}", exception=exc
             )
         return r[m.Cli.XlsxCellValue].ok(converted)
 
@@ -101,18 +105,22 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                 if data_only
                 else formula_cell
             )
-            if not isinstance(selected, Cell):
-                return r[m.Cli.XlsxCellSnapshot].fail(
-                    f"Unsupported selected cell: {formula_cell.coordinate}"
-                )
-            selected_value = selected.value
-            if selected_value is not None and not isinstance(
-                selected_value, (str, int, float, bool, Decimal, dt.date, dt.datetime)
-            ):
-                return r[m.Cli.XlsxCellSnapshot].fail(
-                    f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: "
-                    f"{selected_value.__class__.__name__} at {formula_cell.coordinate}"
-                )
+        except (IndexError, TypeError, ValidationError, ValueError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[m.Cli.XlsxCellSnapshot].fail(detail, exception=exc)
+        if not isinstance(selected, Cell):
+            return r[m.Cli.XlsxCellSnapshot].fail(
+                f"Unsupported selected cell: {formula_cell.coordinate}"
+            )
+        selected_value = selected.value
+        if selected_value is not None and not isinstance(
+            selected_value, (str, int, float, bool, Decimal, dt.date, dt.datetime)
+        ):
+            return r[m.Cli.XlsxCellSnapshot].fail(
+                f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: "
+                f"{selected_value.__class__.__name__} at {formula_cell.coordinate}"
+            )
+        try:
             value = cls._require_success(
                 cls._snapshot_value(
                     selected_value, formula_view=formula is not None and not data_only
@@ -133,29 +141,31 @@ class FlextCliUtilitiesXlsxSnapshotValues:
             )
         except (IndexError, TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxCellSnapshot].fail(detail)
+            return r[m.Cli.XlsxCellSnapshot].fail(detail, exception=exc)
         return r[m.Cli.XlsxCellSnapshot].ok(snapshot)
 
     @classmethod
     def _snapshot_cells(
         cls, formula_sheet: Worksheet, value_sheet: Worksheet, *, data_only: bool
     ) -> p.Result[tuple[m.Cli.XlsxCellSnapshot, ...]]:
+        cells: tuple[m.Cli.XlsxCellSnapshot, ...] = ()
         try:
-            cells: tuple[m.Cli.XlsxCellSnapshot, ...] = ()
             for row in formula_sheet.iter_rows():
                 for formula_cell in row:
-                    if isinstance(formula_cell, MergedCell):
+                    if isinstance(
+                        formula_cell, MergedCell
+                    ) or not cls._has_snapshot_content(formula_cell):
                         continue
-                    if not cls._has_snapshot_content(formula_cell):
-                        continue
-                    cell = cls._require_success(
-                        cls._snapshot_cell(
-                            formula_cell, value_sheet, data_only=data_only
-                        )
+                    cells = (
+                        *cells,
+                        cls._require_success(
+                            cls._snapshot_cell(
+                                formula_cell, value_sheet, data_only=data_only
+                            )
+                        ),
                     )
-                    cells = (*cells, cell)
         except ValueError as exc:
-            return r[tuple[m.Cli.XlsxCellSnapshot, ...]].fail(str(exc))
+            return r[tuple[m.Cli.XlsxCellSnapshot, ...]].fail(str(exc), exception=exc)
         return r[tuple[m.Cli.XlsxCellSnapshot, ...]].ok(cells)
 
 

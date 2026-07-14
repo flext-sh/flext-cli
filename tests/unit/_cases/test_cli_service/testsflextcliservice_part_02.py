@@ -11,6 +11,7 @@ from tests import m
 from flext_cli import cli
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
+# mro-wkii.17.26 (codex): exercise CLI flows through the public invocation facade.
 
 if TYPE_CHECKING:
     from collections.abc import MutableSequence
@@ -22,6 +23,7 @@ class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
     def test_model_command_accepts_repeatable_list_options(self) -> None:
+        """Parse repeatable CLI options into one validated model."""
         captured: MutableSequence[m.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
             name="root", help_text="Root application"
@@ -40,25 +42,27 @@ class TestsFlextCliService:
             command=command,
         )
         cli.add_group(app, name="sample", group=group)
-        runner_result = cli.create_cli_runner()
-        tm.ok(runner_result)
-        exec_result = runner_result.value.invoke(
+        exec_result = cli.invoke_app(
             app,
-            [
+            args=(
                 "sample",
                 "repeat",
                 "--make-arg",
                 "FILES=a b c.py",
                 "--make-arg",
                 "VERBOSE=1",
-            ],
+            ),
         )
 
-        tm.that(exec_result.exit_code, eq=0)
+        tm.ok(exec_result)
+        invocation = exec_result.value
+        tm.that(invocation.exit_code, eq=0)
         tm.that(len(captured), eq=1)
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
     def test_model_command_returns_handler_value(self) -> None:
+        """Return the handler value from the model-generated command."""
+
         def handle(params: m.Tests.SampleInput) -> t.JsonValue:
             return {
                 "name": params.name,
@@ -83,27 +87,22 @@ class TestsFlextCliService:
         )
 
     def test_model_command_uses_custom_param_decls_from_field_extra(self) -> None:
-        class CustomDeclModel(m.BaseModel):
-            flag: bool = m.Field(
-                False,
-                validate_default=True,
-                description="Custom flag",
-                json_schema_extra={"typer_param_decls": ["-f", "--flaggy"]},
-            )
-
+        """Expose custom option declarations from validated field metadata."""
         app = cli.create_app_with_common_params(name="decl-app", help_text="Decl app")
         cli.register_command(
             app,
             name="run",
             help_text="Run",
-            command=cli.model_command(CustomDeclModel, lambda _params: True),
+            command=cli.model_command(
+                m.Tests.CustomDeclarationInput, lambda _params: True
+            ),
         )
-        runner_result = cli.create_cli_runner()
-        tm.ok(runner_result)
-        help_result = runner_result.value.invoke(app, ["run", "--help"])
+        help_result = cli.invoke_app(app, args=("run", "--help"))
 
-        tm.that(help_result.exit_code, eq=0)
-        tm.that(help_result.stdout, has="--flaggy")
+        tm.ok(help_result)
+        invocation = help_result.value
+        tm.that(invocation.exit_code, eq=0)
+        tm.that(invocation.stdout, has="--flaggy")
 
 
 __all__: list[str] = ["TestsFlextCliService"]

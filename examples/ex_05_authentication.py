@@ -24,7 +24,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, cli, settings, u
+from examples import c
+from flext_cli import cli, settings, u
 from flext_core import p, r
 
 
@@ -34,10 +35,7 @@ class Ex05Authentication:
     @staticmethod
     def login_to_service(username: str, password: str) -> p.Result[bool]:
         """Login and save token in YOUR CLI application."""
-        auth_result = cli.authenticate({
-            "username": username,
-            "password": password,
-        })
+        auth_result = cli.authenticate({"username": username, "password": password})
         if auth_result.failure:
             cli.print(
                 f"❌ Login failed: {auth_result.error}",
@@ -47,8 +45,7 @@ class Ex05Authentication:
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         cli.print("✅ Login successful!", style=c.Cli.MessageStyles.GREEN)
         cli.print(
-            f"   Token saved to: {token_file_path}",
-            style=c.Cli.MessageStyles.CYAN,
+            f"   Token saved to: {token_file_path}", style=c.Cli.MessageStyles.CYAN
         )
         return r[bool].ok(True)
 
@@ -72,16 +69,14 @@ class Ex05Authentication:
             cli.print("⚠️  No token found", style=c.Cli.MessageStyles.YELLOW)
             return r[bool].fail(token_result.error or "No token found")
         token = token_result.value
-        if len(token) < 20:
+        # mro-wkii.17.26 (codex): consume the shared example token contract.
+        if len(token) < c.EXAMPLE_MIN_AUTH_TOKEN_LENGTH:
             cli.print("❌ Invalid token format", style=c.Cli.MessageStyles.BOLD_RED)
             return r[bool].fail("Invalid token format")
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         cli.print("✅ Token is valid", style=c.Cli.MessageStyles.GREEN)
         cli.print(f"   Token: {token[:30]}...", style=c.Cli.MessageStyles.CYAN)
-        cli.print(
-            f"   Token file: {token_file_path}",
-            style=c.Cli.MessageStyles.CYAN,
-        )
+        cli.print(f"   Token file: {token_file_path}", style=c.Cli.MessageStyles.CYAN)
         return r[bool].ok(True)
 
     @staticmethod
@@ -94,14 +89,10 @@ class Ex05Authentication:
         try:
             token_file_path.unlink()
         except OSError as exc:
-            cli.print(
-                f"❌ Logout failed: {exc}",
-                style=c.Cli.MessageStyles.BOLD_RED,
-            )
+            cli.print(f"❌ Logout failed: {exc}", style=c.Cli.MessageStyles.BOLD_RED)
             return r[bool].fail(str(exc))
         cli.print("✅ Logged out successfully", style=c.Cli.MessageStyles.GREEN)
         cli.print(
-            f"   Token removed from: {token_file_path}",
-            style=c.Cli.MessageStyles.CYAN,
+            f"   Token removed from: {token_file_path}", style=c.Cli.MessageStyles.CYAN
         )
         return r[bool].ok(True)

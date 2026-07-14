@@ -16,7 +16,7 @@ import pytest
 from flext_tests import tm
 
 import flext_cli
-from flext_cli import cli
+from flext_cli import cli, m
 from flext_cli.__version__ import FlextCliVersion
 from tests import c
 
@@ -95,20 +95,20 @@ class TestsFlextCliVersion:
     def test_execute_publishes_cli_version_in_runtime_payload(self) -> None:
         """``cli.execute()`` succeeds and reports the CLI version string."""
         result = cli.execute()
-        tm.ok(result)
-        payload = result.value
-        tm.that("version" in payload, eq=True)
-        version = payload["version"]
-        tm.that(version, is_=str)
-        tm.that(version, eq=c.Cli.CLI_VERSION)
+        tm.ok(result, is_=m.Cli.RuntimeStatus)
+        status = result.value
+        tm.that(status.version, is_=str)
+        tm.that(status.version, eq=c.Cli.CLI_VERSION)
 
     def test_execute_reports_version_deterministically(self) -> None:
         """Repeated ``cli.execute()`` calls report an identical version."""
         first = cli.execute()
         second = cli.execute()
-        tm.ok(first)
-        tm.ok(second)
-        tm.that(first.value["version"], eq=second.value["version"])
+        tm.ok(first, is_=m.Cli.RuntimeStatus)
+        tm.ok(second, is_=m.Cli.RuntimeStatus)
+        first_status = first.value
+        second_status = second.value
+        tm.that(first_status.version, eq=second_status.version)
 
     @pytest.mark.parametrize(
         ("candidate", "is_valid"),
@@ -126,7 +126,7 @@ class TestsFlextCliVersion:
             ("not-a-version", False),
         ],
     )
-    def test_semver_pattern_contract(self, candidate: str, is_valid: bool) -> None:
+    def test_semver_pattern_contract(self, candidate: str, *, is_valid: bool) -> None:
         """The published semver pattern accepts valid and rejects invalid strings."""
         matched = c.PATTERN_SEMVER_RE.match(candidate) is not None
         tm.that(matched, eq=is_valid)

@@ -16,8 +16,8 @@ from flext_cli import m, p, r
 class FlextCliUtilitiesXlsxStyleReaders:
     """Validate external style proxies into the canonical visual models."""
 
-    # NOTE (multi-agent, mro-j2yt.1): copy() is the documented openpyxl proxy
-    # boundary; each copied component is runtime-checked before model ingress.
+    # NOTE (multi-agent, mro-wkii.17.26): copy() is the openpyxl proxy boundary;
+    # proxy reads and Pydantic composition fail through distinct typed phases.
     @staticmethod
     def _color_spec(color: Color | None) -> m.Cli.XlsxColor | None:
         if color is None:
@@ -131,18 +131,26 @@ class FlextCliUtilitiesXlsxStyleReaders:
             fill = copy(value.fill)
             border = copy(value.border)
             alignment = copy(value.alignment)
-            if not isinstance(font, Font):
-                msg = "openpyxl font proxy copy is not Font"
-                raise TypeError(msg)
-            if not isinstance(fill, Fill):
-                msg = "openpyxl fill proxy copy is not Fill"
-                raise TypeError(msg)
-            if not isinstance(border, Border):
-                msg = "openpyxl border proxy copy is not Border"
-                raise TypeError(msg)
-            if not isinstance(alignment, Alignment):
-                msg = "openpyxl alignment proxy copy is not Alignment"
-                raise TypeError(msg)
+        except (TypeError, ValidationError, ValueError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[m.Cli.XlsxVisualStyleSpec].fail(detail, exception=exc)
+        if not isinstance(font, Font):
+            return r[m.Cli.XlsxVisualStyleSpec].fail(
+                "openpyxl font proxy copy is not Font"
+            )
+        if not isinstance(fill, Fill):
+            return r[m.Cli.XlsxVisualStyleSpec].fail(
+                "openpyxl fill proxy copy is not Fill"
+            )
+        if not isinstance(border, Border):
+            return r[m.Cli.XlsxVisualStyleSpec].fail(
+                "openpyxl border proxy copy is not Border"
+            )
+        if not isinstance(alignment, Alignment):
+            return r[m.Cli.XlsxVisualStyleSpec].fail(
+                "openpyxl alignment proxy copy is not Alignment"
+            )
+        try:
             visual = m.Cli.XlsxVisualStyleSpec(
                 font=cls._font_spec(font),
                 fill=cls._fill_spec(fill),
@@ -152,7 +160,7 @@ class FlextCliUtilitiesXlsxStyleReaders:
             )
         except (TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxVisualStyleSpec].fail(detail)
+            return r[m.Cli.XlsxVisualStyleSpec].fail(detail, exception=exc)
         return r[m.Cli.XlsxVisualStyleSpec].ok(visual)
 
 

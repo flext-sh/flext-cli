@@ -45,6 +45,7 @@ class TestsFlextCliServicesAuth:
     def test_authenticate_with_token_persists_and_round_trips(
         self, service: FlextCli, tmp_path: Path
     ) -> None:
+        """Persist a supplied token and load the same token publicly."""
         # Arrange
         self._point_token_file(tmp_path / "token.json")
 
@@ -58,6 +59,7 @@ class TestsFlextCliServicesAuth:
     def test_authenticate_with_username_password_returns_reloadable_token(
         self, service: FlextCli, tmp_path: Path
     ) -> None:
+        """Generate and persist a reloadable token from valid credentials."""
         # Arrange
         self._point_token_file(tmp_path / "token.json")
 
@@ -70,7 +72,7 @@ class TestsFlextCliServicesAuth:
         # Assert: a non-empty token is generated and persisted for reload.
         generated = tm.ok(authenticated)
         tm.that(generated, is_=str)
-        assert generated
+        tm.that(generated, empty=False)
         tm.that(tm.ok(service.fetch_auth_token()), eq=generated)
 
     @pytest.mark.parametrize(
@@ -86,6 +88,7 @@ class TestsFlextCliServicesAuth:
     def test_authenticate_rejects_malformed_credentials_payload(
         self, service: FlextCli, tmp_path: Path, credentials: dict[str, str]
     ) -> None:
+        """Reject malformed credential payloads at the validation boundary."""
         # Arrange
         self._point_token_file(tmp_path / "token.json")
 
@@ -116,6 +119,7 @@ class TestsFlextCliServicesAuth:
         credentials: dict[str, str],
         missing_field: str,
     ) -> None:
+        """Report each required credential field that is absent."""
         # Arrange
         self._point_token_file(tmp_path / "token.json")
 
@@ -140,6 +144,7 @@ class TestsFlextCliServicesAuth:
     def test_authenticate_fails_when_token_cannot_be_persisted(
         self, service: FlextCli, tmp_path: Path, credentials: dict[str, str]
     ) -> None:
+        """Propagate the canonical JSON write failure when persistence fails."""
         # Arrange: point token_file at a directory so the write cannot succeed.
         token_dir = tmp_path / "token-as-dir"
         token_dir.mkdir()
@@ -150,11 +155,12 @@ class TestsFlextCliServicesAuth:
 
         # Assert: persistence failure surfaces as a write error, not success.
         tm.fail(result)
-        tm.that(result.error, has="json_write:")
+        tm.that(result.error, has="json_write failed:")
 
     def test_save_auth_token_rejects_blank_token(
         self, service: FlextCli, tmp_path: Path
     ) -> None:
+        """Reject blank authentication tokens before filesystem access."""
         # Arrange
         self._point_token_file(tmp_path / "token.json")
 
@@ -169,6 +175,7 @@ class TestsFlextCliServicesAuth:
     def test_validate_credentials_rejects_empty_password(
         self, service: FlextCli
     ) -> None:
+        """Reject credentials whose password is empty."""
         # Act
         result = service.validate_credentials("user", "")
 
@@ -179,6 +186,7 @@ class TestsFlextCliServicesAuth:
     def test_fetch_auth_token_fails_when_file_missing(
         self, service: FlextCli, tmp_path: Path
     ) -> None:
+        """Fail loudly when the configured token file is absent."""
         # Arrange
         self._point_token_file(tmp_path / "missing-token.json")
 
@@ -192,6 +200,7 @@ class TestsFlextCliServicesAuth:
     def test_fetch_auth_token_fails_when_path_is_directory(
         self, service: FlextCli, tmp_path: Path
     ) -> None:
+        """Fail loudly when the configured token path is a directory."""
         # Arrange
         token_dir = tmp_path / "read-as-dir"
         token_dir.mkdir()
@@ -207,6 +216,7 @@ class TestsFlextCliServicesAuth:
     def test_clear_auth_tokens_is_ok_when_file_missing(
         self, service: FlextCli, tmp_path: Path
     ) -> None:
+        """Treat clearing an already absent token as idempotent success."""
         # Arrange
         self._point_token_file(tmp_path / "missing-token.json")
 
@@ -220,6 +230,7 @@ class TestsFlextCliServicesAuth:
     def test_clear_auth_tokens_removes_persisted_token_and_is_idempotent(
         self, service: FlextCli, tmp_path: Path
     ) -> None:
+        """Remove a persisted token and preserve idempotency on repetition."""
         # Arrange: persist a token first.
         self._point_token_file(tmp_path / "token.json")
         tm.ok(service.authenticate({c.Cli.DICT_KEY_AUTH_TOKEN: "token-123"}))

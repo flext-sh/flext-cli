@@ -66,6 +66,7 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
                     loaded.error or str(c.Cli.XlsxError.WORKBOOK_LOAD_FAILED)
                 )
             workbook = loaded.value
+        # mro-wkii.17.26 (codex): isolate vendor mutations by workbook phase.
         try:
             for worksheet in tuple(workbook.worksheets):
                 workbook.remove(worksheet)
@@ -75,6 +76,10 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
             for spec in request.plan.named_styles:
                 if spec.name not in workbook.named_styles:
                     workbook.add_named_style(cls._named_style(spec))
+        except (KeyError, TypeError, ValueError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[Workbook].fail(f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}")
+        try:
             for sheet in request.plan.sheets:
                 created = workbook.create_sheet(sheet.name)
                 if not isinstance(created, Worksheet):

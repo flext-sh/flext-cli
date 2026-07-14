@@ -58,6 +58,18 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             """Execute a command without enforcing zero exit status."""
             ...
 
+        def run_bytes(
+            self,
+            cmd: t.StrSequence,
+            cwd: t.Cli.TextPath | None = None,
+            timeout: int | None = None,
+            env: t.StrMapping | None = None,
+            remove_env_keys: t.StrSequence = (),
+            input_data: bytes | None = None,
+        ) -> p.Result[m.Cli.CommandBytesOutput]:
+            """Execute a command and preserve byte-exact standard streams."""
+            ...
+
         def run_checked(
             self,
             cmd: t.StrSequence,
@@ -92,12 +104,12 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def log_format(self) -> str | None:
-            """Get log format."""
+            """Configured log format."""
             ...
 
         @property
         def log_level(self) -> str | None:
-            """Get log level."""
+            """Configured log level."""
             ...
 
         @property
@@ -107,12 +119,12 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def output_format(self) -> str | None:
-            """Get output format."""
+            """Configured output format."""
             ...
 
         @property
         def params(self) -> t.JsonMapping:
-            """Get configuration parameters."""
+            """Configuration parameters."""
             ...
 
         @property

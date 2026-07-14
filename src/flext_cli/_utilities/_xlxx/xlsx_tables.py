@@ -18,6 +18,8 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
 
     # NOTE (multi-agent, mro-j2yt.1): table/name uniqueness and header validity
     # are checked before external objects mutate the workbook.
+    # NOTE (multi-agent, mro-wkii.17.26): header reads and table mutation use
+    # separate exception boundaries; domain validation remains explicit.
     @classmethod
     def _apply_tables(
         cls,
@@ -26,18 +28,24 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
         used_names: frozenset[str],
     ) -> p.Result[frozenset[str]]:
         names = used_names
-        try:
-            for plan in plans:
-                if plan.name in names:
-                    return r[frozenset[str]].fail(
-                        f"{c.Cli.XlsxError.DUPLICATE_TABLE}: {plan.name}"
-                    )
-                for column in range(plan.area.first.column, plan.area.last.column + 1):
+        for plan in plans:
+            if plan.name in names:
+                return r[frozenset[str]].fail(
+                    f"{c.Cli.XlsxError.DUPLICATE_TABLE}: {plan.name}"
+                )
+            for column in range(plan.area.first.column, plan.area.last.column + 1):
+                try:
                     header = worksheet.cell(plan.area.first.row, column).value
-                    if not isinstance(header, str) or not header:
-                        return r[frozenset[str]].fail(
-                            f"Invalid table header: {plan.name} column {column}"
-                        )
+                except (KeyError, TypeError, ValueError) as exc:
+                    detail = str(exc).strip() or exc.__class__.__name__
+                    return r[frozenset[str]].fail(
+                        f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}", exception=exc
+                    )
+                if not isinstance(header, str) or not header:
+                    return r[frozenset[str]].fail(
+                        f"Invalid table header: {plan.name} column {column}"
+                    )
+            try:
                 table = Table(displayName=plan.name, ref=cls._range_ref(plan.area))
                 table.tableStyleInfo = TableStyleInfo(
                     name=plan.style,
@@ -47,10 +55,12 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
                     showColumnStripes=plan.show_column_stripes,
                 )
                 worksheet.add_table(table)
-                names = names.union((plan.name,))
-        except (KeyError, TypeError, ValueError) as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
-            return r[frozenset[str]].fail(f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}")
+            except (KeyError, TypeError, ValueError) as exc:
+                detail = str(exc).strip() or exc.__class__.__name__
+                return r[frozenset[str]].fail(
+                    f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}", exception=exc
+                )
+            names = names.union((plan.name,))
         return r[frozenset[str]].ok(names)
 
     @classmethod

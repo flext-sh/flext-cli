@@ -17,6 +17,8 @@ from flext_tests import tm
 
 from flext_cli import cli, settings
 
+# mro-wkii.17.26 (codex): assert authentication against the shared example rule.
+
 if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
@@ -81,7 +83,7 @@ class TestsFlextCliExamplesSmoke:
 
         token_result = Ex05Authentication.fetch_saved_token()
         tm.ok(token_result)
-        tm.that(len(token_result.value) >= 20, eq=True)
+        tm.that(len(token_result.value) >= ec.EXAMPLE_MIN_AUTH_TOKEN_LENGTH, eq=True)
         validation_result = Ex05Authentication.validate_current_token()
         tm.ok(validation_result)
 

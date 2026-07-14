@@ -98,7 +98,8 @@ class FlextCliUtilitiesModelCommands:
         if isinstance(source, Mapping):
             raw_source = source
         else:
-            raw_source = source.model_dump(exclude_none=True)
+            # mro-wkii.17.26 (codex): explicit source fields alone override targets.
+            raw_source = source.model_dump(exclude_none=True, exclude_unset=True)
         filtered_payload = {
             field_name: raw_source[field_name]
             for field_name in model_cls.model_fields

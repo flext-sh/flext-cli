@@ -11,13 +11,16 @@ attributes, internal collaborators, or implementation structure are touched.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 
 from tests import m
 from tests import t
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestsFlextCliTypings:
@@ -73,13 +76,7 @@ class TestsFlextCliTypings:
 
     @pytest.mark.parametrize(
         ("payload", "expected"),
-        [
-            ("plain", "plain"),
-            (7, 7),
-            (True, True),
-            (Path("/tmp/x"), Path("/tmp/x")),
-            (["a", "b"], ["a", "b"]),
-        ],
+        [("plain", "plain"), (7, 7), (True, True), (["a", "b"], ["a", "b"])],
     )
     def test_cli_default_source_adapter_accepts_cli_value_kinds(
         self, payload: object, expected: object
@@ -87,6 +84,15 @@ class TestsFlextCliTypings:
         """CLI_DEFAULT_SOURCE_ADAPTER accepts scalars, sequences, and paths."""
         result = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)
         tm.that(result, eq=expected)
+
+    def test_cli_default_source_adapter_accepts_real_paths(
+        self, tmp_path: Path
+    ) -> None:
+        """Validate a pytest-managed path through the public CLI adapter."""
+        # mro-wkii.17.26 (codex): use the isolated filesystem fixture, never /tmp.
+        source = tmp_path / "source"
+        result = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source)
+        tm.that(result, eq=source)
 
     # --- Published type-tuple ClassVars ---------------------------------
 

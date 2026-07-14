@@ -18,6 +18,7 @@ class TestsFlextCliPublicContractsCoverage:
     """Implementation part for TestsFlextCliPublicContractsCoverage."""
 
     def test_public_pipeline_model_contracts(self, tmp_path: Path) -> None:
+        """Exercise the public pipeline models and service contract."""
         context = cli.stage_context(tmp_path, settings={"mode": "test"})
 
         def stage_handler(
@@ -56,7 +57,7 @@ class TestsFlextCliPublicContractsCoverage:
         tm.ok(stage_result)
         tm.that(stage_result.value.output, eq={"workspace": str(tmp_path)})
         tm.ok(pipeline_run)
-        tm.ok(pipeline_run.value)
+        tm.that(pipeline_run.value.success, eq=True)
 
 
 __all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]

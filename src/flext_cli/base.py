@@ -10,15 +10,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import m, t
-from flext_core import s
+from flext_core import p, s
 
 
-class FlextCliServiceBase(s[m.Cli.RuntimeStatus]):
+class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
+    s[TDomainResult]
+):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the
     `execute` method from s.
     """
+
+    # mro-wkii.17.26 (codex): preserve the domain result through the service MRO.
 
 
 s = FlextCliServiceBase

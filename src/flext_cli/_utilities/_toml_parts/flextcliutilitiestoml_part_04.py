@@ -61,7 +61,8 @@ class FlextCliUtilitiesToml:
             FlextCliUtilitiesTomlPart03.toml_value(container, key)
         )
         merged = sorted({*current, *required})
-        if current == merged:
+        # mro-wkii.17.26 (codex): compare one canonical immutable sequence shape.
+        if tuple(current) == tuple(merged):
             return False
         container[key] = FlextCliUtilitiesTomlPart01.toml_array(merged)
         return True

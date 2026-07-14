@@ -15,8 +15,8 @@ class FlextCliUtilitiesXlsxSnapshot(
 ):
     """Expose vendor-independent workbook parity evidence."""
 
-    # NOTE (multi-agent, mro-j2yt.1): the formula view owns structure and
-    # counts; a second data-only view supplies cached values only when asked.
+    # NOTE (multi-agent, mro-wkii.17.26): the formula view owns structure and
+    # narrow phases; a data-only view supplies cached values only when requested.
     @classmethod
     def xlsx_snapshot(
         cls, request: m.Cli.XlsxSnapshotRequest
@@ -31,20 +31,30 @@ class FlextCliUtilitiesXlsxSnapshot(
                 if request.data_only
                 else formula_workbook
             )
-            if len(formula_workbook.worksheets) != len(value_workbook.worksheets):
-                msg = "Formula and value workbook views have different sheet counts"
-                raise ValueError(msg)
-            sheets: tuple[m.Cli.XlsxSheetSnapshot, ...] = ()
-            for position, (formula_sheet, value_sheet) in enumerate(
-                zip(
-                    formula_workbook.worksheets, value_workbook.worksheets, strict=True
-                ),
-                start=1,
-            ):
-                sheet = cls._require_success(
+        except (TypeError, ValidationError, ValueError) as exc:
+            return r[m.Cli.XlsxWorkbookSnapshot].fail(
+                f"Workbook snapshot failed ({exc.__class__.__name__}): {exc}",
+                exception=exc,
+            )
+        if len(formula_workbook.worksheets) != len(value_workbook.worksheets):
+            return r[m.Cli.XlsxWorkbookSnapshot].fail(
+                "Workbook snapshot failed (ValueError): Formula and value workbook "
+                "views have different sheet counts"
+            )
+        try:
+            sheets = tuple(
+                cls._require_success(
                     cls._snapshot_sheet(formula_sheet, value_sheet, position=position)
                 )
-                sheets = (*sheets, sheet)
+                for position, (formula_sheet, value_sheet) in enumerate(
+                    zip(
+                        formula_workbook.worksheets,
+                        value_workbook.worksheets,
+                        strict=True,
+                    ),
+                    start=1,
+                )
+            )
             defined_names = cls._require_success(cls._snapshot_names(formula_workbook))
             snapshot = m.Cli.XlsxWorkbookSnapshot(
                 data_only=request.data_only,
@@ -56,7 +66,8 @@ class FlextCliUtilitiesXlsxSnapshot(
             )
         except (TypeError, ValidationError, ValueError) as exc:
             return r[m.Cli.XlsxWorkbookSnapshot].fail(
-                f"Workbook snapshot failed ({exc.__class__.__name__}): {exc}"
+                f"Workbook snapshot failed ({exc.__class__.__name__}): {exc}",
+                exception=exc,
             )
         return r[m.Cli.XlsxWorkbookSnapshot].ok(snapshot)
 

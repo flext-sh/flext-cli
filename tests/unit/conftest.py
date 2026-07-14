@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self, override
 
 import pytest
-from flext_tests import reset_settings
 
 from flext_cli import FlextCliSettings
 from flext_cli.services.prompts import FlextCliPrompts
@@ -20,16 +19,20 @@ if TYPE_CHECKING:
 class TestsFlextCliScriptedPrompts(FlextCliPrompts):
     """Prompt service with typed scripting helpers for tests."""
 
-    def override_test_env(self, enabled: bool | None = True) -> Self:
+    def override_test_env(self, *, enabled: bool | None = True) -> Self:
+        """Select the explicit test-environment override."""
         self._test_env_override = enabled
         return self
 
     def use_input_values(self, values: t.StrSequence) -> Self:
+        """Script successive prompt input values."""
         values_iter = iter(values)
         self._input_reader = lambda _prompt: next(values_iter)
         return self
 
     def use_input_error(self, error: Exception) -> Self:
+        """Script an input-reader failure."""
+
         def raise_input(_prompt: str) -> str:
             raise error
 
@@ -37,10 +40,13 @@ class TestsFlextCliScriptedPrompts(FlextCliPrompts):
         return self
 
     def use_password(self, password: str) -> Self:
+        """Script a password response."""
         self._password_reader = lambda _prompt: password
         return self
 
     def use_password_error(self, error: Exception) -> Self:
+        """Script a password-reader failure."""
+
         def raise_password(_prompt: str) -> str:
             raise error
 
@@ -48,6 +54,7 @@ class TestsFlextCliScriptedPrompts(FlextCliPrompts):
         return self
 
     def configure_state(self, *, interactive: bool = True, quiet: bool = False) -> Self:
+        """Configure the observable prompt runtime state."""
         self.configure(m.Cli.PromptRuntimeState(interactive=interactive, quiet=quiet))
         return self
 
@@ -59,6 +66,7 @@ class TestsFlextCliCaptureLogPrompts(TestsFlextCliScriptedPrompts):
 
     @property
     def records(self) -> list[tuple[str, str]]:
+        """Captured log-level and message pairs."""
         return self._records
 
     @override
@@ -73,6 +81,7 @@ class TestsFlextCliFailingLogPrompts(TestsFlextCliScriptedPrompts):
     _failure_message: str = m.PrivateAttr(default_factory=lambda: "logger failure")
 
     def fail_on_log(self, *, level: str, message: str) -> Self:
+        """Select the log call that raises the scripted failure."""
         self._failure_level = level
         self._failure_message = message
         return self
@@ -134,5 +143,4 @@ __all__: list[str] = [
     "make_capture_prompts",
     "make_failing_prompts",
     "make_prompts",
-    "reset_settings",
 ]

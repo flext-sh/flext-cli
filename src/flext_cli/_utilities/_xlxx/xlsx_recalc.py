@@ -17,6 +17,63 @@ class FlextCliUtilitiesXlsxRecalc(
 ):
     """Recalculate formula caches and prove parity through typed evidence."""
 
+    # mro-wkii.17.26 (xlsx-a): isolate filesystem and process failure boundaries.
+    @staticmethod
+    def _recalc_error(detail: str) -> str:
+        return f"{c.Cli.XlsxError.RECALC_FAILED}: {detail}"
+
+    @classmethod
+    def _recalc_in_workspace(
+        cls, request: m.Cli.XlsxRecalcRequest, workdir: Path
+    ) -> p.Result[m.Cli.XlsxRecalcResult]:
+        input_dir = workdir / "input"
+        output_dir = workdir / "output"
+        source_path = input_dir / c.Cli.XLSX_RECALC_SOURCE_NAME
+        try:
+            input_dir.mkdir()
+            output_dir.mkdir()
+            source_path.write_bytes(request.source)
+        except (OSError, ValueError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[m.Cli.XlsxRecalcResult].fail(cls._recalc_error(detail))
+        try:
+            started = FlextCliUtilitiesProcesses.process_start(
+                (*c.Cli.XLSX_RECALC_COMMAND, str(output_dir), str(source_path)),
+                cwd=workdir,
+            )
+        except (OSError, ValueError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[m.Cli.XlsxRecalcResult].fail(cls._recalc_error(detail))
+        if started.failure:
+            return r[m.Cli.XlsxRecalcResult].fail(cls._recalc_error(f"{started.error}"))
+        process = started.value
+        try:
+            completed = process.wait(timeout=c.Cli.XLSX_RECALC_TIMEOUT_SECONDS)
+        except (OSError, ValueError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[m.Cli.XlsxRecalcResult].fail(cls._recalc_error(detail))
+        if completed.failure:
+            try:
+                killed = process.kill()
+            except (OSError, ValueError) as exc:
+                detail = str(exc).strip() or exc.__class__.__name__
+                return r[m.Cli.XlsxRecalcResult].fail(cls._recalc_error(detail))
+            detail = completed.error or "process wait failed"
+            if killed.failure:
+                detail = f"{detail}; kill failed: {killed.error}"
+            return r[m.Cli.XlsxRecalcResult].fail(cls._recalc_error(detail))
+        if completed.value != 0:
+            detail = process.stderr.strip() or process.stdout.strip()
+            return r[m.Cli.XlsxRecalcResult].fail(
+                cls._recalc_error(f"exit={completed.value}: {detail}")
+            )
+        try:
+            content = (output_dir / c.Cli.XLSX_RECALC_SOURCE_NAME).read_bytes()
+        except (OSError, ValueError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[m.Cli.XlsxRecalcResult].fail(cls._recalc_error(detail))
+        return r[m.Cli.XlsxRecalcResult].ok(m.Cli.XlsxRecalcResult(content=content))
+
     # NOTE (multi-agent, mro-j2yt.1): the headless engine process terminates
     # at this private adapter; process spawning is consumed from the generic
     # processes facade without polluting the XLSX composition order.
@@ -29,44 +86,11 @@ class FlextCliUtilitiesXlsxRecalc(
             with tempfile.TemporaryDirectory(
                 prefix=c.Cli.XLSX_RECALC_TEMP_PREFIX
             ) as workspace:
-                workdir = Path(workspace)
-                input_dir = workdir / "input"
-                output_dir = workdir / "output"
-                input_dir.mkdir()
-                output_dir.mkdir()
-                source_path = input_dir / c.Cli.XLSX_RECALC_SOURCE_NAME
-                source_path.write_bytes(request.source)
-                started = FlextCliUtilitiesProcesses.process_start(
-                    (*c.Cli.XLSX_RECALC_COMMAND, str(output_dir), str(source_path)),
-                    cwd=workdir,
-                )
-                if started.failure:
-                    return r[m.Cli.XlsxRecalcResult].fail(
-                        f"{c.Cli.XlsxError.RECALC_FAILED}: {started.error}"
-                    )
-                process = started.value
-                completed = process.wait(timeout=c.Cli.XLSX_RECALC_TIMEOUT_SECONDS)
-                if completed.failure:
-                    killed = process.kill()
-                    detail = completed.error or "process wait failed"
-                    if killed.failure:
-                        detail = f"{detail}; kill failed: {killed.error}"
-                    return r[m.Cli.XlsxRecalcResult].fail(
-                        f"{c.Cli.XlsxError.RECALC_FAILED}: {detail}"
-                    )
-                if completed.value != 0:
-                    detail = process.stderr.strip() or process.stdout.strip()
-                    return r[m.Cli.XlsxRecalcResult].fail(
-                        f"{c.Cli.XlsxError.RECALC_FAILED}: "
-                        f"exit={completed.value}: {detail}"
-                    )
-                content = (output_dir / c.Cli.XLSX_RECALC_SOURCE_NAME).read_bytes()
+                result = cls._recalc_in_workspace(request, Path(workspace))
         except (OSError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxRecalcResult].fail(
-                f"{c.Cli.XlsxError.RECALC_FAILED}: {detail}"
-            )
-        return r[m.Cli.XlsxRecalcResult].ok(m.Cli.XlsxRecalcResult(content=content))
+            return r[m.Cli.XlsxRecalcResult].fail(cls._recalc_error(detail))
+        return result
 
     @classmethod
     def xlsx_recalc_parity(

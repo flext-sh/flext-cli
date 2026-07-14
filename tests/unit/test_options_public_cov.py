@@ -26,7 +26,7 @@ class TestsFlextCliOptions:
 
         output_path: Path = Path("reports/output.json")
         tags: t.StrSequence = ("lint", "typecheck")
-        flags: dict[str, bool] = {"debug": True}
+        flags: dict[str, bool] = m.Field(default_factory=lambda: {"debug": True})
 
     @pytest.mark.parametrize(
         ("annotation", "expected"),
@@ -42,9 +42,11 @@ class TestsFlextCliOptions:
     def test_resolve_typer_annotation_maps_scalars_unions_and_collections(
         self, annotation: t.Cli.RuntimeAnnotation, expected: type
     ) -> None:
-        assert u.Cli.resolve_typer_annotation(annotation) is expected
+        """Resolve scalar, union, and collection annotations canonically."""
+        tm.that(u.Cli.resolve_typer_annotation(annotation), eq=expected)
 
     def test_resolve_typer_annotation_maps_string_sequence_to_list_of_str(self) -> None:
+        """Map the canonical string sequence alias to a repeatable CLI list."""
         tm.that(u.Cli.resolve_typer_annotation(t.StrSequence), eq=list[str])
 
     @pytest.mark.parametrize(
@@ -63,6 +65,7 @@ class TestsFlextCliOptions:
     def test_normalize_cli_atom_returns_typer_ready_value_or_none(
         self, value: t.Cli.CliDefaultSource, expected: t.Cli.DefaultAtom | None
     ) -> None:
+        """Normalize supported CLI atoms and reject unsupported values."""
         tm.that(u.Cli.normalize_cli_atom(value), eq=expected)
 
     @pytest.mark.parametrize(
@@ -78,20 +81,23 @@ class TestsFlextCliOptions:
         ],
     )
     def test_is_string_sequence_recognizes_only_str_sequences(
-        self, value: t.Cli.CliDefaultSource, expected: bool
+        self, value: t.Cli.CliDefaultSource, *, expected: bool
     ) -> None:
-        assert u.Cli.is_string_sequence(value) is expected
+        """Recognize only sequences whose every member is a string."""
+        tm.that(u.Cli.is_string_sequence(value), eq=expected)
 
     def test_field_default_prefers_settings_scalar_over_field_metadata(self) -> None:
+        """Prefer a scalar sourced from validated settings."""
         settings = self._OptionSettings()
         fields = self._OptionSettings.model_fields
 
-        assert (
-            u.Cli.field_default("output_path", fields["output_path"], settings)
-            == "reports/output.json"
+        tm.that(
+            u.Cli.field_default("output_path", fields["output_path"], settings),
+            eq="reports/output.json",
         )
 
     def test_field_default_normalizes_sequence_field_to_tuple(self) -> None:
+        """Normalize a settings sequence to an immutable tuple."""
         settings = self._OptionSettings()
         fields = self._OptionSettings.model_fields
 
@@ -101,6 +107,7 @@ class TestsFlextCliOptions:
         )
 
     def test_field_default_normalizes_mapping_field_preserving_entries(self) -> None:
+        """Preserve supported entries from a settings mapping."""
         settings = self._OptionSettings()
         fields = self._OptionSettings.model_fields
 
@@ -109,30 +116,30 @@ class TestsFlextCliOptions:
         )
 
     def test_field_default_falls_back_to_field_metadata_without_settings(self) -> None:
+        """Use field metadata when no settings object is supplied."""
         fields = self._OptionSettings.model_fields
 
-        assert (
-            u.Cli.field_default("output_path", fields["output_path"], None)
-            == "reports/output.json"
+        tm.that(
+            u.Cli.field_default("output_path", fields["output_path"], None),
+            eq="reports/output.json",
         )
 
     def test_build_option_registers_aliases_and_short_flag_from_spec(self) -> None:
+        """Build ordered long, plural, and short declarations from metadata."""
         option = u.Cli.build_option("project", {"project": {"short": "p"}})
 
-        param_decls = option.param_decls
-        tm.that(param_decls, none=False)
-        tm.that(param_decls, has="--project")
-        tm.that(param_decls, has="--projects")
-        tm.that(param_decls, has="-p")
+        tm.that(option.declarations, has="--project")
+        tm.that(option.declarations, has="--projects")
+        tm.that(option.declarations, has="-p")
 
     def test_build_option_reads_canonical_registry_contract(self) -> None:
+        """Build an option from the canonical CLI parameter registry."""
         option = u.Cli.build_option("debug", c.Cli.CLI_PARAM_REGISTRY)
 
-        param_decls = option.param_decls
-        tm.that(param_decls, none=False)
-        tm.that(param_decls, has="--debug")
+        tm.that(option.declarations, has="--debug")
 
     def test_reorder_prefixed_options_moves_shared_flags_after_subcommand(self) -> None:
+        """Move shared prefix flags immediately after the subcommand."""
         reordered = u.Cli.reorder_prefixed_options(
             ["--debug", "--log-level", "DEBUG", "check", "--all"],
             bool_options=("--debug",),
@@ -142,6 +149,7 @@ class TestsFlextCliOptions:
         tm.that(reordered, eq=["check", "--debug", "--log-level", "DEBUG", "--all"])
 
     def test_reorder_prefixed_options_handles_equals_joined_value_option(self) -> None:
+        """Preserve an equals-joined value while reordering its option."""
         reordered = u.Cli.reorder_prefixed_options(
             ["--log-level=DEBUG", "check", "--all"],
             bool_options=("--debug",),
@@ -154,14 +162,16 @@ class TestsFlextCliOptions:
     def test_reorder_prefixed_options_is_identity_without_leading_prefixes(
         self, args: list[str]
     ) -> None:
-        assert (
+        """Preserve argument order when no shared option precedes the command."""
+        tm.that(
             u.Cli.reorder_prefixed_options(
                 args, bool_options=("--debug",), value_options=("--log-level",)
-            )
-            == args
+            ),
+            eq=args,
         )
 
     def test_reorder_prefixed_options_is_idempotent(self) -> None:
+        """Return the same ordering when applied repeatedly."""
         once = u.Cli.reorder_prefixed_options(
             ["--debug", "check", "--all"],
             bool_options=("--debug",),

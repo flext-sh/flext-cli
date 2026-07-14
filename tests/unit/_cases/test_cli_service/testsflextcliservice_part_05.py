@@ -11,6 +11,7 @@ from tests import m
 from flext_cli import cli, r
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
+# mro-wkii.17.26 (codex): exercise CLI flows through the public invocation facade.
 
 if TYPE_CHECKING:
     from tests import p
@@ -20,6 +21,7 @@ class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
     def test_register_result_command_renders_success_and_failure(self) -> None:
+        """Render successful and failed result commands through real CLI routes."""
         app = cli.create_app_with_common_params(
             name="result-app", help_text="Result application"
         )
@@ -56,19 +58,20 @@ class TestsFlextCliService:
         cli.register_result_route(app, route=build_ok_route())
         cli.register_result_route(group, route=build_fail_route())
         cli.add_group(app, name="group", group=group)
-        runner_result = cli.create_cli_runner()
-        tm.ok(runner_result)
-        ok_result = runner_result.value.invoke(app, ["ok", "--name", "alice"])
-        fail_result = runner_result.value.invoke(
-            app, ["group", "fail", "--name", "alice"]
-        )
+        ok_result = cli.invoke_app(app, args=("ok", "--name", "alice"))
+        fail_result = cli.invoke_app(app, args=("group", "fail", "--name", "alice"))
 
-        tm.that(ok_result.exit_code, eq=0)
-        tm.that(ok_result.stdout, has="processed alice")
-        tm.that(fail_result.exit_code, eq=1)
-        tm.that(fail_result.stdout, has="Username cannot be empty")
+        tm.ok(ok_result)
+        tm.ok(fail_result)
+        ok_invocation = ok_result.value
+        fail_invocation = fail_result.value
+        tm.that(ok_invocation.exit_code, eq=0)
+        tm.that(ok_invocation.stdout, has="processed alice")
+        tm.that(fail_invocation.exit_code, eq=1)
+        tm.that(fail_invocation.stdout, has="Username cannot be empty")
 
     def test_register_result_routes_propagates_real_failure(self) -> None:
+        """Preserve structured failures from registered result routes."""
         app = cli.create_app_with_common_params(
             name="result-app", help_text="Result application"
         )
@@ -99,8 +102,7 @@ class TestsFlextCliService:
         tm.fail(fail_result)
         tm.that(fail_result.error, has="Password cannot be resolved")
         tm.that(fail_result.error_code, eq="secret_unavailable")
-        assert fail_result.error_data is not None
-        tm.that(fail_result.error_data["field"], eq="password")
+        tm.that(fail_result.error_data, eq={"field": "password", "name": "alice"})
         tm.that(fail_result.exception, is_=ValueError)
         tm.that(cli.finalize_result(fail_result), eq=c.Cli.EXIT_CODE_FAILURE)
 
