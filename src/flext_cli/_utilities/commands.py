@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import traceback
+
 # mro-j47u (codex): formatter contracts are owned once by the t facade.
 from flext_cli import c, t
 from flext_cli._utilities.output import FlextCliUtilitiesOutput as uo
@@ -44,11 +46,31 @@ class FlextCliUtilitiesCommands:
         uo.emit_raw(f"{rendered}\n")
 
     @staticmethod
-    def commands_emit_error_message(error: str) -> None:
-        """Emit standardized CLI error output."""
+    def commands_emit_error_message(
+        error: str,
+        *,
+        error_code: str | None = None,
+        exception: BaseException | None = None,
+        verbose: bool = False,
+    ) -> None:
+        """Emit standardized CLI error output and log it via flext-core."""
+        logger = u.fetch_logger(__name__)
+        if isinstance(exception, Exception):
+            logger.exception(error, error_code=error_code, exception=exception)
+        else:
+            logger.error(error, error_code=error_code)
         uo.emit_raw(
             f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n"
         )
+        if error_code:
+            uo.emit_raw(f"   [{error_code}]\n")
+        if verbose and exception is not None:
+            detail = "".join(
+                traceback.format_exception(
+                    type(exception), exception, exception.__traceback__
+                )
+            )
+            uo.emit_raw(detail if detail.endswith("\n") else f"{detail}\n")
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]

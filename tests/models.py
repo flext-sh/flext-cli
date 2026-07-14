@@ -7,12 +7,19 @@ from typing import Annotated
 from flext_tests import FlextTestsModels
 
 from flext_cli import FlextCliModels, m
+from tests._models_parts.testsflextclimodels_part_01 import (
+    TestsFlextCliModels as TestsFlextCliModelsPart01,
+)
 
 
-class TestsFlextCliModels(FlextTestsModels, FlextCliModels):
+class TestsFlextCliModels(
+    TestsFlextCliModelsPart01,
+    FlextTestsModels,
+    FlextCliModels,
+):
     """Test model facade composed from canonical FLEXT model owners."""
 
-    class Tests(FlextTestsModels.Tests):
+    class Tests(TestsFlextCliModelsPart01.Tests):
         """Consumer-owned records used to exercise typed YAML ingress."""
 
         class YamlService(m.FrozenModel):

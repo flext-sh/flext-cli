@@ -5,7 +5,6 @@ from __future__ import annotations
 from defusedxml import ElementTree as DefusedET
 from defusedxml.common import DefusedXmlException
 
-# mro-j47u (kimi): utilities consume local facades only, never private modules.
 from flext_cli import c, m, p, r, t
 
 

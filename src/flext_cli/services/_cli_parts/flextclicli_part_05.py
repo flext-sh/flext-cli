@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, p, r, t, u
+from flext_cli import c, p, r, settings, t, u
 from flext_cli.services._cli_parts.flextclicli_part_04 import (
     FlextCliCli as FlextCliCliPart04,
 )
@@ -78,15 +78,20 @@ class FlextCliCli(FlextCliCliPart04):
     ) -> p.Cli.ModelCommandHandler[M]:
         """Build the shared executor used by single and batched route registration."""
 
-        def _exit_with_failure(error: str | None) -> None:
-            if error:
-                u.Cli.commands_emit_error_message(error)
+        def _exit_with_failure(result: p.Result[TResult]) -> None:
+            if result.error:
+                u.Cli.commands_emit_error_message(
+                    result.error,
+                    error_code=result.error_code,
+                    exception=result.exception,
+                    verbose=settings.cli_verbose,
+                )
             cls.exit(code=1)
 
         def execute(params: M) -> t.JsonValue:
             result: p.Result[TResult] = handler(params)
             if result.failure:
-                _exit_with_failure(result.error)
+                _exit_with_failure(result)
             result_value: TResult = result.value
             message = u.Cli.commands_resolve_success_message(
                 result_value=result_value,
@@ -108,7 +113,7 @@ class FlextCliCli(FlextCliCliPart04):
         def route_execute(params: t.Cli.ModelLike) -> p.Result[t.Cli.ResultValue]:
             result = route.handler(params)
             if result.failure:
-                return r[t.Cli.ResultValue].fail(result.error or "")
+                return result
             return r[t.Cli.ResultValue].ok(result.value)
 
         cls.register_result_command(
