@@ -55,8 +55,8 @@ class FlextCliUtilitiesCommands:
     ) -> None:
         """Emit standardized CLI error output and log it via flext-core."""
         logger = u.fetch_logger(__name__)
-        if exception is not None:
-            logger.error(error, error_code=error_code, exception=exception)
+        if isinstance(exception, Exception):
+            logger.exception(error, error_code=error_code, exception=exception)
         else:
             logger.error(error, error_code=error_code)
         uo.emit_raw(
