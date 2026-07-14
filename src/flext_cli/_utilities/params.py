@@ -91,7 +91,7 @@ class FlextCliUtilitiesParams:
             next_config = next_config.clone(cli_log_verbosity=str(log_verbosity))
         if params.output_format is not None:
             validated_result = uv.validate_format(params.output_format)
-            if validated_result.failure or validated_result.value is None:
+            if validated_result.failure:
                 valid = ", ".join(c.Cli.OUTPUT_FORMATS)
                 return r[p.Cli.Settings].fail(
                     c.Cli.CLI_PARAM_ERR_INVALID_WITH_VALID_FMT.format(

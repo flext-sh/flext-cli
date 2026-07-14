@@ -93,8 +93,6 @@ class FlextCliUtilitiesFiles:
         if loaded.failure:
             return r[t.JsonMapping].fail(loaded.error or c.Cli.ERR_AUTO_LOAD_FAILED)
         payload = loaded.value
-        if not isinstance(payload, Mapping):
-            return r[t.JsonMapping].fail("Auto-detected file must contain a mapping")
         normalized_payload: t.JsonMapping = {
             key: u.normalize_to_json_value(value) for key, value in payload.items()
         }
