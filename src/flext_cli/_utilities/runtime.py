@@ -44,7 +44,7 @@ class FlextCliUtilitiesRuntime:
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
         input_data: bytes | None = None,
-    ) -> p.Result[m.Cli.CommandOutput]:
+    ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command without enforcing a zero exit code."""
         start = time.monotonic()
         try:
@@ -59,15 +59,15 @@ class FlextCliUtilitiesRuntime:
                 input=input_data,
             )
         except subprocess.TimeoutExpired as exc:
-            return r[m.Cli.CommandOutput].fail(
+            return r[p.Cli.CommandOutput].fail(
                 f"timeout {exc.timeout}s: {shlex.join(list(cmd))}"
             )
         except c.EXC_OS_VALUE as exc:
-            return r[m.Cli.CommandOutput].fail(f"execution error: {exc}")
+            return r[p.Cli.CommandOutput].fail(f"execution error: {exc}")
         stdout_raw = result.stdout or (b"" if input_data is not None else "")
         stderr_raw = result.stderr or (b"" if input_data is not None else "")
         duration = max(0.0, time.monotonic() - start)
-        return r[m.Cli.CommandOutput].ok(
+        return r[p.Cli.CommandOutput].ok(
             m.Cli.CommandOutput(
                 stdout=stdout_raw.decode()
                 if isinstance(stdout_raw, bytes)
@@ -88,7 +88,7 @@ class FlextCliUtilitiesRuntime:
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
         input_data: bytes | None = None,
-    ) -> p.Result[m.Cli.CommandBytesOutput]:
+    ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Run a command capturing byte-exact stdout/stderr (no text decoding)."""
         start = time.monotonic()
         try:
@@ -103,13 +103,13 @@ class FlextCliUtilitiesRuntime:
                 input=input_data,
             )
         except subprocess.TimeoutExpired as exc:
-            return r[m.Cli.CommandBytesOutput].fail(
+            return r[p.Cli.CommandBytesOutput].fail(
                 f"timeout {exc.timeout}s: {shlex.join(list(cmd))}"
             )
         except c.EXC_OS_VALUE as exc:
-            return r[m.Cli.CommandBytesOutput].fail(f"execution error: {exc}")
+            return r[p.Cli.CommandBytesOutput].fail(f"execution error: {exc}")
         duration = max(0.0, time.monotonic() - start)
-        return r[m.Cli.CommandBytesOutput].ok(
+        return r[p.Cli.CommandBytesOutput].ok(
             m.Cli.CommandBytesOutput(
                 stdout=result.stdout or b"",
                 stderr=result.stderr or b"",
@@ -125,17 +125,17 @@ class FlextCliUtilitiesRuntime:
         timeout: int | None = None,
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
-    ) -> p.Result[m.Cli.CommandOutput]:
+    ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command and fail on non-zero exit status."""
 
         def require_zero_exit(
-            output: m.Cli.CommandOutput,
-        ) -> p.Result[m.Cli.CommandOutput]:
+            output: p.Cli.CommandOutput,
+        ) -> p.Result[p.Cli.CommandOutput]:
             if output.exit_code != 0:
-                return r[m.Cli.CommandOutput].fail(
+                return r[p.Cli.CommandOutput].fail(
                     f"failed ({output.exit_code}): {shlex.join(list(cmd))}: {(output.stderr or output.stdout).strip()}"
                 )
-            return r[m.Cli.CommandOutput].ok(output)
+            return r[p.Cli.CommandOutput].ok(output)
 
         return FlextCliUtilitiesRuntime.run_raw(
             cmd, cwd=cwd, timeout=timeout, env=env, remove_env_keys=remove_env_keys

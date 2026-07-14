@@ -70,7 +70,9 @@ class TestsFlextCliService:
         model_from_instance = m.Tests.SampleInput(
             name="bob", count=7, dry_run=True, output_format=c.Cli.OutputFormats.JSON
         )
-        final_source = m.Tests.SampleInputPatch(name="carol", count=9)
+        final_source = m.Tests.SampleInput(
+            name="carol", count=9, dry_run=True, output_format=c.Cli.OutputFormats.JSON
+        )
 
         derived = cli.derive_model(
             m.Tests.SampleInput, first_source, model_from_instance, final_source

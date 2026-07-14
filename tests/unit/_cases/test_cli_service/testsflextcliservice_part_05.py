@@ -58,8 +58,14 @@ class TestsFlextCliService:
         cli.register_result_route(app, route=build_ok_route())
         cli.register_result_route(group, route=build_fail_route())
         cli.add_group(app, name="group", group=group)
-        ok_result = cli.invoke_app(app, args=("ok", "--name", "alice"))
-        fail_result = cli.invoke_app(app, args=("group", "fail", "--name", "alice"))
+        ok_invocation = cli.invoke_app(app, args=["ok", "--name", "alice"])
+        fail_invocation = cli.invoke_app(
+            app, args=["group", "fail", "--name", "alice"]
+        )
+        tm.ok(ok_invocation)
+        tm.ok(fail_invocation)
+        ok_result = ok_invocation.value
+        fail_result = fail_invocation.value
 
         tm.ok(ok_result)
         tm.ok(fail_result)
@@ -105,6 +111,7 @@ class TestsFlextCliService:
         tm.that(fail_result.error_data, eq={"field": "password", "name": "alice"})
         tm.that(fail_result.exception, is_=ValueError)
         tm.that(cli.finalize_result(fail_result), eq=c.Cli.EXIT_CODE_FAILURE)
+        tm.that(cli.finalize_result(fail_result, failure_exit_code=2), eq=2)
 
 
 __all__: list[str] = ["TestsFlextCliService"]

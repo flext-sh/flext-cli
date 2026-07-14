@@ -137,12 +137,16 @@ class FlextCliCli(FlextCliCliPart04):
             cls.register_result_route(app, route=route)
 
     @staticmethod
-    def finalize_result[TResult: t.Cli.ResultValue](result: p.Result[TResult]) -> int:
+    def finalize_result[TResult: t.Cli.ResultValue](
+        result: p.Result[TResult], *, failure_exit_code: int = c.Cli.EXIT_CODE_FAILURE
+    ) -> int:
         """Finalize one public CLI Result into output/logging and an exit code."""
         if result.success:
             return c.Cli.EXIT_CODE_SUCCESS
         u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)
-        return c.Cli.EXIT_CODE_FAILURE
+        # NOTE (multi-agent): the outermost CLI owns its process contract while
+        # FlextCliCli remains the single error-emission boundary.
+        return failure_exit_code
 
 
 __all__: list[str] = ["FlextCliCli"]

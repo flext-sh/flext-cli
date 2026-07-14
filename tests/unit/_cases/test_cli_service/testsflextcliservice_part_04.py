@@ -102,5 +102,23 @@ class TestsFlextCliService:
         tm.fail(result)
         tm.that(result.error, has="No such command 'missing-command'")
 
+    def test_execute_external_command_accepts_public_sequence(self) -> None:
+        """External commands receive a list at the private framework boundary."""
+        app = cli.create_app_with_common_params(
+            name="external-app", help_text="External command application"
+        )
+        cli.register_command(
+            app,
+            name="ok",
+            help_text="Successful external command",
+            command=lambda: True,
+        )
+
+        result = cli.execute_external_command(
+            cli.external_command(app), prog_name="external-app", args=("ok",)
+        )
+
+        tm.ok(result)
+
 
 __all__: list[str] = ["TestsFlextCliService"]

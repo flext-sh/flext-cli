@@ -13,8 +13,7 @@ from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_02 import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli import m, t
-    from flext_core import p
+    from flext_cli import p, t
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
@@ -31,7 +30,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
-        ) -> p.Result[m.Cli.CommandOutput]:
+        ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command and require zero exit status."""
             ...
 
@@ -54,10 +53,11 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
             input_data: bytes | None = None,
-        ) -> p.Result[m.Cli.CommandOutput]:
+        ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
             ...
 
+        # mro-zf1s: binary execution shares the runner contract through p.Cli.
         def run_bytes(
             self,
             cmd: t.StrSequence,
@@ -66,8 +66,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
             input_data: bytes | None = None,
-        ) -> p.Result[m.Cli.CommandBytesOutput]:
-            """Execute a command and preserve byte-exact standard streams."""
+        ) -> p.Result[p.Cli.CommandBytesOutput]:
+            """Execute a command and preserve byte-exact output."""
             ...
 
         def run_checked(
@@ -124,7 +124,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def params(self) -> t.JsonMapping:
-            """Configuration parameters."""
+            """Validated configuration parameters."""
             ...
 
         @property

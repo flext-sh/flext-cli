@@ -57,10 +57,15 @@ class TestsFlextCliPublicContractsCoverage:
         tm.ok(result, is_=m.Cli.RuntimeStatus)
         status = result.value
 
-        tm.that(status.status, eq=c.Cli.ServiceStatus.OPERATIONAL)
-        tm.that(status.service, eq=c.Cli.FLEXT_CLI)
-        tm.that(status.components, is_=m.Cli.RuntimeComponents)
-        tm.that(status.components.prompts, eq="available")
+        tm.ok(facade_result)
+        tm.that(
+            facade_result.value.status,
+            eq=(c.Cli.ServiceStatus.OPERATIONAL),
+        )
+        tm.that(facade_result.value.service, eq=c.Cli.FLEXT_CLI)
+        components = facade_result.value.components
+        tm.that(components, is_=m.Cli.RuntimeComponents)
+        tm.that(components.prompts, eq="available")
 
     def test_public_model_command_utility_contract(self) -> None:
         """Build and execute model commands through the public utility contract."""

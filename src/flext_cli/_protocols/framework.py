@@ -41,6 +41,8 @@ class FlextCliProtocolsFramework:
 
         def main(
             self,
+            # mro-wkii.17.26 (codex): public integrations accept every canonical
+            # immutable sequence; the private adapter normalizes at Click ingress.
             args: t.StrSequence | None = None,
             prog_name: str | None = None,
             *,

@@ -98,7 +98,7 @@ class FlextCliUtilitiesToml:
             container.get(key, None)
         )
         merged = sorted({*current, *required})
-        if current == merged:
+        if list(current) == merged:
             return False
         normalized_list: t.JsonValueList = list(merged)
         container[key] = normalized_list

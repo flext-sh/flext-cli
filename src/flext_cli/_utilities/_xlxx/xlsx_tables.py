@@ -27,6 +27,19 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
         plans: tuple[m.Cli.XlsxTablePlan, ...],
         used_names: frozenset[str],
     ) -> p.Result[frozenset[str]]:
+        try:
+            return cls._apply_tables_unchecked(worksheet, plans, used_names)
+        except (KeyError, TypeError, ValueError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[frozenset[str]].fail(f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}")
+
+    @classmethod
+    def _apply_tables_unchecked(
+        cls,
+        worksheet: Worksheet,
+        plans: tuple[m.Cli.XlsxTablePlan, ...],
+        used_names: frozenset[str],
+    ) -> p.Result[frozenset[str]]:
         names = used_names
         for plan in plans:
             if plan.name in names:
@@ -34,32 +47,20 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
                     f"{c.Cli.XlsxError.DUPLICATE_TABLE}: {plan.name}"
                 )
             for column in range(plan.area.first.column, plan.area.last.column + 1):
-                try:
-                    header = worksheet.cell(plan.area.first.row, column).value
-                except (KeyError, TypeError, ValueError) as exc:
-                    detail = str(exc).strip() or exc.__class__.__name__
-                    return r[frozenset[str]].fail(
-                        f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}", exception=exc
-                    )
+                header = worksheet.cell(plan.area.first.row, column).value
                 if not isinstance(header, str) or not header:
                     return r[frozenset[str]].fail(
                         f"Invalid table header: {plan.name} column {column}"
                     )
-            try:
-                table = Table(displayName=plan.name, ref=cls._range_ref(plan.area))
-                table.tableStyleInfo = TableStyleInfo(
-                    name=plan.style,
-                    showFirstColumn=plan.show_first_column,
-                    showLastColumn=plan.show_last_column,
-                    showRowStripes=plan.show_row_stripes,
-                    showColumnStripes=plan.show_column_stripes,
-                )
-                worksheet.add_table(table)
-            except (KeyError, TypeError, ValueError) as exc:
-                detail = str(exc).strip() or exc.__class__.__name__
-                return r[frozenset[str]].fail(
-                    f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}", exception=exc
-                )
+            table = Table(displayName=plan.name, ref=cls._range_ref(plan.area))
+            table.tableStyleInfo = TableStyleInfo(
+                name=plan.style,
+                showFirstColumn=plan.show_first_column,
+                showLastColumn=plan.show_last_column,
+                showRowStripes=plan.show_row_stripes,
+                showColumnStripes=plan.show_column_stripes,
+            )
+            worksheet.add_table(table)
             names = names.union((plan.name,))
         return r[frozenset[str]].ok(names)
 

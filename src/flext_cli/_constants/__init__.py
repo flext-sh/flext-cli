@@ -1,59 +1,37 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Constants package."""
+"""Constants package."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-# mro-i6nq.10: The package consumes its manifest's public-export contract.
-from flext_cli._constants.__unit__ import (
-    LAZY_ALIAS_GROUPS as _LAZY_ALIAS_GROUPS,
-    LAZY_MODULES as _LAZY_MODULES,
-    PUBLIC_EXPORTS as _PUBLIC_EXPORTS,
-)
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
-
-if TYPE_CHECKING:
-    from flext_cli._constants.base import FlextCliConstantsBase as FlextCliConstantsBase
-    from flext_cli._constants.config import (
-        FlextCliConstantsConfig as FlextCliConstantsConfig,
-    )
-    from flext_cli._constants.enums import (
-        FlextCliConstantsEnums as FlextCliConstantsEnums,
-    )
-    from flext_cli._constants.errors import (
-        FlextCliConstantsErrors as FlextCliConstantsErrors,
-    )
-    from flext_cli._constants.exceptions import (
-        CliDefinitionError as CliDefinitionError,
-        CliValidationError as CliValidationError,
-        FlextCliConstantsExceptions as FlextCliConstantsExceptions,
-    )
-    from flext_cli._constants.files import (
-        FlextCliConstantsFiles as FlextCliConstantsFiles,
-    )
-    from flext_cli._constants.output import (
-        FlextCliConstantsOutput as FlextCliConstantsOutput,
-    )
-    from flext_cli._constants.pipeline import (
-        FlextCliConstantsPipeline as FlextCliConstantsPipeline,
-    )
-    from flext_cli._constants.settings import (
-        FlextCliConstantsSettings as FlextCliConstantsSettings,
-    )
-    from flext_cli._constants.xlsx import FlextCliConstantsXlsx as FlextCliConstantsXlsx
-    from flext_cli._constants.xlsx_future_functions import (
-        FlextCliConstantsXlsxFutureFunctions as FlextCliConstantsXlsxFutureFunctions,
-    )
-
-    # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.
-    __all__: tuple[str, ...]
-
-
-_LAZY_IMPORTS = build_lazy_import_map(
-    _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
+from .base import FlextCliConstantsBase as FlextCliConstantsBase
+from .config import FlextCliConstantsConfig as FlextCliConstantsConfig
+from .enums import FlextCliConstantsEnums as FlextCliConstantsEnums
+from .errors import FlextCliConstantsErrors as FlextCliConstantsErrors
+from .exceptions import CliDefinitionError as CliDefinitionError
+from .exceptions import CliValidationError as CliValidationError
+from .exceptions import FlextCliConstantsExceptions as FlextCliConstantsExceptions
+from .files import FlextCliConstantsFiles as FlextCliConstantsFiles
+from .output import FlextCliConstantsOutput as FlextCliConstantsOutput
+from .pipeline import FlextCliConstantsPipeline as FlextCliConstantsPipeline
+from .settings import FlextCliConstantsSettings as FlextCliConstantsSettings
+from .xlsx import FlextCliConstantsXlsx as FlextCliConstantsXlsx
+from .xlsx_future_functions import (
+    FlextCliConstantsXlsxFutureFunctions as FlextCliConstantsXlsxFutureFunctions,
 )
 
 
-# mro-i6nq.10: The installer publishes __all__ from the manifest's literal ABI.
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=_PUBLIC_EXPORTS)
+__all__: tuple[str, ...] = (
+    "CliDefinitionError",
+    "CliValidationError",
+    "FlextCliConstantsBase",
+    "FlextCliConstantsConfig",
+    "FlextCliConstantsEnums",
+    "FlextCliConstantsErrors",
+    "FlextCliConstantsExceptions",
+    "FlextCliConstantsFiles",
+    "FlextCliConstantsOutput",
+    "FlextCliConstantsPipeline",
+    "FlextCliConstantsSettings",
+    "FlextCliConstantsXlsx",
+    "FlextCliConstantsXlsxFutureFunctions",
+)

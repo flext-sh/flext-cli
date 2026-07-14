@@ -24,6 +24,7 @@ if TYPE_CHECKING:
         settings as settings,
     )
     from flext_cli.api import FlextCli as FlextCli, cli as cli
+    from flext_cli import services as services
     from flext_cli.base import FlextCliServiceBase as FlextCliServiceBase, s as s
     from flext_cli.constants import FlextCliConstants as FlextCliConstants, c as c
     from flext_cli.models import FlextCliModels as FlextCliModels, m as m
@@ -62,6 +63,7 @@ _LAZY_MODULES: dict[str, tuple[str, ...]] = {
     ".constants": ("FlextCliConstants", "c"),
     ".models": ("FlextCliModels", "m"),
     ".protocols": ("FlextCliProtocols", "p"),
+    ".services": ("services",),
     ".services.auth": ("FlextCliAuth",),
     ".services.cli": ("FlextCliCli",),
     ".services.cli_params": ("FlextCliCommonParams",),
@@ -129,6 +131,7 @@ __all__: tuple[str, ...] = (
     "p",
     "r",
     "s",
+    "services",
     "settings",
     "t",
     "u",

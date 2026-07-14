@@ -99,11 +99,15 @@ class FlextCliUtilitiesFramework:
         cls, result: p.Result[TResult]
     ) -> bool:
         """Exit with a captured Result, or report a direct framework invocation."""
-        # NOTE (multi-agent): the Result crosses the framework exit intact;
-        # logging and user exposure remain the outer CLI finalizer's concern.
+        # NOTE (multi-agent): this outer framework boundary is the single point
+        # that exposes a failed Result to the user before the process exits;
+        # every service layer keeps the canonical Result intact up to here.
         _ = r.require_error(result)
         if not cls._active_execution.get():
             return False
+        from flext_cli import settings, u
+
+        u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)
         cls._active_failure.set(r[t.Cli.ResultValue].from_failure(result))
         cls.framework_exit(code=c.Cli.EXIT_CODE_FAILURE)
         return True
