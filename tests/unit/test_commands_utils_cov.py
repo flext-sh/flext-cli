@@ -7,7 +7,7 @@ Public contract under test (``flext_cli._utilities.commands`` via ``u.Cli``):
   key > provided fallback.
 - ``commands_emit_success_message`` writes JSON/array payloads verbatim and
   styles plain text with a success glyph, always terminated by a newline.
-- ``commands_emit_error_message`` writes the error styled with an error glyph
+- ``commands_emit_result_error`` finalizes the complete failed Result state
   and a trailing newline.
 
 Assertions target observable return values and emitted stdout only.
@@ -17,10 +17,11 @@ from __future__ import annotations
 
 import pytest
 
+from flext_cli import r
+from flext_tests import tm
 from tests import c
 from tests import t
 from tests import u
-from flext_tests import tm
 
 
 class TestsFlextCliCommands:
@@ -115,7 +116,7 @@ class TestsFlextCliCommands:
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Act
-        u.Cli.commands_emit_error_message("boom")
+        u.Cli.commands_emit_result_error(r[str].fail("boom"))
 
         # Assert
         out = capsys.readouterr().out
@@ -128,12 +129,12 @@ class TestsFlextCliCommands:
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
-        u.Cli.commands_emit_error_message(
+        result = r[str].fail(
             "proposal config ausente: /x.yaml",
             error_code="missing_config",
             exception=FileNotFoundError("nope"),
-            verbose=False,
         )
+        u.Cli.commands_emit_result_error(result, verbose=False)
 
         # Assert
         out = capsys.readouterr().out
@@ -153,12 +154,12 @@ class TestsFlextCliCommands:
             captured_exception: BaseException = exc
 
         # Act
-        u.Cli.commands_emit_error_message(
+        result = r[str].fail(
             "proposal config ausente: /x.yaml",
             error_code="missing_config",
             exception=captured_exception,
-            verbose=True,
         )
+        u.Cli.commands_emit_result_error(result, verbose=True)
 
         # Assert
         out = capsys.readouterr().out

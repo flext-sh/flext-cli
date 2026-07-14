@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import traceback
+from typing import TYPE_CHECKING
 
 # mro-j47u (codex): formatter contracts are owned once by the t facade.
-from flext_cli import c, t
+from flext_cli import c, r, t
 from flext_cli._utilities.output import FlextCliUtilitiesOutput as uo
 from flext_core import u
+
+if TYPE_CHECKING:
+    from flext_cli import p
 
 
 class FlextCliUtilitiesCommands:
@@ -46,28 +50,36 @@ class FlextCliUtilitiesCommands:
         uo.emit_raw(f"{rendered}\n")
 
     @staticmethod
-    def commands_emit_error_message(
-        error: str,
-        *,
-        error_code: str | None = None,
-        exception: BaseException | None = None,
-        verbose: bool = False,
+    def commands_emit_result_error[TResult: t.Cli.ResultValue](
+        result: p.Result[TResult], *, verbose: bool = False
     ) -> None:
-        """Emit standardized CLI error output and log it via flext-core."""
+        """Finalize one failed Result through structured logging and CLI output."""
+        # NOTE (multi-agent): keep the canonical Result intact through every
+        # service layer; only this outer CLI boundary exposes its failure state.
+        error = r.require_error(result)
         logger = u.fetch_logger(__name__)
-        if isinstance(exception, Exception):
-            logger.exception(error, error_code=error_code, exception=exception)
+        if isinstance(result.exception, Exception):
+            logger.error(
+                error,
+                error_code=result.error_code,
+                error_data=result.error_data,
+                exc_info=result.exception,
+            )
         else:
-            logger.error(error, error_code=error_code)
+            logger.error(
+                error, error_code=result.error_code, error_data=result.error_data
+            )
         uo.emit_raw(
             f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n"
         )
-        if error_code:
-            uo.emit_raw(f"   [{error_code}]\n")
-        if verbose and exception is not None:
+        if result.error_code:
+            uo.emit_raw(f"   [{result.error_code}]\n")
+        if verbose and result.exception is not None:
             detail = "".join(
                 traceback.format_exception(
-                    type(exception), exception, exception.__traceback__
+                    type(result.exception),
+                    result.exception,
+                    result.exception.__traceback__,
                 )
             )
             uo.emit_raw(detail if detail.endswith("\n") else f"{detail}\n")

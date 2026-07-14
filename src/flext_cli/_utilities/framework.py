@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import sys
-import traceback
 from collections.abc import Callable
 from contextvars import ContextVar
 from inspect import Parameter
 from types import EllipsisType, GenericAlias
+from typing import TYPE_CHECKING, Never
 
 import click
 import typer
@@ -15,7 +15,10 @@ from typer.models import OptionInfo
 from typer.testing import CliRunner
 
 # mro-j47u (codex): consume every public facade through the package root.
-from flext_cli import c, m, p, r, t
+from flext_cli import c, e, r, t
+
+if TYPE_CHECKING:
+    from flext_cli import m, p
 
 
 class _TyperApplication:
@@ -62,7 +65,7 @@ class _ClickCommand:
 
     __slots__ = ("_command",)
 
-    def __init__(self, command: click.Command) -> None:
+    def __init__(self, command: p.Cli.ExternalCommand) -> None:
         self._command = command
 
     def main(
@@ -87,6 +90,23 @@ class FlextCliUtilitiesFramework:
     _active_execution: ContextVar[bool] = ContextVar(
         "flext_cli_active_execution", default=False
     )
+    _active_failure: ContextVar[p.Result[t.Cli.ResultValue] | None] = ContextVar(
+        "flext_cli_active_failure", default=None
+    )
+
+    @classmethod
+    def framework_exit_result[TResult: t.Cli.ResultValue](
+        cls, result: p.Result[TResult]
+    ) -> bool:
+        """Exit with a captured Result, or report a direct framework invocation."""
+        # NOTE (multi-agent): the Result crosses the framework exit intact;
+        # logging and user exposure remain the outer CLI finalizer's concern.
+        _ = r.require_error(result)
+        if not cls._active_execution.get():
+            return False
+        cls._active_failure.set(r[t.Cli.ResultValue].from_failure(result))
+        cls.framework_exit(code=c.Cli.EXIT_CODE_FAILURE)
+        return True
 
     @staticmethod
     def _unwrap(application: p.Cli.Application) -> _TyperApplication:
@@ -97,9 +117,15 @@ class FlextCliUtilitiesFramework:
         return application
 
     @staticmethod
-    def _exception_message(exc: BaseException) -> str:
-        """Return a non-empty normalized exception message."""
-        return str(exc).strip() or exc.__class__.__name__
+    def _exit_code_result(exit_code: int) -> p.Result[bool]:
+        """Normalize one framework exit code through the exception facade."""
+        if exit_code == c.Cli.EXIT_CODE_SUCCESS:
+            return r[bool].ok(True)
+        return e.fail_operation(
+            c.Cli.OP_EXECUTE_APPLICATION,
+            c.Cli.ERR_EXIT_WITH_CODE.format(exit_code=exit_code),
+            result_type=r[bool],
+        )
 
     @classmethod
     def framework_create_app(
@@ -171,40 +197,47 @@ class FlextCliUtilitiesFramework:
         command = typer.main.get_command(private_application.backend)
         original_argv = sys.argv.copy()
         token = cls._active_execution.set(True)
+        failure_token = cls._active_failure.set(None)
+        captured_failure: p.Result[t.Cli.ResultValue] | None = None
         try:
             sys.argv = [prog_name, *cli_args]
             exit_result = command.main(
                 args=cli_args, prog_name=prog_name, standalone_mode=False
             )
         except click.ClickException as exc:
-            return r[bool].fail(exc.format_message().strip())
+            return e.fail_validation(error=exc, result_type=r[bool])
         except typer.Abort as exc:
-            return r[bool].fail(cls._exception_message(exc))
+            return e.fail_operation(
+                c.Cli.OP_EXECUTE_APPLICATION, exc, result_type=r[bool]
+            )
         except typer.Exit as exc:
-            return (
-                r[bool].ok(True)
-                if exc.exit_code == 0
-                else r[bool].fail(f"CLI exited with code {exc.exit_code}")
-            )
+            if (failure := cls._active_failure.get()) is not None:
+                return r[bool].from_failure(failure)
+            return cls._exit_code_result(exc.exit_code)
         except SystemExit as exc:
-            exit_code = exc.code if isinstance(exc.code, int) else 1
-            return (
-                r[bool].ok(True)
-                if exit_code == 0
-                else r[bool].fail(f"CLI exited with code {exit_code}")
+            if (failure := cls._active_failure.get()) is not None:
+                return r[bool].from_failure(failure)
+            exit_code = (
+                exc.code if isinstance(exc.code, int) else c.Cli.EXIT_CODE_FAILURE
             )
+            return cls._exit_code_result(exit_code)
         except Exception as exc:
-            detail = cls._exception_message(exc)
-            return r[bool].fail(f"{detail}\n{traceback.format_exc().strip()}")
+            return e.fail_operation(
+                c.Cli.OP_EXECUTE_APPLICATION, exc, result_type=r[bool]
+            )
         finally:
             sys.argv = original_argv
+            captured_failure = cls._active_failure.get()
+            cls._active_failure.reset(failure_token)
             cls._active_execution.reset(token)
+        if captured_failure is not None:
+            return r[bool].from_failure(captured_failure)
         if (
             isinstance(exit_result, int)
             and not isinstance(exit_result, bool)
-            and exit_result != 0
+            and exit_result != c.Cli.EXIT_CODE_SUCCESS
         ):
-            return r[bool].fail(f"CLI exited with code {exit_result}")
+            return cls._exit_code_result(exit_result)
         return r[bool].ok(True)
 
     @classmethod
@@ -221,22 +254,22 @@ class FlextCliUtilitiesFramework:
                 args=args, prog_name=prog_name, standalone_mode=False
             )
         except click.ClickException as exc:
-            return r[bool].fail(exc.format_message().strip())
+            return e.fail_validation(error=exc, result_type=r[bool])
         except click.Abort as exc:
-            return r[bool].fail(cls._exception_message(exc))
-        except SystemExit as exc:
-            exit_code = exc.code if isinstance(exc.code, int) else 1
-            return (
-                r[bool].ok(True)
-                if exit_code == 0
-                else r[bool].fail(f"CLI exited with code {exit_code}")
+            return e.fail_operation(
+                c.Cli.OP_EXECUTE_APPLICATION, exc, result_type=r[bool]
             )
+        except SystemExit as exc:
+            exit_code = (
+                exc.code if isinstance(exc.code, int) else c.Cli.EXIT_CODE_FAILURE
+            )
+            return cls._exit_code_result(exit_code)
         if (
             isinstance(exit_result, int)
             and not isinstance(exit_result, bool)
-            and exit_result != 0
+            and exit_result != c.Cli.EXIT_CODE_SUCCESS
         ):
-            return r[bool].fail(f"CLI exited with code {exit_result}")
+            return cls._exit_code_result(exit_result)
         return r[bool].ok(True)
 
     @classmethod
@@ -256,6 +289,8 @@ class FlextCliUtilitiesFramework:
         env: t.StrMapping | None = None,
     ) -> m.Cli.InvocationResult:
         """Invoke one application through the real framework test runner."""
+        from flext_cli import m
+
         runner = CliRunner(charset=charset, env=env)
         private_application = cls._unwrap(application)
         result = runner.invoke(
@@ -266,7 +301,7 @@ class FlextCliUtilitiesFramework:
         )
 
     @classmethod
-    def framework_exit(cls, code: int = 0) -> None:
+    def framework_exit(cls, code: int = c.Cli.EXIT_CODE_SUCCESS) -> Never:
         """Exit through Typer only while an adapter-owned execution is active."""
         if cls._active_execution.get():
             raise typer.Exit(code=code)

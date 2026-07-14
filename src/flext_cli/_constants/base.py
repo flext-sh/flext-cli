@@ -18,6 +18,12 @@ class FlextCliConstantsBase:
     """Base CLI constants for metadata, paths, symbols, and static values."""
 
     ENCODING_DEFAULT: Final[str] = "utf-8"
+    # NOTE (multi-agent): process finalization is owned once by ``c.Cli`` so
+    # adapters and consumers cannot drift into local magic exit codes/messages.
+    EXIT_CODE_SUCCESS: Final[int] = 0
+    EXIT_CODE_FAILURE: Final[int] = 1
+    OP_EXECUTE_APPLICATION: Final[str] = "execute CLI application"
+    ERR_EXIT_WITH_CODE: Final[str] = "CLI exited with code {exit_code}"
 
     CLI_SAFE_EXCEPTIONS: ClassVar[t.VariadicTuple[type[Exception]]] = (
         ValueError,
