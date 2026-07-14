@@ -6,18 +6,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Protocol, runtime_checkable
 
 from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_02 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart02,
 )
 
-from flext_cli import p, t
+from flext_core import p, t
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
     """Implementation part for FlextCliProtocolsBase."""
 
+    # mro-wkii.17.26 (codex): this p fragment consumes only upstream aliases
+    # and contracts inherited from the preceding fragment, never its own facade.
     @runtime_checkable
     class CommandRunner(Protocol):
         """Contract for generic command execution services."""
@@ -25,18 +28,18 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
         def run(
             self,
             cmd: t.StrSequence,
-            cwd: t.Cli.TextPath | None = None,
+            cwd: str | Path | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
-        ) -> p.Result[p.Cli.CommandOutput]:
+        ) -> p.Result[FlextCliProtocolsBasePart02.CommandOutput]:
             """Execute a command and require zero exit status."""
             ...
 
         def capture(
             self,
             cmd: t.StrSequence,
-            cwd: t.Cli.TextPath | None = None,
+            cwd: str | Path | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
@@ -47,12 +50,12 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
         def run_raw(
             self,
             cmd: t.StrSequence,
-            cwd: t.Cli.TextPath | None = None,
+            cwd: str | Path | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
             input_data: bytes | None = None,
-        ) -> p.Result[p.Cli.CommandOutput]:
+        ) -> p.Result[FlextCliProtocolsBasePart02.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
             ...
 
@@ -60,19 +63,19 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
         def run_bytes(
             self,
             cmd: t.StrSequence,
-            cwd: t.Cli.TextPath | None = None,
+            cwd: str | Path | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
             input_data: bytes | None = None,
-        ) -> p.Result[p.Cli.CommandBytesOutput]:
+        ) -> p.Result[FlextCliProtocolsBasePart02.CommandBytesOutput]:
             """Execute a command and preserve byte-exact output."""
             ...
 
         def run_checked(
             self,
             cmd: t.StrSequence,
-            cwd: t.Cli.TextPath | None = None,
+            cwd: str | Path | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
@@ -83,8 +86,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
         def run_to_file(
             self,
             cmd: t.StrSequence,
-            output_file: t.Cli.TextPath,
-            cwd: t.Cli.TextPath | None = None,
+            output_file: str | Path,
+            cwd: str | Path | None = None,
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
@@ -142,4 +145,4 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             ...
 
 
-__all__: list[str] = ["FlextCliProtocolsBase"]
+__all__: tuple[str, ...] = ("FlextCliProtocolsBase",)

@@ -8,12 +8,24 @@ from flext_core import p
 
 from .xlsx_snapshot_structure import FlextCliProtocolsXlsxSnapshotStructure
 
-# mro-j47u (codex): p -> m stays type-only through the canonical facade.
-from flext_cli import m
-
 
 class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
     """Consumer-facing protocols for workbook parity evidence."""
+
+    # mro-wkii.17.26 (codex): snapshot relations stay structural inside p;
+    # concrete XLSX models are construction outputs and cannot be p dependencies.
+    @runtime_checkable
+    class XlsxCellAddress(Protocol):
+        @property
+        def row(self) -> int: ...
+
+        @property
+        def column(self) -> int: ...
+
+    @runtime_checkable
+    class XlsxCellValue(Protocol):
+        @property
+        def kind(self) -> str: ...
 
     # NOTE (multi-agent, mro-j2yt.1): protocols expose the original immutable
     # snapshot models directly; no mapping or revalidation boundary is added.
@@ -31,10 +43,10 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
         def coordinate(self) -> str: ...
 
         @property
-        def position(self) -> m.Cli.XlsxCellAddress: ...
+        def position(self) -> FlextCliProtocolsXlsxSnapshot.XlsxCellAddress: ...
 
         @property
-        def value(self) -> m.Cli.XlsxCellValue: ...
+        def value(self) -> FlextCliProtocolsXlsxSnapshot.XlsxCellValue: ...
 
         @property
         def formula(self) -> str | None: ...
@@ -100,18 +112,24 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
         def max_column(self) -> int: ...
 
         @property
-        def cells(self) -> tuple[m.Cli.XlsxCellSnapshot, ...]: ...
+        def cells(
+            self,
+        ) -> tuple[FlextCliProtocolsXlsxSnapshot.XlsxCellSnapshot, ...]: ...
 
         @property
-        def tables(self) -> tuple[m.Cli.XlsxTableSnapshot, ...]: ...
+        def tables(
+            self,
+        ) -> tuple[FlextCliProtocolsXlsxSnapshot.XlsxTableSnapshot, ...]: ...
 
         @property
-        def row_dimensions(self) -> tuple[m.Cli.XlsxRowDimensionSnapshot, ...]: ...
+        def row_dimensions(
+            self,
+        ) -> tuple[FlextCliProtocolsXlsxSnapshot.XlsxRowDimensionSnapshot, ...]: ...
 
         @property
         def column_dimensions(
             self,
-        ) -> tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]: ...
+        ) -> tuple[FlextCliProtocolsXlsxSnapshot.XlsxColumnDimensionSnapshot, ...]: ...
 
         @property
         def merged_ranges(self) -> tuple[str, ...]: ...
@@ -123,7 +141,9 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
         def auto_filter(self) -> str | None: ...
 
         @property
-        def protection(self) -> m.Cli.XlsxSheetProtectionSnapshot: ...
+        def protection(
+            self,
+        ) -> FlextCliProtocolsXlsxSnapshot.XlsxSheetProtectionSnapshot: ...
 
         @property
         def formula_count(self) -> int: ...
@@ -146,10 +166,14 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
         def data_only(self) -> bool: ...
 
         @property
-        def sheets(self) -> tuple[m.Cli.XlsxSheetSnapshot, ...]: ...
+        def sheets(
+            self,
+        ) -> tuple[FlextCliProtocolsXlsxSnapshot.XlsxSheetSnapshot, ...]: ...
 
         @property
-        def defined_names(self) -> tuple[m.Cli.XlsxDefinedNameSnapshot, ...]: ...
+        def defined_names(
+            self,
+        ) -> tuple[FlextCliProtocolsXlsxSnapshot.XlsxDefinedNameSnapshot, ...]: ...
 
         @property
         def named_styles(self) -> tuple[str, ...]: ...
@@ -164,7 +188,7 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
     class XlsxSnapshotService(Protocol):
         def xlsx_snapshot(
             self, request: FlextCliProtocolsXlsxSnapshot.XlsxSnapshotRequest
-        ) -> p.Result[m.Cli.XlsxWorkbookSnapshot]: ...
+        ) -> p.Result[FlextCliProtocolsXlsxSnapshot.XlsxWorkbookSnapshot]: ...
 
 
 __all__: tuple[str, ...] = ("FlextCliProtocolsXlsxSnapshot",)

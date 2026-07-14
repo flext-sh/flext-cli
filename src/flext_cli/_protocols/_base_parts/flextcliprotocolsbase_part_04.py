@@ -12,14 +12,48 @@ from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_03 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart03,
 )
 from flext_core import p
-
-# Why (multi-agent): defer flext_cli import to break the __init__-time
-# circular import; t is annotation-only (PEP 563). Matches sibling part_03.
-from flext_cli import m, t
+from flext_core import t
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
     """Implementation part for FlextCliProtocolsBase."""
+
+    # mro-wkii.17.26 (codex): public status results are structural p contracts;
+    # importing local m/t here re-enters facades that p is still composing.
+    @runtime_checkable
+    class RuntimeComponents(Protocol):
+        """Observable CLI runtime component states."""
+
+        @property
+        def settings(self) -> str: ...
+
+        @property
+        def formatters(self) -> str: ...
+
+        @property
+        def prompts(self) -> str: ...
+
+        @property
+        def rules(self) -> str: ...
+
+    @runtime_checkable
+    class RuntimeStatus(Protocol):
+        """Observable public CLI runtime status."""
+
+        @property
+        def status(self) -> str: ...
+
+        @property
+        def service(self) -> str: ...
+
+        @property
+        def timestamp(self) -> str: ...
+
+        @property
+        def version(self) -> str: ...
+
+        @property
+        def components(self) -> FlextCliProtocolsBase.RuntimeComponents: ...
 
     @runtime_checkable
     class CliOptionSpec(Protocol):
@@ -36,7 +70,11 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             ...
 
         @property
-        def default(self) -> t.Cli.CliValue | None:
+        def default(
+            self,
+        ) -> (
+            t.Scalar | t.StrSequence | t.MappingKV[str, t.Scalar | t.StrSequence] | None
+        ):
             """Normalized option default value."""
             ...
 
@@ -49,7 +87,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
     class CmdService(Protocol):
         """Protocol for the public command/settings service surface on ``cli``."""
 
-        def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
+        def execute(self) -> p.Result[FlextCliProtocolsBase.RuntimeStatus]:
             """Return the public operational status payload."""
             ...
 
@@ -96,9 +134,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             ...
 
     @runtime_checkable
-    class ResultCommandHandler[TParams: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
-        Protocol
-    ):
+    class ResultCommandHandler[TParams: t.BaseModel, TResult: t.JsonPayload](Protocol):
         """Protocol for model-driven CLI handlers returning `r[...]`."""
 
         def __call__(self, params: TParams, /) -> p.Result[TResult]:
@@ -120,11 +156,11 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             ...
 
         @property
-        def value(self) -> t.Cli.ResultValue:
+        def value(self) -> t.JsonPayload:
             """Expose the successful payload for message formatting."""
             ...
 
     # mro-j47u (codex): formatter callables have one owner in t.Cli.
 
 
-__all__: list[str] = ["FlextCliProtocolsBase"]
+__all__: tuple[str, ...] = ("FlextCliProtocolsBase",)

@@ -12,9 +12,9 @@ from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_04 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart04,
 )
 
-# Why (multi-agent): defer flext_cli import to break the __init__-time
-# circular import; t is annotation-only (PEP 563). Matches sibling part_03.
-from flext_cli import t
+# mro-wkii.17.26 (codex): YAML protocol data is defined by the upstream JSON
+# alias; importing the local t facade would re-enter its own p composition.
+from flext_core import t
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart04):
@@ -29,4 +29,4 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart04):
             ...
 
 
-__all__: list[str] = ["FlextCliProtocolsBase"]
+__all__: tuple[str, ...] = ("FlextCliProtocolsBase",)
