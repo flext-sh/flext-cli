@@ -126,76 +126,76 @@ if TYPE_CHECKING:
         FlextCliUtilitiesValidation as FlextCliUtilitiesValidation,
     )
     from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx as FlextCliUtilitiesXlsx
-    from flext_cli._utilities.xlsx_addresses import (
+    from flext_cli._utilities._xlxx.xlsx_addresses import (
         FlextCliUtilitiesXlsxAddresses as FlextCliUtilitiesXlsxAddresses,
     )
-    from flext_cli._utilities.xlsx_archive import (
+    from flext_cli._utilities._xlxx.xlsx_archive import (
         FlextCliUtilitiesXlsxArchive as FlextCliUtilitiesXlsxArchive,
     )
-    from flext_cli._utilities.xlsx_archive_checks import (
+    from flext_cli._utilities._xlxx.xlsx_archive_checks import (
         FlextCliUtilitiesXlsxArchiveChecks as FlextCliUtilitiesXlsxArchiveChecks,
     )
-    from flext_cli._utilities.xlsx_cells import (
+    from flext_cli._utilities._xlxx.xlsx_cells import (
         FlextCliUtilitiesXlsxCells as FlextCliUtilitiesXlsxCells,
     )
-    from flext_cli._utilities.xlsx_conditional import (
+    from flext_cli._utilities._xlxx.xlsx_conditional import (
         FlextCliUtilitiesXlsxConditional as FlextCliUtilitiesXlsxConditional,
     )
-    from flext_cli._utilities.xlsx_formula_codec import (
+    from flext_cli._utilities._xlxx.xlsx_formula_codec import (
         FlextCliUtilitiesXlsxFormulaCodec as FlextCliUtilitiesXlsxFormulaCodec,
     )
-    from flext_cli._utilities.xlsx_layout import (
+    from flext_cli._utilities._xlxx.xlsx_layout import (
         FlextCliUtilitiesXlsxLayout as FlextCliUtilitiesXlsxLayout,
     )
-    from flext_cli._utilities.xlsx_protection import (
+    from flext_cli._utilities._xlxx.xlsx_protection import (
         FlextCliUtilitiesXlsxProtection as FlextCliUtilitiesXlsxProtection,
     )
-    from flext_cli._utilities.xlsx_recalc import (
+    from flext_cli._utilities._xlxx.xlsx_recalc import (
         FlextCliUtilitiesXlsxRecalc as FlextCliUtilitiesXlsxRecalc,
     )
-    from flext_cli._utilities.xlsx_recalc_evidence import (
+    from flext_cli._utilities._xlxx.xlsx_recalc_evidence import (
         FlextCliUtilitiesXlsxRecalcEvidence as FlextCliUtilitiesXlsxRecalcEvidence,
     )
-    from flext_cli._utilities.xlsx_renderer import (
+    from flext_cli._utilities._xlxx.xlsx_renderer import (
         FlextCliUtilitiesXlsxRenderer as FlextCliUtilitiesXlsxRenderer,
     )
-    from flext_cli._utilities.xlsx_rules import (
+    from flext_cli._utilities._xlxx.xlsx_rules import (
         FlextCliUtilitiesXlsxRules as FlextCliUtilitiesXlsxRules,
     )
-    from flext_cli._utilities.xlsx_snapshot import (
+    from flext_cli._utilities._xlxx.xlsx_snapshot import (
         FlextCliUtilitiesXlsxSnapshot as FlextCliUtilitiesXlsxSnapshot,
     )
-    from flext_cli._utilities.xlsx_snapshot_sheet import (
+    from flext_cli._utilities._xlxx.xlsx_snapshot_sheet import (
         FlextCliUtilitiesXlsxSnapshotSheet as FlextCliUtilitiesXlsxSnapshotSheet,
     )
-    from flext_cli._utilities.xlsx_snapshot_structure import (
+    from flext_cli._utilities._xlxx.xlsx_snapshot_structure import (
         FlextCliUtilitiesXlsxSnapshotStructure as FlextCliUtilitiesXlsxSnapshotStructure,
     )
-    from flext_cli._utilities.xlsx_snapshot_values import (
+    from flext_cli._utilities._xlxx.xlsx_snapshot_values import (
         FlextCliUtilitiesXlsxSnapshotValues as FlextCliUtilitiesXlsxSnapshotValues,
     )
-    from flext_cli._utilities.xlsx_style_builders import (
+    from flext_cli._utilities._xlxx.xlsx_style_builders import (
         FlextCliUtilitiesXlsxStyleBuilders as FlextCliUtilitiesXlsxStyleBuilders,
     )
-    from flext_cli._utilities.xlsx_style_catalog import (
+    from flext_cli._utilities._xlxx.xlsx_style_catalog import (
         FlextCliUtilitiesXlsxStyleCatalog as FlextCliUtilitiesXlsxStyleCatalog,
     )
-    from flext_cli._utilities.xlsx_style_codec import (
+    from flext_cli._utilities._xlxx.xlsx_style_codec import (
         FlextCliUtilitiesXlsxStyleCodec as FlextCliUtilitiesXlsxStyleCodec,
     )
-    from flext_cli._utilities.xlsx_style_readers import (
+    from flext_cli._utilities._xlxx.xlsx_style_readers import (
         FlextCliUtilitiesXlsxStyleReaders as FlextCliUtilitiesXlsxStyleReaders,
     )
-    from flext_cli._utilities.xlsx_tables import (
+    from flext_cli._utilities._xlxx.xlsx_tables import (
         FlextCliUtilitiesXlsxTables as FlextCliUtilitiesXlsxTables,
     )
-    from flext_cli._utilities.xlsx_validations import (
+    from flext_cli._utilities._xlxx.xlsx_validations import (
         FlextCliUtilitiesXlsxValidations as FlextCliUtilitiesXlsxValidations,
     )
-    from flext_cli._utilities.xlsx_workbook_io import (
+    from flext_cli._utilities._xlxx.xlsx_workbook_io import (
         FlextCliUtilitiesXlsxWorkbookIo as FlextCliUtilitiesXlsxWorkbookIo,
     )
-    from flext_cli._utilities.xlsx_workbook_plan import (
+    from flext_cli._utilities._xlxx.xlsx_workbook_plan import (
         FlextCliUtilitiesXlsxWorkbookPlan as FlextCliUtilitiesXlsxWorkbookPlan,
     )
     from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as FlextCliUtilitiesYaml

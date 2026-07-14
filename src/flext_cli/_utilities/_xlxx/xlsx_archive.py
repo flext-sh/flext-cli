@@ -5,7 +5,6 @@ from __future__ import annotations
 from io import BytesIO
 from zipfile import BadZipFile, LargeZipFile, ZipFile
 
-# mro-j47u (kimi): utilities consume local facades only, never private modules.
 from flext_cli import c, m, p, r
 
 from .xlsx_archive_checks import FlextCliUtilitiesXlsxArchiveChecks

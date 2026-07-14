@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from .xlsx_archive import FlextCliUtilitiesXlsxArchive
-from .xlsx_recalc import FlextCliUtilitiesXlsxRecalc
-from .xlsx_renderer import FlextCliUtilitiesXlsxRenderer
-from .xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
-from .xlsx_style_catalog import FlextCliUtilitiesXlsxStyleCatalog
+from ._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
+from ._xlxx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
+from ._xlxx.xlsx_renderer import FlextCliUtilitiesXlsxRenderer
+from ._xlxx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
+from ._xlxx.xlsx_style_catalog import FlextCliUtilitiesXlsxStyleCatalog
 
 
 class FlextCliUtilitiesXlsx(

@@ -9,7 +9,6 @@ from openpyxl.utils.cell import (
     range_boundaries,
 )
 
-# mro-j47u (kimi): utilities consume local facades only, never private modules.
 from flext_cli import c, m, p, r
 
 
