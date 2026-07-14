@@ -18,8 +18,8 @@ from tests import m
 
 from flext_cli import cli
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
+
 
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): file fixtures are
 # validated models, serialized once at egress and validated once at ingress.

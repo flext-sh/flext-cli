@@ -10,11 +10,11 @@ from tests import m
 from flext_cli import cli, r
 from flext_tests import tm
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
 
-    from tests import p
-    from tests import t
+from tests import p
+from tests import t
+
 
 
 class TestsFlextCliPipeline:

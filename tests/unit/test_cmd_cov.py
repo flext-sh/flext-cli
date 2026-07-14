@@ -19,9 +19,9 @@ from flext_tests import tm
 from flext_cli import cli
 from tests import c
 
-if TYPE_CHECKING:
-    from collections.abc import Generator
-    from pathlib import Path
+from collections.abc import Generator
+from pathlib import Path
+
 
 
 class TestsFlextCliCmdCov:

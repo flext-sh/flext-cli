@@ -21,11 +21,11 @@ from flext_cli.services.auth import FlextCliAuth
 from tests import c
 from flext_tests import tm
 
-if TYPE_CHECKING:
-    from collections.abc import Iterator
-    from pathlib import Path
+from collections.abc import Iterator
+from pathlib import Path
 
-    from tests import p
+from tests import p
+
 
 
 class TestsFlextCliServicesAuthCov:

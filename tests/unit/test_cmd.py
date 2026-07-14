@@ -27,8 +27,8 @@ from flext_cli import cli, m
 from tests import c
 from tests import p
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
+
 
 
 class TestsFlextCliCmd:

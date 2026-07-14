@@ -13,14 +13,12 @@ from __future__ import annotations
 
 import fnmatch
 from collections.abc import Mapping, MutableSequence
-from typing import TYPE_CHECKING
 
 from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
 
-    from flext_cli import t
+from flext_cli import t
 
 
 class FlextCliUtilitiesRulesMatchersMixin:

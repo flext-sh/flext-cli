@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import tomlkit
 from tomlkit.toml_document import TOMLDocument
@@ -14,8 +13,7 @@ from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur
 from flext_core import u
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
 
 
 class FlextCliUtilitiesToml:

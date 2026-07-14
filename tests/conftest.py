@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-if TYPE_CHECKING:
-    from tests import t
+from tests import t
+
 
 
 def pytest_collection_modifyitems(

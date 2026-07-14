@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
 
 from tomlkit.items import Item, Table
 from tomlkit.toml_document import TOMLDocument
@@ -19,8 +18,7 @@ from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_03 import (
 )
 from flext_core import u
 
-if TYPE_CHECKING:
-    from flext_cli import t
+from flext_cli import t
 
 
 class FlextCliUtilitiesToml:

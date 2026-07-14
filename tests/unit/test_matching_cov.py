@@ -20,8 +20,8 @@ from tests import c
 from tests import u
 from flext_tests import tm
 
-if TYPE_CHECKING:
-    from tests import t
+from tests import t
+
 
 
 class TestsFlextCliMatchingCov:

@@ -7,7 +7,7 @@ from collections.abc import Callable
 from contextvars import ContextVar
 from inspect import Parameter
 from types import EllipsisType, GenericAlias
-from typing import TYPE_CHECKING, Never
+from typing import Never
 
 import click
 import typer
@@ -17,8 +17,7 @@ from typer.testing import CliRunner
 # mro-j47u (codex): consume every public facade through the package root.
 from flext_cli import c, e, r, t
 
-if TYPE_CHECKING:
-    from flext_cli import m, p
+from flext_cli import m, p
 
 
 class _TyperApplication:

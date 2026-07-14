@@ -19,9 +19,9 @@ from flext_cli import cli, settings
 
 # mro-wkii.17.26 (codex): assert authentication against the shared example rule.
 
-if TYPE_CHECKING:
-    from collections.abc import Iterator
-    from pathlib import Path
+from collections.abc import Iterator
+from pathlib import Path
+
 
 
 class TestsFlextCliExamplesSmoke:

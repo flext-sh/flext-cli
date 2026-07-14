@@ -9,10 +9,8 @@ reimplementing them.
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
 
 
 class FlextCliUtilitiesFileTestHelpersMixin:

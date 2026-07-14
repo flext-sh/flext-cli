@@ -9,8 +9,8 @@ from tests import c
 from tests import u
 from flext_tests import tm
 
-if TYPE_CHECKING:
-    import pytest
+import pytest
+
 
 
 class TestsFlextCliOutputCov:

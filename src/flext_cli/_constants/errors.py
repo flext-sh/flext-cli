@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Final
-
-if TYPE_CHECKING:
-    from flext_cli import t
+from typing import Final
 
 
 class FlextCliConstantsErrors:
@@ -99,4 +96,4 @@ class FlextCliConstantsErrors:
     )
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliConstantsErrors"]
+__all__: tuple[str, ...] = ("FlextCliConstantsErrors",)

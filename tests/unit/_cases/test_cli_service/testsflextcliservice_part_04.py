@@ -11,8 +11,8 @@ from flext_cli import cli
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
-if TYPE_CHECKING:
-    from tests import t
+from tests import t
+
 
 
 class TestsFlextCliService:

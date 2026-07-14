@@ -9,8 +9,8 @@ from tests import u
 
 from flext_cli import cli
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
+
 
 
 class TestsFlextCliFilesCov:

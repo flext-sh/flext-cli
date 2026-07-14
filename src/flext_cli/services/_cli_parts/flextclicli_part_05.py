@@ -6,15 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from flext_cli import c, r, settings, t, u
 from flext_cli.services._cli_parts.flextclicli_part_04 import (
     FlextCliCli as FlextCliCliPart04,
 )
 
-if TYPE_CHECKING:
-    from flext_cli import p
+from flext_cli import p
 
 
 class FlextCliCli(FlextCliCliPart04):

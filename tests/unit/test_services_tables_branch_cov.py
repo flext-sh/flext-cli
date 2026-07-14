@@ -15,8 +15,8 @@ from flext_cli import cli, m
 from tests import c
 from flext_tests import tm
 
-if TYPE_CHECKING:
-    from flext_cli import t
+from flext_cli import t
+
 
 
 class TestsFlextCliServicesTablesBranchCov:

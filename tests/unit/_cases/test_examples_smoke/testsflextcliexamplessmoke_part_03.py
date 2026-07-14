@@ -11,8 +11,8 @@ from flext_tests import tm
 
 from flext_cli import cli, settings
 
-if TYPE_CHECKING:
-    from collections.abc import Iterator
+from collections.abc import Iterator
+
 
 
 class TestsFlextCliExamplesSmoke:

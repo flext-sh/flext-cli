@@ -17,9 +17,9 @@ from flext_tests import tm
 from flext_cli import FlextCli, cli, settings
 from tests import c
 
-if TYPE_CHECKING:
-    from collections.abc import Iterator
-    from pathlib import Path
+from collections.abc import Iterator
+from pathlib import Path
+
 
 
 class TestsFlextCliServicesAuth:

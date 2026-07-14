@@ -14,7 +14,7 @@ import inspect
 from collections.abc import Callable, Mapping
 from typing import cast
 
-from flext_cli import p, settings, t
+from flext_cli import settings, t
 from flext_core import m
 
 
@@ -25,16 +25,12 @@ class FlextCliUtilitiesModelCommands:
         """Thin builder for direct model-backed command callables."""
 
         def __init__(
-            self,
-            model_class: t.ModelClass[M],
-            handler: Callable[[M], t.JsonValue],
-            settings: t.Cli.ModelLike | None = None,
+            self, model_class: t.ModelClass[M], handler: Callable[[M], t.JsonValue]
         ) -> None:
             """Store the canonical inputs for deferred command construction."""
             super().__init__()
             self.model_class = model_class
             self.handler = handler
-            self.settings = settings
 
         def _resolve_default(self, field_info: m.FieldInfo) -> t.Cli.CliValue | type:
             if field_info.is_required():
@@ -61,24 +57,21 @@ class FlextCliUtilitiesModelCommands:
             ]
             signature = inspect.Signature(parameters)
 
-            # NOTE (multi-agent): ``self.settings`` (per-command, may be any
+            # NOTE (multi-agent): ``settings`` (per-command, may be any
             # model or None) falls back to the module settings singleton.
             # Overrides apply only when the effective settings is a full
             # Settings protocol (has update_global) — a plain model skips them.
-            effective_settings = (
-                self.settings if self.settings is not None else settings
-            )
+            effective_settings = settings
 
             def command(**kwargs: t.Cli.CliValue) -> t.JsonValue:
-                if isinstance(effective_settings, p.Cli.Settings):
-                    settings_fields = effective_settings.model_dump()
-                    applicable_overrides = {
-                        field_name: field_value
-                        for field_name, field_value in kwargs.items()
-                        if field_name in settings_fields
-                    }
-                    if applicable_overrides:
-                        effective_settings.update_global(**applicable_overrides)
+                settings_fields = effective_settings.model_dump()
+                applicable_overrides = {
+                    field_name: field_value
+                    for field_name, field_value in kwargs.items()
+                    if field_name in settings_fields
+                }
+                if applicable_overrides:
+                    effective_settings.update_global(**applicable_overrides)
                 model = self.model_class.model_validate(kwargs)
                 return self.handler(model)
 

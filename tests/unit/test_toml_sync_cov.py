@@ -22,10 +22,10 @@ import pytest
 from tests import u
 from flext_tests import tm
 
-if TYPE_CHECKING:
-    from tomlkit.items import Table
+from tomlkit.items import Table
 
-    from tests import t
+from tests import t
+
 
 
 class TestsFlextCliTomlSyncCoverage:

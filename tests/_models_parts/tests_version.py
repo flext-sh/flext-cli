@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Annotated, ClassVar, Self
 from flext_cli import m
 from tests import c
 
-if TYPE_CHECKING:
-    from tests import t
+from tests import t
+
 
 
 class TestsFlextCliModelsVersion:

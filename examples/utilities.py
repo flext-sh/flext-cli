@@ -16,10 +16,10 @@ from typing import TYPE_CHECKING
 from examples import c, m, t
 from flext_cli import cli, u
 
-if TYPE_CHECKING:
-    from collections.abc import (
-        MutableSequence,
-    )
+from collections.abc import (
+    MutableSequence,
+)
+
 
 
 class ExamplesFlextCliUtilities(u):

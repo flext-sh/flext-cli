@@ -14,8 +14,8 @@ from typing import TYPE_CHECKING
 
 from flext_cli import c, cli, m, p, r, t, u
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
+
 
 _EXAMPLE_REQUIRED_DATA_FIELDS: t.VariadicTuple[str] = ("id", "name", "value")
 

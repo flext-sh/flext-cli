@@ -9,8 +9,8 @@ from typing import TYPE_CHECKING, Final
 
 from flext_cli import c
 
-if TYPE_CHECKING:
-    from examples import t
+from examples import t
+
 
 
 class ExamplesFlextCliConstants(c):

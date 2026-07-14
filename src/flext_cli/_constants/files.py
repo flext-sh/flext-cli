@@ -8,10 +8,9 @@ from __future__ import annotations
 
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Final
+from typing import Final
 
-if TYPE_CHECKING:
-    from flext_core import t
+from flext_core import t
 
 
 class FlextCliConstantsFiles:

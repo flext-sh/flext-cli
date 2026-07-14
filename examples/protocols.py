@@ -6,10 +6,10 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli import p
 
-if TYPE_CHECKING:
-    from collections.abc import (
-        Callable,
-    )
+from collections.abc import (
+    Callable,
+)
+
 
 
 class ExamplesFlextCliProtocols(p):

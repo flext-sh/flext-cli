@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 from flext_tests import tm
 from tests import u
 
-if TYPE_CHECKING:
-    from tests import t
+from tests import t
+
 
 
 class TestsFlextCliTomlUtilities:

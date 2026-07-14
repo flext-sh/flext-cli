@@ -16,8 +16,8 @@ from flext_tests import tm
 from flext_cli import cli
 from tests import c
 
-if TYPE_CHECKING:
-    from flext_cli import t
+from flext_cli import t
+
 
 
 class TestsFlextCliTables:

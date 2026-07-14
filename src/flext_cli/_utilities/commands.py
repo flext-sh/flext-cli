@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import traceback
-from typing import TYPE_CHECKING
 
 # mro-j47u (codex): formatter contracts are owned once by the t facade.
 from flext_cli import c, r, t
 from flext_cli._utilities.output import FlextCliUtilitiesOutput as uo
 from flext_core import u
 
-if TYPE_CHECKING:
-    from flext_cli import p
+from flext_cli import p
 
 
 class FlextCliUtilitiesCommands:

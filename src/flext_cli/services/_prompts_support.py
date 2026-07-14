@@ -10,12 +10,11 @@ helper that collapses the repeated ``try/except CLI_SAFE_EXCEPTIONS -> _fatal
 from __future__ import annotations
 
 import getpass
-from typing import TYPE_CHECKING, Annotated, Self
+from typing import Annotated, Self
 
 from flext_cli import c, m, p, r, s, settings, t, u
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from collections.abc import Callable
 
 
 class FlextCliPromptsSupport(s):

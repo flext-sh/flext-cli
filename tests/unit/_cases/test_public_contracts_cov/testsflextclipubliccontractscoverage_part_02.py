@@ -10,10 +10,10 @@ from tests import m
 from flext_cli import r
 from flext_tests import tm
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
 
-    from tests import p
+from tests import p
+
 
 
 class TestsFlextCliPublicContractsCoverage:

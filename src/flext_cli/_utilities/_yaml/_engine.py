@@ -16,7 +16,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import io
-from typing import TYPE_CHECKING, TextIO
+from typing import TextIO
 
 import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap
@@ -25,8 +25,7 @@ from flext_cli import c, p, r, t
 
 from ._convert import FlextCliUtilitiesYamlConvertMixin
 
-if TYPE_CHECKING:
-    from pathlib import Path
+from pathlib import Path
 
 
 class _YamlRoundtripEngine:

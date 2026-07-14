@@ -13,8 +13,8 @@ from flext_cli import cli, r
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 # mro-wkii.17.26 (codex): exercise CLI flows through the public invocation facade.
 
-if TYPE_CHECKING:
-    from tests import p
+from tests import p
+
 
 
 class TestsFlextCliService:

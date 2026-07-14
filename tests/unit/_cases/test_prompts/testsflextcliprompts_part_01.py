@@ -9,10 +9,10 @@ from flext_cli import m
 from flext_tests import tm
 from tests import c
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from collections.abc import Callable
 
-    from tests import p
+from tests import p
+
 
 
 class TestsFlextCliPrompts:

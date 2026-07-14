@@ -12,9 +12,9 @@ from flext_tests import FlextTestsProtocols
 
 from flext_cli import p
 
-if TYPE_CHECKING:
-    from flext_cli import m
-    from tests import t
+from flext_cli import m
+from tests import t
+
 
 
 class TestsFlextCliProtocols(FlextTestsProtocols, p):

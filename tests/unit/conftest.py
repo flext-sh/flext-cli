@@ -10,10 +10,10 @@ from flext_cli import FlextCliSettings
 from flext_cli.services.prompts import FlextCliPrompts
 from tests import m
 
-if TYPE_CHECKING:
-    from collections.abc import Callable
+from collections.abc import Callable
 
-    from tests import t
+from tests import t
+
 
 
 class TestsFlextCliScriptedPrompts(FlextCliPrompts):
@@ -55,7 +55,7 @@ class TestsFlextCliScriptedPrompts(FlextCliPrompts):
 
     def configure_state(self, *, interactive: bool = True, quiet: bool = False) -> Self:
         """Configure the observable prompt runtime state."""
-        self.configure(m.Cli.PromptRuntimeState(interactive=interactive, quiet=quiet))
+        settingsure(m.Cli.PromptRuntimeState(interactive=interactive, quiet=quiet))
         return self
 
 

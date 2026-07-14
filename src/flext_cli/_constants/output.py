@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import TYPE_CHECKING, ClassVar, Final
+from typing import ClassVar, Final
 
 from flext_cli._constants.enums import FlextCliConstantsEnums as ce
-from flext_core import c, t
 
-if TYPE_CHECKING:
-    from flext_cli import t
+# mro-wkii.17.26 (codex): constants may consume only the upstream typing
+# facade while the local constants facade is still being composed.
+from flext_core import c, t
 
 
 class FlextCliConstantsOutput:

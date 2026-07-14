@@ -3,7 +3,4 @@
 
 from __future__ import annotations
 
-from .flextclicli_part_05 import FlextCliCli as FlextCliCli
-
-
-__all__: tuple[str, ...] = ("FlextCliCli",)
+__all__: tuple[str, ...] = ()

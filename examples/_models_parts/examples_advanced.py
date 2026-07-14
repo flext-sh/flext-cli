@@ -9,8 +9,8 @@ from examples import c, p, r, t
 from examples._models_parts.examples_common import ExamplesFlextCliModelsExamplesCommon
 from flext_cli import m, u
 
-if TYPE_CHECKING:
-    from collections.abc import MutableSequence
+from collections.abc import MutableSequence
+
 
 
 class ExamplesFlextCliModelsExamplesAdvanced:
