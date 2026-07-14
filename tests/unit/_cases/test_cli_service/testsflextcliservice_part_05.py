@@ -56,12 +56,14 @@ class TestsFlextCliService:
         cli.register_result_route(app, route=build_ok_route())
         cli.register_result_route(group, route=build_fail_route())
         cli.add_group(app, name="group", group=group)
-        runner_result = cli.create_cli_runner()
-        tm.ok(runner_result)
-        ok_result = runner_result.value.invoke(app, ["ok", "--name", "alice"])
-        fail_result = runner_result.value.invoke(
-            app, ["group", "fail", "--name", "alice"]
+        ok_invocation = cli.invoke_app(app, args=["ok", "--name", "alice"])
+        fail_invocation = cli.invoke_app(
+            app, args=["group", "fail", "--name", "alice"]
         )
+        tm.ok(ok_invocation)
+        tm.ok(fail_invocation)
+        ok_result = ok_invocation.value
+        fail_result = fail_invocation.value
 
         tm.that(ok_result.exit_code, eq=0)
         tm.that(ok_result.stdout, has="processed alice")
