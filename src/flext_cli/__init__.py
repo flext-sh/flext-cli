@@ -34,12 +34,12 @@ if TYPE_CHECKING:
         FlextCliUtilities as u,
         FlextCliUtilities as FlextCliUtilities,
     )
-    from flext_core._root_typing_parts.facades import (
-        d as d,
-        e as e,
-        h as h,
-        r as r,
-        x as x,
+    from flext_core import (
+        d,
+        e,
+        h,
+        r,
+        x,
     )
     from flext_cli.base import s as s, FlextCliServiceBase as FlextCliServiceBase
     from flext_cli import services as services
