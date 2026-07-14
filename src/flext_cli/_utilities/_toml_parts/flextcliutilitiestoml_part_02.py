@@ -65,20 +65,15 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_ensure_table(parent: TOMLDocument | Table, key: str) -> Table:
-        """Return an explicit table child, promoting implicit super-tables when needed."""
+        """Return a table child without replacing TOMLKit super-tables."""
         existing: t.Cli.TomlRuntimeSource | None = None
         if key in parent:
             existing = parent[key]
         if isinstance(existing, Table):
-            table: Table = existing
-            if not table.is_super_table():
-                return table
-            del parent[key]
-            table = tomlkit.table()
-            for entry_key in list(existing):
-                table[entry_key] = existing[entry_key]
-            parent[key] = table
-            return table
+            # NOTE(mro-wkii.17.26, agent codex): replacing a super-table copies
+            # TOMLKit trivia and adds blank lines on every conform pass. A super
+            # table is mutable and materializes its explicit header when needed.
+            return existing
         table = tomlkit.table()
         parent[key] = table
         return table

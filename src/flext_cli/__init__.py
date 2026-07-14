@@ -5,14 +5,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-# mro-i6nq.10: The package consumes its manifest's public-export contract.
-from flext_cli.__unit__ import (
-    CHILD_MODULE_PATHS as _CHILD_MODULE_PATHS,
-    EXCLUDED_LAZY_NAMES as _EXCLUDED_LAZY_NAMES,
-    LAZY_ALIAS_GROUPS as _LAZY_ALIAS_GROUPS,
-    LAZY_MODULES as _LAZY_MODULES,
-    PUBLIC_EXPORTS as _PUBLIC_EXPORTS,
-)
 from flext_cli.__version__ import (
     __author__ as __author__,
     __author_email__ as __author_email__,
@@ -23,14 +15,9 @@ from flext_cli.__version__ import (
     __version__ as __version__,
     __version_info__ as __version_info__,
 )
-from flext_core.lazy import (
-    build_lazy_import_map,
-    install_lazy_exports,
-    merge_lazy_imports,
-)
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli import services as services
     from flext_cli._config import FlextCliConfig as FlextCliConfig, config as config
     from flext_cli._settings import (
         FlextCliSettings as FlextCliSettings,
@@ -67,19 +54,85 @@ if TYPE_CHECKING:
         x as x,
     )
 
-    # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.
-    __all__: tuple[str, ...]
+_LAZY_MODULES: dict[str, tuple[str, ...]] = {
+    "._config": ("FlextCliConfig", "config"),
+    "._settings": ("FlextCliSettings", "settings"),
+    ".api": ("FlextCli", "cli"),
+    ".base": ("FlextCliServiceBase", "s"),
+    ".constants": ("FlextCliConstants", "c"),
+    ".models": ("FlextCliModels", "m"),
+    ".protocols": ("FlextCliProtocols", "p"),
+    ".services.auth": ("FlextCliAuth",),
+    ".services.cli": ("FlextCliCli",),
+    ".services.cli_params": ("FlextCliCommonParams",),
+    ".services.cmd": ("FlextCliCmd",),
+    ".services.file_tools": ("FlextCliFileTools",),
+    ".services.formatters": ("FlextCliFormatters",),
+    ".services.output": ("FlextCliOutput",),
+    ".services.pipeline": ("FlextCliPipeline",),
+    ".services.prompts": ("FlextCliPrompts",),
+    ".services.rules": ("FlextCliRules",),
+    ".services.runtime": ("FlextCliRuntime",),
+    ".services.tables": ("FlextCliTables",),
+    ".services.xlsx": ("FlextCliXlsx",),
+    ".services.yaml_model": ("FlextCliYamlModel",),
+    ".typings": ("FlextCliTypes", "t"),
+    ".utilities": ("FlextCliUtilities", "u"),
+    "flext_core._root_typing_parts.facades": ("d", "e", "h", "r", "x"),
+}
 
+_LAZY_ALIAS_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {}
 
-_LAZY_IMPORTS = merge_lazy_imports(
-    _CHILD_MODULE_PATHS,
-    build_lazy_import_map(
-        _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
-    ),
-    exclude_names=_EXCLUDED_LAZY_NAMES,
-    module_name=__name__,
+_LAZY_IMPORTS = build_lazy_import_map(
+    _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
 )
 
+__all__: tuple[str, ...] = (
+    "FlextCli",
+    "FlextCliAuth",
+    "FlextCliCli",
+    "FlextCliCmd",
+    "FlextCliCommonParams",
+    "FlextCliConfig",
+    "FlextCliConstants",
+    "FlextCliFileTools",
+    "FlextCliFormatters",
+    "FlextCliModels",
+    "FlextCliOutput",
+    "FlextCliPipeline",
+    "FlextCliPrompts",
+    "FlextCliProtocols",
+    "FlextCliRules",
+    "FlextCliRuntime",
+    "FlextCliServiceBase",
+    "FlextCliSettings",
+    "FlextCliTables",
+    "FlextCliTypes",
+    "FlextCliUtilities",
+    "FlextCliXlsx",
+    "FlextCliYamlModel",
+    "__author__",
+    "__author_email__",
+    "__description__",
+    "__license__",
+    "__title__",
+    "__url__",
+    "__version__",
+    "__version_info__",
+    "c",
+    "cli",
+    "config",
+    "d",
+    "e",
+    "h",
+    "m",
+    "p",
+    "r",
+    "s",
+    "settings",
+    "t",
+    "u",
+    "x",
+)
 
-# mro-i6nq.10: The installer publishes __all__ from the manifest's literal ABI.
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=_PUBLIC_EXPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)
