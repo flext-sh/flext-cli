@@ -7,13 +7,13 @@ from collections.abc import Mapping
 from tomlkit.items import Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
+from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
 )
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_02 import (
+from flext_cli._utilities._toml.flextcliutilitiestoml_part_02 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart02,
 )
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_03 import (
+from flext_cli._utilities._toml.flextcliutilitiestoml_part_03 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart03,
 )
 from flext_core import u

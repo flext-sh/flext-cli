@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-from .xlsx_archive import FlextCliModelsXlsxArchive
-from .xlsx_cells import FlextCliModelsXlsxCells
-from .xlsx_layout import FlextCliModelsXlsxLayout
-from .xlsx_recalc import FlextCliModelsXlsxRecalc
-from .xlsx_rules import FlextCliModelsXlsxRules
-from .xlsx_snapshot import FlextCliModelsXlsxSnapshot
-from .xlsx_style_catalog import FlextCliModelsXlsxStyleCatalog
-from .xlsx_styles import FlextCliModelsXlsxStyles
-from .xlsx_tables import FlextCliModelsXlsxTables
-from .xlsx_validation import FlextCliModelsXlsxValidation
-from .xlsx_workbook import FlextCliModelsXlsxWorkbook
+from ._xlx.xlsx_archive import FlextCliModelsXlsxArchive
+from ._xlx.xlsx_cells import FlextCliModelsXlsxCells
+from ._xlx.xlsx_layout import FlextCliModelsXlsxLayout
+from ._xlx.xlsx_recalc import FlextCliModelsXlsxRecalc
+from ._xlx.xlsx_rules import FlextCliModelsXlsxRules
+from ._xlx.xlsx_snapshot import FlextCliModelsXlsxSnapshot
+from ._xlx.xlsx_style_catalog import FlextCliModelsXlsxStyleCatalog
+from ._xlx.xlsx_styles import FlextCliModelsXlsxStyles
+from ._xlx.xlsx_tables import FlextCliModelsXlsxTables
+from ._xlx.xlsx_validation import FlextCliModelsXlsxValidation
+from ._xlx.xlsx_workbook import FlextCliModelsXlsxWorkbook
 
 
 class FlextCliModelsXlsx(

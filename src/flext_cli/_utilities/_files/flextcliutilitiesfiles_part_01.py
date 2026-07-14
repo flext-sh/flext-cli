@@ -10,7 +10,7 @@ from typing import ClassVar
 
 import flext_core
 from flext_cli import c, p, r, t
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
+from flext_cli._utilities._files.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy

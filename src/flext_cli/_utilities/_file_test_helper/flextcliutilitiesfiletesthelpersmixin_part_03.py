@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableMapping
 
 from flext_cli import c, p, r
-from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
+from flext_cli._utilities._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_04 import (
     FlextCliUtilitiesFileTestHelpersMixin as FlextCliUtilitiesFileTestHelpersMixinPart04,
 )
 from flext_cli._utilities.files import FlextCliUtilitiesFiles

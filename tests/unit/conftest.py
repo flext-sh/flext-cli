@@ -55,7 +55,7 @@ class TestsFlextCliScriptedPrompts(FlextCliPrompts):
 
     def configure_state(self, *, interactive: bool = True, quiet: bool = False) -> Self:
         """Configure the observable prompt runtime state."""
-        settingsure(m.Cli.PromptRuntimeState(interactive=interactive, quiet=quiet))
+        configure(m.Cli.PromptRuntimeState(interactive=interactive, quiet=quiet))
         return self
 
 

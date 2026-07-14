@@ -7,10 +7,10 @@ from typing import Protocol, runtime_checkable
 from flext_cli._typings.xlsx import FlextCliTypesXlsx as tx
 from flext_core import p
 
-from .xlsx_archive import FlextCliProtocolsXlsxArchive
-from .xlsx_rules import FlextCliProtocolsXlsxRules
-from .xlsx_snapshot import FlextCliProtocolsXlsxSnapshot
-from .xlsx_workbook import FlextCliProtocolsXlsxWorkbook
+from ._xlx.xlsx_archive import FlextCliProtocolsXlsxArchive
+from ._xlx.xlsx_rules import FlextCliProtocolsXlsxRules
+from ._xlx.xlsx_snapshot import FlextCliProtocolsXlsxSnapshot
+from ._xlx.xlsx_workbook import FlextCliProtocolsXlsxWorkbook
 
 
 class FlextCliProtocolsXlsx(

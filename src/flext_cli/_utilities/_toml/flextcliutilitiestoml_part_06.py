@@ -7,7 +7,7 @@ import tomlkit
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c, e, p, r, t
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
+from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
 )
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur

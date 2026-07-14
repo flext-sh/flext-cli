@@ -2,16 +2,16 @@
 
 from __future__ import annotations
 
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_01 import (
+from flext_cli._utilities._files.flextcliutilitiesfiles_part_01 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart01,
 )
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
+from flext_cli._utilities._files.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
+from flext_cli._utilities._files.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart03,
 )
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04 import (
+from flext_cli._utilities._files.flextcliutilitiesfiles_part_04 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart04,
 )
 

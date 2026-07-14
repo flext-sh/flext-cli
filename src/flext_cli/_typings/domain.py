@@ -74,7 +74,8 @@ class FlextCliTypesDomain:
     type CliCommand = Callable[..., t.JsonPayload]
     # mro-j47u (codex): one generic alias owns formatter data and call contracts.
     type JsonCommandFn = Callable[..., p.Result[t.JsonPayload]]
-    type ResultRouteHandler = Callable[..., p.Result[ResultValue]]
+    # NOTE (multi-agent): route outputs are observation-only so payloads covary.
+    type ResultRouteHandler = Callable[..., p.ResultObservable[ResultValue]]
     type SuccessMessageFormatter[TResult: ResultValue = ResultValue] = Callable[
         [TResult], str
     ]

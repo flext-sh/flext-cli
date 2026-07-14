@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
+from flext_cli._utilities._options.flextcliutilitiesoptions_part_02 import (
     FlextCliUtilitiesOptions,
 )
 from flext_cli._utilities.auth import FlextCliUtilitiesAuth
