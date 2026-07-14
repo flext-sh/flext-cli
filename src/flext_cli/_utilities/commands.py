@@ -27,7 +27,7 @@ class FlextCliUtilitiesCommands:
         """Resolve success message using formatter/value fallback order."""
         if success_formatter is not None:
             formatted: str = success_formatter(result_value)
-            return formatted if isinstance(formatted, str) else str(formatted)
+            return formatted
         normalized_value: t.JsonValue = u.normalize_to_json_value(result_value)
         match normalized_value:
             case {c.Cli.DICT_KEY_MESSAGE: str() as candidate} if candidate:
