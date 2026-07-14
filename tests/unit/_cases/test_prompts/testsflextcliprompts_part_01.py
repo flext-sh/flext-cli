@@ -23,8 +23,8 @@ class TestsFlextCliPrompts:
         prompts = make_prompts(interactive_mode=False)
         result = prompts.execute()
         tm.ok(result)
-        tm.that(result.value[c.Cli.DICT_KEY_STATUS], eq=c.Cli.ServiceStatus.OPERATIONAL)
-        tm.that(result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.FLEXT_CLI)
+        tm.that(result.value.status, eq=c.Cli.ServiceStatus.OPERATIONAL)
+        tm.that(result.value.service, eq=c.Cli.FLEXT_CLI)
 
     def test_execute_uses_public_cmd_status_even_when_prompt_logger_would_fail(
         self, make_failing_prompts: Callable[..., p.Tests.FailingLogPrompts]
@@ -33,8 +33,8 @@ class TestsFlextCliPrompts:
         prompts.fail_on_log(level=c.LogLevel.DEBUG, message="Execute error")
         result = prompts.execute()
         tm.ok(result)
-        tm.that(result.value[c.Cli.DICT_KEY_STATUS], eq=c.Cli.ServiceStatus.OPERATIONAL)
-        tm.that(result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.FLEXT_CLI)
+        tm.that(result.value.status, eq=c.Cli.ServiceStatus.OPERATIONAL)
+        tm.that(result.value.service, eq=c.Cli.FLEXT_CLI)
 
     def test_prompt_returns_default_in_quiet_and_non_interactive_modes(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]

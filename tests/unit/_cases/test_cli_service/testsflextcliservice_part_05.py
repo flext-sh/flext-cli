@@ -105,6 +105,7 @@ class TestsFlextCliService:
         tm.that(fail_result.error_data["field"], eq="password")
         tm.that(fail_result.exception, is_=ValueError)
         tm.that(cli.finalize_result(fail_result), eq=c.Cli.EXIT_CODE_FAILURE)
+        tm.that(cli.finalize_result(fail_result, failure_exit_code=2), eq=2)
 
 
 __all__: list[str] = ["TestsFlextCliService"]

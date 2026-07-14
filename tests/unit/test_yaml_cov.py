@@ -34,20 +34,18 @@ class TestsFlextCliYamlCov:
 
     # ── yaml_parse ──────────────────────────────────────────────────
 
-    @pytest.mark.parametrize(
-        ("text", "expect_ok", "expect_empty"), c.Tests.YAML_PARSE_CASES
-    )
+    @pytest.mark.parametrize(("text", "expect_ok"), c.Tests.YAML_PARSE_CASES)
     def test_yaml_parse_reports_outcome_per_input(
-        self, text: str, expect_ok: bool, expect_empty: bool
+        self, text: str, expect_ok: bool
     ) -> None:
         result = u.Cli.yaml_parse(text)
 
         tm.that(result.success, eq=expect_ok)
         if expect_ok:
-            assert result.value == {} if expect_empty else result.value != {}
+            tm.that(result.value, empty=False)
         else:
-            # Failure carries a descriptive, non-empty error message.
-            assert result.error
+            tm.fail(result)
+            tm.that(result.error, none=False)
 
     def test_yaml_parse_preserves_nested_mapping_values(self) -> None:
         result = u.Cli.yaml_parse(c.Tests.YAML_VALID_CONTENT)
@@ -112,16 +110,14 @@ class TestsFlextCliYamlCov:
         tm.that(result.error, none=False)
         tm.that(result.error, has="not a mapping")
 
-    def test_yaml_safe_load_empty_file_yields_empty_mapping(
-        self, tmp_path: Path
-    ) -> None:
+    def test_yaml_safe_load_empty_file_fails_loudly(self, tmp_path: Path) -> None:
         empty_file = tmp_path / "empty.yml"
         empty_file.write_text("", encoding="utf-8")
 
         result = u.Cli.yaml_safe_load(empty_file)
 
-        tm.ok(result)
-        tm.that(result.unwrap(), eq={})
+        tm.fail(result)
+        tm.that(result.error, has="empty")
 
     # ── yaml_load_mapping ────────────────────────────────────────────
 

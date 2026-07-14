@@ -55,7 +55,7 @@ class TestsFlextCliPipeline:
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
         pipeline = result.value
-        tm.ok(pipeline)
+        tm.that(pipeline.success, eq=True)
         tm.that(len(pipeline.stages), eq=1)
         tm.that(pipeline.stages[0].stage_id, eq="alpha")
         tm.that(pipeline.stages[0].status, eq=c.Cli.PipelineStageStatus.OK)
@@ -116,7 +116,7 @@ class TestsFlextCliPipeline:
         )
         tm.ok(result)
         pipeline = result.value
-        tm.fail(pipeline)
+        tm.that(pipeline.success, eq=False)
         tm.that(len(pipeline.failed_stages), eq=1)
         tm.that(pipeline.failed_stages[0].stage_id, eq="a")
 
@@ -132,7 +132,7 @@ class TestsFlextCliPipeline:
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
         pipeline = result.value
-        tm.ok(pipeline)
+        tm.that(pipeline.success, eq=True)
         tm.that(pipeline.stages[0].status, eq=c.Cli.PipelineStageStatus.SKIPPED)
 
 

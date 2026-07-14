@@ -103,10 +103,10 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
             return r[p.Cli.Settings].ok(TestsFlextCliSettings())
 
         @staticmethod
-        def create_cli_app() -> p.Result[t.Cli.CliApp]:
+        def create_cli_app() -> p.Result[p.Cli.Application]:
             """Create CLI app via Railway pattern."""
             # NOTE (multi-agent, mro-wkii.19.4): the CLI owns global settings.
-            return r[t.Cli.CliApp].ok(
+            return r[p.Cli.Application].ok(
                 cli.create_app_with_common_params(
                     name="tests-cli", help_text="Test CLI app"
                 )
@@ -114,7 +114,7 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
 
         @staticmethod
         def create_decorated_command(
-            app: t.Cli.CliApp, command_name: str = "test"
+            app: p.Cli.Application, command_name: str = "test"
         ) -> p.Result[Callable[..., None]]:
             """Register a real flag-driven command on ``app`` for tests."""
 

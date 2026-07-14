@@ -1,71 +1,35 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Protocols package."""
+"""Protocols package."""
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-# mro-i6nq.10: The package consumes its manifest's public-export contract.
-from flext_cli._protocols.__unit__ import (
-    CHILD_MODULE_PATHS as _CHILD_MODULE_PATHS,
-    EXCLUDED_LAZY_NAMES as _EXCLUDED_LAZY_NAMES,
-    LAZY_ALIAS_GROUPS as _LAZY_ALIAS_GROUPS,
-    LAZY_MODULES as _LAZY_MODULES,
-    PUBLIC_EXPORTS as _PUBLIC_EXPORTS,
+from .config import FlextCliProtocolsConfig as FlextCliProtocolsConfig
+from .domain import FlextCliProtocolsDomain as FlextCliProtocolsDomain
+from .framework import FlextCliProtocolsFramework as FlextCliProtocolsFramework
+from .pipeline import FlextCliProtocolsPipeline as FlextCliProtocolsPipeline
+from .xlsx import FlextCliProtocolsXlsx as FlextCliProtocolsXlsx
+from .xlsx_archive import FlextCliProtocolsXlsxArchive as FlextCliProtocolsXlsxArchive
+from .xlsx_rules import FlextCliProtocolsXlsxRules as FlextCliProtocolsXlsxRules
+from .xlsx_snapshot import (
+    FlextCliProtocolsXlsxSnapshot as FlextCliProtocolsXlsxSnapshot,
 )
-from flext_core.lazy import (
-    build_lazy_import_map,
-    install_lazy_exports,
-    merge_lazy_imports,
+from .xlsx_snapshot_structure import (
+    FlextCliProtocolsXlsxSnapshotStructure as FlextCliProtocolsXlsxSnapshotStructure,
 )
-
-if TYPE_CHECKING:
-    from flext_cli._protocols import _base_parts as _base_parts
-    from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_05 import (
-        FlextCliProtocolsBase as FlextCliProtocolsBase,
-    )
-    from flext_cli._protocols.config import (
-        FlextCliProtocolsConfig as FlextCliProtocolsConfig,
-    )
-    from flext_cli._protocols.domain import (
-        FlextCliProtocolsDomain as FlextCliProtocolsDomain,
-    )
-    from flext_cli._protocols.framework import (
-        FlextCliProtocolsFramework as FlextCliProtocolsFramework,
-    )
-    from flext_cli._protocols.pipeline import (
-        FlextCliProtocolsPipeline as FlextCliProtocolsPipeline,
-    )
-    from flext_cli._protocols.xlsx import FlextCliProtocolsXlsx as FlextCliProtocolsXlsx
-    from flext_cli._protocols.xlsx_archive import (
-        FlextCliProtocolsXlsxArchive as FlextCliProtocolsXlsxArchive,
-    )
-    from flext_cli._protocols.xlsx_rules import (
-        FlextCliProtocolsXlsxRules as FlextCliProtocolsXlsxRules,
-    )
-    from flext_cli._protocols.xlsx_snapshot import (
-        FlextCliProtocolsXlsxSnapshot as FlextCliProtocolsXlsxSnapshot,
-    )
-    from flext_cli._protocols.xlsx_snapshot_structure import (
-        FlextCliProtocolsXlsxSnapshotStructure as FlextCliProtocolsXlsxSnapshotStructure,
-    )
-    from flext_cli._protocols.xlsx_workbook import (
-        FlextCliProtocolsXlsxWorkbook as FlextCliProtocolsXlsxWorkbook,
-    )
-
-    # mro-i6nq.10: Static declaration mirrors the installer-owned runtime binding.
-    __all__: tuple[str, ...]
-
-
-_LAZY_IMPORTS = merge_lazy_imports(
-    _CHILD_MODULE_PATHS,
-    build_lazy_import_map(
-        _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
-    ),
-    exclude_names=_EXCLUDED_LAZY_NAMES,
-    module_name=__name__,
+from .xlsx_workbook import (
+    FlextCliProtocolsXlsxWorkbook as FlextCliProtocolsXlsxWorkbook,
 )
 
 
-# mro-i6nq.10: The installer publishes __all__ from the manifest's literal ABI.
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=_PUBLIC_EXPORTS)
+__all__: tuple[str, ...] = (
+    "FlextCliProtocolsConfig",
+    "FlextCliProtocolsDomain",
+    "FlextCliProtocolsFramework",
+    "FlextCliProtocolsPipeline",
+    "FlextCliProtocolsXlsx",
+    "FlextCliProtocolsXlsxArchive",
+    "FlextCliProtocolsXlsxRules",
+    "FlextCliProtocolsXlsxSnapshot",
+    "FlextCliProtocolsXlsxSnapshotStructure",
+    "FlextCliProtocolsXlsxWorkbook",
+)

@@ -16,7 +16,6 @@ from flext_tests import tm
 from flext_cli import cli
 from tests import c
 from tests import p
-from tests import t
 from tests import u
 
 
@@ -128,46 +127,43 @@ class TestsFlextCliCliParams:
     # ── decorator wiring: observable CLI behavior ────────────────────
 
     @pytest.fixture
-    def runner_and_app(self) -> tuple[t.Cli.TyperRunner, t.Cli.CliApp]:
-        """Build a CLI runner plus an app carrying the common-params decorated command."""
+    def app(self) -> p.Cli.Application:
+        """Build an app carrying the common-params decorated command."""
         app_result = u.Tests.create_cli_app()
         tm.ok(app_result)
         app = app_result.value
         tm.ok(u.Tests.create_decorated_command(app, "test"))
-        runner_result = cli.create_cli_runner()
-        tm.ok(runner_result)
-        return runner_result.value, app
+        return app
 
     def test_help_exposes_common_options(
-        self, runner_and_app: tuple[t.Cli.TyperRunner, t.Cli.CliApp]
+        self, app: p.Cli.Application
     ) -> None:
         """--help lists every common parameter the decorator promises to add."""
-        runner, app = runner_and_app
-        result = runner.invoke(app, ["test", "--help"])
+        result = cli.invoke_app(app, args=["test", "--help"])
 
-        tm.that(result.exit_code, eq=0)
+        tm.ok(result)
+        tm.that(result.value.exit_code, eq=0)
         for flag in ("--verbose", "--debug", "--log-level", "--output-format"):
-            tm.that(result.stdout, has=flag)
+            tm.that(result.value.stdout, has=flag)
 
     def test_boolean_flags_toggle_command_behavior(
-        self, runner_and_app: tuple[t.Cli.TyperRunner, t.Cli.CliApp]
+        self, app: p.Cli.Application
     ) -> None:
         """Passing --verbose/--debug flips the command's observable output."""
-        runner, app = runner_and_app
-        result = runner.invoke(app, ["test", "--verbose", "--debug"])
+        result = cli.invoke_app(app, args=["test", "--verbose", "--debug"])
 
-        tm.that(result.exit_code, eq=0)
-        tm.that(result.stdout, has="Verbose: enabled")
-        tm.that(result.stdout, has="Debug: enabled")
+        tm.ok(result)
+        tm.that(result.value.exit_code, eq=0)
+        tm.that(result.value.stdout, has="Verbose: enabled")
+        tm.that(result.value.stdout, has="Debug: enabled")
 
     def test_value_parameters_flow_to_command(
-        self, runner_and_app: tuple[t.Cli.TyperRunner, t.Cli.CliApp]
+        self, app: p.Cli.Application
     ) -> None:
         """Choice-valued options are parsed and surfaced in command output."""
-        runner, app = runner_and_app
-        result = runner.invoke(
+        result = cli.invoke_app(
             app,
-            [
+            args=[
                 "test",
                 "--log-level",
                 c.LogLevel.WARNING,
@@ -176,6 +172,7 @@ class TestsFlextCliCliParams:
             ],
         )
 
-        tm.that(result.exit_code, eq=0)
-        tm.that(result.stdout, has="Log level: WARNING")
-        tm.that(result.stdout, has="Output format: json")
+        tm.ok(result)
+        tm.that(result.value.exit_code, eq=0)
+        tm.that(result.value.stdout, has="Log level: WARNING")
+        tm.that(result.value.stdout, has="Output format: json")

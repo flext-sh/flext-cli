@@ -127,33 +127,39 @@ class FlextCliUtilitiesXlsxStyleReaders:
         cls, value: StyleableObject
     ) -> p.Result[m.Cli.XlsxVisualStyleSpec]:
         try:
-            font = copy(value.font)
-            fill = copy(value.fill)
-            border = copy(value.border)
-            alignment = copy(value.alignment)
-            if not isinstance(font, Font):
-                msg = "openpyxl font proxy copy is not Font"
-                raise TypeError(msg)
-            if not isinstance(fill, Fill):
-                msg = "openpyxl fill proxy copy is not Fill"
-                raise TypeError(msg)
-            if not isinstance(border, Border):
-                msg = "openpyxl border proxy copy is not Border"
-                raise TypeError(msg)
-            if not isinstance(alignment, Alignment):
-                msg = "openpyxl alignment proxy copy is not Alignment"
-                raise TypeError(msg)
-            visual = m.Cli.XlsxVisualStyleSpec(
-                font=cls._font_spec(font),
-                fill=cls._fill_spec(fill),
-                border=cls._border_spec(border),
-                alignment=cls._alignment_spec(alignment),
-                number_format=value.number_format,
-            )
+            visual = cls._visual_from_styleable_unchecked(value)
         except (TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxVisualStyleSpec].fail(detail)
         return r[m.Cli.XlsxVisualStyleSpec].ok(visual)
+
+    @classmethod
+    def _visual_from_styleable_unchecked(
+        cls, value: StyleableObject
+    ) -> m.Cli.XlsxVisualStyleSpec:
+        font = copy(value.font)
+        fill = copy(value.fill)
+        border = copy(value.border)
+        alignment = copy(value.alignment)
+        if not isinstance(font, Font):
+            msg = "openpyxl font proxy copy is not Font"
+            raise TypeError(msg)
+        if not isinstance(fill, Fill):
+            msg = "openpyxl fill proxy copy is not Fill"
+            raise TypeError(msg)
+        if not isinstance(border, Border):
+            msg = "openpyxl border proxy copy is not Border"
+            raise TypeError(msg)
+        if not isinstance(alignment, Alignment):
+            msg = "openpyxl alignment proxy copy is not Alignment"
+            raise TypeError(msg)
+        return m.Cli.XlsxVisualStyleSpec(
+            font=cls._font_spec(font),
+            fill=cls._fill_spec(fill),
+            border=cls._border_spec(border),
+            alignment=cls._alignment_spec(alignment),
+            number_format=value.number_format,
+        )
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxStyleReaders",)

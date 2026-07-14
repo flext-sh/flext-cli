@@ -40,26 +40,22 @@ class TestsFlextCliCmd:
 
     def test_execute_reports_operational_runtime_payload(self) -> None:
         """execute() must succeed and expose the canonical status payload."""
-        data = tm.ok(cli.execute(), is_=dict)
+        data = tm.ok(cli.execute(), is_=m.Cli.RuntimeStatus)
 
-        tm.that(
-            data,
-            kv={
-                c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
-                c.Cli.DICT_KEY_SERVICE: c.Cli.FLEXT_CLI,
-                "version": c.Cli.CLI_VERSION,
-            },
-            keys=("timestamp", "components"),
-        )
+        tm.that(data.status, eq=c.Cli.ServiceStatus.OPERATIONAL)
+        tm.that(data.service, eq=c.Cli.FLEXT_CLI)
+        tm.that(data.version, eq=c.Cli.CLI_VERSION)
+        tm.that(data.timestamp, is_=str)
+        tm.that(data.components, is_=m.Cli.RuntimeComponents)
 
     def test_execute_is_deterministic_across_calls(self) -> None:
         """Repeated execute() calls must report identical stable identity fields."""
         first = tm.ok(cli.execute())
         second = tm.ok(cli.execute())
 
-        tm.that(first[c.Cli.DICT_KEY_STATUS], eq=second[c.Cli.DICT_KEY_STATUS])
-        tm.that(first[c.Cli.DICT_KEY_SERVICE], eq=second[c.Cli.DICT_KEY_SERVICE])
-        tm.that(first["version"], eq=second["version"])
+        tm.that(first.status, eq=second.status)
+        tm.that(first.service, eq=second.service)
+        tm.that(first.version, eq=second.version)
 
     def test_settings_snapshot_reports_absent_home_state(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch

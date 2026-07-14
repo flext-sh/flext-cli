@@ -56,13 +56,13 @@ class TestsFlextCliPublicContractsCoverage:
 
         tm.ok(facade_result)
         tm.that(
-            facade_result.value[c.Cli.DICT_KEY_STATUS],
+            facade_result.value.status,
             eq=(c.Cli.ServiceStatus.OPERATIONAL),
         )
-        tm.that(facade_result.value[c.Cli.DICT_KEY_SERVICE], eq=c.Cli.FLEXT_CLI)
-        components = facade_result.value.get("components")
-        tm.that(components, is_=dict)
-        tm.that(components["prompts"], eq="available")
+        tm.that(facade_result.value.service, eq=c.Cli.FLEXT_CLI)
+        components = facade_result.value.components
+        tm.that(components, is_=m.Cli.RuntimeComponents)
+        tm.that(components.prompts, eq="available")
 
     def test_public_model_command_utility_contract(self) -> None:
         command_settings = self._CommandModel(label="configured", debug=True)

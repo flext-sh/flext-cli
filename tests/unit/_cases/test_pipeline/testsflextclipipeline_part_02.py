@@ -61,7 +61,7 @@ class TestsFlextCliPipeline:
         stages = [cli.stage("flaky", handler=flaky, retry=3)]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
-        tm.ok(result.value)
+        tm.that(result.value.success, eq=True)
         tm.that(call_count, eq=3)
 
     def test_retry_on_safe_exception_marks_stage_failed(self, tmp_path: Path) -> None:
@@ -83,17 +83,18 @@ class TestsFlextCliPipeline:
         )
 
         tm.ok(result)
-        tm.fail(result.value)
+        tm.that(result.value.success, eq=False)
         tm.that(call_count, eq=2)
-        assert (
-            result.value.failed_stages[0].error == f"stage boom raised: {error_message}"
+        tm.that(
+            result.value.failed_stages[0].error,
+            eq=f"stage boom raised: {error_message}",
         )
 
     def test_empty_pipeline(self, tmp_path: Path) -> None:
         """Empty pipeline returns ok with no stages."""
         result = cli.pipeline([], context=cli.stage_context(tmp_path))
         tm.ok(result)
-        tm.ok(result.value)
+        tm.that(result.value.success, eq=True)
         tm.that(len(result.value.stages), eq=0)
 
     def test_total_duration_tracked(self, tmp_path: Path) -> None:
@@ -101,7 +102,7 @@ class TestsFlextCliPipeline:
         stages = [cli.stage("a", handler=self._ok_handler("a"))]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
-        assert result.value.total_duration_ms >= 0.0
+        tm.that(result.value.total_duration_ms, gte=0.0)
 
 
 __all__: list[str] = ["TestsFlextCliPipeline"]

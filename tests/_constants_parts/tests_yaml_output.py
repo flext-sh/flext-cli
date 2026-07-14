@@ -18,13 +18,13 @@ class TestsFlextCliConstantsYamlOutput:
     YAML_INVALID_CONTENT: Final[str] = "key: [unterminated"
     YAML_NON_MAPPING_CONTENT: Final[str] = "- item1\n- item2\n"
 
-    # parse(text) → (text, expect_ok, expect_empty_dict)
-    YAML_PARSE_CASES: Final[tuple[tuple[str, bool, bool], ...]] = (
-        (YAML_VALID_CONTENT, True, False),
-        ("", True, True),
-        ("null\n", True, True),
-        (YAML_INVALID_CONTENT, False, False),
-        (YAML_NON_MAPPING_CONTENT, False, False),
+    # parse(text) → (text, expect_ok); empty/null inputs fail loudly.
+    YAML_PARSE_CASES: Final[tuple[tuple[str, bool], ...]] = (
+        (YAML_VALID_CONTENT, True),
+        ("", False),
+        ("null\n", False),
+        (YAML_INVALID_CONTENT, False),
+        (YAML_NON_MAPPING_CONTENT, False),
     )
 
     # dump: (data, sort_keys, expect_ok)
@@ -66,8 +66,6 @@ class TestsFlextCliConstantsYamlOutput:
     )
 
     # ── FORMATTERS ─────────────────────────────────────────────────
-    FORMATTER_TREE_LABELS: Final[t.StrSequence] = ("Root", "Branch", "")
-
     # (columns, rows, title)
     FORMATTER_TABLE_CASES: Final[
         tuple[tuple[t.StrSequence, tuple[t.StrSequence, ...], str], ...]

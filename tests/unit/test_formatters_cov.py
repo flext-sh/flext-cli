@@ -1,10 +1,9 @@
 """Behavioral tests for the CLI formatters public contract.
 
 Exercises the observable behavior promised by ``FlextCli`` formatter methods
-(``create_tree``/``print``/``render_rule``/``render_panel``/``render_table``),
+(``print``/``render_rule``/``render_panel``/``render_table``),
 which delegate through ``FlextCliFormatters`` and ``FlextCliUtilitiesFormatters``:
 
-- ``create_tree`` returns ``r[RichTree]`` whose value carries the given label.
 - ``print``/``render_rule``/``render_panel``/``render_table`` render their
   content to the console (observable on stdout).
 
@@ -17,7 +16,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from rich.tree import Tree as RichTree
 
 from flext_cli import cli
 from tests import c
@@ -29,38 +27,6 @@ if TYPE_CHECKING:
 
 class TestsFlextCliFormattersCov:
     """Behavioral tests for the public CLI formatter contract."""
-
-    # ── create_tree: fallible contract (r[RichTree]) ─────────────────
-
-    @pytest.mark.parametrize("label", c.Tests.FORMATTER_TREE_LABELS)
-    def test_create_tree_succeeds_and_preserves_label(self, label: str) -> None:
-        result = cli.create_tree(label)
-
-        tm.ok(result)
-        tree = result.unwrap()
-        tm.that(tree, is_=RichTree)
-        tm.that(tree.label, eq=label)
-
-    def test_create_tree_value_matches_unwrap(self) -> None:
-        result = cli.create_tree("Root")
-
-        tm.ok(result)
-        assert result.value is result.unwrap()
-
-    def test_create_tree_result_maps_to_label(self) -> None:
-        # r[T] monadic contract: map projects the success value.
-        mapped = cli.create_tree("Branch").map(lambda tree: tree.label)
-
-        tm.ok(mapped)
-        tm.that(mapped.unwrap(), eq="Branch")
-
-    def test_create_tree_children_can_be_attached(self) -> None:
-        # Public Rich Tree contract: the returned root accepts children.
-        root = cli.create_tree("Root").unwrap()
-        child = root.add("Leaf")
-
-        tm.that(child.label, eq="Leaf")
-        assert root.children[0] is child
 
     # ── print: message rendered to stdout ────────────────────────────
 

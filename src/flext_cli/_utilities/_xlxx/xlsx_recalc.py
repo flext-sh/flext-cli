@@ -26,46 +26,51 @@ class FlextCliUtilitiesXlsxRecalc(
     ) -> p.Result[m.Cli.XlsxRecalcResult]:
         """Recalculate every formula cache through the headless office engine."""
         try:
-            with tempfile.TemporaryDirectory(
-                prefix=c.Cli.XLSX_RECALC_TEMP_PREFIX
-            ) as workspace:
-                workdir = Path(workspace)
-                input_dir = workdir / "input"
-                output_dir = workdir / "output"
-                input_dir.mkdir()
-                output_dir.mkdir()
-                source_path = input_dir / c.Cli.XLSX_RECALC_SOURCE_NAME
-                source_path.write_bytes(request.source)
-                started = FlextCliUtilitiesProcesses.process_start(
-                    (*c.Cli.XLSX_RECALC_COMMAND, str(output_dir), str(source_path)),
-                    cwd=workdir,
-                )
-                if started.failure:
-                    return r[m.Cli.XlsxRecalcResult].fail(
-                        f"{c.Cli.XlsxError.RECALC_FAILED}: {started.error}"
-                    )
-                process = started.value
-                completed = process.wait(timeout=c.Cli.XLSX_RECALC_TIMEOUT_SECONDS)
-                if completed.failure:
-                    killed = process.kill()
-                    detail = completed.error or "process wait failed"
-                    if killed.failure:
-                        detail = f"{detail}; kill failed: {killed.error}"
-                    return r[m.Cli.XlsxRecalcResult].fail(
-                        f"{c.Cli.XlsxError.RECALC_FAILED}: {detail}"
-                    )
-                if completed.value != 0:
-                    detail = process.stderr.strip() or process.stdout.strip()
-                    return r[m.Cli.XlsxRecalcResult].fail(
-                        f"{c.Cli.XlsxError.RECALC_FAILED}: "
-                        f"exit={completed.value}: {detail}"
-                    )
-                content = (output_dir / c.Cli.XLSX_RECALC_SOURCE_NAME).read_bytes()
+            return cls._xlsx_recalc_unchecked(request)
         except (OSError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxRecalcResult].fail(
                 f"{c.Cli.XlsxError.RECALC_FAILED}: {detail}"
             )
+
+    @staticmethod
+    def _xlsx_recalc_unchecked(
+        request: m.Cli.XlsxRecalcRequest,
+    ) -> p.Result[m.Cli.XlsxRecalcResult]:
+        with tempfile.TemporaryDirectory(
+            prefix=c.Cli.XLSX_RECALC_TEMP_PREFIX
+        ) as workspace:
+            workdir = Path(workspace)
+            input_dir = workdir / "input"
+            output_dir = workdir / "output"
+            input_dir.mkdir()
+            output_dir.mkdir()
+            source_path = input_dir / c.Cli.XLSX_RECALC_SOURCE_NAME
+            source_path.write_bytes(request.source)
+            started = FlextCliUtilitiesProcesses.process_start(
+                (*c.Cli.XLSX_RECALC_COMMAND, str(output_dir), str(source_path)),
+                cwd=workdir,
+            )
+            if started.failure:
+                return r[m.Cli.XlsxRecalcResult].fail(
+                    f"{c.Cli.XlsxError.RECALC_FAILED}: {started.error}"
+                )
+            process = started.value
+            completed = process.wait(timeout=c.Cli.XLSX_RECALC_TIMEOUT_SECONDS)
+            if completed.failure:
+                killed = process.kill()
+                detail = completed.error or "process wait failed"
+                if killed.failure:
+                    detail = f"{detail}; kill failed: {killed.error}"
+                return r[m.Cli.XlsxRecalcResult].fail(
+                    f"{c.Cli.XlsxError.RECALC_FAILED}: {detail}"
+                )
+            if completed.value != 0:
+                detail = process.stderr.strip() or process.stdout.strip()
+                return r[m.Cli.XlsxRecalcResult].fail(
+                    f"{c.Cli.XlsxError.RECALC_FAILED}: exit={completed.value}: {detail}"
+                )
+            content = (output_dir / c.Cli.XLSX_RECALC_SOURCE_NAME).read_bytes()
         return r[m.Cli.XlsxRecalcResult].ok(m.Cli.XlsxRecalcResult(content=content))
 
     @classmethod

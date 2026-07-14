@@ -13,8 +13,7 @@ from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_02 import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli import m, t
-    from flext_core import p
+    from flext_cli import t, p
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
@@ -31,7 +30,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
-        ) -> p.Result[m.Cli.CommandOutput]:
+        ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command and require zero exit status."""
             ...
 
@@ -54,8 +53,21 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
             input_data: bytes | None = None,
-        ) -> p.Result[m.Cli.CommandOutput]:
+        ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
+            ...
+
+        # mro-zf1s: binary execution shares the runner contract through p.Cli.
+        def run_bytes(
+            self,
+            cmd: t.StrSequence,
+            cwd: t.Cli.TextPath | None = None,
+            timeout: int | None = None,
+            env: t.StrMapping | None = None,
+            remove_env_keys: t.StrSequence = (),
+            input_data: bytes | None = None,
+        ) -> p.Result[p.Cli.CommandBytesOutput]:
+            """Execute a command and preserve byte-exact output."""
             ...
 
         def run_checked(
@@ -92,12 +104,12 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def log_format(self) -> str | None:
-            """Get log format."""
+            """Configured log format."""
             ...
 
         @property
         def log_level(self) -> str | None:
-            """Get log level."""
+            """Configured log level."""
             ...
 
         @property
@@ -107,12 +119,12 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def output_format(self) -> str | None:
-            """Get output format."""
+            """Configured output format."""
             ...
 
         @property
         def params(self) -> t.JsonMapping:
-            """Get configuration parameters."""
+            """Validated configuration parameters."""
             ...
 
         @property

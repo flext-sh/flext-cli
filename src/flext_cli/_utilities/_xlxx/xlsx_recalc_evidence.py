@@ -69,42 +69,47 @@ class FlextCliUtilitiesXlsxRecalcEvidence(FlextCliUtilitiesXlsxArchiveChecks):
     ) -> p.Result[tuple[tuple[str, ...], tuple[str, ...]]]:
         """Classify formula cells as uncached or empty-string cached."""
         try:
-            with ZipFile(BytesIO(source)) as archive:
-                workbook_root = cls._require_xml(archive, c.Cli.XLSX_WORKBOOK_MEMBER)
-                rels_root = cls._require_xml(archive, c.Cli.XLSX_WORKBOOK_RELS_MEMBER)
-                uncached: tuple[str, ...] = ()
-                empty: tuple[str, ...] = ()
-                for sheet_name, member in cls._worksheet_targets(
-                    workbook_root, rels_root
-                ):
-                    root = cls._require_xml(archive, member)
-                    for element in root.iter():
-                        if cls._local_name(element.tag) != "c":
-                            continue
-                        has_formula = False
-                        value_element: p.Cli.XlsxXmlElement | None = None
-                        for child in element.iter():
-                            local = cls._local_name(child.tag)
-                            if local == "f":
-                                has_formula = True
-                            elif local == "v" and value_element is None:
-                                value_element = child
-                        if not has_formula:
-                            continue
-                        coordinate = element.get("r")
-                        if coordinate is None:
-                            msg = f"Formula cell without coordinate in {member}"
-                            raise ValueError(msg)
-                        if value_element is None:
-                            uncached = (*uncached, f"{sheet_name}!{coordinate}")
-                        elif not (value_element.text or "").strip():
-                            empty = (*empty, f"{sheet_name}!{coordinate}")
+            evidence = cls._formula_cache_evidence_unchecked(source)
         except (BadZipFile, LargeZipFile, OSError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[tuple[str, ...], tuple[str, ...]]].fail(
                 f"{c.Cli.XlsxError.PARITY_FAILED}: {detail}"
             )
-        return r[tuple[tuple[str, ...], tuple[str, ...]]].ok((uncached, empty))
+        return r[tuple[tuple[str, ...], tuple[str, ...]]].ok(evidence)
+
+    @classmethod
+    def _formula_cache_evidence_unchecked(
+        cls, source: bytes
+    ) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        with ZipFile(BytesIO(source)) as archive:
+            workbook_root = cls._require_xml(archive, c.Cli.XLSX_WORKBOOK_MEMBER)
+            rels_root = cls._require_xml(archive, c.Cli.XLSX_WORKBOOK_RELS_MEMBER)
+            uncached: tuple[str, ...] = ()
+            empty: tuple[str, ...] = ()
+            for sheet_name, member in cls._worksheet_targets(workbook_root, rels_root):
+                root = cls._require_xml(archive, member)
+                for element in root.iter():
+                    if cls._local_name(element.tag) != "c":
+                        continue
+                    has_formula = False
+                    value_element: p.Cli.XlsxXmlElement | None = None
+                    for child in element.iter():
+                        local = cls._local_name(child.tag)
+                        if local == "f":
+                            has_formula = True
+                        elif local == "v" and value_element is None:
+                            value_element = child
+                    if not has_formula:
+                        continue
+                    coordinate = element.get("r")
+                    if coordinate is None:
+                        msg = f"Formula cell without coordinate in {member}"
+                        raise ValueError(msg)
+                    if value_element is None:
+                        uncached = (*uncached, f"{sheet_name}!{coordinate}")
+                    elif not (value_element.text or "").strip():
+                        empty = (*empty, f"{sheet_name}!{coordinate}")
+        return uncached, empty
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxRecalcEvidence",)

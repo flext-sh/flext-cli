@@ -25,12 +25,10 @@ class TestsFlextCliJsonCov:
 
     # ----- json_read (fallible, r[JsonMapping]) ----------------------------
 
-    def test_json_read_missing_file_succeeds_with_empty_mapping(
-        self, tmp_path: Path
-    ) -> None:
+    def test_json_read_missing_file_fails_loudly(self, tmp_path: Path) -> None:
         result = u.Cli.json_read(tmp_path / "missing.json")
-        tm.ok(result)
-        tm.that(result.value, eq={})
+        tm.fail(result)
+        tm.that(result.error, has="file not found")
 
     def test_json_read_valid_object_returns_parsed_mapping(
         self, tmp_path: Path

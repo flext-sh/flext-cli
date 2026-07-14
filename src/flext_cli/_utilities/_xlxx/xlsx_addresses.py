@@ -43,6 +43,20 @@ class FlextCliUtilitiesXlsxAddresses:
     def _sheet_ref(name: str) -> str:
         return quote_sheetname(name)
 
+    @classmethod
+    def _format_reference(cls, request: m.Cli.XlsxFormatReferenceRequest) -> str:
+        if request.collapse_single_cell and request.area.first == request.area.last:
+            reference = cls._cell_ref(request.area.first)
+            if request.absolute:
+                reference = cls._absolute_range_ref(request.area).partition(":")[0]
+        elif request.absolute:
+            reference = cls._absolute_range_ref(request.area)
+        else:
+            reference = cls._range_ref(request.area)
+        if request.sheet is not None:
+            reference = f"{cls._sheet_ref(request.sheet)}!{reference}"
+        return reference
+
     @staticmethod
     def _range_failure(detail: str) -> p.Result[m.Cli.XlsxCellRange]:
         return r[m.Cli.XlsxCellRange].fail(f"{c.Cli.XlsxError.RANGE_INVALID}: {detail}")
@@ -82,16 +96,7 @@ class FlextCliUtilitiesXlsxAddresses:
     ) -> p.Result[m.Cli.XlsxReference]:
         """Format one validated range as a canonical Excel reference."""
         try:
-            if request.collapse_single_cell and request.area.first == request.area.last:
-                reference = cls._cell_ref(request.area.first)
-                if request.absolute:
-                    reference = cls._absolute_range_ref(request.area).partition(":")[0]
-            elif request.absolute:
-                reference = cls._absolute_range_ref(request.area)
-            else:
-                reference = cls._range_ref(request.area)
-            if request.sheet is not None:
-                reference = f"{cls._sheet_ref(request.sheet)}!{reference}"
+            reference = cls._format_reference(request)
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxReference].fail(

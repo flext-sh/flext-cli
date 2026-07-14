@@ -48,22 +48,47 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
 
         @property
         def duration(self) -> float:
-            """Return the command duration in seconds."""
+            """Command duration in seconds."""
             ...
 
         @property
         def exit_code(self) -> int:
-            """Return the command exit code."""
+            """Command exit code."""
             ...
 
         @property
         def stderr(self) -> str:
-            """Return the command standard error."""
+            """Command standard error."""
             ...
 
         @property
         def stdout(self) -> str:
-            """Return the command standard output."""
+            """Command standard output."""
+            ...
+
+    # mro-zf1s: binary command consumers type against p, never the model owner.
+    @runtime_checkable
+    class CommandBytesOutput(Protocol):
+        """Byte-exact external command execution output contract."""
+
+        @property
+        def duration(self) -> float:
+            """Command duration in seconds."""
+            ...
+
+        @property
+        def exit_code(self) -> int:
+            """Command exit code."""
+            ...
+
+        @property
+        def stderr(self) -> bytes:
+            """Command standard error as raw bytes."""
+            ...
+
+        @property
+        def stdout(self) -> bytes:
+            """Command standard output as raw bytes."""
             ...
 
 

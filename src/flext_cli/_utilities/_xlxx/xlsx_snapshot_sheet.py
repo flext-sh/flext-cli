@@ -39,70 +39,72 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
         cls, formula_sheet: Worksheet, value_sheet: Worksheet, *, position: int
     ) -> p.Result[m.Cli.XlsxSheetSnapshot]:
         try:
-            if formula_sheet.title != value_sheet.title:
-                msg = (
-                    "Worksheet view mismatch: "
-                    f"{formula_sheet.title} != {value_sheet.title}"
-                )
-                raise ValueError(msg)
-            state = cls._require_success(cls._snapshot_state(formula_sheet))
-            cells = cls._require_success(
-                cls._snapshot_cells(
-                    formula_sheet,
-                    value_sheet,
-                    data_only=formula_sheet is not value_sheet,
-                )
-            )
-            tables = cls._require_success(cls._snapshot_tables(formula_sheet))
-            rows = cls._require_success(cls._snapshot_rows(formula_sheet))
-            columns = cls._require_success(cls._snapshot_columns(formula_sheet))
-            merged_ranges = tuple(
-                sorted(str(item) for item in formula_sheet.merged_cells.ranges)
-            )
-            legacy_password_hash = formula_sheet.protection.password
-            if legacy_password_hash is not None and not isinstance(
-                legacy_password_hash, str
-            ):
-                msg = "Worksheet legacy protection hash is not textual"
-                raise TypeError(msg)
-            snapshot = m.Cli.XlsxSheetSnapshot(
-                name=formula_sheet.title,
-                position=position,
-                state=state,
-                max_row=formula_sheet.max_row,
-                max_column=formula_sheet.max_column,
-                cells=cells,
-                tables=tables,
-                row_dimensions=rows,
-                column_dimensions=columns,
-                merged_ranges=merged_ranges,
-                freeze_pane=formula_sheet.freeze_panes,
-                auto_filter=formula_sheet.auto_filter.ref,
-                protection=(
-                    m.Cli.XlsxSheetProtectionSnapshot(
-                        enabled=formula_sheet.protection.sheet,
-                        legacy_password_hash=legacy_password_hash,
-                    )
-                ),
-                formula_count=sum(item.formula is not None for item in cells),
-                literal_count=sum(
-                    item.formula is None and item.value.kind != "blank"
-                    for item in cells
-                ),
-                data_validation_count=len(
-                    formula_sheet.data_validations.dataValidation
-                ),
-                conditional_format_count=sum(
-                    len(formula_sheet.conditional_formatting[item])
-                    for item in formula_sheet.conditional_formatting
-                ),
-                merge_count=len(merged_ranges),
+            snapshot = cls._snapshot_sheet_unchecked(
+                formula_sheet, value_sheet, position=position
             )
         except (TypeError, ValidationError, ValueError) as exc:
             return r[m.Cli.XlsxSheetSnapshot].fail(
                 f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}"
             )
         return r[m.Cli.XlsxSheetSnapshot].ok(snapshot)
+
+    @classmethod
+    def _snapshot_sheet_unchecked(
+        cls, formula_sheet: Worksheet, value_sheet: Worksheet, *, position: int
+    ) -> m.Cli.XlsxSheetSnapshot:
+        if formula_sheet.title != value_sheet.title:
+            msg = (
+                f"Worksheet view mismatch: {formula_sheet.title} != {value_sheet.title}"
+            )
+            raise ValueError(msg)
+        state = cls._require_success(cls._snapshot_state(formula_sheet))
+        cells = cls._require_success(
+            cls._snapshot_cells(
+                formula_sheet, value_sheet, data_only=formula_sheet is not value_sheet
+            )
+        )
+        tables = cls._require_success(cls._snapshot_tables(formula_sheet))
+        rows = cls._require_success(cls._snapshot_rows(formula_sheet))
+        columns = cls._require_success(cls._snapshot_columns(formula_sheet))
+        merged_ranges = tuple(
+            sorted(str(item) for item in formula_sheet.merged_cells.ranges)
+        )
+        legacy_password_hash = formula_sheet.protection.password
+        if legacy_password_hash is not None and not isinstance(
+            legacy_password_hash, str
+        ):
+            msg = "Worksheet legacy protection hash is not textual"
+            raise TypeError(msg)
+        return m.Cli.XlsxSheetSnapshot(
+            name=formula_sheet.title,
+            position=position,
+            state=state,
+            max_row=formula_sheet.max_row,
+            max_column=formula_sheet.max_column,
+            cells=cells,
+            tables=tables,
+            row_dimensions=rows,
+            column_dimensions=columns,
+            merged_ranges=merged_ranges,
+            freeze_pane=formula_sheet.freeze_panes,
+            auto_filter=formula_sheet.auto_filter.ref,
+            protection=(
+                m.Cli.XlsxSheetProtectionSnapshot(
+                    enabled=formula_sheet.protection.sheet,
+                    legacy_password_hash=legacy_password_hash,
+                )
+            ),
+            formula_count=sum(item.formula is not None for item in cells),
+            literal_count=sum(
+                item.formula is None and item.value.kind != "blank" for item in cells
+            ),
+            data_validation_count=len(formula_sheet.data_validations.dataValidation),
+            conditional_format_count=sum(
+                len(formula_sheet.conditional_formatting[item])
+                for item in formula_sheet.conditional_formatting
+            ),
+            merge_count=len(merged_ranges),
+        )
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxSnapshotSheet",)

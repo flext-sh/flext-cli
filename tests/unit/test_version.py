@@ -97,8 +97,7 @@ class TestsFlextCliVersion:
         result = cli.execute()
         tm.ok(result)
         payload = result.value
-        tm.that("version" in payload, eq=True)
-        version = payload["version"]
+        version = payload.version
         tm.that(version, is_=str)
         tm.that(version, eq=c.Cli.CLI_VERSION)
 
@@ -108,7 +107,7 @@ class TestsFlextCliVersion:
         second = cli.execute()
         tm.ok(first)
         tm.ok(second)
-        tm.that(first.value["version"], eq=second.value["version"])
+        tm.that(first.value.version, eq=second.value.version)
 
     @pytest.mark.parametrize(
         ("candidate", "is_valid"),

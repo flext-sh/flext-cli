@@ -28,17 +28,17 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
 
         @property
         def declarations(self) -> t.StrSequence:
-            """Get the ordered option flag declarations."""
+            """Ordered option flag declarations."""
             ...
 
         @property
         def help_text(self) -> str:
-            """Get the human-readable option help text."""
+            """Human-readable option help text."""
             ...
 
         @property
         def default(self) -> t.Cli.CliValue | None:
-            """Get the normalized default value for the option."""
+            """Normalized default value for the option."""
             ...
 
         @property
