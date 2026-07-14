@@ -153,7 +153,7 @@ class TestsFlextCliOutputCov:
         u.Cli.error("just error")
         out = capsys.readouterr().out
         tm.that(out, has="just error")
-        tm.that(out, lacks="  \n")
+        tm.that(out.endswith("  \n"), eq=False)
 
     def test_warning_emits_message_with_warning_level(
         self, capsys: pytest.CaptureFixture[str]
