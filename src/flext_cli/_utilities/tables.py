@@ -82,7 +82,7 @@ class FlextCliUtilitiesTables:
                     FlextCliUtilitiesTables.tables_normalize_mapping_row(row)
                 )
                 continue
-            if isinstance(row, Sequence) and not isinstance(row, str):
+            if not isinstance(row, str):
                 normalized_rows.append(
                     FlextCliUtilitiesTables.tables_normalize_sequence_row(row)
                 )
@@ -116,7 +116,7 @@ class FlextCliUtilitiesTables:
     ) -> p.Result[str]:
         """Render normalized rows to a tabulated string."""
         headers: str | t.StrSequence
-        if not settings.show_header or settings.headers is None:
+        if not settings.show_header:
             # NOTE (multi-agent): Empty headers use the immutable sequence contract.
             headers = ()
         elif isinstance(settings.headers, str):

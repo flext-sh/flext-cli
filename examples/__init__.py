@@ -34,12 +34,12 @@ if TYPE_CHECKING:
     from examples.models import ExamplesFlextCliModels as ExamplesFlextCliModels, m as m
     from examples.protocols import (
         ExamplesFlextCliProtocols as ExamplesFlextCliProtocols,
-        p as p,
+        p,
     )
     from examples.typings import ExamplesFlextCliTypes as ExamplesFlextCliTypes, t as t
     from examples.utilities import (
         ExamplesFlextCliUtilities as ExamplesFlextCliUtilities,
-        u as u,
+        u,
     )
     from flext_cli import d as d, e as e, h as h, r as r, s as s, x as x
 _LAZY_IMPORTS = merge_lazy_imports(

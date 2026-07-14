@@ -10,9 +10,9 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 if TYPE_CHECKING:
     from tests.constants import TestsFlextCliConstants as TestsFlextCliConstants, c as c
     from tests.typings import TestsFlextCliTypes as TestsFlextCliTypes, t as t
-    from tests.protocols import TestsFlextCliProtocols as TestsFlextCliProtocols, p as p
+    from tests.protocols import TestsFlextCliProtocols as TestsFlextCliProtocols, p
     from tests.models import TestsFlextCliModels as TestsFlextCliModels, m as m
-    from tests.utilities import TestsFlextCliUtilities as TestsFlextCliUtilities, u as u
+    from tests.utilities import TestsFlextCliUtilities as TestsFlextCliUtilities, u
     from tests.base import TestsFlextCliServiceBase as TestsFlextCliServiceBase, s as s
 
 _LAZY_IMPORTS = build_lazy_import_map(
