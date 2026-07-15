@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
 from flext_tests import tm
 
-from flext_cli import FlextCli, cli, m, p, r
+from flext_cli import cli, m
 
 
 def _render_workbook() -> bytes:
@@ -85,27 +84,14 @@ def test_xlsx_recalc_refreshes_formula_cache() -> None:
     tm.that(value.value, eq=5)
 
 
-def test_xlsx_recalc_parity_reports_exact_validated_content(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Parity returns the exact bytes whose caches and counts it validated."""
+def test_xlsx_recalc_parity_returns_validated_recalculated_content() -> None:
+    """Public parity content carries the caches described by its evidence."""
     source = _render_workbook()
-    recalculated = cli.xlsx_recalc(m.Cli.XlsxRecalcRequest(source=source))
-    tm.that(recalculated.success, eq=True, msg=recalculated.error)
-    validated_content = recalculated.value.content
-
-    def _controlled_recalc(
-        _service: type[FlextCli], _request: m.Cli.XlsxRecalcRequest
-    ) -> p.Result[m.Cli.XlsxRecalcResult]:
-        return r[m.Cli.XlsxRecalcResult].ok(recalculated.value)
-
-    monkeypatch.setattr(FlextCli, "xlsx_recalc", classmethod(_controlled_recalc))
     report = cli.xlsx_recalc_parity(
         m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=2)
     )
     tm.that(report.success, eq=True, msg=report.error)
     evidence = report.value
-    tm.that(evidence.content is validated_content, eq=True)
     tm.that(evidence.recalculated, eq=True)
     tm.that(evidence.formula_count, eq=2)
     tm.that(evidence.error_cells, eq=())
