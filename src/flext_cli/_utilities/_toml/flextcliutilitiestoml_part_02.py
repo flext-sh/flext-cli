@@ -63,6 +63,27 @@ class FlextCliUtilitiesToml:
         return value if FlextCliUtilitiesToml.toml_is_item(value) else None
 
     @staticmethod
+    def toml_discard_unkeyed_items(
+        container: t.Cli.TomlContainer, indexes: t.SequenceOf[int]
+    ) -> None:
+        """Discard parsed trivia without invalidating keyed TOML lookup indexes."""
+        normalized_indexes = tuple(indexes)
+        if len(frozenset(normalized_indexes)) != len(normalized_indexes):
+            msg = "TOML trivia indexes must be unique"
+            raise ValueError(msg)
+        body_length = len(container.body)
+        for index in normalized_indexes:
+            if index < 0 or index >= body_length:
+                msg = f"TOML trivia index {index} is outside the container body"
+                raise IndexError(msg)
+            key, _item = container.body[index]
+            if key is not None:
+                msg = f"TOML body index {index} is keyed and cannot be discarded"
+                raise ValueError(msg)
+        for index in normalized_indexes:
+            container.body[index] = (None, tomlkit.ws(""))
+
+    @staticmethod
     def toml_ensure_table(parent: TOMLDocument | Table, key: str) -> Table:
         """Return a table child without replacing TOMLKit super-tables."""
         existing: t.Cli.TomlRuntimeSource | None = None
