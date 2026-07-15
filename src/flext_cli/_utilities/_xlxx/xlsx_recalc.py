@@ -119,6 +119,7 @@ class FlextCliUtilitiesXlsxRecalc(
             or formula_count == request.expected_formula_count
         )
         report = m.Cli.XlsxRecalcParityReport(
+            content=recalculated.value.content,
             recalculated=True,
             formula_count=formula_count,
             error_cells=error_cells,

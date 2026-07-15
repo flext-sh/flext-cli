@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import pytest
 from flext_tests import tm
 
-from flext_cli import cli, m
+from flext_cli import FlextCli, cli, m, p, r
 
 
 def _render_workbook() -> bytes:
@@ -54,7 +55,9 @@ def _render_workbook() -> bytes:
     return result.value.content
 
 
-def _cell_value(source: bytes, sheet_name: str, coordinate: str) -> m.Cli.XlsxCellValue:
+def _numeric_cell_value(
+    source: bytes, sheet_name: str, coordinate: str
+) -> m.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
     snapshot = cli.xlsx_snapshot(
         m.Cli.XlsxSnapshotRequest(source=source, data_only=True)
     )
@@ -64,7 +67,11 @@ def _cell_value(source: bytes, sheet_name: str, coordinate: str) -> m.Cli.XlsxCe
             continue
         for cell in sheet.cells:
             if cell.coordinate == coordinate:
-                return cell.value
+                value = cell.value
+                if isinstance(value, m.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue):
+                    return value
+                msg = f"Cell {sheet_name}!{coordinate} is not numeric: {value.kind}"
+                raise AssertionError(msg)
     msg = f"Cell {sheet_name}!{coordinate} not found in snapshot"
     raise AssertionError(msg)
 
@@ -74,25 +81,39 @@ def test_xlsx_recalc_refreshes_formula_cache() -> None:
     source = _render_workbook()
     recalculated = cli.xlsx_recalc(m.Cli.XlsxRecalcRequest(source=source))
     tm.that(recalculated.success, eq=True, msg=recalculated.error)
-    value = _cell_value(recalculated.value.content, "Report", "A1")
-    tm.that(value.kind in {"integer", "decimal"}, eq=True)
+    value = _numeric_cell_value(recalculated.value.content, "Report", "A1")
     tm.that(value.value, eq=5)
 
 
-def test_xlsx_recalc_parity_reports_ok() -> None:
-    """Parity report confirms caches, counts, and empty-string results."""
+def test_xlsx_recalc_parity_reports_exact_validated_content(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Parity returns the exact bytes whose caches and counts it validated."""
     source = _render_workbook()
+    recalculated = cli.xlsx_recalc(m.Cli.XlsxRecalcRequest(source=source))
+    tm.that(recalculated.success, eq=True, msg=recalculated.error)
+    validated_content = recalculated.value.content
+
+    def _controlled_recalc(
+        _service: type[FlextCli], _request: m.Cli.XlsxRecalcRequest
+    ) -> p.Result[m.Cli.XlsxRecalcResult]:
+        return r[m.Cli.XlsxRecalcResult].ok(recalculated.value)
+
+    monkeypatch.setattr(FlextCli, "xlsx_recalc", classmethod(_controlled_recalc))
     report = cli.xlsx_recalc_parity(
         m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=2)
     )
     tm.that(report.success, eq=True, msg=report.error)
     evidence = report.value
+    tm.that(evidence.content is validated_content, eq=True)
     tm.that(evidence.recalculated, eq=True)
     tm.that(evidence.formula_count, eq=2)
     tm.that(evidence.error_cells, eq=())
     tm.that(evidence.uncached_cells, eq=())
     tm.that(evidence.empty_result_cells, eq=("Report!A2",))
     tm.that(evidence.ok, eq=True)
+    cached_value = _numeric_cell_value(evidence.content, "Report", "A1")
+    tm.that(cached_value.value, eq=5)
 
 
 def test_xlsx_recalc_parity_detects_count_mismatch() -> None:
