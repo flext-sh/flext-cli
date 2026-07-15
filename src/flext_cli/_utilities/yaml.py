@@ -68,16 +68,14 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
         Returns a validated mapping or failure.
         """
-        try:
-            parsed = safe_load(text)
-        except c.Cli.YamlParseError as exc:
-            return r[t.JsonMapping].fail(f"YAML parse error: {exc}")
-        if parsed is None:
-            return r[t.JsonMapping].fail("YAML content is empty")
-        if not u.mapping(parsed):
+        # NOTE (multi-agent): the canonical ruamel engine rejects duplicate keys;
+        # PyYAML safe_load was last-wins and could conceal contradictory config.
+        loaded = FlextCliUtilitiesYaml.yaml_roundtrip_load_map_text(text)
+        if loaded.failure:
             return r[t.JsonMapping].fail(
-                f"YAML content is not a mapping: {type(parsed).__name__}"
+                loaded.error or "YAML parse error", exception=loaded.exception
             )
+        parsed = FlextCliUtilitiesYaml.yaml_to_plain(loaded.value)
         try:
             validated = t.Cli.YAML_DICT_ADAPTER.validate_python(parsed)
         except c.ValidationError as exc:
