@@ -150,7 +150,7 @@ class TestsFlextCliServicesAuth:
 
         # Assert: persistence failure surfaces as a write error, not success.
         tm.fail(result)
-        tm.that(result.error, has="json_write:")
+        tm.that(result.error, has="json_write failed:")
 
     def test_save_auth_token_rejects_blank_token(
         self, service: FlextCli, tmp_path: Path

@@ -119,18 +119,18 @@ class TestsFlextCliOptions:
     def test_build_option_registers_aliases_and_short_flag_from_spec(self) -> None:
         option = u.Cli.build_option("project", {"project": {"short": "p"}})
 
-        param_decls = option.param_decls
-        tm.that(param_decls, none=False)
-        tm.that(param_decls, has="--project")
-        tm.that(param_decls, has="--projects")
-        tm.that(param_decls, has="-p")
+        declarations = option.declarations
+        tm.that(declarations, none=False)
+        tm.that(declarations, has="--project")
+        tm.that(declarations, has="--projects")
+        tm.that(declarations, has="-p")
 
     def test_build_option_reads_canonical_registry_contract(self) -> None:
         option = u.Cli.build_option("debug", c.Cli.CLI_PARAM_REGISTRY)
 
-        param_decls = option.param_decls
-        tm.that(param_decls, none=False)
-        tm.that(param_decls, has="--debug")
+        declarations = option.declarations
+        tm.that(declarations, none=False)
+        tm.that(declarations, has="--debug")
 
     def test_reorder_prefixed_options_moves_shared_flags_after_subcommand(self) -> None:
         reordered = u.Cli.reorder_prefixed_options(

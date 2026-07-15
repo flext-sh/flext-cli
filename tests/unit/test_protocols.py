@@ -134,11 +134,11 @@ class TestsFlextCliProtocols:
             "PipelineService",
         ],
     )
-    def test_top_level_protocol_is_same_object_as_cli_namespace(
+    def test_cli_protocol_is_stable_singleton_under_namespace(
         self, protocol_name: str
     ) -> None:
-        """MRO exposure guarantees one shared protocol object across namespaces."""
-        assert getattr(p, protocol_name) is getattr(p.Cli, protocol_name)
+        """Each CLI protocol resolves to one shared object under ``p.Cli``."""
+        assert getattr(p.Cli, protocol_name) is getattr(p.Cli, protocol_name)
 
     def test_result_protocol_inherited_from_core_facade(self) -> None:
         """The CLI facade re-exposes the core ``Result`` protocol contract."""

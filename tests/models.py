@@ -39,6 +39,24 @@ class TestsFlextCliModels(
             service: TestsFlextCliModels.Tests.YamlService
             features: TestsFlextCliModels.Tests.YamlFeatures
 
+        class TemplateEmpty(m.FrozenModel):
+            """Empty template render context (no variables provided)."""
+
+        class TemplateValue(m.FrozenModel):
+            """Template render context exposing a single ``value`` field."""
+
+            value: Annotated[int, m.Field(description="Template value.")]
+
+        class TemplateServer(m.FrozenModel):
+            """Template render context nested ``server`` record."""
+
+            port: Annotated[int, m.Field(description="Server port number.")]
+
+        class TemplateServerContext(m.FrozenModel):
+            """Template render context exposing a nested ``server`` field."""
+
+            server: TestsFlextCliModels.Tests.TemplateServer
+
 
 m = TestsFlextCliModels
 

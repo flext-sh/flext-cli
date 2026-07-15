@@ -93,7 +93,7 @@ class FlextCliUtilitiesOptions:
             return False
         if isinstance(value, str | bytes):
             return False
-        return all(item for item in value)
+        return all(isinstance(item, str) for item in value)
 
     @classmethod
     def normalize_cli_atom(

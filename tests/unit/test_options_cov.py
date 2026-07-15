@@ -114,9 +114,9 @@ class TestsFlextCliOptionsUtilsCov:
 
     @staticmethod
     def _option_spec(command: t.Cli.CliCommand, param_name: str) -> p.Cli.CliOptionSpec:
-        """Return the public option spec the builder produced for a field."""
+        """Return the Typer option object the builder placed on the command signature."""
         spec = inspect.signature(command).parameters[param_name].default
-        tm.that(spec, is_=p.Cli.CliOptionSpec)
+        tm.that(spec.param_decls, none=False)
         return spec
 
     # ---- generated-command contract -------------------------------------

@@ -23,8 +23,8 @@ class TestsFlextCliModelsRuntime:
     class ModelCommandSource(m.BaseModel):
         """Partial override source for the model-command DSL (all optional)."""
 
-        name: Annotated[str, m.Field(description="Command name")] = ""
-        value: Annotated[int, m.Field(description="Command value")] = 42
+        name: Annotated[str | None, m.Field(description="Command name")] = None
+        value: Annotated[int | None, m.Field(description="Command value")] = None
 
     class ModelCommandSample(m.BaseModel):
         """Target model for derive_model/model_command tests."""
