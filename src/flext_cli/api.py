@@ -55,7 +55,7 @@ class FlextCli(
         return r[m.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
 
 
-cli = FlextCli.fetch_global()
+cli: FlextCli = FlextCli.fetch_global()
 """Process-wide ``FlextCli`` facade singleton exposing every CLI service via MRO."""
 
 
