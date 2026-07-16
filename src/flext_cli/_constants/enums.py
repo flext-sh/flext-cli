@@ -121,5 +121,21 @@ class FlextCliConstantsEnums:
         BOLD_WHITE = "bold white"
         BOLD_WHITE_ON_BLUE = "bold white on blue"
 
+    @unique
+    class TomlOperationKind(StrEnum):
+        """SSOT TOML phase operation kinds."""
+
+        SET = "set"
+        LIST = "list"
+        REMOVE = "remove"
+
+    @unique
+    class TomlMergeMode(StrEnum):
+        """SSOT merge strategies for TOML list synchronization."""
+
+        REPLACE = "replace"
+        ADDITIVE = "additive"
+        MERGE = "merge"
+
 
 __all__: list[str] = ["FlextCliConstantsEnums"]
