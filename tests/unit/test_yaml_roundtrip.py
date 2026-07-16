@@ -9,6 +9,7 @@ tree state read back through the public API.
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING
 
 import pytest
@@ -106,6 +107,38 @@ class TestsFlextCliYamlRoundtripLoad:
 
         tm.fail(result)
         tm.that(result.error, none=False)
+
+    def test_roundtrip_load_text_is_thread_safe(self) -> None:
+        documents = [
+            (
+                f"# document {index}\n"
+                f"root{index}:\n"
+                f"  name: service-{index}\n"
+                f"  replicas: {index}\n"
+                f"  tags:\n"
+                f"    - alpha-{index}\n"
+                f"    - beta-{index}\n"
+            )
+            for index in range(8)
+        ]
+        failures: list[BaseException] = []
+
+        def parse_repeatedly(document: str) -> None:
+            for _ in range(250):
+                try:
+                    result = u.Cli.yaml_roundtrip_load_text(document)
+                    if result.failure:
+                        failures.append(ValueError(result.error))
+                        return
+                    result.unwrap()
+                except BaseException as exc:  # noqa: BLE001
+                    failures.append(exc)
+                    return
+
+        with ThreadPoolExecutor(max_workers=len(documents)) as pool:
+            list(pool.map(parse_repeatedly, documents))
+
+        tm.that(failures, eq=[])
 
 
 class TestsFlextCliYamlRoundtripConvert:
