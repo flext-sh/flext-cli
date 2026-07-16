@@ -7,8 +7,7 @@ from typing import ClassVar
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table as RichTable
-
-from flext_cli import m
+from flext_cli import p
 
 
 class FlextCliUtilitiesFormatters:
@@ -32,7 +31,7 @@ class FlextCliUtilitiesFormatters:
         cls._console.print(Panel(content, title=title or None))
 
     @classmethod
-    def formatters_render_table(cls, request: m.Cli.TableRenderRequest) -> None:
+    def formatters_render_table(cls, request: p.Cli.TableRenderRequest) -> None:
         """Render one table via Rich."""
         table = RichTable(title=request.title or None)
         for col in request.columns:

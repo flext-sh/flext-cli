@@ -22,7 +22,7 @@ class TestsFlextCliPublicContractsCoverage:
         context = cli.stage_context(tmp_path, settings={"mode": "test"})
 
         def stage_handler(
-            current: m.Cli.PipelineStageContext,
+            current: p.Cli.PipelineStageContext,
         ) -> p.Result[p.Cli.PipelineStageResult]:
             return r[p.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult.model_validate({

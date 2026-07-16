@@ -5,7 +5,7 @@ from __future__ import annotations
 from openpyxl.styles import Protection
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r
+from flext_cli import c, p, r
 
 
 class FlextCliUtilitiesXlsxProtection:
@@ -14,7 +14,7 @@ class FlextCliUtilitiesXlsxProtection:
     # mro-wkii.17.26 (xlsx-a): keep one responsibility per vendor phase.
     @staticmethod
     def _apply_cell_protection(
-        worksheet: Worksheet, plan: m.Cli.XlsxSheetProtectionPlan
+        worksheet: Worksheet, plan: p.Cli.XlsxSheetProtectionPlan
     ) -> None:
         for item in plan.cells:
             for row in range(item.area.first.row, item.area.last.row + 1):
@@ -25,7 +25,7 @@ class FlextCliUtilitiesXlsxProtection:
 
     @staticmethod
     def _apply_sheet_permissions(
-        worksheet: Worksheet, plan: m.Cli.XlsxSheetProtectionPlan
+        worksheet: Worksheet, plan: p.Cli.XlsxSheetProtectionPlan
     ) -> None:
         permissions = plan.permissions
         protection = worksheet.protection
@@ -48,7 +48,7 @@ class FlextCliUtilitiesXlsxProtection:
 
     @staticmethod
     def _apply_protection_credential(
-        worksheet: Worksheet, plan: m.Cli.XlsxSheetProtectionPlan
+        worksheet: Worksheet, plan: p.Cli.XlsxSheetProtectionPlan
     ) -> None:
         credential = plan.credential
         if credential is None:
@@ -62,7 +62,7 @@ class FlextCliUtilitiesXlsxProtection:
     # actions, so positive allow_* model flags are inverted exactly once here.
     @classmethod
     def _apply_protection(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetProtectionPlan | None
+        cls, worksheet: Worksheet, plan: p.Cli.XlsxSheetProtectionPlan | None
     ) -> p.Result[bool]:
         if plan is None:
             return r[bool].ok(True)

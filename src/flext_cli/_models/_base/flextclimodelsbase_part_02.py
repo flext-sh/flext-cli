@@ -6,7 +6,7 @@ from types import MappingProxyType
 from typing import Annotated, ClassVar
 
 from flext_cli import c, p, t
-from flext_core import m, u
+from flext_core import m, p, u
 
 
 class FlextCliModelsBase:

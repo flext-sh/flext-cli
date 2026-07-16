@@ -24,7 +24,7 @@ from flext_tests import tm
 
 from tomlkit.items import Table
 
-from tests import t
+from tests import p, t
 
 
 

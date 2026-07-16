@@ -168,7 +168,7 @@ class FlextCliUtilitiesFramework:
 
     @staticmethod
     def framework_build_parameter(
-        field_name: str, annotation: type | GenericAlias, spec: m.Cli.OptionSpec
+        field_name: str, annotation: type | GenericAlias, spec: p.Cli.OptionSpec
     ) -> Parameter:
         """Build one inspect parameter with a private Typer option default."""
         option_default: t.Cli.CliValue | EllipsisType | None = (
@@ -292,8 +292,6 @@ class FlextCliUtilitiesFramework:
         env: t.StrMapping | None = None,
     ) -> p.Cli.InvocationResult:
         """Invoke one application through the real framework test runner."""
-        from flext_cli import m
-
         runner = CliRunner(charset=charset, env=env)
         private_application = cls._unwrap(application)
         result = runner.invoke(

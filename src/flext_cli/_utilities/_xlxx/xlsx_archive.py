@@ -17,7 +17,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
     # this private adapter; consumers receive immutable inspection models.
     @classmethod
     def _inventory(
-        cls, archive: p.Cli.XlsxArchiveReader, policy: m.Cli.XlsxArchivePolicy
+        cls, archive: p.Cli.XlsxArchiveReader, policy: p.Cli.XlsxArchivePolicy
     ) -> p.Cli.XlsxArchiveInventory:
         members: tuple[str, ...] = ()
         blocked: frozenset[str] = frozenset()
@@ -70,7 +70,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
 
     @classmethod
     def _inspect_archive(
-        cls, archive: p.Cli.XlsxArchiveReader, policy: m.Cli.XlsxArchivePolicy
+        cls, archive: p.Cli.XlsxArchiveReader, policy: p.Cli.XlsxArchivePolicy
     ) -> p.Result[p.Cli.XlsxArchiveInspection]:
         inventory = cls._inventory(archive, policy)
         violations = inventory.violations
@@ -136,7 +136,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
 
     @classmethod
     def xlsx_inspect(
-        cls, request: m.Cli.XlsxArchiveInspectionRequest
+        cls, request: p.Cli.XlsxArchiveInspectionRequest
     ) -> p.Result[p.Cli.XlsxArchiveInspection]:
         """Inspect workbook bytes without extracting or trusting package XML."""
         try:

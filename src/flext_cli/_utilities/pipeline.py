@@ -18,7 +18,7 @@ class FlextCliUtilitiesPipeline:
     @staticmethod
     def execute_pipeline(
         stages: t.SequenceOf[p.Cli.PipelineStageSpec],
-        context: m.Cli.PipelineStageContext,
+        context: p.Cli.PipelineStageContext,
         *,
         fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
         logger: p.Logger | None = None,
@@ -91,8 +91,8 @@ class FlextCliUtilitiesPipeline:
 
     @staticmethod
     def _run_stage(
-        spec: m.Cli.PipelineStageSpec,
-        context: m.Cli.PipelineStageContext,
+        spec: p.Cli.PipelineStageSpec,
+        context: p.Cli.PipelineStageContext,
         log: p.Logger,
     ) -> p.Cli.PipelineStageResult:
         """Execute a single stage with skip check and retry logic."""

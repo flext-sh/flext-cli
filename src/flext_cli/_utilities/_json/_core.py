@@ -81,7 +81,7 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def _json_write_content(
-        payload: t.JsonPayload, options: m.Cli.JsonWriteOptions
+        payload: t.JsonPayload, options: p.Cli.JsonWriteOptions
     ) -> str:
         """Serialize a JSON payload using canonical write options."""
         validated = FlextCliUtilitiesJsonCoreMixin.normalize_json_value(payload)
@@ -122,7 +122,7 @@ class FlextCliUtilitiesJsonCoreMixin:
     def json_write(
         path: Path,
         payload: t.JsonPayload,
-        options: m.Cli.JsonWriteOptions | None = None,
+        options: p.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
         """Write any Pydantic-serializable payload to a JSON file."""
         opts = options or m.Cli.JsonWriteOptions()

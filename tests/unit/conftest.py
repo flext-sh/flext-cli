@@ -12,7 +12,7 @@ from tests import m
 
 from collections.abc import Callable
 
-from tests import t
+from tests import p, t
 
 
 

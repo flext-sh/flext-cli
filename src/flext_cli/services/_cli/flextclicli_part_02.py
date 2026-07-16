@@ -16,7 +16,7 @@ from flext_cli.services.cli_params import FlextCliCommonParams
 class FlextCliCli(FlextCliCliPart01):
     """Implementation part for FlextCliCli."""
 
-    def _apply_common_params_to_config(self, *, params: m.Cli.CliParamsConfig) -> None:
+    def _apply_common_params_to_config(self, *, params: p.Cli.CliParamsConfig) -> None:
         """Apply global CLI flags to the shared settings singleton."""
         resolved_log_level: str = (
             params.log_level if params.log_level is not None else settings.cli_log_level
@@ -64,7 +64,7 @@ class FlextCliCli(FlextCliCliPart01):
             name=name, help_text=help_text, add_completion=add_completion
         )
 
-        def apply_common_params(params: m.Cli.CliParamsConfig) -> bool:
+        def apply_common_params(params: p.Cli.CliParamsConfig) -> bool:
             self._apply_common_params_to_config(params=params)
             return True
 

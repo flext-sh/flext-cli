@@ -27,16 +27,16 @@ class TestsFlextCliService:
         )
         group = cli.create_group(help_text="Grouped commands", name="group")
 
-        def ok_handler(params: m.Tests.SampleInput) -> p.Result[p.Tests.SampleOutput]:
+        def ok_handler(params: p.Tests.SampleInput) -> p.Result[p.Tests.SampleOutput]:
             return cli.execute().map(
-                lambda _payload: m.Tests.SampleOutput(
+                lambda _payload: p.Tests.SampleOutput(
                     message=f"processed {params.name}"
                 )
             )
 
-        def fail_handler(params: m.Tests.SampleInput) -> p.Result[p.Tests.SampleOutput]:
+        def fail_handler(params: p.Tests.SampleInput) -> p.Result[p.Tests.SampleOutput]:
             return cli.validate_credentials("", "password").map(
-                lambda _value: m.Tests.SampleOutput(message=params.name)
+                lambda _value: p.Tests.SampleOutput(message=params.name)
             )
 
         def build_ok_route() -> p.Cli.ResultCommandRoute:
@@ -82,7 +82,7 @@ class TestsFlextCliService:
             name="result-app", help_text="Result application"
         )
 
-        def fail_handler(params: m.Tests.SampleInput) -> p.Result[p.Tests.SampleOutput]:
+        def fail_handler(params: p.Tests.SampleInput) -> p.Result[p.Tests.SampleOutput]:
             return r[p.Tests.SampleOutput].fail(
                 "Password cannot be resolved",
                 error_code="secret_unavailable",

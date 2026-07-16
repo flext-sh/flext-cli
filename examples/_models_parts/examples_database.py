@@ -6,7 +6,7 @@ from ipaddress import ip_address
 from typing import ClassVar
 
 from examples import c
-from flext_cli import m, u
+from flext_cli import m, p, u
 
 
 class ExamplesFlextCliModelsExamplesDatabase:

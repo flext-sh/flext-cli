@@ -28,7 +28,7 @@ from __future__ import annotations
 
 import secrets
 
-from examples import c, m, t, u
+from examples import c, m, p, t, u
 from flext_cli import cli
 from flext_core import p, r
 
@@ -44,7 +44,7 @@ def _report_step_success[T](value: T, message: str) -> T:
 
 
 def _finish_database_config(
-    settings: m.Examples.AdvancedDatabaseConfig,
+    settings: p.Examples.AdvancedDatabaseConfig,
 ) -> p.Examples.AdvancedDatabaseConfig:
     """Emit the final success summary and preserve the validated settings."""
     u.display_success_summary("Database configuration")
@@ -122,7 +122,7 @@ def convert_and_validate_with_pydantic(
 
 
 def validate_business_rules(
-    settings: m.Examples.AdvancedDatabaseConfig,
+    settings: p.Examples.AdvancedDatabaseConfig,
 ) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
     """Apply custom business rules to validated database configuration."""
     if settings.ssl_enabled and settings.port == c.EXAMPLE_DEFAULT_DB_PORT:
@@ -138,7 +138,7 @@ def validate_business_rules(
 
 
 def perform_connection_test(
-    settings: m.Examples.AdvancedDatabaseConfig,
+    settings: p.Examples.AdvancedDatabaseConfig,
 ) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
     """Simulate database connection test."""
     if "fail" in settings.host:

@@ -7,7 +7,7 @@ from openpyxl.workbook.properties import CalcProperties
 from openpyxl.worksheet.worksheet import Worksheet
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
-from flext_cli import c, m, p, r
+from flext_cli import c, p, r
 
 from .xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
 from .xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
@@ -21,7 +21,7 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
     # NOTE (multi-agent, mro-j2yt.1): template sheets and names are discarded;
     # only visual resources survive, so stale document content cannot leak.
     @staticmethod
-    def _validate_plan(plan: m.Cli.XlsxWorkbookPlan) -> p.Result[bool]:
+    def _validate_plan(plan: p.Cli.XlsxWorkbookPlan) -> p.Result[bool]:
         sheet_names: frozenset[str] = frozenset()
         style_names: frozenset[str] = frozenset()
         defined_names: frozenset[str] = frozenset()
@@ -50,7 +50,7 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
 
     @classmethod
     def _workbook_for_request(
-        cls, request: m.Cli.XlsxRenderRequest
+        cls, request: p.Cli.XlsxRenderRequest
     ) -> p.Result[Workbook]:
         validation = cls._validate_plan(request.plan)
         if validation.failure:
@@ -75,7 +75,7 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
 
     @classmethod
     def _prepare_workbook(
-        cls, workbook: Workbook, plan: m.Cli.XlsxWorkbookPlan
+        cls, workbook: Workbook, plan: p.Cli.XlsxWorkbookPlan
     ) -> p.Result[Workbook]:
         for worksheet in tuple(workbook.worksheets):
             workbook.remove(worksheet)

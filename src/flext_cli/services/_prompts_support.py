@@ -33,7 +33,7 @@ class FlextCliPromptsSupport(s):
 
     _test_env_override: bool | None = m.PrivateAttr(default_factory=lambda: None)
 
-    def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
+    def configure(self, state: p.Cli.PromptRuntimeState) -> Self:
         """Replace prompt runtime state using the canonical CLI model."""
         self.state = state
         return self

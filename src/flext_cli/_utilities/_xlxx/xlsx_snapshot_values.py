@@ -48,7 +48,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                 "formula cell has no formula expression"
             )
         try:
-            converted: m.Cli.XlsxCellValue = (
+            converted: p.Cli.XlsxCellValue = (
                 m.Cli.XlsxFormulaValue(value=formula)
                 if formula is not None
                 else m.Cli.XlsxBlankValue()

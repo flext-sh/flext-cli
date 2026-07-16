@@ -116,7 +116,7 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
         self,
         stages: t.SequenceOf[p.Cli.PipelineStageSpec],
         *,
-        context: m.Cli.PipelineStageContext,
+        context: p.Cli.PipelineStageContext,
         fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
         logger: p.Logger | None = None,
     ) -> p.Result[p.Cli.PipelineResult]:

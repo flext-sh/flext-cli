@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Annotated, ClassVar
 
-from flext_cli import t
+from flext_cli import p, t
 from flext_core import m, u, p
 
 

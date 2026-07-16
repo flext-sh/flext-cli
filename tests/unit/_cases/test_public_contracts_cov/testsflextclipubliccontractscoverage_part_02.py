@@ -37,7 +37,7 @@ class TestsFlextCliPublicContractsCoverage:
         entry = m.Cli.CommandEntryModel(name="inspect", handler=lambda: True)
 
         def route_handler(
-            _params: m.Tests.SampleInput,
+            _params: p.Tests.SampleInput,
         ) -> p.Result[p.Tests.SampleOutput]:
             return r[p.Tests.SampleOutput].ok(m.Tests.SampleOutput(message="ok"))
 

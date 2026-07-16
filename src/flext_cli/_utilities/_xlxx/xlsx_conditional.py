@@ -47,7 +47,7 @@ class FlextCliUtilitiesXlsxConditional(
         )
 
     @classmethod
-    def _differential_style(cls, spec: m.Cli.XlsxNamedStyleSpec) -> DifferentialStyle:
+    def _differential_style(cls, spec: p.Cli.XlsxNamedStyleSpec) -> DifferentialStyle:
         visual = spec.visual
         number_format_id = builtin_format_id(visual.number_format) or 0
         return DifferentialStyle(
@@ -62,7 +62,7 @@ class FlextCliUtilitiesXlsxConditional(
 
     @classmethod
     def _rule(
-        cls, plan: m.Cli.XlsxConditionalFormatPlan, style: m.Cli.XlsxNamedStyleSpec
+        cls, plan: p.Cli.XlsxConditionalFormatPlan, style: p.Cli.XlsxNamedStyleSpec
     ) -> Rule:
         differential = cls._differential_style(style)
         if plan.kind == "contains_text":

@@ -17,7 +17,7 @@ import pytest
 from flext_tests import tm
 
 from tests import m
-from tests import t
+from tests import p, t
 
 from pathlib import Path
 
@@ -111,14 +111,14 @@ class TestsFlextCliTypings:
 
     def test_scalar_alias_validates_each_primitive(self) -> None:
         """The Scalar alias round-trips every primitive value."""
-        adapter: m.TypeAdapter[t.Scalar] = m.TypeAdapter(t.Scalar)
+        adapter: p.TypeAdapter[t.Scalar] = m.TypeAdapter(t.Scalar)
         tm.that(adapter.validate_python("value"), eq="value")
         tm.that(adapter.validate_python(True), eq=True)
         tm.that(adapter.validate_python(3), eq=3)
 
     def test_optional_str_sequence_alias_accepts_value_and_none(self) -> None:
         """A ``StrSequence | None`` alias accepts both a sequence and None."""
-        adapter: m.TypeAdapter[t.StrSequence | None] = m.TypeAdapter(
+        adapter: p.TypeAdapter[t.StrSequence | None] = m.TypeAdapter(
             t.StrSequence | None
         )
         tm.that(adapter.validate_python(["alpha", "beta"]), eq=["alpha", "beta"])
@@ -126,7 +126,7 @@ class TestsFlextCliTypings:
 
     def test_mapping_alias_validates_sequence_of_typed_mappings(self) -> None:
         """MappingKV composes into a validatable sequence-of-mappings alias."""
-        adapter: m.TypeAdapter[Sequence[t.MappingKV[str, str | int]]] = m.TypeAdapter(
+        adapter: p.TypeAdapter[Sequence[t.MappingKV[str, str | int]]] = m.TypeAdapter(
             Sequence[t.MappingKV[str, str | int]]
         )
         validated = adapter.validate_python([{"name": "entry", "count": 1}])

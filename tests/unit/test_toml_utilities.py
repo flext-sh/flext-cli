@@ -19,7 +19,7 @@ from flext_tests import tm
 
 from tests import u
 
-from tests import t
+from tests import p, t
 
 
 

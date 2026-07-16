@@ -33,7 +33,7 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
 
     @staticmethod
     def persist_example_settings(
-        settings: m.Examples.MyAppSettings,
+        settings: p.Examples.MyAppSettings,
     ) -> p.Result[p.Cli.LoadedConfig]:
         """Round-trip settings through the public JSON file facade."""
         wrapped_config = m.Cli.LoadedConfig(content=settings.model_dump(mode="json"))

@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, m, p, s, t, u
+from flext_cli import c, p, s, t, u
 from flext_cli.services.formatters import FlextCliFormatters
 
 
@@ -20,7 +20,7 @@ class FlextCliTables(s):
     @staticmethod
     def format_table(
         data: t.Cli.TableDataSource,
-        settings: m.Cli.TableConfig | None = None,
+        settings: p.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> p.Result[str]:
         """Format table data to a string using the public CLI API."""
@@ -33,7 +33,7 @@ class FlextCliTables(s):
     @staticmethod
     def show_table(
         data: t.Cli.TableDataSource,
-        settings: m.Cli.TableConfig | None = None,
+        settings: p.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> None:
         """Render and display a formatted table on the console."""

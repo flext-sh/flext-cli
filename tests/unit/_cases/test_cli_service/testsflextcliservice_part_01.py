@@ -15,7 +15,7 @@ from flext_cli import cli
 
 from collections.abc import MutableSequence
 
-from tests import t
+from tests import p, t
 
 
 
@@ -26,7 +26,7 @@ class TestsFlextCliService:
         """Validate runtime CLI parameters through the model command."""
         command_settings = m.Cli.CliParamsConfig()
 
-        def handle(params: m.Cli.CliParamsConfig) -> t.JsonValue:
+        def handle(params: p.Cli.CliParamsConfig) -> t.JsonValue:
             return params.debug is True
 
         command = cli.model_command(
@@ -74,7 +74,7 @@ class TestsFlextCliService:
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: m.Tests.SampleInput) -> t.JsonValue:
+        def handle(params: p.Tests.SampleInput) -> t.JsonValue:
             captured.append(params)
             return True
 

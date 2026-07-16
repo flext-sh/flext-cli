@@ -60,7 +60,7 @@ class ExamplesFlextCliUtilities(u):
 
     @staticmethod
     def display_config_table(
-        config_data: m.Cli.DisplayData | m.Value,
+        config_data: p.Cli.DisplayData | m.Value,
         headers: t.StrSequence | None = None,
     ) -> None:
         """Display configuration as a table using canonical example models."""
@@ -79,7 +79,7 @@ class ExamplesFlextCliUtilities(u):
     @staticmethod
     def display_success_summary(
         operation: str,
-        details: m.Cli.SuccessSummaryDetails | None = None,
+        details: p.Cli.SuccessSummaryDetails | None = None,
     ) -> None:
         """Display a standardized success summary using cli."""
         cli.print(

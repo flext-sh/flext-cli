@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_cli import c, m, t
+from flext_cli import c, p, t
 from flext_cli._utilities._options.flextcliutilitiesoptionbuilder_part_01 import (
     FlextCliUtilitiesOptionBuilder,
 )
@@ -18,7 +18,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
 
     @classmethod
     def field_default(
-        cls, field_name: str, field_info: m.FieldInfo, settings: t.Cli.ModelLike | None
+        cls, field_name: str, field_info: p.FieldInfo, settings: t.Cli.ModelLike | None
     ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata."""
         default_factory = getattr(field_info, "default_factory", None)

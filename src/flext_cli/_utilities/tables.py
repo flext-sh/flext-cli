@@ -34,7 +34,7 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_resolve_config(
-        settings: m.Cli.TableConfig | None = None,
+        settings: p.Cli.TableConfig | None = None,
         **settings_kwargs: t.Cli.TableConfigValue,
     ) -> p.Result[p.Cli.TableConfig]:
         """Resolve table config via canonical Pydantic model contract."""
@@ -112,7 +112,7 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_render(
-        rows: t.SequenceOf[t.Cli.TableRow], settings: m.Cli.TableConfig
+        rows: t.SequenceOf[t.Cli.TableRow], settings: p.Cli.TableConfig
     ) -> p.Result[str]:
         """Render normalized rows to a tabulated string."""
         headers: str | t.StrSequence

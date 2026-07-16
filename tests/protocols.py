@@ -13,7 +13,7 @@ from flext_tests import FlextTestsProtocols
 from flext_cli import p
 
 from flext_cli import m
-from tests import t
+from tests import p, t
 
 
 

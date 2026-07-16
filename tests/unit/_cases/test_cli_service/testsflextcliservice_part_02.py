@@ -15,7 +15,7 @@ from flext_cli import cli
 
 from collections.abc import MutableSequence
 
-from tests import t
+from tests import p, t
 
 
 
@@ -30,7 +30,7 @@ class TestsFlextCliService:
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: m.Tests.RepeatableInput) -> t.JsonValue:
+        def handle(params: p.Tests.RepeatableInput) -> t.JsonValue:
             captured.append(params)
             return True
 
@@ -63,7 +63,7 @@ class TestsFlextCliService:
     def test_model_command_returns_handler_value(self) -> None:
         """Return the handler value from the model-generated command."""
 
-        def handle(params: m.Tests.SampleInput) -> t.JsonValue:
+        def handle(params: p.Tests.SampleInput) -> t.JsonValue:
             return {
                 "name": params.name,
                 "count": params.count,

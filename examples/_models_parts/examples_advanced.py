@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Annotated, ClassVar
 
 from examples import c, p, r, t
 from examples._models_parts.examples_common import ExamplesFlextCliModelsExamplesCommon
-from flext_cli import m, u
+from flext_cli import m, p, u
 
 from collections.abc import MutableSequence
 

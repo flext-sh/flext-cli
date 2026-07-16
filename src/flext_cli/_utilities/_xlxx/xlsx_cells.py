@@ -7,7 +7,7 @@ from openpyxl.utils.exceptions import IllegalCharacterError
 from openpyxl.worksheet.worksheet import Worksheet
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
-from flext_cli import c, m, p, r, t
+from flext_cli import c, p, r, t
 
 from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
 
@@ -19,7 +19,7 @@ class FlextCliUtilitiesXlsxCells:
     # models until the one external cell-value assignment below; formula text
     # crosses the boundary in OOXML storage form (_xlfn. future functions).
     @staticmethod
-    def _cell_value(value: m.Cli.XlsxCellValue) -> t.Cli.XlsxCellPrimitive:
+    def _cell_value(value: p.Cli.XlsxCellValue) -> t.Cli.XlsxCellPrimitive:
         if value.kind == "blank":
             return None
         if value.kind == "formula":

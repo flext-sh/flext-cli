@@ -16,7 +16,7 @@ from flext_tests import tm
 from flext_cli import cli
 from tests import c
 
-from flext_cli import t
+from flext_cli import p, t
 
 
 

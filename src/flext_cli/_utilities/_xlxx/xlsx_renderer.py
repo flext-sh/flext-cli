@@ -28,7 +28,7 @@ class FlextCliUtilitiesXlsxRenderer(
     # later stages never run after an earlier mutation reports failure.
     @classmethod
     def _render_sheet(
-        cls, workbook: Workbook, plan: m.Cli.XlsxSheetPlan, table_names: frozenset[str]
+        cls, workbook: Workbook, plan: p.Cli.XlsxSheetPlan, table_names: frozenset[str]
     ) -> p.Result[frozenset[str]]:
         if plan.name not in workbook.sheetnames:
             return r[frozenset[str]].fail(
@@ -54,7 +54,7 @@ class FlextCliUtilitiesXlsxRenderer(
 
     @classmethod
     def xlsx_render(
-        cls, request: m.Cli.XlsxRenderRequest
+        cls, request: p.Cli.XlsxRenderRequest
     ) -> p.Result[p.Cli.XlsxRenderResult]:
         """Render typed sheets, names, styles, and rules into workbook bytes."""
         workbook_result = cls._workbook_for_request(request)

@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import t
+from flext_cli import p, t
 from tests import p, u
 from flext_tests import tm
 

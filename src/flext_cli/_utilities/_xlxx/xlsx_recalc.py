@@ -24,7 +24,7 @@ class FlextCliUtilitiesXlsxRecalc(
 
     @classmethod
     def _recalc_in_workspace(
-        cls, request: m.Cli.XlsxRecalcRequest, workdir: Path
+        cls, request: p.Cli.XlsxRecalcRequest, workdir: Path
     ) -> p.Result[p.Cli.XlsxRecalcResult]:
         input_dir = workdir / "input"
         output_dir = workdir / "output"
@@ -79,7 +79,7 @@ class FlextCliUtilitiesXlsxRecalc(
     # processes facade without polluting the XLSX composition order.
     @classmethod
     def xlsx_recalc(
-        cls, request: m.Cli.XlsxRecalcRequest
+        cls, request: p.Cli.XlsxRecalcRequest
     ) -> p.Result[p.Cli.XlsxRecalcResult]:
         """Recalculate every formula cache through the headless office engine."""
         try:
@@ -94,7 +94,7 @@ class FlextCliUtilitiesXlsxRecalc(
 
     @classmethod
     def xlsx_recalc_parity(
-        cls, request: m.Cli.XlsxRecalcParityRequest
+        cls, request: p.Cli.XlsxRecalcParityRequest
     ) -> p.Result[p.Cli.XlsxRecalcParityReport]:
         """Recalculate and compare cached values against source formulas."""
         formula_snapshot = cls.xlsx_snapshot(

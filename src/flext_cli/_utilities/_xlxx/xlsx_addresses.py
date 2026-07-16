@@ -18,11 +18,11 @@ class FlextCliUtilitiesXlsxAddresses:
     # NOTE (multi-agent, mro-j2yt.1): address rendering is implementation
     # policy, shared by cells, layout, tables, names, and worksheet rules.
     @staticmethod
-    def _cell_ref(address: m.Cli.XlsxCellAddress) -> str:
+    def _cell_ref(address: p.Cli.XlsxCellAddress) -> str:
         return f"{get_column_letter(address.column)}{address.row}"
 
     @classmethod
-    def _range_ref(cls, area: m.Cli.XlsxCellRange) -> str:
+    def _range_ref(cls, area: p.Cli.XlsxCellRange) -> str:
         if area.first.row > area.last.row or area.first.column > area.last.column:
             msg = (
                 "XLSX range starts after it ends: "
@@ -32,7 +32,7 @@ class FlextCliUtilitiesXlsxAddresses:
         return f"{cls._cell_ref(area.first)}:{cls._cell_ref(area.last)}"
 
     @classmethod
-    def _absolute_range_ref(cls, area: m.Cli.XlsxCellRange) -> str:
+    def _absolute_range_ref(cls, area: p.Cli.XlsxCellRange) -> str:
         return absolute_coordinate(cls._range_ref(area))
 
     @staticmethod
@@ -49,7 +49,7 @@ class FlextCliUtilitiesXlsxAddresses:
 
     # mro-wkii.17.26 (xlsx-a): keep the caught vendor boundary to one operation.
     @classmethod
-    def _format_reference_value(cls, request: m.Cli.XlsxFormatReferenceRequest) -> str:
+    def _format_reference_value(cls, request: p.Cli.XlsxFormatReferenceRequest) -> str:
         if request.collapse_single_cell and request.area.first == request.area.last:
             reference = cls._cell_ref(request.area.first)
             if request.absolute:
@@ -64,7 +64,7 @@ class FlextCliUtilitiesXlsxAddresses:
 
     @classmethod
     def xlsx_parse_range(
-        cls, request: m.Cli.XlsxParseRangeRequest
+        cls, request: p.Cli.XlsxParseRangeRequest
     ) -> p.Result[p.Cli.XlsxCellRange]:
         """Parse one concrete A1 cell/range through the XLSX adapter."""
         try:
@@ -93,7 +93,7 @@ class FlextCliUtilitiesXlsxAddresses:
     # mro-j2yt.1 (xlsx_reference_api): keep vendor formatting behind cli.
     @classmethod
     def xlsx_format_reference(
-        cls, request: m.Cli.XlsxFormatReferenceRequest
+        cls, request: p.Cli.XlsxFormatReferenceRequest
     ) -> p.Result[p.Cli.XlsxReference]:
         """Format one validated range as a canonical Excel reference."""
         try:

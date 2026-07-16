@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from flext_cli import c, m, p, r, s, t, u
+from flext_cli import c, p, r, s, t, u
 
 
 class FlextCliFileTools(s):
@@ -64,7 +64,7 @@ class FlextCliFileTools(s):
     def write_json_file(
         file_path: t.Cli.TextPath,
         data: t.Cli.JsonWriteData,
-        options: m.Cli.JsonWriteOptions | None = None,
+        options: p.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
         return u.Cli.json_write(Path(file_path), data, options=options)
 

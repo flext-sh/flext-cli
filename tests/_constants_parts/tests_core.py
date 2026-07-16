@@ -3,13 +3,13 @@
 from __future__ import annotations
 
 import re
-from enum import StrEnum, unique
+from enum import StrEnum, p, unique
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
 from flext_cli import c
 
-from tests import t
+from tests import p, t
 
 
 

@@ -6,7 +6,7 @@ from openpyxl.cell.cell import Cell
 from openpyxl.comments import Comment
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, p, r, t
 
 from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
 
@@ -17,7 +17,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
     # mro-wkii.17.26 (xlsx-a): preserve typed results across cohesive phases.
     @classmethod
     def _apply_layout_annotations(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetLayoutPlan
+        cls, worksheet: Worksheet, plan: p.Cli.XlsxSheetLayoutPlan
     ) -> p.Result[bool]:
         for item in plan.comments:
             comment = Comment(item.text, item.author)
@@ -49,7 +49,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
 
     @classmethod
     def _apply_layout_structure(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetLayoutPlan
+        cls, worksheet: Worksheet, plan: p.Cli.XlsxSheetLayoutPlan
     ) -> p.Result[bool]:
         for item in plan.dimensions:
             for index in range(item.first, item.last + 1):
@@ -80,7 +80,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
 
     @classmethod
     def _apply_layout_view(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetLayoutPlan
+        cls, worksheet: Worksheet, plan: p.Cli.XlsxSheetLayoutPlan
     ) -> p.Result[bool]:
         if plan.freeze_pane is not None:
             worksheet.freeze_panes = cls._cell_ref(plan.freeze_pane.at)
@@ -93,7 +93,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
 
     @classmethod
     def _apply_layout_merges(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetLayoutPlan
+        cls, worksheet: Worksheet, plan: p.Cli.XlsxSheetLayoutPlan
     ) -> p.Result[bool]:
         for item in plan.merges:
             worksheet.merge_cells(cls._range_ref(item.area))
@@ -103,7 +103,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
     # and hyperlinks can still target every concrete cell in the plan.
     @classmethod
     def _apply_layout(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetLayoutPlan
+        cls, worksheet: Worksheet, plan: p.Cli.XlsxSheetLayoutPlan
     ) -> p.Result[bool]:
         phases: tuple[t.Cli.NullaryOperation[p.Result[bool]], ...] = (
             lambda: cls._apply_layout_annotations(worksheet, plan),

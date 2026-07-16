@@ -18,7 +18,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
     # NOTE (multi-agent, mro-j2yt.1): cells identify source style IDs through
     # public openpyxl properties; protection never enters the visual signature.
     @staticmethod
-    def _style_name(prefix: str, visual: m.Cli.XlsxVisualStyleSpec) -> str:
+    def _style_name(prefix: str, visual: p.Cli.XlsxVisualStyleSpec) -> str:
         digest = sha256(repr(visual).encode("utf-8")).hexdigest()[:16]
         return f"{prefix}_{digest}"
 
@@ -64,7 +64,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
 
     @classmethod
     def xlsx_style_catalog(
-        cls, request: m.Cli.XlsxStyleCatalogRequest
+        cls, request: p.Cli.XlsxStyleCatalogRequest
     ) -> p.Result[p.Cli.XlsxStyleCatalog]:
         """Extract all cell-used visual styles and deduplicate them."""
         source_result = cls._source_visuals(request.source)
@@ -100,7 +100,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
 
     @classmethod
     def xlsx_style_template(
-        cls, request: m.Cli.XlsxStyleTemplateRequest
+        cls, request: p.Cli.XlsxStyleTemplateRequest
     ) -> p.Result[p.Cli.XlsxStyleTemplateResult]:
         """Emit a blank workbook containing only deduplicated visual styles."""
         catalog_result = cls.xlsx_style_catalog(

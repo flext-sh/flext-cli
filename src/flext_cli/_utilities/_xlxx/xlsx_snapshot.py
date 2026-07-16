@@ -19,7 +19,7 @@ class FlextCliUtilitiesXlsxSnapshot(
     # narrow phases; a data-only view supplies cached values only when requested.
     @classmethod
     def xlsx_snapshot(
-        cls, request: m.Cli.XlsxSnapshotRequest
+        cls, request: p.Cli.XlsxSnapshotRequest
     ) -> p.Result[p.Cli.XlsxWorkbookSnapshot]:
         """Inspect workbook bytes into one immutable semantic snapshot."""
         try:

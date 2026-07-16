@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 import pytest
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-from tests import t
+from tests import p, t
 from tests import u
 from flext_tests import tm
 

@@ -6,7 +6,7 @@ import pytest
 
 from tests import c
 from tests import m
-from tests import t
+from tests import p, t
 from tests import u
 from flext_tests import tm
 
@@ -56,7 +56,7 @@ class TestsFlextCliTablesBranchCov:
         tm.that((result.error or ""), has=c.Cli.OUTPUT_TABLE_DATA_INVALID)
 
     def test_render_returns_string_containing_cell_values(
-        self, two_column_config: m.Cli.TableConfig
+        self, two_column_config: p.Cli.TableConfig
     ) -> None:
         result = u.Cli.tables_render([{"Key": "a", "Value": 1}], two_column_config)
 
@@ -87,7 +87,7 @@ class TestsFlextCliTablesBranchCov:
         tm.that(rendered, has="a")
 
     def test_render_empty_rows_still_succeeds(
-        self, two_column_config: m.Cli.TableConfig
+        self, two_column_config: p.Cli.TableConfig
     ) -> None:
         result = u.Cli.tables_render([], two_column_config)
 
@@ -95,7 +95,7 @@ class TestsFlextCliTablesBranchCov:
         tm.that(result.unwrap(), is_=str)
 
     def test_render_is_idempotent_for_same_input(
-        self, two_column_config: m.Cli.TableConfig
+        self, two_column_config: p.Cli.TableConfig
     ) -> None:
         rows: t.SequenceOf[t.Cli.TableRow] = [{"Key": "a", "Value": 1}]
 
@@ -107,7 +107,7 @@ class TestsFlextCliTablesBranchCov:
         tm.that(first.unwrap(), eq=second.unwrap())
 
     def test_resolve_config_returns_provided_settings_unchanged(
-        self, two_column_config: m.Cli.TableConfig
+        self, two_column_config: p.Cli.TableConfig
     ) -> None:
         result = u.Cli.tables_resolve_config(two_column_config)
 
@@ -115,7 +115,7 @@ class TestsFlextCliTablesBranchCov:
         tm.that(result.unwrap().headers, eq=("Key", "Value"))
 
     def test_resolve_config_reports_invalid_override_as_failure(
-        self, two_column_config: m.Cli.TableConfig
+        self, two_column_config: p.Cli.TableConfig
     ) -> None:
         result = u.Cli.tables_resolve_config(two_column_config, show_header="nope")
 
@@ -123,7 +123,7 @@ class TestsFlextCliTablesBranchCov:
         tm.that((result.error or ""), has=c.Cli.OUTPUT_TABLE_CONFIG_INVALID)
 
     def test_normalize_then_render_round_trips_mapping_source(
-        self, two_column_config: m.Cli.TableConfig
+        self, two_column_config: p.Cli.TableConfig
     ) -> None:
         normalized = u.Cli.tables_normalize_data({"alpha": 1})
         tm.ok(normalized)

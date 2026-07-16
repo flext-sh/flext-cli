@@ -27,7 +27,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from examples import c, m, t, u
+from examples import c, m, p, t, u
 from flext_cli import cli, p, settings
 from flext_core import r
 

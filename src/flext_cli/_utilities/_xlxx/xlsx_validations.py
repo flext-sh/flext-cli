@@ -61,7 +61,7 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
         return formula
 
     @classmethod
-    def _data_validation(cls, plan: m.Cli.XlsxDataValidationPlan) -> DataValidation:
+    def _data_validation(cls, plan: p.Cli.XlsxDataValidationPlan) -> DataValidation:
         messages = plan.messages
         formula1: str | None = None
         formula2: str | None = None

@@ -15,7 +15,7 @@ from collections.abc import Callable, Mapping
 from typing import cast
 
 from flext_cli import settings, t
-from flext_core import m
+from flext_cli import p
 
 
 class FlextCliUtilitiesModelCommands:
@@ -32,7 +32,7 @@ class FlextCliUtilitiesModelCommands:
             self.model_class = model_class
             self.handler = handler
 
-        def _resolve_default(self, field_info: m.FieldInfo) -> t.Cli.CliValue | type:
+        def _resolve_default(self, field_info: p.FieldInfo) -> t.Cli.CliValue | type:
             if field_info.is_required():
                 return inspect.Parameter.empty
             # NOTE (multi-agent): ``FieldInfo.get_default`` is typed ``Any``

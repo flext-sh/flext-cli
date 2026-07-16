@@ -46,7 +46,7 @@ class FlextCliUtilitiesXlsxArchiveChecks:
 
     @classmethod
     def _worksheet_violations(
-        cls, root: p.Cli.XlsxXmlElement, member: str, policy: m.Cli.XlsxArchivePolicy
+        cls, root: p.Cli.XlsxXmlElement, member: str, policy: p.Cli.XlsxArchivePolicy
     ) -> tuple[p.Cli.XlsxArchiveViolation, ...]:
         violations: tuple[p.Cli.XlsxArchiveViolation, ...] = ()
         for element in root.iter():
@@ -57,7 +57,7 @@ class FlextCliUtilitiesXlsxArchiveChecks:
 
     @classmethod
     def _workbook_violations(
-        cls, root: p.Cli.XlsxXmlElement, member: str, policy: m.Cli.XlsxArchivePolicy
+        cls, root: p.Cli.XlsxXmlElement, member: str, policy: p.Cli.XlsxArchivePolicy
     ) -> tuple[p.Cli.XlsxArchiveViolation, ...]:
         if not policy.reject_defined_names:
             return ()
@@ -69,7 +69,7 @@ class FlextCliUtilitiesXlsxArchiveChecks:
 
     @classmethod
     def _style_violations(
-        cls, root: p.Cli.XlsxXmlElement, member: str, policy: m.Cli.XlsxArchivePolicy
+        cls, root: p.Cli.XlsxXmlElement, member: str, policy: p.Cli.XlsxArchivePolicy
     ) -> tuple[p.Cli.XlsxArchiveViolation, ...]:
         if not policy.reject_style_protection:
             return ()

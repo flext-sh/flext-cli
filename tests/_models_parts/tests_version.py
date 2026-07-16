@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Annotated, ClassVar, Self
 from flext_cli import m
 from tests import c
 
-from tests import t
+from tests import p, t
 
 
 

@@ -13,7 +13,7 @@ from tests import u
 
 from pathlib import Path
 
-from tests import t
+from tests import p, t
 
 
 
@@ -45,7 +45,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_run_raw_cases(
-        self, runner: u.Cli, tmp_path: Path, case: m.Tests.RuntimeCommandCase
+        self, runner: u.Cli, tmp_path: Path, case: p.Tests.RuntimeCommandCase
     ) -> None:
         cwd = tmp_path if case.use_tmp_path else None
         result = runner.run_raw(
@@ -58,7 +58,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         if case.expect_success:
             output_raw: t.JsonPayload | None = tm.ok(result)
             tm.that(output_raw, is_=m.Cli.CommandOutput)
-            output: m.Cli.CommandOutput = output_raw
+            output: p.Cli.CommandOutput = output_raw
             if case.stdout_has:
                 tm.that(output.stdout, has=case.stdout_has)
             if case.stderr_has:
@@ -76,14 +76,14 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_run_cases(
-        self, runner: u.Cli, tmp_path: Path, case: m.Tests.RuntimeCommandCase
+        self, runner: u.Cli, tmp_path: Path, case: p.Tests.RuntimeCommandCase
     ) -> None:
         cwd = tmp_path if case.use_tmp_path else None
         result = runner.run(case.command, cwd=cwd, timeout=case.timeout, env=case.env)
         if case.expect_success:
             output_raw: t.JsonPayload | None = tm.ok(result)
             tm.that(output_raw, is_=m.Cli.CommandOutput)
-            output: m.Cli.CommandOutput = output_raw
+            output: p.Cli.CommandOutput = output_raw
             if case.stdout_has:
                 tm.that(output.stdout, has=case.stdout_has)
             if case.use_tmp_path:
@@ -97,7 +97,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_capture_cases(
-        self, runner: u.Cli, tmp_path: Path, case: m.Tests.RuntimeCommandCase
+        self, runner: u.Cli, tmp_path: Path, case: p.Tests.RuntimeCommandCase
     ) -> None:
         cwd = tmp_path if case.use_tmp_path else None
         result = runner.capture(

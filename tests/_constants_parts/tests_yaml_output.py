@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Final
 
 from flext_cli import c
 
-from tests import t
+from tests import p, t
 
 
 
