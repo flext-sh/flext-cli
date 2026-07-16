@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import SupportsFloat, SupportsIndex, SupportsInt, TypeGuard, cast, overload
+from typing import SupportsFloat, SupportsIndex, SupportsInt, TypeGuard, overload
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString, LiteralScalarString
@@ -65,11 +65,11 @@ class FlextCliUtilitiesYamlConvertMixin:
 
     @overload
     @staticmethod
-    def yaml_deep_to_commented(data: Mapping[str, t.Cli.YamlValue]) -> CommentedMap: ...
+    def yaml_deep_to_commented(data: t.JsonMapping) -> CommentedMap: ...
 
     @overload
     @staticmethod
-    def yaml_deep_to_commented(data: list[t.Cli.YamlValue]) -> CommentedSeq: ...
+    def yaml_deep_to_commented(data: list[t.JsonValue]) -> CommentedSeq: ...
 
     @overload
     @staticmethod
@@ -99,9 +99,9 @@ class FlextCliUtilitiesYamlConvertMixin:
             )
         if isinstance(data, str):
             if "\n" in data:
-                return cast("t.Cli.YamlScalar", LiteralScalarString(data))
+                return LiteralScalarString(data)
             if data.lower() in _YAML_1_1_IMPLICIT_STRING_VALUES:
-                return cast("t.Cli.YamlScalar", DoubleQuotedScalarString(data))
+                return DoubleQuotedScalarString(data)
         if data is not None and not isinstance(data, (str, int, float, bool)):
             msg = f"unsupported YAML value type: {type(data).__name__}"
             raise TypeError(msg)

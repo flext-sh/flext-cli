@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, MutableMapping
+from collections.abc import Callable, MutableMapping
 from pathlib import Path
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
@@ -14,14 +14,13 @@ from flext_cli import c
 from flext_cli._typings.base import FlextCliTypesBase as tb
 from flext_core import p, t
 
-# NOTE (multi-agent): YAML round-trip aliases live at module level because a
-# self-referencing PEP 695 alias in CLASS scope breaks pyrefly/pyright (proven
-# in cosmos-charts). The class body only re-exports them as ``t.Cli.Yaml*``;
-# never inline the recursion into the class body.
+# Pydantic owns recursive JSON validation at the external YAML boundary.
+# Round-trip ruamel nodes stay explicit so validation never copies away their
+# comments, anchors, or identity.
 type _YamlScalar = str | int | float | bool | None
-type _YamlValue = _YamlScalar | list[_YamlValue] | Mapping[str, _YamlValue]
+type _YamlValue = t.JsonValue | t.JsonMapping | CommentedMap | CommentedSeq
 type _YamlNode = CommentedMap | CommentedSeq | _YamlScalar
-type _YamlSequence = CommentedSeq | list[_YamlValue]
+type _YamlSequence = CommentedSeq | list[t.JsonValue]
 
 
 class FlextCliTypesDomain:
