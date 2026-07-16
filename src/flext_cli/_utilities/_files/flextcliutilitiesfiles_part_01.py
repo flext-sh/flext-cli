@@ -95,6 +95,46 @@ class FlextCliUtilitiesFiles:
         )
 
     @staticmethod
+    def files_read_first_json_model[M: t.Cli.ModelLike](
+        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+    ) -> p.Result[M]:
+        """Stream and validate the first non-empty JSON line into one model."""
+
+        def _load() -> M:
+            with Path(file_path).open(
+                mode="r", encoding=c.Cli.ENCODING_DEFAULT
+            ) as handle:
+                for line in handle:
+                    if line.strip():
+                        return model_type.model_validate_json(line, strict=False)
+            msg = f"JSON-lines file has no records: {file_path}"
+            raise ValueError(msg)
+
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            _load, c.Cli.ERR_JSON_LOAD_FAILED
+        )
+
+    @staticmethod
+    def files_read_json_lines_model[M: t.Cli.ModelLike](
+        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+    ) -> p.Result[tuple[M, ...]]:
+        """Stream every non-empty JSON line and validate each into one model."""
+
+        def _load() -> tuple[M, ...]:
+            with Path(file_path).open(
+                mode="r", encoding=c.Cli.ENCODING_DEFAULT
+            ) as handle:
+                return tuple(
+                    model_type.model_validate_json(line, strict=False)
+                    for line in handle
+                    if line.strip()
+                )
+
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            _load, c.Cli.ERR_JSON_LOAD_FAILED
+        )
+
+    @staticmethod
     def files_read_yaml(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         """Read one YAML file and validate to canonical JSON value."""
         return uy.yaml_safe_load(Path(file_path)).map(

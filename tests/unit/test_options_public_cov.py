@@ -128,15 +128,19 @@ class TestsFlextCliOptions:
         """Build ordered long, plural, and short declarations from metadata."""
         option = u.Cli.build_option("project", {"project": {"short": "p"}})
 
-        tm.that(option.declarations, has="--project")
-        tm.that(option.declarations, has="--projects")
-        tm.that(option.declarations, has="-p")
+        declarations = option.declarations
+        tm.that(declarations, none=False)
+        tm.that(declarations, has="--project")
+        tm.that(declarations, has="--projects")
+        tm.that(declarations, has="-p")
 
     def test_build_option_reads_canonical_registry_contract(self) -> None:
         """Build an option from the canonical CLI parameter registry."""
         option = u.Cli.build_option("debug", c.Cli.CLI_PARAM_REGISTRY)
 
-        tm.that(option.declarations, has="--debug")
+        declarations = option.declarations
+        tm.that(declarations, none=False)
+        tm.that(declarations, has="--debug")
 
     def test_reorder_prefixed_options_moves_shared_flags_after_subcommand(self) -> None:
         """Move shared prefix flags immediately after the subcommand."""

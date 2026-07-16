@@ -34,6 +34,13 @@ class FlextCliModelsXlsxRecalc:
         ) = None
 
     class XlsxRecalcParityReport(m.FrozenModel):
+        content: Annotated[
+            bytes,
+            m.Field(
+                min_length=1,
+                description="Exact recalculated workbook bytes validated by this report.",
+            ),
+        ]
         recalculated: bool = m.Field(
             description="Whether the engine produced recalculated bytes."
         )

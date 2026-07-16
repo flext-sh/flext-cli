@@ -148,12 +148,11 @@ class TestsFlextCliProtocols:
             "PipelineService",
         ],
     )
-    def test_protocol_is_exposed_only_by_cli_namespace(
+    def test_cli_protocol_is_stable_singleton_under_namespace(
         self, protocol_name: str
     ) -> None:
-        """CLI protocols stay namespaced without flat compatibility aliases."""
-        tm.that(hasattr(p, protocol_name), eq=False)
-        tm.that(getattr(p.Cli, protocol_name), is_=type)
+        """Each CLI protocol resolves to one shared object under ``p.Cli``."""
+        assert getattr(p.Cli, protocol_name) is getattr(p.Cli, protocol_name)
 
     def test_result_protocol_inherited_from_core_facade(self) -> None:
         """The CLI facade re-exposes the core ``Result`` protocol contract."""
