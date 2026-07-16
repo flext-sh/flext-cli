@@ -25,14 +25,14 @@ class FlextCliUtilitiesXlsxStyleCatalog(
     @classmethod
     def _source_visuals(
         cls, source: bytes
-    ) -> p.Result[tuple[m.Cli.XlsxSourceVisualStyle, ...]]:
+    ) -> p.Result[tuple[p.Cli.XlsxSourceVisualStyle, ...]]:
         workbook_result = cls._load_workbook(source)
         if workbook_result.failure:
-            return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].fail(
+            return r[tuple[p.Cli.XlsxSourceVisualStyle, ...]].fail(
                 workbook_result.error or "Workbook load failed"
             )
         seen: frozenset[int] = frozenset()
-        source_styles: tuple[m.Cli.XlsxSourceVisualStyle, ...] = ()
+        source_styles: tuple[p.Cli.XlsxSourceVisualStyle, ...] = ()
         for worksheet in workbook_result.value.worksheets:
             for row in worksheet.iter_rows():
                 for cell in row:
@@ -48,7 +48,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                         continue
                     visual_result = cls._visual_from_styleable(cell)
                     if visual_result.failure:
-                        return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].fail(
+                        return r[tuple[p.Cli.XlsxSourceVisualStyle, ...]].fail(
                             visual_result.error
                             or f"Style extraction failed: {source_style_id}"
                         )
@@ -60,20 +60,20 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                         ),
                     )
         ordered = tuple(sorted(source_styles, key=lambda item: item.source_style_id))
-        return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].ok(ordered)
+        return r[tuple[p.Cli.XlsxSourceVisualStyle, ...]].ok(ordered)
 
     @classmethod
     def xlsx_style_catalog(
         cls, request: m.Cli.XlsxStyleCatalogRequest
-    ) -> p.Result[m.Cli.XlsxStyleCatalog]:
+    ) -> p.Result[p.Cli.XlsxStyleCatalog]:
         """Extract all cell-used visual styles and deduplicate them."""
         source_result = cls._source_visuals(request.source)
         if source_result.failure:
-            return r[m.Cli.XlsxStyleCatalog].fail(
+            return r[p.Cli.XlsxStyleCatalog].fail(
                 source_result.error or "Style catalog extraction failed"
             )
-        styles: tuple[m.Cli.XlsxNamedStyleSpec, ...] = ()
-        style_map: tuple[m.Cli.XlsxStyleMapEntry, ...] = ()
+        styles: tuple[p.Cli.XlsxNamedStyleSpec, ...] = ()
+        style_map: tuple[p.Cli.XlsxStyleMapEntry, ...] = ()
         for source in source_result.value:
             existing = next(
                 (style for style in styles if style.visual == source.visual), None
@@ -84,7 +84,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                     visual=source.visual,
                 )
                 if any(style.name == existing.name for style in styles):
-                    return r[m.Cli.XlsxStyleCatalog].fail(
+                    return r[p.Cli.XlsxStyleCatalog].fail(
                         f"Deterministic style-name collision: {existing.name}"
                     )
                 styles = (*styles, existing)
@@ -94,14 +94,14 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                     source_style_id=source.source_style_id, style_name=existing.name
                 ),
             )
-        return r[m.Cli.XlsxStyleCatalog].ok(
+        return r[p.Cli.XlsxStyleCatalog].ok(
             m.Cli.XlsxStyleCatalog(style_map=style_map, styles=styles)
         )
 
     @classmethod
     def xlsx_style_template(
         cls, request: m.Cli.XlsxStyleTemplateRequest
-    ) -> p.Result[m.Cli.XlsxStyleTemplateResult]:
+    ) -> p.Result[p.Cli.XlsxStyleTemplateResult]:
         """Emit a blank workbook containing only deduplicated visual styles."""
         catalog_result = cls.xlsx_style_catalog(
             m.Cli.XlsxStyleCatalogRequest(
@@ -109,7 +109,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
             )
         )
         if catalog_result.failure:
-            return r[m.Cli.XlsxStyleTemplateResult].fail(
+            return r[p.Cli.XlsxStyleTemplateResult].fail(
                 catalog_result.error or "Style catalog extraction failed"
             )
         catalog = catalog_result.value
@@ -118,10 +118,10 @@ class FlextCliUtilitiesXlsxStyleCatalog(
             workbook.add_named_style(cls._named_style(spec))
         content_result = cls._serialize_workbook(workbook)
         if content_result.failure:
-            return r[m.Cli.XlsxStyleTemplateResult].fail(
+            return r[p.Cli.XlsxStyleTemplateResult].fail(
                 content_result.error or "Style template serialization failed"
             )
-        return r[m.Cli.XlsxStyleTemplateResult].ok(
+        return r[p.Cli.XlsxStyleTemplateResult].ok(
             m.Cli.XlsxStyleTemplateResult(
                 content=content_result.value, style_map=catalog.style_map
             )

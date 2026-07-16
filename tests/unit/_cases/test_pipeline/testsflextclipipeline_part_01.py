@@ -26,7 +26,7 @@ class TestsFlextCliPipeline:
 
         def handler(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
                 stage_id, output={output_key: stage_id}, duration_ms=1.0
@@ -40,8 +40,8 @@ class TestsFlextCliPipeline:
 
         def handler(
             _ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
-            return r[m.Cli.PipelineStageResult].fail(f"{stage_id} failed")
+        ) -> p.Result[p.Cli.PipelineStageResult]:
+            return r[p.Cli.PipelineStageResult].fail(f"{stage_id} failed")
 
         return handler
 
@@ -67,7 +67,7 @@ class TestsFlextCliPipeline:
         def tracking_handler(stage_id: str) -> t.Cli.PipelineHandler:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
-            ) -> p.Result[m.Cli.PipelineStageResult]:
+            ) -> p.Result[p.Cli.PipelineStageResult]:
                 _ = ctx
                 execution_order.append(stage_id)
                 return cli.ok_stage(stage_id)
@@ -87,13 +87,13 @@ class TestsFlextCliPipeline:
 
         def reader(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             received["from_a"] = ctx.shared.get("a_output")
             return cli.ok_stage("b")
 
         def writer(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             ctx.shared["a_output"] = "hello"
             return cli.ok_stage("a")
 

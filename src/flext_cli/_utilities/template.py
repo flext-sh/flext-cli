@@ -77,11 +77,11 @@ class FlextCliUtilitiesTemplate:
         templates_root: Path,
         output_root: Path,
         context: p.Model,
-        entries: t.SequenceOf[m.Cli.TemplateRenderEntry],
+        entries: t.SequenceOf[p.Cli.TemplateRenderEntry],
         *,
         strip_suffix: str = c.Cli.TEMPLATE_SUFFIX,
         overwrite: bool = False,
-    ) -> p.Result[m.Cli.TemplateRenderReport]:
+    ) -> p.Result[p.Cli.TemplateRenderReport]:
         """Render every entry from ``templates_root`` into ``output_root``.
 
         Generic, folder-parameterized engine (ADR-005): the caller supplies the
@@ -95,7 +95,7 @@ class FlextCliUtilitiesTemplate:
         the caller decides the fail policy (the report is always returned).
         """
         if not templates_root.is_dir():
-            return r[m.Cli.TemplateRenderReport].fail(
+            return r[p.Cli.TemplateRenderReport].fail(
                 f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}"
             )
         root = output_root.resolve()
@@ -129,7 +129,7 @@ class FlextCliUtilitiesTemplate:
         report = m.Cli.TemplateRenderReport(
             created=tuple(created), skipped=tuple(skipped), failed=tuple(failed)
         )
-        return r[m.Cli.TemplateRenderReport].ok(report)
+        return r[p.Cli.TemplateRenderReport].ok(report)
 
     @staticmethod
     def _write(dest: Path, content: str) -> bool:

@@ -56,7 +56,7 @@ def _render_workbook() -> bytes:
 
 def _numeric_cell_value(
     source: bytes, sheet_name: str, coordinate: str
-) -> m.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
+) -> p.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
     snapshot = cli.xlsx_snapshot(
         m.Cli.XlsxSnapshotRequest(source=source, data_only=True)
     )

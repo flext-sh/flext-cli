@@ -18,12 +18,12 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
     @classmethod
     def _inventory(
         cls, archive: p.Cli.XlsxArchiveReader, policy: m.Cli.XlsxArchivePolicy
-    ) -> m.Cli.XlsxArchiveInventory:
+    ) -> p.Cli.XlsxArchiveInventory:
         members: tuple[str, ...] = ()
         blocked: frozenset[str] = frozenset()
         seen: frozenset[str] = frozenset()
         total_size = 0
-        violations: tuple[m.Cli.XlsxArchiveViolation, ...] = ()
+        violations: tuple[p.Cli.XlsxArchiveViolation, ...] = ()
         for info in archive.infolist():
             member = info.filename
             members = (*members, member)
@@ -71,7 +71,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
     @classmethod
     def _inspect_archive(
         cls, archive: p.Cli.XlsxArchiveReader, policy: m.Cli.XlsxArchivePolicy
-    ) -> p.Result[m.Cli.XlsxArchiveInspection]:
+    ) -> p.Result[p.Cli.XlsxArchiveInspection]:
         inventory = cls._inventory(archive, policy)
         violations = inventory.violations
         workbook_member = c.Cli.XLSX_WORKBOOK_MEMBER
@@ -109,7 +109,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
         for member in xml_members:
             root_result = cls._xml_root(archive, member)
             if root_result.failure:
-                return r[m.Cli.XlsxArchiveInspection].fail(
+                return r[p.Cli.XlsxArchiveInspection].fail(
                     root_result.error or f"Invalid OOXML member: {member}"
                 )
             root = root_result.value
@@ -132,12 +132,12 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
             violations=violations,
             clean=not violations,
         )
-        return r[m.Cli.XlsxArchiveInspection].ok(inspection)
+        return r[p.Cli.XlsxArchiveInspection].ok(inspection)
 
     @classmethod
     def xlsx_inspect(
         cls, request: m.Cli.XlsxArchiveInspectionRequest
-    ) -> p.Result[m.Cli.XlsxArchiveInspection]:
+    ) -> p.Result[p.Cli.XlsxArchiveInspection]:
         """Inspect workbook bytes without extracting or trusting package XML."""
         try:
             with ZipFile(BytesIO(request.source)) as archive:
@@ -145,7 +145,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
                 return cls._inspect_archive(archive, request.policy)
         except (BadZipFile, LargeZipFile, OSError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxArchiveInspection].fail(
+            return r[p.Cli.XlsxArchiveInspection].fail(
                 f"{c.Cli.XlsxError.ARCHIVE_INVALID}: {detail}"
             )
 

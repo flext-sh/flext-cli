@@ -13,7 +13,7 @@ class FlextCliUtilitiesParams:
     @staticmethod
     def params_resolve(
         params: p.Cli.CliParamsConfig | None, kwargs: t.Cli.CliParamKwargs
-    ) -> m.Cli.CliParamsConfig:
+    ) -> p.Cli.CliParamsConfig:
         """Resolve explicit params and kwargs into one validated model."""
         kwargs_model = m.Cli.CliParamsConfig.model_validate(kwargs)
         if params is None:

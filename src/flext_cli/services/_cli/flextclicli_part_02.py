@@ -77,7 +77,7 @@ class FlextCliCli(FlextCliCliPart01):
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
-        global_callback: FlextCliCli._ModelCommand[m.Cli.CliParamsConfig] = (
+        global_callback: FlextCliCli._ModelCommand[p.Cli.CliParamsConfig] = (
             self._ModelCommand(
                 handler=apply_common_params,
                 model_cls=m.Cli.CliParamsConfig,

@@ -45,13 +45,13 @@ def _report_step_success[T](value: T, message: str) -> T:
 
 def _finish_database_config(
     settings: m.Examples.AdvancedDatabaseConfig,
-) -> m.Examples.AdvancedDatabaseConfig:
+) -> p.Examples.AdvancedDatabaseConfig:
     """Emit the final success summary and preserve the validated settings."""
     u.display_success_summary("Database configuration")
     return settings
 
 
-def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+def create_database_config_from_cli() -> p.Result[p.Examples.AdvancedDatabaseConfig]:
     """Create validated DatabaseConfig using Railway Pattern with Pydantic."""
     cli.print(
         "\n🗄️  Database Configuration with Railway Pattern:",
@@ -67,7 +67,7 @@ def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseCon
         connection_pool=c.EXAMPLE_DATABASE_DEMO_CONNECTION_POOL,
     )
     return (
-        r[m.Examples.AdvancedDatabaseConfig]
+        r[p.Examples.AdvancedDatabaseConfig]
         .ok(cli_args)
         .map(
             lambda settings: _report_step_success(
@@ -109,21 +109,21 @@ def validate_required_fields(
 
 def convert_and_validate_with_pydantic(
     data: t.JsonMapping,
-) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
     """Convert raw data to validated Pydantic model."""
     try:
-        return r[m.Examples.AdvancedDatabaseConfig].ok(
+        return r[p.Examples.AdvancedDatabaseConfig].ok(
             m.Examples.AdvancedDatabaseConfig.model_validate(data)
         )
     except c.ValidationError as error:
-        return r[m.Examples.AdvancedDatabaseConfig].fail(
+        return r[p.Examples.AdvancedDatabaseConfig].fail(
             f"Pydantic validation failed: {error}"
         )
 
 
 def validate_business_rules(
     settings: m.Examples.AdvancedDatabaseConfig,
-) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
     """Apply custom business rules to validated database configuration."""
     if settings.ssl_enabled and settings.port == c.EXAMPLE_DEFAULT_DB_PORT:
         settings = settings.model_copy(update={"port": c.EXAMPLE_SSL_DB_PORT})
@@ -131,16 +131,16 @@ def validate_business_rules(
         settings.connection_pool > c.EXAMPLE_LOCALHOST_CONNECTION_POOL_LIMIT
         and settings.host == c.EXAMPLE_DEFAULT_HOST
     ):
-        return r[m.Examples.AdvancedDatabaseConfig].fail(
+        return r[p.Examples.AdvancedDatabaseConfig].fail(
             "Localhost cannot handle large connection pools"
         )
-    return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
+    return r[p.Examples.AdvancedDatabaseConfig].ok(settings)
 
 
 def perform_connection_test(
     settings: m.Examples.AdvancedDatabaseConfig,
-) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
     """Simulate database connection test."""
     if "fail" in settings.host:
-        return r[m.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
-    return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
+        return r[p.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
+    return r[p.Examples.AdvancedDatabaseConfig].ok(settings)

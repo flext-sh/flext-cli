@@ -69,7 +69,7 @@ class FlextCliUtilitiesSettings:
         return [int(name) for name in names]
 
     @staticmethod
-    def settings_snapshot() -> m.Cli.SettingsSnapshot:
+    def settings_snapshot() -> p.Cli.SettingsSnapshot:
         """Return the canonical CLI settings snapshot."""
         path = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
         exists = path.exists()

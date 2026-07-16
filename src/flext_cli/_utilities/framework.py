@@ -290,7 +290,7 @@ class FlextCliUtilitiesFramework:
         args: t.StrSequence | None = None,
         charset: str = c.Cli.ENCODING_DEFAULT,
         env: t.StrMapping | None = None,
-    ) -> m.Cli.InvocationResult:
+    ) -> p.Cli.InvocationResult:
         """Invoke one application through the real framework test runner."""
         from flext_cli import m
 

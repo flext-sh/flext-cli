@@ -23,8 +23,8 @@ class TestsFlextCliPublicContractsCoverage:
 
         def stage_handler(
             current: m.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
-            return r[m.Cli.PipelineStageResult].ok(
+        ) -> p.Result[p.Cli.PipelineStageResult]:
+            return r[p.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult.model_validate({
                     "stage_id": "build",
                     "status": c.Cli.PipelineStageStatus.OK,

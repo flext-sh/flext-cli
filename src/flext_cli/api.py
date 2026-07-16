@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_cli import m, p, r, t, u
+from flext_cli import p, r, t, u
 from flext_cli.services.auth import FlextCliAuth
 from flext_cli.services.cli import FlextCliCli
 from flext_cli.services.cli_params import FlextCliCommonParams
@@ -50,9 +50,9 @@ class FlextCli(
     """
 
     @override
-    def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
+    def execute(self) -> p.Result[p.Cli.RuntimeStatus]:
         """Report the public CLI runtime surface state."""
-        return r[m.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
+        return r[p.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
 
 
 cli: FlextCli = FlextCli.fetch_global()

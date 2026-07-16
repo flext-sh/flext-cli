@@ -38,8 +38,8 @@ class TestsFlextCliPublicContractsCoverage:
 
         def route_handler(
             _params: m.Tests.SampleInput,
-        ) -> p.Result[m.Tests.SampleOutput]:
-            return r[m.Tests.SampleOutput].ok(m.Tests.SampleOutput(message="ok"))
+        ) -> p.Result[p.Tests.SampleOutput]:
+            return r[p.Tests.SampleOutput].ok(m.Tests.SampleOutput(message="ok"))
 
         route = m.Cli.ResultCommandRoute(
             name="inspect",

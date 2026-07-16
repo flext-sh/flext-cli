@@ -17,7 +17,7 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
         *,
         shared: t.MutableJsonMapping | None = None,
         settings: t.JsonMapping | None = None,
-    ) -> m.Cli.PipelineStageContext:
+    ) -> p.Cli.PipelineStageContext:
         """Build one validated stage context from the public DSL."""
         return m.Cli.PipelineStageContext.model_validate({
             "workspace_root": workspace_root,
@@ -33,7 +33,7 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
         depends_on: t.SequenceOf[str] | frozenset[str] = (),
         skip_if: t.Cli.PipelineSkipPredicate | None = None,
         retry: int = c.Cli.PIPELINE_DEFAULT_RETRY,
-    ) -> m.Cli.PipelineStageSpec:
+    ) -> p.Cli.PipelineStageSpec:
         """Build one declarative stage spec from the public DSL."""
         return m.Cli.PipelineStageSpec.model_validate({
             "stage_id": stage_id,
@@ -51,7 +51,7 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
         output: t.JsonMapping | None = None,
         duration_ms: float = 0.0,
         error: str | None = None,
-    ) -> m.Cli.PipelineStageResult:
+    ) -> p.Cli.PipelineStageResult:
         """Build one typed stage result payload."""
         return m.Cli.PipelineStageResult.model_validate({
             "stage_id": stage_id,
@@ -68,9 +68,9 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
         *,
         output: t.JsonMapping | None = None,
         duration_ms: float = 0.0,
-    ) -> p.Result[m.Cli.PipelineStageResult]:
+    ) -> p.Result[p.Cli.PipelineStageResult]:
         """Return one successful stage result via the canonical ``r`` API."""
-        return r[m.Cli.PipelineStageResult].ok(
+        return r[p.Cli.PipelineStageResult].ok(
             cls.stage_result(
                 stage_id,
                 status=c.Cli.PipelineStageStatus.OK,
@@ -87,13 +87,13 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
         *,
         retry_by_stage: t.Cli.PipelineRetryMap | None = None,
         skip_by_stage: t.Cli.PipelineSkipMap | None = None,
-    ) -> t.SequenceOf[m.Cli.PipelineStageSpec]:
+    ) -> t.SequenceOf[p.Cli.PipelineStageSpec]:
         """Build a linear dependency chain from ordered stage handlers."""
         retries: t.Cli.PipelineRetryMap = (
             retry_by_stage if retry_by_stage is not None else {}
         )
         skips = skip_by_stage or {}
-        stage_list: t.MutableSequenceOf[m.Cli.PipelineStageSpec] = []
+        stage_list: t.MutableSequenceOf[p.Cli.PipelineStageSpec] = []
         previous_stage_id: str | None = None
         for stage_id in stage_order:
             # NOTE (multi-agent): Typed retry map keeps ``get`` strictly integer.
@@ -114,12 +114,12 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
 
     def pipeline(
         self,
-        stages: t.SequenceOf[m.Cli.PipelineStageSpec],
+        stages: t.SequenceOf[p.Cli.PipelineStageSpec],
         *,
         context: m.Cli.PipelineStageContext,
         fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
         logger: p.Logger | None = None,
-    ) -> p.Result[m.Cli.PipelineResult]:
+    ) -> p.Result[p.Cli.PipelineResult]:
         """Execute a pipeline through the public CLI DSL surface."""
         return self.execute_pipeline(
             stages, context, fail_fast=fail_fast, logger=logger or self.logger

@@ -55,11 +55,11 @@ class FlextCliUtilitiesXlsxRenderer(
     @classmethod
     def xlsx_render(
         cls, request: m.Cli.XlsxRenderRequest
-    ) -> p.Result[m.Cli.XlsxRenderResult]:
+    ) -> p.Result[p.Cli.XlsxRenderResult]:
         """Render typed sheets, names, styles, and rules into workbook bytes."""
         workbook_result = cls._workbook_for_request(request)
         if workbook_result.failure:
-            return r[m.Cli.XlsxRenderResult].fail(
+            return r[p.Cli.XlsxRenderResult].fail(
                 workbook_result.error or str(c.Cli.XlsxError.RENDER_FAILED)
             )
         workbook = workbook_result.value
@@ -67,21 +67,21 @@ class FlextCliUtilitiesXlsxRenderer(
         for sheet in request.plan.sheets:
             rendered = cls._render_sheet(workbook, sheet, table_names)
             if rendered.failure:
-                return r[m.Cli.XlsxRenderResult].fail(
+                return r[p.Cli.XlsxRenderResult].fail(
                     rendered.error or str(c.Cli.XlsxError.RENDER_FAILED)
                 )
             table_names = rendered.value
         names = cls._apply_defined_names(workbook, request.plan.defined_names)
         if names.failure:
-            return r[m.Cli.XlsxRenderResult].fail(
+            return r[p.Cli.XlsxRenderResult].fail(
                 names.error or "Defined-name rendering failed"
             )
         content = cls._serialize_workbook(workbook)
         if content.failure:
-            return r[m.Cli.XlsxRenderResult].fail(
+            return r[p.Cli.XlsxRenderResult].fail(
                 content.error or str(c.Cli.XlsxError.SERIALIZE_FAILED)
             )
-        return r[m.Cli.XlsxRenderResult].ok(
+        return r[p.Cli.XlsxRenderResult].ok(
             m.Cli.XlsxRenderResult(content=content.value, plan=request.plan)
         )
 

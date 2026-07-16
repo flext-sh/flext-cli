@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_cli import c, m, p, r, t, u
+from flext_cli import c, p, r, t, u
 from flext_cli.services._prompts_support import FlextCliPromptsSupport
 
 # NOTE (multi-agent): mro-i6nq.13 — consolidated _prompts_parts/part_01+part_02
@@ -18,8 +18,8 @@ class FlextCliPrompts(FlextCliPromptsSupport):
     """Interactive CLI prompt surface exposed through the CLI service runtime."""
 
     @override
-    def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
-        return r[m.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
+    def execute(self) -> p.Result[p.Cli.RuntimeStatus]:
+        return r[p.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
 
     def confirm(self, message: str, *, default: bool = False) -> p.Result[bool]:
         try:

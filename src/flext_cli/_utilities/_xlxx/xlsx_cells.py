@@ -30,7 +30,7 @@ class FlextCliUtilitiesXlsxCells:
     def _apply_cells(
         cls,
         worksheet: Worksheet,
-        plans: tuple[m.Cli.XlsxCellPlan, ...],
+        plans: tuple[p.Cli.XlsxCellPlan, ...],
         named_styles: frozenset[str],
     ) -> p.Result[bool]:
         try:

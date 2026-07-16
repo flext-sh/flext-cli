@@ -19,7 +19,7 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
 
     # mro-wkii.17.26 (codex): specialize the canonical service result contract.
 
-    def build_example_settings(self) -> p.Result[m.Examples.MyAppSettings]:
+    def build_example_settings(self) -> p.Result[p.Examples.MyAppSettings]:
         """Build a validated application settings model through the examples facade."""
         settings_payload: t.JsonMapping = {
             "app_name": c.EXAMPLE_DEFAULT_TOOL_NAME,
@@ -27,14 +27,14 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
             "max_workers": c.EXAMPLE_DEFAULT_MAX_WORKERS,
             "timeout": c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS,
         }
-        return r[m.Examples.MyAppSettings].ok(
+        return r[p.Examples.MyAppSettings].ok(
             m.Examples.MyAppSettings.model_validate(settings_payload)
         )
 
     @staticmethod
     def persist_example_settings(
         settings: m.Examples.MyAppSettings,
-    ) -> p.Result[m.Cli.LoadedConfig]:
+    ) -> p.Result[p.Cli.LoadedConfig]:
         """Round-trip settings through the public JSON file facade."""
         wrapped_config = m.Cli.LoadedConfig(content=settings.model_dump(mode="json"))
         with TemporaryDirectory(prefix=f"{c.EXAMPLE_DEFAULT_TEMP_SUBDIR}-") as temp_dir:

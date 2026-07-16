@@ -24,7 +24,7 @@ class TestsFlextCliService:
 
     def test_model_command_accepts_repeatable_list_options(self) -> None:
         """Parse repeatable CLI options into one validated model."""
-        captured: MutableSequence[m.Tests.RepeatableInput] = []
+        captured: MutableSequence[p.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
             name="root", help_text="Root application"
         )

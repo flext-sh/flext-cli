@@ -15,7 +15,7 @@ class TestsFlextCliTablesBranchCov:
     """Assert the observable contract of the ``u.Cli`` table helpers."""
 
     @pytest.fixture
-    def two_column_config(self) -> m.Cli.TableConfig:
+    def two_column_config(self) -> p.Cli.TableConfig:
         """Return a minimal two-column table configuration."""
         return m.Cli.TableConfig(headers=("Key", "Value"))
 

@@ -60,7 +60,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
     @staticmethod
     def build_option(
         field_name: str, registry: t.Cli.OptionRegistry
-    ) -> m.Cli.OptionSpec:
+    ) -> p.Cli.OptionSpec:
         """Build one CLI option spec from the canonical registry."""
         return FlextCliUtilitiesOptionBuilder(field_name, registry).build()
 

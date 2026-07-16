@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar
 
-from flext_cli import c, t
+from flext_cli import c, p, t
 from flext_core import m
 
 
@@ -14,7 +14,7 @@ class FlextCliModelsBase:
     class CommandEntryModel(m.BaseModel):
         """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True, extra="forbid"
         )
         name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]
@@ -25,7 +25,7 @@ class FlextCliModelsBase:
     class ResultCommandRoute(m.BaseModel):
         """Type-erased route contract for heterogeneous batch registration."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True, extra="forbid", frozen=True
         )
         name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]

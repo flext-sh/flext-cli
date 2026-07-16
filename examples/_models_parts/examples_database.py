@@ -15,7 +15,7 @@ class ExamplesFlextCliModelsExamplesDatabase:
     class AdvancedDatabaseConfig(m.Value):
         """Database configuration with advanced validation."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )

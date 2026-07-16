@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from inspect import Parameter
 
-from flext_cli import c, m, p, r, t, u
+from flext_cli import c, p, r, t, u
 from flext_cli.services._cli.flextclicli_part_02 import FlextCliCli as FlextCliCliPart02
 
 # mro-j47u (codex): the earlier MRO part is referenced only by annotation;
@@ -67,15 +67,15 @@ class FlextCliCli(FlextCliCliPart02):
         args: t.StrSequence | None = None,
         charset: str = c.Cli.ENCODING_DEFAULT,
         env: t.StrMapping | None = None,
-    ) -> p.Result[m.Cli.InvocationResult]:
+    ) -> p.Result[p.Cli.InvocationResult]:
         """Invoke an application through the private real-framework boundary."""
         try:
             invocation = u.Cli.framework_invoke(
                 app, args=args, charset=charset, env=env
             )
         except (TypeError, ValueError) as exc:
-            return r[m.Cli.InvocationResult].fail(str(exc))
-        return r[m.Cli.InvocationResult].ok(invocation)
+            return r[p.Cli.InvocationResult].fail(str(exc))
+        return r[p.Cli.InvocationResult].ok(invocation)
 
 
 __all__: list[str] = ["FlextCliCli"]

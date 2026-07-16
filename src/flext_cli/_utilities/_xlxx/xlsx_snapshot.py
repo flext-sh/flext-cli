@@ -20,7 +20,7 @@ class FlextCliUtilitiesXlsxSnapshot(
     @classmethod
     def xlsx_snapshot(
         cls, request: m.Cli.XlsxSnapshotRequest
-    ) -> p.Result[m.Cli.XlsxWorkbookSnapshot]:
+    ) -> p.Result[p.Cli.XlsxWorkbookSnapshot]:
         """Inspect workbook bytes into one immutable semantic snapshot."""
         try:
             formula_workbook = cls._require_success(
@@ -32,12 +32,12 @@ class FlextCliUtilitiesXlsxSnapshot(
                 else formula_workbook
             )
         except (TypeError, ValidationError, ValueError) as exc:
-            return r[m.Cli.XlsxWorkbookSnapshot].fail(
+            return r[p.Cli.XlsxWorkbookSnapshot].fail(
                 f"Workbook snapshot failed ({exc.__class__.__name__}): {exc}",
                 exception=exc,
             )
         if len(formula_workbook.worksheets) != len(value_workbook.worksheets):
-            return r[m.Cli.XlsxWorkbookSnapshot].fail(
+            return r[p.Cli.XlsxWorkbookSnapshot].fail(
                 "Workbook snapshot failed (ValueError): Formula and value workbook "
                 "views have different sheet counts"
             )
@@ -65,11 +65,11 @@ class FlextCliUtilitiesXlsxSnapshot(
                 literal_count=sum(item.literal_count for item in sheets),
             )
         except (TypeError, ValidationError, ValueError) as exc:
-            return r[m.Cli.XlsxWorkbookSnapshot].fail(
+            return r[p.Cli.XlsxWorkbookSnapshot].fail(
                 f"Workbook snapshot failed ({exc.__class__.__name__}): {exc}",
                 exception=exc,
             )
-        return r[m.Cli.XlsxWorkbookSnapshot].ok(snapshot)
+        return r[p.Cli.XlsxWorkbookSnapshot].ok(snapshot)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxSnapshot",)

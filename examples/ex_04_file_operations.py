@@ -54,7 +54,7 @@ def save_user_preferences(
     return True
 
 
-def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
+def load_user_preferences(config_dir: Path) -> p.Result[p.Cli.LoadedConfig]:
     """Load user preferences from JSON in YOUR app. Returns r[LoadedConfig]; no None."""
     config_file = config_dir / "preferences.json"
 
@@ -65,17 +65,17 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
             f"⚠️  Could not load: {read_result.error}",
             style=c.Cli.MessageStyles.YELLOW,
         )
-        return r[m.Cli.LoadedConfig].fail(
+        return r[p.Cli.LoadedConfig].fail(
             read_result.error or "Could not load preferences",
         )
     if not isinstance(read_result.value, Mapping):
-        return r[m.Cli.LoadedConfig].fail("Preferences content must be a mapping")
+        return r[p.Cli.LoadedConfig].fail("Preferences content must be a mapping")
 
     cli.print(
         f"✅ Loaded preferences from {config_file.name}",
         style=c.Cli.MessageStyles.GREEN,
     )
-    return r[m.Cli.LoadedConfig].ok(
+    return r[p.Cli.LoadedConfig].ok(
         m.Cli.LoadedConfig(content=dict(read_result.value)),
     )
 
@@ -111,7 +111,7 @@ def save_deployment_config(
     return True
 
 
-def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
+def load_deployment_config(config_file: Path) -> p.Result[p.Cli.LoadedConfig]:
     """Load deployment settings from YAML in YOUR tool. Returns r[LoadedConfig]; no None."""
     load_result = cli.load_file_auto_dict(config_file)
 
@@ -120,15 +120,15 @@ def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
             f"❌ Config load failed: {load_result.error}",
             style=c.Cli.MessageStyles.BOLD_RED,
         )
-        return r[m.Cli.LoadedConfig].fail(load_result.error or "Config load failed")
+        return r[p.Cli.LoadedConfig].fail(load_result.error or "Config load failed")
 
     cli.print("✅ Loaded deployment settings", style=c.Cli.MessageStyles.GREEN)
-    return r[m.Cli.LoadedConfig].ok(
+    return r[p.Cli.LoadedConfig].ok(
         m.Cli.LoadedConfig(content=load_result.value),
     )
 
 
-def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
+def validate_and_import_data(input_file: Path) -> p.Result[p.Cli.LoadedConfig]:
     """Validate and import data in YOUR ETL pipeline. Returns r[LoadedConfig]; no None."""
     read_result = cli.read_json_file(input_file)
 
@@ -137,17 +137,17 @@ def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
             f"❌ Read failed: {read_result.error}",
             style=c.Cli.MessageStyles.BOLD_RED,
         )
-        return r[m.Cli.LoadedConfig].fail(read_result.error or "Read failed")
+        return r[p.Cli.LoadedConfig].fail(read_result.error or "Read failed")
 
     data = read_result.value
     if not isinstance(data, Mapping):
-        return r[m.Cli.LoadedConfig].fail("Input data must be a mapping")
+        return r[p.Cli.LoadedConfig].fail("Input data must be a mapping")
 
     for field in _EXAMPLE_REQUIRED_DATA_FIELDS:
         if field not in data:
-            return r[m.Cli.LoadedConfig].fail(f"Missing required field: {field}")
+            return r[p.Cli.LoadedConfig].fail(f"Missing required field: {field}")
 
     cli.print("✅ Data validated successfully", style=c.Cli.MessageStyles.GREEN)
-    return r[m.Cli.LoadedConfig].ok(
+    return r[p.Cli.LoadedConfig].ok(
         m.Cli.LoadedConfig(content=data),
     )

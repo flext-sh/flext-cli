@@ -29,20 +29,20 @@ class FlextCliUtilitiesXlsxConditional(
     @classmethod
     def _registered_style(
         cls, worksheet: Worksheet, name: str
-    ) -> p.Result[m.Cli.XlsxNamedStyleSpec]:
+    ) -> p.Result[p.Cli.XlsxNamedStyleSpec]:
         try:
             probe = Cell(worksheet, row=1, column=1)
             probe.style = name
         except (KeyError, ValueError):
-            return r[m.Cli.XlsxNamedStyleSpec].fail(
+            return r[p.Cli.XlsxNamedStyleSpec].fail(
                 f"{c.Cli.XlsxError.NAMED_STYLE_MISSING}: {name}"
             )
         visual = cls._visual_from_styleable(probe)
         if visual.failure:
-            return r[m.Cli.XlsxNamedStyleSpec].fail(
+            return r[p.Cli.XlsxNamedStyleSpec].fail(
                 visual.error or f"Failed to read registered style: {name}"
             )
-        return r[m.Cli.XlsxNamedStyleSpec].ok(
+        return r[p.Cli.XlsxNamedStyleSpec].ok(
             m.Cli.XlsxNamedStyleSpec(name=name, visual=visual.value)
         )
 
@@ -102,7 +102,7 @@ class FlextCliUtilitiesXlsxConditional(
 
     @classmethod
     def _apply_conditional_formats(
-        cls, worksheet: Worksheet, plans: tuple[m.Cli.XlsxConditionalFormatPlan, ...]
+        cls, worksheet: Worksheet, plans: tuple[p.Cli.XlsxConditionalFormatPlan, ...]
     ) -> p.Result[bool]:
         try:
             for plan in plans:

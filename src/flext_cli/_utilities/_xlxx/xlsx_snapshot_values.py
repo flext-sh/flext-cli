@@ -36,14 +36,14 @@ class FlextCliUtilitiesXlsxSnapshotValues:
     @staticmethod
     def _snapshot_value(
         value: t.Cli.XlsxCellPrimitive, *, formula_view: bool
-    ) -> p.Result[m.Cli.XlsxCellValue]:
+    ) -> p.Result[p.Cli.XlsxCellValue]:
         formula = (
             value
             if formula_view and isinstance(value, str) and value.startswith("=")
             else None
         )
         if formula_view and formula is None:
-            return r[m.Cli.XlsxCellValue].fail(
+            return r[p.Cli.XlsxCellValue].fail(
                 f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: "
                 "formula cell has no formula expression"
             )
@@ -67,10 +67,10 @@ class FlextCliUtilitiesXlsxSnapshotValues:
             )
         except (InvalidOperation, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxCellValue].fail(
+            return r[p.Cli.XlsxCellValue].fail(
                 f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: {detail}", exception=exc
             )
-        return r[m.Cli.XlsxCellValue].ok(converted)
+        return r[p.Cli.XlsxCellValue].ok(converted)
 
     @staticmethod
     def _has_snapshot_content(cell: Cell) -> bool:
@@ -97,7 +97,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
     @classmethod
     def _snapshot_cell(
         cls, formula_cell: Cell, value_sheet: Worksheet, *, data_only: bool
-    ) -> p.Result[m.Cli.XlsxCellSnapshot]:
+    ) -> p.Result[p.Cli.XlsxCellSnapshot]:
         try:
             formula = cls._formula(formula_cell)
             selected = (
@@ -107,16 +107,16 @@ class FlextCliUtilitiesXlsxSnapshotValues:
             )
         except (IndexError, TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxCellSnapshot].fail(detail, exception=exc)
+            return r[p.Cli.XlsxCellSnapshot].fail(detail, exception=exc)
         if not isinstance(selected, Cell):
-            return r[m.Cli.XlsxCellSnapshot].fail(
+            return r[p.Cli.XlsxCellSnapshot].fail(
                 f"Unsupported selected cell: {formula_cell.coordinate}"
             )
         selected_value = selected.value
         if selected_value is not None and not isinstance(
             selected_value, (str, int, float, bool, Decimal, dt.date, dt.datetime)
         ):
-            return r[m.Cli.XlsxCellSnapshot].fail(
+            return r[p.Cli.XlsxCellSnapshot].fail(
                 f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: "
                 f"{selected_value.__class__.__name__} at {formula_cell.coordinate}"
             )
@@ -141,14 +141,14 @@ class FlextCliUtilitiesXlsxSnapshotValues:
             )
         except (IndexError, TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxCellSnapshot].fail(detail, exception=exc)
-        return r[m.Cli.XlsxCellSnapshot].ok(snapshot)
+            return r[p.Cli.XlsxCellSnapshot].fail(detail, exception=exc)
+        return r[p.Cli.XlsxCellSnapshot].ok(snapshot)
 
     @classmethod
     def _snapshot_cells(
         cls, formula_sheet: Worksheet, value_sheet: Worksheet, *, data_only: bool
-    ) -> p.Result[tuple[m.Cli.XlsxCellSnapshot, ...]]:
-        cells: tuple[m.Cli.XlsxCellSnapshot, ...] = ()
+    ) -> p.Result[tuple[p.Cli.XlsxCellSnapshot, ...]]:
+        cells: tuple[p.Cli.XlsxCellSnapshot, ...] = ()
         try:
             for row in formula_sheet.iter_rows():
                 for formula_cell in row:
@@ -165,8 +165,8 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                         ),
                     )
         except ValueError as exc:
-            return r[tuple[m.Cli.XlsxCellSnapshot, ...]].fail(str(exc), exception=exc)
-        return r[tuple[m.Cli.XlsxCellSnapshot, ...]].ok(cells)
+            return r[tuple[p.Cli.XlsxCellSnapshot, ...]].fail(str(exc), exception=exc)
+        return r[tuple[p.Cli.XlsxCellSnapshot, ...]].ok(cells)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxSnapshotValues",)

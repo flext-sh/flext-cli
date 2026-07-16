@@ -26,7 +26,7 @@ class TestsFlextCliPipeline:
 
         def handler(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
                 stage_id, output={output_key: stage_id}, duration_ms=1.0
@@ -50,12 +50,12 @@ class TestsFlextCliPipeline:
 
         def flaky(
             _ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             nonlocal call_count
             call_count += 1
             if call_count < expected_attempts:
-                return r[m.Cli.PipelineStageResult].fail("transient")
-            return r[m.Cli.PipelineStageResult].ok(
+                return r[p.Cli.PipelineStageResult].fail("transient")
+            return r[p.Cli.PipelineStageResult].ok(
                 cli.stage_result("flaky", status=c.Cli.PipelineStageStatus.OK)
             )
 
@@ -72,7 +72,7 @@ class TestsFlextCliPipeline:
 
         def exploding(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             nonlocal call_count
             _ = ctx
             call_count += 1

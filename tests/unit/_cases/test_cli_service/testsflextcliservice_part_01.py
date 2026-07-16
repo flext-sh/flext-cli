@@ -68,7 +68,7 @@ class TestsFlextCliService:
 
     def test_model_command_generates_real_typer_options(self) -> None:
         """Generate and execute real Typer options from the request model."""
-        captured: MutableSequence[m.Tests.SampleInput] = []
+        captured: MutableSequence[p.Tests.SampleInput] = []
         app = cli.create_app_with_common_params(
             name="root", help_text="Root application"
         )

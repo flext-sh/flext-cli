@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, p, s, t, u
+from flext_cli import p, s, t, u
 
 
 class FlextCliCmd(s):
@@ -22,7 +22,7 @@ class FlextCliCmd(s):
     """
 
     @staticmethod
-    def settings_snapshot() -> p.Result[m.Cli.SettingsSnapshot]:
+    def settings_snapshot() -> p.Result[p.Cli.SettingsSnapshot]:
         """Return the current settings snapshot using ``u.Cli``."""
         return u.Cli.cmd_settings_snapshot()
 

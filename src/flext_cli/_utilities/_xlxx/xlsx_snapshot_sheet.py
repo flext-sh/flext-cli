@@ -37,11 +37,11 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
     @classmethod
     def _snapshot_sheet(
         cls, formula_sheet: Worksheet, value_sheet: Worksheet, *, position: int
-    ) -> p.Result[m.Cli.XlsxSheetSnapshot]:
+    ) -> p.Result[p.Cli.XlsxSheetSnapshot]:
         formula_title = formula_sheet.title
         value_title = value_sheet.title
         if formula_title != value_title:
-            return r[m.Cli.XlsxSheetSnapshot].fail(
+            return r[p.Cli.XlsxSheetSnapshot].fail(
                 "Worksheet snapshot failed (ValueError): Worksheet view mismatch: "
                 f"{formula_title} != {value_title}"
             )
@@ -64,14 +64,14 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
             )
             legacy_password_hash = formula_sheet.protection.password
         except (TypeError, ValidationError, ValueError) as exc:
-            return r[m.Cli.XlsxSheetSnapshot].fail(
+            return r[p.Cli.XlsxSheetSnapshot].fail(
                 f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}",
                 exception=exc,
             )
         if legacy_password_hash is not None and not isinstance(
             legacy_password_hash, str
         ):
-            return r[m.Cli.XlsxSheetSnapshot].fail(
+            return r[p.Cli.XlsxSheetSnapshot].fail(
                 "Worksheet snapshot failed (TypeError): Worksheet legacy protection "
                 "hash is not textual"
             )
@@ -110,11 +110,11 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
                 merge_count=len(merged_ranges),
             )
         except (TypeError, ValidationError, ValueError) as exc:
-            return r[m.Cli.XlsxSheetSnapshot].fail(
+            return r[p.Cli.XlsxSheetSnapshot].fail(
                 f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}",
                 exception=exc,
             )
-        return r[m.Cli.XlsxSheetSnapshot].ok(snapshot)
+        return r[p.Cli.XlsxSheetSnapshot].ok(snapshot)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxSnapshotSheet",)

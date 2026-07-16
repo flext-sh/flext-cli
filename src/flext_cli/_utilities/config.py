@@ -45,7 +45,7 @@ class FlextCliUtilitiesConfig:
     @staticmethod
     def config_load(
         path: Path, *, schema_path: Path | None = None, expand_env: bool = True
-    ) -> p.Result[m.ConfigDocument]:
+    ) -> p.Result[p.ConfigDocument]:
         """Load a YAML/JSON/TOML config into a validated ``m.ConfigDocument``.
 
         Reuses core ``u.config_env_override`` for ``${VAR}`` expansion and
@@ -53,21 +53,21 @@ class FlextCliUtilitiesConfig:
         """
         read = FlextCliUtilitiesConfig._read_by_suffix(path)
         if read.failure:
-            return r[m.ConfigDocument].fail(
+            return r[p.ConfigDocument].fail(
                 read.error or f"{c.ERR_CONFIG_READ_FAILED}: {path}"
             )
         data: t.JsonValue = dict(read.value)
         if expand_env:
             data = u.config_env_override(data, dict(os.environ))
         if not isinstance(data, dict):
-            return r[m.ConfigDocument].fail(f"{c.ERR_CONFIG_NOT_MAPPING}: {path}")
+            return r[p.ConfigDocument].fail(f"{c.ERR_CONFIG_NOT_MAPPING}: {path}")
         if schema_path is not None:
             validated = FlextCliUtilitiesConfig.schema_validate(data, schema_path)
             if validated.failure:
-                return r[m.ConfigDocument].fail(
+                return r[p.ConfigDocument].fail(
                     validated.error or c.Cli.ERR_SCHEMA_INVALID
                 )
-        return r[m.ConfigDocument].ok(
+        return r[p.ConfigDocument].ok(
             m.ConfigDocument(
                 data=data,
                 source_path=str(path),

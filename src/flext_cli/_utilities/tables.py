@@ -36,11 +36,11 @@ class FlextCliUtilitiesTables:
     def tables_resolve_config(
         settings: m.Cli.TableConfig | None = None,
         **settings_kwargs: t.Cli.TableConfigValue,
-    ) -> p.Result[m.Cli.TableConfig]:
+    ) -> p.Result[p.Cli.TableConfig]:
         """Resolve table config via canonical Pydantic model contract."""
         try:
             if settings is not None and not settings_kwargs:
-                return r[m.Cli.TableConfig].ok(settings)
+                return r[p.Cli.TableConfig].ok(settings)
             base_data = (
                 settings.model_dump(exclude_computed_fields=True)
                 if settings is not None
@@ -48,9 +48,9 @@ class FlextCliUtilitiesTables:
             )
             settings_data = {**base_data, **settings_kwargs}
             resolved = m.Cli.TableConfig.model_validate(settings_data)
-            return r[m.Cli.TableConfig].ok(resolved)
+            return r[p.Cli.TableConfig].ok(resolved)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[m.Cli.TableConfig].fail(
+            return r[p.Cli.TableConfig].fail(
                 c.Cli.OUTPUT_TABLE_CONFIG_INVALID_FMT.format(error=exc)
             )
 

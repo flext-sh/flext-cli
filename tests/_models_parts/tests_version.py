@@ -17,7 +17,7 @@ class TestsFlextCliModelsVersion:
     class VersionTestScenario(m.BaseModel):
         """Version test scenario data."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(frozen=True)
 
         name: Annotated[str, m.Field(description="Scenario name")]
         version_string: Annotated[

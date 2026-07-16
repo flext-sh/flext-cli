@@ -14,7 +14,7 @@ class FlextCliUtilitiesOptionBuilder:
         self.field_name = field_name
         self.registry = registry
 
-    def build(self) -> m.Cli.OptionSpec:
+    def build(self) -> p.Cli.OptionSpec:
         """Build one CLI option spec from field metadata."""
         field_meta_raw = self.registry.get(self.field_name, {})
         if not field_meta_raw:

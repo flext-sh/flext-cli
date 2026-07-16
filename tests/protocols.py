@@ -52,7 +52,7 @@ class TestsFlextCliProtocols(FlextTestsProtocols, p):
                 """Set the observable interactive and quiet prompt state."""
                 ...
 
-            def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
+            def execute(self) -> p.Result[p.Cli.RuntimeStatus]:
                 """Return the canonical typed CLI runtime status."""
                 ...
 

@@ -11,7 +11,7 @@ class FlextCliUtilitiesCmd:
     """Utility helpers for FlextCliCmd service orchestration."""
 
     @staticmethod
-    def cmd_status() -> m.Cli.RuntimeStatus:
+    def cmd_status() -> p.Cli.RuntimeStatus:
         """Return the canonical public CLI runtime status model."""
         return m.Cli.RuntimeStatus(
             status=c.Cli.ServiceStatus.OPERATIONAL,
@@ -27,12 +27,12 @@ class FlextCliUtilitiesCmd:
         )
 
     @staticmethod
-    def cmd_settings_snapshot() -> p.Result[m.Cli.SettingsSnapshot]:
+    def cmd_settings_snapshot() -> p.Result[p.Cli.SettingsSnapshot]:
         """Return settings snapshot with canonical error mapping."""
         try:
-            return r[m.Cli.SettingsSnapshot].ok(us.settings_snapshot())
+            return r[p.Cli.SettingsSnapshot].ok(us.settings_snapshot())
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[m.Cli.SettingsSnapshot].fail(
+            return r[p.Cli.SettingsSnapshot].fail(
                 c.Cli.ERR_SETTINGS_INFO_FAILED.format(error=exc)
             )
 

@@ -27,7 +27,7 @@ class TestsFlextCliPipeline:
         def track(sid: str) -> t.Cli.PipelineHandler:
             def h(
                 ctx: p.Cli.PipelineStageContext,
-            ) -> p.Result[m.Cli.PipelineStageResult]:
+            ) -> p.Result[p.Cli.PipelineStageResult]:
                 _ = ctx
                 order.append(sid)
                 return cli.ok_stage(sid)

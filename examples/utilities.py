@@ -29,7 +29,7 @@ class ExamplesFlextCliUtilities(u):
     def to_json_dict(
         cls,
         data: t.JsonMapping,
-    ) -> m.Cli.DisplayData:
+    ) -> p.Cli.DisplayData:
         """Normalize settings/mapping to DisplayData for create_table/display_config_table."""
         json_value: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
             cls.normalize_to_json_value(data),

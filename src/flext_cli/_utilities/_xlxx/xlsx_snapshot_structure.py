@@ -20,16 +20,16 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_tables(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxTableSnapshot, ...]]:
-        tables: tuple[m.Cli.XlsxTableSnapshot, ...] = ()
+    ) -> p.Result[tuple[p.Cli.XlsxTableSnapshot, ...]]:
+        tables: tuple[p.Cli.XlsxTableSnapshot, ...] = ()
         try:
             for item in worksheet.tables.values():
                 if not isinstance(item, Table):
-                    return r[tuple[m.Cli.XlsxTableSnapshot, ...]].fail(
+                    return r[tuple[p.Cli.XlsxTableSnapshot, ...]].fail(
                         f"Unsupported table value: {item.__class__.__name__}"
                     )
                 if not isinstance(item.name, str) or not isinstance(item.ref, str):
-                    return r[tuple[m.Cli.XlsxTableSnapshot, ...]].fail(
+                    return r[tuple[p.Cli.XlsxTableSnapshot, ...]].fail(
                         "Table requires a string name and reference"
                     )
                 style_name = (
@@ -45,18 +45,18 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                 )
         except (AttributeError, TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[tuple[m.Cli.XlsxTableSnapshot, ...]].fail(
+            return r[tuple[p.Cli.XlsxTableSnapshot, ...]].fail(
                 f"Table snapshot failed: {detail}"
             )
-        return r[tuple[m.Cli.XlsxTableSnapshot, ...]].ok(
+        return r[tuple[p.Cli.XlsxTableSnapshot, ...]].ok(
             tuple(sorted(tables, key=lambda item: item.name))
         )
 
     @staticmethod
     def _snapshot_rows(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]]:
-        rows: tuple[m.Cli.XlsxRowDimensionSnapshot, ...] = ()
+    ) -> p.Result[tuple[p.Cli.XlsxRowDimensionSnapshot, ...]]:
+        rows: tuple[p.Cli.XlsxRowDimensionSnapshot, ...] = ()
         try:
             for item in worksheet.row_dimensions.values():
                 rows = (
@@ -70,18 +70,18 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                 )
         except (TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]].fail(
+            return r[tuple[p.Cli.XlsxRowDimensionSnapshot, ...]].fail(
                 f"Row-dimension snapshot failed: {detail}"
             )
-        return r[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]].ok(
+        return r[tuple[p.Cli.XlsxRowDimensionSnapshot, ...]].ok(
             tuple(sorted(rows, key=lambda item: item.position))
         )
 
     @staticmethod
     def _snapshot_columns(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]]:
-        columns: tuple[m.Cli.XlsxColumnDimensionSnapshot, ...] = ()
+    ) -> p.Result[tuple[p.Cli.XlsxColumnDimensionSnapshot, ...]]:
+        columns: tuple[p.Cli.XlsxColumnDimensionSnapshot, ...] = ()
         try:
             for item in worksheet.column_dimensions.values():
                 anchor = column_index_from_string(item.index)
@@ -98,26 +98,26 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                 )
         except (TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]].fail(
+            return r[tuple[p.Cli.XlsxColumnDimensionSnapshot, ...]].fail(
                 f"Column-dimension snapshot failed: {detail}"
             )
-        return r[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]].ok(
+        return r[tuple[p.Cli.XlsxColumnDimensionSnapshot, ...]].ok(
             tuple(sorted(columns, key=lambda item: item.first))
         )
 
     @staticmethod
     def _snapshot_names(
         workbook: Workbook,
-    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]]:
-        names: tuple[m.Cli.XlsxDefinedNameSnapshot, ...] = ()
+    ) -> p.Result[tuple[p.Cli.XlsxDefinedNameSnapshot, ...]]:
+        names: tuple[p.Cli.XlsxDefinedNameSnapshot, ...] = ()
         try:
             for item in workbook.defined_names.values():
                 if not isinstance(item, DefinedName):
-                    return r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]].fail(
+                    return r[tuple[p.Cli.XlsxDefinedNameSnapshot, ...]].fail(
                         f"Unsupported defined name: {item.__class__.__name__}"
                     )
                 if not isinstance(item.attr_text, str):
-                    return r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]].fail(
+                    return r[tuple[p.Cli.XlsxDefinedNameSnapshot, ...]].fail(
                         f"Defined name has no expression or kind: {item.name}"
                     )
                 names = (
@@ -132,10 +132,10 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                 )
         except (TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]].fail(
+            return r[tuple[p.Cli.XlsxDefinedNameSnapshot, ...]].fail(
                 f"Defined-name snapshot failed: {detail}"
             )
-        return r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]].ok(
+        return r[tuple[p.Cli.XlsxDefinedNameSnapshot, ...]].ok(
             tuple(sorted(names, key=lambda item: item.name))
         )
 

@@ -58,7 +58,7 @@ class Ex06Settings:
         return settings
 
     @staticmethod
-    def show_settings_locations() -> m.Cli.DisplayData:
+    def show_settings_locations() -> p.Cli.DisplayData:
         """Display settings file locations for YOUR application."""
         home_dir = Path.home()
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)

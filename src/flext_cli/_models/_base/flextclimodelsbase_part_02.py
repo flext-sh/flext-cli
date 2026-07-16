@@ -5,7 +5,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import Annotated, ClassVar
 
-from flext_cli import c, t
+from flext_cli import c, p, t
 from flext_core import m, u
 
 
@@ -15,7 +15,7 @@ class FlextCliModelsBase:
     class PromptRuntimeState(m.FlexibleInternalModel):
         """Centralized runtime state for CLI prompt behavior."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
 
@@ -32,7 +32,7 @@ class FlextCliModelsBase:
     class AuthCredentialsPayload(m.BaseModel):
         """Validated auth payload for token or username/password flows."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         token: Annotated[
@@ -49,7 +49,7 @@ class FlextCliModelsBase:
     class ProcessEnvironmentSpec(m.BaseModel):
         """Validated process environment contract for runtime command execution."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         base_env: Annotated[
             t.StrMapping,
             m.Field(

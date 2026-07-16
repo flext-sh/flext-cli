@@ -110,7 +110,7 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
 
     @classmethod
     def _apply_validations(
-        cls, worksheet: Worksheet, plans: tuple[m.Cli.XlsxDataValidationPlan, ...]
+        cls, worksheet: Worksheet, plans: tuple[p.Cli.XlsxDataValidationPlan, ...]
     ) -> p.Result[bool]:
         try:
             for plan in plans:

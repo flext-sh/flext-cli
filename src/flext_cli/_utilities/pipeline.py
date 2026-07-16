@@ -17,12 +17,12 @@ class FlextCliUtilitiesPipeline:
 
     @staticmethod
     def execute_pipeline(
-        stages: t.SequenceOf[m.Cli.PipelineStageSpec],
+        stages: t.SequenceOf[p.Cli.PipelineStageSpec],
         context: m.Cli.PipelineStageContext,
         *,
         fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
         logger: p.Logger | None = None,
-    ) -> p.Result[m.Cli.PipelineResult]:
+    ) -> p.Result[p.Cli.PipelineResult]:
         """Execute pipeline stages in topological order.
 
         Uses graphlib.TopologicalSorter for dependency resolution.
@@ -30,10 +30,10 @@ class FlextCliUtilitiesPipeline:
         """
         log = logger or FlextCliUtilitiesPipeline._pipeline_logger
         pipeline_start = time.monotonic()
-        results: t.MutableSequenceOf[m.Cli.PipelineStageResult] = []
+        results: t.MutableSequenceOf[p.Cli.PipelineStageResult] = []
 
         if not stages:
-            return r[m.Cli.PipelineResult].ok(
+            return r[p.Cli.PipelineResult].ok(
                 m.Cli.PipelineResult(stages=[], total_duration_ms=0.0)
             )
 
@@ -50,7 +50,7 @@ class FlextCliUtilitiesPipeline:
         try:
             order = tuple(sorter.static_order())
         except CycleError as exc:
-            return r[m.Cli.PipelineResult].fail(f"pipeline cycle detected: {exc}")
+            return r[p.Cli.PipelineResult].fail(f"pipeline cycle detected: {exc}")
 
         failed = False
         for stage_id in order:
@@ -87,14 +87,14 @@ class FlextCliUtilitiesPipeline:
             duration_ms=round(total_ms, 2),
         )
 
-        return r[m.Cli.PipelineResult].ok(pipeline_result)
+        return r[p.Cli.PipelineResult].ok(pipeline_result)
 
     @staticmethod
     def _run_stage(
         spec: m.Cli.PipelineStageSpec,
         context: m.Cli.PipelineStageContext,
         log: p.Logger,
-    ) -> m.Cli.PipelineStageResult:
+    ) -> p.Cli.PipelineStageResult:
         """Execute a single stage with skip check and retry logic."""
         if spec.skip_if is not None and spec.skip_if(context):
             log.debug("stage_skipped", stage_id=spec.stage_id, reason="skip_if")
