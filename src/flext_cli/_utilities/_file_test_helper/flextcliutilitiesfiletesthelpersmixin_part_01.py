@@ -59,13 +59,13 @@ class FlextCliUtilitiesFileTestHelpersMixin:
                     file_path.write_text(raw, encoding=c.Cli.ENCODING_DEFAULT)
                 elif isinstance(raw, Mapping):
                     fmt = (
-                        c.Cli.FILE_FORMAT_YAML
+                        c.Cli.YAML_FILE_FORMAT
                         if file_path.suffix in {".yaml", ".yml"}
-                        else c.Cli.FILE_FORMAT_JSON
+                        else c.Cli.JSON_FILE_FORMAT
                     )
                     cls._files_write_structured(file_path, raw, fmt)
                 elif isinstance(raw, list):
-                    FlextCliUtilitiesFiles.files_write_csv(
+                    FlextCliUtilitiesFiles.csv_write_files(
                         file_path, cast("t.SequenceOf[t.StrSequence]", raw)
                     )
                 else:
@@ -89,7 +89,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
     ) -> p.Result[bool]:
         """Write a structured payload as JSON or YAML."""
         validated = t.Cli.JSON_VALUE_ADAPTER.validate_python(data)
-        if fmt == c.Cli.FILE_FORMAT_YAML:
+        if fmt == c.Cli.YAML_FILE_FORMAT:
             dumped = uy.yaml_dump_str(validated)
             return FlextCliUtilitiesFiles.files_write_text(path, dumped)
         dumped_result = uj.json_dumps(validated)

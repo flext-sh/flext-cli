@@ -39,13 +39,13 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             return None
         match normalized_source:
             case _ if (
-                normalized_atom := cls.normalize_cli_atom(normalized_source)
+                normalized_atom := cls.cli_normalize_atom(normalized_source)
             ) is not None:
                 normalized_default: t.Cli.CliValue | None = normalized_atom
             case Mapping() as normalized_source_mapping:
                 normalized_mapping: t.Cli.MutableDefaultMapping = {}
                 for key, item_value in normalized_source_mapping.items():
-                    normalized_item = cls.normalize_cli_atom(item_value)
+                    normalized_item = cls.cli_normalize_atom(item_value)
                     if normalized_item is not None:
                         normalized_mapping[key] = normalized_item
                 normalized_default = normalized_mapping or None

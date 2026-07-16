@@ -35,14 +35,14 @@ class FlextCliAuth(s):
                 c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(field_name="token")
             )
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
-        return FlextCliFileTools.write_json_file(
+        return FlextCliFileTools.json_write_file(
             token_file_path, {c.Cli.DICT_KEY_AUTH_TOKEN: token}
         )
 
     def fetch_auth_token(self) -> p.Result[str]:
         """Load the persisted authentication token from the configured token file."""
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
-        return FlextCliFileTools.read_json_file(token_file_path).flat_map(
+        return FlextCliFileTools.json_read_file(token_file_path).flat_map(
             u.Cli.auth_extract_token
         )
 

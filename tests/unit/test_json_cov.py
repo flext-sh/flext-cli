@@ -20,9 +20,9 @@ class TestsFlextCliJsonCov:
 
     # ----- normalize -------------------------------------------------------
 
-    def test_normalize_json_value_preserves_mapping(self) -> None:
+    def test_json_normalize_value_preserves_mapping(self) -> None:
         """Preserve a JSON-compatible mapping during normalization."""
-        tm.that(u.Cli.normalize_json_value({"key": "value"}), eq={"key": "value"})
+        tm.that(u.Cli.json_normalize_value({"key": "value"}), eq={"key": "value"})
 
     # ----- json_read (fallible, r[JsonMapping]) ----------------------------
 

@@ -16,8 +16,8 @@ from pathlib import Path
 class TestsFlextCliJsonCov:
     """Implementation part for TestsFlextCliJsonCov."""
 
-    def test_normalize_json_value(self) -> None:
-        result = u.Cli.normalize_json_value({"key": "value"})
+    def test_json_normalize_value(self) -> None:
+        result = u.Cli.json_normalize_value({"key": "value"})
         tm.that(result, eq={"key": "value"})
 
     def test_json_read_missing_file(self, tmp_path: Path) -> None:

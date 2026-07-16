@@ -24,8 +24,8 @@ class FlextCliFileTools(s):
         return u.Cli.atomic_write_text_file(file_path, content)
 
     @staticmethod
-    def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
-        return u.Cli.files_read_json(Path(file_path))
+    def json_read_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
+        return u.Cli.json_read_files(Path(file_path))
 
     @staticmethod
     def read_text_file(file_path: t.Cli.TextPath) -> p.Result[str]:
@@ -33,35 +33,35 @@ class FlextCliFileTools(s):
         return u.Cli.files_read_text(Path(file_path))
 
     @staticmethod
-    def read_json_model[M: t.Cli.ModelLike](
+    def json_read_model[M: t.Cli.ModelLike](
         file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
     ) -> p.Result[M]:
         """Read JSON into the canonical structural model-class contract."""
-        return u.Cli.files_read_json_model(Path(file_path), model_type)
+        return u.Cli.json_read_files_model(Path(file_path), model_type)
 
     @staticmethod
-    def read_yaml_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
+    def yaml_read_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         normalized_path = u.Cli.normalize_optional_text(file_path)
         if normalized_path is None:
             return r[t.JsonValue].fail(c.Cli.ERR_FILE_PATH_EMPTY)
-        return u.Cli.files_read_yaml(Path(normalized_path))
+        return u.Cli.yaml_read_files(Path(normalized_path))
 
     @staticmethod
-    def read_yaml_model[M: t.Cli.ModelLike](
+    def yaml_read_model[M: t.Cli.ModelLike](
         file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
     ) -> p.Result[M]:
         """Read YAML and validate it once into the requested model type."""
-        return u.Cli.files_read_yaml_model(Path(file_path), model_type)
+        return u.Cli.yaml_read_files_model(Path(file_path), model_type)
 
     @staticmethod
-    def read_yaml_model_chain[M: t.Cli.ModelLike](
+    def yaml_read_model_chain[M: t.Cli.ModelLike](
         file_paths: Sequence[t.Cli.TextPath], model_type: t.ModelClass[M]
     ) -> p.Result[M]:
         """Merge ordered YAML sources and validate the final payload once."""
-        return u.Cli.files_read_yaml_model_chain(file_paths, model_type)
+        return u.Cli.yaml_read_files_model_chain(file_paths, model_type)
 
     @staticmethod
-    def write_json_file(
+    def json_write_file(
         file_path: t.Cli.TextPath,
         data: t.Cli.JsonWriteData,
         options: p.Cli.JsonWriteOptions | None = None,
@@ -69,22 +69,22 @@ class FlextCliFileTools(s):
         return u.Cli.json_write(Path(file_path), data, options=options)
 
     @staticmethod
-    def write_yaml_file(
+    def yaml_write_file(
         file_path: t.Cli.TextPath, data: t.Cli.JsonWriteData
     ) -> p.Result[bool]:
         return u.Cli.yaml_dump(Path(file_path), data)
 
     @staticmethod
-    def write_csv_file(
+    def csv_write_file(
         file_path: t.Cli.TextPath, rows: t.SequenceOf[t.StrSequence]
     ) -> p.Result[bool]:
-        return u.Cli.files_write_csv(Path(file_path), rows)
+        return u.Cli.csv_write_files(Path(file_path), rows)
 
     @staticmethod
-    def read_csv_file_with_headers(
+    def csv_read_file_with_headers(
         file_path: t.Cli.TextPath,
     ) -> p.Result[t.SequenceOf[t.StrMapping]]:
-        return u.Cli.files_read_csv_with_headers(Path(file_path))
+        return u.Cli.csv_read_files_with_headers(Path(file_path))
 
     @staticmethod
     def read_binary_file(file_path: t.Cli.TextPath) -> p.Result[bytes]:

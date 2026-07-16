@@ -34,8 +34,8 @@ class ExamplesFlextCliUtilities(u):
         json_value: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
             cls.normalize_to_json_value(data),
         )
-        normalized = m.Cli.CliNormalizedJson(json_value).root
-        resolved = m.Cli.NormalizedJsonList(value=normalized, default={}).resolved
+        normalized = m.Cli.JsonNormalized(json_value).root
+        resolved = m.Cli.JsonNormalizedList(value=normalized, default={}).resolved
         result_dict = dict(resolved.items())
         return m.Cli.DisplayData(data=result_dict)
 

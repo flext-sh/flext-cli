@@ -35,7 +35,7 @@ def save_user_preferences(
     # with open(config_file, 'w') as f:
     #     json.dump(preferences, f)
 
-    write_result = cli.write_json_file(
+    write_result = cli.json_write_file(
         config_file,
         u.normalize_to_json_value(preferences),
     )
@@ -58,7 +58,7 @@ def load_user_preferences(config_dir: Path) -> p.Result[p.Cli.LoadedConfig]:
     """Load user preferences from JSON in YOUR app. Returns r[LoadedConfig]; no None."""
     config_file = config_dir / "preferences.json"
 
-    read_result = cli.read_json_file(config_file)
+    read_result = cli.json_read_file(config_file)
 
     if read_result.failure:
         cli.print(
@@ -95,7 +95,7 @@ def save_deployment_config(
     #     yaml.dump(settings, f)
 
     # Normalize the mapping into the CLI JSON contract before writing YAML.
-    write_result = cli.write_yaml_file(
+    write_result = cli.yaml_write_file(
         config_file,
         u.normalize_to_json_value(settings),
     )
@@ -130,7 +130,7 @@ def load_deployment_config(config_file: Path) -> p.Result[p.Cli.LoadedConfig]:
 
 def validate_and_import_data(input_file: Path) -> p.Result[p.Cli.LoadedConfig]:
     """Validate and import data in YOUR ETL pipeline. Returns r[LoadedConfig]; no None."""
-    read_result = cli.read_json_file(input_file)
+    read_result = cli.json_read_file(input_file)
 
     if read_result.failure:
         cli.print(

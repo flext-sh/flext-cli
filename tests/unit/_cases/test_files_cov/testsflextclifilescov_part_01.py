@@ -60,21 +60,21 @@ class TestsFlextCliFilesCov:
     def test_files_read_write_json(self, tmp_path: Path) -> None:
         """Round-trip a JSON document through the public CLI facade."""
         path = tmp_path / "data.json"
-        write_result = cli.write_json_file(path, {"key": "value"})
+        write_result = cli.json_write_file(path, {"key": "value"})
         tm.ok(write_result)
-        read_result = cli.read_json_file(path)
+        read_result = cli.json_read_file(path)
         tm.ok(read_result)
 
     def test_files_read_json_missing(self, tmp_path: Path) -> None:
         """Return failure when a JSON source is absent."""
-        result = cli.read_json_file(tmp_path / "missing.json")
+        result = cli.json_read_file(tmp_path / "missing.json")
         tm.fail(result)
 
     def test_files_read_json_model(self, tmp_path: Path) -> None:
         """Validate one complete JSON document into the requested model."""
         path = tmp_path / "opts.json"
         path.write_text('{"indent": 4, "sort_keys": true}', encoding="utf-8")
-        result = cli.read_json_model(path, m.Cli.JsonWriteOptions)
+        result = cli.json_read_model(path, m.Cli.JsonWriteOptions)
         tm.ok(result)
         tm.that(result.value.indent, eq=4)
 
@@ -85,8 +85,8 @@ class TestsFlextCliFilesCov:
             '\n{"indent": 2, "sort_keys": false}\n{"indent": 4, "sort_keys": true}\n',
             encoding="utf-8",
         )
-        first = u.Cli.files_read_first_json_model(path, m.Cli.JsonWriteOptions)
-        all_records = u.Cli.files_read_json_lines_model(path, m.Cli.JsonWriteOptions)
+        first = u.Cli.json_read_first_files_model(path, m.Cli.JsonWriteOptions)
+        all_records = u.Cli.json_read_files_lines_model(path, m.Cli.JsonWriteOptions)
         tm.ok(first)
         tm.ok(all_records)
         tm.that(first.value.indent, eq=2)
@@ -95,34 +95,34 @@ class TestsFlextCliFilesCov:
     def test_files_read_write_yaml(self, tmp_path: Path) -> None:
         """Round-trip a YAML document through the public CLI facade."""
         path = tmp_path / "data.yaml"
-        write_result = cli.write_yaml_file(path, {"key": "val"})
+        write_result = cli.yaml_write_file(path, {"key": "val"})
         tm.ok(write_result)
-        read_result = cli.read_yaml_file(path)
+        read_result = cli.yaml_read_file(path)
         tm.ok(read_result)
 
     def test_files_read_yaml_missing(self, tmp_path: Path) -> None:
         """Return failure when a YAML source is absent."""
-        result = cli.read_yaml_file(tmp_path / "missing.yaml")
+        result = cli.yaml_read_file(tmp_path / "missing.yaml")
         tm.fail(result)
 
     def test_files_read_yaml_empty_path(self) -> None:
         """Reject an empty YAML path."""
-        result = cli.read_yaml_file("   ")
+        result = cli.yaml_read_file("   ")
         tm.fail(result)
 
     def test_files_write_read_csv(self, tmp_path: Path) -> None:
         """Round-trip CSV rows with validated headers."""
         path = tmp_path / "data.csv"
         rows: list[t.StrSequence] = [["name", "age"], ["alice", "30"], ["bob", "25"]]
-        write_result = cli.write_csv_file(path, rows)
+        write_result = cli.csv_write_file(path, rows)
         tm.ok(write_result)
-        read_result = cli.read_csv_file_with_headers(path)
+        read_result = cli.csv_read_file_with_headers(path)
         tm.ok(read_result)
         tm.that(len(read_result.value), eq=2)
 
     def test_files_read_csv_missing(self, tmp_path: Path) -> None:
         """Return failure when a CSV source is absent."""
-        result = cli.read_csv_file_with_headers(tmp_path / "missing.csv")
+        result = cli.csv_read_file_with_headers(tmp_path / "missing.csv")
         tm.fail(result)
 
     def test_files_write_read_binary(self, tmp_path: Path) -> None:

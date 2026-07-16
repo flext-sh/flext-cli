@@ -141,7 +141,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         """
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            validated = FlextCliUtilitiesJson.normalize_json_value(data)
+            validated = FlextCliUtilitiesJson.json_normalize_value(data)
             with path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as fh:
                 safe_dump(
                     validated,
@@ -168,7 +168,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             text = u.Cli.yaml_dump_str(payload)
         """
         try:
-            validated = FlextCliUtilitiesJson.normalize_json_value(data)
+            validated = FlextCliUtilitiesJson.json_normalize_value(data)
             return safe_dump(
                 validated,
                 default_flow_style=False,

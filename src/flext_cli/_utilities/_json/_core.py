@@ -75,7 +75,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         return data
 
     @staticmethod
-    def normalize_json_value(item: t.JsonPayload) -> t.JsonValue:
+    def json_normalize_value(item: t.JsonPayload) -> t.JsonValue:
         """Normalize any runtime value to JSON-compatible output (Pydantic-native)."""
         return u.normalize_to_json_value(item)
 
@@ -84,7 +84,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         payload: t.JsonPayload, options: p.Cli.JsonWriteOptions
     ) -> str:
         """Serialize a JSON payload using canonical write options."""
-        validated = FlextCliUtilitiesJsonCoreMixin.normalize_json_value(payload)
+        validated = FlextCliUtilitiesJsonCoreMixin.json_normalize_value(payload)
         normalized = (
             FlextCliUtilitiesJsonCoreMixin.json_sort_keys(validated)
             if options.sort_keys

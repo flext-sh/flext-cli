@@ -35,7 +35,7 @@ class TestsFlextCliConfigEngine:
     def test_template_render_missing_source_fails(self, tmp_path: Path) -> None:
         result = u.Cli.template_render(tmp_path / "absent.j2", m.Tests.TemplateEmpty())
         tm.fail(result)
-        tm.that((result.error or ""), has=c.Cli.ERR_TEMPLATE_NOT_FOUND)
+        tm.that((result.error or ""), has=c.Cli.TEMPLATE_ERR_NOT_FOUND)
 
     def test_template_render_to_writes(self, tmp_path: Path) -> None:
         tpl = tmp_path / "t.j2"
@@ -198,7 +198,7 @@ class TestsFlextCliTemplateRenderDir:
             root, out, m.Tests.TemplateEmpty(), entries
         ).unwrap()
         assert report.failed
-        tm.that(report.failed[0][1], has=c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE)
+        tm.that(report.failed[0][1], has=c.Cli.TEMPLATE_ERR_OUTPUT_ESCAPE)
         assert not (tmp_path / "escape").exists()
 
     def test_render_dir_missing_root_fails(self, tmp_path: Path) -> None:

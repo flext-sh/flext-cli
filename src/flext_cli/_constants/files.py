@@ -32,10 +32,10 @@ class FlextCliConstantsFiles:
     FILE_FORMAT_AUTO: Final[FileFormat] = FileFormat.AUTO
     FILE_FORMAT_TEXT: Final[FileFormat] = FileFormat.TEXT
     FILE_FORMAT_BIN: Final[FileFormat] = FileFormat.BIN
-    FILE_FORMAT_JSON: Final[FileFormat] = FileFormat.JSON
-    FILE_FORMAT_YAML: Final[FileFormat] = FileFormat.YAML
-    FILE_FORMAT_TOML: Final[FileFormat] = FileFormat.TOML
-    FILE_FORMAT_CSV: Final[FileFormat] = FileFormat.CSV
+    JSON_FILE_FORMAT: Final[FileFormat] = FileFormat.JSON
+    YAML_FILE_FORMAT: Final[FileFormat] = FileFormat.YAML
+    TOML_FILE_FORMAT: Final[FileFormat] = FileFormat.TOML
+    CSV_FILE_FORMAT: Final[FileFormat] = FileFormat.CSV
     FILE_FORMAT_UNKNOWN: Final[FileFormat] = FileFormat.UNKNOWN
 
     KNOWN_FORMATS: Final[frozenset[str]] = frozenset({
@@ -63,8 +63,8 @@ class FlextCliConstantsFiles:
 
     DEFAULT_FILENAME: Final[str] = "file"
     DEFAULT_EXTENSION: Final[str] = ".txt"
-    DEFAULT_JSON_INDENT: Final[int] = 2
-    DEFAULT_CSV_DELIMITER: Final[str] = ","
+    JSON_DEFAULT_INDENT: Final[int] = 2
+    CSV_DEFAULT_DELIMITER: Final[str] = ","
 
     SIZE_UNITS: Final[t.StrSequence] = ("B", "KB", "MB", "GB", "TB", "PB")
     SIZE_THRESHOLD: Final[int] = 1024

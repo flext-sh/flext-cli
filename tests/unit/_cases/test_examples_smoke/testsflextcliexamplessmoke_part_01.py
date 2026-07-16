@@ -92,7 +92,7 @@ class TestsFlextCliExamplesSmoke:
 
         import_file = tmp_path / "record.json"
         record = m.Tests.ImportRecord(id=1, name="Alice", value="ok")
-        write_result = cli.write_json_file(import_file, record.model_dump(mode="json"))
+        write_result = cli.json_write_file(import_file, record.model_dump(mode="json"))
         tm.ok(write_result)
         validation_result = validate_and_import_data(import_file)
         tm.ok(validation_result)

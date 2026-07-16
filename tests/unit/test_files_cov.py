@@ -60,45 +60,45 @@ class TestsFlextCliFilesCov:
 
     def test_write_then_read_json_round_trips(self, tmp_path: Path) -> None:
         path = tmp_path / "data.json"
-        tm.ok(cli.write_json_file(path, {"key": "value"}))
-        read_result = cli.read_json_file(path)
+        tm.ok(cli.json_write_file(path, {"key": "value"}))
+        read_result = cli.json_read_file(path)
         tm.ok(read_result)
         tm.that(read_result.value, eq={"key": "value"})
 
     def test_read_json_fails_for_missing_file(self, tmp_path: Path) -> None:
-        tm.fail(cli.read_json_file(tmp_path / "missing.json"))
+        tm.fail(cli.json_read_file(tmp_path / "missing.json"))
 
     def test_read_json_model_parses_into_typed_model(self, tmp_path: Path) -> None:
         path = tmp_path / "opts.json"
         path.write_text('{"indent": 4, "sort_keys": true}', encoding="utf-8")
-        result = cli.read_json_model(path, m.Cli.JsonWriteOptions)
+        result = cli.json_read_model(path, m.Cli.JsonWriteOptions)
         tm.ok(result)
         tm.that(result.value.indent, eq=4)
         tm.that(result.value.sort_keys, eq=True)
 
     def test_write_then_read_yaml_round_trips(self, tmp_path: Path) -> None:
         path = tmp_path / "data.yaml"
-        tm.ok(cli.write_yaml_file(path, {"key": "val"}))
-        read_result = cli.read_yaml_file(path)
+        tm.ok(cli.yaml_write_file(path, {"key": "val"}))
+        read_result = cli.yaml_read_file(path)
         tm.ok(read_result)
         tm.that(read_result.value, eq={"key": "val"})
 
     def test_read_yaml_fails_for_missing_file(self, tmp_path: Path) -> None:
-        tm.fail(cli.read_yaml_file(tmp_path / "missing.yaml"))
+        tm.fail(cli.yaml_read_file(tmp_path / "missing.yaml"))
 
     def test_read_yaml_fails_for_blank_path(self) -> None:
-        tm.fail(cli.read_yaml_file("   "))
+        tm.fail(cli.yaml_read_file("   "))
 
     def test_write_then_read_csv_preserves_data_rows(self, tmp_path: Path) -> None:
         path = tmp_path / "data.csv"
         rows: list[t.StrSequence] = [["name", "age"], ["alice", "30"], ["bob", "25"]]
-        tm.ok(cli.write_csv_file(path, rows))
-        read_result = cli.read_csv_file_with_headers(path)
+        tm.ok(cli.csv_write_file(path, rows))
+        read_result = cli.csv_read_file_with_headers(path)
         tm.ok(read_result)
         tm.that(len(read_result.value), eq=2)
 
     def test_read_csv_fails_for_missing_file(self, tmp_path: Path) -> None:
-        tm.fail(cli.read_csv_file_with_headers(tmp_path / "missing.csv"))
+        tm.fail(cli.csv_read_file_with_headers(tmp_path / "missing.csv"))
 
     def test_write_then_read_binary_round_trips_bytes(self, tmp_path: Path) -> None:
         path = tmp_path / "data.bin"

@@ -25,7 +25,7 @@ class TestsFlextCliPublicContractsCoverage:
         )
         display = m.Cli.DisplayData(data={"name": "flext", "count": 1})
         loaded = m.Cli.LoadedConfig(content={"debug": True})
-        normalized = m.Cli.CliNormalizedJson({"name": "flext"})
+        normalized = m.Cli.JsonNormalized({"name": "flext"})
         summary = m.Cli.SuccessSummaryDetails({"status": "ok"})
         prompt_state = m.Cli.PromptRuntimeState(quiet=True)
         auth = m.Cli.AuthCredentialsPayload(token="token-123")
@@ -61,9 +61,9 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(display.model_dump(), eq={"name": "flext", "count": 1})
         tm.that(loaded.content, eq={"debug": True})
         tm.that(normalized.model_dump(), eq={"name": "flext"})
-        tm.that(m.Cli.NormalizedJsonList(value={"ok": True}).resolved, eq={"ok": True})
+        tm.that(m.Cli.JsonNormalizedList(value={"ok": True}).resolved, eq={"ok": True})
         tm.that(
-            m.Cli.NormalizedJsonList(
+            m.Cli.JsonNormalizedList(
                 value="plain-text", default={"fallback": "yes"}
             ).resolved,
             eq={"fallback": "yes"},

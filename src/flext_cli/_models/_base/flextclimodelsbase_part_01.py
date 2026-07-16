@@ -93,10 +93,10 @@ class FlextCliModelsBase:
             ),
         ]
 
-    class CliNormalizedJson(m.RootModel[t.JsonValue]):
+    class JsonNormalized(m.RootModel[t.JsonValue]):
         """Normalize raw JSON value with flat JSON serialization semantics.
-
-        ``RootModel`` provides positional construction (``CliNormalizedJson(value)``)
+        
+        ``RootModel`` provides positional construction (``JsonNormalized(value)``)
         and root-level serialization natively — no custom ``__init__`` or
         ``model_serializer`` required.
         """
@@ -106,8 +106,8 @@ class FlextCliModelsBase:
             t.JsonValue, m.Field(description="Normalized JSON-compatible value")
         ]
 
-    class NormalizedJsonList(m.BaseModel):
-        """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonList."""
+    class JsonNormalizedList(m.BaseModel):
+        """Resolve normalized JSON to a dict with defaults. Use m.Cli.JsonNormalizedList."""
 
         model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True

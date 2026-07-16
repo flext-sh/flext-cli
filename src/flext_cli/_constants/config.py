@@ -20,9 +20,9 @@ class FlextCliConstantsConfig:
     TEMPLATE_TRIM_BLOCKS: Final[bool] = False
     TEMPLATE_LSTRIP_BLOCKS: Final[bool] = False
     TEMPLATE_KEEP_TRAILING_NEWLINE: Final[bool] = True
-    ERR_TEMPLATE_RENDER_FAILED: Final[str] = "template: render failed"
-    ERR_TEMPLATE_NOT_FOUND: Final[str] = "template: source not found"
-    ERR_TEMPLATE_OUTPUT_ESCAPE: Final[str] = "template: output path escapes output_root"
+    TEMPLATE_ERR_RENDER_FAILED: Final[str] = "template: render failed"
+    TEMPLATE_ERR_NOT_FOUND: Final[str] = "template: source not found"
+    TEMPLATE_ERR_OUTPUT_ESCAPE: Final[str] = "template: output path escapes output_root"
     ERR_SCHEMA_INVALID: Final[str] = "schema: document failed validation"
     ERR_SCHEMA_READ_FAILED: Final[str] = "schema: cannot read schema file"
     ERR_CONFIG_UNSUPPORTED_FORMAT: Final[str] = "config: unsupported source format"

@@ -17,8 +17,8 @@ def test_write_yaml_model_round_trips_the_same_model_contract(tmp_path: Path) ->
     source = m.Cli.XlsxCellAddress(row=7, column=9)
     target = tmp_path / "address.yaml"
 
-    written = cli.write_yaml_model(target, source)
-    loaded = cli.read_yaml_model(target, m.Cli.XlsxCellAddress)
+    written = cli.yaml_write_model(target, source)
+    loaded = cli.yaml_read_model(target, m.Cli.XlsxCellAddress)
 
     tm.that(written.success, eq=True)
     tm.that(loaded.success, eq=True)

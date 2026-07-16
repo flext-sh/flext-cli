@@ -23,17 +23,17 @@ class FlextCliUtilitiesFileTestHelpersMixin:
     @staticmethod
     def files_parse_content(path: Path, fmt: str) -> p.Result[object]:
         """Parse JSON/YAML/TOML file content generically by format token."""
-        if fmt == c.Cli.FILE_FORMAT_JSON:
+        if fmt == c.Cli.JSON_FILE_FORMAT:
             result = uj.json_read(path)
             if result.failure:
                 return r[object].fail(result.error or "json_read failed")
             return r[object].ok(result.value)
-        if fmt == c.Cli.FILE_FORMAT_YAML:
+        if fmt == c.Cli.YAML_FILE_FORMAT:
             result = uy.yaml_safe_load(path)
             if result.failure:
                 return r[object].fail(result.error or "yaml_safe_load failed")
             return r[object].ok(result.value)
-        if fmt == c.Cli.FILE_FORMAT_TOML:
+        if fmt == c.Cli.TOML_FILE_FORMAT:
             toml_result = ut.toml_read_json(path)
             if toml_result.failure:
                 return r[object].fail(toml_result.error or "toml_read_json failed")

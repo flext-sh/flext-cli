@@ -23,7 +23,7 @@ class TestsFlextCliYamlModelLoading:
         )
         tm.that(written.success, eq=True)
 
-        result = cli.read_yaml_model(source, m.Tests.YamlConsumerConfig)
+        result = cli.yaml_read_model(source, m.Tests.YamlConsumerConfig)
 
         tm.that(result.success, eq=True)
         tm.that(result.value, is_=m.Tests.YamlConsumerConfig)
@@ -52,7 +52,7 @@ class TestsFlextCliYamlModelLoading:
         tm.that(type_written.success, eq=True)
         tm.that(consumer_written.success, eq=True)
 
-        result = cli.read_yaml_model_chain(
+        result = cli.yaml_read_model_chain(
             (base_source, type_source, consumer_source), m.Tests.YamlConsumerConfig
         )
 
@@ -64,7 +64,7 @@ class TestsFlextCliYamlModelLoading:
 
     def test_missing_file_fails_loud(self, tmp_path: Path) -> None:
         """A missing external source returns a failed public result."""
-        result = cli.read_yaml_model(
+        result = cli.yaml_read_model(
             tmp_path / "missing.yaml", m.Tests.YamlConsumerConfig
         )
 
@@ -85,7 +85,7 @@ class TestsFlextCliYamlModelLoading:
         tm.that(base_written.success, eq=True)
         tm.that(malformed_written.success, eq=True)
 
-        result = cli.read_yaml_model_chain(
+        result = cli.yaml_read_model_chain(
             (base_source, malformed_source), m.Tests.YamlConsumerConfig
         )
 
@@ -101,7 +101,7 @@ class TestsFlextCliYamlModelLoading:
         )
         tm.that(written.success, eq=True)
 
-        result = cli.read_yaml_model(source, m.Tests.YamlConsumerConfig)
+        result = cli.yaml_read_model(source, m.Tests.YamlConsumerConfig)
 
         tm.that(result.failure, eq=True)
 

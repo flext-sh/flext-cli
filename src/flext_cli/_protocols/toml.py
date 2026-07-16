@@ -114,9 +114,7 @@ class FlextCliProtocolsToml:
             ...
 
         @property
-        def nested_tables(
-            self,
-        ) -> t.SequenceOf[FlextCliProtocolsToml.TomlPhaseConfig]:
+        def nested_tables(self) -> t.SequenceOf[FlextCliProtocolsToml.TomlPhaseConfig]:
             """Nested TOML phase configs."""
             ...
 

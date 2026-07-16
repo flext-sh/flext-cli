@@ -52,8 +52,7 @@ class FlextCliModelsToml:
             m.Field(description="Merge strategy", validate_default=True),
         ] = _enum.TomlMergeMode.REPLACE
         sort: Annotated[
-            bool,
-            m.Field(description="Sort values before sync", validate_default=True),
+            bool, m.Field(description="Sort values before sync", validate_default=True)
         ] = True
 
     class TomlRemoveOp(m.ContractModel):
@@ -141,12 +140,7 @@ class FlextCliModelsToml:
                 operation_item = operation_type.model_validate(data)
                 replaced: Self = self._replace(
                     self.state.model_copy(
-                        update={
-                            "operations": (
-                                *self.state.operations,
-                                operation_item,
-                            )
-                        }
+                        update={"operations": (*self.state.operations, operation_item)}
                     )
                 )
                 return replaced
@@ -164,9 +158,7 @@ class FlextCliModelsToml:
             def value(self, key: str, value: t.JsonValue) -> Self:
                 """Value."""
                 return self.operation(
-                    FlextCliModelsToml.TomlSetOp,
-                    key=key,
-                    value=value,
+                    FlextCliModelsToml.TomlSetOp, key=key, value=value
                 )
 
             def list(
@@ -189,9 +181,7 @@ class FlextCliModelsToml:
             def deprecated(self, key: str, *sub_path: str) -> Self:
                 """Mark a key as deprecated by scheduling its removal."""
                 return self.operation(
-                    FlextCliModelsToml.TomlRemoveOp,
-                    key=key,
-                    table_path=tuple(sub_path),
+                    FlextCliModelsToml.TomlRemoveOp, key=key, table_path=tuple(sub_path)
                 )
 
             def nested(
@@ -208,19 +198,14 @@ class FlextCliModelsToml:
                     table_path=tuple(path),
                     operations=tuple(
                         self._nested_operations(
-                            values=values,
-                            lists=lists,
-                            deprecated_keys=deprecated_keys,
+                            values=values, lists=lists, deprecated_keys=deprecated_keys
                         )
                     ),
                 )
                 replaced: Self = self._replace(
                     self.state.model_copy(
                         update={
-                            "nested_tables": (
-                                *self.state.nested_tables,
-                                nested_table,
-                            )
+                            "nested_tables": (*self.state.nested_tables, nested_table)
                         }
                     )
                 )

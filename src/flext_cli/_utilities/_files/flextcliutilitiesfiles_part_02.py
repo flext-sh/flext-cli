@@ -15,7 +15,7 @@ class FlextCliUtilitiesFiles:
     """Implementation part for FlextCliUtilitiesFiles."""
 
     @staticmethod
-    def files_read_csv_with_headers(
+    def csv_read_files_with_headers(
         file_path: t.Cli.TextPath,
     ) -> p.Result[t.SequenceOf[t.StrMapping]]:
         """Read one CSV file into mapping rows using header row."""
@@ -26,7 +26,7 @@ class FlextCliUtilitiesFiles:
             ) as handle:
                 return [dict(row) for row in csv.DictReader(handle)]
 
-        return FlextCliUtilitiesFiles.files_execute(_load, c.Cli.ERR_CSV_READ_FAILED)
+        return FlextCliUtilitiesFiles.files_execute(_load, c.Cli.CSV_ERR_READ_FAILED)
 
     @staticmethod
     def files_read_binary(file_path: t.Cli.TextPath) -> p.Result[bytes]:

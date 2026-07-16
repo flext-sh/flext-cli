@@ -14,8 +14,8 @@ class FlextCliConstantsErrors:
     ERR_ATOMIC_WRITE_TEXT_FILE_FAILED: Final[str] = "atomic_write_text_file: {error}"
     ERR_TEXT_READ_FAILED: Final[str] = "Text read failed: {error}"
     ERR_TEXT_WRITE_FAILED: Final[str] = "Text write failed: {error}"
-    ERR_CSV_WRITE_FAILED: Final[str] = "CSV write failed: {error}"
-    ERR_CSV_READ_FAILED: Final[str] = "CSV read failed: {error}"
+    CSV_ERR_WRITE_FAILED: Final[str] = "CSV write failed: {error}"
+    CSV_ERR_READ_FAILED: Final[str] = "CSV read failed: {error}"
     ERR_BINARY_READ_FAILED: Final[str] = "Binary read failed: {error}"
     ERR_BINARY_WRITE_FAILED: Final[str] = "Binary write failed: {error}"
     ERR_FILE_COPY_FAILED: Final[str] = "File copy failed: {error}"
@@ -28,7 +28,7 @@ class FlextCliConstantsErrors:
     ERR_FILE_PATH_EMPTY: Final[str] = "File path must be non-empty"
     ERR_AUTO_LOAD_FAILED: Final[str] = "Auto load failed"
     ERR_FILE_DELETION_FAILED: Final[str] = "File deletion failed: {error}"
-    ERR_JSON_LOAD_FAILED: Final[str] = "JSON load failed: {error}"
+    JSON_ERR_LOAD_FAILED: Final[str] = "JSON load failed: {error}"
 
     ERR_INVALID_CREDENTIALS: Final[str] = (
         "Invalid credentials: missing token or username/password"

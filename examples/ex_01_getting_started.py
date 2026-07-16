@@ -39,10 +39,10 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
         wrapped_config = m.Cli.LoadedConfig(content=settings.model_dump(mode="json"))
         with TemporaryDirectory(prefix=f"{c.EXAMPLE_DEFAULT_TEMP_SUBDIR}-") as temp_dir:
             config_path = Path(temp_dir) / "settings.json"
-            return cli.write_json_file(
+            return cli.json_write_file(
                 str(config_path), wrapped_config.model_dump(mode="json")
             ).flat_map(
-                lambda _: cli.read_json_model(str(config_path), m.Cli.LoadedConfig)
+                lambda _: cli.json_read_model(str(config_path), m.Cli.LoadedConfig)
             )
 
     @override

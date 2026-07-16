@@ -20,7 +20,7 @@ class FlextCliProtocolsBase:
         are flat ``cli_*`` scalars loadable from env/.env. Test-runtime
         detection moved to ``u.Cli.cli_test_env`` (behavior lives in the
         utilities layer, never on settings). Plain ``Protocol`` (not
-        ``p.Model``): pyrefly cannot reconcile pydantic ``model_fields``
+        ``p.BaseModel``): pyrefly cannot reconcile pydantic ``model_fields``
         metaclass descriptors on this hot path — structural field access is
         the whole contract.
         """

@@ -66,7 +66,7 @@ class TestsFlextCliOptions:
         self, value: t.Cli.CliDefaultSource, expected: t.Cli.DefaultAtom | None
     ) -> None:
         """Normalize supported CLI atoms and reject unsupported values."""
-        tm.that(u.Cli.normalize_cli_atom(value), eq=expected)
+        tm.that(u.Cli.cli_normalize_atom(value), eq=expected)
 
     @pytest.mark.parametrize(
         ("value", "expected"),

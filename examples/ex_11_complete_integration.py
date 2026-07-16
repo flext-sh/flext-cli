@@ -65,7 +65,7 @@ class DataManagerCLI:
         """Load previously saved data through the public file surface."""
         if not self.data_file.exists():
             return r[t.JsonMapping].fail(_EXAMPLE_ERR_NO_DATA_FILE_FOUND)
-        read_result = cli.read_json_file(str(self.data_file))
+        read_result = cli.json_read_file(str(self.data_file))
         if read_result.failure:
             error_msg = read_result.error or "Unknown error"
             cli.print(
@@ -82,7 +82,7 @@ class DataManagerCLI:
 
     def save_data(self, data: t.JsonMapping) -> p.Result[bool]:
         """Persist the current dataset through the public file surface."""
-        write_result = cli.write_json_file(self.data_file, data)
+        write_result = cli.json_write_file(self.data_file, data)
         if write_result.failure:
             error_msg = write_result.error or "Unknown error"
             cli.print(

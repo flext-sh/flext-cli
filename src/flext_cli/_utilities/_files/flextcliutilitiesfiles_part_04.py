@@ -57,12 +57,12 @@ class FlextCliUtilitiesFiles:
         if isinstance(content, (m.ConfigMap, m.Dict, Mapping)):
             ext = Path(name).suffix.lower()
             return (
-                str(c.Cli.FILE_FORMAT_YAML)
+                str(c.Cli.YAML_FILE_FORMAT)
                 if ext in {".yaml", ".yml"}
-                else str(c.Cli.FILE_FORMAT_JSON)
+                else str(c.Cli.JSON_FILE_FORMAT)
             )
         if isinstance(content, list):
-            return str(c.Cli.FILE_FORMAT_CSV)
+            return str(c.Cli.CSV_FILE_FORMAT)
         return c.Cli.format_for_extension(Path(name).suffix)
 
     @staticmethod

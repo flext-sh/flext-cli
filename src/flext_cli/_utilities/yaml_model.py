@@ -14,7 +14,7 @@ class FlextCliUtilitiesYamlModel:
     # NOTE (multi-agent, mro-j2yt.1): the validated model remains intact until
     # this external egress; no internal dump/revalidation round trip is allowed.
     @staticmethod
-    def write_yaml_model(file_path: t.Cli.TextPath, model: p.Model) -> p.Result[bool]:
+    def yaml_write_model(file_path: t.Cli.TextPath, model: p.BaseModel) -> p.Result[bool]:
         """Write one protocol-backed model as YAML and propagate failures."""
         try:
             return FlextCliUtilitiesYaml.yaml_dump(

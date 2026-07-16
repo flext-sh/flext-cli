@@ -96,7 +96,7 @@ class FlextCliUtilitiesOptions:
         return all(item for item in value)
 
     @classmethod
-    def normalize_cli_atom(
+    def cli_normalize_atom(
         cls, value: t.Cli.CliDefaultSource
     ) -> t.Cli.DefaultAtom | None:
         """Normalize one runtime value into an allowed Typer scalar or string sequence."""
