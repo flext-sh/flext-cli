@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar
 
-from flext_cli import p
+from flext_cli import t
 from flext_core import m
 
 
@@ -14,7 +14,7 @@ class FlextCliModelsBase:
     class SettingsSnapshot(m.Value):
         """Snapshot of current CLI settings information."""
 
-        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(frozen=True, extra="forbid")
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True, extra="forbid")
 
         settings_dir: Annotated[str, m.Field(description="Settings directory path")] = (
             ""

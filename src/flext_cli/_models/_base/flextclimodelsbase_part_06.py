@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar
 
-from flext_cli import p, t
+from flext_cli import t
 from flext_core import m
 
 
@@ -61,7 +61,7 @@ class FlextCliModelsBase:
     class OptionMetadata(m.BaseModel):
         """Validated option-registry metadata for Typer option generation."""
 
-        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(extra="ignore", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="ignore", frozen=True)
 
         help: Annotated[
             str, m.Field("", description="Option help text", strict=True)
