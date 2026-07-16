@@ -73,6 +73,8 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}")
         except TypeError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}")
+        if node is None:
+            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
         return r[t.Cli.YamlNode].ok(node)
 
     @staticmethod
@@ -85,6 +87,8 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}")
         except TypeError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}")
+        if node is None:
+            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
         return r[t.Cli.YamlNode].ok(node)
 
     @staticmethod

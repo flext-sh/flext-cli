@@ -77,6 +77,36 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.fail(result)
         tm.that(result.error, none=False)
 
+    def test_load_text_empty_document_fails_without_exception(self) -> None:
+        for text in ("", "# only a comment\n", "---\n", "~\n"):
+            result = u.Cli.yaml_roundtrip_load_text(text)
+
+            tm.fail(result)
+            tm.that(result.error, none=False)
+            tm.that(result.error, has="empty")
+
+    def test_load_empty_document_fails_without_exception(self, tmp_path: Path) -> None:
+        path = tmp_path / "comments.yaml"
+        path.write_text("# header comment\n# another\n", encoding="utf-8")
+
+        result = u.Cli.yaml_roundtrip_load(path)
+
+        tm.fail(result)
+        tm.that(result.error, none=False)
+        tm.that(result.error, has="empty")
+
+    def test_load_map_text_empty_document_fails_without_exception(self) -> None:
+        result = u.Cli.yaml_roundtrip_load_map_text("# comment only\n")
+
+        tm.fail(result)
+        tm.that(result.error, none=False)
+
+    def test_yaml_parse_empty_document_fails_without_exception(self) -> None:
+        result = u.Cli.yaml_parse("# comment only\n")
+
+        tm.fail(result)
+        tm.that(result.error, none=False)
+
 
 class TestsFlextCliYamlRoundtripConvert:
     """Plain<->commented conversion contract of ``u.Cli``."""
