@@ -19,7 +19,7 @@ class ExamplesFlextCliModelsExamplesAdvanced:
     class AppSettingsAdvanced(m.Value):
         """Advanced application settings — Pydantic v2 only."""
 
-        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )

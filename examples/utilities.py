@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from examples import c, m, t
+from examples import c, m, p, t
 from flext_cli import cli, u
 
 from collections.abc import (
