@@ -20,7 +20,6 @@ from .xlsx_workbook import (
     FlextCliProtocolsXlsxWorkbook as FlextCliProtocolsXlsxWorkbook,
 )
 
-
 __all__: tuple[str, ...] = (
     "FlextCliProtocolsConfig",
     "FlextCliProtocolsDomain",

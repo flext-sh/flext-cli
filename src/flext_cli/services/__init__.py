@@ -18,7 +18,6 @@ from .tables import FlextCliTables as FlextCliTables
 from .xlsx import FlextCliXlsx as FlextCliXlsx
 from .yaml_model import FlextCliYamlModel as FlextCliYamlModel
 
-
 __all__: tuple[str, ...] = (
     "FlextCliAuth",
     "FlextCliCli",

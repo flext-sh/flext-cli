@@ -31,7 +31,6 @@ from .xlsx import FlextCliUtilitiesXlsx as FlextCliUtilitiesXlsx
 from .yaml import FlextCliUtilitiesYaml as FlextCliUtilitiesYaml
 from .yaml_model import FlextCliUtilitiesYamlModel as FlextCliUtilitiesYamlModel
 
-
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesCli",

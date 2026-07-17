@@ -8,7 +8,6 @@ from ._navigate import (
     FlextCliUtilitiesJsonNavigateMixin as FlextCliUtilitiesJsonNavigateMixin,
 )
 
-
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesJsonCoreMixin",
     "FlextCliUtilitiesJsonNavigateMixin",

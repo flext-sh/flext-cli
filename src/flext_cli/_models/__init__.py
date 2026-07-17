@@ -30,7 +30,6 @@ from .xlsx_validation import (
 )
 from .xlsx_workbook import FlextCliModelsXlsxWorkbook as FlextCliModelsXlsxWorkbook
 
-
 __all__: tuple[str, ...] = (
     "FlextCliConfigModels",
     "FlextCliModelsPipeline",

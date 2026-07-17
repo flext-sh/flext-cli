@@ -13,7 +13,7 @@ from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_02 import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli import t, p
+    from flext_cli import p, t
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):

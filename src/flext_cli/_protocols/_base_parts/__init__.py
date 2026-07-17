@@ -7,5 +7,4 @@ from .flextcliprotocolsbase_part_05 import (
     FlextCliProtocolsBase as FlextCliProtocolsBase,
 )
 
-
 __all__: tuple[str, ...] = ("FlextCliProtocolsBase",)

@@ -64,7 +64,6 @@ from .xlsx_workbook_plan import (
     FlextCliUtilitiesXlsxWorkbookPlan as FlextCliUtilitiesXlsxWorkbookPlan,
 )
 
-
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesXlsxAddresses",
     "FlextCliUtilitiesXlsxArchive",
