@@ -19,24 +19,24 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
-  "cachetools>=6.2,<7.0",
-  "click>=8.3.3",
-  "defusedxml>=0.7.1",
-  "flext-core",
-  "jinja2>=3.1.6",
-  "jsonschema>=4.26.0",
-  "openpyxl>=3.1.5",
-  "pluggy>=1.6.0",
-  "prompt-toolkit>=3.0.52",
-  "pydantic-core>=2.46.3",
-  "pydantic-settings>=2.14.0",
-  "pydantic>=2.13.3",
-  "pyyaml>=6.0.3",
-  "rich>=14,<15",
-  "ruamel.yaml>=0.18.16",
-  "tabulate>=0.10.0",
-  "tomlkit>=0.14.0",
-  "typer>=0.25.1",
+    "cachetools>=6.2,<7.0",
+    "click>=8.3.3",
+    "defusedxml>=0.7.1",
+    "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.20.0-dev",
+    "jinja2>=3.1.6",
+    "jsonschema>=4.26.0",
+    "openpyxl>=3.1.5",
+    "pluggy>=1.6.0",
+    "prompt-toolkit>=3.0.52",
+    "pydantic-core>=2.46.3",
+    "pydantic-settings>=2.14.0",
+    "pydantic>=2.13.3",
+    "pyyaml>=6.0.3",
+    "rich>=14,<15",
+    "ruamel.yaml>=0.18.16",
+    "tabulate>=0.10.0",
+    "tomlkit>=0.14.0",
+    "typer>=0.25.1",
 ]
 description = "FLEXT CLI - Developer Command Line Interface"
 keywords = [ "cli", "command-line", "enterprise", "flext", "tools", "typed" ]
@@ -44,7 +44,7 @@ license = "MIT"
 name = "flext-cli"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
-version = "0.12.0"
+version = "0.20.0.dev0"
 
 [[project.authors]]
 email = "team@flext.sh"

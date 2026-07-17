@@ -2,7 +2,7 @@
 
 # flext-cli Documentation
 
-- Version: `0.12.0-dev`
+- Version: `0.20.0`
 - Project class: `platform`
 - Package: `flext_cli`
 - Description: FLEXT CLI - Developer Command Line Interface

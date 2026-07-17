@@ -1,13 +1,19 @@
 """Round-trip YAML engine and load/dump surface behind ``u.Cli.yaml_*``.
 
-Owns the comment-preserving ``ruamel.yaml`` engine singleton and the ``r[T]``
-load/dump operations. Composed into ``FlextCliUtilitiesYaml`` via MRO in
-``yaml.py``.
+Builds fresh comment-preserving ``ruamel.yaml`` engines per load/dump call
+and owns the ``r[T]`` load/dump operations. Composed into
+``FlextCliUtilitiesYaml`` via MRO in ``yaml.py``.
 
 NOTE (multi-agent): mro-i6nq.13 — extracted from the removed
 ``_yaml_roundtrip_parts/..._part_01`` (engine + load/dump half). The
 conversion helpers live in ``_yaml/_convert.py``; do not re-create a second
 ruamel engine in a leaf module.
+
+NOTE (multi-agent): ai-hub-gwbu.1 — ruamel ``YAML`` instances keep mutable
+reader/scanner state during a parse and are not thread-safe. A module-level
+shared instance corrupted concurrent loads under ``crg-maintain --jobs 3``
+(``IndexError: string index out of range`` in ``ruamel/yaml/reader.py``).
+Engines are therefore built per call; never reintroduce a shared instance.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -28,26 +34,17 @@ from ._convert import FlextCliUtilitiesYamlConvertMixin
 from pathlib import Path
 
 
-class _YamlRoundtripEngine:
-    """Shared ruamel.yaml engine configured for comment-preserving round-trips."""
+def _roundtrip_yaml() -> ruamel.yaml.YAML:
+    """Build a fresh comment/quote-preserving round-trip engine.
 
-    def __init__(self) -> None:
-        self._yaml = ruamel.yaml.YAML()
-        self._yaml.preserve_quotes = True
-        self._yaml.width = 4096
-        self._yaml.indent(mapping=2, sequence=4, offset=2)
-
-    def load(self, source: TextIO | str) -> t.Cli.YamlValue:
-        """Load one YAML document from a stream or raw text."""
-        loaded: t.Cli.YamlValue = self._yaml.load(source)
-        return loaded
-
-    def dump(self, data: t.Cli.YamlNode, stream: TextIO) -> None:
-        """Serialize a YAML tree to a stream."""
-        self._yaml.dump(data, stream)
-
-
-_ROUNDTRIP_YAML = _YamlRoundtripEngine()
+    A new instance per call keeps load/dump operations thread-safe: ruamel
+    stores mutable parser state on the instance while parsing.
+    """
+    yaml = ruamel.yaml.YAML()
+    yaml.preserve_quotes = True
+    yaml.width = 4096
+    yaml.indent(mapping=2, sequence=4, offset=2)
+    return yaml
 
 
 class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
@@ -64,7 +61,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             return r[t.Cli.YamlNode].fail(f"YAML file not found: {path}")
         try:
             with path.open("r", encoding=c.Cli.ENCODING_DEFAULT) as fh:
-                loaded = _ROUNDTRIP_YAML.load(fh)
+                loaded = _roundtrip_yaml().load(fh)
             node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
         except OSError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML read error: {exc}")
@@ -72,18 +69,22 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}")
         except TypeError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}")
+        if node is None:
+            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
         return r[t.Cli.YamlNode].ok(node)
 
     @staticmethod
     def yaml_roundtrip_load_text(text: str) -> p.Result[t.Cli.YamlNode]:
         """Parse YAML text preserving comments/quoting -> ``r[YamlNode]``."""
         try:
-            loaded = _ROUNDTRIP_YAML.load(text)
+            loaded = _roundtrip_yaml().load(text)
             node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
         except c.Cli.YamlRoundtripError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}")
         except TypeError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}")
+        if node is None:
+            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
         return r[t.Cli.YamlNode].ok(node)
 
     @staticmethod
@@ -118,7 +119,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
     def yaml_roundtrip_dump(data: t.Cli.YamlNode, stream: TextIO) -> p.Result[bool]:
         """Serialize a YAML tree to *stream* -> ``r[bool]``."""
         try:
-            _ROUNDTRIP_YAML.dump(data, stream)
+            _roundtrip_yaml().dump(data, stream)
         except (OSError, c.Cli.YamlRoundtripError, TypeError, ValueError) as exc:
             return r[bool].fail(f"YAML dump error: {exc}")
         return r[bool].ok(True)

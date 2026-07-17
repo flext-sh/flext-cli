@@ -59,7 +59,7 @@ class TestsFlextCliYamlCov:
 
         tm.fail(result)
         tm.that(result.error, none=False)
-        tm.that(result.error, has="not a mapping")
+        tm.that(result.error, has="must be a mapping")
 
     def test_yaml_parse_malformed_yaml_fails_with_parse_error(self) -> None:
         """Report malformed YAML as a parse failure."""
@@ -114,7 +114,7 @@ class TestsFlextCliYamlCov:
 
         tm.fail(result)
         tm.that(result.error, none=False)
-        tm.that(result.error, has="not a mapping")
+        tm.that(result.error, has="must be a mapping")
 
     def test_yaml_safe_load_empty_file_fails_loudly(self, tmp_path: Path) -> None:
         """Reject an empty YAML file with a descriptive failure."""

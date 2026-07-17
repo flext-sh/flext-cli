@@ -9,6 +9,7 @@ tree state read back through the public API.
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
@@ -74,6 +75,68 @@ class TestsFlextCliYamlRoundtripLoad:
 
         tm.fail(result)
         tm.that(result.error, none=False)
+
+    def test_load_text_empty_document_fails_without_exception(self) -> None:
+        for text in ("", "# only a comment\n", "---\n", "~\n"):
+            result = u.Cli.yaml_roundtrip_load_text(text)
+
+            tm.fail(result)
+            tm.that(result.error, none=False)
+            tm.that(result.error, has="empty")
+
+    def test_load_empty_document_fails_without_exception(self, tmp_path: Path) -> None:
+        path = tmp_path / "comments.yaml"
+        path.write_text("# header comment\n# another\n", encoding="utf-8")
+
+        result = u.Cli.yaml_roundtrip_load(path)
+
+        tm.fail(result)
+        tm.that(result.error, none=False)
+        tm.that(result.error, has="empty")
+
+    def test_load_map_text_empty_document_fails_without_exception(self) -> None:
+        result = u.Cli.yaml_roundtrip_load_map_text("# comment only\n")
+
+        tm.fail(result)
+        tm.that(result.error, none=False)
+
+    def test_yaml_parse_empty_document_fails_without_exception(self) -> None:
+        result = u.Cli.yaml_parse("# comment only\n")
+
+        tm.fail(result)
+        tm.that(result.error, none=False)
+
+    def test_roundtrip_load_text_is_thread_safe(self) -> None:
+        documents = [
+            (
+                f"# document {index}\n"
+                f"root{index}:\n"
+                f"  name: service-{index}\n"
+                f"  replicas: {index}\n"
+                f"  tags:\n"
+                f"    - alpha-{index}\n"
+                f"    - beta-{index}\n"
+            )
+            for index in range(8)
+        ]
+        failures: list[BaseException] = []
+
+        def parse_repeatedly(document: str) -> None:
+            for _ in range(250):
+                try:
+                    result = u.Cli.yaml_roundtrip_load_text(document)
+                    if result.failure:
+                        failures.append(ValueError(result.error))
+                        return
+                    result.unwrap()
+                except BaseException as exc:  # noqa: BLE001
+                    failures.append(exc)
+                    return
+
+        with ThreadPoolExecutor(max_workers=len(documents)) as pool:
+            list(pool.map(parse_repeatedly, documents))
+
+        tm.that(failures, eq=[])
 
 
 class TestsFlextCliYamlRoundtripConvert:

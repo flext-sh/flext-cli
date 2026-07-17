@@ -56,13 +56,13 @@ class TestsFlextCliPublicContractsCoverage:
         result = cli.execute()
         tm.ok(result, is_=m.Cli.RuntimeStatus)
 
-        tm.ok(facade_result)
+        tm.ok(result)
         tm.that(
-            facade_result.value.status,
+            result.value.status,
             eq=(c.Cli.ServiceStatus.OPERATIONAL),
         )
-        tm.that(facade_result.value.service, eq=c.Cli.FLEXT_CLI)
-        components = facade_result.value.components
+        tm.that(result.value.service, eq=c.Cli.FLEXT_CLI)
+        components = result.value.components
         tm.that(components, is_=m.Cli.RuntimeComponents)
         tm.that(components.prompts, eq="available")
 
