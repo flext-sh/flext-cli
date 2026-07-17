@@ -29,6 +29,8 @@ class TestsFlextCliCommands:
 
     def test_formatter_result_wins_over_all_fallbacks(self) -> None:
         # Arrange
+        """Verify that formatter result wins over all fallbacks."""
+
         def formatter(value: int) -> str:
             return str(value * 2)
 
@@ -65,6 +67,7 @@ class TestsFlextCliCommands:
         self, result_value: t.Cli.ResultValue, expected: str
     ) -> None:
         # Act
+        """Verify that resolve without formatter follows value then fallback order."""
         resolved = u.Cli.commands_resolve_success_message(
             result_value=result_value,
             success_message="fallback",
@@ -76,6 +79,7 @@ class TestsFlextCliCommands:
 
     def test_resolve_returns_none_fallback_when_message_is_none(self) -> None:
         # Act
+        """Verify that resolve returns none fallback when message is none."""
         resolved = u.Cli.commands_resolve_success_message(
             result_value=0, success_message=None, success_formatter=None
         )
@@ -95,6 +99,7 @@ class TestsFlextCliCommands:
         self, payload: str, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Act
+        """Verify that structured payload is emitted verbatim with newline."""
         u.Cli.commands_emit_success_message(payload, c.Cli.MessageTypes.SUCCESS)
 
         # Assert
@@ -104,31 +109,33 @@ class TestsFlextCliCommands:
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Act
+        """Verify that plain success text is styled and newline terminated."""
         u.Cli.commands_emit_success_message("all good", c.Cli.MessageTypes.SUCCESS)
 
         # Assert
         out = capsys.readouterr().out
         tm.that(out, has="all good")
         tm.that(out, ne="all good\n")
-        assert out.endswith("\n")
+        tm.that(out.endswith("\n"), eq=True)
 
     def test_error_message_is_styled_and_newline_terminated(
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Act
+        """Verify that error message is styled and newline terminated."""
         u.Cli.commands_emit_result_error(r[str].fail("boom"))
 
         # Assert
         out = capsys.readouterr().out
         tm.that(out, has="boom")
         tm.that(out, ne="boom\n")
-        assert out.endswith("\n")
+        tm.that(out.endswith("\n"), eq=True)
 
     def test_error_message_surfaces_code_without_traceback_in_normal_mode(
-        self,
-        capsys: pytest.CaptureFixture[str],
+        self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Act
+        """Verify that error message surfaces code without traceback in normal mode."""
         result = r[str].fail(
             "proposal config ausente: /x.yaml",
             error_code="missing_config",
@@ -140,16 +147,17 @@ class TestsFlextCliCommands:
         out = capsys.readouterr().out
         tm.that(out, has="proposal config ausente: /x.yaml")
         tm.that(out, has="missing_config")
-        assert "Traceback" not in out
-        assert "FileNotFoundError" not in out
+        tm.that("Traceback" not in out, eq=True)
+        tm.that("FileNotFoundError" not in out, eq=True)
 
     def test_error_message_adds_traceback_in_verbose_mode(
-        self,
-        capsys: pytest.CaptureFixture[str],
+        self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Arrange
+        """Verify that error message adds traceback in verbose mode."""
         try:
-            raise FileNotFoundError("nope")
+            error_message = "nope"
+            raise FileNotFoundError(error_message)
         except FileNotFoundError as exc:
             captured_exception: BaseException = exc
 

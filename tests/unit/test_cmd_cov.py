@@ -88,7 +88,7 @@ class TestsFlextCliCmdCov:
         tm.that(snapshot.settings_exists, eq=True)
         tm.that(snapshot.settings_readable, eq=True)
         tm.that(snapshot.settings_writable, eq=True)
-        assert snapshot.timestamp
+        tm.that(snapshot.timestamp, empty=False)
 
     def test_settings_snapshot_reports_absent_directory(self, tmp_path: Path) -> None:
         """settings_snapshot flags a missing dir as absent/unreadable/unwritable."""
@@ -110,13 +110,17 @@ class TestsFlextCliCmdCov:
         dumped = tm.ok(result).model_dump()
         tm.that(dumped["settings_dir"], eq=str(settings_dir))
         tm.that(dumped["settings_exists"], eq=True)
-        assert set(dumped) >= {
-            "settings_dir",
-            "settings_exists",
-            "settings_readable",
-            "settings_writable",
-            "timestamp",
-        }
+        tm.that(
+            set(dumped)
+            >= {
+                "settings_dir",
+                "settings_exists",
+                "settings_readable",
+                "settings_writable",
+                "timestamp",
+            },
+            eq=True,
+        )
 
     def test_show_settings_succeeds_when_snapshot_readable(
         self, tmp_path: Path

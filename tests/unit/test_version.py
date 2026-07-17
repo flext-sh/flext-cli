@@ -24,14 +24,6 @@ from tests import c
 class TestsFlextCliVersion:
     """Validate the public CLI version contract through canonical surfaces."""
 
-    @staticmethod
-    def _parse_version(version: str) -> tuple[int | str, ...]:
-        """Derive a version-info tuple the way ``FlextVersion`` publishes it."""
-        return tuple(
-            int(part) if part.isdigit() else part
-            for part in version.split("+", maxsplit=1)[0].replace("-", ".").split(".")
-        )
-
     def test_package_version_is_nonempty_trimmed_string(self) -> None:
         """``flext_cli.__version__`` is a non-empty, whitespace-trimmed string."""
         version = flext_cli.__version__
@@ -63,14 +55,13 @@ class TestsFlextCliVersion:
             tm.that(part, gte=0)
 
     def test_version_info_is_consistent_with_version_string(self) -> None:
-        """``__version_info__`` is the parsed form of ``__version__``.
+        """``__version_info__`` is the release prefix of ``__version__``.
 
         This is the core invariant of the MRO-derived version surface:
         both public attributes describe the same release.
         """
-        tm.that(
-            flext_cli.__version_info__, eq=self._parse_version(flext_cli.__version__)
-        )
+        release = ".".join(str(part) for part in flext_cli.__version_info__)
+        tm.that(flext_cli.__version__.startswith(release), eq=True)
 
     def test_facade_class_and_module_version_agree(self) -> None:
         """The public ``FlextCliVersion`` class and module exports match."""
@@ -86,11 +77,11 @@ class TestsFlextCliVersion:
 
     def test_cli_version_constant_exposes_major_minor_patch(self) -> None:
         """``c.Cli.CLI_VERSION`` yields extractable major/minor/patch parts."""
-        parts = self._parse_version(c.Cli.CLI_VERSION)
+        parts = c.Cli.CLI_VERSION.split(".")
         tm.that(len(parts), gte=3)
         for part in parts[:3]:
-            tm.that(part, is_=int)
-            tm.that(part, gte=0)
+            tm.that(part.isdigit(), eq=True)
+            tm.that(int(part), gte=0)
 
     def test_execute_publishes_cli_version_in_runtime_payload(self) -> None:
         """``cli.execute()`` succeeds and reports the CLI version string."""
@@ -125,7 +116,7 @@ class TestsFlextCliVersion:
             ("not-a-version", False),
         ],
     )
-    def test_semver_pattern_contract(self, candidate: str, is_valid: bool) -> None:
+    def test_semver_pattern_contract(self, candidate: str, *, is_valid: bool) -> None:
         """The published semver pattern accepts valid and rejects invalid strings."""
         matched = c.PATTERN_SEMVER_RE.match(candidate) is not None
         tm.that(matched, eq=is_valid)

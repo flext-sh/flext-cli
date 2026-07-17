@@ -19,6 +19,7 @@ class TestsFlextCliRulesCov:
     """Implementation part for TestsFlextCliRulesCov."""
 
     def test_rules_load_local_definitions_rule_validation_fails(self) -> None:
+        """Verify that rules load local definitions rule validation fails."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
@@ -37,6 +38,7 @@ class TestsFlextCliRulesCov:
             tm.that((result.error or ""), has="config must be a mapping")
 
     def test_rules_load_local_definitions_file_catalog_success(self) -> None:
+        """Verify that rules load local definitions file catalog success."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
@@ -55,6 +57,7 @@ class TestsFlextCliRulesCov:
             tm.that(result.value[1][0][0], eq="file-lint")
 
     def test_rules_load_local_definitions_file_catalog_validation_fails(self) -> None:
+        """Verify that rules load local definitions file catalog validation fails."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
@@ -74,18 +77,21 @@ class TestsFlextCliRulesCov:
             tm.that((result.error or ""), has="config must be a mapping")
 
     def test_rules_matches_filters_empty(self) -> None:
+        """Verify that rules matches filters empty."""
         tm.that(u.Cli.rules_matches_filters("rule-a", ()), eq=True)
 
     @pytest.mark.parametrize(
         ("rule_id", "rule_filters", "expected"), c.Tests.RULES_MATCH_FILTER_CASES
     )
     def test_rules_matches_filters_parametrized(
-        self, rule_id: str, rule_filters: t.StrSequence, expected: bool
+        self, rule_id: str, rule_filters: t.StrSequence, *, expected: bool
     ) -> None:
+        """Verify that rules matches filters parametrized."""
         result = u.Cli.rules_matches_filters(rule_id, rule_filters)
-        assert result is expected
+        tm.that(result is expected, eq=True)
 
     def test_rules_resolve_directory_local(self) -> None:
+        """Verify that rules resolve directory local."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
@@ -99,6 +105,7 @@ class TestsFlextCliRulesCov:
             tm.that(result, eq=rules_dir)
 
     def test_rules_resolve_directory_fallback(self) -> None:
+        """Verify that rules resolve directory fallback."""
         with tempfile.TemporaryDirectory() as tmpdir:
             pkg_rules = Path(tmpdir) / "pkg_rules"
             pkg_rules.mkdir()
@@ -110,17 +117,20 @@ class TestsFlextCliRulesCov:
             tm.that(result, eq=pkg_rules)
 
     def test_rules_match_catalog_entry_by_action(self) -> None:
+        """Verify that rules match catalog entry by action."""
         catalog = c.Tests.RULES_CATALOG_BASIC
         result = u.Cli.rules_match_catalog_entry("check", "", catalog)
-        tm.that(result, none=False)
+        result = tm.not_none(result)
         tm.that(result[0], eq="lint")
 
     def test_rules_match_catalog_entry_by_check(self) -> None:
+        """Verify that rules match catalog entry by check."""
         catalog = c.Tests.RULES_CATALOG_BASIC
         result = u.Cli.rules_match_catalog_entry("", "lint", catalog)
-        tm.that(result, none=False)
+        result = tm.not_none(result)
 
     def test_rules_match_catalog_entry_no_match(self) -> None:
+        """Verify that rules match catalog entry no match."""
         catalog = c.Tests.RULES_CATALOG_BASIC
         result = u.Cli.rules_match_catalog_entry("unknown", "unknown", catalog)
         tm.that(result, none=True)

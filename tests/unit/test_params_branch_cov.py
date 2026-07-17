@@ -20,6 +20,7 @@ class TestsFlextCliParams:
     # -- params_resolve -----------------------------------------------------
 
     def test_resolve_merges_model_with_kwargs(self) -> None:
+        """Verify that resolve merges model with kwargs."""
         params = m.Cli.CliParamsConfig(debug=True)
         resolved = u.Cli.params_resolve(params, {"verbose": True})
         tm.that(resolved, is_=m.Cli.CliParamsConfig)
@@ -27,16 +28,19 @@ class TestsFlextCliParams:
         tm.that(resolved.verbose, eq=True)
 
     def test_resolve_with_none_params_uses_kwargs_only(self) -> None:
+        """Verify that resolve with none params uses kwargs only."""
         resolved = u.Cli.params_resolve(None, {"quiet": True})
         tm.that(resolved, is_=m.Cli.CliParamsConfig)
         tm.that(resolved.quiet, eq=True)
 
     def test_resolve_kwargs_override_model_values(self) -> None:
+        """Verify that resolve kwargs override model values."""
         params = m.Cli.CliParamsConfig(debug=True)
         resolved = u.Cli.params_resolve(params, {"debug": False})
         tm.that(resolved.debug, eq=False)
 
     def test_resolve_is_idempotent_for_same_inputs(self) -> None:
+        """Verify that resolve is idempotent for same inputs."""
         params = m.Cli.CliParamsConfig(debug=True, verbose=True)
         first = u.Cli.params_resolve(params, {})
         second = u.Cli.params_resolve(params, {})
@@ -45,6 +49,7 @@ class TestsFlextCliParams:
     # -- params_set_bool ----------------------------------------------------
 
     def test_set_bool_applies_root_and_cli_flags(self) -> None:
+        """Verify that set bool applies root and cli flags."""
         settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(
             debug=True, trace=True, verbose=True, quiet=True, no_color=True
@@ -58,6 +63,7 @@ class TestsFlextCliParams:
         tm.that(updated.cli_no_color, eq=True)
 
     def test_set_bool_trace_without_debug_fails(self) -> None:
+        """Verify that set bool trace without debug fails."""
         settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(trace=True)
         result = u.Cli.params_set_bool(settings, params)
@@ -65,16 +71,18 @@ class TestsFlextCliParams:
         tm.that(result.error, eq=tc.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG)
 
     def test_set_bool_no_flags_returns_settings_unchanged(self) -> None:
+        """Verify that set bool no flags returns settings unchanged."""
         settings = FlextCliSettings.model_validate({})
         result = u.Cli.params_set_bool(settings, m.Cli.CliParamsConfig())
         tm.ok(result)
-        assert result.value.debug is settings.debug
-        assert result.value.cli_verbose is settings.cli_verbose
+        tm.that(result.value.debug is settings.debug, eq=True)
+        tm.that(result.value.cli_verbose is settings.cli_verbose, eq=True)
 
     # -- params_set_log_level ----------------------------------------------
 
     @pytest.mark.parametrize("level", ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
     def test_set_log_level_applies_valid_level(self, level: str) -> None:
+        """Verify that set log level applies valid level."""
         settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(log_level=level)
         result = u.Cli.params_set_log_level(settings, params)
@@ -82,12 +90,14 @@ class TestsFlextCliParams:
         tm.that(result.value.cli_log_level, eq=level)
 
     def test_set_log_level_none_returns_settings_unchanged(self) -> None:
+        """Verify that set log level none returns settings unchanged."""
         settings = FlextCliSettings.model_validate({})
         result = u.Cli.params_set_log_level(settings, m.Cli.CliParamsConfig())
         tm.ok(result)
         tm.that(result.value.cli_log_level, eq=settings.cli_log_level)
 
     def test_set_log_level_invalid_fails_with_options_message(self) -> None:
+        """Verify that set log level invalid fails with options message."""
         settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(log_level="BOGUS")
         result = u.Cli.params_set_log_level(settings, params)
@@ -103,6 +113,7 @@ class TestsFlextCliParams:
 
     @pytest.mark.parametrize("log_format", ["compact", "detailed", "full"])
     def test_set_format_applies_valid_log_format(self, log_format: str) -> None:
+        """Verify that set format applies valid log format."""
         settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(log_format=log_format)
         result = u.Cli.params_set_format(settings, params)
@@ -113,6 +124,7 @@ class TestsFlextCliParams:
         "output_format", ["json", "yaml", "csv", "table", "plain", "xml", "text"]
     )
     def test_set_format_applies_valid_output_format(self, output_format: str) -> None:
+        """Verify that set format applies valid output format."""
         settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(output_format=output_format)
         result = u.Cli.params_set_format(settings, params)
@@ -120,6 +132,7 @@ class TestsFlextCliParams:
         tm.that(result.value.cli_output_format, eq=output_format)
 
     def test_set_format_none_returns_settings_unchanged(self) -> None:
+        """Verify that set format none returns settings unchanged."""
         settings = FlextCliSettings.model_validate({})
         result = u.Cli.params_set_format(settings, m.Cli.CliParamsConfig())
         tm.ok(result)
@@ -127,6 +140,7 @@ class TestsFlextCliParams:
         tm.that(result.value.cli_output_format, eq=settings.cli_output_format)
 
     def test_set_format_invalid_log_format_fails(self) -> None:
+        """Verify that set format invalid log format fails."""
         settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(log_format="BAD")
         result = u.Cli.params_set_format(settings, params)
@@ -139,6 +153,7 @@ class TestsFlextCliParams:
         tm.that(result.error, eq=expected)
 
     def test_set_format_invalid_output_format_fails(self) -> None:
+        """Verify that set format invalid output format fails."""
         settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(output_format="BAD")
         result = u.Cli.params_set_format(settings, params)
@@ -153,6 +168,7 @@ class TestsFlextCliParams:
     # -- params_apply -------------------------------------------------------
 
     def test_apply_chains_all_stages_on_valid_params(self) -> None:
+        """Verify that apply chains all stages on valid params."""
         settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(
             debug=True, log_level="INFO", output_format="yaml", log_format="detailed"
@@ -166,6 +182,7 @@ class TestsFlextCliParams:
         tm.that(updated.cli_log_verbosity, eq="detailed")
 
     def test_apply_short_circuits_on_first_stage_failure(self) -> None:
+        """Verify that apply short circuits on first stage failure."""
         settings = FlextCliSettings.model_validate({})
         params = m.Cli.CliParamsConfig(trace=True)
         result = u.Cli.params_apply(settings, params)
@@ -173,6 +190,7 @@ class TestsFlextCliParams:
         tm.that(result.error, eq=tc.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG)
 
     def test_apply_returns_result_type(self) -> None:
+        """Verify that apply returns result type."""
         settings = FlextCliSettings.model_validate({})
         result = u.Cli.params_apply(settings, m.Cli.CliParamsConfig())
         tm.that(result, is_=p.Result)

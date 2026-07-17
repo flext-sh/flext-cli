@@ -16,6 +16,7 @@ from examples.ex_04_file_operations import (
 from flext_tests import tm
 
 from flext_cli import cli, settings
+from tests import c
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -81,7 +82,7 @@ class TestsFlextCliExamplesSmoke:
 
         token_result = Ex05Authentication.fetch_saved_token()
         tm.ok(token_result)
-        tm.that(len(token_result.value) >= 20, eq=True)
+        tm.that(len(token_result.value) >= c.Tests.AUTH_TOKEN_MIN_LENGTH, eq=True)
         validation_result = Ex05Authentication.validate_current_token()
         tm.ok(validation_result)
 

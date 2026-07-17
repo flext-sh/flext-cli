@@ -37,13 +37,13 @@ class TestsFlextCliBase:
     def test_facade_instantiates_as_its_own_type(self) -> None:
         """A freshly constructed facade is a usable instance of the facade type."""
         service = type(cli)()
-        tm.that(service, none=False)
+        service = tm.not_none(service)
         tm.that(service, is_=type(cli))
 
     def test_canonical_settings_satisfies_cli_protocol(self) -> None:
         """The canonical ``settings`` singleton satisfies the Cli settings protocol."""
-        tm.that(settings, none=False)
-        tm.that(settings, is_=p.Cli.Settings)
+        resolved_settings = tm.not_none(settings)
+        tm.that(resolved_settings, is_=p.Cli.Settings)
 
     def test_settings_property_is_stable_within_instance(
         self, facade: FlextCli
@@ -51,13 +51,13 @@ class TestsFlextCliBase:
         """Repeated `settings` reads return the same singleton (idempotent access)."""
         first = facade.settings
         second = facade.settings
-        assert first is second
+        tm.that(first is second, eq=True)
 
     def test_settings_singleton_shared_across_instances(self) -> None:
         """Two independent facades observe the same shared settings singleton."""
         service1 = type(cli)()
         service2 = type(cli)()
-        assert service1.settings is service2.settings
+        tm.that(service1.settings is service2.settings, eq=True)
 
     def test_clone_returns_fresh_typed_instances(self) -> None:
         """``clone`` is the factory: each call yields a distinct typed instance."""
@@ -65,8 +65,8 @@ class TestsFlextCliBase:
         second = settings.clone()
         tm.that(first, is_=p.Cli.Settings)
         tm.that(second, is_=p.Cli.Settings)
-        assert first is not second
-        assert first is not settings
+        tm.that(first is not second, eq=True)
+        tm.that(first is not settings, eq=True)
 
     def test_validate_settings_reports_success_outcome(self, facade: FlextCli) -> None:
         """`validate_settings` returns a successful r[bool] carrying True."""
@@ -80,16 +80,20 @@ class TestsFlextCliBase:
         tm.ok(result)
         snapshot = result.unwrap()
         dumped = snapshot.model_dump()
-        assert set(dumped) >= {
-            "settings_dir",
-            "settings_exists",
-            "settings_readable",
-            "settings_writable",
-            "timestamp",
-        }
+        tm.that(
+            set(dumped)
+            >= {
+                "settings_dir",
+                "settings_exists",
+                "settings_readable",
+                "settings_writable",
+                "timestamp",
+            },
+            eq=True,
+        )
         tm.that(snapshot.settings_exists, is_=bool)
         tm.that(snapshot.settings_dir, is_=str)
-        assert snapshot.settings_dir
+        tm.that(snapshot.settings_dir, empty=False)
 
     def test_snapshot_map_composes_over_success(self, facade: FlextCli) -> None:
         """The r[T] snapshot value flows through `map` without losing success."""

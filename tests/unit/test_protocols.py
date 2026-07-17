@@ -45,6 +45,7 @@ class _ConformingYamlModule:
     """Object structurally conforming to ``YamlModule``."""
 
     def dump(self, data: object, *, default_flow_style: bool = True) -> str:
+        del data, default_flow_style
         return ""
 
 
@@ -73,7 +74,7 @@ class TestsFlextCliProtocols:
 
     def test_data_protocol_rejects_object_missing_required_attributes(self) -> None:
         """An object missing declared attributes fails the protocol check."""
-        assert not isinstance(_PartialSummary(), p.Cli.SummaryStats)
+        tm.that(isinstance(_PartialSummary(), p.Cli.SummaryStats), eq=False)
 
     def test_method_protocol_accepts_object_exposing_method(self) -> None:
         """An object exposing ``dump`` satisfies ``YamlModule``."""
@@ -81,7 +82,7 @@ class TestsFlextCliProtocols:
 
     def test_method_protocol_rejects_object_without_method(self) -> None:
         """An object lacking ``dump`` is rejected by ``YamlModule``."""
-        assert not isinstance(object(), p.Cli.YamlModule)
+        tm.that(isinstance(object(), p.Cli.YamlModule), eq=False)
 
     def test_callable_protocol_accepts_plain_callable(self) -> None:
         """Any single-arg callable conforms to ``JsonValueProcessor``."""
@@ -101,7 +102,7 @@ class TestsFlextCliProtocols:
             @property
             def shared(self) -> object: ...
 
-        assert not isinstance(_MissingSettings(), p.Cli.PipelineStageContext)
+        tm.that(isinstance(_MissingSettings(), p.Cli.PipelineStageContext), eq=False)
 
     @pytest.mark.parametrize(
         "protocol_name",
@@ -138,7 +139,7 @@ class TestsFlextCliProtocols:
         self, protocol_name: str
     ) -> None:
         """Each CLI protocol resolves to one shared object under ``p.Cli``."""
-        assert getattr(p.Cli, protocol_name) is getattr(p.Cli, protocol_name)
+        tm.that(getattr(p.Cli, protocol_name) is getattr(p.Cli, protocol_name), eq=True)
 
     def test_result_protocol_inherited_from_core_facade(self) -> None:
         """The CLI facade re-exposes the core ``Result`` protocol contract."""

@@ -32,7 +32,7 @@ class FlextCliTypesBase:
     type TableDisableNumparse = bool | t.SequenceOf[int]
     type TableColAlign = t.StrSequence | None
     type CliValue = t.Scalar | t.StrSequence | DefaultMapping
-    type CliDefaultSource = CliValue | Path
+    type CliDefaultSource = CliValue | t.SequenceOf[str | int] | Path
     type CliAnnotations = MutableMapping[str, type | GenericAlias]
     type TomlDocument = TOMLDocument
     type TomlTable = Table

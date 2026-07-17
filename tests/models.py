@@ -12,11 +12,7 @@ from tests._models_parts.testsflextclimodels_part_01 import (
 )
 
 
-class TestsFlextCliModels(
-    TestsFlextCliModelsPart01,
-    FlextTestsModels,
-    FlextCliModels,
-):
+class TestsFlextCliModels(TestsFlextCliModelsPart01, FlextTestsModels, FlextCliModels):
     """Test model facade composed from canonical FLEXT model owners."""
 
     class Tests(TestsFlextCliModelsPart01.Tests):

@@ -48,11 +48,11 @@ class TestsFlextCliPipeline:
         call_count = 0
 
         def flaky(
-            ctx: p.Cli.PipelineStageContext,
+            _ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             nonlocal call_count
             call_count += 1
-            if call_count < 3:
+            if call_count < c.Tests.PIPELINE_SUCCESS_ATTEMPT:
                 return r[m.Cli.PipelineStageResult].fail("transient")
             return r[m.Cli.PipelineStageResult].ok(
                 cli.stage_result("flaky", status=c.Cli.PipelineStageStatus.OK)
@@ -62,7 +62,7 @@ class TestsFlextCliPipeline:
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
         tm.that(result.value.success, eq=True)
-        tm.that(call_count, eq=3)
+        tm.that(call_count, eq=c.Tests.PIPELINE_SUCCESS_ATTEMPT)
 
     def test_retry_on_safe_exception_marks_stage_failed(self, tmp_path: Path) -> None:
         """Safe stage exceptions are retried and end as failed stage results."""

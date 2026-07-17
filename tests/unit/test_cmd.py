@@ -40,7 +40,7 @@ class TestsFlextCliCmd:
 
     def test_execute_reports_operational_runtime_payload(self) -> None:
         """execute() must succeed and expose the canonical status payload."""
-        data = tm.ok(cli.execute(), is_=m.Cli.RuntimeStatus)
+        data = m.Cli.RuntimeStatus.model_validate(tm.ok(cli.execute()))
 
         tm.that(data.status, eq=c.Cli.ServiceStatus.OPERATIONAL)
         tm.that(data.service, eq=c.Cli.FLEXT_CLI)

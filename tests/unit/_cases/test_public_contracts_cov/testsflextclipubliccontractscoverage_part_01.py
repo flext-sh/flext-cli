@@ -31,6 +31,7 @@ class TestsFlextCliPublicContractsCoverage:
         # NOTE (multi-agent): flat cli_* settings (§2.6) — fresh instances come
         # from ``settings.clone()`` and test-runtime detection lives in
         # ``u.Cli.cli_test_env`` (behavior moved off the settings model).
+        """Verify that public facade and settings contract."""
         FlextCliSettings.reset_for_testing()
 
         fresh_settings = settings.clone()
@@ -55,16 +56,14 @@ class TestsFlextCliPublicContractsCoverage:
         facade_result = cli.execute()
 
         tm.ok(facade_result)
-        tm.that(
-            facade_result.value.status,
-            eq=(c.Cli.ServiceStatus.OPERATIONAL),
-        )
+        tm.that(facade_result.value.status, eq=(c.Cli.ServiceStatus.OPERATIONAL))
         tm.that(facade_result.value.service, eq=c.Cli.FLEXT_CLI)
         components = facade_result.value.components
         tm.that(components, is_=m.Cli.RuntimeComponents)
         tm.that(components.prompts, eq="available")
 
     def test_public_model_command_utility_contract(self) -> None:
+        """Verify that public model command utility contract."""
         command_settings = self._CommandModel(label="configured", debug=True)
 
         def handler(model: TestsFlextCliPublicContractsCoverage._CommandModel) -> str:
@@ -78,7 +77,9 @@ class TestsFlextCliPublicContractsCoverage:
         # NOTE (multi-agent): ``u.Cli.build_model_command`` renders model-field
         # defaults into the signature; settings-seeded defaults are the
         # ``cli.model_command`` contract, not this utility's.
-        assert signature.parameters["label"].default is inspect.Parameter.empty
+        tm.that(
+            signature.parameters["label"].default is inspect.Parameter.empty, eq=True
+        )
         tm.that(signature.parameters["debug"].default, eq=False)
         tm.that(
             u.Cli.model_source_data(

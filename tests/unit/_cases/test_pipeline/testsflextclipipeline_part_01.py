@@ -39,7 +39,7 @@ class TestsFlextCliPipeline:
         """Build a handler that fails."""
 
         def handler(
-            ctx: p.Cli.PipelineStageContext,
+            _ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             return r[m.Cli.PipelineStageResult].fail(f"{stage_id} failed")
 

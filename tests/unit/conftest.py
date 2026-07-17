@@ -20,16 +20,20 @@ if TYPE_CHECKING:
 class TestsFlextCliScriptedPrompts(FlextCliPrompts):
     """Prompt service with typed scripting helpers for tests."""
 
-    def override_test_env(self, enabled: bool | None = True) -> Self:
+    def override_test_env(self, *, enabled: bool | None = True) -> Self:
+        """Define the override test env test contract."""
         self._test_env_override = enabled
         return self
 
     def use_input_values(self, values: t.StrSequence) -> Self:
+        """Define the use input values test contract."""
         values_iter = iter(values)
         self._input_reader = lambda _prompt: next(values_iter)
         return self
 
     def use_input_error(self, error: Exception) -> Self:
+        """Define the use input error test contract."""
+
         def raise_input(_prompt: str) -> str:
             raise error
 
@@ -37,10 +41,13 @@ class TestsFlextCliScriptedPrompts(FlextCliPrompts):
         return self
 
     def use_password(self, password: str) -> Self:
+        """Define the use password test contract."""
         self._password_reader = lambda _prompt: password
         return self
 
     def use_password_error(self, error: Exception) -> Self:
+        """Define the use password error test contract."""
+
         def raise_password(_prompt: str) -> str:
             raise error
 
@@ -48,6 +55,7 @@ class TestsFlextCliScriptedPrompts(FlextCliPrompts):
         return self
 
     def configure_state(self, *, interactive: bool = True, quiet: bool = False) -> Self:
+        """Define the configure state test contract."""
         self.configure(m.Cli.PromptRuntimeState(interactive=interactive, quiet=quiet))
         return self
 
@@ -59,6 +67,7 @@ class TestsFlextCliCaptureLogPrompts(TestsFlextCliScriptedPrompts):
 
     @property
     def records(self) -> list[tuple[str, str]]:
+        """Define the records test contract."""
         return self._records
 
     @override
@@ -73,6 +82,7 @@ class TestsFlextCliFailingLogPrompts(TestsFlextCliScriptedPrompts):
     _failure_message: str = m.PrivateAttr(default_factory=lambda: "logger failure")
 
     def fail_on_log(self, *, level: str, message: str) -> Self:
+        """Define the fail on log test contract."""
         self._failure_level = level
         self._failure_message = message
         return self

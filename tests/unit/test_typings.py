@@ -55,7 +55,7 @@ class TestsFlextCliTypings:
     ) -> None:
         """JSON_MAPPING_ADAPTER validates JSON object mappings unchanged."""
         result = t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
-        tm.that(result, eq=payload)
+        tm.that(result == payload, eq=True)
 
     @pytest.mark.parametrize("payload", [["a", "list"], "string", 42, True])
     def test_json_mapping_adapter_rejects_non_mappings(self, payload: object) -> None:
@@ -69,7 +69,7 @@ class TestsFlextCliTypings:
     def test_json_list_adapter_accepts_json_arrays(self, payload: list[object]) -> None:
         """JSON_LIST_ADAPTER validates JSON arrays unchanged."""
         result = t.Cli.JSON_LIST_ADAPTER.validate_python(payload)
-        tm.that(result, eq=payload)
+        tm.that(result == payload, eq=True)
 
     @pytest.mark.parametrize(
         ("payload", "expected"),
@@ -77,7 +77,7 @@ class TestsFlextCliTypings:
             ("plain", "plain"),
             (7, 7),
             (True, True),
-            (Path("/tmp/x"), Path("/tmp/x")),
+            (Path("x"), Path("x")),
             (["a", "b"], ["a", "b"]),
         ],
     )
@@ -86,7 +86,7 @@ class TestsFlextCliTypings:
     ) -> None:
         """CLI_DEFAULT_SOURCE_ADAPTER accepts scalars, sequences, and paths."""
         result = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)
-        tm.that(result, eq=expected)
+        tm.that(result == expected, eq=True)
 
     # --- Published type-tuple ClassVars ---------------------------------
 

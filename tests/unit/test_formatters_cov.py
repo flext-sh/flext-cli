@@ -34,6 +34,7 @@ class TestsFlextCliFormattersCov:
     def test_print_renders_message_to_stdout(
         self, capsys: pytest.CaptureFixture[str], msg: str, style: str | None
     ) -> None:
+        """Verify that print renders message to stdout."""
         if style is not None:
             cli.print(msg, style)
         else:
@@ -48,6 +49,7 @@ class TestsFlextCliFormattersCov:
     def test_render_rule_renders_label_to_stdout(
         self, capsys: pytest.CaptureFixture[str], label: str
     ) -> None:
+        """Verify that render rule renders label to stdout."""
         cli.render_rule(label)
 
         out = capsys.readouterr().out
@@ -61,6 +63,7 @@ class TestsFlextCliFormattersCov:
     def test_render_panel_renders_content_to_stdout(
         self, capsys: pytest.CaptureFixture[str], content: str, title: str
     ) -> None:
+        """Verify that render panel renders content to stdout."""
         cli.render_panel(content, title=title)
 
         out = capsys.readouterr().out
@@ -78,6 +81,7 @@ class TestsFlextCliFormattersCov:
         rows: tuple[t.StrSequence, ...],
         title: str,
     ) -> None:
+        """Verify that render table renders columns and cells."""
         cli.render_table(
             columns=list(columns), rows=[list(row) for row in rows], title=title
         )

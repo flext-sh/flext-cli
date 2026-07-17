@@ -20,6 +20,7 @@ class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
     def test_register_result_command_renders_success_and_failure(self) -> None:
+        """Verify that register result command renders success and failure."""
         app = cli.create_app_with_common_params(
             name="result-app", help_text="Result application"
         )
@@ -57,9 +58,7 @@ class TestsFlextCliService:
         cli.register_result_route(group, route=build_fail_route())
         cli.add_group(app, name="group", group=group)
         ok_invocation = cli.invoke_app(app, args=["ok", "--name", "alice"])
-        fail_invocation = cli.invoke_app(
-            app, args=["group", "fail", "--name", "alice"]
-        )
+        fail_invocation = cli.invoke_app(app, args=["group", "fail", "--name", "alice"])
         tm.ok(ok_invocation)
         tm.ok(fail_invocation)
         ok_result = ok_invocation.value
@@ -71,6 +70,7 @@ class TestsFlextCliService:
         tm.that(fail_result.stdout, has="Username cannot be empty")
 
     def test_register_result_routes_propagates_real_failure(self) -> None:
+        """Verify that register result routes propagates real failure."""
         app = cli.create_app_with_common_params(
             name="result-app", help_text="Result application"
         )
@@ -101,8 +101,8 @@ class TestsFlextCliService:
         tm.fail(fail_result)
         tm.that(fail_result.error, has="Password cannot be resolved")
         tm.that(fail_result.error_code, eq="secret_unavailable")
-        assert fail_result.error_data is not None
-        tm.that(fail_result.error_data["field"], eq="password")
+        tm.that(fail_result.error_data is not None, eq=True)
+        tm.that(tm.not_none(fail_result.error_data)["field"], eq="password")
         tm.that(fail_result.exception, is_=ValueError)
         tm.that(cli.finalize_result(fail_result), eq=c.Cli.EXIT_CODE_FAILURE)
         tm.that(cli.finalize_result(fail_result, failure_exit_code=2), eq=2)

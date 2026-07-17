@@ -20,6 +20,7 @@ class TestsFlextCliPublicContractsCoverage:
     """Implementation part for TestsFlextCliPublicContractsCoverage."""
 
     def test_public_model_contracts_cover_cli_shapes(self, tmp_path: Path) -> None:
+        """Verify that public model contracts cover cli shapes."""
         output = m.Cli.CommandOutput(
             stdout="out", stderr="err", exit_code=0, duration=0.25
         )
@@ -28,7 +29,7 @@ class TestsFlextCliPublicContractsCoverage:
         normalized = m.Cli.CliNormalizedJson({"name": "flext"})
         summary = m.Cli.SuccessSummaryDetails({"status": "ok"})
         prompt_state = m.Cli.PromptRuntimeState(quiet=True)
-        auth = m.Cli.AuthCredentialsPayload(token="token-123")
+        auth = m.Cli.AuthCredentialsPayload(token=c.Tests.AUTH_VALUE_SAMPLE)
         environment = m.Cli.ProcessEnvironmentSpec(
             base_env={"KEEP": "1", "DROP": "2"},
             overrides={"ADD": "3"},
@@ -57,7 +58,9 @@ class TestsFlextCliPublicContractsCoverage:
         )
 
         tm.that(output.stdout, eq="out")
-        assert abs(output.duration - 0.25) < 1e-9
+        tm.that(
+            abs(output.duration - 0.25) < c.Tests.COMMAND_DURATION_TOLERANCE, eq=True
+        )
         tm.that(display.model_dump(), eq={"name": "flext", "count": 1})
         tm.that(loaded.content, eq={"debug": True})
         tm.that(normalized.model_dump(), eq={"name": "flext"})
@@ -71,7 +74,7 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(summary.root, eq={"status": "ok"})
         tm.that(prompt_state.interactive, eq=True)
         tm.that(prompt_state.quiet, eq=True)
-        tm.that(auth.token, eq="token-123")
+        tm.that(auth.token, eq=c.Tests.AUTH_VALUE_SAMPLE)
         tm.that(environment.resolve(), eq={"KEEP": "1", "ADD": "3"})
         tm.that(environment.resolved, eq={"KEEP": "1", "ADD": "3"})
         tm.that(entry.name, eq="inspect")
@@ -80,14 +83,16 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(snapshot.settings_exists, eq=True)
         tm.that(option.default, eq=True)
         tm.that(m.Cli.LogLevelResolved(raw=" debug ").resolved, eq=c.LogLevel.DEBUG)
-        assert (
+        tm.that(
             m.Cli.TypedExtract(
                 type_kind=c.Cli.TypeKind.STR, value="  name  ", default="fallback"
             ).resolved
-            == "name"
+            == "name",
+            eq=True,
         )
-        assert (
-            m.Cli.TypedExtract(type_kind=c.Cli.TypeKind.BOOL, value=1).resolved is True
+        tm.that(
+            m.Cli.TypedExtract(type_kind=c.Cli.TypeKind.BOOL, value=1).resolved is True,
+            eq=True,
         )
         tm.that(
             m.Cli.TypedExtract(

@@ -20,6 +20,7 @@ class TestsFlextCliPrompts:
     def test_execute_success(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
+        """Verify that execute success."""
         prompts = make_prompts(interactive_mode=False)
         result = prompts.execute()
         tm.ok(result)
@@ -29,6 +30,7 @@ class TestsFlextCliPrompts:
     def test_execute_uses_public_cmd_status_even_when_prompt_logger_would_fail(
         self, make_failing_prompts: Callable[..., p.Tests.FailingLogPrompts]
     ) -> None:
+        """Keep execute operational when prompt debug logging fails."""
         prompts = make_failing_prompts(interactive_mode=False)
         prompts.fail_on_log(level=c.LogLevel.DEBUG, message="Execute error")
         result = prompts.execute()
@@ -39,6 +41,7 @@ class TestsFlextCliPrompts:
     def test_prompt_returns_default_in_quiet_and_non_interactive_modes(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
+        """Verify that prompt returns default in quiet and non interactive modes."""
         quiet_prompts = make_prompts(quiet=True)
         tm.that(
             quiet_prompts.prompt("Enter value", default="default").value, eq="default"
@@ -52,6 +55,7 @@ class TestsFlextCliPrompts:
     def test_prompt_reads_input_and_uses_default_for_empty_text(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
+        """Verify that prompt reads input and uses default for empty text."""
         prompts = make_prompts().use_input_values([" typed ", ""])
         typed_result = prompts.prompt("Enter value")
         tm.ok(typed_result)
@@ -63,6 +67,7 @@ class TestsFlextCliPrompts:
     def test_prompt_handles_input_failure(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
+        """Verify that prompt handles input failure."""
         prompts = make_prompts().use_input_error(ValueError("Input error"))
         result = prompts.prompt("Enter value")
         tm.fail(result, has="Input error")
@@ -70,6 +75,7 @@ class TestsFlextCliPrompts:
     def test_confirm_returns_defaults_when_not_interactive(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
+        """Verify that confirm returns defaults when not interactive."""
         quiet_prompts = make_prompts(quiet=True)
         tm.that(quiet_prompts.confirm("Continue?", default=True).value, eq=True)
         non_interactive_prompts = make_prompts(interactive_mode=False)
@@ -80,6 +86,7 @@ class TestsFlextCliPrompts:
     def test_confirm_accepts_yes_no_default_and_invalid_retry(
         self, make_capture_prompts: Callable[..., p.Tests.CaptureLogPrompts]
     ) -> None:
+        """Verify that confirm accepts yes no default and invalid retry."""
         prompts = make_capture_prompts()
         prompts.use_input_values(["", "y", "n", "maybe", "yes"])
         tm.that(prompts.confirm("Continue?", default=True).value, eq=True)
@@ -105,6 +112,7 @@ class TestsFlextCliPrompts:
         error: Exception,
         expected: str,
     ) -> None:
+        """Verify that confirm handles failures."""
         prompts = make_prompts().use_input_error(error)
         result = prompts.confirm("Continue?", default=False)
         tm.fail(result, has=expected)

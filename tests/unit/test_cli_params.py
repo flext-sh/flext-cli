@@ -135,9 +135,7 @@ class TestsFlextCliCliParams:
         tm.ok(u.Tests.create_decorated_command(app, "test"))
         return app
 
-    def test_help_exposes_common_options(
-        self, app: p.Cli.Application
-    ) -> None:
+    def test_help_exposes_common_options(self, app: p.Cli.Application) -> None:
         """--help lists every common parameter the decorator promises to add."""
         result = cli.invoke_app(app, args=["test", "--help"])
 
@@ -157,9 +155,7 @@ class TestsFlextCliCliParams:
         tm.that(result.value.stdout, has="Verbose: enabled")
         tm.that(result.value.stdout, has="Debug: enabled")
 
-    def test_value_parameters_flow_to_command(
-        self, app: p.Cli.Application
-    ) -> None:
+    def test_value_parameters_flow_to_command(self, app: p.Cli.Application) -> None:
         """Choice-valued options are parsed and surfaced in command output."""
         result = cli.invoke_app(
             app,

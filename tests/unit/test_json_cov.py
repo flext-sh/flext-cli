@@ -21,11 +21,13 @@ class TestsFlextCliJsonCov:
     # ----- normalize -------------------------------------------------------
 
     def test_normalize_json_value_preserves_mapping(self) -> None:
+        """Verify that normalize json value preserves mapping."""
         tm.that(u.Cli.normalize_json_value({"key": "value"}), eq={"key": "value"})
 
     # ----- json_read (fallible, r[JsonMapping]) ----------------------------
 
     def test_json_read_missing_file_fails_loudly(self, tmp_path: Path) -> None:
+        """Verify that json read missing file fails loudly."""
         result = u.Cli.json_read(tmp_path / "missing.json")
         tm.fail(result)
         tm.that(result.error, has="file not found")
@@ -33,6 +35,7 @@ class TestsFlextCliJsonCov:
     def test_json_read_valid_object_returns_parsed_mapping(
         self, tmp_path: Path
     ) -> None:
+        """Verify that json read valid object returns parsed mapping."""
         path = tmp_path / "data.json"
         path.write_text('{"key": "value"}', encoding="utf-8")
         result = u.Cli.json_read(path)
@@ -46,16 +49,18 @@ class TestsFlextCliJsonCov:
     def test_json_read_rejects_invalid_content(
         self, tmp_path: Path, content: str, reason: str
     ) -> None:
+        """Verify that json read rejects invalid content."""
         path = tmp_path / "bad.json"
         path.write_text(content, encoding="utf-8")
         result = u.Cli.json_read(path)
-        tm.fail(result)
+        tm.fail(result, msg=reason)
         tm.that(result.error, none=False)
         tm.that(result.error, has="json_read")
 
     # ----- json_write roundtrip / options ----------------------------------
 
     def test_json_write_then_read_roundtrips_payload(self, tmp_path: Path) -> None:
+        """Verify that json write then read roundtrips payload."""
         path = tmp_path / "out.json"
         write_result = u.Cli.json_write(path, {"a": 1, "b": [1, 2]})
         tm.ok(write_result)
@@ -64,6 +69,7 @@ class TestsFlextCliJsonCov:
         tm.that(read_result.value, eq={"a": 1, "b": [1, 2]})
 
     def test_json_write_sort_keys_orders_nested_keys(self, tmp_path: Path) -> None:
+        """Verify that json write sort keys orders nested keys."""
         path = tmp_path / "sorted.json"
         payload: t.JsonPayload = {
             "z": t.Cli.JSON_MAPPING_ADAPTER.validate_python({"b": 2, "a": 1}),
@@ -87,6 +93,7 @@ class TestsFlextCliJsonCov:
     def test_json_write_serializes_pydantic_model_as_object(
         self, tmp_path: Path
     ) -> None:
+        """Verify that json write serializes pydantic model as object."""
         path = tmp_path / "model.json"
         result = u.Cli.json_write(path, m.Cli.TableConfig())
         tm.ok(result)
@@ -97,10 +104,12 @@ class TestsFlextCliJsonCov:
     # ----- json_parse (fallible) -------------------------------------------
 
     def test_json_parse_valid_text_succeeds(self) -> None:
+        """Verify that json parse valid text succeeds."""
         result = u.Cli.json_parse('{"x": 1}')
         tm.ok(result)
 
     def test_json_parse_invalid_text_fails(self) -> None:
+        """Verify that json parse invalid text fails."""
         result = u.Cli.json_parse("not json")
         tm.fail(result)
         tm.that(result.error, none=False)
@@ -113,6 +122,7 @@ class TestsFlextCliJsonCov:
     def test_json_as_mapping_coerces_to_mapping_or_empty(
         self, value: t.JsonValue | None, expected: t.JsonMapping
     ) -> None:
+        """Verify that json as mapping coerces to mapping or empty."""
         tm.that(u.Cli.json_as_mapping(value), eq=expected)
 
     @pytest.mark.parametrize(
@@ -121,6 +131,7 @@ class TestsFlextCliJsonCov:
     def test_json_as_sequence_coerces_to_list_or_empty(
         self, value: t.JsonValue | None, expected: list[t.JsonValue]
     ) -> None:
+        """Verify that json as sequence coerces to list or empty."""
         tm.that(list(u.Cli.json_as_sequence(value)), eq=expected)
 
     @pytest.mark.parametrize(
@@ -129,11 +140,13 @@ class TestsFlextCliJsonCov:
     def test_json_as_mapping_list_filters_to_mappings(
         self, value: t.JsonValue | None, expected_len: int
     ) -> None:
+        """Verify that json as mapping list filters to mappings."""
         tm.that(len(u.Cli.json_as_mapping_list(value)), eq=expected_len)
 
     # ----- json_walk_path --------------------------------------------------
 
     def test_json_walk_path_returns_leaf_for_existing_path(self) -> None:
+        """Verify that json walk path returns leaf for existing path."""
         data = u.Cli.json_as_mapping(u.Cli.json_loads('{"a": {"b": {"c": 42}}}').value)
         tm.that(u.Cli.json_walk_path(data, ("a", "b", "c")), eq=42)
 
@@ -143,21 +156,25 @@ class TestsFlextCliJsonCov:
     def test_json_walk_path_returns_none_when_unreachable(
         self, keys: tuple[str, ...], raw: str
     ) -> None:
+        """Verify that json walk path returns none when unreachable."""
         data = u.Cli.json_as_mapping(u.Cli.json_loads(raw).value)
         tm.that(u.Cli.json_walk_path(data, keys), none=True)
 
     # ----- deep mapping helpers --------------------------------------------
 
     def test_json_deep_mapping_descends_into_nested_object(self) -> None:
+        """Verify that json deep mapping descends into nested object."""
         data = u.Cli.json_as_mapping(
             u.Cli.json_loads('{"outer": {"inner": {"x": 1}}}').value
         )
         tm.that(u.Cli.json_deep_mapping(data, "outer", "inner"), eq={"x": 1})
 
     def test_json_deep_mapping_without_keys_returns_same_mapping(self) -> None:
+        """Verify that json deep mapping without keys returns same mapping."""
         tm.that(u.Cli.json_deep_mapping({"a": 1}), eq={"a": 1})
 
     def test_json_deep_mapping_list_returns_nested_list(self) -> None:
+        """Verify that json deep mapping list returns nested list."""
         data = u.Cli.json_as_mapping(
             u.Cli.json_loads('{"items": [{"a": 1}, {"b": 2}]}').value
         )
@@ -166,6 +183,7 @@ class TestsFlextCliJsonCov:
     # ----- typed pickers ---------------------------------------------------
 
     def test_json_pick_str_trims_and_falls_back(self) -> None:
+        """Verify that json pick str trims and falls back."""
         tm.that(u.Cli.json_pick_str({"k": " val "}, "k"), eq="val")
         tm.that(u.Cli.json_pick_str({}, "k", default="default"), eq="default")
         tm.that(u.Cli.json_pick_str({"k": None}, "k", default="fb"), eq="fb")
@@ -177,6 +195,7 @@ class TestsFlextCliJsonCov:
     def test_json_pick_int_coerces_scalar_variants(
         self, key: str, expected: int
     ) -> None:
+        """Verify that json pick int coerces scalar variants."""
         data = u.Cli.json_as_mapping(
             u.Cli.json_loads(
                 '{"n": 5, "s": "7", "f": 3.9, "b": true, "none": null, "bad": []}'
@@ -202,8 +221,9 @@ class TestsFlextCliJsonCov:
         ],
     )
     def test_json_pick_bool_coerces_truthy_variants(
-        self, key: str, expected: bool
+        self, key: str, *, expected: bool
     ) -> None:
+        """Verify that json pick bool coerces truthy variants."""
         data = u.Cli.json_as_mapping(
             u.Cli.json_loads(
                 '{"t": true, "f": false, "s_true": "true", "s_false": "false",'
@@ -211,18 +231,21 @@ class TestsFlextCliJsonCov:
                 ' "s_on": "on", "s_off": "off", "n": 1, "n0": 0, "missing": null}'
             ).value
         )
-        assert u.Cli.json_pick_bool(data, key) is expected
+        tm.that(u.Cli.json_pick_bool(data, key) is expected, eq=True)
 
     def test_json_pick_bool_uses_default_for_missing_key(self) -> None:
+        """Verify that json pick bool uses default for missing key."""
         data = u.Cli.json_as_mapping(u.Cli.json_loads('{"missing": null}').value)
         tm.that(u.Cli.json_pick_bool(data, "missing", default=True), eq=True)
 
     def test_json_nested_int_reads_nested_value_or_default(self) -> None:
+        """Verify that json nested int reads nested value or default."""
         data = u.Cli.json_as_mapping(u.Cli.json_loads('{"a": {"b": 42}}').value)
         tm.that(u.Cli.json_nested_int(data, "a", "b"), eq=42)
         tm.that(u.Cli.json_nested_int(data, "a", "missing", default=99), eq=99)
 
     def test_json_get_str_key_trims_value(self) -> None:
+        """Verify that json get str key trims value."""
         tm.that(u.Cli.json_get_str_key({"name": "  Hello  "}, "name"), eq="Hello")
 
 

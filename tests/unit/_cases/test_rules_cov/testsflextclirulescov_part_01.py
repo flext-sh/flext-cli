@@ -4,21 +4,17 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
-from tests import c
-from tests import u
+from tests import c, t, u
 from flext_tests import tm
-
-if TYPE_CHECKING:
-    from tests import t
 
 
 class TestsFlextCliRulesCov:
     """Implementation part for TestsFlextCliRulesCov."""
 
     def test_rules_resolve_scope_with_data(self) -> None:
+        """Verify that rules resolve scope with data."""
         result = u.Cli.rules_resolve_scope(
             {"lint": {"rule_a": True, "rule_b": False}},
             scope_key="lint",
@@ -38,12 +34,14 @@ class TestsFlextCliRulesCov:
         allowed_keys: t.StrSequence,
         expected_len: int,
     ) -> None:
+        """Verify that rules resolve scope parametrized."""
         result = u.Cli.rules_resolve_scope(
             settings, scope_key=scope_key, allowed_keys=allowed_keys
         )
         tm.that(len(result), eq=expected_len)
 
     def test_rules_load_scoped_config_valid(self) -> None:
+        """Verify that rules load scoped config valid."""
         yaml_content = "lint:\n  rule_a: true\n  rule_b: false\n"
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".yml", delete=False, encoding="utf-8"
@@ -56,6 +54,7 @@ class TestsFlextCliRulesCov:
         tm.ok(result)
 
     def test_rules_load_registry_found(self) -> None:
+        """Verify that rules load registry found."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
@@ -72,6 +71,7 @@ class TestsFlextCliRulesCov:
             tm.ok(result)
 
     def test_rules_load_registry_package_fallback(self) -> None:
+        """Verify that rules load registry package fallback."""
         with tempfile.TemporaryDirectory() as tmpdir:
             pkg_rules_dir = Path(tmpdir) / "pkg_rules"
             pkg_rules_dir.mkdir()
@@ -87,6 +87,7 @@ class TestsFlextCliRulesCov:
             tm.ok(result)
 
     def test_rules_load_registry_checks_local_then_package(self) -> None:
+        """Verify that rules load registry checks local then package."""
         with tempfile.TemporaryDirectory() as tmpdir:
             local_rules_dir = Path(tmpdir) / "rules"
             package_rules_dir = Path(tmpdir) / "pkg_rules"
@@ -109,12 +110,12 @@ class TestsFlextCliRulesCov:
             value = result.value
             tm.that(value, is_=dict)
             rules_val = value.get("rules")
-            tm.that(rules_val, is_=list)
-            rule = rules_val[0]
-            tm.that(rule, is_=dict)
+            rules = t.Cli.JSON_LIST_ADAPTER.validate_python(rules_val)
+            rule = t.Cli.JSON_MAPPING_ADAPTER.validate_python(rules[0])
             tm.that(rule.get("id"), eq="rule-a")
 
     def test_rules_load_registry_not_found(self) -> None:
+        """Verify that rules load registry not found."""
         with tempfile.TemporaryDirectory() as tmpdir:
             pkg_rules_dir = Path(tmpdir) / "pkg_rules"
             pkg_rules_dir.mkdir()

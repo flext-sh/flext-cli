@@ -46,6 +46,7 @@ class TestsFlextCliServicesAuth:
         self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
+        """Verify that authenticate with token persists and round trips."""
         self._point_token_file(tmp_path / "token.json")
 
         # Act
@@ -59,6 +60,7 @@ class TestsFlextCliServicesAuth:
         self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
+        """Verify that authenticate with username password returns reloadable token."""
         self._point_token_file(tmp_path / "token.json")
 
         # Act
@@ -70,7 +72,7 @@ class TestsFlextCliServicesAuth:
         # Assert: a non-empty token is generated and persisted for reload.
         generated = tm.ok(authenticated)
         tm.that(generated, is_=str)
-        assert generated
+        tm.that(generated, empty=False)
         tm.that(tm.ok(service.fetch_auth_token()), eq=generated)
 
     @pytest.mark.parametrize(
@@ -87,6 +89,7 @@ class TestsFlextCliServicesAuth:
         self, service: FlextCli, tmp_path: Path, credentials: dict[str, str]
     ) -> None:
         # Arrange
+        """Verify that authenticate rejects malformed credentials payload."""
         self._point_token_file(tmp_path / "token.json")
 
         # Act
@@ -117,6 +120,7 @@ class TestsFlextCliServicesAuth:
         missing_field: str,
     ) -> None:
         # Arrange
+        """Verify that authenticate reports missing credential field."""
         self._point_token_file(tmp_path / "token.json")
 
         # Act
@@ -141,6 +145,7 @@ class TestsFlextCliServicesAuth:
         self, service: FlextCli, tmp_path: Path, credentials: dict[str, str]
     ) -> None:
         # Arrange: point token_file at a directory so the write cannot succeed.
+        """Verify that authenticate fails when token cannot be persisted."""
         token_dir = tmp_path / "token-as-dir"
         token_dir.mkdir()
         self._point_token_file(token_dir)
@@ -156,6 +161,7 @@ class TestsFlextCliServicesAuth:
         self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
+        """Verify that save auth token rejects blank token."""
         self._point_token_file(tmp_path / "token.json")
 
         # Act
@@ -170,6 +176,7 @@ class TestsFlextCliServicesAuth:
         self, service: FlextCli
     ) -> None:
         # Act
+        """Verify that validate credentials rejects empty password."""
         result = service.validate_credentials("user", "")
 
         # Assert
@@ -180,6 +187,7 @@ class TestsFlextCliServicesAuth:
         self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
+        """Verify that fetch auth token fails when file missing."""
         self._point_token_file(tmp_path / "missing-token.json")
 
         # Act
@@ -193,6 +201,7 @@ class TestsFlextCliServicesAuth:
         self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
+        """Verify that fetch auth token fails when path is directory."""
         token_dir = tmp_path / "read-as-dir"
         token_dir.mkdir()
         self._point_token_file(token_dir)
@@ -208,6 +217,7 @@ class TestsFlextCliServicesAuth:
         self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange
+        """Verify that clear auth tokens is ok when file missing."""
         self._point_token_file(tmp_path / "missing-token.json")
 
         # Act
@@ -221,6 +231,7 @@ class TestsFlextCliServicesAuth:
         self, service: FlextCli, tmp_path: Path
     ) -> None:
         # Arrange: persist a token first.
+        """Verify that clear auth tokens removes persisted token and is idempotent."""
         self._point_token_file(tmp_path / "token.json")
         tm.ok(service.authenticate({c.Cli.DICT_KEY_AUTH_TOKEN: "token-123"}))
 
