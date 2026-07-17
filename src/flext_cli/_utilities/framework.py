@@ -15,9 +15,7 @@ from typer.models import OptionInfo
 from typer.testing import CliRunner
 
 # mro-j47u (codex): consume every public facade through the package root.
-from flext_cli import c, e, r, t
-
-from flext_cli import m, p
+from flext_cli import c, e, m, p, r, t
 
 
 class _TyperApplication:

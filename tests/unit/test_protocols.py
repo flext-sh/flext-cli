@@ -19,10 +19,10 @@ import sys
 from pathlib import Path
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import t
 from tests import p, u
-from flext_tests import tm
 
 
 class _ConformingSummary:

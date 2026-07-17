@@ -11,11 +11,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import c, m
-from tests import t
-from tests import u
-from flext_tests import tm
+from tests import t, u
 
 
 class TestsFlextCliOptions:

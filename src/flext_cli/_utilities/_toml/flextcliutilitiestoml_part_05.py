@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from tomlkit.items import Item, Table
 from tomlkit.toml_document import TOMLDocument
 
+from flext_cli import t
 from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
 )
@@ -17,8 +18,6 @@ from flext_cli._utilities._toml.flextcliutilitiestoml_part_03 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart03,
 )
 from flext_core import u
-
-from flext_cli import t
 
 
 class FlextCliUtilitiesToml:

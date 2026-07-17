@@ -17,11 +17,11 @@ from pathlib import Path
 from typing import ClassVar
 
 from flext_cli._models.config import FlextCliConfigModels
-from flext_core import FlextConfig
 
 # NOTE (multi-agent): accessor typed by PROTOCOL (p), never the model
 # class; the protocol module enters under TYPE_CHECKING only (§2.5/§3.4).
 from flext_cli._protocols.config import FlextCliProtocolsConfig
+from flext_core import FlextConfig
 
 
 class FlextCliConfig(FlextConfig):

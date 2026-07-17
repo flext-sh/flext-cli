@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from flext_tests import tm
-from tests import c
-from tests import m
+from tests import c, m
 
 from flext_cli import cli, settings
 

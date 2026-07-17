@@ -21,8 +21,7 @@ from enum import StrEnum
 import pytest
 from flext_tests import tm
 
-from tests import c
-from tests import u
+from tests import c, u
 
 
 class TestsFlextCliConstants:

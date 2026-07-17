@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 
 from flext_tests import tm
 
 from flext_cli import cli, m
-
-from pathlib import Path
 
 
 def test_write_yaml_model_round_trips_the_same_model_contract(tmp_path: Path) -> None:

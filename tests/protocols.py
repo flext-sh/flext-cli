@@ -11,8 +11,6 @@ from typing import Protocol, Self
 from flext_tests import FlextTestsProtocols
 
 from flext_cli import p
-
-
 from tests import t
 
 

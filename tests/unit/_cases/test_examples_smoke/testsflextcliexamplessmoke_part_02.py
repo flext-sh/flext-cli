@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from pathlib import Path
 
 import pytest
 from examples import Ex05Authentication, Ex06Settings, c as ec, p as ep
@@ -13,12 +14,9 @@ from examples.ex_04_file_operations import (
     validate_and_import_data,
 )
 from flext_tests import tm
-
-from flext_cli import cli, settings
 from tests import c
 
-from collections.abc import Iterator
-from pathlib import Path
+from flext_cli import cli, settings
 
 
 class TestsFlextCliExamplesSmoke:

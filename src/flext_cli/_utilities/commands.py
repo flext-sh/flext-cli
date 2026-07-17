@@ -5,11 +5,9 @@ from __future__ import annotations
 import traceback
 
 # mro-j47u (codex): formatter contracts are owned once by the t facade.
-from flext_cli import c, r, t
+from flext_cli import c, p, r, t
 from flext_cli._utilities.output import FlextCliUtilitiesOutput as uo
 from flext_core import u
-
-from flext_cli import p
 
 
 class FlextCliUtilitiesCommands:

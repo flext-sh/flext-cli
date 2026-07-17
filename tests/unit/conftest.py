@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Self, override
 
 import pytest
 
 from flext_cli import FlextCliSettings
 from flext_cli.services.prompts import FlextCliPrompts
-from tests import m
-
-from collections.abc import Callable
-
-from tests import t
+from tests import m, t
 
 
 class TestsFlextCliScriptedPrompts(FlextCliPrompts):

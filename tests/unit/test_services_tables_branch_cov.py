@@ -7,14 +7,11 @@ public facade only. No private attributes, no internal-collaborator spying.
 
 from __future__ import annotations
 
-
 import pytest
-
-from flext_cli import cli, m
-from tests import c
 from flext_tests import tm
 
-from flext_cli import t
+from flext_cli import cli, m, t
+from tests import c
 
 
 class TestsFlextCliServicesTablesBranchCov:

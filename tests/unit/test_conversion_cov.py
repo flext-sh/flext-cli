@@ -7,11 +7,7 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
-from tests import c
-from tests import m
-from tests import u
-
-from tests import t
+from tests import c, m, t, u
 
 
 class TestsFlextCliConversion:

@@ -2,19 +2,14 @@
 
 from __future__ import annotations
 
-
-from flext_tests import tm
-from tests import c
-from tests import m
-
-from flext_cli import cli
-
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 # mro-wkii.17.26 (codex): exercise CLI flows through the public invocation facade.
-
 from collections.abc import MutableSequence
 
-from tests import p, t
+from flext_tests import tm
+from tests import c, m, p, t
+
+from flext_cli import cli
 
 
 class TestsFlextCliService:

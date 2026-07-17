@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-
 from flext_tests import tm
-from tests import m
-
-from flext_cli import cli
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
+from tests import m, p, t
 
-from tests import p, t
+from flext_cli import cli
 
 
 class TestsFlextCliService:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -9,8 +10,6 @@ from examples import Ex05Authentication, Ex06Settings, c as ec
 from flext_tests import tm
 
 from flext_cli import cli, settings
-
-from collections.abc import Iterator
 
 
 class TestsFlextCliExamplesSmoke:

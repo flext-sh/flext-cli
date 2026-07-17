@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from tomlkit.items import Table
+from tomlkit.toml_document import TOMLDocument
 
+from flext_cli import t
 from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
 )
@@ -10,11 +13,6 @@ from flext_cli._utilities._toml.flextcliutilitiestoml_part_03 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart03,
 )
 from flext_core import u
-
-from tomlkit.items import Table
-from tomlkit.toml_document import TOMLDocument
-
-from flext_cli import t
 
 
 class FlextCliUtilitiesToml:

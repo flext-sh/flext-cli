@@ -53,12 +53,9 @@ class DataManagerCLI:
         if value_result.failure:
             return r[t.JsonMapping].fail(f"Prompt failed: {value_result.error}")
         value = value_result.value
-        cli.print(
-            f"✅ Created entry: {key} = {value}",
-            style=c.Cli.MessageStyles.GREEN,
-        )
+        cli.print(f"✅ Created entry: {key} = {value}", style=c.Cli.MessageStyles.GREEN)
         return r[t.JsonMapping].ok(
-            t.Cli.JSON_MAPPING_ADAPTER.validate_python({key: value}),
+            t.Cli.JSON_MAPPING_ADAPTER.validate_python({key: value})
         )
 
     def load_data(self) -> p.Result[t.JsonMapping]:
@@ -69,14 +66,11 @@ class DataManagerCLI:
         if read_result.failure:
             error_msg = read_result.error or "Unknown error"
             cli.print(
-                f"❌ Load failed: {error_msg}",
-                style=c.Cli.MessageStyles.BOLD_RED,
+                f"❌ Load failed: {error_msg}", style=c.Cli.MessageStyles.BOLD_RED
             )
             return r[t.JsonMapping].fail(error_msg)
         if not isinstance(read_result.value, Mapping):
-            return r[t.JsonMapping].fail(
-                _EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING,
-            )
+            return r[t.JsonMapping].fail(_EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING)
         cli.print("✅ Data loaded successfully", style=c.Cli.MessageStyles.GREEN)
         return r[t.JsonMapping].ok(read_result.value)
 
@@ -86,13 +80,11 @@ class DataManagerCLI:
         if write_result.failure:
             error_msg = write_result.error or "Unknown error"
             cli.print(
-                f"❌ Save failed: {error_msg}",
-                style=c.Cli.MessageStyles.BOLD_RED,
+                f"❌ Save failed: {error_msg}", style=c.Cli.MessageStyles.BOLD_RED
             )
             return r[bool].fail(error_msg)
         cli.print(
-            f"✅ Data saved to {self.data_file.name}",
-            style=c.Cli.MessageStyles.GREEN,
+            f"✅ Data saved to {self.data_file.name}", style=c.Cli.MessageStyles.GREEN
         )
         return r[bool].ok(value=True)
 

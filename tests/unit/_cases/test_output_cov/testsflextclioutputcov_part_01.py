@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import pytest
-from tests import c
-from tests import u
 from flext_tests import tm
+from tests import c, u
 
 
 class TestsFlextCliOutputCov:

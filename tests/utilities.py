@@ -15,8 +15,7 @@ from typing import Annotated
 from flext_tests import FlextTestsUtilities, r
 
 from flext_cli import cli, u
-from tests import c
-from tests import p
+from tests import c, p
 from tests.settings import TestsFlextCliSettings
 
 

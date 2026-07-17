@@ -8,14 +8,11 @@ detail (private attrs, internal collaborators) is touched.
 
 from __future__ import annotations
 
-
 import pytest
 from flext_tests import tm
 
-from flext_cli import cli
+from flext_cli import cli, t
 from tests import c
-
-from flext_cli import t
 
 
 class TestsFlextCliTables:

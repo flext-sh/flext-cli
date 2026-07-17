@@ -8,7 +8,6 @@ from types import MappingProxyType
 from typing import Final
 
 from flext_cli import c
-
 from tests import t
 
 

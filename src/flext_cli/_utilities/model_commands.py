@@ -14,8 +14,7 @@ import inspect
 from collections.abc import Callable, Mapping
 from typing import cast
 
-from flext_cli import settings, t
-from flext_cli import p
+from flext_cli import p, settings, t
 
 
 class FlextCliUtilitiesModelCommands:

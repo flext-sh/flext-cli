@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from flext_tests import tm
 
 from flext_cli import cli
 from tests import m
-
-from pathlib import Path
 
 
 class TestsFlextCliYamlModelLoading:

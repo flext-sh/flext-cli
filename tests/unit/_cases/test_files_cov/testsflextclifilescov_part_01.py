@@ -2,18 +2,13 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 
 import pytest
 from flext_tests import tm
-from tests import c
-from tests import m
-from tests import u
+from tests import c, m, t, u
 
 from flext_cli import cli
-
-from pathlib import Path
-
-from tests import t
 
 
 class TestsFlextCliFilesCov:

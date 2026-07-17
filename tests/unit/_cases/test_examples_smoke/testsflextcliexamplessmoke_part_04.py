@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from unittest.mock import patch
 
 from examples import DataManagerCLI
 from flext_tests import r, tm
+from tests import p
 
 from flext_cli import cli
-
-from pathlib import Path
-
-from tests import p
 
 
 class TestsFlextCliExamplesSmoke:

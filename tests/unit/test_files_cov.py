@@ -9,18 +9,13 @@ success/failure outcome, and on-disk state read back through the public API.
 
 from __future__ import annotations
 
+from pathlib import Path
 
 import pytest
 from flext_tests import tm
 
 from flext_cli import cli
-from tests import c
-from tests import m
-from tests import u
-
-from pathlib import Path
-
-from tests import t
+from tests import c, m, t, u
 
 
 class TestsFlextCliFilesCov:

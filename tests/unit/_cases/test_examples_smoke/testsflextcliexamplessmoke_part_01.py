@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 
 from examples import ExamplesFlextCliGettingStarted
 from examples.ex_02_output_formatting import export_report
@@ -16,9 +17,6 @@ from flext_tests import tm
 from tests import m
 
 from flext_cli import cli
-
-from pathlib import Path
-
 
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): file fixtures are
 # validated models, serialized once at egress and validated once at ingress.

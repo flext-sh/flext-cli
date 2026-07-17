@@ -9,16 +9,12 @@ return values and ``r[T]`` outcomes (success/failure, value, error) only.
 
 from __future__ import annotations
 
-
-import pytest
-
-from tests import c
-from tests import u
-from flext_tests import tm
-
 from pathlib import Path
 
-from tests import t
+import pytest
+from flext_tests import tm
+
+from tests import c, t, u
 
 
 class TestsFlextCliRulesCov:

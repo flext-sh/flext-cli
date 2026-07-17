@@ -3,16 +3,12 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
 import pytest
 from flext_tests import tm
 
-from tests import m
-from tests import u
-
-from pathlib import Path
-
-from tests import p
+from tests import m, p, u
 
 
 class TestsFlextCliRuntimeUtilitiesCore:

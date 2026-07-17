@@ -4,15 +4,12 @@ from __future__ import annotations
 
 import os
 import stat
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
 from flext_tests import tm
-from tests import u
-
-from collections.abc import Generator
-
-from tests import t
+from tests import t, u
 
 
 class TestsFlextCliTomlUtilities:

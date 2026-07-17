@@ -2,16 +2,12 @@
 
 from __future__ import annotations
 
-
-from tests import c
-
-from flext_cli import cli, r
-from flext_tests import tm
-
 from pathlib import Path
 
-from tests import p
-from tests import t
+from flext_tests import tm
+from tests import c, p, t
+
+from flext_cli import cli, r
 
 
 class TestsFlextCliPipeline:

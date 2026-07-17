@@ -9,15 +9,14 @@ internal collaborators, or line-coverage pokes are touched.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from pathlib import Path
 
 import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCli, cli, settings
 from tests import c
-
-from collections.abc import Iterator
-from pathlib import Path
 
 
 class TestsFlextCliServicesAuth:

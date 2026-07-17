@@ -15,15 +15,11 @@ tomlkit documents and plain mappings.
 
 from __future__ import annotations
 
-
 import pytest
-
-from tests import u
 from flext_tests import tm
-
 from tomlkit.items import Table
 
-from tests import t
+from tests import t, u
 
 
 class TestsFlextCliTomlSyncCoverage:

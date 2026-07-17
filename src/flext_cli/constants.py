@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from flext_core import c, t
+
 # NOTE (mro-0ftd.3.7.2, operator-authorized cross-lane fix): import direct from
 # submodules (mirrors models.py) because the generated ._constants barrel is empty
 # (__all__ = ()); the codegen that would repopulate it is itself blocked by this break.
@@ -16,7 +18,6 @@ from ._constants.pipeline import FlextCliConstantsPipeline
 from ._constants.settings import FlextCliConstantsSettings
 from ._constants.xlsx import FlextCliConstantsXlsx
 from ._constants.xlsx_future_functions import FlextCliConstantsXlsxFutureFunctions
-from flext_core import c, t
 
 
 class FlextCliConstants(c):

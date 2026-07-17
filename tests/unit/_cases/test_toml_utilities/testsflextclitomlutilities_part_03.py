@@ -3,13 +3,10 @@
 from __future__ import annotations
 
 import tomllib
-
-from flext_tests import tm
-from tests import u
-
 from pathlib import Path
 
-from tests import t
+from flext_tests import tm
+from tests import t, u
 
 
 class TestsFlextCliTomlUtilities:

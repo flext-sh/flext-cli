@@ -29,15 +29,11 @@ class ExamplesFlextCliModelsExamplesCommon:
             if env_name not in os.environ or field_name not in field_types:
                 continue
             validated_value: t.EnvValue = m.TypeAdapter(
-                field_types[field_name],
-            ).validate_python(
-                os.environ[env_name],
-            )
+                field_types[field_name]
+            ).validate_python(os.environ[env_name])
             if isinstance(validated_value, Mapping):
                 env_overrides[field_name] = dict(
-                    t.JSON_DICT_ADAPTER.validate_python(
-                        validated_value,
-                    ),
+                    t.JSON_DICT_ADAPTER.validate_python(validated_value)
                 )
                 continue
             if isinstance(validated_value, Path | str | int | float | bool):
@@ -55,37 +51,22 @@ class ExamplesFlextCliModelsExamplesCommon:
         """Custom settings for YOUR CLI application — Pydantic v2 only."""
 
         model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
+            extra="forbid", validate_assignment=True
         )
-        app_name: Annotated[
-            str,
-            m.Field(
-                description="Application name",
-            ),
-        ] = c.EXAMPLE_DEFAULT_TOOL_NAME
+        app_name: Annotated[str, m.Field(description="Application name")] = (
+            c.EXAMPLE_DEFAULT_TOOL_NAME
+        )
         api_key: Annotated[str, m.Field(description="API key")] = ""
-        max_workers: Annotated[
-            int,
-            m.Field(
-                ge=1,
-                description="Max workers",
-            ),
-        ] = c.EXAMPLE_DEFAULT_MAX_WORKERS
-        timeout: Annotated[
-            int,
-            m.Field(
-                ge=1,
-                description="Timeout in seconds",
-            ),
-        ] = c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS
+        max_workers: Annotated[int, m.Field(ge=1, description="Max workers")] = (
+            c.EXAMPLE_DEFAULT_MAX_WORKERS
+        )
+        timeout: Annotated[int, m.Field(ge=1, description="Timeout in seconds")] = (
+            c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS
+        )
 
         @u.model_validator(mode="before")
         @classmethod
-        def _inject_env(
-            cls,
-            data: t.ExampleModelInput,
-        ) -> t.ExampleModelInput:
+        def _inject_env(cls, data: t.ExampleModelInput) -> t.ExampleModelInput:
             return ExamplesFlextCliModelsExamplesCommon.merge_env_overrides(
                 data,
                 c.EXAMPLE_ENV_MAP_MY_APP,
@@ -105,17 +86,13 @@ class ExamplesFlextCliModelsExamplesCommon:
                 "Debug": str(settings.debug),
                 "App": settings.cli_app_name,
             }
-            payload = m.Cli.DisplayData(
-                data=payload_data,
-            )
+            payload = m.Cli.DisplayData(data=payload_data)
             if isinstance(payload.data, dict):
                 safe_data: t.Cli.TableMappingRow = {
                     k: str(v) for k, v in payload.data.items()
                 }
                 cli.show_table(
-                    safe_data,
-                    show_header=True,
-                    title="⚙️  Application Settings",
+                    safe_data, show_header=True, title="⚙️  Application Settings"
                 )
 
 

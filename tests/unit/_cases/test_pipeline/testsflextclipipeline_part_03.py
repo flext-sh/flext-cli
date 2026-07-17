@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-
-from flext_cli import cli
-from flext_tests import tm
-
 from pathlib import Path
 
-from tests import p
-from tests import t
+from flext_tests import tm
+from tests import p, t
 
+from flext_cli import cli
 
 # ── Fixtures ────────────────────────────────────────────────────────
 

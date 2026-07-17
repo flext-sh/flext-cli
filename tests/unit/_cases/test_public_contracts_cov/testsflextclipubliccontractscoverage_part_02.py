@@ -2,16 +2,12 @@
 
 from __future__ import annotations
 
-
-from tests import c
-from tests import m
-
-from flext_cli import r
-from flext_tests import tm
-
 from pathlib import Path
 
-from tests import p
+from flext_tests import tm
+from tests import c, m, p
+
+from flext_cli import r
 
 
 class TestsFlextCliPublicContractsCoverage:

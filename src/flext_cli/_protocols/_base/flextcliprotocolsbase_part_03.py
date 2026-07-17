@@ -12,7 +12,6 @@ from typing import Protocol, runtime_checkable
 from flext_cli._protocols._base.flextcliprotocolsbase_part_02 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart02,
 )
-
 from flext_core import p, t
 
 

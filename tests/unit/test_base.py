@@ -22,8 +22,8 @@ from flext_tests import tm
 from pydantic import BaseModel
 
 from flext_cli import FlextCli, cli, settings
-from tests.base import s
 from tests import p
+from tests.base import s
 
 
 class TestsFlextCliBase:

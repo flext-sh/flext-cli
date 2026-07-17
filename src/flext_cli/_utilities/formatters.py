@@ -7,6 +7,7 @@ from typing import ClassVar
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table as RichTable
+
 from flext_cli import p
 
 

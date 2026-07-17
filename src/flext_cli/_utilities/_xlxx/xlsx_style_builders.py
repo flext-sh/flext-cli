@@ -1,10 +1,12 @@
 """Translate typed visual style models into openpyxl objects."""
 
 from __future__ import annotations
-from flext_cli import p
+
 from openpyxl.styles import Alignment, Border, Color, Font, GradientFill, NamedStyle
 from openpyxl.styles.borders import Side
 from openpyxl.styles.fills import PatternFill, Stop
+
+from flext_cli import p
 
 
 class FlextCliUtilitiesXlsxStyleBuilders:

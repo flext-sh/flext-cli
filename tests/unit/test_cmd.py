@@ -18,15 +18,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 from flext_tests import tm
 
 from flext_cli import cli, m
-from tests import c
-from tests import p
-
-from pathlib import Path
+from tests import c, p
 
 
 class TestsFlextCliCmd:

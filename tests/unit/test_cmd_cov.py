@@ -10,16 +10,15 @@ things steered, so the filesystem-derived snapshot is fully deterministic.
 from __future__ import annotations
 
 import os
+from collections.abc import Generator
 from contextlib import contextmanager
+from pathlib import Path
 
 import pytest
 from flext_tests import tm
 
 from flext_cli import cli
 from tests import c
-
-from collections.abc import Generator
-from pathlib import Path
 
 
 class TestsFlextCliCmdCov:

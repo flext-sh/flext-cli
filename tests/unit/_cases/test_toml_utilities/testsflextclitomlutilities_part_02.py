@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-
 from flext_tests import tm
-from tests import u
-
-from tests import t
+from tests import t, u
 
 
 class TestsFlextCliTomlUtilities:

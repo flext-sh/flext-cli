@@ -12,18 +12,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-
-import pytest
-
-from flext_cli import settings
-from flext_cli.services.auth import FlextCliAuth
-from tests import c
-from flext_tests import tm
-
 from collections.abc import Iterator
 from pathlib import Path
 
-from tests import p
+import pytest
+from flext_tests import tm
+
+from flext_cli import settings
+from flext_cli.services.auth import FlextCliAuth
+from tests import c, p
 
 
 class TestsFlextCliServicesAuthCov:

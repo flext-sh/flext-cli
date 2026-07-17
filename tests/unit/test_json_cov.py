@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 
 import pytest
-
-from tests import m
-from tests import t
-from tests import u
 from flext_tests import tm
 
-from pathlib import Path
+from tests import m, t, u
 
 
 class TestsFlextCliJsonCov:

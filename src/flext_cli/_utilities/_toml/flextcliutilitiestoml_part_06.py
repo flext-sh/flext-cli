@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 
 import tomlkit
 from tomlkit.toml_document import TOMLDocument
@@ -12,8 +13,6 @@ from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
 )
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur
 from flext_core import u
-
-from pathlib import Path
 
 
 class FlextCliUtilitiesToml:

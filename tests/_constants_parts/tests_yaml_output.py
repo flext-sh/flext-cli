@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Final
 
 from flext_cli import c
-
 from tests import t
 
 

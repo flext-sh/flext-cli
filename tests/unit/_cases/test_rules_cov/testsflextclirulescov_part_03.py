@@ -6,11 +6,8 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from tests import c
-from tests import u
 from flext_tests import tm
-
-from tests import t
+from tests import c, t, u
 
 
 class TestsFlextCliRulesCov:
