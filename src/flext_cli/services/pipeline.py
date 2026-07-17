@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 
 from flext_cli import c, m, p, r, s, t
 from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliPipeline(s, FlextCliUtilitiesPipeline):

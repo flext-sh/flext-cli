@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from openpyxl.cell.cell import Cell
 from openpyxl.utils.exceptions import IllegalCharacterError
-from openpyxl.worksheet.worksheet import Worksheet
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
 from flext_cli import c, p, r, t
 
 from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from openpyxl.worksheet.worksheet import Worksheet
 
 
 class FlextCliUtilitiesXlsxCells:

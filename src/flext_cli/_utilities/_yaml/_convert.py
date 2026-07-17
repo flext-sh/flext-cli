@@ -14,12 +14,21 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import SupportsFloat, SupportsIndex, SupportsInt, TypeGuard, overload
+from typing import (
+    SupportsFloat,
+    SupportsIndex,
+    SupportsInt,
+    TypeGuard,
+    overload,
+    TYPE_CHECKING,
+)
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString, LiteralScalarString
 
-from flext_cli import t
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 #: YAML 1.1 boolean/null tokens that must be quoted to survive a round-trip.
 #: Single consumer (``yaml_deep_to_commented``); promote to ``c.Cli`` if a

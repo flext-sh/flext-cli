@@ -6,7 +6,6 @@ from openpyxl.cell.cell import Cell
 from openpyxl.formatting.rule import Rule
 from openpyxl.styles.differential import DifferentialStyle
 from openpyxl.styles.numbers import NumberFormat, builtin_format_id
-from openpyxl.worksheet.worksheet import Worksheet
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
 from flext_cli import c, m, p, r
@@ -15,6 +14,10 @@ from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
 from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
 from .xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
 from .xlsx_validations import FlextCliUtilitiesXlsxValidations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from openpyxl.worksheet.worksheet import Worksheet
 
 
 class FlextCliUtilitiesXlsxConditional(

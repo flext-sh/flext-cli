@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable, TYPE_CHECKING
 
 from flext_cli import t
-from flext_cli._protocols.base import FlextCliProtocolsBase
+
+if TYPE_CHECKING:
+    from flext_cli._protocols.base import FlextCliProtocolsBase
+    from pathlib import Path
 
 
 class FlextCliProtocolsDomain:

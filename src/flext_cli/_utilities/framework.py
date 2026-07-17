@@ -6,16 +6,18 @@ import sys
 from collections.abc import Callable
 from contextvars import ContextVar
 from inspect import Parameter
-from types import EllipsisType, GenericAlias
-from typing import Never
+from typing import Never, TYPE_CHECKING
 
 import click
 import typer
-from typer.models import OptionInfo
+from typer import OptionInfo
 from typer.testing import CliRunner
 
 # mro-j47u (codex): consume every public facade through the package root.
 from flext_cli import c, e, m, p, r, t
+
+if TYPE_CHECKING:
+    from types import EllipsisType, GenericAlias
 
 
 class _TyperApplication:

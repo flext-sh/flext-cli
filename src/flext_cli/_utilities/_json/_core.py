@@ -12,12 +12,14 @@ cohesive core module. Navigation/extraction helpers live in
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from pathlib import Path
 from types import MappingProxyType
-from typing import ClassVar
+from typing import ClassVar, TYPE_CHECKING
 
 from flext_cli import c, m, p, r, t
 from flext_core import u
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 _EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()

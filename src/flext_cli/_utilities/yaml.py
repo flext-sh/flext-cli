@@ -9,9 +9,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pathlib import Path
 from types import MappingProxyType
-from typing import ClassVar
+from typing import ClassVar, TYPE_CHECKING
 
 from yaml import safe_dump, safe_load
 
@@ -19,6 +18,9 @@ from flext_cli import c, p, r, t
 from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_core import u
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 _EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()

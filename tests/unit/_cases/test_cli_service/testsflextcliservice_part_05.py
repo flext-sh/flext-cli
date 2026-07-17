@@ -69,7 +69,7 @@ class TestsFlextCliService:
         tm.that(fail_invocation.stdout, has="Username cannot be empty")
 
     def test_register_result_routes_propagates_real_failure(self) -> None:
-        """Preserve structured failures from registered result routes."""
+        """Preserve structured failures from registered routes."""
         app = cli.create_app_with_common_params(
             name="result-app", help_text="Result application"
         )

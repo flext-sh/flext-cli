@@ -13,7 +13,7 @@ from flext_cli import m, p, t
 from flext_core import p, s
 
 
-class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
+class FlextCliServiceBase[TDomainResult: p.ModelBase = m.Cli.RuntimeStatus](
     s[TDomainResult]
 ):
     """Base class for flext-cli services with typed configuration access.

@@ -8,12 +8,15 @@ reimplementing them.
 
 from __future__ import annotations
 
-from pathlib import Path
 
 from flext_cli import c, p, r
 from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 from flext_cli._utilities.toml import FlextCliUtilitiesToml as ut
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliUtilitiesFileTestHelpersMixin:

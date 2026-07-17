@@ -14,14 +14,16 @@ from __future__ import annotations
 
 from functools import cached_property
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, TYPE_CHECKING
 
 from flext_cli._models.config import FlextCliConfigModels
 
 # NOTE (multi-agent): accessor typed by PROTOCOL (p), never the model
 # class; the protocol module enters under TYPE_CHECKING only (§2.5/§3.4).
-from flext_cli._protocols.config import FlextCliProtocolsConfig
 from flext_core import FlextConfig
+
+if TYPE_CHECKING:
+    from flext_cli._protocols.config import FlextCliProtocolsConfig
 
 
 class FlextCliConfig(FlextConfig):

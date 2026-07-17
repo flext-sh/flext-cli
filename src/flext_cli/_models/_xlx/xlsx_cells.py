@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-import datetime as dt
-from decimal import Decimal
-from typing import Annotated, Literal
+from typing import Annotated, Literal, TYPE_CHECKING
 
-from flext_cli import t
 from flext_core import m
+
+if TYPE_CHECKING:
+    from flext_cli import t
+    from decimal import Decimal
+    import datetime as dt
 
 
 class FlextCliModelsXlsxCells:

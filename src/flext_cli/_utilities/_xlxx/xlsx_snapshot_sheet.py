@@ -2,15 +2,17 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
 
-from openpyxl.worksheet.worksheet import Worksheet
 from pydantic import ValidationError
 
 from flext_cli import m, p, r
 
 from .xlsx_snapshot_structure import FlextCliUtilitiesXlsxSnapshotStructure
 from .xlsx_snapshot_values import FlextCliUtilitiesXlsxSnapshotValues
+
+if TYPE_CHECKING:
+    from openpyxl.worksheet.worksheet import Worksheet
 
 
 class FlextCliUtilitiesXlsxSnapshotSheet(

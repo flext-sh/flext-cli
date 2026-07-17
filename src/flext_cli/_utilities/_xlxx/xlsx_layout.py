@@ -4,11 +4,14 @@ from __future__ import annotations
 
 from openpyxl.cell.cell import Cell
 from openpyxl.comments import Comment
-from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, p, r, t
 
 from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from openpyxl.worksheet.worksheet import Worksheet
 
 
 class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):

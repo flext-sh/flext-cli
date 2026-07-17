@@ -24,7 +24,7 @@ type _YamlSequence = CommentedSeq | list[t.JsonValue]
 
 
 class FlextCliTypesDomain:
-    """Composite CLI aliases built from canonical protocols and core types."""
+    """Composite CLI aliases built from canonical and core types."""
 
     type YamlScalar = _YamlScalar
     type YamlValue = _YamlValue

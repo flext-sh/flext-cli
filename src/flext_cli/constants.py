@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_core import c, t
+from flext_core import c
 
 # NOTE (mro-0ftd.3.7.2, operator-authorized cross-lane fix): import direct from
 # submodules (mirrors models.py) because the generated ._constants barrel is empty
@@ -18,6 +18,10 @@ from ._constants.pipeline import FlextCliConstantsPipeline
 from ._constants.settings import FlextCliConstantsSettings
 from ._constants.xlsx import FlextCliConstantsXlsx
 from ._constants.xlsx_future_functions import FlextCliConstantsXlsxFutureFunctions
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliConstants(c):

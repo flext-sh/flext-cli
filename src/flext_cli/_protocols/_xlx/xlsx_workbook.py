@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
-from io import BytesIO
-from typing import Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable, TYPE_CHECKING
 
-from flext_cli import t
 
-from .xlsx_rules import FlextCliProtocolsXlsxRules
+if TYPE_CHECKING:
+    from .xlsx_rules import FlextCliProtocolsXlsxRules
+    from flext_cli import t
+    from io import BytesIO
+    from collections.abc import Iterable, Sequence
 
 
 class FlextCliProtocolsXlsxWorkbook:

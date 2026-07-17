@@ -8,9 +8,12 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from inspect import Parameter, Signature
-from types import GenericAlias
 
 from flext_cli import m, p, t, u
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from types import GenericAlias
 
 
 class FlextCliCli:

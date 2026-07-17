@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import p, r
 
 from .xlsx_conditional import FlextCliUtilitiesXlsxConditional
 from .xlsx_protection import FlextCliUtilitiesXlsxProtection
 from .xlsx_validations import FlextCliUtilitiesXlsxValidations
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from openpyxl.worksheet.worksheet import Worksheet
 
 
 class FlextCliUtilitiesXlsxRules(

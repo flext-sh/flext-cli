@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Annotated, Literal
+from typing import Annotated, Literal, TYPE_CHECKING
 
 from flext_core import m
 
-from .xlsx_cells import FlextCliModelsXlsxCells
+
+if TYPE_CHECKING:
+    from .xlsx_cells import FlextCliModelsXlsxCells
 
 
 class FlextCliModelsXlsxValidation:

@@ -6,13 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable, TYPE_CHECKING
 
 from flext_cli._protocols._base.flextcliprotocolsbase_part_02 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart02,
 )
-from flext_core import p, t
+
+if TYPE_CHECKING:
+    from flext_core import p, t
+    from pathlib import Path
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):

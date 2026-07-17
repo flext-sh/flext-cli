@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
-from openpyxl import Workbook
 from openpyxl.utils.cell import column_index_from_string
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table
-from openpyxl.worksheet.worksheet import Worksheet
 from pydantic import ValidationError
 
 from flext_cli import m, p, r
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from openpyxl.worksheet.worksheet import Worksheet
+    from openpyxl import Workbook
 
 
 class FlextCliUtilitiesXlsxSnapshotStructure:

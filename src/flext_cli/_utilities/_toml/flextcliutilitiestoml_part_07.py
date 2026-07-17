@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
 
 from flext_cli import c, e, p, r, t
 from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
@@ -11,6 +10,10 @@ from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
 from flext_cli._utilities._toml.flextcliutilitiestoml_part_06 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart06,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliUtilitiesToml:

@@ -10,11 +10,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable, TYPE_CHECKING
 
-from flext_cli._constants.enums import FlextCliConstantsEnums as ce
-from flext_core import t
+
+if TYPE_CHECKING:
+    from flext_core import t
+    from flext_cli._constants.enums import FlextCliConstantsEnums as ce
+    from collections.abc import Callable
 
 
 class FlextCliProtocolsToml:

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable, TYPE_CHECKING
 
-from flext_core import p
 
 from .xlsx_snapshot_structure import FlextCliProtocolsXlsxSnapshotStructure
+
+if TYPE_CHECKING:
+    from flext_core import p
 
 
 class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):

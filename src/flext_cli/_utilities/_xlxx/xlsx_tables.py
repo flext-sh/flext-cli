@@ -2,15 +2,18 @@
 
 from __future__ import annotations
 
-from openpyxl import Workbook
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table, TableStyleInfo
-from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, p, r
 
 from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
 from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from openpyxl.worksheet.worksheet import Worksheet
+    from openpyxl import Workbook
 
 
 class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):

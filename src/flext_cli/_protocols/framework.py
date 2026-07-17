@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable, TYPE_CHECKING
 
 # mro-j47u (codex): consume the earlier local t facade through the package root.
 from flext_cli import t
-from flext_core import p
+
+if TYPE_CHECKING:
+    from flext_core import p
 
 
 class FlextCliProtocolsFramework:

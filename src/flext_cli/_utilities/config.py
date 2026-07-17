@@ -13,7 +13,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from pathlib import Path
 
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
@@ -25,6 +24,10 @@ from flext_cli._utilities._toml.flextcliutilitiestoml_part_06 import (
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 from flext_core import u
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliUtilitiesConfig:

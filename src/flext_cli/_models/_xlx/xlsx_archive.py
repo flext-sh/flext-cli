@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Annotated
+from typing import Annotated, TYPE_CHECKING
 
 # mro-j47u (kimi): models consume the local t facade; m -> t is forward at runtime.
-from flext_cli import t
 from flext_core import m
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliModelsXlsxArchive:

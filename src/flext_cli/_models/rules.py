@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Annotated
+from typing import Annotated, TYPE_CHECKING
 
 from flext_cli import c, t
 from flext_core import m
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliModelsRules:

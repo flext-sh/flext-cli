@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Final
+from typing import Final, TYPE_CHECKING
 
-from flext_core import t
+
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliConstantsPipeline:
