@@ -7,19 +7,12 @@ from flext_tests import m
 from tests._models_parts.tests_cli import TestsFlextCliModelsCli
 from tests._models_parts.tests_fixtures import TestsFlextCliModelsFixtures
 from tests._models_parts.tests_runtime import TestsFlextCliModelsRuntime
-from tests._models_parts.tests_version import TestsFlextCliModelsVersion
 
 
 class TestsFlextCliModels:
     """Implementation part for TestsFlextCliModels."""
 
-    class Tests(
-        TestsFlextCliModelsFixtures,
-        TestsFlextCliModelsRuntime,
-        TestsFlextCliModelsVersion,
-        TestsFlextCliModelsCli,
-        m.Tests,
-    ):
+    class Tests(TestsFlextCliModelsRuntime, TestsFlextCliModelsCli, m.Tests):
         """Test-specific model definitions for flext-cli."""
 
 

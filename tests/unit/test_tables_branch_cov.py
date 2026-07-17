@@ -20,6 +20,7 @@ class TestsFlextCliTablesBranchCov:
         return m.Cli.TableConfig(headers=("Key", "Value"))
 
     def test_normalize_mapping_input_yields_key_value_rows(self) -> None:
+        """Verify that normalize mapping input yields key value rows."""
         result = u.Cli.tables_normalize_data({"alpha": 1, "beta": 2})
 
         tm.ok(result)
@@ -29,18 +30,21 @@ class TestsFlextCliTablesBranchCov:
         )
 
     def test_normalize_sequence_of_mapping_rows_preserves_row_shape(self) -> None:
+        """Verify that normalize sequence of mapping rows preserves row shape."""
         result = u.Cli.tables_normalize_data([{"Key": "a", "Value": 1}])
 
         tm.ok(result)
         tm.that(result.unwrap(), eq=[{"Key": "a", "Value": 1}])
 
     def test_normalize_sequence_of_sequence_rows_produces_lists(self) -> None:
+        """Verify that normalize sequence of sequence rows produces lists."""
         result = u.Cli.tables_normalize_data([["a", 1], ["b", 2]])
 
         tm.ok(result)
         tm.that(result.unwrap(), eq=[["a", 1], ["b", 2]])
 
     def test_normalize_empty_sequence_yields_empty_rows(self) -> None:
+        """Verify that normalize empty sequence yields empty rows."""
         result = u.Cli.tables_normalize_data([])
 
         tm.ok(result)
@@ -50,6 +54,7 @@ class TestsFlextCliTablesBranchCov:
     def test_normalize_rejects_string_rows_as_data_invalid(
         self, bad_data: t.Cli.TableDataSource
     ) -> None:
+        """Verify that normalize rejects string rows as data invalid."""
         result = u.Cli.tables_normalize_data(bad_data)
 
         tm.fail(result)
@@ -58,6 +63,7 @@ class TestsFlextCliTablesBranchCov:
     def test_render_returns_string_containing_cell_values(
         self, two_column_config: p.Cli.TableConfig
     ) -> None:
+        """Verify that render returns string containing cell values."""
         result = u.Cli.tables_render([{"Key": "a", "Value": 1}], two_column_config)
 
         tm.ok(result)
@@ -67,6 +73,7 @@ class TestsFlextCliTablesBranchCov:
         tm.that(rendered, has="a")
 
     def test_render_trims_overlong_colalign_to_column_count(self) -> None:
+        """Verify that render trims overlong colalign to column count."""
         settings = m.Cli.TableConfig(
             headers=("Key", "Value"), colalign=("left", "right", "center")
         )
@@ -77,6 +84,7 @@ class TestsFlextCliTablesBranchCov:
         tm.that(result.unwrap(), is_=str)
 
     def test_render_without_header_omits_header_labels(self) -> None:
+        """Verify that render without header omits header labels."""
         result = u.Cli.tables_render(
             [["a", 1]], m.Cli.TableConfig(show_header=False, headers=("col1", "col2"))
         )
@@ -89,6 +97,7 @@ class TestsFlextCliTablesBranchCov:
     def test_render_empty_rows_still_succeeds(
         self, two_column_config: p.Cli.TableConfig
     ) -> None:
+        """Verify that render empty rows still succeeds."""
         result = u.Cli.tables_render([], two_column_config)
 
         tm.ok(result)
@@ -97,6 +106,7 @@ class TestsFlextCliTablesBranchCov:
     def test_render_is_idempotent_for_same_input(
         self, two_column_config: p.Cli.TableConfig
     ) -> None:
+        """Verify that render is idempotent for same input."""
         rows: t.SequenceOf[t.Cli.TableRow] = [{"Key": "a", "Value": 1}]
 
         first = u.Cli.tables_render(rows, two_column_config)
@@ -109,6 +119,7 @@ class TestsFlextCliTablesBranchCov:
     def test_resolve_config_returns_provided_settings_unchanged(
         self, two_column_config: p.Cli.TableConfig
     ) -> None:
+        """Verify that resolve config returns provided settings unchanged."""
         result = u.Cli.tables_resolve_config(two_column_config)
 
         tm.ok(result)
@@ -117,6 +128,7 @@ class TestsFlextCliTablesBranchCov:
     def test_resolve_config_reports_invalid_override_as_failure(
         self, two_column_config: p.Cli.TableConfig
     ) -> None:
+        """Verify that resolve config reports invalid override as failure."""
         result = u.Cli.tables_resolve_config(two_column_config, show_header="nope")
 
         tm.fail(result)
@@ -125,6 +137,7 @@ class TestsFlextCliTablesBranchCov:
     def test_normalize_then_render_round_trips_mapping_source(
         self, two_column_config: p.Cli.TableConfig
     ) -> None:
+        """Verify that normalize then render round trips mapping source."""
         normalized = u.Cli.tables_normalize_data({"alpha": 1})
         tm.ok(normalized)
 

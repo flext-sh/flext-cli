@@ -32,6 +32,7 @@ class FlextCliTypesDomain:
     type YamlSequence = _YamlSequence
 
     type ResultValue = t.JsonPayload
+    type ExternalArgs = list[str]
     type RuleDefinitions = t.SequenceOf[t.JsonMapping]
     type RuleMatcher = tuple[
         frozenset[str], frozenset[str], frozenset[str], frozenset[str]

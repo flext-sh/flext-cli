@@ -12,7 +12,7 @@ from tests import u
 
 from pathlib import Path
 
-from tests import p, t
+from tests import p
 
 
 class TestsFlextCliRuntimeUtilitiesCore:
@@ -21,11 +21,13 @@ class TestsFlextCliRuntimeUtilitiesCore:
     @pytest.fixture
     @staticmethod
     def runner() -> u.Cli:
+        """Define the runner test contract."""
         return u.Cli()
 
     def test_run_raw_remove_env_keys_strips_inherited_values(
         self, runner: u.Cli, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """Verify that run raw remove env keys strips inherited values."""
         monkeypatch.setenv("TEST_RUNTIME_INHERITED", "should-not-leak")
 
         result = runner.run_raw(
@@ -33,9 +35,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
             remove_env_keys=("TEST_RUNTIME_INHERITED",),
         )
 
-        output_raw: t.JsonPayload | None = tm.ok(result)
-        tm.that(output_raw, is_=m.Cli.CommandOutput)
-        tm.that(output_raw.stdout, eq="missing")
+        output = m.Cli.CommandOutput.model_validate(tm.ok(result))
+        tm.that(output.stdout, eq="missing")
 
     @pytest.mark.parametrize(
         "case",
@@ -45,6 +46,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
     def test_run_raw_cases(
         self, runner: u.Cli, tmp_path: Path, case: p.Tests.RuntimeCommandCase
     ) -> None:
+        """Verify that run raw cases."""
         cwd = tmp_path if case.use_tmp_path else None
         result = runner.run_raw(
             case.command,
@@ -54,9 +56,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
             input_data=case.input_data,
         )
         if case.expect_success:
-            output_raw: t.JsonPayload | None = tm.ok(result)
-            tm.that(output_raw, is_=m.Cli.CommandOutput)
-            output: p.Cli.CommandOutput = output_raw
+            output: p.Cli.CommandOutput = tm.ok(result)
+            tm.that(output, is_=m.Cli.CommandOutput)
             if case.stdout_has:
                 tm.that(output.stdout, has=case.stdout_has)
             if case.stderr_has:
@@ -76,12 +77,12 @@ class TestsFlextCliRuntimeUtilitiesCore:
     def test_run_cases(
         self, runner: u.Cli, tmp_path: Path, case: p.Tests.RuntimeCommandCase
     ) -> None:
+        """Verify that run cases."""
         cwd = tmp_path if case.use_tmp_path else None
         result = runner.run(case.command, cwd=cwd, timeout=case.timeout, env=case.env)
         if case.expect_success:
-            output_raw: t.JsonPayload | None = tm.ok(result)
-            tm.that(output_raw, is_=m.Cli.CommandOutput)
-            output: p.Cli.CommandOutput = output_raw
+            output: p.Cli.CommandOutput = tm.ok(result)
+            tm.that(output, is_=m.Cli.CommandOutput)
             if case.stdout_has:
                 tm.that(output.stdout, has=case.stdout_has)
             if case.use_tmp_path:
@@ -97,14 +98,13 @@ class TestsFlextCliRuntimeUtilitiesCore:
     def test_capture_cases(
         self, runner: u.Cli, tmp_path: Path, case: p.Tests.RuntimeCommandCase
     ) -> None:
+        """Verify that capture cases."""
         cwd = tmp_path if case.use_tmp_path else None
         result = runner.capture(
             case.command, cwd=cwd, timeout=case.timeout, env=case.env
         )
         if case.expect_success:
-            output_raw: t.JsonPayload | None = tm.ok(result)
-            tm.that(output_raw, is_=str)
-            output: str = output_raw
+            output = m.TypeAdapter(str).validate_python(tm.ok(result))
             if case.use_tmp_path:
                 tm.that(output, eq=str(tmp_path))
                 return
@@ -113,6 +113,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.fail(result, has=case.error_has)
 
     def test_process_start_wait_captures_stdout(self, runner: u.Cli) -> None:
+        """Verify that process start wait captures stdout."""
         result = runner.process_start([sys.executable, "-c", "print('managed-ok')"])
         tm.ok(result)
         process = result.value
@@ -129,6 +130,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
     def test_process_start_honors_cwd_env_and_stderr(
         self, runner: u.Cli, tmp_path: Path
     ) -> None:
+        """Verify that process start honors cwd env and stderr."""
         script = (
             "import os, pathlib, sys; "
             "print(pathlib.Path.cwd()); "
@@ -145,7 +147,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
 
         tm.that(process.cwd, eq=tmp_path)
         process_env = process.env
-        tm.that(process_env, none=False)
+        process_env = tm.not_none(process_env)
         tm.that(process_env["FLEXT_CLI_PROCESS_TEST"], eq="env-ok")
         wait_result = process.wait(timeout=5)
         tm.ok(wait_result)
@@ -155,6 +157,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.stderr.strip(), eq="err-marker")
 
     def test_process_start_timeout_then_terminate(self, runner: u.Cli) -> None:
+        """Verify that process start timeout then terminate."""
         result = runner.process_start([
             sys.executable,
             "-c",
@@ -172,6 +175,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.returncode is not None, eq=True)
 
     def test_process_start_kill_lifecycle(self, runner: u.Cli) -> None:
+        """Verify that process start kill lifecycle."""
         result = runner.process_start([
             sys.executable,
             "-c",

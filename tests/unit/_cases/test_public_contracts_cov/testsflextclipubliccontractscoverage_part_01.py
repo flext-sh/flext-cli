@@ -32,6 +32,7 @@ class TestsFlextCliPublicContractsCoverage:
         # NOTE (multi-agent): flat cli_* settings (§2.6) — fresh instances come
         # from ``settings.clone()`` and test-runtime detection lives in
         # ``u.Cli.cli_test_env`` (behavior moved off the settings model).
+        """Verify that public facade and settings contract."""
         FlextCliSettings.reset_for_testing()
 
         fresh_settings = settings.clone()
@@ -57,10 +58,7 @@ class TestsFlextCliPublicContractsCoverage:
         tm.ok(result, is_=m.Cli.RuntimeStatus)
 
         tm.ok(result)
-        tm.that(
-            result.value.status,
-            eq=(c.Cli.ServiceStatus.OPERATIONAL),
-        )
+        tm.that(result.value.status, eq=(c.Cli.ServiceStatus.OPERATIONAL))
         tm.that(result.value.service, eq=c.Cli.FLEXT_CLI)
         components = result.value.components
         tm.that(components, is_=m.Cli.RuntimeComponents)

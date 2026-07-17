@@ -42,7 +42,7 @@ class TestsFlextCliTables:
         row: t.Cli.TableMappingRow = {"a": 1, "b": "x"}
         once = u.Cli.tables_normalize_mapping_row(row)
         twice = u.Cli.tables_normalize_mapping_row(once)
-        tm.that(once, eq=twice)
+        tm.that(once == twice, eq=True)
 
     # ── tables_normalize_sequence_row ─────────────────────────────────
 

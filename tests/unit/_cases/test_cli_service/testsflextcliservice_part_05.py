@@ -27,14 +27,14 @@ class TestsFlextCliService:
 
         def ok_handler(params: p.Tests.SampleInput) -> p.Result[p.Tests.SampleOutput]:
             return cli.execute().map(
-                lambda _payload: p.Tests.SampleOutput(
+                lambda _payload: m.Tests.SampleOutput(
                     message=f"processed {params.name}"
                 )
             )
 
         def fail_handler(params: p.Tests.SampleInput) -> p.Result[p.Tests.SampleOutput]:
             return cli.validate_credentials("", "password").map(
-                lambda _value: p.Tests.SampleOutput(message=params.name)
+                lambda _value: m.Tests.SampleOutput(message=params.name)
             )
 
         def build_ok_route() -> p.Cli.ResultCommandRoute:
@@ -57,9 +57,7 @@ class TestsFlextCliService:
         cli.register_result_route(group, route=build_fail_route())
         cli.add_group(app, name="group", group=group)
         ok_invocation = cli.invoke_app(app, args=["ok", "--name", "alice"])
-        fail_invocation = cli.invoke_app(
-            app, args=["group", "fail", "--name", "alice"]
-        )
+        fail_invocation = cli.invoke_app(app, args=["group", "fail", "--name", "alice"])
         tm.ok(ok_invocation)
         tm.ok(fail_invocation)
         ok_result = ok_invocation.value

@@ -7,6 +7,7 @@ from typing import Protocol, runtime_checkable
 
 # mro-j47u (codex): consume the earlier local t facade through the package root.
 from flext_cli import t
+from flext_core import p
 
 
 class FlextCliProtocolsFramework:
@@ -43,13 +44,29 @@ class FlextCliProtocolsFramework:
             self,
             # mro-wkii.17.26 (codex): public integrations accept every canonical
             # immutable sequence; the private adapter normalizes at Click ingress.
-            args: t.StrSequence | None = None,
+            args: t.Cli.ExternalArgs | None = None,
             prog_name: str | None = None,
+            complete_var: str | None = None,
             *,
             standalone_mode: bool = True,
-        ) -> t.JsonPayload:
+            windows_expand_args: bool = True,
+            **extra: p.AttributeProbe,
+        ) -> p.AttributeProbe:
             """Execute one command."""
             ...
+
+    @runtime_checkable
+    class InvocationResult(Protocol):
+        """Captured output from one real framework invocation."""
+
+        @property
+        def exit_code(self) -> int: ...
+
+        @property
+        def stdout(self) -> str: ...
+
+        @property
+        def stderr(self) -> str: ...
 
 
 __all__: list[str] = ["FlextCliProtocolsFramework"]

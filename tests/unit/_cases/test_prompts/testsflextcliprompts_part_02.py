@@ -19,6 +19,7 @@ class TestsFlextCliPrompts:
     def test_prompt_choice_paths(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
+        """Verify that prompt choice paths."""
         quiet_prompts = make_prompts(interactive_mode=False)
         tm.fail(quiet_prompts.prompt_choice("Select:", choices=[], default=None))
         tm.fail(
@@ -52,6 +53,7 @@ class TestsFlextCliPrompts:
     def test_prompt_password_paths(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
+        """Verify that prompt password paths."""
         tm.fail(
             make_prompts(interactive_mode=False).prompt_password("Password:"),
             has="Interactive mode disabled",
@@ -74,6 +76,7 @@ class TestsFlextCliPrompts:
     def test_print_helpers_paths(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
+        """Verify that print helpers paths."""
         prompts = make_prompts()
         tm.ok(prompts.print_success("simple"))
         tm.ok(prompts.print_error("simple"))
@@ -82,6 +85,7 @@ class TestsFlextCliPrompts:
     def test_print_helper_failure_when_logging_crashes(
         self, make_failing_prompts: Callable[..., p.Tests.FailingLogPrompts]
     ) -> None:
+        """Verify that print helper failure when logging crashes."""
         prompts = make_failing_prompts()
         prompts.fail_on_log(level=c.LogLevel.INFO, message="Logger error")
         result = prompts.print_success("Test")
@@ -91,6 +95,7 @@ class TestsFlextCliPrompts:
     def test_prompt_accepts_edge_case_messages(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts], message: str
     ) -> None:
+        """Verify that prompt accepts edge case messages."""
         prompts = make_prompts(interactive_mode=False)
         result = prompts.prompt(message, default="text")
         tm.ok(result)
@@ -99,6 +104,7 @@ class TestsFlextCliPrompts:
     def test_repeated_prompt_operations_remain_fast(
         self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
     ) -> None:
+        """Verify that repeated prompt operations remain fast."""
         prompts = make_prompts(interactive_mode=False)
         started_at = time.time()
         for index in range(100):

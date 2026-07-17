@@ -13,6 +13,7 @@ class TestsFlextCliTomlUtilities:
     """Implementation part for TestsFlextCliTomlUtilities."""
 
     def test_ensure_table_reuses_existing(self) -> None:
+        """Verify that ensure table reuses existing."""
         parent = u.Cli.toml_table()
         existing = u.Cli.toml_table()
         existing["key"] = "value"
@@ -23,6 +24,7 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_value(table, "key"), eq="value")
 
     def test_path_helpers_navigate_and_lookup_tables(self) -> None:
+        """Verify that path helpers navigate and lookup tables."""
         doc = u.Cli.toml_document()
 
         created = u.Cli.toml_ensure_path(doc, ("tool", "ruff", "lint"))
@@ -30,7 +32,7 @@ class TestsFlextCliTomlUtilities:
 
         resolved = u.Cli.toml_table_path(doc, ("tool", "ruff", "lint"))
 
-        tm.that(resolved, none=False)
+        resolved = tm.not_none(resolved)
         tm.that(
             u.Cli.toml_as_string_list(u.Cli.toml_item_child(resolved, "select")),
             eq=["E", "F"],
@@ -38,6 +40,7 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_table_path(doc, ("tool", "mypy")), none=True)
 
     def test_dot_path_and_navigate_path_keep_tool_prefix_stable(self) -> None:
+        """Verify that dot path and navigate path keep tool prefix stable."""
         doc = u.Cli.toml_document()
         table = u.Cli.toml_navigate_path(doc, ["tool", "pytest", "ini_options"])
 
@@ -55,6 +58,7 @@ class TestsFlextCliTomlUtilities:
         )
 
     def test_as_mapping_and_lookup_helpers(self) -> None:
+        """Verify that as mapping and lookup helpers."""
         mapping: t.MappingKV[str, t.Scalar] = {"key": "value"}
         tm.that(u.Cli.toml_as_mapping(mapping), eq=mapping)
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
@@ -66,6 +70,7 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_value(doc, "missing"), none=True)
 
     def test_mapping_path_normalizes_toml_document_children(self) -> None:
+        """Verify that mapping path normalizes toml document children."""
         doc = u.Cli.toml_document()
         project = u.Cli.toml_table()
         tool = u.Cli.toml_table()
@@ -78,11 +83,12 @@ class TestsFlextCliTomlUtilities:
 
         resolved = u.Cli.toml_mapping_path(doc, ["tool", "pytest"])
 
-        tm.that(resolved, none=False)
-        tm.that(resolved, none=False)
+        resolved = tm.not_none(resolved)
+        resolved = tm.not_none(resolved)
         tm.that(resolved["addopts"], eq="-q")
 
     def test_mapping_from_text_and_document_builder_round_trip(self) -> None:
+        """Verify that mapping from text and document builder round trip."""
         text = (
             "[project]\n"
             'name = "demo"\n'
@@ -94,12 +100,12 @@ class TestsFlextCliTomlUtilities:
 
         mapping = u.Cli.toml_mapping_from_text(text)
 
-        tm.that(mapping, none=False)
-        tm.that(mapping, none=False)
+        mapping = tm.not_none(mapping)
+        mapping = tm.not_none(mapping)
         document = u.Cli.toml_document_from_mapping(mapping)
         project = u.Cli.toml_table_child(document, "project")
         tm.that(project is not None, eq=True)
-        tm.that(project, none=False)
+        project = tm.not_none(project)
         tm.that(u.Cli.toml_value(project, "name"), eq="demo")
         tm.that(
             u.Cli.toml_as_string_list(u.Cli.toml_item_child(project, "dependencies")),
@@ -107,6 +113,7 @@ class TestsFlextCliTomlUtilities:
         )
 
     def test_mapping_from_text_rejects_invalid_toml(self) -> None:
+        """Verify that mapping from text rejects invalid toml."""
         tm.that(u.Cli.toml_mapping_from_text("[project"), none=True)
 
 

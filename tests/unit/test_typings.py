@@ -41,7 +41,7 @@ class TestsFlextCliTypings:
         "payload", [123, "not-a-sequence-of-str-only", [1, 2, 3], {"k": "v"}]
     )
     def test_str_sequence_adapter_rejects_non_string_sequences(
-        self, payload: object
+        self, payload: p.AttributeProbe
     ) -> None:
         """STR_SEQUENCE_ADAPTER raises ValidationError on invalid input."""
         with pytest.raises(m.ValidationError):
@@ -52,14 +52,16 @@ class TestsFlextCliTypings:
         [{"id": 1}, {"nested": {"a": [1, 2]}}, {}, {"flag": True, "name": "x"}],
     )
     def test_json_mapping_adapter_accepts_json_objects(
-        self, payload: dict[str, object]
+        self, payload: t.JsonMapping
     ) -> None:
         """JSON_MAPPING_ADAPTER validates JSON object mappings unchanged."""
         result = t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
-        tm.that(result, eq=payload)
+        tm.that(result == payload, eq=True)
 
     @pytest.mark.parametrize("payload", [["a", "list"], "string", 42, True])
-    def test_json_mapping_adapter_rejects_non_mappings(self, payload: object) -> None:
+    def test_json_mapping_adapter_rejects_non_mappings(
+        self, payload: p.AttributeProbe
+    ) -> None:
         """JSON_MAPPING_ADAPTER raises ValidationError for non-object input."""
         with pytest.raises(m.ValidationError):
             t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
@@ -67,21 +69,21 @@ class TestsFlextCliTypings:
     @pytest.mark.parametrize(
         "payload", [[1, 2, 3], ["a", "b"], [], [{"k": "v"}, [1, 2]]]
     )
-    def test_json_list_adapter_accepts_json_arrays(self, payload: list[object]) -> None:
+    def test_json_list_adapter_accepts_json_arrays(self, payload: t.JsonList) -> None:
         """JSON_LIST_ADAPTER validates JSON arrays unchanged."""
         result = t.Cli.JSON_LIST_ADAPTER.validate_python(payload)
-        tm.that(result, eq=payload)
+        tm.that(result == payload, eq=True)
 
     @pytest.mark.parametrize(
         ("payload", "expected"),
         [("plain", "plain"), (7, 7), (True, True), (["a", "b"], ["a", "b"])],
     )
     def test_cli_default_source_adapter_accepts_cli_value_kinds(
-        self, payload: object, expected: object
+        self, payload: t.Cli.DefaultSource, expected: t.Cli.DefaultSource
     ) -> None:
         """CLI_DEFAULT_SOURCE_ADAPTER accepts scalars, sequences, and paths."""
         result = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)
-        tm.that(result, eq=expected)
+        tm.that(result == expected, eq=True)
 
     def test_cli_default_source_adapter_accepts_real_paths(
         self, tmp_path: Path

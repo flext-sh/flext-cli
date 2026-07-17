@@ -38,6 +38,7 @@ class TestsFlextCliModelCommandsCov:
         expected_name: str,
         expected_value: int,
     ) -> None:
+        """Verify that derive model from source model applies defaults."""
         result = cli.derive_model(m.Tests.ModelCommandSample, payload)
 
         tm.that(result, is_=m.Tests.ModelCommandSample)
@@ -45,6 +46,7 @@ class TestsFlextCliModelCommandsCov:
         tm.that(result.value, eq=expected_value)
 
     def test_derive_model_from_model_instance_preserves_field_values(self) -> None:
+        """Verify that derive model from model instance preserves field values."""
         source = m.Tests.ModelCommandNullable(name="test", optional=None)
 
         result = cli.derive_model(m.Tests.ModelCommandNullable, source)
@@ -53,6 +55,7 @@ class TestsFlextCliModelCommandsCov:
         tm.that(result.optional, none=True)
 
     def test_derive_model_partial_source_takes_precedence(self) -> None:
+        """Verify that derive model partial source takes precedence."""
         result = cli.derive_model(
             m.Tests.ModelCommandSample,
             m.Tests.ModelCommandSource(name="base", value=1),
@@ -63,6 +66,7 @@ class TestsFlextCliModelCommandsCov:
         tm.that(result.value, eq=99)
 
     def test_derive_model_later_source_wins_over_earlier(self) -> None:
+        """Verify that derive model later source wins over earlier."""
         result = cli.derive_model(
             m.Tests.ModelCommandSample,
             m.Tests.ModelCommandSource(name="first"),
@@ -73,6 +77,7 @@ class TestsFlextCliModelCommandsCov:
         tm.that(result.value, eq=5)
 
     def test_derive_model_rejects_invalid_data_with_validation_error(self) -> None:
+        """Verify that derive model rejects invalid data with validation error."""
         command = cli.model_command(
             m.Tests.ModelCommandSample, lambda model: model.value
         )
@@ -81,6 +86,7 @@ class TestsFlextCliModelCommandsCov:
             command(name="invalid", value="not-an-int")
 
     def test_derive_model_rejects_missing_required_field(self) -> None:
+        """Verify that derive model rejects missing required field."""
         with pytest.raises(m.ValidationError):
             cli.derive_model(
                 m.Tests.ModelCommandSample, m.Tests.ModelCommandSource(value=1)
@@ -89,11 +95,14 @@ class TestsFlextCliModelCommandsCov:
     # ---- model_command --------------------------------------------------
 
     def test_model_command_returns_callable(self) -> None:
+        """Verify that model command returns callable."""
         cmd = cli.model_command(m.Tests.ModelCommandSample, lambda model: model.name)
 
         tm.that(callable(cmd), eq=True)
 
     def test_model_command_dispatches_to_handler_with_bound_model(self) -> None:
+        """Verify that model command dispatches to handler with bound model."""
+
         def handler(model: m.Tests.ModelCommandSample) -> str:
             return f"{model.name}-{model.value}"
 
@@ -102,6 +111,8 @@ class TestsFlextCliModelCommandsCov:
         tm.that(cmd(name="x", value=3), eq="x-3")
 
     def test_model_command_applies_field_default_for_omitted_optional(self) -> None:
+        """Verify that model command applies field default for omitted optional."""
+
         def handler(model: m.Tests.ModelCommandSample) -> int:
             return model.value
 
@@ -113,6 +124,7 @@ class TestsFlextCliModelCommandsCov:
         # Invocation no longer writes parsed values back into the settings
         # model (commit f5f83dee): settings seeds option defaults only, and
         # resolved values reach the handler through the validated model.
+        """Verify that model command resolves values without mutating settings."""
         settings = m.Tests.ModelCommandSample(name="from_settings", value=0)
 
         def handler(model: m.Tests.ModelCommandSample) -> str:
@@ -126,6 +138,8 @@ class TestsFlextCliModelCommandsCov:
         tm.that(settings.value, eq=0)
 
     def test_model_command_raises_validation_error_for_missing_required(self) -> None:
+        """Verify that model command raises validation error for missing required."""
+
         def handler(model: m.Tests.ModelCommandRequired) -> str:
             return model.key
 
@@ -135,6 +149,8 @@ class TestsFlextCliModelCommandsCov:
             cmd()
 
     def test_model_command_binds_all_required_fields_to_model(self) -> None:
+        """Verify that model command binds all required fields to model."""
+
         def handler(model: m.Tests.ModelCommandRequired) -> str:
             return f"{model.key}={model.count}"
 

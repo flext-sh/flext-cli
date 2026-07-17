@@ -43,7 +43,7 @@ class TestsFlextCliPipeline:
     def test_retry_on_failure(self, tmp_path: Path) -> None:
         """Stage retries up to retry count before succeeding."""
         call_count = 0
-        expected_attempts = 3
+        expected_attempts = c.Tests.PIPELINE_SUCCESS_ATTEMPT
 
         def flaky(
             _ctx: p.Cli.PipelineStageContext,

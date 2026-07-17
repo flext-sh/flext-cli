@@ -35,6 +35,7 @@ class TestsFlextCliServicesTablesBranchCov:
     def test_format_table_default_config_succeeds_with_rendered_content(
         self, mapping_payload: t.Cli.TableDataSource
     ) -> None:
+        """Verify that format table default config succeeds with rendered content."""
         result = cli.format_table(mapping_payload)
 
         tm.ok(result)
@@ -47,6 +48,7 @@ class TestsFlextCliServicesTablesBranchCov:
     def test_format_table_list_payload_renders_all_cells(
         self, rows_payload: t.Cli.TableDataSource
     ) -> None:
+        """Verify that format table list payload renders all cells."""
         result = cli.format_table(rows_payload)
 
         tm.ok(result)
@@ -66,6 +68,7 @@ class TestsFlextCliServicesTablesBranchCov:
         table_format: c.Cli.TabularFormat,
         expected_marker: str,
     ) -> None:
+        """Verify that format table honors requested format via settings."""
         settings = m.Cli.TableConfig(table_format=table_format)
 
         result = cli.format_table(mapping_payload, settings=settings)
@@ -76,6 +79,7 @@ class TestsFlextCliServicesTablesBranchCov:
     def test_format_table_is_idempotent_for_equal_input(
         self, mapping_payload: t.Cli.TableDataSource
     ) -> None:
+        """Verify that format table is idempotent for equal input."""
         first = cli.format_table(mapping_payload)
         second = cli.format_table(mapping_payload)
 
@@ -89,6 +93,7 @@ class TestsFlextCliServicesTablesBranchCov:
     def test_format_table_rejects_invalid_format_string(
         self, mapping_payload: t.Cli.TableDataSource, bad_format: str
     ) -> None:
+        """Verify that format table rejects invalid format string."""
         result = cli.format_table(mapping_payload, table_format=bad_format)
 
         tm.fail(result)
@@ -99,6 +104,7 @@ class TestsFlextCliServicesTablesBranchCov:
     def test_show_table_prints_rendered_table(
         self, mapping_payload: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
+        """Verify that show table prints rendered table."""
         cli.show_table(mapping_payload)
 
         captured = capsys.readouterr().out
@@ -108,6 +114,7 @@ class TestsFlextCliServicesTablesBranchCov:
     def test_show_table_prints_title_above_table(
         self, mapping_payload: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
+        """Verify that show table prints title above table."""
         cli.show_table(mapping_payload, title="My Title")
 
         captured = capsys.readouterr().out
@@ -118,6 +125,7 @@ class TestsFlextCliServicesTablesBranchCov:
     def test_show_table_prints_list_payload(
         self, rows_payload: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
+        """Verify that show table prints list payload."""
         cli.show_table(rows_payload)
 
         captured = capsys.readouterr().out
@@ -127,6 +135,7 @@ class TestsFlextCliServicesTablesBranchCov:
     def test_show_table_emits_config_error_on_invalid_format(
         self, mapping_payload: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
+        """Verify that show table emits config error on invalid format."""
         cli.show_table(mapping_payload, table_format="invalid")
 
         captured = capsys.readouterr().out

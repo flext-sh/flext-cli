@@ -64,7 +64,7 @@ class TestsFlextCliConstants:
             c.Cli.CLI_DEFAULT_NO_COLOR,
         ],
     )
-    def test_cli_verbosity_flags_default_off(self, flag: bool) -> None:
+    def test_cli_verbosity_flags_default_off(self, *, flag: bool) -> None:
         """Every CLI verbosity/color default ships disabled."""
         tm.that(flag, eq=False)
 

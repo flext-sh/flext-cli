@@ -45,6 +45,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Persist a supplied token and load the same token publicly."""
         # Arrange
+        """Verify that authenticate with token persists and round trips."""
         self._point_token_file(tmp_path / "token.json")
 
         # Act
@@ -59,6 +60,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Generate and persist a reloadable token from valid credentials."""
         # Arrange
+        """Verify that authenticate with username password returns reloadable token."""
         self._point_token_file(tmp_path / "token.json")
 
         # Act
@@ -88,6 +90,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Reject malformed credential payloads at the validation boundary."""
         # Arrange
+        """Verify that authenticate rejects malformed credentials payload."""
         self._point_token_file(tmp_path / "token.json")
 
         # Act
@@ -119,6 +122,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Report each required credential field that is absent."""
         # Arrange
+        """Verify that authenticate reports missing credential field."""
         self._point_token_file(tmp_path / "token.json")
 
         # Act
@@ -144,6 +148,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Propagate the canonical JSON write failure when persistence fails."""
         # Arrange: point token_file at a directory so the write cannot succeed.
+        """Verify that authenticate fails when token cannot be persisted."""
         token_dir = tmp_path / "token-as-dir"
         token_dir.mkdir()
         self._point_token_file(token_dir)
@@ -160,6 +165,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Reject blank authentication tokens before filesystem access."""
         # Arrange
+        """Verify that save auth token rejects blank token."""
         self._point_token_file(tmp_path / "token.json")
 
         # Act
@@ -175,6 +181,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Reject credentials whose password is empty."""
         # Act
+        """Verify that validate credentials rejects empty password."""
         result = service.validate_credentials("user", "")
 
         # Assert
@@ -186,6 +193,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Fail loudly when the configured token file is absent."""
         # Arrange
+        """Verify that fetch auth token fails when file missing."""
         self._point_token_file(tmp_path / "missing-token.json")
 
         # Act
@@ -200,6 +208,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Fail loudly when the configured token path is a directory."""
         # Arrange
+        """Verify that fetch auth token fails when path is directory."""
         token_dir = tmp_path / "read-as-dir"
         token_dir.mkdir()
         self._point_token_file(token_dir)
@@ -216,6 +225,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Treat clearing an already absent token as idempotent success."""
         # Arrange
+        """Verify that clear auth tokens is ok when file missing."""
         self._point_token_file(tmp_path / "missing-token.json")
 
         # Act
@@ -230,6 +240,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         """Remove a persisted token and preserve idempotency on repetition."""
         # Arrange: persist a token first.
+        """Verify that clear auth tokens removes persisted token and is idempotent."""
         self._point_token_file(tmp_path / "token.json")
         tm.ok(service.authenticate({c.Cli.DICT_KEY_AUTH_TOKEN: "token-123"}))
 

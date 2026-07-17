@@ -129,7 +129,7 @@ class TestsFlextCliOptions:
         option = u.Cli.build_option("project", {"project": {"short": "p"}})
 
         declarations = option.declarations
-        tm.that(declarations, none=False)
+        declarations = tm.not_none(declarations)
         tm.that(declarations, has="--project")
         tm.that(declarations, has="--projects")
         tm.that(declarations, has="-p")
@@ -139,7 +139,7 @@ class TestsFlextCliOptions:
         option = u.Cli.build_option("debug", c.Cli.CLI_PARAM_REGISTRY)
 
         declarations = option.declarations
-        tm.that(declarations, none=False)
+        declarations = tm.not_none(declarations)
         tm.that(declarations, has="--debug")
 
     def test_reorder_prefixed_options_moves_shared_flags_after_subcommand(self) -> None:

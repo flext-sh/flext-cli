@@ -45,8 +45,8 @@ class _PartialSummary:
 class _ConformingYamlModule:
     """Object structurally conforming to ``YamlModule``."""
 
-    def dump(self, data: t.JsonPayload, *, default_flow_style: bool = True) -> str:
-        _ = data, default_flow_style
+    def dump(self, data: object, *, default_flow_style: bool = True) -> str:
+        del data, default_flow_style
         return ""
 
 
@@ -152,7 +152,7 @@ class TestsFlextCliProtocols:
         self, protocol_name: str
     ) -> None:
         """Each CLI protocol resolves to one shared object under ``p.Cli``."""
-        assert getattr(p.Cli, protocol_name) is getattr(p.Cli, protocol_name)
+        tm.that(getattr(p.Cli, protocol_name) is getattr(p.Cli, protocol_name), eq=True)
 
     def test_result_protocol_inherited_from_core_facade(self) -> None:
         """The CLI facade re-exposes the core ``Result`` protocol contract."""

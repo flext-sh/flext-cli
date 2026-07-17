@@ -69,16 +69,22 @@ class _ClickCommand:
 
     def main(
         self,
-        args: t.StrSequence | None = None,
+        args: t.Cli.ExternalArgs | None = None,
         prog_name: str | None = None,
+        complete_var: str | None = None,
         *,
         standalone_mode: bool = True,
+        windows_expand_args: bool = True,
+        **extra: p.AttributeProbe,
     ) -> t.JsonPayload:
         """Execute and validate the backend command result at the boundary."""
         result = self._command.main(
             args=list(args) if args is not None else None,
             prog_name=prog_name,
+            complete_var=complete_var,
             standalone_mode=standalone_mode,
+            windows_expand_args=windows_expand_args,
+            **extra,
         )
         return t.Cli.JSON_VALUE_ADAPTER.validate_python(result)
 
@@ -254,7 +260,9 @@ class FlextCliUtilitiesFramework:
         """Execute a foreign Click-compatible command inside the boundary."""
         try:
             exit_result = command.main(
-                args=args, prog_name=prog_name, standalone_mode=False
+                args=list(args) if args is not None else None,
+                prog_name=prog_name,
+                standalone_mode=False,
             )
         except click.ClickException as exc:
             return e.fail_validation(error=exc, result_type=r[bool])

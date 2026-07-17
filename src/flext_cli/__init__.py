@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 from flext_cli.__version__ import (
     __author__,
     __author_email__,
@@ -15,7 +16,6 @@ from flext_cli.__version__ import (
     __version__,
     __version_info__,
 )
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_core import d, e, h, r, x
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from ._config import FlextCliConfig, config
     from ._settings import FlextCliSettings, settings
     from .api import FlextCli, cli
-    from .base import FlextCliServiceBase, s
+    from .base import FlextCliServiceBase, FlextCliServiceBase as s
     from .constants import FlextCliConstants, FlextCliConstants as c
     from .models import FlextCliModels, FlextCliModels as m
     from .protocols import FlextCliProtocols, FlextCliProtocols as p
@@ -31,29 +31,29 @@ if TYPE_CHECKING:
     from .utilities import FlextCliUtilities, FlextCliUtilities as u
 
     _ = (
-        c,
-        FlextCliConstants,
-        t,
-        FlextCliTypes,
-        p,
-        FlextCliProtocols,
-        m,
-        FlextCliModels,
-        u,
-        FlextCliUtilities,
         d,
         e,
         h,
         r,
         x,
-        s,
-        FlextCliServiceBase,
         FlextCliConfig,
         config,
         FlextCliSettings,
         settings,
         FlextCli,
         cli,
+        FlextCliServiceBase,
+        s,
+        FlextCliConstants,
+        c,
+        FlextCliModels,
+        m,
+        FlextCliProtocols,
+        p,
+        FlextCliTypes,
+        t,
+        FlextCliUtilities,
+        u,
     )
 
 

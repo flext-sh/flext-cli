@@ -18,6 +18,8 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
+from tests import c as tc
+
 from flext_cli import cli
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -40,6 +42,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_my_app_settings_defaults_when_no_env(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """Verify that my app settings defaults when no env."""
         for env_key in (
             c.EXAMPLE_ENV_KEY_APP_NAME,
             c.EXAMPLE_ENV_KEY_API_KEY,
@@ -57,6 +60,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_my_app_settings_reads_and_coerces_env_overrides(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """Verify that my app settings reads and coerces env overrides."""
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_APP_NAME, "env-tool")
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_API_KEY, "env-secret")
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_MAX_WORKERS, "9")
@@ -73,6 +77,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_my_app_settings_explicit_arg_overrides_environment(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """Verify that my app settings explicit arg overrides environment."""
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_APP_NAME, "env-tool")
 
         settings = m.Examples.MyAppSettings(app_name="explicit-tool")
@@ -87,6 +92,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_merge_env_overrides_applies_env_over_defaults(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """Verify that merge env overrides applies env over defaults."""
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TIMEOUT, "77")
 
         merged = m.Examples.merge_env_overrides(
@@ -99,6 +105,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_merge_env_overrides_fills_missing_field_from_env(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
+        """Verify that merge env overrides fills missing field from env."""
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TIMEOUT, "77")
 
         merged = m.Examples.merge_env_overrides(
@@ -108,6 +115,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         tm.that(merged, eq={"timeout": 77})
 
     def test_merge_env_overrides_passes_non_mapping_through_unchanged(self) -> None:
+        """Verify that merge env overrides passes non mapping through unchanged."""
         merged = m.Examples.merge_env_overrides(
             ["raw"], {"timeout": c.EXAMPLE_ENV_KEY_TIMEOUT}, {"timeout": int}
         )
@@ -121,6 +129,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_advanced_settings_fail_when_api_key_missing_in_production(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
+        """Verify that advanced settings fail when api key missing in production."""
         monkeypatch.setenv(
             c.EXAMPLE_ENV_KEY_ENVIRONMENT, c.EXAMPLE_ENV_VALUE_PRODUCTION
         )
@@ -135,6 +144,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_advanced_settings_fail_when_temp_dir_is_a_file(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
+        """Verify that advanced settings fail when temp dir is a file."""
         bad_temp_dir = tmp_path / "not-a-dir"
         bad_temp_dir.write_text("broken", encoding="utf-8")
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_ENVIRONMENT, "development")
@@ -149,6 +159,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_advanced_settings_success_masks_api_key(
         self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     ) -> None:
+        """Verify that advanced settings success masks api key."""
         good_temp_dir = tmp_path / "temp-ok"
         monkeypatch.setenv(
             c.EXAMPLE_ENV_KEY_ENVIRONMENT, c.EXAMPLE_ENV_VALUE_PRODUCTION
@@ -179,6 +190,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_advanced_settings_rejects_invalid_field(
         self, monkeypatch: pytest.MonkeyPatch, kwargs: dict[str, str], match: str
     ) -> None:
+        """Verify that advanced settings rejects invalid field."""
         monkeypatch.delenv(c.EXAMPLE_ENV_KEY_ENVIRONMENT, raising=False)
 
         with pytest.raises(ValueError, match=match):
@@ -186,19 +198,24 @@ class TestsFlextCliExampleModelsUtilitiesCov:
 
     @pytest.mark.parametrize("host", ["127.0.0.1", "localhost", "db.example.com"])
     def test_database_config_accepts_valid_host(self, host: str) -> None:
+        """Verify that database config accepts valid host."""
         config = m.Examples.AdvancedDatabaseConfig(
-            host=host, name="production", username="db-user", password="secret-pass"
+            host=host,
+            name="production",
+            username="db-user",
+            password=tc.Tests.CREDENTIAL_SAMPLE_VALUE,
         )
 
         tm.that(config.host, eq=host)
 
     def test_database_config_rejects_invalid_host(self) -> None:
+        """Verify that database config rejects invalid host."""
         with pytest.raises(ValueError, match=c.EXAMPLE_ERR_INVALID_HOST):
             m.Examples.AdvancedDatabaseConfig(
                 host="invalid-host",
                 name="production",
                 username="db-user",
-                password="secret-pass",
+                password=tc.Tests.CREDENTIAL_SAMPLE_VALUE,
             )
 
     # ------------------------------------------------------------------
@@ -216,11 +233,13 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_to_json_dict_preserves_values(
         self, payload: dict[str, object], key: str, expected: object
     ) -> None:
+        """Verify that to json dict preserves values."""
         display = u.to_json_dict(payload)
 
-        tm.that(display.data[key], eq=expected)
+        tm.that(display.data[key] == expected, eq=True)
 
     def test_public_renderers_do_not_raise(self) -> None:
+        """Verify that public renderers do not raise."""
         settings = m.Examples.MyAppSettings(
             app_name="demo", api_key="demo-secret", max_workers=4, timeout=30
         )

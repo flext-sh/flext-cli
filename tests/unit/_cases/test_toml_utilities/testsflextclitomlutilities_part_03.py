@@ -16,6 +16,7 @@ class TestsFlextCliTomlUtilities:
     """Implementation part for TestsFlextCliTomlUtilities."""
 
     def test_mapping_helpers_sync_nested_tables(self) -> None:
+        """Verify that mapping helpers sync nested tables."""
         payload: dict[str, t.JsonValue] = {
             "tool": {"uv": {"sources": {"stale": {"workspace": True}}}}
         }
@@ -37,16 +38,17 @@ class TestsFlextCliTomlUtilities:
         tm.that(changes, eq=["synced flext-core", "synced members"])
         tool = u.Cli.toml_mapping_child(payload, "tool")
         tm.that(tool is not None, eq=True)
-        tm.that(tool, none=False)
+        tool = tm.not_none(tool)
         uv = u.Cli.toml_mapping_child(tool, "uv")
         tm.that(uv is not None, eq=True)
-        tm.that(uv, none=False)
+        uv = tm.not_none(uv)
         workspace = u.Cli.toml_mapping_child(uv, "workspace")
-        tm.that(workspace, none=False)
-        tm.that(workspace, none=False)
+        workspace = tm.not_none(workspace)
+        workspace = tm.not_none(workspace)
         tm.that(workspace.get("members"), eq=["flext-cli", "flext-core"])
 
     def test_read_json_and_write_mapping_round_trip(self, tmp_path: Path) -> None:
+        """Verify that read json and write mapping round trip."""
         toml_file = tmp_path / "pyproject.toml"
         toml_file.write_text(
             '[project]\nname = "demo"\ndependencies = ["httpx>=0.27"]\n',
@@ -57,8 +59,8 @@ class TestsFlextCliTomlUtilities:
 
         tm.ok(result)
         project = u.Cli.toml_mapping_child(result.value, "project")
-        tm.that(project, none=False)
-        tm.that(project, none=False)
+        project = tm.not_none(project)
+        project = tm.not_none(project)
         tm.that(project.get("name"), eq="demo")
         updated_payload: dict[str, t.JsonValue] = {
             key: result.value[key] for key in result.value

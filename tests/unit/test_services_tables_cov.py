@@ -38,6 +38,7 @@ class TestsFlextCliServicesTablesCov:
         self, single_record: t.Cli.TableDataSource
     ) -> None:
         # Act
+        """Verify that format table returns successful result with str value."""
         result = cli.format_table(single_record)
 
         # Assert — fallible op returns a successful r[str]
@@ -48,6 +49,7 @@ class TestsFlextCliServicesTablesCov:
         self, single_record: t.Cli.TableDataSource
     ) -> None:
         # Act
+        """Verify that format table dict renders keys and values."""
         rendered = cli.format_table(single_record).unwrap()
 
         # Assert — every key and value appears in the rendered output
@@ -60,6 +62,7 @@ class TestsFlextCliServicesTablesCov:
         self, record_rows: t.Cli.TableDataSource
     ) -> None:
         # Act
+        """Verify that format table list of dicts renders every row."""
         rendered = cli.format_table(record_rows).unwrap()
 
         # Assert — column header plus each row value present
@@ -77,6 +80,7 @@ class TestsFlextCliServicesTablesCov:
         self, empty_source: t.Cli.TableDataSource
     ) -> None:
         # Act
+        """Verify that format table empty source yields empty string."""
         result = cli.format_table(empty_source)
 
         # Assert — empty input is valid and renders to an empty table
@@ -87,6 +91,7 @@ class TestsFlextCliServicesTablesCov:
         self, single_record: t.Cli.TableDataSource
     ) -> None:
         # Act — same input rendered twice
+        """Verify that format table is idempotent for equal input."""
         first = cli.format_table(single_record).unwrap()
         second = cli.format_table(single_record).unwrap()
 
@@ -99,6 +104,7 @@ class TestsFlextCliServicesTablesCov:
         self, single_record: t.Cli.TableDataSource
     ) -> None:
         # Arrange — title is a display concern, not part of the formatted table
+        """Verify that format table title is not embedded in returned string."""
         config = m.Cli.TableConfig(title="My Report")
 
         # Act
@@ -119,6 +125,7 @@ class TestsFlextCliServicesTablesCov:
         self, single_record: t.Cli.TableDataSource, table_format: c.Cli.TabularFormat
     ) -> None:
         # Arrange
+        """Verify that format table format changes rendered output."""
         default_rendered = cli.format_table(single_record).unwrap()
         config = m.Cli.TableConfig(table_format=table_format)
 
@@ -134,6 +141,7 @@ class TestsFlextCliServicesTablesCov:
         self, single_record: t.Cli.TableDataSource
     ) -> None:
         # Act — config field supplied as a kwarg is equivalent to the model
+        """Verify that format table accepts config via keyword argument."""
         via_kwarg = cli.format_table(
             single_record, table_format=c.Cli.TabularFormat.GRID
         ).unwrap()
@@ -146,6 +154,7 @@ class TestsFlextCliServicesTablesCov:
 
     def test_format_table_custom_headers_appear_in_output(self) -> None:
         # Arrange
+        """Verify that format table custom headers appear in output."""
         config = m.Cli.TableConfig(headers=["K", "V"])
 
         # Act
@@ -161,12 +170,14 @@ class TestsFlextCliServicesTablesCov:
         self, single_record: t.Cli.TableDataSource
     ) -> None:
         # Act / Assert — display is a side-effecting command returning None
+        """Verify that show table returns none."""
         tm.that(cli.show_table(single_record), none=True)
 
     def test_show_table_writes_data_to_stdout(
         self, record_rows: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Act
+        """Verify that show table writes data to stdout."""
         cli.show_table(record_rows)
 
         # Assert — rendered rows reach the console
@@ -178,6 +189,7 @@ class TestsFlextCliServicesTablesCov:
         self, single_record: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
     ) -> None:
         # Arrange
+        """Verify that show table prints title when configured."""
         config = m.Cli.TableConfig(title="Quarterly Numbers")
 
         # Act

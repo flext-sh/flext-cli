@@ -14,6 +14,7 @@ class TestsFlextCliRulesCov:
     """Implementation part for TestsFlextCliRulesCov."""
 
     def test_rules_load_local_definitions_no_dir(self) -> None:
+        """Verify that rules load local definitions no dir."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Don't create pkg_rules_dir or local rules/ dir — triggers failure path
             pkg_rules_dir = Path(tmpdir) / "pkg_rules"
@@ -28,6 +29,7 @@ class TestsFlextCliRulesCov:
             tm.fail(result)
 
     def test_rules_load_local_definitions_with_rules(self) -> None:
+        """Verify that rules load local definitions with rules."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
@@ -45,6 +47,7 @@ class TestsFlextCliRulesCov:
             tm.ok(result)
 
     def test_rules_load_local_definitions_with_filter(self) -> None:
+        """Verify that rules load local definitions with filter."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
@@ -62,6 +65,7 @@ class TestsFlextCliRulesCov:
             tm.ok(result)
 
     def test_rules_load_local_definitions_filter_excludes(self) -> None:
+        """Verify that rules load local definitions filter excludes."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
@@ -81,6 +85,7 @@ class TestsFlextCliRulesCov:
     def test_rules_load_local_definitions_skips_registry_missing_id_disabled_and_empty_matchers(
         self,
     ) -> None:
+        """Skip malformed, disabled, and empty local rule definitions."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
@@ -102,6 +107,7 @@ class TestsFlextCliRulesCov:
             tm.that(result.value, eq=([], []))
 
     def test_rules_load_local_definitions_unknown_rule_fails(self) -> None:
+        """Verify that rules load local definitions unknown rule fails."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()

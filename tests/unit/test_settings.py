@@ -33,12 +33,14 @@ class TestsFlextCliSettingsUnit:
 
     def test_settings_singleton_satisfies_contract(self) -> None:
         """The canonical settings singleton satisfies the Settings protocol."""
-        tm.that(settings, none=False)
-        tm.that(settings, is_=p.Cli.Settings)
+        resolved_settings = tm.not_none(settings)
+        tm.that(resolved_settings, is_=p.Cli.Settings)
 
     def test_fetch_global_returns_shared_singleton(self) -> None:
         """fetch_global returns the same process-wide instance each call."""
-        tm.that(FlextCliSettings.fetch_global(), eq=FlextCliSettings.fetch_global())
+        tm.that(
+            FlextCliSettings.fetch_global() is FlextCliSettings.fetch_global(), eq=True
+        )
 
     @pytest.mark.parametrize(
         ("field_name", "expected"),
@@ -82,6 +84,7 @@ class TestsFlextCliSettingsUnit:
         self,
         pytest_current_test: str | None,
         shell_command: str | None,
+        *,
         ci: bool,
         expected: bool,
     ) -> None:
@@ -133,13 +136,13 @@ class TestsFlextCliSettingsUnit:
         """Clone produces an independent object equal to its source."""
         source = FlextCliSettings.model_validate({})
         cloned = source.clone()
-        tm.that(cloned, eq=source)
-        assert cloned is not source
+        tm.that(cloned == source, eq=True)
+        tm.that(cloned is not source, eq=True)
 
     def test_reset_for_testing_restores_usable_defaults(self) -> None:
         """After reset, fetch_global rebuilds a settings object with defaults."""
         FlextCliSettings.reset_for_testing()
         rebuilt = FlextCliSettings.fetch_global()
-        tm.that(rebuilt, none=False)
+        rebuilt = tm.not_none(rebuilt)
         tm.that(rebuilt.cli_verbose, eq=False)
         tm.that(rebuilt.cli_app_name, eq=c.Cli.FLEXT_CLI)

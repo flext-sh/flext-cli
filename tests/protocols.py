@@ -12,7 +12,8 @@ from flext_tests import FlextTestsProtocols
 
 from flext_cli import p
 
-from tests import p, t
+
+from tests import t
 
 
 class TestsFlextCliProtocols(FlextTestsProtocols, p):
@@ -21,69 +22,143 @@ class TestsFlextCliProtocols(FlextTestsProtocols, p):
     class Tests(FlextTestsProtocols.Tests):
         """Test-specific protocols."""
 
+        class SampleInput(p.BaseModel, Protocol):
+            """Input capabilities consumed by result-route tests."""
+
+            @property
+            def name(self) -> str:
+                """Requested target name."""
+                ...
+
+        class SampleOutput(p.BaseModel, Protocol):
+            """Output capabilities returned by result-route tests."""
+
+            @property
+            def message(self) -> str:
+                """Rendered success message."""
+                ...
+
+        class RuntimeCommandCase(Protocol):
+            """Inputs and expectations consumed by runtime command tests."""
+
+            @property
+            def command(self) -> t.StrSequence:
+                """Command argument vector."""
+                ...
+
+            @property
+            def timeout(self) -> int | None:
+                """Optional command timeout."""
+                ...
+
+            @property
+            def env(self) -> t.StrMapping | None:
+                """Optional child environment overrides."""
+                ...
+
+            @property
+            def input_data(self) -> bytes | None:
+                """Optional standard-input payload."""
+                ...
+
+            @property
+            def use_tmp_path(self) -> bool:
+                """Temporary-directory working-directory flag."""
+                ...
+
+            @property
+            def expect_success(self) -> bool:
+                """Expected command success flag."""
+                ...
+
+            @property
+            def stdout_has(self) -> str:
+                """Expected standard-output fragment."""
+                ...
+
+            @property
+            def stderr_has(self) -> str:
+                """Expected standard-error fragment."""
+                ...
+
+            @property
+            def exit_code(self) -> int | None:
+                """Expected process exit code."""
+                ...
+
+            @property
+            def expected(self) -> str:
+                """Expected captured output."""
+                ...
+
+            @property
+            def error_has(self) -> str:
+                """Expected failure fragment."""
+                ...
+
         class ScriptedPrompts(Protocol):
             """Prompt test double contract exposed through the canonical `p`."""
 
             def override_test_env(self, *, enabled: bool | None = True) -> Self:
-                """Override test-environment detection for the prompt instance."""
+                """Select the explicit test-environment override."""
                 ...
 
             def use_input_values(self, values: t.StrSequence) -> Self:
-                """Queue text values returned by subsequent prompt calls."""
+                """Script successive prompt input values."""
                 ...
 
             def use_input_error(self, error: Exception) -> Self:
-                """Configure the next text prompt to raise the supplied error."""
+                """Script an input-reader failure."""
                 ...
 
             def use_password(self, password: str) -> Self:
-                """Configure the password returned by the prompt boundary."""
+                """Script a password response."""
                 ...
 
             def use_password_error(self, error: Exception) -> Self:
-                """Configure the next password prompt to raise an error."""
+                """Script a password-reader failure."""
                 ...
 
             def configure_state(
                 self, *, interactive: bool = True, quiet: bool = False
             ) -> Self:
-                """Set the observable interactive and quiet prompt state."""
+                """Configure the observable prompt runtime state."""
                 ...
 
             def execute(self) -> p.Result[p.Cli.RuntimeStatus]:
-                """Return the canonical typed CLI runtime status."""
+                """Return the public CLI runtime status."""
                 ...
 
             def prompt(self, message: str, default: str = "") -> p.Result[str]:
-                """Read a text value or return the configured default."""
+                """Read one scripted text prompt."""
                 ...
 
             def confirm(self, message: str, *, default: bool = False) -> p.Result[bool]:
-                """Read a yes-or-no confirmation through the public result contract."""
+                """Read one scripted confirmation."""
                 ...
 
             def prompt_choice(
                 self, message: str, choices: t.StrSequence, default: str | None = None
             ) -> p.Result[str]:
-                """Read one validated value from the available choices."""
+                """Read one scripted choice."""
                 ...
 
             def prompt_password(
                 self, message: str, min_length: int = 8
             ) -> p.Result[str]:
-                """Read a password satisfying the minimum length."""
+                """Read one scripted password."""
                 ...
 
-            def print_success(self, message: str) -> p.Result[None]:
-                """Emit a success message through the prompt service."""
+            def print_success(self, message: str) -> p.Result[bool]:
+                """Emit one success message."""
                 ...
 
-            def print_error(self, message: str) -> p.Result[None]:
-                """Emit an error message through the prompt service."""
+            def print_error(self, message: str) -> p.Result[bool]:
+                """Emit one error message."""
                 ...
 
-            def print_warning(self, message: str) -> p.Result[None]:
-                """Emit a warning message through the prompt service."""
+            def print_warning(self, message: str) -> p.Result[bool]:
+                """Emit one warning message."""
                 ...
 
         class CaptureLogPrompts(ScriptedPrompts, Protocol):
@@ -91,14 +166,14 @@ class TestsFlextCliProtocols(FlextTestsProtocols, p):
 
             @property
             def records(self) -> list[tuple[str, str]]:
-                """Captured log-level and message pairs."""
+                """Captured level/message pairs."""
                 ...
 
         class FailingLogPrompts(ScriptedPrompts, Protocol):
             """Prompt test double that can fail a selected log call."""
 
             def fail_on_log(self, *, level: str, message: str) -> Self:
-                """Configure one matching log emission to fail."""
+                """Select the log call that raises the scripted failure."""
                 ...
 
 

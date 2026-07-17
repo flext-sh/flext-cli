@@ -23,7 +23,7 @@ import pytest
 
 from flext_cli import cli, m
 from tests import c
-from tests import p, t
+from tests import t
 from tests import u
 from flext_tests import tm
 
@@ -94,7 +94,7 @@ class TestsFlextCliOptionsUtilsCov:
         )
 
     _ANNOTATION_CASES: ClassVar[
-        tuple[tuple[t.ModelClass[p.BaseModel], t.Cli.RuntimeAnnotation], ...]
+        tuple[tuple[t.ModelClass[t.Cli.ModelLike], t.Cli.RuntimeAnnotation], ...]
     ] = (
         (_StringAnnotationModel, str),
         (_OptionalStringAnnotationModel, str),
@@ -111,13 +111,6 @@ class TestsFlextCliOptionsUtilsCov:
     @staticmethod
     def _noop_handler(_params: t.Cli.ModelLike) -> bool:
         return True
-
-    @staticmethod
-    def _option_spec(command: t.Cli.Command, param_name: str) -> p.Cli.OptionSpec:
-        """Return the Typer option object the builder placed on the command signature."""
-        spec = inspect.signature(command).parameters[param_name].default
-        tm.that(spec.param_decls, none=False)
-        return spec
 
     # ---- generated-command contract -------------------------------------
 
@@ -193,7 +186,7 @@ class TestsFlextCliOptionsUtilsCov:
         """Expose each supported field annotation in canonical runtime form."""
         command = cli.model_command(model_cls, self._noop_handler)
         resolved = inspect.signature(command).parameters["value"].annotation
-        tm.that(resolved, eq=expected)
+        tm.that(resolved == expected, eq=True)
 
     def test_model_command_marks_required_field_default_as_ellipsis(self) -> None:
         """Reject a real invocation that omits a required model field."""
