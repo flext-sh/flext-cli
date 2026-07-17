@@ -62,7 +62,7 @@ from examples import c
 from flext_cli import cli
 
 cli.print("hello", style=c.Cli.MessageStyles.GREEN)
-result = cli.read_json_file("settings.json")
+result = cli.json_read_file("settings.json")
 ```
 
 Keep interaction with flext-cli on the public facade unless the example is explicitly documenting an internal type.

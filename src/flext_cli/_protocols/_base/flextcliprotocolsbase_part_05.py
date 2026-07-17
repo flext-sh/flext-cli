@@ -12,8 +12,6 @@ from flext_cli._protocols._base.flextcliprotocolsbase_part_04 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart04,
 )
 
-# mro-wkii.17.26 (codex): YAML protocol data is defined by the upstream JSON
-# alias; importing the local t facade would re-enter its own p composition.
 from flext_core import t
 
 

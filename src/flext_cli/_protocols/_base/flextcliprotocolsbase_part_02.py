@@ -8,39 +8,9 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from flext_cli._protocols._base.flextcliprotocolsbase_part_01 import (
-    FlextCliProtocolsBase as FlextCliProtocolsBasePart01,
-)
-from flext_core import p
 
-
-class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
+class FlextCliProtocolsBase:
     """Implementation part for FlextCliProtocolsBase."""
-
-    @runtime_checkable
-    class Settings(p.Settings, FlextCliProtocolsBasePart01.CliSettings, Protocol):
-        """Protocol for CLI runtime settings consumed by the public services.
-
-        NOTE (multi-agent): settings are flat ``cli_*`` scalars (§2.6); the
-        nested ``Cli`` branch and its pyrefly ``Final`` workaround were
-        removed with it. The flat field contract comes from
-        ``CliSettings`` (part_01) via protocol composition.
-        """
-
-        @property
-        def debug(self) -> bool:
-            """Check if debug mode is enabled."""
-            ...
-
-        @property
-        def trace(self) -> bool:
-            """Check if trace mode is enabled."""
-            ...
-
-        @classmethod
-        def reset_for_testing(cls) -> None:
-            """Reset the process-wide singleton (test isolation only)."""
-            ...
 
     @runtime_checkable
     class CommandOutput(Protocol):

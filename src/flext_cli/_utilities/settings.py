@@ -14,7 +14,7 @@ class FlextCliUtilitiesSettings:
     """Settings and selector methods exposed directly on ``u.Cli``."""
 
     @staticmethod
-    def cli_test_env(cli_settings: p.Cli.CliSettings) -> bool:
+    def cli_test_env(cli_settings: p.Cli.Settings) -> bool:
         """Detect test/CI runtime from the flat CLI settings scalars.
 
         NOTE (multi-agent): replaces the removed ``settings.Cli.test_env``
