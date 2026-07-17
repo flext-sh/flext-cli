@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from tests import c
 from tests import p
@@ -11,7 +10,6 @@ from flext_cli import cli, m, r
 from flext_tests import tm
 
 from pathlib import Path
-
 
 
 class TestsFlextCliPublicContractsCoverage:

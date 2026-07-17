@@ -20,7 +20,7 @@ import pytest
 from flext_cli import r
 from flext_tests import tm
 from tests import c
-from tests import p, t
+from tests import t
 from tests import u
 
 
@@ -149,7 +149,8 @@ class TestsFlextCliCommands:
     ) -> None:
         # Arrange
         try:
-            raise FileNotFoundError("nope")
+            msg = "nope"
+            raise FileNotFoundError(msg)
         except FileNotFoundError as exc:
             captured_exception: BaseException = exc
 

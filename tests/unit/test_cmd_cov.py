@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import os
 from contextlib import contextmanager
-from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
@@ -21,7 +20,6 @@ from tests import c
 
 from collections.abc import Generator
 from pathlib import Path
-
 
 
 class TestsFlextCliCmdCov:

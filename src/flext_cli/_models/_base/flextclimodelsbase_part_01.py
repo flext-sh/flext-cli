@@ -95,7 +95,7 @@ class FlextCliModelsBase:
 
     class JsonNormalized(m.RootModel[t.JsonValue]):
         """Normalize raw JSON value with flat JSON serialization semantics.
-        
+
         ``RootModel`` provides positional construction (``JsonNormalized(value)``)
         and root-level serialization natively — no custom ``__init__`` or
         ``model_serializer`` required.

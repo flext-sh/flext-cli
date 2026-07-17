@@ -11,7 +11,6 @@ attributes, internal collaborators, or implementation structure are touched.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
@@ -20,7 +19,6 @@ from tests import m
 from tests import p, t
 
 from pathlib import Path
-
 
 
 class TestsFlextCliTypings:

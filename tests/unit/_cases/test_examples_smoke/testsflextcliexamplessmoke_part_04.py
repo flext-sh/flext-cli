@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 from examples import DataManagerCLI
@@ -13,7 +12,6 @@ from flext_cli import cli
 from pathlib import Path
 
 from tests import p
-
 
 
 class TestsFlextCliExamplesSmoke:

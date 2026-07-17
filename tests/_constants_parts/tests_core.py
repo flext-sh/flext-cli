@@ -5,12 +5,11 @@ from __future__ import annotations
 import re
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Final
+from typing import Final
 
 from flext_cli import c
 
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliConstantsCore:

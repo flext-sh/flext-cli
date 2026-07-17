@@ -50,15 +50,15 @@ class FlextCliTypesDomain:
         t.SequenceOf[tuple[TFileRuleKind, t.JsonMapping]],
     ]
     type RuleLoadOption[TRuleKind, TFileRuleKind] = (
-        tb.CliValue
+        tb.Value
         | Path
         | FlextCliTypesDomain.RuleCatalog[TRuleKind]
         | FlextCliTypesDomain.RuleCatalog[TFileRuleKind]
         | None
     )
     type MutableDefaultMapping = MutableMapping[str, t.Scalar | t.StrSequence]
-    type CliParamValue = bool | str
-    type CliParamKwargs = t.MappingKV[str, CliParamValue]
+    type ParamValue = bool | str
+    type ParamKwargs = t.MappingKV[str, ParamValue]
     type DefaultAtom = t.Scalar | t.StrSequence
     type ProjectNamesValue = str | t.StrSequence
     type TableHeaders = str | t.StrSequence
@@ -70,7 +70,7 @@ class FlextCliTypesDomain:
     type OptionRegistry = t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]
     type NullaryOperation[T] = Callable[[], T]
     type PromptTextReader = Callable[[str], str]
-    type CliCommand = Callable[..., t.JsonPayload]
+    type Command = Callable[..., t.JsonPayload]
     # mro-j47u (codex): one generic alias owns formatter data and call contracts.
     type JsonCommandFn = Callable[..., p.Result[t.JsonPayload]]
     # NOTE (multi-agent): route outputs are observation-only so payloads covary.

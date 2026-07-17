@@ -16,7 +16,7 @@ from flext_cli.services.cli_params import FlextCliCommonParams
 class FlextCliCli(FlextCliCliPart01):
     """Implementation part for FlextCliCli."""
 
-    def _apply_common_params_to_config(self, *, params: p.Cli.CliParamsConfig) -> None:
+    def _apply_common_params_to_config(self, *, params: p.Cli.ParamsConfig) -> None:
         """Apply global CLI flags to the shared settings singleton."""
         resolved_log_level: str = (
             params.log_level if params.log_level is not None else settings.cli_log_level
@@ -64,23 +64,23 @@ class FlextCliCli(FlextCliCliPart01):
             name=name, help_text=help_text, add_completion=add_completion
         )
 
-        def apply_common_params(params: p.Cli.CliParamsConfig) -> bool:
+        def apply_common_params(params: p.Cli.ParamsConfig) -> bool:
             self._apply_common_params_to_config(params=params)
             return True
 
         field_names = ("debug", "trace", "verbose", "quiet", "log_level")
         parameters: t.MutableSequenceOf[Parameter] = []
-        annotations: t.Cli.CliAnnotations = {"return": bool}
+        annotations: t.Cli.Annotations = {"return": bool}
         for field_name in field_names:
             parameter, annotation = self._build_model_parameter(
-                field_name, m.Cli.CliParamsConfig.model_fields[field_name], None
+                field_name, m.Cli.ParamsConfig.model_fields[field_name], None
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
-        global_callback: FlextCliCli._ModelCommand[p.Cli.CliParamsConfig] = (
+        global_callback: FlextCliCli._ModelCommand[p.Cli.ParamsConfig] = (
             self._ModelCommand(
                 handler=apply_common_params,
-                model_cls=m.Cli.CliParamsConfig,
+                model_cls=m.Cli.ParamsConfig,
                 parameters=parameters,
             )
         )

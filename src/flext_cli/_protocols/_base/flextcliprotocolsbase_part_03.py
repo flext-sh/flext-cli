@@ -96,7 +96,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             ...
 
     @runtime_checkable
-    class CliParamsConfig(Protocol):
+    class ParamsConfig(Protocol):
         """Protocol for CLI parameters configuration."""
 
         @property

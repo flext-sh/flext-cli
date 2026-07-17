@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Self, override
+from typing import Self, override
 
 import pytest
 
@@ -12,8 +12,7 @@ from tests import m
 
 from collections.abc import Callable
 
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliScriptedPrompts(FlextCliPrompts):

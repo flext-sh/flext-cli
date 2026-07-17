@@ -15,7 +15,6 @@ tomlkit documents and plain mappings.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -24,8 +23,7 @@ from flext_tests import tm
 
 from tomlkit.items import Table
 
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliTomlSyncCoverage:

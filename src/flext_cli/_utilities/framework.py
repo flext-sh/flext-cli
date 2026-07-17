@@ -149,7 +149,7 @@ class FlextCliUtilitiesFramework:
 
     @classmethod
     def framework_register_callback(
-        cls, application: p.Cli.Application, callback: t.Cli.CliCommand
+        cls, application: p.Cli.Application, callback: t.Cli.Command
     ) -> None:
         """Register one application callback."""
         _ = cls._unwrap(application).callback()(callback)
@@ -161,7 +161,7 @@ class FlextCliUtilitiesFramework:
         *,
         name: str,
         help_text: str,
-        command: t.Cli.CliCommand,
+        command: t.Cli.Command,
     ) -> None:
         """Register one named command."""
         _ = cls._unwrap(application).command(name, help=help_text)(command)
@@ -171,7 +171,7 @@ class FlextCliUtilitiesFramework:
         field_name: str, annotation: type | GenericAlias, spec: p.Cli.OptionSpec
     ) -> Parameter:
         """Build one inspect parameter with a private Typer option default."""
-        option_default: t.Cli.CliValue | EllipsisType | None = (
+        option_default: t.Cli.Value | EllipsisType | None = (
             ... if spec.required else spec.default
         )
         option = OptionInfo(

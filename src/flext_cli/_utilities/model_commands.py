@@ -32,17 +32,16 @@ class FlextCliUtilitiesModelCommands:
             self.model_class = model_class
             self.handler = handler
 
-        def _resolve_default(self, field_info: p.FieldInfo) -> t.Cli.CliValue | type:
+        def _resolve_default(self, field_info: p.FieldInfo) -> t.Cli.Value | type:
             if field_info.is_required():
                 return inspect.Parameter.empty
             # NOTE (multi-agent): ``FieldInfo.get_default`` is typed ``Any``
             # in pydantic; the declared union is the real runtime contract.
             return cast(
-                "t.Cli.CliValue | type",
-                field_info.get_default(call_default_factory=True),
+                "t.Cli.Value | type", field_info.get_default(call_default_factory=True)
             )
 
-        def build(self) -> t.Cli.CliCommand:
+        def build(self) -> t.Cli.Command:
             """Build a direct callable with a real runtime signature."""
             model_fields = getattr(self.model_class, "model_fields", {})
             parameters = [
@@ -63,7 +62,7 @@ class FlextCliUtilitiesModelCommands:
             # Settings protocol (has update_global) — a plain model skips them.
             effective_settings = settings
 
-            def command(**kwargs: t.Cli.CliValue) -> t.JsonValue:
+            def command(**kwargs: t.Cli.Value) -> t.JsonValue:
                 settings_fields = effective_settings.model_dump()
                 applicable_overrides = {
                     field_name: field_value
@@ -121,7 +120,7 @@ class FlextCliUtilitiesModelCommands:
         model_class: t.ModelClass[M],
         handler: Callable[[M], t.JsonValue],
         settings: t.Cli.ModelLike | None = None,
-    ) -> t.Cli.CliCommand:
+    ) -> t.Cli.Command:
         """Build a model command through the canonical CLI service."""
         # NOTE (multi-agent): All model-class ingress uses t.ModelClass.
         return FlextCliUtilitiesModelCommands.Builder(

@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import p, t
-
+from tests import t
 
 
 def pytest_collection_modifyitems(

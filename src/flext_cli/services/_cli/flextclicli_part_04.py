@@ -36,7 +36,7 @@ class FlextCliCli(FlextCliCliPart03):
         return u.Cli.framework_external_command(app)
 
     @staticmethod
-    def register_callback(app: p.Cli.Application, *, command: t.Cli.CliCommand) -> None:
+    def register_callback(app: p.Cli.Application, *, command: t.Cli.Command) -> None:
         """Register one model-backed root callback."""
         u.Cli.framework_register_callback(app, command)
 
@@ -47,7 +47,7 @@ class FlextCliCli(FlextCliCliPart03):
 
     @staticmethod
     def register_command(
-        app: p.Cli.Application, *, name: str, help_text: str, command: t.Cli.CliCommand
+        app: p.Cli.Application, *, name: str, help_text: str, command: t.Cli.Command
     ) -> None:
         """Register a command through the private framework boundary."""
         u.Cli.framework_register_command(

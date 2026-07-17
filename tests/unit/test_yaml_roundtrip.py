@@ -9,17 +9,15 @@ tree state read back through the public API.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-from tests import p, t
+from tests import t
 from tests import u
 from flext_tests import tm
 
 from pathlib import Path
-
 
 
 class TestsFlextCliYamlRoundtripLoad:

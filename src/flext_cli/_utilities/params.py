@@ -12,19 +12,19 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_resolve(
-        params: p.Cli.CliParamsConfig | None, kwargs: t.Cli.CliParamKwargs
-    ) -> p.Cli.CliParamsConfig:
+        params: p.Cli.ParamsConfig | None, kwargs: t.Cli.ParamKwargs
+    ) -> p.Cli.ParamsConfig:
         """Resolve explicit params and kwargs into one validated model."""
-        kwargs_model = m.Cli.CliParamsConfig.model_validate(kwargs)
+        kwargs_model = m.Cli.ParamsConfig.model_validate(kwargs)
         if params is None:
             return kwargs_model
-        if not isinstance(params, m.Cli.CliParamsConfig):
+        if not isinstance(params, m.Cli.ParamsConfig):
             return kwargs_model
         return params.model_copy(update=kwargs_model.model_dump(exclude_none=True))
 
     @staticmethod
     def params_set_bool(
-        settings: p.Cli.Settings, params: p.Cli.CliParamsConfig
+        settings: p.Cli.Settings, params: p.Cli.ParamsConfig
     ) -> p.Result[p.Cli.Settings]:
         """Set boolean parameters through validated model_copy updates."""
         if params.trace is not None and params.trace:
@@ -49,7 +49,7 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_set_log_level(
-        settings: p.Cli.Settings, params: p.Cli.CliParamsConfig
+        settings: p.Cli.Settings, params: p.Cli.ParamsConfig
     ) -> p.Result[p.Cli.Settings]:
         """Set CLI log level with enum conversion/validation."""
         if params.log_level is None:
@@ -72,7 +72,7 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_set_format(
-        settings: p.Cli.Settings, params: p.Cli.CliParamsConfig
+        settings: p.Cli.Settings, params: p.Cli.ParamsConfig
     ) -> p.Result[p.Cli.Settings]:
         """Set output/log format values with canonical validation helpers."""
         next_config = settings
@@ -105,7 +105,7 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_apply(
-        settings: p.Cli.Settings, params: p.Cli.CliParamsConfig
+        settings: p.Cli.Settings, params: p.Cli.ParamsConfig
     ) -> p.Result[p.Cli.Settings]:
         """Apply all parameter-setting stages to one settings model."""
         return (

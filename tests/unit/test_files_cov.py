@@ -9,7 +9,6 @@ success/failure outcome, and on-disk state read back through the public API.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
@@ -21,8 +20,7 @@ from tests import u
 
 from pathlib import Path
 
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliFilesCov:

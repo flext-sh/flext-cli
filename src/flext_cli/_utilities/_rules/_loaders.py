@@ -86,7 +86,7 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
     def rules_load_local_definitions[TRuleKind, TFileRuleKind](
         cls,
         config_path: Path,
-        **kwargs: t.Cli.CliValue
+        **kwargs: t.Cli.Value
         | Path
         | t.Cli.RuleCatalog[TRuleKind]
         | t.Cli.RuleCatalog[TFileRuleKind]

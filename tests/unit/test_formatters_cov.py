@@ -13,7 +13,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -21,8 +20,7 @@ from flext_cli import cli
 from tests import c
 from flext_tests import tm
 
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliFormattersCov:

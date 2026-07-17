@@ -8,7 +8,6 @@ detail (private attrs, internal collaborators) is touched.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
@@ -16,8 +15,7 @@ from flext_tests import tm
 from flext_cli import cli
 from tests import c
 
-from flext_cli import p, t
-
+from flext_cli import t
 
 
 class TestsFlextCliTables:

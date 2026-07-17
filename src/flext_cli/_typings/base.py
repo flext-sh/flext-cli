@@ -31,9 +31,9 @@ class FlextCliTypesBase:
     type TableShowIndex = bool | TableIndexSelection
     type TableDisableNumparse = bool | t.SequenceOf[int]
     type TableColAlign = t.StrSequence | None
-    type CliValue = t.Scalar | t.StrSequence | DefaultMapping
-    type CliDefaultSource = CliValue | Path
-    type CliAnnotations = MutableMapping[str, type | GenericAlias]
+    type Value = t.Scalar | t.StrSequence | DefaultMapping
+    type DefaultSource = Value | Path
+    type Annotations = MutableMapping[str, type | GenericAlias]
     type TomlDocument = TOMLDocument
     type TomlTable = Table
     type TomlItem = Item
@@ -61,8 +61,8 @@ class FlextCliTypesBase:
         t.json_mapping_adapter()
     )
     YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
-    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
-        t.TypeAdapter(CliDefaultSource)
+    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[DefaultSource]] = t.TypeAdapter(
+        DefaultSource
     )
 
 

@@ -13,7 +13,7 @@ from __future__ import annotations
 import pytest
 from flext_tests import tm
 
-from tests import p, t
+from tests import t
 from tests import u
 
 
@@ -87,7 +87,7 @@ class TestsFlextCliUtilitiesCov:
 
     @pytest.mark.parametrize("value", ["name", " padded ", 0, 42])
     def test_validate_not_empty_succeeds_for_present_values(
-        self, value: t.Cli.CliValue
+        self, value: t.Cli.Value
     ) -> None:
         result = u.Cli.validate_not_empty(value, name="project")
         tm.ok(result)

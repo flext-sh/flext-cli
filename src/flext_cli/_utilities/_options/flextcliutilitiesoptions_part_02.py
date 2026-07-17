@@ -19,7 +19,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
     @classmethod
     def field_default(
         cls, field_name: str, field_info: p.FieldInfo, settings: t.Cli.ModelLike | None
-    ) -> t.Cli.CliValue | None:
+    ) -> t.Cli.Value | None:
         """Resolve CLI default from settings first, then from model field metadata."""
         default_factory = getattr(field_info, "default_factory", None)
         source_value = (
@@ -41,7 +41,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             case _ if (
                 normalized_atom := cls.cli_normalize_atom(normalized_source)
             ) is not None:
-                normalized_default: t.Cli.CliValue | None = normalized_atom
+                normalized_default: t.Cli.Value | None = normalized_atom
             case Mapping() as normalized_source_mapping:
                 normalized_mapping: t.Cli.MutableDefaultMapping = {}
                 for key, item_value in normalized_source_mapping.items():

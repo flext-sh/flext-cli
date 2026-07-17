@@ -9,7 +9,6 @@ return values and ``r[T]`` outcomes (success/failure, value, error) only.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -19,8 +18,7 @@ from flext_tests import tm
 
 from pathlib import Path
 
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliRulesCov:

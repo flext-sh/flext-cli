@@ -87,7 +87,7 @@ class FlextCliUtilitiesOptions:
         )
 
     @staticmethod
-    def is_string_sequence(value: t.Cli.CliDefaultSource) -> bool:
+    def is_string_sequence(value: t.Cli.DefaultSource) -> bool:
         """Return True for concrete string sequences accepted by repeated CLI options."""
         if isinstance(value, Path) or not isinstance(value, Sequence):
             return False
@@ -96,9 +96,7 @@ class FlextCliUtilitiesOptions:
         return all(item for item in value)
 
     @classmethod
-    def cli_normalize_atom(
-        cls, value: t.Cli.CliDefaultSource
-    ) -> t.Cli.DefaultAtom | None:
+    def cli_normalize_atom(cls, value: t.Cli.DefaultSource) -> t.Cli.DefaultAtom | None:
         """Normalize one runtime value into an allowed Typer scalar or string sequence."""
         if isinstance(value, c.Cli.CLI_SCALAR_TYPES_TUPLE):
             return value

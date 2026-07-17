@@ -14,7 +14,7 @@ import pytest
 
 from tests import c
 from tests import m
-from tests import p, t
+from tests import t
 from tests import u
 from flext_tests import tm
 
@@ -135,7 +135,7 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
 
     @pytest.mark.parametrize("value", ["ok", "  padded  ", 0, 1])
     def test_validate_not_empty_accepts_meaningful_values(
-        self, value: t.Cli.CliValue
+        self, value: t.Cli.Value
     ) -> None:
         result = u.Cli.validate_not_empty(value, name="field")
 
@@ -144,7 +144,7 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
 
     @pytest.mark.parametrize("value", [None, "", "   "])
     def test_validate_not_empty_rejects_empty_and_names_the_field(
-        self, value: t.Cli.CliValue | None
+        self, value: t.Cli.Value | None
     ) -> None:
         result = u.Cli.validate_not_empty(value, name="myfield")
 

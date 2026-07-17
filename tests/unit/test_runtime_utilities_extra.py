@@ -7,7 +7,6 @@ effects, plus the ``m.Cli.CommandOutput`` model's public state.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
@@ -16,7 +15,6 @@ from tests import m
 from tests import u
 
 from pathlib import Path
-
 
 
 class TestsFlextCliRuntimeUtilitiesExtra:

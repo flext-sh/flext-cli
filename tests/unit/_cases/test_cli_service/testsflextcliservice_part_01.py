@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from flext_tests import tm
 from tests import c
@@ -18,19 +17,18 @@ from collections.abc import MutableSequence
 from tests import p, t
 
 
-
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
     def test_model_command_validates_runtime_settings_fields(self) -> None:
         """Validate runtime CLI parameters through the model command."""
-        command_settings = m.Cli.CliParamsConfig()
+        command_settings = m.Cli.ParamsConfig()
 
-        def handle(params: p.Cli.CliParamsConfig) -> t.JsonValue:
+        def handle(params: p.Cli.ParamsConfig) -> t.JsonValue:
             return params.debug is True
 
         command = cli.model_command(
-            m.Cli.CliParamsConfig, handle, settings=command_settings
+            m.Cli.ParamsConfig, handle, settings=command_settings
         )
         result = command(debug=True)
 

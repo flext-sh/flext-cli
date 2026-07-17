@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from flext_tests import FlextTestsTypes
 
-from flext_cli import p, t
+from flext_cli import t
 
 
 class TestsFlextCliTypes(FlextTestsTypes, t):

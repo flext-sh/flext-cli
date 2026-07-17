@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
 
 import pytest
 from examples import Ex05Authentication, Ex06Settings, c as ec, p as ep
@@ -21,7 +20,6 @@ from flext_cli import cli, settings
 
 from collections.abc import Iterator
 from pathlib import Path
-
 
 
 class TestsFlextCliExamplesSmoke:

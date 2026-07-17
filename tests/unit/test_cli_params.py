@@ -35,9 +35,9 @@ class TestsFlextCliCliParams:
     def test_create_option_returns_option_spec_for_registered_field(
         self, field_name: str
     ) -> None:
-        """create_option yields a public CliOptionSpec for each registered field."""
+        """create_option yields a public OptionSpec for each registered field."""
         option = cli.create_option(field_name)
-        tm.that(option, is_=p.Cli.CliOptionSpec)
+        tm.that(option, is_=p.Cli.OptionSpec)
 
     def test_create_option_raises_valueerror_for_unknown_field(self) -> None:
         """create_option rejects an unregistered field with a descriptive ValueError."""

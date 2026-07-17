@@ -12,15 +12,13 @@ import os
 import stat
 import tomllib
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
 
 from tests import u
 
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliTomlUtilities:

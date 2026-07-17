@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from examples import ExamplesFlextCliGettingStarted
 from examples.ex_02_output_formatting import export_report

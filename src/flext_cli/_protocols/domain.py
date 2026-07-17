@@ -46,7 +46,7 @@ class FlextCliProtocolsDomain:
 
         name: str
         # mro-j47u (codex): callable behavior remains in the p facade.
-        handler: FlextCliProtocolsBase.CliCommandWrapper
+        handler: FlextCliProtocolsBase.CommandWrapper
 
     @runtime_checkable
     class ResultCommandRoute(Protocol):

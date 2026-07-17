@@ -6,15 +6,13 @@ import os
 import stat
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_tests import tm
 from tests import u
 
 from collections.abc import Generator
 
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliTomlUtilities:

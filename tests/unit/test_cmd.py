@@ -18,7 +18,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from datetime import datetime
-from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
@@ -28,7 +27,6 @@ from tests import c
 from tests import p
 
 from pathlib import Path
-
 
 
 class TestsFlextCliCmd:

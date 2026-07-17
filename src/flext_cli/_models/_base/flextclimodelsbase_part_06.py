@@ -11,7 +11,7 @@ from flext_core import m
 class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
 
-    class CliParamsConfig(m.Value):
+    class ParamsConfig(m.Value):
         """CLI parameters configuration for command-line parsing.
 
         Maps directly to CLI flags: --verbose, --quiet, --debug, --trace, etc.
@@ -46,7 +46,7 @@ class FlextCliModelsBase:
 
         @property
         def params(self) -> t.JsonMapping:
-            """Parameters mapping - required by CliParamsConfig."""
+            """Parameters mapping - required by ParamsConfig."""
             return {
                 "verbose": self.verbose or False,
                 "quiet": self.quiet or False,
@@ -75,7 +75,7 @@ class FlextCliModelsBase:
             ),
         ] = ""
         default: Annotated[
-            t.Cli.CliValue | None,
+            t.Cli.Value | None,
             m.Field(None, description="Option default value when explicitly provided"),
         ] = None
         field_name_override: Annotated[
@@ -94,7 +94,7 @@ class FlextCliModelsBase:
         ]
         help_text: Annotated[str, m.Field(description="Human-readable option help")]
         default: Annotated[
-            t.Cli.CliValue | None,
+            t.Cli.Value | None,
             m.Field(None, description="Validated optional default value"),
         ] = None
         required: Annotated[

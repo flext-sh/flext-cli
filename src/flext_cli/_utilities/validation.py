@@ -45,7 +45,7 @@ class FlextCliUtilitiesValidation:
 
     @staticmethod
     def validate_not_empty(
-        val: t.Cli.CliValue | None, *, name: str = "field"
+        val: t.Cli.Value | None, *, name: str = "field"
     ) -> p.Result[bool]:
         """Validate that a value is not empty."""
         if val is None:
@@ -107,7 +107,7 @@ class FlextCliUtilitiesValidation:
         model_name = getattr(model_cls, "__name__", repr(model_cls))
         model_fields = getattr(model_cls, "model_fields", None)
         if not isinstance(model_fields, dict) or not model_fields:
-            raise c.Cli.CliDefinitionError(
+            raise c.Cli.DefinitionError(
                 c.Cli.ERR_CLI_DEFINITION_INVALID_MODEL.format(
                     command=command,
                     model=model_name,

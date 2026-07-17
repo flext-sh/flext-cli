@@ -56,7 +56,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
         def components(self) -> FlextCliProtocolsBase.RuntimeComponents: ...
 
     @runtime_checkable
-    class CliOptionSpec(Protocol):
+    class OptionSpec(Protocol):
         """Framework-neutral option model contract returned by the CLI DSL."""
 
         @property
@@ -124,7 +124,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             ...
 
     @runtime_checkable
-    class CliCommandWrapper(Protocol):
+    class CommandWrapper(Protocol):
         """Protocol for dynamically-created CLI command wrapper functions."""
 
         def __call__(

@@ -41,7 +41,7 @@ class FlextCliCli:
             self._handler = handler
             self._model_cls = model_cls
 
-        def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
+        def __call__(self, **kwargs: t.Cli.Value) -> t.JsonValue:
             # mro-wkii.17.26 (codex): the adapter supplies field names while
             # external callers may use declared aliases at this single boundary.
             model = self._model_cls.model_validate(kwargs, by_alias=True, by_name=True)
@@ -59,7 +59,7 @@ class FlextCliCli:
             getattr(field_info, "annotation", None) or str
         )
         is_required = field_info.is_required()
-        default_value: t.Cli.CliValue | None = (
+        default_value: t.Cli.Value | None = (
             None
             if is_required
             else u.Cli.field_default(field_name, field_info, settings)

@@ -21,8 +21,8 @@ class FlextCliCommonParams(s):
     def apply_to_config(
         cls,
         settings: p.Cli.Settings,
-        params: p.Cli.CliParamsConfig | None = None,
-        **kwargs: t.Cli.CliParamValue,
+        params: p.Cli.ParamsConfig | None = None,
+        **kwargs: t.Cli.ParamValue,
     ) -> p.Result[p.Cli.Settings]:
         """Apply CLI parameter values to FlextSettings using Pydantic validation.
 

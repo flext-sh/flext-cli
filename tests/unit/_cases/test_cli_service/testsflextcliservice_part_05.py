@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from flext_tests import tm
 from tests import c
@@ -14,7 +13,6 @@ from flext_cli import cli, r
 # mro-wkii.17.26 (codex): exercise CLI flows through the public invocation facade.
 
 from tests import p
-
 
 
 class TestsFlextCliService:

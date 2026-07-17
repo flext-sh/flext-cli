@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
@@ -14,7 +13,6 @@ from tests import u
 from pathlib import Path
 
 from tests import p, t
-
 
 
 class TestsFlextCliRuntimeUtilitiesCore:

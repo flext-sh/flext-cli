@@ -55,7 +55,6 @@ class TestsFlextCliPublicContractsCoverage:
 
         result = cli.execute()
         tm.ok(result, is_=m.Cli.RuntimeStatus)
-        status = result.value
 
         tm.ok(facade_result)
         tm.that(

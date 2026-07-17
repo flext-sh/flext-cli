@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
@@ -14,8 +13,7 @@ from flext_cli import cli
 
 from pathlib import Path
 
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliFilesCov:

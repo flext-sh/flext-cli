@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 from flext_cli import c, m
-from tests import p, t
+from tests import t
 from tests import u
 from flext_tests import tm
 
@@ -63,7 +63,7 @@ class TestsFlextCliOptions:
         ],
     )
     def test_normalize_cli_atom_returns_typer_ready_value_or_none(
-        self, value: t.Cli.CliDefaultSource, expected: t.Cli.DefaultAtom | None
+        self, value: t.Cli.DefaultSource, expected: t.Cli.DefaultAtom | None
     ) -> None:
         """Normalize supported CLI atoms and reject unsupported values."""
         tm.that(u.Cli.cli_normalize_atom(value), eq=expected)
@@ -81,7 +81,7 @@ class TestsFlextCliOptions:
         ],
     )
     def test_is_string_sequence_recognizes_only_str_sequences(
-        self, value: t.Cli.CliDefaultSource, *, expected: bool
+        self, value: t.Cli.DefaultSource, *, expected: bool
     ) -> None:
         """Recognize only sequences whose every member is a string."""
         tm.that(u.Cli.is_string_sequence(value), eq=expected)

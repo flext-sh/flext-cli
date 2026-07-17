@@ -2,10 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from tests import c
-from tests import m
 
 from flext_cli import cli, r
 from flext_tests import tm
@@ -13,8 +11,7 @@ from flext_tests import tm
 from pathlib import Path
 
 from tests import p
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliPipeline:

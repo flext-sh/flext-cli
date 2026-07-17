@@ -7,7 +7,6 @@ public facade only. No private attributes, no internal-collaborator spying.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -15,8 +14,7 @@ from flext_cli import cli, m
 from tests import c
 from flext_tests import tm
 
-from flext_cli import p, t
-
+from flext_cli import t
 
 
 class TestsFlextCliServicesTablesBranchCov:

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 from flext_tests import tm
 from tests import c
@@ -16,7 +15,6 @@ from flext_cli import cli
 from collections.abc import MutableSequence
 
 from tests import p, t
-
 
 
 class TestsFlextCliService:

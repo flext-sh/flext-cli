@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, ClassVar, Self
+from typing import Annotated, ClassVar, Self
 
 from flext_cli import m
 from tests import c
 
-from tests import p, t
-
+from tests import t
 
 
 class TestsFlextCliModelsVersion:

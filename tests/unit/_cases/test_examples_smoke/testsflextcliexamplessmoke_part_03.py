@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 from examples import Ex05Authentication, Ex06Settings, c as ec
@@ -12,7 +11,6 @@ from flext_tests import tm
 from flext_cli import cli, settings
 
 from collections.abc import Iterator
-
 
 
 class TestsFlextCliExamplesSmoke:
