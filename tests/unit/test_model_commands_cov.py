@@ -34,7 +34,7 @@ class TestsFlextCliModelCommandsCov:
     )
     def test_derive_model_from_source_model_applies_defaults(
         self,
-        payload: p.Tests.ModelCommandSource,
+        payload: m.Tests.ModelCommandSource,
         expected_name: str,
         expected_value: int,
     ) -> None:
@@ -94,7 +94,7 @@ class TestsFlextCliModelCommandsCov:
         tm.that(callable(cmd), eq=True)
 
     def test_model_command_dispatches_to_handler_with_bound_model(self) -> None:
-        def handler(model: p.Tests.ModelCommandSample) -> str:
+        def handler(model: m.Tests.ModelCommandSample) -> str:
             return f"{model.name}-{model.value}"
 
         cmd = cli.model_command(m.Tests.ModelCommandSample, handler)
@@ -102,7 +102,7 @@ class TestsFlextCliModelCommandsCov:
         tm.that(cmd(name="x", value=3), eq="x-3")
 
     def test_model_command_applies_field_default_for_omitted_optional(self) -> None:
-        def handler(model: p.Tests.ModelCommandSample) -> int:
+        def handler(model: m.Tests.ModelCommandSample) -> int:
             return model.value
 
         cmd = cli.model_command(m.Tests.ModelCommandSample, handler)
@@ -115,7 +115,7 @@ class TestsFlextCliModelCommandsCov:
         # resolved values reach the handler through the validated model.
         settings = m.Tests.ModelCommandSample(name="from_settings", value=0)
 
-        def handler(model: p.Tests.ModelCommandSample) -> str:
+        def handler(model: m.Tests.ModelCommandSample) -> str:
             return model.name
 
         cmd = cli.model_command(m.Tests.ModelCommandSample, handler, settings=settings)
@@ -126,7 +126,7 @@ class TestsFlextCliModelCommandsCov:
         tm.that(settings.value, eq=0)
 
     def test_model_command_raises_validation_error_for_missing_required(self) -> None:
-        def handler(model: p.Tests.ModelCommandRequired) -> str:
+        def handler(model: m.Tests.ModelCommandRequired) -> str:
             return model.key
 
         cmd = cli.model_command(m.Tests.ModelCommandRequired, handler)
@@ -135,7 +135,7 @@ class TestsFlextCliModelCommandsCov:
             cmd()
 
     def test_model_command_binds_all_required_fields_to_model(self) -> None:
-        def handler(model: p.Tests.ModelCommandRequired) -> str:
+        def handler(model: m.Tests.ModelCommandRequired) -> str:
             return f"{model.key}={model.count}"
 
         cmd = cli.model_command(m.Tests.ModelCommandRequired, handler)
