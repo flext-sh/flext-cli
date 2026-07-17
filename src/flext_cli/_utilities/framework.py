@@ -10,7 +10,7 @@ from typing import Never, TYPE_CHECKING
 
 import click
 import typer
-from typer import OptionInfo
+from typer.models import OptionInfo
 from typer.testing import CliRunner
 
 # mro-j47u (codex): consume every public facade through the package root.
