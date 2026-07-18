@@ -168,8 +168,7 @@ def test_docx_read_round_trip() -> None:
         paragraphs=(
             m.Cli.DocxParagraphPlan(runs=(m.Cli.DocxRunPlan(text="Hello"),)),
             m.Cli.DocxParagraphPlan(
-                runs=(m.Cli.DocxRunPlan(text="World"),),
-                alignment="right",
+                runs=(m.Cli.DocxRunPlan(text="World"),), alignment="right"
             ),
         )
     )

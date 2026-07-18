@@ -13,16 +13,17 @@ from flext_cli.services.auth import FlextCliAuth
 from flext_cli.services.cli import FlextCliCli
 from flext_cli.services.cli_params import FlextCliCommonParams
 from flext_cli.services.cmd import FlextCliCmd
+from flext_cli.services.docx import FlextCliDocx
 from flext_cli.services.file_tools import FlextCliFileTools
 from flext_cli.services.formatters import FlextCliFormatters
 from flext_cli.services.output import FlextCliOutput
 from flext_cli.services.pipeline import FlextCliPipeline
 from flext_cli.services.prompts import FlextCliPrompts
+from flext_cli.services.pptx import FlextCliPptx
 from flext_cli.services.rules import FlextCliRules
 from flext_cli.services.runtime import FlextCliRuntime
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.services.xlsx import FlextCliXlsx
-from flext_cli.services.docx import FlextCliDocx
 from flext_cli.services.yaml_model import FlextCliYamlModel
 
 
@@ -31,22 +32,23 @@ class FlextCli(
     FlextCliCli,
     FlextCliCmd,
     FlextCliCommonParams,
+    FlextCliDocx,
     FlextCliFileTools,
     FlextCliFormatters,
     FlextCliOutput,
     FlextCliPipeline,
     FlextCliPrompts,
+    FlextCliPptx,
     FlextCliRules,
     FlextCliRuntime,
     FlextCliTables,
     FlextCliXlsx,
-    FlextCliDocx,
     FlextCliYamlModel,
 ):
     """Coordinate CLI operations and expose domain services.
 
-    MRO facade over CLI services (cli, cmd, params, file_tools,
-    formatters, output, pipeline, prompts, rules, runtime, settings, tables,
+    MRO facade over CLI services (auth, cli, cmd, params, docx, file_tools,
+    formatters, output, pipeline, prompts, pptx, rules, runtime, tables,
     xlsx, yaml-model).
     All operations return r[T].
     """

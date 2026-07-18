@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, ClassVar, Protocol
 
 from docx import Document
 from docx.document import Document as DocumentType
@@ -14,9 +14,16 @@ from docx.shared import Inches, Pt, RGBColor
 from flext_cli import c, m, p, r, t
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from docx.text.paragraph import Paragraph, ParagraphFormat
-    from docx.table import _Cell
     from docx.text.run import Font
+
+    class _DocxParagraphContainer(Protocol):
+        def add_paragraph(self) -> Paragraph: ...
+
+        @property
+        def paragraphs(self) -> Sequence[Paragraph]: ...
+
 
 _HEX_COLOR_WITH_ALPHA_LENGTH = 8
 
@@ -35,14 +42,14 @@ class FlextCliUtilitiesDocxRenderer:
         "distribute": WD_ALIGN_PARAGRAPH.DISTRIBUTE,
     }
 
-    _UNDERLINE_MAP: ClassVar[dict[str, int | None]] = {
+    _UNDERLINE_MAP: ClassVar[dict[str, WD_UNDERLINE | None]] = {
         "single": WD_UNDERLINE.SINGLE,
         "double": WD_UNDERLINE.DOUBLE,
-        "singleAccounting": 9,
-        "doubleAccounting": 11,
+        "singleAccounting": WD_UNDERLINE(9),
+        "doubleAccounting": WD_UNDERLINE(11),
     }
 
-    _HIGHLIGHT_MAP: ClassVar[dict[str, int | None]] = {
+    _HIGHLIGHT_MAP: ClassVar[dict[str, WD_COLOR_INDEX | None]] = {
         name: getattr(WD_COLOR_INDEX, name.upper(), None)
         for name in (
             "yellow",
@@ -131,7 +138,7 @@ class FlextCliUtilitiesDocxRenderer:
 
     @classmethod
     def _apply_core_properties(
-    def _apply_core_properties(cls, document: DocumentType, properties: t.JsonMapping) -> None:
+        cls, document: DocumentType, properties: t.JsonMapping
     ) -> None:
         core_props = document.core_properties
         for key, value in properties.items():
@@ -141,7 +148,7 @@ class FlextCliUtilitiesDocxRenderer:
     @classmethod
     def _apply_paragraph(
         cls,
-        container: DocumentType | _Cell,
+        container: DocumentType | _DocxParagraphContainer,
         plan: m.Cli.DocxParagraphPlan,
         paragraph: Paragraph | None = None,
     ) -> Paragraph:
@@ -204,7 +211,9 @@ class FlextCliUtilitiesDocxRenderer:
             font.small_caps = spec.small_caps
 
     @classmethod
-    def _apply_paragraph_format(cls, fmt: ParagraphFormat, spec: m.Cli.DocxParagraphFormatSpec) -> None:
+    def _apply_paragraph_format(
+        cls, fmt: ParagraphFormat, spec: m.Cli.DocxParagraphFormatSpec
+    ) -> None:
         if spec.alignment is not None:
             fmt.alignment = cls._ALIGNMENT_MAP[spec.alignment]
         if spec.space_before is not None:
