@@ -22,7 +22,7 @@ dependencies = [
     "cachetools>=6.2,<7.0",
     "click>=8.3.3",
     "defusedxml>=0.7.1",
-    "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
+    "flext-core>=0.12.0rc0",
     "jinja2>=3.1.6",
     "jsonschema>=4.26.0",
     "openpyxl>=3.1.5",
@@ -678,3 +678,4 @@ line_length = 88
 preserve_quotes = true
 section_whitelines = 1
 whitelines = 1
+
