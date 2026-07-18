@@ -22,6 +22,7 @@ from flext_cli.services.rules import FlextCliRules
 from flext_cli.services.runtime import FlextCliRuntime
 from flext_cli.services.tables import FlextCliTables
 from flext_cli.services.xlsx import FlextCliXlsx
+from flext_cli.services.docx import FlextCliDocx
 from flext_cli.services.yaml_model import FlextCliYamlModel
 
 
@@ -39,6 +40,7 @@ class FlextCli(
     FlextCliRuntime,
     FlextCliTables,
     FlextCliXlsx,
+    FlextCliDocx,
     FlextCliYamlModel,
 ):
     """Coordinate CLI operations and expose domain services.

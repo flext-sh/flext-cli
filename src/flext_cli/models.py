@@ -8,6 +8,7 @@ from flext_cli._models.pipeline import FlextCliModelsPipeline
 from flext_cli._models.rules import FlextCliModelsRules
 from flext_cli._models.template import FlextCliModelsTemplate
 from flext_cli._models.xlsx import FlextCliModelsXlsx
+from flext_cli._models.docx import FlextCliModelsDocx
 from flext_core import m
 
 
@@ -20,6 +21,7 @@ class FlextCliModels(m):
         FlextCliModelsBase,
         FlextCliModelsTemplate,
         FlextCliModelsXlsx,
+        FlextCliModelsDocx,
     ):
         """CLI project namespace."""
 

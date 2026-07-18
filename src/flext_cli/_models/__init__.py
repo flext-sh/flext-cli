@@ -4,6 +4,9 @@
 from __future__ import annotations
 
 from .config import FlextCliConfigModels as FlextCliConfigModels
+from .docx import FlextCliModelsDocx as FlextCliModelsDocx
+from .docx_document import FlextCliModelsDocxDocument as FlextCliModelsDocxDocument
+from .docx_styles import FlextCliModelsDocxStyles as FlextCliModelsDocxStyles
 from .pipeline import FlextCliModelsPipeline as FlextCliModelsPipeline
 from .rules import FlextCliModelsRules as FlextCliModelsRules
 from .template import FlextCliModelsTemplate as FlextCliModelsTemplate
@@ -32,6 +35,9 @@ from .xlsx_workbook import FlextCliModelsXlsxWorkbook as FlextCliModelsXlsxWorkb
 
 __all__: tuple[str, ...] = (
     "FlextCliConfigModels",
+    "FlextCliModelsDocx",
+    "FlextCliModelsDocxDocument",
+    "FlextCliModelsDocxStyles",
     "FlextCliModelsPipeline",
     "FlextCliModelsRules",
     "FlextCliModelsTemplate",
