@@ -64,12 +64,12 @@ class FlextCliUtilitiesPptxRenderer:
     def _apply_presentation(
         cls, presentation: PresentationType, plan: m.Cli.PptxPresentationPlan
     ) -> None:
-        cls._apply_core_properties(presentation, plan.core_properties)
+        cls._apply_pptx_core_properties(presentation, plan.core_properties)
         for slide in plan.slides:
             cls._apply_slide(presentation, slide)
 
     @classmethod
-    def _apply_core_properties(
+    def _apply_pptx_core_properties(
         cls, presentation: PresentationType, properties: t.JsonMapping
     ) -> None:
         core_props = presentation.core_properties
