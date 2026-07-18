@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Annotated, ClassVar, TYPE_CHECKING
+from typing import Annotated, ClassVar
 
+from flext_cli import t
 from flext_core import m
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliModelsBase:

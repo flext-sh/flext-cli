@@ -12,14 +12,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from itertools import chain
-from typing import Annotated, Literal, Self, TYPE_CHECKING
+from typing import Annotated, Literal, Self
 
 from flext_cli._constants.enums import FlextCliConstantsEnums as _enum
 from flext_core import m, t
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
+from collections.abc import Callable
 # Pyproject "tool" table name — the default TOML root for tool configuration.
 _TOOL_TABLE: str = "tool"
 
