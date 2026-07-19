@@ -17,17 +17,28 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import override
+
 import pytest
+from flext_core import r
 from flext_tests import tm
 from pydantic import BaseModel
 
-from flext_cli import FlextCli, cli, settings
+from flext_cli import FlextCli, FlextCliServiceBase, cli, p as cli_p, settings
 from tests import p
 from tests.base import s
 
 
 class TestsFlextCliBase:
     """Verify base-service public guarantees through the CLI facade."""
+
+    class ScalarService(FlextCliServiceBase[str]):
+        """CLI service returning a scalar through the canonical public base."""
+
+        @override
+        def execute(self) -> cli_p.Result[str]:
+            """Return a successful scalar result."""
+            return r[str].ok("ready")
 
     @pytest.fixture
     def facade(self) -> FlextCli:
@@ -39,6 +50,12 @@ class TestsFlextCliBase:
         service = type(cli)()
         service = tm.not_none(service)
         tm.that(service, is_=type(cli))
+
+    def test_scalar_service_executes_through_public_base(self) -> None:
+        """A scalar specialization executes without a model-only upper bound."""
+        result = self.ScalarService().execute()
+
+        tm.that(result.unwrap(), eq="ready")
 
     def test_canonical_settings_satisfies_cli_protocol(self) -> None:
         """The canonical ``settings`` singleton satisfies the Cli settings protocol."""
