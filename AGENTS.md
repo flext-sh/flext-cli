@@ -577,8 +577,6 @@ Full law in `/flext-law` §8.
 
 # AGENTS.md — Project Pointer
 
-
-
 Canonical source: [../AGENTS.md](../AGENTS.md).
 
 - Read and follow [../AGENTS.md](../AGENTS.md) first.

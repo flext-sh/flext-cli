@@ -51,6 +51,28 @@ class FlextCliOutput(s):
         FlextCliOutput.print_message(text, style=style)
 
     @staticmethod
+    def display_message_plain(
+        message: str, message_type: c.Cli.MessageTypes | None = None
+    ) -> None:
+        """Display message bypassing Rich styling for large machine-readable text.
+
+        Args:
+            message: Message to display
+            message_type: Optional type used only for a plain text prefix
+
+        """
+        prefix = ""
+        if message_type == c.Cli.MessageTypes.ERROR:
+            prefix = "[ERROR] "
+        elif message_type == c.Cli.MessageTypes.WARNING:
+            prefix = "[WARN] "
+        elif message_type == c.Cli.MessageTypes.SUCCESS:
+            prefix = "[OK] "
+        elif message_type == c.Cli.MessageTypes.INFO:
+            prefix = "[INFO] "
+        FlextCliOutput.emit_stdout(f"{prefix}{message}")
+
+    @staticmethod
     def print_message(message: str, style: str | None = None) -> None:
         """Print a message using FlextCliFormatters."""
         validated_style = u.Cli.output_resolve_style(style)

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from flext_cli._models.base import FlextCliModelsBase
+from flext_cli._models.docx import FlextCliModelsDocx
 from flext_cli._models.pipeline import FlextCliModelsPipeline
+from flext_cli._models.pptx import FlextCliModelsPptx
 from flext_cli._models.rules import FlextCliModelsRules
 from flext_cli._models.template import FlextCliModelsTemplate
 from flext_cli._models.toml import FlextCliModelsToml
@@ -25,6 +27,8 @@ class FlextCliModels(m):
         FlextCliModelsTemplate,
         FlextCliModelsToml,
         FlextCliModelsXlsx,
+        FlextCliModelsDocx,
+        FlextCliModelsPptx,
     ):
         """CLI project namespace."""
 

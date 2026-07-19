@@ -30,6 +30,7 @@ from flext_cli._utilities.template import FlextCliUtilitiesTemplate
 from flext_cli._utilities.toml import FlextCliUtilitiesToml
 from flext_cli._utilities.validation import FlextCliUtilitiesValidation
 from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx
+from flext_cli._utilities.docx import FlextCliUtilitiesDocx
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 from flext_cli._utilities.yaml_model import FlextCliUtilitiesYamlModel
 
@@ -61,6 +62,7 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesToml,
     FlextCliUtilitiesValidation,
     FlextCliUtilitiesXlsx,
+    FlextCliUtilitiesDocx,
     FlextCliUtilitiesYaml,
     FlextCliUtilitiesYamlModel,
 ):

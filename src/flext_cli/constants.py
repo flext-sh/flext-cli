@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_core import c
 
 # NOTE (mro-0ftd.3.7.2, operator-authorized cross-lane fix): import direct from
@@ -9,16 +11,17 @@ from flext_core import c
 # (__all__ = ()); the codegen that would repopulate it is itself blocked by this break.
 from ._constants.base import FlextCliConstantsBase
 from ._constants.config import FlextCliConstantsConfig
+from ._constants.docx import FlextCliConstantsDocx
 from ._constants.enums import FlextCliConstantsEnums
 from ._constants.errors import FlextCliConstantsErrors
 from ._constants.exceptions import FlextCliConstantsExceptions
 from ._constants.files import FlextCliConstantsFiles
 from ._constants.output import FlextCliConstantsOutput
 from ._constants.pipeline import FlextCliConstantsPipeline
+from ._constants.pptx import FlextCliConstantsPptx
 from ._constants.settings import FlextCliConstantsSettings
 from ._constants.xlsx import FlextCliConstantsXlsx
 from ._constants.xlsx_future_functions import FlextCliConstantsXlsxFutureFunctions
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from flext_core import t
@@ -33,6 +36,8 @@ class FlextCliConstants(c):
         FlextCliConstantsConfig,
         FlextCliConstantsEnums,
         FlextCliConstantsErrors,
+        FlextCliConstantsDocx,
+        FlextCliConstantsPptx,
         FlextCliConstantsExceptions,
         FlextCliConstantsFiles,
         FlextCliConstantsOutput,

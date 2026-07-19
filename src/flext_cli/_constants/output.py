@@ -47,6 +47,7 @@ class FlextCliConstantsOutput:
     OUTPUT_DEFAULT_MESSAGE_TYPE: Final[ce.MessageTypes] = ce.MessageTypes.INFO
     OUTPUT_DEFAULT_FORMAT_TYPE: Final[ce.OutputFormats] = ce.OutputFormats.TABLE
     OUTPUT_HEADER_RULE_WIDTH: Final[int] = 60
+    OUTPUT_PLAIN_MESSAGE_THRESHOLD: Final[int] = 10000
     OUTPUT_LOG_LEVEL_DEBUG: Final[str] = "DEBUG"
     OUTPUT_LOG_LEVEL_ERROR: Final[str] = "ERROR"
     OUTPUT_LOG_LEVEL_INFO: Final[str] = "INFO"
