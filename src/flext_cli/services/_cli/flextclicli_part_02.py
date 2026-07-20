@@ -38,8 +38,6 @@ class FlextCliCli(FlextCliCliPart01):
         # protocol — the old isinstance guard was dead code (pyright
         # reportUnnecessaryIsInstance). Settings are flat scalars (§2.6):
         # field-level diff drives ``update_global`` directly.
-        if updated_settings is settings:
-            return
         overrides: dict[str, t.SettingsOverride | None] = {}
         if updated_settings.debug != settings.debug:
             overrides["debug"] = updated_settings.debug
