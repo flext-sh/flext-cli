@@ -87,6 +87,44 @@ class TestsFlextCliTomlCov:
         tm.that(u.Cli.toml_is_aot("not a toml value"), eq=False)
         tm.that(u.Cli.toml_is_item("not a toml value"), eq=False)
 
+    def test_table_child_reads_out_of_order_fragmented_table(self) -> None:
+        """Consolidate a fragmented (out-of-order) table child on read."""
+        # A [project] table split by an intervening top-level table is valid
+        # TOML; tomlkit represents it as an OutOfOrderTableProxy. toml_table_child
+        # must consolidate it into a normal, fully readable table.
+        fragmented = (
+            '[project]\nname = "demo"\n\n'
+            '[build-system]\nrequires = ["hatchling"]\n\n'
+            '[project.optional-dependencies]\nextra = ["pkg"]\n'
+        )
+        doc = tm.not_none(u.Cli.toml_parse_text(fragmented))
+        project = tm.not_none(u.Cli.toml_table_child(doc, "project"))
+        tm.that(u.Cli.toml_value(project, "name"), eq="demo")
+        extras = tm.not_none(
+            u.Cli.toml_table_child(project, "optional-dependencies")
+        )
+        tm.that(list(u.Cli.toml_as_string_list(extras["extra"])), eq=["pkg"])
+
+    def test_ensure_table_consolidates_out_of_order_table_without_data_loss(
+        self,
+    ) -> None:
+        """Consolidate a fragmented table instead of overwriting it empty."""
+        # toml_ensure_table targets a section for mutation. When that section is
+        # fragmented (out-of-order), it must keep every existing entry rather
+        # than replace the proxy with a fresh empty table (silent data loss).
+        fragmented = (
+            '[project]\nname = "demo"\nversion = "1.0.0"\n\n'
+            '[build-system]\nrequires = ["hatchling"]\n\n'
+            '[project.optional-dependencies]\nextra = ["pkg"]\n'
+        )
+        doc = tm.not_none(u.Cli.toml_parse_text(fragmented))
+        table = u.Cli.toml_ensure_table(doc, "project")
+        tm.that(u.Cli.toml_value(table, "name"), eq="demo")
+        tm.that(u.Cli.toml_value(table, "version"), eq="1.0.0")
+        rendered = tm.not_none(u.Cli.toml_parse_text(u.Cli.toml_dumps(doc)))
+        preserved = tm.not_none(u.Cli.toml_table_child(rendered, "project"))
+        tm.that(u.Cli.toml_value(preserved, "name"), eq="demo")
+
     # ── toml_as_mapping ───────────────────────────────────────────────
 
     def test_as_mapping_unwraps_document_to_expected_dict(self) -> None:
