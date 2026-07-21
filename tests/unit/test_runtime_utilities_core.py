@@ -131,6 +131,28 @@ class TestsFlextCliRuntimeUtilitiesCore:
         )
         tm.that(binary_out.stdout, eq=b"\x00\xff\x01")
 
+    def test_run_capture_false_empties_captured_output(self, runner: u.Cli) -> None:
+        """Verify run(capture=False) streams live: captured stdout is empty, exit ok."""
+        result = runner.run(("sh", "-c", "echo streamed-line"), capture=False)
+        output = m.Cli.CommandOutput.model_validate(tm.ok(result))
+        tm.that(output.exit_code, eq=0)
+        tm.that(output.stdout, eq="")
+        tm.that(output.stderr, eq="")
+
+    def test_run_capture_true_default_still_captures(self, runner: u.Cli) -> None:
+        """Verify run() default capture=True still captures stdout."""
+        result = runner.run(("echo", "captured-line"))
+        output = m.Cli.CommandOutput.model_validate(tm.ok(result))
+        tm.that(output.stdout, has="captured-line")
+
+    def test_run_live_alias_streams_and_exit_checks(self, runner: u.Cli) -> None:
+        """Verify run_live streams (empty captured) and fails closed on non-zero exit."""
+        ok_result = runner.run_live(("sh", "-c", "echo live-ok"))
+        ok_output = m.Cli.CommandOutput.model_validate(tm.ok(ok_result))
+        tm.that(ok_output.stdout, eq="")
+        tm.that(ok_output.exit_code, eq=0)
+        tm.fail(runner.run_live(("sh", "-c", "exit 7")), has="failed")
+
     def test_process_start_wait_captures_stdout(self, runner: u.Cli) -> None:
         """Verify that process start wait captures stdout."""
         result = runner.process_start([sys.executable, "-c", "print('managed-ok')"])

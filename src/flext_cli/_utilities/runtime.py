@@ -44,12 +44,18 @@ class FlextCliUtilitiesRuntime:
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
+        *,
+        capture: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command without enforcing a zero exit code.
-        
-        Accepts text or binary stdin (text is UTF-8 encoded). stdout/stderr
-        are always returned as text (UTF-8); non-UTF-8 output fails closed
-        with a typed error instead of crashing or surfacing a generic error.
+
+        Accepts text or binary stdin (text is UTF-8 encoded). When ``capture``
+        is True (default) stdout/stderr are captured and returned as text
+        (UTF-8); non-UTF-8 output fails closed with a typed error instead of
+        crashing or surfacing a generic error. When ``capture`` is False the
+        child inherits the parent's stdout/stderr so its output streams live
+        (for long-running makes/rollouts); the returned stdout/stderr are then
+        empty and only the exit code is meaningful.
         """
         start = time.monotonic()
         stdin = (
@@ -59,7 +65,7 @@ class FlextCliUtilitiesRuntime:
             result = subprocess.run(
                 list(cmd),
                 cwd=cwd,
-                capture_output=True,
+                capture_output=capture,
                 text=False,
                 check=False,
                 timeout=timeout,
@@ -138,6 +144,8 @@ class FlextCliUtilitiesRuntime:
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
+        *,
+        capture: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command and fail on non-zero exit status."""
 
@@ -157,6 +165,7 @@ class FlextCliUtilitiesRuntime:
             env=env,
             remove_env_keys=remove_env_keys,
             input_data=input_data,
+            capture=capture,
         ).flat_map(require_zero_exit)
 
     @staticmethod
@@ -167,6 +176,8 @@ class FlextCliUtilitiesRuntime:
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
+        *,
+        capture: bool = True,
     ) -> p.Result[bool]:
         """Run a command and return a success flag."""
         return FlextCliUtilitiesRuntime.run(
@@ -176,7 +187,33 @@ class FlextCliUtilitiesRuntime:
             env=env,
             remove_env_keys=remove_env_keys,
             input_data=input_data,
+            capture=capture,
         ).map(lambda _: True)
+
+    @staticmethod
+    def run_live(
+        cmd: t.StrSequence,
+        cwd: t.Cli.TextPath | None = None,
+        timeout: int | None = None,
+        env: t.StrMapping | None = None,
+        remove_env_keys: t.StrSequence = (),
+        input_data: str | bytes | None = None,
+    ) -> p.Result[p.Cli.CommandOutput]:
+        """Run a command streaming stdout/stderr live (inherited stdio).
+
+        Ergonomic alias for ``run(..., capture=False)``: the child's output
+        flows straight to the parent terminal (long makes, rollouts) and the
+        non-zero exit still fails closed. Captured stdout/stderr are empty.
+        """
+        return FlextCliUtilitiesRuntime.run(
+            cmd,
+            cwd=cwd,
+            timeout=timeout,
+            env=env,
+            remove_env_keys=remove_env_keys,
+            input_data=input_data,
+            capture=False,
+        )
 
     @staticmethod
     def capture(
