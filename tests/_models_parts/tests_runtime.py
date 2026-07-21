@@ -62,7 +62,8 @@ class TestsFlextCliModelsRuntime:
             bool, m.Field(description="Use pytest tmp_path as cwd")
         ] = False
         input_data: Annotated[
-            bytes | None, m.Field(description="Optional stdin payload")
+            str | bytes | None,
+            m.Field(description="Optional stdin payload (text or binary)"),
         ] = None
         expect_success: Annotated[
             bool, m.Field(description="Whether command should succeed")
@@ -124,6 +125,19 @@ class TestsFlextCliModelsRuntime:
                     "exit_code": 0,
                     "input_data": b'{"type":"RECORD"}',
                     "stdout_has": '{"type":"RECORD"}',
+                }),
+                cls.model_validate({
+                    "case_id": "input-str",
+                    "command": ("cat",),
+                    "exit_code": 0,
+                    "input_data": "text-stdin-payload",
+                    "stdout_has": "text-stdin-payload",
+                }),
+                cls.model_validate({
+                    "case_id": "non-utf8-output",
+                    "command": ("sh", "-c", "printf '\\xff\\xfe'"),
+                    "error_has": "non-UTF-8",
+                    "expect_success": False,
                 }),
                 cls.model_validate({
                     "case_id": "timeout",

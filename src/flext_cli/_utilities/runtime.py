@@ -43,20 +43,28 @@ class FlextCliUtilitiesRuntime:
         timeout: int | None = None,
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
-        input_data: bytes | None = None,
+        input_data: str | bytes | None = None,
     ) -> p.Result[p.Cli.CommandOutput]:
-        """Run a command without enforcing a zero exit code."""
+        """Run a command without enforcing a zero exit code.
+        
+        Accepts text or binary stdin (text is UTF-8 encoded). stdout/stderr
+        are always returned as text (UTF-8); non-UTF-8 output fails closed
+        with a typed error instead of crashing or surfacing a generic error.
+        """
         start = time.monotonic()
+        stdin = (
+            input_data.encode("utf-8") if isinstance(input_data, str) else input_data
+        )
         try:
             result = subprocess.run(
                 list(cmd),
                 cwd=cwd,
                 capture_output=True,
-                text=input_data is None,
+                text=False,
                 check=False,
                 timeout=timeout,
                 env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
-                input=input_data,
+                input=stdin,
             )
         except subprocess.TimeoutExpired as exc:
             return r[p.Cli.CommandOutput].fail(
@@ -64,17 +72,18 @@ class FlextCliUtilitiesRuntime:
             )
         except c.EXC_OS_VALUE as exc:
             return r[p.Cli.CommandOutput].fail(f"execution error: {exc}")
-        stdout_raw = result.stdout or (b"" if input_data is not None else "")
-        stderr_raw = result.stderr or (b"" if input_data is not None else "")
+        try:
+            stdout = (result.stdout or b"").decode("utf-8")
+            stderr = (result.stderr or b"").decode("utf-8")
+        except UnicodeDecodeError as exc:
+            return r[p.Cli.CommandOutput].fail(
+                f"non-UTF-8 output from {shlex.join(list(cmd))}: {exc}"
+            )
         duration = max(0.0, time.monotonic() - start)
         return r[p.Cli.CommandOutput].ok(
             m.Cli.CommandOutput(
-                stdout=stdout_raw.decode()
-                if isinstance(stdout_raw, bytes)
-                else stdout_raw,
-                stderr=stderr_raw.decode()
-                if isinstance(stderr_raw, bytes)
-                else stderr_raw,
+                stdout=stdout,
+                stderr=stderr,
                 exit_code=result.returncode,
                 duration=duration,
             )
