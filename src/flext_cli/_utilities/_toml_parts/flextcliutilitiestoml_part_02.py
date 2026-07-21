@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, TypeIs
 
 import tomlkit
+from tomlkit.container import OutOfOrderTableProxy
 from tomlkit.items import AoT, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
@@ -34,8 +35,22 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_is_table(value: t.Cli.TomlRuntimeSource) -> TypeIs[Table]:
-        """Return True when the value is a TOML table."""
+        """Return True when the value is an explicit TOML table."""
         return isinstance(value, Table)
+
+    @staticmethod
+    def _toml_consolidate_proxy(proxy: OutOfOrderTableProxy) -> Table:
+        """Materialize a fragmented out-of-order table as one explicit table.
+
+        A ``[section]`` split across the document by an intervening top-level
+        table is valid TOML; tomlkit exposes it as an ``OutOfOrderTableProxy``.
+        Copying its entries into a single ``Table`` gives callers a normal,
+        fully readable table without altering the source document.
+        """
+        table = tomlkit.table()
+        for entry_key in list(proxy):
+            table[entry_key] = proxy[entry_key]
+        return table
 
     @staticmethod
     def toml_is_item(value: t.Cli.TomlRuntimeSource) -> TypeIs[Item]:
@@ -48,12 +63,21 @@ class FlextCliUtilitiesToml:
         return isinstance(value, AoT)
 
     @staticmethod
-    def toml_table_child(container: TOMLDocument | Table, key: str) -> Table | None:
-        """Return a table child from a TOML container."""
+    def toml_table_child(
+        container: TOMLDocument | Table, key: str
+    ) -> Table | None:
+        """Return a table child from a TOML container.
+
+        A fragmented (out-of-order) child is consolidated into one explicit
+        table so callers always receive a normal ``Table``, regardless of the
+        physical section order in the source document.
+        """
         if key not in container:
             return None
         value = container[key]
-        return value if FlextCliUtilitiesToml.toml_is_table(value) else None
+        if isinstance(value, OutOfOrderTableProxy):
+            return FlextCliUtilitiesToml._toml_consolidate_proxy(value)
+        return value if isinstance(value, Table) else None
 
     @staticmethod
     def toml_item_child(container: TOMLDocument | Table, key: str) -> Item | None:
@@ -69,8 +93,19 @@ class FlextCliUtilitiesToml:
         existing: t.Cli.TomlRuntimeSource | None = None
         if key in parent:
             existing = parent[key]
+        if isinstance(existing, OutOfOrderTableProxy):
+            # A fragmented (out-of-order) table carries real entries spread
+            # across the document. Consolidate them into one explicit table so
+            # subsequent mutation targets a single contiguous section instead of
+            # silently overwriting the fragments with an empty table.
+            table = tomlkit.table()
+            for entry_key in list(existing):
+                table[entry_key] = existing[entry_key]
+            del parent[key]
+            parent[key] = table
+            return table
         if isinstance(existing, Table):
-            table: Table = existing
+            table = existing
             if not table.is_super_table():
                 return table
             del parent[key]
