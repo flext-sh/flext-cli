@@ -1,9 +1,8 @@
-"""Behavioral tests for the ``u.Cli.env_reader`` environment-file utility.
+"""Behavioral tests for the ``u.Cli.env_read`` environment-variable primitive.
 
-Exercises the observable public contract of ``FlextCliUtilitiesEnv.env_reader``
-exposed through the canonical ``u.Cli`` namespace: KEY=VALUE parsing, comment /
-blank / non-identifier skipping, quote stripping, the absent-file empty state,
-and the process-environment overlay precedence.
+Exercises the observable public contract of ``FlextCliUtilitiesEnv.env_read``
+exposed through the canonical ``u.Cli`` namespace: reading a single environment
+variable by name (passed as data) and the unset-is-None contract.
 
 Modules tested: flext_cli._utilities.env.FlextCliUtilitiesEnv
 
@@ -15,81 +14,43 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from pathlib import Path
 
 from flext_cli import u
 from flext_tests import tm
 
 
 class TestsFlextCliUtilitiesEnv:
-    """CLIProxy-style KEY=VALUE environment files parsed through ``u.Cli``."""
+    """Read a single environment variable by name through ``u.Cli``."""
 
-    @staticmethod
-    def _write(path: Path, body: str) -> Path:
-        path.write_text(body, encoding="utf-8")
-        return path
-
-    def test_env_reader_parses_key_value_pairs(self, tmp_path: Path) -> None:
-        """Simple KEY=VALUE lines are parsed into a mapping."""
-        env_file = self._write(
-            tmp_path / "environment",
-            "ZAI_API_TOKEN=secret-token\nPROXY_INTERNAL_API_KEY=k1\n",
-        )
-
-        result = u.Cli.env_reader(env_file, overlay_process_env=False)
-
-        values = tm.ok(result)
-        tm.that(values["ZAI_API_TOKEN"], eq="secret-token")
-        tm.that(values["PROXY_INTERNAL_API_KEY"], eq="k1")
-
-    def test_env_reader_skips_comments_blanks_and_non_identifier_keys(
-        self, tmp_path: Path
-    ) -> None:
-        """Comments, blank lines, and alias-style non-identifier keys are ignored."""
-        env_file = self._write(
-            tmp_path / "environment",
-            "# comment\n\nALIAS ls='ls -la'\nZAI_API_TOKEN=tok\n",
-        )
-
-        result = u.Cli.env_reader(env_file, overlay_process_env=False)
-
-        tm.that(tm.ok(result), eq={"ZAI_API_TOKEN": "tok"})
-
-    def test_env_reader_strips_surrounding_quotes(self, tmp_path: Path) -> None:
-        """Single or double quotes around the value are stripped."""
-        env_file = self._write(
-            tmp_path / "environment",
-            'SINGLE=\'one\'\nDOUBLE="two"\n',
-        )
-
-        result = u.Cli.env_reader(env_file, overlay_process_env=False)
-
-        tm.that(tm.ok(result), eq={"SINGLE": "one", "DOUBLE": "two"})
-
-    def test_env_reader_missing_file_returns_empty_mapping(
-        self, tmp_path: Path
-    ) -> None:
-        """An absent env file is a legitimate empty state, not a failure."""
-        result = u.Cli.env_reader(
-            tmp_path / "does-not-exist", overlay_process_env=False
-        )
-
-        tm.that(tm.ok(result), eq={})
-
-    def test_env_reader_overlays_process_env_without_overriding(
-        self, tmp_path: Path
-    ) -> None:
-        """With overlay on, existing non-blank process vars win over file values."""
-        env_file = self._write(
-            tmp_path / "environment",
-            "ONLY_IN_FILE=file-value\nALSO_IN_PROC=file-loses\n",
-        )
-        os.environ["ALSO_IN_PROC"] = "proc-wins"
+    def test_env_read_returns_value_when_set(self) -> None:
+        """A set environment variable is returned by name."""
+        name = "FLEXT_CLI_ENV_READ_PROBE"
+        os.environ[name] = "probe-value"
         try:
-            result = u.Cli.env_reader(env_file, overlay_process_env=True)
+            result = u.Cli.env_read(name)
         finally:
-            os.environ.pop("ALSO_IN_PROC", None)
+            os.environ.pop(name, None)
 
-        values = tm.ok(result)
-        tm.that(values["ONLY_IN_FILE"], eq="file-value")
-        tm.that(values["ALSO_IN_PROC"], eq="proc-wins")
+        tm.that(tm.ok(result), eq="probe-value")
+
+    def test_env_read_returns_empty_when_unset(self) -> None:
+        """An unset environment variable resolves to an empty string, not a failure."""
+        name = "FLEXT_CLI_ENV_READ_ABSENT"
+        os.environ.pop(name, None)
+
+        result = u.Cli.env_read(name)
+
+        tm.that(tm.ok(result), eq="")
+
+    def test_env_read_name_is_data(self) -> None:
+        """The variable name is a plain argument, so callers pass it as data."""
+        first = "FLEXT_CLI_ENV_READ_A"
+        second = "FLEXT_CLI_ENV_READ_B"
+        os.environ[first] = "value-a"
+        os.environ[second] = "value-b"
+        try:
+            for name, expected in ((first, "value-a"), (second, "value-b")):
+                tm.that(tm.ok(u.Cli.env_read(name)), eq=expected)
+        finally:
+            os.environ.pop(first, None)
+            os.environ.pop(second, None)
