@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 from flext_tests import tm
-from tests import c, m, t, u
 
 from flext_cli import cli
+from tests import c, m, t, u
 
 
 class TestsFlextCliFilesCov:

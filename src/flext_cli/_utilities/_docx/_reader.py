@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 from io import BytesIO
-from typing import Literal, TYPE_CHECKING
 from types import MappingProxyType
+from typing import TYPE_CHECKING, Literal
 from zipfile import BadZipFile
 
 from docx import Document

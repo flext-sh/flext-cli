@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from openpyxl.cell.cell import Cell
 from openpyxl.comments import Comment
 
 from flext_cli import c, p, r, t
 
 from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openpyxl.worksheet.worksheet import Worksheet

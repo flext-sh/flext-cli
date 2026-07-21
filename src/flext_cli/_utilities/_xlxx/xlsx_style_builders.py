@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from openpyxl.styles import Alignment, Border, Color, Font, GradientFill, NamedStyle
 from openpyxl.styles.borders import Side
 from openpyxl.styles.fills import PatternFill, Stop
-
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from flext_cli import p

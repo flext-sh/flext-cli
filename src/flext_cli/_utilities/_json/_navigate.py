@@ -10,10 +10,11 @@ NOTE (multi-agent): mro-i6nq.13 — extracted from the removed numbered
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_core import u
 
 from ._core import FlextCliUtilitiesJsonCoreMixin
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from flext_cli import t

@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import ClassVar, TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table as RichTable
-
 
 if TYPE_CHECKING:
     from flext_cli import p

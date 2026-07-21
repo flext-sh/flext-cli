@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Protocol, Self, overload, runtime_checkable, TYPE_CHECKING
+from typing import TYPE_CHECKING, Protocol, Self, overload, runtime_checkable
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence

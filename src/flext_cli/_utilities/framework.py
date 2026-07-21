@@ -6,7 +6,7 @@ import sys
 from collections.abc import Callable
 from contextvars import ContextVar
 from inspect import Parameter
-from typing import Never, TYPE_CHECKING
+from typing import TYPE_CHECKING, Never
 
 import click
 import typer

@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable, TYPE_CHECKING
-
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from ._xlx.xlsx_archive import FlextCliProtocolsXlsxArchive
 from ._xlx.xlsx_rules import FlextCliProtocolsXlsxRules
@@ -11,8 +10,8 @@ from ._xlx.xlsx_snapshot import FlextCliProtocolsXlsxSnapshot
 from ._xlx.xlsx_workbook import FlextCliProtocolsXlsxWorkbook
 
 if TYPE_CHECKING:
-    from flext_core import p
     from flext_cli._typings.xlsx import FlextCliTypesXlsx as tx
+    from flext_core import p
 
 
 class FlextCliProtocolsXlsx(

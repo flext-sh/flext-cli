@@ -20,11 +20,11 @@ from __future__ import annotations
 from typing import override
 
 import pytest
-from flext_core import r
 from flext_tests import tm
 from pydantic import BaseModel
 
 from flext_cli import FlextCli, FlextCliServiceBase, cli, p as cli_p, settings
+from flext_core import r
 from tests import p
 from tests.base import s
 

@@ -8,8 +8,7 @@ regex construction must not live on this constants surface.
 from __future__ import annotations
 
 import re
-from typing import ClassVar, Final, TYPE_CHECKING
-
+from typing import TYPE_CHECKING, ClassVar, Final
 
 if TYPE_CHECKING:
     from flext_core import t

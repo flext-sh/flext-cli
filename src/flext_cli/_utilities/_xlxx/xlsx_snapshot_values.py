@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import datetime as dt
 from decimal import Decimal, InvalidOperation
+from typing import TYPE_CHECKING
 
 from openpyxl.cell.cell import Cell, MergedCell
 from pydantic import ValidationError
 
 from flext_cli import c, m, p, r, t
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openpyxl.worksheet.worksheet import Worksheet

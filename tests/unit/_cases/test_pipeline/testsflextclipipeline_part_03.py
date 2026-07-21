@@ -5,9 +5,9 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_tests import tm
-from tests import p, t
 
 from flext_cli import cli
+from tests import p, t
 
 # ── Fixtures ────────────────────────────────────────────────────────
 

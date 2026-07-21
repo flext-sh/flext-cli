@@ -15,6 +15,7 @@ from flext_cli import c, m, p, r, t
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
     from docx.text.paragraph import Paragraph, ParagraphFormat
     from docx.text.run import Font
 

@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 from copy import copy
+from typing import TYPE_CHECKING
 
 from openpyxl.styles import Alignment, Border, Color, Font, GradientFill
 from openpyxl.styles.fills import Fill, PatternFill, Stop
 from pydantic import ValidationError
 
 from flext_cli import m, p, r
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from openpyxl.styles.styleable import StyleableObject
     from openpyxl.styles.borders import Side
+    from openpyxl.styles.styleable import StyleableObject
 
 
 class FlextCliUtilitiesXlsxStyleReaders:

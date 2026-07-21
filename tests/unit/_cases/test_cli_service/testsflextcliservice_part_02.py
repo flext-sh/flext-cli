@@ -7,9 +7,9 @@ from __future__ import annotations
 from collections.abc import MutableSequence
 
 from flext_tests import tm
-from tests import c, m, p, t
 
 from flext_cli import cli
+from tests import c, m, p, t
 
 
 class TestsFlextCliService:

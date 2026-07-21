@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from flext_tests import tm
 
+from flext_cli import cli, r
+
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 # mro-wkii.17.26 (codex): exercise CLI flows through the public invocation facade.
 from tests import c, m, p
-
-from flext_cli import cli, r
 
 
 class TestsFlextCliService:

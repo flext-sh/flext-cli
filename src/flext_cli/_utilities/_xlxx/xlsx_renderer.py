@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p, r
 
@@ -10,7 +11,6 @@ from .xlsx_layout import FlextCliUtilitiesXlsxLayout
 from .xlsx_rules import FlextCliUtilitiesXlsxRules
 from .xlsx_tables import FlextCliUtilitiesXlsxTables
 from .xlsx_workbook_plan import FlextCliUtilitiesXlsxWorkbookPlan
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from openpyxl import Workbook

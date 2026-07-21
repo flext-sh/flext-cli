@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import MutableMapping
-
+from typing import TYPE_CHECKING
 
 from flext_cli import t
 from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
@@ -13,11 +13,10 @@ from flext_cli._utilities._toml.flextcliutilitiestoml_part_02 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart02,
 )
 from flext_core import u
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from tomlkit.toml_document import TOMLDocument
     from tomlkit.items import Table
+    from tomlkit.toml_document import TOMLDocument
 
 
 class FlextCliUtilitiesToml:

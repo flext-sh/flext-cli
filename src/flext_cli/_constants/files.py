@@ -8,8 +8,7 @@ from __future__ import annotations
 
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import Final, TYPE_CHECKING
-
+from typing import TYPE_CHECKING, Final
 
 if TYPE_CHECKING:
     from flext_core import t

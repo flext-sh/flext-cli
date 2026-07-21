@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Annotated, TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 # mro-j47u (kimi): models consume the local t facade; m -> t is forward at runtime.
 from flext_core import m

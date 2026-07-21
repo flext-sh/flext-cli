@@ -14,9 +14,9 @@ from examples.ex_04_file_operations import (
     validate_and_import_data,
 )
 from flext_tests import tm
-from tests import c
 
 from flext_cli import cli, settings
+from tests import c
 
 
 class TestsFlextCliExamplesSmoke:

@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable, TYPE_CHECKING
-
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    from flext_core import p, t
-    from flext_cli._constants.enums import FlextCliConstantsEnums as ce
-    from pathlib import Path
     from collections.abc import Callable
+    from pathlib import Path
+
+    from flext_cli._constants.enums import FlextCliConstantsEnums as ce
+    from flext_core import p, t
 
 
 class FlextCliProtocolsPipeline:

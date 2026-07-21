@@ -7,6 +7,7 @@ from collections.abc import Callable
 
 import pytest
 from flext_tests import tm
+
 from tests import c, p
 
 

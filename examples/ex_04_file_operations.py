@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_cli import c, cli, m, p, r, t, u
 

@@ -11,13 +11,13 @@ loader module over the matcher-primitive base.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
 
 from ._matchers import FlextCliUtilitiesRulesMatchersMixin
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pathlib import Path

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table, TableStyleInfo
 
@@ -9,11 +11,10 @@ from flext_cli import c, p, r
 
 from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
 from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from openpyxl.worksheet.worksheet import Worksheet
     from openpyxl import Workbook
+    from openpyxl.worksheet.worksheet import Worksheet
 
 
 class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):

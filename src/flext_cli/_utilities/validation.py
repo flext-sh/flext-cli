@@ -2,15 +2,15 @@
 
 from __future__ import annotations
 
-from typing import ClassVar, TYPE_CHECKING
-
+from typing import TYPE_CHECKING, ClassVar
 
 from flext_cli import c, p, r, t
 from flext_core import u
 
 if TYPE_CHECKING:
-    from pydantic import ValidationError as PydanticValidationError
     from collections.abc import MutableMapping
+
+    from pydantic import ValidationError as PydanticValidationError
 
 
 class FlextCliUtilitiesValidation:

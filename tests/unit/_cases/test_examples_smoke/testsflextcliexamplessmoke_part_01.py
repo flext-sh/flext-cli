@@ -14,9 +14,9 @@ from examples.ex_04_file_operations import (
     validate_and_import_data,
 )
 from flext_tests import tm
-from tests import m
 
 from flext_cli import cli
+from tests import m
 
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): file fixtures are
 # validated models, serialized once at egress and validated once at ingress.

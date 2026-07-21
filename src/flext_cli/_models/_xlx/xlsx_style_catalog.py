@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Annotated, TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 from flext_core import m
-
 
 if TYPE_CHECKING:
     from .xlsx_styles import FlextCliModelsXlsxStyles

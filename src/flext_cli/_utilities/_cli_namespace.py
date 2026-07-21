@@ -10,6 +10,7 @@ from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
 from flext_cli._utilities.commands import FlextCliUtilitiesCommands
 from flext_cli._utilities.config import FlextCliUtilitiesConfig
 from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
+from flext_cli._utilities.docx import FlextCliUtilitiesDocx
 from flext_cli._utilities.env import FlextCliUtilitiesEnv
 from flext_cli._utilities.file_test_helpers import FlextCliUtilitiesFileTestHelpersMixin
 from flext_cli._utilities.files import FlextCliUtilitiesFiles
@@ -31,7 +32,6 @@ from flext_cli._utilities.template import FlextCliUtilitiesTemplate
 from flext_cli._utilities.toml import FlextCliUtilitiesToml
 from flext_cli._utilities.validation import FlextCliUtilitiesValidation
 from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx
-from flext_cli._utilities.docx import FlextCliUtilitiesDocx
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 from flext_cli._utilities.yaml_model import FlextCliUtilitiesYamlModel
 

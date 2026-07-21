@@ -15,17 +15,16 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from typing import (
+    TYPE_CHECKING,
     SupportsFloat,
     SupportsIndex,
     SupportsInt,
     TypeGuard,
     overload,
-    TYPE_CHECKING,
 )
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString, LiteralScalarString
-
 
 if TYPE_CHECKING:
     from flext_cli import t
