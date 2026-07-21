@@ -9,6 +9,7 @@ from .cmd import FlextCliUtilitiesCmd as FlextCliUtilitiesCmd
 from .commands import FlextCliUtilitiesCommands as FlextCliUtilitiesCommands
 from .config import FlextCliUtilitiesConfig as FlextCliUtilitiesConfig
 from .conversion import FlextCliUtilitiesConversion as FlextCliUtilitiesConversion
+from .env import FlextCliUtilitiesEnv as FlextCliUtilitiesEnv
 from .formatters import FlextCliUtilitiesFormatters as FlextCliUtilitiesFormatters
 from .framework import FlextCliUtilitiesFramework as FlextCliUtilitiesFramework
 from .json import FlextCliUtilitiesJson as FlextCliUtilitiesJson
@@ -38,6 +39,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesCommands",
     "FlextCliUtilitiesConfig",
     "FlextCliUtilitiesConversion",
+    "FlextCliUtilitiesEnv",
     "FlextCliUtilitiesFormatters",
     "FlextCliUtilitiesFramework",
     "FlextCliUtilitiesJson",
