@@ -165,6 +165,13 @@ class TestsFlextCliModelsRuntime:
                     "stdout_has": "hello",
                 }),
                 cls.model_validate({
+                    "case_id": "input-str",
+                    "command": ("cat",),
+                    "expected": "piped-through-facade",
+                    "input_data": "piped-through-facade",
+                    "stdout_has": "piped-through-facade",
+                }),
+                cls.model_validate({
                     "case_id": "cwd",
                     "command": ("pwd",),
                     "use_tmp_path": True,

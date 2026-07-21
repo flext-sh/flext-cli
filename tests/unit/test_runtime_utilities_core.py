@@ -78,7 +78,13 @@ class TestsFlextCliRuntimeUtilitiesCore:
     ) -> None:
         """Verify that run cases."""
         cwd = tmp_path if case.use_tmp_path else None
-        result = runner.run(case.command, cwd=cwd, timeout=case.timeout, env=case.env)
+        result = runner.run(
+            case.command,
+            cwd=cwd,
+            timeout=case.timeout,
+            env=case.env,
+            input_data=case.input_data,
+        )
         if case.expect_success:
             output = m.Cli.CommandOutput.model_validate(tm.ok(result))
             if case.stdout_has:
@@ -99,7 +105,11 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Verify that capture cases."""
         cwd = tmp_path if case.use_tmp_path else None
         result = runner.capture(
-            case.command, cwd=cwd, timeout=case.timeout, env=case.env
+            case.command,
+            cwd=cwd,
+            timeout=case.timeout,
+            env=case.env,
+            input_data=case.input_data,
         )
         if case.expect_success:
             output = m.TypeAdapter(str).validate_python(tm.ok(result))
@@ -109,6 +119,17 @@ class TestsFlextCliRuntimeUtilitiesCore:
             tm.that(output, eq=case.expected)
             return
         tm.fail(result, has=case.error_has)
+
+    def test_run_bytes_accepts_text_and_binary_stdin(self, runner: u.Cli) -> None:
+        """Verify run_bytes accepts str or bytes stdin and echoes byte-exact."""
+        text_out = m.Cli.CommandBytesOutput.model_validate(
+            tm.ok(runner.run_bytes(("cat",), input_data="text-payload"))
+        )
+        tm.that(text_out.stdout, eq=b"text-payload")
+        binary_out = m.Cli.CommandBytesOutput.model_validate(
+            tm.ok(runner.run_bytes(("cat",), input_data=b"\x00\xff\x01"))
+        )
+        tm.that(binary_out.stdout, eq=b"\x00\xff\x01")
 
     def test_process_start_wait_captures_stdout(self, runner: u.Cli) -> None:
         """Verify that process start wait captures stdout."""

@@ -96,10 +96,13 @@ class FlextCliUtilitiesRuntime:
         timeout: int | None = None,
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
-        input_data: bytes | None = None,
+        input_data: str | bytes | None = None,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Run a command capturing byte-exact stdout/stderr (no text decoding)."""
         start = time.monotonic()
+        stdin = (
+            input_data.encode("utf-8") if isinstance(input_data, str) else input_data
+        )
         try:
             result = subprocess.run(
                 list(cmd),
@@ -109,7 +112,7 @@ class FlextCliUtilitiesRuntime:
                 check=False,
                 timeout=timeout,
                 env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
-                input=input_data,
+                input=stdin,
             )
         except subprocess.TimeoutExpired as exc:
             return r[p.Cli.CommandBytesOutput].fail(
@@ -134,6 +137,7 @@ class FlextCliUtilitiesRuntime:
         timeout: int | None = None,
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
+        input_data: str | bytes | None = None,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command and fail on non-zero exit status."""
 
@@ -147,7 +151,12 @@ class FlextCliUtilitiesRuntime:
             return r[p.Cli.CommandOutput].ok(output)
 
         return FlextCliUtilitiesRuntime.run_raw(
-            cmd, cwd=cwd, timeout=timeout, env=env, remove_env_keys=remove_env_keys
+            cmd,
+            cwd=cwd,
+            timeout=timeout,
+            env=env,
+            remove_env_keys=remove_env_keys,
+            input_data=input_data,
         ).flat_map(require_zero_exit)
 
     @staticmethod
@@ -157,10 +166,16 @@ class FlextCliUtilitiesRuntime:
         timeout: int | None = None,
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
+        input_data: str | bytes | None = None,
     ) -> p.Result[bool]:
         """Run a command and return a success flag."""
         return FlextCliUtilitiesRuntime.run(
-            cmd, cwd=cwd, timeout=timeout, env=env, remove_env_keys=remove_env_keys
+            cmd,
+            cwd=cwd,
+            timeout=timeout,
+            env=env,
+            remove_env_keys=remove_env_keys,
+            input_data=input_data,
         ).map(lambda _: True)
 
     @staticmethod
@@ -170,10 +185,16 @@ class FlextCliUtilitiesRuntime:
         timeout: int | None = None,
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
+        input_data: str | bytes | None = None,
     ) -> p.Result[str]:
         """Run a command and return stripped stdout."""
         return FlextCliUtilitiesRuntime.run(
-            cmd, cwd=cwd, timeout=timeout, env=env, remove_env_keys=remove_env_keys
+            cmd,
+            cwd=cwd,
+            timeout=timeout,
+            env=env,
+            remove_env_keys=remove_env_keys,
+            input_data=input_data,
         ).map(lambda output: output.stdout.strip())
 
     @staticmethod
@@ -184,8 +205,12 @@ class FlextCliUtilitiesRuntime:
         timeout: int | None = None,
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
+        input_data: str | bytes | None = None,
     ) -> p.Result[int]:
         """Run a command and write combined output to ``output_file``."""
+        stdin = (
+            input_data.encode("utf-8") if isinstance(input_data, str) else input_data
+        )
         try:
             output_path = Path(output_file)
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -198,6 +223,7 @@ class FlextCliUtilitiesRuntime:
                     check=False,
                     timeout=timeout,
                     env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
+                    input=stdin,
                 )
         except subprocess.TimeoutExpired as exc:
             return r[int].fail(f"timeout {exc.timeout}s: {shlex.join(list(cmd))}")
