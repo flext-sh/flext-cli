@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Self, override
 
 import pytest
-from flext_tests import reset_settings
 
 from flext_cli import FlextCliSettings
 from flext_cli.services.prompts import FlextCliPrompts
+from flext_tests import reset_settings
 from tests import m
 
 if TYPE_CHECKING:

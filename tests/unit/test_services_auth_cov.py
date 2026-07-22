@@ -18,8 +18,8 @@ import pytest
 
 from flext_cli import settings
 from flext_cli.services.auth import FlextCliAuth
-from tests import c
 from flext_tests import tm
+from tests import c
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

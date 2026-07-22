@@ -5,9 +5,9 @@ from __future__ import annotations
 from io import BytesIO
 
 from docx import Document
-from flext_tests import tm
 
 from flext_cli import cli, m
+from flext_tests import tm
 
 
 def test_docx_render_empty_document() -> None:

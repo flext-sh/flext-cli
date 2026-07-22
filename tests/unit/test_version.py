@@ -13,11 +13,11 @@ No private attributes, no internal-collaborator spying, no monkeypatching.
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 
 import flext_cli
 from flext_cli import cli
 from flext_cli.__version__ import FlextCliVersion
+from flext_tests import tm
 from tests import c
 
 

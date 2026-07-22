@@ -6,9 +6,9 @@ from typing import TYPE_CHECKING
 from unittest.mock import patch
 
 from examples import DataManagerCLI
-from flext_tests import r, tm
 
 from flext_cli import cli
+from flext_tests import r, tm
 
 if TYPE_CHECKING:
     from pathlib import Path

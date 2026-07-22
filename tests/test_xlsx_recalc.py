@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from flext_tests import tm
-
 from flext_cli import cli, m
+from flext_tests import tm
 
 
 def _render_workbook() -> bytes:

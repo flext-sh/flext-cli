@@ -21,11 +21,10 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tm
 
 from flext_cli import cli, m
-from tests import c
-from tests import p
+from flext_tests import tm
+from tests import c, p
 
 if TYPE_CHECKING:
     from pathlib import Path

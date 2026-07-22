@@ -11,12 +11,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 
 from flext_cli import cli
-from tests import c
-from tests import p
-from tests import u
+from flext_tests import tm
+from tests import c, p, u
 
 
 class TestsFlextCliCliParams:

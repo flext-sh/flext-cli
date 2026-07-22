@@ -12,11 +12,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Annotated
 
-from flext_tests import FlextTestsUtilities, r
-
 from flext_cli import cli, u
-from tests import c
-from tests import p
+from flext_tests import FlextTestsUtilities, r
+from tests import c, p
 from tests.settings import TestsFlextCliSettings
 
 

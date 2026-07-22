@@ -10,8 +10,8 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import FlextCliSettings, c, m, p, u
-from tests import c as tc
 from flext_tests import tm
+from tests import c as tc
 
 
 class TestsFlextCliParams:

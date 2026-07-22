@@ -18,12 +18,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 from pydantic import BaseModel
 
 from flext_cli import FlextCli, cli, settings
-from tests.base import s
+from flext_tests import tm
 from tests import p
+from tests.base import s
 
 
 class TestsFlextCliBase:

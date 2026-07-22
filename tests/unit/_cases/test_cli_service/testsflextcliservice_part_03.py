@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from flext_tests import tm
-from tests import c
-from tests import m
-
 from flext_cli import cli, settings
+from flext_tests import tm
+from tests import c, m
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): derive_model tests

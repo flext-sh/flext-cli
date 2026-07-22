@@ -63,9 +63,7 @@ class FlextCliUtilitiesToml:
         return isinstance(value, AoT)
 
     @staticmethod
-    def toml_table_child(
-        container: TOMLDocument | Table, key: str
-    ) -> Table | None:
+    def toml_table_child(container: TOMLDocument | Table, key: str) -> Table | None:
         """Return a table child from a TOML container.
 
         A fragmented (out-of-order) child is consolidated into one explicit

@@ -20,8 +20,8 @@ from pathlib import Path
 import pytest
 
 from flext_cli import t
-from tests import p
 from flext_tests import tm
+from tests import p
 
 
 class _ConformingSummary:

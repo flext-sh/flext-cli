@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from io import BytesIO
 
-from flext_tests import tm
 from pptx import Presentation
 
 from flext_cli import cli, m
+from flext_tests import tm
 
 
 def test_pptx_render_empty_presentation() -> None:

@@ -4,9 +4,8 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from flext_tests import FlextTestsModels
-
 from flext_cli import FlextCliModels, m
+from flext_tests import FlextTestsModels
 from tests._models_parts.testsflextclimodels_part_01 import (
     TestsFlextCliModels as TestsFlextCliModelsPart01,
 )

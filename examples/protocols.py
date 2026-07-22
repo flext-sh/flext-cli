@@ -7,9 +7,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 from flext_cli import p
 
 if TYPE_CHECKING:
-    from collections.abc import (
-        Callable,
-    )
+    from collections.abc import Callable
 
 
 class ExamplesFlextCliProtocols(p):
@@ -31,17 +29,13 @@ class ExamplesFlextCliProtocols(p):
         """
 
         def command(
-            self,
-            *args: str,
-            **kwargs: str,
+            self, *args: str, **kwargs: str
         ) -> Callable[[Callable[..., None]], Callable[..., None]]:
             """Create a command decorator."""
             ...
 
         def group(
-            self,
-            *args: str,
-            **kwargs: str,
+            self, *args: str, **kwargs: str
         ) -> Callable[[Callable[..., None]], Callable[..., None]]:
             """Create a command group decorator."""
             ...
@@ -62,9 +56,7 @@ class ExamplesFlextCliProtocols(p):
         """
 
         def command(
-            self,
-            *args: str,
-            **kwargs: str,
+            self, *args: str, **kwargs: str
         ) -> Callable[[Callable[..., None]], Callable[..., None]]:
             """Create a command decorator."""
             ...
@@ -72,7 +64,4 @@ class ExamplesFlextCliProtocols(p):
 
 p = ExamplesFlextCliProtocols
 
-__all__: list[str] = [
-    "ExamplesFlextCliProtocols",
-    "p",
-]
+__all__: list[str] = ["ExamplesFlextCliProtocols", "p"]

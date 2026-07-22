@@ -12,8 +12,8 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import cli
-from tests import m
 from flext_tests import tm
+from tests import m
 
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): model-command
 # coverage consumes the owning field-only test models directly.

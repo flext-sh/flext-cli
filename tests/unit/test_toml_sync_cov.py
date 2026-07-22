@@ -19,8 +19,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import u
 from flext_tests import tm
+from tests import u
 
 if TYPE_CHECKING:
     from tomlkit.items import Table

@@ -4,11 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_tests import tm
-from tests import c
-from tests import m
-
 from flext_cli import cli
+from flext_tests import tm
+from tests import c, m
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 

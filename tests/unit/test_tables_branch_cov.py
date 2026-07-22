@@ -4,11 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from tests import c
-from tests import m
-from tests import t
-from tests import u
 from flext_tests import tm
+from tests import c, m, t, u
 
 
 class TestsFlextCliTablesBranchCov:

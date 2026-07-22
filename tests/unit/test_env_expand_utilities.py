@@ -64,7 +64,10 @@ class TestsFlextCliUtilitiesEnvExpand:
         os.environ["FLEXT_CLI_EXPAND_H"] = "/home/tester"
         try:
             for template, expected in (
-                ("${FLEXT_CLI_EXPAND_H}/.codex/config.toml", "/home/tester/.codex/config.toml"),
+                (
+                    "${FLEXT_CLI_EXPAND_H}/.codex/config.toml",
+                    "/home/tester/.codex/config.toml",
+                ),
                 ("${FLEXT_CLI_EXPAND_H}/.kube/config", "/home/tester/.kube/config"),
             ):
                 tm.that(tm.ok(u.Cli.env_expand(template)), eq=expected)

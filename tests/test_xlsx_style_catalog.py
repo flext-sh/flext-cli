@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from io import BytesIO
 
-from flext_tests import tm
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Protection
 
 from flext_cli import cli, m
+from flext_tests import tm
 
 _SOURCE_STYLE_COUNT = 2
 

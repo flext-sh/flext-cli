@@ -16,8 +16,8 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import cli
-from tests import c
 from flext_tests import tm
+from tests import c
 
 type Capture = pytest.CaptureFixture[str]
 

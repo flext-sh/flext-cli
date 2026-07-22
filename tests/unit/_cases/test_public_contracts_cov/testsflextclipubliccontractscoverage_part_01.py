@@ -4,12 +4,9 @@ from __future__ import annotations
 
 import inspect
 
-from tests import c
-from tests import p
-from tests import u
-
 from flext_cli import FlextCliSettings, cli, m, settings
 from flext_tests import tm
+from tests import c, p, u
 
 
 class TestsFlextCliPublicContractsCoverage:

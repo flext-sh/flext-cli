@@ -12,8 +12,8 @@ from typing import TYPE_CHECKING
 import pytest
 
 from flext_cli import cli, m
-from tests import c
 from flext_tests import tm
+from tests import c
 
 if TYPE_CHECKING:
     from flext_cli import t

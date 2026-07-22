@@ -6,11 +6,11 @@ import datetime as dt
 from io import BytesIO
 
 import pytest
-from flext_tests import tm
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 
 from flext_cli import cli, m, p
+from flext_tests import tm
 
 
 def test_xlsx_datetime_rejects_unrepresentable_timezone() -> None:

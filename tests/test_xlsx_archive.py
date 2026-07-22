@@ -4,12 +4,12 @@ from __future__ import annotations
 
 from io import BytesIO
 
-from flext_tests import tm
 from openpyxl import Workbook
 from openpyxl.styles import Protection
 from openpyxl.workbook.defined_name import DefinedName
 
 from flext_cli import cli, m
+from flext_tests import tm
 
 
 def test_xlsx_inspect_reports_policy_violations_without_extracting() -> None:

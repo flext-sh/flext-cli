@@ -10,9 +10,7 @@ from flext_tests import tm
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import m
-    from tests import p
-    from tests import t
+    from tests import m, p, t
 
 # ── Fixtures ────────────────────────────────────────────────────────
 

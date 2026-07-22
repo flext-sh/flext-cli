@@ -32,9 +32,7 @@ class ExamplesFlextCliConstants(c):
         DeploymentEnvironment.PRODUCTION,
     )
     EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SET: Final[frozenset[DeploymentEnvironment]] = (
-        frozenset(
-            EXAMPLE_DEPLOYMENT_ENVIRONMENTS,
-        )
+        frozenset(EXAMPLE_DEPLOYMENT_ENVIRONMENTS)
     )
     EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SHORT: Final[t.VariadicTuple[str]] = (
         "dev",
@@ -62,13 +60,10 @@ class ExamplesFlextCliConstants(c):
         "file4",
     )
     EXAMPLE_TABLE_HEADERS_FIELD_VALUE: Final[t.Pair[str, str]] = ("Field", "Value")
-    EXAMPLE_TABLE_HEADERS_SETTING_VALUE: Final[t.Pair[str, str]] = (
-        "Setting",
-        "Value",
-    )
+    EXAMPLE_TABLE_HEADERS_SETTING_VALUE: Final[t.Pair[str, str]] = ("Setting", "Value")
 
     EXAMPLE_REGEX_EMAIL: Final[t.RegexPattern] = re.compile(
-        r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+        r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
     )
     EXAMPLE_REGEX_DOT: Final[t.RegexPattern] = re.compile(r"\.")
 
@@ -131,10 +126,7 @@ class ExamplesFlextCliConstants(c):
         "environment": EXAMPLE_ENV_KEY_ENVIRONMENT,
     })
 
-    EXAMPLE_DB_URL_PREFIXES: Final[t.Pair[str, str]] = (
-        "postgresql://",
-        "mysql://",
-    )
+    EXAMPLE_DB_URL_PREFIXES: Final[t.Pair[str, str]] = ("postgresql://", "mysql://")
     EXAMPLE_REDIS_URL_PREFIX: Final[str] = "redis://"
     EXAMPLE_ERR_INVALID_HOST: Final[str] = "Host must be a valid hostname or IP"
     EXAMPLE_ERR_INVALID_DB_URL: Final[str] = "DATABASE_URL must be a valid database URL"
@@ -188,7 +180,4 @@ class ExamplesFlextCliConstants(c):
 
 c = ExamplesFlextCliConstants
 
-__all__: t.MutableSequenceOf[str] = [
-    "ExamplesFlextCliConstants",
-    "c",
-]
+__all__: t.MutableSequenceOf[str] = ["ExamplesFlextCliConstants", "c"]

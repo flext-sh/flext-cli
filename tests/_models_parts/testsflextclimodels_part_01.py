@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from flext_tests import m
-
 from tests._models_parts.tests_cli import TestsFlextCliModelsCli
 from tests._models_parts.tests_runtime import TestsFlextCliModelsRuntime
 

@@ -4,17 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tests import c
-from tests import m
-
 from flext_cli import cli, r
 from flext_tests import tm
+from tests import c, m
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import p
-    from tests import t
+    from tests import p, t
 
 
 class TestsFlextCliPipeline:

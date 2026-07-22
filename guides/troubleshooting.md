@@ -290,9 +290,7 @@ objectClass: inetOrgPerson"""
 result = ldif.parse_string(content)
 if result.failure:
     logger.error(
-        "ldif_parse_failed",
-        error=str(result.error),
-        content_preview=repr(content)[:80],
+        "ldif_parse_failed", error=str(result.error), content_preview=repr(content)[:80]
     )
 else:
     response = result.unwrap()
@@ -356,10 +354,7 @@ from flext_core import u
 
 logger = u.fetch_logger("troubleshoot.ldif_settings")
 settings = FlextLdifSettings(
-    Ldif={
-        "ldif_encoding": c.Ldif.Encoding.UTF8,
-        "ldif_strict_validation": True,
-    },
+    Ldif={"ldif_encoding": c.Ldif.Encoding.UTF8, "ldif_strict_validation": True}
 )
 logger.info(
     "ldif_settings_loaded",
@@ -432,8 +427,7 @@ def profile_memory() -> None:
     # ... your processing code here ...
     final_rss = process.memory_info().rss
     logger.info(
-        "memory_profile",
-        used_mb=round((final_rss - initial_rss) / 1024 / 1024, 2),
+        "memory_profile", used_mb=round((final_rss - initial_rss) / 1024 / 1024, 2)
     )
 
 
@@ -449,10 +443,7 @@ from flext_core import u
 
 logger = u.fetch_logger("troubleshoot.ldif_settings_inspect")
 settings = FlextLdifSettings(
-    Ldif={
-        "ldif_encoding": c.Ldif.Encoding.UTF8,
-        "ldif_strict_validation": False,
-    },
+    Ldif={"ldif_encoding": c.Ldif.Encoding.UTF8, "ldif_strict_validation": False}
 )
 logger.info(
     "ldif_settings_active",
@@ -528,9 +519,7 @@ from flext_core import FlextSettings, u
 logger = u.fetch_logger("troubleshoot.debug_mode")
 settings = FlextSettings(debug=True)
 logger.info(
-    "flext_debug_state",
-    debug=settings.debug,
-    log_level=str(settings.log_level),
+    "flext_debug_state", debug=settings.debug, log_level=str(settings.log_level)
 )
 ```
 
@@ -547,11 +536,7 @@ from flext_core import u
 def debug_ldif_processing(content: str) -> None:
     """Debug LDIF processing step-by-step via the structured FLEXT logger."""
     logger = u.fetch_logger("troubleshoot.ldif_step")
-    logger.info(
-        "ldif_input",
-        length=len(content),
-        first_100=repr(content[:100]),
-    )
+    logger.info("ldif_input", length=len(content), first_100=repr(content[:100]))
 
     if not content.strip():
         logger.error("ldif_empty_content")
@@ -624,9 +609,7 @@ def monitor_memory() -> None:
     logger.info("memory_sample", rss_mb=rss_mb, vms_mb=vms_mb)
     if rss_mb > _HIGH_MEMORY_THRESHOLD_MB:
         logger.warning(
-            "memory_high",
-            rss_mb=rss_mb,
-            threshold_mb=_HIGH_MEMORY_THRESHOLD_MB,
+            "memory_high", rss_mb=rss_mb, threshold_mb=_HIGH_MEMORY_THRESHOLD_MB
         )
 
 
