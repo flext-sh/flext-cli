@@ -29,8 +29,12 @@ def test_pptx_render_with_slides() -> None:
     tm.that(result.success, eq=True, msg=result.error)
     presentation = Presentation(BytesIO(result.value.content))
     tm.that(len(presentation.slides), eq=2)
-    tm.that(presentation.slides[0].shapes.title.text, eq="Hello")
-    tm.that(presentation.slides[1].shapes.title.text, eq="World")
+    first_title = presentation.slides[0].shapes.title
+    second_title = presentation.slides[1].shapes.title
+    assert first_title is not None
+    assert second_title is not None
+    tm.that(first_title.text, eq="Hello")
+    tm.that(second_title.text, eq="World")
 
 
 def test_pptx_render_core_properties() -> None:
@@ -83,10 +87,10 @@ def test_pptx_open_and_save() -> None:
 def test_pptx_reexported_types() -> None:
     """python-pptx types are exposed through the generic boundary."""
     from pptx.dml.color import RGBColor as PptxRgbColor
-    from pptx.enum.shapes import MSO_SHAPE as PptxMsoShape
+    from pptx.enum.shapes import MSO_SHAPE as PPTX_MSO_SHAPE
     from pptx.util import Inches as PptxInches
 
     tm.that(cli.RGBColor, eq=PptxRgbColor)
-    tm.that(cli.MSO_SHAPE, eq=PptxMsoShape)
+    tm.that(cli.MSO_SHAPE, eq=PPTX_MSO_SHAPE)
     tm.that(cli.Inches, eq=PptxInches)
     tm.that(callable(cli.qn), eq=True)

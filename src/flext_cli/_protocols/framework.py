@@ -23,7 +23,7 @@ class FlextCliProtocolsFramework:
             ...
 
         def command[TCommand: Callable[..., t.JsonPayload]](
-            self, name: str | None = None, *, help: str | None = None
+            self, name: str | None = None, *, help_text: str | None = None
         ) -> Callable[[TCommand], TCommand]:
             """Return a named command decorator."""
             ...

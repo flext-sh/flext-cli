@@ -94,10 +94,12 @@ class FlextCliOutput(s):
 
     @staticmethod
     def display_status(
-        success: bool, label: str, detail: str, *, elapsed: float | None = None
+        label: str, detail: str, *, success: bool, elapsed: float | None = None
     ) -> None:
         """Display a pass/fail status line."""
-        line, style = u.Cli.output_status_line(success, label, detail, elapsed=elapsed)
+        line, style = u.Cli.output_status_line(
+            label, detail, success=success, elapsed=elapsed
+        )
         FlextCliFormatters.print(line, style=style)
 
     @staticmethod
@@ -111,9 +113,9 @@ class FlextCliOutput(s):
         FlextCliFormatters.render_panel(content, title=title)
 
     @staticmethod
-    def display_gate(name: str, passed: bool, *, message: str = "") -> None:
+    def display_gate(name: str, *, passed: bool, message: str = "") -> None:
         """Display a quality gate result."""
-        line, style = u.Cli.output_gate_line(name, passed, message=message)
+        line, style = u.Cli.output_gate_line(name, passed=passed, message=message)
         FlextCliFormatters.print(line, style=style)
 
     @staticmethod

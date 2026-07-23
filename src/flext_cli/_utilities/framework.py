@@ -47,10 +47,10 @@ class _TyperApplication:
         return self._app.callback()
 
     def command[TCommand: Callable[..., t.JsonPayload]](
-        self, name: str | None = None, *, help: str | None = None
+        self, name: str | None = None, *, help_text: str | None = None
     ) -> Callable[[TCommand], TCommand]:
         """Return a typed command decorator through the neutral contract."""
-        return self._app.command(name, help=help)
+        return self._app.command(name, help=help_text)
 
     def add_typer(self, group: p.Cli.Application, *, name: str) -> None:
         """Attach another adapter-owned application as a child group."""
@@ -163,7 +163,7 @@ class FlextCliUtilitiesFramework:
         command: t.Cli.CliCommand,
     ) -> None:
         """Register one named command."""
-        _ = cls._unwrap(application).command(name, help=help_text)(command)
+        _ = cls._unwrap(application).command(name, help_text=help_text)(command)
 
     @staticmethod
     def framework_build_parameter(

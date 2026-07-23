@@ -25,6 +25,7 @@ class FlextCliFileTools(s):
 
     @staticmethod
     def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
+        """Read one JSON file into a validated JSON-compatible value."""
         return u.Cli.files_read_json(Path(file_path))
 
     @staticmethod
@@ -41,6 +42,7 @@ class FlextCliFileTools(s):
 
     @staticmethod
     def read_yaml_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
+        """Read one YAML file into a validated JSON-compatible value."""
         normalized_path = u.Cli.normalize_optional_text(file_path)
         if normalized_path is None:
             return r[t.JsonValue].fail(c.Cli.ERR_FILE_PATH_EMPTY)
@@ -66,42 +68,50 @@ class FlextCliFileTools(s):
         data: t.Cli.JsonWriteData,
         options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
+        """Write JSON data using the canonical serialization options."""
         return u.Cli.json_write(Path(file_path), data, options=options)
 
     @staticmethod
     def write_yaml_file(
         file_path: t.Cli.TextPath, data: t.Cli.JsonWriteData
     ) -> p.Result[bool]:
+        """Write JSON-compatible data as YAML."""
         return u.Cli.yaml_dump(Path(file_path), data)
 
     @staticmethod
     def write_csv_file(
         file_path: t.Cli.TextPath, rows: t.SequenceOf[t.StrSequence]
     ) -> p.Result[bool]:
+        """Write rows to a CSV file."""
         return u.Cli.files_write_csv(Path(file_path), rows)
 
     @staticmethod
     def read_csv_file_with_headers(
         file_path: t.Cli.TextPath,
     ) -> p.Result[t.SequenceOf[t.StrMapping]]:
+        """Read CSV rows as string mappings keyed by the header row."""
         return u.Cli.files_read_csv_with_headers(Path(file_path))
 
     @staticmethod
     def read_binary_file(file_path: t.Cli.TextPath) -> p.Result[bytes]:
+        """Read a file as bytes."""
         return u.Cli.files_read_binary(Path(file_path))
 
     @staticmethod
     def write_binary_file(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
+        """Write bytes to a file."""
         return u.Cli.files_write_binary(Path(file_path), data)
 
     @staticmethod
     def copy_file(
         source_path: t.Cli.TextPath, destination_path: t.Cli.TextPath
     ) -> p.Result[bool]:
+        """Copy one file to another path."""
         return u.Cli.files_copy(Path(source_path), Path(destination_path))
 
     @staticmethod
     def detect_file_format(file_path: t.Cli.TextPath) -> p.Result[str]:
+        """Detect the supported serialization format for a file."""
         return u.Cli.files_detect_format(Path(file_path))
 
     @staticmethod
@@ -116,6 +126,7 @@ class FlextCliFileTools(s):
 
     @staticmethod
     def load_file_auto_dict(file_path: t.Cli.TextPath) -> p.Result[t.JsonMapping]:
+        """Load a supported file format as a JSON-compatible mapping."""
         return u.Cli.files_load_auto_mapping(Path(file_path))
 
 

@@ -156,10 +156,9 @@ def test_docx_render_accounting_underline() -> None:
     tm.that(result.success, eq=True, msg=result.error)
     read_result = cli.docx_read(result.value.content)
     tm.that(read_result.success, eq=True, msg=read_result.error)
-    tm.that(
-        read_result.value.paragraphs[0].runs[0].style.font.underline,
-        eq="singleAccounting",
-    )
+    font = read_result.value.paragraphs[0].runs[0].style.font
+    assert font is not None
+    tm.that(font.underline, eq="singleAccounting")
 
 
 def test_docx_read_round_trip() -> None:

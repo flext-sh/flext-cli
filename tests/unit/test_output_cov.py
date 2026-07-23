@@ -85,7 +85,9 @@ class TestsFlextCliOutputCov:
 
     def test_status_line_success_includes_timing_and_green_style(self) -> None:
         """Verify that status line success includes timing and green style."""
-        line, style = u.Cli.output_status_line(True, "build", "flext-cli", elapsed=1.23)
+        line, style = u.Cli.output_status_line(
+            "build", "flext-cli", success=True, elapsed=1.23
+        )
         tm.that(line, has="(1.23s)")
         tm.that(line, has=c.Cli.SYMBOL_SUCCESS_MARK)
         tm.that(style, eq=c.Cli.MessageStyles.BOLD_GREEN)
@@ -93,7 +95,7 @@ class TestsFlextCliOutputCov:
     def test_status_line_failure_without_elapsed_omits_timing(self) -> None:
         """Verify that status line failure without elapsed omits timing."""
         line, style = u.Cli.output_status_line(
-            False, "test", "flext-core", elapsed=None
+            "test", "flext-core", success=False, elapsed=None
         )
         tm.that(line, lacks="s)")
         tm.that(line, has=c.Cli.SYMBOL_FAILURE_MARK)
@@ -103,14 +105,14 @@ class TestsFlextCliOutputCov:
 
     def test_gate_line_passed_shows_name_message_and_green_style(self) -> None:
         """Verify that gate line passed shows name message and green style."""
-        line, style = u.Cli.output_gate_line("ruff", True, message="clean")
+        line, style = u.Cli.output_gate_line("ruff", passed=True, message="clean")
         tm.that(line, has="ruff")
         tm.that(line, has="clean")
         tm.that(style, eq=c.Cli.MessageStyles.BOLD_GREEN)
 
     def test_gate_line_failed_without_message_shows_name_and_red_style(self) -> None:
         """Verify that gate line failed without message shows name and red style."""
-        line, style = u.Cli.output_gate_line("mypy", False, message="")
+        line, style = u.Cli.output_gate_line("mypy", passed=False, message="")
         tm.that(line, has="mypy")
         tm.that(style, eq=c.Cli.MessageStyles.BOLD_RED)
 

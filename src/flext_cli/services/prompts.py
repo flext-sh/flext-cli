@@ -19,9 +19,11 @@ class FlextCliPrompts(FlextCliPromptsSupport):
 
     @override
     def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
+        """Return the current CLI runtime status."""
         return r[m.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
 
     def confirm(self, message: str, *, default: bool = False) -> p.Result[bool]:
+        """Read a yes/no confirmation or return the configured default."""
         try:
             if self.state.quiet or not self.state.interactive:
                 return r[bool].ok(default)
@@ -36,6 +38,7 @@ class FlextCliPrompts(FlextCliPromptsSupport):
             return r[bool].fail(c.Cli.ERR_CONFIRMATION_FAILED_FMT.format(error=exc))
 
     def prompt(self, message: str, default: str = "") -> p.Result[str]:
+        """Read one text value or return the configured default."""
         if self.state.quiet or not self.state.interactive:
             return r[str].ok(default)
         return self._guarded(
@@ -49,6 +52,7 @@ class FlextCliPrompts(FlextCliPromptsSupport):
     def prompt_choice(
         self, message: str, choices: t.StrSequence, default: str | None = None
     ) -> p.Result[str]:
+        """Read one value constrained to the supplied choices."""
         return self._guarded(
             "prompt_choice",
             message,
@@ -64,6 +68,7 @@ class FlextCliPrompts(FlextCliPromptsSupport):
         message: str = "Password:",
         min_length: int = c.Cli.PROMPT_MIN_PASSWORD_LENGTH,
     ) -> p.Result[str]:
+        """Read a password and enforce the minimum length."""
         if not self.state.interactive:
             return r[str].fail(c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED)
         return self._guarded(
@@ -78,6 +83,7 @@ class FlextCliPrompts(FlextCliPromptsSupport):
         )
 
     def print_error(self, message: str) -> p.Result[bool]:
+        """Render an error message through the canonical prompt output path."""
         return self._print_message(
             message,
             c.LogLevel.ERROR,
@@ -86,6 +92,7 @@ class FlextCliPrompts(FlextCliPromptsSupport):
         )
 
     def print_success(self, message: str) -> p.Result[bool]:
+        """Render a success message through the canonical prompt output path."""
         return self._print_message(
             message,
             c.LogLevel.INFO,
@@ -94,6 +101,7 @@ class FlextCliPrompts(FlextCliPromptsSupport):
         )
 
     def print_warning(self, message: str) -> p.Result[bool]:
+        """Render a warning message through the canonical prompt output path."""
         return self._print_message(
             message,
             c.LogLevel.WARNING,

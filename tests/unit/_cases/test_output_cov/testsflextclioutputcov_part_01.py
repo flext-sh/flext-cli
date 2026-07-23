@@ -65,7 +65,9 @@ class TestsFlextCliOutputCov:
 
     def test_output_status_line_success(self) -> None:
         """Verify that output status line success."""
-        line, style = u.Cli.output_status_line(True, "build", "flext-cli", elapsed=1.23)
+        line, style = u.Cli.output_status_line(
+            "build", "flext-cli", success=True, elapsed=1.23
+        )
         tm.that(line, is_=str)
         tm.that(style, is_=str)
         tm.that(line, has="1.23")
@@ -73,20 +75,20 @@ class TestsFlextCliOutputCov:
     def test_output_status_line_failure_no_elapsed(self) -> None:
         """Verify that output status line failure no elapsed."""
         line, _style = u.Cli.output_status_line(
-            False, "test", "flext-core", elapsed=None
+            "test", "flext-core", success=False, elapsed=None
         )
         tm.that(line, is_=str)
         tm.that(line, lacks="s)")
 
     def test_output_gate_line_passed(self) -> None:
         """Verify that output gate line passed."""
-        line, _style = u.Cli.output_gate_line("ruff", True, message="clean")
+        line, _style = u.Cli.output_gate_line("ruff", passed=True, message="clean")
         tm.that(line, has="ruff")
         tm.that(line, has="clean")
 
     def test_output_gate_line_failed_no_message(self) -> None:
         """Verify that output gate line failed no message."""
-        line, _style = u.Cli.output_gate_line("mypy", False, message="")
+        line, _style = u.Cli.output_gate_line("mypy", passed=False, message="")
         tm.that(line, has="mypy")
 
     def test_output_summary_content(self) -> None:

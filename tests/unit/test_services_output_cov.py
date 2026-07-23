@@ -134,7 +134,7 @@ class TestsFlextCliServicesOutputCov:
         self, capsys: Capture, *, success: bool, expected_symbol: str
     ) -> None:
         """Verify that display status symbol reflects outcome."""
-        cli.display_status(success, "lint", "clean")
+        cli.display_status("lint", "clean", success=success)
 
         out = capsys.readouterr().out
         tm.that(out, has=expected_symbol)
@@ -148,7 +148,7 @@ class TestsFlextCliServicesOutputCov:
         self, capsys: Capture, elapsed: float, expected_timing: str
     ) -> None:
         """Verify that display status formats elapsed to two decimals."""
-        cli.display_status(True, "build", "ok", elapsed=elapsed)
+        cli.display_status("build", "ok", success=True, elapsed=elapsed)
 
         tm.that(capsys.readouterr().out, has=expected_timing)
 
@@ -156,7 +156,7 @@ class TestsFlextCliServicesOutputCov:
         self, capsys: Capture
     ) -> None:
         """Verify that display status omits timing when elapsed absent."""
-        cli.display_status(True, "build", "ok")
+        cli.display_status("build", "ok", success=True)
 
         tm.that(capsys.readouterr().out, lacks="s)")
 
@@ -185,7 +185,7 @@ class TestsFlextCliServicesOutputCov:
         self, capsys: Capture
     ) -> None:
         """Verify that display gate passed shows success symbol and name."""
-        cli.display_gate("ruff", True)
+        cli.display_gate("ruff", passed=True)
 
         out = capsys.readouterr().out
         tm.that(out, has="✓")
@@ -195,7 +195,7 @@ class TestsFlextCliServicesOutputCov:
         self, capsys: Capture
     ) -> None:
         """Verify that display gate failed shows failure symbol name and message."""
-        cli.display_gate("pyrefly", False, message="2 errors")
+        cli.display_gate("pyrefly", passed=False, message="2 errors")
 
         out = capsys.readouterr().out
         tm.that(out, has="✗")

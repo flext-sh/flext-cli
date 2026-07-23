@@ -73,7 +73,7 @@ class FlextCliUtilitiesOutput:
 
     @staticmethod
     def output_status_line(
-        success: bool, label: str, detail: str, *, elapsed: float | None
+        label: str, detail: str, *, success: bool, elapsed: float | None
     ) -> t.Pair[str, str]:
         """Build one canonical status line and style."""
         symbol = c.Cli.SYMBOL_SUCCESS_MARK if success else c.Cli.SYMBOL_FAILURE_MARK
@@ -85,7 +85,7 @@ class FlextCliUtilitiesOutput:
         return line, style
 
     @staticmethod
-    def output_gate_line(name: str, passed: bool, *, message: str) -> t.Pair[str, str]:
+    def output_gate_line(name: str, *, passed: bool, message: str) -> t.Pair[str, str]:
         """Build one canonical gate line and style."""
         symbol = c.Cli.SYMBOL_SUCCESS_MARK if passed else c.Cli.SYMBOL_FAILURE_MARK
         style = (
