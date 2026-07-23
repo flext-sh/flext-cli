@@ -6,3 +6,5 @@ ManagedArtifacts:
       src/flext_cli/_constants/errors.py: [S105]
       src/flext_cli/_utilities/formatters.py: [TID251]
       src/flext_cli/_utilities/framework.py: [TID251]
+      src/flext_cli/_utilities/runtime.py: [S404, S603]
+      src/flext_cli/_utilities/processes.py: [S404, S603]
