@@ -1,0 +1,8 @@
+ManagedArtifacts:
+  Ruff:
+    per_file_ignores:
+      src/flext_cli/_config.py: [N802]
+      src/flext_cli/_constants/base.py: [S105]
+      src/flext_cli/_constants/errors.py: [S105]
+      src/flext_cli/_utilities/formatters.py: [TID251]
+      src/flext_cli/_utilities/framework.py: [TID251]

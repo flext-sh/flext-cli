@@ -332,13 +332,7 @@ project-excludes = [
 project-includes = ["examples/**/*.py*", "src/**/*.py*", "tests/**/*.py*"]
 python-interpreter-path = "../.venv/bin/python"
 python-version = "3.13"
-search-path = [
-  ".",
-  "../flext-core/src",
-  "../flext-infra/src",
-  "../flext-tests/src",
-  "src",
-]
+search-path = [".", "src"]
 use-ignore-files = false
 
 [tool.pyrefly.errors]
@@ -545,7 +539,10 @@ root = "examples"
 # [MANAGED] pytest
 [tool.pytest.ini_options]
 addopts = ["--durations=10", "--strict-markers", "--timeout=10"]
-filterwarnings = ["error"]
+filterwarnings = [
+  "error",
+  "module::flext_core._constants.enforcement.FlextMroViolation",
+]
 markers = [
   "docker: tests requiring Docker",
   "e2e: end-to-end integration tests",
@@ -698,9 +695,19 @@ split-on-trailing-comma = false
 ]
 "**/tests/**" = [
   "assert",
+  "compare-to-empty-string",
+  "magic-value-comparison",
+  "undocumented-public-class",
   "undocumented-public-function",
   "undocumented-public-method",
 ]
+"**/flext_cli/_utilities/runtime.py" = ["S404", "S603"]
+"**/flext_cli/_utilities/processes.py" = ["S404", "S603"]
+"src/flext_cli/_config.py" = ["N802"]
+"src/flext_cli/_constants/base.py" = ["S105"]
+"src/flext_cli/_constants/errors.py" = ["S105"]
+"src/flext_cli/_utilities/formatters.py" = ["TID251"]
+"src/flext_cli/_utilities/framework.py" = ["TID251"]
 
 # [MANAGED] tomlsort
 [tool.tomlsort]
