@@ -154,11 +154,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
 
     def test_process_start_wait_captures_stdout(self, runner: u.Cli) -> None:
         """Verify that process start wait captures stdout."""
-        result = runner.process_start([
-            sys.executable,
-            "-c",
-            "print('managed-ok')",
-        ])
+        result = runner.process_start([sys.executable, "-c", "print('managed-ok')"])
         tm.ok(result)
         process = result.value
 
