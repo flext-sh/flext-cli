@@ -17,7 +17,7 @@ class FlextCliUtilitiesFormatters:
     _console: ClassVar[Console] = Console()
 
     @classmethod
-    def print(cls, message: str, style: str | None = None) -> None:
+    def formatters_print(cls, message: str, style: str | None = None) -> None:
         """Print one message via Rich."""
         cls._console.print(message, style=style)
 
