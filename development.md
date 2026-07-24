@@ -80,7 +80,7 @@ ______________________________________________________________________
 
 **Example - FlextCliCore (Stateful Service)**:
 
-```python
+```text
 from flext_core import s
 
 class FlextCliCore(s[CliDataDict]):
@@ -95,7 +95,7 @@ class FlextCliCore(s[CliDataDict]):
     def register_command(self, name: str, command: Command) -> p.Result[bool]:
         """Register command - modifies internal state."""
         self._commands[name] = command
-        return r[bool].| ok(value=True)
+        return r[bool].ok(value=True)
 ```
 
 **When NOT to use**:
@@ -117,7 +117,7 @@ class FlextCliCore(s[CliDataDict]):
 
 **Example - FlextCliFileTools (Simple Utility Class)**:
 
-```python
+```text
 from flext_core import r, p
 import json
 
@@ -139,7 +139,7 @@ class FlextCliFileTools:
         try:
             with open(path, 'w') as f:
                 json.dump(data, f, indent=2)
-            return r[bool].| ok(value=True)
+            return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(str(e))
 ```
@@ -509,7 +509,7 @@ ______________________________________________________________________
 
 1. Create command handler:
 
-```python
+```text
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
@@ -536,12 +536,12 @@ class DataCommands(s):
     def handle_export(self, **kwargs) -> p.Result[bool]:
         """Handle data export command."""
         # Implementation
-        return r[bool].| ok(value=True)
+        return r[bool].ok(value=True)
 ```
 
 1. Register with CLI:
 
-```python
+```text
 from flext_cli import FlextCliCommands
 
 cli = FlextCliCommands()
@@ -564,7 +564,7 @@ def test_data_export_command():
 
 ### Custom Formatters
 
-```python
+```text
 from flext_cli import FlextCliOutput
 
 

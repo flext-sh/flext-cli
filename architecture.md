@@ -62,7 +62,7 @@ src/flext_cli/
 
 ## Exemplo mínimo
 
-```python
+```text
 from flext_cli import cli
 
 command = cli.Models.CliCommand(name="hello", handler="handlers:hello")
@@ -75,7 +75,7 @@ cli.core.execute_command(command.name)
 table = cli.create_table(
     [{"name": "Alice", "age": 30}], headers=["name", "age"]
 ).unwrap()
-cli.u.Cli.print(table, style="green")
+cli.print(table, style="green")
 ```
 
 ## Referências rápidas
