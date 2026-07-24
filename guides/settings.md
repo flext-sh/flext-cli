@@ -290,26 +290,35 @@ main()
 
 ### 3. Use Configuration Classes
 
-```text
-from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
+```python
+from flext_cli import m, u
+from pydantic import field_validator
 
 
-class MyAppSettings(FlextSettings):
+class MyAppSettings(m.BaseModel):
     custom_setting: str = "default_value"
     another_setting: int = 42
 
     @field_validator("another_setting")
     @classmethod
-    def validate_another_setting(cls, v):
-        if v < 0:
+    def validate_another_setting(cls, value: int) -> int:
+        if value < 0:
             raise ValueError("another_setting must be positive")
-        return v
+        return value
+
+
+settings = MyAppSettings(another_setting=10)
+print(u.out(f"custom: {settings.custom_setting}"))
+print(u.out(f"another: {settings.another_setting}"))
 ```
 
 ### 4. Document Configuration Options
 
-```text
-class FlextLdifSettings(m.BaseModel):
+```python
+from flext_cli import m, u
+
+
+class LdifSettingsExample(m.BaseModel):
     """Configuration for LDIF processing."""
 
     default_encoding: str = m.Field(
@@ -319,6 +328,11 @@ class FlextLdifSettings(m.BaseModel):
     strict_validation: bool = m.Field(
         default=True, description="Enable strict RFC validation"
     )
+
+
+example = LdifSettingsExample()
+print(u.out(f"encoding: {example.default_encoding}"))
+print(u.out(f"strict: {example.strict_validation}"))
 ```
 
 ## Troubleshooting
@@ -345,61 +359,64 @@ class FlextLdifSettings(m.BaseModel):
 
 ### Debug Configuration
 
-```text
-from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
+```python
+from flext_cli import FlextCliSettings, u
 
 # Enable debug logging
-settings = FlextSettings(debug=True)
+settings = FlextCliSettings(debug=True)
 
 # Print configuration
-u.Cli.print(settings.dict())
+print(u.out(settings.model_dump()))
 
-# Validate configuration
-if settings.is_valid():
-    u.Cli.print("Configuration is valid")
+# Validate configuration implicitly by instantiating
+if settings.debug:
+    print(u.out("Debug mode is enabled"))
 else:
-    u.Cli.print("Configuration has errors")
+    print(u.out("Debug mode is disabled"))
 ```
 
 ## Examples
 
 ### Complete Configuration Example
 
-```text
-#!/usr/bin/env python3
+```python
 """Complete FLEXT configuration example."""
 
 import os
-from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
-from flext_ldif import FlextLdifSettings
-from flext_api import FlextApiSettings
+from flext_cli import FlextCliSettings, u
+from flext_ldif import FlextLdifSettings, ldif
 
 
-def main():
-    # Load configuration from environment
-    settings = FlextSettings()
+def main() -> None:
+    # Load configuration from environment/defaults
+    settings = FlextCliSettings()
 
     # Configure LDIF processing
     ldif_config = FlextLdifSettings(
-        source_server=os.getenv("FLEXT_SOURCE_SERVER", "oid"),
-        target_server=os.getenv("FLEXT_TARGET_SERVER", "oud"),
-        batch_size=int(os.getenv("FLEXT_BATCH_SIZE", "1000")),
+        ldif=FlextLdifSettings.LdifSettings(
+            ldif_encoding=os.getenv("FLEXT_LDIF_ENCODING", "utf-8"),
+            ldif_strict_validation=os.getenv(
+                "FLEXT_LDIF_STRICT_VALIDATION", "true"
+            ).lower()
+            == "true",
+        ),
     )
 
-    # Configure API client
-    api_config = FlextApiSettings(
-        base_url=os.getenv("FLEXT_API_URL", "http://localhost:8000"),
-        timeout=int(os.getenv("FLEXT_API_TIMEOUT", "30")),
-    )
+    # Verify LDIF parsing works with the loaded settings
+    content = """dn: cn=test,dc=example,dc=com
+cn: test
+objectClass: inetOrgPerson
+"""
+    result = ldif.parse_string(content)
 
-    u.Cli.print("Configuration loaded successfully")
-    u.Cli.print(f"Log level: {settings.log_level}")
-    u.Cli.print(f"LDIF batch size: {ldif_config.batch_size}")
-    u.Cli.print(f"API base URL: {api_config.base_url}")
+    u.out("Configuration loaded successfully")
+    u.out(f"Log level: {settings.log_level}")
+    u.out(f"LDIF encoding: {ldif_config.ldif.ldif_encoding}")
+    u.out(f"LDIF strict validation: {ldif_config.ldif.ldif_strict_validation}")
+    u.out(f"Sample parse succeeded: {result.success}")
 
 
-if __name__ == "__main__":
-    main()
+main()
 ```
 
 ## Reference
