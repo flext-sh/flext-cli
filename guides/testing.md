@@ -352,7 +352,7 @@ def test_file_migration(ldif_service, temp_directories):
 
 ### Unit Test Mocking
 
-```python
+```text
 from unittest.mock import Mock, patch
 from flext_core import FlextBus
 from flext_core import FlextSettings
@@ -390,7 +390,7 @@ def test_with_mocked_dependency():
 
 ### Integration Test Stubbing
 
-```python
+```text
 from unittest.mock import Mock
 from flext_core import FlextBus
 from flext_core import FlextSettings
