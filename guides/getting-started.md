@@ -207,9 +207,7 @@ class UserService:
 
 # Use the service directly (a lightweight CQRS split)
 user_service = UserService()
-create_result = user_service.create_user(
-    CreateUserCommand("john", "john@example.com")
-)
+create_result = user_service.create_user(CreateUserCommand("john", "john@example.com"))
 get_result = user_service.get_user(GetUserQuery("user123"))
 
 u.out(create_result.unwrap())

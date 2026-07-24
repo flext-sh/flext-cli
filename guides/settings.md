@@ -131,9 +131,8 @@ from flext_ldif import settings, ldif, u
 # Override specific LDIF settings locally by creating a new instance.
 local = settings.__class__(
     ldif=settings.__class__.LdifSettings(
-        ldif_encoding="utf-8",
-        ldif_strict_validation=True,
-    ),
+        ldif_encoding="utf-8", ldif_strict_validation=True
+    )
 )
 
 # Parse a minimal LDIF record to verify configuration
@@ -154,6 +153,7 @@ from __future__ import annotations
 
 from flext_cli import m, u
 
+
 # Example domain settings model (replace with your project's settings class)
 class ApiSettings(m.BaseModel):
     base_url: str = "https://api.example.com"
@@ -162,9 +162,7 @@ class ApiSettings(m.BaseModel):
 
 
 api_config = ApiSettings(
-    base_url="https://api.example.com",
-    timeout=30,
-    retry_attempts=3,
+    base_url="https://api.example.com", timeout=30, retry_attempts=3
 )
 print(u.out(f"API base URL: {api_config.base_url}"))
 print(u.out(f"timeout: {api_config.timeout}"))
@@ -176,6 +174,7 @@ print(u.out(f"timeout: {api_config.timeout}"))
 from __future__ import annotations
 
 from flext_cli import c, m, u
+
 
 # Example auth settings model using real FLEXT constants
 class AuthSettings(m.BaseModel):
@@ -190,7 +189,9 @@ auth_config = AuthSettings(
     access_token_expire_minutes=30,
 )
 print(u.out(f"algorithm: {auth_config.algorithm.value}"))
-print(u.out(f"access token expires in {auth_config.access_token_expire_minutes} minutes"))
+print(
+    u.out(f"access token expires in {auth_config.access_token_expire_minutes} minutes")
+)
 ```
 
 ## Environment-Specific Configuration
@@ -421,7 +422,7 @@ def main() -> None:
                 "FLEXT_LDIF_STRICT_VALIDATION", "true"
             ).lower()
             == "true",
-        ),
+        )
     )
 
     # Verify LDIF parsing works with the loaded settings
