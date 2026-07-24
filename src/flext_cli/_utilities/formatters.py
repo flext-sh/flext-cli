@@ -19,7 +19,7 @@ class FlextCliUtilitiesFormatters:
     @classmethod
     def formatters_print(cls, message: str, style: str | None = None) -> None:
         """Print one message via Rich."""
-        cls._console.u.Cli.print(message, style=style)
+        cls._console.print(message, style=style)
 
     @classmethod
     def formatters_render_rule(cls, text: str) -> None:
@@ -29,7 +29,7 @@ class FlextCliUtilitiesFormatters:
     @classmethod
     def formatters_render_panel(cls, content: str, *, title: str = "") -> None:
         """Render one panel via Rich."""
-        cls._console.u.Cli.print(Panel(content, title=title or None))
+        cls._console.print(Panel(content, title=title or None))
 
     @classmethod
     def formatters_render_table(cls, request: m.Cli.TableRenderRequest) -> None:
@@ -39,7 +39,7 @@ class FlextCliUtilitiesFormatters:
             table.add_column(col)
         for row in request.rows:
             table.add_row(*row)
-        cls._console.u.Cli.print(table)
+        cls._console.print(table)
 
 
 __all__: list[str] = ["FlextCliUtilitiesFormatters"]
