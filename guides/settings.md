@@ -104,24 +104,7 @@ api:
 Configure FLEXT programmatically in your code:
 
 ```text
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 from flext_ldif import FlextLdifSettings
 
 # Core configuration
@@ -228,24 +211,7 @@ api:
 All configuration is validated using Pydantic v2 models:
 
 ```text
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 
 try:
     settings = FlextSettings(
@@ -260,24 +226,7 @@ except c.ValidationError as e:
 FLEXT supports configuration inheritance for complex setups:
 
 ```text
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 
 # Base configuration
 base_config = FlextSettings(log_level="INFO", environment="production")
@@ -303,24 +252,7 @@ export FLEXT_API_KEY=your_api_key
 ### 2. Validate Configuration Early
 
 ```text
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 
 
 def main():
@@ -338,24 +270,7 @@ def main():
 ### 3. Use Configuration Classes
 
 ```text
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 
 
 class MyAppSettings(FlextSettings):
@@ -410,24 +325,7 @@ class FlextLdifSettings(m.BaseModel):
 ### Debug Configuration
 
 ```text
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 
 # Enable debug logging
 settings = FlextSettings(debug=True)
@@ -451,24 +349,7 @@ else:
 """Complete FLEXT configuration example."""
 
 import os
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 from flext_ldif import FlextLdifSettings
 from flext_api import FlextApiSettings
 

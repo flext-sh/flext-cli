@@ -1,36 +1,37 @@
 # Getting Started with flext-cli
 
 <!-- TOC START -->
-- [📌 Quick Navigation](#quick-navigation)
-- [v0.12.0-dev Getting Started (Current)](#v0120-dev-getting-started-current)
-  - [Overview](#overview)
-- [Prerequisites](#prerequisites)
-  - [System Requirements](#system-requirements)
-  - [FLEXT Ecosystem Integration](#flext-ecosystem-integration)
-- [Installation](#installation)
-  - [Development Setup](#development-setup)
-  - [As a Dependency](#as-a-dependency)
-- [Quick Start (v0.12.0-dev)](#quick-start-v0120-dev)
-  - [🚀 Your First CLI Application](#your-first-cli-application)
-  - [📊 Working with Tables](#working-with-tables)
-  - [📁 File Operations](#file-operations)
-  - [🔄 Railway-Oriented Programming](#railway-oriented-programming)
-- [Development Workflow (v0.12.0-dev)](#development-workflow-v0120-dev)
-  - [Quality Gates](#quality-gates)
-  - [Development Pattern (v0.12.0-dev)](#development-pattern-v0120-dev)
-  - [Testing Your CLI Code](#testing-your-cli-code)
-- [Next Steps](#next-steps)
-  - [Learn More](#learn-more)
-  - [Migration from v0.9.0](#migration-from-v090)
-- [Related Documentation](#related-documentation)
-  - [Examples](#examples)
-- [v0.9.0 Getting Started (Historical Reference)](#v090-getting-started-historical-reference)
-- [Development Patterns (v0.9.0)](#development-patterns-v090)
-  - [Working Development Pattern](#working-development-pattern)
-- [Quality Validation](#quality-validation)
-  - [Validation Commands](#validation-commands)
-  - [Implementation Verification](#implementation-verification)
-- [Next Steps](#next-steps)
+- [Getting Started with flext-cli](#getting-started-with-flext-cli)
+  - [📌 Quick Navigation](#-quick-navigation)
+  - [v0.12.0-dev Getting Started (Current)](#v0120-dev-getting-started-current)
+    - [Overview](#overview)
+  - [Prerequisites](#prerequisites)
+    - [System Requirements](#system-requirements)
+    - [FLEXT Ecosystem Integration](#flext-ecosystem-integration)
+  - [Installation](#installation)
+    - [Development Setup](#development-setup)
+    - [As a Dependency](#as-a-dependency)
+  - [Quick Start (v0.12.0-dev)](#quick-start-v0120-dev)
+    - [🚀 Your First CLI Application](#-your-first-cli-application)
+    - [📊 Working with Tables](#-working-with-tables)
+    - [📁 File Operations](#-file-operations)
+    - [🔄 Railway-Oriented Programming](#-railway-oriented-programming)
+  - [Development Workflow (v0.12.0-dev)](#development-workflow-v0120-dev)
+    - [Quality Gates](#quality-gates)
+    - [Development Pattern (v0.12.0-dev)](#development-pattern-v0120-dev)
+    - [Testing Your CLI Code](#testing-your-cli-code)
+  - [Next Steps](#next-steps)
+    - [Learn More](#learn-more)
+    - [Migration from v0.9.0](#migration-from-v090)
+  - [Related Documentation](#related-documentation)
+    - [Examples](#examples)
+  - [v0.9.0 Getting Started (Historical Reference)](#v090-getting-started-historical-reference)
+  - [Development Patterns (v0.9.0)](#development-patterns-v090)
+    - [Working Development Pattern](#working-development-pattern)
+  - [Quality Validation](#quality-validation)
+    - [Validation Commands](#validation-commands)
+    - [Implementation Verification](#implementation-verification)
+  - [Next Steps](#next-steps-1)
 <!-- TOC END -->
 
 **Installation and setup guide for the FLEXT ecosystem CLI foundation library.**
@@ -129,11 +130,12 @@ ______________________________________________________________________
 
 ### 🚀 Your First CLI Application
 
-```python notest
-from flext_cli import cli
+```python
+from flext_cli import cli, m
 from flext_core import r, p
 
-# Initialize CLI (singleton pattern)
+# Initialize CLI in non-interactive mode for automated examples
+cli.configure(m.Cli.PromptRuntimeState(interactive=False))
 
 # Print with styling (MRO inheritance)
 cli.print("Welcome to FLEXT CLI!", style="green bold")
@@ -147,7 +149,7 @@ if config_result.success:
 else:
     cli.print(f"Error: {config_result.error}", style="red")
 
-# Interactive prompt
+# Interactive prompt (configured non-interactive here so the example runs)
 confirm_result = cli.confirm("Continue?")
 
 if confirm_result.success and confirm_result.unwrap():
@@ -218,7 +220,8 @@ def apply_defaults(settings: dict) -> dict:
 
 # Chain operations
 result = (
-    cli.read_json_file("settings.json")
+    cli
+    .read_json_file("settings.json")
     .flat_map(validate_settings)  # Validate
     .map(apply_defaults)  # Transform
     .map(lambda cfg: cli.print(f"Final settings: {cfg}"))
@@ -354,27 +357,9 @@ ______________________________________________________________________
 
 ### Working Development Pattern
 
-```text
+```python
 # This development pattern demonstrates working functionality
-from Flext_cli import FlextCliService, FlextCliAuth, FlextCliSettings
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_cli import cli, config, settings, c, e, d, h, p, r, s, t, u, x
 
 # Service initialization and operation
 service = FlextCliService()

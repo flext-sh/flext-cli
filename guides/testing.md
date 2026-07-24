@@ -75,24 +75,7 @@ Test individual functions and classes in isolation:
 
 ```text
 import pytest
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 from flext_ldif import ldif
 
 
@@ -126,24 +109,7 @@ Test component interactions and workflows:
 
 ```text
 import pytest
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 from flext_ldif import ldif, FlextLdifSettings
 
 
@@ -354,24 +320,7 @@ def test_file_migration(ldif_service, temp_directories):
 
 ```text
 from unittest.mock import Mock, patch
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 
 
 def test_with_mocked_dependency():
@@ -392,24 +341,7 @@ def test_with_mocked_dependency():
 
 ```text
 from unittest.mock import Mock
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 
 
 def test_with_stubbed_service():
