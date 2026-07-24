@@ -100,9 +100,7 @@ class TestsFlextCliTomlCov:
         doc = tm.not_none(u.Cli.toml_parse_text(fragmented))
         project = tm.not_none(u.Cli.toml_table_child(doc, "project"))
         tm.that(u.Cli.toml_value(project, "name"), eq="demo")
-        extras = tm.not_none(
-            u.Cli.toml_table_child(project, "optional-dependencies")
-        )
+        extras = tm.not_none(u.Cli.toml_table_child(project, "optional-dependencies"))
         tm.that(list(u.Cli.toml_as_string_list(extras["extra"])), eq=["pkg"])
 
     def test_ensure_table_consolidates_out_of_order_table_without_data_loss(

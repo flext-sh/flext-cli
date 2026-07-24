@@ -39,9 +39,7 @@ class FlextCliUtilitiesEnv:
 
         def _replace(match: re.Match[str]) -> str:
             token = (
-                match.group(1)
-                if match.group(1) is not None
-                else (match.group(2) or "")
+                match.group(1) if match.group(1) is not None else (match.group(2) or "")
             )
             key, _, default = token.partition(":-")
             return os.environ.get(key, default)
