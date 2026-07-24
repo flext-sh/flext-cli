@@ -129,7 +129,7 @@ ______________________________________________________________________
 
 ### 🚀 Your First CLI Application
 
-```text
+```python
 from flext_cli import cli
 from flext_core import r, p
 
@@ -156,7 +156,7 @@ if confirm_result.success and confirm_result.unwrap():
 
 ### 📊 Working with Tables
 
-```text
+```python
 from flext_cli import cli
 
 
@@ -172,7 +172,7 @@ cli.display_rich_table(users, title="Users")
 
 ### 📁 File Operations
 
-```text
+```python
 from flext_cli import cli
 
 
@@ -197,7 +197,7 @@ if read_result.success:
 
 Chain operations with `r[T]`:
 
-```text
+```python
 from flext_cli import cli
 from flext_core import r, p
 
@@ -250,7 +250,7 @@ make format                 # Auto-format with Ruff
 
 ### Development Pattern (v0.12.0-dev)
 
-```text
+```python
 from flext_cli import cli
 from flext_core import r, p
 

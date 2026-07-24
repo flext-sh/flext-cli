@@ -80,7 +80,7 @@ ______________________________________________________________________
 
 **Example - FlextCliCore (Stateful Service)**:
 
-```text
+```python
 from flext_core import s
 
 class FlextCliCore(s[CliDataDict]):
@@ -117,7 +117,7 @@ class FlextCliCore(s[CliDataDict]):
 
 **Example - FlextCliFileTools (Simple Utility Class)**:
 
-```text
+```python
 from flext_core import r, p
 import json
 
@@ -509,7 +509,7 @@ ______________________________________________________________________
 
 1. Create command handler:
 
-```text
+```python
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
@@ -541,7 +541,7 @@ class DataCommands(s):
 
 1. Register with CLI:
 
-```text
+```python
 from flext_cli import FlextCliCommands
 
 cli = FlextCliCommands()
@@ -564,7 +564,7 @@ def test_data_export_command():
 
 ### Custom Formatters
 
-```text
+```python
 from flext_cli import FlextCliOutput
 
 

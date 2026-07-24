@@ -123,7 +123,7 @@ rm src/flext_cli/auth.py
 
 **Line 170**: Remove entire line
 
-```text
+```python
 from flext_cli import FlextCliAuthService
 ```
 
@@ -223,7 +223,7 @@ find tests -name "*.py" -type f -exec grep -l "from flext_cli import.*Test\|from
 
 **OLD**:
 
-```text
+```python
 from flext_cli import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 
 # or
@@ -232,12 +232,8 @@ from flext_cli import FlextCliTesting
 
 **NEW**:
 
-```text
-from tests import (
-    FlextCliTesting,
-    FlextCliTestRunner,
-    FlextCliMockScenarios,
-)
+```python
+from tests import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 ```
 
 **Automated sed command** (review before running):
@@ -265,7 +261,7 @@ find tests -name "*.py" -type f -exec sed -i \
 
 **Remove line 188**:
 
-```text
+```python
 from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 ```
 
@@ -282,7 +278,7 @@ from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 
 **BEFORE**:
 
-```text
+```python
 from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 ...
 __all__: list[str] = [

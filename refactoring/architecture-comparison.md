@@ -142,7 +142,7 @@ ______________________________________________________________________
 
 #### v0.9.0 (Old)
 
-```text
+```python
 from flext_cli import cli
 
 
@@ -157,7 +157,7 @@ settings = cli.file_tools.read_json_file("settings.json").unwrap()
 
 #### v0.10.0 (New)
 
-```text
+```python
 from flext_cli import cli
 
 

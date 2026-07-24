@@ -354,12 +354,12 @@ from flext_core import u
 
 logger = u.fetch_logger("troubleshoot.ldif_settings")
 settings = FlextLdifSettings(
-    Ldif={"ldif_encoding": c.Ldif.Encoding.UTF8, "ldif_strict_validation": True}
+    ldif={"ldif_encoding": c.Ldif.Encoding.UTF8, "ldif_strict_validation": True}
 )
 logger.info(
     "ldif_settings_loaded",
-    ldif_encoding=str(settings.Ldif.ldif_encoding),
-    ldif_strict_validation=settings.Ldif.ldif_strict_validation,
+    ldif_encoding=str(settings.ldif.ldif_encoding),
+    ldif_strict_validation=settings.ldif.ldif_strict_validation,
 )
 ```
 
@@ -443,12 +443,12 @@ from flext_core import u
 
 logger = u.fetch_logger("troubleshoot.ldif_settings_inspect")
 settings = FlextLdifSettings(
-    Ldif={"ldif_encoding": c.Ldif.Encoding.UTF8, "ldif_strict_validation": False}
+    ldif={"ldif_encoding": c.Ldif.Encoding.UTF8, "ldif_strict_validation": False}
 )
 logger.info(
     "ldif_settings_active",
-    ldif_encoding=str(settings.Ldif.ldif_encoding),
-    ldif_strict_validation=settings.Ldif.ldif_strict_validation,
+    ldif_encoding=str(settings.ldif.ldif_encoding),
+    ldif_strict_validation=settings.ldif.ldif_strict_validation,
 )
 ```
 
