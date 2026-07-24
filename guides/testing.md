@@ -120,14 +120,13 @@ class TestLdifIntegration:
         """Test LDIF processing with a configured settings instance."""
         settings = FlextLdifSettings(
             ldif=FlextLdifSettings.LdifSettings(
-                ldif_encoding="utf-8",
-                ldif_strict_validation=True,
-            ),
+                ldif_encoding="utf-8", ldif_strict_validation=True
+            )
         )
         parser = ldif(settings=settings)
 
         result = parser.parse_string(
-            "dn: cn=test,dc=example,dc=com\ncn: test\nobjectClass: inetOrgPerson",
+            "dn: cn=test,dc=example,dc=com\ncn: test\nobjectClass: inetOrgPerson"
         )
 
         assert result.success
@@ -268,9 +267,8 @@ def ldif_config():
     """Provide LDIF configuration for tests."""
     return FlextLdifSettings(
         ldif=FlextLdifSettings.LdifSettings(
-            ldif_encoding="utf-8",
-            ldif_strict_validation=False,
-        ),
+            ldif_encoding="utf-8", ldif_strict_validation=False
+        )
     )
 
 
@@ -321,10 +319,7 @@ def test_file_migration(ldif_service, temp_directories):
 
     # Create test file
     test_file = input_dir / "test.ldif"
-    test_file.write_text(
-        "dn: cn=test,dc=example,dc=com\ncn: test",
-        encoding="utf-8",
-    )
+    test_file.write_text("dn: cn=test,dc=example,dc=com\ncn: test", encoding="utf-8")
 
     # Verify the file can be read and parsed
     result = ldif.parse_string(test_file.read_text(encoding="utf-8"))
@@ -574,6 +569,7 @@ jobs:
 
 ```python
 from __future__ import annotations
+
 
 # ✅ GOOD - Descriptive test names
 def test_parse_valid_ldif_returns_success():
