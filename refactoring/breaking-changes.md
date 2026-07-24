@@ -123,7 +123,7 @@ cli.create_tree(label)           → cli.formatters.create_tree(label)
 
 # Print methods
 find . -name "*.py" -type f -exec sed -i \
-  's/cli\.print(/cli.print(/g' {} +
+  's/cli\.print(/cli.formatters.print(/g' {} +
 
 # File operations
 find . -name "*.py" -type f -exec sed -i \

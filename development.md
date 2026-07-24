@@ -214,13 +214,14 @@ src/flext_cli/
 **Always use direct access** (no wrapper methods):
 
 ```text
-# ✅ CORRECT - Direct access
-cli.formatters.print("Hello", style="green")
+# ✅ CORRECT - Public facade
+cli.print("Hello", style="green")
 cli.file_tools.read_json_file("settings.json")
 cli.prompts.confirm("Continue?")
 
-# ❌ WRONG - Wrapper methods (v0.9.0 pattern)
-# cli.print("Hello")
+# ❌ WRONG - Internal utility/service chains
+# cli.u.Cli.print("Hello")
+# cli.formatters.print("Hello")
 # cli.read_json_file("settings.json")  # REMOVED
 # cli.confirm("Continue?")           # REMOVED
 ```

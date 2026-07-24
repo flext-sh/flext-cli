@@ -110,11 +110,11 @@ ______________________________________________________________________
 ```text
 # ❌ Multiple ways to do the same thing
 
-# Way 1: Through wrapper
+# Way 1: Public facade
 cli.print("Hello")
 
-# Way 2: Direct access
-cli.formatters.print("Hello")
+# Way 2: Internal service route
+FlextCliFormatters.print("Hello")
 
 # Which one to use? Both work! Confusing!
 ```
@@ -126,8 +126,8 @@ cli.formatters.print("Hello")
 ```text
 # ✅ One clear way
 
-# Always direct access - clear ownership
-cli.formatters.print("Hello")
+# Public facade - clear ownership
+cli.print("Hello")
 cli.file_tools.read_json_file("settings.json")
 cli.prompts.confirm("Continue?")
 ```
@@ -173,8 +173,8 @@ settings = cli.file_tools.read_json_file("settings.json").unwrap()
 
 ```text
 # Multiple ways:
-cli.print("Message")  # Wrapper
-cli.formatters.print("Message")  # Direct
+cli.print("Message")  # Public facade
+FlextCliFormatters.print("Message")  # Internal service
 
 table = cli.create_table(data)  # Wrapper
 cli.print_table(table)  # Wrapper
@@ -182,18 +182,18 @@ cli.print_table(table)  # Wrapper
 # or
 
 table = cli.output.format_data(data, format_type="table")  # Direct
-cli.formatters.print(table)  # Direct
+cli.print(table)  # Public facade
 ```
 
 #### v0.10.0 (New)
 
 ```text
-# One clear way:
-cli.formatters.print("Message")
+# One clear public way:
+cli.print("Message")
 
 # For tables:
 table = cli.output.format_data(data, format_type="table")
-cli.formatters.print(table.unwrap())
+cli.print(table.unwrap())
 
 # Explicit, clear ownership
 ```
@@ -328,8 +328,8 @@ ______________________________________________________________________
 
 ```text
 cli.print("msg")
-    → cli.print()  # Wrapper
-        → self.formatters.print("msg")  # Actual method
+    → FlextCliFormatters.print("msg")
+        → u.Cli.formatters_print("msg")
             → Rich library
 
 # 3 layers of indirection
@@ -338,8 +338,9 @@ cli.print("msg")
 #### v0.10.0: Single Indirection
 
 ```text
-cli.formatters.print("msg")
-    → FlextCliFormatters.print()  # Direct
+cli.print("msg")
+    → FlextCliFormatters.print()
+        → u.Cli.formatters_print()
         → Rich library
 
 # 2 layers - 33% faster
@@ -375,7 +376,7 @@ ______________________________________________________________________
 
 ```bash
 # Most common (90% of changes):
-cli.print(          → cli.formatters.print(
+cli.u.Cli.print(    → cli.print(
 cli.read_json_file( → cli.file_tools.read_json_file(
 cli.confirm(        → cli.prompts.confirm(
 ```

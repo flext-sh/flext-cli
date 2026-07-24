@@ -236,7 +236,7 @@ Use your IDE or command-line tools:
 
 ```bash
 # Print methods
-find . -name "*.py" -exec sed -i 's/cli\.print(/cli.print(/g' {} +
+find . -name "*.py" -exec sed -i 's/cli\.print(/cli.formatters.print(/g' {} +
 
 # File operations
 find . -name "*.py" -exec sed -i 's/cli\.read_json_file(/cli.file_tools.read_json_file(/g' {} +
@@ -308,12 +308,12 @@ Common test failures:
 ```text
 # ❌ OLD (if you had type hints)
 def process_cli(cli: cli) -> None:
-    cli.print("Processing...")
+    cli.u.Cli.print("Processing...")
 
 
 # ✅ NEW (type hints still work)
 def process_cli(cli: cli) -> None:
-    cli.formatters.print("Processing...")
+    cli.print("Processing...")
 ```
 
 Type hints for cli don't change - only method calls do.
@@ -347,7 +347,7 @@ Access these through cli instance:
 
 | Service          | Methods                                       | Purpose                  |
 | ---------------- | --------------------------------------------- | ------------------------ |
-| `cli.formatters` | `print()``, `create_tree()`, etc.              | Rich terminal formatting |
+| `cli.formatters` | `print()`, `create_tree()`, etc.              | Rich terminal formatting |
 | `cli.output`     | `format_data()`, etc.                         | Output management        |
 | `cli.file_tools` | `read_json_file()`, `write_yaml_file()`, etc. | File I/O                 |
 | `cli.prompts`    | `prompt()`, `confirm()`, `select()`           | User input               |
@@ -434,15 +434,15 @@ from flext_cli import cli
 
 
 def main():
-        cli.formatters.print("Welcome!", style="success")
+        cli.print("Welcome!", style="success")
 
     settings = cli.file_tools.read_json_file("settings.json").unwrap()
-    cli.formatters.print(f"Loaded settings: {settings['name']}")
+    cli.print(f"Loaded settings: {settings['name']}")
 
     if cli.prompts.confirm("Continue?").unwrap():
-        cli.formatters.print("Processing...")
+        cli.print("Processing...")
         # ... process
-        cli.formatters.print("Done!", style="success")
+        cli.print("Done!", style="success")
 ```
 
 ### Example 2: Data Processing Script
@@ -456,7 +456,7 @@ def process_data():
     
     # Read input
     data = cli.read_csv_file("input.csv").unwrap()
-    cli.print(f"Loaded {len(data)} records")
+    cli.u.Cli.print(f"Loaded {len(data)} records")
 
     # Process
     results = [process_record(r) for r in data]
@@ -467,7 +467,7 @@ def process_data():
 
     # Save
     cli.write_json_file("results.json", results)
-    cli.print("Results saved!", style="success")
+    cli.u.Cli.print("Results saved!", style="success")
 
 
 # ✅ v0.10.0
@@ -478,7 +478,7 @@ def process_data():
     
     # Read input
     data = cli.file_tools.read_csv_file("input.csv").unwrap()
-    cli.formatters.print(f"Loaded {len(data)} records")
+        cli.print(f"Loaded {len(data)} records")
 
     # Process
     results = [process_record(r) for r in data]
@@ -487,11 +487,11 @@ def process_data():
     table_result = cli.output.format_data(
         results, format_type="table", headers=["ID", "Status"]
     )
-    cli.formatters.print(table_result.unwrap())
+    cli.print(table_result.unwrap())
 
     # Save
     cli.file_tools.write_json_file("results.json", results)
-    cli.formatters.print("Results saved!", style="success")
+    cli.print("Results saved!", style="success")
 ```
 
 ### Example 3: Context Usage
