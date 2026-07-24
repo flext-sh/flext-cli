@@ -76,7 +76,7 @@ class FlextCliOutput(s):
     def print_message(message: str, style: str | None = None) -> None:
         """Print a message using FlextCliFormatters."""
         validated_style = u.Cli.output_resolve_style(style)
-        FlextCliFormatters.u.Cli.print(message, style=validated_style)
+        FlextCliFormatters.print(message, style=validated_style)
 
     @staticmethod
     def display_header(text: str) -> None:
@@ -88,7 +88,7 @@ class FlextCliOutput(s):
         current: int, total: int, label: str, *, detail: str = ""
     ) -> None:
         """Display progress indicator [current/total] label detail."""
-        FlextCliFormatters.u.Cli.print(
+        FlextCliFormatters.print(
             u.Cli.output_progress_line(current, total, label, detail=detail)
         )
 
@@ -100,7 +100,7 @@ class FlextCliOutput(s):
         line, style = u.Cli.output_status_line(
             label, detail, success=success, elapsed=elapsed
         )
-        FlextCliFormatters.u.Cli.print(line, style=style)
+        FlextCliFormatters.print(line, style=style)
 
     @staticmethod
     def display_summary(
@@ -116,13 +116,13 @@ class FlextCliOutput(s):
     def display_gate(name: str, *, passed: bool, message: str = "") -> None:
         """Display a quality gate result."""
         line, style = u.Cli.output_gate_line(name, passed=passed, message=message)
-        FlextCliFormatters.u.Cli.print(line, style=style)
+        FlextCliFormatters.print(line, style=style)
 
     @staticmethod
     def display_metrics(metrics: t.ConfigValueMapping) -> None:
         """Display key=value metric pairs."""
         for key, value in metrics.items():
-            FlextCliFormatters.u.Cli.print(f"{key}={value}")
+            FlextCliFormatters.print(f"{key}={value}")
 
     @staticmethod
     def display_debug(message: str, *, verbose: bool = False) -> None:
@@ -130,7 +130,7 @@ class FlextCliOutput(s):
         if not verbose:
             return
         line, style = u.Cli.output_debug_line(message)
-        FlextCliFormatters.u.Cli.print(line, style=style)
+        FlextCliFormatters.print(line, style=style)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliOutput"]

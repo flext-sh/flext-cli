@@ -36,12 +36,20 @@ class TestsFlextCliFormattersCov:
     ) -> None:
         """Verify that print renders message to stdout."""
         if style is not None:
-            cli.u.Cli.print(msg, style)
+            cli.print(msg, style)
         else:
-            cli.u.Cli.print(msg)
+            cli.print(msg)
 
         out = capsys.readouterr().out
         tm.that(out, has=msg)
+
+    def test_public_cli_print_renders_message_to_stdout(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Verify the canonical public cli.print endpoint."""
+        cli.print("public-cli-print")
+
+        tm.that(capsys.readouterr().out, has="public-cli-print")
 
     # ── render_rule: label rendered to stdout ────────────────────────
 

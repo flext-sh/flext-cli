@@ -53,7 +53,7 @@ class DataManagerCLI:
         if value_result.failure:
             return r[t.JsonMapping].fail(f"Prompt failed: {value_result.error}")
         value = value_result.value
-        cli.u.Cli.print(
+        cli.print(
             f"✅ Created entry: {key} = {value}", style=c.Cli.MessageStyles.GREEN
         )
         return r[t.JsonMapping].ok(
@@ -67,13 +67,13 @@ class DataManagerCLI:
         read_result = cli.read_json_file(str(self.data_file))
         if read_result.failure:
             error_msg = read_result.error or "Unknown error"
-            cli.u.Cli.print(
+            cli.print(
                 f"❌ Load failed: {error_msg}", style=c.Cli.MessageStyles.BOLD_RED
             )
             return r[t.JsonMapping].fail(error_msg)
         if not isinstance(read_result.value, Mapping):
             return r[t.JsonMapping].fail(_EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING)
-        cli.u.Cli.print("✅ Data loaded successfully", style=c.Cli.MessageStyles.GREEN)
+        cli.print("✅ Data loaded successfully", style=c.Cli.MessageStyles.GREEN)
         return r[t.JsonMapping].ok(read_result.value)
 
     def save_data(self, data: t.JsonMapping) -> p.Result[bool]:
@@ -81,11 +81,11 @@ class DataManagerCLI:
         write_result = cli.write_json_file(self.data_file, data)
         if write_result.failure:
             error_msg = write_result.error or "Unknown error"
-            cli.u.Cli.print(
+            cli.print(
                 f"❌ Save failed: {error_msg}", style=c.Cli.MessageStyles.BOLD_RED
             )
             return r[bool].fail(error_msg)
-        cli.u.Cli.print(
+        cli.print(
             f"✅ Data saved to {self.data_file.name}", style=c.Cli.MessageStyles.GREEN
         )
         return r[bool].ok(value=True)
@@ -97,7 +97,7 @@ class DataManagerCLI:
             dict(load_result.value) if load_result.success else {}
         )
         if load_result.failure:
-            cli.u.Cli.print("Creating new dataset", style=c.Cli.MessageStyles.YELLOW)
+            cli.print("Creating new dataset", style=c.Cli.MessageStyles.YELLOW)
         entry_result = self.add_entry()
         if entry_result.failure:
             return r[bool].fail(f"Add entry failed: {entry_result.error}")

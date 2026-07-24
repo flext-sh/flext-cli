@@ -45,7 +45,7 @@ _MAX_LOCALHOST_CONNECTION_POOL = 50
 
 def _report_step_success[T](value: T, message: str) -> T:
     """Emit a success message while preserving the pipeline value."""
-    cli.u.Cli.print(message, style=c.Cli.MessageStyles.GREEN)
+    cli.print(message, style=c.Cli.MessageStyles.GREEN)
     return value
 
 
@@ -59,7 +59,7 @@ def _finish_database_config(
 
 def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseConfig]:
     """Create validated DatabaseConfig using Railway Pattern with Pydantic."""
-    cli.u.Cli.print(
+    cli.print(
         "\n🗄️  Database Configuration with Railway Pattern:",
         style=c.Cli.MessageStyles.BOLD_CYAN,
     )

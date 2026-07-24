@@ -56,13 +56,13 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                     str, cli.create_option("output_format")
                 ] = c.Cli.OutputFormats.TABLE,
             ) -> None:
-                cli.u.Cli.print(f"Command: {command_name}")
+                cli.print(f"Command: {command_name}")
                 if verbose:
-                    cli.u.Cli.print("Verbose: enabled")
+                    cli.print("Verbose: enabled")
                 if debug:
-                    cli.u.Cli.print("Debug: enabled")
-                cli.u.Cli.print(f"Log level: {log_level}")
-                cli.u.Cli.print(f"Output format: {output_format}")
+                    cli.print("Debug: enabled")
+                cli.print(f"Log level: {log_level}")
+                cli.print(f"Output format: {output_format}")
 
             cli.register_command(
                 app, name=command_name, help_text=f"Run {command_name}", command=command

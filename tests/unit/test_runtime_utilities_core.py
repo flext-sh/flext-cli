@@ -157,7 +157,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         result = runner.process_start([
             sys.executable,
             "-c",
-            "u.Cli.print('managed-ok')",
+            "print('managed-ok')",
         ])
         tm.ok(result)
         process = result.value
@@ -177,9 +177,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Verify that process start honors cwd env and stderr."""
         script = (
             "import os, pathlib, sys; "
-            "u.Cli.print(pathlib.Path.cwd()); "
-            "u.Cli.print(os.environ['FLEXT_CLI_PROCESS_TEST']); "
-            "u.Cli.print('err-marker', file=sys.stderr)"
+            "print(pathlib.Path.cwd()); "
+            "print(os.environ['FLEXT_CLI_PROCESS_TEST']); "
+            "print('err-marker', file=sys.stderr)"
         )
         result = runner.process_start(
             [sys.executable, "-c", script],

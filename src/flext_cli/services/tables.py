@@ -40,12 +40,12 @@ class FlextCliTables(s):
 
         def _render_with_title(rendered: str, title: str | None = None) -> str:
             if title:
-                FlextCliFormatters.u.Cli.print(title, style=c.Cli.MessageStyles.BOLD)
+                FlextCliFormatters.print(title, style=c.Cli.MessageStyles.BOLD)
             return rendered
 
         def _print_error(error: str | None) -> str:
             error_line, error_style = u.Cli.output_table_error(error)
-            FlextCliFormatters.u.Cli.print(error_line, style=error_style)
+            FlextCliFormatters.print(error_line, style=error_style)
             return ""
 
         outcome = u.Cli.tables_resolve_config(settings, **config_kwargs).flat_map(
@@ -55,7 +55,7 @@ class FlextCliTables(s):
                 )
             )
         )
-        FlextCliFormatters.u.Cli.print(
+        FlextCliFormatters.print(
             outcome.fold(on_success=lambda value: value, on_failure=_print_error)
         )
 
