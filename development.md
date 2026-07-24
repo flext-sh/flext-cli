@@ -219,9 +219,7 @@ cli.print("Hello", style="green")
 cli.file_tools.read_json_file("settings.json")
 cli.prompts.confirm("Continue?")
 
-# ❌ WRONG - Internal utility/service chains
-# cli.print("Hello")
-# cli.formatters.print("Hello")
+# ❌ WRONG - Internal utility/service chains are not public APIs.
 # cli.read_json_file("settings.json")  # REMOVED
 # cli.confirm("Continue?")           # REMOVED
 ```
