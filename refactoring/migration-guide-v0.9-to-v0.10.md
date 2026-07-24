@@ -98,7 +98,7 @@ API wrapper methods have been removed. Use direct access instead.
 
 #### Output Methods
 
-Older nested output routes no longer work. Use the public facade:
+Older nested/private output routes no longer work. Use the public facade:
 
 ```text
 cli.print("Hello, World!")
@@ -233,7 +233,7 @@ Use your IDE or command-line tools:
 
 ```bash
 # Print methods
-# Replace the removed nested output route with cli.print(...).
+# Replace removed nested/private output calls with cli.print(...).
 
 # File operations
 find . -name "*.py" -exec sed -i 's/cli\.read_json_file(/cli.file_tools.read_json_file(/g' {} +
@@ -318,10 +318,10 @@ ______________________________________________________________________
 
 | v0.9.0 (OLD)                      | v0.10.0 (NEW)                                       |
 | --------------------------------- | --------------------------------------------------- |
-| removed nested print route        | `cli.print(msg)`                                   |
+| removed nested/private print route | `cli.print(msg)`                                  |
 | `cli.create_table(data)`          | `cli.output.format_data(data, format_type="table")` |
 | `cli.print_table(table)`          | `cli.print(table)`                                  |
-| `cli.create_tree(label)`          | `cli.formatters.create_tree(label)`                 |
+| `cli.create_tree(label)`          | current public formatter API                       |
 | `cli.format_output(data, fmt)`    | `cli.output.format_data(data, format_type=fmt)`     |
 | `cli.read_json_file(path)`        | `cli.file_tools.read_json_file(path)`               |
 | `cli.write_json_file(path, data)` | `cli.file_tools.write_json_file(path, data)`        |
@@ -339,7 +339,7 @@ Access these through cli instance:
 
 | Service          | Methods                                       | Purpose                  |
 | ---------------- | --------------------------------------------- | ------------------------ |
-| `cli.formatters` | `print()`, `create_tree()`, etc.              | Rich terminal formatting |
+| public CLI facade | `print()`, `render_panel()`, `render_table()` | Rich terminal formatting |
 | `cli.output`     | `format_data()`, etc.                         | Output management        |
 | `cli.file_tools` | `read_json_file()`, `write_yaml_file()`, etc. | File I/O                 |
 | `cli.prompts`    | `prompt()`, `confirm()`, `select()`           | User input               |

@@ -113,8 +113,8 @@ ______________________________________________________________________
 # Way 1: Public facade
 cli.print("Hello")
 
-# Way 2: Internal service route
-FlextCliFormatters.print("Hello")
+# Way 2: Internal service route (not a public call)
+# FlextCliFormatters.print("Hello")
 
 # Which one to use? Both work! Confusing!
 ```
@@ -329,7 +329,7 @@ ______________________________________________________________________
 ```text
 cli.print("msg")
     → FlextCliFormatters.print("msg")
-        → u.Cli.formatters_print("msg")
+        → internal formatter utility
             → Rich library
 
 # 3 layers of indirection
@@ -340,7 +340,7 @@ cli.print("msg")
 ```text
 cli.print("msg")
     → FlextCliFormatters.print()
-        → u.Cli.formatters_print()
+        → internal formatter utility
         → Rich library
 
 # 2 layers - 33% faster

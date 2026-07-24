@@ -67,7 +67,7 @@ All these methods have been removed from `cli`:
 
 ```text
 # ❌ REMOVED - No longer available
-nested utility print access
+# The former nested/private print route is removed.
 cli.create_table(data, headers, title)
 cli.print_table(table)
 cli.create_tree(label)
@@ -90,8 +90,9 @@ Replace with direct access:
 
 ```text
 # Print operations
-removed nested print route → cli.print("msg")
-removed styled nested print route → cli.print("msg", style="success")
+# Replace the removed nested/private print route with the public endpoint:
+cli.print("msg")
+cli.print("msg", style="success")
 
 # Table operations
 cli.create_table(data)           → cli.output.format_data(data, format_type="table")
@@ -112,7 +113,7 @@ cli.select(msg, choices)         → cli.prompts.select(msg, choices)
 
 # Formatting
 cli.format_output(data, fmt)     → cli.output.format_data(data, format_type=fmt)
-cli.create_tree(label)           → cli.formatters.create_tree(label)
+cli.create_tree(label)           → the current public formatter API
 ```
 
 ### Automated Migration Script
@@ -122,7 +123,7 @@ cli.create_tree(label)           → cli.formatters.create_tree(label)
 # save as: migrate_api_calls.sh
 
 # Print methods
-# Replace the removed nested output route with cli.print(...).
+# Replace removed nested/private output calls with cli.print(...).
 
 # File operations
 find . -name "*.py" -type f -exec sed -i \
@@ -364,7 +365,7 @@ Use this checklist to ensure complete migration:
 
 ### [ ] 1. Update API Calls
 
-- [ ] Replace the removed nested print route with `cli.print()`
+- [ ] Replace removed nested/private print calls with `cli.print()`
 - [ ] Replace `cli.read_json_file()` with `cli.file_tools.read_json_file()`
 - [ ] Replace `cli.confirm()` with `cli.prompts.confirm()`
 - [ ] Update all other wrapper method calls (see section 1)
