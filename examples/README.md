@@ -61,8 +61,8 @@ Use these for example-owned constants, models, utilities, and service setup.
 from examples import c
 from flext_cli import cli
 
+# Why (multi-agent): output examples use the public MRO facade, not a private utility chain.
 cli.print("hello", style=c.Cli.MessageStyles.GREEN)
-result = cli.read_json_file("settings.json")
 ```
 
 Keep interaction with flext-cli on the public facade unless the example is explicitly documenting an internal type.
