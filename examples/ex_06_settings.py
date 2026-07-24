@@ -38,18 +38,18 @@ class Ex06Settings:
     @staticmethod
     def show_cli_settings() -> p.Cli.Settings:
         """Access flext-cli settings in YOUR application."""
-        cli.u.Cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
-        cli.u.Cli.print(
+        cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
+        cli.print(
             f"   Debug Mode: {settings.debug}", style=c.Cli.MessageStyles.CYAN
         )
-        cli.u.Cli.print(
+        cli.print(
             f"   Log Level: {settings.cli_log_level}", style=c.Cli.MessageStyles.CYAN
         )
-        cli.u.Cli.print(
+        cli.print(
             f"   Output Format: {settings.cli_output_format}",
             style=c.Cli.MessageStyles.CYAN,
         )
-        cli.u.Cli.print(
+        cli.print(
             f"   App Name: {settings.cli_app_name}", style=c.Cli.MessageStyles.CYAN
         )
         return settings
@@ -75,7 +75,7 @@ class Ex06Settings:
         profile_name: c.DeploymentEnvironment = c.EXAMPLE_DEFAULT_ENVIRONMENT,
     ) -> p.Result[p.Cli.Settings]:
         """Load profile-specific settings in YOUR tool."""
-        cli.u.Cli.print(
+        cli.print(
             f"📋 Loading profile: {profile_name.value}",
             style=c.Cli.MessageStyles.BOLD_CYAN,
         )
@@ -90,7 +90,7 @@ class Ex06Settings:
                 debug = profile_name == c.DeploymentEnvironment.DEVELOPMENT
                 output_format = c.Cli.OutputFormats.TABLE
         profile_config = settings.clone(debug=debug, cli_output_format=output_format)
-        cli.u.Cli.print(
+        cli.print(
             f"✅ Profile '{profile_name.value}' loaded successfully",
             style=c.Cli.MessageStyles.GREEN,
         )
@@ -107,29 +107,29 @@ class Ex06Settings:
     @classmethod
     def load_application_settings(cls) -> p.Result[t.MappingKV[str, t.JsonValue]]:
         """Load, validate, and derive application settings from the canonical model."""
-        cli.u.Cli.print(
+        cli.print(
             "\n⚙️  Loading Application Settings:", style=c.Cli.MessageStyles.BOLD_CYAN
         )
         settings_obj = m.Examples.AppSettingsAdvanced()
-        cli.u.Cli.print("✅ Settings model created", style=c.Cli.MessageStyles.GREEN)
+        cli.print("✅ Settings model created", style=c.Cli.MessageStyles.GREEN)
         validate_result = settings_obj.validate_to_mapping()
         if validate_result.failure:
             return r[t.MappingKV[str, t.JsonValue]].fail(
                 validate_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
             )
-        cli.u.Cli.print("✅ Settings validated", style=c.Cli.MessageStyles.GREEN)
+        cli.print("✅ Settings validated", style=c.Cli.MessageStyles.GREEN)
         try:
             overridden_data = cls.apply_environment_overrides(
                 validate_result.value, settings_obj.environment
             )
         except (TypeError, ValueError) as exc:
             return r[t.MappingKV[str, t.JsonValue]].fail(str(exc))
-        cli.u.Cli.print(
+        cli.print(
             "✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN
         )
         final_data = cls.initialize_services(overridden_data)
-        cli.u.Cli.print("✅ Services initialized", style=c.Cli.MessageStyles.GREEN)
-        cli.u.Cli.print(
+        cli.print("✅ Services initialized", style=c.Cli.MessageStyles.GREEN)
+        cli.print(
             "🎉 Application settings loaded successfully!",
             style=c.Cli.MessageStyles.BOLD_GREEN,
         )
