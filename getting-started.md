@@ -167,7 +167,7 @@ users = [
 ]
 
 # Display as table
-cli.display_rich_table(users, title="Users")
+cli.show_table(data=users, title="Users")
 ```
 
 ### 📁 File Operations
@@ -198,6 +198,8 @@ if read_result.success:
 Chain operations with `r[T]`:
 
 ```python
+from __future__ import annotations
+
 from flext_cli import cli
 from flext_core import r, p
 
@@ -216,8 +218,7 @@ def apply_defaults(settings: dict) -> dict:
 
 # Chain operations
 result = (
-    cli.file_tools
-    .read_json_file("settings.json")
+    cli.read_json_file("settings.json")
     .flat_map(validate_settings)  # Validate
     .map(apply_defaults)  # Transform
     .map(lambda cfg: cli.print(f"Final settings: {cfg}"))
@@ -409,7 +410,7 @@ find src/ -name "*.py" -exec wc -l {} + | tail -1
 # Expected: 10,000+ lines across 32 modules
 
 # Verify core services load
-python -c "from flext_cli import FlextCliService, FlextCliAuth, cli; u.Cli.print('✅ All core services import successfully')"
+python -c "from flext_cli import cli; cli.print('✅ All core services import successfully')"
 ```
 
 ______________________________________________________________________
