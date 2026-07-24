@@ -308,7 +308,7 @@ Common test failures:
 ```text
 # ❌ OLD (if you had type hints)
 def process_cli(cli: cli) -> None:
-    cli.u.Cli.print("Processing...")
+    cli.print("Processing...")
 
 
 # ✅ NEW (type hints still work)
@@ -456,7 +456,7 @@ def process_data():
     
     # Read input
     data = cli.read_csv_file("input.csv").unwrap()
-    cli.u.Cli.print(f"Loaded {len(data)} records")
+    cli.print(f"Loaded {len(data)} records")
 
     # Process
     results = [process_record(r) for r in data]
@@ -467,7 +467,7 @@ def process_data():
 
     # Save
     cli.write_json_file("results.json", results)
-    cli.u.Cli.print("Results saved!", style="success")
+    cli.print("Results saved!", style="success")
 
 
 # ✅ v0.10.0

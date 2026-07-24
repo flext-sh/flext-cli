@@ -376,7 +376,7 @@ ______________________________________________________________________
 
 ```bash
 # Most common (90% of changes):
-cli.u.Cli.print(    → cli.print(
+cli.print(          → cli.print(
 cli.read_json_file( → cli.file_tools.read_json_file(
 cli.confirm(        → cli.prompts.confirm(
 ```

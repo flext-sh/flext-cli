@@ -220,7 +220,7 @@ cli.file_tools.read_json_file("settings.json")
 cli.prompts.confirm("Continue?")
 
 # ❌ WRONG - Internal utility/service chains
-# cli.u.Cli.print("Hello")
+# cli.print("Hello")
 # cli.formatters.print("Hello")
 # cli.read_json_file("settings.json")  # REMOVED
 # cli.confirm("Continue?")           # REMOVED
