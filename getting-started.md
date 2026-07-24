@@ -357,8 +357,8 @@ ______________________________________________________________________
 
 ### Working Development Pattern
 
-```python
-# This development pattern demonstrates working functionality
+```text
+# This development pattern demonstrates v0.9.0 wrapper methods (historical reference).
 from flext_cli import cli, config, settings, c, e, d, h, p, r, s, t, u, x
 
 # Service initialization and operation
