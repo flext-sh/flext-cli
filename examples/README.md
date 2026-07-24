@@ -61,8 +61,7 @@ Use these for example-owned constants, models, utilities, and service setup.
 from examples import c
 from flext_cli import cli
 
-cli.u.Cli.print("hello", style=c.Cli.MessageStyles.GREEN)
-result = cli.read_json_file("settings.json")
+cli.display_text("hello", style=c.Cli.MessageStyles.GREEN)
 ```
 
 Keep interaction with flext-cli on the public facade unless the example is explicitly documenting an internal type.
