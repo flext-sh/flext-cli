@@ -376,7 +376,7 @@ ______________________________________________________________________
 
 ```bash
 # Most common (90% of changes):
-cli.print(          → cli.print(
+removed nested print route → cli.print(
 cli.read_json_file( → cli.file_tools.read_json_file(
 cli.confirm(        → cli.prompts.confirm(
 ```

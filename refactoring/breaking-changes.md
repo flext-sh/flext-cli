@@ -67,7 +67,7 @@ All these methods have been removed from `cli`:
 
 ```text
 # ❌ REMOVED - No longer available
-cli.print(message, style)
+nested utility print access
 cli.create_table(data, headers, title)
 cli.print_table(table)
 cli.create_tree(label)
@@ -90,12 +90,12 @@ Replace with direct access:
 
 ```text
 # Print operations
-cli.print("msg")                 → cli.formatters.print("msg")
-cli.print("msg", style="success") → cli.formatters.print("msg", style="success")
+removed nested print route → cli.print("msg")
+removed styled nested print route → cli.print("msg", style="success")
 
 # Table operations
 cli.create_table(data)           → cli.output.format_data(data, format_type="table")
-cli.print_table(table)           → cli.formatters.print(table)
+cli.print_table(table)           → cli.print(table)
 
 # File operations
 cli.read_json_file(path)         → cli.file_tools.read_json_file(path)
@@ -122,8 +122,7 @@ cli.create_tree(label)           → cli.formatters.create_tree(label)
 # save as: migrate_api_calls.sh
 
 # Print methods
-find . -name "*.py" -type f -exec sed -i \
-  's/cli\.print(/cli.formatters.print(/g' {} +
+# Replace the removed nested output route with cli.print(...).
 
 # File operations
 find . -name "*.py" -type f -exec sed -i \
@@ -273,7 +272,7 @@ If you wrote code expecting async:
 await cli.some_async_method()  # Never existed
 
 # ✅ All operations are synchronous
-result = cli.formatters.print("message")  # Sync
+result = cli.print("message")  # Sync
 ```
 
 ______________________________________________________________________
@@ -365,7 +364,7 @@ Use this checklist to ensure complete migration:
 
 ### [ ] 1. Update API Calls
 
-- [ ] Replace `cli.print()` with `cli.formatters.print()`
+- [ ] Replace the removed nested print route with `cli.print()`
 - [ ] Replace `cli.read_json_file()` with `cli.file_tools.read_json_file()`
 - [ ] Replace `cli.confirm()` with `cli.prompts.confirm()`
 - [ ] Update all other wrapper method calls (see section 1)

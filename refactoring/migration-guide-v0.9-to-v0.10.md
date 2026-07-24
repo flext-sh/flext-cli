@@ -47,7 +47,7 @@
 
 **Estimated Migration Time**: 30-60 minutes for typical projects
 
-> **📘 Quick Summary**: v0.10.0 introduces a **direct access pattern** and removes API wrapper methods. Instead of `cli.print()`, you now use `cli.formatters.print()`. This makes ownership clearer and the API simpler.
+> **📘 Quick Summary**: the supported output endpoint is `cli.print()`. Internal utility and formatter-service routes are not consumer APIs.
 
 ______________________________________________________________________
 
@@ -68,7 +68,7 @@ ______________________________________________________________________
 
 v0.10.0 simplifies FLEXT-CLI by:
 
-- ✅ **Direct Access Pattern**: Call methods on specific services (e.g., `cli.formatters.print()`)
+- ✅ **Public Facade Pattern**: Call the MRO-composed public endpoint (for example, `cli.print()`)
 - ✅ **Removed Wrappers**: No more thin wrapper methods in cli
 - ✅ **Simplified Services**: Only 3-4 service classes (down from 18)
 - ✅ **FlextCliContext removed**: Use `m.Cli.CliContext` for simple context data or pass args directly
@@ -98,14 +98,11 @@ API wrapper methods have been removed. Use direct access instead.
 
 #### Output Methods
 
+Older nested output routes no longer work. Use the public facade:
+
 ```text
-# ❌ v0.9.0 (OLD - No longer works)
 cli.print("Hello, World!")
 cli.print("Success!", style="success")
-
-# ✅ v0.10.0 (NEW - Use this)
-cli.formatters.print("Hello, World!")
-cli.formatters.print("Success!", style="success")
 ```
 
 ```text
@@ -117,7 +114,7 @@ cli.print_table(table)
 result = cli.output.format_data(
     data=users, format_type="table", headers=["Name", "Age"]
 )
-cli.formatters.print(result.unwrap())
+cli.print(result.unwrap())
 ```
 
 #### File Operations
@@ -236,7 +233,7 @@ Use your IDE or command-line tools:
 
 ```bash
 # Print methods
-find . -name "*.py" -exec sed -i 's/cli\.print(/cli.formatters.print(/g' {} +
+# Replace the removed nested output route with cli.print(...).
 
 # File operations
 find . -name "*.py" -exec sed -i 's/cli\.read_json_file(/cli.file_tools.read_json_file(/g' {} +
@@ -306,12 +303,7 @@ Common test failures:
 ### Step 5: Update Type Hints (If Needed)
 
 ```text
-# ❌ OLD (if you had type hints)
-def process_cli(cli: cli) -> None:
-    cli.print("Processing...")
-
-
-# ✅ NEW (type hints still work)
+# Type hints remain unchanged; use the public facade.
 def process_cli(cli: cli) -> None:
     cli.print("Processing...")
 ```
@@ -326,9 +318,9 @@ ______________________________________________________________________
 
 | v0.9.0 (OLD)                      | v0.10.0 (NEW)                                       |
 | --------------------------------- | --------------------------------------------------- |
-| `cli.print(msg)`                  | `cli.formatters.print(msg)`                         |
+| removed nested print route        | `cli.print(msg)`                                   |
 | `cli.create_table(data)`          | `cli.output.format_data(data, format_type="table")` |
-| `cli.print_table(table)`          | `cli.formatters.print(table)`                       |
+| `cli.print_table(table)`          | `cli.print(table)`                                  |
 | `cli.create_tree(label)`          | `cli.formatters.create_tree(label)`                 |
 | `cli.format_output(data, fmt)`    | `cli.output.format_data(data, format_type=fmt)`     |
 | `cli.read_json_file(path)`        | `cli.file_tools.read_json_file(path)`               |
