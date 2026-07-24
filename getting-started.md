@@ -129,7 +129,7 @@ ______________________________________________________________________
 
 ### 🚀 Your First CLI Application
 
-```python
+```python notest
 from flext_cli import cli
 from flext_core import r, p
 
@@ -252,6 +252,8 @@ make format                 # Auto-format with Ruff
 ### Development Pattern (v0.12.0-dev)
 
 ```python
+from __future__ import annotations
+
 from flext_cli import cli
 from flext_core import r, p
 
