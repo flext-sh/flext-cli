@@ -102,7 +102,7 @@ cd flext-cli
 make setup
 
 # Verify installation
-python -c "from flext_cli import cli; u.Cli.print('✅ Installation successful')"
+python -c "from flext_cli import cli; cli.print('✅ Installation successful')"
 ```
 
 ### As a Dependency
@@ -136,22 +136,22 @@ from flext_core import r, p
 # Initialize CLI (singleton pattern)
 
 # Print with styling (MRO inheritance)
-cli.u.Cli.print("Welcome to FLEXT CLI!", style="green bold")
+cli.print("Welcome to FLEXT CLI!", style="green bold")
 
 # Read configuration file
 config_result = cli.read_json_file("settings.json")
 
 if config_result.success:
     settings = config_result.unwrap()
-    cli.u.Cli.print(f"Loaded settings: {settings}", style="cyan")
+    cli.print(f"Loaded settings: {settings}", style="cyan")
 else:
-    cli.u.Cli.print(f"Error: {config_result.error}", style="red")
+    cli.print(f"Error: {config_result.error}", style="red")
 
 # Interactive prompt
 confirm_result = cli.confirm("Continue?")
 
 if confirm_result.success and confirm_result.unwrap():
-    cli.u.Cli.print("Let's go!", style="green")
+    cli.print("Let's go!", style="green")
 ```
 
 ### 📊 Working with Tables
@@ -183,14 +183,14 @@ data = {"setting": "value", "enabled": True}
 write_result = cli.write_json_file("settings.json", data)
 
 if write_result.success:
-    cli.u.Cli.print("Config saved!", style="green")
+    cli.print("Config saved!", style="green")
 
 # Read
 read_result = cli.read_json_file("settings.json")
 
 if read_result.success:
     loaded_data = read_result.unwrap()
-    cli.u.Cli.print(f"Loaded: {loaded_data}", style="cyan")
+    cli.print(f"Loaded: {loaded_data}", style="cyan")
 ```
 
 ### 🔄 Railway-Oriented Programming
@@ -220,12 +220,12 @@ result = (
     .read_json_file("settings.json")
     .flat_map(validate_settings)  # Validate
     .map(apply_defaults)  # Transform
-    .map(lambda cfg: cli.u.Cli.print(f"Final settings: {cfg}"))
+    .map(lambda cfg: cli.print(f"Final settings: {cfg}"))
 )
 
 # Handle result
 if result.failure:
-    cli.u.Cli.print(f"Error: {result.error}", style="red")
+    cli.print(f"Error: {result.error}", style="red")
 ```
 
 ______________________________________________________________________
@@ -259,19 +259,19 @@ def my_cli_application() -> p.Result[bool]:
     """Application using v0.12.0-dev patterns."""
     
     # Direct access to all services
-    cli.u.Cli.print("Starting...", style="cyan")
+    cli.print("Starting...", style="cyan")
 
     # File operations
     config_result = cli.read_json_file("settings.json")
 
     if not config_result.success:
-        cli.u.Cli.print(f"Error: {config_result.error}", style="red")
+        cli.print(f"Error: {config_result.error}", style="red")
         return r[bool].fail(config_result.error)
 
     # User interaction
     confirm_result = cli.confirm("Continue?")
     if confirm_result.success and confirm_result.unwrap():
-        cli.u.Cli.print("Processing...", style="green")
+        cli.print("Processing...", style="green")
         return r[bool].ok(value=True)
     return r[bool].fail("Operation cancelled")
 ```
