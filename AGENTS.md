@@ -156,6 +156,7 @@ Canonical source: [../AGENTS.md](../AGENTS.md).
 - Load scoped rules only from [../.agents/skills/](../.agents/skills/).
 - Never use fallback instruction paths.
 - Keep this file pointer-only and concise.
+
 # flext-cli — Domain Notes
 
 > **General FLEXT law is the AI-HUB MANAGED UNIVERSAL CORE block above + the root [`../AGENTS.md`](../AGENTS.md) — consult both for general FLEXT patterns** (facade layering, config/settings SSOT, `make`-only workflow, testing law). This section adds ONLY `flext-cli`-specific knowledge.
