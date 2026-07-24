@@ -67,7 +67,7 @@ All these methods have been removed from `cli`:
 
 ```text
 # ❌ REMOVED - No longer available
-cli.u.Cli.print(message, style)
+cli.print(message, style)
 cli.create_table(data, headers, title)
 cli.print_table(table)
 cli.create_tree(label)
@@ -90,12 +90,12 @@ Replace with direct access:
 
 ```text
 # Print operations
-cli.u.Cli.print("msg")                 → cli.formatters.u.Cli.print("msg")
-cli.u.Cli.print("msg", style="success") → cli.formatters.u.Cli.print("msg", style="success")
+cli.print("msg")                 → cli.formatters.print("msg")
+cli.print("msg", style="success") → cli.formatters.print("msg", style="success")
 
 # Table operations
 cli.create_table(data)           → cli.output.format_data(data, format_type="table")
-cli.print_table(table)           → cli.formatters.u.Cli.print(table)
+cli.print_table(table)           → cli.formatters.print(table)
 
 # File operations
 cli.read_json_file(path)         → cli.file_tools.read_json_file(path)
@@ -123,7 +123,7 @@ cli.create_tree(label)           → cli.formatters.create_tree(label)
 
 # Print methods
 find . -name "*.py" -type f -exec sed -i \
-  's/cli\.u.Cli.print(/cli.formatters.u.Cli.print(/g' {} +
+  's/cli\.print(/cli.print(/g' {} +
 
 # File operations
 find . -name "*.py" -type f -exec sed -i \
@@ -273,7 +273,7 @@ If you wrote code expecting async:
 await cli.some_async_method()  # Never existed
 
 # ✅ All operations are synchronous
-result = cli.formatters.u.Cli.print("message")  # Sync
+result = cli.formatters.print("message")  # Sync
 ```
 
 ______________________________________________________________________
@@ -365,7 +365,7 @@ Use this checklist to ensure complete migration:
 
 ### [ ] 1. Update API Calls
 
-- [ ] Replace `cli.u.Cli.print()` with `cli.formatters.u.Cli.print()`
+- [ ] Replace `cli.print()` with `cli.formatters.print()`
 - [ ] Replace `cli.read_json_file()` with `cli.file_tools.read_json_file()`
 - [ ] Replace `cli.confirm()` with `cli.prompts.confirm()`
 - [ ] Update all other wrapper method calls (see section 1)

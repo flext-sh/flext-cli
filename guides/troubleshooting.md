@@ -95,7 +95,7 @@ ModuleNotFoundError: No module named 'flext_core'
 ```bash
 source .venv/bin/activate
 unset PYTHONPATH
-python -c "import flext_core; u.Cli.print(flext_core.__file__)"
+python -c "import flext_core; print(flext_core.__file__)"
 ```
 
 **Reinstall dependencies:**
