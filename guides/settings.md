@@ -104,6 +104,8 @@ api:
 Configure FLEXT programmatically in your code:
 
 ```python
+from __future__ import annotations
+
 from flext_cli import settings, u
 from flext_ldif import settings as ldif_settings
 
@@ -112,8 +114,8 @@ print(u.out(f"log level: {settings.log_level}"))
 print(u.out(f"debug: {settings.debug}"))
 
 # LDIF sub-configuration
-print(u.out(f"ldif encoding: {settings.ldif.ldif_encoding}"))
-print(u.out(f"strict validation: {ldif_settings.ldif_strict_validation}"))
+print(u.out(f"ldif encoding: {ldif_settings.ldif.ldif_encoding}"))
+print(u.out(f"strict validation: {ldif_settings.ldif.ldif_strict_validation}"))
 ```
 
 ## Project-Specific Configuration
@@ -121,6 +123,8 @@ print(u.out(f"strict validation: {ldif_settings.ldif_strict_validation}"))
 ### flext-ldif Configuration
 
 ```python
+from __future__ import annotations
+
 from flext_ldif import settings, ldif, u
 
 # Settings are read from the singleton instance (env/defaults).
@@ -146,6 +150,8 @@ print(u.out(f"strict validation: {local.ldif.ldif_strict_validation}"))
 ### flext-api Configuration
 
 ```python
+from __future__ import annotations
+
 from flext_cli import m, u
 
 # Example domain settings model (replace with your project's settings class)
@@ -167,6 +173,8 @@ print(u.out(f"timeout: {api_config.timeout}"))
 ### flext-auth Configuration
 
 ```python
+from __future__ import annotations
+
 from flext_cli import c, m, u
 
 # Example auth settings model using real FLEXT constants
@@ -228,6 +236,8 @@ api:
 All configuration is validated using Pydantic v2 models:
 
 ```python
+from __future__ import annotations
+
 from pydantic import ValidationError
 from flext_cli import FlextCliSettings, u
 
@@ -243,6 +253,8 @@ except ValidationError as exc:
 FLEXT supports configuration inheritance for complex setups:
 
 ```python
+from __future__ import annotations
+
 from flext_cli import FlextCliSettings, u
 
 # Base configuration
@@ -250,7 +262,7 @@ base_config = FlextCliSettings(log_level="INFO", debug=False)
 
 # Extended configuration using model_dump for inheritance
 extended_config = FlextCliSettings(
-    **base_config.model_dump(),
+    **base_config.model_dump(exclude={"debug"}),
     debug=True,  # Override for development
 )
 
@@ -271,6 +283,8 @@ export FLEXT_API_KEY=your_api_key
 ### 2. Validate Configuration Early
 
 ```python
+from __future__ import annotations
+
 from flext_cli import FlextCliSettings, u
 
 
@@ -291,6 +305,8 @@ main()
 ### 3. Use Configuration Classes
 
 ```python
+from __future__ import annotations
+
 from flext_cli import m, u
 from pydantic import field_validator
 
