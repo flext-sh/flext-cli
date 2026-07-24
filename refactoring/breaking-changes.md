@@ -287,6 +287,7 @@ ______________________________________________________________________
 Tests reorganized into feature-based structure:
 
 ```
+
 # ❌ OLD
 tests/unit/test_*.py  # All flat
 
