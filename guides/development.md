@@ -149,26 +149,67 @@ git push origin feature/amazing-feature
 
 ### Type Safety (ZERO TOLERANCE)
 
-```text
-# ✅ CORRECT - Complete type annotations
+```python
+from __future__ import annotations
+
+from flext_cli import m, p, r, t
+
+
+class ProcessedData(m.BaseModel):
+    value: t.JsonValue
+
+
+ProcessedData.model_rebuild()
+
+
 def process_data(data: t.JsonMapping) -> p.Result[ProcessedData]:
     """Process data with type safety."""
     if not data:
-        return r[ProcessedData].fail("Data required")
+        return r.fail("Data required")
 
-    return r[ProcessedData].ok(ProcessedData(**data))
+    return r.ok(ProcessedData(value=data))
 
 
-# ❌ WRONG - Missing type annotations
-def process_data(data):
-    return data
+# Example usage
+result = process_data({"key": "value"})
+print(result.success)
 ```
 
 ### Railway-Oriented Programming
 
-```text
-# ✅ CORRECT - Use r for all operations
-def validate_and_process(data: dict) -> p.Result[ProcessedData]:
+```python
+from __future__ import annotations
+
+from flext_cli import m, p, r, t
+
+
+class ProcessedData(m.BaseModel):
+    value: t.JsonValue
+
+
+ProcessedData.model_rebuild()
+
+
+def validate_data(data: t.JsonMapping) -> p.Result[t.JsonMapping]:
+    if not data:
+        return r.fail("Data required")
+    return r.ok(data)
+
+
+def transform_data(data: t.JsonMapping) -> p.Result[ProcessedData]:
+    return r.ok(ProcessedData(value=data))
+
+
+def enrich_data(data: ProcessedData) -> ProcessedData:
+    return data
+
+
+def handle_error(error: str) -> str:
+    return f"handled: {error}"
+
+
+def validate_and_process(data: t.JsonMapping) -> p.Result[ProcessedData]:
+    """Use r for all operations."""
     return (
         validate_data(data)
         .flat_map(transform_data)
@@ -177,33 +218,33 @@ def validate_and_process(data: dict) -> p.Result[ProcessedData]:
     )
 
 
-# ❌ WRONG - Exception-based error handling
-def validate_and_process(data: dict) -> ProcessedData:
-    if not data:
-        raise ValueError("Data required")
-    return transform_data(data)
+print(validate_and_process({"key": "value"}).success)
 ```
 
 ### Unified Models Pattern
 
-```text
-# ✅ CORRECT - Use [Project]Models pattern
+```python
+from __future__ import annotations
+
+from flext_cli import m, p, r, t
+
+
+# ✅ CORRECT - Use nested model groups under a single module class
 class FlextApiModels:
     class Request(m.BaseModel):
         data: t.JsonMapping
 
     class Response(m.BaseModel):
-        result: p.Result[t.JsonValue]
-        status: int
+        result: t.JsonValue | None = None
+        status: int = 200
 
 
-# ❌ WRONG - Scattered model definitions
-class ApiRequest(m.BaseModel):
-    data: t.JsonMapping
+request = FlextApiModels.Request(data={"key": "value"})
+response = FlextApiModels.Response(result="processed", status=200)
 
-
-class ApiResponse(m.BaseModel):
-    result
+# Wrap the result in a Result object outside the model
+wrapped_result = r.ok(response.result)
+print(response.status, wrapped_result.success)
 ```
 
 ## Testing
@@ -225,26 +266,39 @@ pytest --cov=src --cov-report=html
 
 ### Writing Tests
 
-```text
+```python
+from __future__ import annotations
+
 import pytest
-from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
+from flext_cli import p, r, t
+
+
+class ProcessedData:
+    def __init__(self, data: t.JsonMapping) -> None:
+        self.data = data
+
+
+def process_data(data: t.JsonMapping | None) -> p.Result[ProcessedData]:
+    if data is None:
+        return r.fail("Data required")
+    return r.ok(ProcessedData(data=data))
 
 
 class TestDataProcessing:
-    def test_process_valid_data(self):
+    def test_process_valid_data(self) -> None:
         """Test processing valid data."""
         data = {"key": "value"}
         result = process_data(data)
 
         assert result.success
-        assert result.unwrap().key == "value"
+        assert result.unwrap().data == data
 
-    def test_process_invalid_data(self):
+    def test_process_invalid_data(self) -> None:
         """Test processing invalid data."""
         result = process_data(None)
 
         assert result.failure
-        assert "Data required" in result.failure()
+        assert "Data required" in result.failure
 ```
 
 ## Quality Gates
@@ -292,24 +346,28 @@ cd flext-newlib
 
 ### 2. Implement Core Patterns
 
-```text
-# src/flext_newlib/__init__.py
-from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
+```python
+from __future__ import annotations
+
+from flext_cli import m, p, r, t, u
 
 
-# Main API class
-class FlextNewlib:
-    def __init__(self, settings: FlextNewlibSettings):
+class MyPackageSettings(m.BaseModel):
+    setting: str = "default"
+
+
+class MyPackage:
+    def __init__(self, settings: MyPackageSettings) -> None:
         self.settings = settings
 
-    def process(self, data: dict) -> p.Result[dict]:
+    def process(self, data: t.JsonMapping) -> p.Result[dict]:
         """Process data using r pattern."""
-        # Implementation here
-        pass
+        if not data:
+            return r.fail("Data required")
+        return r.ok({"setting": self.settings.setting, "input": data})
 
 
-# Models class
-class FlextNewlibModels:
+class MyPackageModels:
     class Config(m.BaseModel):
         setting: str = "default"
 
@@ -318,6 +376,11 @@ class FlextNewlibModels:
 
     class Response(m.BaseModel):
         result: p.Result[t.JsonValue]
+
+
+pkg = MyPackage(MyPackageSettings(setting="custom"))
+result = pkg.process({"key": "value"})
+u.out(f"success: {result.success}")
 ```
 
 ### 3. Add to Workspace
@@ -355,17 +418,27 @@ pytest tests/unit/test_module.py --pdb
 ```bash
 # Verify PYTHONPATH
 export PYTHONPATH=src
-python -c "import flext_core; u.Cli.print(flext_core.__file__)"
+python -c "import flext_core; from flext_cli import cli; cli.print(flext_core.__file__)"
 
-# Check poetry environment
-poetry env info
+# Check uv environment
+uv run --help
 ```
 
 ## Documentation
 
 ### Code Documentation
 
-```text
+```python
+from __future__ import annotations
+
+from flext_cli import p, r, t
+
+
+class ProcessedData:
+    def __init__(self, data: t.JsonMapping) -> None:
+        self.data = data
+
+
 def process_data(data: t.JsonMapping) -> p.Result[ProcessedData]:
     """
     Process data using the FLEXT pipeline.
@@ -384,7 +457,9 @@ def process_data(data: t.JsonMapping) -> p.Result[ProcessedData]:
         >>> if result.success:
         ...     processed = result.unwrap()
     """
-    # Implementation here
+    if not data:
+        return r.fail("Data required")
+    return r.ok(ProcessedData(data=data))
 ```
 
 ### README Updates
@@ -393,14 +468,30 @@ Update project README.md files when adding new features:
 
 - Add a "New Feature" section with usage and configuration examples.
 
-```text
-from flext_newlib import FlextNewlib
-from flext_newlib import FlextNewlibSettings
+```python
+from __future__ import annotations
 
-lib = FlextNewlib()
-result = lib.new_feature()
+from flext_cli import m, p, r, u
 
-settings = FlextNewlibSettings(new_setting="value")
+
+class MyPackageSettings(m.BaseModel):
+    new_setting: str = "default"
+
+
+class MyPackage:
+    def __init__(self, settings: MyPackageSettings) -> None:
+        self.settings = settings
+
+    def new_feature(self, data: dict) -> p.Result[str]:
+        return r.ok(f"processed with {self.settings.new_setting}")
+
+
+lib = MyPackage(MyPackageSettings())
+result = lib.new_feature({})
+u.out(f"result: {result.unwrap()}")
+
+settings = MyPackageSettings(new_setting="value")
+u.out(f"setting: {settings.new_setting}")
 ```
 
 ## Contributing

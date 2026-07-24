@@ -400,6 +400,8 @@ else:
 ### Complete Configuration Example
 
 ```python
+from __future__ import annotations
+
 """Complete FLEXT configuration example."""
 
 import os
