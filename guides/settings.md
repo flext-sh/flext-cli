@@ -331,6 +331,8 @@ print(u.out(f"another: {settings.another_setting}"))
 ### 4. Document Configuration Options
 
 ```python
+from __future__ import annotations
+
 from flext_cli import m, u
 
 
@@ -376,6 +378,8 @@ print(u.out(f"strict: {example.strict_validation}"))
 ### Debug Configuration
 
 ```python
+from __future__ import annotations
+
 from flext_cli import FlextCliSettings, u
 
 # Enable debug logging
