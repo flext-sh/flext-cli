@@ -37,13 +37,13 @@ def save_user_preferences(
     )
 
     if write_result.failure:
-        cli.print(
+        cli.u.Cli.print(
             f"❌ Failed to save: {write_result.error}",
             style=c.Cli.MessageStyles.BOLD_RED,
         )
         return False
 
-    cli.print(
+    cli.u.Cli.print(
         f"✅ Saved preferences to {config_file.name}", style=c.Cli.MessageStyles.GREEN
     )
     return True
@@ -56,7 +56,7 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
     read_result = cli.read_json_file(config_file)
 
     if read_result.failure:
-        cli.print(
+        cli.u.Cli.print(
             f"⚠️  Could not load: {read_result.error}", style=c.Cli.MessageStyles.YELLOW
         )
         return r[m.Cli.LoadedConfig].fail(
@@ -65,7 +65,7 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
     if not isinstance(read_result.value, Mapping):
         return r[m.Cli.LoadedConfig].fail("Preferences content must be a mapping")
 
-    cli.print(
+    cli.u.Cli.print(
         f"✅ Loaded preferences from {config_file.name}",
         style=c.Cli.MessageStyles.GREEN,
     )
@@ -89,13 +89,13 @@ def save_deployment_config(
     write_result = cli.write_yaml_file(config_file, u.normalize_to_json_value(settings))
 
     if write_result.failure:
-        cli.print(
+        cli.u.Cli.print(
             f"❌ Config save failed: {write_result.error}",
             style=c.Cli.MessageStyles.BOLD_RED,
         )
         return False
 
-    cli.print("✅ Saved deployment settings", style=c.Cli.MessageStyles.GREEN)
+    cli.u.Cli.print("✅ Saved deployment settings", style=c.Cli.MessageStyles.GREEN)
     return True
 
 
@@ -104,13 +104,13 @@ def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
     load_result = cli.load_file_auto_dict(config_file)
 
     if load_result.failure:
-        cli.print(
+        cli.u.Cli.print(
             f"❌ Config load failed: {load_result.error}",
             style=c.Cli.MessageStyles.BOLD_RED,
         )
         return r[m.Cli.LoadedConfig].fail(load_result.error or "Config load failed")
 
-    cli.print("✅ Loaded deployment settings", style=c.Cli.MessageStyles.GREEN)
+    cli.u.Cli.print("✅ Loaded deployment settings", style=c.Cli.MessageStyles.GREEN)
     return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=load_result.value))
 
 
@@ -119,7 +119,7 @@ def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
     read_result = cli.read_json_file(input_file)
 
     if read_result.failure:
-        cli.print(
+        cli.u.Cli.print(
             f"❌ Read failed: {read_result.error}", style=c.Cli.MessageStyles.BOLD_RED
         )
         return r[m.Cli.LoadedConfig].fail(read_result.error or "Read failed")
@@ -132,5 +132,5 @@ def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
         if field not in data:
             return r[m.Cli.LoadedConfig].fail(f"Missing required field: {field}")
 
-    cli.print("✅ Data validated successfully", style=c.Cli.MessageStyles.GREEN)
+    cli.u.Cli.print("✅ Data validated successfully", style=c.Cli.MessageStyles.GREEN)
     return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=data))

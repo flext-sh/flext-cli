@@ -47,7 +47,7 @@
 
 **Estimated Migration Time**: 30-60 minutes for typical projects
 
-> **📘 Quick Summary**: v0.10.0 introduces a **direct access pattern** and removes API wrapper methods. Instead of `cli.print()`, you now use `cli.formatters.print()`. This makes ownership clearer and the API simpler.
+> **📘 Quick Summary**: v0.10.0 introduces a **direct access pattern** and removes API wrapper methods. Instead of `cli.u.Cli.print()`, you now use `cli.formatters.u.Cli.print()`. This makes ownership clearer and the API simpler.
 
 ______________________________________________________________________
 
@@ -68,7 +68,7 @@ ______________________________________________________________________
 
 v0.10.0 simplifies FLEXT-CLI by:
 
-- ✅ **Direct Access Pattern**: Call methods on specific services (e.g., `cli.formatters.print()`)
+- ✅ **Direct Access Pattern**: Call methods on specific services (e.g., `cli.formatters.u.Cli.print()`)
 - ✅ **Removed Wrappers**: No more thin wrapper methods in cli
 - ✅ **Simplified Services**: Only 3-4 service classes (down from 18)
 - ✅ **FlextCliContext removed**: Use `m.Cli.CliContext` for simple context data or pass args directly
@@ -100,12 +100,12 @@ API wrapper methods have been removed. Use direct access instead.
 
 ```text
 # ❌ v0.9.0 (OLD - No longer works)
-cli.print("Hello, World!")
-cli.print("Success!", style="success")
+cli.u.Cli.print("Hello, World!")
+cli.u.Cli.print("Success!", style="success")
 
 # ✅ v0.10.0 (NEW - Use this)
-cli.formatters.print("Hello, World!")
-cli.formatters.print("Success!", style="success")
+cli.formatters.u.Cli.print("Hello, World!")
+cli.formatters.u.Cli.print("Success!", style="success")
 ```
 
 ```text
@@ -117,7 +117,7 @@ cli.print_table(table)
 result = cli.output.format_data(
     data=users, format_type="table", headers=["Name", "Age"]
 )
-cli.formatters.print(result.unwrap())
+cli.formatters.u.Cli.print(result.unwrap())
 ```
 
 #### File Operations
@@ -236,7 +236,7 @@ Use your IDE or command-line tools:
 
 ```bash
 # Print methods
-find . -name "*.py" -exec sed -i 's/cli\.print(/cli.formatters.print(/g' {} +
+find . -name "*.py" -exec sed -i 's/cli\.u.Cli.print(/cli.formatters.u.Cli.print(/g' {} +
 
 # File operations
 find . -name "*.py" -exec sed -i 's/cli\.read_json_file(/cli.file_tools.read_json_file(/g' {} +
@@ -308,12 +308,12 @@ Common test failures:
 ```text
 # ❌ OLD (if you had type hints)
 def process_cli(cli: cli) -> None:
-    cli.print("Processing...")
+    cli.u.Cli.print("Processing...")
 
 
 # ✅ NEW (type hints still work)
 def process_cli(cli: cli) -> None:
-    cli.formatters.print("Processing...")
+    cli.formatters.u.Cli.print("Processing...")
 ```
 
 Type hints for cli don't change - only method calls do.
@@ -326,9 +326,9 @@ ______________________________________________________________________
 
 | v0.9.0 (OLD)                      | v0.10.0 (NEW)                                       |
 | --------------------------------- | --------------------------------------------------- |
-| `cli.print(msg)`                  | `cli.formatters.print(msg)`                         |
+| `cli.u.Cli.print(msg)`                  | `cli.formatters.u.Cli.print(msg)`                         |
 | `cli.create_table(data)`          | `cli.output.format_data(data, format_type="table")` |
-| `cli.print_table(table)`          | `cli.formatters.print(table)`                       |
+| `cli.print_table(table)`          | `cli.formatters.u.Cli.print(table)`                       |
 | `cli.create_tree(label)`          | `cli.formatters.create_tree(label)`                 |
 | `cli.format_output(data, fmt)`    | `cli.output.format_data(data, format_type=fmt)`     |
 | `cli.read_json_file(path)`        | `cli.file_tools.read_json_file(path)`               |
@@ -347,7 +347,7 @@ Access these through cli instance:
 
 | Service          | Methods                                       | Purpose                  |
 | ---------------- | --------------------------------------------- | ------------------------ |
-| `cli.formatters` | `print()`, `create_tree()`, etc.              | Rich terminal formatting |
+| `cli.formatters` | `u.Cli.print()`, `create_tree()`, etc.              | Rich terminal formatting |
 | `cli.output`     | `format_data()`, etc.                         | Output management        |
 | `cli.file_tools` | `read_json_file()`, `write_yaml_file()`, etc. | File I/O                 |
 | `cli.prompts`    | `prompt()`, `confirm()`, `select()`           | User input               |
@@ -418,15 +418,15 @@ from flext_cli import cli
 
 
 def main():
-        cli.print("Welcome!", style="success")
+        cli.u.Cli.print("Welcome!", style="success")
 
     settings = cli.read_json_file("settings.json").unwrap()
-    cli.print(f"Loaded settings: {settings['name']}")
+    cli.u.Cli.print(f"Loaded settings: {settings['name']}")
 
     if cli.confirm("Continue?").unwrap():
-        cli.print("Processing...")
+        cli.u.Cli.print("Processing...")
         # ... process
-        cli.print("Done!", style="success")
+        cli.u.Cli.print("Done!", style="success")
 
 
 # ✅ v0.10.0
@@ -434,15 +434,15 @@ from flext_cli import cli
 
 
 def main():
-        cli.formatters.print("Welcome!", style="success")
+        cli.formatters.u.Cli.print("Welcome!", style="success")
 
     settings = cli.file_tools.read_json_file("settings.json").unwrap()
-    cli.formatters.print(f"Loaded settings: {settings['name']}")
+    cli.formatters.u.Cli.print(f"Loaded settings: {settings['name']}")
 
     if cli.prompts.confirm("Continue?").unwrap():
-        cli.formatters.print("Processing...")
+        cli.formatters.u.Cli.print("Processing...")
         # ... process
-        cli.formatters.print("Done!", style="success")
+        cli.formatters.u.Cli.print("Done!", style="success")
 ```
 
 ### Example 2: Data Processing Script
@@ -456,7 +456,7 @@ def process_data():
     
     # Read input
     data = cli.read_csv_file("input.csv").unwrap()
-    cli.print(f"Loaded {len(data)} records")
+    cli.u.Cli.print(f"Loaded {len(data)} records")
 
     # Process
     results = [process_record(r) for r in data]
@@ -467,7 +467,7 @@ def process_data():
 
     # Save
     cli.write_json_file("results.json", results)
-    cli.print("Results saved!", style="success")
+    cli.u.Cli.print("Results saved!", style="success")
 
 
 # ✅ v0.10.0
@@ -478,7 +478,7 @@ def process_data():
     
     # Read input
     data = cli.file_tools.read_csv_file("input.csv").unwrap()
-    cli.formatters.print(f"Loaded {len(data)} records")
+    cli.formatters.u.Cli.print(f"Loaded {len(data)} records")
 
     # Process
     results = [process_record(r) for r in data]
@@ -487,11 +487,11 @@ def process_data():
     table_result = cli.output.format_data(
         results, format_type="table", headers=["ID", "Status"]
     )
-    cli.formatters.print(table_result.unwrap())
+    cli.formatters.u.Cli.print(table_result.unwrap())
 
     # Save
     cli.file_tools.write_json_file("results.json", results)
-    cli.formatters.print("Results saved!", style="success")
+    cli.formatters.u.Cli.print("Results saved!", style="success")
 ```
 
 ### Example 3: Context Usage

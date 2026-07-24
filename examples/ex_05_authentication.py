@@ -40,14 +40,14 @@ class Ex05Authentication:
         """Login and save token in YOUR CLI application."""
         auth_result = cli.authenticate({"username": username, "password": password})
         if auth_result.failure:
-            cli.print(
+            cli.u.Cli.print(
                 f"❌ Login failed: {auth_result.error}",
                 style=c.Cli.MessageStyles.BOLD_RED,
             )
             return r[bool].fail(auth_result.error or "Login failed")
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
-        cli.print("✅ Login successful!", style=c.Cli.MessageStyles.GREEN)
-        cli.print(
+        cli.u.Cli.print("✅ Login successful!", style=c.Cli.MessageStyles.GREEN)
+        cli.u.Cli.print(
             f"   Token saved to: {token_file_path}", style=c.Cli.MessageStyles.CYAN
         )
         return r[bool].ok(True)
@@ -57,7 +57,7 @@ class Ex05Authentication:
         """Retrieve saved auth token in YOUR CLI."""
         token_result = cli.fetch_auth_token()
         if token_result.failure:
-            cli.print(
+            cli.u.Cli.print(
                 f"⚠️  Not authenticated: {token_result.error}",
                 style=c.Cli.MessageStyles.YELLOW,
             )
@@ -69,16 +69,20 @@ class Ex05Authentication:
         """Validate the saved token and return the explicit outcome."""
         token_result = cli.fetch_auth_token()
         if token_result.failure:
-            cli.print("⚠️  No token found", style=c.Cli.MessageStyles.YELLOW)
+            cli.u.Cli.print("⚠️  No token found", style=c.Cli.MessageStyles.YELLOW)
             return r[bool].fail(token_result.error or "No token found")
         token = token_result.value
         if len(token) < _MIN_VALID_TOKEN_LENGTH:
-            cli.print("❌ Invalid token format", style=c.Cli.MessageStyles.BOLD_RED)
+            cli.u.Cli.print(
+                "❌ Invalid token format", style=c.Cli.MessageStyles.BOLD_RED
+            )
             return r[bool].fail("Invalid token format")
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
-        cli.print("✅ Token is valid", style=c.Cli.MessageStyles.GREEN)
-        cli.print(f"   Token: {token[:30]}...", style=c.Cli.MessageStyles.CYAN)
-        cli.print(f"   Token file: {token_file_path}", style=c.Cli.MessageStyles.CYAN)
+        cli.u.Cli.print("✅ Token is valid", style=c.Cli.MessageStyles.GREEN)
+        cli.u.Cli.print(f"   Token: {token[:30]}...", style=c.Cli.MessageStyles.CYAN)
+        cli.u.Cli.print(
+            f"   Token file: {token_file_path}", style=c.Cli.MessageStyles.CYAN
+        )
         return r[bool].ok(True)
 
     @staticmethod
@@ -86,15 +90,17 @@ class Ex05Authentication:
         """Logout and clear the saved token if a session exists."""
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         if not token_file_path.exists():
-            cli.print("⚠️  No active session", style=c.Cli.MessageStyles.YELLOW)
+            cli.u.Cli.print("⚠️  No active session", style=c.Cli.MessageStyles.YELLOW)
             return r[bool].fail("No active session")
         try:
             token_file_path.unlink()
         except OSError as exc:
-            cli.print(f"❌ Logout failed: {exc}", style=c.Cli.MessageStyles.BOLD_RED)
+            cli.u.Cli.print(
+                f"❌ Logout failed: {exc}", style=c.Cli.MessageStyles.BOLD_RED
+            )
             return r[bool].fail(str(exc))
-        cli.print("✅ Logged out successfully", style=c.Cli.MessageStyles.GREEN)
-        cli.print(
+        cli.u.Cli.print("✅ Logged out successfully", style=c.Cli.MessageStyles.GREEN)
+        cli.u.Cli.print(
             f"   Token removed from: {token_file_path}", style=c.Cli.MessageStyles.CYAN
         )
         return r[bool].ok(True)

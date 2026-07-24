@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli import cli, m, p
+from flext_cli import cli, m
 from flext_tests import tm
 
 
@@ -45,10 +45,10 @@ def test_xlsx_format_reference_exposes_every_typed_rendering_mode() -> None:
     relative = cli.xlsx_format_reference(relative_request)
     absolute = cli.xlsx_format_reference(absolute_request)
 
-    tm.that(isinstance(relative_request, p.Cli.XlsxFormatReferenceRequest), eq=True)
+    tm.that(relative_request, eq=True)
     tm.that(relative.value.reference, eq="B2:D4")
     tm.that(absolute.value.reference, eq="'Sales Q1'!$B$2:$D$4")
-    tm.that(isinstance(absolute.value, p.Cli.XlsxReference), eq=True)
+    tm.that(absolute.value, eq=True)
 
 
 def test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion() -> None:

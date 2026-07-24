@@ -41,7 +41,7 @@ class Demo(s):
             "max_workers": 4,
             "timeout": 30,
         })
-        cli.print(settings.app_name, style=c.Cli.MessageStyles.BOLD_GREEN)
+        cli.u.Cli.print(settings.app_name, style=c.Cli.MessageStyles.BOLD_GREEN)
         return r[t.JsonMapping].ok(settings.model_dump(mode="json"))
 ```
 
@@ -61,7 +61,7 @@ Use these for example-owned constants, models, utilities, and service setup.
 from examples import c
 from flext_cli import cli
 
-cli.print("hello", style=c.Cli.MessageStyles.GREEN)
+cli.u.Cli.print("hello", style=c.Cli.MessageStyles.GREEN)
 result = cli.read_json_file("settings.json")
 ```
 

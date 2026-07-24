@@ -46,10 +46,14 @@ class ExamplesFlextCliGettingStarted(s):
     @override
     def execute(self) -> p.Result[t.JsonMapping]:
         """Run the public getting-started flow through typed examples aliases."""
-        cli.print("FLEXT CLI - Getting Started", style=c.Cli.MessageStyles.BOLD_BLUE)
-        cli.print("===========================", style=c.Cli.MessageStyles.BOLD_BLUE)
+        cli.u.Cli.print(
+            "FLEXT CLI - Getting Started", style=c.Cli.MessageStyles.BOLD_BLUE
+        )
+        cli.u.Cli.print(
+            "===========================", style=c.Cli.MessageStyles.BOLD_BLUE
+        )
 
-        cli.print("\n1. Setup via s/base.py", style=c.Cli.MessageStyles.BOLD_CYAN)
+        cli.u.Cli.print("\n1. Setup via s/base.py", style=c.Cli.MessageStyles.BOLD_CYAN)
         runtime_snapshot: t.JsonMapping = {
             "output_format": settings.cli_output_format,
             "cli_log_level": settings.cli_log_level,
@@ -67,7 +71,7 @@ class ExamplesFlextCliGettingStarted(s):
                 settings_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
             )
 
-        cli.print(
+        cli.u.Cli.print(
             "\n2. Pydantic 2 models via m.Examples", style=c.Cli.MessageStyles.BOLD_CYAN
         )
         app_settings = settings_result.value
@@ -79,7 +83,7 @@ class ExamplesFlextCliGettingStarted(s):
                 loaded_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
             )
 
-        cli.print(
+        cli.u.Cli.print(
             "\n3. Public cli facade round-trip", style=c.Cli.MessageStyles.BOLD_CYAN
         )
         loaded_config = loaded_result.value
@@ -95,7 +99,9 @@ class ExamplesFlextCliGettingStarted(s):
             roundtrip_summary, headers=c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE
         )
 
-        cli.print("\n4. Railway result ergonomics", style=c.Cli.MessageStyles.BOLD_CYAN)
+        cli.u.Cli.print(
+            "\n4. Railway result ergonomics", style=c.Cli.MessageStyles.BOLD_CYAN
+        )
         result_summary: t.JsonMapping = {
             "ok.success": r[str].ok(c.EXAMPLE_MSG_OPERATION_COMPLETED).success,
             "fail.failure": r[str].fail(c.EXAMPLE_MSG_ERROR_SOMETHING_FAILED).failure,

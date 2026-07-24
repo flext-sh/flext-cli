@@ -75,7 +75,7 @@ cli.core.execute_command(command.name)
 table = cli.create_table(
     [{"name": "Alice", "age": 30}], headers=["name", "age"]
 ).unwrap()
-cli.print(table, style="green")
+cli.u.Cli.print(table, style="green")
 ```
 
 ## Referências rápidas

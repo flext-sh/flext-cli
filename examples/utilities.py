@@ -43,12 +43,12 @@ class ExamplesFlextCliUtilities(u):
         bold_style: c.Cli.MessageStyles = c.Cli.MessageStyles.BOLD_GREEN,
     ) -> None:
         """Print standardized demo completion message using cli."""
-        cli.print(f"\n🎉 {demo_name} Complete", style=bold_style)
-        cli.print(f"✅ {demo_name} Completed!", style=style)
-        cli.print("\nKey Features Demonstrated:", style=c.Cli.MessageStyles.CYAN)
+        cli.u.Cli.print(f"\n🎉 {demo_name} Complete", style=bold_style)
+        cli.u.Cli.print(f"✅ {demo_name} Completed!", style=style)
+        cli.u.Cli.print("\nKey Features Demonstrated:", style=c.Cli.MessageStyles.CYAN)
         for feature in features:
-            cli.print(f"  • {feature}", style=c.Cli.MessageStyles.WHITE)
-        cli.print(
+            cli.u.Cli.print(f"  • {feature}", style=c.Cli.MessageStyles.WHITE)
+        cli.u.Cli.print(
             "\nAll operations used r pattern for error handling!",
             style=c.Cli.MessageStyles.YELLOW,
         )
@@ -75,13 +75,13 @@ class ExamplesFlextCliUtilities(u):
         operation: str, details: m.Cli.SuccessSummaryDetails | None = None
     ) -> None:
         """Display a standardized success summary using cli."""
-        cli.print(
+        cli.u.Cli.print(
             f"✅ {operation} completed successfully!",
             style=c.Cli.MessageStyles.BOLD_GREEN,
         )
         if details is not None:
             for key, value in details.root.items():
-                cli.print(f"   {key}: {value}", style=c.Cli.MessageStyles.CYAN)
+                cli.u.Cli.print(f"   {key}: {value}", style=c.Cli.MessageStyles.CYAN)
 
 
 u = ExamplesFlextCliUtilities

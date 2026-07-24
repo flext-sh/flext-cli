@@ -19,7 +19,7 @@ class FlextCliFormatters(s):
     @classmethod
     def print(cls, message: str, style: str | None = None) -> None:
         """Print formatted message using Rich."""
-        u.Cli.formatters_print(message, style=style)
+        u.Cli.formatters_u.Cli.print(message, style=style)
 
     @classmethod
     def render_rule(cls, text: str) -> None:

@@ -36,9 +36,9 @@ class TestsFlextCliFormattersCov:
     ) -> None:
         """Verify that print renders message to stdout."""
         if style is not None:
-            cli.print(msg, style)
+            cli.u.Cli.print(msg, style)
         else:
-            cli.print(msg)
+            cli.u.Cli.print(msg)
 
         out = capsys.readouterr().out
         tm.that(out, has=msg)
