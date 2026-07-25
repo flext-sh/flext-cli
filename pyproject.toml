@@ -701,6 +701,9 @@ all = true
 in_place = true
 sort_first = [ "build-system", "dependency-groups", "project", "tool" ]
 
+[tool.uv]
+constraint-dependencies = [ "gitpython>=3.1.55", "setuptools>=83" ]
+
 [tool.uv.sources.flext-core]
 workspace = true
 
