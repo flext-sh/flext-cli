@@ -1,0 +1,13 @@
+{
+  "debug": true,
+  "output_format": "table",
+  "no_color": false,
+  "profile": "test",
+  "timeout": 30,
+  "retries": 3,
+  "api_endpoint": "https://api.example.com/v1",
+  "auth_token": "test_token_123456789",
+  "log_level": "INFO",
+  "cache_enabled": true,
+  "cache_ttl": 3600
+}
