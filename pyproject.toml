@@ -10,7 +10,7 @@ requires = ["hatchling"]
 
 [dependency-groups]
 codegen = [
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0.12.0-dev",
+  "flext-infra",
 ]
 dev = [
   "autoflake>=2.3.1",
@@ -22,7 +22,7 @@ dev = [
   "django-stubs>=5.2.2",
   "factory-boy>=3.3.1",
   "faker>=37.4",
-  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@0.12.0-dev",
+  "flext-tests",
   "hypothesis>=6.125",
   "isort>=6.0.1",
   "matplotlib-stubs>=0.3",
@@ -106,7 +106,7 @@ dependencies = [
   "cachetools>=6.2,<7.0",
   "click>=8.3.3",
   "defusedxml>=0.7.1",
-  "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
+  "flext-core",
   "jinja2>=3.1.6",
   "jsonschema>=4.26.0",
   "openpyxl>=3.1.5",
@@ -736,6 +736,15 @@ sort_first = ["build-system", "dependency-groups", "project", "tool"]
 constraint-dependencies = ["gitpython>=3.1.55", "setuptools>=83"]
 link-mode = "copy"
 required-version = "==0.11.29"
+
+[tool.uv.sources.flext-core]
+workspace = true
+
+[tool.uv.sources.flext-infra]
+workspace = true
+
+[tool.uv.sources.flext-tests]
+workspace = true
 
 [tool.vulture]
 exclude = ["*/_protocols/*"]
