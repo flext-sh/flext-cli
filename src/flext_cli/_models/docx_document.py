@@ -114,6 +114,18 @@ class FlextCliModelsDocxDocument:
         plan: FlextCliModelsDocxDocument.DocxDocumentPlan = m.Field(
             description="Validated document plan."
         )
+        source_date_epoch: (
+            Annotated[
+                int,
+                m.Field(
+                    ge=0, description="Deterministic build epoch in seconds since 1970."
+                ),
+            ]
+            | None
+        ) = m.Field(
+            default=None,
+            description="Fix core-property and archive timestamps for reproducibility.",
+        )
 
     class DocxRenderResult(m.FrozenModel):
         content: Annotated[
