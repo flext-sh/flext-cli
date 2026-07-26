@@ -737,15 +737,6 @@ constraint-dependencies = ["gitpython>=3.1.55", "setuptools>=83"]
 link-mode = "copy"
 required-version = "==0.11.29"
 
-[tool.uv.sources.flext-core]
-workspace = true
-
-[tool.uv.sources.flext-infra]
-workspace = true
-
-[tool.uv.sources.flext-tests]
-workspace = true
-
 [tool.vulture]
 exclude = ["*/_protocols/*"]
 min_confidence = 100
