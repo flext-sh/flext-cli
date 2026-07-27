@@ -12,9 +12,7 @@ from flext_tests import tm
 
 def test_docx_render_is_reproducible_for_explicit_source_date_epoch() -> None:
     plan = m.Cli.DocxDocumentPlan(
-        paragraphs=(
-            m.Cli.DocxParagraphPlan(runs=(m.Cli.DocxRunPlan(text="Stable"),)),
-        )
+        paragraphs=(m.Cli.DocxParagraphPlan(runs=(m.Cli.DocxRunPlan(text="Stable"),)),)
     )
     request = m.Cli.DocxRenderRequest(plan=plan, source_date_epoch=0)
 
