@@ -5,19 +5,12 @@ from __future__ import annotations
 
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
-_LAZY_IMPORTS = build_lazy_import_map(
-    {
-        ".examples_advanced": ("ExamplesFlextCliModelsExamplesAdvanced",),
-        ".examples_common": ("ExamplesFlextCliModelsExamplesCommon",),
-        ".examples_database": ("ExamplesFlextCliModelsExamplesDatabase",),
-        ".examplesflextclimodels_part_01": ("ExamplesFlextCliModels",),
-    },
-)
+_LAZY_IMPORTS = build_lazy_import_map({
+    ".examples_advanced": ("ExamplesFlextCliModelsExamplesAdvanced",),
+    ".examples_common": ("ExamplesFlextCliModelsExamplesCommon",),
+    ".examples_database": ("ExamplesFlextCliModelsExamplesDatabase",),
+    ".examplesflextclimodels_part_01": ("ExamplesFlextCliModels",),
+})
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    publish_all=False,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

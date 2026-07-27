@@ -1,0 +1,422 @@
+# Getting Started with flext-cli
+
+<!-- TOC START -->
+- [Getting Started with flext-cli](#getting-started-with-flext-cli)
+  - [📌 Quick Navigation](#-quick-navigation)
+  - [v0.12.0-dev Getting Started (Current)](#v0120-dev-getting-started-current)
+    - [Overview](#overview)
+  - [Prerequisites](#prerequisites)
+    - [System Requirements](#system-requirements)
+    - [FLEXT Ecosystem Integration](#flext-ecosystem-integration)
+  - [Installation](#installation)
+    - [Development Setup](#development-setup)
+    - [As a Dependency](#as-a-dependency)
+  - [Quick Start (v0.12.0-dev)](#quick-start-v0120-dev)
+    - [🚀 Your First CLI Application](#-your-first-cli-application)
+    - [📊 Working with Tables](#-working-with-tables)
+    - [📁 File Operations](#-file-operations)
+    - [🔄 Railway-Oriented Programming](#-railway-oriented-programming)
+  - [Development Workflow (v0.12.0-dev)](#development-workflow-v0120-dev)
+    - [Quality Gates](#quality-gates)
+    - [Development Pattern (v0.12.0-dev)](#development-pattern-v0120-dev)
+    - [Testing Your CLI Code](#testing-your-cli-code)
+  - [Next Steps](#next-steps)
+    - [Learn More](#learn-more)
+    - [Migration from v0.9.0](#migration-from-v090)
+  - [Related Documentation](#related-documentation)
+    - [Examples](#examples)
+  - [v0.9.0 Getting Started (Historical Reference)](#v090-getting-started-historical-reference)
+  - [Development Patterns (v0.9.0)](#development-patterns-v090)
+    - [Working Development Pattern](#working-development-pattern)
+  - [Quality Validation](#quality-validation)
+    - [Validation Commands](#validation-commands)
+    - [Implementation Verification](#implementation-verification)
+  - [Next Steps](#next-steps-1)
+<!-- TOC END -->
+
+**Installation and setup guide for the FLEXT ecosystem CLI foundation library.**
+
+**Last Updated**: 2025-01-24 | **Version**: 0.10.0
+
+______________________________________________________________________
+
+## 📌 Quick Navigation
+
+- [v0.12.0-dev Getting Started (Current)](#v0100-getting-started-current) ← **Start Here**
+- [v0.9.0 Getting Started (Historical Reference)](#v090-getting-started-historical-reference)
+
+______________________________________________________________________
+
+## v0.12.0-dev Getting Started (Current)
+
+**Status**: 📝 Planned | **Release**: Q1 2025 | **Breaking Changes**: Yes
+
+### Overview
+
+flext-cli v0.12.0-dev is a simplified, streamlined CLI foundation library for the FLEXT ecosystem. It provides:
+
+- **Direct MRO API**: All services available directly on `cli.*` via MRO inheritance
+- **Services for State Only**: s used only where needed (3-4 classes)
+- **Simple Utilities**: Stateless operations as simple classes
+- **Value Objects**: Immutable data models using Pydantic
+- **Railway Pattern**: All operations return `r[T]`
+
+**Key Improvements in v0.12.0-dev**:
+
+- 30-40% less code (14K → 10K lines)
+- 75% fewer services (18 → 3-4)
+- 50% fewer API methods (~30 → ~15)
+- Clearer architecture and better performance
+
+______________________________________________________________________
+
+## Prerequisites
+
+### System Requirements
+
+- **Python**: 3.13+ (required for advanced type features)
+- **Poetry**: 1.7+ (dependency management)
+- **Make**: Build automation
+- **FLEXT Ecosystem**: flext-core v0.12.0-dev+
+
+### FLEXT Ecosystem Integration
+
+flext-cli integrates with:
+
+- **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)**: Foundation patterns (r, s, FlextModels)
+- **Click 8.2+**: CLI framework (abstracted)
+- **Rich 14.0+**: Terminal UI (abstracted)
+- **Pydantic 2.11+**: Data validation
+
+______________________________________________________________________
+
+## Installation
+
+### Development Setup
+
+```bash
+# Clone repository
+git clone https://github.com/flext-sh/flext-cli.git
+cd flext-cli
+
+# Complete setup (installs dependencies, pre-commit hooks)
+make setup
+
+# Verify installation
+python -c "from flext_cli import cli; cli.print('✅ Installation successful')"
+```
+
+### As a Dependency
+
+Add to your project's `pyproject.toml`:
+
+```toml
+[tool.poetry.dependencies]
+flext-cli = "^0.10.0"
+flext-core = "^0.9.9"
+```
+
+Then:
+
+```bash
+poetry add flext-cli
+# or
+pip install flext-cli
+```
+
+______________________________________________________________________
+
+## Quick Start (v0.12.0-dev)
+
+### 🚀 Your First CLI Application
+
+```python
+from flext_cli import cli, m
+from flext_core import r, p
+
+# Initialize CLI in non-interactive mode for automated examples
+cli.configure(m.Cli.PromptRuntimeState(interactive=False))
+
+# Print with styling (MRO inheritance)
+cli.print("Welcome to FLEXT CLI!", style="green bold")
+
+# Read configuration file
+config_result = cli.read_json_file("settings.json")
+
+if config_result.success:
+    settings = config_result.unwrap()
+    cli.print(f"Loaded settings: {settings}", style="cyan")
+else:
+    cli.print(f"Error: {config_result.error}", style="red")
+
+# Interactive prompt (configured non-interactive here so the example runs)
+confirm_result = cli.confirm("Continue?")
+
+if confirm_result.success and confirm_result.unwrap():
+    cli.print("Let's go!", style="green")
+```
+
+### 📊 Working with Tables
+
+```python
+from flext_cli import cli
+
+
+# Create data
+users = [
+    {"name": "Alice", "role": "Admin", "status": "Active"},
+    {"name": "Bob", "role": "User", "status": "Active"},
+]
+
+# Display as table
+cli.show_table(data=users, title="Users")
+```
+
+### 📁 File Operations
+
+```python
+from flext_cli import cli
+
+
+# JSON operations
+data = {"setting": "value", "enabled": True}
+
+# Write
+write_result = cli.write_json_file("settings.json", data)
+
+if write_result.success:
+    cli.print("Config saved!", style="green")
+
+# Read
+read_result = cli.read_json_file("settings.json")
+
+if read_result.success:
+    loaded_data = read_result.unwrap()
+    cli.print(f"Loaded: {loaded_data}", style="cyan")
+```
+
+### 🔄 Railway-Oriented Programming
+
+Chain operations with `r[T]`:
+
+```python
+from __future__ import annotations
+
+from flext_cli import cli
+from flext_core import r, p
+
+
+def validate_settings(settings: dict) -> p.Result[dict]:
+    """Validate settings."""
+    if "required_field" not in settings:
+        return r[dict].fail("Missing required_field")
+    return r[dict].ok(settings)
+
+
+def apply_defaults(settings: dict) -> dict:
+    """Apply default values."""
+    return {**{"timeout": 30}, **settings}
+
+
+# Chain operations
+result = (
+    cli
+    .read_json_file("settings.json")
+    .flat_map(validate_settings)  # Validate
+    .map(apply_defaults)  # Transform
+    .map(lambda cfg: cli.print(f"Final settings: {cfg}"))
+)
+
+# Handle result
+if result.failure:
+    cli.print(f"Error: {result.error}", style="red")
+```
+
+______________________________________________________________________
+
+## Development Workflow (v0.12.0-dev)
+
+### Quality Gates
+
+```bash
+# Before committing (MANDATORY)
+make val               # Complete validation: lint + type + security + test
+
+# Individual checks
+make lint                   # Ruff linting (ZERO tolerance)
+make type-check             # Pyrefly type checking (strict)
+make security               # Bandit security scan
+make test                   # Test suite with coverage
+
+# Formatting
+make format                 # Auto-format with Ruff
+```
+
+### Development Pattern (v0.12.0-dev)
+
+```python
+from __future__ import annotations
+
+from flext_cli import cli
+from flext_core import r, p
+
+
+def my_cli_application() -> p.Result[bool]:
+    """Application using v0.12.0-dev patterns."""
+    
+    # Direct access to all services
+    cli.print("Starting...", style="cyan")
+
+    # File operations
+    config_result = cli.read_json_file("settings.json")
+
+    if not config_result.success:
+        cli.print(f"Error: {config_result.error}", style="red")
+        return r[bool].fail(config_result.error)
+
+    # User interaction
+    confirm_result = cli.confirm("Continue?")
+    if confirm_result.success and confirm_result.unwrap():
+        cli.print("Processing...", style="green")
+        return r[bool].ok(value=True)
+    return r[bool].fail("Operation cancelled")
+```
+
+### Testing Your CLI Code
+
+```text
+import pytest
+from flext_cli import cli
+
+
+def test_my_cli_operation():
+    """Test using v0.12.0-dev patterns."""
+    
+    # Test file operations (direct access)
+    result = cli.read_json_file("test_config.json")
+
+    assert result.success
+    settings = result.unwrap()
+    assert "required_field" in settings
+```
+
+______________________________________________________________________
+
+## Next Steps
+
+### Learn More
+
+- **[API Reference](api-reference/README.md)** - Complete API documentation
+- **[Architecture](architecture.md)** - Architecture and design patterns
+- **[Development Guide](development.md)** - Contributing and extending
+
+### Migration from v0.9.0
+
+If you're upgrading from v0.9.0, see:
+
+- **[Migration Guide](refactoring/migration-guide-v0.9-to-v0.10.md)** - Step-by-step migration
+- **[Breaking Changes](refactoring/breaking-changes.md)** - Complete breaking changes list
+- **[Architecture Comparison](refactoring/architecture-comparison.md)** - Before/after comparison
+
+## Related Documentation
+
+**Within Project**:
+
+- [API Reference](api-reference/README.md) - Complete API documentation
+- [Architecture](architecture.md) - Architecture and design patterns
+- [Development Guide](development.md) - Contributing and extending
+- [Migration Guide](refactoring/migration-guide-v0.9-to-v0.10.md) - v0.9.0 to v0.12.0-dev migration
+
+**Across Projects**:
+
+- [flext-core Foundation](https://github.com/organization/flext/tree/main/flext-core/docs/guides/railway-oriented-programming.md) - Railway-oriented programming patterns
+- [flext-core CLI Patterns](https://github.com/organization/flext/tree/main/flext-core/docs/guides/service-patterns.md) - Service patterns
+
+**External Resources**:
+
+- [PEP 257 - Docstring Conventions](https://peps.python.org/pep-0257/)
+- [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html)
+
+### Examples
+
+Check `examples/` directory for complete application samples:
+
+- Basic CLI application
+- File processing workflows
+- Interactive prompts
+- Table formatting
+- Configuration management
+
+______________________________________________________________________
+
+## v0.9.0 Getting Started (Historical Reference)
+
+**Note**: The following documentation describes v0.9.0 patterns with wrapper methods. This is kept for historical reference during the migration period.
+
+## Development Patterns (v0.9.0)
+
+### Working Development Pattern
+
+```text
+# This development pattern demonstrates v0.9.0 wrapper methods (historical reference).
+from flext_cli import cli, config, settings, c, e, d, h, p, r, s, t, u, x
+
+# Service initialization and operation
+service = FlextCliService()
+health = service.get_service_health()
+assert health.success
+
+# Authentication functionality
+auth = FlextCliAuth()
+methods = [m for m in dir(auth) if not m.startswith("_")]
+u.Cli.print(f"Available auth methods: {len(methods)}")  # 35+ methods
+
+# Configuration management
+settings = FlextCliSettings(profile="development", debug=True, output_format="table")
+```
+
+______________________________________________________________________
+
+## Quality Validation
+
+### Validation Commands
+
+```bash
+# Development workflow - these work correctly
+make lint                    # Ruff linting (passes for src/)
+make type-check             # MyPy strict mode (passes for src/)
+make format                 # Auto-format code
+make test                   # Run comprehensive test suite
+```
+
+### Implementation Verification
+
+```bash
+# Verify substantial implementation metrics
+find src/ -name "*.py" -exec wc -l {} + | tail -1
+# Expected: 10,000+ lines across 32 modules
+
+# Verify core services load
+python -c "from flext_cli import cli; cli.print('✅ All core services import successfully')"
+```
+
+______________________________________________________________________
+
+## Next Steps
+
+**For Development**:
+
+- Library ready for extension and integration
+- Focus on Click callback signature fix for CLI commands
+- Comprehensive test coverage achievable with substantial codebase
+- Modern enterprise patterns already implemented
+
+**Ready For**:
+
+- Service integration (authentication, API, configuration work)
+- Extension development (substantial foundation available)
+- Architecture evaluation (enterprise-grade patterns in place)
+
+______________________________________________________________________
+
+**Development Status**: Enterprise-grade foundation with targeted CLI execution fix required.

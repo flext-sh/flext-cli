@@ -8,9 +8,10 @@ from __future__ import annotations
 
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
-from flext_core import t
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliConstantsFiles:
@@ -25,6 +26,7 @@ class FlextCliConstantsFiles:
         BIN = "bin"
         JSON = "json"
         YAML = "yaml"
+        TOML = "toml"
         CSV = "csv"
         UNKNOWN = "unknown"
 
@@ -33,12 +35,18 @@ class FlextCliConstantsFiles:
     FILE_FORMAT_BIN: Final[FileFormat] = FileFormat.BIN
     FILE_FORMAT_JSON: Final[FileFormat] = FileFormat.JSON
     FILE_FORMAT_YAML: Final[FileFormat] = FileFormat.YAML
+    FILE_FORMAT_TOML: Final[FileFormat] = FileFormat.TOML
     FILE_FORMAT_CSV: Final[FileFormat] = FileFormat.CSV
     FILE_FORMAT_UNKNOWN: Final[FileFormat] = FileFormat.UNKNOWN
 
-    KNOWN_FORMATS: Final[frozenset[str]] = frozenset(
-        {"auto", "text", "bin", "json", "yaml", "csv"},
-    )
+    KNOWN_FORMATS: Final[frozenset[str]] = frozenset({
+        "auto",
+        "text",
+        "bin",
+        "json",
+        "yaml",
+        "csv",
+    })
 
     EXT_TO_FMT: Final[t.StrMapping] = MappingProxyType({
         ".txt": "text",

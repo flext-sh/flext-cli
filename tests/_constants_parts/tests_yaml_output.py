@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from flext_cli import c
-from tests.typings import t
+
+if TYPE_CHECKING:
+    from tests import t
 
 
 class TestsFlextCliConstantsYamlOutput:
@@ -16,13 +18,13 @@ class TestsFlextCliConstantsYamlOutput:
     YAML_INVALID_CONTENT: Final[str] = "key: [unterminated"
     YAML_NON_MAPPING_CONTENT: Final[str] = "- item1\n- item2\n"
 
-    # parse(text) → (text, expect_ok, expect_empty_dict)
-    YAML_PARSE_CASES: Final[tuple[tuple[str, bool, bool], ...]] = (
-        (YAML_VALID_CONTENT, True, False),
-        ("", True, True),
-        ("null\n", True, True),
-        (YAML_INVALID_CONTENT, False, False),
-        (YAML_NON_MAPPING_CONTENT, False, False),
+    # parse(text) → (text, expect_ok); empty/null inputs fail loudly.
+    YAML_PARSE_CASES: Final[tuple[tuple[str, bool], ...]] = (
+        (YAML_VALID_CONTENT, True),
+        ("", False),
+        ("null\n", False),
+        (YAML_INVALID_CONTENT, False),
+        (YAML_NON_MAPPING_CONTENT, False),
     )
 
     # dump: (data, sort_keys, expect_ok)
@@ -64,12 +66,6 @@ class TestsFlextCliConstantsYamlOutput:
     )
 
     # ── FORMATTERS ─────────────────────────────────────────────────
-    FORMATTER_TREE_LABELS: Final[t.StrSequence] = (
-        "Root",
-        "Branch",
-        "",
-    )
-
     # (columns, rows, title)
     FORMATTER_TABLE_CASES: Final[
         tuple[tuple[t.StrSequence, tuple[t.StrSequence, ...], str], ...]
@@ -84,11 +80,7 @@ class TestsFlextCliConstantsYamlOutput:
         ("No title content", ""),
     )
 
-    FORMATTER_RULE_LABELS: Final[t.StrSequence] = (
-        "Section Header",
-        "Done",
-        "",
-    )
+    FORMATTER_RULE_LABELS: Final[t.StrSequence] = ("Section Header", "Done", "")
 
     # ── OUTPUT (services/output.py) ────────────────────────────────
     # display_message: (message, message_type | None)
@@ -109,11 +101,7 @@ class TestsFlextCliConstantsYamlOutput:
     )
 
     # header / text display
-    OUTPUT_HEADER_LABELS: Final[t.StrSequence] = (
-        "Section Start",
-        "Processing",
-        "",
-    )
+    OUTPUT_HEADER_LABELS: Final[t.StrSequence] = ("Section Start", "Processing", "")
 
     OUTPUT_TEXT_CASES: Final[tuple[tuple[str, str | None], ...]] = (
         ("plain text", None),

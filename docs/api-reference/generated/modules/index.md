@@ -21,6 +21,7 @@ These pages are generated from public modules and their docstrings.
 - [flext_cli.services.rules](services/rules.md)
 - [flext_cli.services.runtime](services/runtime.md)
 - [flext_cli.services.tables](services/tables.md)
-- [flext_cli.settings](settings.md)
+- [flext_cli.services.xlsx](services/xlsx.md)
+- [flext_cli.services.yaml_model](services/yaml_model.md)
 - [flext_cli.typings](typings.md)
 - [flext_cli.utilities](utilities.md)

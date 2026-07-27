@@ -10,10 +10,7 @@ from ._cases.test_prompts.testsflextcliprompts_part_02 import (
 )
 
 
-class TestsFlextCliPrompts(
-    TestsFlextCliPromptsPart01,
-    TestsFlextCliPromptsPart02,
-):
+class TestsFlextCliPrompts(TestsFlextCliPromptsPart01, TestsFlextCliPromptsPart02):
     """Public facade for TestsFlextCliPrompts."""
 
 

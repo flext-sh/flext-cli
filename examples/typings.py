@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Callable,
-)
+from collections.abc import Callable
 from typing import ClassVar
 
 from flext_cli import FlextCli, t
@@ -22,13 +20,10 @@ class ExamplesFlextCliTypes(t):
     type DataProcessor = Callable[[str], str]
     type ProcessorRegistry = t.MappingKV[str, DataProcessor]
     JSON_DICT_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = m.TypeAdapter(
-        t.JsonMapping,
+        t.JsonMapping
     )
 
 
 t = ExamplesFlextCliTypes
 
-__all__: list[str] = [
-    "ExamplesFlextCliTypes",
-    "t",
-]
+__all__: list[str] = ["ExamplesFlextCliTypes", "t"]

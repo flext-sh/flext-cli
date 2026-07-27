@@ -9,13 +9,16 @@ reimplementing them.
 from __future__ import annotations
 
 from collections.abc import Mapping, MutableMapping
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_cli import c, p, r
 from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
     FlextCliUtilitiesFileTestHelpersMixin as FlextCliUtilitiesFileTestHelpersMixinPart04,
 )
 from flext_cli._utilities.files import FlextCliUtilitiesFiles
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliUtilitiesFileTestHelpersMixin:
@@ -49,7 +52,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
         if mode == "hash":
             return r[bool].ok(
                 FlextCliUtilitiesFiles.sha256_file(file1)
-                == FlextCliUtilitiesFiles.sha256_file(file2),
+                == FlextCliUtilitiesFiles.sha256_file(file2)
             )
         if mode == "lines":
             try:
@@ -81,10 +84,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
 
     @staticmethod
     def files_info(
-        path: Path,
-        *,
-        compute_hash: bool = False,
-        parse_content: bool = False,
+        path: Path, *, compute_hash: bool = False, parse_content: bool = False
     ) -> p.Result[Mapping[str, object]]:
         """Return generic file metadata.
 
@@ -117,8 +117,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
         if parse_content and path.is_file():
             parsed_result = (
                 FlextCliUtilitiesFileTestHelpersMixinPart04.files_parse_content(
-                    path,
-                    str(info["format"]),
+                    path, str(info["format"])
                 )
             )
             info["parsed"] = parsed_result

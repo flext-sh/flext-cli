@@ -6,22 +6,23 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from tests.constants import c
-from tests.typings import t
-from tests.utilities import u
+
+from flext_tests import tm
+from tests import c, t, u
 
 
 class TestsFlextCliRulesCov:
     """Implementation part for TestsFlextCliRulesCov."""
 
     def test_rules_resolve_scope_with_data(self) -> None:
+        """Verify that rules resolve scope with data."""
         result = u.Cli.rules_resolve_scope(
             {"lint": {"rule_a": True, "rule_b": False}},
             scope_key="lint",
             allowed_keys=("rule_a", "rule_b"),
         )
-        assert "rule_a" in result
-        assert "rule_b" in result
+        tm.that(result, has="rule_a")
+        tm.that(result, has="rule_b")
 
     @pytest.mark.parametrize(
         ("settings", "scope_key", "allowed_keys", "expected_len"),
@@ -34,14 +35,14 @@ class TestsFlextCliRulesCov:
         allowed_keys: t.StrSequence,
         expected_len: int,
     ) -> None:
+        """Verify that rules resolve scope parametrized."""
         result = u.Cli.rules_resolve_scope(
-            settings,
-            scope_key=scope_key,
-            allowed_keys=allowed_keys,
+            settings, scope_key=scope_key, allowed_keys=allowed_keys
         )
-        assert len(result) == expected_len
+        tm.that(len(result), eq=expected_len)
 
     def test_rules_load_scoped_config_valid(self) -> None:
+        """Verify that rules load scoped config valid."""
         yaml_content = "lint:\n  rule_a: true\n  rule_b: false\n"
         with tempfile.NamedTemporaryFile(
             mode="w", suffix=".yml", delete=False, encoding="utf-8"
@@ -49,13 +50,12 @@ class TestsFlextCliRulesCov:
             f.write(yaml_content)
             config_path = Path(f.name)
         result = u.Cli.rules_load_scoped_config(
-            config_path,
-            scope_key="lint",
-            allowed_keys=("rule_a", "rule_b"),
+            config_path, scope_key="lint", allowed_keys=("rule_a", "rule_b")
         )
-        assert result.success
+        tm.ok(result)
 
     def test_rules_load_registry_found(self) -> None:
+        """Verify that rules load registry found."""
         with tempfile.TemporaryDirectory() as tmpdir:
             rules_dir = Path(tmpdir) / "rules"
             rules_dir.mkdir()
@@ -69,9 +69,10 @@ class TestsFlextCliRulesCov:
                 registry_filename="engine-registry.yml",
                 rules_dir_name="rules",
             )
-            assert result.success
+            tm.ok(result)
 
     def test_rules_load_registry_package_fallback(self) -> None:
+        """Verify that rules load registry package fallback."""
         with tempfile.TemporaryDirectory() as tmpdir:
             pkg_rules_dir = Path(tmpdir) / "pkg_rules"
             pkg_rules_dir.mkdir()
@@ -84,9 +85,10 @@ class TestsFlextCliRulesCov:
                 package_rules_dir=pkg_rules_dir,
                 registry_filename="engine-registry.yml",
             )
-            assert result.success
+            tm.ok(result)
 
     def test_rules_load_registry_checks_local_then_package(self) -> None:
+        """Verify that rules load registry checks local then package."""
         with tempfile.TemporaryDirectory() as tmpdir:
             local_rules_dir = Path(tmpdir) / "rules"
             package_rules_dir = Path(tmpdir) / "pkg_rules"
@@ -105,16 +107,16 @@ class TestsFlextCliRulesCov:
                 package_rules_dir=package_rules_dir,
                 registry_filename="engine-registry.yml",
             )
-            assert result.success
+            tm.ok(result)
             value = result.value
-            assert isinstance(value, dict)
+            tm.that(value, is_=dict)
             rules_val = value.get("rules")
-            assert isinstance(rules_val, list)
-            rule = rules_val[0]
-            assert isinstance(rule, dict)
-            assert rule.get("id") == "rule-a"
+            rules = t.Cli.JSON_LIST_ADAPTER.validate_python(rules_val)
+            rule = t.Cli.JSON_MAPPING_ADAPTER.validate_python(rules[0])
+            tm.that(rule.get("id"), eq="rule-a")
 
     def test_rules_load_registry_not_found(self) -> None:
+        """Verify that rules load registry not found."""
         with tempfile.TemporaryDirectory() as tmpdir:
             pkg_rules_dir = Path(tmpdir) / "pkg_rules"
             pkg_rules_dir.mkdir()
@@ -125,7 +127,7 @@ class TestsFlextCliRulesCov:
                 package_rules_dir=pkg_rules_dir,
                 registry_filename="engine-registry.yml",
             )
-            assert result.failure
+            tm.fail(result)
 
 
 __all__: list[str] = ["TestsFlextCliRulesCov"]

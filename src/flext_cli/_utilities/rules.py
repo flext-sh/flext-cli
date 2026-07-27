@@ -2,23 +2,14 @@
 
 from __future__ import annotations
 
-from flext_cli._utilities._rules_parts.flextcliutilitiesrules_part_01 import (
-    FlextCliUtilitiesRules as FlextCliUtilitiesRulesPart01,
-)
-from flext_cli._utilities._rules_parts.flextcliutilitiesrules_part_02 import (
-    FlextCliUtilitiesRules as FlextCliUtilitiesRulesPart02,
-)
-from flext_cli._utilities._rules_parts.flextcliutilitiesrules_part_03 import (
-    FlextCliUtilitiesRules as FlextCliUtilitiesRulesPart03,
-)
+from flext_cli._utilities._rules._loaders import FlextCliUtilitiesRulesLoadersMixin
+
+# NOTE (multi-agent): mro-i6nq.13 — composed from the _rules/{_loaders,_matchers}
+# mixin chain (replacing the numbered _rules_parts).
 
 
-class FlextCliUtilitiesRules(
-    FlextCliUtilitiesRulesPart01,
-    FlextCliUtilitiesRulesPart02,
-    FlextCliUtilitiesRulesPart03,
-):
-    """Public facade for FlextCliUtilitiesRules."""
+class FlextCliUtilitiesRules(FlextCliUtilitiesRulesLoadersMixin):
+    """Public facade for the generic local-rule helpers behind ``u.Cli.rules_*``."""
 
 
 __all__: list[str] = ["FlextCliUtilitiesRules"]

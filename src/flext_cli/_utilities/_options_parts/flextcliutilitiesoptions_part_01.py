@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Sequence,
-)
+from collections.abc import Sequence
 from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import Annotated, TypeAliasType, get_args, get_origin
@@ -27,11 +25,13 @@ class FlextCliUtilitiesOptions:
                 [
                     get_origin(Sequence[str]),
                     get_origin(list[str]),
+                    # mro-j2yt (codex): Typer repeats canonical tuple model fields.
+                    get_origin(tuple[str, ...]),
                     get_origin(t.StrSequence),
                     t.SequenceOf,
                     t.MutableSequenceOf,
                 ],
-            ),
+            )
         )
         set_origins: dict[object, type] = {
             o: t_
@@ -71,7 +71,7 @@ class FlextCliUtilitiesOptions:
         if origin in sequence_origins:
             inner_annotation = next(iter(get_args(resolved_annotation_input)), str)
             resolved_inner = FlextCliUtilitiesOptions.resolve_typer_annotation(
-                inner_annotation,
+                inner_annotation
             )
             sequence_item = resolved_inner if isinstance(resolved_inner, type) else str
             return GenericAlias(list, (sequence_item,))
@@ -87,9 +87,7 @@ class FlextCliUtilitiesOptions:
         )
 
     @staticmethod
-    def is_string_sequence(
-        value: t.Cli.CliDefaultSource,
-    ) -> bool:
+    def is_string_sequence(value: t.Cli.CliDefaultSource) -> bool:
         """Return True for concrete string sequences accepted by repeated CLI options."""
         if isinstance(value, Path) or not isinstance(value, Sequence):
             return False
@@ -99,8 +97,7 @@ class FlextCliUtilitiesOptions:
 
     @classmethod
     def normalize_cli_atom(
-        cls,
-        value: t.Cli.CliDefaultSource,
+        cls, value: t.Cli.CliDefaultSource
     ) -> t.Cli.DefaultAtom | None:
         """Normalize one runtime value into an allowed Typer scalar or string sequence."""
         if isinstance(value, c.Cli.CLI_SCALAR_TYPES_TUPLE):

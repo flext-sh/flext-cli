@@ -47,6 +47,7 @@ class FlextCliConstantsOutput:
     OUTPUT_DEFAULT_MESSAGE_TYPE: Final[ce.MessageTypes] = ce.MessageTypes.INFO
     OUTPUT_DEFAULT_FORMAT_TYPE: Final[ce.OutputFormats] = ce.OutputFormats.TABLE
     OUTPUT_HEADER_RULE_WIDTH: Final[int] = 60
+    OUTPUT_PLAIN_MESSAGE_THRESHOLD: Final[int] = 10000
     OUTPUT_LOG_LEVEL_DEBUG: Final[str] = "DEBUG"
     OUTPUT_LOG_LEVEL_ERROR: Final[str] = "ERROR"
     OUTPUT_LOG_LEVEL_INFO: Final[str] = "INFO"
@@ -94,18 +95,15 @@ class FlextCliConstantsOutput:
         ce.TabularFormat.TSV: "Tab-separated values",
     })
 
-    MESSAGE_STYLE_MAP: ClassVar[
-        t.MappingKV[
-            ce.MessageTypes,
-            ce.MessageStyles,
-        ]
-    ] = MappingProxyType({
-        ce.MessageTypes.INFO: ce.MessageStyles.BLUE,
-        ce.MessageTypes.SUCCESS: ce.MessageStyles.BOLD_GREEN,
-        ce.MessageTypes.ERROR: ce.MessageStyles.BOLD_RED,
-        ce.MessageTypes.WARNING: ce.MessageStyles.BOLD_YELLOW,
-        ce.MessageTypes.DEBUG: ce.MessageStyles.DIM,
-    })
+    MESSAGE_STYLE_MAP: ClassVar[t.MappingKV[ce.MessageTypes, ce.MessageStyles]] = (
+        MappingProxyType({
+            ce.MessageTypes.INFO: ce.MessageStyles.BLUE,
+            ce.MessageTypes.SUCCESS: ce.MessageStyles.BOLD_GREEN,
+            ce.MessageTypes.ERROR: ce.MessageStyles.BOLD_RED,
+            ce.MessageTypes.WARNING: ce.MessageStyles.BOLD_YELLOW,
+            ce.MessageTypes.DEBUG: ce.MessageStyles.DIM,
+        })
+    )
 
     MESSAGE_EMOJI_MAP: ClassVar[t.MappingKV[ce.MessageTypes, str]] = MappingProxyType({
         ce.MessageTypes.INFO: EMOJI_INFO,

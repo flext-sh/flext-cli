@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar
 
 from examples import c, t
-from flext_cli import m, u
+from flext_cli import m, settings, u
 
 
 class ExamplesFlextCliModelsExamplesCommon:
@@ -30,14 +30,10 @@ class ExamplesFlextCliModelsExamplesCommon:
                 continue
             validated_value: t.EnvValue = m.TypeAdapter(
                 field_types[field_name]
-            ).validate_python(
-                os.environ[env_name],
-            )
+            ).validate_python(os.environ[env_name])
             if isinstance(validated_value, Mapping):
                 env_overrides[field_name] = dict(
-                    t.JSON_DICT_ADAPTER.validate_python(
-                        validated_value,
-                    ),
+                    t.JSON_DICT_ADAPTER.validate_python(validated_value)
                 )
                 continue
             if isinstance(validated_value, Path | str | int | float | bool):
@@ -55,37 +51,22 @@ class ExamplesFlextCliModelsExamplesCommon:
         """Custom settings for YOUR CLI application — Pydantic v2 only."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
+            extra="forbid", validate_assignment=True
         )
-        app_name: Annotated[
-            str,
-            m.Field(
-                description="Application name",
-            ),
-        ] = c.EXAMPLE_DEFAULT_TOOL_NAME
+        app_name: Annotated[str, m.Field(description="Application name")] = (
+            c.EXAMPLE_DEFAULT_TOOL_NAME
+        )
         api_key: Annotated[str, m.Field(description="API key")] = ""
-        max_workers: Annotated[
-            int,
-            m.Field(
-                ge=1,
-                description="Max workers",
-            ),
-        ] = c.EXAMPLE_DEFAULT_MAX_WORKERS
-        timeout: Annotated[
-            int,
-            m.Field(
-                ge=1,
-                description="Timeout in seconds",
-            ),
-        ] = c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS
+        max_workers: Annotated[int, m.Field(ge=1, description="Max workers")] = (
+            c.EXAMPLE_DEFAULT_MAX_WORKERS
+        )
+        timeout: Annotated[int, m.Field(ge=1, description="Timeout in seconds")] = (
+            c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS
+        )
 
         @u.model_validator(mode="before")
         @classmethod
-        def _inject_env(
-            cls,
-            data: t.ExampleModelInput,
-        ) -> t.ExampleModelInput:
+        def _inject_env(cls, data: t.ExampleModelInput) -> t.ExampleModelInput:
             return ExamplesFlextCliModelsExamplesCommon.merge_env_overrides(
                 data,
                 c.EXAMPLE_ENV_MAP_MY_APP,
@@ -96,27 +77,22 @@ class ExamplesFlextCliModelsExamplesCommon:
             )
 
         def display(self, cli: t.CliApi) -> None:
-            """Display app settings; uses cli for base settings."""
-            settings = cli.settings
+            """Display app settings; uses the canonical CLI settings singleton."""
             payload_data: t.JsonMapping = {
                 "App Name": self.app_name,
                 "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
                 "Max Workers": str(self.max_workers),
                 "Timeout": f"{self.timeout}s",
                 "Debug": str(settings.debug),
-                "App": settings.Cli.app_name,
+                "App": settings.cli_app_name,
             }
-            payload = m.Cli.DisplayData(
-                data=payload_data,
-            )
+            payload = m.Cli.DisplayData(data=payload_data)
             if isinstance(payload.data, dict):
                 safe_data: t.Cli.TableMappingRow = {
                     k: str(v) for k, v in payload.data.items()
                 }
                 cli.show_table(
-                    safe_data,
-                    show_header=True,
-                    title="⚙️  Application Settings",
+                    safe_data, show_header=True, title="⚙️  Application Settings"
                 )
 
 

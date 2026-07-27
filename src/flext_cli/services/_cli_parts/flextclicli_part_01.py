@@ -6,21 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-    Sequence,
-)
+from collections.abc import Mapping, Sequence
 from inspect import Parameter, Signature
-from types import EllipsisType, GenericAlias
+from types import GenericAlias
 
-from typer.models import OptionInfo
-
-from flext_cli import (
-    m,
-    p,
-    t,
-    u,
-)
+from flext_cli import m, p, t, u
 
 
 class FlextCliCli:
@@ -36,58 +26,41 @@ class FlextCliCli:
 
         __name__: str
         __signature__: Signature
-        config: t.Cli.ModelLike | None
         _handler: p.Cli.ModelCommandHandler[M]
-        _model_cls: t.Cli.ModelType[M]
+        _model_cls: t.ModelClass[M]
 
         def __init__(
             self,
             *,
-            settings: t.Cli.ModelLike | None,
             handler: p.Cli.ModelCommandHandler[M],
-            model_cls: t.Cli.ModelType[M],
+            model_cls: t.ModelClass[M],
             parameters: t.SequenceOf[Parameter],
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
             self.__signature__ = Signature(parameters)
-            self.config = settings
             self._handler = handler
             self._model_cls = model_cls
 
         def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
             model = self._model_cls.model_validate(kwargs)
-            if self.config is not None:
-                config_field_names = frozenset(type(self.config).model_fields)
-                for field_name, field_value in model.model_dump(
-                    exclude_none=True,
-                ).items():
-                    if field_name in config_field_names:
-                        setattr(self.config, field_name, field_value)
             return self._handler(model)
 
     @classmethod
     def _build_model_parameter(
-        cls,
-        field_name: str,
-        field_info: m.FieldInfo,
-        settings: t.Cli.ModelLike | None,
+        cls, field_name: str, field_info: m.FieldInfo, settings: t.Cli.ModelLike | None
     ) -> tuple[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from a Pydantic field."""
         alias = getattr(field_info, "alias", None)
         cli_name = alias or field_name
         option_name = f"--{cli_name.replace('_', '-')}"
         annotation = u.Cli.resolve_typer_annotation(
-            getattr(field_info, "annotation", None) or str,
+            getattr(field_info, "annotation", None) or str
         )
         is_required = field_info.is_required()
-        default_value: t.Cli.CliValue | EllipsisType | None = (
-            ...
+        default_value: t.Cli.CliValue | None = (
+            None
             if is_required
-            else u.Cli.field_default(
-                field_name,
-                field_info,
-                settings,
-            )
+            else u.Cli.field_default(field_name, field_info, settings)
         )
         option_decls = [option_name]
         extra = getattr(field_info, "json_schema_extra", None)
@@ -101,18 +74,14 @@ class FlextCliCli:
             option_decls = [f"--{dashed_name}/--no-{dashed_name}"]
         if custom_param_decls is not None:
             option_decls = custom_param_decls
-        option = OptionInfo(
+        spec = m.Cli.OptionSpec(
+            declarations=tuple(option_decls),
+            help_text=getattr(field_info, "description", None) or "",
             default=default_value,
-            param_decls=option_decls,
-            help=getattr(field_info, "description", None),
+            required=is_required,
         )
         return (
-            Parameter(
-                field_name,
-                kind=Parameter.KEYWORD_ONLY,
-                default=option,
-                annotation=annotation,
-            ),
+            u.Cli.framework_build_parameter(field_name, annotation, spec),
             annotation,
         )
 

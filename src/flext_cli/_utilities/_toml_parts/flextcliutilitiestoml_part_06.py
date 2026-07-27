@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 import tomlkit
 from tomlkit.toml_document import TOMLDocument
@@ -13,6 +13,9 @@ from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
 )
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur
 from flext_core import u
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliUtilitiesToml:
@@ -42,8 +45,7 @@ class FlextCliUtilitiesToml:
         doc = FlextCliUtilitiesToml.toml_read(path)
         if doc is None:
             return e.fail_validation(
-                f"TOML parse failed for: {path}",
-                result_type=r[TOMLDocument],
+                f"TOML parse failed for: {path}", result_type=r[TOMLDocument]
             )
         return r[TOMLDocument].ok(doc)
 
@@ -52,9 +54,7 @@ class FlextCliUtilitiesToml:
         """Read TOML and return the unwrapped root table as ``JsonMapping``."""
         if not path.exists():
             return e.fail_not_found(
-                "TOML file",
-                str(path),
-                result_type=r[t.JsonMapping],
+                "TOML file", str(path), result_type=r[t.JsonMapping]
             )
         try:
             original_rendered = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
@@ -63,8 +63,7 @@ class FlextCliUtilitiesToml:
         mapping = FlextCliUtilitiesTomlPart01.toml_mapping_from_text(original_rendered)
         if mapping is None:
             return e.fail_validation(
-                f"TOML parse failed for: {path}",
-                result_type=r[t.JsonMapping],
+                f"TOML parse failed for: {path}", result_type=r[t.JsonMapping]
             )
         return r[t.JsonMapping].ok(mapping)
 
@@ -91,18 +90,16 @@ class FlextCliUtilitiesToml:
         return (
             ur
             .run_raw(command, cwd=path.parent)
-            .map_error(
-                lambda err: err or f"taplo format failed: {path}",
-            )
+            .map_error(lambda err: err or f"taplo format failed: {path}")
             .flat_map(
                 lambda output: (
                     r[bool].ok(True)
                     if output.exit_code == 0
                     else r[bool].fail(
                         (output.stderr or output.stdout).strip()
-                        or f"taplo format failed: {path}",
+                        or f"taplo format failed: {path}"
                     )
-                ),
+                )
             )
         )
 
@@ -111,19 +108,13 @@ class FlextCliUtilitiesToml:
         """Write a TOML document and format managed pyproject files."""
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            u.write_file(
-                path,
-                doc.as_string(),
-                encoding=c.Cli.ENCODING_DEFAULT,
-            )
+            u.write_file(path, doc.as_string(), encoding=c.Cli.ENCODING_DEFAULT)
         except OSError as exc:
             return e.fail_operation("TOML write", exc, result_type=r[bool])
         return (
             FlextCliUtilitiesToml
             ._format_pyproject(path)
-            .map_error(
-                lambda err: err or f"taplo format failed: {path}",
-            )
+            .map_error(lambda err: err or f"taplo format failed: {path}")
             .map(lambda _ok: True)
         )
 

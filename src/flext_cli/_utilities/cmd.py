@@ -11,31 +11,29 @@ class FlextCliUtilitiesCmd:
     """Utility helpers for FlextCliCmd service orchestration."""
 
     @staticmethod
-    def cmd_status_payload() -> t.JsonMapping:
-        """Return the canonical public CLI runtime status payload."""
-        return {
-            c.Cli.DICT_KEY_STATUS: c.Cli.ServiceStatus.OPERATIONAL,
-            c.Cli.DICT_KEY_SERVICE: c.Cli.FLEXT_CLI,
-            "timestamp": u.generate("timestamp"),
-            "version": c.Cli.CLI_VERSION,
-            "components": {
-                "settings": "available",
-                "formatters": "available",
-                "prompts": "available",
-                "rules": "available",
-            },
-        }
+    def cmd_status() -> m.Cli.RuntimeStatus:
+        """Return the canonical public CLI runtime status model."""
+        return m.Cli.RuntimeStatus(
+            status=c.Cli.ServiceStatus.OPERATIONAL,
+            service=c.Cli.FLEXT_CLI,
+            timestamp=u.generate("timestamp"),
+            version=c.Cli.CLI_VERSION,
+            components=m.Cli.RuntimeComponents(
+                settings="available",
+                formatters="available",
+                prompts="available",
+                rules="available",
+            ),
+        )
 
     @staticmethod
     def cmd_settings_snapshot() -> p.Result[m.Cli.SettingsSnapshot]:
         """Return settings snapshot with canonical error mapping."""
         try:
-            return r[m.Cli.SettingsSnapshot].ok(
-                us.settings_snapshot(),
-            )
+            return r[m.Cli.SettingsSnapshot].ok(us.settings_snapshot())
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             return r[m.Cli.SettingsSnapshot].fail(
-                c.Cli.ERR_SETTINGS_INFO_FAILED.format(error=exc),
+                c.Cli.ERR_SETTINGS_INFO_FAILED.format(error=exc)
             )
 
     @staticmethod
@@ -44,7 +42,7 @@ class FlextCliUtilitiesCmd:
         info_result = FlextCliUtilitiesCmd.cmd_settings_snapshot()
         if info_result.failure:
             return r[bool].fail(
-                c.Cli.ERR_SHOW_SETTINGS_FAILED.format(error=info_result.error),
+                c.Cli.ERR_SHOW_SETTINGS_FAILED.format(error=info_result.error)
             )
         logger.info(
             c.Cli.LOG_MSG_SETTINGS_DISPLAYED,
@@ -59,13 +57,11 @@ class FlextCliUtilitiesCmd:
             results = us.validate_settings_structure()
             if results:
                 logger.info(
-                    c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results),
+                    c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results)
                 )
             return r[bool].ok(True)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[bool].fail(
-                c.Cli.ERR_SETTINGS_VALIDATION_FAILED.format(error=exc),
-            )
+            return r[bool].fail(c.Cli.ERR_SETTINGS_VALIDATION_FAILED.format(error=exc))
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCmd"]

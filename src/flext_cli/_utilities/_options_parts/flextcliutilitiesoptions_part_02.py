@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
+from collections.abc import Mapping
 
-from flext_cli import c, m, p, t
+from flext_cli import c, m, t
 from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
     FlextCliUtilitiesOptionBuilder,
 )
@@ -20,10 +18,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
 
     @classmethod
     def field_default(
-        cls,
-        field_name: str,
-        field_info: m.FieldInfo,
-        settings: t.Cli.ModelLike | None,
+        cls, field_name: str, field_info: m.FieldInfo, settings: t.Cli.ModelLike | None
     ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata."""
         default_factory = getattr(field_info, "default_factory", None)
@@ -36,7 +31,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
         )
         try:
             normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
-                source_value,
+                source_value
             )
         except c.EXC_VALIDATION_TYPE_VALUE:
             normalized_source = None
@@ -56,7 +51,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
                 normalized_default = normalized_mapping or None
             case _ if cls.is_string_sequence(normalized_source):
                 normalized_default = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(
-                    normalized_source,
+                    normalized_source
                 )
             case _:
                 normalized_default = None
@@ -64,9 +59,8 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
 
     @staticmethod
     def build_option(
-        field_name: str,
-        registry: t.Cli.OptionRegistry,
-    ) -> p.Cli.CliOptionSpec:
+        field_name: str, registry: t.Cli.OptionRegistry
+    ) -> m.Cli.OptionSpec:
         """Build one CLI option spec from the canonical registry."""
         return FlextCliUtilitiesOptionBuilder(field_name, registry).build()
 

@@ -6,26 +6,26 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, Self, override, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_01 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart01,
 )
 from flext_core import p
 
-if TYPE_CHECKING:
-    from flext_cli import t
-
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
     """Implementation part for FlextCliProtocolsBase."""
 
     @runtime_checkable
-    class Settings(p.Settings, Protocol):
-        """Protocol for CLI runtime settings consumed by the public services."""
+    class Settings(p.Settings, FlextCliProtocolsBasePart01.CliSettings, Protocol):
+        """Protocol for CLI runtime settings consumed by the public services.
 
-        Cli: FlextCliProtocolsBasePart01.CliSettings
-        """Namespaced CLI settings branch."""
+        NOTE (multi-agent): settings are flat ``cli_*`` scalars (§2.6); the
+        nested ``Cli`` branch and its pyrefly ``Final`` workaround were
+        removed with it. The flat field contract comes from
+        ``CliSettings`` (part_01) via protocol composition.
+        """
 
         @property
         def debug(self) -> bool:
@@ -35,56 +35,6 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
         @property
         def trace(self) -> bool:
             """Check if trace mode is enabled."""
-            ...
-
-        @override
-        def model_dump(
-            self,
-            *,
-            mode: str = "python",
-            exclude_none: bool = False,
-        ) -> t.JsonMapping:
-            """Dump the settings model into a JSON-compatible mapping."""
-            ...
-
-        @override
-        def clone(self, **overrides: t.SettingsOverride | None) -> Self:
-            """Return a cloned settings instance with overrides applied."""
-            ...
-
-        @classmethod
-        @override
-        def fetch_global(
-            cls,
-            *,
-            overrides: t.ScalarMapping | None = None,
-        ) -> Self:
-            """Return the process-wide singleton settings instance."""
-            ...
-
-        @classmethod
-        @override
-        def update_global(cls, **overrides: t.SettingsOverride | None) -> Self:
-            """Replace the singleton via Pydantic-2 ``model_copy(update=…)``."""
-            ...
-
-        @classmethod
-        def reset_for_testing(cls) -> None:
-            """Reset the process-wide singleton (test isolation only)."""
-            ...
-
-    @runtime_checkable
-    class SettingsType(p.SettingsType, Protocol):
-        """Concrete CLI settings classes with singleton/test hooks."""
-
-        @classmethod
-        @override
-        def fetch_global(
-            cls,
-            *,
-            overrides: t.ScalarMapping | None = None,
-        ) -> FlextCliProtocolsBase.Settings:
-            """Return the process-wide singleton settings instance."""
             ...
 
         @classmethod
@@ -98,22 +48,47 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
 
         @property
         def duration(self) -> float:
-            """Return the command duration in seconds."""
+            """Command duration in seconds."""
             ...
 
         @property
         def exit_code(self) -> int:
-            """Return the command exit code."""
+            """Command exit code."""
             ...
 
         @property
         def stderr(self) -> str:
-            """Return the command standard error."""
+            """Command standard error."""
             ...
 
         @property
         def stdout(self) -> str:
-            """Return the command standard output."""
+            """Command standard output."""
+            ...
+
+    # mro-zf1s: binary command consumers type against p, never the model owner.
+    @runtime_checkable
+    class CommandBytesOutput(Protocol):
+        """Byte-exact external command execution output contract."""
+
+        @property
+        def duration(self) -> float:
+            """Command duration in seconds."""
+            ...
+
+        @property
+        def exit_code(self) -> int:
+            """Command exit code."""
+            ...
+
+        @property
+        def stderr(self) -> bytes:
+            """Command standard error as raw bytes."""
+            ...
+
+        @property
+        def stdout(self) -> bytes:
+            """Command standard output as raw bytes."""
             ...
 
 

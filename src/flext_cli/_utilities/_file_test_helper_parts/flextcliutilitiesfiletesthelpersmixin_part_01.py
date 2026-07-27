@@ -66,8 +66,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
                     cls._files_write_structured(file_path, raw, fmt)
                 elif isinstance(raw, list):
                     FlextCliUtilitiesFiles.files_write_csv(
-                        file_path,
-                        cast("t.SequenceOf[t.StrSequence]", raw),
+                        file_path, cast("t.SequenceOf[t.StrSequence]", raw)
                     )
                 else:
                     file_path.write_text(str(raw), encoding=c.Cli.ENCODING_DEFAULT)
@@ -86,9 +85,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
 
     @staticmethod
     def _files_write_structured(
-        path: Path,
-        data: t.JsonValue,
-        fmt: str,
+        path: Path, data: t.JsonValue, fmt: str
     ) -> p.Result[bool]:
         """Write a structured payload as JSON or YAML."""
         validated = t.Cli.JSON_VALUE_ADAPTER.validate_python(data)

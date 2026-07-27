@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-)
+from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Annotated, ClassVar
 
@@ -18,29 +16,54 @@ class FlextCliModelsBase:
     class CommandOutput(m.Value):
         """Standardized external command execution payload. Use m.Cli.CommandOutput."""
 
-        stdout: Annotated[
-            str,
-            m.Field("", description="Captured standard output"),
-        ] = ""
-        stderr: Annotated[
-            str,
-            m.Field("", description="Captured standard error"),
-        ] = ""
-        exit_code: Annotated[
-            int,
-            m.Field(description="Command exit code"),
-        ] = 0
+        stdout: Annotated[str, m.Field("", description="Captured standard output")] = ""
+        stderr: Annotated[str, m.Field("", description="Captured standard error")] = ""
+        exit_code: Annotated[int, m.Field(description="Command exit code")] = 0
         duration: Annotated[
-            t.NonNegativeFloat,
-            m.Field(0.0, description="Duration in seconds"),
+            t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
         ] = 0.0
+
+    class CommandBytesOutput(m.Value):
+        """Byte-exact external command payload. Use m.Cli.CommandBytesOutput."""
+
+        stdout: Annotated[
+            bytes, m.Field(b"", description="Captured standard output as raw bytes")
+        ] = b""
+        stderr: Annotated[
+            bytes, m.Field(b"", description="Captured standard error as raw bytes")
+        ] = b""
+        exit_code: Annotated[int, m.Field(description="Command exit code")] = 0
+        duration: Annotated[
+            t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
+        ] = 0.0
+
+    class RuntimeComponents(m.BaseModel):
+        """Availability state for canonical CLI runtime components."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        settings: Annotated[str, m.Field(description="Settings component state")]
+        formatters: Annotated[str, m.Field(description="Formatters component state")]
+        prompts: Annotated[str, m.Field(description="Prompts component state")]
+        rules: Annotated[str, m.Field(description="Rules component state")]
+
+    class RuntimeStatus(m.BaseModel):
+        """Canonical public CLI runtime status payload."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        status: Annotated[str, m.Field(description="Overall service state")]
+        service: Annotated[str, m.Field(description="Service identifier")]
+        timestamp: Annotated[str, m.Field(description="Status generation timestamp")]
+        version: Annotated[str, m.Field(description="CLI version")]
+        components: Annotated[
+            FlextCliModelsBase.RuntimeComponents,
+            m.Field(description="Component availability states"),
+        ]
 
     class DisplayData(m.BaseModel):
         """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
+            extra="forbid", validate_assignment=True
         )
         data: Annotated[
             t.JsonMapping,
@@ -59,8 +82,7 @@ class FlextCliModelsBase:
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
+            extra="forbid", validate_assignment=True
         )
         content: Annotated[
             t.JsonMapping,
@@ -80,16 +102,14 @@ class FlextCliModelsBase:
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
         root: Annotated[
-            t.JsonValue,
-            m.Field(description="Normalized JSON-compatible value"),
+            t.JsonValue, m.Field(description="Normalized JSON-compatible value")
         ]
 
     class NormalizedJsonList(m.BaseModel):
         """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonList."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
+            extra="forbid", validate_assignment=True
         )
         value: Annotated[
             t.JsonValue,

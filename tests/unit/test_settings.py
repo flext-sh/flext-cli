@@ -1,10 +1,12 @@
-"""FLEXT CLI Settings Tests - Comprehensive Settings Validation Testing.
+"""FLEXT CLI Settings behavioral tests.
 
-Tests for FlextCliSettings covering initialization, serialization,
-validation, integration workflows, and edge cases.
+Exercises the observable public contract of ``FlextCliSettings`` and the
+canonical ``settings`` singleton: flat scalar defaults (§2.6), the
+``u.Cli.cli_test_env`` truth table, partial ``model_validate`` state
+application, ``model_dump`` shape, and the ``fetch_global`` singleton /
+``reset_for_testing`` isolation contracts.
 
-Modules tested: flext_cli.settings.FlextCliSettings
-Scope: All kept settings operations, validation, integration
+Modules tested: flext_cli.settings.FlextCliSettings, flext_cli.settings.settings
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -14,78 +16,132 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 
-from flext_cli import cli
-from tests.constants import c
-from tests.protocols import p
+from flext_cli import FlextCliSettings, settings, t, u
+from flext_tests import tm
+from tests import c, p
 
 
 class TestsFlextCliSettingsUnit:
-    """Core settings functionality - initialization, serialization, deserialization."""
+    """Observable behavior of the flat CLI settings contract.
 
-    def test_initialization(self) -> None:
-        """Test basic initialization."""
-        settings = cli.new_settings()
-        tm.that(settings, none=False)
-        tm.that(settings, is_=p.Cli.Settings)
+    Class name retains the ``Unit`` suffix because the canonical
+    ``TestsFlextCliSettings`` symbol is already owned by ``tests/settings.py``
+    and this name is registered in the (read-only) tests export registries.
+    """
 
-    def test_serialization_deserialization(self) -> None:
-        """Test model_dump and model_validate."""
-        settings = cli.new_settings()
-        dumped = settings.model_dump()
-        tm.that(dumped, is_=dict)
-        tm.that(dumped, has="Cli")
-        tm.that(dumped["Cli"], has="verbose")
+    def test_settings_singleton_satisfies_contract(self) -> None:
+        """The canonical settings singleton satisfies the Settings protocol."""
+        resolved_settings = tm.not_none(settings)
+        tm.that(resolved_settings, is_=p.Cli.Settings)
 
-    def test_singleton_pattern(self) -> None:
-        """Test singleton behavior via fetch_global."""
-        settings_1 = cli.settings.fetch_global()
-        settings_2 = cli.settings.fetch_global()
-        tm.that(settings_1.Cli.verbose, eq=settings_2.Cli.verbose)
+    def test_fetch_global_returns_shared_singleton(self) -> None:
+        """fetch_global returns the same process-wide instance each call."""
+        tm.that(
+            FlextCliSettings.fetch_global() is FlextCliSettings.fetch_global(), eq=True
+        )
 
-    def test_reset_instance(self) -> None:
-        """Test reset_for_testing resets global state."""
-        cli.new_settings()
-        cli.settings.reset_for_testing()
-        new_settings = cli.new_settings()
-        tm.that(new_settings, none=False)
+    @pytest.mark.parametrize(
+        ("field_name", "expected"),
+        [
+            ("cli_verbose", False),
+            ("cli_quiet", False),
+            ("cli_no_color", False),
+            ("cli_app_name", c.Cli.FLEXT_CLI),
+            ("cli_log_verbosity", c.Cli.LogVerbosity.COMPACT.value),
+            ("cli_log_level", c.LogLevel.INFO.value),
+            ("cli_output_format", c.Cli.OUTPUT_DEFAULT_FORMAT_TYPE.value),
+            ("cli_ci", False),
+            ("cli_config_file", None),
+            ("cli_token_file", None),
+        ],
+    )
+    def test_flat_default_field_state(
+        self, field_name: str, expected: t.Scalar | None
+    ) -> None:
+        """A freshly validated settings object exposes documented defaults."""
+        built = FlextCliSettings.model_validate({})
+        tm.that(getattr(built, field_name), eq=expected)
+
+    def test_top_level_debug_default_is_false(self) -> None:
+        """The inherited top-level debug flag defaults to disabled."""
+        tm.that(FlextCliSettings.model_validate({}).debug, eq=False)
+
+    @pytest.mark.parametrize(
+        ("pytest_current_test", "shell_command", "ci", "expected"),
+        [
+            (None, None, False, False),
+            ("tests/unit/test_settings.py::case", None, False, True),
+            (None, "poetry run pytest -q", False, True),
+            (None, "PYTEST wrapper", False, True),
+            (None, "make lint", False, False),
+            (None, None, True, True),
+            ("case", "make lint", True, True),
+        ],
+    )
+    def test_cli_test_env_truth_table(
+        self,
+        pytest_current_test: str | None,
+        shell_command: str | None,
+        *,
+        ci: bool,
+        expected: bool,
+    ) -> None:
+        """cli_test_env is true iff pytest markers or CI mode are present."""
+        built = FlextCliSettings.model_validate({
+            "cli_pytest_current_test": pytest_current_test,
+            "cli_shell_command": shell_command,
+            "cli_ci": ci,
+        })
+        tm.that(u.Cli.cli_test_env(built), eq=expected)
 
     @pytest.mark.parametrize("level", list(c.LogLevel))
-    def test_logging_levels(self, level: c.LogLevel) -> None:
-        """Every declared log level round-trips through the enum."""
-        tm.that(level, is_=c.LogLevel)
-        tm.that(c.LogLevel(level.value), eq=level)
+    def test_cli_log_level_preserves_each_level(self, level: c.LogLevel) -> None:
+        """Every log level round-trips through the cli_log_level field."""
+        built = FlextCliSettings.model_validate({"cli_log_level": level.value})
+        tm.that(built.cli_log_level, eq=level.value)
 
-    def test_flext_cli_integration(self) -> None:
-        """Test cli uses settings."""
-        instance = cli
-        settings = instance.settings
-        tm.that(settings, none=False)
-        tm.that(settings, is_=p.Cli.Settings)
+    @pytest.mark.parametrize("verbosity", list(c.Cli.LogVerbosity))
+    def test_log_verbosity_preserves_each_mode(
+        self, verbosity: c.Cli.LogVerbosity
+    ) -> None:
+        """Every declared log verbosity mode is retained as public state."""
+        built = FlextCliSettings.model_validate({"cli_log_verbosity": verbosity.value})
+        tm.that(built.cli_log_verbosity, eq=verbosity.value)
 
-    def test_flext_cli_settings_namespace(self) -> None:
-        """Test cli exposes direct namespaced settings access."""
-        settings = cli.settings
-        tm.that(settings, none=False)
-        tm.that(settings, is_=p.Cli.Settings)
+    def test_model_validate_applies_flat_overrides(self) -> None:
+        """Partial model_validate applies flat overrides onto defaults."""
+        built = FlextCliSettings.model_validate({"cli_verbose": True, "cli_ci": True})
+        tm.that(built.cli_verbose, eq=True)
+        tm.that(built.cli_ci, eq=True)
+        tm.that(u.Cli.cli_test_env(built), eq=True)
 
-    @pytest.mark.parametrize("env", list(c.Tests.Environment))
-    def test_valid_environments(self, env: c.Tests.Environment) -> None:
-        """Each declared deployment environment round-trips through the enum."""
-        tm.that(c.Tests.Environment(env.value), eq=env)
+    def test_model_validate_ignores_unknown_fields(self) -> None:
+        """Unknown keys are ignored (extra=ignore) and defaults survive."""
+        built = FlextCliSettings.model_validate({"cli_unknown_field": "x"})
+        tm.that(built.cli_app_name, eq=c.Cli.FLEXT_CLI)
+        tm.that(hasattr(built, "cli_unknown_field"), eq=False)
 
-    def test_model_dump(self) -> None:
-        """Test model_dump returns complete dict."""
-        settings: p.Cli.Settings = cli.new_settings()
-        dumped = settings.model_dump()
+    def test_model_dump_exposes_flat_scalar_fields(self) -> None:
+        """model_dump surfaces the flat cli_* fields without a nested branch."""
+        dumped = FlextCliSettings.model_validate({}).model_dump()
         tm.that(dumped, is_=dict)
-        tm.that(dumped, empty=False)
+        tm.that(dumped, has="cli_verbose")
+        tm.that(dumped, has="cli_log_level")
+        tm.that(dumped, has="cli_output_format")
+        tm.that("Cli" in dumped, eq=False)
 
-    def test_basic_fields_exist(self) -> None:
-        """Test settings has expected fields."""
-        settings: p.Cli.Settings = cli.new_settings()
-        tm.that(settings.Cli.verbose, is_=bool)
-        tm.that(settings.debug, is_=bool)
-        tm.that(settings.Cli.no_color, is_=bool)
-        tm.that(settings.Cli.quiet, is_=bool)
+    def test_clone_yields_distinct_equal_instance(self) -> None:
+        """Clone produces an independent object equal to its source."""
+        source = FlextCliSettings.model_validate({})
+        cloned = source.clone()
+        tm.that(cloned == source, eq=True)
+        tm.that(cloned is not source, eq=True)
+
+    def test_reset_for_testing_restores_usable_defaults(self) -> None:
+        """After reset, fetch_global rebuilds a settings object with defaults."""
+        FlextCliSettings.reset_for_testing()
+        rebuilt = FlextCliSettings.fetch_global()
+        rebuilt = tm.not_none(rebuilt)
+        tm.that(rebuilt.cli_verbose, eq=False)
+        tm.that(rebuilt.cli_app_name, eq=c.Cli.FLEXT_CLI)

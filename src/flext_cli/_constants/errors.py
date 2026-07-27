@@ -91,8 +91,11 @@ class FlextCliConstantsErrors:
     ERR_HANDLER_NOT_CALLABLE: Final[str] = "Handler not callable for: {name}"
     ERR_COMMAND_EXECUTION_FAILED: Final[str] = "Command execution failed: {error}"
     ERR_COMMAND_NAME_EMPTY: Final[str] = "Command name must be non-empty string"
-    ERR_CLI_RUNNER_ECHO_STDIN_UNSUPPORTED: Final[str] = (
-        "Typer CliRunner does not support echo_stdin"
+    ERR_CLI_DEFINITION_INVALID_MODEL: Final[str] = (
+        "command '{command}' model '{model}': {reason}"
+    )
+    ERR_CLI_DEFINITION_FIELD: Final[str] = (
+        "command '{command}' model '{model}' field '{field}': {reason}"
     )
 
 

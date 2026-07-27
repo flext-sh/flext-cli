@@ -12,10 +12,7 @@ from flext_cli.services._cli_parts.flextclicli_part_05 import (
 )
 
 
-class FlextCliCli(
-    s,
-    FlextCliCliPart05,
-):
+class FlextCliCli(s, FlextCliCliPart05):
     """Public facade for FlextCliCli."""
 
 
