@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import datetime, UTC
 from io import BytesIO
 from typing import TYPE_CHECKING, ClassVar, Protocol
+from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from docx import Document
 from docx.document import Document as DocumentType
@@ -27,6 +29,7 @@ if TYPE_CHECKING:
 
 
 _HEX_COLOR_WITH_ALPHA_LENGTH = 8
+_ZIP_EPOCH_FLOOR_YEAR = 1980
 
 
 class FlextCliUtilitiesDocxRenderer:
@@ -84,12 +87,15 @@ class FlextCliUtilitiesDocxRenderer:
         document = document_result.value
         try:
             cls._apply_document(document, request.plan)
+            cls._apply_source_date(document, request.source_date_epoch)
         except (KeyError, TypeError, ValueError, AttributeError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.DocxRenderResult].fail(
                 f"{c.Cli.DocxError.RENDER_FAILED}: {detail}"
             )
-        content = cls._serialize_document(document)
+        content = cls._serialize_document(
+            document, source_date_epoch=request.source_date_epoch
+        )
         if content.failure:
             return r[m.Cli.DocxRenderResult].fail(
                 content.error or str(c.Cli.DocxError.SERIALIZE_FAILED)
@@ -114,7 +120,20 @@ class FlextCliUtilitiesDocxRenderer:
         return r[DocumentType].ok(document)
 
     @classmethod
-    def _serialize_document(cls, document: DocumentType) -> p.Result[bytes]:
+    def _apply_source_date(
+        cls, document: DocumentType, source_date_epoch: int | None
+    ) -> None:
+        if source_date_epoch is None:
+            return
+        moment = datetime.fromtimestamp(source_date_epoch, tz=UTC)
+        core_props = document.core_properties
+        core_props.created = moment
+        core_props.modified = moment
+
+    @classmethod
+    def _serialize_document(
+        cls, document: DocumentType, *, source_date_epoch: int | None = None
+    ) -> p.Result[bytes]:
         target = BytesIO()
         try:
             document.save(target)
@@ -124,7 +143,59 @@ class FlextCliUtilitiesDocxRenderer:
         content = target.getvalue()
         if not content:
             return r[bytes].fail(str(c.Cli.DocxError.SERIALIZE_FAILED))
-        return r[bytes].ok(content)
+        if source_date_epoch is None:
+            return r[bytes].ok(content)
+        return cls._normalize_archive(content, source_date_epoch)
+
+    @classmethod
+    def _normalize_archive(
+        cls, content: bytes, source_date_epoch: int
+    ) -> p.Result[bytes]:
+        member_date = cls._stable_member_date(source_date_epoch)
+        target = BytesIO()
+        try:
+            cls._rewrite_members(content, target, member_date)
+        except (OSError, ValueError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[bytes].fail(f"{c.Cli.DocxError.SERIALIZE_FAILED}: {detail}")
+        normalized_content = target.getvalue()
+        if not normalized_content:
+            return r[bytes].fail(str(c.Cli.DocxError.SERIALIZE_FAILED))
+        return r[bytes].ok(normalized_content)
+
+    @staticmethod
+    def _stable_member_date(
+        source_date_epoch: int,
+    ) -> tuple[int, int, int, int, int, int]:
+        moment = datetime.fromtimestamp(source_date_epoch, tz=UTC)
+        zip_floor = datetime(_ZIP_EPOCH_FLOOR_YEAR, 1, 1, tzinfo=UTC)
+        stamped = max(moment, zip_floor)
+        return (
+            stamped.year,
+            stamped.month,
+            stamped.day,
+            stamped.hour,
+            stamped.minute,
+            stamped.second,
+        )
+
+    @staticmethod
+    def _rewrite_members(
+        content: bytes,
+        target: BytesIO,
+        member_date: tuple[int, int, int, int, int, int],
+    ) -> None:
+        with (
+            ZipFile(BytesIO(content)) as source,
+            ZipFile(target, "w", ZIP_DEFLATED) as normalized,
+        ):
+            for info in source.infolist():
+                stable = ZipInfo(filename=info.filename, date_time=member_date)
+                stable.compress_type = info.compress_type
+                stable.external_attr = info.external_attr
+                stable.internal_attr = info.internal_attr
+                stable.create_system = info.create_system
+                normalized.writestr(stable, source.read(info.filename))
 
     @classmethod
     def _apply_document(

@@ -8,9 +8,82 @@ from io import BytesIO
 import pytest
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
+from openpyxl.workbook.defined_name import DefinedName
 
 from flext_cli import cli, m, p
 from flext_tests import tm
+
+
+def _defined_name_workbook() -> bytes:
+    workbook = Workbook()
+    sheet = workbook.active
+    sheet.title = "Data"
+    sheet["A1"] = 17
+    sheet["A2"] = "second"
+    workbook.defined_names.add(
+        DefinedName("ScalarValue", attr_text="'Data'!$A$1")
+    )
+    workbook.defined_names.add(
+        DefinedName("RangeValues", attr_text="'Data'!$A$1:$A$2")
+    )
+    workbook.defined_names.add(
+        DefinedName("MalformedValue", attr_text='"constant"')
+    )
+    target = BytesIO()
+    workbook.save(target)
+    return target.getvalue()
+
+
+def test_xlsx_defined_name_values_resolves_cached_scalar() -> None:
+    source = _defined_name_workbook()
+
+    result = cli.xlsx_defined_name_values(
+        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="ScalarValue")
+    )
+
+    tm.that(result.success, eq=True, msg=result.error)
+    tm.that(result.value.name, eq="ScalarValue")
+    tm.that(len(result.value.cells), eq=1)
+    tm.that(result.value.cells[0].sheet, eq="Data")
+    tm.that(result.value.cells[0].coordinate, eq="A1")
+    tm.that(result.value.cells[0].value.kind, eq="integer")
+    tm.that(result.value.cells[0].value.value, eq=17)
+
+
+def test_xlsx_defined_name_values_resolves_cached_range() -> None:
+    source = _defined_name_workbook()
+
+    result = cli.xlsx_defined_name_values(
+        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="RangeValues")
+    )
+
+    tm.that(result.success, eq=True, msg=result.error)
+    tm.that(
+        tuple((cell.coordinate, cell.value.kind) for cell in result.value.cells),
+        eq=(("A1", "integer"), ("A2", "text")),
+    )
+
+
+def test_xlsx_defined_name_values_fails_when_name_is_missing() -> None:
+    source = _defined_name_workbook()
+
+    result = cli.xlsx_defined_name_values(
+        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MissingValue")
+    )
+
+    tm.that(result.success, eq=False)
+    tm.that(result.error, has="xlsx_defined_name_missing")
+
+
+def test_xlsx_defined_name_values_fails_for_non_range_name() -> None:
+    source = _defined_name_workbook()
+
+    result = cli.xlsx_defined_name_values(
+        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MalformedValue")
+    )
+
+    tm.that(result.success, eq=False)
+    tm.that(result.error, has="xlsx_defined_name_invalid")
 
 
 def test_xlsx_datetime_rejects_unrepresentable_timezone() -> None:

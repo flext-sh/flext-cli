@@ -233,11 +233,7 @@ from flext_cli import FlextCliTesting
 **NEW**:
 
 ```text
-from tests import (
-    FlextCliTesting,
-    FlextCliTestRunner,
-    FlextCliMockScenarios,
-)
+from tests import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 ```
 
 **Automated sed command** (review before running):

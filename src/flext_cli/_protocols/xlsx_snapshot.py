@@ -167,5 +167,9 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
             self, request: FlextCliProtocolsXlsxSnapshot.XlsxSnapshotRequest
         ) -> p.Result[m.Cli.XlsxWorkbookSnapshot]: ...
 
+        def xlsx_defined_name_values(
+            self, request: m.Cli.XlsxDefinedNameValuesRequest
+        ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]: ...
+
 
 __all__: tuple[str, ...] = ("FlextCliProtocolsXlsxSnapshot",)

@@ -86,6 +86,35 @@ class FlextCliModelsXlsxSnapshot:
             default=None, description="Defined-name hidden state when declared."
         )
 
+    class XlsxDefinedNameValuesRequest(m.FrozenModel):
+        source: Annotated[
+            bytes, m.Field(min_length=1, description="Source workbook bytes.")
+        ]
+        name: Annotated[
+            str, m.Field(min_length=1, description="Defined name to resolve.")
+        ]
+
+    class XlsxDefinedNameCell(m.FrozenModel):
+        sheet: Annotated[
+            str, m.Field(min_length=1, description="Owning worksheet name.")
+        ]
+        coordinate: Annotated[
+            str, m.Field(min_length=2, description="A1 cell coordinate.")
+        ]
+        value: FlextCliModelsXlsxCells.XlsxCellValue = m.Field(
+            description="Typed cached value from the data-only workbook view."
+        )
+
+    class XlsxDefinedNameValuesResult(m.FrozenModel):
+        name: Annotated[
+            str, m.Field(min_length=1, description="Resolved defined name.")
+        ]
+        cells: tuple[FlextCliModelsXlsxSnapshot.XlsxDefinedNameCell, ...] = m.Field(
+            min_length=1,
+            strict=False,
+            description="Ordered cached cell values for the defined-name extent.",
+        )
+
     class XlsxRowDimensionSnapshot(m.FrozenModel):
         position: Annotated[int, m.Field(ge=1, description="One-based row index.")]
         size: Annotated[float, m.Field(gt=0, description="Explicit row height.")] | None

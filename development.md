@@ -95,7 +95,7 @@ class FlextCliCore(s[CliDataDict]):
     def register_command(self, name: str, command: Command) -> p.Result[bool]:
         """Register command - modifies internal state."""
         self._commands[name] = command
-        return r[bool].| ok(value=True)
+        return r[bool].ok(value=True)
 ```
 
 **When NOT to use**:
@@ -139,7 +139,7 @@ class FlextCliFileTools:
         try:
             with open(path, 'w') as f:
                 json.dump(data, f, indent=2)
-            return r[bool].| ok(value=True)
+            return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(str(e))
 ```
@@ -509,24 +509,7 @@ ______________________________________________________________________
 1. Create command handler:
 
 ```text
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import d
-from flext_core import FlextDispatcher
-from flext_core import e
-from flext_core import h
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import r, p
-from flext_core import u
-from flext_core import s
-from flext_core import t
-from flext_core import u
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
 from flext_cli import cli
 
 class DataCommands(s):
@@ -535,7 +518,7 @@ class DataCommands(s):
     def handle_export(self, **kwargs) -> p.Result[bool]:
         """Handle data export command."""
         # Implementation
-        return r[bool].| ok(value=True)
+        return r[bool].ok(value=True)
 ```
 
 1. Register with CLI:

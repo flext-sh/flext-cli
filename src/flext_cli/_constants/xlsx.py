@@ -62,6 +62,8 @@ class FlextCliConstantsXlsx:
         ARCHIVE_POLICY_VIOLATION = "xlsx_archive_policy_violation"
         CELL_VALUE_UNSUPPORTED = "xlsx_cell_value_unsupported"
         DUPLICATE_DEFINED_NAME = "xlsx_duplicate_defined_name"
+        DEFINED_NAME_INVALID = "xlsx_defined_name_invalid"
+        DEFINED_NAME_MISSING = "xlsx_defined_name_missing"
         DUPLICATE_SHEET = "xlsx_duplicate_sheet"
         DUPLICATE_TABLE = "xlsx_duplicate_table"
         NAMED_STYLE_MISSING = "xlsx_named_style_missing"

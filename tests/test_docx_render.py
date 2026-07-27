@@ -10,6 +10,22 @@ from flext_cli import cli, m
 from flext_tests import tm
 
 
+def test_docx_render_is_reproducible_for_explicit_source_date_epoch() -> None:
+    plan = m.Cli.DocxDocumentPlan(
+        paragraphs=(
+            m.Cli.DocxParagraphPlan(runs=(m.Cli.DocxRunPlan(text="Stable"),)),
+        )
+    )
+    request = m.Cli.DocxRenderRequest(plan=plan, source_date_epoch=0)
+
+    first = cli.docx_render(request)
+    second = cli.docx_render(request)
+
+    tm.that(first.success, eq=True, msg=first.error)
+    tm.that(second.success, eq=True, msg=second.error)
+    tm.that(first.value.content, eq=second.value.content)
+
+
 def test_docx_render_empty_document() -> None:
     """Rendering an empty plan produces a valid DOCX."""
     plan = m.Cli.DocxDocumentPlan()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
+from ._xlxx.xlsx_defined_name_values import FlextCliUtilitiesXlsxDefinedNameValues
 from ._xlxx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
 from ._xlxx.xlsx_renderer import FlextCliUtilitiesXlsxRenderer
 from ._xlxx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
@@ -11,6 +12,7 @@ from ._xlxx.xlsx_style_catalog import FlextCliUtilitiesXlsxStyleCatalog
 
 class FlextCliUtilitiesXlsx(
     FlextCliUtilitiesXlsxRecalc,
+    FlextCliUtilitiesXlsxDefinedNameValues,
     FlextCliUtilitiesXlsxSnapshot,
     FlextCliUtilitiesXlsxRenderer,
     FlextCliUtilitiesXlsxStyleCatalog,
