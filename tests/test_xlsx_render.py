@@ -20,15 +20,9 @@ def _defined_name_workbook() -> bytes:
     sheet.title = "Data"
     sheet["A1"] = 17
     sheet["A2"] = "second"
-    workbook.defined_names.add(
-        DefinedName("ScalarValue", attr_text="'Data'!$A$1")
-    )
-    workbook.defined_names.add(
-        DefinedName("RangeValues", attr_text="'Data'!$A$1:$A$2")
-    )
-    workbook.defined_names.add(
-        DefinedName("MalformedValue", attr_text='"constant"')
-    )
+    workbook.defined_names.add(DefinedName("ScalarValue", attr_text="'Data'!$A$1"))
+    workbook.defined_names.add(DefinedName("RangeValues", attr_text="'Data'!$A$1:$A$2"))
+    workbook.defined_names.add(DefinedName("MalformedValue", attr_text='"constant"'))
     target = BytesIO()
     workbook.save(target)
     return target.getvalue()

@@ -12,6 +12,38 @@ requires = ["hatchling"]
 codegen = [
   "flext-infra",
 ]
+dependencies = [
+  "click>=8.3.3",
+  "flext-core",
+  "pluggy>=1.6.0",
+  "prompt-toolkit>=3.0.52",
+  "pydantic-core>=2.46.3",
+  "pydantic-settings>=2.14.0",
+  "pydantic>=2.13.3",
+  "pyyaml>=6.0.3",
+  "rich>=15.0.0",
+  "tabulate>=0.10.0",
+  "tomlkit>=0.14.0",
+  "typer>=0.25.1",
+]
+description = "FLEXT CLI - Developer Command Line Interface"
+keywords = [ "cli", "command-line", "enterprise", "flext", "tools", "typed" ]
+license = "MIT"
+name = "flext-cli"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+version = "0.12.0-dev"
+
+[[project.authors]]
+email = "team@flext.sh"
+name = "FLEXT Team"
+
+[[project.maintainers]]
+email = "team@flext.sh"
+name = "FLEXT Team"
+
+# [MANAGED] consolidated development dependencies
+[project.optional-dependencies]
 dev = [
   "autoflake>=2.3.1",
   "bandit>=1.8",
