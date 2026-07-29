@@ -169,8 +169,10 @@ class TestsFlextCliYamlRoundtripConvert:
         node = u.Cli.yaml_deep_to_commented(data)
 
         tm.that(node, is_=CommentedMap)
+        assert isinstance(node, CommentedMap)
         tm.that(node["a"], is_=CommentedSeq)
-        tm.that(u.Cli.yaml_to_plain(node), eq={"a": [1, "x"], "b": {"c": True}})
+        expected: t.JsonMapping = {"a": [1, "x"], "b": {"c": True}}
+        tm.that(u.Cli.yaml_to_plain(node), eq=expected)
 
     def test_deep_to_commented_quotes_yaml_11_tokens(self) -> None:
         """Verify that deep to commented quotes yaml 11 tokens."""

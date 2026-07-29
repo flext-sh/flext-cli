@@ -64,7 +64,8 @@ class TestsFlextCliJsonCov:
         tm.ok(write_result)
         read_result = u.Cli.json_read(path)
         tm.ok(read_result)
-        tm.that(read_result.value, eq={"a": 1, "b": [1, 2]})
+        expected: t.JsonMapping = {"a": 1, "b": [1, 2]}
+        tm.that(read_result.value, eq=expected)
 
     def test_json_write_sort_keys_orders_nested_keys(self, tmp_path: Path) -> None:
         """Verify that json write sort keys orders nested keys."""

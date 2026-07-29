@@ -311,7 +311,7 @@ python -c "from flext_cli import FlextCliTesting" 2>&1 | grep -q "ImportError" &
 make test
 
 # Verify tests can import from new location
-python -c "from tests import FlextCliTesting; u.Cli.print('✓ Import works')"
+python -c "from tests import FlextCliTesting; print('✓ Import works')"
 ```
 
 **Expected**: Can't import from flext_cli anymore, tests pass, can import from tests.fixtures
@@ -385,7 +385,7 @@ ls src/flext_cli/*.py | wc -l  # Should be 2 fewer (validator, auth deleted)
 ls tests/fixtures/testing_utilities.py  # Should exist
 
 # Check no broken imports
-python -c "from flext_cli import cli, FlextCliSettings; u.Cli.print('✓ Imports working')"
+python -c "from flext_cli import cli, FlextCliSettings; cli.print('✓ Imports working')"
 ```
 
 ______________________________________________________________________

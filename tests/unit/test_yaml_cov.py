@@ -51,7 +51,8 @@ class TestsFlextCliYamlCov:
         result = u.Cli.yaml_parse(c.Tests.YAML_VALID_CONTENT)
 
         tm.ok(result)
-        tm.that(result.unwrap(), eq={"key": "value", "nested": {"foo": "bar"}})
+        expected: t.JsonMapping = {"key": "value", "nested": {"foo": "bar"}}
+        tm.that(result.unwrap(), eq=expected)
 
     def test_yaml_parse_top_level_list_is_rejected_as_non_mapping(self) -> None:
         """Verify that yaml parse top level list is rejected as non mapping."""
@@ -79,7 +80,8 @@ class TestsFlextCliYamlCov:
         result = u.Cli.yaml_safe_load(yaml_file)
 
         tm.ok(result)
-        tm.that(result.unwrap(), eq={"key": "value", "nested": {"foo": "bar"}})
+        expected: t.JsonMapping = {"key": "value", "nested": {"foo": "bar"}}
+        tm.that(result.unwrap(), eq=expected)
 
     def test_yaml_safe_load_missing_file_reports_not_found(
         self, tmp_path: Path
@@ -135,7 +137,8 @@ class TestsFlextCliYamlCov:
 
         result = u.Cli.yaml_load_mapping(yaml_file)
 
-        tm.that(result, eq={"key": "value", "nested": {"foo": "bar"}})
+        expected: t.JsonMapping = {"key": "value", "nested": {"foo": "bar"}}
+        tm.that(result, eq=expected)
 
     def test_yaml_load_mapping_missing_defaults_to_empty(self, tmp_path: Path) -> None:
         """Verify that yaml load mapping missing defaults to empty."""

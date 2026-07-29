@@ -30,7 +30,8 @@ class TestsFlextCliTables:
         """Verify that normalize mapping row preserves keys and json values."""
         row: t.Cli.TableMappingRow = {"a": 1, "b": "hello"}
         result = u.Cli.tables_normalize_mapping_row(row)
-        tm.that(result, eq={"a": 1, "b": "hello"})
+        expected: t.JsonMapping = {"a": 1, "b": "hello"}
+        tm.that(result, eq=expected)
 
     def test_normalize_mapping_row_renders_none_as_empty_string(self) -> None:
         """Verify that normalize mapping row renders none as empty string."""
@@ -49,7 +50,8 @@ class TestsFlextCliTables:
     def test_normalize_sequence_row_preserves_length_and_order(self) -> None:
         """Verify that normalize sequence row preserves length and order."""
         result = u.Cli.tables_normalize_sequence_row([1, "text", True])
-        tm.that(result, eq=[1, "text", True])
+        expected: list[t.JsonValue] = [1, "text", True]
+        tm.that(result, eq=expected)
 
     def test_normalize_sequence_row_empty_yields_empty_list(self) -> None:
         """Verify that normalize sequence row empty yields empty list."""
@@ -97,11 +99,15 @@ class TestsFlextCliTables:
         """Verify that normalize data mapping becomes key value rows."""
         data: t.JsonMapping = {"key": "val", "num": 42}
         rows = list(u.Cli.tables_normalize_data(data).unwrap())
-        tm.that(rows, eq=[{"Key": "key", "Value": "val"}, {"Key": "num", "Value": 42}])
+        expected: list[t.JsonMapping] = [
+            {"Key": "key", "Value": "val"},
+            {"Key": "num", "Value": 42},
+        ]
+        tm.that(rows, eq=expected)
 
     def test_normalize_data_list_of_dicts_preserves_rows(self) -> None:
         """Verify that normalize data list of dicts preserves rows."""
-        data = [{"col1": "a", "col2": 1}, {"col1": "b", "col2": 2}]
+        data: list[t.JsonMapping] = [{"col1": "a", "col2": 1}, {"col1": "b", "col2": 2}]
         rows = list(u.Cli.tables_normalize_data(data).unwrap())
         tm.that(rows, eq=data)
 

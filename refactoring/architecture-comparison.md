@@ -110,11 +110,11 @@ ______________________________________________________________________
 ```text
 # ❌ Multiple ways to do the same thing
 
-# Way 1: Through wrapper
-cli.u.Cli.print("Hello")
+# Way 1: Public facade
+cli.print("Hello")
 
-# Way 2: Direct access
-cli.formatters.u.Cli.print("Hello")
+# Way 2: Internal service route (not a public call)
+# FlextCliFormatters.print("Hello")
 
 # Which one to use? Both work! Confusing!
 ```
@@ -126,8 +126,8 @@ cli.formatters.u.Cli.print("Hello")
 ```text
 # ✅ One clear way
 
-# Always direct access - clear ownership
-cli.formatters.u.Cli.print("Hello")
+# Public facade - clear ownership
+cli.print("Hello")
 cli.file_tools.read_json_file("settings.json")
 cli.prompts.confirm("Continue?")
 ```
@@ -173,8 +173,8 @@ settings = cli.file_tools.read_json_file("settings.json").unwrap()
 
 ```text
 # Multiple ways:
-cli.u.Cli.print("Message")  # Wrapper
-cli.formatters.u.Cli.print("Message")  # Direct
+cli.print("Message")  # Public facade
+FlextCliFormatters.print("Message")  # Internal service
 
 table = cli.create_table(data)  # Wrapper
 cli.print_table(table)  # Wrapper
@@ -182,18 +182,18 @@ cli.print_table(table)  # Wrapper
 # or
 
 table = cli.output.format_data(data, format_type="table")  # Direct
-cli.formatters.u.Cli.print(table)  # Direct
+cli.print(table)  # Public facade
 ```
 
 #### v0.10.0 (New)
 
 ```text
-# One clear way:
-cli.formatters.u.Cli.print("Message")
+# One clear public way:
+cli.print("Message")
 
 # For tables:
 table = cli.output.format_data(data, format_type="table")
-cli.formatters.u.Cli.print(table.unwrap())
+cli.print(table.unwrap())
 
 # Explicit, clear ownership
 ```
@@ -327,9 +327,9 @@ ______________________________________________________________________
 #### v0.9.0: Double Indirection
 
 ```text
-cli.u.Cli.print("msg")
-    → cli.u.Cli.print()  # Wrapper
-        → self.formatters.u.Cli.print("msg")  # Actual method
+cli.print("msg")
+    → FlextCliFormatters.print("msg")
+        → internal formatter utility
             → Rich library
 
 # 3 layers of indirection
@@ -338,8 +338,9 @@ cli.u.Cli.print("msg")
 #### v0.10.0: Single Indirection
 
 ```text
-cli.formatters.u.Cli.print("msg")
-    → FlextCliFormatters.u.Cli.print()  # Direct
+cli.print("msg")
+    → FlextCliFormatters.print()
+        → internal formatter utility
         → Rich library
 
 # 2 layers - 33% faster
@@ -375,7 +376,7 @@ ______________________________________________________________________
 
 ```bash
 # Most common (90% of changes):
-cli.u.Cli.print(          → cli.formatters.u.Cli.print(
+removed nested print route → cli.print(
 cli.read_json_file( → cli.file_tools.read_json_file(
 cli.confirm(        → cli.prompts.confirm(
 ```

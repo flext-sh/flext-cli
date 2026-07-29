@@ -39,7 +39,9 @@ class Ex06Settings:
     def show_cli_settings() -> p.Cli.Settings:
         """Access flext-cli settings in YOUR application."""
         cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
-        cli.print(f"   Debug Mode: {settings.debug}", style=c.Cli.MessageStyles.CYAN)
+        cli.print(
+            f"   Debug Mode: {settings.debug}", style=c.Cli.MessageStyles.CYAN
+        )
         cli.print(
             f"   Log Level: {settings.cli_log_level}", style=c.Cli.MessageStyles.CYAN
         )
@@ -122,7 +124,9 @@ class Ex06Settings:
             )
         except (TypeError, ValueError) as exc:
             return r[t.MappingKV[str, t.JsonValue]].fail(str(exc))
-        cli.print("✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN)
+        cli.print(
+            "✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN
+        )
         final_data = cls.initialize_services(overridden_data)
         cli.print("✅ Services initialized", style=c.Cli.MessageStyles.GREEN)
         cli.print(
