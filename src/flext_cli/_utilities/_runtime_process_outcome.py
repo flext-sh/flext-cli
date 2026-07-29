@@ -22,16 +22,16 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         received_signals: list[int],
         diagnostics: tuple[str, ...],
         *,
+        nonfatal_diagnostics: tuple[str, ...] = (),
         timed_out: bool,
         legacy_timeout: bool,
         legacy_timeout_seconds: int | None,
         timeout_exit_code: int,
     ) -> p.Result[int]:
         """Preserve a primary exit while surfacing additive diagnostics."""
+        _ = nonfatal_diagnostics
         if legacy_timeout and timed_out:
-            failure = (
-                f"timeout {legacy_timeout_seconds}s: {shlex.join(list(cmd))}"
-            )
+            failure = f"timeout {legacy_timeout_seconds}s: {shlex.join(list(cmd))}"
             if diagnostics:
                 failure = f"{failure}; {'; '.join(diagnostics)}"
             return r[int].fail(failure)
@@ -42,9 +42,7 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         elif return_code is None:
             primary_exit = None
         else:
-            primary_exit = (
-                128 + abs(return_code) if return_code < 0 else return_code
-            )
+            primary_exit = 128 + abs(return_code) if return_code < 0 else return_code
         if diagnostics and primary_exit not in {None, 0}:
             cls._module_logger.warning(
                 "process lifecycle diagnostics",

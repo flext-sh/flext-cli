@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import signal
-import subprocess
 
 from flext_cli import p, r
 from flext_cli._utilities._runtime_windows_job_start import (
@@ -41,7 +40,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
     @classmethod
     def _signal_process_tree(
         cls,
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         signal_number: int,
         job_handle: int,
         *,
@@ -55,9 +54,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
                         int(getattr(signal, "CTRL_BREAK_EVENT", signal.SIGINT))
                     )
                     return None
-                return cls._windows_job_terminate(
-                    job_handle, 128 + abs(signal_number)
-                )
+                return cls._windows_job_terminate(job_handle, 128 + abs(signal_number))
             os.killpg(process.pid, signal.SIGKILL if force else signal_number)
         except ProcessLookupError:
             return None

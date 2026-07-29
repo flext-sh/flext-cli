@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import IO, Protocol, runtime_checkable
 
 from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_01 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart01,
@@ -108,6 +108,36 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
         @property
         def timeout_exit_code(self) -> int:
             """Canonical exit code returned for deadline expiry."""
+            ...
+
+    @runtime_checkable
+    class ProcessHandle(Protocol):
+        """Restrictive process handle consumed by portable lifecycle utilities."""
+
+        @property
+        def pid(self) -> int:
+            """Operating-system process identifier."""
+            ...
+
+        @property
+        def stdout(self) -> IO[bytes] | None:
+            """Combined binary output pipe."""
+            ...
+
+        def kill(self) -> None:
+            """Force termination of the root process."""
+            ...
+
+        def poll(self) -> int | None:
+            """Return the root exit code when available."""
+            ...
+
+        def send_signal(self, sig: int) -> None:
+            """Send one platform signal to the root process."""
+            ...
+
+        def wait(self) -> int:
+            """Block until the root process is reaped and return its exit code."""
             ...
 
 
