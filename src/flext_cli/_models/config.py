@@ -12,19 +12,33 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict
+from typing import Annotated
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FlextCliConfigModels:
     """Namespace of typed flext-cli config models (pure Pydantic)."""
 
+    class FileIteration(BaseModel):
+        """Git-aware file-selection policy from ``config/cli.yaml``."""
+
+        model_config = ConfigDict(frozen=True, extra="forbid")
+
+        executable: Annotated[str, Field(min_length=1)]
+        timeout_seconds: Annotated[int, Field(gt=0)]
+        repository_root_args: Annotated[tuple[str, ...], Field(min_length=1)]
+        scope_files_args: Annotated[tuple[str, ...], Field(min_length=1)]
+        output_separator: Annotated[str, Field(min_length=1, max_length=1)]
+
     class Cli(BaseModel):
-        """CLI identity metadata from ``config/cli.yaml``."""
+        """CLI identity metadata and generic runtime policy."""
 
         model_config = ConfigDict(frozen=True, extra="forbid")
 
         name: str
         version: str
+        file_iteration: FlextCliConfigModels.FileIteration
 
     class Root(BaseModel):
         """Root flext-cli runtime config validated from ``config/*.yaml``."""

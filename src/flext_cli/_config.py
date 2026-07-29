@@ -34,7 +34,7 @@ class FlextCliConfig(FlextConfig):
 
     @cached_property
     def Cli(self) -> FlextCliProtocolsConfig.Cli:
-        """Validated ``Cli`` config domain (name/version identity metadata)."""
+        """Validated ``Cli`` identity and generic runtime policy."""
         root = FlextCliConfigModels.Root.model_validate(dict(self.model_extra or {}))
         return root.Cli
 

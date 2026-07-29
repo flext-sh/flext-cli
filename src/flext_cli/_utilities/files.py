@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from flext_cli._utilities._files_iteration import FlextCliUtilitiesFileIteration
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_01 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart01,
 )
@@ -17,6 +18,7 @@ from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04 import (
 
 
 class FlextCliUtilitiesFiles(
+    FlextCliUtilitiesFileIteration,
     FlextCliUtilitiesFilesPart01,
     FlextCliUtilitiesFilesPart02,
     FlextCliUtilitiesFilesPart03,

@@ -17,6 +17,25 @@ class FlextCliProtocolsConfig:
     """Config-domain protocol namespace (structural types; no project imports)."""
 
     @runtime_checkable
+    class FileIteration(Protocol):
+        """Structural Git-aware file-selection policy."""
+
+        @property
+        def executable(self) -> str: ...
+
+        @property
+        def timeout_seconds(self) -> int: ...
+
+        @property
+        def repository_root_args(self) -> tuple[str, ...]: ...
+
+        @property
+        def scope_files_args(self) -> tuple[str, ...]: ...
+
+        @property
+        def output_separator(self) -> str: ...
+
+    @runtime_checkable
     class Cli(Protocol):
         """Structural surface of the validated ``Cli`` config domain."""
 
@@ -25,6 +44,9 @@ class FlextCliProtocolsConfig:
 
         @property
         def version(self) -> str: ...
+
+        @property
+        def file_iteration(self) -> FlextCliProtocolsConfig.FileIteration: ...
 
 
 __all__: list[str] = ["FlextCliProtocolsConfig"]

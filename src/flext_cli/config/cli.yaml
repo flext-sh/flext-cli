@@ -1,3 +1,18 @@
 Cli:
   name: flext-cli
   version: "0.12.0-dev"
+  file_iteration:
+    executable: git
+    timeout_seconds: 5
+    repository_root_args:
+      - rev-parse
+      - --show-toplevel
+    scope_files_args:
+      - --literal-pathspecs
+      - ls-files
+      - --cached
+      - --modified
+      - --others
+      - --exclude-standard
+      - -z
+    output_separator: "\0"
