@@ -82,7 +82,7 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
             Path(output_file),
             cwd,
             cls._resolved_env(env, remove_env_keys),
-            input_data.encode("utf-8") if isinstance(input_data, str) else input_data,
+            input_data,
             live=live,
             absolute_deadline=absolute_deadline,
             grace_seconds=grace_seconds,
