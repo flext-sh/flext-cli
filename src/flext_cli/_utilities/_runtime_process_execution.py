@@ -63,15 +63,6 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         received_signals: list[int] = []
         pump_stop = threading.Event()
         try:
-            if threading.current_thread() is threading.main_thread():
-                previous_handlers = cls._install_forwarding_handlers(received_signals)
-                forwarded = tuple(
-                    signal_number for signal_number, _previous in previous_handlers
-                )
-                if os.name != "nt" and hasattr(signal, "pthread_sigmask"):
-                    previous_signal_mask = signal.pthread_sigmask(
-                        signal.SIG_BLOCK, forwarded
-                    )
             output_path.parent.mkdir(parents=True, exist_ok=True)
             with contextlib.ExitStack() as stack:
                 durable_log = stack.enter_context(output_path.open("wb", buffering=0))
@@ -87,9 +78,31 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 live_fd = os.dup(sys.stdout.fileno()) if live else None
                 if live_fd is not None:
                     stack.callback(os.close, live_fd)
-                    live_was_blocking = os.get_blocking(live_fd)
-                    os.set_blocking(live_fd, False)
-                    stack.callback(os.set_blocking, live_fd, live_was_blocking)
+                    if os.name != "nt" or not os.isatty(live_fd):
+                        live_was_blocking = os.get_blocking(live_fd)
+                        os.set_blocking(live_fd, False)
+                        stack.callback(
+                            os.set_blocking, live_fd, live_was_blocking
+                        )
+                if (
+                    absolute_deadline is not None
+                    and time.monotonic() >= absolute_deadline - grace_seconds
+                ):
+                    return r[int].fail(
+                        "process deadline exhausted before child spawn"
+                    )
+                if threading.current_thread() is threading.main_thread():
+                    previous_handlers = cls._install_forwarding_handlers(
+                        received_signals
+                    )
+                    forwarded = tuple(
+                        signal_number
+                        for signal_number, _previous in previous_handlers
+                    )
+                    if os.name != "nt" and hasattr(signal, "pthread_sigmask"):
+                        previous_signal_mask = signal.pthread_sigmask(
+                            signal.SIG_BLOCK, forwarded
+                        )
                 creation_flags = 0
                 if os.name == "nt":
                     creation_flags = int(

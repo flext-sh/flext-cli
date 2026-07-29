@@ -52,18 +52,20 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
             if not live_available or live_fd is None:
                 continue
             remaining = memoryview(chunk)
-            try:
-                while remaining:
+            while remaining and not stop.is_set():
+                try:
                     written = os.write(live_fd, remaining)
                     if written <= 0:
                         raise OSError("live write made no progress")
                     remaining = remaining[written:]
-            except BlockingIOError:
-                failures.append("live output sink would block")
-                live_available = False
-            except (BrokenPipeError, OSError, ValueError) as exc:
-                failures.append(f"live output write error: {exc}")
-                live_available = False
+                except BlockingIOError:
+                    stop.wait(cls._STREAM_POLL_SECONDS)
+                except (BrokenPipeError, OSError, ValueError) as exc:
+                    failures.append(f"live output write error: {exc}")
+                    live_available = False
+                    break
+            if remaining and stop.is_set():
+                failures.append("live output drain stopped before completion")
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessStreamMixin"]

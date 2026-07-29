@@ -49,10 +49,15 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         forwarded = (signal.SIGINT, signal.SIGTERM)
         if os.name != "nt" and hasattr(signal, "SIGHUP"):
             forwarded = (*forwarded, signal.SIGHUP)
-        for signal_number in forwarded:
-            previous = signal.getsignal(signal_number)
-            signal.signal(signal_number, forward)
-            previous_handlers.append((signal_number, previous))
+        try:
+            for signal_number in forwarded:
+                previous = signal.getsignal(signal_number)
+                signal.signal(signal_number, forward)
+                previous_handlers.append((signal_number, previous))
+        except (OSError, ValueError):
+            for signal_number, previous in reversed(previous_handlers):
+                signal.signal(signal_number, previous)
+            raise
         return previous_handlers
 
     @staticmethod

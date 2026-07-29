@@ -18,7 +18,9 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def _deadline(*, seconds: float, grace: float, exit_code: int = 124) -> m.Cli.ProcessDeadline:
+def _deadline(
+    *, seconds: float, grace: float, exit_code: int = 124
+) -> m.Cli.ProcessDeadline:
     """Build an absolute deadline with a bounded cleanup reserve."""
     return m.Cli.ProcessDeadline(
         expires_at_monotonic=time.monotonic() + seconds,
@@ -69,6 +71,25 @@ class TestsFlextCliRuntimeStreamedProcess:
 
         tm.ok(result)
         tm.that(result.value, eq=37)
+
+    def test_existing_input_data_contract_is_preserved(self, tmp_path: Path) -> None:
+        """Feed binary stdin through the same canonical run-to-file path."""
+        output_file = tmp_path / "stdin.log"
+        payload = b"stdin-\x00-bytes\n"
+
+        result = u.Cli().run_to_file(
+            [
+                sys.executable,
+                "-c",
+                "import sys;sys.stdout.buffer.write(sys.stdin.buffer.read())",
+            ],
+            output_file,
+            input_data=payload,
+        )
+
+        tm.ok(result)
+        tm.that(result.value, eq=0)
+        tm.that(output_file.read_bytes(), eq=payload)
 
     def test_deadline_model_satisfies_public_protocol(self) -> None:
         """Expose one typed model through the structural public protocol."""
