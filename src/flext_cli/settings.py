@@ -49,7 +49,7 @@ class FlextCliSettings(FlextSettings):
             c.Cli.CLI_DEFAULT_NO_COLOR
         )
         output_format: Annotated[
-lol            str,
+            str,
             m.Field(description="Output format (table, json, yaml, csv, plain)"),
         ] = c.Cli.OUTPUT_DEFAULT_FORMAT_TYPE
         config_file: Annotated[
