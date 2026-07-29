@@ -123,4 +123,5 @@ class TestsFlextCliTypings:
             Sequence[t.MappingKV[str, str | int]]
         )
         validated = adapter.validate_python([{"name": "entry", "count": 1}])
-        tm.that(validated, eq=[{"name": "entry", "count": 1}])
+        expected: list[t.MappingKV[str, str | int]] = [{"name": "entry", "count": 1}]
+        tm.that(validated, eq=expected)

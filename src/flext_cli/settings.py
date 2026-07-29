@@ -20,7 +20,10 @@ if TYPE_CHECKING:
 class FlextCliSettings(FlextSettings):
     """CLI-specific configuration; extends FlextSettings with profile and CLI fields."""
 
-    model_config = m.SettingsConfigDict(env_prefix="FLEXT_CLI_", extra="ignore")
+    model_config = m.SettingsConfigDict(
+        env_prefix="FLEXT_CLI_",
+        extra="ignore",
+    )
 
     class CliSettings(m.SettingsValue):
         """Namespaced CLI runtime settings."""
@@ -35,29 +38,35 @@ class FlextCliSettings(FlextSettings):
             c.Cli.FLEXT_CLI
         )
         log_verbosity: Annotated[
-            str, m.Field(description="Log format (compact, detailed, full)")
+            str,
+            m.Field(description="Log format (compact, detailed, full)"),
         ] = c.Cli.LogVerbosity.COMPACT
         cli_log_level: Annotated[
-            c.LogLevel | str, m.Field(description="CLI log level")
+            c.LogLevel | str,
+            m.Field(description="CLI log level"),
         ] = c.LogLevel.INFO
         no_color: Annotated[bool, m.Field(description="Disable colored output")] = (
             c.Cli.CLI_DEFAULT_NO_COLOR
         )
         output_format: Annotated[
-            str, m.Field(description="Output format (table, json, yaml, csv, plain)")
+            str,
+            m.Field(description="Output format (table, json, yaml, csv, plain)"),
         ] = c.Cli.OUTPUT_DEFAULT_FORMAT_TYPE
         config_file: Annotated[
-            str | None, m.Field(description="Path to settings file")
+            str | None,
+            m.Field(description="Path to settings file"),
         ] = None
         token_file: Annotated[
-            str | None, m.Field(description="Path to auth token file")
+            str | None,
+            m.Field(description="Path to auth token file"),
         ] = None
         ci: Annotated[
             bool,
             m.Field(description="Whether the current runtime is a CI environment."),
         ] = c.Cli.ENV_DEFAULT_CI
         pytest_current_test: Annotated[
-            str | None, m.Field(description="Current pytest test identifier.")
+            str | None,
+            m.Field(description="Current pytest test identifier."),
         ] = None
         shell_command: Annotated[
             str | None,
@@ -79,5 +88,6 @@ class FlextCliSettings(FlextSettings):
         Cli: p.Cli.CliSettings
     else:
         Cli: CliSettings = m.Field(
-            default_factory=CliSettings, description="Namespaced CLI settings branch."
+            default_factory=CliSettings,
+            description="Namespaced CLI settings branch.",
         )

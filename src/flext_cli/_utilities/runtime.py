@@ -6,13 +6,22 @@ import os
 import shlex
 import subprocess
 import time
-from pathlib import Path
+from typing import BinaryIO, ClassVar, override
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
+from flext_cli._utilities._runtime_run_to_file import (
+    FlextCliUtilitiesRuntimeRunToFileMixin,
+)
+from flext_core import u as core_u
 
 
-class FlextCliUtilitiesRuntime:
+class FlextCliUtilitiesRuntime(
+    FlextCliUtilitiesRuntimeRunToFileMixin, FlextCliUtilitiesRuntimeCommandsMixin
+):
     """Runtime helpers for external command execution."""
+
+    _module_logger: ClassVar[p.Logger] = core_u.fetch_logger(__name__)
 
     @staticmethod
     def process_env(
@@ -26,6 +35,7 @@ class FlextCliUtilitiesRuntime:
         }).resolve()
 
     @staticmethod
+    @override
     def _resolved_env(
         env: t.StrMapping | None, remove_env_keys: t.StrSequence = ()
     ) -> dict[str, str] | None:
@@ -37,6 +47,41 @@ class FlextCliUtilitiesRuntime:
         )
 
     @staticmethod
+    @override
+    def _spawn_streamed_process(
+        cmd: t.StrSequence,
+        cwd: t.Cli.TextPath | None,
+        env: dict[str, str] | None,
+        stdin_handle: BinaryIO | None,
+        *,
+        creation_flags: int,
+    ) -> p.Cli.ProcessHandle:
+        """Create the sole raw child owned by the streamed lifecycle."""
+        return subprocess.Popen(
+            list(cmd),
+            cwd=cwd,
+            stdin=subprocess.DEVNULL if stdin_handle is None else stdin_handle,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=False,
+            bufsize=0,
+            env=env,
+            start_new_session=os.name != "nt",
+            creationflags=creation_flags,
+        )
+
+    @staticmethod
+    @override
+    def _streamed_creation_flags() -> int:
+        """Return platform creation flags for pre-execution containment."""
+        if os.name != "nt":
+            return 0
+        return int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)) | int(
+            getattr(subprocess, "CREATE_SUSPENDED", 0x00000004)
+        )
+
+    @staticmethod
+    @override
     def run_raw(
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
@@ -135,138 +180,6 @@ class FlextCliUtilitiesRuntime:
                 duration=duration,
             )
         )
-
-    @staticmethod
-    def run(
-        cmd: t.StrSequence,
-        cwd: t.Cli.TextPath | None = None,
-        timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
-        *,
-        capture: bool = True,
-    ) -> p.Result[p.Cli.CommandOutput]:
-        """Run a command and fail on non-zero exit status."""
-
-        def require_zero_exit(
-            output: p.Cli.CommandOutput,
-        ) -> p.Result[p.Cli.CommandOutput]:
-            if output.exit_code != 0:
-                return r[p.Cli.CommandOutput].fail(
-                    f"failed ({output.exit_code}): {shlex.join(list(cmd))}: {(output.stderr or output.stdout).strip()}"
-                )
-            return r[p.Cli.CommandOutput].ok(output)
-
-        return FlextCliUtilitiesRuntime.run_raw(
-            cmd,
-            cwd=cwd,
-            timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
-            capture=capture,
-        ).flat_map(require_zero_exit)
-
-    @staticmethod
-    def run_checked(
-        cmd: t.StrSequence,
-        cwd: t.Cli.TextPath | None = None,
-        timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
-        *,
-        capture: bool = True,
-    ) -> p.Result[bool]:
-        """Run a command and return a success flag."""
-        return FlextCliUtilitiesRuntime.run(
-            cmd,
-            cwd=cwd,
-            timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
-            capture=capture,
-        ).map(lambda _: True)
-
-    @staticmethod
-    def run_live(
-        cmd: t.StrSequence,
-        cwd: t.Cli.TextPath | None = None,
-        timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
-    ) -> p.Result[p.Cli.CommandOutput]:
-        """Run a command streaming stdout/stderr live (inherited stdio).
-
-        Ergonomic alias for ``run(..., capture=False)``: the child's output
-        flows straight to the parent terminal (long makes, rollouts) and the
-        non-zero exit still fails closed. Captured stdout/stderr are empty.
-        """
-        return FlextCliUtilitiesRuntime.run(
-            cmd,
-            cwd=cwd,
-            timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
-            capture=False,
-        )
-
-    @staticmethod
-    def capture(
-        cmd: t.StrSequence,
-        cwd: t.Cli.TextPath | None = None,
-        timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
-    ) -> p.Result[str]:
-        """Run a command and return stripped stdout."""
-        return FlextCliUtilitiesRuntime.run(
-            cmd,
-            cwd=cwd,
-            timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
-        ).map(lambda output: output.stdout.strip())
-
-    @staticmethod
-    def run_to_file(
-        cmd: t.StrSequence,
-        output_file: t.Cli.TextPath,
-        cwd: t.Cli.TextPath | None = None,
-        timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
-    ) -> p.Result[int]:
-        """Run a command and write combined output to ``output_file``."""
-        stdin = (
-            input_data.encode("utf-8") if isinstance(input_data, str) else input_data
-        )
-        try:
-            output_path = Path(output_file)
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            with output_path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as handle:
-                result = subprocess.run(
-                    list(cmd),
-                    cwd=cwd,
-                    stdout=handle,
-                    stderr=subprocess.STDOUT,
-                    check=False,
-                    timeout=timeout,
-                    env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
-                    input=stdin,
-                )
-        except subprocess.TimeoutExpired as exc:
-            return r[int].fail(f"timeout {exc.timeout}s: {shlex.join(list(cmd))}")
-        except c.EXC_OS_VALUE as exc:
-            return r[int].fail(f"execution error: {exc}")
-        return r[int].ok(result.returncode)
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntime"]
