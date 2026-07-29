@@ -32,6 +32,9 @@ class FlextCliProtocolsConfig:
         @property
         def output_separator(self) -> str: ...
 
+        @property
+        def fallback_excluded_segment_prefixes(self) -> tuple[str, ...]: ...
+
     @runtime_checkable
     class Cli(Protocol):
         """Structural surface of the validated ``Cli`` config domain."""

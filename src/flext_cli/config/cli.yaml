@@ -13,3 +13,5 @@ Cli:
       - --exclude-standard
       - -z
     output_separator: "\0"
+    fallback_excluded_segment_prefixes:
+      - "."

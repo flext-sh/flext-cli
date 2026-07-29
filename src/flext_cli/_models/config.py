@@ -29,6 +29,9 @@ class FlextCliConfigModels:
         timeout_seconds: Annotated[int, Field(gt=0)]
         scope_files_args: Annotated[tuple[str, ...], Field(min_length=1)]
         output_separator: Annotated[str, Field(min_length=1, max_length=1)]
+        fallback_excluded_segment_prefixes: Annotated[
+            tuple[Annotated[str, Field(min_length=1)], ...], Field(min_length=1)
+        ]
 
     class Cli(BaseModel):
         """CLI identity metadata and generic runtime policy."""
