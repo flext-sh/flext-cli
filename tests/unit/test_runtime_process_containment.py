@@ -30,6 +30,14 @@ def _deadline(
     )
 
 
+def _process_exists(process_id: int) -> bool:
+    try:
+        os.kill(process_id, 0)
+    except OSError:
+        return False
+    return True
+
+
 class _InterruptingCommand(UserList[str]):
     @override
     def __iter__(self) -> Iterator[str]:
@@ -151,22 +159,26 @@ class TestsFlextCliRuntimeProcessContainment:
     def test_deadline_kills_recursive_process_tree(self, tmp_path: Path) -> None:
         output_file = tmp_path / "tree.log"
         heartbeat = tmp_path / "heartbeat"
+        process_info = tmp_path / "process-info"
         child = (
-            "import pathlib,signal,sys,time;"
+            "import os,pathlib,signal,sys,time;"
             "signal.signal(signal.SIGINT,signal.SIG_IGN);"
             "path=pathlib.Path(sys.argv[1]);"
+            "group=getattr(os,'getpgrp',lambda:0)();"
+            "pathlib.Path(sys.argv[2]).write_text(f'{os.getpid()} {group}');"
             "\nwhile True:\n path.write_text(str(time.monotonic()));time.sleep(.02)"
         )
         parent = (
             "import signal,subprocess,sys,time;"
             "signal.signal(signal.SIGINT,signal.SIG_IGN);"
-            f"subprocess.Popen([sys.executable,'-c',{child!r},sys.argv[1]]);"
+            f"subprocess.Popen([sys.executable,'-c',{child!r},"
+            "sys.argv[1],sys.argv[2]]);"
             "time.sleep(30)"
         )
         started = time.monotonic()
 
         result = u.Cli().run_to_file(
-            [sys.executable, "-c", parent, str(heartbeat)],
+            [sys.executable, "-c", parent, str(heartbeat), str(process_info)],
             output_file,
             deadline=_deadline(seconds=1.5, grace=0.7, exit_code=92),
         )
@@ -174,8 +186,16 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.ok(result)
         tm.that(result.value, eq=92)
         tm.that(heartbeat.exists(), eq=True)
+        child_pid, process_group = (
+            int(value) for value in process_info.read_text().split()
+        )
         stopped_value = heartbeat.stat().st_mtime_ns
+        time.sleep(0.15)
         tm.that(heartbeat.stat().st_mtime_ns, eq=stopped_value)
+        tm.that(_process_exists(child_pid), eq=False)
+        if os.name != "nt":
+            with pytest.raises(ProcessLookupError):
+                os.killpg(process_group, 0)
         tm.that(time.monotonic() - started, lt=2.0)
 
 
