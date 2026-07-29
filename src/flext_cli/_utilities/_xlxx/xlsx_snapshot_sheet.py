@@ -24,14 +24,15 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
     def _snapshot_state(
         worksheet: Worksheet,
     ) -> p.Result[Literal["visible", "hidden", "veryHidden"]]:
-        if worksheet.sheet_state == "visible":
+        sheet_state: str = worksheet.sheet_state
+        if sheet_state == "visible":
             return r[Literal["visible", "hidden", "veryHidden"]].ok("visible")
-        if worksheet.sheet_state == "hidden":
+        if sheet_state == "hidden":
             return r[Literal["visible", "hidden", "veryHidden"]].ok("hidden")
-        if worksheet.sheet_state == "veryHidden":
+        if sheet_state == "veryHidden":
             return r[Literal["visible", "hidden", "veryHidden"]].ok("veryHidden")
         return r[Literal["visible", "hidden", "veryHidden"]].fail(
-            f"Unsupported worksheet state: {worksheet.sheet_state}"
+            f"Unsupported worksheet state: {sheet_state}"
         )
 
     @classmethod

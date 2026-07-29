@@ -53,7 +53,9 @@ class DataManagerCLI:
         if value_result.failure:
             return r[t.JsonMapping].fail(f"Prompt failed: {value_result.error}")
         value = value_result.value
-        cli.print(f"✅ Created entry: {key} = {value}", style=c.Cli.MessageStyles.GREEN)
+        cli.print(
+            f"✅ Created entry: {key} = {value}", style=c.Cli.MessageStyles.GREEN
+        )
         return r[t.JsonMapping].ok(
             t.Cli.JSON_MAPPING_ADAPTER.validate_python({key: value})
         )
