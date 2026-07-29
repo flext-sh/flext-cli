@@ -27,9 +27,6 @@ class FlextCliProtocolsConfig:
         def timeout_seconds(self) -> int: ...
 
         @property
-        def repository_root_args(self) -> tuple[str, ...]: ...
-
-        @property
         def scope_files_args(self) -> tuple[str, ...]: ...
 
         @property

@@ -18,7 +18,7 @@ class TestsFlextCliFileIteration:
         self, tmp_path: Path
     ) -> None:
         """Select tracked, dirty, and untracked files with Git ignore semantics."""
-        repository = tmp_path / "arbitrary-repository"
+        repository = tmp_path / "arbitrary repository"
         nested = repository / "nested"
         nested.mkdir(parents=True)
         policy = config.Cli.file_iteration

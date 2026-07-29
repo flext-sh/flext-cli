@@ -27,7 +27,6 @@ class FlextCliConfigModels:
 
         executable: Annotated[str, Field(min_length=1)]
         timeout_seconds: Annotated[int, Field(gt=0)]
-        repository_root_args: Annotated[tuple[str, ...], Field(min_length=1)]
         scope_files_args: Annotated[tuple[str, ...], Field(min_length=1)]
         output_separator: Annotated[str, Field(min_length=1, max_length=1)]
 

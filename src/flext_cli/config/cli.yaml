@@ -4,9 +4,6 @@ Cli:
   file_iteration:
     executable: git
     timeout_seconds: 5
-    repository_root_args:
-      - rev-parse
-      - --show-toplevel
     scope_files_args:
       - --literal-pathspecs
       - ls-files

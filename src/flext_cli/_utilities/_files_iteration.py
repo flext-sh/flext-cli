@@ -60,17 +60,8 @@ class FlextCliUtilitiesFileIteration:
     def _git_scope_paths(cls, scope_root: Path) -> t.SequenceOf[Path] | None:
         """Return Git-visible files under ``scope_root`` or ``None`` outside Git."""
         policy = config.Cli.file_iteration
-        repository_root_result = FlextCliUtilitiesRuntime.capture(
-            (policy.executable, *policy.repository_root_args),
-            cwd=scope_root,
-            timeout=policy.timeout_seconds,
-        )
-        if repository_root_result.failure:
-            return None
-        repository_root = Path(repository_root_result.value).resolve()
-        try:
-            scope_root.relative_to(repository_root)
-        except ValueError:
+        repository_root = cls._git_repository_root(scope_root)
+        if repository_root is None:
             return None
         files_result = FlextCliUtilitiesRuntime.run(
             (policy.executable, *policy.scope_files_args),
@@ -85,6 +76,18 @@ class FlextCliUtilitiesFileIteration:
             files_result.value.stdout,
             separator=policy.output_separator,
         )
+
+    @staticmethod
+    def _git_repository_root(scope_root: Path) -> Path | None:
+        """Return the nearest enclosing Git worktree root."""
+        current = scope_root
+        while True:
+            if (current / ".git").exists():
+                return current
+            parent = current.parent
+            if parent == current:
+                return None
+            current = parent
 
     @staticmethod
     def _scope_paths_from_output(
