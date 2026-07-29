@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
 from flext_cli import cli
 from flext_tests import tm
 from tests import c, m
@@ -18,6 +20,45 @@ if TYPE_CHECKING:
 
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
+
+    @pytest.mark.parametrize(
+        ("cli_values", "expected"),
+        [
+            ((), ()),
+            (("one",), ("one",)),
+            (("one", "two"), ("one", "two")),
+        ],
+    )
+    def test_model_command_normalizes_repeatable_values_for_strict_tuple(
+        self, cli_values: tuple[str, ...], expected: tuple[str, ...]
+    ) -> None:
+        """Bind Typer's repeated list to the model's strict immutable tuple."""
+        captured: MutableSequence[m.Tests.TupleRepeatableInput] = []
+        app = cli.create_app_with_common_params(
+            name="root", help_text="Root application"
+        )
+
+        def handle(params: m.Tests.TupleRepeatableInput) -> t.JsonValue:
+            captured.append(params)
+            return True
+
+        cli.register_command(
+            app,
+            name="discover",
+            help_text="Discover roots",
+            command=cli.model_command(m.Tests.TupleRepeatableInput, handle),
+        )
+        args = [
+            "discover",
+            *(item for value in cli_values for item in ("--roots", value)),
+        ]
+
+        exec_result = cli.invoke_app(app, args=args)
+
+        tm.ok(exec_result)
+        tm.that(exec_result.value.exit_code, eq=0)
+        tm.that(len(captured), eq=1)
+        tm.that(captured[0].roots, eq=expected)
 
     def test_model_command_accepts_repeatable_list_options(self) -> None:
         """Accept repeated model-derived options through the public invocation facade."""

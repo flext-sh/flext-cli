@@ -14,6 +14,19 @@ class FlextCliUtilitiesOptions:
     """Implementation part for FlextCliUtilitiesOptions."""
 
     @staticmethod
+    def normalize_typer_model_values(
+        model_class: t.ModelClass[t.Cli.ModelLike],
+        values: t.MappingKV[str, t.Cli.CliValue],
+    ) -> t.MutableMappingKV[str, t.Cli.CliValue]:
+        """Restore immutable tuple fields after Typer parses repeated options."""
+        normalized: t.MutableMappingKV[str, t.Cli.CliValue] = dict(values)
+        for field_name, field_info in model_class.model_fields.items():
+            value = normalized.get(field_name)
+            if isinstance(value, list) and get_origin(field_info.annotation) is tuple:
+                normalized[field_name] = tuple(value)
+        return normalized
+
+    @staticmethod
     def resolve_typer_annotation(
         annotation: t.Cli.RuntimeAnnotation,
     ) -> type | GenericAlias:

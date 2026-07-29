@@ -42,7 +42,9 @@ class FlextCliCli:
             self._model_cls = model_cls
 
         def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
-            model = self._model_cls.model_validate(kwargs)
+            model = self._model_cls.model_validate(
+                u.Cli.normalize_typer_model_values(self._model_cls, kwargs)
+            )
             return self._handler(model)
 
     @classmethod

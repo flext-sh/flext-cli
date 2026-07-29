@@ -33,6 +33,13 @@ class TestsFlextCliModelsCli:
             list[str], m.Field(description="Repeatable make-style arg")
         ] = m.Field([], validate_default=True)
 
+    class TupleRepeatableInput(m.StrictModel):
+        """Exercise repeatable CLI options bound to an immutable tuple."""
+
+        roots: Annotated[
+            tuple[str, ...], m.Field(description="Repeatable workspace roots")
+        ] = ()
+
     class ReportRow(m.BaseModel):
         """Tabular report row used by the export-report example."""
 
