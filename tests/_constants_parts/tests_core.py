@@ -5,14 +5,22 @@ from __future__ import annotations
 import re
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 from flext_cli import c
-from tests.typings import t
+
+if TYPE_CHECKING:
+    from tests import t
 
 
 class TestsFlextCliConstantsCore:
     """Split test constants namespace."""
+
+    AUTH_TOKEN_MIN_LENGTH: Final[int] = 20
+    AUTH_VALUE_SAMPLE: Final[str] = "token-123"
+    COMMAND_DURATION_TOLERANCE: Final[float] = 1e-9
+    CREDENTIAL_SAMPLE_VALUE: Final[str] = "secret-pass"
+    PIPELINE_SUCCESS_ATTEMPT: Final[int] = 3
 
     @unique
     class Environment(StrEnum):
@@ -26,9 +34,6 @@ class TestsFlextCliConstantsCore:
     MATCH_REGEX_PHONE_RE: Final[t.RegexPattern] = re.compile(r"\d{3}-\d{4}")
     MATCH_REGEX_ALPHA_RE: Final[t.RegexPattern] = re.compile(r"alpha")
     MATCH_REGEX_BETA_RE: Final[t.RegexPattern] = re.compile(r"beta")
-
-    VERSION_EMPTY_MSG: Final[str] = "Version must be non-empty string"
-    VERSION_INFO_TOO_SHORT_MSG: Final[str] = "Version info must have at least 3 parts"
 
     PROMPT_EDGE_MESSAGES: Final[t.StrSequence] = (
         "",
@@ -46,17 +51,6 @@ class TestsFlextCliConstantsCore:
         "invalid_no_dots": "version",
         "invalid_non_numeric": "a.b.c",
     })
-
-    VERSION_INFO_VALID_TUPLE: Final[tuple[int, int, int]] = (1, 2, 3)
-    VERSION_INFO_VALID_COMPLEX_TUPLE: Final[tuple[int | str, ...]] = (
-        1,
-        2,
-        3,
-        "alpha",
-        1,
-    )
-    VERSION_INFO_SHORT_TUPLE: Final[tuple[int, int]] = (1, 2)
-    VERSION_INFO_EMPTY_TUPLE: Final[tuple[()]] = ()
 
     CONVERSION_STR_CASES: Final[
         tuple[tuple[t.Cli.TypeKind, t.JsonValue | None, t.JsonValue], ...]

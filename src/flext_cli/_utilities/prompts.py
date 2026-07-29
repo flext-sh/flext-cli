@@ -31,11 +31,7 @@ class FlextCliUtilitiesPrompts:
         return trimmed or default
 
     @staticmethod
-    def prompts_parse_confirmation(
-        text: str,
-        *,
-        default: bool,
-    ) -> bool | None:
+    def prompts_parse_confirmation(text: str, *, default: bool) -> bool | None:
         """Parse one confirmation input text into yes/no/default/invalid."""
         normalized = text.strip().lower()
         if not normalized:
@@ -48,10 +44,7 @@ class FlextCliUtilitiesPrompts:
 
     @staticmethod
     def prompts_choice_result(
-        *,
-        interactive: bool,
-        choices: t.StrSequence,
-        default: str | None,
+        *, interactive: bool, choices: t.StrSequence, default: str | None
     ) -> p.Result[str]:
         """Validate one choice prompt contract and return one canonical result."""
         result: p.Result[str]
@@ -64,14 +57,10 @@ class FlextCliUtilitiesPrompts:
                 result = r[str].fail(c.Cli.ERR_INTERACTIVE_CHOICE_DISABLED)
         elif default is None:
             result = r[str].fail(
-                c.Cli.ERR_CHOICE_REQUIRED_FMT.format(
-                    choices=", ".join(choices),
-                ),
+                c.Cli.ERR_CHOICE_REQUIRED_FMT.format(choices=", ".join(choices))
             )
         elif default not in choices:
-            result = r[str].fail(
-                c.Cli.ERR_INVALID_CHOICE_FMT.format(choice=default),
-            )
+            result = r[str].fail(c.Cli.ERR_INVALID_CHOICE_FMT.format(choice=default))
         else:
             result = r[str].ok(default)
         return result
@@ -81,9 +70,7 @@ class FlextCliUtilitiesPrompts:
         """Validate one password length contract."""
         if len(password) < min_length:
             return r[str].fail(
-                c.Cli.ERR_PASSWORD_TOO_SHORT_FMT.format(
-                    min_length=min_length,
-                ),
+                c.Cli.ERR_PASSWORD_TOO_SHORT_FMT.format(min_length=min_length)
             )
         return r[str].ok(password)
 

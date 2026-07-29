@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from pathlib import Path
+from typing import Protocol, runtime_checkable
 
+from flext_cli import t
 from flext_cli._protocols.base import FlextCliProtocolsBase
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from flext_cli import t
 
 
 class FlextCliProtocolsDomain:
@@ -21,6 +18,18 @@ class FlextCliProtocolsDomain:
 
         def __call__(self, value: t.JsonValue) -> t.JsonValue:
             """Transform one JSON-compatible value."""
+            ...
+
+    class YamlAnchorNode(Protocol):
+        """ruamel.yaml node surface that can carry YAML anchors.
+
+        NOTE (multi-agent): mirrors the minimal ``yaml_set_anchor`` contract of
+        ruamel ``CommentedBase``. Consumed through a ``TypeGuard`` + ``hasattr``
+        check (not ``isinstance``) so leaf modules never import ruamel classes.
+        """
+
+        def yaml_set_anchor(self, value: str | None) -> None:
+            """Set or clear the YAML anchor on the node."""
             ...
 
     @runtime_checkable
@@ -36,21 +45,50 @@ class FlextCliProtocolsDomain:
         """Protocol for command registry entries."""
 
         name: str
-        handler: t.Cli.JsonCommandFn
+        # mro-j47u (codex): callable behavior remains in the p facade.
+        handler: FlextCliProtocolsBase.CliCommandWrapper
 
     @runtime_checkable
     class ResultCommandRoute(Protocol):
         """Protocol for declarative result-route registration."""
 
-        name: str
-        help_text: str
-        model_cls: t.Cli.ModelType[t.Cli.ModelLike]
-        handler: t.Cli.ResultRouteHandler
-        success_message: str | None
-        success_formatter: (
-            FlextCliProtocolsBase.SuccessMessageFormatter[t.Cli.ResultValue] | None
-        )
-        success_type: t.Cli.MessageType
+        # mro-j47u (codex): read-only properties preserve frozen-model covariance.
+        @property
+        def name(self) -> str:
+            """The command name."""
+            ...
+
+        @property
+        def help_text(self) -> str:
+            """The user-facing help text."""
+            ...
+
+        @property
+        def model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
+            """The validated input model class."""
+            ...
+
+        @property
+        def handler(self) -> t.Cli.ResultRouteHandler:
+            """The type-erased result handler."""
+            ...
+
+        @property
+        def success_message(self) -> str | None:
+            """The static success message, when configured."""
+            ...
+
+        @property
+        def success_formatter(
+            self,
+        ) -> t.Cli.SuccessMessageFormatter[t.Cli.ResultValue] | None:
+            """The dynamic success formatter, when configured."""
+            ...
+
+        @property
+        def success_type(self) -> t.Cli.MessageType:
+            """The success output style."""
+            ...
 
     @runtime_checkable
     class DeclarativeRuleType[TRule](Protocol):
@@ -76,23 +114,69 @@ class FlextCliProtocolsDomain:
     class SummaryStats(Protocol):
         """Workspace orchestration summary payload contract."""
 
-        verb: str
-        total: int
-        success: int
-        failed: int
-        skipped: int
-        elapsed: float
+        @property
+        def verb(self) -> str:
+            """Verb label for the summary block."""
+            ...
+
+        @property
+        def total(self) -> int:
+            """Total processed items."""
+            ...
+
+        @property
+        def success(self) -> int:
+            """Successful items."""
+            ...
+
+        @property
+        def failed(self) -> int:
+            """Failed items."""
+            ...
+
+        @property
+        def skipped(self) -> int:
+            """Skipped items."""
+            ...
+
+        @property
+        def elapsed(self) -> float:
+            """Elapsed time in seconds."""
+            ...
 
     @runtime_checkable
     class ProjectFailureInfo(Protocol):
         """Per-project failure descriptor for verbose diagnostics."""
 
-        project: str
-        elapsed: float
-        error_count: int
-        log_path: Path
-        max_show: int
-        errors: t.SequenceOf[str]
+        @property
+        def project(self) -> str:
+            """Project name."""
+            ...
+
+        @property
+        def elapsed(self) -> float:
+            """Elapsed time in seconds."""
+            ...
+
+        @property
+        def error_count(self) -> int:
+            """Total project errors."""
+            ...
+
+        @property
+        def log_path(self) -> Path:
+            """Path to the project log."""
+            ...
+
+        @property
+        def max_show(self) -> int:
+            """Maximum errors to render."""
+            ...
+
+        @property
+        def errors(self) -> t.SequenceOf[str]:
+            """Rendered error excerpt lines."""
+            ...
 
 
 __all__: list[str] = ["FlextCliProtocolsDomain"]

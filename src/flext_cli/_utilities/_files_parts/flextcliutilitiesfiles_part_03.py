@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-import os
 import shutil
-import tempfile
 from pathlib import Path
 
 from flext_cli import c, p, r, t
@@ -31,14 +29,12 @@ class FlextCliUtilitiesFiles:
             return tuple(names)
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _list,
-            c.Cli.ERR_TEXT_READ_FAILED,
+            _list, c.Cli.ERR_TEXT_READ_FAILED
         )
 
     @staticmethod
     def ensure_symlink(
-        target: t.Cli.TextPath,
-        source: t.Cli.TextPath,
+        target: t.Cli.TextPath, source: t.Cli.TextPath
     ) -> p.Result[bool]:
         """Ensure target points to source via directory symlink."""
         target_path = Path(target)
@@ -47,9 +43,7 @@ class FlextCliUtilitiesFiles:
         if ensure_result.failure:
             return r[bool].fail(
                 ensure_result.error
-                or c.Cli.ERR_CREATE_PARENT_DIR_FAILED.format(
-                    target_path=target_path,
-                ),
+                or c.Cli.ERR_CREATE_PARENT_DIR_FAILED.format(target_path=target_path)
             )
         if target_path.is_symlink() and target_path.resolve() == source_path:
             return r[bool].ok(True)
@@ -59,9 +53,8 @@ class FlextCliUtilitiesFiles:
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ENSURE_SYMLINK_FAILED.format(
-                    target_path=target_path,
-                    error=exc,
-                ),
+                    target_path=target_path, error=exc
+                )
             )
         return r[bool].ok(True)
 
@@ -74,40 +67,6 @@ class FlextCliUtilitiesFiles:
             shutil.rmtree(target_path)
         else:
             target_path.unlink()
-
-    @staticmethod
-    def atomic_write_text_file(
-        file_path: t.Cli.TextPath,
-        content: str,
-    ) -> p.Result[bool]:
-        """Write a text file atomically via tempfile + replace in the same directory."""
-        path = Path(file_path)
-        ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(path.parent)
-        if ensure_result.failure:
-            return r[bool].fail(
-                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED,
-            )
-        try:
-            FlextCliUtilitiesFiles._write_temp_and_replace(path, content)
-        except OSError as exc:
-            return r[bool].fail(
-                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(
-                    error=exc,
-                ),
-            )
-        return r[bool].ok(True)
-
-    @staticmethod
-    def _write_temp_and_replace(path: Path, content: str) -> None:
-        """Write content to a temp file next to ``path`` and atomically replace it."""
-        fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w", encoding=c.Cli.ENCODING_DEFAULT) as handle:
-                handle.write(content)
-            Path(tmp_path).replace(path)
-        except BaseException:
-            Path(tmp_path).unlink(missing_ok=True)
-            raise
 
     @staticmethod
     def sha256_content(content: str) -> str:

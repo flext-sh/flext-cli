@@ -26,8 +26,8 @@ class FlextCliTables(s):
         """Format table data to a string using the public CLI API."""
         return u.Cli.tables_resolve_config(settings, **config_kwargs).flat_map(
             lambda config_final: u.Cli.tables_normalize_data(data).flat_map(
-                lambda rows: u.Cli.tables_render(rows, config_final),
-            ),
+                lambda rows: u.Cli.tables_render(rows, config_final)
+            )
         )
 
     @staticmethod
@@ -51,12 +51,12 @@ class FlextCliTables(s):
         outcome = u.Cli.tables_resolve_config(settings, **config_kwargs).flat_map(
             lambda config_final: u.Cli.tables_normalize_data(data).flat_map(
                 lambda rows: u.Cli.tables_render(rows, config_final).map(
-                    lambda rendered: _render_with_title(rendered, config_final.title),
-                ),
-            ),
+                    lambda rendered: _render_with_title(rendered, config_final.title)
+                )
+            )
         )
         FlextCliFormatters.print(
-            outcome.fold(on_success=lambda value: value, on_failure=_print_error),
+            outcome.fold(on_success=lambda value: value, on_failure=_print_error)
         )
 
 

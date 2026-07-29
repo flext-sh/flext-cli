@@ -1,35 +1,58 @@
-"""Pydantic models for flext-cli tests only.
-
-All test-domain models live here; tests MUST NOT use dict/Any/t.JsonValue
-as data contracts. Reuse TestsFlextModels types where possible; add
-test-specific input models only when needed.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
-"""
+"""Declarative consumer models for flext-cli public contract tests."""
 
 from __future__ import annotations
 
-from flext_tests import FlextTestsModels
+from typing import Annotated
 
-from flext_cli import m as flext_cli_m
+from flext_cli import FlextCliModels, m
+from flext_tests import FlextTestsModels
 from tests._models_parts.testsflextclimodels_part_01 import (
     TestsFlextCliModels as TestsFlextCliModelsPart01,
 )
 
 
-class TestsFlextCliModels(
-    TestsFlextCliModelsPart01,
-    FlextTestsModels,
-    flext_cli_m,
-):
-    """Public facade for TestsFlextCliModels."""
+class TestsFlextCliModels(TestsFlextCliModelsPart01, FlextTestsModels, FlextCliModels):
+    """Test model facade composed from canonical FLEXT model owners."""
 
     class Tests(TestsFlextCliModelsPart01.Tests):
-        """Test-specific model namespace."""
+        """Consumer-owned records used to exercise typed YAML ingress."""
+
+        class YamlService(m.FrozenModel):
+            """Strict service endpoint loaded from external YAML."""
+
+            host: Annotated[str, m.Field(description="Service host name.")]
+            port: Annotated[int, m.Field(description="Service port number.")]
+
+        class YamlFeatures(m.FrozenModel):
+            """Strict feature configuration loaded from external YAML."""
+
+            enabled: Annotated[bool, m.Field(description="Feature activation flag.")]
+
+        class YamlConsumerConfig(m.FrozenModel):
+            """Strict consumer configuration returned by the public loader."""
+
+            service: TestsFlextCliModels.Tests.YamlService
+            features: TestsFlextCliModels.Tests.YamlFeatures
+
+        class TemplateEmpty(m.FrozenModel):
+            """Empty template render context (no variables provided)."""
+
+        class TemplateValue(m.FrozenModel):
+            """Template render context exposing a single ``value`` field."""
+
+            value: Annotated[int, m.Field(description="Template value.")]
+
+        class TemplateServer(m.FrozenModel):
+            """Template render context nested ``server`` record."""
+
+            port: Annotated[int, m.Field(description="Server port number.")]
+
+        class TemplateServerContext(m.FrozenModel):
+            """Template render context exposing a nested ``server`` field."""
+
+            server: TestsFlextCliModels.Tests.TemplateServer
 
 
-m: type[TestsFlextCliModels] = TestsFlextCliModels
+m = TestsFlextCliModels
 
 __all__: list[str] = ["TestsFlextCliModels", "m"]

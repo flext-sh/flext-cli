@@ -4,11 +4,9 @@ from __future__ import annotations
 
 import inspect
 
-from tests.constants import c
-from tests.protocols import p
-from tests.utilities import u
-
-from flext_cli import cli, m
+from flext_cli import FlextCliSettings, cli, m, settings
+from flext_tests import tm
+from tests import c, p, u
 
 
 class TestsFlextCliPublicContractsCoverage:
@@ -27,79 +25,65 @@ class TestsFlextCliPublicContractsCoverage:
         debug: bool | None = None
 
     def test_public_facade_and_settings_contract(self) -> None:
-        cli.settings.reset_for_testing()
+        # NOTE (multi-agent): flat cli_* settings (§2.6) — fresh instances come
+        # from ``settings.clone()`` and test-runtime detection lives in
+        # ``u.Cli.cli_test_env`` (behavior moved off the settings model).
+        """Verify that public facade and settings contract."""
+        FlextCliSettings.reset_for_testing()
 
-        fresh_settings = cli.new_settings()
-        assert isinstance(fresh_settings, p.Cli.Settings)
-        assert fresh_settings.Cli.test_env is False
+        fresh_settings = settings.clone()
+        tm.that(fresh_settings, is_=p.Cli.Settings)
+        tm.that(u.Cli.cli_test_env(fresh_settings), eq=False)
 
-        cli.settings.reset_for_testing()
-        shell_settings = cli.new_settings()
-        shell_settings = shell_settings.model_copy(
-            update={
-                "Cli": shell_settings.Cli.model_copy(
-                    update={"shell_command": "pytest -k smoke"}
-                )
-            }
+        shell_settings = settings.clone(cli_shell_command="pytest -k smoke")
+        tm.that(u.Cli.cli_test_env(shell_settings), eq=True)
+
+        pytest_settings = settings.clone(
+            cli_pytest_current_test=(
+                "tests/unit/test_public_contracts_cov.py::test_public_facade"
+            )
         )
-        assert shell_settings.Cli.test_env is True
+        tm.that(u.Cli.cli_test_env(pytest_settings), eq=True)
 
-        cli.settings.reset_for_testing()
-        pytest_settings = cli.new_settings()
-        pytest_settings = pytest_settings.model_copy(
-            update={
-                "Cli": pytest_settings.Cli.model_copy(
-                    update={
-                        "pytest_current_test": (
-                            "tests/unit/test_public_contracts_cov.py::test_public_facade"
-                        )
-                    }
-                )
-            }
-        )
-        assert pytest_settings.Cli.test_env is True
+        ci_settings = settings.clone(cli_ci=True)
+        tm.that(u.Cli.cli_test_env(ci_settings), eq=True)
 
-        cli.settings.reset_for_testing()
-        ci_settings = cli.new_settings()
-        ci_settings = ci_settings.model_copy(
-            update={"Cli": ci_settings.Cli.model_copy(update={"ci": True})}
-        )
-        assert ci_settings.Cli.test_env is True
-
-        cli.settings.reset_for_testing()
+        FlextCliSettings.reset_for_testing()
 
         facade_result = cli.execute()
 
-        assert facade_result.success
-        assert facade_result.value[c.Cli.DICT_KEY_STATUS] == (
-            c.Cli.ServiceStatus.OPERATIONAL
-        )
-        assert facade_result.value[c.Cli.DICT_KEY_SERVICE] == c.Cli.FLEXT_CLI
-        components = facade_result.value.get("components")
-        assert isinstance(components, dict)
-        assert components["prompts"] == "available"
+        tm.ok(facade_result)
+        tm.that(facade_result.value.status, eq=(c.Cli.ServiceStatus.OPERATIONAL))
+        tm.that(facade_result.value.service, eq=c.Cli.FLEXT_CLI)
+        components = facade_result.value.components
+        tm.that(components, is_=m.Cli.RuntimeComponents)
+        tm.that(components.prompts, eq="available")
 
     def test_public_model_command_utility_contract(self) -> None:
-        settings = self._CommandModel(label="configured", debug=True)
+        """Verify that public model command utility contract."""
+        command_settings = self._CommandModel(label="configured", debug=True)
 
-        def handler(
-            model: TestsFlextCliPublicContractsCoverage._CommandModel,
-        ) -> str:
+        def handler(model: TestsFlextCliPublicContractsCoverage._CommandModel) -> str:
             return f"{model.label}:{model.debug}"
 
         command = u.Cli.build_model_command(
-            self._CommandModel,
-            handler,
-            settings=settings,
+            self._CommandModel, handler, settings=command_settings
         )
         signature = inspect.signature(command)
 
-        assert signature.parameters["label"].default is inspect.Parameter.empty
-        assert signature.parameters["debug"].default is True
-        assert u.Cli.model_source_data(
-            self._CommandModel,
-            self._CommandSource(label="mapped", debug=None),
-        ) == {"label": "mapped"}
+        # NOTE (multi-agent): ``u.Cli.build_model_command`` renders model-field
+        # defaults into the signature; settings-seeded defaults are the
+        # ``cli.model_command`` contract, not this utility's.
+        tm.that(
+            signature.parameters["label"].default is inspect.Parameter.empty, eq=True
+        )
+        tm.that(signature.parameters["debug"].default, eq=False)
+        tm.that(
+            u.Cli.model_source_data(
+                self._CommandModel, self._CommandSource(label="mapped", debug=None)
+            ),
+            eq={"label": "mapped"},
+        )
 
         derived = u.Cli.derive_model(
             self._CommandModel,
@@ -108,9 +92,9 @@ class TestsFlextCliPublicContractsCoverage:
             overrides={"label": "override"},
         )
 
-        assert derived.label == "override"
-        assert derived.debug is True
-        assert command(label="runtime", debug=True) == "runtime:True"
+        tm.that(derived.label, eq="override")
+        tm.that(derived.debug, eq=True)
+        tm.that(command(label="runtime", debug=True), eq="runtime:True")
 
 
 __all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]

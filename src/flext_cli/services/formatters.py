@@ -10,16 +10,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliServiceBase, p, t, u
+from flext_cli import m, s, t, u
 
 
-class FlextCliFormatters(FlextCliServiceBase):
+class FlextCliFormatters(s):
     """Thin Rich formatters facade - delegates to Rich library directly."""
-
-    @classmethod
-    def create_tree(cls, label: str) -> p.Result[t.Cli.RichTreeType]:
-        """Create one Rich tree via the canonical CLI utility."""
-        return u.Cli.formatters_create_tree(label)
 
     @classmethod
     def print(cls, message: str, style: str | None = None) -> None:
@@ -46,7 +41,7 @@ class FlextCliFormatters(FlextCliServiceBase):
     ) -> None:
         """Render a Rich Table with columns and rows."""
         u.Cli.formatters_render_table(
-            u.Cli.TableRenderRequest(columns=columns, rows=rows, title=title),
+            m.Cli.TableRenderRequest(columns=columns, rows=rows, title=title)
         )
 
 

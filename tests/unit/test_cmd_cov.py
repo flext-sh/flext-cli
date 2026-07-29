@@ -1,81 +1,140 @@
-"""Command coverage tests."""
+"""Behavioral tests for the public ``FlextCli`` settings-command surface.
+
+Every test exercises the public contract only: the ``r[T]`` outcome of the
+command methods and the public fields of :class:`m.Cli.SettingsSnapshot`.
+No private attributes, no internal-collaborator spying, no patching of the
+unit under test. HOME (an external boundary) and ``tmp_path`` are the only
+things steered, so the filesystem-derived snapshot is fully deterministic.
+"""
 
 from __future__ import annotations
 
 import os
-from collections.abc import (
-    Generator,
-)
 from contextlib import contextmanager
-from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_tests import tm
+import pytest
 
 from flext_cli import cli
-from tests.constants import c
+from flext_tests import tm
+from tests import c
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from pathlib import Path
 
 
 class TestsFlextCliCmdCov:
-    """Coverage tests for the public command-facing cli surface."""
+    """Contract tests for the settings commands exposed on ``FlextCli``."""
 
     @staticmethod
     @contextmanager
-    def _temporary_home(path: Path) -> Generator[None]:
-        original_home = os.environ.get("HOME")
+    def _home(path: Path) -> Generator[None]:
+        """Point HOME at ``path`` for the duration of the block (external boundary)."""
+        original = os.environ.get("HOME")
+        os.environ["HOME"] = str(path)
         try:
-            os.environ["HOME"] = str(path)
             yield
         finally:
-            if original_home is None:
+            if original is None:
                 os.environ.pop("HOME", None)
             else:
-                os.environ["HOME"] = original_home
+                os.environ["HOME"] = original
 
-    def test_validate_settings_succeeds_when_structure_is_missing(
-        self,
-        tmp_path: Path,
-    ) -> None:
-        """validate_settings must report the canonical structure without failing."""
-        cmd = type(cli)()
-        with self._temporary_home(tmp_path):
-            result = cmd.validate_settings()
-        tm.ok(result)
+    @staticmethod
+    def _make_flext_dir(root: Path, *, with_subdirs: bool = False) -> Path:
+        """Create the canonical ``.flext`` directory (optionally its subdirs)."""
+        base = root / c.Cli.PATH_FLEXT_DIR_NAME
+        base.mkdir()
+        if with_subdirs:
+            for subdir in c.Cli.STANDARD_SUBDIRS:
+                (base / subdir).mkdir()
+        return base
 
-    def test_validate_settings_succeeds_with_real_structure(
-        self,
-        tmp_path: Path,
+    @pytest.mark.parametrize("with_subdirs", [False, True])
+    def test_validate_settings_succeeds_when_directory_present(
+        self, tmp_path: Path, *, with_subdirs: bool
     ) -> None:
-        """validate_settings must accept the standard FLEXT directory layout."""
-        base_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
-        base_dir.mkdir()
-        for subdir in c.Cli.STANDARD_SUBDIRS:
-            (base_dir / subdir).mkdir()
-        cmd = type(cli)()
-        with self._temporary_home(tmp_path):
-            result = cmd.validate_settings()
-        tm.ok(result)
+        """validate_settings reports success whether or not subdirs exist."""
+        self._make_flext_dir(tmp_path, with_subdirs=with_subdirs)
+        with self._home(tmp_path):
+            result = cli.validate_settings()
+        tm.that(tm.ok(result), eq=True)
 
-    def test_settings_snapshot_reflects_real_home_directory(
-        self,
-        tmp_path: Path,
+    def test_validate_settings_succeeds_when_structure_absent(
+        self, tmp_path: Path
     ) -> None:
-        """settings_snapshot must expose the resolved canonical settings directory."""
-        settings_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
-        settings_dir.mkdir()
-        with self._temporary_home(tmp_path):
+        """validate_settings is non-fatal on a missing canonical structure."""
+        with self._home(tmp_path):
+            result = cli.validate_settings()
+        tm.that(tm.ok(result), eq=True)
+
+    def test_validate_settings_is_idempotent(self, tmp_path: Path) -> None:
+        """Repeated validate_settings calls yield the same successful outcome."""
+        self._make_flext_dir(tmp_path, with_subdirs=True)
+        with self._home(tmp_path):
+            first = cli.validate_settings()
+            second = cli.validate_settings()
+        tm.that(tm.ok(first), eq=True)
+        tm.that(tm.ok(second), eq=True)
+
+    def test_settings_snapshot_reports_existing_directory(self, tmp_path: Path) -> None:
+        """settings_snapshot resolves the canonical dir and marks it present."""
+        settings_dir = self._make_flext_dir(tmp_path)
+        with self._home(tmp_path):
             result = cli.settings_snapshot()
-        tm.ok(result)
-        tm.that(result.value.settings_dir, eq=str(settings_dir))
-        tm.that(result.value.settings_exists, eq=True)
+        snapshot = tm.ok(result)
+        tm.that(snapshot.settings_dir, eq=str(settings_dir))
+        tm.that(snapshot.settings_exists, eq=True)
+        tm.that(snapshot.settings_readable, eq=True)
+        tm.that(snapshot.settings_writable, eq=True)
+        tm.that(snapshot.timestamp, empty=False)
 
-    def test_show_settings_succeeds_with_real_snapshot(
-        self,
-        tmp_path: Path,
+    def test_settings_snapshot_reports_absent_directory(self, tmp_path: Path) -> None:
+        """settings_snapshot flags a missing dir as absent/unreadable/unwritable."""
+        with self._home(tmp_path):
+            result = cli.settings_snapshot()
+        snapshot = tm.ok(result)
+        tm.that(snapshot.settings_dir, eq=str(tmp_path / c.Cli.PATH_FLEXT_DIR_NAME))
+        tm.that(snapshot.settings_exists, eq=False)
+        tm.that(snapshot.settings_readable, eq=False)
+        tm.that(snapshot.settings_writable, eq=False)
+
+    def test_settings_snapshot_round_trips_through_public_dump(
+        self, tmp_path: Path
     ) -> None:
-        """show_settings must succeed when the canonical settings snapshot is readable."""
-        (tmp_path / c.Cli.PATH_FLEXT_DIR_NAME).mkdir()
-        cmd = type(cli)()
-        with self._temporary_home(tmp_path):
-            result = cmd.show_settings()
-        tm.ok(result)
-        tm.that(result.value, eq=True)
+        """The snapshot's public model_dump preserves its contract fields."""
+        settings_dir = self._make_flext_dir(tmp_path)
+        with self._home(tmp_path):
+            result = cli.settings_snapshot()
+        dumped = tm.ok(result).model_dump()
+        tm.that(dumped["settings_dir"], eq=str(settings_dir))
+        tm.that(dumped["settings_exists"], eq=True)
+        tm.that(
+            set(dumped)
+            >= {
+                "settings_dir",
+                "settings_exists",
+                "settings_readable",
+                "settings_writable",
+                "timestamp",
+            },
+            eq=True,
+        )
+
+    def test_show_settings_succeeds_when_snapshot_readable(
+        self, tmp_path: Path
+    ) -> None:
+        """show_settings succeeds when the canonical snapshot is resolvable."""
+        self._make_flext_dir(tmp_path)
+        with self._home(tmp_path):
+            result = cli.show_settings()
+        tm.that(tm.ok(result), eq=True)
+
+    def test_show_settings_succeeds_without_existing_directory(
+        self, tmp_path: Path
+    ) -> None:
+        """show_settings still succeeds when no settings directory exists."""
+        with self._home(tmp_path):
+            result = cli.show_settings()
+        tm.that(tm.ok(result), eq=True)

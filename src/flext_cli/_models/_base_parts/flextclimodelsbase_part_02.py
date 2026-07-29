@@ -16,64 +16,40 @@ class FlextCliModelsBase:
         """Centralized runtime state for CLI prompt behavior."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
+            extra="forbid", validate_assignment=True
         )
 
         interactive: Annotated[
-            bool,
-            m.Field(True, description="Whether prompt interaction is enabled"),
+            bool, m.Field(True, description="Whether prompt interaction is enabled")
         ] = True
         quiet: Annotated[
-            bool,
-            m.Field(False, description="Whether prompt output is suppressed"),
+            bool, m.Field(False, description="Whether prompt output is suppressed")
         ] = False
         default_timeout: Annotated[
-            int,
-            m.Field(
-                description="Default prompt timeout in seconds",
-            ),
+            int, m.Field(description="Default prompt timeout in seconds")
         ] = c.Cli.PROMPT_DEFAULT_TIMEOUT
 
     class AuthCredentialsPayload(m.BaseModel):
         """Validated auth payload for token or username/password flows."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
+            extra="forbid", validate_assignment=True
         )
         token: Annotated[
             str | None,
-            m.Field(
-                None,
-                description="Direct authentication token",
-                strict=True,
-            ),
+            m.Field(None, description="Direct authentication token", strict=True),
         ] = None
         username: Annotated[
-            str,
-            m.Field(
-                "",
-                description="Authentication username",
-                strict=True,
-            ),
+            str, m.Field("", description="Authentication username", strict=True)
         ] = ""
         password: Annotated[
-            str,
-            m.Field(
-                "",
-                description="Authentication password",
-                strict=True,
-            ),
+            str, m.Field("", description="Authentication password", strict=True)
         ] = ""
 
     class ProcessEnvironmentSpec(m.BaseModel):
         """Validated process environment contract for runtime command execution."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            frozen=True,
-        )
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         base_env: Annotated[
             t.StrMapping,
             m.Field(

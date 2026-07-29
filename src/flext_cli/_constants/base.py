@@ -8,25 +8,27 @@ regex construction must not live on this constants surface.
 from __future__ import annotations
 
 import re
-from typing import ClassVar, Final
+from typing import TYPE_CHECKING, ClassVar, Final
 
-from rich.errors import ConsoleError, LiveError, StyleError
-
-from flext_core import t
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliConstantsBase:
     """Base CLI constants for metadata, paths, symbols, and static values."""
 
     ENCODING_DEFAULT: Final[str] = "utf-8"
+    # NOTE (multi-agent): process finalization is owned once by ``c.Cli`` so
+    # adapters and consumers cannot drift into local magic exit codes/messages.
+    EXIT_CODE_SUCCESS: Final[int] = 0
+    EXIT_CODE_FAILURE: Final[int] = 1
+    OP_EXECUTE_APPLICATION: Final[str] = "execute CLI application"
+    ERR_EXIT_WITH_CODE: Final[str] = "CLI exited with code {exit_code}"
 
     CLI_SAFE_EXCEPTIONS: ClassVar[t.VariadicTuple[type[Exception]]] = (
         ValueError,
         TypeError,
         KeyError,
-        ConsoleError,
-        StyleError,
-        LiveError,
     )
 
     PATH_FLEXT_DIR_NAME: Final[str] = ".flext"

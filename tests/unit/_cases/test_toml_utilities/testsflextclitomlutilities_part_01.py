@@ -4,15 +4,17 @@ from __future__ import annotations
 
 import os
 import stat
-from collections.abc import (
-    Generator,
-)
 from contextlib import contextmanager
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_tests import tm
-from tests.typings import t
-from tests.utilities import u
+from tests import u
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
+
+    from tests import t
 
 
 class TestsFlextCliTomlUtilities:
@@ -20,45 +22,43 @@ class TestsFlextCliTomlUtilities:
 
     @staticmethod
     @contextmanager
-    def _temporary_environment(
-        overrides: t.StrMapping,
-    ) -> Generator[None]:
-        original_values = {key: os.environ.get(key) for key in overrides}
+    def _temporary_environment(overrides: t.StrMapping) -> Generator[None]:
+        original_values = dict(overrides)
         try:
             for key, value in overrides.items():
                 os.environ[key] = value
             yield
         finally:
             for key, value in original_values.items():
-                if value is None:
-                    os.environ.pop(key, None)
-                else:
-                    os.environ[key] = value
+                os.environ[key] = value
 
     def test_read_existing_file(self, tmp_path: Path) -> None:
+        """Verify that read existing file."""
         toml_file = tmp_path / "test.toml"
         toml_file.write_text(
-            '[section]\nkey = "value"\nnumber = 42\n',
-            encoding="utf-8",
+            '[section]\nkey = "value"\nnumber = 42\n', encoding="utf-8"
         )
 
         doc = u.Cli.toml_read(toml_file)
 
-        assert doc is not None
+        doc = tm.not_none(doc)
         section = u.Cli.toml_table_child(doc, "section")
-        assert section is not None
+        section = tm.not_none(section)
         tm.that(u.Cli.toml_value(section, "key"), eq="value")
         tm.that(u.Cli.toml_value(section, "number"), eq=42)
 
     def test_read_nonexistent_file(self, tmp_path: Path) -> None:
+        """Verify that read nonexistent file."""
         tm.that(u.Cli.toml_read(tmp_path / "missing.toml"), none=True)
 
     def test_read_invalid_toml(self, tmp_path: Path) -> None:
+        """Verify that read invalid toml."""
         toml_file = tmp_path / "invalid.toml"
         toml_file.write_text("[invalid\nkey = value", encoding="utf-8")
         tm.that(u.Cli.toml_read(toml_file), none=True)
 
     def test_read_document_existing_file(self, tmp_path: Path) -> None:
+        """Verify that read document existing file."""
         toml_file = tmp_path / "test.toml"
         toml_file.write_text('[section]\nkey = "value"  # comment\n', encoding="utf-8")
 
@@ -66,16 +66,15 @@ class TestsFlextCliTomlUtilities:
 
         tm.ok(result)
         section = u.Cli.toml_table_child(result.value, "section")
-        assert section is not None
+        section = tm.not_none(section)
         tm.that(u.Cli.toml_value(section, "key"), eq="value")
 
     def test_read_document_nonexistent_file(self, tmp_path: Path) -> None:
-        tm.fail(
-            u.Cli.toml_read_document(tmp_path / "missing.toml"),
-            has="not found",
-        )
+        """Verify that read document nonexistent file."""
+        tm.fail(u.Cli.toml_read_document(tmp_path / "missing.toml"), has="not found")
 
     def test_write_document(self, tmp_path: Path) -> None:
+        """Verify that write document."""
         toml_file = tmp_path / "doc.toml"
         doc = u.Cli.toml_document()
         doc["section"] = {"key": "value"}
@@ -86,6 +85,7 @@ class TestsFlextCliTomlUtilities:
         tm.that(toml_file.exists(), eq=True)
 
     def test_write_creates_parent_directories(self, tmp_path: Path) -> None:
+        """Verify that write creates parent directories."""
         toml_file = tmp_path / "nested" / "deep" / "file.toml"
         doc = u.Cli.toml_document()
         doc["key"] = "value"
@@ -94,6 +94,7 @@ class TestsFlextCliTomlUtilities:
         tm.that(toml_file.exists(), eq=True)
 
     def test_write_pyproject_runs_taplo(self, tmp_path: Path) -> None:
+        """Verify that write pyproject runs taplo."""
         pyproject = tmp_path / "pyproject.toml"
         taplo_config = tmp_path / ".taplo.toml"
         command_log = tmp_path / "taplo.log"
@@ -113,7 +114,7 @@ class TestsFlextCliTomlUtilities:
         doc = u.Cli.toml_document()
         doc["project"] = {"name": "demo"}
         with self._temporary_environment({
-            "PATH": f"{bin_dir}:{os.environ.get('PATH', '')}",
+            "PATH": f"{bin_dir}:{os.environ.get('PATH', '')}"
         }):
             tm.ok(u.Cli.toml_write_document(pyproject, doc))
         logged_command = command_log.read_text(encoding="utf-8").splitlines()
@@ -124,6 +125,7 @@ class TestsFlextCliTomlUtilities:
         tm.that(logged_command, contains=str(pyproject))
 
     def test_write_permission_error(self, tmp_path: Path) -> None:
+        """Verify that write permission error."""
         readonly_dir = tmp_path / "readonly"
         readonly_dir.mkdir()
         toml_file = readonly_dir / "test.toml"
@@ -137,6 +139,7 @@ class TestsFlextCliTomlUtilities:
             Path(readonly_dir).chmod(stat.S_IRWXU)
 
     def test_array_creates_multiline(self) -> None:
+        """Verify that array creates multiline."""
         arr = u.Cli.toml_array(["a", "b", "c"])
         arr_text = arr.as_string()
         tm.that(arr_text, has='"a"')

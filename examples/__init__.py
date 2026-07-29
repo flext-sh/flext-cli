@@ -34,63 +34,35 @@ if TYPE_CHECKING:
     from examples.models import ExamplesFlextCliModels as ExamplesFlextCliModels, m as m
     from examples.protocols import (
         ExamplesFlextCliProtocols as ExamplesFlextCliProtocols,
-        p as p,
+        p,
     )
     from examples.typings import ExamplesFlextCliTypes as ExamplesFlextCliTypes, t as t
     from examples.utilities import (
         ExamplesFlextCliUtilities as ExamplesFlextCliUtilities,
-        u as u,
+        u,
     )
-    from flext_core import d as d, e as e, h as h, r as r, s as s, x as x
+    from flext_cli import d as d, e as e, h as h, r as r, s as s, x as x
 _LAZY_IMPORTS = merge_lazy_imports(
     ("._models_parts",),
-    build_lazy_import_map(
-        {
-            "._models_parts": ("_models_parts",),
-            "._models_parts.examples_advanced": (
-                "ExamplesFlextCliModelsExamplesAdvanced",
-            ),
-            "._models_parts.examples_common": ("ExamplesFlextCliModelsExamplesCommon",),
-            "._models_parts.examples_database": (
-                "ExamplesFlextCliModelsExamplesDatabase",
-            ),
-            ".constants": (
-                "ExamplesFlextCliConstants",
-                "c",
-            ),
-            ".ex_01_getting_started": ("ExamplesFlextCliGettingStarted",),
-            ".ex_02_output_formatting": ("ex_02_output_formatting",),
-            ".ex_04_file_operations": ("ex_04_file_operations",),
-            ".ex_05_authentication": ("Ex05Authentication",),
-            ".ex_06_settings": ("Ex06Settings",),
-            ".ex_11_complete_integration": ("DataManagerCLI",),
-            ".ex_12_pydantic_driven_cli": ("ex_12_pydantic_driven_cli",),
-            ".models": (
-                "ExamplesFlextCliModels",
-                "m",
-            ),
-            ".protocols": (
-                "ExamplesFlextCliProtocols",
-                "p",
-            ),
-            ".typings": (
-                "ExamplesFlextCliTypes",
-                "t",
-            ),
-            ".utilities": (
-                "ExamplesFlextCliUtilities",
-                "u",
-            ),
-            "flext_core": (
-                "d",
-                "e",
-                "h",
-                "r",
-                "s",
-                "x",
-            ),
-        },
-    ),
+    build_lazy_import_map({
+        "._models_parts": ("_models_parts",),
+        "._models_parts.examples_advanced": ("ExamplesFlextCliModelsExamplesAdvanced",),
+        "._models_parts.examples_common": ("ExamplesFlextCliModelsExamplesCommon",),
+        "._models_parts.examples_database": ("ExamplesFlextCliModelsExamplesDatabase",),
+        ".constants": ("ExamplesFlextCliConstants", "c"),
+        ".ex_01_getting_started": ("ExamplesFlextCliGettingStarted",),
+        ".ex_02_output_formatting": ("ex_02_output_formatting",),
+        ".ex_04_file_operations": ("ex_04_file_operations",),
+        ".ex_05_authentication": ("Ex05Authentication",),
+        ".ex_06_settings": ("Ex06Settings",),
+        ".ex_11_complete_integration": ("DataManagerCLI",),
+        ".ex_12_pydantic_driven_cli": ("ex_12_pydantic_driven_cli",),
+        ".models": ("ExamplesFlextCliModels", "m"),
+        ".protocols": ("ExamplesFlextCliProtocols", "p"),
+        ".typings": ("ExamplesFlextCliTypes", "t"),
+        ".utilities": ("ExamplesFlextCliUtilities", "u"),
+        "flext_cli": ("d", "e", "h", "r", "s", "x"),
+    }),
     exclude_names=(
         "cleanup_submodule_namespace",
         "install_lazy_exports",
@@ -114,9 +86,4 @@ _LAZY_IMPORTS = merge_lazy_imports(
 )
 
 
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    publish_all=False,
-)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, publish_all=False)

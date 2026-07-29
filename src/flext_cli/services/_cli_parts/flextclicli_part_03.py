@@ -7,22 +7,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from inspect import Parameter
+from typing import TYPE_CHECKING
 
-from typer.testing import CliRunner
-
-from flext_cli import (
-    c,
-    p,
-    r,
-    t,
-    u,
-)
-from flext_cli.services._cli_parts.flextclicli_part_01 import (
-    FlextCliCli as FlextCliCliPart01,
-)
+from flext_cli import c, m, p, r, t, u
 from flext_cli.services._cli_parts.flextclicli_part_02 import (
     FlextCliCli as FlextCliCliPart02,
 )
+
+if TYPE_CHECKING:
+    # mro-j47u (codex): the earlier MRO part is referenced only by annotation;
+    # inspect.Parameter remains runtime because it constructs the CLI signature.
+    from flext_cli.services._cli_parts.flextclicli_part_01 import (
+        FlextCliCli as FlextCliCliPart01,
+    )
 
 
 class FlextCliCli(FlextCliCliPart02):
@@ -31,7 +28,7 @@ class FlextCliCli(FlextCliCliPart02):
     @classmethod
     def model_command[M: t.Cli.ModelLike](
         cls,
-        model_cls: t.Cli.ModelType[M],
+        model_cls: t.ModelClass[M],
         handler: p.Cli.ModelCommandHandler[M],
         settings: t.Cli.ModelLike | None = None,
     ) -> t.Cli.CliCommand:
@@ -43,17 +40,12 @@ class FlextCliCli(FlextCliCliPart02):
             if getattr(field_info, "exclude", None) is True:
                 continue
             parameter, annotation = cls._build_model_parameter(
-                field_name,
-                field_info,
-                settings,
+                field_name, field_info, settings
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
         command: FlextCliCliPart01._ModelCommand[M] = cls._ModelCommand(
-            settings=settings,
-            handler=handler,
-            model_cls=model_cls,
-            parameters=parameters,
+            handler=handler, model_cls=model_cls, parameters=parameters
         )
         command.__annotations__ = dict(annotations)
         return command
@@ -75,22 +67,21 @@ class FlextCliCli(FlextCliCliPart02):
         return validated
 
     @staticmethod
-    def create_cli_runner(
+    def invoke_app(
+        app: p.Cli.Application,
         *,
+        args: t.StrSequence | None = None,
         charset: str = c.Cli.ENCODING_DEFAULT,
         env: t.StrMapping | None = None,
-        echo_stdin: bool = False,
-    ) -> p.Result[t.Cli.TyperRunner]:
-        """Create a Typer/Click test runner for real CLI execution tests."""
-        if echo_stdin:
-            return r[t.Cli.TyperRunner].fail(
-                c.Cli.ERR_CLI_RUNNER_ECHO_STDIN_UNSUPPORTED,
+    ) -> p.Result[m.Cli.InvocationResult]:
+        """Invoke an application through the private real-framework boundary."""
+        try:
+            invocation = u.Cli.framework_invoke(
+                app, args=args, charset=charset, env=env
             )
-        runner = CliRunner(
-            charset=charset,
-            env=dict(env) if env is not None else None,
-        )
-        return r[t.Cli.TyperRunner].ok(runner)
+        except (TypeError, ValueError) as exc:
+            return r[m.Cli.InvocationResult].fail(str(exc))
+        return r[m.Cli.InvocationResult].ok(invocation)
 
 
 __all__: list[str] = ["FlextCliCli"]

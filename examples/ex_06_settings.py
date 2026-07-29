@@ -9,13 +9,14 @@ WHEN TO USE THIS:
 
 FLEXT-CLI PROVIDES:
 - cli - Settings management class
-- cli.settings - Direct access to current settings
+- settings - Canonical FlextCliSettings singleton (flat cli_* fields)
 - Environment variable loading (FLEXT_*)
 - Built-in validation with r
 - Profile-based settings
 
 HOW TO USE IN YOUR CLI:
-Access settings through cli.settings and customize for YOUR application
+Access settings through the canonical ``settings`` singleton and customize
+for YOUR application
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -27,7 +28,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from examples import c, m, t, u
-from flext_cli import cli, p
+from flext_cli import cli, p, settings
 from flext_core import r
 
 
@@ -39,27 +40,25 @@ class Ex06Settings:
         """Access flext-cli settings in YOUR application."""
         cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
         cli.print(
-            f"   Debug Mode: {cli.settings.debug}", style=c.Cli.MessageStyles.CYAN
+            f"   Debug Mode: {settings.debug}", style=c.Cli.MessageStyles.CYAN
         )
         cli.print(
-            f"   Log Level: {cli.settings.Cli.cli_log_level}",
+            f"   Log Level: {settings.cli_log_level}", style=c.Cli.MessageStyles.CYAN
+        )
+        cli.print(
+            f"   Output Format: {settings.cli_output_format}",
             style=c.Cli.MessageStyles.CYAN,
         )
         cli.print(
-            f"   Output Format: {cli.settings.Cli.output_format}",
-            style=c.Cli.MessageStyles.CYAN,
+            f"   App Name: {settings.cli_app_name}", style=c.Cli.MessageStyles.CYAN
         )
-        cli.print(
-            f"   App Name: {cli.settings.Cli.app_name}",
-            style=c.Cli.MessageStyles.CYAN,
-        )
-        return cli.settings
+        return settings
 
     @staticmethod
     def show_settings_locations() -> m.Cli.DisplayData:
         """Display settings file locations for YOUR application."""
         home_dir = Path.home()
-        token_file_path = u.Cli.auth_token_file_path(cli.settings.Cli.token_file)
+        token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         display_payload = u.to_json_dict({
             "Home Directory": str(home_dir),
             "Settings Directory": str(home_dir / c.Cli.PATH_FLEXT_DIR_NAME),
@@ -67,8 +66,7 @@ class Ex06Settings:
             "Token Exists": "Yes" if token_file_path.exists() else "No",
         })
         u.display_config_table(
-            config_data=display_payload,
-            headers=("Location", "Path"),
+            config_data=display_payload, headers=("Location", "Path")
         )
         return display_payload
 
@@ -91,10 +89,7 @@ class Ex06Settings:
             case _:
                 debug = profile_name == c.DeploymentEnvironment.DEVELOPMENT
                 output_format = c.Cli.OutputFormats.TABLE
-        profile_config = cli.settings.clone(
-            debug=debug,
-            Cli={"output_format": output_format},
-        )
+        profile_config = settings.clone(debug=debug, cli_output_format=output_format)
         cli.print(
             f"✅ Profile '{profile_name.value}' loaded successfully",
             style=c.Cli.MessageStyles.GREEN,
@@ -103,8 +98,8 @@ class Ex06Settings:
             config_data=u.to_json_dict({
                 "Profile": profile_name.value,
                 "Debug": str(profile_config.debug),
-                "Output": profile_config.Cli.output_format,
-                "App Name": profile_config.Cli.app_name,
+                "Output": profile_config.cli_output_format,
+                "App Name": profile_config.cli_app_name,
             })
         )
         return r[p.Cli.Settings].ok(profile_config)
@@ -113,25 +108,25 @@ class Ex06Settings:
     def load_application_settings(cls) -> p.Result[t.MappingKV[str, t.JsonValue]]:
         """Load, validate, and derive application settings from the canonical model."""
         cli.print(
-            "\n⚙️  Loading Application Settings:",
-            style=c.Cli.MessageStyles.BOLD_CYAN,
+            "\n⚙️  Loading Application Settings:", style=c.Cli.MessageStyles.BOLD_CYAN
         )
         settings_obj = m.Examples.AppSettingsAdvanced()
         cli.print("✅ Settings model created", style=c.Cli.MessageStyles.GREEN)
         validate_result = settings_obj.validate_to_mapping()
         if validate_result.failure:
             return r[t.MappingKV[str, t.JsonValue]].fail(
-                validate_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG,
+                validate_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
             )
         cli.print("✅ Settings validated", style=c.Cli.MessageStyles.GREEN)
         try:
             overridden_data = cls.apply_environment_overrides(
-                validate_result.value,
-                settings_obj.environment,
+                validate_result.value, settings_obj.environment
             )
         except (TypeError, ValueError) as exc:
             return r[t.MappingKV[str, t.JsonValue]].fail(str(exc))
-        cli.print("✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN)
+        cli.print(
+            "✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN
+        )
         final_data = cls.initialize_services(overridden_data)
         cli.print("✅ Services initialized", style=c.Cli.MessageStyles.GREEN)
         cli.print(
@@ -142,25 +137,21 @@ class Ex06Settings:
 
     @staticmethod
     def apply_environment_overrides(
-        settings: t.MappingKV[str, t.JsonValue],
-        environment: c.DeploymentEnvironment,
+        settings: t.MappingKV[str, t.JsonValue], environment: c.DeploymentEnvironment
     ) -> t.MappingKV[str, t.JsonValue]:
         """Apply environment-specific settings overrides."""
         result = dict(settings)
         match environment:
             case c.DeploymentEnvironment.PRODUCTION:
                 max_workers_value = result.get(
-                    "max_workers",
-                    c.EXAMPLE_DEFAULT_MAX_WORKERS,
+                    "max_workers", c.EXAMPLE_DEFAULT_MAX_WORKERS
                 )
                 if isinstance(max_workers_value, bool) or not isinstance(
-                    max_workers_value,
-                    int,
+                    max_workers_value, int
                 ):
                     raise TypeError(c.EXAMPLE_ERR_MAX_WORKERS_MUST_BE_INTEGER)
                 result["max_workers"] = min(
-                    max_workers_value,
-                    c.EXAMPLE_PRODUCTION_MAX_WORKERS_CAP,
+                    max_workers_value, c.EXAMPLE_PRODUCTION_MAX_WORKERS_CAP
                 )
                 result["enable_metrics"] = True
             case c.DeploymentEnvironment.TESTING:

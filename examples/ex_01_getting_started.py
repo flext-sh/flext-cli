@@ -11,10 +11,10 @@ from tempfile import TemporaryDirectory
 from typing import override
 
 from examples import c, m, p, r, s, t, u
-from flext_cli import cli
+from flext_cli import cli, settings
 
 
-class ExamplesFlextCliGettingStarted(s):
+class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
     """Minimal guided tour of flext-cli through public aliases and facades."""
 
     def build_example_settings(self) -> p.Result[m.Examples.MyAppSettings]:
@@ -38,8 +38,7 @@ class ExamplesFlextCliGettingStarted(s):
         with TemporaryDirectory(prefix=f"{c.EXAMPLE_DEFAULT_TEMP_SUBDIR}-") as temp_dir:
             config_path = Path(temp_dir) / "settings.json"
             return cli.write_json_file(
-                str(config_path),
-                wrapped_config.model_dump(mode="json"),
+                str(config_path), wrapped_config.model_dump(mode="json")
             ).flat_map(
                 lambda _: cli.read_json_model(str(config_path), m.Cli.LoadedConfig)
             )
@@ -47,21 +46,15 @@ class ExamplesFlextCliGettingStarted(s):
     @override
     def execute(self) -> p.Result[t.JsonMapping]:
         """Run the public getting-started flow through typed examples aliases."""
-        cli.print(
-            "FLEXT CLI - Getting Started",
-            style=c.Cli.MessageStyles.BOLD_BLUE,
-        )
-        cli.print(
-            "===========================",
-            style=c.Cli.MessageStyles.BOLD_BLUE,
-        )
+        cli.print("FLEXT CLI - Getting Started", style=c.Cli.MessageStyles.BOLD_BLUE)
+        cli.print("===========================", style=c.Cli.MessageStyles.BOLD_BLUE)
 
         cli.print("\n1. Setup via s/base.py", style=c.Cli.MessageStyles.BOLD_CYAN)
         runtime_snapshot: t.JsonMapping = {
-            "output_format": cli.settings.Cli.output_format,
-            "cli_log_level": cli.settings.Cli.cli_log_level,
-            "verbose": cli.settings.Cli.verbose,
-            "quiet": cli.settings.Cli.quiet,
+            "output_format": settings.cli_output_format,
+            "cli_log_level": settings.cli_log_level,
+            "verbose": settings.cli_verbose,
+            "quiet": settings.cli_quiet,
         }
         u.display_config_table(
             u.to_json_dict(runtime_snapshot),
@@ -75,8 +68,7 @@ class ExamplesFlextCliGettingStarted(s):
             )
 
         cli.print(
-            "\n2. Pydantic 2 models via m.Examples",
-            style=c.Cli.MessageStyles.BOLD_CYAN,
+            "\n2. Pydantic 2 models via m.Examples", style=c.Cli.MessageStyles.BOLD_CYAN
         )
         app_settings = settings_result.value
         app_settings.display(cli)
@@ -88,8 +80,7 @@ class ExamplesFlextCliGettingStarted(s):
             )
 
         cli.print(
-            "\n3. Public cli facade round-trip",
-            style=c.Cli.MessageStyles.BOLD_CYAN,
+            "\n3. Public cli facade round-trip", style=c.Cli.MessageStyles.BOLD_CYAN
         )
         loaded_config = loaded_result.value
         roundtrip_summary = m.Cli.DisplayData(
@@ -101,14 +92,10 @@ class ExamplesFlextCliGettingStarted(s):
             }
         )
         u.display_config_table(
-            roundtrip_summary,
-            headers=c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE,
+            roundtrip_summary, headers=c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE
         )
 
-        cli.print(
-            "\n4. Railway result ergonomics",
-            style=c.Cli.MessageStyles.BOLD_CYAN,
-        )
+        cli.print("\n4. Railway result ergonomics", style=c.Cli.MessageStyles.BOLD_CYAN)
         result_summary: t.JsonMapping = {
             "ok.success": r[str].ok(c.EXAMPLE_MSG_OPERATION_COMPLETED).success,
             "fail.failure": r[str].fail(c.EXAMPLE_MSG_ERROR_SOMETHING_FAILED).failure,
@@ -122,7 +109,7 @@ class ExamplesFlextCliGettingStarted(s):
 
         summary: t.JsonMapping = {
             "app_name": app_settings.app_name,
-            "output_format": cli.settings.Cli.output_format,
+            "output_format": settings.cli_output_format,
             "loaded_field_count": len(loaded_config.content),
             "result_contract": "public-r",
         }

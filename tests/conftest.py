@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import pytest
 
-from tests.typings import t
+if TYPE_CHECKING:
+    from tests import t
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config,
-    items: t.SequenceOf[pytest.Item],
+    config: pytest.Config, items: t.SequenceOf[pytest.Item]
 ) -> None:
     """Modify test collection to add markers based on test names."""
     _ = config

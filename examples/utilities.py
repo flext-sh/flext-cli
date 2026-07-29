@@ -11,25 +11,23 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    MutableSequence,
-)
+from typing import TYPE_CHECKING
 
 from examples import c, m, t
 from flext_cli import cli, u
+
+if TYPE_CHECKING:
+    from collections.abc import MutableSequence
 
 
 class ExamplesFlextCliUtilities(u):
     """Public examples utility facade extending flext-cli utilities."""
 
     @classmethod
-    def to_json_dict(
-        cls,
-        data: t.JsonMapping,
-    ) -> m.Cli.DisplayData:
+    def to_json_dict(cls, data: t.JsonMapping) -> m.Cli.DisplayData:
         """Normalize settings/mapping to DisplayData for create_table/display_config_table."""
         json_value: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
-            cls.normalize_to_json_value(data),
+            cls.normalize_to_json_value(data)
         )
         normalized = m.Cli.CliNormalizedJson(json_value).root
         resolved = m.Cli.NormalizedJsonList(value=normalized, default={}).resolved
@@ -57,8 +55,7 @@ class ExamplesFlextCliUtilities(u):
 
     @staticmethod
     def display_config_table(
-        config_data: m.Cli.DisplayData | m.Value,
-        headers: t.StrSequence | None = None,
+        config_data: m.Cli.DisplayData | m.Value, headers: t.StrSequence | None = None
     ) -> None:
         """Display configuration as a table using canonical example models."""
         if headers is None:
@@ -75,8 +72,7 @@ class ExamplesFlextCliUtilities(u):
 
     @staticmethod
     def display_success_summary(
-        operation: str,
-        details: m.Cli.SuccessSummaryDetails | None = None,
+        operation: str, details: m.Cli.SuccessSummaryDetails | None = None
     ) -> None:
         """Display a standardized success summary using cli."""
         cli.print(
@@ -90,7 +86,4 @@ class ExamplesFlextCliUtilities(u):
 
 u = ExamplesFlextCliUtilities
 
-__all__: t.MutableSequenceOf[str] = [
-    "ExamplesFlextCliUtilities",
-    "u",
-]
+__all__: t.MutableSequenceOf[str] = ["ExamplesFlextCliUtilities", "u"]

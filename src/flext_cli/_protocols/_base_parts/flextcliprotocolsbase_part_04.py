@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from types import EllipsisType
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_03 import (
@@ -15,7 +14,9 @@ from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_03 import (
 from flext_core import p
 
 if TYPE_CHECKING:
-    from flext_cli import t
+    # Why (multi-agent): defer flext_cli import to break the __init__-time
+    # circular import; t is annotation-only (PEP 563). Matches sibling part_03.
+    from flext_cli import m, t
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
@@ -23,23 +24,33 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
 
     @runtime_checkable
     class CliOptionSpec(Protocol):
-        """Protocol for Typer option objects returned by the public CLI DSL."""
+        """Framework-neutral option model contract returned by the CLI DSL."""
 
         @property
-        def default(self) -> t.JsonPayload | EllipsisType | None:
-            """Get the normalized default value for the option."""
+        def declarations(self) -> t.StrSequence:
+            """Ordered option flag declarations."""
             ...
 
         @property
-        def param_decls(self) -> t.StrSequence | None:
-            """Get the declared CLI flag names for the option."""
+        def help_text(self) -> str:
+            """Human-readable option help text."""
+            ...
+
+        @property
+        def default(self) -> t.Cli.CliValue | None:
+            """Normalized default value for the option."""
+            ...
+
+        @property
+        def required(self) -> bool:
+            """Indicate whether the option requires an explicit value."""
             ...
 
     @runtime_checkable
     class CmdService(Protocol):
         """Protocol for the public command/settings service surface on ``cli``."""
 
-        def execute(self) -> p.Result[t.JsonMapping]:
+        def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
             """Return the public operational status payload."""
             ...
 
@@ -80,16 +91,14 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
         """Protocol for dynamically-created CLI command wrapper functions."""
 
         def __call__(
-            self,
-            *args: t.JsonPayload,
-            **kwargs: t.JsonPayload,
+            self, *args: t.JsonPayload, **kwargs: t.JsonPayload
         ) -> t.JsonPayload:
             """Execute the wrapper."""
             ...
 
     @runtime_checkable
     class ResultCommandHandler[TParams: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
-        Protocol,
+        Protocol
     ):
         """Protocol for model-driven CLI handlers returning `r[...]`."""
 
@@ -116,13 +125,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             """Expose the successful payload for message formatting."""
             ...
 
-    @runtime_checkable
-    class SuccessMessageFormatter[TResult: t.Cli.ResultValue](Protocol):
-        """Protocol for rendering a success result into a CLI message."""
-
-        def __call__(self, value: TResult) -> str:
-            """Return the success message to display."""
-            ...
+    # mro-j47u (codex): formatter callables have one owner in t.Cli.
 
 
 __all__: list[str] = ["FlextCliProtocolsBase"]

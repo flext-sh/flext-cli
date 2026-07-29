@@ -1,36 +1,150 @@
-"""Branch coverage tests for flext_cli._utilities.tables."""
+"""Behavioral contract tests for the ``u.Cli.tables_*`` public surface."""
 
 from __future__ import annotations
 
-from tests.constants import c
-from tests.models import m
-from tests.utilities import u
+import pytest
+
+from flext_tests import tm
+from tests import c, m, t, u
 
 
 class TestsFlextCliTablesBranchCov:
-    """Exercise remaining u.Cli branches."""
+    """Assert the observable contract of the ``u.Cli`` table helpers."""
 
-    def test_tables_normalize_data_string_row_fails(self) -> None:
-        result = u.Cli.tables_normalize_data(["abc"])
-        assert result.failure
-        assert c.Cli.OUTPUT_TABLE_DATA_INVALID in (result.error or "")
+    @pytest.fixture
+    def two_column_config(self) -> m.Cli.TableConfig:
+        """Return a minimal two-column table configuration."""
+        return m.Cli.TableConfig(headers=("Key", "Value"))
 
-    def test_tables_render_trims_colalign_and_normalizes_mapping_rows(self) -> None:
+    def test_normalize_mapping_input_yields_key_value_rows(self) -> None:
+        """Verify that normalize mapping input yields key value rows."""
+        result = u.Cli.tables_normalize_data({"alpha": 1, "beta": 2})
+
+        tm.ok(result)
+        expected: list[t.JsonMapping] = [
+            {"Key": "alpha", "Value": 1},
+            {"Key": "beta", "Value": 2},
+        ]
+        tm.that(result.unwrap(), eq=expected)
+
+    def test_normalize_sequence_of_mapping_rows_preserves_row_shape(self) -> None:
+        """Verify that normalize sequence of mapping rows preserves row shape."""
+        result = u.Cli.tables_normalize_data([{"Key": "a", "Value": 1}])
+
+        tm.ok(result)
+        expected: list[t.JsonMapping] = [{"Key": "a", "Value": 1}]
+        tm.that(result.unwrap(), eq=expected)
+
+    def test_normalize_sequence_of_sequence_rows_produces_lists(self) -> None:
+        """Verify that normalize sequence of sequence rows produces lists."""
+        result = u.Cli.tables_normalize_data([["a", 1], ["b", 2]])
+
+        tm.ok(result)
+        expected: list[list[t.JsonValue]] = [["a", 1], ["b", 2]]
+        tm.that(result.unwrap(), eq=expected)
+
+    def test_normalize_empty_sequence_yields_empty_rows(self) -> None:
+        """Verify that normalize empty sequence yields empty rows."""
+        result = u.Cli.tables_normalize_data([])
+
+        tm.ok(result)
+        tm.that(result.unwrap(), eq=[])
+
+    @pytest.mark.parametrize("bad_data", [["abc"], ["x", "y"], [["ok", 1], "bad-row"]])
+    def test_normalize_rejects_string_rows_as_data_invalid(
+        self, bad_data: t.Cli.TableDataSource
+    ) -> None:
+        """Verify that normalize rejects string rows as data invalid."""
+        result = u.Cli.tables_normalize_data(bad_data)
+
+        tm.fail(result)
+        tm.that((result.error or ""), has=c.Cli.OUTPUT_TABLE_DATA_INVALID)
+
+    def test_render_returns_string_containing_cell_values(
+        self, two_column_config: m.Cli.TableConfig
+    ) -> None:
+        """Verify that render returns string containing cell values."""
+        result = u.Cli.tables_render([{"Key": "a", "Value": 1}], two_column_config)
+
+        tm.ok(result)
+        rendered = result.unwrap()
+        tm.that(rendered, is_=str)
+        tm.that(rendered, has="Key")
+        tm.that(rendered, has="a")
+
+    def test_render_trims_overlong_colalign_to_column_count(self) -> None:
+        """Verify that render trims overlong colalign to column count."""
         settings = m.Cli.TableConfig(
-            headers=("Key", "Value"),
-            colalign=("left", "right", "center"),
+            headers=("Key", "Value"), colalign=("left", "right", "center")
         )
-        rows = [{"Key": "a", "Value": 1}]
-        result = u.Cli.tables_render(rows, settings)
-        assert result.success
-        assert isinstance(result.value, str)
 
-    def test_tables_render_without_headers_uses_empty_header_list(self) -> None:
+        result = u.Cli.tables_render([{"Key": "a", "Value": 1}], settings)
+
+        tm.ok(result)
+        tm.that(result.unwrap(), is_=str)
+
+    def test_render_without_header_omits_header_labels(self) -> None:
+        """Verify that render without header omits header labels."""
         result = u.Cli.tables_render(
-            [["a", 1]],
-            m.Cli.TableConfig(show_header=False, headers=("col1", "col2")),
+            [["a", 1]], m.Cli.TableConfig(show_header=False, headers=("col1", "col2"))
         )
-        assert result.success
+
+        tm.ok(result)
+        rendered = result.unwrap()
+        tm.that(rendered, lacks="col1")
+        tm.that(rendered, has="a")
+
+    def test_render_empty_rows_still_succeeds(
+        self, two_column_config: m.Cli.TableConfig
+    ) -> None:
+        """Verify that render empty rows still succeeds."""
+        result = u.Cli.tables_render([], two_column_config)
+
+        tm.ok(result)
+        tm.that(result.unwrap(), is_=str)
+
+    def test_render_is_idempotent_for_same_input(
+        self, two_column_config: m.Cli.TableConfig
+    ) -> None:
+        """Verify that render is idempotent for same input."""
+        rows: t.SequenceOf[t.Cli.TableRow] = [{"Key": "a", "Value": 1}]
+
+        first = u.Cli.tables_render(rows, two_column_config)
+        second = u.Cli.tables_render(rows, two_column_config)
+
+        tm.ok(first)
+        tm.ok(second)
+        tm.that(first.unwrap(), eq=second.unwrap())
+
+    def test_resolve_config_returns_provided_settings_unchanged(
+        self, two_column_config: m.Cli.TableConfig
+    ) -> None:
+        """Verify that resolve config returns provided settings unchanged."""
+        result = u.Cli.tables_resolve_config(two_column_config)
+
+        tm.ok(result)
+        tm.that(result.unwrap().headers, eq=("Key", "Value"))
+
+    def test_resolve_config_reports_invalid_override_as_failure(
+        self, two_column_config: m.Cli.TableConfig
+    ) -> None:
+        """Verify that resolve config reports invalid override as failure."""
+        result = u.Cli.tables_resolve_config(two_column_config, show_header="nope")
+
+        tm.fail(result)
+        tm.that((result.error or ""), has=c.Cli.OUTPUT_TABLE_CONFIG_INVALID)
+
+    def test_normalize_then_render_round_trips_mapping_source(
+        self, two_column_config: m.Cli.TableConfig
+    ) -> None:
+        """Verify that normalize then render round trips mapping source."""
+        normalized = u.Cli.tables_normalize_data({"alpha": 1})
+        tm.ok(normalized)
+
+        rendered = u.Cli.tables_render(normalized.unwrap(), two_column_config)
+
+        tm.ok(rendered)
+        tm.that(rendered.unwrap(), has="alpha")
 
 
 __all__: list[str] = ["TestsFlextCliTablesBranchCov"]

@@ -6,9 +6,12 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from flext_cli import t
+from flext_core import p
+
 if TYPE_CHECKING:
-    from flext_cli import m, t
-    from flext_core import p
+    # mro-j47u (codex): p -> m is a reverse facade edge; keep it type-only.
+    from flext_cli import m
 
 
 class FlextCliProtocolsPipeline:
@@ -38,8 +41,7 @@ class FlextCliProtocolsPipeline:
         """Contract for a callable pipeline stage handler."""
 
         def __call__(
-            self,
-            ctx: FlextCliProtocolsPipeline.PipelineStageContext,
+            self, ctx: FlextCliProtocolsPipeline.PipelineStageContext
         ) -> p.Result[m.Cli.PipelineStageResult]:
             """Execute stage and return typed result."""
             ...

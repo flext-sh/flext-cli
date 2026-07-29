@@ -3,50 +3,36 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
-
-if TYPE_CHECKING:
-    from flext_cli._constants.base import FlextCliConstantsBase as FlextCliConstantsBase
-    from flext_cli._constants.enums import (
-        FlextCliConstantsEnums as FlextCliConstantsEnums,
-    )
-    from flext_cli._constants.errors import (
-        FlextCliConstantsErrors as FlextCliConstantsErrors,
-    )
-    from flext_cli._constants.exceptions import (
-        FlextCliConstantsExceptions as FlextCliConstantsExceptions,
-    )
-    from flext_cli._constants.files import (
-        FlextCliConstantsFiles as FlextCliConstantsFiles,
-    )
-    from flext_cli._constants.output import (
-        FlextCliConstantsOutput as FlextCliConstantsOutput,
-    )
-    from flext_cli._constants.pipeline import (
-        FlextCliConstantsPipeline as FlextCliConstantsPipeline,
-    )
-    from flext_cli._constants.settings import (
-        FlextCliConstantsSettings as FlextCliConstantsSettings,
-    )
-_LAZY_IMPORTS = build_lazy_import_map(
-    {
-        ".base": ("FlextCliConstantsBase",),
-        ".enums": ("FlextCliConstantsEnums",),
-        ".errors": ("FlextCliConstantsErrors",),
-        ".exceptions": ("FlextCliConstantsExceptions",),
-        ".files": ("FlextCliConstantsFiles",),
-        ".output": ("FlextCliConstantsOutput",),
-        ".pipeline": ("FlextCliConstantsPipeline",),
-        ".settings": ("FlextCliConstantsSettings",),
-    },
+from .base import FlextCliConstantsBase as FlextCliConstantsBase
+from .config import FlextCliConstantsConfig as FlextCliConstantsConfig
+from .enums import FlextCliConstantsEnums as FlextCliConstantsEnums
+from .errors import FlextCliConstantsErrors as FlextCliConstantsErrors
+from .exceptions import (
+    CliDefinitionError as CliDefinitionError,
+    CliValidationError as CliValidationError,
+    FlextCliConstantsExceptions as FlextCliConstantsExceptions,
+)
+from .files import FlextCliConstantsFiles as FlextCliConstantsFiles
+from .output import FlextCliConstantsOutput as FlextCliConstantsOutput
+from .pipeline import FlextCliConstantsPipeline as FlextCliConstantsPipeline
+from .settings import FlextCliConstantsSettings as FlextCliConstantsSettings
+from .xlsx import FlextCliConstantsXlsx as FlextCliConstantsXlsx
+from .xlsx_future_functions import (
+    FlextCliConstantsXlsxFutureFunctions as FlextCliConstantsXlsxFutureFunctions,
 )
 
-
-install_lazy_exports(
-    __name__,
-    globals(),
-    _LAZY_IMPORTS,
-    publish_all=False,
+__all__: tuple[str, ...] = (
+    "CliDefinitionError",
+    "CliValidationError",
+    "FlextCliConstantsBase",
+    "FlextCliConstantsConfig",
+    "FlextCliConstantsEnums",
+    "FlextCliConstantsErrors",
+    "FlextCliConstantsExceptions",
+    "FlextCliConstantsFiles",
+    "FlextCliConstantsOutput",
+    "FlextCliConstantsPipeline",
+    "FlextCliConstantsSettings",
+    "FlextCliConstantsXlsx",
+    "FlextCliConstantsXlsxFutureFunctions",
 )

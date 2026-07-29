@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
+
 from flext_cli import c, s, t, u
 from flext_cli.services.formatters import FlextCliFormatters
 
@@ -25,9 +27,13 @@ class FlextCliOutput(s):
     # ── Static methods (public API) ─────────────────────────────────
 
     @staticmethod
+    def emit_stdout(text: str, *, end: str = "\n") -> None:
+        """Emit exact machine-readable text without Rich interpretation."""
+        _ = sys.stdout.write(f"{text}{end}")
+
+    @staticmethod
     def display_message(
-        message: str,
-        message_type: c.Cli.MessageTypes | None = None,
+        message: str, message_type: c.Cli.MessageTypes | None = None
     ) -> None:
         """Display message with specified type and styling.
 
@@ -45,6 +51,28 @@ class FlextCliOutput(s):
         FlextCliOutput.print_message(text, style=style)
 
     @staticmethod
+    def display_message_plain(
+        message: str, message_type: c.Cli.MessageTypes | None = None
+    ) -> None:
+        """Display message bypassing Rich styling for large machine-readable text.
+
+        Args:
+            message: Message to display
+            message_type: Optional type used only for a plain text prefix
+
+        """
+        prefix = ""
+        if message_type == c.Cli.MessageTypes.ERROR:
+            prefix = "[ERROR] "
+        elif message_type == c.Cli.MessageTypes.WARNING:
+            prefix = "[WARN] "
+        elif message_type == c.Cli.MessageTypes.SUCCESS:
+            prefix = "[OK] "
+        elif message_type == c.Cli.MessageTypes.INFO:
+            prefix = "[INFO] "
+        FlextCliOutput.emit_stdout(f"{prefix}{message}")
+
+    @staticmethod
     def print_message(message: str, style: str | None = None) -> None:
         """Print a message using FlextCliFormatters."""
         validated_style = u.Cli.output_resolve_style(style)
@@ -57,62 +85,41 @@ class FlextCliOutput(s):
 
     @staticmethod
     def display_progress(
-        current: int,
-        total: int,
-        label: str,
-        *,
-        detail: str = "",
+        current: int, total: int, label: str, *, detail: str = ""
     ) -> None:
         """Display progress indicator [current/total] label detail."""
         FlextCliFormatters.print(
-            u.Cli.output_progress_line(current, total, label, detail=detail),
+            u.Cli.output_progress_line(current, total, label, detail=detail)
         )
 
     @staticmethod
     def display_status(
-        success: bool,
-        label: str,
-        detail: str,
-        *,
-        elapsed: float | None = None,
+        label: str, detail: str, *, success: bool, elapsed: float | None = None
     ) -> None:
         """Display a pass/fail status line."""
         line, style = u.Cli.output_status_line(
-            success,
-            label,
-            detail,
-            elapsed=elapsed,
+            label, detail, success=success, elapsed=elapsed
         )
         FlextCliFormatters.print(line, style=style)
 
     @staticmethod
     def display_summary(
-        title: str,
-        *,
-        total: int,
-        success: int,
-        failed: int,
-        skipped: int = 0,
+        title: str, *, total: int, success: int, failed: int, skipped: int = 0
     ) -> None:
         """Display a summary panel."""
         content = u.Cli.output_summary_content(
-            total=total,
-            success=success,
-            failed=failed,
-            skipped=skipped,
+            total=total, success=success, failed=failed, skipped=skipped
         )
         FlextCliFormatters.render_panel(content, title=title)
 
     @staticmethod
-    def display_gate(name: str, passed: bool, *, message: str = "") -> None:
+    def display_gate(name: str, *, passed: bool, message: str = "") -> None:
         """Display a quality gate result."""
-        line, style = u.Cli.output_gate_line(name, passed, message=message)
+        line, style = u.Cli.output_gate_line(name, passed=passed, message=message)
         FlextCliFormatters.print(line, style=style)
 
     @staticmethod
-    def display_metrics(
-        metrics: t.ConfigValueMapping,
-    ) -> None:
+    def display_metrics(metrics: t.ConfigValueMapping) -> None:
         """Display key=value metric pairs."""
         for key, value in metrics.items():
             FlextCliFormatters.print(f"{key}={value}")

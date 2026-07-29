@@ -2,27 +2,28 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    MutableSequence,
-)
-
-from flext_tests import tm
-from tests.constants import c
-from tests.models import m
-from tests.typings import t
+from typing import TYPE_CHECKING
 
 from flext_cli import cli
+from flext_tests import tm
+from tests import c, m
+
+# NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
+
+if TYPE_CHECKING:
+    from collections.abc import MutableSequence
+
+    from tests import t
 
 
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
     def test_model_command_accepts_repeatable_list_options(self) -> None:
+        """Accept repeated model-derived options through the public invocation facade."""
         captured: MutableSequence[m.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
-            name="root",
-            help_text="Root application",
-            settings=cli.settings,
+            name="root", help_text="Root application"
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
@@ -38,11 +39,9 @@ class TestsFlextCliService:
             command=command,
         )
         cli.add_group(app, name="sample", group=group)
-        runner_result = cli.create_cli_runner()
-        tm.ok(runner_result)
-        exec_result = runner_result.value.invoke(
+        exec_result = cli.invoke_app(
             app,
-            [
+            args=[
                 "sample",
                 "repeat",
                 "--make-arg",
@@ -52,11 +51,14 @@ class TestsFlextCliService:
             ],
         )
 
-        tm.that(exec_result.exit_code, eq=0)
+        tm.ok(exec_result)
+        tm.that(exec_result.value.exit_code, eq=0)
         tm.that(len(captured), eq=1)
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
     def test_model_command_returns_handler_value(self) -> None:
+        """Return the observable value produced by a model command handler."""
+
         def handle(params: m.Tests.SampleInput) -> t.JsonValue:
             return {
                 "name": params.name,
@@ -67,23 +69,20 @@ class TestsFlextCliService:
 
         command = cli.model_command(m.Tests.SampleInput, handle)
         result = command(
-            name="alice",
-            count=3,
-            dry_run=True,
-            output_format=c.Cli.OutputFormats.JSON,
+            name="alice", count=3, dry_run=True, output_format=c.Cli.OutputFormats.JSON
         )
 
-        tm.that(
-            result,
-            eq={
-                "name": "alice",
-                "count": 3,
-                "dry_run": True,
-                "output_format": c.Cli.OutputFormats.JSON,
-            },
-        )
+        expected: t.JsonMapping = {
+            "name": "alice",
+            "count": 3,
+            "dry_run": True,
+            "output_format": c.Cli.OutputFormats.JSON,
+        }
+        tm.that(result, eq=expected)
 
     def test_model_command_uses_custom_param_decls_from_field_extra(self) -> None:
+        """Expose custom option declarations from validated field metadata."""
+
         class CustomDeclModel(m.BaseModel):
             flag: bool = m.Field(
                 False,
@@ -92,23 +91,18 @@ class TestsFlextCliService:
                 json_schema_extra={"typer_param_decls": ["-f", "--flaggy"]},
             )
 
-        app = cli.create_app_with_common_params(
-            name="decl-app",
-            help_text="Decl app",
-            settings=cli.settings,
-        )
+        app = cli.create_app_with_common_params(name="decl-app", help_text="Decl app")
         cli.register_command(
             app,
             name="run",
             help_text="Run",
             command=cli.model_command(CustomDeclModel, lambda _params: True),
         )
-        runner_result = cli.create_cli_runner()
-        tm.ok(runner_result)
-        help_result = runner_result.value.invoke(app, ["run", "--help"])
+        help_result = cli.invoke_app(app, args=["run", "--help"])
 
-        tm.that(help_result.exit_code, eq=0)
-        tm.that(help_result.stdout, has="--flaggy")
+        tm.ok(help_result)
+        tm.that(help_result.value.exit_code, eq=0)
+        tm.that(help_result.value.stdout, has="--flaggy")
 
 
 __all__: list[str] = ["TestsFlextCliService"]

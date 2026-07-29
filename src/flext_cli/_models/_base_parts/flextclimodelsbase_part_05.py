@@ -13,45 +13,25 @@ class FlextCliModelsBase:
     class SettingsSnapshot(m.Value):
         """Snapshot of current CLI settings information."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            frozen=True,
-            extra="forbid",
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="forbid")
+
+        settings_dir: Annotated[str, m.Field(description="Settings directory path")] = (
+            ""
         )
 
-        settings_dir: Annotated[
-            str,
-            m.Field(
-                description="Settings directory path",
-            ),
-        ] = ""
-
         settings_exists: Annotated[
-            bool,
-            m.Field(
-                description="Whether settings directory exists",
-            ),
+            bool, m.Field(description="Whether settings directory exists")
         ] = False
 
         settings_readable: Annotated[
-            bool,
-            m.Field(
-                description="Whether settings directory is readable",
-            ),
+            bool, m.Field(description="Whether settings directory is readable")
         ] = False
 
         settings_writable: Annotated[
-            bool,
-            m.Field(
-                description="Whether settings directory is writable",
-            ),
+            bool, m.Field(description="Whether settings directory is writable")
         ] = False
 
-        timestamp: Annotated[
-            str,
-            m.Field(
-                description="Timestamp of snapshot",
-            ),
-        ] = ""
+        timestamp: Annotated[str, m.Field(description="Timestamp of snapshot")] = ""
 
 
 __all__: list[str] = ["FlextCliModelsBase"]

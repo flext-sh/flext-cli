@@ -61,8 +61,8 @@ Use these for example-owned constants, models, utilities, and service setup.
 from examples import c
 from flext_cli import cli
 
+# Why (multi-agent): output examples use the public MRO facade, not a private utility chain.
 cli.print("hello", style=c.Cli.MessageStyles.GREEN)
-result = cli.read_json_file("settings.json")
 ```
 
 Keep interaction with flext-cli on the public facade unless the example is explicitly documenting an internal type.
@@ -77,7 +77,7 @@ from examples import p, r, s, t
 
 class Demo(s):
     def execute(self) -> p.Result[t.JsonMapping]:
-        return r[t.JsonMapping].ok({"output_format": self.settings.output_format})
+        return r[t.JsonMapping].ok({"output_format": settings.output_format})
 ```
 
 This is the shortest path to typed settings access and a consistent result contract.

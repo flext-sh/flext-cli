@@ -23,16 +23,14 @@ class FlextCliUtilitiesMatching:
     def file_not_found_error(error_msg: str) -> bool:
         """Match error messages that indicate a missing file (RFC-grade regex)."""
         return FlextCliUtilitiesMatching.matches_regex(
-            error_msg,
-            *c.Cli.FILE_NOT_FOUND_REGEXES,
+            error_msg, *c.Cli.FILE_NOT_FOUND_REGEXES
         )
 
     @staticmethod
     def cli_usage_error(error_msg: str) -> bool:
         """Match error messages that indicate CLI usage/input failure."""
         return FlextCliUtilitiesMatching.matches_regex(
-            error_msg,
-            *c.Cli.CLI_USAGE_ERROR_REGEXES,
+            error_msg, *c.Cli.CLI_USAGE_ERROR_REGEXES
         )
 
 

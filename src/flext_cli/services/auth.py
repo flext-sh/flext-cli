@@ -14,19 +14,11 @@ from __future__ import annotations
 
 import secrets
 
-from flext_cli import (
-    c,
-    m,
-    p,
-    r,
-    t,
-    u,
-)
-from flext_cli.base import FlextCliServiceBase
+from flext_cli import c, m, p, r, s, settings, t, u
 from flext_cli.services.file_tools import FlextCliFileTools
 
 
-class FlextCliAuth(FlextCliServiceBase):
+class FlextCliAuth(s):
     """Unified Typer/Click abstraction marker for the FLEXT CLI ecosystem.
 
     Container and logger are provided by x via MRO.
@@ -40,22 +32,18 @@ class FlextCliAuth(FlextCliServiceBase):
         """Persist an authentication token using the public file facade."""
         if not token.strip():
             return r[bool].fail(
-                c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(
-                    field_name="token",
-                ),
+                c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(field_name="token")
             )
-        settings = self.settings
-        token_file_path = u.Cli.auth_token_file_path(settings.Cli.token_file)
+        token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         return FlextCliFileTools.write_json_file(
-            token_file_path,
-            {c.Cli.DICT_KEY_AUTH_TOKEN: token},
+            token_file_path, {c.Cli.DICT_KEY_AUTH_TOKEN: token}
         )
 
     def fetch_auth_token(self) -> p.Result[str]:
         """Load the persisted authentication token from the configured token file."""
-        token_file_path = u.Cli.auth_token_file_path(self.settings.Cli.token_file)
+        token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         return FlextCliFileTools.read_json_file(token_file_path).flat_map(
-            u.Cli.auth_extract_token,
+            u.Cli.auth_extract_token
         )
 
     def authenticate(self, credentials: t.StrMapping) -> p.Result[str]:
@@ -83,17 +71,15 @@ class FlextCliAuth(FlextCliServiceBase):
             .map_error(
                 lambda err: (
                     err
-                    or c.Cli.ERR_AUTH_SAVE_FAILED.format(
-                        error=c.Cli.ERR_UNKNOWN_ERROR,
-                    )
-                ),
+                    or c.Cli.ERR_AUTH_SAVE_FAILED.format(error=c.Cli.ERR_UNKNOWN_ERROR)
+                )
             )
             .map(lambda _ok: token)
         )
 
     def clear_auth_tokens(self) -> p.Result[bool]:
         """Delete the configured authentication token file if present."""
-        token_file = u.Cli.auth_token_file_path(self.settings.Cli.token_file)
+        token_file = u.Cli.auth_token_file_path(settings.cli_token_file)
         if not token_file.exists():
             return r[bool].ok(True)
         return u.Cli.files_delete(token_file)

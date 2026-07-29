@@ -2,25 +2,16 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    MutableMapping,
-)
+from collections.abc import MutableMapping
 from pathlib import Path
 from types import GenericAlias, UnionType
 from typing import ClassVar, TypeAliasType
 
-from click.core import Command as ClickCommand
-from click.testing import CliRunner as ClickCliRunner
-from rich.console import Console as RichConsole
-from rich.tree import Tree as RichTree
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
-from typer import Typer
-from typer.models import OptionInfo
-from typer.testing import CliRunner
 
-from flext_core.typings import t
+from flext_core import t
 
 
 class FlextCliTypesBase:
@@ -41,16 +32,8 @@ class FlextCliTypesBase:
     type TableDisableNumparse = bool | t.SequenceOf[int]
     type TableColAlign = t.StrSequence | None
     type CliValue = t.Scalar | t.StrSequence | DefaultMapping
-    type CliDefaultSource = CliValue | Path
+    type CliDefaultSource = CliValue | t.SequenceOf[str | int] | Path
     type CliAnnotations = MutableMapping[str, type | GenericAlias]
-    type CliApp = Typer
-    type CliOptionInfo = OptionInfo
-
-    type TyperRunner = CliRunner
-    ExternalCli: ClassVar[type] = ClickCommand
-    """Class alias for click.Command — external CLI integrations (Singer SDK)."""
-    ExternalCliRunner: ClassVar[type] = ClickCliRunner
-    """Class alias for click.testing.CliRunner — boundary tests."""
     type TomlDocument = TOMLDocument
     type TomlTable = Table
     type TomlItem = Item
@@ -59,9 +42,6 @@ class FlextCliTypesBase:
     type TomlContainer = Container
     type TomlParent = TOMLDocument | Table
     type TomlValue = TOMLDocument | Table | Item | Array | AoT | Container
-    type RichTreeType = RichTree
-    type RichConsoleType = RichConsole
-
     type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType
 
     PRIMITIVE_TYPES: ClassVar[tuple[type[str], type[int], type[float], type[bool]]] = (

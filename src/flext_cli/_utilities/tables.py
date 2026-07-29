@@ -2,10 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Mapping,
-    Sequence,
-)
+from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
 from tabulate import tabulate
@@ -18,7 +15,7 @@ class FlextCliUtilitiesTables:
     """Table helpers exposed through ``u.Cli.tables_*``."""
 
     TABLE_DATA_ADAPTER: ClassVar[t.ValueAdapter[t.Cli.TableDataSource]] = m.TypeAdapter(
-        t.Cli.TableDataSource,
+        t.Cli.TableDataSource
     )
 
     @staticmethod
@@ -54,7 +51,7 @@ class FlextCliUtilitiesTables:
             return r[m.Cli.TableConfig].ok(resolved)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
             return r[m.Cli.TableConfig].fail(
-                c.Cli.OUTPUT_TABLE_CONFIG_INVALID_FMT.format(error=exc),
+                c.Cli.OUTPUT_TABLE_CONFIG_INVALID_FMT.format(error=exc)
             )
 
     @staticmethod
@@ -64,20 +61,17 @@ class FlextCliUtilitiesTables:
         """Validate and normalize mapping/sequence inputs to tabulate rows."""
         try:
             validated_data = FlextCliUtilitiesTables.TABLE_DATA_ADAPTER.validate_python(
-                data,
+                data
             )
         except c.ValidationError as exc:
             return r[Sequence[t.Cli.TableRow]].fail(
-                c.Cli.OUTPUT_TABLE_DATA_INVALID_FMT.format(error=exc),
+                c.Cli.OUTPUT_TABLE_DATA_INVALID_FMT.format(error=exc)
             )
 
         if isinstance(validated_data, Mapping):
             validated_mapping = validated_data
             return r[Sequence[t.Cli.TableRow]].ok([
-                {
-                    "Key": key,
-                    "Value": u.normalize_to_json_value(value),
-                }
+                {"Key": key, "Value": u.normalize_to_json_value(value)}
                 for key, value in validated_mapping.items()
             ])
 
@@ -85,24 +79,21 @@ class FlextCliUtilitiesTables:
         for row in validated_data:
             if isinstance(row, Mapping):
                 normalized_rows.append(
-                    FlextCliUtilitiesTables.tables_normalize_mapping_row(row),
+                    FlextCliUtilitiesTables.tables_normalize_mapping_row(row)
                 )
                 continue
-            if isinstance(row, Sequence) and not isinstance(row, str):
+            if not isinstance(row, str):
                 normalized_rows.append(
-                    FlextCliUtilitiesTables.tables_normalize_sequence_row(row),
+                    FlextCliUtilitiesTables.tables_normalize_sequence_row(row)
                 )
                 continue
-            return r[Sequence[t.Cli.TableRow]].fail(
-                c.Cli.OUTPUT_TABLE_ROW_INVALID,
-            )
+            return r[Sequence[t.Cli.TableRow]].fail(c.Cli.OUTPUT_TABLE_ROW_INVALID)
 
         return r[Sequence[t.Cli.TableRow]].ok(normalized_rows)
 
     @staticmethod
     def tables_tabulate_payload(
-        rows: t.SequenceOf[t.Cli.TableRow],
-        headers: str | t.StrSequence,
+        rows: t.SequenceOf[t.Cli.TableRow], headers: str | t.StrSequence
     ) -> tuple[
         t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow],
         str | t.StrSequence,
@@ -112,14 +103,7 @@ class FlextCliUtilitiesTables:
             t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow]
         ) = rows
         table_headers: str | t.StrSequence = headers
-        if (
-            rows
-            and isinstance(rows[0], Mapping)
-            and not isinstance(
-                headers,
-                str,
-            )
-        ):
+        if rows and isinstance(rows[0], Mapping) and not isinstance(headers, str):
             table_data = [
                 list(row.values()) for row in rows if isinstance(row, Mapping)
             ]
@@ -128,17 +112,17 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_render(
-        rows: t.SequenceOf[t.Cli.TableRow],
-        settings: m.Cli.TableConfig,
+        rows: t.SequenceOf[t.Cli.TableRow], settings: m.Cli.TableConfig
     ) -> p.Result[str]:
         """Render normalized rows to a tabulated string."""
         headers: str | t.StrSequence
-        if not settings.show_header or settings.headers is None:
-            headers = []
+        if not settings.show_header:
+            # NOTE (multi-agent): Empty headers use the immutable sequence contract.
+            headers = ()
         elif isinstance(settings.headers, str):
             headers = settings.headers
         else:
-            headers = list(settings.headers)
+            headers = tuple(settings.headers)
 
         colalign = settings.colalign
         if isinstance(headers, str):
@@ -155,8 +139,7 @@ class FlextCliUtilitiesTables:
             colalign = colalign[:column_count]
 
         table_data, table_headers = FlextCliUtilitiesTables.tables_tabulate_payload(
-            rows,
-            headers,
+            rows, headers
         )
         try:
             rendered_table = tabulate(

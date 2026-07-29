@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence
 from pathlib import Path
-from typing import Annotated, ClassVar
+from typing import TYPE_CHECKING, Annotated, ClassVar
 
 from examples import c, p, r, t
 from examples._models_parts.examples_common import ExamplesFlextCliModelsExamplesCommon
 from flext_cli import m, u
+
+if TYPE_CHECKING:
+    from collections.abc import MutableSequence
 
 
 class ExamplesFlextCliModelsExamplesAdvanced:
@@ -18,54 +20,35 @@ class ExamplesFlextCliModelsExamplesAdvanced:
         """Advanced application settings — Pydantic v2 only."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            validate_assignment=True,
+            extra="forbid", validate_assignment=True
         )
-        database_url: Annotated[
-            str,
-            m.Field(
-                description="Database URL",
-            ),
-        ] = c.EXAMPLE_DEFAULT_DB_URL
-        redis_url: Annotated[
-            str,
-            m.Field(
-                description="Redis URL",
-            ),
-        ] = c.EXAMPLE_DEFAULT_REDIS_URL
+        database_url: Annotated[str, m.Field(description="Database URL")] = (
+            c.EXAMPLE_DEFAULT_DB_URL
+        )
+        redis_url: Annotated[str, m.Field(description="Redis URL")] = (
+            c.EXAMPLE_DEFAULT_REDIS_URL
+        )
         api_key: Annotated[str, m.Field(description="API key")] = ""
         environment: Annotated[
-            c.DeploymentEnvironment,
-            m.Field(description="Deployment environment"),
+            c.DeploymentEnvironment, m.Field(description="Deployment environment")
         ] = c.EXAMPLE_DEFAULT_ENVIRONMENT
         max_workers: Annotated[
             int,
-            m.Field(
-                ge=1,
-                le=c.EXAMPLE_MAX_CONNECTION_POOL,
-                description="Max workers",
-            ),
+            m.Field(ge=1, le=c.EXAMPLE_MAX_CONNECTION_POOL, description="Max workers"),
         ] = c.EXAMPLE_DEFAULT_MAX_WORKERS
         enable_metrics: Annotated[bool, m.Field(description="Enable metrics")] = True
-        log_level: Annotated[
-            str,
-            m.Field(
-                description="Log level",
-            ),
-        ] = c.EXAMPLE_DEFAULT_LOG_LEVEL
+        log_level: Annotated[str, m.Field(description="Log level")] = (
+            c.EXAMPLE_DEFAULT_LOG_LEVEL
+        )
         temp_dir: Path = m.Field(
-            default_factory=lambda: (
-                Path.home() / c.Cli.PATH_FLEXT_DIR_NAME / c.EXAMPLE_DEFAULT_TEMP_SUBDIR
-            ),
+            Path.home() / c.Cli.PATH_FLEXT_DIR_NAME / c.EXAMPLE_DEFAULT_TEMP_SUBDIR,
             description="Temp directory",
+            validate_default=True,
         )
 
         @u.model_validator(mode="before")
         @classmethod
-        def _inject_env(
-            cls,
-            data: t.ExampleModelInput,
-        ) -> t.ExampleModelInput:
+        def _inject_env(cls, data: t.ExampleModelInput) -> t.ExampleModelInput:
             return ExamplesFlextCliModelsExamplesCommon.merge_env_overrides(
                 data,
                 c.EXAMPLE_ENV_MAP_ADVANCED_APP,

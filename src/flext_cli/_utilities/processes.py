@@ -104,8 +104,7 @@ class FlextCliUtilitiesProcesses:
         resolved_env = None
         if env is not None or remove_env_keys:
             resolved_env = FlextCliUtilitiesRuntime.process_env(
-                overrides=env,
-                remove_keys=remove_env_keys,
+                overrides=env, remove_keys=remove_env_keys
             )
         try:
             process = subprocess.Popen(
@@ -118,14 +117,12 @@ class FlextCliUtilitiesProcesses:
             )
         except c.EXC_OS_VALUE as exc:
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
-                f"execution error: {shlex.join(list(cmd))}: {exc}",
+                f"execution error: {shlex.join(list(cmd))}: {exc}"
             )
         return r[FlextCliUtilitiesProcesses.ManagedProcess].ok(
             FlextCliUtilitiesProcesses.ManagedProcess(
-                process,
-                cwd=cwd,
-                env=resolved_env,
-            ),
+                process, cwd=cwd, env=resolved_env
+            )
         )
 
 

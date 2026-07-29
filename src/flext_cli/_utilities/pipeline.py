@@ -34,13 +34,11 @@ class FlextCliUtilitiesPipeline:
 
         if not stages:
             return r[m.Cli.PipelineResult].ok(
-                m.Cli.PipelineResult(stages=[], total_duration_ms=0.0),
+                m.Cli.PipelineResult(stages=[], total_duration_ms=0.0)
             )
 
         # Build stage lookup and dependency graph.
-        stage_map: t.MappingKV[str, m.Cli.PipelineStageSpec] = {
-            s.stage_id: s for s in stages
-        }
+        stage_map: dict[str, m.Cli.PipelineStageSpec] = {s.stage_id: s for s in stages}
 
         # Build TopologicalSorter graph.
         sorter: TopologicalSorter[str] = TopologicalSorter()
@@ -50,15 +48,13 @@ class FlextCliUtilitiesPipeline:
         try:
             order = tuple(sorter.static_order())
         except CycleError as exc:
-            return r[m.Cli.PipelineResult].fail(
-                f"pipeline cycle detected: {exc}",
-            )
+            return r[m.Cli.PipelineResult].fail(f"pipeline cycle detected: {exc}")
 
         failed = False
         for stage_id in order:
-            spec = stage_map.get(stage_id)
-            if spec is None:
+            if stage_id not in stage_map:
                 continue
+            spec = stage_map[stage_id]
 
             if failed and fail_fast:
                 results.append(
@@ -66,15 +62,11 @@ class FlextCliUtilitiesPipeline:
                         stage_id=stage_id,
                         status=c.Cli.PipelineStageStatus.SKIPPED,
                         error="skipped due to prior failure (fail_fast)",
-                    ),
+                    )
                 )
                 continue
 
-            stage_result = FlextCliUtilitiesPipeline._run_stage(
-                spec,
-                context,
-                log,
-            )
+            stage_result = FlextCliUtilitiesPipeline._run_stage(spec, context, log)
             results.append(stage_result)
 
             if stage_result.status == c.Cli.PipelineStageStatus.FAILED:
@@ -82,8 +74,7 @@ class FlextCliUtilitiesPipeline:
 
         total_ms = (time.monotonic() - pipeline_start) * 1000
         pipeline_result = m.Cli.PipelineResult(
-            stages=results,
-            total_duration_ms=total_ms,
+            stages=results, total_duration_ms=total_ms
         )
 
         log.info(
@@ -106,8 +97,7 @@ class FlextCliUtilitiesPipeline:
         if spec.skip_if is not None and spec.skip_if(context):
             log.debug("stage_skipped", stage_id=spec.stage_id, reason="skip_if")
             return m.Cli.PipelineStageResult(
-                stage_id=spec.stage_id,
-                status=c.Cli.PipelineStageStatus.SKIPPED,
+                stage_id=spec.stage_id, status=c.Cli.PipelineStageStatus.SKIPPED
             )
 
         max_attempts = 1 + min(spec.retry, c.Cli.PIPELINE_MAX_RETRY)
@@ -135,10 +125,7 @@ class FlextCliUtilitiesPipeline:
 
             last_error = result.error or f"stage {spec.stage_id} failed"
             log.debug(
-                "stage_retry",
-                stage_id=spec.stage_id,
-                attempt=attempt,
-                error=last_error,
+                "stage_retry", stage_id=spec.stage_id, attempt=attempt, error=last_error
             )
 
         log.warning(

@@ -6,12 +6,27 @@ import os
 from pathlib import Path
 from typing import overload
 
-from flext_cli import c, m, t
+from flext_cli import c, m, p, t
 from flext_core import u
 
 
 class FlextCliUtilitiesSettings:
     """Settings and selector methods exposed directly on ``u.Cli``."""
+
+    @staticmethod
+    def cli_test_env(cli_settings: p.Cli.CliSettings) -> bool:
+        """Detect test/CI runtime from the flat CLI settings scalars.
+
+        NOTE (multi-agent): replaces the removed ``settings.Cli.test_env``
+        computed field — behavior lives in the utilities layer, settings stay
+        pure flat data (§2.6).
+        """
+        normalized_shell = (cli_settings.cli_shell_command or "").strip().lower()
+        return (
+            cli_settings.cli_pytest_current_test is not None
+            or "pytest" in normalized_shell
+            or cli_settings.cli_ci
+        )
 
     @staticmethod
     def project_names_from_values(
@@ -33,15 +48,13 @@ class FlextCliUtilitiesSettings:
     @overload
     @staticmethod
     def project_numbers_from_values(
-        *values: t.Cli.ProjectNamesValue | None,
-        default: t.SequenceOf[int],
+        *values: t.Cli.ProjectNamesValue | None, default: t.SequenceOf[int]
     ) -> t.MutableSequenceOf[int]: ...
 
     @overload
     @staticmethod
     def project_numbers_from_values(
-        *values: t.Cli.ProjectNamesValue | None,
-        default: None = None,
+        *values: t.Cli.ProjectNamesValue | None, default: None = None
     ) -> t.MutableSequenceOf[int] | None: ...
 
     @staticmethod
@@ -77,21 +90,16 @@ class FlextCliUtilitiesSettings:
         lines = [
             f"{ok} Settings directory exists"
             if base.exists()
-            else f"{fail} Settings directory missing",
+            else f"{fail} Settings directory missing"
         ]
         for subdir in c.Cli.STANDARD_SUBDIRS:
             path = base / subdir
             lines.append(
                 c.Cli.MSG_SUBDIR_EXISTS.format(symbol=ok, subdir=subdir)
                 if path.exists()
-                else c.Cli.MSG_SUBDIR_MISSING.format(
-                    symbol=fail,
-                    subdir=subdir,
-                ),
+                else c.Cli.MSG_SUBDIR_MISSING.format(symbol=fail, subdir=subdir)
             )
         return lines
 
 
-__all__: t.MutableSequenceOf[str] = [
-    "FlextCliUtilitiesSettings",
-]
+__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesSettings"]

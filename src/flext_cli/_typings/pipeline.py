@@ -2,34 +2,28 @@
 
 from __future__ import annotations
 
-from collections.abc import (
-    Callable,
-)
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Literal
 
-from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_cli import c
 from flext_core import p, t
 
 if TYPE_CHECKING:
-    from flext_cli._models.pipeline import FlextCliModelsPipeline as mp
+    from flext_cli import m
 
 
 class FlextCliTypesPipeline:
     """Pipeline type aliases namespace."""
 
     type PipelineStageStatus = Literal[
-        FlextCliConstantsEnums.PipelineStageStatus.OK,
-        FlextCliConstantsEnums.PipelineStageStatus.SKIPPED,
-        FlextCliConstantsEnums.PipelineStageStatus.FAILED,
+        c.Cli.PipelineStageStatus.OK,
+        c.Cli.PipelineStageStatus.SKIPPED,
+        c.Cli.PipelineStageStatus.FAILED,
     ]
     type PipelineHandler = Callable[
-        [mp.PipelineStageContext],
-        p.Result[mp.PipelineStageResult],
+        [m.Cli.PipelineStageContext], p.Result[m.Cli.PipelineStageResult]
     ]
-    type PipelineSkipPredicate = Callable[
-        [mp.PipelineStageContext],
-        bool,
-    ]
+    type PipelineSkipPredicate = Callable[[m.Cli.PipelineStageContext], bool]
     type PipelineHandlerMap = t.MappingKV[str, PipelineHandler]
     type PipelineRetryMap = t.MappingKV[str, int]
     type PipelineSkipMap = t.MappingKV[str, PipelineSkipPredicate]
