@@ -103,94 +103,85 @@ api:
 
 Configure FLEXT programmatically in your code:
 
-```python
-from __future__ import annotations
+```text
+from flext_core import FlextBus
+from flext_core import FlextSettings
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import d
+from flext_core import FlextDispatcher
+from flext_core import e
+from flext_core import h
+from flext_core import x
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import p
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
+from flext_core import t
+from flext_core import u
+from flext_ldif import FlextLdifSettings
 
-from flext_cli import settings, u
-from flext_ldif import settings as ldif_settings
+# Core configuration
+settings = FlextSettings(log_level="INFO", debug=False, environment="production")
 
-# Core configuration (settings is the singleton instance; FlextCliSettings is the class)
-print(u.out(f"log level: {settings.log_level}"))
-print(u.out(f"debug: {settings.debug}"))
-
-# LDIF sub-configuration
-print(u.out(f"ldif encoding: {ldif_settings.ldif.ldif_encoding}"))
-print(u.out(f"strict validation: {ldif_settings.ldif.ldif_strict_validation}"))
+# LDIF configuration
+ldif_config = FlextLdifSettings(
+    default_encoding="utf-8",
+    strict_validation=True,
+    servers_enabled=True,
+    batch_size=1000,
+)
 ```
 
 ## Project-Specific Configuration
 
 ### flext-ldif Configuration
 
-```python
-from __future__ import annotations
+```text
+from flext_ldif import FlextLdifSettings
 
-from flext_ldif import settings, ldif, u
-
-# Settings are read from the singleton instance (env/defaults).
-# Override specific LDIF settings locally by creating a new instance.
-local = settings.__class__(
-    ldif=settings.__class__.LdifSettings(
-        ldif_encoding="utf-8", ldif_strict_validation=True
-    )
+settings = FlextLdifSettings(
+    # Server-specific settings
+    source_server="oid",
+    target_server="oud",
+    # Migration options
+    preserve_oid_modifiers=True,
+    handle_schema_extensions=True,
+    validate_entries=True,
+    # Performance settings
+    batch_size=1000,
+    parallel_processing=True,
+    max_workers=4,
 )
-
-# Parse a minimal LDIF record to verify configuration
-content = """dn: cn=test,dc=example,dc=com
-cn: test
-objectClass: inetOrgPerson
-"""
-result = ldif.parse_string(content)
-print(u.out(f"parsed successfully: {result.success}"))
-print(u.out(f"encoding: {local.ldif.ldif_encoding}"))
-print(u.out(f"strict validation: {local.ldif.ldif_strict_validation}"))
 ```
 
 ### flext-api Configuration
 
-```python
-from __future__ import annotations
+```text
+from flext_api import FlextApiSettings
 
-from flext_cli import m, u
-
-
-# Example domain settings model (replace with your project's settings class)
-class ApiSettings(m.BaseModel):
-    base_url: str = "https://api.example.com"
-    timeout: int = 30
-    retry_attempts: int = 3
-
-
-api_config = ApiSettings(
-    base_url="https://api.example.com", timeout=30, retry_attempts=3
+settings = FlextApiSettings(
+    base_url="https://api.example.com",
+    timeout=30,
+    retry_attempts=3,
+    verify_ssl=True,
+    headers={"User-Agent": "FLEXT-API/1.0"},
 )
-print(u.out(f"API base URL: {api_config.base_url}"))
-print(u.out(f"timeout: {api_config.timeout}"))
 ```
 
 ### flext-auth Configuration
 
-```python
-from __future__ import annotations
+```text
+from flext_auth import FlextAuthSettings
 
-from flext_cli import c, m, u
-
-
-# Example auth settings model using real FLEXT constants
-class AuthSettings(m.BaseModel):
-    secret_key: str = "your-secret-key"
-    algorithm: c.Compression = c.Compression.NONE
-    access_token_expire_minutes: int = 30
-
-
-auth_config = AuthSettings(
+settings = FlextAuthSettings(
     secret_key="your-secret-key",
-    algorithm=c.Compression.NONE,
+    algorithm=c.Auth.Algorithms.HS256,
     access_token_expire_minutes=30,
-)
-print(u.out(f"algorithm: {auth_config.algorithm.value}"))
-print(
-    u.out(f"access token expires in {auth_config.access_token_expire_minutes} minutes")
+    refresh_token_expire_days=7,
 )
 ```
 
@@ -236,39 +227,67 @@ api:
 
 All configuration is validated using Pydantic v2 models:
 
-```python
-from __future__ import annotations
-
-from pydantic import ValidationError
-from flext_cli import FlextCliSettings, u
+```text
+from flext_core import FlextBus
+from flext_core import FlextSettings
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import d
+from flext_core import FlextDispatcher
+from flext_core import e
+from flext_core import h
+from flext_core import x
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import p
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
+from flext_core import t
+from flext_core import u
 
 try:
-    FlextCliSettings(log_level="INVALID_LEVEL")
-except ValidationError as exc:
-    u.out("Configuration error: invalid log level")
-    u.out(str(exc.errors()[0]["msg"]))
+    settings = FlextSettings(
+        log_level="INVALID_LEVEL"  # This will raise ValidationError
+    )
+except c.ValidationError as e:
+    print(f"Configuration error: {e}")
 ```
 
 ## Configuration Inheritance
 
 FLEXT supports configuration inheritance for complex setups:
 
-```python
-from __future__ import annotations
-
-from flext_cli import FlextCliSettings, u
+```text
+from flext_core import FlextBus
+from flext_core import FlextSettings
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import d
+from flext_core import FlextDispatcher
+from flext_core import e
+from flext_core import h
+from flext_core import x
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import p
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
+from flext_core import t
+from flext_core import u
 
 # Base configuration
-base_config = FlextCliSettings(log_level="INFO", debug=False)
+base_config = FlextSettings(log_level="INFO", environment="production")
 
-# Extended configuration using model_dump for inheritance
-extended_config = FlextCliSettings(
-    **base_config.model_dump(exclude={"debug"}),
+# Extended configuration
+extended_config = FlextSettings(
+    **base_config.dict(),
     debug=True,  # Override for development
+    custom_setting="value",
 )
-
-print(u.out(f"base log level: {base_config.log_level}"))
-print(u.out(f"extended debug: {extended_config.debug}"))
 ```
 
 ## Best Practices
@@ -283,61 +302,78 @@ export FLEXT_API_KEY=your_api_key
 
 ### 2. Validate Configuration Early
 
-```python
-from __future__ import annotations
+```text
+from flext_core import FlextBus
+from flext_core import FlextSettings
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import d
+from flext_core import FlextDispatcher
+from flext_core import e
+from flext_core import h
+from flext_core import x
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import p
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
+from flext_core import t
+from flext_core import u
 
-from flext_cli import FlextCliSettings, u
 
+def main():
+    # Validate configuration at startup
+    settings = FlextSettings()
 
-def main() -> int:
-    # Validate configuration at startup by instantiating the settings class
-    settings = FlextCliSettings()
+    if not settings.is_valid():
+        print("Invalid configuration")
+        return 1
 
-    if settings.debug:
-        u.out("Running in debug mode")
-
-    u.out(f"Configuration loaded: log_level={settings.log_level}")
+    # Continue with application logic
     return 0
-
-
-main()
 ```
 
 ### 3. Use Configuration Classes
 
-```python
-from __future__ import annotations
+```text
+from flext_core import FlextBus
+from flext_core import FlextSettings
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import d
+from flext_core import FlextDispatcher
+from flext_core import e
+from flext_core import h
+from flext_core import x
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import p
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
+from flext_core import t
+from flext_core import u
 
-from flext_cli import m, u
-from pydantic import field_validator
 
-
-class MyAppSettings(m.BaseModel):
+class MyAppSettings(FlextSettings):
     custom_setting: str = "default_value"
     another_setting: int = 42
 
     @field_validator("another_setting")
     @classmethod
-    def validate_another_setting(cls, value: int) -> int:
-        if value < 0:
+    def validate_another_setting(cls, v):
+        if v < 0:
             raise ValueError("another_setting must be positive")
-        return value
-
-
-settings = MyAppSettings(another_setting=10)
-print(u.out(f"custom: {settings.custom_setting}"))
-print(u.out(f"another: {settings.another_setting}"))
+        return v
 ```
 
 ### 4. Document Configuration Options
 
-```python
-from __future__ import annotations
-
-from flext_cli import m, u
-
-
-class LdifSettingsExample(m.BaseModel):
+```text
+class FlextLdifSettings(m.BaseModel):
     """Configuration for LDIF processing."""
 
     default_encoding: str = m.Field(
@@ -347,11 +383,6 @@ class LdifSettingsExample(m.BaseModel):
     strict_validation: bool = m.Field(
         default=True, description="Enable strict RFC validation"
     )
-
-
-example = LdifSettingsExample()
-print(u.out(f"encoding: {example.default_encoding}"))
-print(u.out(f"strict: {example.strict_validation}"))
 ```
 
 ## Troubleshooting
@@ -378,68 +409,95 @@ print(u.out(f"strict: {example.strict_validation}"))
 
 ### Debug Configuration
 
-```python
-from __future__ import annotations
-
-from flext_cli import FlextCliSettings, u
+```text
+from flext_core import FlextBus
+from flext_core import FlextSettings
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import d
+from flext_core import FlextDispatcher
+from flext_core import e
+from flext_core import h
+from flext_core import x
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import p
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
+from flext_core import t
+from flext_core import u
 
 # Enable debug logging
-settings = FlextCliSettings(debug=True)
+settings = FlextSettings(debug=True)
 
 # Print configuration
-print(u.out(settings.model_dump()))
+print(settings.dict())
 
-# Validate configuration implicitly by instantiating
-if settings.debug:
-    print(u.out("Debug mode is enabled"))
+# Validate configuration
+if settings.is_valid():
+    print("Configuration is valid")
 else:
-    print(u.out("Debug mode is disabled"))
+    print("Configuration has errors")
 ```
 
 ## Examples
 
 ### Complete Configuration Example
 
-```python
-from __future__ import annotations
-
+```text
+#!/usr/bin/env python3
 """Complete FLEXT configuration example."""
 
 import os
-from flext_cli import FlextCliSettings, u
-from flext_ldif import FlextLdifSettings, ldif
+from flext_core import FlextBus
+from flext_core import FlextSettings
+from flext_core import FlextConstants
+from flext_core import FlextContainer
+from flext_core import FlextContext
+from flext_core import d
+from flext_core import FlextDispatcher
+from flext_core import e
+from flext_core import h
+from flext_core import x
+from flext_core import FlextModels
+from flext_core import FlextProcessors
+from flext_core import p
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
+from flext_core import t
+from flext_core import u
+from flext_ldif import FlextLdifSettings
+from flext_api import FlextApiSettings
 
 
-def main() -> None:
-    # Load configuration from environment/defaults
-    settings = FlextCliSettings()
+def main():
+    # Load configuration from environment
+    settings = FlextSettings()
 
     # Configure LDIF processing
     ldif_config = FlextLdifSettings(
-        ldif=FlextLdifSettings.LdifSettings(
-            ldif_encoding=os.getenv("FLEXT_LDIF_ENCODING", "utf-8"),
-            ldif_strict_validation=os.getenv(
-                "FLEXT_LDIF_STRICT_VALIDATION", "true"
-            ).lower()
-            == "true",
-        )
+        source_server=os.getenv("FLEXT_SOURCE_SERVER", "oid"),
+        target_server=os.getenv("FLEXT_TARGET_SERVER", "oud"),
+        batch_size=int(os.getenv("FLEXT_BATCH_SIZE", "1000")),
     )
 
-    # Verify LDIF parsing works with the loaded settings
-    content = """dn: cn=test,dc=example,dc=com
-cn: test
-objectClass: inetOrgPerson
-"""
-    result = ldif.parse_string(content)
+    # Configure API client
+    api_config = FlextApiSettings(
+        base_url=os.getenv("FLEXT_API_URL", "http://localhost:8000"),
+        timeout=int(os.getenv("FLEXT_API_TIMEOUT", "30")),
+    )
 
-    u.out("Configuration loaded successfully")
-    u.out(f"Log level: {settings.log_level}")
-    u.out(f"LDIF encoding: {ldif_config.ldif.ldif_encoding}")
-    u.out(f"LDIF strict validation: {ldif_config.ldif.ldif_strict_validation}")
-    u.out(f"Sample parse succeeded: {result.success}")
+    print("Configuration loaded successfully")
+    print(f"Log level: {settings.log_level}")
+    print(f"LDIF batch size: {ldif_config.batch_size}")
+    print(f"API base URL: {api_config.base_url}")
 
 
-main()
+if __name__ == "__main__":
+    main()
 ```
 
 ## Reference

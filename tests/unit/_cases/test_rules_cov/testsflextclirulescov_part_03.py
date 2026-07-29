@@ -12,7 +12,7 @@ from flext_tests import tm
 from tests import c, u
 
 if TYPE_CHECKING:
-    from tests import t
+    from tests import p, t
 
 
 class TestsFlextCliRulesCov:
@@ -28,11 +28,13 @@ class TestsFlextCliRulesCov:
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=rules_dir,
-                rule_filters=(),
-                rule_catalog=c.Tests.RULES_CATALOG_MAPPING,
+            result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+                u.Cli.rules_load_local_definitions(
+                    config_path,
+                    package_rules_dir=rules_dir,
+                    rule_filters=(),
+                    rule_catalog=c.Tests.RULES_CATALOG_MAPPING,
+                )
             )
             tm.fail(result)
             tm.that((result.error or ""), has="config must be a mapping")
@@ -45,12 +47,14 @@ class TestsFlextCliRulesCov:
             (rules_dir / "file.yml").write_text(c.Tests.RULES_FILE_YAML)
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=rules_dir,
-                rule_filters=(),
-                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
-                file_rule_catalog=c.Tests.RULES_FILE_CATALOG_BASIC,
+            result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+                u.Cli.rules_load_local_definitions(
+                    config_path,
+                    package_rules_dir=rules_dir,
+                    rule_filters=(),
+                    rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+                    file_rule_catalog=c.Tests.RULES_FILE_CATALOG_BASIC,
+                )
             )
             tm.ok(result)
             tm.that(result.value, is_=(list, tuple))
@@ -66,12 +70,14 @@ class TestsFlextCliRulesCov:
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=rules_dir,
-                rule_filters=(),
-                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
-                file_rule_catalog=c.Tests.RULES_FILE_CATALOG_MAPPING,
+            result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+                u.Cli.rules_load_local_definitions(
+                    config_path,
+                    package_rules_dir=rules_dir,
+                    rule_filters=(),
+                    rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+                    file_rule_catalog=c.Tests.RULES_FILE_CATALOG_MAPPING,
+                )
             )
             tm.fail(result)
             tm.that((result.error or ""), has="config must be a mapping")

@@ -107,8 +107,7 @@ class FlextCliUtilitiesFramework:
 
         u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)
         cls._active_failure.set(r[t.Cli.ResultValue].from_failure(result))
-        cls.framework_exit(code=c.Cli.EXIT_CODE_FAILURE)
-        return True
+        return cls.framework_exit(code=c.Cli.EXIT_CODE_FAILURE)
 
     @staticmethod
     def _unwrap(application: p.Cli.Application) -> _TyperApplication:

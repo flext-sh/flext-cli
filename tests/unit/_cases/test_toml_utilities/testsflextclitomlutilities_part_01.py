@@ -23,17 +23,14 @@ class TestsFlextCliTomlUtilities:
     @staticmethod
     @contextmanager
     def _temporary_environment(overrides: t.StrMapping) -> Generator[None]:
-        original_values = {key: os.environ.get(key) for key in overrides}
+        original_values = dict(overrides)
         try:
             for key, value in overrides.items():
                 os.environ[key] = value
             yield
         finally:
             for key, value in original_values.items():
-                if value is None:
-                    os.environ.pop(key, None)
-                else:
-                    os.environ[key] = value
+                os.environ[key] = value
 
     def test_read_existing_file(self, tmp_path: Path) -> None:
         """Verify that read existing file."""

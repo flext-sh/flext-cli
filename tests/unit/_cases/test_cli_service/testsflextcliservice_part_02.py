@@ -72,15 +72,13 @@ class TestsFlextCliService:
             name="alice", count=3, dry_run=True, output_format=c.Cli.OutputFormats.JSON
         )
 
-        tm.that(
-            result,
-            eq={
-                "name": "alice",
-                "count": 3,
-                "dry_run": True,
-                "output_format": c.Cli.OutputFormats.JSON,
-            },
-        )
+        expected: t.JsonMapping = {
+            "name": "alice",
+            "count": 3,
+            "dry_run": True,
+            "output_format": c.Cli.OutputFormats.JSON,
+        }
+        tm.that(result, eq=expected)
 
     def test_model_command_uses_custom_param_decls_from_field_extra(self) -> None:
         """Expose custom option declarations from validated field metadata."""

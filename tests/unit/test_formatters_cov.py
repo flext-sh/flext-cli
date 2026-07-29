@@ -43,6 +43,14 @@ class TestsFlextCliFormattersCov:
         out = capsys.readouterr().out
         tm.that(out, has=msg)
 
+    def test_public_cli_print_renders_message_to_stdout(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """Verify the canonical public cli.print endpoint."""
+        cli.print("public-cli-print")
+
+        tm.that(capsys.readouterr().out, has="public-cli-print")
+
     # ── render_rule: label rendered to stdout ────────────────────────
 
     @pytest.mark.parametrize("label", c.Tests.FORMATTER_RULE_LABELS)

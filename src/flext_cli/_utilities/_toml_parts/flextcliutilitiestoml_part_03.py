@@ -62,11 +62,9 @@ class FlextCliUtilitiesToml:
         existing = parent.get(key, None)
         if isinstance(existing, dict):
             return existing
-        if u.mapping(existing):
-            normalized_mapping = FlextCliUtilitiesTomlPart01.toml_as_mapping(existing)
-            normalized_table: t.JsonDict = (
-                dict(normalized_mapping) if normalized_mapping else {}
-            )
+        normalized_mapping = FlextCliUtilitiesTomlPart01.toml_as_mapping(existing)
+        if normalized_mapping is not None:
+            normalized_table: t.JsonDict = dict(normalized_mapping)
             parent[key] = normalized_table
             return normalized_table
         # NOTE (multi-agent): TOML mutation requires this explicitly typed table.

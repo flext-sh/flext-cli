@@ -38,9 +38,7 @@ class FlextCliUtilitiesPipeline:
             )
 
         # Build stage lookup and dependency graph.
-        stage_map: t.MappingKV[str, m.Cli.PipelineStageSpec] = {
-            s.stage_id: s for s in stages
-        }
+        stage_map: dict[str, m.Cli.PipelineStageSpec] = {s.stage_id: s for s in stages}
 
         # Build TopologicalSorter graph.
         sorter: TopologicalSorter[str] = TopologicalSorter()
@@ -54,9 +52,9 @@ class FlextCliUtilitiesPipeline:
 
         failed = False
         for stage_id in order:
-            spec = stage_map.get(stage_id)
-            if spec is None:
+            if stage_id not in stage_map:
                 continue
+            spec = stage_map[stage_id]
 
             if failed and fail_fast:
                 results.append(
