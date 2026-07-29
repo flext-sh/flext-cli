@@ -3,20 +3,15 @@
 from __future__ import annotations
 
 import shlex
-from typing import ClassVar
 
 from flext_cli import p, r, t
-from flext_core import u as core_u
 
 
 class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
     """Map one completed lifecycle to its public result contract."""
 
-    _module_logger: ClassVar[p.Logger] = core_u.fetch_logger(__name__)
-
-    @classmethod
+    @staticmethod
     def _process_exit_result(
-        cls,
         cmd: t.StrSequence,
         return_code: int | None,
         received_signals: list[int],
@@ -43,13 +38,7 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
             primary_exit = None
         else:
             primary_exit = 128 + abs(return_code) if return_code < 0 else return_code
-        if diagnostics and primary_exit not in {None, 0}:
-            cls._module_logger.warning(
-                "process lifecycle diagnostics",
-                primary_exit=primary_exit,
-                diagnostics=diagnostics,
-            )
-        elif diagnostics:
+        if diagnostics:
             return r[int].fail("; ".join(diagnostics))
         if primary_exit is None:
             return r[int].fail("root process did not expose an exit status")
