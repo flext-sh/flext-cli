@@ -91,5 +91,24 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
             """Command standard output as raw bytes."""
             ...
 
+    @runtime_checkable
+    class ProcessDeadline(Protocol):
+        """Absolute monotonic deadline for one complete process lifecycle."""
+
+        @property
+        def expires_at_monotonic(self) -> float:
+            """Absolute time.monotonic expiry in seconds."""
+            ...
+
+        @property
+        def termination_grace_seconds(self) -> float:
+            """Reserved graceful termination and drain budget."""
+            ...
+
+        @property
+        def timeout_exit_code(self) -> int:
+            """Canonical exit code returned for deadline expiry."""
+            ...
+
 
 __all__: list[str] = ["FlextCliProtocolsBase"]

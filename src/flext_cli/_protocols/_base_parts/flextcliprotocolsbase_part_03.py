@@ -89,8 +89,12 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            input_data: str | bytes | None = None,
+            *,
+            live: bool = False,
+            deadline: p.Cli.ProcessDeadline | None = None,
         ) -> p.Result[int]:
-            """Execute a command and write combined output to a file."""
+            """Execute once with byte-identical combined live and durable output."""
             ...
 
     @runtime_checkable
