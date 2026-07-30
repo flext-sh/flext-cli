@@ -21,8 +21,8 @@ class _ObservedWindowsCli(u.Cli):
 
     @classmethod
     @override
-    def _windows_job_active_count(cls, job_handle: int) -> p.Result[int]:
-        result: p.Result[int] = super()._windows_job_active_count(job_handle)
+    def windows_job_active_count(cls, job_handle: int) -> p.Result[int]:
+        result: p.Result[int] = super().windows_job_active_count(job_handle)
         if result.success:
             cls.active_counts.append(result.value)
         return result
@@ -79,7 +79,6 @@ class TestsFlextCliRuntimeProcessDescendants:
                 os.killpg(process_group, 0)
         tm.that(time.monotonic() - started, lt=5.0)
 
-    @pytest.mark.skipif(os.name != "nt", reason="Windows Job Object contract")
     def test_windows_job_reports_zero_active_processes(self, tmp_path: Path) -> None:
         _ObservedWindowsCli.active_counts.clear()
         result = _ObservedWindowsCli.run_to_file(
@@ -94,8 +93,14 @@ class TestsFlextCliRuntimeProcessDescendants:
 
         tm.ok(result)
         tm.that(result.value, eq=96)
-        tm.that(_ObservedWindowsCli.active_counts, empty=False)
-        tm.that(_ObservedWindowsCli.active_counts[-1], eq=0)
+        if os.name == "nt":
+            tm.that(_ObservedWindowsCli.active_counts, empty=False)
+            tm.that(_ObservedWindowsCli.active_counts[-1], eq=0)
+            return
+        active_count = u.Cli.windows_job_active_count(0)
+        tm.that(active_count.success, eq=True)
+        tm.that(active_count.value, eq=0)
+        tm.that(_ObservedWindowsCli.active_counts, empty=True)
 
 
 __all__: list[str] = ["TestsFlextCliRuntimeProcessDescendants"]

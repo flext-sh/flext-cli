@@ -111,8 +111,11 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 if started.failure:
                     failures.append(started.error or "process start failed")
                 else:
-                    process, job_handle = started.value
+                    process, job_handle = started.unwrap()
                     source = process.stdout
+                    if source is None:
+                        failures.append("process stdout is not available")
+                        return
                     stack.callback(source.close)
                     waiter = cls._start_root_waiter(
                         process, return_codes, failures, process_done, wake

@@ -26,7 +26,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
     ) -> p.Result[bool]:
         """Prove the owned group/Job has no active members."""
         if os.name == "nt":
-            return cls._windows_job_active_count(job_handle).map(
+            return cls.windows_job_active_count(job_handle).map(
                 lambda active_count: active_count == 0
             )
         try:
