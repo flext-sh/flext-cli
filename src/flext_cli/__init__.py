@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from flext_core import d as d, e as e, h as h, r as r, x as x
 
     from ._config import FlextCliConfig as FlextCliConfig, config as config
+    from ._settings import FlextCliSettings as FlextCliSettings
     from ._settings import settings as settings
     from .api import FlextCli as FlextCli, cli as cli
     from .base import FlextCliServiceBase as FlextCliServiceBase
@@ -36,7 +37,6 @@ if TYPE_CHECKING:
     from .protocols import FlextCliProtocols as FlextCliProtocols
 
     p: type[FlextCliProtocols]
-    from .settings import FlextCliSettings as FlextCliSettings
     from .typings import FlextCliTypes as FlextCliTypes
 
     t: type[FlextCliTypes]
@@ -45,14 +45,13 @@ if TYPE_CHECKING:
     u: type[FlextCliUtilities]
 
 _LAZY_MODULES: dict[str, tuple[str, ...]] = {
-    "._config": ("FlextCliConfig", "config"),
-    "._settings": ("settings",),
     ".api": ("FlextCli", "cli"),
     ".base": ("FlextCliServiceBase", "s"),
     ".constants": ("FlextCliConstants", "c"),
     ".models": ("FlextCliModels", "m"),
     ".protocols": ("FlextCliProtocols", "p"),
-    ".settings": ("FlextCliSettings",),
+    "._config": ("FlextCliConfig", "config"),
+    "._settings": ("FlextCliSettings", "settings"),
     ".typings": ("FlextCliTypes", "t"),
     ".utilities": ("FlextCliUtilities", "u"),
     "flext_core": ("d", "e", "h", "r", "x"),

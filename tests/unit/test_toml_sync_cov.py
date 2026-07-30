@@ -34,7 +34,8 @@ class TestsFlextCliTomlSyncCoverage:
     @pytest.fixture
     def project_table(self) -> Table:
         """Fresh ``[project]`` table inside an empty document."""
-        return u.Cli.toml_ensure_table(u.Cli.toml_document(), "project")
+        table: Table = u.Cli.toml_ensure_table(u.Cli.toml_document(), "project")
+        return table
 
     # -- scalar sync -----------------------------------------------------
 

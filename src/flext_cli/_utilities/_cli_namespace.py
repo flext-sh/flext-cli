@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
     FlextCliUtilitiesOptions,
 )
@@ -33,20 +35,23 @@ from flext_cli._utilities.validation import FlextCliUtilitiesValidation
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 from flext_cli._utilities.yaml_model import FlextCliUtilitiesYamlModel
 
-try:
+if TYPE_CHECKING:
     from flext_cli._utilities.docx import FlextCliUtilitiesDocx
-except ModuleNotFoundError:
-
-    class FlextCliUtilitiesDocx:
-        """Fallback when python-docx is not installed."""
-
-
-try:
     from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx
-except ModuleNotFoundError:
+else:
+    try:
+        from flext_cli._utilities.docx import FlextCliUtilitiesDocx
+    except ModuleNotFoundError:
 
-    class FlextCliUtilitiesXlsx:
-        """Fallback when openpyxl is not installed."""
+        class FlextCliUtilitiesDocx:
+            """Fallback when python-docx is not installed."""
+
+    try:
+        from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx
+    except ModuleNotFoundError:
+
+        class FlextCliUtilitiesXlsx:
+            """Fallback when openpyxl is not installed."""
 
 
 class FlextCliUtilitiesCli(
