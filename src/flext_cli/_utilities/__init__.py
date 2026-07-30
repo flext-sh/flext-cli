@@ -8,16 +8,18 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import _docx as _docx
-    from . import _file_test_helper_parts as _file_test_helper_parts
-    from . import _files_parts as _files_parts
-    from . import _json as _json
-    from . import _options_parts as _options_parts
-    from . import _pptx as _pptx
-    from . import _rules as _rules
-    from . import _toml_parts as _toml_parts
-    from . import _xlxx as _xlxx
-    from . import _yaml as _yaml
+    from . import (
+        _docx as _docx,
+        _file_test_helper_parts as _file_test_helper_parts,
+        _files_parts as _files_parts,
+        _json as _json,
+        _options_parts as _options_parts,
+        _pptx as _pptx,
+        _rules as _rules,
+        _toml_parts as _toml_parts,
+        _xlxx as _xlxx,
+        _yaml as _yaml,
+    )
     from ._cli_namespace import FlextCliUtilitiesCli as FlextCliUtilitiesCli
     from ._docx._reader import (
         FlextCliUtilitiesDocxReader as FlextCliUtilitiesDocxReader,

@@ -33,7 +33,6 @@ from flext_cli._utilities.validation import FlextCliUtilitiesValidation
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 from flext_cli._utilities.yaml_model import FlextCliUtilitiesYamlModel
 
-
 try:
     from flext_cli._utilities.docx import FlextCliUtilitiesDocx
 except ModuleNotFoundError:

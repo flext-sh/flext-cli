@@ -13,9 +13,11 @@ if TYPE_CHECKING:
     from .docx import FlextCliConstantsDocx as FlextCliConstantsDocx
     from .enums import FlextCliConstantsEnums as FlextCliConstantsEnums
     from .errors import FlextCliConstantsErrors as FlextCliConstantsErrors
-    from .exceptions import CliDefinitionError as CliDefinitionError
-    from .exceptions import CliValidationError as CliValidationError
-    from .exceptions import FlextCliConstantsExceptions as FlextCliConstantsExceptions
+    from .exceptions import (
+        CliDefinitionError as CliDefinitionError,
+        CliValidationError as CliValidationError,
+        FlextCliConstantsExceptions as FlextCliConstantsExceptions,
+    )
     from .files import FlextCliConstantsFiles as FlextCliConstantsFiles
     from .output import FlextCliConstantsOutput as FlextCliConstantsOutput
     from .pipeline import FlextCliConstantsPipeline as FlextCliConstantsPipeline
