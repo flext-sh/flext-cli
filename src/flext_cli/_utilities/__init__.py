@@ -28,9 +28,15 @@ from .settings import FlextCliUtilitiesSettings as FlextCliUtilitiesSettings
 from .tables import FlextCliUtilitiesTables as FlextCliUtilitiesTables
 from .template import FlextCliUtilitiesTemplate as FlextCliUtilitiesTemplate
 from .validation import FlextCliUtilitiesValidation as FlextCliUtilitiesValidation
-from .xlsx import FlextCliUtilitiesXlsx as FlextCliUtilitiesXlsx
 from .yaml import FlextCliUtilitiesYaml as FlextCliUtilitiesYaml
 from .yaml_model import FlextCliUtilitiesYamlModel as FlextCliUtilitiesYamlModel
+
+try:
+    from .xlsx import FlextCliUtilitiesXlsx as FlextCliUtilitiesXlsx
+except ModuleNotFoundError:
+
+    class FlextCliUtilitiesXlsx:
+        """Fallback when openpyxl is not installed."""
 
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesAuth",
