@@ -22,7 +22,7 @@ class _ObservedWindowsCli(u.Cli):
     @classmethod
     @override
     def _windows_job_active_count(cls, job_handle: int) -> p.Result[int]:
-        result = super()._windows_job_active_count(job_handle)
+        result: p.Result[int] = super()._windows_job_active_count(job_handle)
         if result.success:
             cls.active_counts.append(result.value)
         return result
