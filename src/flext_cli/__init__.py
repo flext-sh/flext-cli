@@ -25,24 +25,12 @@ if TYPE_CHECKING:
     from ._settings import FlextCliSettings as FlextCliSettings
     from ._settings import settings as settings
     from .api import FlextCli as FlextCli, cli as cli
-    from .base import FlextCliServiceBase as FlextCliServiceBase
-
-    s: type[FlextCliServiceBase]
-    from .constants import FlextCliConstants as FlextCliConstants
-
-    c: type[FlextCliConstants]
-    from .models import FlextCliModels as FlextCliModels
-
-    m: type[FlextCliModels]
-    from .protocols import FlextCliProtocols as FlextCliProtocols
-
-    p: type[FlextCliProtocols]
-    from .typings import FlextCliTypes as FlextCliTypes
-
-    t: type[FlextCliTypes]
-    from .utilities import FlextCliUtilities as FlextCliUtilities
-
-    u: type[FlextCliUtilities]
+    from .base import FlextCliServiceBase as FlextCliServiceBase, FlextCliServiceBase as s
+    from .constants import FlextCliConstants as FlextCliConstants, FlextCliConstants as c
+    from .models import FlextCliModels as FlextCliModels, FlextCliModels as m
+    from .protocols import FlextCliProtocols as FlextCliProtocols, FlextCliProtocols as p
+    from .typings import FlextCliTypes as FlextCliTypes, FlextCliTypes as t
+    from .utilities import FlextCliUtilities as FlextCliUtilities, FlextCliUtilities as u
 
 _LAZY_MODULES: dict[str, tuple[str, ...]] = {
     ".api": ("FlextCli", "cli"),
