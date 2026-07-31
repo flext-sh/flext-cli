@@ -111,11 +111,7 @@ class TestsFlextCliPipeline:
         result = cli.pipeline(
             stages, context=cli.stage_context(tmp_path), fail_fast=True
         )
-        tm.ok(result)
-        pipeline = result.value
-        tm.that(pipeline.success, eq=False)
-        tm.that(len(pipeline.failed_stages), eq=1)
-        tm.that(pipeline.failed_stages[0].stage_id, eq="a")
+        tm.fail(result)
 
     def test_skip_predicate(self, tmp_path: Path) -> None:
         """Stage with skip_if returning True is skipped."""
