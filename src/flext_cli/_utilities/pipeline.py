@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from concurrent.futures import ThreadPoolExecutor
 from graphlib import CycleError, TopologicalSorter
 from typing import ClassVar
 
@@ -46,31 +47,69 @@ class FlextCliUtilitiesPipeline:
             sorter.add(spec.stage_id, *spec.depends_on)
 
         try:
-            order = tuple(sorter.static_order())
+            sorter.prepare()
         except CycleError as exc:
             return r[m.Cli.PipelineResult].fail(f"pipeline cycle detected: {exc}")
 
+        # Walk the graph one READY WAVE at a time instead of flattening it to a
+        # single serial order. Stages inside a wave share no dependency edge by
+        # construction, so they run concurrently; a stage still starts only
+        # after every dependency completed. A strictly linear pipeline yields
+        # waves of width one and therefore behaves exactly as before.
         failed = False
-        for stage_id in order:
-            if stage_id not in stage_map:
-                continue
-            spec = stage_map[stage_id]
-
+        completed: dict[str, m.Cli.PipelineStageResult] = {}
+        while sorter.is_active():
+            wave = tuple(sorter.get_ready())
+            if not wave:
+                break
+            known = tuple(stage_id for stage_id in wave if stage_id in stage_map)
+            for stage_id in wave:
+                if stage_id not in stage_map:
+                    # Dependency named by an edge but never declared as a stage:
+                    # retire it so the graph can advance, exactly as the serial
+                    # walk skipped it.
+                    sorter.done(stage_id)
             if failed and fail_fast:
-                results.append(
-                    m.Cli.PipelineStageResult(
+                for stage_id in known:
+                    completed[stage_id] = m.Cli.PipelineStageResult(
                         stage_id=stage_id,
                         status=c.Cli.PipelineStageStatus.SKIPPED,
                         error="skipped due to prior failure (fail_fast)",
                     )
-                )
+                    sorter.done(stage_id)
                 continue
-
-            stage_result = FlextCliUtilitiesPipeline._run_stage(spec, context, log)
-            results.append(stage_result)
-
-            if stage_result.status == c.Cli.PipelineStageStatus.FAILED:
+            if len(known) == 1:
+                stage_id = known[0]
+                completed[stage_id] = FlextCliUtilitiesPipeline._run_stage(
+                    stage_map[stage_id], context, log
+                )
+                sorter.done(stage_id)
+            elif known:
+                with ThreadPoolExecutor(thread_name_prefix="pipeline_") as executor:
+                    futures = {
+                        stage_id: executor.submit(
+                            FlextCliUtilitiesPipeline._run_stage,
+                            stage_map[stage_id],
+                            context,
+                            log,
+                        )
+                        for stage_id in known
+                    }
+                    for stage_id, future in futures.items():
+                        completed[stage_id] = future.result()
+                for stage_id in known:
+                    sorter.done(stage_id)
+            if any(
+                completed[stage_id].status == c.Cli.PipelineStageStatus.FAILED
+                for stage_id in known
+            ):
                 failed = True
+
+        # Report in DECLARED stage order: consumers select "the" failure with
+        # next(...) over this sequence, so completion order must never leak in.
+        results.extend(
+            completed[spec.stage_id] for spec in stages if spec.stage_id in completed
+        )
 
         total_ms = (time.monotonic() - pipeline_start) * 1000
         pipeline_result = m.Cli.PipelineResult(
