@@ -125,9 +125,7 @@ class FlextCliUtilitiesPipeline:
         )
 
         if pipeline_result.failed_stages:
-            return r[m.Cli.PipelineResult].fail(
-                "one or more pipeline stages failed"
-            )
+            return r[m.Cli.PipelineResult].fail("one or more pipeline stages failed")
         return r[m.Cli.PipelineResult].ok(pipeline_result)
 
     @staticmethod

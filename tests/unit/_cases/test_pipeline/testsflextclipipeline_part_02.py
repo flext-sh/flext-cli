@@ -106,8 +106,7 @@ class TestsFlextCliPipeline:
             raise ValueError(error_message)
 
         result = cli.pipeline(
-            [cli.stage("boom", handler=exploding)],
-            context=cli.stage_context(tmp_path),
+            [cli.stage("boom", handler=exploding)], context=cli.stage_context(tmp_path)
         )
 
         tm.fail(result)
