@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import BinaryIO, Protocol, runtime_checkable
 
 from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_01 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart01,
@@ -108,6 +108,68 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
         @property
         def timeout_exit_code(self) -> int:
             """Canonical exit code returned for deadline expiry."""
+            ...
+
+    @runtime_checkable
+    class ProcessHandle(Protocol):
+        """Structural subprocess handle used behind the public CLI facade."""
+
+        @property
+        def pid(self) -> int:
+            """Operating-system process identifier."""
+            ...
+
+        @property
+        def stdin(self) -> BinaryIO | None:
+            """Binary standard-input pipe when configured."""
+            ...
+
+        @property
+        def stdout(self) -> BinaryIO | None:
+            """Binary combined-output pipe when configured."""
+            ...
+
+        def kill(self) -> None:
+            """Force the process to exit."""
+            ...
+
+        def poll(self) -> int | None:
+            """Return the exit status when available."""
+            ...
+
+        def send_signal(self, signal_number: int) -> None:
+            """Send one platform signal to the process."""
+            ...
+
+        def wait(self, timeout: float | None = None) -> int:
+            """Wait for the process within a bounded interval."""
+            ...
+
+    @runtime_checkable
+    class ProcessLiveSink(Protocol):
+        """Nonblocking live-output consumer fed by the durable reader."""
+
+        def offer(self, chunk: bytes) -> None:
+            """Offer one durable chunk without blocking the reader."""
+            ...
+
+    @runtime_checkable
+    class ProcessLivePolicy(Protocol):
+        """Validated bounded live relay policy."""
+
+        @property
+        def stream_chunk_bytes(self) -> int:
+            """Durable reader chunk size."""
+            ...
+
+        @property
+        def queue_capacity_chunks(self) -> int:
+            """Maximum queued live chunks."""
+            ...
+
+        @property
+        def relay_poll_seconds(self) -> float:
+            """Interruptible relay polling interval."""
             ...
 
 

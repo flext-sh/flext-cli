@@ -29,6 +29,9 @@ class FlextCliConstantsSettings:
     CLI_DEFAULT_LOG_VERBOSITY: Final[str] = ce.LogVerbosity.COMPACT.value
     CLI_DEFAULT_LOG_LEVEL: Final[str] = c.LogLevel.INFO.value
     CLI_DEFAULT_OUTPUT_FORMAT: Final[str] = ce.OutputFormats.TABLE.value
+    CLI_PROCESS_STREAM_CHUNK_BYTES: Final[int] = 64 * 1024
+    CLI_PROCESS_LIVE_QUEUE_CHUNKS: Final[int] = 8
+    CLI_PROCESS_LIVE_RELAY_POLL_SECONDS: Final[float] = 0.01
     ENV_DEFAULT_CI: Final[bool] = False
     ENV_VAR_CI: Final[str] = "CI"
     ENV_VAR_PYTEST_CURRENT_TEST: Final[str] = "PYTEST_CURRENT_TEST"

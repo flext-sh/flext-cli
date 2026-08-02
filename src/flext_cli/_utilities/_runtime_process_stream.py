@@ -2,70 +2,66 @@
 
 from __future__ import annotations
 
-import os
 import threading
-from typing import BinaryIO, ClassVar
+from typing import BinaryIO
+
+from flext_cli import p
 
 
 class FlextCliUtilitiesRuntimeProcessStreamMixin:
     """Mirror combined child output to a live descriptor and durable log."""
-
-    _STREAM_CHUNK_BYTES: ClassVar[int] = 64 * 1024
-    _STREAM_POLL_SECONDS: ClassVar[float] = 0.01
 
     @classmethod
     def _pump_process_output(
         cls,
         source: BinaryIO,
         durable_log: BinaryIO,
-        live_fd: int | None,
+        live_sink: p.Cli.ProcessLiveSink | None,
         failures: list[str],
         stop: threading.Event,
+        stream_chunk_bytes: int,
+        poll_seconds: float,
     ) -> None:
-        """Persist each chunk before bounded best-effort live mirroring."""
-        live_available = live_fd is not None
+        """Persist every chunk, then offer it to the nonblocking live sink."""
         while not stop.is_set():
             try:
-                chunk = source.read(cls._STREAM_CHUNK_BYTES)
+                chunk = source.read(stream_chunk_bytes)
             except BlockingIOError:
-                stop.wait(cls._STREAM_POLL_SECONDS)
+                stop.wait(poll_seconds)
                 continue
             except (OSError, ValueError) as exc:
                 failures.append(f"output read error: {exc}")
                 return
             if chunk is None:
-                stop.wait(cls._STREAM_POLL_SECONDS)
+                stop.wait(poll_seconds)
                 continue
             if not chunk:
                 return
-            remaining = memoryview(chunk)
-            try:
-                while remaining:
-                    written = durable_log.write(remaining)
-                    if written is None or written <= 0:
-                        raise OSError("durable log write made no progress")
-                    remaining = remaining[written:]
-                durable_log.flush()
-            except (OSError, ValueError) as exc:
-                failures.append(f"durable log write error: {exc}")
+            durable_error = cls._persist_process_chunk(durable_log, chunk)
+            if durable_error is not None:
+                failures.append(durable_error)
                 return
-            if not live_available or live_fd is None:
-                continue
-            remaining = memoryview(chunk)
-            while remaining and not stop.is_set():
-                try:
-                    written = os.write(live_fd, remaining)
-                    if written <= 0:
-                        raise OSError("live write made no progress")
-                    remaining = remaining[written:]
-                except BlockingIOError:
-                    stop.wait(cls._STREAM_POLL_SECONDS)
-                except (BrokenPipeError, OSError, ValueError) as exc:
-                    failures.append(f"live output write error: {exc}")
-                    live_available = False
-                    break
-            if remaining and stop.is_set():
-                failures.append("live output drain stopped before completion")
+            if live_sink is not None:
+                live_sink.offer(bytes(chunk))
+
+    @staticmethod
+    def _persist_process_chunk(
+        durable_log: BinaryIO,
+        chunk: bytes,
+    ) -> str | None:
+        """Write one complete child-output chunk to the durable sink."""
+        remaining = memoryview(chunk)
+        try:
+            while remaining:
+                written = durable_log.write(remaining)
+                if written is None or written <= 0:
+                    no_progress = "durable log write made no progress"
+                    raise OSError(no_progress)
+                remaining = remaining[written:]
+            durable_log.flush()
+        except (OSError, ValueError) as exc:
+            return f"durable log write error: {exc}"
+        return None
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessStreamMixin"]

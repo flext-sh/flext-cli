@@ -65,6 +65,15 @@ class FlextCliSettings(FlextSettings):
         str | None,
         Field(description="Current shell command propagated by the runtime."),
     ] = None
+    cli_process_stream_chunk_bytes: Annotated[
+        int, Field(gt=0, description="Durable process stream chunk size in bytes")
+    ] = FlextCliConstantsSettings.CLI_PROCESS_STREAM_CHUNK_BYTES
+    cli_process_live_queue_chunks: Annotated[
+        int, Field(gt=0, description="Bounded live relay queue capacity in chunks")
+    ] = FlextCliConstantsSettings.CLI_PROCESS_LIVE_QUEUE_CHUNKS
+    cli_process_live_relay_poll_seconds: Annotated[
+        float, Field(gt=0, description="Interruptible live relay poll interval")
+    ] = FlextCliConstantsSettings.CLI_PROCESS_LIVE_RELAY_POLL_SECONDS
 
 
 settings: FlextCliSettings = FlextCliSettings.fetch_global()

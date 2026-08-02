@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import signal
-import subprocess
 import threading
 import time
 from typing import ClassVar
 
+from flext_cli import p
 from flext_cli._utilities._runtime_process_group import (
     FlextCliUtilitiesRuntimeProcessGroupMixin,
 )
@@ -24,7 +24,7 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
     @classmethod
     def _monitor_process(
         cls,
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         pump: threading.Thread,
         failures: list[str],
         received_signals: list[int],
@@ -116,7 +116,10 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
             wait_seconds = cls._PROCESS_POLL_SECONDS
             if reap_at is not None:
                 wait_seconds = min(wait_seconds, max(0.0, reap_at - now))
-            pump.join(wait_seconds)
+            if pump.is_alive():
+                pump.join(wait_seconds)
+            else:
+                time.sleep(wait_seconds)
         final_deadline = (
             interrupt_deadline
             if interrupt_deadline is not None

@@ -53,6 +53,38 @@ class FlextCliModelsBase:
             m.Field(description="Canonical exit code returned for deadline expiry"),
         ]
 
+    class ProcessLivePolicy(m.Value):
+        """Typed bounded live relay policy. Use m.Cli.ProcessLivePolicy."""
+
+        stream_chunk_bytes: Annotated[
+            t.PositiveInt,
+            m.Field(description="Durable reader chunk size"),
+        ]
+        queue_capacity_chunks: Annotated[
+            t.PositiveInt,
+            m.Field(description="Maximum queued live chunks"),
+        ]
+        relay_poll_seconds: Annotated[
+            t.PositiveFloat,
+            m.Field(description="Interruptible relay polling interval"),
+        ]
+
+    class ProcessLiveDiagnostics(m.Value):
+        """Typed live relay completion diagnostics."""
+
+        nonfatal: Annotated[
+            tuple[str, ...],
+            m.Field(default_factory=tuple, description="Live truncation diagnostics"),
+        ]
+        cleanup: Annotated[
+            tuple[str, ...],
+            m.Field(default_factory=tuple, description="Relay cleanup diagnostics"),
+        ]
+        fatal: Annotated[
+            tuple[str, ...],
+            m.Field(default_factory=tuple, description="Residual relay ownership"),
+        ]
+
     class RuntimeComponents(m.BaseModel):
         """Availability state for canonical CLI runtime components."""
 

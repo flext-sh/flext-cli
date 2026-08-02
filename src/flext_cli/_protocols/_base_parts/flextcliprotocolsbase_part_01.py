@@ -75,5 +75,14 @@ class FlextCliProtocolsBase:
         cli_shell_command: str | None
         """Current shell command propagated by the runtime environment."""
 
+        cli_process_stream_chunk_bytes: int
+        """Durable process stream chunk size in bytes."""
+
+        cli_process_live_queue_chunks: int
+        """Bounded live relay queue capacity in chunks."""
+
+        cli_process_live_relay_poll_seconds: float
+        """Interruptible live relay polling interval."""
+
 
 __all__: list[str] = ["FlextCliProtocolsBase"]

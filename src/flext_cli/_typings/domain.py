@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import signal
 from collections.abc import Callable, Mapping, MutableMapping
 from pathlib import Path
+from types import FrameType
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from tomlkit.container import Container
@@ -33,6 +35,10 @@ class FlextCliTypesDomain:
     type YamlSequence = _YamlSequence
 
     type ResultValue = t.JsonPayload
+    type SignalHandler = (
+        signal.Handlers | int | Callable[[int, FrameType | None], None]
+    )
+    type SignalHandlerState = tuple[signal.Signals, SignalHandler]
     type RuleDefinitions = t.SequenceOf[t.JsonMapping]
     type RuleMatcher = tuple[
         frozenset[str], frozenset[str], frozenset[str], frozenset[str]
