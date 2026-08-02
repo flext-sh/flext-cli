@@ -64,7 +64,7 @@ class FlextCliSettings(FlextSettings):
             m.Field(description="Current shell command propagated by the runtime."),
         ] = None
 
-        @u.computed_field()
+        @u.computed_field
         @property
         def test_env(self) -> bool:
             """Whether prompts should treat the current runtime as test/CI mode."""

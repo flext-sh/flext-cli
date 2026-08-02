@@ -29,7 +29,7 @@ class FlextCliModelsBase:
             ),
         ]
 
-        @u.computed_field()
+        @u.computed_field
         @property
         def resolved(self) -> str:
             """Resolved log level value."""
@@ -53,7 +53,7 @@ class FlextCliModelsBase:
             m.Field(None, description="Fallback value when extraction fails"),
         ]
 
-        @u.computed_field()
+        @u.computed_field
         @property
         def resolved(self) -> t.Cli.TypedExtractValue:
             """Value coerced to type_kind, or default."""
