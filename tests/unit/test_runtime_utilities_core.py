@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from typing import TYPE_CHECKING
 
@@ -24,18 +25,54 @@ class TestsFlextCliRuntimeUtilitiesCore:
         return u.Cli()
 
     def test_run_raw_remove_env_keys_strips_inherited_values(
-        self, runner: u.Cli, monkeypatch: pytest.MonkeyPatch
+        self, runner: u.Cli
     ) -> None:
         """Verify that run raw remove env keys strips inherited values."""
-        monkeypatch.setenv("TEST_RUNTIME_INHERITED", "should-not-leak")
+        inherited_key = next(iter(os.environ))
+        script = (
+            "import os, sys; "
+            "sys.stdout.write('present' if sys.argv[1] in os.environ else 'missing')"
+        )
 
         result = runner.run_raw(
-            ["sh", "-c", 'printf %s "${TEST_RUNTIME_INHERITED:-missing}"'],
-            remove_env_keys=("TEST_RUNTIME_INHERITED",),
+            [sys.executable, "-c", script, inherited_key],
+            remove_env_keys=(inherited_key,),
         )
 
         output = m.Cli.CommandOutput.model_validate(tm.ok(result))
         tm.that(output.stdout, eq="missing")
+
+    def test_run_raw_defaults_to_parent_environment(self, runner: u.Cli) -> None:
+        """Verify that the default child environment inherits the parent."""
+        inherited_key = next(iter(os.environ))
+        script = (
+            "import os, sys; "
+            "sys.stdout.write('present' if sys.argv[1] in os.environ else 'missing')"
+        )
+
+        result = runner.run_raw([sys.executable, "-c", script, inherited_key])
+
+        output = m.Cli.CommandOutput.model_validate(tm.ok(result))
+        tm.that(output.stdout, eq="present")
+
+    def test_run_raw_clean_environment_is_exact(self, runner: u.Cli) -> None:
+        """Verify that a clean child receives only declared environment values."""
+        inherited_key = next(iter(os.environ))
+        script = (
+            "import os, sys; "
+            "declared = os.environ.get('FLEXT_CLI_DECLARED', 'missing'); "
+            "ambient = 'present' if sys.argv[1] in os.environ else 'missing'; "
+            "sys.stdout.write(f'{declared}|{ambient}')"
+        )
+
+        result = runner.run_raw(
+            [sys.executable, "-c", script, inherited_key],
+            env={"FLEXT_CLI_DECLARED": "declared-value"},
+            inherit_parent_env=False,
+        )
+
+        output = m.Cli.CommandOutput.model_validate(tm.ok(result))
+        tm.that(output.stdout, eq="declared-value|missing")
 
     @pytest.mark.parametrize(
         "case",
@@ -186,15 +223,69 @@ class TestsFlextCliRuntimeUtilitiesCore:
         process = result.value
 
         tm.that(process.cwd, eq=tmp_path)
-        process_env = process.env
-        process_env = tm.not_none(process_env)
-        tm.that(process_env["FLEXT_CLI_PROCESS_TEST"], eq="env-ok")
+        tm.that(hasattr(process, "env"), eq=False)
         wait_result = process.wait(timeout=5)
         tm.ok(wait_result)
         stdout_lines = process.stdout.splitlines()
         tm.that(stdout_lines[0], eq=str(tmp_path))
         tm.that(stdout_lines[1], eq="env-ok")
         tm.that(process.stderr.strip(), eq="err-marker")
+
+    def test_process_start_clean_environment_matches_run_raw(
+        self, runner: u.Cli
+    ) -> None:
+        """Verify that managed processes receive the same exact clean environment."""
+        inherited_key = next(iter(os.environ))
+        script = (
+            "import os, sys; "
+            "declared = os.environ.get('FLEXT_CLI_PROCESS_DECLARED', 'missing'); "
+            "ambient = 'present' if sys.argv[1] in os.environ else 'missing'; "
+            "sys.stdout.write(f'{declared}|{ambient}')"
+        )
+
+        result = runner.process_start(
+            [sys.executable, "-c", script, inherited_key],
+            env={"FLEXT_CLI_PROCESS_DECLARED": "declared-value"},
+            inherit_parent_env=False,
+        )
+        process = tm.ok(result)
+
+        tm.that(hasattr(process, "env"), eq=False)
+        tm.ok(process.wait(timeout=5))
+        tm.that(
+            process.stdout,
+            eq="declared-value|missing",
+        )
+
+    def test_environment_secrets_are_absent_from_errors_and_metadata(
+        self, runner: u.Cli
+    ) -> None:
+        """Verify that resolved child secrets never escape through runner diagnostics."""
+        secret = "mro-2s0p-secret"
+        leak_script = (
+            "import os, sys; "
+            "secret = os.environ['FLEXT_CLI_SECRET']; "
+            "print(secret); "
+            "print(secret, file=sys.stderr); "
+            "sys.exit(7)"
+        )
+        failed = runner.run(
+            [sys.executable, "-c", leak_script],
+            env={"FLEXT_CLI_SECRET": secret},
+            inherit_parent_env=False,
+        )
+        tm.fail(failed, lacks=secret)
+        tm.that(failed.error, eq="command failed with exit code 7")
+
+        started = runner.process_start(
+            [sys.executable, "-c", "raise SystemExit(0)"],
+            env={"FLEXT_CLI_SECRET": secret},
+            inherit_parent_env=False,
+        )
+        process = tm.ok(started)
+        tm.that(hasattr(process, "env"), eq=False)
+        tm.that(str(process), lacks=secret)
+        tm.ok(process.wait(timeout=5))
 
     def test_process_start_timeout_then_terminate(self, runner: u.Cli) -> None:
         """Verify that process start timeout then terminate."""

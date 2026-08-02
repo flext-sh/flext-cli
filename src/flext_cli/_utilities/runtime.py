@@ -16,24 +16,34 @@ class FlextCliUtilitiesRuntime:
 
     @staticmethod
     def process_env(
-        *, overrides: t.StrMapping | None = None, remove_keys: t.StrSequence = ()
+        *,
+        overrides: t.StrMapping | None = None,
+        remove_keys: t.StrSequence = (),
+        inherit_parent_env: bool = True,
     ) -> dict[str, str]:
-        """Return one inherited process environment with optional overrides."""
-        return m.Cli.ProcessEnvironmentSpec.model_validate({
-            "base_env": dict(os.environ),
+        """Return the resolved child environment with optional parent inheritance."""
+        spec = m.Cli.ProcessEnvironmentSpec.model_validate({
+            "inherit_parent_env": inherit_parent_env,
+            "base_env": {},
             "overrides": overrides if overrides is not None else {},
             "remove_keys": tuple(remove_keys),
-        }).resolve()
+        })
+        if spec.inherit_parent_env:
+            spec = spec.model_copy(update={"base_env": dict(os.environ)})
+        return spec.resolve()
 
     @staticmethod
     def _resolved_env(
-        env: t.StrMapping | None, remove_env_keys: t.StrSequence = ()
-    ) -> dict[str, str] | None:
-        """Resolve the child environment with overrides and optional removals."""
-        if env is None and not remove_env_keys:
-            return None
+        env: t.StrMapping | None,
+        remove_env_keys: t.StrSequence = (),
+        *,
+        inherit_parent_env: bool = True,
+    ) -> dict[str, str]:
+        """Resolve the child environment with overrides and parent inheritance."""
         return FlextCliUtilitiesRuntime.process_env(
-            overrides=env, remove_keys=remove_env_keys
+            overrides=env,
+            remove_keys=remove_env_keys,
+            inherit_parent_env=inherit_parent_env,
         )
 
     @staticmethod
@@ -45,6 +55,7 @@ class FlextCliUtilitiesRuntime:
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
         *,
+        inherit_parent_env: bool = True,
         capture: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command without enforcing a zero exit code.
@@ -69,7 +80,11 @@ class FlextCliUtilitiesRuntime:
                 text=False,
                 check=False,
                 timeout=timeout,
-                env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
+                env=FlextCliUtilitiesRuntime._resolved_env(
+                    env,
+                    remove_env_keys,
+                    inherit_parent_env=inherit_parent_env,
+                ),
                 input=stdin,
             )
         except subprocess.TimeoutExpired as exc:
@@ -103,6 +118,8 @@ class FlextCliUtilitiesRuntime:
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
+        *,
+        inherit_parent_env: bool = True,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Run a command capturing byte-exact stdout/stderr (no text decoding)."""
         start = time.monotonic()
@@ -117,7 +134,11 @@ class FlextCliUtilitiesRuntime:
                 text=False,
                 check=False,
                 timeout=timeout,
-                env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
+                env=FlextCliUtilitiesRuntime._resolved_env(
+                    env,
+                    remove_env_keys,
+                    inherit_parent_env=inherit_parent_env,
+                ),
                 input=stdin,
             )
         except subprocess.TimeoutExpired as exc:
@@ -145,6 +166,7 @@ class FlextCliUtilitiesRuntime:
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
         *,
+        inherit_parent_env: bool = True,
         capture: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command and fail on non-zero exit status."""
@@ -154,7 +176,7 @@ class FlextCliUtilitiesRuntime:
         ) -> p.Result[p.Cli.CommandOutput]:
             if output.exit_code != 0:
                 return r[p.Cli.CommandOutput].fail(
-                    f"failed ({output.exit_code}): {shlex.join(list(cmd))}: {(output.stderr or output.stdout).strip()}"
+                    f"command failed with exit code {output.exit_code}"
                 )
             return r[p.Cli.CommandOutput].ok(output)
 
@@ -165,6 +187,7 @@ class FlextCliUtilitiesRuntime:
             env=env,
             remove_env_keys=remove_env_keys,
             input_data=input_data,
+            inherit_parent_env=inherit_parent_env,
             capture=capture,
         ).flat_map(require_zero_exit)
 
@@ -177,6 +200,7 @@ class FlextCliUtilitiesRuntime:
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
         *,
+        inherit_parent_env: bool = True,
         capture: bool = True,
     ) -> p.Result[bool]:
         """Run a command and return a success flag."""
@@ -187,6 +211,7 @@ class FlextCliUtilitiesRuntime:
             env=env,
             remove_env_keys=remove_env_keys,
             input_data=input_data,
+            inherit_parent_env=inherit_parent_env,
             capture=capture,
         ).map(lambda _: True)
 
@@ -198,6 +223,8 @@ class FlextCliUtilitiesRuntime:
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
+        *,
+        inherit_parent_env: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command streaming stdout/stderr live (inherited stdio).
 
@@ -212,6 +239,7 @@ class FlextCliUtilitiesRuntime:
             env=env,
             remove_env_keys=remove_env_keys,
             input_data=input_data,
+            inherit_parent_env=inherit_parent_env,
             capture=False,
         )
 
@@ -223,6 +251,8 @@ class FlextCliUtilitiesRuntime:
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
+        *,
+        inherit_parent_env: bool = True,
     ) -> p.Result[str]:
         """Run a command and return stripped stdout."""
         return FlextCliUtilitiesRuntime.run(
@@ -232,6 +262,7 @@ class FlextCliUtilitiesRuntime:
             env=env,
             remove_env_keys=remove_env_keys,
             input_data=input_data,
+            inherit_parent_env=inherit_parent_env,
         ).map(lambda output: output.stdout.strip())
 
     @staticmethod
@@ -243,6 +274,8 @@ class FlextCliUtilitiesRuntime:
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
+        *,
+        inherit_parent_env: bool = True,
     ) -> p.Result[int]:
         """Run a command and write combined output to ``output_file``."""
         stdin = (
@@ -259,7 +292,11 @@ class FlextCliUtilitiesRuntime:
                     stderr=subprocess.STDOUT,
                     check=False,
                     timeout=timeout,
-                    env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
+                    env=FlextCliUtilitiesRuntime._resolved_env(
+                        env,
+                        remove_env_keys,
+                        inherit_parent_env=inherit_parent_env,
+                    ),
                     input=stdin,
                 )
         except subprocess.TimeoutExpired as exc:

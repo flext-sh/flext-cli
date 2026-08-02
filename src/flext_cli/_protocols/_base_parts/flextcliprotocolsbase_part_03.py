@@ -30,6 +30,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            *,
+            inherit_parent_env: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command and require zero exit status."""
             ...
@@ -41,6 +43,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            *,
+            inherit_parent_env: bool = True,
         ) -> p.Result[str]:
             """Execute a command and return stripped stdout."""
             ...
@@ -53,6 +57,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
             input_data: bytes | None = None,
+            *,
+            inherit_parent_env: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
             ...
@@ -66,6 +72,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
             input_data: bytes | None = None,
+            *,
+            inherit_parent_env: bool = True,
         ) -> p.Result[p.Cli.CommandBytesOutput]:
             """Execute a command and preserve byte-exact output."""
             ...
@@ -77,6 +85,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            *,
+            inherit_parent_env: bool = True,
         ) -> p.Result[bool]:
             """Execute a command and return a success flag."""
             ...
@@ -89,6 +99,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            *,
+            inherit_parent_env: bool = True,
         ) -> p.Result[int]:
             """Execute a command and write combined output to a file."""
             ...

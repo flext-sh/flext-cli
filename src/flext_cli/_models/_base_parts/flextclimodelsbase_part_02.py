@@ -50,11 +50,19 @@ class FlextCliModelsBase:
         """Validated process environment contract for runtime command execution."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        inherit_parent_env: Annotated[
+            bool,
+            m.Field(
+                True,
+                description="Whether the child environment starts from the parent process",
+                strict=True,
+            ),
+        ] = True
         base_env: Annotated[
             t.StrMapping,
             m.Field(
                 default_factory=lambda: MappingProxyType({}),
-                description="Base environment inherited from the current process",
+                description="Resolved base environment for the child process",
             ),
         ]
         overrides: Annotated[

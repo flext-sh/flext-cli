@@ -4,9 +4,7 @@ from __future__ import annotations
 
 import shlex
 import subprocess
-from collections.abc import Mapping
 from pathlib import Path
-from types import MappingProxyType
 
 from flext_cli import c, p, r, t
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
@@ -23,11 +21,9 @@ class FlextCliUtilitiesProcesses:
             process: subprocess.Popen[str],
             *,
             cwd: t.Cli.TextPath | None,
-            env: t.StrMapping | None,
         ) -> None:
             self._process = process
             self._cwd = Path(cwd) if cwd is not None else None
-            self._env = dict(env) if env is not None else None
             self._stdout = ""
             self._stderr = ""
             self._communicated = False
@@ -43,12 +39,6 @@ class FlextCliUtilitiesProcesses:
         @property
         def cwd(self) -> Path | None:
             return self._cwd
-
-        @property
-        def env(self) -> Mapping[str, str] | None:
-            if self._env is None:
-                return None
-            return MappingProxyType(self._env)
 
         @property
         def stdout(self) -> str:
@@ -99,13 +89,15 @@ class FlextCliUtilitiesProcesses:
         cwd: t.Cli.TextPath | None = None,
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
+        *,
+        inherit_parent_env: bool = True,
     ) -> p.Result[FlextCliUtilitiesProcesses.ManagedProcess]:
         """Start long-running commands; use instead of direct ``subprocess.Popen``."""
-        resolved_env = None
-        if env is not None or remove_env_keys:
-            resolved_env = FlextCliUtilitiesRuntime.process_env(
-                overrides=env, remove_keys=remove_env_keys
-            )
+        resolved_env = FlextCliUtilitiesRuntime._resolved_env(
+            env,
+            remove_env_keys,
+            inherit_parent_env=inherit_parent_env,
+        )
         try:
             process = subprocess.Popen(
                 list(cmd),
@@ -120,9 +112,7 @@ class FlextCliUtilitiesProcesses:
                 f"execution error: {shlex.join(list(cmd))}: {exc}"
             )
         return r[FlextCliUtilitiesProcesses.ManagedProcess].ok(
-            FlextCliUtilitiesProcesses.ManagedProcess(
-                process, cwd=cwd, env=resolved_env
-            )
+            FlextCliUtilitiesProcesses.ManagedProcess(process, cwd=cwd)
         )
 
 

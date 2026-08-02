@@ -29,6 +29,7 @@ class TestsFlextCliPublicContractsCoverage:
         prompt_state = m.Cli.PromptRuntimeState(quiet=True)
         auth = m.Cli.AuthCredentialsPayload(token=c.Tests.AUTH_VALUE_SAMPLE)
         environment = m.Cli.ProcessEnvironmentSpec(
+            inherit_parent_env=False,
             base_env={"KEEP": "1", "DROP": "2"},
             overrides={"ADD": "3"},
             remove_keys=("DROP",),
@@ -73,6 +74,7 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(prompt_state.interactive, eq=True)
         tm.that(prompt_state.quiet, eq=True)
         tm.that(auth.token, eq=c.Tests.AUTH_VALUE_SAMPLE)
+        tm.that(environment.inherit_parent_env, eq=False)
         tm.that(environment.resolve(), eq={"KEEP": "1", "ADD": "3"})
         tm.that(environment.resolved, eq={"KEEP": "1", "ADD": "3"})
         tm.that(entry.name, eq="inspect")
