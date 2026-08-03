@@ -6,7 +6,7 @@ import contextlib
 import threading
 from collections.abc import Callable
 from pathlib import Path
-from typing import BinaryIO, IO
+from typing import IO, BinaryIO
 
 from flext_cli import c, p, t
 from flext_cli._utilities._runtime_process_cleanup import (
@@ -111,48 +111,48 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 if started.failure:
                     failures.append(started.error or "process start failed")
                 else:
-                    process, job_handle = started.value
+                    process, job_handle = started.unwrap()
                     source = process.stdout
                     if source is None:
-                        failures.append("combined output pipe unavailable")
-                    else:
-                        stack.callback(source.close)
-                        waiter = cls._start_root_waiter(
-                            process, return_codes, failures, process_done, wake
-                        )
-                        pump = cls._start_output_pump(
-                            source,
-                            durable_log,
-                            live_result.value[0],
-                            failures,
-                            live_diagnostics,
-                            pump_stop,
-                            wake,
-                        )
-                        timed_out, final_deadline = cls._monitor_process(
-                            process,
-                            process_done,
-                            wake,
-                            failures,
-                            received_signals,
-                            job_handle,
-                            absolute_deadline,
-                            grace_seconds,
-                        )
-                        return_code = cls._reap_and_drain(
-                            process,
-                            waiter,
-                            pump,
-                            process_done,
-                            wake,
-                            pump_stop,
-                            source,
-                            cleanup_errors,
-                            job_handle,
-                            final_deadline,
-                            return_codes,
-                        )
-                        cleanup_complete = True
+                        failures.append("process stdout is not available")
+                        return
+                    stack.callback(source.close)
+                    waiter = cls._start_root_waiter(
+                        process, return_codes, failures, process_done, wake
+                    )
+                    pump = cls._start_output_pump(
+                        source,
+                        durable_log,
+                        live_result.value[0],
+                        failures,
+                        live_diagnostics,
+                        pump_stop,
+                        wake,
+                    )
+                    timed_out, final_deadline = cls._monitor_process(
+                        process,
+                        process_done,
+                        wake,
+                        failures,
+                        received_signals,
+                        job_handle,
+                        absolute_deadline,
+                        grace_seconds,
+                    )
+                    return_code = cls._reap_and_drain(
+                        process,
+                        waiter,
+                        pump,
+                        process_done,
+                        wake,
+                        pump_stop,
+                        source,
+                        cleanup_errors,
+                        job_handle,
+                        final_deadline,
+                        return_codes,
+                    )
+                    cleanup_complete = True
 
         try:
             execute_lifecycle()

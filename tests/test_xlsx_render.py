@@ -16,7 +16,7 @@ from flext_tests import tm
 
 def _defined_name_workbook() -> bytes:
     workbook = Workbook()
-    sheet = workbook.active
+    sheet = workbook.worksheets[0]
     sheet.title = "Data"
     sheet["A1"] = 17
     sheet["A2"] = "second"
@@ -41,7 +41,10 @@ def test_xlsx_defined_name_values_resolves_cached_scalar() -> None:
     tm.that(result.value.cells[0].sheet, eq="Data")
     tm.that(result.value.cells[0].coordinate, eq="A1")
     tm.that(result.value.cells[0].value.kind, eq="integer")
-    tm.that(result.value.cells[0].value.value, eq=17)
+    scalar = result.value.cells[0].value
+    if not isinstance(scalar, m.Cli.XlsxIntegerValue):
+        pytest.fail(f"expected integer cell value, got {scalar.kind}")
+    tm.that(scalar.value, eq=17)
 
 
 def test_xlsx_defined_name_values_resolves_cached_range() -> None:

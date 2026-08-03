@@ -7,9 +7,8 @@ from openpyxl.utils.cell import column_index_from_string
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table
 from openpyxl.worksheet.worksheet import Worksheet
-from pydantic import ValidationError
 
-from flext_cli import m, p, r
+from flext_cli import m, r
 
 
 class FlextCliUtilitiesXlsxSnapshotStructure:
@@ -20,7 +19,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_tables(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxTableSnapshot, ...]]:
+    ) -> r[tuple[m.Cli.XlsxTableSnapshot, ...]]:
         tables: tuple[m.Cli.XlsxTableSnapshot, ...] = ()
         try:
             for item in worksheet.tables.values():
@@ -43,7 +42,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         name=item.name, reference=item.ref, style_name=style_name
                     ),
                 )
-        except (AttributeError, TypeError, ValidationError, ValueError) as exc:
+        except (AttributeError, TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxTableSnapshot, ...]].fail(
                 f"Table snapshot failed: {detail}"
@@ -55,7 +54,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_rows(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]]:
+    ) -> r[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]]:
         rows: tuple[m.Cli.XlsxRowDimensionSnapshot, ...] = ()
         try:
             for item in worksheet.row_dimensions.values():
@@ -68,7 +67,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         outline_level=item.outlineLevel,
                     ),
                 )
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]].fail(
                 f"Row-dimension snapshot failed: {detail}"
@@ -80,7 +79,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_columns(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]]:
+    ) -> r[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]]:
         columns: tuple[m.Cli.XlsxColumnDimensionSnapshot, ...] = ()
         try:
             for item in worksheet.column_dimensions.values():
@@ -96,7 +95,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         outline_level=item.outlineLevel,
                     ),
                 )
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]].fail(
                 f"Column-dimension snapshot failed: {detail}"
@@ -108,7 +107,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_names(
         workbook: Workbook,
-    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]]:
+    ) -> r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]]:
         names: tuple[m.Cli.XlsxDefinedNameSnapshot, ...] = ()
         try:
             for item in workbook.defined_names.values():
@@ -130,7 +129,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         hidden=item.hidden,
                     ),
                 )
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]].fail(
                 f"Defined-name snapshot failed: {detail}"

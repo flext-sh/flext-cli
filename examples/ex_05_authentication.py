@@ -73,16 +73,12 @@ class Ex05Authentication:
             return r[bool].fail(token_result.error or "No token found")
         token = token_result.value
         if len(token) < _MIN_VALID_TOKEN_LENGTH:
-            cli.print(
-                "❌ Invalid token format", style=c.Cli.MessageStyles.BOLD_RED
-            )
+            cli.print("❌ Invalid token format", style=c.Cli.MessageStyles.BOLD_RED)
             return r[bool].fail("Invalid token format")
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         cli.print("✅ Token is valid", style=c.Cli.MessageStyles.GREEN)
         cli.print(f"   Token: {token[:30]}...", style=c.Cli.MessageStyles.CYAN)
-        cli.print(
-            f"   Token file: {token_file_path}", style=c.Cli.MessageStyles.CYAN
-        )
+        cli.print(f"   Token file: {token_file_path}", style=c.Cli.MessageStyles.CYAN)
         return r[bool].ok(True)
 
     @staticmethod
@@ -95,9 +91,7 @@ class Ex05Authentication:
         try:
             token_file_path.unlink()
         except OSError as exc:
-            cli.print(
-                f"❌ Logout failed: {exc}", style=c.Cli.MessageStyles.BOLD_RED
-            )
+            cli.print(f"❌ Logout failed: {exc}", style=c.Cli.MessageStyles.BOLD_RED)
             return r[bool].fail(str(exc))
         cli.print("✅ Logged out successfully", style=c.Cli.MessageStyles.GREEN)
         cli.print(

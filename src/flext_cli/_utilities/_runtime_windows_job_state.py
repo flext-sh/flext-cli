@@ -11,7 +11,7 @@ class FlextCliUtilitiesRuntimeWindowsJobStateMixin:
     """Query and close one owned Windows Job Object."""
 
     @classmethod
-    def _windows_job_active_count(cls, job_handle: int) -> p.Result[int]:
+    def windows_job_active_count(cls, job_handle: int) -> p.Result[int]:
         """Return active members of one owned Windows Job Object."""
         if os.name != "nt" or job_handle == 0:
             return r[int].ok(0)

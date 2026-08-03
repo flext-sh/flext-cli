@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import threading
-from typing import BinaryIO, IO
+from typing import IO, BinaryIO
 
 from flext_cli import p
 from flext_cli._utilities._runtime_process_stream import (

@@ -5,9 +5,8 @@ from __future__ import annotations
 from typing import Literal
 
 from openpyxl.worksheet.worksheet import Worksheet
-from pydantic import ValidationError
 
-from flext_cli import m, p, r
+from flext_cli import m, r
 
 from .xlsx_snapshot_structure import FlextCliUtilitiesXlsxSnapshotStructure
 from .xlsx_snapshot_values import FlextCliUtilitiesXlsxSnapshotValues
@@ -23,7 +22,7 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
     @staticmethod
     def _snapshot_state(
         worksheet: Worksheet,
-    ) -> p.Result[Literal["visible", "hidden", "veryHidden"]]:
+    ) -> r[Literal["visible", "hidden", "veryHidden"]]:
         sheet_state: str = worksheet.sheet_state
         if sheet_state == "visible":
             return r[Literal["visible", "hidden", "veryHidden"]].ok("visible")
@@ -38,12 +37,12 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
     @classmethod
     def _snapshot_sheet(
         cls, formula_sheet: Worksheet, value_sheet: Worksheet, *, position: int
-    ) -> p.Result[m.Cli.XlsxSheetSnapshot]:
+    ) -> r[m.Cli.XlsxSheetSnapshot]:
         try:
             snapshot = cls._snapshot_sheet_unchecked(
                 formula_sheet, value_sheet, position=position
             )
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             return r[m.Cli.XlsxSheetSnapshot].fail(
                 f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}"
             )

@@ -8,7 +8,6 @@ from decimal import Decimal
 from openpyxl.cell.cell import Cell
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.worksheet import Worksheet
-from pydantic import ValidationError
 
 from flext_cli import c, m, p, r
 
@@ -31,7 +30,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
         """Read cached values for a defined name from data-only workbook bytes."""
         try:
             return cls._defined_name_values_unchecked(request)
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxDefinedNameValuesResult].fail(
                 f"{c.Cli.XlsxError.DEFINED_NAME_INVALID}: {detail}"
@@ -40,7 +39,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
     @classmethod
     def _defined_name_values_unchecked(
         cls, request: m.Cli.XlsxDefinedNameValuesRequest
-    ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]:
+    ) -> r[m.Cli.XlsxDefinedNameValuesResult]:
         workbook = cls._require_success(
             cls._load_workbook(request.source, data_only=True)
         )
@@ -69,7 +68,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
     @classmethod
     def _destination_cells(
         cls, worksheet: Worksheet, coordinate: str
-    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameCell, ...]]:
+    ) -> r[tuple[m.Cli.XlsxDefinedNameCell, ...]]:
         cells: tuple[m.Cli.XlsxDefinedNameCell, ...] = ()
         selection = worksheet[coordinate]
         for cell in cls._flatten_cells(selection):

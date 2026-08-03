@@ -3,13 +3,22 @@
 from __future__ import annotations
 
 import sys
+import threading
 from pathlib import Path
+from typing import ClassVar
 
 from flext_cli import c, p, t
 
 
 class FlextCliUtilitiesOutput:
     """Canonical CLI output rendering helpers exposed through ``u.Cli``."""
+
+    # stdout is one process-wide mutable resource. Pipeline stages that carry no
+    # dependency between them run concurrently, so two stages can emit a
+    # multi-line block at the same time; unguarded `write` interleaves them and
+    # the check report becomes unreadable. Serializing only the write keeps the
+    # emitted block atomic without constraining the callers.
+    _EMIT_LOCK: ClassVar[threading.Lock] = threading.Lock()
 
     @staticmethod
     def output_resolve_message_type(
@@ -96,9 +105,10 @@ class FlextCliUtilitiesOutput:
 
     @staticmethod
     def emit_raw(text: str) -> None:
-        """Write raw text to stdout."""
-        _ = sys.stdout.write(text)
-        _ = sys.stdout.flush()
+        """Write raw text to stdout as one atomic block."""
+        with FlextCliUtilitiesOutput._EMIT_LOCK:
+            _ = sys.stdout.write(text)
+            _ = sys.stdout.flush()
 
     @classmethod
     def info(cls, msg: str) -> None:

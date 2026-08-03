@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import datetime as dt
 from decimal import Decimal, InvalidOperation
+from typing import TypeVar
 
 from openpyxl.cell.cell import Cell, MergedCell
 from openpyxl.worksheet.worksheet import Worksheet
-from pydantic import ValidationError
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, r, t
+
+
+T = TypeVar("T")
 
 
 class FlextCliUtilitiesXlsxSnapshotValues:
@@ -20,29 +23,31 @@ class FlextCliUtilitiesXlsxSnapshotValues:
     @staticmethod
     def _snapshot_style_name(cell: Cell) -> str | None:
         try:
-            return cell.style
+            style_name: str | None = cell.style
+            return style_name
         except IndexError:
             return None
 
     @staticmethod
-    def _require_success[T](result: p.Result[T]) -> T:
+    def _require_success(result: r[T]) -> T:
         if result.failure:
             error = result.error
             if error is None:
                 msg = "Failed FlextResult omitted its error"
                 raise ValueError(msg)
             raise ValueError(error)
-        return result.value
+        value: T = result.value
+        return value
 
     @staticmethod
     def _snapshot_value(
         value: t.Cli.XlsxCellPrimitive, *, formula_view: bool
-    ) -> p.Result[m.Cli.XlsxCellValue]:
+    ) -> r[m.Cli.XlsxCellValue]:
         try:
             return FlextCliUtilitiesXlsxSnapshotValues._snapshot_value_unchecked(
                 value, formula_view=formula_view
             )
-        except (InvalidOperation, ValidationError, ValueError) as exc:
+        except (InvalidOperation, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxCellValue].fail(
                 f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: {detail}"
@@ -51,7 +56,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
     @staticmethod
     def _snapshot_value_unchecked(
         value: t.Cli.XlsxCellPrimitive, *, formula_view: bool
-    ) -> p.Result[m.Cli.XlsxCellValue]:
+    ) -> r[m.Cli.XlsxCellValue]:
         if formula_view:
             if isinstance(value, str) and value.startswith("="):
                 converted: m.Cli.XlsxCellValue = m.Cli.XlsxFormulaValue(value=value)
@@ -101,19 +106,19 @@ class FlextCliUtilitiesXlsxSnapshotValues:
     @classmethod
     def _snapshot_cell(
         cls, formula_cell: Cell, value_sheet: Worksheet, *, data_only: bool
-    ) -> p.Result[m.Cli.XlsxCellSnapshot]:
+    ) -> r[m.Cli.XlsxCellSnapshot]:
         try:
             return cls._snapshot_cell_unchecked(
                 formula_cell, value_sheet, data_only=data_only
             )
-        except (IndexError, TypeError, ValidationError, ValueError) as exc:
+        except (IndexError, TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxCellSnapshot].fail(detail)
 
     @classmethod
     def _snapshot_cell_unchecked(
         cls, formula_cell: Cell, value_sheet: Worksheet, *, data_only: bool
-    ) -> p.Result[m.Cli.XlsxCellSnapshot]:
+    ) -> r[m.Cli.XlsxCellSnapshot]:
         formula = cls._formula(formula_cell)
         selected = (
             value_sheet.cell(formula_cell.row, formula_cell.column)
@@ -132,7 +137,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                 f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: "
                 f"{selected_value.__class__.__name__} at {formula_cell.coordinate}"
             )
-        value = cls._require_success(
+        value: m.Cli.XlsxCellValue = cls._require_success(
             cls._snapshot_value(
                 selected_value, formula_view=formula is not None and not data_only
             )
@@ -156,7 +161,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
     @classmethod
     def _snapshot_cells(
         cls, formula_sheet: Worksheet, value_sheet: Worksheet, *, data_only: bool
-    ) -> p.Result[tuple[m.Cli.XlsxCellSnapshot, ...]]:
+    ) -> r[tuple[m.Cli.XlsxCellSnapshot, ...]]:
         try:
             cells = cls._snapshot_cells_unchecked(
                 formula_sheet, value_sheet, data_only=data_only
@@ -176,7 +181,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                     continue
                 if not cls._has_snapshot_content(formula_cell):
                     continue
-                cell = cls._require_success(
+                cell: m.Cli.XlsxCellSnapshot = cls._require_success(
                     cls._snapshot_cell(formula_cell, value_sheet, data_only=data_only)
                 )
                 cells = (*cells, cell)

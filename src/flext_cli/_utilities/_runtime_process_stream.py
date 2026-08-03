@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import threading
-from typing import BinaryIO, ClassVar, IO
+from typing import IO, BinaryIO, ClassVar
 
 
 class FlextCliUtilitiesRuntimeProcessStreamMixin:

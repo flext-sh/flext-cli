@@ -42,7 +42,7 @@ class FlextCliModelsBase:
             m.Field(description="Table format enum-derived literal authority"),
         ] = c.Cli.TabularFormat.SIMPLE
 
-        @u.computed_field()
+        @u.computed_field
         @property
         def table_backend_format(self) -> c.Cli.TabularFormat:
             """Canonical backend format used by tabulate rendering."""
