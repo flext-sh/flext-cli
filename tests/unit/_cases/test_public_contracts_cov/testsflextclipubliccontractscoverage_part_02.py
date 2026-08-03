@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import r
+from flext_cli import r, t
 from flext_tests import tm
 from tests import c, m
 
@@ -34,12 +34,12 @@ class TestsFlextCliPublicContractsCoverage:
             overrides={"ADD": "3"},
             remove_keys=("DROP",),
         )
-        entry = m.Cli.CommandEntryModel(name="inspect", handler=lambda: True)
+        entry = m.Cli.CommandEntryModel(
+            name="inspect", handler=lambda: r[t.JsonPayload].ok(True)
+        )
 
-        def route_handler(
-            _params: m.Tests.SampleInput,
-        ) -> p.Result[m.Tests.SampleOutput]:
-            return r[m.Tests.SampleOutput].ok(m.Tests.SampleOutput(message="ok"))
+        def route_handler(_params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
+            return r[t.JsonPayload].ok(m.Tests.SampleOutput(message="ok"))
 
         route = m.Cli.ResultCommandRoute(
             name="inspect",
@@ -60,7 +60,8 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(
             abs(output.duration - 0.25) < c.Tests.COMMAND_DURATION_TOLERANCE, eq=True
         )
-        tm.that(display.model_dump(), eq={"name": "flext", "count": 1})
+        expected_display: t.JsonMapping = {"name": "flext", "count": 1}
+        tm.that(display.model_dump(), eq=expected_display)
         tm.that(loaded.content, eq={"debug": True})
         tm.that(normalized.model_dump(), eq={"name": "flext"})
         tm.that(m.Cli.NormalizedJsonList(value={"ok": True}).resolved, eq={"ok": True})

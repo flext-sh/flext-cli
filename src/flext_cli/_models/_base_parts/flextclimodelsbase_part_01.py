@@ -37,6 +37,22 @@ class FlextCliModelsBase:
             t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
         ] = 0.0
 
+    class ProcessDeadline(m.Value):
+        """Absolute monotonic process deadline. Use m.Cli.ProcessDeadline."""
+
+        expires_at_monotonic: Annotated[
+            t.PositiveFloat,
+            m.Field(description="Absolute time.monotonic expiry in seconds"),
+        ]
+        termination_grace_seconds: Annotated[
+            t.PositiveFloat,
+            m.Field(description="Reserved graceful termination and drain budget"),
+        ]
+        timeout_exit_code: Annotated[
+            t.PositiveInt,
+            m.Field(description="Canonical exit code returned for deadline expiry"),
+        ]
+
     class RuntimeComponents(m.BaseModel):
         """Availability state for canonical CLI runtime components."""
 

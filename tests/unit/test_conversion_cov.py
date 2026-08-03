@@ -53,14 +53,14 @@ class TestsFlextCliConversion:
             m.Tests.SampleInput,
             {"name": "alice", "count": 2, "dry_run": False, "output_format": "json"},
         )
-        model = tm.ok(result)
+        model: m.Tests.SampleInput = tm.ok(result)
         tm.that(model.name, eq="alice")
         tm.that(model.count, eq=2)
 
     def test_cli_args_to_model_applies_declared_defaults(self) -> None:
         """Verify that cli args to model applies declared defaults."""
         result = u.Cli.cli_args_to_model(m.Tests.SampleInput, {"name": "bob"})
-        model = tm.ok(result)
+        model: m.Tests.SampleInput = tm.ok(result)
         tm.that(model.count, eq=1)
         tm.that(model.dry_run, eq=False)
 

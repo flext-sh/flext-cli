@@ -40,7 +40,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
     @classmethod
     def _defined_name_values_unchecked(
         cls, request: m.Cli.XlsxDefinedNameValuesRequest
-    ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]:
+    ) -> r[m.Cli.XlsxDefinedNameValuesResult]:
         workbook = cls._require_success(
             cls._load_workbook(request.source, data_only=True)
         )
@@ -69,7 +69,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
     @classmethod
     def _destination_cells(
         cls, worksheet: Worksheet, coordinate: str
-    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameCell, ...]]:
+    ) -> r[tuple[m.Cli.XlsxDefinedNameCell, ...]]:
         cells: tuple[m.Cli.XlsxDefinedNameCell, ...] = ()
         selection = worksheet[coordinate]
         for cell in cls._flatten_cells(selection):

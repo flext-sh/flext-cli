@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import tempfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_tests import tm
 from tests import c, u
+
+if TYPE_CHECKING:
+    from tests import p, t
 
 
 class TestsFlextCliRulesCov:
@@ -19,11 +23,13 @@ class TestsFlextCliRulesCov:
             pkg_rules_dir = Path(tmpdir) / "pkg_rules"
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=pkg_rules_dir,
-                rule_filters=(),
-                rule_catalog={},
+            result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+                u.Cli.rules_load_local_definitions(
+                    config_path,
+                    package_rules_dir=pkg_rules_dir,
+                    rule_filters=(),
+                    rule_catalog={},
+                )
             )
             tm.fail(result)
 
@@ -37,11 +43,13 @@ class TestsFlextCliRulesCov:
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
             catalog = c.Tests.RULES_CATALOG_BASIC
-            result = u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=rules_dir,
-                rule_filters=(),
-                rule_catalog=catalog,
+            result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+                u.Cli.rules_load_local_definitions(
+                    config_path,
+                    package_rules_dir=rules_dir,
+                    rule_filters=(),
+                    rule_catalog=catalog,
+                )
             )
             tm.ok(result)
 
@@ -55,11 +63,13 @@ class TestsFlextCliRulesCov:
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
             catalog = c.Tests.RULES_CATALOG_BASIC
-            result = u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=rules_dir,
-                rule_filters=("rule-*",),
-                rule_catalog=catalog,
+            result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+                u.Cli.rules_load_local_definitions(
+                    config_path,
+                    package_rules_dir=rules_dir,
+                    rule_filters=("rule-*",),
+                    rule_catalog=catalog,
+                )
             )
             tm.ok(result)
 
@@ -73,11 +83,13 @@ class TestsFlextCliRulesCov:
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
             catalog = c.Tests.RULES_CATALOG_BASIC
-            result = u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=rules_dir,
-                rule_filters=("nonmatch-*",),
-                rule_catalog=catalog,
+            result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+                u.Cli.rules_load_local_definitions(
+                    config_path,
+                    package_rules_dir=rules_dir,
+                    rule_filters=("nonmatch-*",),
+                    rule_catalog=catalog,
+                )
             )
             tm.ok(result)
 
@@ -96,11 +108,13 @@ class TestsFlextCliRulesCov:
             )
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=rules_dir,
-                rule_filters=(),
-                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+            result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+                u.Cli.rules_load_local_definitions(
+                    config_path,
+                    package_rules_dir=rules_dir,
+                    rule_filters=(),
+                    rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+                )
             )
             tm.ok(result)
             tm.that(result.value, eq=([], []))
@@ -113,11 +127,13 @@ class TestsFlextCliRulesCov:
             (rules_dir / "unknown.yml").write_text(c.Tests.RULES_FILE_UNKNOWN_YAML)
             config_path = Path(tmpdir) / "config.yml"
             config_path.write_text("project: test\n")
-            result = u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=rules_dir,
-                rule_filters=(),
-                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+            result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+                u.Cli.rules_load_local_definitions(
+                    config_path,
+                    package_rules_dir=rules_dir,
+                    rule_filters=(),
+                    rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+                )
             )
             tm.fail(result)
             tm.that((result.error or ""), has="rule-unknown")

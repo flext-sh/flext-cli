@@ -106,7 +106,8 @@ class FlextCliUtilitiesFiles:
             ) as handle:
                 for line in handle:
                     if line.strip():
-                        return model_type.model_validate_json(line, strict=False)
+                        loaded: M = model_type.model_validate_json(line, strict=False)
+                        return loaded
             msg = f"JSON-lines file has no records: {file_path}"
             raise ValueError(msg)
 

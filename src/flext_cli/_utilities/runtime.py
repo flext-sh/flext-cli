@@ -6,13 +6,22 @@ import os
 import shlex
 import subprocess
 import time
-from pathlib import Path
+from typing import BinaryIO, ClassVar, override
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
+from flext_cli._utilities._runtime_run_to_file import (
+    FlextCliUtilitiesRuntimeRunToFileMixin,
+)
+from flext_core import u as core_u
 
 
-class FlextCliUtilitiesRuntime:
+class FlextCliUtilitiesRuntime(
+    FlextCliUtilitiesRuntimeRunToFileMixin, FlextCliUtilitiesRuntimeCommandsMixin
+):
     """Runtime helpers for external command execution."""
+
+    _module_logger: ClassVar[p.Logger] = core_u.fetch_logger(__name__)
 
     @staticmethod
     def process_env(
@@ -33,6 +42,7 @@ class FlextCliUtilitiesRuntime:
         return spec.resolve()
 
     @staticmethod
+    @override
     def _resolved_env(
         env: t.StrMapping | None,
         remove_env_keys: t.StrSequence = (),
@@ -47,6 +57,41 @@ class FlextCliUtilitiesRuntime:
         )
 
     @staticmethod
+    @override
+    def _spawn_streamed_process(
+        cmd: t.StrSequence,
+        cwd: t.Cli.TextPath | None,
+        env: dict[str, str] | None,
+        stdin_handle: BinaryIO | None,
+        *,
+        creation_flags: int,
+    ) -> p.Cli.ProcessHandle:
+        """Create the sole raw child owned by the streamed lifecycle."""
+        return subprocess.Popen(
+            list(cmd),
+            cwd=cwd,
+            stdin=subprocess.DEVNULL if stdin_handle is None else stdin_handle,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=False,
+            bufsize=0,
+            env=env,
+            start_new_session=os.name != "nt",
+            creationflags=creation_flags,
+        )
+
+    @staticmethod
+    @override
+    def _streamed_creation_flags() -> int:
+        """Return platform creation flags for pre-execution containment."""
+        if os.name != "nt":
+            return 0
+        return int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)) | int(
+            getattr(subprocess, "CREATE_SUSPENDED", 0x00000004)
+        )
+
+    @staticmethod
+    @override
     def run_raw(
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,

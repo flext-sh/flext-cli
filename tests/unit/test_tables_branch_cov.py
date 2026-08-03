@@ -21,24 +21,27 @@ class TestsFlextCliTablesBranchCov:
         result = u.Cli.tables_normalize_data({"alpha": 1, "beta": 2})
 
         tm.ok(result)
-        tm.that(
-            result.unwrap(),
-            eq=[{"Key": "alpha", "Value": 1}, {"Key": "beta", "Value": 2}],
-        )
+        expected: list[t.JsonMapping] = [
+            {"Key": "alpha", "Value": 1},
+            {"Key": "beta", "Value": 2},
+        ]
+        tm.that(result.unwrap(), eq=expected)
 
     def test_normalize_sequence_of_mapping_rows_preserves_row_shape(self) -> None:
         """Verify that normalize sequence of mapping rows preserves row shape."""
         result = u.Cli.tables_normalize_data([{"Key": "a", "Value": 1}])
 
         tm.ok(result)
-        tm.that(result.unwrap(), eq=[{"Key": "a", "Value": 1}])
+        expected: list[t.JsonMapping] = [{"Key": "a", "Value": 1}]
+        tm.that(result.unwrap(), eq=expected)
 
     def test_normalize_sequence_of_sequence_rows_produces_lists(self) -> None:
         """Verify that normalize sequence of sequence rows produces lists."""
         result = u.Cli.tables_normalize_data([["a", 1], ["b", 2]])
 
         tm.ok(result)
-        tm.that(result.unwrap(), eq=[["a", 1], ["b", 2]])
+        expected: list[list[t.JsonValue]] = [["a", 1], ["b", 2]]
+        tm.that(result.unwrap(), eq=expected)
 
     def test_normalize_empty_sequence_yields_empty_rows(self) -> None:
         """Verify that normalize empty sequence yields empty rows."""

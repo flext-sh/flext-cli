@@ -169,13 +169,14 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         """
         try:
             validated = FlextCliUtilitiesJson.normalize_json_value(data)
-            return safe_dump(
+            serialized: str = safe_dump(
                 validated,
                 default_flow_style=False,
                 sort_keys=sort_keys,
                 allow_unicode=True,
                 indent=indent,
             )
+            return serialized
         except (c.Cli.YamlParseError, ValueError, TypeError):
             return ""
 
