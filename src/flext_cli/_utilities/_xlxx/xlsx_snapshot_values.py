@@ -8,7 +8,6 @@ from typing import TypeVar
 
 from openpyxl.cell.cell import Cell, MergedCell
 from openpyxl.worksheet.worksheet import Worksheet
-from pydantic import ValidationError
 
 from flext_cli import c, m, r, t
 
@@ -48,7 +47,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
             return FlextCliUtilitiesXlsxSnapshotValues._snapshot_value_unchecked(
                 value, formula_view=formula_view
             )
-        except (InvalidOperation, ValidationError, ValueError) as exc:
+        except (InvalidOperation, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxCellValue].fail(
                 f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: {detail}"
@@ -112,7 +111,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
             return cls._snapshot_cell_unchecked(
                 formula_cell, value_sheet, data_only=data_only
             )
-        except (IndexError, TypeError, ValidationError, ValueError) as exc:
+        except (IndexError, TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxCellSnapshot].fail(detail)
 

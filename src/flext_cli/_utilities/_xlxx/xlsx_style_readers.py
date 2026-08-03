@@ -8,7 +8,6 @@ from openpyxl.styles import Alignment, Border, Color, Font, GradientFill
 from openpyxl.styles.borders import Side
 from openpyxl.styles.fills import Fill, PatternFill, Stop
 from openpyxl.styles.styleable import StyleableObject
-from pydantic import ValidationError
 
 from flext_cli import m, p, r
 
@@ -128,7 +127,7 @@ class FlextCliUtilitiesXlsxStyleReaders:
     ) -> p.Result[m.Cli.XlsxVisualStyleSpec]:
         try:
             visual = cls._visual_from_styleable_unchecked(value)
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxVisualStyleSpec].fail(detail)
         return r[m.Cli.XlsxVisualStyleSpec].ok(visual)

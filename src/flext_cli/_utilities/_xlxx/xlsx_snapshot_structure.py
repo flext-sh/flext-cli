@@ -7,7 +7,6 @@ from openpyxl.utils.cell import column_index_from_string
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table
 from openpyxl.worksheet.worksheet import Worksheet
-from pydantic import ValidationError
 
 from flext_cli import m, r
 
@@ -43,7 +42,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         name=item.name, reference=item.ref, style_name=style_name
                     ),
                 )
-        except (AttributeError, TypeError, ValidationError, ValueError) as exc:
+        except (AttributeError, TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxTableSnapshot, ...]].fail(
                 f"Table snapshot failed: {detail}"
@@ -68,7 +67,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         outline_level=item.outlineLevel,
                     ),
                 )
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]].fail(
                 f"Row-dimension snapshot failed: {detail}"
@@ -96,7 +95,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         outline_level=item.outlineLevel,
                     ),
                 )
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]].fail(
                 f"Column-dimension snapshot failed: {detail}"
@@ -130,7 +129,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         hidden=item.hidden,
                     ),
                 )
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]].fail(
                 f"Defined-name snapshot failed: {detail}"
