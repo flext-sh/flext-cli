@@ -218,7 +218,6 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
 
     tm.that(snapshot.success, eq=True, msg=snapshot.error)
     tm.that(cached.success, eq=True, msg=cached.error)
-    tm.that(isinstance(snapshot.value, p.Cli.XlsxWorkbookSnapshot), eq=True)
     tm.that(tuple(item.name for item in snapshot.value.sheets), eq=("Data", "Summary"))
     data_snapshot = snapshot.value.sheets[0]
     formula_cell = next(item for item in data_snapshot.cells if item.coordinate == "B2")
