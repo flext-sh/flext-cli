@@ -14,11 +14,10 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar
 
-from pydantic import Field
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli._constants.settings import FlextCliConstantsSettings
-from flext_core import FlextSettings
+from flext_core import FlextSettings, m
 
 
 class FlextCliSettings(FlextSettings):
@@ -28,42 +27,42 @@ class FlextCliSettings(FlextSettings):
         env_prefix="FLEXT_CLI_", extra="ignore"
     )
 
-    cli_verbose: Annotated[bool, Field(description="Verbose output")] = (
+    cli_verbose: Annotated[bool, m.Field(description="Verbose output")] = (
         FlextCliConstantsSettings.CLI_DEFAULT_VERBOSE
     )
-    cli_quiet: Annotated[bool, Field(description="Quiet output")] = (
+    cli_quiet: Annotated[bool, m.Field(description="Quiet output")] = (
         FlextCliConstantsSettings.CLI_DEFAULT_QUIET
     )
-    cli_app_name: Annotated[str, Field(description="CLI application name")] = (
+    cli_app_name: Annotated[str, m.Field(description="CLI application name")] = (
         FlextCliConstantsSettings.FLEXT_CLI
     )
     cli_log_verbosity: Annotated[
-        str, Field(description="Log format (compact, detailed, full)")
+        str, m.Field(description="Log format (compact, detailed, full)")
     ] = FlextCliConstantsSettings.CLI_DEFAULT_LOG_VERBOSITY
-    cli_log_level: Annotated[str, Field(description="CLI log level")] = (
+    cli_log_level: Annotated[str, m.Field(description="CLI log level")] = (
         FlextCliConstantsSettings.CLI_DEFAULT_LOG_LEVEL
     )
-    cli_no_color: Annotated[bool, Field(description="Disable colored output")] = (
+    cli_no_color: Annotated[bool, m.Field(description="Disable colored output")] = (
         FlextCliConstantsSettings.CLI_DEFAULT_NO_COLOR
     )
     cli_output_format: Annotated[
-        str, Field(description="Output format (table, json, yaml, csv, plain)")
+        str, m.Field(description="Output format (table, json, yaml, csv, plain)")
     ] = FlextCliConstantsSettings.CLI_DEFAULT_OUTPUT_FORMAT
     cli_config_file: Annotated[
-        str | None, Field(description="Path to settings file")
+        str | None, m.Field(description="Path to settings file")
     ] = None
     cli_token_file: Annotated[
-        str | None, Field(description="Path to auth token file")
+        str | None, m.Field(description="Path to auth token file")
     ] = None
     cli_ci: Annotated[
-        bool, Field(description="Whether the current runtime is a CI environment.")
+        bool, m.Field(description="Whether the current runtime is a CI environment.")
     ] = False
     cli_pytest_current_test: Annotated[
-        str | None, Field(description="Current pytest test identifier.")
+        str | None, m.Field(description="Current pytest test identifier.")
     ] = None
     cli_shell_command: Annotated[
         str | None,
-        Field(description="Current shell command propagated by the runtime."),
+        m.Field(description="Current shell command propagated by the runtime."),
     ] = None
 
 
