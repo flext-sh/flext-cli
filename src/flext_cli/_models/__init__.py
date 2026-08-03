@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import _base_parts as _base_parts
+    from . import _base as _base
     from .base import FlextCliModelsBase as FlextCliModelsBase
     from .config import FlextCliConfigModels as FlextCliConfigModels
     from .docx import FlextCliModelsDocx as FlextCliModelsDocx
@@ -45,7 +45,7 @@ if TYPE_CHECKING:
     from .xlsx_workbook import FlextCliModelsXlsxWorkbook as FlextCliModelsXlsxWorkbook
 
 _LAZY_MODULES: dict[str, tuple[str, ...]] = {
-    "._base_parts": ("_base_parts",),
+    "._base": ("_base",),
     ".base": ("FlextCliModelsBase",),
     ".config": ("FlextCliConfigModels",),
     ".docx": ("FlextCliModelsDocx",),
@@ -105,7 +105,7 @@ _PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliModelsXlsxTables",
     "FlextCliModelsXlsxValidation",
     "FlextCliModelsXlsxWorkbook",
-    "_base_parts",
+    "_base",
 )
 
 __all__: tuple[str, ...] = tuple(_PUBLIC_EXPORTS)
