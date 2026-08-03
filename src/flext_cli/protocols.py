@@ -8,10 +8,10 @@ from flext_cli._protocols.domain import FlextCliProtocolsDomain
 from flext_cli._protocols.framework import FlextCliProtocolsFramework
 from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
 from flext_cli._protocols.xlsx import FlextCliProtocolsXlsx
-from flext_core import p
+from flext_core import p as _core_p
 
 
-class FlextCliProtocols(p):
+class FlextCliProtocols(_core_p):
     """CLI protocol definitions extending FlextProtocols.
 
     CLI protocol refinements take precedence in MRO while ``Result`` and the
@@ -29,7 +29,9 @@ class FlextCliProtocols(p):
         """Unified CLI protocol namespace."""
 
 
-# mro-j47u (codex): canonical facade rebinding is intentionally unannotated.
-p = FlextCliProtocols
+# mro-j47u (codex): canonical facade rebinding must stay type-annotated — an
+# unannotated alias makes Mypy treat the facade as the class itself, turning
+# class-subscript annotations such as `p.Result[str]` into Any downstream.
+p: type[FlextCliProtocols] = FlextCliProtocols  # canonical facade alias (annotated)
 
 __all__: list[str] = ["FlextCliProtocols", "p"]

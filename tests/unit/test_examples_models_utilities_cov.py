@@ -19,7 +19,7 @@ import pytest
 
 from flext_cli import cli
 from flext_tests import tm
-from tests import c as tc
+from tests import c as tc, t
 
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(_PROJECT_ROOT) not in sys.path:
@@ -165,7 +165,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         )
         monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TEMP_DIR, str(good_temp_dir))
 
-        mapping = tm.ok(
+        mapping: t.JsonMapping = tm.ok(
             m.Examples.AppSettingsAdvanced(api_key="super-secret").validate_to_mapping()
         )
 

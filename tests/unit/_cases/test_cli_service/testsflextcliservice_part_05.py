@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, r
+from flext_cli import cli, r, t
 from flext_tests import tm
 from tests import c, m
 
@@ -24,14 +24,14 @@ class TestsFlextCliService:
         )
         group = cli.create_group(help_text="Grouped commands", name="group")
 
-        def ok_handler(params: m.Tests.SampleInput) -> p.Result[m.Tests.SampleOutput]:
+        def ok_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return cli.execute().map(
                 lambda _payload: m.Tests.SampleOutput(
                     message=f"processed {params.name}"
                 )
             )
 
-        def fail_handler(params: m.Tests.SampleInput) -> p.Result[m.Tests.SampleOutput]:
+        def fail_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return cli.validate_credentials("", "password").map(
                 lambda _value: m.Tests.SampleOutput(message=params.name)
             )
@@ -73,8 +73,8 @@ class TestsFlextCliService:
             name="result-app", help_text="Result application"
         )
 
-        def fail_handler(params: m.Tests.SampleInput) -> p.Result[m.Tests.SampleOutput]:
-            return r[m.Tests.SampleOutput].fail(
+        def fail_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
+            return r[t.JsonPayload].fail(
                 "Password cannot be resolved",
                 error_code="secret_unavailable",
                 error_data={"field": "password", "name": params.name},

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from io import BytesIO
 from typing import TYPE_CHECKING, ClassVar, Protocol
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo

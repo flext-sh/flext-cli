@@ -70,7 +70,7 @@ class TestsFlextCliServicesAuth:
         })
 
         # Assert: a non-empty token is generated and persisted for reload.
-        generated = tm.ok(authenticated)
+        generated: str = tm.ok(authenticated)
         tm.that(generated, is_=str)
         tm.that(generated, empty=False)
         tm.that(tm.ok(service.fetch_auth_token()), eq=generated)

@@ -232,7 +232,7 @@ class TestsFlextCliTomlCov:
 
     def test_write_mapping_round_trips_through_read(self, tmp_path: Path) -> None:
         """Verify that write mapping round trips through read."""
-        payload = {"key": "value", "count": 7}
+        payload: t.JsonMapping = {"key": "value", "count": 7}
         path = tmp_path / "out.toml"
 
         result = u.Cli.toml_write_mapping(path, payload)
@@ -272,13 +272,10 @@ class TestsFlextCliTomlCov:
         tm.that(u.Cli.toml_is_table(table), eq=True)
         tm.that(dict(table), eq={})
         table["leaf"] = "wired"
-        tm.that(
-            u.Cli.toml_as_mapping(doc),
-            eq={
-                **self._EXPECTED_MAPPING,
-                "tool": {
-                    **self._EXPECTED_MAPPING["tool"],
-                    "created": {"nested": {"leaf": "wired"}},
-                },
-            },
-        )
+        expected: t.JsonMapping = {
+            "tool": {
+                "flext": {"project": "my-project", "version": "1.0.0"},
+                "created": {"nested": {"leaf": "wired"}},
+            }
+        }
+        tm.that(u.Cli.toml_as_mapping(doc), eq=expected)

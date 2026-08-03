@@ -33,15 +33,18 @@ class FlextCliUtilitiesXlsxAddresses:
 
     @classmethod
     def _absolute_range_ref(cls, area: m.Cli.XlsxCellRange) -> str:
-        return absolute_coordinate(cls._range_ref(area))
+        reference: str = absolute_coordinate(cls._range_ref(area))
+        return reference
 
     @staticmethod
     def _column_ref(index: int) -> str:
-        return get_column_letter(index)
+        reference: str = get_column_letter(index)
+        return reference
 
     @staticmethod
     def _sheet_ref(name: str) -> str:
-        return quote_sheetname(name)
+        reference: str = quote_sheetname(name)
+        return reference
 
     @classmethod
     def _format_reference(cls, request: m.Cli.XlsxFormatReferenceRequest) -> str:

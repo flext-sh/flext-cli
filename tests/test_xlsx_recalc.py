@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli import cli, m
+from flext_cli import cli, m, p
 from flext_tests import tm
 
 
@@ -48,9 +48,12 @@ def _render_workbook() -> bytes:
         ),
         defined_names=(),
     )
-    result = cli.xlsx_render(m.Cli.XlsxRenderRequest(template=None, plan=plan))
+    result: p.Result[m.Cli.XlsxRenderResult] = cli.xlsx_render(
+        m.Cli.XlsxRenderRequest(template=None, plan=plan)
+    )
     tm.that(result.success, eq=True, msg=result.error)
-    return result.value.content
+    content: bytes = result.value.content
+    return content
 
 
 def _numeric_cell_value(

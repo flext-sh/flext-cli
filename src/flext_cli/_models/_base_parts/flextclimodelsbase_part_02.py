@@ -72,7 +72,7 @@ class FlextCliModelsBase:
             ),
         ]
 
-        @u.computed_field()
+        @u.computed_field
         @property
         def resolved(self) -> dict[str, str]:
             """Resolved environment mapping after removals and overrides."""

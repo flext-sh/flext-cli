@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import signal
-import subprocess
 
 from flext_cli import p, r
 from flext_cli._utilities._runtime_windows_job_start import (
@@ -27,7 +26,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
     ) -> p.Result[bool]:
         """Prove the owned group/Job has no active members."""
         if os.name == "nt":
-            return cls._windows_job_active_count(job_handle).map(
+            return cls.windows_job_active_count(job_handle).map(
                 lambda active_count: active_count == 0
             )
         try:
@@ -41,7 +40,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
     @classmethod
     def _signal_process_tree(
         cls,
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         signal_number: int,
         job_handle: int,
         *,
@@ -55,9 +54,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
                         int(getattr(signal, "CTRL_BREAK_EVENT", signal.SIGINT))
                     )
                     return None
-                return cls._windows_job_terminate(
-                    job_handle, 128 + abs(signal_number)
-                )
+                return cls._windows_job_terminate(job_handle, 128 + abs(signal_number))
             os.killpg(process.pid, signal.SIGKILL if force else signal_number)
         except ProcessLookupError:
             return None

@@ -9,7 +9,7 @@ from openpyxl.worksheet.table import Table
 from openpyxl.worksheet.worksheet import Worksheet
 from pydantic import ValidationError
 
-from flext_cli import m, p, r
+from flext_cli import m, r
 
 
 class FlextCliUtilitiesXlsxSnapshotStructure:
@@ -20,7 +20,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_tables(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxTableSnapshot, ...]]:
+    ) -> r[tuple[m.Cli.XlsxTableSnapshot, ...]]:
         tables: tuple[m.Cli.XlsxTableSnapshot, ...] = ()
         try:
             for item in worksheet.tables.values():
@@ -55,7 +55,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_rows(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]]:
+    ) -> r[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]]:
         rows: tuple[m.Cli.XlsxRowDimensionSnapshot, ...] = ()
         try:
             for item in worksheet.row_dimensions.values():
@@ -80,7 +80,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_columns(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]]:
+    ) -> r[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]]:
         columns: tuple[m.Cli.XlsxColumnDimensionSnapshot, ...] = ()
         try:
             for item in worksheet.column_dimensions.values():
@@ -108,7 +108,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_names(
         workbook: Workbook,
-    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]]:
+    ) -> r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]]:
         names: tuple[m.Cli.XlsxDefinedNameSnapshot, ...] = ()
         try:
             for item in workbook.defined_names.values():

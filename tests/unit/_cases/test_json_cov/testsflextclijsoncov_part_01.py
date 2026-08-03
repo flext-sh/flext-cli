@@ -54,7 +54,8 @@ class TestsFlextCliJsonCov:
         tm.ok(result)
         read_result = u.Cli.json_read(path)
         tm.ok(read_result)
-        tm.that(read_result.value, eq={"a": 1, "b": [1, 2]})
+        expected: t.JsonMapping = {"a": 1, "b": [1, 2]}
+        tm.that(read_result.value, eq=expected)
 
     def test_json_write_with_sort_keys(self, tmp_path: Path) -> None:
         """Verify that json write with sort keys."""

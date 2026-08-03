@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from flext_cli import cli
+from flext_cli import cli, m
 from flext_tests import tm
 from tests import c
 
@@ -44,7 +44,7 @@ class TestsFlextCliCmdCov:
     @staticmethod
     def _make_flext_dir(root: Path, *, with_subdirs: bool = False) -> Path:
         """Create the canonical ``.flext`` directory (optionally its subdirs)."""
-        base = root / c.Cli.PATH_FLEXT_DIR_NAME
+        base: Path = root / c.Cli.PATH_FLEXT_DIR_NAME
         base.mkdir()
         if with_subdirs:
             for subdir in c.Cli.STANDARD_SUBDIRS:
@@ -83,7 +83,7 @@ class TestsFlextCliCmdCov:
         settings_dir = self._make_flext_dir(tmp_path)
         with self._home(tmp_path):
             result = cli.settings_snapshot()
-        snapshot = tm.ok(result)
+        snapshot: m.Cli.SettingsSnapshot = tm.ok(result)
         tm.that(snapshot.settings_dir, eq=str(settings_dir))
         tm.that(snapshot.settings_exists, eq=True)
         tm.that(snapshot.settings_readable, eq=True)
@@ -94,7 +94,7 @@ class TestsFlextCliCmdCov:
         """settings_snapshot flags a missing dir as absent/unreadable/unwritable."""
         with self._home(tmp_path):
             result = cli.settings_snapshot()
-        snapshot = tm.ok(result)
+        snapshot: m.Cli.SettingsSnapshot = tm.ok(result)
         tm.that(snapshot.settings_dir, eq=str(tmp_path / c.Cli.PATH_FLEXT_DIR_NAME))
         tm.that(snapshot.settings_exists, eq=False)
         tm.that(snapshot.settings_readable, eq=False)
@@ -107,7 +107,7 @@ class TestsFlextCliCmdCov:
         settings_dir = self._make_flext_dir(tmp_path)
         with self._home(tmp_path):
             result = cli.settings_snapshot()
-        dumped = tm.ok(result).model_dump()
+        dumped: dict[str, object] = tm.ok(result).model_dump()
         tm.that(dumped["settings_dir"], eq=str(settings_dir))
         tm.that(dumped["settings_exists"], eq=True)
         tm.that(
