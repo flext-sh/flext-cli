@@ -595,6 +595,18 @@ sort_first = ["build-system", "dependency-groups", "project", "tool"]
 constraint-dependencies = ["gitpython>=3.1.55", "setuptools>=83"]
 link-mode = "copy"
 
+[[tool.uv.exclude-dependencies]]
+dependencies = ["flext-cli"]
+
+[tool.uv.exclude-dependencies.package]
+name = "flext-infra"
+
+[[tool.uv.exclude-dependencies]]
+dependencies = ["flext-cli"]
+
+[tool.uv.exclude-dependencies.package]
+name = "flext-core"
+
 [tool.vulture]
 exclude = ["*/_protocols/*"]
 min_confidence = 100
