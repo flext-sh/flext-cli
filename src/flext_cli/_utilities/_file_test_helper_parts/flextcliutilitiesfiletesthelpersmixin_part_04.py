@@ -38,7 +38,9 @@ class FlextCliUtilitiesFileTestHelpersMixin:
         if fmt == c.Cli.FILE_FORMAT_TOML:
             toml_result = ut.toml_read_json(path)
             if toml_result.failure:
-                return r[t.JsonMapping].fail(toml_result.error or "toml_read_json failed")
+                return r[t.JsonMapping].fail(
+                    toml_result.error or "toml_read_json failed"
+                )
             return r[t.JsonMapping].ok(toml_result.value)
         msg = f"Cannot parse format: {fmt}"
         return r[t.JsonMapping].fail(msg)
