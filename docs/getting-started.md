@@ -82,7 +82,7 @@ ______________________________________________________________________
 
 flext-cli integrates with:
 
-- **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)**: Foundation patterns (r, s, FlextModels)
+- **[flext-core](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/README.md)**: Foundation patterns (r, s, FlextModels)
 - **Click 8.2+**: CLI framework (abstracted)
 - **Rich 14.0+**: Terminal UI (abstracted)
 - **Pydantic 2.11+**: Data validation
@@ -323,8 +323,8 @@ If you're upgrading from v0.9.0, see:
 
 **Across Projects**:
 
-- [flext-core Foundation](https://github.com/organization/flext/tree/main/flext-core/docs/guides/railway-oriented-programming.md) - Railway-oriented programming patterns
-- [flext-core CLI Patterns](https://github.com/organization/flext/tree/main/flext-core/docs/guides/service-patterns.md) - Service patterns
+- [flext-core Foundation](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/guides/railway-oriented-programming.md) - Railway-oriented programming patterns
+- [flext-core CLI Patterns](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/guides/service-patterns.md) - Service patterns
 
 **External Resources**:
 

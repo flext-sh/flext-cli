@@ -127,9 +127,7 @@ try:
 except ImportError:
     logger.exception("flext_core_import_failed")
 else:
-    logger.info("flext_core_import_ok", path=flext_core.__file__)
-```
-
+    logger.info("flext_core_import_ok", path=flext_core.__file__)```
 If the import still fails, activate the workspace `.venv` and rerun the check.
 
 ### 2. Type Checking Errors
@@ -210,9 +208,7 @@ def test_with_debug(my_function: Callable[[], p.Result[object]]) -> None:
         success=bool(result.success),
         error=str(result.error) if result.failure else None,
     )
-    assert result.success
-```
-
+    assert result.success```
 ### 4. Configuration Issues
 
 #### Problem: Configuration not loading
@@ -243,9 +239,7 @@ try:
 except ValidationError:
     logger.exception("flext_settings_invalid")
 else:
-    logger.info("flext_settings_valid", log_level=str(settings.log_level))
-```
-
+    logger.info("flext_settings_valid", log_level=str(settings.log_level))```
 **Debug configuration loading:**
 
 ```python
@@ -261,9 +255,7 @@ logger.info("flext_environment_keys", count=len(flext_keys), keys=tuple(flext_ke
 
 # Load configuration through the canonical entrypoint and log a non-sensitive view.
 settings = FlextSettings.fetch_global()
-logger.info("flext_settings_summary", log_level=str(settings.log_level))
-```
-
+logger.info("flext_settings_summary", log_level=str(settings.log_level))```
 ### 5. LDIF Processing Issues
 
 #### Problem: LDIF parsing fails
@@ -294,9 +286,7 @@ if result.failure:
     )
 else:
     response = result.unwrap()
-    logger.info("ldif_parse_ok", entries=len(response.entries))
-```
-
+    logger.info("ldif_parse_ok", entries=len(response.entries))```
 **Enable debug logging:**
 
 ```python
@@ -307,9 +297,7 @@ from flext_core import u
 logger = u.fetch_logger("troubleshoot.ldif_debug")
 logger.debug("ldif_processing_start")
 # ... your LDIF processing code
-logger.debug("ldif_processing_done")
-```
-
+logger.debug("ldif_processing_done")```
 **Validate LDIF format:**
 
 ```python
@@ -331,9 +319,7 @@ def validate_ldif_content(content: str) -> list[str]:
         if line and not line.startswith(("dn:", " ", "\t")) and ":" not in line:
             issues.append(f"Invalid line {i + 1}: {line}")
 
-    return issues
-```
-
+    return issues```
 ### 6. Migration Issues
 
 #### Problem: Migration fails
@@ -360,9 +346,7 @@ logger.info(
     "ldif_settings_loaded",
     ldif_encoding=str(settings.ldif.ldif_encoding),
     ldif_strict_validation=settings.ldif.ldif_strict_validation,
-)
-```
-
+)```
 **Build a migration pipeline:**
 
 ```python
@@ -372,9 +356,7 @@ from flext_core import u
 
 logger = u.fetch_logger("troubleshoot.ldif_pipeline")
 pipeline = ldif.migration_pipeline()
-logger.info("migration_pipeline_built", pipeline_type=type(pipeline).__name__)
-```
-
+logger.info("migration_pipeline_built", pipeline_type=type(pipeline).__name__)```
 **Test with sample data:**
 
 ```python
@@ -391,9 +373,7 @@ result = ldif.parse_string(sample_ldif)
 if result.success:
     logger.info("sample_parse_ok")
 else:
-    logger.error("sample_parse_failed", error=str(result.error))
-```
-
+    logger.error("sample_parse_failed", error=str(result.error))```
 ### 7. Performance Issues
 
 #### Problem: Slow processing
@@ -431,9 +411,7 @@ def profile_memory() -> None:
     )
 
 
-profile_memory()
-```
-
+profile_memory()```
 **Inspect active LDIF settings:**
 
 ```python
@@ -449,9 +427,7 @@ logger.info(
     "ldif_settings_active",
     ldif_encoding=str(settings.ldif.ldif_encoding),
     ldif_strict_validation=settings.ldif.ldif_strict_validation,
-)
-```
-
+)```
 **Reuse explicit settings in the facade:**
 
 ```python
@@ -462,9 +438,7 @@ from flext_core import u
 logger = u.fetch_logger("troubleshoot.ldif_facade")
 settings = FlextLdifSettings(ldif_strict_validation=True)
 custom_ldif = ldif(settings=settings)
-logger.info("ldif_facade_created", facade_type=type(custom_ldif).__name__)
-```
-
+logger.info("ldif_facade_created", facade_type=type(custom_ldif).__name__)```
 ## Debugging Techniques
 
 ### 1. Logging Configuration
@@ -479,9 +453,7 @@ logger = u.fetch_logger(__name__)
 logger.debug("debug_event", detail="example")
 logger.info("info_event")
 logger.warning("warning_event")
-logger.error("error_event")
-```
-
+logger.error("error_event")```
 ### 2. Exception Handling
 
 ```python
@@ -508,9 +480,7 @@ def safe_operation(data: dict[str, str]) -> p.Result[dict[str, str]]:
     except (TypeError, KeyError, AttributeError) as error:
         # ``logger.exception`` emits ERROR + traceback in the structured payload.
         logger.exception("unexpected_error")
-        return r[dict[str, str]].fail(f"Operation failed: {error}")
-```
-
+        return r[dict[str, str]].fail(f"Operation failed: {error}")```
 ### 3. Debug Mode
 
 ```python
@@ -520,9 +490,7 @@ logger = u.fetch_logger("troubleshoot.debug_mode")
 settings = FlextSettings(debug=True)
 logger.info(
     "flext_debug_state", debug=settings.debug, log_level=str(settings.log_level)
-)
-```
-
+)```
 ### 4. Step-by-Step Debugging
 
 ```python
@@ -555,9 +523,7 @@ def debug_ldif_processing(content: str) -> None:
         response = result.unwrap()
         logger.info("ldif_parse_ok", entries=len(response.entries))
     else:
-        logger.error("ldif_parse_failed", error=str(result.error))
-```
-
+        logger.error("ldif_parse_failed", error=str(result.error))```
 ## Error Codes Reference
 
 ### FLEXT Core Errors
@@ -613,9 +579,7 @@ def monitor_memory() -> None:
         )
 
 
-monitor_memory()
-```
-
+monitor_memory()```
 ### CPU Issues
 
 ```python
@@ -639,9 +603,7 @@ def monitor_cpu() -> None:
     logger.info("cpu_sample", percent=process.cpu_percent(interval=0.1))
 
 
-monitor_cpu()
-```
-
+monitor_cpu()```
 ## Getting Help
 
 ### Self-Service Resources
@@ -722,9 +684,7 @@ from flext_core import FlextSettings, u
 
 logger = u.fetch_logger("troubleshoot.minimal_repro")
 settings = FlextSettings.fetch_global()
-logger.info("flext_log_level", value=str(settings.log_level))
-```
-
+logger.info("flext_log_level", value=str(settings.log_level))```
 1. **Expected vs Actual Behavior**
 
 - What you expected to happen
@@ -750,9 +710,7 @@ def process(data: dict[str, str]) -> p.Result[dict[str, str]]:
 
 # ❌ BAD
 def process_without_result(data: dict[str, str]) -> dict[str, str]:
-    return data
-```
-
+    return data```
 1. **Validate Input Early**
 
    ```python
