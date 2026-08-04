@@ -10,7 +10,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 from openpyxl.workbook.defined_name import DefinedName
 
-from flext_cli import cli, m, p
+from flext_cli import cli, m
 from flext_tests import tm
 
 
