@@ -76,15 +76,15 @@ class TestsFlextCliProtocols(FlextTestsProtocols, p):
                 """Define the prompt password test contract."""
                 ...
 
-            def print_success(self, message: str) -> p.Result[None]:
+            def print_success(self, message: str) -> p.Result[bool]:
                 """Define the print success test contract."""
                 ...
 
-            def print_error(self, message: str) -> p.Result[None]:
+            def print_error(self, message: str) -> p.Result[bool]:
                 """Define the print error test contract."""
                 ...
 
-            def print_warning(self, message: str) -> p.Result[None]:
+            def print_warning(self, message: str) -> p.Result[bool]:
                 """Define the print warning test contract."""
                 ...
 
