@@ -1,10 +1,10 @@
+# flext_cli.protocols
+
 <!-- TOC START -->
 - No sections found
 <!-- TOC END -->
 
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
-
-# flext_cli.protocols
 
 ::: flext_cli.protocols
     options:
