@@ -1,10 +1,10 @@
+# flext_cli.typings
+
 <!-- TOC START -->
 - No sections found
 <!-- TOC END -->
 
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
-
-# flext_cli.typings
 
 ::: flext_cli.typings
     options:

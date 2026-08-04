@@ -1,10 +1,10 @@
+# flext_cli.utilities
+
 <!-- TOC START -->
 - No sections found
 <!-- TOC END -->
 
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
-
-# flext_cli.utilities
 
 ::: flext_cli.utilities
     options:

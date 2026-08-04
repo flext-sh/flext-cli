@@ -16,11 +16,15 @@
   Software Development :: Libraries :: Python Modules` (+1 more)
 - Project class: `platform`
 - Keywords: `cli`, `command-line`, `enterprise`, `flext`, `tools`, `typed`
-- Main facades: _none_
-- Alias exports: _none_
-- Public symbol exports: _none_
+- Main facades: `FlextCli`, `FlextCliConfig`, `FlextCliConstants`,
+  `FlextCliModels`, `FlextCliProtocols`, `FlextCliServiceBase`,
+  `FlextCliSettings`, `FlextCliTypes` (+1 more)
+- Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
+- Public symbol exports: `FlextCli`, `FlextCliConfig`, `FlextCliConstants`,
+  `FlextCliModels`, `FlextCliProtocols`, `FlextCliServiceBase`,
+  `FlextCliSettings`, `FlextCliTypes`, `FlextCliUtilities`, `cli` (+2 more)
 - Exported module shortcuts: _none_
-- Generated module pages: `0`
+- Generated module pages: `7`
 
 ## Next Pages
 

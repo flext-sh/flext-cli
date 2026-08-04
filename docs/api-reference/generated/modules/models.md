@@ -1,10 +1,10 @@
+# flext_cli.models
+
 <!-- TOC START -->
 - No sections found
 <!-- TOC END -->
 
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
-
-# flext_cli.models
 
 ::: flext_cli.models
     options:
