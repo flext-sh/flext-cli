@@ -14,7 +14,7 @@ from examples import c, m, p, r, s, t, u
 from flext_cli import cli, settings
 
 
-class ExamplesFlextCliGettingStarted(s):
+class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
     """Minimal guided tour of flext-cli through public aliases and facades."""
 
     def build_example_settings(self) -> p.Result[m.Examples.MyAppSettings]:
