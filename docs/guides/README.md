@@ -9,5 +9,12 @@
 Curated operational guides live here. Keep API behavior in generated reference
 pages sourced from code and docstrings.
 
+- [Development](development.md)
+- [Getting started](getting-started.md)
+- [Security](security.md)
+- [Settings](settings.md)
+- [Skill automation pattern](skill-automation-pattern.md)
+- [Testing](testing.md)
+- [Troubleshooting](troubleshooting.md)
 - [Back to project docs](../index.md)
 - [API Reference](../api-reference/README.md)

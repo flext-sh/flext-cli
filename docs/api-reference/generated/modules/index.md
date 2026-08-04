@@ -8,4 +8,10 @@
 
 These pages are generated from public modules and their docstrings.
 
-_No public modules discovered._
+- [flext_cli.api](api.md)
+- [flext_cli.base](base.md)
+- [flext_cli.constants](constants.md)
+- [flext_cli.models](models.md)
+- [flext_cli.protocols](protocols.md)
+- [flext_cli.typings](typings.md)
+- [flext_cli.utilities](utilities.md)

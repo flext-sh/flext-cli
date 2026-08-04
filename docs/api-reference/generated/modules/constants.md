@@ -1,10 +1,10 @@
+# flext_cli.constants
+
 <!-- TOC START -->
 - No sections found
 <!-- TOC END -->
 
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
-
-# flext_cli.constants
 
 ::: flext_cli.constants
     options:
