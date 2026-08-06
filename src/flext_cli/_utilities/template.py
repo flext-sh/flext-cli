@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
+from typing import ClassVar
 
 from jinja2 import StrictUndefined
 from jinja2.exceptions import TemplateError
@@ -27,17 +28,30 @@ class FlextCliUtilitiesTemplate:
 
     # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): template
     # contexts retain their validated model identity until the Jinja egress.
-    @staticmethod
-    def _environment(search_path: Path) -> SandboxedEnvironment:
-        """Build the shared strict, sandboxed Jinja environment for a directory."""
-        return SandboxedEnvironment(
-            loader=FileSystemLoader(str(search_path)),
+    # Why: Jinja caches compiled template bytecode on the environment, so a
+    # fresh environment per render recompiles every template source. One
+    # environment per search directory keeps that cache alive for the process
+    # while auto_reload still serves edited sources.
+    _environments: ClassVar[t.Cli.TemplateEnvironmentCache] = {}
+
+    @classmethod
+    def template_environment(cls, search_path: Path) -> SandboxedEnvironment:
+        """Return the process-wide strict, sandboxed engine for a directory."""
+        key = str(search_path.resolve())
+        cached = cls._environments.get(key)
+        if cached is not None:
+            return cached
+        environment = SandboxedEnvironment(
+            loader=FileSystemLoader(key),
             undefined=StrictUndefined,
             trim_blocks=c.Cli.TEMPLATE_TRIM_BLOCKS,
             lstrip_blocks=c.Cli.TEMPLATE_LSTRIP_BLOCKS,
             keep_trailing_newline=c.Cli.TEMPLATE_KEEP_TRAILING_NEWLINE,
             autoescape=select_autoescape(),
+            auto_reload=True,
         )
+        cls._environments[key] = environment
+        return environment
 
     @staticmethod
     def template_render(path: Path, context: p.Model) -> p.Result[str]:
@@ -48,7 +62,7 @@ class FlextCliUtilitiesTemplate:
         """
         if not path.is_file():
             return r[str].fail(f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {path}")
-        env = FlextCliUtilitiesTemplate._environment(path.parent)
+        env = FlextCliUtilitiesTemplate.template_environment(path.parent)
         rendered = u.try_(
             lambda: env.get_template(path.name).render(context.model_dump(mode="json")),
             catch=(TemplateError, OSError),
