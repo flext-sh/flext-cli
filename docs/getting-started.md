@@ -414,7 +414,7 @@ python -c "from flext_cli import FlextCliService, FlextCliAuth, cli; print('✅ 
 
 ______________________________________________________________________
 
-## Next Steps
+## Next Steps (v0.9.0)
 
 **For Development**:
 

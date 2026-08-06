@@ -52,11 +52,23 @@ ______________________________________________________________________
 - **Done**: integration_test_complete_workflow.py — recovery loop: `except Exception` → `except (ValueError, TypeError, KeyError, ValidationError)`.
 - **Done**: tests/base.py — DynamicTestHandler.handle and create_transform_handler transform: `except Exception` → `except (ValueError, TypeError, ValidationError)`.
 - **Done**: commands.py — `execute_command` no longer silently swallows `TypeError` on handler signature mismatch; added `logging.getLogger(__name__).debug(...)` before falling back to no-args call.
-- **Done**: output.py — create_formatter: `except Exception` → `except (ValueError, TypeError, ValidationError)`; \_prepare_table_data_safe: `except Exception` → `except (ValueError, TypeError, ValidationError)`; \_format_table_data: match Sequence/dict_items → isinstance(data, Sequence) and isinstance(dict_items, list); \_coerce_to_list, \_is_mapping_value, \_is_sequence_value, \_is_custom_iterable_value, \_iterate_mapping, \_iterate_sequence, \_iterate_model, \_normalize_iterable_item, \_convert_iterable_to_list: match/case → isinstance; \_format_csv_dict, \_replace_none_for_csv: match → isinstance.
+- **Done**: output.py refactor:
+  - create_formatter: `except Exception` → `except (ValueError, TypeError, ValidationError)`
+  - \_prepare_table_data_safe: `except Exception` → `except (ValueError, TypeError, ValidationError)`
+  - \_format_table_data: match Sequence/dict_items → isinstance(data, Sequence) and isinstance(dict_items, list)
+  - \_coerce_to_list, \_is_mapping_value, \_is_sequence_value, \_is_custom_iterable_value, \_iterate_mapping, \_iterate_sequence, \_iterate_model, \_normalize_iterable_item, \_convert_iterable_to_list: match/case → isinstance
+  - \_format_csv_dict, \_replace_none_for_csv: match → isinstance
 - **Done**: utilities.py — CliValidation.to_str, v_empty, v_step: match → isinstance/if; TypeNormalizer.normalize_union_type: match arg → isinstance(arg, type) / isinstance(arg, types.UnionType); parse_kwargs: match value → isinstance(value, str).
 - **Done**: core.py — \_build_execution_context: match context → isinstance(context, dict); execute_command: `except Exception` → `except (ValueError, TypeError, OSError)`; list_commands extract_command_names: `except Exception` → `except (ValueError, TypeError, OSError)`; profile creation: match profiles_value → isinstance(profiles_value, dict).
 - **Done**: cmd.py — get_config_value: match config_data → isinstance(config_data, Mapping).
-- **Done (batch)**: settings.py — \_propagate_to_context / \_register_in_container: `except Exception` → `except (AttributeError, TypeError)`; auto_output_format isatty: `except Exception` → `except OSError`; load_from_config_file: `except Exception` → `except (OSError, ValueError, ValidationError, yaml.YAMLError)`; update_from_cli_args: `except Exception` → `except (ValidationError, TypeError, AttributeError)`; validate_cli_overrides inner/outer: `except Exception` → `except (ValidationError, TypeError, AttributeError)` / `(ValidationError, TypeError)`; load_config: `except Exception` → `except (ValidationError, TypeError)`; save_config: `except Exception` → `except (ValidationError, TypeError, AttributeError)`.
+- **Done (batch)**: settings.py — refactor:
+  - \_propagate_to_context / \_register_in_container: `except Exception` → `except (AttributeError, TypeError)`
+  - auto_output_format isatty: `except Exception` → `except OSError`
+  - load_from_config_file: `except Exception` → `except (OSError, ValueError, ValidationError, yaml.YAMLError)`
+  - update_from_cli_args: `except Exception` → `except (ValidationError, TypeError, AttributeError)`
+  - validate_cli_overrides inner/outer: `except Exception` → `except (ValidationError, TypeError, AttributeError)` / `(ValidationError, TypeError)`
+  - load_config: `except Exception` → `except (ValidationError, TypeError)`
+  - save_config: `except Exception` → `except (ValidationError, TypeError, AttributeError)`
 - **Done**: file_tools.py — \_execute_file_operation: `except Exception` → `except (OSError, ValueError, TypeError, ValidationError)`.
 - **Done**: cmd.py — show_config_paths, validate_config, get_config_info: `except Exception` → `except (OSError, ValueError, TypeError)` / `(OSError, ValueError, TypeError, KeyError)`.
 - **Done**: core.py — register_command: `except Exception` → `except (ValueError, TypeError, AttributeError)`.

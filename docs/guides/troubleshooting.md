@@ -88,7 +88,7 @@ git status
 ModuleNotFoundError: No module named 'flext_core'
 ```
 
-#### Solutions
+#### Solutions for Import Errors
 
 **Check PYTHONPATH:**
 
@@ -139,7 +139,7 @@ If the import still fails, activate the workspace `.venv` and rerun the check.
 error: Argument 1 to "process" has incompatible type "str"; expected "t.JsonMapping"
 ```
 
-#### Solutions
+#### Solutions for Type Checking Errors
 
 **Fix type annotations:**
 
@@ -175,7 +175,7 @@ make check PROJECT=flext-cli CHECK_GATES=mypy
 AssertionError: Expected success but got failure
 ```
 
-#### Solutions
+#### Solutions for Test Failures
 
 **Run with verbose output:**
 
@@ -218,7 +218,7 @@ def test_with_debug(my_function: Callable[[], p.Result[object]]) -> None:
 ValidationError: field required
 ```
 
-#### Solutions
+#### Solutions for Configuration Issues
 
 **Check environment variables:**
 
@@ -265,7 +265,7 @@ logger.info("flext_settings_summary", log_level=str(settings.log_level))```
 LdifParsingException: Invalid LDIF format
 ```
 
-#### Solutions
+#### Solutions for LDIF Processing Issues
 
 **Check LDIF content:**
 
@@ -329,7 +329,7 @@ def validate_ldif_content(content: str) -> list[str]:
 LdifMigrationException: Server compatibility error
 ```
 
-#### Solutions
+#### Solutions for Migration Issues
 
 **Check server configuration:**
 
@@ -385,7 +385,7 @@ else:
 # - Timeout errors
 ```
 
-#### Solutions
+#### Solutions for Performance Issues
 
 **Profile memory usage:**
 
