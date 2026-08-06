@@ -39,6 +39,8 @@ Domains are nested MRO namespaces under `Cli` (`m.Cli.*`, `u.Cli.*`, …), not 1
 - Domain-first naming: `yaml_read_files`, `TomlPhaseConfig`, `CSV_DEFAULT_DELIMITER`.
 - `u.Cli.render_template` / `config_load` / `yaml_validate_schema` back ADR-005 config SSOT.
 - Do not create parallel domain APIs; `vendor/` stays a separate vendored surface.
+- Config/settings canonical pattern: ADR-012.
+- Codemod governance (ast-grep + make mod): ADR-014.
 
 ## Commands
 
