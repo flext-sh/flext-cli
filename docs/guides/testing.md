@@ -204,9 +204,7 @@ pytest tests/e2e/         # End-to-end tests only
 # Run with markers
 pytest -m unit           # Unit tests
 pytest -m integration    # Integration tests
-pytest -m "not slow"     # Skip slow tests
-```
-
+pytest -m "not slow"     # Skip slow tests```
 ### Coverage Analysis
 
 Coverage thresholds and source directories are configured in each project's `pyproject.toml` under `[tool.coverage]`. Use `make test` which reads these automatically.
@@ -216,9 +214,7 @@ Coverage thresholds and source directories are configured in each project's `pyp
 make test
 
 # HTML coverage report
-pytest --cov --cov-report=html
-```
-
+pytest --cov --cov-report=html```
 ### Parallel Test Execution
 
 ```bash
@@ -442,9 +438,7 @@ tests/
 │   │   └── prod.yaml
 │   └── data/
 │       ├── users.json
-│       └── schema.json
-```
-
+│       └── schema.json```
 ### Loading Test Data
 
 ```python
@@ -534,9 +528,7 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
-          file: ./coverage.xml
-```
-
+          file: ./coverage.xml```
 ## Best Practices
 
 ### 1. Test Naming

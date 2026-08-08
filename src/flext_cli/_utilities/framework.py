@@ -222,7 +222,7 @@ class FlextCliUtilitiesFramework:
                 exc.code if isinstance(exc.code, int) else c.Cli.EXIT_CODE_FAILURE
             )
             return cls._exit_code_result(exit_code)
-        except Exception as exc:
+        except c.CATCHABLE_RUNTIME_EXCEPTIONS as exc:
             return e.fail_operation(
                 c.Cli.OP_EXECUTE_APPLICATION, exc, result_type=r[bool]
             )

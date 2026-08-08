@@ -16,7 +16,7 @@ import pytest
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from flext_tests import tm
-from tests import t, u
+from tests import c, t, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -140,7 +140,7 @@ class TestsFlextCliYamlRoundtripLoad:
                         failures.append(ValueError(result.error))
                         return
                     result.unwrap()
-                except BaseException as exc:
+                except c.CATCHABLE_RUNTIME_EXCEPTIONS as exc:
                     failures.append(exc)
                     return
 

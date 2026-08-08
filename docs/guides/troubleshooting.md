@@ -136,9 +136,7 @@ If the import still fails, activate the workspace `.venv` and rerun the check.
 
 ```text
 # Error
-error: Argument 1 to "process" has incompatible type "str"; expected "t.JsonMapping"
-```
-
+error: Argument 1 to "process" has incompatible type "str"; expected "t.JsonMapping"```
 #### Solutions for Type Checking Errors
 
 **Fix type annotations:**
@@ -151,9 +149,7 @@ def process(data):
 
 # ✅ CORRECT
 def process(data: t.JsonMapping) -> p.Result[ProcessedData]:
-    return r.ok(ProcessedData(**data))
-```
-
+    return r.ok(ProcessedData(**data))```
 **Run MyPy with details:**
 
 ```bash
@@ -215,17 +211,13 @@ def test_with_debug(my_function: Callable[[], p.Result[object]]) -> None:
 
 ```text
 # Error
-ValidationError: field required
-```
-
+ValidationError: field required```
 #### Solutions for Configuration Issues
 
 **Check environment variables:**
 
 ```bash
-env | grep FLEXT_
-```
-
+env | grep FLEXT_```
 **Validate configuration:**
 
 ```python
@@ -262,9 +254,7 @@ logger.info("flext_settings_summary", log_level=str(settings.log_level))```
 
 ```text
 # Error
-LdifParsingException: Invalid LDIF format
-```
-
+LdifParsingException: Invalid LDIF format```
 #### Solutions for LDIF Processing Issues
 
 **Check LDIF content:**
@@ -326,9 +316,7 @@ def validate_ldif_content(content: str) -> list[str]:
 
 ```text
 # Error
-LdifMigrationException: Server compatibility error
-```
-
+LdifMigrationException: Server compatibility error```
 #### Solutions for Migration Issues
 
 **Check server configuration:**
@@ -382,9 +370,7 @@ else:
 # Symptoms
 # - High memory usage
 # - Slow response times
-# - Timeout errors
-```
-
+# - Timeout errors```
 #### Solutions for Performance Issues
 
 **Profile memory usage:**
