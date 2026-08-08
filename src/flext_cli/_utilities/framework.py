@@ -20,6 +20,14 @@ from flext_cli import c, e, r, t
 if TYPE_CHECKING:
     from flext_cli import m, p
 
+    # typer ships a vendored click, so the exceptions it raises are NOT instances
+    # of the top-level `click` package's classes. `typer.BadParameter` is exported
+# from that vendored module, so walking to its ClickException ancestor names
+# the base class through typer's PUBLIC surface -- no private module access.
+_TYPER_CLICK_EXCEPTION: type[Exception] = next(
+    base for base in typer.BadParameter.__mro__ if base.__name__ == "ClickException"
+)
+
 
 class _TyperApplication:
     """Private application implementation hidden behind ``p.Cli.Application``."""
@@ -205,7 +213,11 @@ class FlextCliUtilitiesFramework:
             exit_result = command.main(
                 args=cli_args, prog_name=prog_name, standalone_mode=False
             )
-        except click.ClickException as exc:
+        # typer vendors its own click, so a usage error raised while resolving a
+        # command is typer._click.exceptions.UsageError -- a DIFFERENT class from
+        # the click.ClickException imported here. Catching only the latter let an
+        # unknown command escape every handler and propagate out of the facade.
+        except (click.ClickException, _TYPER_CLICK_EXCEPTION) as exc:
             return e.fail_validation(error=exc, result_type=r[bool])
         except typer.Abort as exc:
             return e.fail_operation(
