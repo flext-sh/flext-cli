@@ -100,7 +100,9 @@ objectClass: inetOrgPerson"""
         result = ldif.parse_string(content)
 
         assert result.success
-        assert len(result.unwrap().entries) == 0```
+        assert len(result.unwrap().entries) == 0
+```
+
 ### Integration Tests
 
 Test component interactions and workflows:
@@ -126,7 +128,9 @@ class TestLdifIntegration:
         )
 
         assert result.success
-        assert len(result.unwrap().entries) == 1```
+        assert len(result.unwrap().entries) == 1
+```
+
 ### End-to-End Tests
 
 Test complete workflows and user scenarios:
@@ -155,7 +159,9 @@ objectClass: inetOrgPerson"""
         assert result.success
         entries = result.unwrap().entries
         assert len(entries) == 1
-        assert (input_dir / "test.ldif").exists()```
+        assert (input_dir / "test.ldif").exists()
+```
+
 ## Test Markers
 
 FLEXT uses pytest markers to categorize tests:
@@ -187,7 +193,9 @@ def test_end_to_end_scenario():
 @pytest.mark.slow
 def test_performance_benchmark():
     """Slow test - performance or load testing."""
-    pass```
+    pass
+```
+
 ## Running Tests
 
 ### Basic Test Execution
@@ -204,7 +212,9 @@ pytest tests/e2e/         # End-to-end tests only
 # Run with markers
 pytest -m unit           # Unit tests
 pytest -m integration    # Integration tests
-pytest -m "not slow"     # Skip slow tests```
+pytest -m "not slow"     # Skip slow tests
+```
+
 ### Coverage Analysis
 
 Coverage thresholds and source directories are configured in each project's `pyproject.toml` under `[tool.coverage]`. Use `make test` which reads these automatically.
@@ -214,7 +224,9 @@ Coverage thresholds and source directories are configured in each project's `pyp
 make test
 
 # HTML coverage report
-pytest --cov --cov-report=html```
+pytest --cov --cov-report=html
+```
+
 ### Parallel Test Execution
 
 ```bash
@@ -280,7 +292,9 @@ def temp_directories(tmp_path):
     input_dir.mkdir()
     output_dir.mkdir()
 
-    return input_dir, output_dir```
+    return input_dir, output_dir
+```
+
 ### Using Fixtures
 
 ```python
@@ -305,7 +319,9 @@ def test_file_migration(ldif_service, temp_directories):
 
     # Verify the file can be read and parsed
     result = ldif.parse_string(test_file.read_text(encoding="utf-8"))
-    assert result.success```
+    assert result.success
+```
+
 ## Mocking and Stubbing
 
 ### Unit Test Mocking
@@ -333,7 +349,9 @@ def test_with_mocked_dependency():
 
         # Verify mock was called
         mock_service.process.assert_called_once()
-        assert result.success```
+        assert result.success
+```
+
 ### Integration Test Stubbing
 
 ```python
@@ -356,7 +374,9 @@ def test_with_stubbed_service():
 
     # Test integration
     result = integration_function(stub_service)
-    assert result.success```
+    assert result.success
+```
+
 ## Performance Testing
 
 ### Load Testing
@@ -392,7 +412,9 @@ def test_concurrent_processing():
     assert all(result.success for result in results)
 
     # Verify performance (should complete in < 1 second)
-    assert (end_time - start_time) < 1.0```
+    assert (end_time - start_time) < 1.0
+```
+
 ### Memory Testing
 
 ```python
@@ -421,7 +443,9 @@ def test_memory_usage():
     current_memory = process.memory_info().rss
     memory_used = current_memory - initial_memory
 
-    assert memory_used < 100 * 1024 * 1024  # 100MB```
+    assert memory_used < 100 * 1024 * 1024  # 100MB
+```
+
 ## Test Data Management
 
 ### Test Fixtures Directory
@@ -438,7 +462,9 @@ tests/
 │   │   └── prod.yaml
 │   └── data/
 │       ├── users.json
-│       └── schema.json```
+│       └── schema.json
+```
+
 ### Loading Test Data
 
 ```python
@@ -491,7 +517,9 @@ objectClass: inetOrgPerson""",
 
     # Use fixture data in test
     result = process_ldif(ldif_content, config_data)
-    assert result.success```
+    assert result.success
+```
+
 ## Continuous Integration
 
 ### GitHub Actions Workflow
@@ -528,7 +556,9 @@ jobs:
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
-          file: ./coverage.xml```
+          file: ./coverage.xml
+```
+
 ## Best Practices
 
 ### 1. Test Naming
@@ -554,7 +584,9 @@ def test_parse():
 
 
 def test_ldif():
-    pass```
+    pass
+```
+
 ### 2. Test Organization
 
 ```python
@@ -582,7 +614,9 @@ class TestLdifMigration:
 
     def test_migrate_oid_to_oud(self):
         """Test OID to OUD migration."""
-        pass```
+        pass
+```
+
 ### 3. Assertion Quality
 
 ```python
@@ -611,7 +645,9 @@ def test_parse_result_vague():
 cn: test
 objectClass: inetOrgPerson"""
     result = ldif.parse_string(content)
-    assert result  # Too vague```
+    assert result  # Too vague
+```
+
 ### 4. Test Independence
 
 ```python
@@ -645,7 +681,9 @@ def test_parse_valid_ldif():
 
 def test_parse_invalid_ldif():
     result = ldif_service.parse_string("invalid")
-    assert result.success```
+    assert result.success
+```
+
 ## Troubleshooting
 
 ### Common Test Issues

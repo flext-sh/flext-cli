@@ -396,7 +396,7 @@ ______________________________________________________________________
 
 ### Q: Where's the full changelog
 
-**A**: See [CHANGELOG.md](../CHANGELOG.md) for complete details.
+**A**: See [CHANGELOG.md](https://github.com/flext-sh/flext-cli/blob/main/CHANGELOG.md) for complete details.
 
 ______________________________________________________________________
 
@@ -505,7 +505,7 @@ ______________________________________________________________________
 
 - **GitHub Issues**: [Report issues](https://github.com/flext-sh/flext-cli/issues)
 - **Discussions**: [Ask questions](https://github.com/flext-sh/flext-cli/discussions)
-- **Documentation**: [Full docs](../)
+- **Documentation**: [Full docs](../index.md)
 
 ### Migration Assistance
 

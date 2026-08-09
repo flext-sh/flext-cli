@@ -1,12 +1,12 @@
 # CLI Architecture
 
 <!-- TOC START -->
-- [Princípios](#princpios)
-- [Mapa dos módulos](#mapa-dos-mdulos)
-- [Fluxo em tempo de execução](#fluxo-em-tempo-de-execuo)
-- [Integração com flext-core](#integrao-com-flext-core)
-- [Exemplo mínimo](#exemplo-mnimo)
-- [Referências rápidas](#referncias-rpidas)
+- [Princípios](#principios)
+- [Mapa dos módulos](#mapa-dos-modulos)
+- [Fluxo em tempo de execução](#fluxo-em-tempo-de-execucao)
+- [Integração com flext-core](#integracao-com-flext-core)
+- [Exemplo mínimo](#exemplo-minimo)
+- [Referências rápidas](#referencias-rapidas)
 - [Related Documentation](#related-documentation)
 <!-- TOC END -->
 

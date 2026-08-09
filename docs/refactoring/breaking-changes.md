@@ -7,9 +7,9 @@
   - [Migration](#migration)
   - [Automated Migration Script](#automated-migration-script)
 - [2. Modules Removed/Moved](#2-modules-removedmoved)
-  - [2.1 `flext_cli.validator` - Deleted](#21-flextclivalidator-deleted)
-  - [2.2 `flext_cli.auth` - Deleted](#22-flextcliauth-deleted)
-  - [2.3 `flext_cli.testing` - Moved to tests/](#23-flextclitesting-moved-to-tests)
+  - [2.1 `flext_cli.validator` - Deleted](#21-flext_clivalidator-deleted)
+  - [2.2 `flext_cli.auth` - Deleted](#22-flext_cliauth-deleted)
+  - [2.3 `flext_cli.testing` - Moved to tests/](#23-flext_clitesting-moved-to-tests)
 - [3. FlextCliContext Removed](#3-flextclicontext-removed)
 - [4. Service Class Instantiation Changes](#4-service-class-instantiation-changes)
   - [What Changed](#what-changed)
@@ -21,7 +21,7 @@
   - [What Changed](#what-changed)
   - [Migration](#migration)
 - [7. Import Changes](#7-import-changes)
-  - [Removed from `__init__.py`](#removed-from-initpy)
+  - [Removed from `__init__.py`](#removed-from-__init__py)
   - [Still Available](#still-available)
 - [Migration Checklist](#migration-checklist)
   - [[ ] 1. Update API Calls](#1-update-api-calls)
@@ -441,7 +441,7 @@ ______________________________________________________________________
 - **[Migration Guide](migration-guide-v0.9-to-v0.10.md)** - Step-by-step migration
 - **[Architecture Comparison](architecture-comparison.md)** - Before/after comparison
 - **[API Reference](../api-reference/README.md)** - Complete v0.10.0 API
-- **[Examples](../../examples/)** - Updated code examples
+- **[Examples](https://github.com/flext-sh/flext-cli/tree/main/examples/)** - Updated code examples
 
 ______________________________________________________________________
 
