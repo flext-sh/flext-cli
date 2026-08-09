@@ -578,6 +578,12 @@ dependencies = ["flext-cli"]
 [tool.uv.exclude-dependencies.package]
 name = "flext-core"
 
+[[tool.uv.exclude-dependencies]]
+dependencies = ["flext-cli"]
+
+[tool.uv.exclude-dependencies.package]
+name = "flext-tests"
+
 [tool.vulture]
 exclude = ["*/_protocols/*"]
 min_confidence = 100
