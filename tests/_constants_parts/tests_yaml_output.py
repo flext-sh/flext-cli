@@ -27,7 +27,7 @@ class TestsFlextCliConstantsYamlOutput:
         (YAML_NON_MAPPING_CONTENT, False),
     )
 
-    # dump: (data, sort_keys, expect_ok)
+    # dump case fields: data, sort_keys, expect_ok
     YAML_DUMP_CASES: Final[tuple[tuple[t.JsonMapping, bool, bool], ...]] = (
         ({"b": 2, "a": 1}, False, True),
         ({"b": 2, "a": 1}, True, True),
@@ -66,7 +66,7 @@ class TestsFlextCliConstantsYamlOutput:
     )
 
     # ── FORMATTERS ─────────────────────────────────────────────────
-    # (columns, rows, title)
+    # table case fields: columns, rows, title
     FORMATTER_TABLE_CASES: Final[
         tuple[tuple[t.StrSequence, tuple[t.StrSequence, ...], str], ...]
     ] = (
@@ -83,7 +83,7 @@ class TestsFlextCliConstantsYamlOutput:
     FORMATTER_RULE_LABELS: Final[t.StrSequence] = ("Section Header", "Done", "")
 
     # ── OUTPUT (services/output.py) ────────────────────────────────
-    # display_message: (message, message_type | None)
+    # display_message case fields: message, message_type or None
     OUTPUT_DISPLAY_CASES: Final[tuple[tuple[str, c.Cli.MessageTypes | None], ...]] = (
         ("All good", c.Cli.MessageTypes.SUCCESS),
         ("Something failed", c.Cli.MessageTypes.ERROR),
@@ -93,7 +93,7 @@ class TestsFlextCliConstantsYamlOutput:
         ("Default message", None),
     )
 
-    # display_progress: (current, total)
+    # display_progress case fields: current, total
     OUTPUT_PROGRESS_CASES: Final[tuple[tuple[int, int], ...]] = (
         (0, 10),
         (5, 10),
@@ -110,7 +110,7 @@ class TestsFlextCliConstantsYamlOutput:
     )
 
     # ── AUTH (services/auth.py) ────────────────────────────────────
-    # validate_credentials: (username, password, expect_ok)
+    # validate_credentials case fields: username, password, expect_ok
     AUTH_CRED_CASES: Final[tuple[tuple[str, str, bool], ...]] = (
         ("admin", "secret123", True),
         ("", "secret123", False),

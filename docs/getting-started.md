@@ -30,7 +30,7 @@
 - [Quality Validation](#quality-validation)
   - [Validation Commands](#validation-commands)
   - [Implementation Verification](#implementation-verification)
-- [Next Steps](#next-steps)
+- [Next Steps (v0.9.0)](#next-steps-v090)
 <!-- TOC END -->
 
 **Installation and setup guide for the FLEXT ecosystem CLI foundation library.**
@@ -41,7 +41,7 @@ ______________________________________________________________________
 
 ## 📌 Quick Navigation
 
-- [v0.12.0-dev Getting Started (Current)](#v0100-getting-started-current) ← **Start Here**
+- [v0.12.0-dev Getting Started (Current)](#v0120-dev-getting-started-current) ← **Start Here**
 - [v0.9.0 Getting Started (Historical Reference)](#v090-getting-started-historical-reference)
 
 ______________________________________________________________________

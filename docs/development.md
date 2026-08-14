@@ -52,7 +52,7 @@ ______________________________________________________________________
 
 ## 📌 Quick Navigation
 
-- [v0.12.0-dev Development Guidelines (Current)](#v0100-development-guidelines-current) ← **Start Here**
+- [v0.12.0-dev Development Guidelines (Current)](#v0120-dev-development-guidelines-current) ← **Start Here**
 - [v0.9.0 Development Guidelines (Historical Reference)](#v090-development-guidelines-historical-reference)
 
 ______________________________________________________________________
