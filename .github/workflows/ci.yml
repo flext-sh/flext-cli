@@ -31,18 +31,32 @@ jobs:
           virtualenvs-create: false
           installer-parallel: true
 
-      - name: Setup (advisory)
-        continue-on-error: true
+      - name: Resolve branch
+        id: branch
+        run: |
+          BRANCH="${FLEXT_CORE_BRANCH:-${GITHUB_HEAD_REF:-0.12.0-dev}}"
+          if [ -z "${BRANCH}" ] || [ "${BRANCH}" = "HEAD" ]; then
+            echo "Unable to resolve branch for flext-core sync." >&2
+            exit 1
+          fi
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+      - name: Setup
+        env:
+          FLEXT_CORE_BRANCH: ${{ steps.branch.outputs.branch }}
         run: make setup
 
-      - name: Check (advisory)
-        continue-on-error: true
+      - name: Check
+        env:
+          FLEXT_CORE_BRANCH: ${{ steps.branch.outputs.branch }}
         run: make check
 
-      - name: Test (advisory)
-        continue-on-error: true
+      - name: Test
+        env:
+          FLEXT_CORE_BRANCH: ${{ steps.branch.outputs.branch }}
         run: make test
 
-      - name: Validate (advisory)
-        continue-on-error: true
+      - name: Validate
+        env:
+          FLEXT_CORE_BRANCH: ${{ steps.branch.outputs.branch }}
         run: make validate
