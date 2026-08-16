@@ -206,7 +206,7 @@ src/flext_cli/
 │
 └── Data Models (value objects)
     ├── models.py            # All Pydantic models
-    └── settings.py            # FlextCliSettings
+    └── _settings.py           # FlextCliSettings
 ```
 
 ### Direct Access Pattern

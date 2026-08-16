@@ -28,7 +28,7 @@ src/flext_cli/
 ├── cli.py                # Única fronteira com Typer/Click
 ├── cli_params.py         # Parâmetros reutilizáveis para comandos Typer/Click
 ├── commands.py           # Registro e resolução de comandos estruturais
-├── settings.py             # Singleton de configuração validada
+├── _settings.py            # Singleton de configuração validada
 ├── constants.py          # Constantes e mensagens compartilhadas
 ├── debug.py              # Utilidades de depuração
 ├── file_tools.py         # I/O de arquivos (texto, JSON, YAML, CSV, zip)
@@ -52,7 +52,7 @@ src/flext_cli/
 1. **Registro de comandos**: modelos em `commands.py` são validados em `FlextCliCore.register_command` antes de serem armazenados.
 1. **Execução**: `FlextCliCore.execute_command` resolve o comando registrado; `FlextCliCmd` fornece operações utilitárias ligadas à configuração persistida.
 1. **Entrada/Saída**: `prompts.py` coleta entrada; `output.py`, `formatters.py` e `tables.py` geram saídas em Rich/ASCII/JSON/YAML/CSV sem expor o Rich diretamente.
-1. **Configuração**: `settings.py` gerencia configuração imutável; sessões são armazenadas em `core`.
+1. **Configuração**: `_settings.py` gerencia configuração imutável; sessões são armazenadas em `core`.
 
 ## Integração com flext-core
 
