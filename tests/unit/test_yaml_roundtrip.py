@@ -116,6 +116,7 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.fail(result)
         tm.that(result.error, none=False)
 
+    @pytest.mark.slow
     def test_roundtrip_load_text_is_thread_safe(self) -> None:
         """Verify that roundtrip load text is thread safe."""
         documents = [

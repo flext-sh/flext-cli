@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
+
+import pytest
+
 from flext_cli import cli, m, p
 from flext_tests import tm
 
@@ -113,3 +117,16 @@ def test_xlsx_recalc_parity_detects_count_mismatch() -> None:
     tm.that(report.success, eq=True, msg=report.error)
     tm.that(report.value.formula_count, eq=2)
     tm.that(report.value.ok, eq=False)
+
+
+@pytest.mark.slow
+def test_xlsx_recalc_supports_concurrent_public_calls() -> None:
+    """Concurrent callers receive independently recalculated workbooks."""
+    source = _render_workbook()
+    request = m.Cli.XlsxRecalcRequest(source=source)
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        results = tuple(executor.map(lambda _index: cli.xlsx_recalc(request), range(3)))
+    for result in results:
+        tm.that(result.success, eq=True, msg=result.error)
+        value = _numeric_cell_value(result.value.content, "Report", "A1")
+        tm.that(value.value, eq=5)

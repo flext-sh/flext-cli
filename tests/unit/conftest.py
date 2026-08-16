@@ -8,7 +8,6 @@ import pytest
 
 from flext_cli import FlextCliSettings
 from flext_cli.services.prompts import FlextCliPrompts
-from flext_tests import reset_settings
 from tests import m
 
 if TYPE_CHECKING:
@@ -144,5 +143,4 @@ __all__: list[str] = [
     "make_capture_prompts",
     "make_failing_prompts",
     "make_prompts",
-    "reset_settings",
 ]

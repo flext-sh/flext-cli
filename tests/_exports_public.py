@@ -68,7 +68,6 @@ TESTS_FLEXT_CLI_PUBLIC_EXPORTS: tuple[str, ...] = (
     "make_prompts",
     "p",
     "r",
-    "reset_settings",
     "s",
     "t",
     "td",
