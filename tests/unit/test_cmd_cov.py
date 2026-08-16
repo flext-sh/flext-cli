@@ -1,152 +1,140 @@
-"""Command coverage tests."""
+"""Behavioral tests for the public ``FlextCli`` settings-command surface.
+
+Every test exercises the public contract only: the ``r[T]`` outcome of the
+command methods and the public fields of :class:`m.Cli.SettingsSnapshot`.
+No private attributes, no internal-collaborator spying, no patching of the
+unit under test. HOME (an external boundary) and ``tmp_path`` are the only
+things steered, so the filesystem-derived snapshot is fully deterministic.
+"""
 
 from __future__ import annotations
 
-from pathlib import Path
+import os
+from contextlib import contextmanager
+from typing import TYPE_CHECKING
 
 import pytest
-from flext_core import r
 
-import flext_cli.services.cmd as cmd_module
-from flext_cli import FlextCliCmd, m
+from flext_cli import cli, m
+from flext_tests import tm
+from tests import c
 
-
-def test_show_config_paths_failure_on_exception(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(
-        cmd_module.FlextCliUtilities.Cli.ConfigOps,
-        "get_config_paths",
-        staticmethod(lambda: (_ for _ in ()).throw(RuntimeError("paths error"))),
-    )
-    result = FlextCliCmd.show_config_paths()
-    assert result.is_failure
-    assert "paths error" in (result.error or "")
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from pathlib import Path
 
 
-def test_validate_config_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -> None:
-    cmd = FlextCliCmd()
-    monkeypatch.setattr(
-        cmd_module.FlextCliUtilities.Cli.ConfigOps,
-        "validate_config_structure",
-        staticmethod(lambda: (_ for _ in ()).throw(RuntimeError("validate error"))),
-    )
-    result = cmd.validate_config()
-    assert result.is_failure
-    assert "validate error" in (result.error or "")
+class TestsFlextCliCmdCov:
+    """Contract tests for the settings commands exposed on ``FlextCli``."""
 
+    @staticmethod
+    @contextmanager
+    def _home(path: Path) -> Generator[None]:
+        """Point HOME at ``path`` for the duration of the block (external boundary)."""
+        original = os.environ.get("HOME")
+        os.environ["HOME"] = str(path)
+        try:
+            yield
+        finally:
+            if original is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = original
 
-def test_get_config_info_failure_on_exception(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        cmd_module.FlextCliUtilities.Cli.ConfigOps,
-        "get_config_info",
-        staticmethod(lambda: (_ for _ in ()).throw(RuntimeError("info error"))),
-    )
-    result = FlextCliCmd.get_config_info()
-    assert result.is_failure
-    assert "info error" in (result.error or "")
+    @staticmethod
+    def _make_flext_dir(root: Path, *, with_subdirs: bool = False) -> Path:
+        """Create the canonical ``.flext`` directory (optionally its subdirs)."""
+        base: Path = root / c.Cli.PATH_FLEXT_DIR_NAME
+        base.mkdir()
+        if with_subdirs:
+            for subdir in c.Cli.STANDARD_SUBDIRS:
+                (base / subdir).mkdir()
+        return base
 
+    @pytest.mark.parametrize("with_subdirs", [False, True])
+    def test_validate_settings_succeeds_when_directory_present(
+        self, tmp_path: Path, *, with_subdirs: bool
+    ) -> None:
+        """validate_settings reports success whether or not subdirs exist."""
+        self._make_flext_dir(tmp_path, with_subdirs=with_subdirs)
+        with self._home(tmp_path):
+            result = cli.validate_settings()
+        tm.that(tm.ok(result), eq=True)
 
-def test_set_config_value_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    cmd = FlextCliCmd()
-    monkeypatch.setattr(
-        cmd._file_tools,
-        "write_json_file",
-        lambda *args, **kwargs: (_ for _ in ()).throw(ValueError("write exception")),
-    )
-    result = cmd.set_config_value("k", "v")
-    assert result.is_failure
-    assert "write exception" in (result.error or "")
+    def test_validate_settings_succeeds_when_structure_absent(
+        self, tmp_path: Path
+    ) -> None:
+        """validate_settings is non-fatal on a missing canonical structure."""
+        with self._home(tmp_path):
+            result = cli.validate_settings()
+        tm.that(tm.ok(result), eq=True)
 
+    def test_validate_settings_is_idempotent(self, tmp_path: Path) -> None:
+        """Repeated validate_settings calls yield the same successful outcome."""
+        self._make_flext_dir(tmp_path, with_subdirs=True)
+        with self._home(tmp_path):
+            first = cli.validate_settings()
+            second = cli.validate_settings()
+        tm.that(tm.ok(first), eq=True)
+        tm.that(tm.ok(second), eq=True)
 
-def test_get_config_value_outer_exception_path(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+    def test_settings_snapshot_reports_existing_directory(self, tmp_path: Path) -> None:
+        """settings_snapshot resolves the canonical dir and marks it present."""
+        settings_dir = self._make_flext_dir(tmp_path)
+        with self._home(tmp_path):
+            result = cli.settings_snapshot()
+        snapshot: m.Cli.SettingsSnapshot = tm.ok(result)
+        tm.that(snapshot.settings_dir, eq=str(settings_dir))
+        tm.that(snapshot.settings_exists, eq=True)
+        tm.that(snapshot.settings_readable, eq=True)
+        tm.that(snapshot.settings_writable, eq=True)
+        tm.that(snapshot.timestamp, empty=False)
 
-    class FakeConfig:
-        config_dir = tmp_path
+    def test_settings_snapshot_reports_absent_directory(self, tmp_path: Path) -> None:
+        """settings_snapshot flags a missing dir as absent/unreadable/unwritable."""
+        with self._home(tmp_path):
+            result = cli.settings_snapshot()
+        snapshot: m.Cli.SettingsSnapshot = tm.ok(result)
+        tm.that(snapshot.settings_dir, eq=str(tmp_path / c.Cli.PATH_FLEXT_DIR_NAME))
+        tm.that(snapshot.settings_exists, eq=False)
+        tm.that(snapshot.settings_readable, eq=False)
+        tm.that(snapshot.settings_writable, eq=False)
 
-    (tmp_path / "cli_config.json").write_text('{"x": 1}', encoding="utf-8")
-    cmd = FlextCliCmd()
-    monkeypatch.setattr(
-        cmd_module.FlextCliServiceBase,
-        "get_cli_config",
-        staticmethod(lambda: FakeConfig()),
-    )
-    monkeypatch.setattr(
-        cmd._file_tools,
-        "read_json_file",
-        lambda _path: (_ for _ in ()).throw(ValueError("read exception")),
-    )
-    result = cmd.get_config_value("x")
-    assert result.is_failure
-    assert "read exception" in (result.error or "")
+    def test_settings_snapshot_round_trips_through_public_dump(
+        self, tmp_path: Path
+    ) -> None:
+        """The snapshot's public model_dump preserves its contract fields."""
+        settings_dir = self._make_flext_dir(tmp_path)
+        with self._home(tmp_path):
+            result = cli.settings_snapshot()
+        dumped: dict[str, object] = tm.ok(result).model_dump()
+        tm.that(dumped["settings_dir"], eq=str(settings_dir))
+        tm.that(dumped["settings_exists"], eq=True)
+        tm.that(
+            set(dumped)
+            >= {
+                "settings_dir",
+                "settings_exists",
+                "settings_readable",
+                "settings_writable",
+                "timestamp",
+            },
+            eq=True,
+        )
 
+    def test_show_settings_succeeds_when_snapshot_readable(
+        self, tmp_path: Path
+    ) -> None:
+        """show_settings succeeds when the canonical snapshot is resolvable."""
+        self._make_flext_dir(tmp_path)
+        with self._home(tmp_path):
+            result = cli.show_settings()
+        tm.that(tm.ok(result), eq=True)
 
-def test_show_config_failure_when_info_result_is_failure(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    cmd = FlextCliCmd()
-    monkeypatch.setattr(
-        FlextCliCmd,
-        "get_config_info",
-        staticmethod(lambda: r[m.Cli.ConfigSnapshot].fail("bad info")),
-    )
-    result = cmd.show_config()
-    assert result.is_failure
-    assert "bad info" in (result.error or "")
-
-
-def test_show_config_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    cmd = FlextCliCmd()
-    monkeypatch.setattr(
-        FlextCliCmd,
-        "get_config_info",
-        staticmethod(lambda: (_ for _ in ()).throw(ValueError("show error"))),
-    )
-    result = cmd.show_config()
-    assert result.is_failure
-    assert "show error" in (result.error or "")
-
-
-def test_edit_config_outer_exception_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        cmd_module.FlextCliServiceBase,
-        "get_cli_config",
-        staticmethod(lambda: (_ for _ in ()).throw(ValueError("config access error"))),
-    )
-    result = FlextCliCmd().edit_config()
-    assert result.is_failure
-    assert "config access error" in (result.error or "")
-
-
-def test_edit_config_success_logs_and_returns_ok(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-
-    class FakeConfig:
-        config_dir = tmp_path
-
-    cli_config = tmp_path / "cli_config.json"
-    cli_config.write_text('{"name": "ok"}', encoding="utf-8")
-    cmd = FlextCliCmd()
-    logged: dict[str, object] = {}
-    monkeypatch.setattr(
-        cmd_module.FlextCliServiceBase,
-        "get_cli_config",
-        staticmethod(lambda: FakeConfig()),
-    )
-    monkeypatch.setattr(
-        cmd._file_tools,
-        "read_json_file",
-        lambda _path: r[object].ok({"name": "ok"}),
-    )
-    monkeypatch.setattr(
-        cmd.logger,
-        "info",
-        lambda message, **kwargs: logged.update({"message": message, **kwargs}),
-    )
-    result = cmd.edit_config()
-    assert result.is_success
-    assert logged["message"]
-    assert "config" in logged
+    def test_show_settings_succeeds_without_existing_directory(
+        self, tmp_path: Path
+    ) -> None:
+        """show_settings still succeeds when no settings directory exists."""
+        with self._home(tmp_path):
+            result = cli.show_settings()
+        tm.that(tm.ok(result), eq=True)

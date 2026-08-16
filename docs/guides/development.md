@@ -7,7 +7,6 @@
 > Project profile: `flext-cli`
 
 <!-- TOC START -->
-
 - [Prerequisites](#prerequisites)
 - [Development Environment Setup](#development-environment-setup)
   - [1. Clone the Repository](#1-clone-the-repository)
@@ -47,7 +46,6 @@
   - [Common Issues](#common-issues)
 - [Resources](#resources)
 - [Support](#support)
-
 <!-- TOC END -->
 
 This guide covers setting up a development environment for FLEXT contributions and understanding the development workflow.
@@ -83,7 +81,7 @@ pre-commit install
 
 ```bash
 # Run quality gates to verify setup
-make validate
+make val
 
 # Check individual components
 make lint-all
@@ -136,7 +134,7 @@ Follow FLEXT development standards:
 make check
 
 # Full validation (before push)
-make validate
+make val
 ```
 
 ### 4. Commit Changes
@@ -151,9 +149,9 @@ git push origin feature/amazing-feature
 
 ### Type Safety (ZERO TOLERANCE)
 
-```python
+```text
 # ✅ CORRECT - Complete type annotations
-def process_data(data: dict[str, object]) -> r[ProcessedData]:
+def process_data(data: t.JsonMapping) -> p.Result[ProcessedData]:
     """Process data with type safety."""
     if not data:
         return r[ProcessedData].fail("Data required")
@@ -168,9 +166,9 @@ def process_data(data):
 
 ### Railway-Oriented Programming
 
-```python
+```text
 # ✅ CORRECT - Use r for all operations
-def validate_and_process(data: dict) -> r[ProcessedData]:
+def validate_and_process(data: dict) -> p.Result[ProcessedData]:
     return (
         validate_data(data)
         .flat_map(transform_data)
@@ -188,24 +186,24 @@ def validate_and_process(data: dict) -> ProcessedData:
 
 ### Unified Models Pattern
 
-```python
+```text
 # ✅ CORRECT - Use [Project]Models pattern
 class FlextApiModels:
-    class Request(BaseModel):
-        data: dict[str, object]
+    class Request(m.BaseModel):
+        data: t.JsonMapping
 
-    class Response(BaseModel):
-        result: r[object]
+    class Response(m.BaseModel):
+        result: p.Result[t.JsonValue]
         status: int
 
 
 # ❌ WRONG - Scattered model definitions
-class ApiRequest(BaseModel):
-    data: dict[str, object]
+class ApiRequest(m.BaseModel):
+    data: t.JsonMapping
 
 
-class ApiResponse(BaseModel):
-    result: object
+class ApiResponse(m.BaseModel):
+    result
 ```
 
 ## Testing
@@ -227,26 +225,24 @@ pytest --cov=src --cov-report=html
 
 ### Writing Tests
 
-```python
+```text
 import pytest
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
-from flext_core import FlextDecorators
+from flext_core import d
 from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
+from flext_core import e
 from flext_core import h
-from flext_core import FlextLogger
 from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
 from flext_core import t
 from flext_core import u
 
@@ -257,14 +253,14 @@ class TestDataProcessing:
         data = {"key": "value"}
         result = process_data(data)
 
-        assert result.is_success
+        assert result.success
         assert result.unwrap().key == "value"
 
     def test_process_invalid_data(self):
         """Test processing invalid data."""
         result = process_data(None)
 
-        assert result.is_failure
+        assert result.failure
         assert "Data required" in result.failure()
 ```
 
@@ -295,7 +291,7 @@ make type-check
 make security
 
 # All quality checks
-make validate
+make val
 ```
 
 ## Adding New Projects
@@ -313,36 +309,34 @@ cd flext-newlib
 
 ### 2. Implement Core Patterns
 
-```python
+```text
 # src/flext_newlib/__init__.py
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
-from flext_core import FlextDecorators
+from flext_core import d
 from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
+from flext_core import e
 from flext_core import h
-from flext_core import FlextLogger
 from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
 from flext_core import t
 from flext_core import u
 
 
 # Main API class
 class FlextNewlib:
-    def __init__(self, config: FlextNewlibSettings):
-        self.config = config
+    def __init__(self, settings: FlextNewlibSettings):
+        self.settings = settings
 
-    def process(self, data: dict) -> r[dict]:
+    def process(self, data: dict) -> p.Result[dict]:
         """Process data using r pattern."""
         # Implementation here
         pass
@@ -350,14 +344,14 @@ class FlextNewlib:
 
 # Models class
 class FlextNewlibModels:
-    class Config(BaseModel):
+    class Config(m.BaseModel):
         setting: str = "default"
 
-    class Request(BaseModel):
-        data: dict[str, object]
+    class Request(m.BaseModel):
+        data: t.JsonMapping
 
-    class Response(BaseModel):
-        result: r[object]
+    class Response(m.BaseModel):
+        result: p.Result[t.JsonValue]
 ```
 
 ### 3. Add to Workspace
@@ -405,8 +399,8 @@ poetry env info
 
 ### Code Documentation
 
-```python
-def process_data(data: dict[str, object]) -> r[ProcessedData]:
+```text
+def process_data(data: t.JsonMapping) -> p.Result[ProcessedData]:
     """
     Process data using the FLEXT pipeline.
 
@@ -421,7 +415,7 @@ def process_data(data: dict[str, object]) -> r[ProcessedData]:
 
     Example:
         >>> result = process_data({"key": "value"})
-        >>> if result.is_success:
+        >>> if result.success:
         ...     processed = result.unwrap()
     """
     # Implementation here
@@ -433,14 +427,14 @@ Update project README.md files when adding new features:
 
 - Add a "New Feature" section with usage and configuration examples.
 
-```python
+```text
 from flext_newlib import FlextNewlib
 from flext_newlib import FlextNewlibSettings
 
 lib = FlextNewlib()
 result = lib.new_feature()
 
-config = FlextNewlibSettings(new_setting="value")
+settings = FlextNewlibSettings(new_setting="value")
 ```
 
 ## Contributing
@@ -489,7 +483,7 @@ config = FlextNewlibSettings(new_setting="value")
    pytest tests/unit/test_specific.py::test_function -v
 ````
 
-3. **Build Issues**
+1. **Build Issues**
 
    ```bash
    # Clean and rebuild

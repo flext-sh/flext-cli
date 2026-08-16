@@ -7,13 +7,12 @@
 > Project profile: `flext-cli`
 
 <!-- TOC START -->
-
 - [Quick Diagnosis](#quick-diagnosis)
   - [Health Check Commands](#health-check-commands)
   - [System Status](#system-status)
 - [Common Issues](#common-issues)
   - [1. Import Errors](#1-import-errors)
-  - [r](#r)
+  - [Import Diagnostics](#import-diagnostics)
   - [2. Type Checking Errors](#2-type-checking-errors)
   - [3. Test Failures](#3-test-failures)
   - [4. Configuration Issues](#4-configuration-issues)
@@ -36,11 +35,9 @@
   - [Self-Service Resources](#self-service-resources)
   - [Community Support](#community-support)
   - [Reporting Issues](#reporting-issues)
-  - [Your minimal example here](#your-minimal-example-here)
 - [Prevention](#prevention)
   - [Best Practices](#best-practices)
 - [Resources](#resources)
-
 <!-- TOC END -->
 
 This guide covers common issues, their solutions, and debugging techniques for FLEXT applications and libraries.
@@ -51,18 +48,17 @@ This guide covers common issues, their solutions, and debugging techniques for F
 
 ```bash
 # Check overall system health
-make validate
+make val VALIDATE_SCOPE=workspace
 
-# Check specific components
-make lint          # Code quality
-make type-check    # Type safety
-make test          # Functionality
-make security      # Security issues
+# Check the current project slice
+make check PROJECT=flext-cli
+make test PROJECT=flext-cli
+make scan PROJECT=flext-cli
 
 # Check individual projects
-cd flext-core && make validate
-cd flext-ldif && make validate
-cd flext-api && make validate
+make check PROJECT=flext-core
+make check PROJECT=flext-ldif
+make check PROJECT=flext-api
 ```
 
 ### System Status
@@ -87,17 +83,18 @@ git status
 
 #### Problem: ModuleNotFoundError
 
-```python
+```text
 # Error
 ModuleNotFoundError: No module named 'flext_core'
 ```
 
-#### Solutions
+#### Solutions for Import Errors
 
 **Check PYTHONPATH:**
 
 ```bash
-export PYTHONPATH=src
+source .venv/bin/activate
+unset PYTHONPATH
 python -c "import flext_core; print(flext_core.__file__)"
 ```
 
@@ -105,7 +102,7 @@ python -c "import flext_core; print(flext_core.__file__)"
 
 ```bash
 make clean
-make setup
+make boot
 ```
 
 **Check Poetry environment:**
@@ -115,73 +112,72 @@ poetry env info
 poetry install
 ```
 
-### r
+### Import Diagnostics
 
 ```python
-# Debug import issues
+# Debug import issues — uses the canonical FLEXT structured logger.
 import sys
 
-print("Python path:")
-for path in sys.path:
-    print(f"  {path}")
+from flext_core import u
 
-print("\nTrying to import flext_core...")
+logger = u.fetch_logger("troubleshoot.imports")
+logger.info("python_path", entries=tuple(sys.path))
 try:
     import flext_core
-
-    print(f"Success: {flext_core.__file__}")
-except ImportError as e:
-    print(f"Failed: {e}")
+except ImportError:
+    logger.exception("flext_core_import_failed")
+else:
+    logger.info("flext_core_import_ok", path=flext_core.__file__)
 ```
 
-If fail you need to use .venv of flext.
+If the import still fails, activate the workspace `.venv` and rerun the check.
 
 ### 2. Type Checking Errors
 
 #### Problem: MyPy errors
 
-```python
+```text
 # Error
-error: Argument 1 to "process" has incompatible type "str"; expected "dict[str, object]"
+error: Argument 1 to "process" has incompatible type "str"; expected "t.JsonMapping"
 ```
 
-#### Solutions
+#### Solutions for Type Checking Errors
 
 **Fix type annotations:**
 
-```python
+```text
 # ❌ WRONG
 def process(data):
     return data
 
 
 # ✅ CORRECT
-def process(data: dict[str, object]) -> r[ProcessedData]:
+def process(data: t.JsonMapping) -> p.Result[ProcessedData]:
     return r.ok(ProcessedData(**data))
 ```
 
 **Run MyPy with details:**
 
 ```bash
-mypy src/module.py --show-error-codes --show-traceback
+make check PROJECT=flext-cli CHECK_GATES=mypy FILES='src/module.py'
 ```
 
 **Check specific error:**
 
 ```bash
-mypy src/ --show-error-codes | grep "error-code"
+make check PROJECT=flext-cli CHECK_GATES=mypy
 ```
 
 ### 3. Test Failures
 
 #### Problem: Tests failing
 
-```python
+```text
 # Error
 AssertionError: Expected success but got failure
 ```
 
-#### Solutions
+#### Solutions for Test Failures
 
 **Run with verbose output:**
 
@@ -198,25 +194,35 @@ pytest tests/unit/test_module.py::TestClass::test_method -v --pdb
 **Check test data:**
 
 ```python
-def test_with_debug():
+from __future__ import annotations
+
+from collections.abc import Callable
+
+from flext_core import p, u
+
+
+def test_with_debug(my_function: Callable[[], p.Result[object]]) -> None:
+    """Use the structured FLEXT logger for in-test diagnostics."""
+    logger = u.fetch_logger("troubleshoot.test_with_debug")
     result = my_function()
-    print(f"Result: {result}")
-    print(f"Success: {result.is_success}")
-    if result.is_failure:
-        print(f"Error: {result.failure()}")
-    assert result.is_success
+    logger.info(
+        "test_result",
+        success=bool(result.success),
+        error=str(result.error) if result.failure else None,
+    )
+    assert result.success
 ```
 
 ### 4. Configuration Issues
 
 #### Problem: Configuration not loading
 
-```python
+```text
 # Error
 ValidationError: field required
 ```
 
-#### Solutions
+#### Solutions for Configuration Issues
 
 **Check environment variables:**
 
@@ -227,112 +233,92 @@ env | grep FLEXT_
 **Validate configuration:**
 
 ```python
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import FlextDecorators
-from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
-from flext_core import h
-from flext_core import FlextLogger
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
-from flext_core import t
-from flext_core import u
+from pydantic import ValidationError
 
+from flext_core import FlextSettings, u
+
+logger = u.fetch_logger("troubleshoot.config_validate")
 try:
-    config = FlextSettings()
-    print("Configuration valid")
-except ValidationError as e:
-    print(f"Configuration error: {e}")
+    settings = FlextSettings()
+except ValidationError:
+    logger.exception("flext_settings_invalid")
+else:
+    logger.info("flext_settings_valid", log_level=str(settings.log_level))
 ```
 
 **Debug configuration loading:**
 
 ```python
 import os
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import FlextDecorators
-from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
-from flext_core import h
-from flext_core import FlextLogger
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
-from flext_core import t
-from flext_core import u
 
-# Print all FLEXT environment variables
-for key, value in os.environ.items():
-    if key.startswith("FLEXT_"):
-        print(f"{key}={value}")
+from flext_core import FlextSettings, u
 
-# Load and print configuration
-config = FlextSettings()
-print(f"Config: {config.dict()}")
+logger = u.fetch_logger("troubleshoot.config_env")
+
+# Log only the FLEXT_ variable NAMES; never log values (may contain secrets).
+flext_keys = sorted(name for name in os.environ if name.startswith("FLEXT_"))
+logger.info("flext_environment_keys", count=len(flext_keys), keys=tuple(flext_keys))
+
+# Load configuration through the canonical entrypoint and log a non-sensitive view.
+settings = FlextSettings.fetch_global()
+logger.info("flext_settings_summary", log_level=str(settings.log_level))
 ```
 
 ### 5. LDIF Processing Issues
 
 #### Problem: LDIF parsing fails
 
-```python
+```text
 # Error
 LdifParsingException: Invalid LDIF format
 ```
 
-#### Solutions
+#### Solutions for LDIF Processing Issues
 
 **Check LDIF content:**
 
 ```python
-from flext_ldif import FlextLdif
+from flext_ldif import ldif
 
-ldif = FlextLdif()
+from flext_core import u
+
+logger = u.fetch_logger("troubleshoot.ldif_parse")
 content = """dn: cn=test,dc=example,dc=com
 cn: test
 objectClass: inetOrgPerson"""
 
-result = ldif.parse(content)
-if result.is_failure:
-    print(f"Parse error: {result.failure()}")
-    print(f"Content: {repr(content)}")
+result = ldif.parse_string(content)
+if result.failure:
+    logger.error(
+        "ldif_parse_failed", error=str(result.error), content_preview=repr(content)[:80]
+    )
+else:
+    response = result.unwrap()
+    logger.info("ldif_parse_ok", entries=len(response.entries))
 ```
 
 **Enable debug logging:**
 
 ```python
-import logging
+# FLEXT logging level is configured globally via FlextSettings (FLEXT_LOG_LEVEL env var)
+# or by passing log_level= to FlextSettings(). Do NOT call logging.basicConfig.
+from flext_core import u
 
-logging.basicConfig(level=logging.DEBUG)
-
-# Your LDIF processing code
+logger = u.fetch_logger("troubleshoot.ldif_debug")
+logger.debug("ldif_processing_start")
+# ... your LDIF processing code
+logger.debug("ldif_processing_done")
 ```
 
 **Validate LDIF format:**
 
 ```python
+from __future__ import annotations
+
+
 # Check for common LDIF issues
-def validate_ldif_content(content: str) -> t.StringList:
-    issues = []
+def validate_ldif_content(content: str) -> list[str]:
+    issues: list[str] = []
 
     if not content.strip():
         issues.append("Empty content")
@@ -352,268 +338,242 @@ def validate_ldif_content(content: str) -> t.StringList:
 
 #### Problem: Migration fails
 
-```python
+```text
 # Error
 LdifMigrationException: Server compatibility error
 ```
 
-#### Solutions
+#### Solutions for Migration Issues
 
 **Check server configuration:**
 
 ```python
-from flext_ldif import FlextLdifSettings
+from flext_ldif import FlextLdifSettings, c
 
-config = FlextLdifSettings(
-    source_server="oid",
-    target_server="oud",
-    preserve_oid_modifiers=True,
-    handle_schema_extensions=True,
+from flext_core import u
+
+logger = u.fetch_logger("troubleshoot.ldif_settings")
+settings = FlextLdifSettings(
+    ldif={"ldif_encoding": c.Ldif.Encoding.UTF8, "ldif_strict_validation": True}
 )
-
-print(f"Config: {config.dict()}")
+logger.info(
+    "ldif_settings_loaded",
+    ldif_encoding=str(settings.ldif.ldif_encoding),
+    ldif_strict_validation=settings.ldif.ldif_strict_validation,
+)
 ```
 
-**Enable server quirks:**
+**Build a migration pipeline:**
 
 ```python
-config = FlextLdifSettings(
-    servers_enabled=True, source_server="oid", target_server="oud"
-)
+from flext_ldif import ldif
+
+from flext_core import u
+
+logger = u.fetch_logger("troubleshoot.ldif_pipeline")
+pipeline = ldif.migration_pipeline()
+logger.info("migration_pipeline_built", pipeline_type=type(pipeline).__name__)
 ```
 
 **Test with sample data:**
 
 ```python
-# Test migration with small sample
+from flext_ldif import ldif
+
+from flext_core import u
+
+logger = u.fetch_logger("troubleshoot.ldif_sample")
 sample_ldif = """dn: cn=test,dc=example,dc=com
 cn: test
 objectClass: inetOrgPerson"""
 
-result = ldif.parse(sample_ldif)
-if result.is_success:
-    print("Sample parsing successful")
+result = ldif.parse_string(sample_ldif)
+if result.success:
+    logger.info("sample_parse_ok")
 else:
-    print(f"Sample parsing failed: {result.failure()}")
+    logger.error("sample_parse_failed", error=str(result.error))
 ```
 
 ### 7. Performance Issues
 
 #### Problem: Slow processing
 
-```python
+```text
 # Symptoms
 # - High memory usage
 # - Slow response times
 # - Timeout errors
 ```
 
-#### Solutions
+#### Solutions for Performance Issues
 
 **Profile memory usage:**
 
 ```python
-import psutil
+from __future__ import annotations
+
 import os
 
+import psutil
 
-def profile_memory():
+from flext_core import u
+
+
+def profile_memory() -> None:
+    """Sample RSS before and after a workload via the FLEXT structured logger."""
+    logger = u.fetch_logger("troubleshoot.profile_memory")
     process = psutil.Process(os.getpid())
-    initial_memory = process.memory_info().rss
-
-    # Your processing code here
-
-    final_memory = process.memory_info().rss
-    memory_used = final_memory - initial_memory
-
-    print(f"Memory used: {memory_used / 1024 / 1024:.2f} MB")
+    initial_rss = process.memory_info().rss
+    # ... your processing code here ...
+    final_rss = process.memory_info().rss
+    logger.info(
+        "memory_profile", used_mb=round((final_rss - initial_rss) / 1024 / 1024, 2)
+    )
 
 
 profile_memory()
 ```
 
-**Optimize batch size:**
+**Inspect active LDIF settings:**
 
 ```python
-from flext_ldif import FlextLdifSettings
+from flext_ldif import FlextLdifSettings, c
 
-# Reduce batch size for memory-constrained environments
-config = FlextLdifSettings(
-    batch_size=100,  # Instead of default 1000
-    parallel_processing=False,  # Disable for memory issues
+from flext_core import u
+
+logger = u.fetch_logger("troubleshoot.ldif_settings_inspect")
+settings = FlextLdifSettings(
+    ldif={"ldif_encoding": c.Ldif.Encoding.UTF8, "ldif_strict_validation": False}
+)
+logger.info(
+    "ldif_settings_active",
+    ldif_encoding=str(settings.ldif.ldif_encoding),
+    ldif_strict_validation=settings.ldif.ldif_strict_validation,
 )
 ```
 
-**Enable parallel processing:**
+**Reuse explicit settings in the facade:**
 
 ```python
-config = FlextLdifSettings(
-    parallel_processing=True,
-    max_workers=4,  # Adjust based on CPU cores
-)
+from flext_ldif import FlextLdifSettings, ldif
+
+from flext_core import u
+
+logger = u.fetch_logger("troubleshoot.ldif_facade")
+settings = FlextLdifSettings(ldif_strict_validation=True)
+custom_ldif = ldif(settings=settings)
+logger.info("ldif_facade_created", facade_type=type(custom_ldif).__name__)
 ```
 
 ## Debugging Techniques
 
 ### 1. Logging Configuration
 
+FLEXT uses **structured logging**. Configuration is global through ``FlextSettings``
+(or the ``FLEXT_LOG_LEVEL`` env var) — never call ``logging.basicConfig`` in FLEXT code.
+
 ```python
-import logging
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import FlextDecorators
-from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
-from flext_core import h
-from flext_core import FlextLogger
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
-from flext_core import t
 from flext_core import u
 
-# Configure logging
-logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-
-# Use FLEXT logger
-logger = FlextLogger.get_logger(__name__)
-logger.debug("Debug message")
-logger.info("Info message")
-logger.warning("Warning message")
-logger.error("Error message")
+logger = u.fetch_logger(__name__)
+logger.debug("debug_event", detail="example")
+logger.info("info_event")
+logger.warning("warning_event")
+logger.error("error_event")
 ```
 
 ### 2. Exception Handling
 
 ```python
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import FlextDecorators
-from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
-from flext_core import h
-from flext_core import FlextLogger
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
-from flext_core import t
-from flext_core import u
+from __future__ import annotations
+
+from flext_core import p, r, u
+
+logger = u.fetch_logger(__name__)
 
 
-def safe_operation(data: dict) -> r[dict]:
+def process_data(data: dict[str, str]) -> p.Result[dict[str, str]]:
+    if not data:
+        return r[dict[str, str]].fail("Data required")
+    return r[dict[str, str]].ok(data)
+
+
+def safe_operation(data: dict[str, str]) -> p.Result[dict[str, str]]:
+    """Wrap fallible work; log via the structured logger, return ``r``."""
     try:
-        # Your operation here
-        result = process_data(data)
-        return r.ok(result)
-    except ValidationError as e:
-        logger.error(f"Validation error: {e}")
-        return r.fail(f"Validation failed: {e}")
-    except Exception as e:
-        logger.error(f"Unexpected error: {e}", exc_info=True)
-        return r.fail(f"Operation failed: {e}")
+        return process_data(data)
+    except ValueError as error:
+        logger.warning("validation_error", error=str(error))
+        return r[dict[str, str]].fail(f"Validation failed: {error}")
+    except (TypeError, KeyError, AttributeError) as error:
+        # ``logger.exception`` emits ERROR + traceback in the structured payload.
+        logger.exception("unexpected_error")
+        return r[dict[str, str]].fail(f"Operation failed: {error}")
 ```
 
 ### 3. Debug Mode
 
 ```python
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import FlextDecorators
-from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
-from flext_core import h
-from flext_core import FlextLogger
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
-from flext_core import t
-from flext_core import u
+from flext_core import FlextSettings, u
 
-# Enable debug mode
-config = FlextSettings(debug=True)
-
-# Debug information will be printed
-print(f"Debug mode: {config.debug}")
-print(f"Log level: {config.log_level}")
+logger = u.fetch_logger("troubleshoot.debug_mode")
+settings = FlextSettings(debug=True)
+logger.info(
+    "flext_debug_state", debug=settings.debug, log_level=str(settings.log_level)
+)
 ```
 
 ### 4. Step-by-Step Debugging
 
 ```python
-def debug_ldif_processing(content: str):
-    """Debug LDIF processing step by step."""
-    print(f"Input content length: {len(content)}")
-    print(f"First 100 chars: {repr(content[:100])}")
+from __future__ import annotations
 
-    # Step 1: Basic validation
+from flext_ldif import ldif
+
+from flext_core import u
+
+
+def debug_ldif_processing(content: str) -> None:
+    """Debug LDIF processing step-by-step via the structured FLEXT logger."""
+    logger = u.fetch_logger("troubleshoot.ldif_step")
+    logger.info("ldif_input", length=len(content), first_100=repr(content[:100]))
+
     if not content.strip():
-        print("ERROR: Empty content")
+        logger.error("ldif_empty_content")
         return
 
-    # Step 2: Check DN format
     lines = content.split("\n")
     dn_line = lines[0] if lines else ""
-    print(f"DN line: {repr(dn_line)}")
+    logger.info("ldif_dn_line", dn_line=repr(dn_line))
 
     if not dn_line.startswith("dn:"):
-        print("ERROR: Missing or invalid DN line")
+        logger.error("ldif_missing_dn")
         return
 
-    # Step 3: Try parsing
-    from flext_ldif import FlextLdif
-
-    ldif = FlextLdif()
-
-    result = ldif.parse(content)
-    if result.is_success:
-        entries = result.unwrap()
-        print(f"SUCCESS: Parsed {len(entries)} entries")
+    result = ldif.parse_string(content)
+    if result.success:
+        response = result.unwrap()
+        logger.info("ldif_parse_ok", entries=len(response.entries))
     else:
-        print(f"ERROR: Parse failed: {result.failure()}")
+        logger.error("ldif_parse_failed", error=str(result.error))
 ```
 
 ## Error Codes Reference
 
 ### FLEXT Core Errors
 
-| Error Code  | Description                     | Solution                                     |
-| ----------- | ------------------------------- | -------------------------------------------- |
-| `FLEXT_001` | Configuration validation failed | Check environment variables and config files |
-| `FLEXT_002` | Dependency injection failed     | Verify service registration in container     |
-| `FLEXT_003` | Type validation failed          | Fix type annotations and data types          |
+| Error Code  | Description                     | Solution                                         |
+| ----------- | ------------------------------- | ------------------------------------------------ |
+| `FLEXT_001` | Configuration validation failed | Check environment variables and settings files   |
+| `FLEXT_002` | Dependency injection failed     | Verify service registration in container         |
+| `FLEXT_003` | Type validation failed          | Fix type annotations and data types              |
 
 ### LDIF Processing Errors
 
 | Error Code | Description                | Solution                                  |
 | ---------- | -------------------------- | ----------------------------------------- |
 | `LDIF_001` | Invalid LDIF format        | Check LDIF syntax and structure           |
-| `LDIF_002` | Server compatibility error | Enable server quirks or check server type |
+| `LDIF_002` | Server compatibility error | Enable server servers or check server type |
 | `LDIF_003` | Schema validation failed   | Verify schema definitions and attributes  |
 
 ### API Errors
@@ -629,21 +589,28 @@ def debug_ldif_processing(content: str):
 ### Memory Issues
 
 ```python
-# Monitor memory usage
-import psutil
+from __future__ import annotations
+
 import os
 
+import psutil
 
-def monitor_memory():
-    process = psutil.Process(os.getpid())
-    memory_info = process.memory_info()
+from flext_core import u
 
-    print(f"RSS: {memory_info.rss / 1024 / 1024:.2f} MB")
-    print(f"VMS: {memory_info.vms / 1024 / 1024:.2f} MB")
+_HIGH_MEMORY_THRESHOLD_MB = 500
 
-    # Check for memory leaks
-    if memory_info.rss > 500 * 1024 * 1024:  # 500MB
-        print("WARNING: High memory usage detected")
+
+def monitor_memory() -> None:
+    """Sample current process RSS/VMS via the structured FLEXT logger."""
+    logger = u.fetch_logger("troubleshoot.monitor_memory")
+    info = psutil.Process(os.getpid()).memory_info()
+    rss_mb = round(info.rss / 1024 / 1024, 2)
+    vms_mb = round(info.vms / 1024 / 1024, 2)
+    logger.info("memory_sample", rss_mb=rss_mb, vms_mb=vms_mb)
+    if rss_mb > _HIGH_MEMORY_THRESHOLD_MB:
+        logger.warning(
+            "memory_high", rss_mb=rss_mb, threshold_mb=_HIGH_MEMORY_THRESHOLD_MB
+        )
 
 
 monitor_memory()
@@ -652,19 +619,24 @@ monitor_memory()
 ### CPU Issues
 
 ```python
-# Monitor CPU usage
+from __future__ import annotations
+
+import os
+
 import psutil
-import time
+
+from flext_core import u
 
 
-def monitor_cpu():
+def monitor_cpu() -> None:
+    """Emit a single CPU sample for the current process via the FLEXT logger.
+
+    For sustained monitoring schedule periodic emits via your runner / SRE
+    tooling instead of looping with ``time.sleep`` inside this helper.
+    """
+    logger = u.fetch_logger("troubleshoot.monitor_cpu")
     process = psutil.Process(os.getpid())
-
-    # Get CPU usage over time
-    for i in range(10):
-        cpu_percent = process.cpu_percent()
-        print(f"CPU usage: {cpu_percent}%")
-        time.sleep(1)
+    logger.info("cpu_sample", percent=process.cpu_percent(interval=0.1))
 
 
 monitor_cpu()
@@ -684,10 +656,10 @@ monitor_cpu()
 
    ```bash
    # System health check
-   make validate
+   make val
 
    # Project-specific check
-   cd flext-core && make validate
+   cd flext-core && make val
    ```
 
 1. **Check Logs**
@@ -732,44 +704,28 @@ When reporting issues, include:
 1. **Error Details**
 
    ```python
-   # Full error traceback
-   import traceback
+   from flext_core import u
+
+   logger = u.fetch_logger("troubleshoot.example_error")
    try:
-       # Your code here
-   except Exception as e:
-       traceback.print_exc()
+       raise RuntimeError("example failure")
+   except RuntimeError:
+       # ``logger.exception`` emits ERROR + the full traceback in structured form.
+       logger.exception("example_failure_demo")
    ```
 
 1. **Minimal Reproduction**
 
-   ```python
-   # Minimal code that reproduces the issue
-   from flext_core import FlextBus
-   ```
+```python
+# Minimal code that reproduces the issue
+from flext_core import FlextSettings, u
 
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import FlextDecorators
-from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
-from flext_core import h
-from flext_core import FlextLogger
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
-from flext_core import t
-from flext_core import u
+logger = u.fetch_logger("troubleshoot.minimal_repro")
+settings = FlextSettings.fetch_global()
+logger.info("flext_log_level", value=str(settings.log_level))
+```
 
-### Your minimal example here
-
-4. **Expected vs Actual Behavior**
+1. **Expected vs Actual Behavior**
 
 - What you expected to happen
 - What actually happened
@@ -782,38 +738,49 @@ from flext_core import u
 1. **Always Use r**
 
 ```python
+from __future__ import annotations
+
+from flext_core import p, r
+
+
 # ✅ GOOD
-def process(data: dict) -> r[ProcessedData]:
-    return r.ok(ProcessedData(**data))
+def process(data: dict[str, str]) -> p.Result[dict[str, str]]:
+    return r[dict[str, str]].ok(data)
 
 
 # ❌ BAD
-def process(data: dict) -> ProcessedData:
-    return ProcessedData(**data)
+def process_without_result(data: dict[str, str]) -> dict[str, str]:
+    return data
 ```
 
-2. **Validate Input Early**
+1. **Validate Input Early**
 
    ```python
-   def process_data(data: dict) -> r[dict]:
+   from flext_core import p, r
+
+
+   def process_data(data: dict[str, str]) -> p.Result[dict[str, str]]:
        if not data:
-           return r.fail("Data required")
+           return r[dict[str, str]].fail("Data required")
 
        # Process data
-       return r.ok(processed_data)
+       return r[dict[str, str]].ok(data)
    ```
 
 1. **Use Type Hints**
 
    ```python
+   from flext_cli import p, r, t
+
+
    # ✅ GOOD
-   def process(items: list[Item]) -> r[list[ProcessedItem]]:
-       pass
+   def process(items: t.SequenceOf[str]) -> p.Result[list[str]]:
+       return r[list[str]].ok([item.upper() for item in items])
 
 
    # ❌ BAD
-   def process(items):
-       pass
+   def process_without_types(items):
+       return items
    ```
 
 1. **Test Thoroughly**
@@ -822,11 +789,11 @@ def process(data: dict) -> ProcessedData:
    def test_process_data():
        # Test success case
        result = process_data({"key": "value"})
-       assert result.is_success
+       assert result.success
 
        # Test failure case
        result = process_data(None)
-       assert result.is_failure
+       assert result.failure
    ```
 
 ## Resources

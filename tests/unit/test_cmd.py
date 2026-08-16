@@ -1,612 +1,160 @@
-"""FLEXT CLI CMD Tests - Comprehensive Command Functionality Testing.
+"""Behavioral tests for the public CLI command surface (FlextCliCmd via ``cli``).
 
-Tests for FlextCliCmd covering command initialization, execution, configuration operations
-(edit, show, validate, get/set values), error handling, performance, integration,
-and edge cases with 100% coverage.
+Exercises the observable public contract of the process-wide ``cli`` facade:
+``execute``, ``settings_snapshot``, ``show_settings``, and ``validate_settings``.
+Every assertion targets a return value (``r[T]`` outcome / public model state)
+reachable through the public API — never logging format, private attributes, or
+internal collaborators.
 
-Modules tested: flext_cli.cmd.FlextCliCmd, u.Cli.ConfigOps, FlextCliServiceBase
-Scope: All command operations, configuration operations, error handling, edge cases
+Module tested: flext_cli.services.cmd.FlextCliCmd (surfaced on flext_cli.cli)
+Data I/O: reads the real ``$HOME/.flext`` directory state via a monkeypatched
+HOME pointing at pytest ``tmp_path``; creates directories to drive filesystem
+state. No production data is written.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
 
-import json
-import stat
-import time
-from collections.abc import Mapping
-from enum import StrEnum
-from pathlib import Path
+from datetime import datetime
+from typing import TYPE_CHECKING
 
 import pytest
+
+from flext_cli import cli, m
 from flext_tests import tm
+from tests import c, p, t
 
-from flext_cli import FlextCliCmd, FlextCliServiceBase, FlextCliSettings, c, m, r, u
-
-
-class ConfigOperation(StrEnum):
-    """Configuration operation types for testing."""
-
-    EDIT = "edit_config"
-    SHOW = "show_config"
-    VALIDATE = "validate_config"
-    GET_INFO = "get_config_info"
-    SHOW_PATHS = "show_config_paths"
-    GET_VALUE = "get_config_value"
-    SET_VALUE = "set_config_value"
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
-class ConfigErrorScenario(StrEnum):
-    """Configuration error scenarios for testing."""
+class TestsFlextCliCmd:
+    """Public behavioral contract of the CLI command service facade."""
 
-    FILE_NOT_FOUND = "file_not_found"
-    INVALID_JSON = "invalid_json"
-    NOT_DICT = "not_dict"
-    MISSING_KEY = "missing_key"
-    READ_ONLY_DIR = "read_only_dir"
+    def test_cli_satisfies_cmd_service_contract(self) -> None:
+        """The public facade must satisfy the CmdService protocol."""
+        tm.that(cli, none=False, is_=p.Cli.CmdService)
 
+    def test_execute_reports_operational_runtime_payload(self) -> None:
+        """execute() must succeed and expose the canonical status payload."""
+        data = m.Cli.RuntimeStatus.model_validate(tm.ok(cli.execute()))
 
-CONFIG_OPERATION_METHODS: dict[ConfigOperation, str] = {
-    ConfigOperation.EDIT: "edit_config",
-    ConfigOperation.SHOW: "show_config",
-    ConfigOperation.VALIDATE: "validate_config",
-    ConfigOperation.GET_INFO: "get_config_info",
-    ConfigOperation.SHOW_PATHS: "show_config_paths",
-}
-ERROR_SCENARIO_DATA: dict[ConfigErrorScenario, dict[str, str]] = {
-    ConfigErrorScenario.INVALID_JSON: {"content": "invalid json content {"},
-    ConfigErrorScenario.NOT_DICT: {"content": '"not a dict"'},
-    ConfigErrorScenario.MISSING_KEY: {"content": '{"other_key": "value"}'},
-    ConfigErrorScenario.FILE_NOT_FOUND: {"content": ""},
-}
-VALID_CONFIG_DATA: dict[str, int | str] = {
-    "host": "localhost",
-    "port": 8080,
-    "timeout": 30,
-}
-CONFIG_FILE_NAME = c.Cli.ConfigFiles.CLI_CONFIG_JSON
+        tm.that(data.status, eq=c.Cli.ServiceStatus.OPERATIONAL)
+        tm.that(data.service, eq=c.Cli.FLEXT_CLI)
+        tm.that(data.version, eq=c.Cli.CLI_VERSION)
+        tm.that(data.timestamp, is_=str)
+        tm.that(data.components, is_=m.Cli.RuntimeComponents)
 
+    def test_execute_is_deterministic_across_calls(self) -> None:
+        """Repeated execute() calls must report identical stable identity fields."""
+        first: m.Cli.RuntimeStatus = tm.ok(cli.execute())
+        second: m.Cli.RuntimeStatus = tm.ok(cli.execute())
 
-def _create_cmd_instance() -> FlextCliCmd:
-    """Create FlextCliCmd instance for testing."""
-    return FlextCliCmd()
+        tm.that(first.status, eq=second.status)
+        tm.that(first.service, eq=second.service)
+        tm.that(first.version, eq=second.version)
 
-
-def _create_config_file(temp_dir: Path, content: str | Mapping[str, object]) -> Path:
-    """Create config file with specified content."""
-    config_file = temp_dir / CONFIG_FILE_NAME
-    if isinstance(content, str):
-        config_file.write_text(content, encoding="utf-8")
-    else:
-        config_file.write_text(json.dumps(content, indent=2), encoding="utf-8")
-    return config_file
-
-
-def _set_config_dir(temp_dir: Path) -> Path:
-    """Set config directory and return original for restoration."""
-    config = FlextCliSettings.get_instance()
-    original_config_dir = config.config_dir
-    config.config_dir = temp_dir
-    assert config.config_dir == temp_dir, f"Failed to update config_dir to {temp_dir}"
-    return original_config_dir
-
-
-def _restore_config_dir(original_dir: Path) -> None:
-    """Restore original config directory."""
-    FlextCliServiceBase.get_cli_config().config_dir = original_dir
-
-
-def _create_readonly_dir(temp_dir: Path) -> Path:
-    """Create read-only directory for testing."""
-    readonly_dir = temp_dir / "readonly"
-    readonly_dir.mkdir(parents=True, exist_ok=True)
-    readonly_dir.chmod(stat.S_IRUSR | stat.S_IXUSR)
-    return readonly_dir
-
-
-def _restore_dir_permissions(directory: Path) -> None:
-    """Restore directory permissions for cleanup."""
-    directory.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
-
-
-class TestsCliCmd:
-    """Comprehensive tests for FlextCliCmd class.
-
-    Single class with nested test groups organized by functionality.
-    Uses factories, enums, mapping, and dynamic tests for maximum code reuse.
-    """
-
-    def test_cmd_initialization(self) -> None:
-        """Test CMD initialization with proper configuration."""
-        cmd = _create_cmd_instance()
-        assert cmd is not None
-        assert isinstance(cmd, FlextCliCmd)
-
-    def test_cmd_instantiation(self) -> None:
-        """Test direct instantiation."""
-        instance = _create_cmd_instance()
-        assert isinstance(instance, FlextCliCmd)
-
-    def test_cmd_service_properties(self) -> None:
-        """Test CMD service properties."""
-        cmd = _create_cmd_instance()
-        assert hasattr(cmd, "execute")
-        assert hasattr(cmd, "edit_config")
-        assert hasattr(cmd, "logger")
-        assert hasattr(cmd, "container")
-
-    def test_cmd_execute_sync(self) -> None:
-        """Test synchronous CMD execution."""
-        cmd = _create_cmd_instance()
-        result = cmd.execute()
-        tm.ok(result)
-        data = result.value
-        assert isinstance(data, dict)
-        assert data["status"] == "operational"
-        assert data["service"] == "FlextCliCmd"
-
-    def test_cmd_command_bus_service(self) -> None:
-        """Test command bus service property."""
-        cmd = _create_cmd_instance()
-        assert cmd is not None
-        assert isinstance(cmd, FlextCliCmd)
-
-    def test_cmd_integration(self) -> None:
-        """Test CMD integration with other services."""
-        cmd = _create_cmd_instance()
-        result = cmd.execute()
-        tm.ok(result)
-        assert cmd is not None
-        assert isinstance(cmd, FlextCliCmd)
-
-    def test_cmd_logging_integration(self) -> None:
-        """Test CMD logging integration."""
-        cmd = _create_cmd_instance()
-        result = cmd.execute()
-        tm.ok(result)
-        assert result.value is not None
-
-    def test_cmd_performance(self) -> None:
-        """Test CMD performance characteristics."""
-        cmd = _create_cmd_instance()
-        start_time = time.time()
-        result = cmd.execute()
-        execution_time = time.time() - start_time
-        tm.ok(result)
-        assert execution_time < 1.0
-
-    def test_cmd_memory_usage(self) -> None:
-        """Test CMD memory usage characteristics."""
-        cmd = _create_cmd_instance()
-        for _ in range(5):
-            result = cmd.execute()
-            tm.ok(result)
-
-    @pytest.mark.parametrize(
-        "operation",
-        [
-            ConfigOperation.EDIT,
-            ConfigOperation.SHOW,
-            ConfigOperation.VALIDATE,
-            ConfigOperation.GET_INFO,
-            ConfigOperation.SHOW_PATHS,
-            ConfigOperation.GET_VALUE,
-            ConfigOperation.SET_VALUE,
-        ],
-    )
-    def test_config_operations(self, operation: ConfigOperation) -> None:
-        """Test configuration operations."""
-        if operation in CONFIG_OPERATION_METHODS:
-            cmd = _create_cmd_instance()
-            method = getattr(cmd, CONFIG_OPERATION_METHODS[operation])
-            result = method()
-            assert isinstance(result, r)
-            assert result.is_success or result.is_failure
-
-    def test_cmd_show_config_paths(self) -> None:
-        """Test show_config_paths method."""
-        cmd = _create_cmd_instance()
-        result = cmd.show_config_paths()
-        tm.ok(result)
-        assert isinstance(result.value, list)
-        assert len(result.value) > 0
-
-    def test_cmd_validate_config(self) -> None:
-        """Test validate_config method."""
-        cmd = _create_cmd_instance()
-        result = cmd.validate_config()
-        tm.ok(result)
-
-    def test_cmd_get_config_info(self) -> None:
-        """Test get_config_info method."""
-        cmd = _create_cmd_instance()
-        result = cmd.get_config_info()
-        tm.ok(result)
-        assert isinstance(result.value, m.Cli.ConfigSnapshot)
-        assert result.value.config_dir is not None
-
-    def test_cmd_show_config(self) -> None:
-        """Test show_config method."""
-        cmd = _create_cmd_instance()
-        result = cmd.show_config()
-        tm.ok(result)
-
-    def test_cmd_config_edit(self, tmp_path: Path) -> None:
-        """Test configuration editing functionality with proper setup."""
-        config_dir = tmp_path / "config"
-        config_dir.mkdir()
-        cmd = _create_cmd_instance()
-        result = cmd.edit_config()
-        assert isinstance(result, r)
-        if result.is_success:
-            assert isinstance(result.value, str)
-
-    def test_cmd_config_edit_existing(self, tmp_path: Path) -> None:
-        """Test editing existing configuration."""
-        config_dir = tmp_path / "config"
-        config_dir.mkdir()
-        _create_config_file(config_dir, VALID_CONFIG_DATA)
-        cmd = _create_cmd_instance()
-        result = cmd.edit_config()
-        assert isinstance(result, r)
-        if result.is_success:
-            assert isinstance(result.value, str)
-
-    def test_cmd_config_default_values(self, tmp_path: Path) -> None:
-        """Test default configuration values with clean temporary directory."""
-        config_dir = tmp_path / "config"
-        config_dir.mkdir()
-        config_file = config_dir / CONFIG_FILE_NAME
-        assert not config_file.exists()
-        cmd = _create_cmd_instance()
-        result = cmd.edit_config()
-        assert isinstance(result, r)
-        if result.is_success:
-            assert isinstance(result.value, str)
-
-    def test_cmd_edit_config_creates_default(self, tmp_path: Path) -> None:
-        """Test edit_config creates default configuration."""
-        config_dir = tmp_path / "config"
-        config_dir.mkdir()
-        config_file = config_dir / CONFIG_FILE_NAME
-        assert not config_file.exists()
-        cmd = _create_cmd_instance()
-        result = cmd.edit_config()
-        assert isinstance(result, r)
-        if result.is_success:
-            assert isinstance(result.value, str)
-
-    def test_cmd_configuration_consistency(self, tmp_path: Path) -> None:
-        """Test configuration consistency across operations."""
-        config_dir = tmp_path / "config"
-        config_dir.mkdir()
-        config_file = config_dir / CONFIG_FILE_NAME
-        assert not config_file.exists()
-        cmd = _create_cmd_instance()
-        result1 = cmd.edit_config()
-        assert isinstance(result1, r)
-        result2 = cmd.edit_config()
-        assert isinstance(result2, r)
-        if result1.is_success:
-            assert isinstance(result1.value, str)
-        if result2.is_success:
-            assert isinstance(result2.value, str)
-
-    def test_cmd_set_config_value(self) -> None:
-        """Test set_config_value method."""
-        cmd = _create_cmd_instance()
-        result = cmd.set_config_value("test_key", "test_value")
-        assert result is not None
-        if result.is_success:
-            assert result.value is True
-
-    def test_cmd_get_config_value_nonexistent_file(self) -> None:
-        """Test get_config_value with nonexistent config file."""
-        cmd = _create_cmd_instance()
-        config_path = FlextCliServiceBase.get_cli_config().config_dir / CONFIG_FILE_NAME
-        if config_path.exists():
-            config_path.unlink()
-        result = cmd.get_config_value("nonexistent_key")
-        tm.fail(result)
-        error_msg = str(result.error).lower() if result.error else ""
-        assert "not found" in error_msg
-
-    def test_cmd_get_config_value_key_found_in_file(self, temp_dir: Path) -> None:
-        """Test get_config_value success path when key is found."""
-        cmd = _create_cmd_instance()
-        config_file = _create_config_file(temp_dir, {"found_key": "found_value"})
-        assert config_file.exists(), f"Config file should exist at {config_file}"
-        config = FlextCliSettings.get_instance()
-        original_config_dir = config.config_dir
-        config.config_dir = temp_dir
-        try:
-            assert config.config_dir == temp_dir, (
-                f"Config dir should be {temp_dir}, got {config.config_dir}"
-            )
-            current_config = FlextCliServiceBase.get_cli_config()
-            assert current_config.config_dir == temp_dir, (
-                f"get_cli_config() should return updated config_dir {temp_dir}, got {current_config.config_dir}"
-            )
-            expected_config_path = temp_dir / c.Cli.ConfigFiles.CLI_CONFIG_JSON
-            assert expected_config_path.exists(), (
-                f"Config file should exist at {expected_config_path}"
-            )
-            result = cmd.get_config_value("found_key")
-            tm.ok(result)
-            data = result.value
-            assert data["key"] == "found_key"
-            assert data["value"] == "found_value"
-            assert "timestamp" in data
-        finally:
-            config.config_dir = original_config_dir
-
-    @pytest.mark.parametrize(
-        ("scenario", "expected_error_keyword"),
-        [
-            (ConfigErrorScenario.FILE_NOT_FOUND, "not found"),
-            (ConfigErrorScenario.INVALID_JSON, "expecting value"),
-            (ConfigErrorScenario.NOT_DICT, "not a valid dictionary"),
-            (ConfigErrorScenario.MISSING_KEY, "not found"),
-        ],
-    )
-    def test_cmd_get_config_value_error_scenarios(
-        self, temp_dir: Path, scenario: ConfigErrorScenario, expected_error_keyword: str
+    def test_settings_snapshot_reports_absent_home_state(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """Test get_config_value with various error scenarios."""
-        cmd = _create_cmd_instance()
-        if scenario == ConfigErrorScenario.FILE_NOT_FOUND:
-            pass
-        else:
-            test_data = ERROR_SCENARIO_DATA[scenario]
-            _create_config_file(temp_dir, test_data["content"])
-        original_config_dir = _set_config_dir(temp_dir)
-        try:
-            result = cmd.get_config_value("test_key")
-            tm.fail(result)
-            error_msg = str(result.error).lower() if result.error else ""
-            assert expected_error_keyword in error_msg
-        finally:
-            _restore_config_dir(original_config_dir)
+        """A missing settings dir must yield a fully-negative snapshot."""
+        monkeypatch.setenv("HOME", str(tmp_path))
 
-    def test_cmd_get_config_value_file_load_error(self, temp_dir: Path) -> None:
-        """Test get_config_value with invalid JSON file."""
-        cmd = _create_cmd_instance()
-        _create_config_file(
-            temp_dir, ERROR_SCENARIO_DATA[ConfigErrorScenario.INVALID_JSON]["content"]
+        info: m.Cli.SettingsSnapshot = tm.ok(cli.settings_snapshot())
+
+        expected: t.JsonMapping = {
+            "settings_dir": str(tmp_path / c.Cli.PATH_FLEXT_DIR_NAME),
+            "settings_exists": False,
+            "settings_readable": False,
+            "settings_writable": False,
+        }
+        tm.that(info, attr_eq=expected)
+
+    def test_settings_snapshot_reports_present_home_state(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """An existing, accessible settings dir must yield a positive snapshot."""
+        settings_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
+        settings_dir.mkdir()
+        monkeypatch.setenv("HOME", str(tmp_path))
+
+        info: m.Cli.SettingsSnapshot = tm.ok(cli.settings_snapshot())
+
+        expected: t.JsonMapping = {
+            "settings_dir": str(settings_dir),
+            "settings_exists": True,
+            "settings_readable": True,
+            "settings_writable": True,
+        }
+        tm.that(info, attr_eq=expected)
+
+    def test_settings_snapshot_timestamp_is_iso8601(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The snapshot timestamp must be a parseable ISO-8601 instant."""
+        monkeypatch.setenv("HOME", str(tmp_path))
+
+        info: m.Cli.SettingsSnapshot = tm.ok(cli.settings_snapshot())
+        parsed = datetime.fromisoformat(info.timestamp)
+
+        tm.that(parsed, is_=datetime)
+
+    def test_settings_snapshot_is_a_settings_snapshot_model(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """The snapshot value must be the public SettingsSnapshot model."""
+        monkeypatch.setenv("HOME", str(tmp_path))
+
+        result = cli.settings_snapshot()
+        tm.ok(result, is_=m.Cli.SettingsSnapshot)
+
+        tm.that(
+            result.value.model_dump(),
+            keys=(
+                "settings_dir",
+                "settings_exists",
+                "settings_readable",
+                "settings_writable",
+                "timestamp",
+            ),
         )
-        original_config_dir = _set_config_dir(temp_dir)
-        try:
-            result = cmd.get_config_value("test_key")
-            tm.fail(result)
-            assert result.error is not None
-        finally:
-            _restore_config_dir(original_config_dir)
 
-    def test_cmd_get_config_value_not_dict_data(self, temp_dir: Path) -> None:
-        """Test get_config_value when config data is not a dict."""
-        cmd = _create_cmd_instance()
-        _create_config_file(temp_dir, "[1, 2, 3]")
-        original_config_dir = _set_config_dir(temp_dir)
-        try:
-            result = cmd.get_config_value("test_key")
-            tm.fail(result)
-            assert "not a valid dictionary" in str(result.error)
-        finally:
-            _restore_config_dir(original_config_dir)
+    @pytest.mark.parametrize("dir_present", [False, True])
+    def test_show_settings_succeeds_for_any_home_state(
+        self, *, dir_present: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """show_settings() must report success regardless of settings-dir presence."""
+        if dir_present:
+            (tmp_path / c.Cli.PATH_FLEXT_DIR_NAME).mkdir()
+        monkeypatch.setenv("HOME", str(tmp_path))
 
-    def test_cmd_edit_config_not_dict_data(self, temp_dir: Path) -> None:
-        """Test edit_config when config data is not a dict."""
-        cmd = _create_cmd_instance()
-        _create_config_file(
-            temp_dir, ERROR_SCENARIO_DATA[ConfigErrorScenario.NOT_DICT]["content"]
-        )
-        original_config_dir = _set_config_dir(temp_dir)
-        try:
-            result = cmd.edit_config()
-            tm.fail(result)
-            assert "not a valid dictionary" in str(result.error)
-        finally:
-            _restore_config_dir(original_config_dir)
+        tm.that(tm.ok(cli.show_settings()), eq=True)
 
-    def test_cmd_edit_config_load_error(self, temp_dir: Path) -> None:
-        """Test edit_config with invalid JSON file."""
-        cmd = _create_cmd_instance()
-        _create_config_file(
-            temp_dir, ERROR_SCENARIO_DATA[ConfigErrorScenario.INVALID_JSON]["content"]
-        )
-        original_config_dir = _set_config_dir(temp_dir)
-        try:
-            result = cmd.edit_config()
-            tm.fail(result)
-            assert isinstance(result.error, str)
-            assert result.error is not None
-        finally:
-            _restore_config_dir(original_config_dir)
+    def test_show_settings_reflects_snapshot_presence(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """show_settings() success must coincide with the snapshot it displays."""
+        (tmp_path / c.Cli.PATH_FLEXT_DIR_NAME).mkdir()
+        monkeypatch.setenv("HOME", str(tmp_path))
 
-    def test_cmd_set_config_value_save_failure(self, temp_dir: Path) -> None:
-        """Test set_config_value with read-only directory."""
-        cmd = _create_cmd_instance()
-        read_only_dir = _create_readonly_dir(temp_dir)
-        original_config_dir = _set_config_dir(read_only_dir)
-        try:
-            result = cmd.set_config_value("key", "value")
-            assert isinstance(result, r)
-        finally:
-            _restore_dir_permissions(read_only_dir)
-            _restore_config_dir(original_config_dir)
+        displayed: bool = tm.ok(cli.show_settings())
+        snapshot: m.Cli.SettingsSnapshot = tm.ok(cli.settings_snapshot())
 
-    def test_cmd_edit_config_save_failure(self, temp_dir: Path) -> None:
-        """Test edit_config with read-only directory."""
-        cmd = _create_cmd_instance()
-        read_only_dir = _create_readonly_dir(temp_dir)
-        original_config_dir = _set_config_dir(read_only_dir)
-        try:
-            result = cmd.edit_config()
-            assert isinstance(result, r)
-        finally:
-            _restore_dir_permissions(read_only_dir)
-            _restore_config_dir(original_config_dir)
+        tm.that(displayed, eq=True)
+        tm.that(snapshot.settings_exists, eq=True)
 
-    def test_cmd_config_helper_get_config_paths(self) -> None:
-        """Test u.Cli.ConfigOps.get_config_paths() directly."""
-        paths = u.Cli.ConfigOps.get_config_paths()
-        assert isinstance(paths, list)
-        assert len(paths) > 0
-        assert any(".flext" in path for path in paths)
+    @pytest.mark.parametrize("with_subdirs", [False, True])
+    def test_validate_settings_succeeds_for_any_structure(
+        self, *, with_subdirs: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """validate_settings() must succeed whether or not subdirs exist."""
+        settings_dir = tmp_path / c.Cli.PATH_FLEXT_DIR_NAME
+        settings_dir.mkdir()
+        if with_subdirs:
+            for subdir in c.Cli.STANDARD_SUBDIRS:
+                (settings_dir / subdir).mkdir()
+        monkeypatch.setenv("HOME", str(tmp_path))
 
-    def test_cmd_config_helper_validate_config_structure(self) -> None:
-        """Test u.Cli.ConfigOps.validate_config_structure() directly."""
-        results = u.Cli.ConfigOps.validate_config_structure()
-        assert isinstance(results, list)
-        assert len(results) > 0
-
-    def test_cmd_config_helper_get_config_info(self) -> None:
-        """Test u.Cli.ConfigOps.get_config_info() directly."""
-        info = u.Cli.ConfigOps.get_config_info()
-        assert isinstance(info, m.Cli.ConfigSnapshot)
-        assert isinstance(info.config_dir, str)
-        assert isinstance(info.config_exists, bool)
-        assert isinstance(info.config_readable, bool)
-        assert isinstance(info.config_writable, bool)
-        assert isinstance(info.timestamp, str)
-
-    def test_cmd_validate_config_structure_missing_dir(self) -> None:
-        """Test validate_config_structure when main config directory is missing."""
-        results = u.Cli.ConfigOps.validate_config_structure()
-        assert isinstance(results, list)
-        assert all(isinstance(r, str) for r in results)
-
-    def test_cmd_error_handling(self) -> None:
-        """Test CMD error handling capabilities."""
-        cmd = _create_cmd_instance()
-        result = cmd.edit_config()
-        assert result is not None
-
-    def test_cmd_show_config_paths_exception(self) -> None:
-        """Test show_config_paths exception handler."""
-        cmd = _create_cmd_instance()
-        result = cmd.show_config_paths()
-        assert isinstance(result, r)
-        if result.is_success:
-            assert isinstance(result.value, list)
-            assert all(isinstance(p, str) for p in result.value)
-
-    def test_cmd_validate_config_exception(self) -> None:
-        """Test validate_config exception handler."""
-        cmd = _create_cmd_instance()
-        result = cmd.validate_config()
-        assert isinstance(result, r)
-        assert result.is_success or result.is_failure
-
-    def test_cmd_get_config_info_exception(self) -> None:
-        """Test get_config_info exception handler."""
-        cmd = _create_cmd_instance()
-        result = cmd.get_config_info()
-        assert isinstance(result, r)
-        if result.is_success:
-            info = result.value
-            assert isinstance(info, m.Cli.ConfigSnapshot)
-
-    def test_cmd_set_config_value_exception(self) -> None:
-        """Test set_config_value exception handler."""
-        cmd = _create_cmd_instance()
-        result = cmd.set_config_value("key", "value")
-        assert isinstance(result, r)
-        assert result.is_success or result.is_failure
-
-    def test_cmd_get_config_value_exception(self) -> None:
-        """Test get_config_value exception handler."""
-        cmd = _create_cmd_instance()
-        result = cmd.get_config_value("key")
-        assert isinstance(result, r)
-        if result.is_success:
-            assert result.value is not None
-
-    def test_cmd_show_config_exception(self) -> None:
-        """Test show_config exception handler."""
-        cmd = _create_cmd_instance()
-        result = cmd.show_config()
-        assert isinstance(result, r)
-
-    def test_cmd_show_config_get_info_failure(self, temp_dir: Path) -> None:
-        """Test show_config with invalid config."""
-        cmd = _create_cmd_instance()
-        _create_config_file(temp_dir, "invalid json")
-        original_config_dir = _set_config_dir(temp_dir)
-        try:
-            result = cmd.show_config()
-            assert isinstance(result, r)
-        finally:
-            _restore_config_dir(original_config_dir)
-
-    def test_cmd_edit_config_exception(self) -> None:
-        """Test edit_config exception handler."""
-        cmd = _create_cmd_instance()
-        result = cmd.edit_config()
-        assert isinstance(result, r)
-        if result.is_success:
-            assert isinstance(result.value, str)
-
-    def test_cmd_config_display_helper_show_config(self) -> None:
-        """Test show_config method."""
-        cmd = _create_cmd_instance()
-        result = cmd.show_config()
-        tm.ok(result)
-
-    def test_cmd_config_modification_helper_edit_config(self) -> None:
-        """Test edit_config method."""
-        cmd = _create_cmd_instance()
-        result = cmd.edit_config()
-        assert result.is_success or result.is_failure
-
-    def test_cmd_config_validation_helper_validate_config(self) -> None:
-        """Test validate_config method."""
-        cmd = _create_cmd_instance()
-        result = cmd.validate_config()
-        assert result.is_success or result.is_failure
-
-    def test_cmd_show_config_paths_error_handling(self) -> None:
-        """Test show_config_paths error handling."""
-        cmd = _create_cmd_instance()
-        result = cmd.show_config_paths()
-        assert result.is_success or result.is_failure
-
-    def test_cmd_validate_config_error_handling(self) -> None:
-        """Test validate_config error handling."""
-        cmd = _create_cmd_instance()
-        result = cmd.validate_config()
-        assert result.is_success or result.is_failure
-
-    def test_cmd_get_config_info_error_handling(self) -> None:
-        """Test get_config_info error handling."""
-        cmd = _create_cmd_instance()
-        result = cmd.get_config_info()
-        assert result.is_success or result.is_failure
-
-    def test_cmd_show_config_error_handling(self) -> None:
-        """Test show_config error handling."""
-        cmd = _create_cmd_instance()
-        result = cmd.show_config()
-        assert result.is_success or result.is_failure
-
-    def test_cmd_config_display_helper_error_handling(self) -> None:
-        """Test config display error handling."""
-        cmd = _create_cmd_instance()
-        result = cmd.get_config_info()
-        assert result.is_success or result.is_failure
-
-    def test_cmd_config_modification_helper_error_handling(self) -> None:
-        """Test config modification error handling."""
-        cmd = _create_cmd_instance()
-        result = cmd.edit_config()
-        assert result.is_success or result.is_failure
-
-    def test_cmd_edit_config_create_default_config_error(self) -> None:
-        """Test edit_config handles errors gracefully."""
-        cmd = _create_cmd_instance()
-        result = cmd.edit_config()
-        assert result is not None
-        assert result.is_success or result.is_failure
+        tm.that(tm.ok(cli.validate_settings()), eq=True)

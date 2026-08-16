@@ -1,139 +1,130 @@
-"""Tests for CLI Utilities."""
+"""Behavioral tests for the CLI utilities public contract (``u`` / ``u.Cli``).
+
+Exercises only the observable contract of the utility helpers:
+- ``u.process`` — item processing with predicate filtering and error policy.
+- ``u.Cli.process_mapping`` — keyed processing with fail/collect/skip policy.
+- ``u.Cli.validate_not_empty`` — emptiness validation returning ``r[bool]``.
+- ``u.Cli.project_names_from_values`` / ``project_numbers_from_values`` —
+  CLI selector normalization.
+"""
 
 from __future__ import annotations
 
-import types
-from enum import StrEnum
-from typing import Annotated
-
 import pytest
-from flext_core import r
-from pydantic import Field
 
-from flext_cli import u
-
-
-def test_process_fail_and_collect_paths() -> None:
-    values = [1, 0]
-    fail_result = u.Cli.process(
-        values,
-        lambda x: (_ for _ in ()).throw(ValueError("div zero")) if x == 0 else 10 // x,
-        on_error="fail",
-    )
-    assert fail_result.is_failure
-    collect_result = u.Cli.process(
-        values,
-        lambda x: (_ for _ in ()).throw(ValueError("div zero")) if x == 0 else 10 // x,
-        on_error="collect",
-    )
-    assert collect_result.is_failure
-    assert "[1]" in (collect_result.error or "")
-    skipped = u.Cli.process(values, lambda x: 10 // x, predicate=lambda x: x != 0)
-    assert skipped.is_success
+from flext_tests import tm
+from tests import t, u
 
 
-def test_process_mapping_fail_and_collect_paths() -> None:
-    data = {"ok": 2, "bad": 0}
-    fail_result = u.Cli.process_mapping(
-        data,
-        lambda _k, v: (
-            (_ for _ in ()).throw(ValueError("div zero")) if v == 0 else 10 // v
-        ),
-        on_error="fail",
-    )
-    assert fail_result.is_failure
-    collect_result = u.Cli.process_mapping(
-        data,
-        lambda _k, v: (
-            (_ for _ in ()).throw(ValueError("div zero")) if v == 0 else 10 // v
-        ),
-        on_error="collect",
-    )
-    assert collect_result.is_failure
-    assert "bad" in (collect_result.error or "")
+def _raise_on_zero(value: int) -> int:
+    """Processor that divides 10 by ``value`` and raises on zero."""
+    if value == 0:
+        msg = "div zero"
+        raise ValueError(msg)
+    return 10 // value
 
 
-def test_validate_required_string_raises_value_error() -> None:
-    raised = False
-    try:
-        u.Cli.validate_required_string("", context="Token")
-    except ValueError:
-        raised = True
-    assert raised
+def _raise_on_zero_kv(_key: str, value: int) -> int:
+    """Delegate key/value arguments to :func:`_raise_on_zero`."""
+    return _raise_on_zero(value)
 
 
-def test_validation_v_uses_custom_message_on_empty_failure() -> None:
-    result = u.Cli.CliValidation.v(None, name="x", empty=False, msg="custom")
-    assert result.is_failure
-    assert result.error == "custom"
+class TestsFlextCliUtilitiesCov:
+    """Behavioral contract for CLI utility helpers."""
+
+    def test_process_returns_mapped_values_on_success(self) -> None:
+        """Verify that process returns mapped values on success."""
+        result = u.process([1, 2, 5], _raise_on_zero)
+        tm.ok(result)
+        tm.that(list(result.unwrap()), eq=[10, 5, 2])
+
+    def test_process_fails_when_processor_raises(self) -> None:
+        """Verify that process fails when processor raises."""
+        result = u.process([1, 0], _raise_on_zero, on_error="fail")
+        tm.fail(result)
+        tm.that(result.error or "", has="0")
+
+    def test_process_skip_policy_drops_failing_items(self) -> None:
+        """Verify that process skip policy drops failing items."""
+        result = u.process([1, 0, 5], _raise_on_zero, on_error="skip")
+        tm.ok(result)
+        tm.that(list(result.unwrap()), eq=[10, 2])
+
+    def test_process_predicate_excludes_items_before_processing(self) -> None:
+        """Verify that process predicate excludes items before processing."""
+        result = u.process([1, 0, 5], _raise_on_zero, predicate=lambda x: x != 0)
+        tm.ok(result)
+        tm.that(list(result.unwrap()), eq=[10, 2])
+
+    def test_process_mapping_returns_mapped_values_on_success(self) -> None:
+        """Verify that process mapping returns mapped values on success."""
+        result = u.Cli.process_mapping({"a": 2, "b": 5}, _raise_on_zero_kv)
+        tm.ok(result)
+        tm.that(result.unwrap(), eq={"a": 5, "b": 2})
+
+    def test_process_mapping_fail_policy_reports_offending_key(self) -> None:
+        """Verify that process mapping fail policy reports offending key."""
+        result = u.Cli.process_mapping(
+            {"ok": 2, "bad": 0}, _raise_on_zero_kv, on_error="fail"
+        )
+        tm.fail(result)
+        tm.that(result.error or "", has="bad")
+
+    def test_process_mapping_collect_policy_reports_offending_key(self) -> None:
+        """Verify that process mapping collect policy reports offending key."""
+        result = u.Cli.process_mapping(
+            {"ok": 2, "bad": 0}, _raise_on_zero_kv, on_error="collect"
+        )
+        tm.fail(result)
+        tm.that(result.error or "", has="bad")
+
+    def test_process_mapping_skip_policy_keeps_only_successes(self) -> None:
+        """Verify that process mapping skip policy keeps only successes."""
+        result = u.Cli.process_mapping(
+            {"ok": 2, "bad": 0}, _raise_on_zero_kv, on_error="skip"
+        )
+        tm.ok(result)
+        tm.that(result.unwrap(), eq={"ok": 5})
+
+    @pytest.mark.parametrize("value", [None, "", "   "])
+    def test_validate_not_empty_fails_for_empty_inputs(self, value: str | None) -> None:
+        """Verify that validate not empty fails for empty inputs."""
+        result = u.Cli.validate_not_empty(value, name="project")
+        tm.fail(result)
+        tm.that(result.error or "", has="project")
+
+    @pytest.mark.parametrize("value", ["name", " padded ", 0, 42])
+    def test_validate_not_empty_succeeds_for_present_values(
+        self, value: t.Cli.CliValue
+    ) -> None:
+        """Verify that validate not empty succeeds for present values."""
+        result = u.Cli.validate_not_empty(value, name="project")
+        tm.ok(result)
+        tm.that(result.unwrap(), eq=True)
+
+    def test_project_names_flattens_repeated_and_comma_selectors(self) -> None:
+        """Verify that project names flattens repeated and comma selectors."""
+        result = u.Cli.project_names_from_values("a,b", [" c ", "", "d,e"], None)
+        tm.that(result, eq=["a", "b", "c", "d", "e"])
+
+    def test_project_names_returns_none_when_no_selectors(self) -> None:
+        """Verify that project names returns none when no selectors."""
+        tm.that(u.Cli.project_names_from_values(None), eq=None)
+        tm.that(u.Cli.project_names_from_values("   "), eq=None)
+
+    def test_project_numbers_flattens_and_converts_to_int(self) -> None:
+        """Verify that project numbers flattens and converts to int."""
+        result = u.Cli.project_numbers_from_values("1,2", [" 3 ", "", "4,5"], None)
+        tm.that(result, eq=[1, 2, 3, 4, 5])
+
+    def test_project_numbers_uses_default_when_no_selectors(self) -> None:
+        """Verify that project numbers uses default when no selectors."""
+        result = u.Cli.project_numbers_from_values(None, default=(7, 8))
+        tm.that(result, eq=[7, 8])
+
+    def test_project_numbers_returns_none_without_selectors_or_default(self) -> None:
+        """Verify that project numbers returns none without selectors or default."""
+        tm.that(u.Cli.project_numbers_from_values(None), eq=None)
 
 
-def test_validation_state_requires_criteria() -> None:
-    result = u.Cli.CliValidation.v_state("active")
-    assert result.is_failure
-    assert "no validation criteria" in (result.error or "")
-
-
-def test_normalize_union_type_returns_none_when_inner_is_none(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    union_type = str | None
-    original = u.Cli.TypeNormalizer.normalize_annotation
-
-    def fake(
-        annotation: type | types.UnionType | None,
-    ) -> type | types.UnionType | None:
-        if annotation is str:
-            return None
-        return original(annotation)
-
-    monkeypatch.setattr(
-        u.Cli.TypeNormalizer, "normalize_annotation", staticmethod(fake)
-    )
-    result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
-    assert result is None
-
-
-def test_normalize_union_type_returns_none_for_empty_normalized_list(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    union_type = str | int
-    monkeypatch.setattr(
-        u.Cli.TypeNormalizer,
-        "normalize_annotation",
-        staticmethod(lambda _annotation: None),
-    )
-    result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
-    assert result is None
-
-
-def test_normalize_union_type_returns_annotation_for_none_only_args(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(
-        "flext_cli.utilities.get_args", lambda _annotation: (types.NoneType,)
-    )
-    union_type = str | int
-    result = u.Cli.TypeNormalizer.normalize_union_type(union_type)
-    assert result == union_type
-
-
-def test_validated_with_result_returns_failure_on_validation_error() -> None:
-
-    @u.Cli.TypeNormalizer.Args.validated_with_result
-    def parse_int(value: Annotated[int, Field(gt=0)]) -> r[int]:
-        return r[int].ok(value)
-
-    result = parse_int(value=-1)
-    assert result.is_failure
-    assert "validation" in (result.error or "").lower()
-
-
-def test_parse_kwargs_skips_missing_enum_field_key() -> None:
-
-    class Mode(StrEnum):
-        FAST = "fast"
-
-    result = u.Cli.TypeNormalizer.Args.parse_kwargs({"other": "x"}, {"mode": Mode})
-    assert result.is_success
-    assert "other" in result.value
+__all__: list[str] = ["TestsFlextCliUtilitiesCov"]

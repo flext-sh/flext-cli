@@ -1,10 +1,14 @@
-"""FLEXT CLI Base Tests - Comprehensive Base Service Validation Testing.
+"""Behavioral tests for the FLEXT CLI service base through the public facade.
 
-Tests for FlextCliServiceBase covering initialization, configuration access,
-singleton pattern, and inheritance from FlextService with 100% coverage.
+Exercises the OBSERVABLE public contract of the ``cli`` facade
+(``flext_cli.api.FlextCli``): clean instantiation, the canonical settings
+singleton contract, fresh-instance creation via ``model_validate``, and the
+``r[T]`` outcomes of the settings validation / snapshot operations. Also
+verifies the test service base composes the flat CLI settings with the Tests
+namespace.
 
-Modules tested: flext_cli.base.FlextCliServiceBase
-Scope: All base service functionality, config access, inheritance patterns
+Modules tested: flext_cli.api (public ``cli`` facade), tests.base
+Scope: Public base-service behavior — no private attributes, no internal spies.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,57 +17,97 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import override
+import pytest
+from pydantic import BaseModel
 
-from flext_core import r
+from flext_cli import FlextCli, cli, settings
+from flext_tests import tm
+from tests import p
+from tests.base import s
 
-from flext_cli import FlextCliServiceBase, FlextCliSettings
 
+class TestsFlextCliBase:
+    """Verify base-service public guarantees through the CLI facade."""
 
-class TestsCliServiceBase:
-    """Comprehensive test suite for FlextCliServiceBase functionality.
+    @pytest.fixture
+    def facade(self) -> FlextCli:
+        """Return a fresh instance of the public CLI facade type."""
+        return type(cli)()
 
-    Single class with nested helper classes and methods organized by functionality.
-    Tests cover all base service methods and properties with 100% coverage.
-    """
+    def test_facade_instantiates_as_its_own_type(self) -> None:
+        """A freshly constructed facade is a usable instance of the facade type."""
+        service = type(cli)()
+        service = tm.not_none(service)
+        tm.that(service, is_=type(cli))
 
-    class _ConcreteService(FlextCliServiceBase):
-        """Concrete implementation for testing abstract base class."""
+    def test_canonical_settings_satisfies_cli_protocol(self) -> None:
+        """The canonical ``settings`` singleton satisfies the Cli settings protocol."""
+        resolved_settings = tm.not_none(settings)
+        tm.that(resolved_settings, is_=p.Cli.Settings)
 
-        @override
-        def execute(self) -> r[object]:
-            """Implement abstract method for testing."""
-            return r[object].ok({})
+    def test_settings_property_is_stable_within_instance(
+        self, facade: FlextCli
+    ) -> None:
+        """Repeated `settings` reads return the same singleton (idempotent access)."""
+        first = facade.settings
+        second = facade.settings
+        tm.that(first is second, eq=True)
 
-    def test_service_base_initialization(self) -> None:
-        """Test FlextCliServiceBase can be instantiated via concrete class."""
-        service = self._ConcreteService()
-        assert service is not None
-        assert isinstance(service, FlextCliServiceBase)
+    def test_settings_singleton_shared_across_instances(self) -> None:
+        """Two independent facades observe the same shared settings singleton."""
+        service1 = type(cli)()
+        service2 = type(cli)()
+        tm.that(service1.settings is service2.settings, eq=True)
 
-    def test_cli_config_property(self) -> None:
-        """Test cli_config property returns FlextCliSettings singleton."""
-        service = self._ConcreteService()
-        config = service.cli_config
-        assert config is not None
-        assert isinstance(config, FlextCliSettings)
-        config2 = service.cli_config
-        assert config is config2
+    def test_clone_returns_fresh_typed_instances(self) -> None:
+        """``clone`` is the factory: each call yields a distinct typed instance."""
+        first = settings.clone()
+        second = settings.clone()
+        tm.that(first, is_=p.Cli.Settings)
+        tm.that(second, is_=p.Cli.Settings)
+        tm.that(first is not second, eq=True)
+        tm.that(first is not settings, eq=True)
 
-    def test_get_cli_config_static_method(self) -> None:
-        """Test get_cli_config static method returns FlextCliSettings singleton."""
-        config = FlextCliServiceBase.get_cli_config()
-        assert config is not None
-        assert isinstance(config, FlextCliSettings)
-        config2 = FlextCliServiceBase.get_cli_config()
-        assert config is config2
-        service = self._ConcreteService()
-        assert config is service.cli_config
+    def test_validate_settings_reports_success_outcome(self, facade: FlextCli) -> None:
+        """`validate_settings` returns a successful r[bool] carrying True."""
+        result = facade.validate_settings()
+        tm.ok(result)
+        tm.that(result.unwrap(), eq=True)
 
-    def test_config_singleton_consistency(self) -> None:
-        """Test that property and static method return same singleton."""
-        service1 = self._ConcreteService()
-        service2 = self._ConcreteService()
-        assert service1.cli_config is service2.cli_config
-        assert service1.cli_config is FlextCliServiceBase.get_cli_config()
-        assert service2.cli_config is FlextCliServiceBase.get_cli_config()
+    def test_settings_snapshot_exposes_public_state(self, facade: FlextCli) -> None:
+        """`settings_snapshot` returns r[Snapshot] whose public fields are populated."""
+        result = facade.settings_snapshot()
+        tm.ok(result)
+        snapshot = result.unwrap()
+        dumped = snapshot.model_dump()
+        tm.that(
+            set(dumped)
+            >= {
+                "settings_dir",
+                "settings_exists",
+                "settings_readable",
+                "settings_writable",
+                "timestamp",
+            },
+            eq=True,
+        )
+        tm.that(snapshot.settings_exists, is_=bool)
+        tm.that(snapshot.settings_dir, is_=str)
+        tm.that(snapshot.settings_dir, empty=False)
+
+    def test_snapshot_map_composes_over_success(self, facade: FlextCli) -> None:
+        """The r[T] snapshot value flows through `map` without losing success."""
+        directory = facade.settings_snapshot().map(lambda snap: snap.settings_dir)
+        tm.ok(directory)
+        tm.that(directory.unwrap(), eq=facade.settings_snapshot().unwrap().settings_dir)
+
+    def test_service_base_settings_satisfy_cli_protocol(self) -> None:
+        """The test service base settings expose the flat CLI settings surface."""
+        test_settings = s.fetch_settings()
+        tm.that(test_settings, is_=p.Cli.Settings)
+
+    def test_service_base_settings_expose_tests_namespace(self) -> None:
+        """The test service base settings compose the Tests settings namespace."""
+        test_settings = s.fetch_settings()
+        section = test_settings.Tests
+        tm.that(section, is_=BaseModel)

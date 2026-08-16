@@ -1,11 +1,12 @@
-"""FLEXT CLI Constants Tests - Comprehensive Constant Validation Testing.
+"""Behavioral tests for the ``flext_cli.constants`` public facade.
 
-Tests for FlextCliConstants covering initialization, values, format validation,
-cross-platform compatibility, encoding, consistency, and integration scenarios
-with 100% coverage.
+Every test asserts an OBSERVABLE part of the constants contract that
+consumers depend on: concrete values, enum membership, mapping coverage,
+authority-tuple/enum agreement, and the runtime classification behavior
+of the compiled regex authorities. No private attributes, no mocking of
+internal collaborators — only the public ``c.Cli.*`` / ``u.*`` surface.
 
-Modules tested: flext_cli.constants.FlextCliConstants
-Scope: All constant values, format validation, usage scenarios, edge cases
+Modules tested: flext_cli.constants.FlextCliConstants (``c.Cli``)
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -14,526 +15,222 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import json
-import logging
-import platform
-import tempfile
-import time
-from pathlib import Path
+from collections.abc import Mapping
+from enum import StrEnum
 
 import pytest
 
-from flext_cli import FlextCliConstants, c, u
+from flext_tests import tm
+from tests import c, u
 
-from ..helpers import FlextCliTestHelpers
 
+class TestsFlextCliConstants:
+    """Public-contract behavior of the flext-cli constants facade."""
 
-class TestsCliConstants:
-    """Comprehensive test suite for FlextCliConstants functionality.
+    # ---- identity / metadata contract -------------------------------------
 
-    Single class with nested helper classes and methods organized by functionality.
-    Uses factories, constants, dynamic tests, and helpers to reduce code while
-    maintaining and expanding coverage.
-    """
+    def test_cli_version_is_the_published_semver(self) -> None:
+        """CLI_VERSION exposes the shipped 3-part semver string."""
+        version = c.Cli.CLI_VERSION
+        tm.that(version, eq="2.0.0")
+        major, minor, patch = version.split(".")[:3]
+        for part in (major, minor, patch):
+            tm.that(part.isdigit(), eq=True)
 
-    class Fixtures:
-        """Factory for creating constants instances for testing."""
+    def test_flext_cli_identifier_value(self) -> None:
+        """FLEXT_CLI names the distribution consumers key on."""
+        tm.that(c.Cli.FLEXT_CLI, eq="flext-cli")
 
-        @staticmethod
-        def get_constants() -> type[FlextCliConstants]:
-            """Get FlextCliConstants instance."""
-            return FlextCliTestHelpers.ConstantsFactory.get_constants()
+    def test_flext_dir_name_is_hidden_dotfile(self) -> None:
+        """PATH_FLEXT_DIR_NAME is the hidden ``.flext`` home directory."""
+        name = c.Cli.PATH_FLEXT_DIR_NAME
+        tm.that(name, eq=".flext")
+        tm.that(name.startswith("."), eq=True)
 
-    class TestData:
-        """Factory for creating test data scenarios."""
+    def test_standard_subdirs_expose_cache_and_logs(self) -> None:
+        """STANDARD_SUBDIRS enumerates exactly the managed subdirectories."""
+        tm.that(c.Cli.STANDARD_SUBDIRS, eq=(c.Cli.SUBDIR_CACHE, c.Cli.SUBDIR_LOGS))
+        tm.that(c.Cli.STANDARD_SUBDIRS, contains="cache")
+        tm.that(c.Cli.STANDARD_SUBDIRS, contains="logs")
 
-        @staticmethod
-        def get_constant_value_cases() -> list[tuple[str, str]]:
-            """Get parametrized test cases for constant values."""
-            return [
-                ("PROJECT_NAME", "flext-cli"),
-                ("FLEXT_DIR_NAME", ".flext"),
-                ("TOKEN_FILE_NAME", "token.json"),
-                ("REFRESH_TOKEN_FILE_NAME", "refresh_token.json"),
-                ("AUTH_DIR_NAME", "auth"),
-            ]
-
-        @staticmethod
-        def get_constant_names() -> list[str]:
-            """Get list of constant names for parametrized tests."""
-            return [
-                "PROJECT_NAME",
-                "FLEXT_DIR_NAME",
-                "TOKEN_FILE_NAME",
-                "REFRESH_TOKEN_FILE_NAME",
-            ]
-
-        @staticmethod
-        def get_file_name_constants() -> list[str]:
-            """Get list of file name constants."""
-            return ["TOKEN_FILE_NAME", "REFRESH_TOKEN_FILE_NAME"]
-
-    class Assertions:
-        """Helper methods for test assertions."""
-
-        @staticmethod
-        def _get_constant_value(
-            constants: type[FlextCliConstants], constant_name: str
-        ) -> str:
-            """Get constant value from correct namespace."""
-            mapping: dict[str, str] = {
-                "PROJECT_NAME": constants.Cli.Project.NAME,
-                "FLEXT_DIR_NAME": constants.Cli.Paths.FLEXT_DIR_NAME,
-                "TOKEN_FILE_NAME": constants.Cli.Paths.TOKEN_FILE_NAME,
-                "REFRESH_TOKEN_FILE_NAME": constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
-                "AUTH_DIR_NAME": constants.Cli.Paths.AUTH_DIR_NAME,
-            }
-            if constant_name not in mapping:
-                msg = f"Unknown constant name: {constant_name}"
-                raise ValueError(msg)
-            return mapping[constant_name]
-
-        @staticmethod
-        def assert_constant_exists(
-            constants: type[FlextCliConstants], constant_name: str
-        ) -> None:
-            """Assert constant exists and has value."""
-            value = TestsCliConstants.Assertions._get_constant_value(
-                constants, constant_name
-            )
-            assert value is not None
-            assert isinstance(value, str)
-            assert len(value) > 0
-            assert len(value.strip()) > 0
-
-        @staticmethod
-        def assert_constant_value(
-            constants: type[FlextCliConstants], constant_name: str, expected_value: str
-        ) -> None:
-            """Assert constant has expected value."""
-            actual_value = TestsCliConstants.Assertions._get_constant_value(
-                constants, constant_name
-            )
-            assert actual_value == expected_value
-            assert isinstance(actual_value, str)
-            assert len(actual_value) > 0
-
-        @staticmethod
-        def assert_file_name_format(
-            constants: type[FlextCliConstants], constant_name: str
-        ) -> None:
-            """Assert file name constant follows format."""
-            value = TestsCliConstants.Assertions._get_constant_value(
-                constants, constant_name
-            )
-            assert value.endswith(".json")
-            assert not value.startswith(".")
-            assert "/" not in value
-            assert "\\" not in value
-
-    def test_constants_service_initialization(self) -> None:
-        """Test constants service initialization and basic properties."""
-        constants = self.Fixtures.get_constants()
-        assert constants is not None
-        for constant_name in self.TestData.get_constant_names():
-            self.Assertions.assert_constant_exists(constants, constant_name)
+    # ---- default flags contract -------------------------------------------
 
     @pytest.mark.parametrize(
-        ("constant_name", "expected_value"),
+        "flag",
         [
-            ("PROJECT_NAME", "flext-cli"),
-            ("FLEXT_DIR_NAME", ".flext"),
-            ("TOKEN_FILE_NAME", "token.json"),
-            ("REFRESH_TOKEN_FILE_NAME", "refresh_token.json"),
-            ("AUTH_DIR_NAME", "auth"),
+            c.Cli.CLI_DEFAULT_VERBOSE,
+            c.Cli.CLI_DEFAULT_QUIET,
+            c.Cli.CLI_DEFAULT_NO_COLOR,
         ],
     )
-    def test_constants_values(self, constant_name: str, expected_value: str) -> None:
-        """Test constants have correct values."""
-        constants = self.Fixtures.get_constants()
-        self.Assertions.assert_constant_value(constants, constant_name, expected_value)
+    def test_cli_verbosity_flags_default_off(self, *, flag: bool) -> None:
+        """Every CLI verbosity/color default ships disabled."""
+        tm.that(flag, eq=False)
+
+    # ---- enum value contract ----------------------------------------------
 
     @pytest.mark.parametrize(
-        "constant_name",
+        ("member", "expected"),
         [
-            "PROJECT_NAME",
-            "FLEXT_DIR_NAME",
-            "TOKEN_FILE_NAME",
-            "REFRESH_TOKEN_FILE_NAME",
+            (c.Cli.ServiceStatus.OPERATIONAL, "operational"),
+            (c.Cli.MessageTypes.INFO, "info"),
+            (c.Cli.MessageTypes.ERROR, "error"),
+            (c.Cli.MessageTypes.WARNING, "warning"),
+            (c.Cli.MessageTypes.SUCCESS, "success"),
+            (c.Cli.MessageTypes.DEBUG, "debug"),
+            (c.Cli.LogVerbosity.COMPACT, "compact"),
+            (c.Cli.LogVerbosity.DETAILED, "detailed"),
+            (c.Cli.LogVerbosity.FULL, "full"),
+            (c.Cli.OutputFormats.TABLE, "table"),
+            (c.Cli.OutputFormats.JSON, "json"),
         ],
     )
-    def test_constants_are_immutable(self, constant_name: str) -> None:
-        """Test that constants are properly defined and immutable."""
-        constants = self.Fixtures.get_constants()
-        constant_value = self.Assertions._get_constant_value(constants, constant_name)
-        assert isinstance(constant_value, str)
-        assert len(constant_value.strip()) > 0
+    def test_enum_member_wire_value(self, member: str, expected: str) -> None:
+        """StrEnum members serialize to their documented wire strings."""
+        tm.that(member, eq=expected)
 
     @pytest.mark.parametrize(
-        "constant_name",
+        "enum_cls",
         [
-            "PROJECT_NAME",
-            "FLEXT_DIR_NAME",
-            "TOKEN_FILE_NAME",
-            "REFRESH_TOKEN_FILE_NAME",
+            c.Cli.MessageTypes,
+            c.Cli.OutputFormats,
+            c.Cli.LogVerbosity,
+            c.Cli.ServiceStatus,
+            c.Cli.CommandStatus,
         ],
     )
-    def test_constants_not_none_or_empty(self, constant_name: str) -> None:
-        """Test that constants are not None or empty strings."""
-        constants = self.Fixtures.get_constants()
-        constant_value = self.Assertions._get_constant_value(constants, constant_name)
-        assert constant_value is not None
-        assert constant_value
-        assert constant_value.strip()
+    def test_enum_values_matches_member_values(self, enum_cls: type[StrEnum]) -> None:
+        """u.enum_values returns exactly the frozenset of member .value strings."""
+        values = u.enum_values(enum_cls)
+        tm.that(values, is_=frozenset)
+        tm.that(
+            values,
+            eq=frozenset(member.value for member in enum_cls.__members__.values()),
+        )
+
+    def test_enum_values_is_cached_idempotent(self) -> None:
+        """Repeated u.enum_values calls yield an equal, stable frozenset."""
+        first = u.enum_values(c.Cli.MessageTypes)
+        second = u.enum_values(c.Cli.MessageTypes)
+        tm.that(first, eq=second)
+
+    # ---- authority tuple <-> enum agreement -------------------------------
+
+    def test_output_formats_authority_mirrors_enum(self) -> None:
+        """OUTPUT_FORMATS is the ordered tuple of OutputFormats members."""
+        tm.that(c.Cli.OUTPUT_FORMATS, eq=tuple(c.Cli.OutputFormats))
+
+    def test_message_types_authority_mirrors_enum(self) -> None:
+        """MESSAGE_TYPES is the ordered tuple of MessageTypes members."""
+        tm.that(c.Cli.MESSAGE_TYPES, eq=tuple(c.Cli.MessageTypes))
+
+    def test_log_levels_authority_contract(self) -> None:
+        """LOG_LEVELS lists the canonical logging severities in order."""
+        tm.that(c.Cli.LOG_LEVELS, eq=("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"))
+
+    # ---- output defaults resolve to enum members --------------------------
+
+    def test_output_defaults_point_at_enum_members(self) -> None:
+        """Output defaults reuse the canonical enum members, not loose strings."""
+        tm.that(c.Cli.OUTPUT_DEFAULT_FORMAT_TYPE, eq=c.Cli.OutputFormats.TABLE)
+        tm.that(c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE, eq=c.Cli.MessageTypes.INFO)
+
+    # ---- message map coverage invariants ----------------------------------
+
+    def test_table_formats_is_mapping_keyed_by_tabular_format(self) -> None:
+        """TABLE_FORMATS maps a subset of TabularFormat members to descriptions."""
+        table_formats = c.Cli.TABLE_FORMATS
+        tm.that(table_formats, is_=Mapping)
+        tm.that(table_formats, empty=False)
+        for key, description in table_formats.items():
+            tm.that(key in c.Cli.TabularFormat, eq=True)
+            tm.that(description, is_=str)
+            tm.that(description, empty=False)
 
     @pytest.mark.parametrize(
-        "constant_name",
-        [
-            "PROJECT_NAME",
-            "FLEXT_DIR_NAME",
-            "TOKEN_FILE_NAME",
-            "REFRESH_TOKEN_FILE_NAME",
-        ],
+        "message_map", [c.Cli.MESSAGE_STYLE_MAP, c.Cli.MESSAGE_EMOJI_MAP]
     )
-    def test_constants_type_safety(self, constant_name: str) -> None:
-        """Test constants type safety."""
-        constants = self.Fixtures.get_constants()
-        constant_value = self.Assertions._get_constant_value(constants, constant_name)
-        assert isinstance(constant_value, str)
-        assert len(constant_value) > 0
-        assert constant_value.upper() is not None
-        assert constant_value.lower() is not None
-
-    def test_directory_name_format_validation(self) -> None:
-        """Test that FLEXT_DIR_NAME follows expected format."""
-        constants = self.Fixtures.get_constants()
-        assert constants.Cli.Paths.FLEXT_DIR_NAME.startswith(".")
-        assert len(constants.Cli.Paths.FLEXT_DIR_NAME) > 1
-
-    @pytest.mark.parametrize(
-        "constant_name", ["TOKEN_FILE_NAME", "REFRESH_TOKEN_FILE_NAME"]
-    )
-    def test_file_name_format_validation(self, constant_name: str) -> None:
-        """Test that file names follow expected format."""
-        constants = self.Fixtures.get_constants()
-        self.Assertions.assert_file_name_format(constants, constant_name)
-
-    @pytest.mark.parametrize(
-        "constant_name", ["TOKEN_FILE_NAME", "REFRESH_TOKEN_FILE_NAME"]
-    )
-    @pytest.mark.parametrize(
-        "invalid_char", ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]
-    )
-    def test_file_names_no_invalid_characters(
-        self, constant_name: str, invalid_char: str
+    def test_message_maps_cover_every_message_type(
+        self, message_map: Mapping[c.Cli.MessageTypes, object]
     ) -> None:
-        """Test that file names don't contain invalid characters."""
-        constants = self.Fixtures.get_constants()
-        constant_value = self.Assertions._get_constant_value(constants, constant_name)
-        assert invalid_char not in constant_value
+        """Style/emoji maps expose an entry for every MessageTypes member."""
+        tm.that(set(message_map), eq=set(c.Cli.MessageTypes))
 
-    def test_constants_uniqueness(self) -> None:
-        """Test that constants have unique values."""
-        constants = self.Fixtures.get_constants()
-        constants_values = [
-            constants.Cli.Project.NAME,
-            constants.Cli.Paths.FLEXT_DIR_NAME,
-            constants.Cli.Paths.TOKEN_FILE_NAME,
-            constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
-        ]
-        assert len(constants_values) == len(set(constants_values))
+    # ---- error message templates ------------------------------------------
 
-    def test_constants_in_file_paths(self) -> None:
-        """Test constants usage in file path construction."""
-        constants = self.Fixtures.get_constants()
-        home_dir = Path.home()
-        flext_dir = home_dir / constants.Cli.Paths.FLEXT_DIR_NAME
-        token_file = flext_dir / constants.Cli.Paths.TOKEN_FILE_NAME
-        refresh_token_file = flext_dir / constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
-        assert str(flext_dir).endswith(constants.Cli.Paths.FLEXT_DIR_NAME)
-        assert str(token_file).endswith(constants.Cli.Paths.TOKEN_FILE_NAME)
-        assert str(refresh_token_file).endswith(
-            constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
+    def test_static_error_message_is_populated(self) -> None:
+        """A static error message exposes stable non-empty text."""
+        tm.that(c.Cli.ERR_AUTH_FILE_NOT_FOUND, eq="Token file does not exist")
+
+    def test_format_error_template_interpolates_placeholder(self) -> None:
+        """A templated error message interpolates its named placeholder."""
+        rendered = c.Cli.ERR_INVALID_OUTPUT_FORMAT.format(format="qzz")
+        tm.that(rendered, contains="qzz")
+
+    # ---- visual glyph distinctness ----------------------------------------
+
+    def test_status_emojis_are_distinct(self) -> None:
+        """Each status emoji is a distinct non-empty glyph."""
+        emojis = (
+            c.Cli.EMOJI_SUCCESS,
+            c.Cli.EMOJI_ERROR,
+            c.Cli.EMOJI_WARNING,
+            c.Cli.EMOJI_INFO,
+            c.Cli.EMOJI_DEBUG,
         )
-        assert Path(flext_dir).name == constants.Cli.Paths.FLEXT_DIR_NAME
-        assert Path(token_file).name == constants.Cli.Paths.TOKEN_FILE_NAME
-        assert (
-            Path(refresh_token_file).name == constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
+        for emoji in emojis:
+            tm.that(emoji, empty=False)
+        tm.that(len(set(emojis)), eq=len(emojis))
+
+    def test_success_and_failure_symbols_differ(self) -> None:
+        """Success and failure marks are different observable symbols."""
+        tm.that(c.Cli.SYMBOL_SUCCESS_MARK, eq="✓")
+        tm.that(c.Cli.SYMBOL_FAILURE_MARK, eq="✗")
+        tm.that(c.Cli.SYMBOL_SUCCESS_MARK != c.Cli.SYMBOL_FAILURE_MARK, eq=True)
+
+    # ---- regex authority classification behavior --------------------------
+
+    @pytest.mark.parametrize(
+        ("message", "expected"),
+        [
+            ("No such file or directory", True),
+            ("config.yml not found", True),
+            ("path does not exist", True),
+            ("[Errno 2] cannot open", True),
+            ("everything is fine", False),
+            ("permission denied", False),
+        ],
+    )
+    def test_file_not_found_classifier(self, message: str, *, expected: bool) -> None:
+        """u.Cli.file_not_found_error flags file-absence diagnostics only."""
+        tm.that(u.Cli.file_not_found_error(message), eq=expected)
+
+    @pytest.mark.parametrize(
+        ("message", "expected"),
+        [
+            ("No such option: --bad", True),
+            ("Missing argument 'NAME'", True),
+            ("Got unexpected extra argument", True),
+            ("CLI exited with code 2", True),
+            ("everything is fine", False),
+            ("No such file or directory", False),
+        ],
+    )
+    def test_cli_usage_error_classifier(self, message: str, *, expected: bool) -> None:
+        """u.Cli.cli_usage_error flags CLI-usage diagnostics only."""
+        tm.that(u.Cli.cli_usage_error(message), eq=expected)
+
+    def test_regex_authorities_agree_with_classifier_helpers(self) -> None:
+        """Compiled regex tuples and their helper wrappers classify consistently."""
+        fnf_hit = any(
+            pattern.search("No such file or directory")
+            for pattern in c.Cli.FILE_NOT_FOUND_REGEXES
         )
-
-    def test_constants_in_configuration(self) -> None:
-        """Test constants usage in configuration scenarios."""
-        constants = self.Fixtures.get_constants()
-        config = {
-            "project_name": constants.Cli.Project.NAME,
-            "data_directory": constants.Cli.Paths.FLEXT_DIR_NAME,
-            "token_file": constants.Cli.Paths.TOKEN_FILE_NAME,
-            "refresh_token_file": constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
-        }
-        assert config["project_name"] == "flext-cli"
-        assert config["data_directory"] == ".flext"
-        assert config["token_file"] == "token.json"
-        assert config["refresh_token_file"] == "refresh_token.json"
-
-    def test_constants_in_logging(self) -> None:
-        """Test constants usage in logging scenarios."""
-        constants = self.Fixtures.get_constants()
-        log_messages = [
-            f"Initializing {constants.Cli.Project.NAME}",
-            f"Creating directory: {constants.Cli.Paths.FLEXT_DIR_NAME}",
-            f"Loading token from: {constants.Cli.Paths.TOKEN_FILE_NAME}",
-            f"Refreshing token from: {constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME}",
-        ]
-        for message in log_messages:
-            assert isinstance(message, str)
-            assert len(message) > 0
-            assert (
-                constants.Cli.Project.NAME in message
-                or constants.Cli.Paths.FLEXT_DIR_NAME in message
-                or constants.Cli.Paths.TOKEN_FILE_NAME in message
-                or (constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME in message)
-            )
-
-    def test_constants_cross_platform_compatibility(self) -> None:
-        """Test that constants work across different platforms."""
-        constants = self.Fixtures.get_constants()
-        current_platform = platform.system().lower()
-        invalid_chars = (
-            ["/", "\\", ":", "*", "?", '"', "<", ">", "|"]
-            if current_platform == "windows"
-            else ["/"]
+        usage_hit = any(
+            pattern.search("No such option: --bad")
+            for pattern in c.Cli.CLI_USAGE_ERROR_REGEXES
         )
-        for char in invalid_chars:
-            assert char not in constants.Cli.Paths.TOKEN_FILE_NAME
-            assert char not in constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
-
-    def test_constants_encoding_compatibility(self) -> None:
-        """Test that constants are compatible with different encodings."""
-        constants = self.Fixtures.get_constants()
-        utf8_encoded = constants.Cli.Project.NAME.encode("utf-8")
-        assert isinstance(utf8_encoded, bytes)
-        assert len(utf8_encoded) > 0
-        decoded = utf8_encoded.decode("utf-8")
-        assert decoded == constants.Cli.Project.NAME
-        try:
-            ascii_encoded = constants.Cli.Project.NAME.encode("ascii")
-            assert isinstance(ascii_encoded, bytes)
-        except UnicodeEncodeError:
-            logging.getLogger(__name__).debug(
-                "constant not encodable as ascii, skip assert"
-            )
-
-    def test_validate_constant_format(self) -> None:
-        """Test constant format validation."""
-        constants = self.Fixtures.get_constants()
-        assert isinstance(constants.Cli.Project.NAME, str)
-        assert len(constants.Cli.Project.NAME.strip()) > 0
-        assert not constants.Cli.Project.NAME.startswith(" ")
-        assert not constants.Cli.Project.NAME.endswith(" ")
-        assert isinstance(constants.Cli.Paths.FLEXT_DIR_NAME, str)
-        assert constants.Cli.Paths.FLEXT_DIR_NAME.startswith(".")
-        assert len(constants.Cli.Paths.FLEXT_DIR_NAME) > 1
-        assert not constants.Cli.Paths.FLEXT_DIR_NAME.endswith(".")
-        for file_name in [
-            constants.Cli.Paths.TOKEN_FILE_NAME,
-            constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
-        ]:
-            self.Assertions.assert_file_name_format(
-                constants,
-                "TOKEN_FILE_NAME"
-                if file_name == constants.Cli.Paths.TOKEN_FILE_NAME
-                else "REFRESH_TOKEN_FILE_NAME",
-            )
-
-    def test_validate_constant_content(self) -> None:
-        """Test constant content validation."""
-        constants = self.Fixtures.get_constants()
-        assert "flext" in constants.Cli.Project.NAME.lower()
-        assert "flext" in constants.Cli.Paths.FLEXT_DIR_NAME.lower()
-        assert any(
-            kw in constants.Cli.Paths.TOKEN_FILE_NAME.lower()
-            for kw in ["token", "access", "bearer"]
-        )
-        assert any(
-            kw in constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME.lower()
-            for kw in ["refresh", "token"]
-        )
-
-    def test_validate_constant_consistency(self) -> None:
-        """Test constant consistency validation."""
-        constants = self.Fixtures.get_constants()
-        assert (
-            constants.Cli.Paths.TOKEN_FILE_NAME
-            != constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
-        )
-        assert "token" in constants.Cli.Paths.TOKEN_FILE_NAME.lower()
-        assert "token" in constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME.lower()
-
-    def test_constants_class_access(self) -> None:
-        """Test accessing constants through class instance."""
-        constants = self.Fixtures.get_constants()
-        for constant_name in self.TestData.get_constant_names():
-            self.Assertions.assert_constant_exists(constants, constant_name)
-        project_name = constants.Cli.Project.NAME
-        flext_dir = constants.Cli.Paths.FLEXT_DIR_NAME
-        token_file = constants.Cli.Paths.TOKEN_FILE_NAME
-        refresh_token_file = constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
-        assert isinstance(project_name, str)
-        assert isinstance(flext_dir, str)
-        assert isinstance(token_file, str)
-        assert isinstance(refresh_token_file, str)
-
-    def test_constants_multiple_instances(self) -> None:
-        """Test that multiple instances return the same constants."""
-        constants1 = self.Fixtures.get_constants()
-        constants2 = self.Fixtures.get_constants()
-        assert constants1.Cli.Project.NAME == constants2.Cli.Project.NAME
-        assert (
-            constants1.Cli.Paths.FLEXT_DIR_NAME == constants2.Cli.Paths.FLEXT_DIR_NAME
-        )
-        assert (
-            constants1.Cli.Paths.TOKEN_FILE_NAME == constants2.Cli.Paths.TOKEN_FILE_NAME
-        )
-        assert (
-            constants1.Cli.Paths.REFRESH_TOKEN_FILE_NAME
-            == constants2.Cli.Paths.REFRESH_TOKEN_FILE_NAME
-        )
-
-    def test_constants_class_level_access(self) -> None:
-        """Test accessing constants at class level."""
-        assert c.Cli.Project.NAME == "flext-cli"
-        assert c.Cli.Paths.FLEXT_DIR_NAME == ".flext"
-        assert c.Cli.Paths.TOKEN_FILE_NAME == "token.json"
-        assert c.Cli.Paths.REFRESH_TOKEN_FILE_NAME == "refresh_token.json"
-
-    def test_constants_in_real_world_scenarios(self) -> None:
-        """Test constants in real-world usage scenarios."""
-        constants = self.Fixtures.get_constants()
-        with tempfile.TemporaryDirectory() as temp_dir:
-            app_dir = Path(temp_dir) / constants.Cli.Paths.FLEXT_DIR_NAME
-            app_dir.mkdir()
-            token_file = app_dir / constants.Cli.Paths.TOKEN_FILE_NAME
-            refresh_token_file = app_dir / constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
-            token_file.write_text(
-                json.dumps({"access_token": "test_token", "token_type": "Bearer"})
-            )
-            refresh_token_file.write_text(
-                json.dumps({"refresh_token": "test_refresh_token"})
-            )
-            assert token_file.exists()
-            assert refresh_token_file.exists()
-        config = {
-            "app": {
-                "name": constants.Cli.Project.NAME,
-                "data_dir": constants.Cli.Paths.FLEXT_DIR_NAME,
-                "files": {
-                    "token": constants.Cli.Paths.TOKEN_FILE_NAME,
-                    "refresh_token": constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME,
-                },
-            }
-        }
-        assert config is not None
-        assert isinstance(config, dict)
-        error_messages = {
-            "missing_token": f"Token file '{constants.Cli.Paths.TOKEN_FILE_NAME}' not found",
-            "missing_refresh_token": f"Refresh token file '{constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME}' not found",
-            "invalid_dir": f"Directory '{constants.Cli.Paths.FLEXT_DIR_NAME}' is not accessible",
-        }
-        for message in error_messages.values():
-            assert isinstance(message, str)
-            assert len(message) > 0
-            assert (
-                constants.Cli.Paths.TOKEN_FILE_NAME in message
-                or constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME in message
-                or constants.Cli.Paths.FLEXT_DIR_NAME in message
-            )
-
-    def test_constants_performance(self) -> None:
-        """Test constants access performance."""
-        constants = self.Fixtures.get_constants()
-        start_time = time.time()
-        for _ in range(1000):
-            _ = constants.Cli.Project.NAME
-            _ = constants.Cli.Paths.FLEXT_DIR_NAME
-            _ = constants.Cli.Paths.TOKEN_FILE_NAME
-            _ = constants.Cli.Paths.REFRESH_TOKEN_FILE_NAME
-        end_time = time.time()
-        access_time = end_time - start_time
-        assert access_time < 0.1, f"Constants access too slow: {access_time:.4f}s"
-
-    def test_constants_concatenation(self) -> None:
-        """Test that constants can be concatenated."""
-        constants = self.Fixtures.get_constants()
-        combined = constants.Cli.Project.NAME + " " + constants.Cli.Paths.FLEXT_DIR_NAME
-        assert isinstance(combined, str)
-        assert len(combined) > 0
-
-    def test_get_valid_output_formats(self) -> None:
-        """Test get_valid_output_formats returns sorted tuple."""
-        formats = u.Cli.CliValidation.get_valid_output_formats()
-        assert isinstance(formats, tuple)
-        assert len(formats) > 0
-        assert all(isinstance(fmt, str) for fmt in formats)
-        assert formats == tuple(sorted(formats))
-
-    def test_get_valid_command_statuses(self) -> None:
-        """Test get_valid_command_statuses returns sorted tuple."""
-        statuses = u.Cli.CliValidation.get_valid_command_statuses()
-        assert isinstance(statuses, tuple)
-        assert len(statuses) > 0
-        assert all(isinstance(status, str) for status in statuses)
-        assert statuses == tuple(sorted(statuses))
-
-    def test_get_enum_values(self) -> None:
-        """Test get_enum_values extracts values from StrEnum."""
-        values = u.get_enum_values(c.Cli.CommandStatus)
-        assert isinstance(values, tuple)
-        assert len(values) > 0
-        assert all(isinstance(v, str) for v in values)
-        assert "pending" in values
-        assert "running" in values
-        output_values = u.get_enum_values(c.Cli.OutputFormats)
-        assert isinstance(output_values, tuple)
-        assert "json" in output_values
-        assert "yaml" in output_values
-
-    def test_create_cli_discriminated_union(self) -> None:
-        """Test create_cli_discriminated_union creates union mapping."""
-        union_map = u.create_discriminated_union(
-            "status", c.Cli.CommandStatus, c.Cli.SessionStatus
-        )
-        assert isinstance(union_map, dict)
-        assert len(union_map) > 0
-        assert union_map["pending"] == c.Cli.CommandStatus
-        assert union_map["active"] == c.Cli.SessionStatus
-
-    def test_get_file_extensions(self) -> None:
-        """Test get_file_extensions returns extensions for format."""
-        extensions = c.Cli.get_file_extensions("json")
-        assert isinstance(extensions, tuple)
-        assert "json" in extensions
-        yaml_extensions = c.Cli.get_file_extensions("yaml")
-        assert isinstance(yaml_extensions, tuple)
-        assert "yaml" in yaml_extensions
-        assert "yml" in yaml_extensions
-        none_extensions = c.Cli.get_file_extensions("nonexistent")
-        assert none_extensions is None
-
-    def test_get_mime_type(self) -> None:
-        """Test get_mime_type returns MIME type for format."""
-        mime = c.Cli.get_mime_type("json")
-        assert isinstance(mime, str)
-        assert mime == "application/json"
-        yaml_mime = c.Cli.get_mime_type("yaml")
-        assert isinstance(yaml_mime, str)
-        assert yaml_mime == "application/x-yaml"
-        none_mime = c.Cli.get_mime_type("nonexistent")
-        assert none_mime is None
-
-    def test_validate_file_format(self) -> None:
-        """Test validate_file_format checks format support."""
-        assert c.Cli.validate_file_format("json") is True
-        assert c.Cli.validate_file_format("yaml") is True
-        assert c.Cli.validate_file_format("csv") is True
-        assert c.Cli.validate_file_format("nonexistent") is False
-        assert c.Cli.validate_file_format("invalid") is False
+        tm.that(fnf_hit, eq=True)
+        tm.that(usage_hit, eq=True)
+        tm.that(u.Cli.file_not_found_error("No such file or directory"), eq=True)
+        tm.that(u.Cli.cli_usage_error("No such option: --bad"), eq=True)

@@ -19,7 +19,7 @@ if [ ! -f "src/flext_cli/__init__.py" ]; then
 	exit 1
 fi
 
-echo "📍 Working Directory: $(pwd)"
+echo "📍 Working Directory: ${PWD}"
 echo ""
 
 # Step 1: Delete validator.py
@@ -57,29 +57,29 @@ echo ""
 echo "Step 4/4: Updating test imports..."
 
 # Count how many files need updating
-affected_files=$(find tests -name "*.py" -type f -exec grep -l "from flext_cli import.*Test\|from flext_cli.testing" {} \; 2>/dev/null | wc -l)
+affected_files=$(find tests -name "*.py" -type f -exec grep -l "from flext_cli import.*Test\|from flext_cli.testing" {} \; 2>/dev/null | wc -l) || true
 
-if [ "$affected_files" -gt 0 ]; then
-	echo "Found $affected_files test files with imports to update"
+if [ "${affected_files}" -gt 0 ]; then
+	echo "Found ${affected_files} test files with imports to update"
 
 	# Update FlextCliTesting imports
 	find tests -name "*.py" -type f -exec sed -i \
-		's/from flext_cli import FlextCliTesting/from tests.fixtures.testing_utilities import FlextCliTesting/g' \
+		's/from flext_cli import FlextCliTesting/from tests import FlextCliTesting/g' \
 		{} + 2>/dev/null || true
 
 	# Update FlextCliTestRunner imports
 	find tests -name "*.py" -type f -exec sed -i \
-		's/from flext_cli import FlextCliTestRunner/from tests.fixtures.testing_utilities import FlextCliTestRunner/g' \
+		's/from flext_cli import FlextCliTestRunner/from tests import FlextCliTestRunner/g' \
 		{} + 2>/dev/null || true
 
 	# Update FlextCliMockScenarios imports
 	find tests -name "*.py" -type f -exec sed -i \
-		's/from flext_cli import FlextCliMockScenarios/from tests.fixtures.testing_utilities import FlextCliMockScenarios/g' \
+		's/from flext_cli import FlextCliMockScenarios/from tests import FlextCliMockScenarios/g' \
 		{} + 2>/dev/null || true
 
 	# Update direct module imports
 	find tests -name "*.py" -type f -exec sed -i \
-		's/from flext_cli import/from tests.fixtures.testing_utilities import/g' \
+		's/from flext_cli import/from tests import/g' \
 		{} + 2>/dev/null || true
 
 	echo "✅ Test imports updated"
@@ -96,8 +96,10 @@ echo ""
 
 # Check no references remain
 echo "Checking for remaining references..."
-if grep -r "from flext_cli.validator\|from flext_cli.auth\|from flext_cli.testing" src/ tests/ 2>/dev/null | grep -v "tests/fixtures/testing_utilities"; then
+remaining_references=$(grep -r "from flext_cli.validator\|from flext_cli.auth\|from flext_cli.testing" src/ tests/ 2>/dev/null | grep -v "tests/fixtures/testing_utilities") || true
+if [ -n "${remaining_references}" ]; then
 	echo "⚠️  WARNING: Found remaining references (review above)"
+	echo "${remaining_references}"
 else
 	echo "✅ No problematic references found"
 fi
@@ -105,7 +107,10 @@ echo ""
 
 # Run validation
 echo "Running validation suite..."
-if make validate 2>&1 | tail -20; then
+validation_output=$(make val 2>&1) || validation_status=$?
+validation_status=${validation_status:-0}
+echo "${validation_output}" | tail -20
+if [ "${validation_status}" -eq 0 ]; then
 	echo ""
 	echo "✅ Validation passed"
 else
@@ -123,7 +128,7 @@ echo "📊 Summary:"
 echo "  • Files deleted: 2 (validator.py, auth.py)"
 echo "  • Files moved: 1 (testing.py → tests/fixtures/testing_utilities.py)"
 echo "  • Files modified: 1 (__init__.py - previously done)"
-echo "  • Test files updated: $affected_files"
+echo "  • Test files updated: ${affected_files}"
 echo ""
 echo "📝 Changes made:"
 echo "  ✅ Removed validator.py (empty stub)"

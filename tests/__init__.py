@@ -1,69 +1,122 @@
-"""FLEXT CLI Tests - Test infrastructure and utilities.
-
-Provides TestsCli classes extending FlextTests and FlextCli for comprehensive testing.
-
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-"""
+# AUTO-GENERATED FILE — Regenerate with: make gen
+"""Tests package."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import cleanup_submodule_namespace, lazy_getattr
+from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_core.typings import FlextTypes
+    from flext_tests import d, e, h, r, td, tf, tk, tm, tv, x
 
-    from flext_cli.models import FlextCliModels as m
-    from tests.base import TestsCliServiceBase, s
-    from tests.constants import TestsFlextCliConstants, TestsFlextCliConstants as c
-    from tests.models import TestsFlextCliModels, tm
-    from tests.protocols import TestsCliProtocols, TestsCliProtocols as p
-    from tests.typings import TestsCliTypes, TestsCliTypes as t, tt
-    from tests.utilities import TestsCliUtilities, TestsCliUtilities as u
-_LAZY_IMPORTS: dict[str, tuple[str, str]] = {
-    "TestsCliProtocols": ("tests.protocols", "TestsCliProtocols"),
-    "TestsCliServiceBase": ("tests.base", "TestsCliServiceBase"),
-    "TestsCliTypes": ("tests.typings", "TestsCliTypes"),
-    "TestsCliUtilities": ("tests.utilities", "TestsCliUtilities"),
-    "TestsFlextCliConstants": ("tests.constants", "TestsFlextCliConstants"),
-    "TestsFlextCliModels": ("tests.models", "TestsFlextCliModels"),
-    "c": ("tests.constants", "TestsFlextCliConstants"),
-    "m": ("flext_cli", "m"),
-    "p": ("tests.protocols", "TestsCliProtocols"),
-    "s": ("tests.base", "s"),
-    "t": ("tests.typings", "TestsCliTypes"),
-    "tm": ("tests.models", "tm"),
-    "tt": ("tests.typings", "tt"),
-    "u": ("tests.utilities", "TestsCliUtilities"),
+    from .base import TestsFlextCliServiceBase, TestsFlextCliServiceBase as s
+    from .constants import TestsFlextCliConstants, TestsFlextCliConstants as c
+    from .models import TestsFlextCliModels, TestsFlextCliModels as m
+    from .protocols import TestsFlextCliProtocols, TestsFlextCliProtocols as p
+    from .settings import TestsFlextCliSettings
+    from .typings import TestsFlextCliTypes, TestsFlextCliTypes as t
+    from .utilities import TestsFlextCliUtilities, TestsFlextCliUtilities as u
+
+    _ = (
+        d,
+        e,
+        h,
+        r,
+        td,
+        tf,
+        tk,
+        tm,
+        tv,
+        x,
+        TestsFlextCliServiceBase,
+        s,
+        TestsFlextCliConstants,
+        c,
+        TestsFlextCliModels,
+        m,
+        TestsFlextCliProtocols,
+        p,
+        TestsFlextCliSettings,
+        TestsFlextCliTypes,
+        t,
+        TestsFlextCliUtilities,
+        u,
+    )
+
+
+_LAZY_MODULES: dict[str, tuple[str, ...]] = {
+    ".base": ("TestsFlextCliServiceBase", "s"),
+    ".constants": ("TestsFlextCliConstants", "c"),
+    ".models": ("TestsFlextCliModels", "m"),
+    ".protocols": ("TestsFlextCliProtocols", "p"),
+    ".settings": ("TestsFlextCliSettings",),
+    ".typings": ("TestsFlextCliTypes", "t"),
+    ".utilities": ("TestsFlextCliUtilities", "u"),
+    "flext_tests": ("d", "e", "h", "r", "td", "tf", "tk", "tm", "tv", "x"),
 }
-__all__ = [
-    "TestsCliProtocols",
-    "TestsCliServiceBase",
-    "TestsCliTypes",
-    "TestsCliUtilities",
+
+
+_LAZY_ALIAS_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {}
+
+
+_LAZY_IMPORTS = build_lazy_import_map(
+    _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
+)
+
+_DIRECT_IMPORTS: tuple[str, ...] = (
     "TestsFlextCliConstants",
     "TestsFlextCliModels",
+    "TestsFlextCliProtocols",
+    "TestsFlextCliServiceBase",
+    "TestsFlextCliSettings",
+    "TestsFlextCliTypes",
+    "TestsFlextCliUtilities",
+    "build_lazy_import_map",
     "c",
+    "d",
+    "e",
+    "h",
+    "install_lazy_exports",
     "m",
     "p",
+    "r",
     "s",
     "t",
+    "td",
+    "tf",
+    "tk",
     "tm",
-    "tt",
+    "tv",
     "u",
-]
+    "x",
+)
+
+__all__: tuple[str, ...] = (
+    "TestsFlextCliConstants",
+    "TestsFlextCliModels",
+    "TestsFlextCliProtocols",
+    "TestsFlextCliServiceBase",
+    "TestsFlextCliSettings",
+    "TestsFlextCliTypes",
+    "TestsFlextCliUtilities",
+    "c",
+    "d",
+    "e",
+    "h",
+    "m",
+    "p",
+    "r",
+    "s",
+    "t",
+    "td",
+    "tf",
+    "tk",
+    "tm",
+    "tv",
+    "u",
+    "x",
+)
 
 
-def __getattr__(name: str) -> FlextTypes.ModuleExport:
-    """Lazy-load module attributes on first access (PEP 562)."""
-    return lazy_getattr(name, _LAZY_IMPORTS, globals(), __name__)
-
-
-def __dir__() -> list[str]:
-    """Return list of available attributes for dir() and autocomplete."""
-    return sorted(__all__)
-
-
-cleanup_submodule_namespace(__name__, _LAZY_IMPORTS)
+install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

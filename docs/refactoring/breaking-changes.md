@@ -1,16 +1,15 @@
 # Breaking Changes: v0.9.0 → v0.10.0
 
 <!-- TOC START -->
-
 - [Summary](#summary)
 - [1. API Wrapper Methods Removed](#1-api-wrapper-methods-removed)
   - [Removed Methods](#removed-methods)
   - [Migration](#migration)
   - [Automated Migration Script](#automated-migration-script)
 - [2. Modules Removed/Moved](#2-modules-removedmoved)
-  - [2.1 `flext_cli.validator` - Deleted](#21-flextclivalidator-deleted)
-  - [2.2 `flext_cli.auth` - Deleted](#22-flextcliauth-deleted)
-  - [2.3 `flext_cli.testing` - Moved to tests/](#23-flextclitesting-moved-to-tests)
+  - [2.1 `flext_cli.validator` - Deleted](#21-flext_clivalidator-deleted)
+  - [2.2 `flext_cli.auth` - Deleted](#22-flext_cliauth-deleted)
+  - [2.3 `flext_cli.testing` - Moved to tests/](#23-flext_clitesting-moved-to-tests)
 - [3. FlextCliContext Removed](#3-flextclicontext-removed)
 - [4. Service Class Instantiation Changes](#4-service-class-instantiation-changes)
   - [What Changed](#what-changed)
@@ -22,7 +21,7 @@
   - [What Changed](#what-changed)
   - [Migration](#migration)
 - [7. Import Changes](#7-import-changes)
-  - [Removed from `__init__.py`](#removed-from-initpy)
+  - [Removed from `__init__.py`](#removed-from-__init__py)
   - [Still Available](#still-available)
 - [Migration Checklist](#migration-checklist)
   - [[ ] 1. Update API Calls](#1-update-api-calls)
@@ -36,7 +35,6 @@
   - [If Migration Fails](#if-migration-fails)
   - [Support Resources](#support-resources)
 - [FAQ](#faq)
-
 <!-- TOC END -->
 
 **Complete list of all breaking changes with fixes**
@@ -65,11 +63,11 @@ ______________________________________________________________________
 
 ### Removed Methods
 
-All these methods have been removed from `FlextCli`:
+All these methods have been removed from `cli`:
 
-```python
+```text
 # ❌ REMOVED - No longer available
-cli.print(message, style)
+# The former nested/private print route is removed.
 cli.create_table(data, headers, title)
 cli.print_table(table)
 cli.create_tree(label)
@@ -90,14 +88,15 @@ cli.create_live_display()
 
 Replace with direct access:
 
-```python
+```text
 # Print operations
-cli.print("msg")                 → cli.formatters.print("msg")
-cli.print("msg", style="success") → cli.formatters.print("msg", style="success")
+# Replace the removed nested/private print route with the public endpoint:
+cli.print("msg")
+cli.print("msg", style="success")
 
 # Table operations
 cli.create_table(data)           → cli.output.format_data(data, format_type="table")
-cli.print_table(table)           → cli.formatters.print(table)
+cli.print_table(table)           → cli.print(table)
 
 # File operations
 cli.read_json_file(path)         → cli.file_tools.read_json_file(path)
@@ -114,7 +113,7 @@ cli.select(msg, choices)         → cli.prompts.select(msg, choices)
 
 # Formatting
 cli.format_output(data, fmt)     → cli.output.format_data(data, format_type=fmt)
-cli.create_tree(label)           → cli.formatters.create_tree(label)
+cli.create_tree(label)           → the current public formatter API
 ```
 
 ### Automated Migration Script
@@ -124,8 +123,7 @@ cli.create_tree(label)           → cli.formatters.create_tree(label)
 # save as: migrate_api_calls.sh
 
 # Print methods
-find . -name "*.py" -type f -exec sed -i \
-  's/cli\.print(/cli.formatters.print(/g' {} +
+# Replace removed nested/private output calls with cli.print(...).
 
 # File operations
 find . -name "*.py" -type f -exec sed -i \
@@ -164,7 +162,7 @@ ______________________________________________________________________
 
 ### 2.1 `flext_cli.validator` - Deleted
 
-```python
+```text
 # ❌ REMOVED
 from flext_cli import FlextCliValidator
 from flext_cli import *
@@ -178,15 +176,14 @@ from pydantic import Field, field_validator
 
 ### 2.2 `flext_cli.auth` - Deleted
 
-```python
+```text
 # ❌ REMOVED
 from flext_cli import FlextCliAuthService
 from flext_cli import FlextCliAuthService
 
-# ✅ FIX: Use FlextCli.authenticate()
-from flext_cli import FlextCli
+# ✅ FIX: Use cli.authenticate()
+from flext_cli import cli
 
-cli = FlextCli()
 result = cli.authenticate({"token": "abc123"})
 ```
 
@@ -194,12 +191,12 @@ result = cli.authenticate({"token": "abc123"})
 
 ### 2.3 `flext_cli.testing` - Moved to tests/
 
-```python
+```text
 # ❌ REMOVED from production code
 from flext_cli import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 
 # ✅ FIX: Import from test fixtures
-from tests.fixtures.testing_utilities import (
+from tests import (
     FlextCliTesting,
     FlextCliTestRunner,
     FlextCliMockScenarios,
@@ -236,20 +233,19 @@ ______________________________________________________________________
 
 ### If You Instantiated Directly
 
-```python
+```text
 # ❌ OLD (if you did this)
 file_tools = FlextCliFileTools()  # Was a service
-result = file_tools.read_json_file("config.json")
+result = file_tools.read_json_file("settings.json")
 
 # ✅ NEW - Static methods
-result = FlextCliFileTools.read_json_file("config.json")
+result = FlextCliFileTools.read_json_file("settings.json")
 
 # ✅ OR - Through main CLI (recommended)
-cli = FlextCli()
-result = cli.file_tools.read_json_file("config.json")
+result = cli.file_tools.read_json_file("settings.json")
 ```
 
-**Note**: Most users access through `FlextCli` instance, so no changes needed
+**Note**: Most users access through `cli` instance, so no changes needed
 
 ______________________________________________________________________
 
@@ -259,7 +255,7 @@ ______________________________________________________________________
 
 ### What Changed
 
-```python
+```text
 # ❌ REMOVED - Never actually worked
 import asyncio  # No longer imported in core.py
 from concurrent.futures import ThreadPoolExecutor  # Removed
@@ -272,12 +268,12 @@ import pluggy  # Plugin system removed
 
 If you wrote code expecting async:
 
-```python
+```text
 # ❌ This never worked anyway
 await cli.some_async_method()  # Never existed
 
 # ✅ All operations are synchronous
-result = cli.formatters.print("message")  # Sync
+result = cli.print("message")  # Sync
 ```
 
 ______________________________________________________________________
@@ -291,6 +287,7 @@ ______________________________________________________________________
 Tests reorganized into feature-based structure:
 
 ```
+
 # ❌ OLD
 tests/unit/test_*.py  # All flat
 
@@ -299,7 +296,7 @@ tests/unit/core/test_*.py
 tests/unit/io/test_*.py
 tests/unit/formatting/test_*.py
 tests/unit/cli/test_*.py
-tests/unit/config/test_*.py
+tests/unit/settings/test_*.py
 tests/unit/auth/test_*.py
 tests/unit/models/test_*.py
 tests/integration/test_*.py
@@ -309,12 +306,12 @@ tests/integration/test_*.py
 
 If you import from test modules:
 
-```python
+```text
 # ❌ OLD
-from tests.unit.test_config import SomeTestHelper
+from tests import SomeTestHelper
 
 # ✅ NEW
-from tests.unit.config.test_config_loading import SomeTestHelper
+from tests import SomeTestHelper
 ```
 
 ______________________________________________________________________
@@ -325,9 +322,9 @@ ______________________________________________________________________
 
 ### Removed from `__init__.py`
 
-```python
+```text
 # ❌ REMOVED from flext_cli
-FlextCliAuthService  # Use FlextCli.authenticate()
+FlextCliAuthService  # Use cli.authenticate()
 FlextCliTesting  # Move to tests/fixtures/testing_utilities
 FlextCliTestRunner  # Move to tests/fixtures/testing_utilities
 FlextCliMockScenarios  # Move to tests/fixtures/testing_utilities
@@ -337,10 +334,10 @@ FlextCliMockScenarios  # Move to tests/fixtures/testing_utilities
 
 All other exports remain:
 
-```python
+```text
 # ✅ Still available
 from flext_cli import (
-    FlextCli,  # Main API
+    cli,  # Main API
     FlextCliSettings,  # Configuration
     FlextCliCore,  # Core service
     FlextCliFormatters,  # Formatting
@@ -369,7 +366,7 @@ Use this checklist to ensure complete migration:
 
 ### [ ] 1. Update API Calls
 
-- [ ] Replace `cli.print()` with `cli.formatters.print()`
+- [ ] Replace removed nested/private print calls with `cli.print()`
 - [ ] Replace `cli.read_json_file()` with `cli.file_tools.read_json_file()`
 - [ ] Replace `cli.confirm()` with `cli.prompts.confirm()`
 - [ ] Update all other wrapper method calls (see section 1)
@@ -443,8 +440,8 @@ ______________________________________________________________________
 
 - **[Migration Guide](migration-guide-v0.9-to-v0.10.md)** - Step-by-step migration
 - **[Architecture Comparison](architecture-comparison.md)** - Before/after comparison
-- **[API Reference](../api-reference.md)** - Complete v0.10.0 API
-- **[Examples](../../examples/)** - Updated code examples
+- **[API Reference](../api-reference/README.md)** - Complete v0.10.0 API
+- **[Examples](https://github.com/flext-sh/flext-cli/tree/main/examples/)** - Updated code examples
 
 ______________________________________________________________________
 

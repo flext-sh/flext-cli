@@ -1,8 +1,8 @@
-"""FLEXT CLI Common Parameters Tests - Railway-Oriented Parameter Validation.
+"""FLEXT CLI Common Parameters Tests - behavioral contract of FlextCliCommonParams.
 
-Tests for FlextCliCommonParams using Railway-oriented programming patterns.
-Zero fallbacks, mocks, or state manipulation. Pure functional testing with
-r[T] patterns and Python 3.13 advanced features.
+Exercises only the observable public contract: return values, ``r[T]`` outcomes,
+raised exceptions, applied public model state, and CLI-runner output. No private
+attribute/method access, no patching of internal collaborators.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -10,333 +10,163 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from enum import StrEnum
-
 import pytest
-import typer
-from flext_core import r
+
+from flext_cli import cli
 from flext_tests import tm
-from typer.testing import CliRunner
-
-from flext_cli import (
-    FlextCliCommonParams,
-    FlextCliSettings,
-)
-from tests.unit._models import CliTestConfig
+from tests import c, p, u
 
 
-class ConfigParam(StrEnum):
-    """Test configuration parameters for parametrized tests."""
+class TestsFlextCliCliParams:
+    """Behavioral tests for FlextCliCommonParams public contract."""
 
-    VERBOSE = "verbose"
-    QUIET = "quiet"
-    DEBUG = "debug"
-    NO_COLOR = "no_color"
-    LOG_LEVEL = "log_level"
-    LOG_FORMAT = "log_format"
-    OUTPUT_FORMAT = "output_format"
+    @pytest.fixture
+    def settings(self) -> p.Cli.Settings:
+        """Fresh CLI settings instance built through the public factory."""
+        result = u.Tests.create_test_settings()
+        tm.ok(result)
+        return result.value
 
+    # ── create_option ────────────────────────────────────────────────
 
-# ============================================================================
-# TEST DATA - Railway-Oriented Constants
-# ============================================================================
-
-# Python 3.13 advanced type features for test data
-type CliTestResult = r[CliTestConfig]
-
-# ============================================================================
-# RAILWAY-ORIENTED TEST HELPERS
-# ============================================================================
-
-
-def create_test_config() -> r[FlextCliSettings]:
-    """Create test config using Railway pattern - no fallbacks or state manipulation."""
-    try:
-        config = FlextCliSettings()
-        return r[FlextCliSettings].ok(config)
-    except Exception as e:
-        return r[FlextCliSettings].fail(f"Failed to create test config: {e}")
-
-
-def create_cli_app() -> r[typer.Typer]:
-    """Create CLI app using Railway pattern."""
-    try:
-        app = typer.Typer()
-        return r[typer.Typer].ok(app)
-    except Exception as e:
-        return r[typer.Typer].fail(f"Failed to create CLI app: {e}")
-
-
-def create_decorated_command(
-    app: typer.Typer,
-    command_name: str = "test",
-) -> r[Callable[..., object]]:
-    """Create decorated command using Railway pattern - no mocks or manipulation."""
-
-    @app.command(name=command_name)
-    def typer_command(
-        verbose: bool = typer.Option(
-            False,
-            "--verbose",
-            "-v",
-            help="Enable verbose output",
-        ),
-        debug: bool = typer.Option(False, "--debug", "-d", help="Enable debug mode"),
-        log_level: str = typer.Option(
-            "INFO",
-            "--log-level",
-            "-L",
-            help="Set logging level",
-        ),
-        output_format: str = typer.Option(
-            "table",
-            "--output-format",
-            "-o",
-            help="Set output format",
-        ),
+    @pytest.mark.parametrize("field_name", ["verbose", "quiet", "debug"])
+    def test_create_option_returns_option_spec_for_registered_field(
+        self, field_name: str
     ) -> None:
-        """Test command with Railway-oriented parameter handling."""
-        # Direct parameter usage - no manipulation or fallbacks
-        typer.echo(f"Command: {command_name}")
-        if verbose:
-            typer.echo("Verbose: enabled")
-        if debug:
-            typer.echo("Debug: enabled")
-        typer.echo(f"Log level: {log_level}")
-        typer.echo(f"Output format: {output_format}")
+        """create_option yields a public CliOptionSpec for each registered field."""
+        option = cli.create_option(field_name)
+        tm.that(option, is_=p.Cli.CliOptionSpec)
 
-    # Return the command function directly - Railway pattern
-    return r[Callable[..., object]].ok(typer_command)
+    def test_create_option_raises_valueerror_for_unknown_field(self) -> None:
+        """create_option rejects an unregistered field with a descriptive ValueError."""
+        with pytest.raises(ValueError, match="not found") as exc_info:
+            cli.create_option("nonexistent_field")
+        tm.that(str(exc_info.value), has="nonexistent_field")
 
+    # ── apply_to_config: success paths ───────────────────────────────
 
-# ============================================================================
-# RAILWAY-ORIENTED TEST CLASS
-# ============================================================================
-
-
-class TestsCliCommonParams:
-    """Railway-oriented tests for FlextCliCommonParams - zero fallbacks or state manipulation.
-
-    Tests use pure functional patterns with r[T] for all operations.
-    No mocks, no state manipulation, no environment variable changes.
-    """
-
-    def test_common_params_class_exists(self) -> None:
-        """Test that FlextCliCommonParams exists and has required methods."""
-        # Direct assertion - no fallbacks
-        assert FlextCliCommonParams is not None
-        assert hasattr(FlextCliCommonParams, "create_option")
-        assert hasattr(FlextCliCommonParams, "apply_to_config")
-        assert hasattr(FlextCliCommonParams, "get_all_common_params")
-
-    def test_create_option_success(self) -> None:
-        """Test create_option returns valid option using Railway pattern."""
-        # Direct call - Railway pattern with proper validation
-        option = FlextCliCommonParams.create_option("verbose")
-
-        assert option is not None
-
-    def test_apply_to_config_with_valid_params(self) -> None:
-        """Test apply_to_config with Railway pattern - no state manipulation."""
-        # Create config using Railway pattern
-        config_result = create_test_config()
-        tm.ok(config_result)
-
-        # Apply parameters using Railway pattern
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(
-            config,
-            verbose=True,
-            debug=True,
-            log_level="DEBUG",
+    def test_apply_to_config_applies_flags_and_log_level(
+        self, settings: p.Cli.Settings
+    ) -> None:
+        """apply_to_config returns updated settings reflecting each applied value."""
+        result = cli.apply_to_config(
+            settings, verbose=True, debug=True, log_level=c.LogLevel.DEBUG
         )
 
         tm.ok(result)
-        updated_config = result.value
-        assert updated_config.verbose is True
-        assert updated_config.debug is True
-        assert updated_config.cli_log_level == "DEBUG"
+        updated = result.value
+        tm.that(updated.cli_verbose is True, eq=True)
+        tm.that(updated.debug is True, eq=True)
+        tm.that(updated.cli_log_level, eq=c.LogLevel.DEBUG)
 
-    def test_apply_to_config_trace_requires_debug(self) -> None:
-        """Test trace requires debug - Railway pattern validation."""
-        config_result = create_test_config()
-        tm.ok(config_result)
-
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(config, trace=True)
-
-        tm.fail(result)
-        error_msg = str(result.error).lower() if result.error else ""
-        assert "trace mode requires debug mode" in error_msg
-
-    def test_apply_to_config_trace_with_debug(self) -> None:
-        """Test trace works with debug enabled - Railway pattern."""
-        config_result = create_test_config()
-        tm.ok(config_result)
-
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(config, debug=True, trace=True)
+    def test_apply_to_config_trace_with_debug_enables_trace(
+        self, settings: p.Cli.Settings
+    ) -> None:
+        """Trace is accepted and applied when debug is also enabled."""
+        result = cli.apply_to_config(settings, debug=True, trace=True)
 
         tm.ok(result)
-        updated_config = result.value
-        assert updated_config.debug is True
-        assert updated_config.trace is True
+        updated = result.value
+        tm.that(updated.debug is True, eq=True)
+        tm.that(updated.trace is True, eq=True)
 
-    def test_apply_to_config_invalid_log_level(self) -> None:
-        """Test invalid log level validation - Railway pattern."""
-        config_result = create_test_config()
-        tm.ok(config_result)
+    def test_apply_to_config_is_idempotent_for_same_values(
+        self, settings: p.Cli.Settings
+    ) -> None:
+        """Applying the same values twice yields the same observable state."""
+        first = cli.apply_to_config(settings, verbose=True, log_level=c.LogLevel.DEBUG)
+        tm.ok(first)
+        second = cli.apply_to_config(
+            first.value, verbose=True, log_level=c.LogLevel.DEBUG
+        )
+        tm.ok(second)
+        tm.that(second.value.cli_verbose is True, eq=True)
+        tm.that(second.value.cli_log_level, eq=c.LogLevel.DEBUG)
 
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(config, log_level="INVALID")
+    # ── apply_to_config: failure paths ───────────────────────────────
+
+    def test_apply_to_config_trace_without_debug_fails(
+        self, settings: p.Cli.Settings
+    ) -> None:
+        """Trace without debug fails with a message explaining the dependency."""
+        result = cli.apply_to_config(settings, trace=True)
 
         tm.fail(result)
-        error_msg = str(result.error).lower() if result.error else ""
-        assert "invalid" in error_msg and "log level" in error_msg
+        tm.that((result.error or "").lower(), has="trace mode requires debug mode")
 
-    def test_configure_logger_success(self) -> None:
-        """Test logger configuration - Railway pattern."""
-        config_result = create_test_config()
-        tm.ok(config_result)
+    @pytest.mark.parametrize(
+        ("field_name", "expected_fragments"),
+        [
+            ("log_level", ("invalid", "log level")),
+            ("log_format", ("invalid", "log format")),
+            ("output_format", ("invalid", "output format")),
+        ],
+    )
+    def test_apply_to_config_rejects_invalid_enum_value(
+        self,
+        settings: p.Cli.Settings,
+        field_name: str,
+        expected_fragments: tuple[str, str],
+    ) -> None:
+        """Each choice-bound field rejects an out-of-domain value with a clear error."""
+        match field_name:
+            case "log_level":
+                result = cli.apply_to_config(settings, log_level="INVALID")
+            case "log_format":
+                result = cli.apply_to_config(settings, log_format="INVALID")
+            case _:
+                result = cli.apply_to_config(settings, output_format="INVALID")
 
-        config = config_result.value
-        # Apply valid log level first
-        config_result = FlextCliCommonParams.apply_to_config(config, log_level="DEBUG")
-        tm.ok(config_result)
+        tm.fail(result)
+        error_msg = (result.error or "").lower()
+        for fragment in expected_fragments:
+            tm.that(error_msg, has=fragment)
 
-        updated_config = config_result.value
-        result = FlextCliCommonParams.configure_logger(updated_config)
+    # ── decorator wiring: observable CLI behavior ────────────────────
 
-        assert result.is_success
-
-    def test_decorator_adds_parameters(self) -> None:
-        """Test decorator adds CLI parameters - Railway pattern."""
-        app_result = create_cli_app()
-        assert app_result.is_success
-
+    @pytest.fixture
+    def app(self) -> p.Cli.Application:
+        """Build an app carrying the common-params decorated command."""
+        app_result = u.Tests.create_cli_app()
+        tm.ok(app_result)
         app = app_result.value
-        command_result = create_decorated_command(app, "test")
-        assert command_result.is_success
+        tm.ok(u.Tests.create_decorated_command(app, "test"))
+        return app
 
-        runner = CliRunner()
-        result = runner.invoke(app, ["--help"])
+    def test_help_exposes_common_options(self, app: p.Cli.Application) -> None:
+        """--help lists every common parameter the decorator promises to add."""
+        result = cli.invoke_app(app, args=["test", "--help"])
 
-        assert result.exit_code == 0
-        assert "--verbose" in result.stdout
-        assert "--debug" in result.stdout
-        assert "--log-level" in result.stdout
-        assert "--output-format" in result.stdout
+        tm.ok(result)
+        tm.that(result.value.exit_code, eq=0)
+        for flag in ("--verbose", "--debug", "--log-level", "--output-format"):
+            tm.that(result.value.stdout, has=flag)
 
-    def test_decorator_flags_work(self) -> None:
-        """Test decorator flags work - Railway pattern."""
-        app_result = create_cli_app()
-        assert app_result.is_success
+    def test_boolean_flags_toggle_command_behavior(
+        self, app: p.Cli.Application
+    ) -> None:
+        """Passing --verbose/--debug flips the command's observable output."""
+        result = cli.invoke_app(app, args=["test", "--verbose", "--debug"])
 
-        app = app_result.value
-        command_result = create_decorated_command(app, "test")
-        assert command_result.is_success
+        tm.ok(result)
+        tm.that(result.value.exit_code, eq=0)
+        tm.that(result.value.stdout, has="Verbose: enabled")
+        tm.that(result.value.stdout, has="Debug: enabled")
 
-        runner = CliRunner()
-        result = runner.invoke(app, ["--verbose", "--debug"])
-
-        assert result.exit_code == 0
-        assert "Verbose: enabled" in result.stdout
-        assert "Debug: enabled" in result.stdout
-
-    def test_decorator_parameters_work(self) -> None:
-        """Test decorator parameters work - Railway pattern."""
-        app_result = create_cli_app()
-        assert app_result.is_success
-
-        app = app_result.value
-        command_result = create_decorated_command(app, "test")
-        assert command_result.is_success
-
-        runner = CliRunner()
-        result = runner.invoke(
+    def test_value_parameters_flow_to_command(self, app: p.Cli.Application) -> None:
+        """Choice-valued options are parsed and surfaced in command output."""
+        result = cli.invoke_app(
             app,
-            ["--log-level", "WARNING", "--output-format", "json"],
+            args=[
+                "test",
+                "--log-level",
+                c.LogLevel.WARNING,
+                "--output-format",
+                c.Cli.OutputFormats.JSON,
+            ],
         )
 
-        assert result.exit_code == 0
-        assert "Log level: WARNING" in result.stdout
-        assert "Output format: json" in result.stdout
-
-    def test_get_all_common_params(self) -> None:
-        """Test get_all_common_params returns valid dict - Railway pattern."""
-        # Get params directly - Railway pattern without None values
-        params = FlextCliCommonParams.get_all_common_params()
-
-        assert isinstance(params, dict)
-        assert len(params) > 0
-        assert "verbose" in params
-        assert "debug" in params
-        assert "cli_log_level" in params
-
-    def test_enforcement_can_be_disabled(self) -> None:
-        """Test enforcement can be disabled for testing - Railway pattern."""
-        # Test enable/disable cycle
-        FlextCliCommonParams.enable_enforcement()
-        assert FlextCliCommonParams._enforcement_mode is True
-
-        FlextCliCommonParams.disable_enforcement()
-        assert not FlextCliCommonParams._enforcement_mode
-
-        # Restore enforcement
-        FlextCliCommonParams.enable_enforcement()
-        assert FlextCliCommonParams._enforcement_mode is True
-
-    def test_validate_enabled_when_enforced(self) -> None:
-        """Test validate_enabled succeeds when enforced - Railway pattern."""
-        FlextCliCommonParams.enable_enforcement()
-        result = FlextCliCommonParams.validate_enabled()
         tm.ok(result)
-
-    def test_validate_enabled_fails_when_disabled(self) -> None:
-        """Test validate_enabled fails when disabled in enforcement mode."""
-        FlextCliCommonParams.enable_enforcement()
-        FlextCliCommonParams._params_enabled = False
-
-        try:
-            result = FlextCliCommonParams.validate_enabled()
-            tm.fail(result)
-            error_msg = str(result.error).lower() if result.error else ""
-            assert "mandatory" in error_msg or "disabled" in error_msg
-        finally:
-            # Restore state
-            FlextCliCommonParams._params_enabled = True
-
-    def test_create_option_invalid_field(self) -> None:
-        """Test create_option with invalid field - Railway pattern."""
-        # Direct call - Railway pattern handles exceptions properly
-        try:
-            FlextCliCommonParams.create_option("nonexistent_field")
-            pytest.fail("Expected ValueError to be raised")
-        except ValueError as e:
-            error_msg = str(e).lower()
-            assert "not found" in error_msg
-
-    def test_apply_to_config_invalid_log_format(self) -> None:
-        """Test invalid log format - Railway pattern."""
-        config_result = create_test_config()
-        tm.ok(config_result)
-
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(config, log_format="invalid")
-
-        tm.fail(result)
-        error_msg = str(result.error).lower() if result.error else ""
-        assert "invalid" in error_msg and "log format" in error_msg
-
-    def test_apply_to_config_invalid_output_format(self) -> None:
-        """Test invalid output format - Railway pattern."""
-        config_result = create_test_config()
-        tm.ok(config_result)
-
-        config = config_result.value
-        result = FlextCliCommonParams.apply_to_config(config, output_format="invalid")
-
-        tm.fail(result)
-        error_msg = str(result.error).lower() if result.error else ""
-        assert "invalid" in error_msg and "output format" in error_msg
+        tm.that(result.value.exit_code, eq=0)
+        tm.that(result.value.stdout, has="Log level: WARNING")
+        tm.that(result.value.stdout, has="Output format: json")

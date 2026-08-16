@@ -1,7 +1,6 @@
 # Migration Guide: v0.9.0 → v0.10.0
 
 <!-- TOC START -->
-
 - [Table of Contents](#table-of-contents)
 - [Overview](#overview)
   - [What Changed](#what-changed)
@@ -44,12 +43,11 @@
   - [Migration Assistance](#migration-assistance)
   - [Reporting Problems](#reporting-problems)
 - [Summary](#summary)
-
 <!-- TOC END -->
 
 **Estimated Migration Time**: 30-60 minutes for typical projects
 
-> **📘 Quick Summary**: v0.10.0 introduces a **direct access pattern** and removes API wrapper methods. Instead of `cli.print()`, you now use `cli.formatters.print()`. This makes ownership clearer and the API simpler.
+> **📘 Quick Summary**: the supported output endpoint is `cli.print()`. Internal utility and formatter-service routes are not consumer APIs.
 
 ______________________________________________________________________
 
@@ -70,8 +68,8 @@ ______________________________________________________________________
 
 v0.10.0 simplifies FLEXT-CLI by:
 
-- ✅ **Direct Access Pattern**: Call methods on specific services (e.g., `cli.formatters.print()`)
-- ✅ **Removed Wrappers**: No more thin wrapper methods in FlextCli
+- ✅ **Public Facade Pattern**: Call the MRO-composed public endpoint (for example, `cli.print()`)
+- ✅ **Removed Wrappers**: No more thin wrapper methods in cli
 - ✅ **Simplified Services**: Only 3-4 service classes (down from 18)
 - ✅ **FlextCliContext removed**: Use `m.Cli.CliContext` for simple context data or pass args directly
 - ✅ **Removed Complexity**: No unused async/threading/plugin code
@@ -87,7 +85,7 @@ v0.10.0 simplifies FLEXT-CLI by:
 
 - ✅ **Python 3.13+**: Still required
 - ✅ **flext-core**: Compatible with current version
-- ✅ **Railway Pattern**: r[T] still used throughout
+- ✅ **Railway Pattern**: p.Result[T] still used throughout
 - ✅ **Type Safety**: Still 100% type-safe
 
 ______________________________________________________________________
@@ -100,19 +98,14 @@ API wrapper methods have been removed. Use direct access instead.
 
 #### Output Methods
 
-```python
-# ❌ v0.9.0 (OLD - No longer works)
-cli = FlextCli()
+Older nested/private output routes no longer work. Use the public facade:
+
+```text
 cli.print("Hello, World!")
 cli.print("Success!", style="success")
-
-# ✅ v0.10.0 (NEW - Use this)
-cli = FlextCli()
-cli.formatters.print("Hello, World!")
-cli.formatters.print("Success!", style="success")
 ```
 
-```python
+```text
 # ❌ v0.9.0 (OLD)
 table = cli.create_table(data=users, headers=["Name", "Age"])
 cli.print_table(table)
@@ -121,20 +114,20 @@ cli.print_table(table)
 result = cli.output.format_data(
     data=users, format_type="table", headers=["Name", "Age"]
 )
-cli.formatters.print(result.unwrap())
+cli.print(result.unwrap())
 ```
 
 #### File Operations
 
-```python
+```text
 # ❌ v0.9.0 (OLD)
-config_result = cli.read_json_file("config.json")
+config_result = cli.read_json_file("settings.json")
 cli.write_json_file("output.json", data)
 cli.read_yaml_file("settings.yaml")
 cli.read_csv_file("data.csv")
 
 # ✅ v0.10.0 (NEW)
-config_result = cli.file_tools.read_json_file("config.json")
+config_result = cli.file_tools.read_json_file("settings.json")
 cli.file_tools.write_json_file("output.json", data)
 cli.file_tools.read_yaml_file("settings.yaml")
 cli.file_tools.read_csv_file("data.csv")
@@ -142,7 +135,7 @@ cli.file_tools.read_csv_file("data.csv")
 
 #### Interactive Prompts
 
-```python
+```text
 # ❌ v0.9.0 (OLD)
 name = cli.prompt_user("Enter your name:")
 confirmed = cli.confirm("Continue?")
@@ -156,7 +149,7 @@ choice = cli.prompts.select("Select option:", ["A", "B", "C"])
 
 #### Output Formatting
 
-```python
+```text
 # ❌ v0.9.0 (OLD)
 json_str = cli.format_output(data, format_type="json")
 yaml_str = cli.format_output(data, format_type="yaml")
@@ -176,26 +169,25 @@ table_str = cli.output.format_data(data, format_type="table")
 
 Most utility classes are now simple classes (no service inheritance).
 
-```python
+```text
 # ❌ v0.9.0 (OLD - Some classes were services)
-file_tools = FlextCliFileTools()  # Was FlextService
-result = file_tools.read_json_file("config.json")
+file_tools = FlextCliFileTools()  # Was s
+result = file_tools.read_json_file("settings.json")
 
 # ✅ v0.10.0 (NEW - Static methods)
-result = FlextCliFileTools.read_json_file("config.json")
+result = FlextCliFileTools.read_json_file("settings.json")
 # Or through main CLI:
-cli = FlextCli()
-result = cli.file_tools.read_json_file("config.json")
+result = cli.file_tools.read_json_file("settings.json")
 ```
 
 ### 4. Test Utilities Moved
 
-```python
+```text
 # ❌ v0.9.0 (OLD)
 from flext_cli import FlextCliTesting, FlextCliTestRunner
 
 # ✅ v0.10.0 (NEW)
-from tests.fixtures.testing_utilities import FlextCliTesting, FlextCliTestRunner
+from tests import FlextCliTesting, FlextCliTestRunner
 ```
 
 ### 5. Removed Modules
@@ -206,12 +198,11 @@ These modules no longer exist:
 - ❌ `flext_cli.auth` (functionality in `api.py`)
 - ❌ `flext_cli.testing` (moved to tests/)
 
-```python
+```text
 # ❌ v0.9.0 (OLD - Will fail)
 from flext_cli import FlextCliAuthService
 
-# ✅ v0.10.0 (NEW - Use FlextCli.authenticate())
-cli = FlextCli()
+# ✅ v0.10.0 (NEW - Use cli.authenticate())
 result = cli.authenticate({"token": "abc123"})
 ```
 
@@ -242,7 +233,7 @@ Use your IDE or command-line tools:
 
 ```bash
 # Print methods
-find . -name "*.py" -exec sed -i 's/cli\.print(/cli.formatters.print(/g' {} +
+# Replace removed nested/private output calls with cli.print(...).
 
 # File operations
 find . -name "*.py" -exec sed -i 's/cli\.read_json_file(/cli.file_tools.read_json_file(/g' {} +
@@ -283,7 +274,7 @@ grep -r "context\.deactivate()" .
 
 **Fix**: Remove these calls. `FlextCliContext` was removed; use `m.Cli.CliContext` or pass command/arguments directly.
 
-```python
+```text
 # ✅ Use simple context data if needed
 from flext_cli import m
 
@@ -311,18 +302,13 @@ Common test failures:
 
 ### Step 5: Update Type Hints (If Needed)
 
-```python
-# ❌ OLD (if you had type hints)
-def process_cli(cli: FlextCli) -> None:
+```text
+# Type hints remain unchanged; use the public facade.
+def process_cli(cli: cli) -> None:
     cli.print("Processing...")
-
-
-# ✅ NEW (type hints still work)
-def process_cli(cli: FlextCli) -> None:
-    cli.formatters.print("Processing...")
 ```
 
-Type hints for FlextCli don't change - only method calls do.
+Type hints for cli don't change - only method calls do.
 
 ______________________________________________________________________
 
@@ -332,10 +318,10 @@ ______________________________________________________________________
 
 | v0.9.0 (OLD)                      | v0.10.0 (NEW)                                       |
 | --------------------------------- | --------------------------------------------------- |
-| `cli.print(msg)`                  | `cli.formatters.print(msg)`                         |
+| removed nested/private print route | `cli.print(msg)`                                  |
 | `cli.create_table(data)`          | `cli.output.format_data(data, format_type="table")` |
-| `cli.print_table(table)`          | `cli.formatters.print(table)`                       |
-| `cli.create_tree(label)`          | `cli.formatters.create_tree(label)`                 |
+| `cli.print_table(table)`          | `cli.print(table)`                                  |
+| `cli.create_tree(label)`          | current public formatter API                       |
 | `cli.format_output(data, fmt)`    | `cli.output.format_data(data, format_type=fmt)`     |
 | `cli.read_json_file(path)`        | `cli.file_tools.read_json_file(path)`               |
 | `cli.write_json_file(path, data)` | `cli.file_tools.write_json_file(path, data)`        |
@@ -349,11 +335,11 @@ ______________________________________________________________________
 
 ### Services Reference
 
-Access these through FlextCli instance:
+Access these through cli instance:
 
 | Service          | Methods                                       | Purpose                  |
 | ---------------- | --------------------------------------------- | ------------------------ |
-| `cli.formatters` | `print()`, `create_tree()`, etc.              | Rich terminal formatting |
+| public CLI facade | `print()`, `render_panel()`, `render_table()` | Rich terminal formatting |
 | `cli.output`     | `format_data()`, etc.                         | Output management        |
 | `cli.file_tools` | `read_json_file()`, `write_yaml_file()`, etc. | File I/O                 |
 | `cli.prompts`    | `prompt()`, `confirm()`, `select()`           | User input               |
@@ -410,7 +396,7 @@ ______________________________________________________________________
 
 ### Q: Where's the full changelog
 
-**A**: See [CHANGELOG.md](../../CHANGELOG.md) for complete details.
+**A**: See [CHANGELOG.md](https://github.com/flext-sh/flext-cli/blob/main/CHANGELOG.md) for complete details.
 
 ______________________________________________________________________
 
@@ -418,17 +404,16 @@ ______________________________________________________________________
 
 ### Example 1: Simple CLI Application
 
-```python
+```text
 # ❌ v0.9.0
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def main():
-    cli = FlextCli()
-    cli.print("Welcome!", style="success")
+        cli.print("Welcome!", style="success")
 
-    config = cli.read_json_file("config.json").unwrap()
-    cli.print(f"Loaded config: {config['name']}")
+    settings = cli.read_json_file("settings.json").unwrap()
+    cli.print(f"Loaded settings: {settings['name']}")
 
     if cli.confirm("Continue?").unwrap():
         cli.print("Processing...")
@@ -437,32 +422,30 @@ def main():
 
 
 # ✅ v0.10.0
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def main():
-    cli = FlextCli()
-    cli.formatters.print("Welcome!", style="success")
+        cli.print("Welcome!", style="success")
 
-    config = cli.file_tools.read_json_file("config.json").unwrap()
-    cli.formatters.print(f"Loaded config: {config['name']}")
+    settings = cli.file_tools.read_json_file("settings.json").unwrap()
+    cli.print(f"Loaded settings: {settings['name']}")
 
     if cli.prompts.confirm("Continue?").unwrap():
-        cli.formatters.print("Processing...")
+        cli.print("Processing...")
         # ... process
-        cli.formatters.print("Done!", style="success")
+        cli.print("Done!", style="success")
 ```
 
 ### Example 2: Data Processing Script
 
-```python
+```text
 # ❌ v0.9.0
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def process_data():
-    cli = FlextCli()
-
+    
     # Read input
     data = cli.read_csv_file("input.csv").unwrap()
     cli.print(f"Loaded {len(data)} records")
@@ -480,15 +463,14 @@ def process_data():
 
 
 # ✅ v0.10.0
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def process_data():
-    cli = FlextCli()
-
+    
     # Read input
     data = cli.file_tools.read_csv_file("input.csv").unwrap()
-    cli.formatters.print(f"Loaded {len(data)} records")
+        cli.print(f"Loaded {len(data)} records")
 
     # Process
     results = [process_record(r) for r in data]
@@ -497,11 +479,11 @@ def process_data():
     table_result = cli.output.format_data(
         results, format_type="table", headers=["ID", "Status"]
     )
-    cli.formatters.print(table_result.unwrap())
+    cli.print(table_result.unwrap())
 
     # Save
     cli.file_tools.write_json_file("results.json", results)
-    cli.formatters.print("Results saved!", style="success")
+    cli.print("Results saved!", style="success")
 ```
 
 ### Example 3: Context Usage
@@ -514,16 +496,16 @@ ______________________________________________________________________
 
 ### Documentation
 
-- **[Refactoring Plan](refactoring-plan-v0.10.0.md)** - Technical details
+- **[Refactoring Plan](direct-typing-refactor-plan.md)** - Technical details
 - **[Architecture](../architecture.md)** - New architecture explained
-- **[API Reference](../api-reference.md)** - Complete API documentation
+- **[API Reference](../api-reference/README.md)** - Complete API documentation
 - **[Breaking Changes](breaking-changes.md)** - Detailed breaking change list
 
 ### Support Channels
 
 - **GitHub Issues**: [Report issues](https://github.com/flext-sh/flext-cli/issues)
 - **Discussions**: [Ask questions](https://github.com/flext-sh/flext-cli/discussions)
-- **Documentation**: [Full docs](../)
+- **Documentation**: [Full docs](../index.md)
 
 ### Migration Assistance
 

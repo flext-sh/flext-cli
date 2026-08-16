@@ -1,0 +1,10 @@
+ManagedArtifacts:
+  Ruff:
+    per_file_ignores:
+      src/flext_cli/_config.py: [invalid-function-name]
+      src/flext_cli/_constants/base.py: [hardcoded-password-string]
+      src/flext_cli/_constants/errors.py: [hardcoded-password-string]
+      src/flext_cli/_utilities/formatters.py: [banned-api]
+      src/flext_cli/_utilities/framework.py: [banned-api]
+      src/flext_cli/_utilities/runtime.py: [suspicious-subprocess-import, subprocess-without-shell-equals-true]
+      src/flext_cli/_utilities/processes.py: [suspicious-subprocess-import, subprocess-without-shell-equals-true]

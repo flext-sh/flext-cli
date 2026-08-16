@@ -44,4 +44,4 @@ fi
 echo "✓ No problematic references found"
 echo ""
 echo "=== Phase 1 Deletions Complete ==="
-echo "Next: Run 'make validate' to verify"
+echo "Next: Run 'make val' to verify"

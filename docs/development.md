@@ -1,22 +1,21 @@
 # Development Guide - flext-cli
 
 <!-- TOC START -->
-
 - [📌 Quick Navigation](#quick-navigation)
-- [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current)
+- [v0.12.0-dev Development Guidelines (Current)](#v0120-dev-development-guidelines-current)
   - [Overview](#overview)
 - [When to Use Each Pattern](#when-to-use-each-pattern)
-  - [Use FlextService When](#use-flextservice-when)
+  - [Use s When](#use-s-when)
   - [Use Simple Class When](#use-simple-class-when)
   - [Use Value Object (Pydantic) When](#use-value-object-pydantic-when)
 - [Architecture Decision Flowchart](#architecture-decision-flowchart)
 - [Code Organization Guidelines](#code-organization-guidelines)
   - [Module Structure](#module-structure)
   - [Direct Access Pattern](#direct-access-pattern)
-- [Testing Guidelines (v0.10.0)](#testing-guidelines-v0100)
+- [Testing Guidelines (v0.12.0-dev)](#testing-guidelines-v0120-dev)
   - [Test Organization](#test-organization)
   - [Testing Simple Classes](#testing-simple-classes)
-- [Contributing to v0.10.0](#contributing-to-v0100)
+- [Contributing to v0.12.0-dev](#contributing-to-v0120-dev)
   - [Implementation Checklist](#implementation-checklist)
   - [Pull Request Guidelines](#pull-request-guidelines)
 - [v0.9.0 Development Guidelines (Historical Reference)](#v090-development-guidelines-historical-reference)
@@ -43,7 +42,6 @@
 - [Debug and Troubleshooting](#debug-and-troubleshooting)
   - [Common Issues](#common-issues)
   - [Debug Commands](#debug-commands)
-
 <!-- TOC END -->
 
 **Contributing guidelines and development workflow for flext-cli.**
@@ -54,24 +52,24 @@ ______________________________________________________________________
 
 ## 📌 Quick Navigation
 
-- [v0.10.0 Development Guidelines (Current)](#v0100-development-guidelines-current) ← **Start Here**
+- [v0.12.0-dev Development Guidelines (Current)](#v0120-dev-development-guidelines-current) ← **Start Here**
 - [v0.9.0 Development Guidelines (Historical Reference)](#v090-development-guidelines-historical-reference)
 
 ______________________________________________________________________
 
-## v0.10.0 Development Guidelines (Current)
+## v0.12.0-dev Development Guidelines (Current)
 
 **Status**: 📝 Planned | **Release**: Q1 2025 | **Breaking Changes**: Yes
 
 ### Overview
 
-FLEXT-CLI v0.10.0 follows a simplified architecture with clear guidelines for when to use services vs simple classes. This guide helps you make the right architectural decisions.
+FLEXT-CLI v0.12.0-dev follows a simplified architecture with clear guidelines for when to use services vs simple classes. This guide helps you make the right architectural decisions.
 
 ______________________________________________________________________
 
 ## When to Use Each Pattern
 
-### Use FlextService When
+### Use s When
 
 **Requirements**:
 
@@ -82,22 +80,22 @@ ______________________________________________________________________
 
 **Example - FlextCliCore (Stateful Service)**:
 
-```python
-from flext_core import FlextService
+```text
+from flext_core import s
 
-class FlextCliCore(FlextService[CliDataDict]):
+class FlextCliCore(s[CliDataDict]):
     """Core service managing commands and sessions."""
 
     def __init__(self):
         super().__init__()
-        self._commands: dict[str, Command] = {}  # MUTABLE STATE
-        self._sessions: dict[str, Session] = {}  # MUTABLE STATE
-        self._config: FlextCliSettings = ...       # MANAGED STATE
+        self._commands: t.MappingKV[str, Command] = {}  # MUTABLE STATE
+        self._sessions: t.MappingKV[str, Session] = {}  # MUTABLE STATE
+        self.config: FlextCliSettings = ...       # MANAGED STATE
 
-    def register_command(self, name: str, command: Command) -> r[bool]:
+    def register_command(self, name: str, command: Command) -> p.Result[bool]:
         """Register command - modifies internal state."""
         self._commands[name] = command
-        return r[bool].| ok(value=True)
+        return r[bool].ok(value=True)
 ```
 
 **When NOT to use**:
@@ -119,15 +117,15 @@ class FlextCliCore(FlextService[CliDataDict]):
 
 **Example - FlextCliFileTools (Simple Utility Class)**:
 
-```python
-from flext_core import r
+```text
+from flext_core import r, p
 import json
 
 class FlextCliFileTools:
     """Stateless file operations."""
 
     @staticmethod
-    def read_json_file(path: str) -> r[dict]:
+    def read_json_file(path: str) -> p.Result[dict]:
         """Read JSON file - no state needed."""
         try:
             with open(path) as f:
@@ -136,12 +134,12 @@ class FlextCliFileTools:
             return r[dict].fail(str(e))
 
     @staticmethod
-    def write_json_file(path: str, data: dict) -> r[bool]:
+    def write_json_file(path: str, data: dict) -> p.Result[bool]:
         """Write JSON file - no state needed."""
         try:
             with open(path, 'w') as f:
                 json.dump(data, f, indent=2)
-            return r[bool].| ok(value=True)
+            return r[bool].ok(value=True)
         except Exception as e:
             return r[bool].fail(str(e))
 ```
@@ -169,14 +167,14 @@ ______________________________________________________________________
 
 ```
 Does the class manage mutable state?
-├─ YES → Use FlextService
-│        Examples: FlextCliCore, FlextCli
+├─ YES → Use s
+│        Examples: FlextCliCore, cli
 │
 └─ NO → Does it have behavior (business logic)?
     ├─ YES → Is it stateless utility functions?
     │   ├─ YES → Use Simple Class
     │   │        Examples: FlextCliFileTools, FlextCliFormatters
-    │   └─ NO → Re-evaluate: might need FlextService
+    │   └─ NO → Re-evaluate: might need s
     │
     └─ NO → Is it just data with validation?
         └─ YES → Use Value Object (Pydantic)
@@ -189,13 +187,13 @@ ______________________________________________________________________
 
 ### Module Structure
 
-Follow the v0.10.0 module organization:
+Follow the v0.12.0-dev module organization:
 
 ```
 src/flext_cli/
 ├── Services (3-4 only)
 │   ├── core.py              # FlextCliCore - stateful
-│   ├── api.py               # FlextCli - facade
+│   ├── api.py               # cli - facade
 │   └── cmd.py               # FlextCliCmd - command execution
 │
 ├── Simple Classes (utilities)
@@ -208,29 +206,27 @@ src/flext_cli/
 │
 └── Data Models (value objects)
     ├── models.py            # All Pydantic models
-    └── config.py            # FlextCliSettings
+    └── _settings.py           # FlextCliSettings
 ```
 
 ### Direct Access Pattern
 
 **Always use direct access** (no wrapper methods):
 
-```python
-# ✅ CORRECT - Direct access
-cli = FlextCli()
-cli.formatters.print("Hello", style="green")
-cli.file_tools.read_json_file("config.json")
+```text
+# ✅ CORRECT - Public facade
+cli.print("Hello", style="green")
+cli.file_tools.read_json_file("settings.json")
 cli.prompts.confirm("Continue?")
 
-# ❌ WRONG - Wrapper methods (v0.9.0 pattern)
-# cli.print("Hello")              # REMOVED
-# cli.read_json_file("config.json")  # REMOVED
+# ❌ WRONG - Internal utility/service chains are not public APIs.
+# cli.read_json_file("settings.json")  # REMOVED
 # cli.confirm("Continue?")           # REMOVED
 ```
 
 ______________________________________________________________________
 
-## Testing Guidelines (v0.10.0)
+## Testing Guidelines (v0.12.0-dev)
 
 ### Test Organization
 
@@ -262,7 +258,7 @@ tests/
 
 ### Testing Simple Classes
 
-```python
+```text
 import pytest
 from flext_cli import FlextCliFileTools
 
@@ -272,7 +268,7 @@ def test_read_json_file():
     # Simple classes use static methods
     result = FlextCliFileTools.read_json_file("test.json")
 
-    assert result.is_success
+    assert result.success
     data = result.unwrap()
     assert isinstance(data, dict)
 
@@ -282,7 +278,7 @@ def test_read_json_file():
 
 ______________________________________________________________________
 
-## Contributing to v0.10.0
+## Contributing to v0.12.0-dev
 
 ### Implementation Checklist
 
@@ -315,7 +311,7 @@ Key phases:
 1. **Quality Gates (MANDATORY)**:
 
    ```bash
-   make validate  # Must pass 100%
+   make val  # Must pass 100%
    ```
 
 1. **Test Organization**:
@@ -361,7 +357,7 @@ ______________________________________________________________________
 
 ```bash
 make setup          # Complete development environment setup
-make validate       # All quality checks (lint + type + test)
+make val       # All quality checks (lint + type + test)
 make test          # Run test suite
 make lint          # Code linting with Ruff
 make type-check    # MyPy type checking
@@ -391,16 +387,16 @@ Follow these patterns when extending flext-cli:
 
 ### Code Organization
 
-```python
+```text
 # ✅ Correct - Use flext-cli patterns
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 class ProjectCliService:
     """Project CLI service following FLEXT patterns."""
 
     def __init__(self):
-        self._cli_api = FlextCli()
+        self._cli_api = cli()
 
     def process_data(self, data: dict):
         """Process CLI data."""
@@ -432,14 +428,14 @@ tests/
 
 ### Testing Patterns
 
-```python
+```text
 import pytest
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def test_cli_api_operation():
     """Test CLI API operations."""
-    api = FlextCli()
+    api = cli()
 
     result = api.process_command("test")
 
@@ -449,7 +445,7 @@ def test_cli_api_operation():
 
 def test_error_handling():
     """Test proper error handling."""
-    api = FlextCli()
+    api = cli()
 
     result = api.process_command("")  # Invalid input
 
@@ -488,7 +484,7 @@ ______________________________________________________________________
 
 1. Create feature branch from main
 1. Implement changes with tests
-1. Run `make validate` to ensure quality
+1. Run `make val` to ensure quality
 1. Submit pull request with description
 1. Address review feedback
 1. Merge after approval
@@ -501,7 +497,7 @@ Follow conventional commit format:
 feat: add new CLI command for data export
 fix: resolve authentication timeout issue
 docs: update API documentation
-test: add integration tests for config module
+test: add integration tests for settings module
 ```
 
 ______________________________________________________________________
@@ -512,41 +508,22 @@ ______________________________________________________________________
 
 1. Create command handler:
 
-```python
-from flext_core import FlextBus
-from flext_core import FlextSettings
-from flext_core import FlextConstants
-from flext_core import FlextContainer
-from flext_core import FlextContext
-from flext_core import FlextDecorators
-from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
-from flext_core import h
-from flext_core import FlextLogger
-from flext_core import x
-from flext_core import FlextModels
-from flext_core import FlextProcessors
-from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
-from flext_core import t
-from flext_core import u
-from flext_cli import FlextCli
+```text
+from flext_core  import config, settings, c, e, d, h, p, r, s, t, u, x
+from flext_cli import cli
 
-class DataCommands(FlextService):
+class DataCommands(s):
     """Data management commands."""
 
-    def handle_export(self, **kwargs) -> r[bool]:
+    def handle_export(self, **kwargs) -> p.Result[bool]:
         """Handle data export command."""
         # Implementation
-        return r[bool].| ok(value=True)
+        return r[bool].ok(value=True)
 ```
 
-2. Register with CLI:
+1. Register with CLI:
 
-```python
+```text
 from flext_cli import FlextCliCommands
 
 cli = FlextCliCommands()
@@ -557,26 +534,26 @@ cli.register_command_group(
 )
 ```
 
-3. Add tests:
+1. Add tests:
 
-```python
+```text
 def test_data_export_command():
     """Test data export functionality."""
     handler = DataCommands()
     result = handler.handle_export(format="json")
-    assert result.is_success
+    assert result.success
 ```
 
 ### Custom Formatters
 
-```python
+```text
 from flext_cli import FlextCliOutput
 
 
 class ProjectFormatters(FlextCliOutput):
     """Project-specific output formatters."""
 
-    def format_project_data(self, data: dict) -> r[str]:
+    def format_project_data(self, data: dict) -> p.Result[str]:
         """Format project-specific data."""
         # Custom formatting logic
         return r[str].ok("formatted_output")
@@ -612,4 +589,4 @@ flext debug info
 ______________________________________________________________________
 
 For architectural details, see [architecture.md](architecture.md).
-For API usage, see [api-reference.md](api-reference.md).
+For API usage, see [API Reference](api-reference/README.md).

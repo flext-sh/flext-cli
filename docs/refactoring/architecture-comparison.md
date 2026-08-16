@@ -1,7 +1,6 @@
 # Architecture Comparison: v0.9.0 vs v0.10.0
 
 <!-- TOC START -->
-
 - [Executive Summary](#executive-summary)
 - [Module Classification](#module-classification)
   - [v0.9.0 (Current): Everything is a Service](#v090-current-everything-is-a-service)
@@ -13,7 +12,7 @@
   - [Example 1: File Operations](#example-1-file-operations)
   - [Example 2: Output Formatting](#example-2-output-formatting)
 - [Service Class Patterns](#service-class-patterns)
-  - [v0.9.0: Everything Extends FlextService](#v090-everything-extends-flextservice)
+  - [v0.9.0: Everything Extends s](#v090-everything-extends-s)
   - [v0.10.0: Simple Classes for Utilities](#v0100-simple-classes-for-utilities)
 - [Test Organization](#test-organization)
   - [v0.9.0: Flat Structure](#v090-flat-structure)
@@ -34,7 +33,6 @@
   - [What Improved](#what-improved)
   - [Trade-offs](#trade-offs)
   - [Overall Assessment](#overall-assessment)
-
 <!-- TOC END -->
 
 **Visual side-by-side comparison of the old and new architectures**
@@ -63,7 +61,7 @@ ______________________________________________________________________
 
 Services (Stateful):
 ✅ FlextCliCore - Commands, sessions
-✅ FlextCli - Main facade
+✅ cli - Main facade
 ✅ FlextCliCmd - Command execution
 
 Services (Unnecessary):
@@ -85,8 +83,8 @@ Services (Unnecessary):
 ✅ SIMPLIFIED: 3-4 Services + Simple Classes + Data Models
 
 Services (Stateful - ONLY 3-4):
-✅ FlextCliCore - Commands, sessions, config
-✅ FlextCli - Main facade (singleton)
+✅ FlextCliCore - Commands, sessions, settings
+✅ cli - Main facade (singleton)
 ✅ FlextCliCmd - Command execution (evaluate)
 
 Simple Classes (Utilities - 10+):
@@ -109,15 +107,14 @@ ______________________________________________________________________
 
 ### v0.9.0: Wrapper Methods (Confusing)
 
-```python
+```text
 # ❌ Multiple ways to do the same thing
-cli = FlextCli()
 
-# Way 1: Through wrapper
+# Way 1: Public facade
 cli.print("Hello")
 
-# Way 2: Direct access
-cli.formatters.print("Hello")
+# Way 2: Internal service route (not a public call)
+# FlextCliFormatters.print("Hello")
 
 # Which one to use? Both work! Confusing!
 ```
@@ -126,13 +123,12 @@ cli.formatters.print("Hello")
 
 ### v0.10.0: Direct Access (Clear)
 
-```python
+```text
 # ✅ One clear way
-cli = FlextCli()
 
-# Always direct access - clear ownership
-cli.formatters.print("Hello")
-cli.file_tools.read_json_file("config.json")
+# Public facade - clear ownership
+cli.print("Hello")
+cli.file_tools.read_json_file("settings.json")
 cli.prompts.confirm("Continue?")
 ```
 
@@ -146,29 +142,27 @@ ______________________________________________________________________
 
 #### v0.9.0 (Old)
 
-```python
-from flext_cli import FlextCli
+```text
+from flext_cli import cli
 
-cli = FlextCli()
 
 # Wrapper method (will be removed)
-config = cli.read_json_file("config.json").unwrap()
+settings = cli.read_json_file("settings.json").unwrap()
 
 # Also works (direct access)
-config = cli.file_tools.read_json_file("config.json").unwrap()
+settings = cli.file_tools.read_json_file("settings.json").unwrap()
 
 # Two ways! Which is correct?
 ```
 
 #### v0.10.0 (New)
 
-```python
-from flext_cli import FlextCli
+```text
+from flext_cli import cli
 
-cli = FlextCli()
 
 # Only one way - direct access
-config = cli.file_tools.read_json_file("config.json").unwrap()
+settings = cli.file_tools.read_json_file("settings.json").unwrap()
 
 # Clear, explicit, no ambiguity
 ```
@@ -177,10 +171,10 @@ config = cli.file_tools.read_json_file("config.json").unwrap()
 
 #### v0.9.0 (Old)
 
-```python
+```text
 # Multiple ways:
-cli.print("Message")  # Wrapper
-cli.formatters.print("Message")  # Direct
+cli.print("Message")  # Public facade
+FlextCliFormatters.print("Message")  # Internal service
 
 table = cli.create_table(data)  # Wrapper
 cli.print_table(table)  # Wrapper
@@ -188,48 +182,48 @@ cli.print_table(table)  # Wrapper
 # or
 
 table = cli.output.format_data(data, format_type="table")  # Direct
-cli.formatters.print(table)  # Direct
+cli.print(table)  # Public facade
 ```
 
 #### v0.10.0 (New)
 
-```python
-# One clear way:
-cli.formatters.print("Message")
+```text
+# One clear public way:
+cli.print("Message")
 
 # For tables:
 table = cli.output.format_data(data, format_type="table")
-cli.formatters.print(table.unwrap())
+cli.print(table.unwrap())
 
 # Explicit, clear ownership
 ```
 
 ## Service Class Patterns
 
-### v0.9.0: Everything Extends FlextService
+### v0.9.0: Everything Extends s
 
-```python
+```text
 # ❌ Unnecessary service infrastructure
-class FlextCliFileTools(FlextService[dict[str, object]]):
+class FlextCliFileTools(s[t.JsonMapping]):
     def __init__(self):
         super().__init__()  # Service overhead
-        self.logger = FlextLogger(__name__)
-        self._state = {}  # No state actually needed!
+        self.logger = u.fetch_logger(__name__)
+        self.state = {}  # No state actually needed!
 
-    def read_json_file(self, path: str) -> r[dict]:
+    def read_json_file(self, path: str) -> p.Result[dict]:
         self.logger.info(f"Reading {path}")  # Logging overhead
         # Just read a file - doesn't need service
 ```
 
 ### v0.10.0: Simple Classes for Utilities
 
-```python
+```text
 # ✅ Simple, no overhead
 class FlextCliFileTools:
     """Stateless file operations."""
 
     @staticmethod
-    def read_json_file(path: str) -> r[dict]:
+    def read_json_file(path: str) -> p.Result[dict]:
         """Read JSON file - no state, no overhead."""
         try:
             with open(path) as f:
@@ -303,7 +297,7 @@ ______________________________________________________________________
 
 ### v0.9.0: Unused Infrastructure
 
-```python
+```text
 # ❌ Imported but never used
 import asyncio  # 0 async functions
 from concurrent.futures import ThreadPoolExecutor  # Never instantiated
@@ -315,11 +309,11 @@ from cachetools import LRUCache, TTLCache  # Evaluate usage
 
 ### v0.10.0: Clean Imports
 
-```python
+```text
 # ✅ Only what's actually used
 import json
 from pathlib import Path
-from flext_core import r, FlextService
+from flext_core import r, p, s
 ```
 
 **Benefit**: Clear dependencies, no confusion
@@ -332,10 +326,10 @@ ______________________________________________________________________
 
 #### v0.9.0: Double Indirection
 
-```python
+```text
 cli.print("msg")
-    → FlextCli.print()  # Wrapper
-        → self.formatters.print("msg")  # Actual method
+    → FlextCliFormatters.print("msg")
+        → internal formatter utility
             → Rich library
 
 # 3 layers of indirection
@@ -343,9 +337,10 @@ cli.print("msg")
 
 #### v0.10.0: Single Indirection
 
-```python
-cli.formatters.print("msg")
-    → FlextCliFormatters.print()  # Direct
+```text
+cli.print("msg")
+    → FlextCliFormatters.print()
+        → internal formatter utility
         → Rich library
 
 # 2 layers - 33% faster
@@ -355,7 +350,7 @@ cli.formatters.print("msg")
 
 #### v0.9.0: Every Class is Service
 
-```python
+```text
 # Every instantiation has service overhead
 file_tools = FlextCliFileTools()
 # Calls __init__, super().__init__(), logger setup, etc.
@@ -363,7 +358,7 @@ file_tools = FlextCliFileTools()
 
 #### v0.10.0: Static Methods
 
-```python
+```text
 # No instantiation needed for utilities
 FlextCliFileTools.read_json_file(path)
 # Direct static method call - zero overhead
@@ -381,7 +376,7 @@ ______________________________________________________________________
 
 ```bash
 # Most common (90% of changes):
-cli.print(          → cli.formatters.print(
+removed nested print route → cli.print(
 cli.read_json_file( → cli.file_tools.read_json_file(
 cli.confirm(        → cli.prompts.confirm(
 ```

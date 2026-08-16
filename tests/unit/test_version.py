@@ -1,258 +1,122 @@
-"""FLEXT CLI Version Tests - Comprehensive Version Validation Testing.
+"""Public version-contract tests for the flext-cli facade.
 
-Tests for flext_cli.__version__ and __version_info__ covering semver compliance,
-immutability, consistency, and edge cases with 100% coverage.
+Exercises only the observable public surface:
 
-Modules tested: flext_cli.__version__, flext_cli.__version_info__
-Scope: Version string validation, version info validation, consistency checks
+* ``flext_cli.__version__`` / ``flext_cli.__version_info__`` package metadata.
+* ``FlextCliVersion`` (the MRO-derived version class re-exported publicly).
+* ``c.Cli.CLI_VERSION`` (the runtime version constant).
+* ``cli.execute()`` runtime status payload that publishes the version.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
-SPDX-License-Identifier: MIT
-
+No private attributes, no internal-collaborator spying, no monkeypatching.
 """
 
 from __future__ import annotations
 
-import re
-import sys
-from enum import StrEnum
-from typing import Final, TypeVar
-
 import pytest
+
+import flext_cli
+from flext_cli import cli
+from flext_cli.__version__ import FlextCliVersion
 from flext_tests import tm
-from pydantic import BaseModel, ConfigDict, Field
-
-from flext_cli import __version__, __version_info__
-
-from ..conftest import Examples, InfoTuples
-from ..helpers import FlextCliTestHelpers
-
-T = TypeVar("T")
+from tests import c
 
 
-class TestsCliVersion:
-    """Comprehensive version validation test suite.
+class TestsFlextCliVersion:
+    """Validate the public CLI version contract through canonical surfaces."""
 
-    Single class with nested helper classes and methods organized by functionality.
-    Uses factories, constants, dynamic tests, and helpers to reduce code while
-    maintaining and expanding coverage.
-    """
+    def test_package_version_is_nonempty_trimmed_string(self) -> None:
+        """``flext_cli.__version__`` is a non-empty, whitespace-trimmed string."""
+        version = flext_cli.__version__
+        tm.that(version, is_=str)
+        tm.that(bool(version), eq=True)
+        tm.that(version, eq=version.strip())
 
-    class ValidationType(StrEnum):
-        """Types of version validation."""
+    def test_package_version_matches_semver_contract(self) -> None:
+        """``flext_cli.__version__`` honours the published semver pattern."""
+        tm.that(c.PATTERN_SEMVER_RE.match(flext_cli.__version__), none=False)
 
-        STRING = "string_validation"
-        INFO = "info_validation"
-        CONSISTENCY = "consistency"
+    def test_package_version_within_length_bounds(self) -> None:
+        """``flext_cli.__version__`` stays within sane display bounds."""
+        tm.that(len(flext_cli.__version__), gte=5)
+        tm.that(len(flext_cli.__version__), lte=50)
 
-    class TestScenario:
-        """Version test scenario data class."""
+    def test_package_version_info_is_tuple_of_at_least_three_parts(self) -> None:
+        """``flext_cli.__version_info__`` is a tuple carrying major/minor/patch."""
+        info = flext_cli.__version_info__
+        tm.that(info, is_=tuple)
+        tm.that(len(info), gte=3)
 
-        class Data(BaseModel):
-            """Version test scenario data."""
+    def test_package_version_info_core_parts_are_non_negative_ints(self) -> None:
+        """The leading major/minor/patch parts are non-negative integers."""
+        info = flext_cli.__version_info__
+        for part in info[:3]:
+            tm.that(part, is_=int)
+            tm.that(isinstance(part, bool), eq=False)
+            tm.that(part, gte=0)
 
-            model_config = ConfigDict(frozen=True)
+    def test_version_info_is_consistent_with_version_string(self) -> None:
+        """``__version_info__`` is the release prefix of ``__version__``.
 
-            name: str = Field(description="Scenario name")
-            version_string: str | None = Field(
-                default=None, description="Version string under test"
-            )
-            version_info: tuple[int | str, ...] | None = Field(
-                default=None, description="Version info tuple under test"
-            )
-            should_pass: bool = Field(
-                default=True, description="Whether scenario should pass validation"
-            )
+        This is the core invariant of the MRO-derived version surface:
+        both public attributes describe the same release.
+        """
+        release = ".".join(str(part) for part in flext_cli.__version_info__)
+        tm.that(flext_cli.__version__.startswith(release), eq=True)
 
-            @property
-            def validation_type(self) -> TestsCliVersion.ValidationType:
-                """Determine validation type based on data provided."""
-                current_module = sys.modules[__name__]
-                test_class: type[TestsCliVersion] = current_module.TestsCliVersion
-                validation_enum = test_class.ValidationType
-                if self.version_string and self.version_info:
-                    return validation_enum.CONSISTENCY
-                if self.version_info:
-                    return validation_enum.INFO
-                return validation_enum.STRING
+    def test_facade_class_and_module_version_agree(self) -> None:
+        """The public ``FlextCliVersion`` class and module exports match."""
+        tm.that(FlextCliVersion.__version__, eq=flext_cli.__version__)
+        tm.that(FlextCliVersion.__version_info__, eq=flext_cli.__version_info__)
 
-        @classmethod
-        def get_string_cases(cls) -> list[TestsCliVersion.TestScenario.Data]:
-            """Get parametrized test cases for version string validation."""
-            data_class = cls.Data
-            return [
-                data_class(
-                    name="valid_semver",
-                    version_string=Examples.VALID_SEMVER,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="valid_complex",
-                    version_string=Examples.VALID_SEMVER_COMPLEX,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="invalid_no_dots",
-                    version_string=Examples.INVALID_NO_DOTS,
-                    should_pass=False,
-                ),
-                data_class(
-                    name="invalid_non_numeric",
-                    version_string=Examples.INVALID_NON_NUMERIC,
-                    should_pass=False,
-                ),
-                data_class(name="invalid_empty", version_string="", should_pass=False),
-            ]
+    def test_cli_version_constant_matches_semver_contract(self) -> None:
+        """The runtime ``c.Cli.CLI_VERSION`` constant is semver-compliant."""
+        tm.that(c.Cli.CLI_VERSION, is_=str)
+        tm.that(c.PATTERN_SEMVER_RE.match(c.Cli.CLI_VERSION), none=False)
+        tm.that(len(c.Cli.CLI_VERSION), gte=5)
+        tm.that(len(c.Cli.CLI_VERSION), lte=50)
 
-        @classmethod
-        def get_info_cases(cls) -> list[TestsCliVersion.TestScenario.Data]:
-            """Get parametrized test cases for version info validation."""
-            data_class = cls.Data
-            return [
-                data_class(
-                    name="valid_tuple",
-                    version_info=InfoTuples.VALID_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="valid_complex_tuple",
-                    version_info=InfoTuples.VALID_COMPLEX_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="short_tuple",
-                    version_info=InfoTuples.SHORT_TUPLE,
-                    should_pass=False,
-                ),
-                data_class(
-                    name="empty_tuple",
-                    version_info=InfoTuples.EMPTY_TUPLE,
-                    should_pass=False,
-                ),
-            ]
+    def test_cli_version_constant_exposes_major_minor_patch(self) -> None:
+        """``c.Cli.CLI_VERSION`` yields extractable major/minor/patch parts."""
+        parts = c.Cli.CLI_VERSION.split(".")
+        tm.that(len(parts), gte=3)
+        for part in parts[:3]:
+            tm.that(part.isdigit(), eq=True)
+            tm.that(int(part), gte=0)
 
-        @classmethod
-        def get_consistency_cases(cls) -> list[TestsCliVersion.TestScenario.Data]:
-            """Get parametrized test cases for version consistency validation."""
-            data_class = cls.Data
-            return [
-                data_class(
-                    name="valid_match",
-                    version_string=Examples.VALID_SEMVER,
-                    version_info=InfoTuples.VALID_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="valid_complex_match",
-                    version_string=Examples.VALID_SEMVER_COMPLEX,
-                    version_info=InfoTuples.VALID_COMPLEX_TUPLE,
-                    should_pass=True,
-                ),
-                data_class(
-                    name="invalid_mismatch",
-                    version_string=Examples.INVALID_NO_DOTS,
-                    version_info=InfoTuples.SHORT_TUPLE,
-                    should_pass=False,
-                ),
-            ]
-
-    def test_actual_version_string_type(self) -> None:
-        """Test __version__ is a non-empty string."""
-        assert isinstance(__version__, str)
-        assert len(__version__) > 0
-        assert __version__ == __version__.strip()
-
-    def test_actual_version_string_semver_compliant(self) -> None:
-        """Test __version__ matches semver pattern."""
-        pattern: Final[str] = "^\\d+\\.\\d+\\.\\d+(?:-[\\w\\.]+)?(?:\\+[\\w\\.]+)?$"
-        assert re.match(pattern, __version__) is not None
-
-    def test_actual_version_string_length_bounds(self) -> None:
-        """Test version string length is within acceptable bounds."""
-        min_len: Final[int] = 5
-        max_len: Final[int] = 50
-        assert min_len <= len(__version__) <= max_len
-
-    def test_actual_version_info_structure(self) -> None:
-        """Test __version_info__ is a valid tuple."""
-        assert isinstance(__version_info__, tuple)
-        assert len(__version_info__) >= 3
-        for i, part in enumerate(__version_info__):
-            assert isinstance(part, (int, str)), f"Part {i} invalid type: {type(part)}"
-            if isinstance(part, int):
-                assert part >= 0, f"Part {i} negative: {part}"
-            else:
-                assert len(part) > 0, f"Part {i} empty string"
-
-    def test_actual_version_parts_extraction(self) -> None:
-        """Test major.minor.patch can be extracted from version."""
-        parts: list[str] = __version__.split(".")
-        assert len(parts) >= 3
-        major_str, minor_str, patch_str = (parts[0], parts[1], parts[2])
-        assert major_str.isdigit()
-        assert minor_str.isdigit()
-        assert patch_str[0].isdigit()
-
-    def test_actual_version_consistency(self) -> None:
-        """Test __version__ and __version_info__ are consistent."""
-        result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
-            __version__, __version_info__
-        )
+    def test_execute_publishes_cli_version_in_runtime_payload(self) -> None:
+        """``cli.execute()`` succeeds and reports the CLI version string."""
+        result = cli.execute()
         tm.ok(result)
+        payload = result.value
+        version = payload.version
+        tm.that(version, is_=str)
+        tm.that(version, eq=c.Cli.CLI_VERSION)
 
-    def test_actual_version_immutability(self) -> None:
-        """Test version values are immutable."""
-        original_version = __version__
-        original_info = __version_info__
-        assert __version__ == original_version
-        assert __version_info__ == original_info
-        assert isinstance(__version_info__, tuple)
-
-    @pytest.mark.parametrize(
-        "scenario",
-        TestScenario.get_string_cases(),
-        ids=[s.name for s in TestScenario.get_string_cases()],
-    )
-    def test_version_string_validation(self, scenario: TestScenario.Data) -> None:
-        """Test version string validation with parametrized cases."""
-        assert scenario.version_string is not None
-        result = FlextCliTestHelpers.VersionTestFactory.validate_version_string(
-            scenario.version_string
-        )
-        if scenario.should_pass:
-            tm.ok(result)
-        else:
-            tm.fail(result)
+    def test_execute_reports_version_deterministically(self) -> None:
+        """Repeated ``cli.execute()`` calls report an identical version."""
+        first = cli.execute()
+        second = cli.execute()
+        tm.ok(first)
+        tm.ok(second)
+        tm.that(first.value.version, eq=second.value.version)
 
     @pytest.mark.parametrize(
-        "scenario",
-        TestScenario.get_info_cases(),
-        ids=[s.name for s in TestScenario.get_info_cases()],
+        ("candidate", "is_valid"),
+        [
+            ("0.0.0", True),
+            ("1.2.3", True),
+            ("10.20.30", True),
+            ("1.0.0-dev0", True),
+            ("1.0.0+build.5", True),
+            ("", False),
+            ("1", False),
+            ("1.2", False),
+            ("v1.2.3", False),
+            ("1.2.x", False),
+            ("not-a-version", False),
+        ],
     )
-    def test_version_info_validation(self, scenario: TestScenario.Data) -> None:
-        """Test version info tuple validation with parametrized cases."""
-        assert scenario.version_info is not None
-        result = FlextCliTestHelpers.VersionTestFactory.validate_version_info(
-            scenario.version_info
-        )
-        if scenario.should_pass:
-            tm.ok(result)
-        else:
-            tm.fail(result)
-
-    @pytest.mark.parametrize(
-        "scenario",
-        TestScenario.get_consistency_cases(),
-        ids=[s.name for s in TestScenario.get_consistency_cases()],
-    )
-    def test_version_consistency_validation(self, scenario: TestScenario.Data) -> None:
-        """Test consistency between version string and info with parametrized cases."""
-        assert scenario.version_string is not None
-        assert scenario.version_info is not None
-        result = FlextCliTestHelpers.VersionTestFactory.validate_consistency(
-            scenario.version_string, scenario.version_info
-        )
-        if scenario.should_pass:
-            tm.ok(result)
-        else:
-            tm.fail(result)
+    def test_semver_pattern_contract(self, candidate: str, *, is_valid: bool) -> None:
+        """The published semver pattern accepts valid and rejects invalid strings."""
+        matched = c.PATTERN_SEMVER_RE.match(candidate) is not None
+        tm.that(matched, eq=is_valid)

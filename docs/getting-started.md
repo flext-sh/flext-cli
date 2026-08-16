@@ -1,9 +1,8 @@
 # Getting Started with flext-cli
 
 <!-- TOC START -->
-
 - [📌 Quick Navigation](#quick-navigation)
-- [v0.10.0 Getting Started (Current)](#v0100-getting-started-current)
+- [v0.12.0-dev Getting Started (Current)](#v0120-dev-getting-started-current)
   - [Overview](#overview)
 - [Prerequisites](#prerequisites)
   - [System Requirements](#system-requirements)
@@ -11,14 +10,14 @@
 - [Installation](#installation)
   - [Development Setup](#development-setup)
   - [As a Dependency](#as-a-dependency)
-- [Quick Start (v0.10.0)](#quick-start-v0100)
+- [Quick Start (v0.12.0-dev)](#quick-start-v0120-dev)
   - [🚀 Your First CLI Application](#your-first-cli-application)
   - [📊 Working with Tables](#working-with-tables)
   - [📁 File Operations](#file-operations)
   - [🔄 Railway-Oriented Programming](#railway-oriented-programming)
-- [Development Workflow (v0.10.0)](#development-workflow-v0100)
+- [Development Workflow (v0.12.0-dev)](#development-workflow-v0120-dev)
   - [Quality Gates](#quality-gates)
-  - [Development Pattern (v0.10.0)](#development-pattern-v0100)
+  - [Development Pattern (v0.12.0-dev)](#development-pattern-v0120-dev)
   - [Testing Your CLI Code](#testing-your-cli-code)
 - [Next Steps](#next-steps)
   - [Learn More](#learn-more)
@@ -31,8 +30,7 @@
 - [Quality Validation](#quality-validation)
   - [Validation Commands](#validation-commands)
   - [Implementation Verification](#implementation-verification)
-- [Next Steps](#next-steps)
-
+- [Next Steps (v0.9.0)](#next-steps-v090)
 <!-- TOC END -->
 
 **Installation and setup guide for the FLEXT ecosystem CLI foundation library.**
@@ -43,26 +41,26 @@ ______________________________________________________________________
 
 ## 📌 Quick Navigation
 
-- [v0.10.0 Getting Started (Current)](#v0100-getting-started-current) ← **Start Here**
+- [v0.12.0-dev Getting Started (Current)](#v0120-dev-getting-started-current) ← **Start Here**
 - [v0.9.0 Getting Started (Historical Reference)](#v090-getting-started-historical-reference)
 
 ______________________________________________________________________
 
-## v0.10.0 Getting Started (Current)
+## v0.12.0-dev Getting Started (Current)
 
 **Status**: 📝 Planned | **Release**: Q1 2025 | **Breaking Changes**: Yes
 
 ### Overview
 
-flext-cli v0.10.0 is a simplified, streamlined CLI foundation library for the FLEXT ecosystem. It provides:
+flext-cli v0.12.0-dev is a simplified, streamlined CLI foundation library for the FLEXT ecosystem. It provides:
 
-- **Direct Access API**: Clear ownership with `cli.formatters.*`, `cli.file_tools.*`, `cli.prompts.*`
-- **Services for State Only**: FlextService used only where needed (3-4 classes)
+- **Direct MRO API**: All services available directly on `cli.*` via MRO inheritance
+- **Services for State Only**: s used only where needed (3-4 classes)
 - **Simple Utilities**: Stateless operations as simple classes
 - **Value Objects**: Immutable data models using Pydantic
 - **Railway Pattern**: All operations return `r[T]`
 
-**Key Improvements in v0.10.0**:
+**Key Improvements in v0.12.0-dev**:
 
 - 30-40% less code (14K → 10K lines)
 - 75% fewer services (18 → 3-4)
@@ -78,13 +76,13 @@ ______________________________________________________________________
 - **Python**: 3.13+ (required for advanced type features)
 - **Poetry**: 1.7+ (dependency management)
 - **Make**: Build automation
-- **FLEXT Ecosystem**: flext-core v0.9.9+
+- **FLEXT Ecosystem**: flext-core v0.12.0-dev+
 
 ### FLEXT Ecosystem Integration
 
 flext-cli integrates with:
 
-- **[flext-core](https://github.com/organization/flext/tree/main/flext-core/README.md)**: Foundation patterns (r, FlextService, FlextModels)
+- **[flext-core](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/README.md)**: Foundation patterns (r, s, FlextModels)
 - **Click 8.2+**: CLI framework (abstracted)
 - **Rich 14.0+**: Terminal UI (abstracted)
 - **Pydantic 2.11+**: Data validation
@@ -104,7 +102,7 @@ cd flext-cli
 make setup
 
 # Verify installation
-python -c "from flext_cli import FlextCli; print('✅ Installation successful')"
+python -c "print('✅ Installation successful')"
 ```
 
 ### As a Dependency
@@ -127,42 +125,40 @@ pip install flext-cli
 
 ______________________________________________________________________
 
-## Quick Start (v0.10.0)
+## Quick Start (v0.12.0-dev)
 
 ### 🚀 Your First CLI Application
 
-```python
-from flext_cli import FlextCli
-from flext_core import r
+```text
+from flext_cli import cli
+from flext_core import r, p
 
 # Initialize CLI (singleton pattern)
-cli = FlextCli()
 
-# Print with styling (direct access to formatters)
-cli.formatters.print("Welcome to FLEXT CLI!", style="green bold")
+# Print with styling (MRO inheritance)
+cli.print("Welcome to FLEXT CLI!", style="green bold")
 
-# Read configuration file (direct access to file_tools)
-config_result = cli.file_tools.read_json_file("config.json")
+# Read configuration file
+config_result = cli.read_json_file("settings.json")
 
-if config_result.is_success:
-    config = config_result.unwrap()
-    cli.formatters.print(f"Loaded config: {config}", style="cyan")
+if config_result.success:
+    settings = config_result.unwrap()
+    cli.print(f"Loaded settings: {settings}", style="cyan")
 else:
-    cli.formatters.print(f"Error: {config_result.error}", style="red")
+    cli.print(f"Error: {config_result.error}", style="red")
 
-# Interactive prompt (direct access to prompts)
-confirm_result = cli.prompts.confirm("Continue?")
+# Interactive prompt
+confirm_result = cli.confirm("Continue?")
 
-if confirm_result.is_success and confirm_result.unwrap():
-    cli.formatters.print("Let's go!", style="green")
+if confirm_result.success and confirm_result.unwrap():
+    cli.print("Let's go!", style="green")
 ```
 
 ### 📊 Working with Tables
 
-```python
-from flext_cli import FlextCli
+```text
+from flext_cli import cli
 
-cli = FlextCli()
 
 # Create data
 users = [
@@ -170,84 +166,77 @@ users = [
     {"name": "Bob", "role": "User", "status": "Active"},
 ]
 
-# Format as table (direct access to output)
-table_result = cli.output.format_data(data={"users": users}, format_type="table")
-
-# Display
-if table_result.is_success:
-    cli.formatters.print(table_result.unwrap())
+# Display as table
+cli.display_rich_table(users, title="Users")
 ```
 
 ### 📁 File Operations
 
-```python
-from flext_cli import FlextCli
+```text
+from flext_cli import cli
 
-cli = FlextCli()
 
-# JSON operations (direct access to file_tools)
+# JSON operations
 data = {"setting": "value", "enabled": True}
 
 # Write
-write_result = cli.file_tools.write_json_file("config.json", data)
+write_result = cli.write_json_file("settings.json", data)
 
-if write_result.is_success:
-    cli.formatters.print("Config saved!", style="green")
+if write_result.success:
+    cli.print("Config saved!", style="green")
 
 # Read
-read_result = cli.file_tools.read_json_file("config.json")
+read_result = cli.read_json_file("settings.json")
 
-if read_result.is_success:
+if read_result.success:
     loaded_data = read_result.unwrap()
-    cli.formatters.print(f"Loaded: {loaded_data}", style="cyan")
+    cli.print(f"Loaded: {loaded_data}", style="cyan")
 ```
 
 ### 🔄 Railway-Oriented Programming
 
 Chain operations with `r[T]`:
 
-```python
-from flext_cli import FlextCli
-from flext_core import r
-
-cli = FlextCli()
+```text
+from flext_cli import cli
+from flext_core import r, p
 
 
-def validate_config(config: dict) -> r[dict]:
-    """Validate configuration."""
-    if "required_field" not in config:
+def validate_settings(settings: dict) -> p.Result[dict]:
+    """Validate settings."""
+    if "required_field" not in settings:
         return r[dict].fail("Missing required_field")
-    return r[dict].ok(config)
+    return r[dict].ok(settings)
 
 
-def apply_defaults(config: dict) -> dict:
+def apply_defaults(settings: dict) -> dict:
     """Apply default values."""
-    return {**{"timeout": 30}, **config}
+    return {**{"timeout": 30}, **settings}
 
 
 # Chain operations
 result = (
     cli.file_tools
-    .read_json_file("config.json")
-    .flat_map(validate_config)  # Validate
+    .read_json_file("settings.json")
+    .flat_map(validate_settings)  # Validate
     .map(apply_defaults)  # Transform
-    .map(lambda cfg: cli.formatters.print(f"Final config: {cfg}"))
+    .map(lambda cfg: cli.print(f"Final settings: {cfg}"))
 )
 
 # Handle result
-if not result.is_success:
-    cli.formatters.print(f"Error: {result.error}", style="red")
+if result.failure:
+    cli.print(f"Error: {result.error}", style="red")
 ```
 
 ______________________________________________________________________
 
-## Development Workflow (v0.10.0)
+## Development Workflow (v0.12.0-dev)
 
 ### Quality Gates
 
 ```bash
 # Before committing (MANDATORY)
-make validate               # Complete validation: lint + type + security + test
+make val               # Complete validation: lint + type + security + test
 
 # Individual checks
 make lint                   # Ruff linting (ZERO tolerance)
@@ -259,52 +248,50 @@ make test                   # Test suite with coverage
 make format                 # Auto-format with Ruff
 ```
 
-### Development Pattern (v0.10.0)
+### Development Pattern (v0.12.0-dev)
 
-```python
-from flext_cli import FlextCli
-from flext_core import r
+```text
+from flext_cli import cli
+from flext_core import r, p
 
 
-def my_cli_application() -> r[bool]:
-    """Application using v0.10.0 patterns."""
-    cli = FlextCli()
-
+def my_cli_application() -> p.Result[bool]:
+    """Application using v0.12.0-dev patterns."""
+    
     # Direct access to all services
-    cli.formatters.print("Starting...", style="cyan")
+    cli.print("Starting...", style="cyan")
 
     # File operations
-    config_result = cli.file_tools.read_json_file("config.json")
+    config_result = cli.read_json_file("settings.json")
 
-    if not config_result.is_success:
-        cli.formatters.print(f"Error: {config_result.error}", style="red")
+    if not config_result.success:
+        cli.print(f"Error: {config_result.error}", style="red")
         return r[bool].fail(config_result.error)
 
     # User interaction
-    confirm_result = cli.prompts.confirm("Continue?")
-    if confirm_result.is_success and confirm_result.unwrap():
-        cli.formatters.print("Processing...", style="green")
+    confirm_result = cli.confirm("Continue?")
+    if confirm_result.success and confirm_result.unwrap():
+        cli.print("Processing...", style="green")
         return r[bool].ok(value=True)
     return r[bool].fail("Operation cancelled")
 ```
 
 ### Testing Your CLI Code
 
-```python
+```text
 import pytest
-from flext_cli import FlextCli
+from flext_cli import cli
 
 
 def test_my_cli_operation():
-    """Test using v0.10.0 patterns."""
-    cli = FlextCli()
-
+    """Test using v0.12.0-dev patterns."""
+    
     # Test file operations (direct access)
-    result = cli.file_tools.read_json_file("test_config.json")
+    result = cli.read_json_file("test_config.json")
 
-    assert result.is_success
-    config = result.unwrap()
-    assert "required_field" in config
+    assert result.success
+    settings = result.unwrap()
+    assert "required_field" in settings
 ```
 
 ______________________________________________________________________
@@ -313,7 +300,7 @@ ______________________________________________________________________
 
 ### Learn More
 
-- **[API Reference](api-reference.md)** - Complete API documentation
+- **[API Reference](api-reference/README.md)** - Complete API documentation
 - **[Architecture](architecture.md)** - Architecture and design patterns
 - **[Development Guide](development.md)** - Contributing and extending
 
@@ -329,15 +316,15 @@ If you're upgrading from v0.9.0, see:
 
 **Within Project**:
 
-- [API Reference](api-reference.md) - Complete API documentation
+- [API Reference](api-reference/README.md) - Complete API documentation
 - [Architecture](architecture.md) - Architecture and design patterns
 - [Development Guide](development.md) - Contributing and extending
-- [Migration Guide](refactoring/migration-guide-v0.9-to-v0.10.md) - v0.9.0 to v0.10.0 migration
+- [Migration Guide](refactoring/migration-guide-v0.9-to-v0.10.md) - v0.9.0 to v0.12.0-dev migration
 
 **Across Projects**:
 
-- [flext-core Foundation](https://github.com/organization/flext/tree/main/flext-core/docs/guides/railway-oriented-programming.md) - Railway-oriented programming patterns
-- [flext-core CLI Patterns](https://github.com/organization/flext/tree/main/flext-core/docs/guides/service-patterns.md) - Service patterns
+- [flext-core Foundation](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/guides/railway-oriented-programming.md) - Railway-oriented programming patterns
+- [flext-core CLI Patterns](https://github.com/flext-sh/flext/tree/0.12.0-dev/flext-core/docs/guides/service-patterns.md) - Service patterns
 
 **External Resources**:
 
@@ -364,7 +351,7 @@ ______________________________________________________________________
 
 ### Working Development Pattern
 
-```python
+```text
 # This development pattern demonstrates working functionality
 from Flext_cli import FlextCliService, FlextCliAuth, FlextCliSettings
 from flext_core import FlextBus
@@ -372,26 +359,24 @@ from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
-from flext_core import FlextDecorators
+from flext_core import d
 from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
+from flext_core import e
 from flext_core import h
-from flext_core import FlextLogger
 from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
 from flext_core import t
 from flext_core import u
 
 # Service initialization and operation
 service = FlextCliService()
 health = service.get_service_health()
-assert health.is_success
+assert health.success
 
 # Authentication functionality
 auth = FlextCliAuth()
@@ -399,7 +384,7 @@ methods = [m for m in dir(auth) if not m.startswith("_")]
 print(f"Available auth methods: {len(methods)}")  # 35+ methods
 
 # Configuration management
-config = FlextCliSettings(profile="development", debug=True, output_format="table")
+settings = FlextCliSettings(profile="development", debug=True, output_format="table")
 ```
 
 ______________________________________________________________________
@@ -424,12 +409,12 @@ find src/ -name "*.py" -exec wc -l {} + | tail -1
 # Expected: 10,000+ lines across 32 modules
 
 # Verify core services load
-python -c "from flext_cli import FlextCliService, FlextCliAuth, FlextCli; print('✅ All core services import successfully')"
+python -c "from flext_cli import FlextCliService, FlextCliAuth, cli; print('✅ All core services import successfully')"
 ```
 
 ______________________________________________________________________
 
-## Next Steps
+## Next Steps (v0.9.0)
 
 **For Development**:
 

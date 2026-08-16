@@ -1,7 +1,9 @@
-"""Version and package metadata using importlib.metadata.
+# AUTO-GENERATED FILE — Regenerate with: make gen
+"""Package version and metadata for flext-cli.
 
-Single source of truth pattern following flext-core standards.
-All metadata comes from pyproject.toml via importlib.metadata.
+Subclass of ``FlextVersion`` — overrides only ``_metadata``.
+All derived attributes (``__version__``, ``__title__``, etc.) are
+computed automatically via ``FlextVersion.__init_subclass__``.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,32 +11,27 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import re
-from importlib.metadata import metadata
+from importlib.metadata import PackageMetadata, metadata
 
-_metadata = metadata("flext_cli")
-_raw_version = _metadata["Version"]
-__version__ = re.sub(
-    r"(\d)(a|b|rc)(\d+)$",
-    "\\1-\\2\\3",
-    re.sub(r"\.dev(\d+)$", r"-dev\1", _raw_version),
-)
-_version_without_metadata = __version__.split("+", maxsplit=1)[0]
-_version_base, _has_prerelease, _prerelease = _version_without_metadata.partition("-")
-_base_parts = _version_base.split(".")
-_prerelease_parts = _prerelease.split(".") if _has_prerelease else []
-__version_info__ = tuple(
-    int(part) if part.isdigit() else part for part in _base_parts + _prerelease_parts
-)
-__title__ = _metadata["Name"]
-__description__ = _metadata["Summary"]
-__author__ = _metadata["Author"]
-__author_email__ = _metadata["Author-Email"]
-_license_value = _metadata.get("License")
-__license__ = _license_value if _license_value is not None else ""
-_home_page = _metadata.get("Home-Page")
-__url__ = _home_page if _home_page is not None else ""
-__all__ = [
+from flext_core.__version__ import FlextVersion
+
+
+class FlextCliVersion(FlextVersion):
+    """flext-cli version — MRO-derived from FlextVersion."""
+
+    _metadata: PackageMetadata = metadata("flext-cli")
+
+
+__version__ = FlextCliVersion.__version__
+__version_info__ = FlextCliVersion.__version_info__
+__title__ = FlextCliVersion.__title__
+__description__ = FlextCliVersion.__description__
+__author__ = FlextCliVersion.__author__
+__author_email__ = FlextCliVersion.__author_email__
+__license__ = FlextCliVersion.__license__
+__url__ = FlextCliVersion.__url__
+__all__: list[str] = [
+    "FlextCliVersion",
     "__author__",
     "__author_email__",
     "__description__",

@@ -7,7 +7,6 @@
 > Project profile: `flext-cli`
 
 <!-- TOC START -->
-
 - [What is FLEXT](#what-is-flext)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
@@ -28,7 +27,6 @@
   - [Build Real Applications](#build-real-applications)
 - [Getting Help](#getting-help)
 - [What's Next](#whats-next)
-
 <!-- TOC END -->
 
 ## What is FLEXT
@@ -39,7 +37,7 @@ FLEXT is an enterprise-grade data integration platform built with Python 3.13+ a
 - **Type Safety**: Full Pydantic v2 integration
 - **Enterprise Patterns**: CQRS, Railway-oriented programming, Dependency Injection
 - **Extensible**: Plugin architecture with flext-core patterns
-- **Production Ready**: Comprehensive testing, monitoring, and error handling
+- **Current**: Comprehensive testing, monitoring, and error handling
 
 ## Prerequisites
 
@@ -100,25 +98,23 @@ docker run -v $(pwd)/data:/app/data flext:latest
 
 ### 1. Basic Setup
 
-```python
+```text
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
-from flext_core import FlextDecorators
+from flext_core import d
 from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
+from flext_core import e
 from flext_core import h
-from flext_core import FlextLogger
 from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
 from flext_core import t
 from flext_core import u
 
@@ -126,18 +122,17 @@ from flext_core import u
 container = FlextContainer()
 
 # Register services (example)
-# container.register(IService, ServiceImplementation())
+# container.bind(IService, ServiceImplementation())
 
 print("FLEXT application initialized!")
 ```
 
 ### 2. Using flext-ldif for LDIF Processing
 
-```python
-from flext_ldif import FlextLdif
+```text
+from flext_ldif import ldif
 
 # Initialize LDIF API
-ldif = FlextLdif()
 
 # Parse LDIF content
 ldif_content = """dn: cn=test,dc=example,dc=com
@@ -146,7 +141,7 @@ sn: user
 objectClass: inetOrgPerson"""
 
 result = ldif.parse(ldif_content)
-if result.is_success:
+if result.success:
     entries = result.unwrap()
     print(f"Successfully parsed {len(entries)} LDIF entries")
 else:
@@ -155,33 +150,31 @@ else:
 
 ### 3. Railway-Oriented Error Handling
 
-```python
+```text
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
-from flext_core import FlextDecorators
+from flext_core import d
 from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
+from flext_core import e
 from flext_core import h
-from flext_core import FlextLogger
 from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
 from flext_core import t
 from flext_core import u
 
 
-def process_ldif_data(content: str) -> r[str, Exception]:
+def process_ldif_data(content: str) -> p.Result[str, Exception]:
     # Parse LDIF
     parse_result = ldif.parse(content)
-    if parse_result.is_failure:
+    if parse_result.failure:
         return r.failure(parse_result.failure())
 
     entries = parse_result.unwrap()
@@ -201,7 +194,7 @@ def process_entries(entries: list) -> str:
 
 # Usage
 result = process_ldif_data(ldif_content)
-if result.is_success:
+if result.success:
     print(f"Success: {result.unwrap()}")
 else:
     print(f"Error: {result.failure()}")
@@ -209,25 +202,23 @@ else:
 
 ### 4. CQRS Pattern with Commands and Queries
 
-```python
+```text
 from flext_core import FlextBus
 from flext_core import FlextSettings
 from flext_core import FlextConstants
 from flext_core import FlextContainer
 from flext_core import FlextContext
-from flext_core import FlextDecorators
+from flext_core import d
 from flext_core import FlextDispatcher
-from flext_core import FlextExceptions
+from flext_core import e
 from flext_core import h
-from flext_core import FlextLogger
 from flext_core import x
 from flext_core import FlextModels
 from flext_core import FlextProcessors
 from flext_core import p
-from flext_core import FlextRegistry
-from flext_core import r
-from flext_core import FlextRuntime
-from flext_core import FlextService
+from flext_core import r, p
+from flext_core import u
+from flext_core import s
 from flext_core import t
 from flext_core import u
 from dataclasses import dataclass
@@ -245,21 +236,22 @@ class GetUserQuery:
 
 
 class UserService:
-    def create_user(self, cmd: CreateUserCommand) -> r[str, Exception]:
+    def create_user(self, cmd: CreateUserCommand) -> p.Result[str, Exception]:
         # Create user logic
         return r.success(f"User {cmd.username} created")
 
-    def get_user(self, query: GetUserQuery) -> r[str, Exception]:
+    def get_user(self, query: GetUserQuery) -> p.Result[str, Exception]:
         # Get user logic
         return r.success(f"User {query.user_id} data")
 
 
-# Setup dispatcher
+# Setup dispatcher (handlers are wired via the FlextDispatcher facade)
 dispatcher = FlextDispatcher()
 user_service = UserService()
 
-dispatcher.register_handler(CreateUserCommand, user_service.create_user)
-dispatcher.register_handler(GetUserQuery, user_service.get_user)
+# Wire handlers (see FlextDispatcher reference for the supported registration API)
+dispatcher.subscribe(CreateUserCommand, user_service.create_user)
+dispatcher.subscribe(GetUserQuery, user_service.get_user)
 
 # Use the dispatcher
 create_result = dispatcher.dispatch(CreateUserCommand("john", "john@example.com"))
@@ -281,11 +273,11 @@ export FLEXT_LDIF_STRICT_VALIDATION=true
 
 ### Programmatic Configuration
 
-```python
+```text
 from flext_ldif import FlextLdifSettings
 
 # Create custom configuration
-config = FlextLdifSettings(
+settings = FlextLdifSettings(
     default_encoding="utf-8",
     strict_validation=True,
     servers_enabled=True,
@@ -293,7 +285,7 @@ config = FlextLdifSettings(
 )
 
 # Use configuration
-ldif = FlextLdif(config=config)
+ldif = ldif(settings=settings)
 ```
 
 ## Next Steps

@@ -1,7 +1,6 @@
 # Phase 1 Implementation Guide
 
 <!-- TOC START -->
-
 - [v0.10.0 Refactoring - Remove Duplication & Dead Code](#v0100-refactoring-remove-duplication-dead-code)
 - [Overview](#overview)
 - [Step 4: Delete validator.py ✅](#step-4-delete-validatorpy)
@@ -28,7 +27,6 @@
   - [If you need to rollback](#if-you-need-to-rollback)
 - [Summary](#summary)
 - [Next Phase](#next-phase)
-
 <!-- TOC END -->
 
 ## v0.10.0 Refactoring - Remove Duplication & Dead Code
@@ -125,13 +123,13 @@ rm src/flext_cli/auth.py
 
 **Line 170**: Remove entire line
 
-```python
+```text
 from flext_cli import FlextCliAuthService
 ```
 
 **Line 195**: Remove entire line from `__all__` list
 
-```python
+```text
 ("FlextCliAuthService",)
 ```
 
@@ -139,15 +137,15 @@ from flext_cli import FlextCliAuthService
 
 **BEFORE** (lines 168-196):
 
-```python
+```text
 # Phase 2: Advanced Features - Production Ready
 # from flext_cli import FlextCliAsync  # Module not yet implemented
 from flext_cli import FlextCliAuthService
 from flext_cli import FlextCliCli
 ...
-__all__ = [
+__all__: list[str] = [
     # Core API (alphabetically sorted per FLEXT standards)
-    "FlextCli",
+    "cli",
     # "FlextCliAsync",  # Module not yet implemented
     "FlextCliAuthService",
     "FlextCliCli",
@@ -155,14 +153,14 @@ __all__ = [
 
 **AFTER** (lines 168-194):
 
-```python
+```text
 # Phase 2: Advanced Features - Production Ready
 # from flext_cli import FlextCliAsync  # Module not yet implemented
 from flext_cli import FlextCliCli
 ...
-__all__ = [
+__all__: list[str] = [
     # Core API (alphabetically sorted per FLEXT standards)
-    "FlextCli",
+    "cli",
     # "FlextCliAsync",  # Module not yet implemented
     "FlextCliCli",
 ```
@@ -225,7 +223,7 @@ find tests -name "*.py" -type f -exec grep -l "from flext_cli import.*Test\|from
 
 **OLD**:
 
-```python
+```text
 from flext_cli import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 
 # or
@@ -234,12 +232,8 @@ from flext_cli import FlextCliTesting
 
 **NEW**:
 
-```python
-from tests.fixtures.testing_utilities import (
-    FlextCliTesting,
-    FlextCliTestRunner,
-    FlextCliMockScenarios,
-)
+```text
+from tests import FlextCliTesting, FlextCliTestRunner, FlextCliMockScenarios
 ```
 
 **Automated sed command** (review before running):
@@ -247,19 +241,19 @@ from tests.fixtures.testing_utilities import (
 ```bash
 # Update imports in test files
 find tests -name "*.py" -type f -exec sed -i \
-  's/from flext_cli import FlextCliTesting/from tests.fixtures.testing_utilities import FlextCliTesting/g' \
+  's/from flext_cli import FlextCliTesting/from tests import FlextCliTesting/g' \
   {} +
 
 find tests -name "*.py" -type f -exec sed -i \
-  's/from flext_cli import FlextCliTestRunner/from tests.fixtures.testing_utilities import FlextCliTestRunner/g' \
+  's/from flext_cli import FlextCliTestRunner/from tests import FlextCliTestRunner/g' \
   {} +
 
 find tests -name "*.py" -type f -exec sed -i \
-  's/from flext_cli import FlextCliMockScenarios/from tests.fixtures.testing_utilities import FlextCliMockScenarios/g' \
+  's/from flext_cli import FlextCliMockScenarios/from tests import FlextCliMockScenarios/g' \
   {} +
 
 find tests -name "*.py" -type f -exec sed -i \
-  's/from flext_cli import/from tests.fixtures.testing_utilities import/g' \
+  's/from flext_cli import/from tests import/g' \
   {} +
 ```
 
@@ -267,13 +261,13 @@ find tests -name "*.py" -type f -exec sed -i \
 
 **Remove line 188**:
 
-```python
+```text
 from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 ```
 
 **Remove from `__all__` (lines 208, 214, 215)**:
 
-```python
+```text
 ("FlextCliMockScenarios",)
 ...
 ("FlextCliTestRunner",)
@@ -284,10 +278,10 @@ from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 
 **BEFORE**:
 
-```python
+```text
 from flext_cli import FlextCliMockScenarios, FlextCliTesting, FlextCliTestRunner
 ...
-__all__ = [
+__all__: list[str] = [
     ...
     "FlextCliMockScenarios",
     ...
@@ -299,10 +293,10 @@ __all__ = [
 
 **AFTER**:
 
-```python
+```text
 # Line removed entirely
 ...
-__all__ = [
+__all__: list[str] = [
     # Items removed from list
 ]
 ```
@@ -317,7 +311,7 @@ python -c "from flext_cli import FlextCliTesting" 2>&1 | grep -q "ImportError" &
 make test
 
 # Verify tests can import from new location
-python -c "from tests.fixtures.testing_utilities import FlextCliTesting; print('✓ Import works')"
+python -c "from tests import FlextCliTesting; print('✓ Import works')"
 ```
 
 **Expected**: Can't import from flext_cli anymore, tests pass, can import from tests.fixtures
@@ -375,14 +369,14 @@ After completing all steps, verify:
 - [ ] **init**.py updated (3 imports removed, 4 exports removed)
 - [ ] Test imports updated to use tests.fixtures
 - [ ] Unused imports removed from core.py
-- [ ] `make validate` passes completely
+- [ ] `make val` passes completely
 - [ ] All tests passing
 
 ### Final Validation
 
 ```bash
 # Full validation suite
-make validate
+make val
 
 # Verify file counts
 ls src/flext_cli/*.py | wc -l  # Should be 2 fewer (validator, auth deleted)
@@ -391,7 +385,7 @@ ls src/flext_cli/*.py | wc -l  # Should be 2 fewer (validator, auth deleted)
 ls tests/fixtures/testing_utilities.py  # Should exist
 
 # Check no broken imports
-python -c "from flext_cli import FlextCli, FlextCliSettings; print('✓ Imports working')"
+python -c "from flext_cli import cli, FlextCliSettings; cli.print('✓ Imports working')"
 ```
 
 ______________________________________________________________________
@@ -411,7 +405,7 @@ mv tests/fixtures/testing_utilities.py src/flext_cli/testing.py
 
 # Restore test imports
 find tests -name "*.py" -type f -exec sed -i \
-  's/from tests.fixtures.testing_utilities import/from flext_cli import/g' \
+  's/from tests import/from flext_cli import/g' \
   {} +
 ```
 

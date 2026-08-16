@@ -1,13 +1,12 @@
-# FLEXT-CLI v0.10.0 Refactoring Documentation
+# FLEXT-CLI v0.12.0-dev Refactoring Documentation
 
 <!-- TOC START -->
-
 - [📚 Documentation Index](#documentation-index)
   - [Planning & Strategy](#planning-strategy)
   - [Implementation Guides](#implementation-guides)
   - [User Resources](#user-resources)
 - [🎯 Overview](#overview)
-  - [What Changed in v0.10.0](#what-changed-in-v0100)
+  - [What Changed in v0.12.0-dev](#what-changed-in-v0120-dev)
   - [Migration Timeline](#migration-timeline)
   - [Support](#support)
 - [📖 Reading Order](#reading-order)
@@ -15,21 +14,20 @@
   - [For Contributors](#for-contributors)
   - [For Maintainers](#for-maintainers)
 - [🚀 Quick Links](#quick-links)
-
 <!-- TOC END -->
 
-This directory contains comprehensive documentation for the v0.10.0 refactoring, which simplifies the architecture and removes over-engineering.
+This directory contains comprehensive documentation for the v0.12.0-dev refactoring, which simplifies the architecture and removes over-engineering.
 
 ## 📚 Documentation Index
 
 ### Planning & Strategy
 
-- **[refactoring-plan-v0.10.0.md](refactoring-plan-v0.10.0.md)** - Complete refactoring plan with rationale, changes, and timeline
-- **[architecture-comparison.md](architecture-comparison.md)** - Side-by-side comparison of v0.9.0 vs v0.10.0 architecture
+- **[direct-typing-refactor-plan.md](direct-typing-refactor-plan.md)** - Complete refactoring plan with rationale, changes, and timeline
+- **[architecture-comparison.md](architecture-comparison.md)** - Side-by-side comparison of v0.9.0 vs v0.12.0-dev architecture
 
 ### Implementation Guides
 
-- **[IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)** - Step-by-step checklist for developers implementing the refactoring
+- **[phase-1-implementation-guide.md](phase-1-implementation-guide.md)** - Step-by-step checklist for developers implementing the refactoring
 - **[breaking-changes.md](breaking-changes.md)** - Complete list of breaking changes with detailed explanations
 
 ### User Resources
@@ -38,7 +36,7 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 
 ## 🎯 Overview
 
-### What Changed in v0.10.0
+### What Changed in v0.12.0-dev
 
 **Key Improvements**:
 
@@ -68,8 +66,8 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 ### Support
 
 - **Issues**: [GitHub Issues](https://github.com/flext-sh/flext-cli/issues)
-- **Documentation**: [Main Docs](../)
-- **Examples**: [examples/](../../examples/)
+- **Documentation**: [Main Docs](../index.md)
+- **Examples**: [examples/](https://github.com/flext-sh/flext-cli/tree/main/examples/)
 
 ## 📖 Reading Order
 
@@ -81,27 +79,27 @@ This directory contains comprehensive documentation for the v0.10.0 refactoring,
 
 ### For Contributors
 
-1. Read [refactoring-plan-v0.10.0.md](refactoring-plan-v0.10.0.md)
-1. Use [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md)
+1. Read [direct-typing-refactor-plan.md](direct-typing-refactor-plan.md)
+1. Use [phase-1-implementation-guide.md](phase-1-implementation-guide.md)
 1. Reference [architecture-comparison.md](architecture-comparison.md)
 
 ### For Maintainers
 
 1. Review all documents
-1. Understand rationale in [refactoring-plan-v0.10.0.md](refactoring-plan-v0.10.0.md)
-1. Follow [IMPLEMENTATION_CHECKLIST.md](IMPLEMENTATION_CHECKLIST.md) strictly
+1. Understand rationale in [direct-typing-refactor-plan.md](direct-typing-refactor-plan.md)
+1. Follow [phase-1-implementation-guide.md](phase-1-implementation-guide.md) strictly
 
 ## 🚀 Quick Links
 
-- [Main README](../../README.md)
+- [Main README](https://github.com/flext-sh/flext-cli/blob/main/README.md)
 - [Architecture Documentation](../architecture.md)
-- [API Reference](../api-reference.md)
+- [API Reference](../api-reference/README.md)
 - [Getting Started](../getting-started.md)
 - [Development Guide](../development.md)
-- [Changelog](../../CHANGELOG.md)
+- [Changelog](https://github.com/flext-sh/flext-cli/blob/main/CHANGELOG.md)
 
 ______________________________________________________________________
 
 **Last Updated**: 2025-01-24
-**Version**: 0.10.0
+**Version**: 0.12.0-dev
 **Status**: 📝 Documentation Phase (Implementation Pending)
