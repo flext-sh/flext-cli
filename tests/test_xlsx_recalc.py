@@ -81,6 +81,7 @@ def _numeric_cell_value(
     raise AssertionError(msg)
 
 
+@pytest.mark.slow
 def test_xlsx_recalc_refreshes_formula_cache() -> None:
     """Recalculated bytes carry engine-computed cached values."""
     source = _render_workbook()
@@ -90,6 +91,7 @@ def test_xlsx_recalc_refreshes_formula_cache() -> None:
     tm.that(value.value, eq=5)
 
 
+@pytest.mark.slow
 def test_xlsx_recalc_parity_returns_validated_recalculated_content() -> None:
     """Public parity content carries the caches described by its evidence."""
     source = _render_workbook()
@@ -108,6 +110,7 @@ def test_xlsx_recalc_parity_returns_validated_recalculated_content() -> None:
     tm.that(cached_value.value, eq=5)
 
 
+@pytest.mark.slow
 def test_xlsx_recalc_parity_detects_count_mismatch() -> None:
     """A wrong expected formula count flips the stored verdict."""
     source = _render_workbook()
