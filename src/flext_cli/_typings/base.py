@@ -7,6 +7,7 @@ from pathlib import Path
 from types import GenericAlias, UnionType
 from typing import ClassVar, TypeAliasType
 
+from jinja2.sandbox import SandboxedEnvironment
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
@@ -43,6 +44,7 @@ class FlextCliTypesBase:
     type TomlParent = TOMLDocument | Table
     type TomlValue = TOMLDocument | Table | Item | Array | AoT | Container
     type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType
+    type TemplateEnvironmentCache = MutableMapping[str, SandboxedEnvironment]
 
     PRIMITIVE_TYPES: ClassVar[tuple[type[str], type[int], type[float], type[bool]]] = (
         t.PRIMITIVES_TYPES

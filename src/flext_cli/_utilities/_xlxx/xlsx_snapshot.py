@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from pydantic import ValidationError
 
 from flext_cli import m, p, r
 
@@ -24,7 +23,7 @@ class FlextCliUtilitiesXlsxSnapshot(
         """Inspect workbook bytes into one immutable semantic snapshot."""
         try:
             snapshot = cls._snapshot_workbook(request)
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             return r[m.Cli.XlsxWorkbookSnapshot].fail(
                 f"Workbook snapshot failed ({exc.__class__.__name__}): {exc}"
             )

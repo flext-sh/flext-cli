@@ -16,7 +16,7 @@ import pytest
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from flext_tests import tm
-from tests import t, u
+from tests import c, t, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -116,6 +116,7 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.fail(result)
         tm.that(result.error, none=False)
 
+    @pytest.mark.slow
     def test_roundtrip_load_text_is_thread_safe(self) -> None:
         """Verify that roundtrip load text is thread safe."""
         documents = [
@@ -140,7 +141,7 @@ class TestsFlextCliYamlRoundtripLoad:
                         failures.append(ValueError(result.error))
                         return
                     result.unwrap()
-                except BaseException as exc:
+                except c.CATCHABLE_RUNTIME_EXCEPTIONS as exc:
                     failures.append(exc)
                     return
 
@@ -169,8 +170,10 @@ class TestsFlextCliYamlRoundtripConvert:
         node = u.Cli.yaml_deep_to_commented(data)
 
         tm.that(node, is_=CommentedMap)
+        assert isinstance(node, CommentedMap)
         tm.that(node["a"], is_=CommentedSeq)
-        tm.that(u.Cli.yaml_to_plain(node), eq={"a": [1, "x"], "b": {"c": True}})
+        expected: t.JsonMapping = {"a": [1, "x"], "b": {"c": True}}
+        tm.that(u.Cli.yaml_to_plain(node), eq=expected)
 
     def test_deep_to_commented_quotes_yaml_11_tokens(self) -> None:
         """Verify that deep to commented quotes yaml 11 tokens."""

@@ -48,6 +48,8 @@ class FlextCliConstantsXlsx:
     )
     XLSX_RECALC_SOURCE_NAME: Final[str] = "source.xlsx"
     XLSX_RECALC_TEMP_PREFIX: Final[str] = "flext-xlsx-recalc-"
+    XLSX_RECALC_PROFILE_DIR_NAME: Final[str] = "profile"
+    XLSX_RECALC_USER_PROFILE_ARGUMENT_PREFIX: Final[str] = "-env:UserInstallation="
     XLSX_RECALC_TIMEOUT_SECONDS: Final[float] = 120.0
     XLSX_RELATIONSHIPS_ID_ATTRIBUTE: Final[str] = (
         "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"

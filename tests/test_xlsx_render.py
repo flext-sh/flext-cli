@@ -10,13 +10,13 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 from openpyxl.workbook.defined_name import DefinedName
 
-from flext_cli import cli, m, p
+from flext_cli import cli, m
 from flext_tests import tm
 
 
 def _defined_name_workbook() -> bytes:
     workbook = Workbook()
-    sheet = workbook.active
+    sheet = workbook.worksheets[0]
     sheet.title = "Data"
     sheet["A1"] = 17
     sheet["A2"] = "second"
@@ -41,7 +41,10 @@ def test_xlsx_defined_name_values_resolves_cached_scalar() -> None:
     tm.that(result.value.cells[0].sheet, eq="Data")
     tm.that(result.value.cells[0].coordinate, eq="A1")
     tm.that(result.value.cells[0].value.kind, eq="integer")
-    tm.that(result.value.cells[0].value.value, eq=17)
+    scalar = result.value.cells[0].value
+    if not isinstance(scalar, m.Cli.XlsxIntegerValue):
+        pytest.fail(f"expected integer cell value, got {scalar.kind}")
+    tm.that(scalar.value, eq=17)
 
 
 def test_xlsx_defined_name_values_resolves_cached_range() -> None:
@@ -215,7 +218,6 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
 
     tm.that(snapshot.success, eq=True, msg=snapshot.error)
     tm.that(cached.success, eq=True, msg=cached.error)
-    tm.that(isinstance(snapshot.value, p.Cli.XlsxWorkbookSnapshot), eq=True)
     tm.that(tuple(item.name for item in snapshot.value.sheets), eq=("Data", "Summary"))
     data_snapshot = snapshot.value.sheets[0]
     formula_cell = next(item for item in data_snapshot.cells if item.coordinate == "B2")

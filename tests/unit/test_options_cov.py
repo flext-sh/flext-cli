@@ -141,7 +141,9 @@ class TestsFlextCliOptionsUtilsCov:
         command: t.Cli.CliCommand, param_name: str
     ) -> p.Tests.FrameworkOption:
         """Return the Typer option object the builder placed on the command signature."""
-        spec = inspect.signature(command).parameters[param_name].default
+        spec: p.Tests.FrameworkOption = (
+            inspect.signature(command).parameters[param_name].default
+        )
         tm.that(spec.param_decls, empty=False)
         return spec
 

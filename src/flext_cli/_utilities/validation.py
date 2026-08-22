@@ -5,10 +5,10 @@ from __future__ import annotations
 from collections.abc import MutableMapping
 from typing import ClassVar
 
-from pydantic import ValidationError as PydanticValidationError
-
-from flext_cli import c, p, r, t
+from flext_cli import c, m, p, r, t
 from flext_core import u
+
+PydanticValidationError = m.ValidationError
 
 
 class FlextCliUtilitiesValidation:

@@ -24,7 +24,7 @@ import pytest
 
 from flext_cli import cli, m
 from flext_tests import tm
-from tests import c, p
+from tests import c, p, t
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -49,8 +49,8 @@ class TestsFlextCliCmd:
 
     def test_execute_is_deterministic_across_calls(self) -> None:
         """Repeated execute() calls must report identical stable identity fields."""
-        first = tm.ok(cli.execute())
-        second = tm.ok(cli.execute())
+        first: m.Cli.RuntimeStatus = tm.ok(cli.execute())
+        second: m.Cli.RuntimeStatus = tm.ok(cli.execute())
 
         tm.that(first.status, eq=second.status)
         tm.that(first.service, eq=second.service)
@@ -62,17 +62,15 @@ class TestsFlextCliCmd:
         """A missing settings dir must yield a fully-negative snapshot."""
         monkeypatch.setenv("HOME", str(tmp_path))
 
-        info = tm.ok(cli.settings_snapshot())
+        info: m.Cli.SettingsSnapshot = tm.ok(cli.settings_snapshot())
 
-        tm.that(
-            info,
-            attr_eq={
-                "settings_dir": str(tmp_path / c.Cli.PATH_FLEXT_DIR_NAME),
-                "settings_exists": False,
-                "settings_readable": False,
-                "settings_writable": False,
-            },
-        )
+        expected: t.JsonMapping = {
+            "settings_dir": str(tmp_path / c.Cli.PATH_FLEXT_DIR_NAME),
+            "settings_exists": False,
+            "settings_readable": False,
+            "settings_writable": False,
+        }
+        tm.that(info, attr_eq=expected)
 
     def test_settings_snapshot_reports_present_home_state(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -82,17 +80,15 @@ class TestsFlextCliCmd:
         settings_dir.mkdir()
         monkeypatch.setenv("HOME", str(tmp_path))
 
-        info = tm.ok(cli.settings_snapshot())
+        info: m.Cli.SettingsSnapshot = tm.ok(cli.settings_snapshot())
 
-        tm.that(
-            info,
-            attr_eq={
-                "settings_dir": str(settings_dir),
-                "settings_exists": True,
-                "settings_readable": True,
-                "settings_writable": True,
-            },
-        )
+        expected: t.JsonMapping = {
+            "settings_dir": str(settings_dir),
+            "settings_exists": True,
+            "settings_readable": True,
+            "settings_writable": True,
+        }
+        tm.that(info, attr_eq=expected)
 
     def test_settings_snapshot_timestamp_is_iso8601(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -100,7 +96,7 @@ class TestsFlextCliCmd:
         """The snapshot timestamp must be a parseable ISO-8601 instant."""
         monkeypatch.setenv("HOME", str(tmp_path))
 
-        info = tm.ok(cli.settings_snapshot())
+        info: m.Cli.SettingsSnapshot = tm.ok(cli.settings_snapshot())
         parsed = datetime.fromisoformat(info.timestamp)
 
         tm.that(parsed, is_=datetime)
@@ -143,8 +139,8 @@ class TestsFlextCliCmd:
         (tmp_path / c.Cli.PATH_FLEXT_DIR_NAME).mkdir()
         monkeypatch.setenv("HOME", str(tmp_path))
 
-        displayed = tm.ok(cli.show_settings())
-        snapshot = tm.ok(cli.settings_snapshot())
+        displayed: bool = tm.ok(cli.show_settings())
+        snapshot: m.Cli.SettingsSnapshot = tm.ok(cli.settings_snapshot())
 
         tm.that(displayed, eq=True)
         tm.that(snapshot.settings_exists, eq=True)

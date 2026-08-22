@@ -19,7 +19,7 @@ from tests import c, u
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import t
+    from tests import p, t
 
 
 class TestsFlextCliRulesCov:
@@ -146,11 +146,13 @@ class TestsFlextCliRulesCov:
         """Verify that load local definitions missing dir fails."""
         config_path = tmp_path / "config.yml"
         config_path.write_text("project: test\n")
-        result = u.Cli.rules_load_local_definitions(
-            config_path,
-            package_rules_dir=tmp_path / "pkg_rules",
-            rule_filters=(),
-            rule_catalog={},
+        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+            u.Cli.rules_load_local_definitions(
+                config_path,
+                package_rules_dir=tmp_path / "pkg_rules",
+                rule_filters=(),
+                rule_catalog={},
+            )
         )
         tm.fail(result)
         tm.that((result.error or ""), has="not found")
@@ -158,11 +160,13 @@ class TestsFlextCliRulesCov:
     def test_load_local_definitions_loads_matching_rule(self, tmp_path: Path) -> None:
         """Verify that load local definitions loads matching rule."""
         config_path = self._seed(tmp_path, {"test-rule.yml": c.Tests.RULES_FILE_YAML})
-        result = u.Cli.rules_load_local_definitions(
-            config_path,
-            package_rules_dir=tmp_path / "rules",
-            rule_filters=(),
-            rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+            u.Cli.rules_load_local_definitions(
+                config_path,
+                package_rules_dir=tmp_path / "rules",
+                rule_filters=(),
+                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+            )
         )
         tm.ok(result)
         loaded_rules, loaded_file_rules = result.value
@@ -175,11 +179,13 @@ class TestsFlextCliRulesCov:
     ) -> None:
         """Verify that load local definitions keeps rule when filter matches."""
         config_path = self._seed(tmp_path, {"test-rule.yml": c.Tests.RULES_FILE_YAML})
-        result = u.Cli.rules_load_local_definitions(
-            config_path,
-            package_rules_dir=tmp_path / "rules",
-            rule_filters=("rule-*",),
-            rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+            u.Cli.rules_load_local_definitions(
+                config_path,
+                package_rules_dir=tmp_path / "rules",
+                rule_filters=("rule-*",),
+                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+            )
         )
         tm.ok(result)
         tm.that(result.value[0][0][0], eq="lint")
@@ -189,11 +195,13 @@ class TestsFlextCliRulesCov:
     ) -> None:
         """Verify that load local definitions drops rule when filter excludes."""
         config_path = self._seed(tmp_path, {"test-rule.yml": c.Tests.RULES_FILE_YAML})
-        result = u.Cli.rules_load_local_definitions(
-            config_path,
-            package_rules_dir=tmp_path / "rules",
-            rule_filters=("nonmatch-*",),
-            rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+            u.Cli.rules_load_local_definitions(
+                config_path,
+                package_rules_dir=tmp_path / "rules",
+                rule_filters=("nonmatch-*",),
+                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+            )
         )
         tm.ok(result)
         tm.that(result.value, eq=([], []))
@@ -211,11 +219,13 @@ class TestsFlextCliRulesCov:
                 "empty.yml": c.Tests.RULES_FILE_NO_MATCHER_KEYS_YAML,
             },
         )
-        result = u.Cli.rules_load_local_definitions(
-            config_path,
-            package_rules_dir=tmp_path / "rules",
-            rule_filters=(),
-            rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+            u.Cli.rules_load_local_definitions(
+                config_path,
+                package_rules_dir=tmp_path / "rules",
+                rule_filters=(),
+                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+            )
         )
         tm.ok(result)
         tm.that(result.value, eq=([], []))
@@ -225,11 +235,13 @@ class TestsFlextCliRulesCov:
         config_path = self._seed(
             tmp_path, {"unknown.yml": c.Tests.RULES_FILE_UNKNOWN_YAML}
         )
-        result = u.Cli.rules_load_local_definitions(
-            config_path,
-            package_rules_dir=tmp_path / "rules",
-            rule_filters=(),
-            rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+            u.Cli.rules_load_local_definitions(
+                config_path,
+                package_rules_dir=tmp_path / "rules",
+                rule_filters=(),
+                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+            )
         )
         tm.fail(result)
         tm.that((result.error or ""), has="rule-unknown")
@@ -241,11 +253,13 @@ class TestsFlextCliRulesCov:
         config_path = self._seed(
             tmp_path, {"invalid.yml": c.Tests.RULES_FILE_INVALID_MAPPING_YAML}
         )
-        result = u.Cli.rules_load_local_definitions(
-            config_path,
-            package_rules_dir=tmp_path / "rules",
-            rule_filters=(),
-            rule_catalog=c.Tests.RULES_CATALOG_MAPPING,
+        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+            u.Cli.rules_load_local_definitions(
+                config_path,
+                package_rules_dir=tmp_path / "rules",
+                rule_filters=(),
+                rule_catalog=c.Tests.RULES_CATALOG_MAPPING,
+            )
         )
         tm.fail(result)
         tm.that((result.error or ""), has="config must be a mapping")
@@ -255,12 +269,14 @@ class TestsFlextCliRulesCov:
     ) -> None:
         """Verify that load local definitions routes to file catalog."""
         config_path = self._seed(tmp_path, {"file.yml": c.Tests.RULES_FILE_YAML})
-        result = u.Cli.rules_load_local_definitions(
-            config_path,
-            package_rules_dir=tmp_path / "rules",
-            rule_filters=(),
-            rule_catalog=c.Tests.RULES_CATALOG_BASIC,
-            file_rule_catalog=c.Tests.RULES_FILE_CATALOG_BASIC,
+        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+            u.Cli.rules_load_local_definitions(
+                config_path,
+                package_rules_dir=tmp_path / "rules",
+                rule_filters=(),
+                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+                file_rule_catalog=c.Tests.RULES_FILE_CATALOG_BASIC,
+            )
         )
         tm.ok(result)
         loaded_rules, loaded_file_rules = result.value
@@ -274,12 +290,14 @@ class TestsFlextCliRulesCov:
         config_path = self._seed(
             tmp_path, {"file-invalid.yml": c.Tests.RULES_FILE_INVALID_MAPPING_YAML}
         )
-        result = u.Cli.rules_load_local_definitions(
-            config_path,
-            package_rules_dir=tmp_path / "rules",
-            rule_filters=(),
-            rule_catalog=c.Tests.RULES_CATALOG_BASIC,
-            file_rule_catalog=c.Tests.RULES_FILE_CATALOG_MAPPING,
+        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+            u.Cli.rules_load_local_definitions(
+                config_path,
+                package_rules_dir=tmp_path / "rules",
+                rule_filters=(),
+                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+                file_rule_catalog=c.Tests.RULES_FILE_CATALOG_MAPPING,
+            )
         )
         tm.fail(result)
         tm.that((result.error or ""), has="config must be a mapping")
