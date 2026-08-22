@@ -12,10 +12,23 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import Callable, Mapping
-from typing import cast
+from typing import Protocol, cast
 
 from flext_cli import p, settings, t
 from flext_core import m
+
+
+class _SignatureCarrier(Protocol):
+    """A callable whose CLI parameters typer/click read from `__signature__`.
+
+    `__signature__` is a documented runtime attribute of function objects, but
+    it is absent from the static `FunctionType`, so assigning it directly is
+    rejected by the type checkers. Declaring it here states the contract the
+    generated command actually satisfies, with no suppression.
+    """
+
+    __signature__: inspect.Signature
+    __annotations__: dict[str, object]
 
 
 class FlextCliUtilitiesModelCommands:
@@ -82,11 +95,14 @@ class FlextCliUtilitiesModelCommands:
                 model = self.model_class.model_validate(kwargs)
                 return self.handler(model)
 
-            setattr(command, "__signature__", signature)
-            command.__annotations__ = {
+            # typer/click read the CLI parameters off `__signature__`; the
+            # protocol above declares that contract so no cast is suppressed.
+            typed_command = cast("_SignatureCarrier", command)
+            typed_command.__signature__ = signature
+            typed_command.__annotations__ = {
                 parameter.name: parameter.annotation for parameter in parameters
             }
-            command.__annotations__["return"] = t.JsonValue
+            typed_command.__annotations__["return"] = t.JsonValue
             return command
 
     @staticmethod

@@ -27,6 +27,31 @@ class TestsFlextCliConfigEngine:
         tm.ok(result)
         tm.that(result.unwrap(), eq="port=8080\n")
 
+    def test_template_render_reuses_one_environment_per_directory(
+        self, tmp_path: Path
+    ) -> None:
+        """Render the same directory repeatedly through a single Jinja engine."""
+        # Why: building a SandboxedEnvironment per render discards Jinja's
+        # bytecode cache, so every call recompiles the template source.
+        tpl = tmp_path / "greeting.j2"
+        tpl.write_text("port={{ server.port }}\n", encoding="utf-8")
+        context = m.Tests.TemplateServerContext(server=m.Tests.TemplateServer(port=1))
+        tm.ok(u.Cli.template_render(tpl, context))
+        first = u.Cli.template_environment(tmp_path)
+        second = u.Cli.template_environment(tmp_path)
+        tm.that(first is second, eq=True)
+        other = u.Cli.template_environment(tmp_path / "nested")
+        tm.that(first is other, eq=False)
+
+    def test_template_render_observes_source_edits(self, tmp_path: Path) -> None:
+        """Serve edited template source instead of a stale compiled body."""
+        tpl = tmp_path / "greeting.j2"
+        tpl.write_text("port={{ server.port }}\n", encoding="utf-8")
+        context = m.Tests.TemplateServerContext(server=m.Tests.TemplateServer(port=42))
+        tm.that(u.Cli.template_render(tpl, context).unwrap(), eq="port=42\n")
+        tpl.write_text("PORT={{ server.port }}!\n", encoding="utf-8")
+        tm.that(u.Cli.template_render(tpl, context).unwrap(), eq="PORT=42!\n")
+
     def test_template_render_strict_undefined_fails(self, tmp_path: Path) -> None:
         """Verify that template render strict undefined fails."""
         tpl = tmp_path / "greeting.j2"

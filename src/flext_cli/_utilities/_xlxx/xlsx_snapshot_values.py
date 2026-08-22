@@ -24,9 +24,10 @@ class FlextCliUtilitiesXlsxSnapshotValues:
     def _snapshot_style_name(cell: Cell) -> str | None:
         try:
             style_name: str | None = cell.style
-            return style_name
         except IndexError:
             return None
+        else:
+            return style_name
 
     @staticmethod
     def _require_success(result: r[T]) -> T:

@@ -22,12 +22,16 @@ if TYPE_CHECKING:
     from .rules import FlextCliModelsRules as FlextCliModelsRules
     from .template import FlextCliModelsTemplate as FlextCliModelsTemplate
     from .xlsx import FlextCliModelsXlsx as FlextCliModelsXlsx
-    from ._xlsx.xlsx_archive import FlextCliModelsXlsxArchive as FlextCliModelsXlsxArchive
+    from ._xlsx.xlsx_archive import (
+        FlextCliModelsXlsxArchive as FlextCliModelsXlsxArchive,
+    )
     from ._xlsx.xlsx_cells import FlextCliModelsXlsxCells as FlextCliModelsXlsxCells
     from ._xlsx.xlsx_layout import FlextCliModelsXlsxLayout as FlextCliModelsXlsxLayout
     from ._xlsx.xlsx_recalc import FlextCliModelsXlsxRecalc as FlextCliModelsXlsxRecalc
     from ._xlsx.xlsx_rules import FlextCliModelsXlsxRules as FlextCliModelsXlsxRules
-    from ._xlsx.xlsx_snapshot import FlextCliModelsXlsxSnapshot as FlextCliModelsXlsxSnapshot
+    from ._xlsx.xlsx_snapshot import (
+        FlextCliModelsXlsxSnapshot as FlextCliModelsXlsxSnapshot,
+    )
     from ._xlsx.xlsx_style_catalog import (
         FlextCliModelsXlsxStyleCatalog as FlextCliModelsXlsxStyleCatalog,
     )
@@ -42,7 +46,9 @@ if TYPE_CHECKING:
     from ._xlsx.xlsx_validation import (
         FlextCliModelsXlsxValidation as FlextCliModelsXlsxValidation,
     )
-    from ._xlsx.xlsx_workbook import FlextCliModelsXlsxWorkbook as FlextCliModelsXlsxWorkbook
+    from ._xlsx.xlsx_workbook import (
+        FlextCliModelsXlsxWorkbook as FlextCliModelsXlsxWorkbook,
+    )
 
 _LAZY_MODULES: dict[str, tuple[str, ...]] = {
     "._base": ("_base",),

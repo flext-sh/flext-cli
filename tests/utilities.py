@@ -14,8 +14,7 @@ from typing import Annotated
 
 from flext_cli import cli, u
 from flext_tests import FlextTestsUtilities, r
-from tests import c, p
-from tests.settings import TestsFlextCliSettings
+from tests import TestsFlextCliSettings, c, p
 
 
 class TestsFlextCliUtilities(FlextTestsUtilities, u):
@@ -27,7 +26,8 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
         @staticmethod
         def create_test_settings() -> p.Result[p.Cli.Settings]:
             """Create test settings via Railway pattern."""
-            return r[p.Cli.Settings].ok(TestsFlextCliSettings())
+            settings: p.Cli.Settings = TestsFlextCliSettings()
+            return r[p.Cli.Settings].ok(settings)
 
         @staticmethod
         def create_cli_app() -> p.Result[p.Cli.Application]:

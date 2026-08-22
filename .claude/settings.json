@@ -1,4 +1,28 @@
 {
+  "enabledPlugins": {
+    "flext@flext": true
+  },
+  "extraKnownMarketplaces": {
+    "flext": {
+      "source": {
+        "path": "..",
+        "source": "directory"
+      }
+    }
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "bd prime --hook-json",
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  },
   "permissions": {
     "deny": [
       "Bash(git push --force:*)",
@@ -9,16 +33,5 @@
       "Bash(rm -rf:*)",
       "Bash(rm -fr:*)"
     ]
-  },
-  "extraKnownMarketplaces": {
-    "flext": {
-      "source": {
-        "source": "directory",
-        "path": ".."
-      }
-    }
-  },
-  "enabledPlugins": {
-    "flext@flext": true
   }
 }

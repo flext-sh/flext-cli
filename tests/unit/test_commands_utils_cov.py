@@ -153,11 +153,17 @@ class TestsFlextCliCommands:
     ) -> None:
         # Arrange
         """Verify that error message adds traceback in verbose mode."""
-        try:
+
+        def _raise_missing_config() -> None:
+            """Raise the error this test needs a real traceback for."""
             error_message = "nope"
             raise FileNotFoundError(error_message)
+
+        captured_exception: BaseException = RuntimeError("never raised")
+        try:
+            _raise_missing_config()
         except FileNotFoundError as exc:
-            captured_exception: BaseException = exc
+            captured_exception = exc
 
         # Act
         result: r[str] = r[str].fail(

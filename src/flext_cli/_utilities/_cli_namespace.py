@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping
+from importlib import import_module
+from typing import TYPE_CHECKING, Final
 
 from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
     FlextCliUtilitiesOptions,
@@ -38,55 +40,127 @@ from flext_cli._utilities.yaml_model import FlextCliUtilitiesYamlModel
 if TYPE_CHECKING:
     from flext_cli._utilities.docx import FlextCliUtilitiesDocx
     from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx
+
+
+# Why: openpyxl and python-docx are HARD dependencies (pyproject.toml), but
+# they are only needed by the document operations. Keeping their owners in the
+# eager MRO made every `flext_cli.utilities` consumer -- every CLI in the
+# fleet, on every invocation including `--help` -- pay seconds of module
+# construction for functionality most of them never call. The owners now load
+# on first use of a document operation, and a broken install surfaces the real
+# missing-dependency error from that operation instead of swallowing it.
+_DOCUMENT_OWNER_IMPORTS: Final[Mapping[str, tuple[str, str]]] = {
+    "FlextCliUtilitiesXlsx": ("flext_cli._utilities.xlsx", "FlextCliUtilitiesXlsx"),
+    "FlextCliUtilitiesDocx": ("flext_cli._utilities.docx", "FlextCliUtilitiesDocx"),
+}
+
+_DOCUMENT_OPERATION_OWNERS: Final[Mapping[str, str]] = {
+    "xlsx_render": "FlextCliUtilitiesXlsx",
+    "xlsx_snapshot": "FlextCliUtilitiesXlsx",
+    "xlsx_inspect": "FlextCliUtilitiesXlsx",
+    "xlsx_recalc": "FlextCliUtilitiesXlsx",
+    "xlsx_recalc_parity": "FlextCliUtilitiesXlsx",
+    "xlsx_defined_name_values": "FlextCliUtilitiesXlsx",
+    "xlsx_style_catalog": "FlextCliUtilitiesXlsx",
+    "xlsx_style_template": "FlextCliUtilitiesXlsx",
+    "xlsx_parse_range": "FlextCliUtilitiesXlsx",
+    "xlsx_format_reference": "FlextCliUtilitiesXlsx",
+    "docx_read": "FlextCliUtilitiesDocx",
+    "docx_render": "FlextCliUtilitiesDocx",
+}
+
+
+class _LazyDocumentOperation:
+    """Resolve one document operation against its owner on first access."""
+
+    __slots__ = ("_operation",)
+
+    def __init__(self, operation: str) -> None:
+        self._operation = operation
+
+    def __get__(
+        self, instance: object | None, owner: type[object] | None = None
+    ) -> object:
+        module_name, attribute = _DOCUMENT_OWNER_IMPORTS[
+            _DOCUMENT_OPERATION_OWNERS[self._operation]
+        ]
+        owner_cls = getattr(import_module(module_name), attribute)
+        return getattr(owner_cls, self._operation)
+
+
+if TYPE_CHECKING:
+
+    class FlextCliUtilitiesCli(  # type-checker view: full documented surface
+        FlextCliUtilitiesAuth,
+        FlextCliUtilitiesCmd,
+        FlextCliUtilitiesCommands,
+        FlextCliUtilitiesConfig,
+        FlextCliUtilitiesConversion,
+        FlextCliUtilitiesEnv,
+        FlextCliUtilitiesTemplate,
+        FlextCliUtilitiesFileTestHelpersMixin,
+        FlextCliUtilitiesFiles,
+        FlextCliUtilitiesFramework,
+        FlextCliUtilitiesFormatters,
+        FlextCliUtilitiesJson,
+        FlextCliUtilitiesMatching,
+        FlextCliUtilitiesModelCommands,
+        FlextCliUtilitiesOptions,
+        FlextCliUtilitiesOutput,
+        FlextCliUtilitiesParams,
+        FlextCliUtilitiesPipeline,
+        FlextCliUtilitiesPrompts,
+        FlextCliUtilitiesProcesses,
+        FlextCliUtilitiesRules,
+        FlextCliUtilitiesRuntime,
+        FlextCliUtilitiesSettings,
+        FlextCliUtilitiesTables,
+        FlextCliUtilitiesToml,
+        FlextCliUtilitiesValidation,
+        FlextCliUtilitiesXlsx,
+        FlextCliUtilitiesDocx,
+        FlextCliUtilitiesYaml,
+        FlextCliUtilitiesYamlModel,
+    ):
+        """Command line interface specific utilities composed via MRO."""
+
 else:
-    try:
-        from flext_cli._utilities.docx import FlextCliUtilitiesDocx
-    except ModuleNotFoundError:
 
-        class FlextCliUtilitiesDocx:
-            """Fallback when python-docx is not installed."""
+    class FlextCliUtilitiesCli(
+        FlextCliUtilitiesAuth,
+        FlextCliUtilitiesCmd,
+        FlextCliUtilitiesCommands,
+        FlextCliUtilitiesConfig,
+        FlextCliUtilitiesConversion,
+        FlextCliUtilitiesEnv,
+        FlextCliUtilitiesTemplate,
+        FlextCliUtilitiesFileTestHelpersMixin,
+        FlextCliUtilitiesFiles,
+        FlextCliUtilitiesFramework,
+        FlextCliUtilitiesFormatters,
+        FlextCliUtilitiesJson,
+        FlextCliUtilitiesMatching,
+        FlextCliUtilitiesModelCommands,
+        FlextCliUtilitiesOptions,
+        FlextCliUtilitiesOutput,
+        FlextCliUtilitiesParams,
+        FlextCliUtilitiesPipeline,
+        FlextCliUtilitiesPrompts,
+        FlextCliUtilitiesProcesses,
+        FlextCliUtilitiesRules,
+        FlextCliUtilitiesRuntime,
+        FlextCliUtilitiesSettings,
+        FlextCliUtilitiesTables,
+        FlextCliUtilitiesToml,
+        FlextCliUtilitiesValidation,
+        FlextCliUtilitiesYaml,
+        FlextCliUtilitiesYamlModel,
+    ):
+        """CLI utilities; document owners resolve on first use."""
 
-    try:
-        from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx
-    except ModuleNotFoundError:
 
-        class FlextCliUtilitiesXlsx:
-            """Fallback when openpyxl is not installed."""
-
-
-class FlextCliUtilitiesCli(
-    FlextCliUtilitiesAuth,
-    FlextCliUtilitiesCmd,
-    FlextCliUtilitiesCommands,
-    FlextCliUtilitiesConfig,
-    FlextCliUtilitiesConversion,
-    FlextCliUtilitiesEnv,
-    FlextCliUtilitiesTemplate,
-    FlextCliUtilitiesFileTestHelpersMixin,
-    FlextCliUtilitiesFiles,
-    FlextCliUtilitiesFramework,
-    FlextCliUtilitiesFormatters,
-    FlextCliUtilitiesJson,
-    FlextCliUtilitiesMatching,
-    FlextCliUtilitiesModelCommands,
-    FlextCliUtilitiesOptions,
-    FlextCliUtilitiesOutput,
-    FlextCliUtilitiesParams,
-    FlextCliUtilitiesPipeline,
-    FlextCliUtilitiesPrompts,
-    FlextCliUtilitiesProcesses,
-    FlextCliUtilitiesRules,
-    FlextCliUtilitiesRuntime,
-    FlextCliUtilitiesSettings,
-    FlextCliUtilitiesTables,
-    FlextCliUtilitiesToml,
-    FlextCliUtilitiesValidation,
-    FlextCliUtilitiesXlsx,
-    FlextCliUtilitiesDocx,
-    FlextCliUtilitiesYaml,
-    FlextCliUtilitiesYamlModel,
-):
-    """Command line interface specific utilities composed via MRO."""
+for _operation in _DOCUMENT_OPERATION_OWNERS:
+    setattr(FlextCliUtilitiesCli, _operation, _LazyDocumentOperation(_operation))
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesCli",)
