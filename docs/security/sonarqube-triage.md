@@ -46,7 +46,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        40                  shutil.rmtree(path)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 2 · 🟠 CRITICAL · CODE_SMELL · `python:S1192`
 **Local**: `src/flext_cli/_models/_xlsx/xlsx_cells.py:58` · **Effort**: 16min
@@ -65,7 +65,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        62          value: str = m.Field(description="Cell text.")
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 3 · 🟠 CRITICAL · CODE_SMELL · `python:S1192`
 **Local**: `src/flext_cli/_models/_xlsx/xlsx_rules.py:20` · **Effort**: 6min
@@ -84,7 +84,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        24          )
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 4 · 🟠 CRITICAL · CODE_SMELL · `python:S1192`
 **Local**: `src/flext_cli/_models/_xlsx/xlsx_rules.py:23` · **Effort**: 6min
@@ -103,7 +103,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        27          stop_if_true: bool = m.Field(default=False, description="Stop later rules.")
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 5 · 🟠 CRITICAL · CODE_SMELL · `python:S1192`
 **Local**: `src/flext_cli/_models/_xlsx/xlsx_rules.py:27` · **Effort**: 6min
@@ -122,7 +122,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        31          area: FlextCliModelsXlsxCells.XlsxCellRange = m.Field(
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 6 · 🟠 CRITICAL · CODE_SMELL · `python:S1192`
 **Local**: `src/flext_cli/_models/_xlsx/xlsx_style_primitives.py:16` · **Effort**: 8min
@@ -141,7 +141,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        20                  pattern=r"^(?:[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$",
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 7 · 🟠 CRITICAL · CODE_SMELL · `python:S1192`
 **Local**: `src/flext_cli/_models/_xlsx/xlsx_validation.py:77` · **Effort**: 6min
@@ -160,7 +160,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        81          source: FlextCliModelsXlsxValidation.XlsxListSource = m.Field(
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 8 · 🟠 CRITICAL · CODE_SMELL · `python:S1192`
 **Local**: `src/flext_cli/_models/_xlsx/xlsx_validation.py:79` · **Effort**: 6min
@@ -179,7 +179,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        83          )
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 9 · 🟠 CRITICAL · CODE_SMELL · `python:S1192`
 **Local**: `src/flext_cli/_models/_xlsx/xlsx_validation.py:85` · **Effort**: 6min
@@ -198,7 +198,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        89          kind: Literal["whole", "decimal", "date", "time", "text_length"] = m.Field(
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 10 · 🟠 CRITICAL · CODE_SMELL · `python:S1192`
 **Local**: `src/flext_cli/_models/docx_styles.py:17` · **Effort**: 6min
@@ -217,7 +217,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        21                  pattern=r"^(?:[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$",
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 11 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_file_test_helper_parts/flextcliutilitiesfiletesthelpersmixin_part_01.py:29` · **Effort**: 17min
@@ -236,7 +236,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        33          directory: Path | None = None,
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 12 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_file_test_helper_parts/flextcliutilitiesfiletesthelpersmixin_part_02.py:22` · **Effort**: 9min
@@ -255,7 +255,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        26          is_dir: bool | None = None,
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 13 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_rules/_loaders.py:88` · **Effort**: 28min
@@ -274,7 +274,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        92          | Path
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 14 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_runtime_process_execution.py:35` · **Effort**: 16min
@@ -293,7 +293,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        39          cwd: t.Cli.TextPath | None,
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 15 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_runtime_process_monitor.py:21` · **Effort**: 17min
@@ -312,7 +312,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        25          wake: threading.Event,
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 16 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_xlxx/xlsx_formula_codec.py:18` · **Effort**: 16min
@@ -331,7 +331,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        22          index = 0
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 17 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_xlxx/xlsx_layout.py:30` · **Effort**: 22min
@@ -350,7 +350,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        34              comment = Comment(item.text, item.author)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 18 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_xlxx/xlsx_recalc.py:77` · **Effort**: 6min
@@ -369,7 +369,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        81          formula_snapshot = cls.xlsx_snapshot(
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 19 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_xlxx/xlsx_recalc_evidence.py:30` · **Effort**: 6min
@@ -388,7 +388,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        34          for relationship in rels_root.iter():
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 20 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_xlxx/xlsx_recalc_evidence.py:81` · **Effort**: 16min
@@ -407,7 +407,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        85              workbook_root = cls._require_xml(archive, c.Cli.XLSX_WORKBOOK_MEMBER)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 21 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/_xlxx/xlsx_style_catalog.py:26` · **Effort**: 12min
@@ -426,7 +426,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        30          if workbook_result.failure:
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 22 · 🟠 CRITICAL · CODE_SMELL · `python:S5754`
 **Local**: `src/flext_cli/_utilities/framework.py:218` · **Effort**: 5min
@@ -445,7 +445,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       222                  exc.code if isinstance(exc.code, int) else c.Cli.EXIT_CODE_FAILURE
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 23 · 🟠 CRITICAL · CODE_SMELL · `python:S5754`
 **Local**: `src/flext_cli/_utilities/framework.py:267` · **Effort**: 5min
@@ -464,7 +464,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       271              return cls._exit_code_result(exit_code)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 24 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/pipeline.py:20` · **Effort**: 20min
@@ -483,7 +483,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        24          fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 25 · 🟠 CRITICAL · CODE_SMELL · `python:S3776`
 **Local**: `src/flext_cli/_utilities/template.py:90` · **Effort**: 8min
@@ -502,7 +502,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        94          entries: t.SequenceOf[m.Cli.TemplateRenderEntry],
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 26 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `.github/scripts/install-git-hooks.sh:55` · **Effort**: 2min
@@ -521,7 +521,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        59  import os
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 27 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `.github/scripts/install-git-hooks.sh:104` · **Effort**: 2min
@@ -540,7 +540,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       108  
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 28 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `.github/scripts/install-git-hooks.sh:106` · **Effort**: 2min
@@ -558,7 +558,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       109  echo "install-git-hooks: prepare-commit-msg guarded (BD_ALLOW_AGENT_COMMIT_TRAILERS opt-in)"
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 29 · 🟡 MAJOR · VULNERABILITY · `githubactions:S8264`
 **Local**: `.github/workflows/docs.yml:18` · **Effort**: 5min
@@ -577,7 +577,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        22  concurrency:
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 30 · 🟡 MAJOR · VULNERABILITY · `githubactions:S8233`
 **Local**: `.github/workflows/docs.yml:19` · **Effort**: 5min
@@ -596,7 +596,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        23    group: pages
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 31 · 🟡 MAJOR · VULNERABILITY · `githubactions:S8233`
 **Local**: `.github/workflows/docs.yml:20` · **Effort**: 5min
@@ -615,7 +615,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        24    cancel-in-progress: false
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 32 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `docs/refactoring/PHASE_1_DELETIONS.sh:12` · **Effort**: 2min
@@ -634,7 +634,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        16  	echo "⊘ File already deleted: src/flext_cli/validator.py"
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 33 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `docs/refactoring/PHASE_1_DELETIONS.sh:22` · **Effort**: 2min
@@ -653,7 +653,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        26  	echo "⊘ File already deleted: src/flext_cli/auth.py"
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 34 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `docs/refactoring/execute_phase_1.sh:17` · **Effort**: 2min
@@ -672,7 +672,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        21  
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 35 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7677`
 **Local**: `docs/refactoring/execute_phase_1.sh:18` · **Effort**: 5min
@@ -691,7 +691,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        22  echo "📍 Working Directory: ${PWD}"
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 36 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `docs/refactoring/execute_phase_1.sh:27` · **Effort**: 2min
@@ -710,7 +710,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        31  	echo "⊘ validator.py already deleted"
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 37 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `docs/refactoring/execute_phase_1.sh:37` · **Effort**: 2min
@@ -729,7 +729,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        41  	echo "⊘ auth.py already deleted"
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 38 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `docs/refactoring/execute_phase_1.sh:48` · **Effort**: 2min
@@ -748,7 +748,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        52  	echo "⊘ testing.py already moved"
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 39 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `docs/refactoring/execute_phase_1.sh:62` · **Effort**: 2min
@@ -767,7 +767,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        66  	find tests -name "*.py" -type f -exec sed -i \
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 40 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `docs/refactoring/execute_phase_1.sh:100` · **Effort**: 2min
@@ -786,7 +786,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       104  	echo "✅ No problematic references found"
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 41 · 🟡 MAJOR · CODE_SMELL · `shelldre:S7688`
 **Local**: `docs/refactoring/execute_phase_1.sh:113` · **Effort**: 2min
@@ -805,7 +805,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       117  	echo ""
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 42 · 🟡 MAJOR · CODE_SMELL · `python:S8786`
 **Local**: `examples/constants.py:66` · **Effort**: 20min
@@ -824,7 +824,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        70      EXAMPLE_DEFAULT_HOST: Final[str] = "localhost"
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 43 · 🟡 MAJOR · CODE_SMELL · `python:S108`
 **Local**: `examples/ex_06_settings.py:157` · **Effort**: 5min
@@ -843,15 +843,14 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       161      def initialize_services(
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 44 · 🟡 MAJOR · VULNERABILITY · `text:S8565`
 **Local**: `pyproject.toml:-` · **Effort**: 5min
 
 > Dependency versions are not predictable if the lock file (uv.lock, poetry.lock, pdm.lock or pylock.toml) is missing.
 
-
-**Decisão**: 
+**Decisão**:
 
 ### 45 · 🟡 MAJOR · CODE_SMELL · `python:S3358`
 **Local**: `src/flext_cli/_models/_base/flextclimodelsbase_part_07.py:80` · **Effort**: 5min
@@ -870,7 +869,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        84                      resolved_value = (
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 46 · 🟡 MAJOR · CODE_SMELL · `python:S3358`
 **Local**: `src/flext_cli/_utilities/_options_parts/flextcliutilitiesoptions_part_02.py:28` · **Effort**: 5min
@@ -889,7 +888,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        32          try:
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 47 · 🟡 MAJOR · CODE_SMELL · `python:S3358`
 **Local**: `src/flext_cli/_utilities/_runtime_process_monitor.py:160` · **Effort**: 5min
@@ -908,7 +907,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       164              cls._record_signal_error(
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 48 · 🟡 MAJOR · CODE_SMELL · `python:S8495`
 **Local**: `src/flext_cli/_utilities/_runtime_process_resources.py:83` · **Effort**: 10min
@@ -927,7 +926,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        87              return (f"process resource close error: {exc}",)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 49 · 🟡 MAJOR · BUG · `python:S3699`
 **Local**: `src/flext_cli/_utilities/output.py:111` · **Effort**: 5min
@@ -946,7 +945,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       115          """Emit one canonical info line."""
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 50 · 🟡 MAJOR · CODE_SMELL · `python:S3985`
 **Local**: `src/flext_cli/services/_cli_parts/flextclicli_part_01.py:19` · **Effort**: 2min
@@ -965,7 +964,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        23          it via inspect at runtime. __call__ uses t.Scalar kwargs because Typer
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 51 · 🟡 MAJOR · CODE_SMELL · `python:S112`
 **Local**: `src/flext_cli/services/_prompts_support.py:75` · **Effort**: 20min
@@ -984,7 +983,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        79          self, operation: str, message: str, exc: Exception, consequence: str
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 52 · 🟡 MAJOR · CODE_SMELL · `python:S5778`
 **Local**: `tests/test_xlsx_render.py:88` · **Effort**: 5min
@@ -1003,7 +1002,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        92  def test_xlsx_render_executes_typed_runtime_plan() -> None:
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 53 · 🟡 MAJOR · CODE_SMELL · `python:S8997`
 **Local**: `tests/unit/test_config_engine.py:81` · **Effort**: 5min
@@ -1022,7 +1021,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        85              os.environ.pop("CFG_ENGINE_HOME", None)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 54 · 🟡 MAJOR · CODE_SMELL · `python:S8997`
 **Local**: `tests/unit/test_env_expand_utilities.py:28` · **Effort**: 5min
@@ -1041,7 +1040,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        32              os.environ.pop("FLEXT_CLI_EXPAND_HOME", None)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 55 · 🟡 MAJOR · CODE_SMELL · `python:S8997`
 **Local**: `tests/unit/test_env_expand_utilities.py:38` · **Effort**: 5min
@@ -1060,7 +1059,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        42              os.environ.pop("FLEXT_CLI_EXPAND_BARE", None)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 56 · 🟡 MAJOR · CODE_SMELL · `python:S8997`
 **Local**: `tests/unit/test_env_expand_utilities.py:64` · **Effort**: 5min
@@ -1079,7 +1078,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        68                      "${FLEXT_CLI_EXPAND_H}/.codex/config.toml",
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 57 · 🟡 MAJOR · CODE_SMELL · `python:S8997`
 **Local**: `tests/unit/test_env_utilities.py:28` · **Effort**: 5min
@@ -1098,7 +1097,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        32              os.environ.pop(name, None)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 58 · 🟡 MAJOR · CODE_SMELL · `python:S8997`
 **Local**: `tests/unit/test_env_utilities.py:49` · **Effort**: 5min
@@ -1117,7 +1116,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        53                  tm.that(tm.ok(u.Cli.env_read(name)), eq=expected)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 59 · 🟡 MAJOR · CODE_SMELL · `python:S8997`
 **Local**: `tests/unit/test_env_utilities.py:50` · **Effort**: 5min
@@ -1136,7 +1135,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        54          finally:
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 60 · 🟡 MAJOR · CODE_SMELL · `python:S5778`
 **Local**: `tests/unit/test_model_commands_cov.py:90` · **Effort**: 5min
@@ -1155,7 +1154,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        94  
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 61 · ⚪ MINOR · CODE_SMELL · `python:S7504`
 **Local**: `conftest.py:21` · **Effort**: 5min
@@ -1174,7 +1173,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        25      package_spec = importlib.util.spec_from_file_location(
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 62 · ⚪ MINOR · CODE_SMELL · `shelldre:S1192`
 **Local**: `docs/refactoring/execute_phase_1.sh:125` · **Effort**: 4min
@@ -1193,7 +1192,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       129  echo "  • Files moved: 1 (testing.py → tests/fixtures/testing_utilities.py)"
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 63 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_constants/exceptions.py:52` · **Effort**: 2min
@@ -1212,7 +1211,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        56  
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 64 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_constants/exceptions.py:53` · **Effort**: 2min
@@ -1231,7 +1230,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        57  
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 65 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_constants/exceptions.py:54` · **Effort**: 2min
@@ -1250,7 +1249,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        58  __all__: list[str] = [
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 66 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_constants/exceptions.py:55` · **Effort**: 2min
@@ -1269,7 +1268,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        59      "CliDefinitionError",
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 67 · ⚪ MINOR · CODE_SMELL · `python:S7508`
 **Local**: `src/flext_cli/_constants/settings.py:15` · **Effort**: 5min
@@ -1288,7 +1287,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        19      MESSAGE_TYPES: ClassVar[t.StrSequence] = tuple(
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 68 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:25` · **Effort**: 2min
@@ -1307,7 +1306,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        29      MSO_ANCHOR = MSO_ANCHOR
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 69 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:26` · **Effort**: 2min
@@ -1326,7 +1325,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        30      MSO_AUTO_SIZE = MSO_AUTO_SIZE
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 70 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:27` · **Effort**: 2min
@@ -1345,7 +1344,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        31      PP_ALIGN = PP_ALIGN
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 71 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:33` · **Effort**: 2min
@@ -1364,7 +1363,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        37      SlideLayout = SlideLayout
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 72 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:34` · **Effort**: 2min
@@ -1383,7 +1382,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        38      TextFrame = TextFrame
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 73 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:35` · **Effort**: 2min
@@ -1402,7 +1401,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        39      Emu = Emu
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 74 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:36` · **Effort**: 2min
@@ -1421,7 +1420,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        40      Inches = Inches
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 75 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:37` · **Effort**: 2min
@@ -1440,7 +1439,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        41      Length = Length
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 76 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:38` · **Effort**: 2min
@@ -1459,7 +1458,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        42      Pt = Pt
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 77 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:39` · **Effort**: 2min
@@ -1478,7 +1477,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        43  
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 78 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:40` · **Effort**: 2min
@@ -1497,7 +1496,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        44  
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 79 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:41` · **Effort**: 2min
@@ -1516,7 +1515,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        45  __all__: tuple[str, ...] = ("FlextCliUtilitiesPptxTypes",)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 80 · ⚪ MINOR · CODE_SMELL · `python:S116`
 **Local**: `src/flext_cli/_utilities/_pptx/_types.py:42` · **Effort**: 2min
@@ -1534,7 +1533,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        45  __all__: tuple[str, ...] = ("FlextCliUtilitiesPptxTypes",)
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 81 · ⚪ MINOR · CODE_SMELL · `python:S5713`
 **Local**: `src/flext_cli/_utilities/_runtime_process_stream.py:81` · **Effort**: 1min
@@ -1553,7 +1552,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        85                  diagnostics.append("live output write made no progress")
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 82 · ⚪ MINOR · CODE_SMELL · `python:S7504`
 **Local**: `src/flext_cli/_utilities/_toml_parts/flextcliutilitiestoml_part_02.py:51` · **Effort**: 5min
@@ -1572,7 +1571,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        55      @staticmethod
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 83 · ⚪ MINOR · CODE_SMELL · `python:S7504`
 **Local**: `src/flext_cli/_utilities/_toml_parts/flextcliutilitiestoml_part_02.py:100` · **Effort**: 5min
@@ -1591,7 +1590,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       104              return table
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 84 · ⚪ MINOR · CODE_SMELL · `python:S7504`
 **Local**: `src/flext_cli/_utilities/_toml_parts/flextcliutilitiestoml_part_02.py:111` · **Effort**: 5min
@@ -1610,7 +1609,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
       115          table = tomlkit.table()
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 85 · ⚪ MINOR · CODE_SMELL · `python:S7504`
 **Local**: `src/flext_cli/_utilities/_toml_parts/flextcliutilitiestoml_part_05.py:52` · **Effort**: 5min
@@ -1629,7 +1628,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        56              table[item_key] = item_value
 ```
 
-**Decisão**: 
+**Decisão**:
 
 ### 86 · ⚪ MINOR · CODE_SMELL · `python:S6353`
 **Local**: `src/flext_cli/_utilities/env.py:10` · **Effort**: 5min
@@ -1648,5 +1647,4 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
        14      """Read and interpolate environment variables, exposed on ``u.Cli``."""
 ```
 
-**Decisão**: 
-
+**Decisão**:
