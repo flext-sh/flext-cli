@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Literal
 
 from openpyxl.worksheet.worksheet import Worksheet
-from pydantic import ValidationError
 
 from flext_cli import m, r
 
@@ -43,7 +42,7 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
             snapshot = cls._snapshot_sheet_unchecked(
                 formula_sheet, value_sheet, position=position
             )
-        except (TypeError, ValidationError, ValueError) as exc:
+        except (TypeError, m.ValidationError, ValueError) as exc:
             return r[m.Cli.XlsxSheetSnapshot].fail(
                 f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}"
             )

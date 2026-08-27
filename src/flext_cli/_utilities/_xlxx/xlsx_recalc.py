@@ -43,12 +43,21 @@ class FlextCliUtilitiesXlsxRecalc(
             workdir = Path(workspace)
             input_dir = workdir / "input"
             output_dir = workdir / "output"
+            profile_dir = workdir / c.Cli.XLSX_RECALC_PROFILE_DIR_NAME
             input_dir.mkdir()
             output_dir.mkdir()
+            profile_dir.mkdir()
             source_path = input_dir / c.Cli.XLSX_RECALC_SOURCE_NAME
             source_path.write_bytes(request.source)
+            executable, *arguments = c.Cli.XLSX_RECALC_COMMAND
             started = FlextCliUtilitiesProcesses.process_start(
-                (*c.Cli.XLSX_RECALC_COMMAND, str(output_dir), str(source_path)),
+                (
+                    executable,
+                    f"{c.Cli.XLSX_RECALC_USER_PROFILE_ARGUMENT_PREFIX}{profile_dir.as_uri()}",
+                    *arguments,
+                    str(output_dir),
+                    str(source_path),
+                ),
                 cwd=workdir,
             )
             if started.failure:

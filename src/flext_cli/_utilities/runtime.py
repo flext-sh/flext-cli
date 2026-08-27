@@ -39,7 +39,17 @@ class FlextCliUtilitiesRuntime(
     def _resolved_env(
         env: t.StrMapping | None, remove_env_keys: t.StrSequence = ()
     ) -> dict[str, str] | None:
-        """Resolve the child environment with overrides and optional removals."""
+        """Resolve the child environment from overrides and removals.
+
+        ``env`` is an OVERLAY applied on top of the current process environment,
+        never a complete replacement: callers pass a single key (a marker, a
+        token) and rely on PATH and the rest of the environment surviving.
+
+        Because it is an overlay, ``env`` can only ADD or REPLACE keys - it can
+        never REMOVE one. A caller that builds a cleaned mapping and omits a key
+        would silently get it back from the parent environment; removal is
+        expressed exclusively through ``remove_env_keys`` (mro-wt8qp).
+        """
         if env is None and not remove_env_keys:
             return None
         return FlextCliUtilitiesRuntime.process_env(

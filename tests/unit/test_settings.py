@@ -6,7 +6,7 @@ canonical ``settings`` singleton: flat scalar defaults (§2.6), the
 application, ``model_dump`` shape, and the ``fetch_global`` singleton /
 ``reset_for_testing`` isolation contracts.
 
-Modules tested: flext_cli.settings.FlextCliSettings, flext_cli.settings.settings
+Modules tested: flext_cli.FlextCliSettings, flext_cli.settings
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -88,7 +88,7 @@ class TestsFlextCliSettingsUnit:
         expected: bool,
     ) -> None:
         """cli_test_env is true iff pytest markers or CI mode are present."""
-        built = FlextCliSettings.model_validate({
+        built: p.Cli.Settings = FlextCliSettings.model_validate({
             "cli_pytest_current_test": pytest_current_test,
             "cli_shell_command": shell_command,
             "cli_ci": ci,
@@ -111,7 +111,10 @@ class TestsFlextCliSettingsUnit:
 
     def test_model_validate_applies_flat_overrides(self) -> None:
         """Partial model_validate applies flat overrides onto defaults."""
-        built = FlextCliSettings.model_validate({"cli_verbose": True, "cli_ci": True})
+        built: p.Cli.Settings = FlextCliSettings.model_validate({
+            "cli_verbose": True,
+            "cli_ci": True,
+        })
         tm.that(built.cli_verbose, eq=True)
         tm.that(built.cli_ci, eq=True)
         tm.that(u.Cli.cli_test_env(built), eq=True)

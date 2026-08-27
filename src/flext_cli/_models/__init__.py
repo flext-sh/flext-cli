@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import _base_parts as _base_parts
+    from . import _base as _base
     from .base import FlextCliModelsBase as FlextCliModelsBase
     from .config import FlextCliConfigModels as FlextCliConfigModels
     from .docx import FlextCliModelsDocx as FlextCliModelsDocx
@@ -22,30 +22,36 @@ if TYPE_CHECKING:
     from .rules import FlextCliModelsRules as FlextCliModelsRules
     from .template import FlextCliModelsTemplate as FlextCliModelsTemplate
     from .xlsx import FlextCliModelsXlsx as FlextCliModelsXlsx
-    from .xlsx_archive import FlextCliModelsXlsxArchive as FlextCliModelsXlsxArchive
-    from .xlsx_cells import FlextCliModelsXlsxCells as FlextCliModelsXlsxCells
-    from .xlsx_layout import FlextCliModelsXlsxLayout as FlextCliModelsXlsxLayout
-    from .xlsx_recalc import FlextCliModelsXlsxRecalc as FlextCliModelsXlsxRecalc
-    from .xlsx_rules import FlextCliModelsXlsxRules as FlextCliModelsXlsxRules
-    from .xlsx_snapshot import FlextCliModelsXlsxSnapshot as FlextCliModelsXlsxSnapshot
-    from .xlsx_style_catalog import (
+    from ._xlsx.xlsx_archive import (
+        FlextCliModelsXlsxArchive as FlextCliModelsXlsxArchive,
+    )
+    from ._xlsx.xlsx_cells import FlextCliModelsXlsxCells as FlextCliModelsXlsxCells
+    from ._xlsx.xlsx_layout import FlextCliModelsXlsxLayout as FlextCliModelsXlsxLayout
+    from ._xlsx.xlsx_recalc import FlextCliModelsXlsxRecalc as FlextCliModelsXlsxRecalc
+    from ._xlsx.xlsx_rules import FlextCliModelsXlsxRules as FlextCliModelsXlsxRules
+    from ._xlsx.xlsx_snapshot import (
+        FlextCliModelsXlsxSnapshot as FlextCliModelsXlsxSnapshot,
+    )
+    from ._xlsx.xlsx_style_catalog import (
         FlextCliModelsXlsxStyleCatalog as FlextCliModelsXlsxStyleCatalog,
     )
-    from .xlsx_style_fills import (
+    from ._xlsx.xlsx_style_fills import (
         FlextCliModelsXlsxStyleFills as FlextCliModelsXlsxStyleFills,
     )
-    from .xlsx_style_primitives import (
+    from ._xlsx.xlsx_style_primitives import (
         FlextCliModelsXlsxStylePrimitives as FlextCliModelsXlsxStylePrimitives,
     )
-    from .xlsx_styles import FlextCliModelsXlsxStyles as FlextCliModelsXlsxStyles
-    from .xlsx_tables import FlextCliModelsXlsxTables as FlextCliModelsXlsxTables
-    from .xlsx_validation import (
+    from ._xlsx.xlsx_styles import FlextCliModelsXlsxStyles as FlextCliModelsXlsxStyles
+    from ._xlsx.xlsx_tables import FlextCliModelsXlsxTables as FlextCliModelsXlsxTables
+    from ._xlsx.xlsx_validation import (
         FlextCliModelsXlsxValidation as FlextCliModelsXlsxValidation,
     )
-    from .xlsx_workbook import FlextCliModelsXlsxWorkbook as FlextCliModelsXlsxWorkbook
+    from ._xlsx.xlsx_workbook import (
+        FlextCliModelsXlsxWorkbook as FlextCliModelsXlsxWorkbook,
+    )
 
 _LAZY_MODULES: dict[str, tuple[str, ...]] = {
-    "._base_parts": ("_base_parts",),
+    "._base": ("_base",),
     ".base": ("FlextCliModelsBase",),
     ".config": ("FlextCliConfigModels",),
     ".docx": ("FlextCliModelsDocx",),
@@ -57,19 +63,19 @@ _LAZY_MODULES: dict[str, tuple[str, ...]] = {
     ".rules": ("FlextCliModelsRules",),
     ".template": ("FlextCliModelsTemplate",),
     ".xlsx": ("FlextCliModelsXlsx",),
-    ".xlsx_archive": ("FlextCliModelsXlsxArchive",),
-    ".xlsx_cells": ("FlextCliModelsXlsxCells",),
-    ".xlsx_layout": ("FlextCliModelsXlsxLayout",),
-    ".xlsx_recalc": ("FlextCliModelsXlsxRecalc",),
-    ".xlsx_rules": ("FlextCliModelsXlsxRules",),
-    ".xlsx_snapshot": ("FlextCliModelsXlsxSnapshot",),
-    ".xlsx_style_catalog": ("FlextCliModelsXlsxStyleCatalog",),
-    ".xlsx_style_fills": ("FlextCliModelsXlsxStyleFills",),
-    ".xlsx_style_primitives": ("FlextCliModelsXlsxStylePrimitives",),
-    ".xlsx_styles": ("FlextCliModelsXlsxStyles",),
-    ".xlsx_tables": ("FlextCliModelsXlsxTables",),
-    ".xlsx_validation": ("FlextCliModelsXlsxValidation",),
-    ".xlsx_workbook": ("FlextCliModelsXlsxWorkbook",),
+    "._xlsx.xlsx_archive": ("FlextCliModelsXlsxArchive",),
+    "._xlsx.xlsx_cells": ("FlextCliModelsXlsxCells",),
+    "._xlsx.xlsx_layout": ("FlextCliModelsXlsxLayout",),
+    "._xlsx.xlsx_recalc": ("FlextCliModelsXlsxRecalc",),
+    "._xlsx.xlsx_rules": ("FlextCliModelsXlsxRules",),
+    "._xlsx.xlsx_snapshot": ("FlextCliModelsXlsxSnapshot",),
+    "._xlsx.xlsx_style_catalog": ("FlextCliModelsXlsxStyleCatalog",),
+    "._xlsx.xlsx_style_fills": ("FlextCliModelsXlsxStyleFills",),
+    "._xlsx.xlsx_style_primitives": ("FlextCliModelsXlsxStylePrimitives",),
+    "._xlsx.xlsx_styles": ("FlextCliModelsXlsxStyles",),
+    "._xlsx.xlsx_tables": ("FlextCliModelsXlsxTables",),
+    "._xlsx.xlsx_validation": ("FlextCliModelsXlsxValidation",),
+    "._xlsx.xlsx_workbook": ("FlextCliModelsXlsxWorkbook",),
 }
 
 
@@ -105,7 +111,7 @@ _PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliModelsXlsxTables",
     "FlextCliModelsXlsxValidation",
     "FlextCliModelsXlsxWorkbook",
-    "_base_parts",
+    "_base",
 )
 
 __all__: tuple[str, ...] = tuple(_PUBLIC_EXPORTS)

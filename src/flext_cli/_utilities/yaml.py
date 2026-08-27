@@ -176,9 +176,10 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
                 allow_unicode=True,
                 indent=indent,
             )
-            return serialized
         except (c.Cli.YamlParseError, ValueError, TypeError):
             return ""
+        else:
+            return serialized
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesYaml"]

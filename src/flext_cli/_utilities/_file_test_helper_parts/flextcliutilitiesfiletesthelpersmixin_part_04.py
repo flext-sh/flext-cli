@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import c, p, r
+from flext_cli import c, p, r, t
 from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 from flext_cli._utilities.toml import FlextCliUtilitiesToml as ut
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
@@ -23,25 +23,27 @@ class FlextCliUtilitiesFileTestHelpersMixin:
     """Implementation part for FlextCliUtilitiesFileTestHelpersMixin."""
 
     @staticmethod
-    def files_parse_content(path: Path, fmt: str) -> p.Result[object]:
+    def files_parse_content(path: Path, fmt: str) -> p.Result[t.JsonMapping]:
         """Parse JSON/YAML/TOML file content generically by format token."""
         if fmt == c.Cli.FILE_FORMAT_JSON:
             result = uj.json_read(path)
             if result.failure:
-                return r[object].fail(result.error or "json_read failed")
-            return r[object].ok(result.value)
+                return r[t.JsonMapping].fail(result.error or "json_read failed")
+            return r[t.JsonMapping].ok(result.value)
         if fmt == c.Cli.FILE_FORMAT_YAML:
             result = uy.yaml_safe_load(path)
             if result.failure:
-                return r[object].fail(result.error or "yaml_safe_load failed")
-            return r[object].ok(result.value)
+                return r[t.JsonMapping].fail(result.error or "yaml_safe_load failed")
+            return r[t.JsonMapping].ok(result.value)
         if fmt == c.Cli.FILE_FORMAT_TOML:
             toml_result = ut.toml_read_json(path)
             if toml_result.failure:
-                return r[object].fail(toml_result.error or "toml_read_json failed")
-            return r[object].ok(toml_result.value)
+                return r[t.JsonMapping].fail(
+                    toml_result.error or "toml_read_json failed"
+                )
+            return r[t.JsonMapping].ok(toml_result.value)
         msg = f"Cannot parse format: {fmt}"
-        return r[object].fail(msg)
+        return r[t.JsonMapping].fail(msg)
 
 
 __all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixin"]
