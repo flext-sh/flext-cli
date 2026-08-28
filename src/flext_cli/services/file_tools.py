@@ -24,6 +24,23 @@ class FlextCliFileTools(s):
         return u.Cli.atomic_write_text_file(file_path, content)
 
     @staticmethod
+    def atomic_write_text_file_guarded(
+        file_path: t.Cli.TextPath, content: str, *, expected_bytes: bytes | None
+    ) -> p.Result[bool]:
+        """Publish under a caller-held lock after an exact raw-byte precondition.
+
+        Cooperative writers must share one exclusive lock from planning through
+        this call.  Publication is not compare-and-swap against actors that ignore
+        that lock, and it does not promise parent-directory power-loss durability.
+        ``None`` requires absence; bytes require an existing uniquely owned regular,
+        non-reparse destination with exactly that content.  The immediate parent
+        must already exist as a real directory and is never created by this call.
+        """
+        return u.Cli.atomic_write_text_file_guarded(
+            file_path, content, expected_bytes=expected_bytes
+        )
+
+    @staticmethod
     def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         """Read one JSON file into a validated JSON-compatible value."""
         return u.Cli.files_read_json(Path(file_path))
