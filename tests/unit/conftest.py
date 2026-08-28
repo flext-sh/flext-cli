@@ -62,7 +62,7 @@ class TestsFlextCliScriptedPrompts(FlextCliPrompts):
 class TestsFlextCliCaptureLogPrompts(TestsFlextCliScriptedPrompts):
     """Prompt service that captures log calls without writing to the real logger."""
 
-    _records: list[tuple[str, str]] = m.PrivateAttr(default_factory=list)
+    _records: list[tuple[str, str]] = m.PrivateAttr(list[tuple[str, str]]())
 
     @property
     def records(self) -> list[tuple[str, str]]:
@@ -77,8 +77,8 @@ class TestsFlextCliCaptureLogPrompts(TestsFlextCliScriptedPrompts):
 class TestsFlextCliFailingLogPrompts(TestsFlextCliScriptedPrompts):
     """Prompt service that fails on one selected log level."""
 
-    _failure_level: str = m.PrivateAttr(default_factory=lambda: "")
-    _failure_message: str = m.PrivateAttr(default_factory=lambda: "logger failure")
+    _failure_level: str = m.PrivateAttr("")
+    _failure_message: str = m.PrivateAttr("logger failure")
 
     def fail_on_log(self, *, level: str, message: str) -> Self:
         """Define the fail on log test contract."""

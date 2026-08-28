@@ -26,13 +26,11 @@ class FlextCliPromptsSupport(s):
         m.Field(description="Prompt runtime state for interaction behavior."),
     ] = m.Field(m.Cli.PromptRuntimeState(), validate_default=True)
 
-    _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(default_factory=lambda: input)
+    _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(input)
 
-    _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(
-        default_factory=lambda: getpass.getpass
-    )
+    _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(getpass.getpass)
 
-    _test_env_override: bool | None = m.PrivateAttr(default_factory=lambda: None)
+    _test_env_override: bool | None = m.PrivateAttr(None)
 
     def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
         """Replace prompt runtime state using the canonical CLI model."""

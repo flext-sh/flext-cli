@@ -112,6 +112,7 @@ endif
 SETUP_MISE ?= $(if $(wildcard $(TRACKED_MISE)),$(TRACKED_MISE),$(if $(filter $(SETUP_MISE_VERSION),$(SYSTEM_MISE_VERSION)),$(SYSTEM_MISE),$(TRACKED_MISE)))
 MISE_LOCK_PLATFORMS := linux-x64,linux-arm64,linux-x64-musl,linux-arm64-musl,macos-x64,macos-arm64,windows-x64
 MISE_LOCK_PROJECTS := .
+MISE_PROJECT_CONFIG_ENV := MISE_GLOBAL_CONFIG_FILE="$(PROJECT_ROOT)/.mise.toml" MISE_CEILING_PATHS="$(abspath $(PROJECT_ROOT)/..)"
 override export FLEXT_PYTEST_TARGET_RAW := tests
 WORKSPACE ?= $(PROJECT_ROOT)
 # === SECTION: WORKSPACE_ROOT isolation (managed) ===
@@ -308,9 +309,22 @@ _bootstrap_setup_tools:
 		printf 'ERROR: missing generated mise.lock; run make gen WHAT=apply APPLY=Y and commit it\n' >&2; \
 		exit 2; \
 	}; \
-	"$$mise" trust "$$project_root/.mise.toml"; \
-	"$$mise" -C "$$project_root" install --locked --yes; \
-	uv_actual=$$("$$mise" -C "$$project_root" exec -- uv --version | sed 's/uv //' | cut -d ' ' -f 1); \
+	scratch_parent="$$project_root/.test-tmp"; \
+	mkdir -p "$$scratch_parent"; \
+	scratch=$$(mktemp -d "$$scratch_parent/mise-setup.XXXXXX"); \
+	trap 'rm -rf -- "$$scratch"' EXIT HUP INT TERM; \
+	global_config="$$scratch/global-config.toml"; \
+	config_dir="$$scratch/config"; \
+	mkdir -p "$$config_dir"; \
+	: > "$$global_config"; \
+	MISE_CONFIG_DIR="$$config_dir" MISE_GLOBAL_CONFIG_FILE="$$global_config" \
+		"$$mise" trust "$$project_root/.mise.toml"; \
+	MISE_CONFIG_DIR="$$config_dir" MISE_GLOBAL_CONFIG_FILE="$$global_config" \
+		"$$mise" -C "$$project_root" install --locked --yes; \
+	uv_actual=$$(MISE_CONFIG_DIR="$$config_dir" \
+		MISE_GLOBAL_CONFIG_FILE="$$global_config" \
+		"$$mise" -C "$$project_root" \
+		exec -- uv --version | sed 's/uv //' | cut -d ' ' -f 1); \
 	case "$$uv_actual" in \
 		"$$uv_required"|"$$uv_required".*) ;; \
 		*) printf 'ERROR: mise must install uv %s.x, found %s\n' \
@@ -475,7 +489,7 @@ endif
 # to build), but it still runs the pre-/post-setup lifecycle hooks so a project
 # declaring them in the custom handler surface is actually honoured.
 setup: _bootstrap_setup_tools
-	@"$(SETUP_MISE)" -C "$(PROJECT_ROOT)" exec -- \
+	@$(MISE_PROJECT_CONFIG_ENV) "$(SETUP_MISE)" -C "$(PROJECT_ROOT)" exec -- \
 		$(SELF_MAKE) _setup_lifecycle
 
 .PHONY: _setup_lifecycle
@@ -861,7 +875,7 @@ _builtin_status_diagnostics: _builtin_require_environment
 	@printf 'profile=%s\nproject=%s\nruntime=%s\n' \
 		'$(MAKE_PROFILE)' '$(PROJECT_ROOT)' '$(RUNTIME_ROOT)'
 	@$(UV) --version
-	@$(UV) lock --project "$(PROJECT_ROOT)" --check
+	$(call _run_for_selected_projects,--check)
 	@if [ -x "$(RUNTIME_PYTHON)" ]; then \
 		$(UV) pip check --python "$(RUNTIME_VENV)"; \
 	fi
@@ -912,7 +926,7 @@ _builtin_clean_generated:
 
 
 _builtin_release_status: _builtin_require_environment
-	@$(UV) lock --project "$(PROJECT_ROOT)" --check
+	$(call _run_for_selected_projects,--check)
 	@git -C "$(PROJECT_ROOT)" diff --quiet
 	@git -C "$(PROJECT_ROOT)" diff --cached --quiet
 
