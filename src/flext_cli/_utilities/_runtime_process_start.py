@@ -20,6 +20,8 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
             env: dict[str, str] | None,
             stdin_handle: BinaryIO | None,
             *,
+            capture_output: bool,
+            combine_output: bool,
             creation_flags: int,
         ) -> p.Cli.ProcessHandle: ...
 
@@ -52,9 +54,18 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
         cwd: t.Cli.TextPath | None,
         env: dict[str, str] | None,
         stdin_handle: BinaryIO | None,
+        *,
+        capture_output: bool,
+        combine_output: bool,
     ) -> p.Result[tuple[p.Cli.ProcessHandle, int]]:
         process = cls._spawn_streamed_process(
-            cmd, cwd, env, stdin_handle, creation_flags=cls._streamed_creation_flags()
+            cmd,
+            cwd,
+            env,
+            stdin_handle,
+            capture_output=capture_output,
+            combine_output=combine_output,
+            creation_flags=cls._streamed_creation_flags(),
         )
         job_result = cls._windows_job_create(process.pid)
         if job_result.failure:
