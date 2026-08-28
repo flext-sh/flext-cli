@@ -16,15 +16,15 @@
   Software Development :: Libraries :: Python Modules` (+1 more)
 - Project class: `platform`
 - Keywords: `cli`, `command-line`, `enterprise`, `flext`, `tools`, `typed`
-- Main facades: `FlextCli`, `FlextCliConfig`, `FlextCliConstants`,
-  `FlextCliModels`, `FlextCliProtocols`, `FlextCliServiceBase`,
-  `FlextCliSettings`, `FlextCliTypes` (+1 more)
+- Main facades: `FlextCli`, `FlextCliAuth`, `FlextCliCli`, `FlextCliCmd`,
+  `FlextCliCommonParams`, `FlextCliConfig`, `FlextCliConstants`, `FlextCliDocx`
+  (+17 more)
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
-- Public symbol exports: `FlextCli`, `FlextCliConfig`, `FlextCliConstants`,
-  `FlextCliModels`, `FlextCliProtocols`, `FlextCliServiceBase`,
-  `FlextCliSettings`, `FlextCliTypes`, `FlextCliUtilities`, `cli` (+2 more)
-- Exported module shortcuts: _none_
-- Generated module pages: `0`
+- Public symbol exports: `FlextCli`, `FlextCliAuth`, `FlextCliCli`,
+  `FlextCliCmd`, `FlextCliCommonParams`, `FlextCliConfig`, `FlextCliConstants`,
+  `FlextCliDocx`, `FlextCliFileTools`, `FlextCliFormatters` (+18 more)
+- Exported module shortcuts: `services`
+- Generated module pages: `24`
 
 ## Next Pages
 
