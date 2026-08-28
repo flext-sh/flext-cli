@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar
 
 from flext_cli import c, p, t
-from flext_cli._models._defaults import EMPTY_JSON_MAPPING
+from flext_cli._models._defaults import empty_json_mapping
 from flext_core import m, u
 
 
@@ -33,9 +33,10 @@ class FlextCliModelsPipeline:
         settings: Annotated[
             t.JsonMapping,
             m.Field(
+                default_factory=empty_json_mapping,
                 description="Immutable pipeline configuration",
             ),
-        ] = EMPTY_JSON_MAPPING
+        ]
 
     class PipelineStageSpec(m.ContractModel):
         """Declarative stage definition with dependency tracking."""
@@ -66,6 +67,7 @@ class FlextCliModelsPipeline:
             Callable[[FlextCliModelsPipeline.PipelineStageContext], bool] | None,
             m.Field(description="Predicate — skip stage if returns True"),
         ] = None
+
     class PipelineStageResult(m.ContractModel):
         """What a stage produces after execution."""
 
@@ -78,9 +80,9 @@ class FlextCliModelsPipeline:
         output: Annotated[
             t.JsonMapping,
             m.Field(
-                description="Stage output payload",
+                default_factory=empty_json_mapping, description="Stage output payload"
             ),
-        ] = EMPTY_JSON_MAPPING
+        ]
         duration_ms: Annotated[
             float, m.Field(description="Execution duration in milliseconds")
         ] = 0.0

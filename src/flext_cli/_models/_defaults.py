@@ -7,8 +7,14 @@ from types import MappingProxyType
 from flext_cli import t
 
 
-EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
-EMPTY_STR_MAPPING: t.StrMapping = MappingProxyType({})
+def empty_json_mapping() -> t.JsonMapping:
+    """Create an immutable empty JSON mapping for one model instance."""
+    return MappingProxyType({})
+
+
+def empty_str_mapping() -> t.StrMapping:
+    """Create an immutable empty string mapping for one model instance."""
+    return MappingProxyType({})
 
 
 __all__: tuple[str, ...] = ()

@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from flext_cli import t
-from flext_cli._models._defaults import EMPTY_JSON_MAPPING
+from flext_cli._models._defaults import empty_json_mapping
 from flext_core import m
 
 
@@ -23,8 +23,7 @@ class FlextCliModelsPptxPresentation:
             default=(), strict=False, description="Presentation slides."
         )
         core_properties: t.JsonMapping = m.Field(
-            default=EMPTY_JSON_MAPPING,
-            description="Core document properties.",
+            default_factory=empty_json_mapping, description="Core document properties."
         )
 
     class PptxRenderRequest(m.FrozenModel):

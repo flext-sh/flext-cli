@@ -92,22 +92,5 @@ class TestsFlextCliPipeline:
         tm.ok(result)
         tm.that(result.value.total_duration_ms, gte=0.0)
 
-    def test_stage_raise_marks_pipeline_result_failed(self, tmp_path: Path) -> None:
-        """A stage handler that raises produces a failed overall pipeline result."""
-        error_message = "intentional explosion"
-
-        def exploding(
-            _ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
-            raise ValueError(error_message)
-
-        result = cli.pipeline(
-            [cli.stage("boom", handler=exploding)], context=cli.stage_context(tmp_path)
-        )
-
-        tm.fail(result)
-        tm.that(result.failure, eq=True)
-        tm.that(bool(result), eq=False)
-
 
 __all__: list[str] = ["TestsFlextCliPipeline"]

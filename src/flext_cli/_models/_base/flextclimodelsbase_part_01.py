@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from typing import Annotated, ClassVar
 
 from flext_cli import t
-from flext_cli._models._defaults import EMPTY_JSON_MAPPING
+from flext_cli._models._defaults import empty_json_mapping
 from flext_core import m, u
 
 
@@ -84,9 +84,10 @@ class FlextCliModelsBase:
         data: Annotated[
             t.JsonMapping,
             m.Field(
+                default_factory=empty_json_mapping,
                 description="Field-value pairs for display",
             ),
-        ] = EMPTY_JSON_MAPPING
+        ]
 
         @u.model_serializer
         def _serialize(self) -> t.JsonMapping:
@@ -102,9 +103,10 @@ class FlextCliModelsBase:
         content: Annotated[
             t.JsonMapping,
             m.Field(
+                default_factory=empty_json_mapping,
                 description="Loaded configuration content (dict or other JSON value)",
             ),
-        ] = EMPTY_JSON_MAPPING
+        ]
 
     class CliNormalizedJson(m.RootModel[t.JsonValue]):
         """Normalize raw JSON value with flat JSON serialization semantics.
@@ -132,9 +134,10 @@ class FlextCliModelsBase:
         default: Annotated[
             t.JsonMapping,
             m.Field(
+                default_factory=empty_json_mapping,
                 description="Default mapping if value is not a dict",
             ),
-        ] = EMPTY_JSON_MAPPING
+        ]
 
         @property
         def resolved(self) -> t.JsonMapping:

@@ -64,7 +64,9 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                 f"Table snapshot failed: {detail}"
             )
         return r[tuple[m.Cli.XlsxTableSnapshot, ...]].ok(
-            tuple(sorted(tables, key=FlextCliUtilitiesXlsxSnapshotStructure._table_name))
+            tuple(
+                sorted(tables, key=FlextCliUtilitiesXlsxSnapshotStructure._table_name)
+            )
         )
 
     @staticmethod
@@ -90,10 +92,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
             )
         return r[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]].ok(
             tuple(
-                sorted(
-                    rows,
-                    key=FlextCliUtilitiesXlsxSnapshotStructure._row_position,
-                )
+                sorted(rows, key=FlextCliUtilitiesXlsxSnapshotStructure._row_position)
             )
         )
 
@@ -124,8 +123,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
         return r[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]].ok(
             tuple(
                 sorted(
-                    columns,
-                    key=FlextCliUtilitiesXlsxSnapshotStructure._column_position,
+                    columns, key=FlextCliUtilitiesXlsxSnapshotStructure._column_position
                 )
             )
         )
@@ -162,10 +160,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
             )
         return r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]].ok(
             tuple(
-                sorted(
-                    names,
-                    key=FlextCliUtilitiesXlsxSnapshotStructure._defined_name,
-                )
+                sorted(names, key=FlextCliUtilitiesXlsxSnapshotStructure._defined_name)
             )
         )
 

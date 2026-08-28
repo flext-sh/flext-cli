@@ -18,6 +18,13 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+class _GetpassReader:
+    """Invoke the platform password reader without descriptor binding."""
+
+    def __call__(self, prompt: str) -> str:
+        return getpass.getpass(prompt)
+
+
 class FlextCliPromptsSupport(s):
     """Support owner for prompt runtime state, logging, and input readers."""
 
@@ -28,7 +35,7 @@ class FlextCliPromptsSupport(s):
 
     _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(input)
 
-    _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(getpass.getpass)
+    _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(_GetpassReader())
 
     _test_env_override: bool | None = m.PrivateAttr(None)
 

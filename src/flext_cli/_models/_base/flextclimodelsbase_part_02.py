@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Annotated, ClassVar
 
 from flext_cli import c, t
-from flext_cli._models._defaults import EMPTY_STR_MAPPING
+from flext_cli._models._defaults import empty_str_mapping
 from flext_core import m, u
 
 
@@ -53,15 +53,17 @@ class FlextCliModelsBase:
         base_env: Annotated[
             t.StrMapping,
             m.Field(
+                default_factory=empty_str_mapping,
                 description="Base environment inherited from the current process",
             ),
-        ] = EMPTY_STR_MAPPING
+        ]
         overrides: Annotated[
             t.StrMapping,
             m.Field(
+                default_factory=empty_str_mapping,
                 description="Explicit environment overrides for the child process",
             ),
-        ] = EMPTY_STR_MAPPING
+        ]
         remove_keys: Annotated[
             t.StrSequence,
             m.Field(
