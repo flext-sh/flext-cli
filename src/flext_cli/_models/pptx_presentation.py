@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import Annotated
 
 from flext_cli import t
-from flext_cli._models._defaults import EMPTY_JSON_MAPPING
 from flext_core import m
 
 
@@ -23,7 +23,7 @@ class FlextCliModelsPptxPresentation:
             default=(), strict=False, description="Presentation slides."
         )
         core_properties: t.JsonMapping = m.Field(
-            default=EMPTY_JSON_MAPPING,
+            default_factory=lambda: MappingProxyType(dict[str, t.JsonValue]()),
             description="Core document properties.",
         )
 

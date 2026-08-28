@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import Annotated, ClassVar
 
 from flext_cli import c, t
-from flext_cli._models._defaults import EMPTY_STR_MAPPING
 from flext_core import m, u
 
 
@@ -53,15 +53,17 @@ class FlextCliModelsBase:
         base_env: Annotated[
             t.StrMapping,
             m.Field(
+                default_factory=lambda: MappingProxyType(dict[str, str]()),
                 description="Base environment inherited from the current process",
             ),
-        ] = EMPTY_STR_MAPPING
+        ]
         overrides: Annotated[
             t.StrMapping,
             m.Field(
+                default_factory=lambda: MappingProxyType(dict[str, str]()),
                 description="Explicit environment overrides for the child process",
             ),
-        ] = EMPTY_STR_MAPPING
+        ]
         remove_keys: Annotated[
             t.StrSequence,
             m.Field(
@@ -70,7 +72,7 @@ class FlextCliModelsBase:
             ),
         ]
 
-        @u.computed_field
+        @u.computed_field()
         @property
         def resolved(self) -> dict[str, str]:
             """Resolved environment mapping after removals and overrides."""

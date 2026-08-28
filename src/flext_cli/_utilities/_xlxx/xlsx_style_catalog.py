@@ -24,6 +24,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
 
     @staticmethod
     def _source_style_id(item: m.Cli.XlsxSourceVisualStyle) -> int:
+        """Return the deterministic source-style sort key."""
         return item.source_style_id
 
     @classmethod
