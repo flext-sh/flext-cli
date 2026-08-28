@@ -24,7 +24,7 @@
   `FlextCliModels`, `FlextCliProtocols`, `FlextCliServiceBase`,
   `FlextCliSettings`, `FlextCliTypes`, `FlextCliUtilities`, `cli` (+2 more)
 - Exported module shortcuts: _none_
-- Generated module pages: `7`
+- Generated module pages: `0`
 
 ## Next Pages
 

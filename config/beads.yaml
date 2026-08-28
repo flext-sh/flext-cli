@@ -1,0 +1,4 @@
+version: 1
+workspace: flext-cli
+database: flext-cli
+issue_prefix: flext-cli
