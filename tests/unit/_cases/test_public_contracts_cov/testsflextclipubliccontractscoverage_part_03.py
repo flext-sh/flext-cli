@@ -30,7 +30,7 @@ class TestsFlextCliPublicContractsCoverage:
                 })
             )
 
-        spec = cli.stage("build", handler=stage_handler, depends_on=("fetch",), retry=1)
+        spec = cli.stage("build", handler=stage_handler, depends_on=("fetch",))
         pipeline = m.Cli.PipelineResult(
             stages=[
                 cli.stage_result("ok", status=c.Cli.PipelineStageStatus.OK),
@@ -48,7 +48,6 @@ class TestsFlextCliPublicContractsCoverage:
 
         tm.that(cli, is_=p.Cli.PipelineService)
         tm.that(context.settings, eq={"mode": "test"})
-        tm.that(spec.retry, eq=1)
         tm.that(pipeline.success, eq=False)
         tm.that([stage.stage_id for stage in pipeline.failed_stages], eq=["fail"])
         tm.that([stage.stage_id for stage in pipeline.skipped_stages], eq=["skip"])

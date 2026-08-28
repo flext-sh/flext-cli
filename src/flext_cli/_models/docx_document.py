@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from types import MappingProxyType
 from typing import Annotated
 
 from flext_cli import t
+from flext_cli._models._defaults import EMPTY_JSON_MAPPING
 from flext_core import m
 
 from .docx_styles import FlextCliModelsDocxStyles
@@ -100,7 +100,7 @@ class FlextCliModelsDocxDocument:
             default=(), strict=False, description="Document sections."
         )
         core_properties: t.JsonMapping = m.Field(
-            default_factory=lambda: MappingProxyType({}),
+            default=EMPTY_JSON_MAPPING,
             description="Core document properties.",
         )
 

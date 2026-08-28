@@ -10,7 +10,6 @@ from flext_cli._constants.errors import FlextCliConstantsErrors
 from flext_cli._constants.exceptions import FlextCliConstantsExceptions
 from flext_cli._constants.files import FlextCliConstantsFiles
 from flext_cli._constants.output import FlextCliConstantsOutput
-from flext_cli._constants.pipeline import FlextCliConstantsPipeline
 from flext_cli._constants.pptx import FlextCliConstantsPptx
 from flext_cli._constants.settings import FlextCliConstantsSettings
 from flext_cli._constants.xlsx import FlextCliConstantsXlsx
@@ -24,7 +23,6 @@ class FlextCliConstants(c):
     """Constants for Flext CLI."""
 
     class Cli(
-        FlextCliConstantsPipeline,
         FlextCliConstantsBase,
         FlextCliConstantsConfig,
         FlextCliConstantsEnums,

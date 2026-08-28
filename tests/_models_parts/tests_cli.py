@@ -31,7 +31,7 @@ class TestsFlextCliModelsCli:
 
         make_arg: Annotated[
             list[str], m.Field(description="Repeatable make-style arg")
-        ] = m.Field([], validate_default=True)
+        ] = m.Field(default_factory=list[str], validate_default=True)
 
     class ReportRow(m.BaseModel):
         """Tabular report row used by the export-report example."""

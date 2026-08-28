@@ -102,15 +102,13 @@ class TestsFlextCliPipeline:
         tm.ok(result)
         tm.that(received["from_a"], eq="hello")
 
-    def test_fail_fast_stops_on_failure(self, tmp_path: Path) -> None:
-        """With fail_fast=True, pipeline stops after first failure."""
+    def test_pipeline_stops_on_failure(self, tmp_path: Path) -> None:
+        """Pipeline always stops after its first failed stage."""
         stages = [
             cli.stage("a", handler=self._fail_handler("a")),
             cli.stage("b", depends_on=frozenset({"a"}), handler=self._ok_handler("b")),
         ]
-        result = cli.pipeline(
-            stages, context=cli.stage_context(tmp_path), fail_fast=True
-        )
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.fail(result)
 
     def test_skip_predicate(self, tmp_path: Path) -> None:

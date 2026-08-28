@@ -20,7 +20,6 @@ class TestsFlextCliConstantsCore:
     AUTH_VALUE_SAMPLE: Final[str] = "token-123"
     COMMAND_DURATION_TOLERANCE: Final[float] = 1e-9
     CREDENTIAL_SAMPLE_VALUE: Final[str] = "secret-pass"
-    PIPELINE_SUCCESS_ATTEMPT: Final[int] = 3
 
     @unique
     class Environment(StrEnum):

@@ -32,7 +32,6 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
         handler: t.Cli.PipelineHandler,
         depends_on: t.SequenceOf[str] | frozenset[str] = (),
         skip_if: t.Cli.PipelineSkipPredicate | None = None,
-        retry: int = c.Cli.PIPELINE_DEFAULT_RETRY,
     ) -> m.Cli.PipelineStageSpec:
         """Build one declarative stage spec from the public DSL."""
         return m.Cli.PipelineStageSpec.model_validate({
@@ -40,7 +39,6 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
             "depends_on": frozenset(depends_on),
             "handler": handler,
             "skip_if": skip_if,
-            "retry": retry,
         })
 
     @staticmethod
@@ -85,19 +83,13 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
         stage_order: t.StrSequence,
         handlers: t.Cli.PipelineHandlerMap,
         *,
-        retry_by_stage: t.Cli.PipelineRetryMap | None = None,
         skip_by_stage: t.Cli.PipelineSkipMap | None = None,
     ) -> t.SequenceOf[m.Cli.PipelineStageSpec]:
         """Build a linear dependency chain from ordered stage handlers."""
-        retries: t.Cli.PipelineRetryMap = (
-            retry_by_stage if retry_by_stage is not None else {}
-        )
         skips = skip_by_stage or {}
         stage_list: t.MutableSequenceOf[m.Cli.PipelineStageSpec] = []
         previous_stage_id: str | None = None
         for stage_id in stage_order:
-            # NOTE (multi-agent): Typed retry map keeps ``get`` strictly integer.
-            retry = retries.get(stage_id, c.Cli.PIPELINE_DEFAULT_RETRY)
             stage_list.append(
                 cls.stage(
                     stage_id,
@@ -106,7 +98,6 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
                     if previous_stage_id is None
                     else (previous_stage_id,),
                     skip_if=skips.get(stage_id),
-                    retry=retry,
                 )
             )
             previous_stage_id = stage_id
@@ -117,13 +108,10 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
         stages: t.SequenceOf[m.Cli.PipelineStageSpec],
         *,
         context: m.Cli.PipelineStageContext,
-        fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
         logger: p.Logger | None = None,
     ) -> p.Result[m.Cli.PipelineResult]:
         """Execute a pipeline through the public CLI DSL surface."""
-        return self.execute_pipeline(
-            stages, context, fail_fast=fail_fast, logger=logger or self.logger
-        )
+        return self.execute_pipeline(stages, context, logger=logger or self.logger)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliPipeline"]

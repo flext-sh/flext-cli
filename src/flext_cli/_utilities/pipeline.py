@@ -21,7 +21,6 @@ class FlextCliUtilitiesPipeline:
         stages: t.SequenceOf[m.Cli.PipelineStageSpec],
         context: m.Cli.PipelineStageContext,
         *,
-        fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
         logger: p.Logger | None = None,
     ) -> p.Result[m.Cli.PipelineResult]:
         """Execute pipeline stages in topological order.
@@ -69,12 +68,12 @@ class FlextCliUtilitiesPipeline:
                     # retire it so the graph can advance, exactly as the serial
                     # walk skipped it.
                     sorter.done(stage_id)
-            if failed and fail_fast:
+            if failed:
                 for stage_id in known:
                     completed[stage_id] = m.Cli.PipelineStageResult(
                         stage_id=stage_id,
                         status=c.Cli.PipelineStageStatus.SKIPPED,
-                        error="skipped due to prior failure (fail_fast)",
+                        error="skipped due to prior failure",
                     )
                     sorter.done(stage_id)
                 continue
@@ -134,51 +133,32 @@ class FlextCliUtilitiesPipeline:
         context: m.Cli.PipelineStageContext,
         log: p.Logger,
     ) -> m.Cli.PipelineStageResult:
-        """Execute a single stage with skip check and retry logic."""
+        """Execute a single stage and preserve its first failure."""
         if spec.skip_if is not None and spec.skip_if(context):
             log.debug("stage_skipped", stage_id=spec.stage_id, reason="skip_if")
             return m.Cli.PipelineStageResult(
                 stage_id=spec.stage_id, status=c.Cli.PipelineStageStatus.SKIPPED
             )
 
-        max_attempts = 1 + min(spec.retry, c.Cli.PIPELINE_MAX_RETRY)
-        last_error: str | None = None
+        stage_start = time.monotonic()
+        result = spec.handler(context)
+        duration_ms = (time.monotonic() - stage_start) * 1000
 
-        for attempt in range(1, max_attempts + 1):
-            stage_start = time.monotonic()
-            try:
-                result = spec.handler(context)
-            except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-                last_error = f"stage {spec.stage_id} raised: {exc}"
-                log.warning(
-                    "stage_exception",
-                    stage_id=spec.stage_id,
-                    attempt=attempt,
-                    error=str(exc),
-                )
-                continue
+        if result.success:
+            stage_result = result.value
+            return stage_result.model_copy(update={"duration_ms": duration_ms})
 
-            duration_ms = (time.monotonic() - stage_start) * 1000
-
-            if result.success:
-                stage_result = result.value
-                return stage_result.model_copy(update={"duration_ms": duration_ms})
-
-            last_error = result.error or f"stage {spec.stage_id} failed"
-            log.debug(
-                "stage_retry", stage_id=spec.stage_id, attempt=attempt, error=last_error
-            )
-
-        log.warning(
+        error = result.error or f"stage {spec.stage_id} failed"
+        log.error(
             "stage_failed",
             stage_id=spec.stage_id,
-            attempts=max_attempts,
-            error=last_error or "",
+            error=error,
         )
         return m.Cli.PipelineStageResult(
             stage_id=spec.stage_id,
             status=c.Cli.PipelineStageStatus.FAILED,
-            error=last_error,
+            error=error,
+            duration_ms=duration_ms,
         )
 
 

@@ -4,9 +4,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
 from flext_cli import cli, r
 from flext_tests import tm
-from tests import c, m
+from tests import m
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -40,29 +42,24 @@ class TestsFlextCliPipeline:
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.fail(result)
 
-    def test_retry_on_failure(self, tmp_path: Path) -> None:
-        """Stage retries up to retry count before succeeding."""
+    def test_failure_result_runs_stage_once(self, tmp_path: Path) -> None:
+        """A failed stage result stops after its first execution."""
         call_count = 0
 
-        def flaky(
+        def failing(
             _ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             nonlocal call_count
             call_count += 1
-            if call_count < c.Tests.PIPELINE_SUCCESS_ATTEMPT:
-                return r[m.Cli.PipelineStageResult].fail("transient")
-            return r[m.Cli.PipelineStageResult].ok(
-                cli.stage_result("flaky", status=c.Cli.PipelineStageStatus.OK)
-            )
+            return r[m.Cli.PipelineStageResult].fail("stage failed")
 
-        stages = [cli.stage("flaky", handler=flaky, retry=3)]
+        stages = [cli.stage("failure", handler=failing)]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
-        tm.ok(result)
-        tm.that(result.value.success, eq=True)
-        tm.that(call_count, eq=c.Tests.PIPELINE_SUCCESS_ATTEMPT)
+        tm.fail(result)
+        tm.that(call_count, eq=1)
 
-    def test_retry_on_safe_exception_marks_stage_failed(self, tmp_path: Path) -> None:
-        """Safe stage exceptions are retried and end as failed stage results."""
+    def test_stage_exception_escapes_first_execution(self, tmp_path: Path) -> None:
+        """The first stage exception escapes without normalization or retry."""
         call_count = 0
         error_message = "boom"
 
@@ -74,13 +71,12 @@ class TestsFlextCliPipeline:
             call_count += 1
             raise ValueError(error_message)
 
-        result = cli.pipeline(
-            [cli.stage("boom", handler=exploding, retry=1)],
-            context=cli.stage_context(tmp_path),
-        )
-
-        tm.fail(result)
-        tm.that(call_count, eq=2)
+        with pytest.raises(ValueError, match=error_message):
+            cli.pipeline(
+                [cli.stage("boom", handler=exploding)],
+                context=cli.stage_context(tmp_path),
+            )
+        tm.that(call_count, eq=1)
 
     def test_empty_pipeline(self, tmp_path: Path) -> None:
         """Empty pipeline returns ok with no stages."""

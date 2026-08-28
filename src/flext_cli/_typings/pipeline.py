@@ -25,7 +25,6 @@ class FlextCliTypesPipeline:
     ]
     type PipelineSkipPredicate = Callable[[m.Cli.PipelineStageContext], bool]
     type PipelineHandlerMap = t.MappingKV[str, PipelineHandler]
-    type PipelineRetryMap = t.MappingKV[str, int]
     type PipelineSkipMap = t.MappingKV[str, PipelineSkipPredicate]
 
 

@@ -22,6 +22,10 @@ class FlextCliUtilitiesXlsxStyleCatalog(
         digest = sha256(repr(visual).encode("utf-8")).hexdigest()[:16]
         return f"{prefix}_{digest}"
 
+    @staticmethod
+    def _source_style_id(item: m.Cli.XlsxSourceVisualStyle) -> int:
+        return item.source_style_id
+
     @classmethod
     def _source_visuals(
         cls, source: bytes
@@ -59,7 +63,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                             source_style_id=source_style_id, visual=visual_result.value
                         ),
                     )
-        ordered = tuple(sorted(source_styles, key=lambda item: item.source_style_id))
+        ordered = tuple(sorted(source_styles, key=cls._source_style_id))
         return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].ok(ordered)
 
     @classmethod

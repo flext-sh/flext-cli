@@ -47,20 +47,6 @@ class FlextCliProtocolsPipeline:
             ...
 
     @runtime_checkable
-    class PipelineExecutor(Protocol):
-        """Contract for pipeline execution engine."""
-
-        def execute(
-            self,
-            stages: t.SequenceOf[m.Cli.PipelineStageSpec],
-            context: FlextCliProtocolsPipeline.PipelineStageContext,
-            *,
-            fail_fast: bool = True,
-        ) -> p.Result[m.Cli.PipelineResult]:
-            """Execute stages in dependency order."""
-            ...
-
-    @runtime_checkable
     class PipelineService(Protocol):
         """Contract for the public pipeline DSL exposed on ``cli``."""
 
@@ -85,7 +71,6 @@ class FlextCliProtocolsPipeline:
             depends_on: t.SequenceOf[str] | frozenset[str] = (),
             skip_if: Callable[[FlextCliProtocolsPipeline.PipelineStageContext], bool]
             | None = None,
-            retry: int = 0,
         ) -> m.Cli.PipelineStageSpec:
             """Build one declarative pipeline stage spec."""
             ...
@@ -117,7 +102,6 @@ class FlextCliProtocolsPipeline:
             stages: t.SequenceOf[m.Cli.PipelineStageSpec],
             *,
             context: m.Cli.PipelineStageContext,
-            fail_fast: bool = True,
             logger: p.Logger | None = None,
         ) -> p.Result[m.Cli.PipelineResult]:
             """Execute a pipeline from the public service DSL."""
@@ -128,7 +112,6 @@ class FlextCliProtocolsPipeline:
             stage_order: t.StrSequence,
             handlers: t.Cli.PipelineHandlerMap,
             *,
-            retry_by_stage: t.Cli.PipelineRetryMap | None = None,
             skip_by_stage: t.Cli.PipelineSkipMap | None = None,
         ) -> t.SequenceOf[m.Cli.PipelineStageSpec]:
             """Build a linear dependency chain with canonical previous-stage deps."""
