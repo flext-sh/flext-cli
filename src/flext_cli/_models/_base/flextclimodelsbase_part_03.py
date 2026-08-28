@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar
 
-from flext_cli import c, t
+from flext_cli import c, p, t
 from flext_core import m
 
 
@@ -35,7 +35,7 @@ class FlextCliModelsBase:
             m.Field(..., description="Pydantic input model class"),
         ]
         handler: Annotated[
-            t.Cli.ResultRouteHandler,
+            p.Cli.ResultRouteHandler,
             m.Field(..., description="Command handler returning r[...]"),
         ]
         success_message: Annotated[

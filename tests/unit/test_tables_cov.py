@@ -33,10 +33,10 @@ class TestsFlextCliTables:
         expected: t.JsonMapping = {"a": 1, "b": "hello"}
         tm.that(result, eq=expected)
 
-    def test_normalize_mapping_row_renders_none_as_empty_string(self) -> None:
-        """Verify that normalize mapping row renders none as empty string."""
+    def test_normalize_mapping_row_preserves_json_null(self) -> None:
+        """Verify that normalize mapping row preserves JSON null."""
         result = u.Cli.tables_normalize_mapping_row({"key": None})
-        tm.that(result, eq={"key": ""})
+        tm.that(result, eq={"key": None})
 
     def test_normalize_mapping_row_is_idempotent_on_json_values(self) -> None:
         """Verify that normalize mapping row is idempotent on json values."""

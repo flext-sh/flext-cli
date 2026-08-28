@@ -107,18 +107,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             ...
 
     @runtime_checkable
-    class ErasedCommandResult(Protocol):
+    class ErasedCommandResult(p.FailureLike, Protocol):
         """Type-erased result surface consumed by declarative CLI routes."""
-
-        @property
-        def failure(self) -> bool:
-            """Indicate whether the command failed."""
-            ...
-
-        @property
-        def error(self) -> str | None:
-            """Expose the normalized failure message, if any."""
-            ...
 
         @property
         def value(self) -> t.Cli.ResultValue:
