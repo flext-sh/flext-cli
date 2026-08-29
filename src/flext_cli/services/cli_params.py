@@ -43,7 +43,11 @@ class FlextCliCommonParams(s):
         if field_name not in c.Cli.CLI_PARAM_REGISTRY:
             msg = c.Cli.CLI_PARAM_ERR_FIELD_NOT_FOUND_FMT.format(field_name=field_name)
             raise ValueError(msg)
-        return u.Cli.build_option(field_name, c.Cli.CLI_PARAM_REGISTRY)
+        option = u.Cli.build_option(field_name, c.Cli.CLI_PARAM_REGISTRY)
+        if not isinstance(option, m.Cli.OptionSpec):
+            msg = "CLI option builder returned an unexpected contract"
+            raise TypeError(msg)
+        return option
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliCommonParams"]

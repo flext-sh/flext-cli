@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from flext_cli import c, m, t
+from flext_cli import c, t
+from flext_cli.models import m
 
 
 class FlextCliUtilitiesOptionBuilder:

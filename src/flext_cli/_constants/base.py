@@ -30,6 +30,10 @@ class FlextCliConstantsBase:
         TypeError,
         KeyError,
     )
+    # Pipeline retries fail loud by default; the bound prevents accidental
+    # exponential fan-out when a caller declares a retry policy.
+    PIPELINE_DEFAULT_RETRY: Final[int] = 0
+    PIPELINE_MAX_RETRY: Final[int] = 3
 
     PATH_FLEXT_DIR_NAME: Final[str] = ".flext"
 
