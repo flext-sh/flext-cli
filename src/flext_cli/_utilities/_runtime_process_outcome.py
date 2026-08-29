@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import shlex
 
-from flext_cli import p, r, t
+from flext_cli import m, p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
@@ -43,6 +43,40 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         if primary_exit is None:
             return r[int].fail("root process did not expose an exit status")
         return r[int].ok(primary_exit)
+
+    @classmethod
+    def _captured_process_result(
+        cls,
+        cmd: t.StrSequence,
+        return_code: int | None,
+        received_signals: list[int],
+        diagnostics: tuple[str, ...],
+        stdout_output: bytearray,
+        stderr_output: bytearray,
+        duration: float,
+        *,
+        timed_out: bool,
+        timeout_seconds: int | None,
+        timeout_exit_code: int,
+    ) -> p.Result[p.Cli.CommandBytesOutput]:
+        """Attach captured bytes only after the owned process boundary is empty."""
+        return cls._process_exit_result(
+            cmd,
+            return_code,
+            received_signals,
+            diagnostics,
+            timed_out=timed_out,
+            legacy_timeout=timeout_seconds is not None,
+            legacy_timeout_seconds=timeout_seconds,
+            timeout_exit_code=timeout_exit_code,
+        ).map(
+            lambda exit_code: m.Cli.CommandBytesOutput(
+                stdout=bytes(stdout_output),
+                stderr=bytes(stderr_output),
+                exit_code=exit_code,
+                duration=duration,
+            )
+        )
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessOutcomeMixin"]

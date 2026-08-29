@@ -5,10 +5,9 @@ from __future__ import annotations
 import os
 import shlex
 import subprocess
-import time
 from typing import BinaryIO, ClassVar, override
 
-from flext_cli import c, m, p, r, t
+from flext_cli import m, p, r, t
 from flext_cli._utilities._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
 from flext_cli._utilities._runtime_run_to_file import (
     FlextCliUtilitiesRuntimeRunToFileMixin,
@@ -64,6 +63,8 @@ class FlextCliUtilitiesRuntime(
         env: dict[str, str] | None,
         stdin_handle: BinaryIO | None,
         *,
+        capture_output: bool,
+        combine_output: bool,
         creation_flags: int,
     ) -> p.Cli.ProcessHandle:
         """Create the sole raw child owned by the streamed lifecycle."""
@@ -71,8 +72,14 @@ class FlextCliUtilitiesRuntime(
             list(cmd),
             cwd=cwd,
             stdin=subprocess.DEVNULL if stdin_handle is None else stdin_handle,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stdout=subprocess.PIPE if capture_output else None,
+            stderr=(
+                subprocess.STDOUT
+                if combine_output
+                else subprocess.PIPE
+                if capture_output
+                else None
+            ),
             text=False,
             bufsize=0,
             env=env,
@@ -90,9 +97,10 @@ class FlextCliUtilitiesRuntime(
             getattr(subprocess, "CREATE_SUSPENDED", 0x00000004)
         )
 
-    @staticmethod
+    @classmethod
     @override
     def run_raw(
+        cls,
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
@@ -112,46 +120,41 @@ class FlextCliUtilitiesRuntime(
         (for long-running makes/rollouts); the returned stdout/stderr are then
         empty and only the exit code is meaningful.
         """
-        start = time.monotonic()
-        stdin = (
-            input_data.encode("utf-8") if isinstance(input_data, str) else input_data
-        )
-        try:
-            result = subprocess.run(
-                list(cmd),
-                cwd=cwd,
-                capture_output=capture,
-                text=False,
-                check=False,
-                timeout=timeout,
-                env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
-                input=stdin,
-            )
-        except subprocess.TimeoutExpired as exc:
-            return r[p.Cli.CommandOutput].fail(
-                f"timeout {exc.timeout}s: {shlex.join(list(cmd))}"
-            )
-        except c.EXC_OS_VALUE as exc:
-            return r[p.Cli.CommandOutput].fail(f"execution error: {exc}")
-        try:
-            stdout = (result.stdout or b"").decode("utf-8")
-            stderr = (result.stderr or b"").decode("utf-8")
-        except UnicodeDecodeError as exc:
-            return r[p.Cli.CommandOutput].fail(
-                f"non-UTF-8 output from {shlex.join(list(cmd))}: {exc}"
-            )
-        duration = max(0.0, time.monotonic() - start)
-        return r[p.Cli.CommandOutput].ok(
-            m.Cli.CommandOutput(
-                stdout=stdout,
-                stderr=stderr,
-                exit_code=result.returncode,
-                duration=duration,
-            )
-        )
 
-    @staticmethod
+        def decode_output(
+            output: p.Cli.CommandBytesOutput,
+        ) -> p.Result[p.Cli.CommandOutput]:
+            try:
+                stdout = output.stdout.decode("utf-8")
+                stderr = output.stderr.decode("utf-8")
+            except UnicodeDecodeError as exc:
+                return r[p.Cli.CommandOutput].fail(
+                    f"non-UTF-8 output from {shlex.join(list(cmd))}: {exc}"
+                )
+            return r[p.Cli.CommandOutput].ok(
+                m.Cli.CommandOutput(
+                    stdout=stdout,
+                    stderr=stderr,
+                    exit_code=output.exit_code,
+                    duration=output.duration,
+                )
+            )
+
+        return cls._execute_streamed_process(
+            cmd,
+            None,
+            cwd,
+            cls._resolved_env(env, remove_env_keys),
+            input_data,
+            capture_output=capture,
+            live=False,
+            timeout=timeout,
+            deadline=None,
+        ).flat_map(decode_output)
+
+    @classmethod
     def run_bytes(
+        cls,
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
@@ -160,35 +163,16 @@ class FlextCliUtilitiesRuntime(
         input_data: str | bytes | None = None,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Run a command capturing byte-exact stdout/stderr (no text decoding)."""
-        start = time.monotonic()
-        stdin = (
-            input_data.encode("utf-8") if isinstance(input_data, str) else input_data
-        )
-        try:
-            result = subprocess.run(
-                list(cmd),
-                cwd=cwd,
-                capture_output=True,
-                text=False,
-                check=False,
-                timeout=timeout,
-                env=FlextCliUtilitiesRuntime._resolved_env(env, remove_env_keys),
-                input=stdin,
-            )
-        except subprocess.TimeoutExpired as exc:
-            return r[p.Cli.CommandBytesOutput].fail(
-                f"timeout {exc.timeout}s: {shlex.join(list(cmd))}"
-            )
-        except c.EXC_OS_VALUE as exc:
-            return r[p.Cli.CommandBytesOutput].fail(f"execution error: {exc}")
-        duration = max(0.0, time.monotonic() - start)
-        return r[p.Cli.CommandBytesOutput].ok(
-            m.Cli.CommandBytesOutput(
-                stdout=result.stdout or b"",
-                stderr=result.stderr or b"",
-                exit_code=result.returncode,
-                duration=duration,
-            )
+        return cls._execute_streamed_process(
+            cmd,
+            None,
+            cwd,
+            cls._resolved_env(env, remove_env_keys),
+            input_data,
+            capture_output=True,
+            live=False,
+            timeout=timeout,
+            deadline=None,
         )
 
 

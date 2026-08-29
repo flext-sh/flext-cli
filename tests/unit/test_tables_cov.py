@@ -34,7 +34,7 @@ class TestsFlextCliTables:
         tm.that(result, eq=expected)
 
     def test_normalize_mapping_row_preserves_json_null(self) -> None:
-        """Verify that normalize mapping row preserves JSON null."""
+        """Verify that normalization preserves the JSON null contract."""
         result = u.Cli.tables_normalize_mapping_row({"key": None})
         tm.that(result, eq={"key": None})
 

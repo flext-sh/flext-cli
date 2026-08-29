@@ -31,10 +31,7 @@ class FlextCliModelsPipeline:
             ),
         ]
         settings: Annotated[
-            t.JsonMapping,
-            m.Field(
-                description="Immutable pipeline configuration",
-            ),
+            t.JsonMapping, m.Field(description="Immutable pipeline configuration")
         ] = EMPTY_JSON_MAPPING
 
     class PipelineStageSpec(m.ContractModel):
@@ -66,6 +63,7 @@ class FlextCliModelsPipeline:
             Callable[[FlextCliModelsPipeline.PipelineStageContext], bool] | None,
             m.Field(description="Predicate — skip stage if returns True"),
         ] = None
+
     class PipelineStageResult(m.ContractModel):
         """What a stage produces after execution."""
 
@@ -76,10 +74,7 @@ class FlextCliModelsPipeline:
             t.Cli.PipelineStageStatus, m.Field(description="Execution outcome")
         ]
         output: Annotated[
-            t.JsonMapping,
-            m.Field(
-                description="Stage output payload",
-            ),
+            t.JsonMapping, m.Field(description="Stage output payload")
         ] = EMPTY_JSON_MAPPING
         duration_ms: Annotated[
             float, m.Field(description="Execution duration in milliseconds")
