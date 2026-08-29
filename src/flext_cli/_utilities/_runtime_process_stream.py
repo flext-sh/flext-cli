@@ -8,7 +8,7 @@ from typing import IO, BinaryIO, ClassVar
 
 
 class FlextCliUtilitiesRuntimeProcessStreamMixin:
-    """Mirror combined child output to a live descriptor and durable log."""
+    """Route child bytes to captured, durable, and live output owners."""
 
     _STREAM_CHUNK_BYTES: ClassVar[int] = 64 * 1024
     _STREAM_POLL_SECONDS: ClassVar[float] = 0.01
@@ -17,24 +17,28 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
     def _pump_process_output(
         cls,
         source: IO[bytes],
-        durable_log: BinaryIO,
+        durable_log: BinaryIO | None,
+        captured_output: bytearray | None,
         live_fd: int | None,
         failures: list[str],
         live_diagnostics: list[str],
         stop: threading.Event,
         wake: threading.Event,
     ) -> None:
-        """Persist each chunk before bounded best-effort live mirroring."""
+        """Own one child pipe until EOF and preserve each byte exactly once."""
         live_available = live_fd is not None
         try:
             while not stop.is_set():
                 chunk = cls._read_process_chunk(source, failures)
                 if chunk is None:
                     return
-                durable_error = cls._write_durable_chunk(durable_log, chunk)
-                if durable_error is not None:
-                    failures.append(durable_error)
-                    return
+                if durable_log is not None:
+                    durable_error = cls._write_durable_chunk(durable_log, chunk)
+                    if durable_error is not None:
+                        failures.append(durable_error)
+                        return
+                if captured_output is not None:
+                    captured_output.extend(chunk)
                 if live_available and live_fd is not None:
                     live_available = cls._write_live_chunk(
                         live_fd, chunk, stop, live_diagnostics

@@ -30,6 +30,9 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            input_data: str | bytes | None = None,
+            *,
+            capture: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command and require zero exit status."""
             ...
@@ -41,6 +44,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            input_data: str | bytes | None = None,
         ) -> p.Result[str]:
             """Execute a command and return stripped stdout."""
             ...
@@ -52,7 +56,9 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
-            input_data: bytes | None = None,
+            input_data: str | bytes | None = None,
+            *,
+            capture: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
             ...
@@ -65,7 +71,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
-            input_data: bytes | None = None,
+            input_data: str | bytes | None = None,
         ) -> p.Result[p.Cli.CommandBytesOutput]:
             """Execute a command and preserve byte-exact output."""
             ...
@@ -77,8 +83,23 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            input_data: str | bytes | None = None,
+            *,
+            capture: bool = True,
         ) -> p.Result[bool]:
             """Execute a command and return a success flag."""
+            ...
+
+        def run_live(
+            self,
+            cmd: t.StrSequence,
+            cwd: t.Cli.TextPath | None = None,
+            timeout: int | None = None,
+            env: t.StrMapping | None = None,
+            remove_env_keys: t.StrSequence = (),
+            input_data: str | bytes | None = None,
+        ) -> p.Result[p.Cli.CommandOutput]:
+            """Execute a checked command with inherited live output."""
             ...
 
         def run_to_file(
