@@ -581,6 +581,7 @@ mypy = "2026-08-15T03:04:00Z"
 types-setuptools = "2026-08-13T00:00:00Z"
 
 [tool.uv.workspace]
+members = []
 
 [tool.vulture]
 exclude = ["*/_protocols/*"]
@@ -615,24 +616,25 @@ dev = [
   "hypothesis>=6.125",
   "isort>=6.0.1",
   "matplotlib-stubs>=0.3",
-  "mkdocs>=1.6",
+  "mkdocs>=1.6.1",
+  "mkdocs-autorefs>=1.4.4",
   "mkdocs-awesome-pages-plugin>=2.9",
   "mkdocs-encryptcontent-plugin>=2",
   "mkdocs-exclude>=1.0.2",
   "mkdocs-get-deps>=0.2",
-  "mkdocs-git-revision-date-localized-plugin>=1.2",
+  "mkdocs-git-revision-date-localized-plugin>=1.5.3",
   "mkdocs-literate-nav>=0.6",
   "mkdocs-macros-plugin>=1",
-  "mkdocs-material>=9.5",
+  "mkdocs-material>=9.7.7",
   "mkdocs-material-extensions>=1.3.1",
-  "mkdocs-mermaid2-plugin>=1.1",
-  "mkdocs-minify-plugin>=0.7",
+  "mkdocs-mermaid2-plugin>=1.2.3",
+  "mkdocs-minify-plugin>=0.8.0",
   "mkdocs-print-site-plugin>=0.8",
-  "mkdocs-redirects>=1.2",
+  "mkdocs-redirects>=1.2.3",
   "mkdocs-section-index>=0.3.12",
   "mkdocs-versioning>=0.2",
-  "mkdocstrings>=0.24",
-  "mkdocstrings-python>=1.7",
+  "mkdocstrings>=1.0.6",
+  "mkdocstrings-python>=2.0.5",
   "mypy>=2.3.0",
   "pip-audit>=2.7.3",
   "pre-commit>=4.6.1",

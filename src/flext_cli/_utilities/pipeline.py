@@ -149,11 +149,7 @@ class FlextCliUtilitiesPipeline:
             return stage_result.model_copy(update={"duration_ms": duration_ms})
 
         error = result.error or f"stage {spec.stage_id} failed"
-        log.error(
-            "stage_failed",
-            stage_id=spec.stage_id,
-            error=error,
-        )
+        log.error("stage_failed", stage_id=spec.stage_id, error=error)
         return m.Cli.PipelineStageResult(
             stage_id=spec.stage_id,
             status=c.Cli.PipelineStageStatus.FAILED,
