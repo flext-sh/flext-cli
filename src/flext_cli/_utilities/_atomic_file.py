@@ -41,8 +41,11 @@ def write_atomic_bytes(
         if guarded
         else file_state.permission_state(path)
     )
+    expected_bytes_for_state: bytes | None = (
+        expected_bytes if isinstance(expected_bytes, bytes) else None
+    )
     file_state.validate_precondition(
-        path, expected, expected_bytes if guarded else None, enabled=guarded
+        path, expected, expected_bytes_for_state, enabled=guarded
     )
     fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
     temporary = Path(tmp_path)
