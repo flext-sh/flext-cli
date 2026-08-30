@@ -510,7 +510,7 @@ Cada issue traz a **mensagem do SonarQube** (descreve o problema e o impacto), o
 > Use '[[' instead of '[' for conditional tests. The '[[' construct is safer and more feature-rich.
 
 ```bash
-       51  _log "Installing Beads git hooks (chained) at ${WORKSPACE_ROOT}"
+       51  _log "Installing Beads git hooks (chained) at ${REPOSITORY_ROOT}"
        52  bd hooks install --chain >/dev/null || fail "bd hooks install --chain failed"
        53  
        54  hook_path="$(git rev-parse --git-path hooks/prepare-commit-msg)"

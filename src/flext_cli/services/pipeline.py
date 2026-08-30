@@ -13,14 +13,14 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
 
     @staticmethod
     def stage_context(
-        workspace_root: Path,
+        repository_root: Path,
         *,
         shared: t.MutableJsonMapping | None = None,
         settings: t.JsonMapping | None = None,
     ) -> m.Cli.PipelineStageContext:
         """Build one validated stage context from the public DSL."""
         return m.Cli.PipelineStageContext.model_validate({
-            "workspace_root": workspace_root,
+            "repository_root": repository_root,
             "shared": {} if shared is None else shared,
             "settings": {} if settings is None else settings,
         })

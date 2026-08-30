@@ -21,7 +21,9 @@ class FlextCliModelsPipeline:
             extra="forbid", validate_assignment=True, arbitrary_types_allowed=True
         )
 
-        workspace_root: Annotated[Path, m.Field(description="Workspace root directory")]
+        repository_root: Annotated[
+            Path, m.Field(description="Repository root directory")
+        ]
 
         shared: Annotated[
             t.MutableJsonMapping,

@@ -22,8 +22,8 @@ class FlextCliProtocolsPipeline:
         """Contract for stage execution context — carries shared state between stages."""
 
         @property
-        def workspace_root(self) -> Path:
-            """Workspace root directory."""
+        def repository_root(self) -> Path:
+            """Repository root directory."""
             ...
 
         @property
@@ -52,7 +52,7 @@ class FlextCliProtocolsPipeline:
 
         def stage_context(
             self,
-            workspace_root: Path,
+            repository_root: Path,
             *,
             shared: t.MutableJsonMapping | None = None,
             settings: t.JsonMapping | None = None,
