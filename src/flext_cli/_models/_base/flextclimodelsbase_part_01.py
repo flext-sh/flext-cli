@@ -82,10 +82,7 @@ class FlextCliModelsBase:
             extra="forbid", validate_assignment=True
         )
         data: Annotated[
-            t.JsonMapping,
-            m.Field(
-                description="Field-value pairs for display",
-            ),
+            t.JsonMapping, m.Field(description="Field-value pairs for display")
         ] = EMPTY_JSON_MAPPING
 
         @u.model_serializer
@@ -102,7 +99,7 @@ class FlextCliModelsBase:
         content: Annotated[
             t.JsonMapping,
             m.Field(
-                description="Loaded configuration content (dict or other JSON value)",
+                description="Loaded configuration content (dict or other JSON value)"
             ),
         ] = EMPTY_JSON_MAPPING
 
@@ -130,10 +127,7 @@ class FlextCliModelsBase:
             m.Field(default_factory=dict, description="The normalized JSON value"),
         ]
         default: Annotated[
-            t.JsonMapping,
-            m.Field(
-                description="Default mapping if value is not a dict",
-            ),
+            t.JsonMapping, m.Field(description="Default mapping if value is not a dict")
         ] = EMPTY_JSON_MAPPING
 
         @property
