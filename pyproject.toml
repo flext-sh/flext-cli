@@ -581,7 +581,6 @@ mypy = "2026-08-15T03:04:00Z"
 types-setuptools = "2026-08-13T00:00:00Z"
 
 [tool.uv.workspace]
-members = []
 
 [tool.vulture]
 exclude = ["*/_protocols/*"]
