@@ -121,7 +121,12 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
 
         @property
         def stdout(self) -> IO[bytes] | None:
-            """Combined binary output pipe."""
+            """Binary standard-output pipe when requested."""
+            ...
+
+        @property
+        def stderr(self) -> IO[bytes] | None:
+            """Binary standard-error pipe when requested separately."""
             ...
 
         def kill(self) -> None:

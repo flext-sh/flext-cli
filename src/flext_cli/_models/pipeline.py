@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from types import MappingProxyType
 from typing import Annotated, ClassVar
 
 from flext_cli import c, p, t
+from flext_cli._models._defaults import EMPTY_JSON_MAPPING
 from flext_core import m, u
 
 
@@ -32,7 +32,7 @@ class FlextCliModelsPipeline:
         settings: Annotated[
             t.JsonMapping,
             m.Field(
-                default_factory=lambda: MappingProxyType(dict[str, t.JsonValue]()),
+                default_factory=lambda: EMPTY_JSON_MAPPING,
                 description="Immutable pipeline configuration",
             ),
         ]
@@ -87,7 +87,7 @@ class FlextCliModelsPipeline:
         output: Annotated[
             t.JsonMapping,
             m.Field(
-                default_factory=lambda: MappingProxyType(dict[str, t.JsonValue]()),
+                default_factory=lambda: EMPTY_JSON_MAPPING,
                 description="Stage output payload",
             ),
         ]
@@ -113,7 +113,7 @@ class FlextCliModelsPipeline:
             float, m.Field(description="Total pipeline execution time")
         ] = 0.0
 
-        @u.computed_field()
+        @u.computed_field
         @property
         def success(self) -> bool:
             """True if no stage failed."""
@@ -121,7 +121,7 @@ class FlextCliModelsPipeline:
                 s.status != c.Cli.PipelineStageStatus.FAILED for s in self.stages
             )
 
-        @u.computed_field()
+        @u.computed_field
         @property
         def failed_stages(
             self,
@@ -131,7 +131,7 @@ class FlextCliModelsPipeline:
                 s for s in self.stages if s.status == c.Cli.PipelineStageStatus.FAILED
             ]
 
-        @u.computed_field()
+        @u.computed_field
         @property
         def skipped_stages(
             self,

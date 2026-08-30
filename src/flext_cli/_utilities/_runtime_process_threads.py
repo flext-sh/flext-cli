@@ -41,17 +41,29 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     def _start_output_pump(
         cls,
         source: IO[bytes],
-        durable_log: BinaryIO,
+        durable_log: BinaryIO | None,
+        captured_output: bytearray | None,
         live_fd: int | None,
         failures: list[str],
         live_diagnostics: list[str],
         stop: threading.Event,
         wake: threading.Event,
+        *,
+        thread_name: str,
     ) -> threading.Thread:
         pump = threading.Thread(
             target=cls._pump_process_output,
-            args=(source, durable_log, live_fd, failures, live_diagnostics, stop, wake),
-            name="flext-cli-process-output",
+            args=(
+                source,
+                durable_log,
+                captured_output,
+                live_fd,
+                failures,
+                live_diagnostics,
+                stop,
+                wake,
+            ),
+            name=thread_name,
             daemon=False,
         )
         pump.start()
