@@ -13,9 +13,7 @@ from flext_cli._protocols.base import FlextCliProtocolsBase
 class FlextCliProtocolsDomain:
     """CLI domain protocols layered on top of base callable contracts."""
 
-    type ResultRouteHandler = Callable[
-        ..., FlextCliProtocolsBase.ErasedCommandResult
-    ]
+    type ResultRouteHandler = Callable[..., FlextCliProtocolsBase.ErasedCommandResult]
 
     @runtime_checkable
     class JsonValueProcessor(Protocol):

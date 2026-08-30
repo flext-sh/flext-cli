@@ -13,8 +13,9 @@ class FlextCliUtilitiesRuntimeCommandsMixin:
 
     if TYPE_CHECKING:
 
-        @staticmethod
+        @classmethod
         def run_raw(
+            cls,
             cmd: t.StrSequence,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
