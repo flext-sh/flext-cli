@@ -3,12 +3,11 @@
 from __future__ import annotations
 
 import csv
-import os
 import shutil
-import tempfile
 from pathlib import Path
 
 from flext_cli import c, p, r, t
+from flext_cli._utilities._atomic_file import write_atomic_bytes
 
 
 class FlextCliUtilitiesFiles:
@@ -38,14 +37,14 @@ class FlextCliUtilitiesFiles:
     @staticmethod
     def files_write_binary(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
         """Write one binary file atomically in its destination directory."""
-        path = Path(file_path)
+        path = Path(file_path).absolute()
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
         if ensure_result.failure:
             return r[bool].fail(
                 ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED
             )
         try:
-            FlextCliUtilitiesFiles._write_temp_and_replace(path, data)
+            write_atomic_bytes(path, data)
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
         return r[bool].ok(True)
@@ -55,16 +54,14 @@ class FlextCliUtilitiesFiles:
         file_path: t.Cli.TextPath, content: str
     ) -> p.Result[bool]:
         """Write a text file atomically via the shared byte primitive."""
-        path = Path(file_path)
+        path = Path(file_path).absolute()
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
         if ensure_result.failure:
             return r[bool].fail(
                 ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED
             )
         try:
-            FlextCliUtilitiesFiles._write_temp_and_replace(
-                path, content.encode(c.Cli.ENCODING_DEFAULT)
-            )
+            write_atomic_bytes(path, content.encode(c.Cli.ENCODING_DEFAULT))
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc)
@@ -72,17 +69,30 @@ class FlextCliUtilitiesFiles:
         return r[bool].ok(True)
 
     @staticmethod
-    def _write_temp_and_replace(path: Path, content: bytes) -> None:
-        """Persist bytes to a sibling temporary file, then atomically replace."""
-        # NOTE (multi-agent): Text and binary share this one atomic-write owner.
-        fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
+    def atomic_write_text_file_guarded(
+        file_path: t.Cli.TextPath, content: str, *, expected_bytes: bytes | None
+    ) -> p.Result[bool]:
+        """Publish under a caller-held lock after an exact raw-byte precondition.
+
+        Cooperative writers must hold one exclusive lock from planning through
+        this call.  This portable operation is not compare-and-swap against actors
+        that ignore that lock and does not promise power-loss durability.  ``None``
+        requires absence; bytes require an existing uniquely owned regular,
+        non-reparse destination with exactly that content.  The immediate parent
+        must already exist as a real directory and is never created by this call.
+        """
+        path = Path(file_path).absolute()
         try:
-            with os.fdopen(fd, "wb") as handle:
-                handle.write(content)
-            Path(tmp_path).replace(path)
-        except BaseException:
-            Path(tmp_path).unlink(missing_ok=True)
-            raise
+            write_atomic_bytes(
+                path,
+                content.encode(c.Cli.ENCODING_DEFAULT),
+                expected_bytes=expected_bytes,
+            )
+        except OSError as exc:
+            return r[bool].fail(
+                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc)
+            )
+        return r[bool].ok(True)
 
     @staticmethod
     def files_copy(
