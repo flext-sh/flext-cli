@@ -53,7 +53,7 @@ class _ConformingContext:
     """Object structurally conforming to ``PipelineStageContext``."""
 
     @property
-    def workspace_root(self) -> Path:
+    def repository_root(self) -> Path:
         return Path()
 
     @property
@@ -101,7 +101,7 @@ class TestsFlextCliProtocols:
 
         class _MissingSettings:
             @property
-            def workspace_root(self) -> object: ...
+            def repository_root(self) -> object: ...
 
             @property
             def shared(self) -> object: ...

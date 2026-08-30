@@ -26,7 +26,7 @@ class TestsFlextCliPublicContractsCoverage:
                 m.Cli.PipelineStageResult.model_validate({
                     "stage_id": "build",
                     "status": c.Cli.PipelineStageStatus.OK,
-                    "output": {"workspace": str(current.workspace_root)},
+                    "output": {"workspace": str(current.repository_root)},
                 })
             )
 
