@@ -76,11 +76,10 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         cls,
         process: p.Cli.ProcessHandle,
         waiter: threading.Thread,
-        pump: threading.Thread,
         process_done: threading.Event,
         wake: threading.Event,
         stop: threading.Event,
-        source: IO[bytes],
+        pump_streams: tuple[tuple[threading.Thread, IO[bytes]], ...],
         cleanup_errors: list[str],
         job_handle: int,
         absolute_deadline: float | None,
@@ -98,7 +97,8 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         waiter.join(cls._remaining(cleanup_deadline))
         if waiter.is_alive():
             cleanup_errors.append("process deadline expired before root reaping")
-        cls._drain_output(pump, stop, source, cleanup_errors, cleanup_deadline)
+        for pump, source in pump_streams:
+            cls._drain_output(pump, stop, source, cleanup_errors, cleanup_deadline)
         return return_codes[0] if return_codes else process.poll()
 
     @classmethod
@@ -157,7 +157,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
             try:
                 source.close()
             except (OSError, ValueError) as exc:
-                cleanup_errors.append(f"combined output close error: {exc}")
+                cleanup_errors.append(f"process output close error: {exc}")
             pump.join(cls._remaining(cleanup_deadline))
         if pump.is_alive():
             cleanup_errors.append("process deadline expired before output drain")
