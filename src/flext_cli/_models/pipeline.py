@@ -26,13 +26,16 @@ class FlextCliModelsPipeline:
         shared: Annotated[
             t.MutableJsonMapping,
             m.Field(
-                default_factory=dict[str, t.JsonValue],
-                description="Mutable shared state between stages",
+                default_factory=dict, description="Mutable shared state between stages"
             ),
         ]
         settings: Annotated[
-            t.JsonMapping, m.Field(description="Immutable pipeline configuration")
-        ] = EMPTY_JSON_MAPPING
+            t.JsonMapping,
+            m.Field(
+                default_factory=lambda: EMPTY_JSON_MAPPING,
+                description="Immutable pipeline configuration",
+            ),
+        ]
 
     class PipelineStageSpec(m.ContractModel):
         """Declarative stage definition with dependency tracking."""
@@ -63,6 +66,14 @@ class FlextCliModelsPipeline:
             Callable[[FlextCliModelsPipeline.PipelineStageContext], bool] | None,
             m.Field(description="Predicate — skip stage if returns True"),
         ] = None
+        retry: Annotated[
+            int,
+            m.Field(
+                ge=0,
+                le=c.Cli.PIPELINE_MAX_RETRY,
+                description="Number of retries on failure",
+            ),
+        ] = c.Cli.PIPELINE_DEFAULT_RETRY
 
     class PipelineStageResult(m.ContractModel):
         """What a stage produces after execution."""
@@ -74,8 +85,12 @@ class FlextCliModelsPipeline:
             t.Cli.PipelineStageStatus, m.Field(description="Execution outcome")
         ]
         output: Annotated[
-            t.JsonMapping, m.Field(description="Stage output payload")
-        ] = EMPTY_JSON_MAPPING
+            t.JsonMapping,
+            m.Field(
+                default_factory=lambda: EMPTY_JSON_MAPPING,
+                description="Stage output payload",
+            ),
+        ]
         duration_ms: Annotated[
             float, m.Field(description="Execution duration in milliseconds")
         ] = 0.0

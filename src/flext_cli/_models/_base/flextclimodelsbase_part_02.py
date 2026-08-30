@@ -52,12 +52,18 @@ class FlextCliModelsBase:
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         base_env: Annotated[
             t.StrMapping,
-            m.Field(description="Base environment inherited from the current process"),
-        ] = EMPTY_STR_MAPPING
+            m.Field(
+                default_factory=lambda: EMPTY_STR_MAPPING,
+                description="Base environment inherited from the current process",
+            ),
+        ]
         overrides: Annotated[
             t.StrMapping,
-            m.Field(description="Explicit environment overrides for the child process"),
-        ] = EMPTY_STR_MAPPING
+            m.Field(
+                default_factory=lambda: EMPTY_STR_MAPPING,
+                description="Explicit environment overrides for the child process",
+            ),
+        ]
         remove_keys: Annotated[
             t.StrSequence,
             m.Field(
