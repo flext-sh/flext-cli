@@ -13,6 +13,31 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
     _STREAM_CHUNK_BYTES: ClassVar[int] = 64 * 1024
     _STREAM_POLL_SECONDS: ClassVar[float] = 0.01
 
+    @staticmethod
+    def _pump_process_input(
+        sink: BinaryIO,
+        payload: bytes,
+        failures: list[str],
+        wake: threading.Event,
+    ) -> None:
+        """Write every input byte to the child pipe, then publish EOF."""
+        remaining = memoryview(payload)
+        try:
+            while remaining:
+                written = sink.write(remaining)
+                if written is None or written <= 0:
+                    failures.append("stdin write made no progress")
+                    return
+                remaining = remaining[written:]
+        except (BrokenPipeError, OSError, ValueError) as exc:
+            failures.append(f"stdin write error: {exc}")
+        finally:
+            try:
+                sink.close()
+            except (OSError, ValueError) as exc:
+                failures.append(f"stdin close error: {exc}")
+            wake.set()
+
     @classmethod
     def _pump_process_output(
         cls,

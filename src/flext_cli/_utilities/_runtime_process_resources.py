@@ -5,9 +5,7 @@ from __future__ import annotations
 import contextlib
 import os
 import sys
-import tempfile
 import time
-from collections.abc import Generator
 from typing import BinaryIO
 
 from flext_cli import c, p, r
@@ -19,29 +17,49 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
     @staticmethod
     def _prepare_streamed_stdin(
         stack: contextlib.ExitStack, input_data: str | bytes | None
-    ) -> p.Result[tuple[BinaryIO | None]]:
+    ) -> p.Result[tuple[BinaryIO | None, BinaryIO | None, bytes]]:
         if input_data is None:
-            return r[tuple[BinaryIO | None]].ok((None,))
+            return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok(
+                (None, None, b"")
+            )
         payload = (
             input_data.encode("utf-8") if isinstance(input_data, str) else input_data
         )
         try:
-            prepared = stack.enter_context(
-                FlextCliUtilitiesRuntimeProcessResourcesMixin._temporary_stdin()
+            reader, writer = (
+                FlextCliUtilitiesRuntimeProcessResourcesMixin._anonymous_stdin_pipe(
+                    stack
+                )
             )
-            written = prepared.write(payload)
-            prepared.seek(0)
         except c.EXC_OS_VALUE as exc:
-            return r[tuple[BinaryIO | None]].fail(f"stdin preparation error: {exc}")
-        if written != len(payload):
-            return r[tuple[BinaryIO | None]].fail("stdin preparation was partial")
-        return r[tuple[BinaryIO | None]].ok((prepared,))
+            return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].fail(
+                f"stdin preparation error: {exc}"
+            )
+        return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok(
+            (reader, writer, payload)
+        )
 
     @staticmethod
-    @contextlib.contextmanager
-    def _temporary_stdin() -> Generator[BinaryIO]:
-        with tempfile.TemporaryFile() as prepared:
-            yield prepared
+    def _anonymous_stdin_pipe(
+        stack: contextlib.ExitStack,
+    ) -> tuple[BinaryIO, BinaryIO]:
+        """Open one memory-only parent-writer/child-reader pipe pair."""
+        read_fd, write_fd = os.pipe()
+        try:
+            reader = os.fdopen(read_fd, "rb", buffering=0)
+        except c.EXC_OS_VALUE:
+            os.close(read_fd)
+            os.close(write_fd)
+            raise
+        try:
+            writer = os.fdopen(write_fd, "wb", buffering=0)
+        except c.EXC_OS_VALUE:
+            reader.close()
+            os.close(write_fd)
+            raise
+        stack.callback(writer.close)
+        stack.callback(reader.close)
+        return reader, writer
 
     @staticmethod
     def _prepare_live_descriptor(
