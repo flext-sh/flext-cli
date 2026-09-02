@@ -305,10 +305,25 @@ class FlextCliUtilitiesFramework:
         charset: str = c.Cli.ENCODING_DEFAULT,
         env: t.StrMapping | None = None,
     ) -> m.Cli.InvocationResult:
-        """Invoke one application through the real framework test runner."""
+        """Invoke one application through the real framework test runner.
+
+        Captured output renders unstyled so text assertions stay
+        presentation-free and stable in styled environments: the runner sets
+        ``NO_COLOR`` and neutralizes the terminal-forcing signals typer
+        consults instead of it (``GITHUB_ACTIONS``, ``FORCE_COLOR``,
+        ``PY_COLORS``); an explicit caller ``env`` entry still wins.
+        """
         from flext_cli import m
 
-        runner = CliRunner(charset=charset, env=env)
+        runner_env: dict[str, str | None] = {
+            "NO_COLOR": "1",
+            "GITHUB_ACTIONS": "",
+            "FORCE_COLOR": "",
+            "PY_COLORS": "",
+        }
+        if env is not None:
+            runner_env.update(env)
+        runner = CliRunner(charset=charset, env=runner_env)
         private_application = cls._unwrap(application)
         result = runner.invoke(
             private_application.backend, args=list(args) if args is not None else None

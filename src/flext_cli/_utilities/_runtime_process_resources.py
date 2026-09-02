@@ -84,17 +84,19 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         return live_fd
 
     @staticmethod
-    def _flush_durable_log(
-        durable_log: BinaryIO, absolute_deadline: float | None
-    ) -> tuple[str, ...]:
+    def _flush_durable_log(durable_log: BinaryIO) -> tuple[str, ...]:
+        """Finalize the durable log after reaping; only I/O errors are failures.
+
+        The flush runs post-reaping, after bounded cleanup has deliberately
+        consumed its deadline window, so wall-clock position relative to the
+        child deadline is not a failure condition.
+        """
         errors: list[str] = []
         try:
             durable_log.flush()
             os.fsync(durable_log.fileno())
         except c.EXC_OS_VALUE as exc:
             errors.append(f"durable log flush error: {exc}")
-        if absolute_deadline is not None and time.monotonic() > absolute_deadline:
-            errors.append("process deadline expired before durable log flush")
         return tuple(errors)
 
     @staticmethod
