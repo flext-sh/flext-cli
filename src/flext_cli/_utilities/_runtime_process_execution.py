@@ -85,6 +85,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         stdout_output = bytearray()
         stderr_output = bytearray()
         pump_streams: list[tuple[threading.Thread, IO[bytes]]] = []
+        input_pump: tuple[threading.Thread, BinaryIO] | None = None
         pump_stop = threading.Event()
         process_done = threading.Event()
         wake = threading.Event()
@@ -103,7 +104,8 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 process, \
                 return_code, \
                 timed_out, \
-                waiter
+                waiter, \
+                input_pump
             if threading.current_thread() is threading.main_thread():
                 restore_handlers.extend(
                     cls._install_forwarding_handlers(
@@ -143,6 +145,12 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 else:
                     owned_process, job_handle = start_result.unwrap()
                     process = owned_process
+                    stdin_reader, stdin_writer, stdin_payload = stdin_result.unwrap()
+                    if stdin_reader is not None:
+                        try:
+                            stdin_reader.close()
+                        except (OSError, ValueError) as exc:
+                            failures.append(f"parent stdin reader close error: {exc}")
                     waiter = cls._start_root_waiter(
                         owned_process, return_codes, failures, process_done, wake
                     )
@@ -161,6 +169,11 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                             capture_output=capture_output,
                         )
                     )
+                    if stdin_writer is not None:
+                        input_thread = cls._start_input_pump(
+                            stdin_writer, stdin_payload, failures, wake
+                        )
+                        input_pump = (input_thread, stdin_writer)
                     timed_out, final_deadline = cls._monitor_process(
                         owned_process,
                         process_done,
@@ -178,6 +191,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                         wake,
                         pump_stop,
                         tuple(pump_streams),
+                        input_pump,
                         cleanup_errors,
                         job_handle,
                         final_deadline,
@@ -198,15 +212,14 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                     wake,
                     pump_stop,
                     tuple(pump_streams),
+                    input_pump,
                     cleanup_errors,
                     job_handle,
                     final_deadline,
                     return_codes,
                 )
             if durable_log is not None:
-                cleanup_errors.extend(
-                    cls._flush_durable_log(durable_log, final_deadline)
-                )
+                cleanup_errors.extend(cls._flush_durable_log(durable_log))
             close_error = cls._windows_job_close(job_handle)
             if close_error is not None:
                 cleanup_errors.append(close_error)

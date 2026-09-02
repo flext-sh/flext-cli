@@ -74,13 +74,8 @@ class FlextCliUtilitiesRuntimeCommandsMixin:
     ) -> p.Result[bool]:
         """Run a command and return a success flag."""
         return cls.run(
-            cmd,
-            cwd=cwd,
-            timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
-            capture=capture,
+            cmd, cwd=cwd, timeout=timeout, env=env,
+            remove_env_keys=remove_env_keys, input_data=input_data, capture=capture,
         ).map(lambda _: True)
 
     @classmethod
@@ -95,13 +90,8 @@ class FlextCliUtilitiesRuntimeCommandsMixin:
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command with inherited live stdout and stderr."""
         return cls.run(
-            cmd,
-            cwd=cwd,
-            timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
-            capture=False,
+            cmd, cwd=cwd, timeout=timeout, env=env,
+            remove_env_keys=remove_env_keys, input_data=input_data, capture=False,
         )
 
     @classmethod
@@ -116,12 +106,8 @@ class FlextCliUtilitiesRuntimeCommandsMixin:
     ) -> p.Result[str]:
         """Run a command and return stripped stdout."""
         return cls.run(
-            cmd,
-            cwd=cwd,
-            timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
+            cmd, cwd=cwd, timeout=timeout, env=env,
+            remove_env_keys=remove_env_keys, input_data=input_data,
         ).map(lambda output: output.stdout.strip())
 
 
