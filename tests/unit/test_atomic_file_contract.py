@@ -119,7 +119,7 @@ import resource
 import signal
 import sys
 from pathlib import Path
-from tests import u
+from flext_cli import u
 
 resource.setrlimit(resource.RLIMIT_FSIZE, (1, 1))
 signal.signal(signal.SIGXFSZ, signal.SIG_IGN)

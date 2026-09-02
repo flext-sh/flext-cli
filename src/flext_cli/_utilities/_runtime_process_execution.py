@@ -204,9 +204,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                     return_codes,
                 )
             if durable_log is not None:
-                cleanup_errors.extend(
-                    cls._flush_durable_log(durable_log, final_deadline)
-                )
+                cleanup_errors.extend(cls._flush_durable_log(durable_log))
             close_error = cls._windows_job_close(job_handle)
             if close_error is not None:
                 cleanup_errors.append(close_error)

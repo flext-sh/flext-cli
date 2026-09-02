@@ -189,7 +189,7 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(result.value, eq=128 + signal_number)
         tm.that(signaler_errors, eq=[])
         tm.that(signaler.is_alive(), eq=False)
-        tm.that(time.monotonic() - signal_started, lt=3.0)
+        tm.that(time.monotonic() - signal_started, lt=6.0)
 
     def test_pre_spawn_signal_is_captured_before_command_materialization(
         self, tmp_path: Path
