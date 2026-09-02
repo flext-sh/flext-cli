@@ -315,7 +315,7 @@ class FlextCliUtilitiesFramework:
         """
         from flext_cli import m
 
-        runner_env: t.StrMapping = {
+        runner_env: t.MutableJsonMapping = {
             "NO_COLOR": "1",
             "GITHUB_ACTIONS": "",
             "FORCE_COLOR": "",
