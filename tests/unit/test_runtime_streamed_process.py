@@ -7,7 +7,7 @@ import signal
 import sys
 import threading
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, BinaryIO
 
 import pytest
 
@@ -31,6 +31,13 @@ def _deadline(
 
 class TestsFlextCliRuntimeStreamedProcess:
     """Prove streaming, deadlines, exact exits, and descendant cleanup."""
+
+    @staticmethod
+    def _input_pump_is_alive() -> bool:
+        return any(
+            thread.name == "flext-cli-process-input"
+            for thread in threading.enumerate()
+        )
 
     def test_combined_output_is_byte_exact_and_live(
         self, tmp_path: Path, capfd: pytest.CaptureFixture[str]
@@ -85,6 +92,108 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.ok(result)
         tm.that(result.value, eq=0)
         tm.that(output_file.read_bytes(), eq=payload)
+
+    @pytest.mark.parametrize(
+        "payload",
+        [
+            pytest.param(b"binary-pipe\x00" * 131_072, id="binary"),
+            pytest.param("texto-pipe-á" * 131_072, id="text"),
+        ],
+    )
+    def test_input_larger_than_pipe_capacity_is_streamed_without_deadlock(
+        self, tmp_path: Path, payload: str | bytes
+    ) -> None:
+        """Stream binary and text payloads instead of pre-filling the pipe."""
+        output_file = tmp_path / "large-stdin.log"
+        expected_bytes = payload.encode("utf-8") if isinstance(payload, str) else payload
+
+        result = u.Cli().run_to_file(
+            [
+                sys.executable,
+                "-c",
+                "import sys;sys.stdout.buffer.write(sys.stdin.buffer.read())",
+            ],
+            output_file,
+            input_data=payload,
+            deadline=_deadline(seconds=5.0, grace=1.0),
+        )
+
+        tm.ok(result)
+        tm.that(result.value, eq=0)
+        tm.that(output_file.read_bytes(), eq=expected_bytes)
+        tm.that(self._input_pump_is_alive(), eq=False)
+
+    def test_zero_length_input_publishes_eof(self, tmp_path: Path) -> None:
+        """An explicitly empty payload still owns a pipe and closes its writer."""
+        output_file = tmp_path / "empty-stdin.log"
+        result = u.Cli().run_to_file(
+            [
+                sys.executable,
+                "-c",
+                "import sys;sys.stdout.write(str(len(sys.stdin.buffer.read())))",
+            ],
+            output_file,
+            input_data=b"",
+        )
+
+        tm.ok(result)
+        tm.that(result.value, eq=0)
+        tm.that(output_file.read_text(encoding="utf-8"), eq="0")
+        tm.that(self._input_pump_is_alive(), eq=False)
+
+    def test_child_early_exit_preserves_its_exact_status(self, tmp_path: Path) -> None:
+        """Closing an empty input pipe cannot normalize the child's real exit."""
+        result = u.Cli().run_to_file(
+            [sys.executable, "-c", "raise SystemExit(23)"],
+            tmp_path / "early-exit.log",
+            input_data=b"",
+        )
+
+        tm.ok(result)
+        tm.that(result.value, eq=23)
+        tm.that(self._input_pump_is_alive(), eq=False)
+
+    def test_nonreading_child_timeout_unblocks_the_input_writer(
+        self, tmp_path: Path
+    ) -> None:
+        """Killing the child removes the last reader and releases a full writer."""
+        result = u.Cli().run_to_file(
+            [sys.executable, "-c", "import time;time.sleep(30)"],
+            tmp_path / "timeout-input.log",
+            input_data=b"blocked-writer" * 131_072,
+            timeout=1,
+        )
+
+        tm.fail(result)
+        tm.that(tm.not_none(result.error).lower(), has="timeout")
+        tm.that(self._input_pump_is_alive(), eq=False)
+
+    def test_input_writer_failure_reaches_the_public_result(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """A writer error kills the owned child and remains a public failure."""
+
+        def fail_writer(
+            sink: BinaryIO,
+            _payload: bytes,
+            failures: list[str],
+            wake: threading.Event,
+        ) -> None:
+            failures.append("stdin write error: injected")
+            sink.close()
+            wake.set()
+
+        monkeypatch.setattr(u.Cli, "_pump_process_input", staticmethod(fail_writer))
+        result = u.Cli().run_to_file(
+            [sys.executable, "-c", "import time;time.sleep(30)"],
+            tmp_path / "writer-failure.log",
+            input_data=b"secret",
+            deadline=_deadline(seconds=3.0, grace=1.0),
+        )
+
+        tm.fail(result)
+        tm.that(tm.not_none(result.error), has="stdin write error: injected")
+        tm.that(self._input_pump_is_alive(), eq=False)
 
     def test_deadline_model_satisfies_public_protocol(self) -> None:
         """Expose one typed model through the structural public protocol."""

@@ -8,7 +8,7 @@ import threading
 import time
 from collections.abc import Callable
 from types import FrameType
-from typing import IO
+from typing import IO, BinaryIO
 
 from flext_cli import p
 from flext_cli._utilities._runtime_process_monitor import (
@@ -80,6 +80,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         wake: threading.Event,
         stop: threading.Event,
         pump_streams: tuple[tuple[threading.Thread, IO[bytes]], ...],
+        input_pump: tuple[threading.Thread, BinaryIO] | None,
         cleanup_errors: list[str],
         job_handle: int,
         absolute_deadline: float | None,
@@ -97,9 +98,32 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         waiter.join(cls._remaining(cleanup_deadline))
         if waiter.is_alive():
             cleanup_errors.append("process deadline expired before root reaping")
+        if input_pump is not None:
+            cls._drain_input(
+                input_pump[0], input_pump[1], cleanup_errors, cleanup_deadline
+            )
         for pump, source in pump_streams:
             cls._drain_output(pump, stop, source, cleanup_errors, cleanup_deadline)
         return return_codes[0] if return_codes else process.poll()
+
+    @classmethod
+    def _drain_input(
+        cls,
+        pump: threading.Thread,
+        sink: BinaryIO,
+        cleanup_errors: list[str],
+        cleanup_deadline: float,
+    ) -> None:
+        """Join the input writer after the child boundary has lost every reader."""
+        pump.join(cls._remaining(cleanup_deadline))
+        if pump.is_alive():
+            try:
+                sink.close()
+            except (OSError, ValueError) as exc:
+                cleanup_errors.append(f"process input close error: {exc}")
+            pump.join(cls._remaining(cleanup_deadline))
+        if pump.is_alive():
+            cleanup_errors.append("process deadline expired before input drain")
 
     @classmethod
     def _empty_owned_boundary(
