@@ -8,7 +8,15 @@ import stat
 import tempfile
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_state as file_state
+from flext_cli._utilities._atomic_file_state import (
+    assert_destination_unchanged,
+    assert_temporary_owned,
+    destination_state,
+    identity,
+    permission_state,
+    validate_parent,
+    validate_precondition,
+)
 
 
 class _NoPrecondition:
@@ -35,16 +43,16 @@ def write_atomic_bytes(
     path = path.absolute()
     guarded = not isinstance(expected_bytes, _NoPrecondition)
     if guarded:
-        file_state.validate_parent(path.parent)
+        validate_parent(path.parent)
     expected = (
-        file_state.destination_state(path)
+        destination_state(path)
         if guarded
-        else file_state.permission_state(path)
+        else permission_state(path)
     )
     expected_bytes_for_state: bytes | None = (
         expected_bytes if isinstance(expected_bytes, bytes) else None
     )
-    file_state.validate_precondition(
+    validate_precondition(
         path, expected, expected_bytes_for_state, enabled=guarded
     )
     fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
@@ -52,7 +60,7 @@ def write_atomic_bytes(
     descriptor: int | None = fd
     temporary_identity: tuple[int, int] | None = None
     try:
-        temporary_identity = file_state.identity(os.fstat(fd))
+        temporary_identity = identity(os.fstat(fd))
         _write_temporary(fd, temporary, content, expected)
         descriptor = None
         os.close(fd)
@@ -99,9 +107,9 @@ def _publish_temporary(
     guard_destination: bool,
 ) -> None:
     """Authenticate both pathnames immediately before portable replacement."""
-    file_state.assert_temporary_owned(temporary, identity)
+    assert_temporary_owned(temporary, identity)
     if guard_destination:
-        file_state.assert_destination_unchanged(path, expected)
+        assert_destination_unchanged(path, expected)
     temporary.replace(path)
 
 
@@ -123,7 +131,7 @@ def _remove_failed_temporary(
         cleanup_errors.append(OSError(errno.ESTALE, msg, temporary))
     else:
         try:
-            file_state.assert_temporary_owned(temporary, identity)
+            assert_temporary_owned(temporary, identity)
             temporary.unlink()
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
