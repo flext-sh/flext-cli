@@ -541,7 +541,6 @@ split-on-trailing-comma = false
   "subprocess-without-shell-equals-true",
   "suspicious-subprocess-import",
 ]
-"scripts/cmd/**/*.py" = ["invalid-module-name", "shebang-not-executable"]
 "**/examples/**/*.py" = ["invalid-module-name", "shebang-not-executable"]
 
 # [MANAGED] tomlsort

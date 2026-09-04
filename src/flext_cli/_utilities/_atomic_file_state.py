@@ -7,47 +7,36 @@ import os
 import stat
 from pathlib import Path
 
-
-def validate_parent(parent: Path) -> None:
-    """Require the destination's immediate parent to be a real directory."""
-    try:
-        state = parent.lstat()
-    except FileNotFoundError as exc:
-        msg = f"atomic destination parent is missing: {parent}"
-        raise FileNotFoundError(errno.ENOENT, msg, parent) from exc
-    if not stat.S_ISDIR(state.st_mode) or _is_reparse_point(state):
-        msg = f"atomic destination parent is not a real directory: {parent}"
-        raise NotADirectoryError(errno.ENOTDIR, msg, parent)
+from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
+from flext_cli._utilities import _atomic_file_path as file_path
+from flext_cli._utilities import _atomic_file_read as file_read
 
 
-def destination_state(path: Path) -> os.stat_result | None:
+def validate_parent(parent: Path) -> os.stat_result:
+    """Return the physical state of one normalized immediate parent."""
+    return file_path.validate_parent_path(parent)
+
+
+def destination_state(
+    path: Path, *, parent: file_descriptor.ParentDescriptor | None = None
+) -> os.stat_result | None:
     """Return an authorized destination snapshot without following links."""
+    if parent is None:
+        with file_descriptor.parent_descriptor(path) as opened:
+            state = destination_state(path, parent=opened)
+            file_descriptor.assert_parent_unchanged(opened)
+            return state
     try:
-        state = path.lstat()
+        state = file_descriptor.entry_stat(parent, path)
     except FileNotFoundError:
         return None
-    if not stat.S_ISREG(state.st_mode) or _is_reparse_point(state):
-        msg = f"atomic destination is not a regular file: {path}"
-        raise OSError(errno.EINVAL, msg, path)
-    if state.st_nlink != 1:
-        msg = f"atomic destination has {state.st_nlink} hard links: {path}"
-        raise OSError(errno.EMLINK, msg, path)
+    _validate_regular_state(path, state)
     return state
 
 
 def permission_state(path: Path) -> os.stat_result | None:
-    """Return mode provenance only when one legacy destination owns its inode."""
-    try:
-        state = path.lstat()
-    except FileNotFoundError:
-        return None
-    if (
-        stat.S_ISREG(state.st_mode)
-        and state.st_nlink == 1
-        and not _is_reparse_point(state)
-    ):
-        return state
-    return None
+    """Return strict mode provenance for one physical regular destination."""
+    return destination_state(path)
 
 
 def validate_precondition(
@@ -56,137 +45,98 @@ def validate_precondition(
     expected_bytes: bytes | None,
     *,
     enabled: bool,
+    parent: file_descriptor.ParentDescriptor | None = None,
 ) -> None:
     """Authenticate an explicit raw-byte version before staging."""
     if not enabled:
         return
     if expected_bytes is None:
         if state is not None:
-            msg = f"atomic destination exists but absence was required: {path}"
-            raise FileExistsError(errno.EEXIST, msg, path)
+            message = f"atomic destination exists but absence was required: {path}"
+            raise FileExistsError(errno.EEXIST, message, path)
         return
     if state is None:
-        msg = f"atomic destination is missing: {path}"
-        raise FileNotFoundError(errno.ENOENT, msg, path)
-    if _read_authenticated_bytes(path, state) != expected_bytes:
-        msg = f"atomic destination content changed before write: {path}"
-        raise OSError(errno.ESTALE, msg, path)
+        message = f"atomic destination is missing: {path}"
+        raise FileNotFoundError(errno.ENOENT, message, path)
+    if read_authenticated_bytes(path, state, parent=parent) != expected_bytes:
+        message = f"atomic destination content changed before write: {path}"
+        raise OSError(errno.ESTALE, message, path)
 
 
-def assert_temporary_owned(temporary: Path, expected_identity: tuple[int, int]) -> None:
+def assert_temporary_owned(
+    temporary: Path,
+    expected_identity: tuple[int, int],
+    *,
+    parent: file_descriptor.ParentDescriptor | None = None,
+) -> None:
     """Require the staged pathname to retain its uniquely owned inode."""
+    if parent is None:
+        with file_descriptor.parent_descriptor(temporary) as opened:
+            assert_temporary_owned(temporary, expected_identity, parent=opened)
+            return
     try:
-        state = temporary.lstat()
+        state = file_descriptor.entry_stat(parent, temporary)
     except FileNotFoundError as exc:
-        msg = f"atomic temporary disappeared before publication: {temporary}"
-        raise FileNotFoundError(errno.ENOENT, msg, temporary) from exc
-    if (
-        not stat.S_ISREG(state.st_mode)
-        or state.st_nlink != 1
-        or identity(state) != expected_identity
-    ):
-        msg = f"atomic temporary identity changed before publication: {temporary}"
-        raise OSError(errno.ESTALE, msg, temporary)
+        message = f"atomic temporary disappeared before publication: {temporary}"
+        raise FileNotFoundError(errno.ENOENT, message, temporary) from exc
+    if identity(state) != expected_identity:
+        message = f"atomic temporary identity changed before publication: {temporary}"
+        raise OSError(errno.ESTALE, message, temporary)
+    _validate_regular_state(temporary, state)
+    file_descriptor.assert_parent_unchanged(parent)
 
 
-def assert_destination_unchanged(path: Path, expected: os.stat_result | None) -> None:
+def assert_destination_unchanged(
+    path: Path,
+    expected: os.stat_result | None,
+    *,
+    parent: file_descriptor.ParentDescriptor | None = None,
+) -> None:
     """Fail before publication when destination identity or state changed."""
-    current = destination_state(path)
+    if parent is None:
+        with file_descriptor.parent_descriptor(path) as opened:
+            assert_destination_unchanged(path, expected, parent=opened)
+            return
+    current = destination_state(path, parent=parent)
     if expected is None:
         if current is not None:
-            msg = f"atomic destination appeared during write: {path}"
-            raise FileExistsError(errno.EEXIST, msg, path)
-        return
-    if current is None or _state_key(current) != _state_key(expected):
-        msg = f"atomic destination changed during write: {path}"
-        raise OSError(errno.ESTALE, msg, path)
+            message = f"atomic destination appeared during write: {path}"
+            raise FileExistsError(errno.EEXIST, message, path)
+    elif current is None or file_read.state_key(current) != file_read.state_key(
+        expected
+    ):
+        message = f"atomic destination changed during write: {path}"
+        raise OSError(errno.ESTALE, message, path)
+    file_descriptor.assert_parent_unchanged(parent)
 
 
 def identity(state: os.stat_result) -> tuple[int, int]:
     """Return the filesystem identity shared by descriptor and pathname stats."""
-    return (state.st_dev, state.st_ino)
+    return file_path.identity(state)
 
 
-def _read_authenticated_bytes(path: Path, expected: os.stat_result) -> bytes:
-    """Read one file descriptor and retain read/close failures without suppression."""
-    flags = (
-        os.O_RDONLY
-        | getattr(os, "O_BINARY", 0)
-        | getattr(os, "O_NONBLOCK", 0)
-        | getattr(os, "O_NOFOLLOW", 0)
-    )
-    descriptor = os.open(path, flags)
-    try:
-        content = _read_stable_descriptor(descriptor, path, expected)
-    except BaseException as operation_error:
-        _close_after_failure(descriptor, path, operation_error)
-        raise
-    os.close(descriptor)
+def read_authenticated_bytes(
+    path: Path,
+    expected: os.stat_result,
+    *,
+    parent: file_descriptor.ParentDescriptor | None = None,
+) -> bytes:
+    """Read exact bytes and prove the descriptor remains bound to its pathname."""
+    if parent is None:
+        with file_descriptor.parent_descriptor(path) as opened:
+            return read_authenticated_bytes(path, expected, parent=opened)
+    content = file_read.read_descriptor_bytes(parent, path, expected)
+    assert_destination_unchanged(path, expected, parent=parent)
     return content
 
 
-def _read_stable_descriptor(
-    descriptor: int, path: Path, expected: os.stat_result
-) -> bytes:
-    """Read all bytes while the authenticated descriptor state remains stable."""
-    if _state_key(os.fstat(descriptor)) != _state_key(expected):
-        _raise_changed(path)
-    chunks: list[bytes] = []
-    while chunk := os.read(descriptor, 1024 * 1024):
-        chunks.append(chunk)
-    if _state_key(os.fstat(descriptor)) != _state_key(expected):
-        _raise_changed(path)
-    return b"".join(chunks)
-
-
-def _close_after_failure(
-    descriptor: int, path: Path, operation_error: BaseException
-) -> None:
-    """Close a failed read and expose both errors when closing also fails."""
-    try:
-        os.close(descriptor)
-    except OSError as close_error:
-        message = (
-            f"atomic read failed ({operation_error}); close failed ({close_error})"
-        )
-        if isinstance(operation_error, Exception):
-            causes = ExceptionGroup(
-                "atomic read and descriptor close failed",
-                [operation_error, close_error],
-            )
-            raise OSError(errno.EIO, message, path) from causes
-        group_message = "atomic read and descriptor close failed"
-        raise BaseExceptionGroup(
-            group_message, [operation_error, close_error]
-        ) from close_error
-
-
-def _raise_changed(path: Path) -> None:
-    """Raise the stable stale-version error for one destination."""
-    msg = f"atomic destination changed during authenticated read: {path}"
-    raise OSError(errno.ESTALE, msg, path)
-
-
-def _state_key(state: os.stat_result) -> tuple[int, ...]:
-    """Return fields that identify the authorized destination version."""
-    return (
-        state.st_dev,
-        state.st_ino,
-        state.st_mode,
-        state.st_nlink,
-        state.st_uid,
-        state.st_gid,
-        state.st_size,
-        state.st_mtime_ns,
-        state.st_ctime_ns,
-    )
-
-
-def _is_reparse_point(state: os.stat_result) -> bool:
-    """Identify Windows reparse-point aliases without platform branching."""
-    attributes = getattr(state, "st_file_attributes", 0)
-    marker = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
-    return bool(attributes & marker)
+def _validate_regular_state(path: Path, state: os.stat_result) -> None:
+    if not stat.S_ISREG(state.st_mode) or file_path.is_reparse_point(state):
+        message = f"atomic destination is not a regular file: {path}"
+        raise OSError(errno.EINVAL, message, path)
+    if state.st_nlink != 1:
+        message = f"atomic destination has {state.st_nlink} hard links: {path}"
+        raise OSError(errno.EMLINK, message, path)
 
 
 __all__: list[str] = [
@@ -195,6 +145,7 @@ __all__: list[str] = [
     "destination_state",
     "identity",
     "permission_state",
+    "read_authenticated_bytes",
     "validate_parent",
     "validate_precondition",
 ]

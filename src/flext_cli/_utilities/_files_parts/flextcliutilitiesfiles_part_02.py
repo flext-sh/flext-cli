@@ -8,6 +8,7 @@ from pathlib import Path
 
 from flext_cli import c, p, r, t
 from flext_cli._utilities._atomic_file import write_atomic_bytes
+from flext_cli._utilities._atomic_file_delete import remove_guarded_file
 
 
 class FlextCliUtilitiesFiles:
@@ -92,6 +93,57 @@ class FlextCliUtilitiesFiles:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc)
             )
+        return r[bool].ok(True)
+
+    @staticmethod
+    def atomic_write_binary_file_guarded(
+        file_path: t.Cli.TextPath,
+        data: bytes,
+        *,
+        expected_bytes: bytes | None,
+        expected_mode: int | None,
+        permission_mode: int,
+    ) -> p.Result[bool]:
+        """Publish exact bytes and mode under a caller-held exclusive lock.
+
+        Cooperative writers must hold the same lock through planning and this
+        call.  This is not CAS against an actor that ignores that lock and does
+        not promise parent-directory power-loss durability.  The immediate real
+        parent must exist and is never created here.
+        """
+        path = Path(file_path).absolute()
+        try:
+            write_atomic_bytes(
+                path,
+                data,
+                expected_bytes=expected_bytes,
+                expected_mode=expected_mode,
+                permission_mode=permission_mode,
+            )
+        except OSError as exc:
+            return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
+        return r[bool].ok(True)
+
+    @staticmethod
+    def atomic_delete_binary_file_guarded(
+        file_path: t.Cli.TextPath,
+        *,
+        expected_bytes: bytes,
+        expected_mode: int,
+    ) -> p.Result[bool]:
+        """Delete the exact byte-and-mode version under the caller's lock.
+
+        The portable check-then-unlink operation depends on every writer sharing
+        that lock; it is not CAS against an actor that ignores it.  The immediate
+        real parent must exist.  Directory power-loss durability is not promised.
+        """
+        path = Path(file_path).absolute()
+        try:
+            remove_guarded_file(
+                path, expected_bytes=expected_bytes, expected_mode=expected_mode
+            )
+        except OSError as exc:
+            return r[bool].fail(c.Cli.ERR_FILE_DELETION_FAILED.format(error=exc))
         return r[bool].ok(True)
 
     @staticmethod
