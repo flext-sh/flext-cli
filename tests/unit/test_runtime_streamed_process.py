@@ -35,8 +35,7 @@ class TestsFlextCliRuntimeStreamedProcess:
     @staticmethod
     def _input_pump_is_alive() -> bool:
         return any(
-            thread.name == "flext-cli-process-input"
-            for thread in threading.enumerate()
+            thread.name == "flext-cli-process-input" for thread in threading.enumerate()
         )
 
     def test_combined_output_is_byte_exact_and_live(
@@ -105,7 +104,9 @@ class TestsFlextCliRuntimeStreamedProcess:
     ) -> None:
         """Stream binary and text payloads instead of pre-filling the pipe."""
         output_file = tmp_path / "large-stdin.log"
-        expected_bytes = payload.encode("utf-8") if isinstance(payload, str) else payload
+        expected_bytes = (
+            payload.encode("utf-8") if isinstance(payload, str) else payload
+        )
 
         result = u.Cli().run_to_file(
             [
@@ -174,10 +175,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         """A writer error kills the owned child and remains a public failure."""
 
         def fail_writer(
-            sink: BinaryIO,
-            _payload: bytes,
-            failures: list[str],
-            wake: threading.Event,
+            sink: BinaryIO, _payload: bytes, failures: list[str], wake: threading.Event
         ) -> None:
             failures.append("stdin write error: injected")
             sink.close()

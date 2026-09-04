@@ -19,9 +19,11 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         stack: contextlib.ExitStack, input_data: str | bytes | None
     ) -> p.Result[tuple[BinaryIO | None, BinaryIO | None, bytes]]:
         if input_data is None:
-            return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok(
-                (None, None, b"")
-            )
+            return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok((
+                None,
+                None,
+                b"",
+            ))
         payload = (
             input_data.encode("utf-8") if isinstance(input_data, str) else input_data
         )
@@ -35,14 +37,14 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
             return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].fail(
                 f"stdin preparation error: {exc}"
             )
-        return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok(
-            (reader, writer, payload)
-        )
+        return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok((
+            reader,
+            writer,
+            payload,
+        ))
 
     @staticmethod
-    def _anonymous_stdin_pipe(
-        stack: contextlib.ExitStack,
-    ) -> tuple[BinaryIO, BinaryIO]:
+    def _anonymous_stdin_pipe(stack: contextlib.ExitStack) -> tuple[BinaryIO, BinaryIO]:
         """Open one memory-only parent-writer/child-reader pipe pair."""
         read_fd, write_fd = os.pipe()
         try:

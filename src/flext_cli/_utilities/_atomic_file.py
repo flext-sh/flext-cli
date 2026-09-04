@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import errno
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
 # Why: merge fix/flext-uatvz-atomic-files into 0.12.0-dev — 0.12.0-dev's only
@@ -11,13 +12,48 @@ from pathlib import Path
 # direct-name) over the same pre-decomposition logic; this branch's
 # decomposed descriptor-bound implementation supersedes it with identical
 # semantics plus mode/publish-check/cleanup owners, so it is kept as-is.
-from flext_cli._utilities import _atomic_file_cleanup as file_cleanup
-from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
-from flext_cli._utilities import _atomic_file_mode as file_mode
-from flext_cli._utilities import _atomic_file_path as file_path
-from flext_cli._utilities import _atomic_file_publish_checks as checks
-from flext_cli._utilities import _atomic_file_state as file_state
-from flext_cli._utilities import _atomic_file_temporary as file_temporary
+# Every cross-module import below names its symbols directly (never a
+# private-submodule alias) so pyright's ``reportPrivateUsage`` stays clean.
+from flext_cli._utilities._atomic_file_cleanup import remove_failed_temporary
+from flext_cli._utilities._atomic_file_descriptor import (
+    ParentDescriptor,
+    parent_descriptor,
+    replace_entry,
+)
+from flext_cli._utilities._atomic_file_mode import (
+    NO_MODE_PRECONDITION,
+    NoModePrecondition,
+    publication_mode,
+    validate_guarded_mode_tuple,
+    validate_mode_precondition,
+)
+from flext_cli._utilities._atomic_file_path import validate_atomic_path
+from flext_cli._utilities._atomic_file_publish_checks import (
+    require_distinct_inode,
+    require_identity,
+    validate_devices,
+    validate_publication,
+)
+from flext_cli._utilities._atomic_file_state import (
+    assert_destination_unchanged,
+    assert_temporary_owned,
+)
+from flext_cli._utilities._atomic_file_state import (
+    destination_state as file_destination_state,
+)
+from flext_cli._utilities._atomic_file_state import identity as file_identity
+from flext_cli._utilities._atomic_file_state import (
+    permission_state as file_permission_state,
+)
+from flext_cli._utilities._atomic_file_state import (
+    validate_precondition as validate_state_precondition,
+)
+from flext_cli._utilities._atomic_file_temporary import (
+    create_descriptor,
+    require_mode_capability,
+    temporary_path,
+    write_and_sync,
+)
 
 
 class _NoPrecondition:
@@ -32,9 +68,7 @@ def write_atomic_bytes(
     content: bytes,
     *,
     expected_bytes: bytes | _NoPrecondition | None = _NO_PRECONDITION,
-    expected_mode: int | file_mode.NoModePrecondition | None = (
-        file_mode.NO_MODE_PRECONDITION
-    ),
+    expected_mode: int | NoModePrecondition | None = NO_MODE_PRECONDITION,
     permission_mode: int | None = None,
 ) -> None:
     """Replace bytes and mode for a uniquely owned regular destination.
@@ -45,30 +79,28 @@ def write_atomic_bytes(
     that lock. The staged file is synced; parent-directory durability across
     power loss is outside this primitive's contract.
     """
-    path = file_path.validate_atomic_path(path)
+    path = validate_atomic_path(path)
     guarded, expected_content = _parse_precondition(path, expected_bytes)
-    if not guarded and expected_mode is not file_mode.NO_MODE_PRECONDITION:
+    if not guarded and expected_mode is not NO_MODE_PRECONDITION:
         message = "expected_mode requires an expected_bytes precondition"
         raise OSError(errno.EINVAL, message, path)
     if guarded:
-        file_mode.validate_guarded_mode_tuple(
-            path, expected_content, expected_mode
+        validate_guarded_mode_tuple(path, expected_content, expected_mode)
+    with parent_descriptor(path, replace=True, unlink=True) as parent:
+        expected = (
+            file_destination_state(path, parent=parent)
+            if guarded
+            else file_permission_state(path, parent=parent)
         )
-    with file_descriptor.parent_descriptor(
-        path, replace=True, unlink=True
-    ) as parent:
-        expected = file_state.destination_state(path, parent=parent)
-        file_state.validate_precondition(
-            path,
-            expected,
-            expected_content,
-            enabled=guarded,
-            parent=parent,
+        validate_state_precondition(
+            path, expected, expected_content, enabled=guarded, parent=parent
         )
-        file_mode.validate_mode_precondition(path, expected, expected_mode)
-        target_mode = file_mode.publication_mode(expected, permission_mode)
-        file_temporary.require_mode_capability(path, target_mode)
-        _stage_and_publish(parent, path, content, expected, target_mode)
+        validate_mode_precondition(path, expected, expected_mode)
+        target_mode = publication_mode(expected, permission_mode)
+        require_mode_capability(path, target_mode)
+        _stage_and_publish(
+            parent, path, content, expected, target_mode, guarded=guarded
+        )
 
 
 def _parse_precondition(
@@ -79,91 +111,144 @@ def _parse_precondition(
     if isinstance(expected_bytes, _NoPrecondition):
         message = "expected_bytes sentinel must be the canonical singleton"
         raise OSError(errno.EINVAL, message, path)
-    if expected_bytes is None or isinstance(expected_bytes, bytes):
-        return True, expected_bytes
-    message = "expected_bytes must be bytes or None"
-    raise OSError(errno.EINVAL, message, path)
+    return True, expected_bytes
+
+
+@dataclass
+class _StagingProgress:
+    """Mutable cleanup state shared across the staged-write/publish sequence.
+
+    The two halves below can raise at any point after acquiring a resource;
+    this holder lets the outer ``try`` retrieve exactly what was acquired so
+    far without inflating that clause past the enforced statement budget.
+    """
+
+    descriptor: int | None = None
+    staged_identity: tuple[int, int] | None = None
+    replacement_completed: bool = False
 
 
 def _stage_and_publish(
-    parent: file_descriptor.ParentDescriptor,
+    parent: ParentDescriptor,
     destination: Path,
     content: bytes,
     expected: os.stat_result | None,
     target_mode: int | None,
+    *,
+    guarded: bool,
 ) -> None:
-    temporary = file_temporary.temporary_path(parent)
-    descriptor: int | None = None
-    staged_identity: tuple[int, int] | None = None
-    replacement_completed = False
+    temporary = temporary_path(parent)
+    progress = _StagingProgress()
     try:
-        descriptor = file_temporary.create_descriptor(parent, temporary)
-        staged_identity = file_state.identity(os.fstat(descriptor))
-        file_state.assert_temporary_owned(
-            temporary, staged_identity, parent=parent
-        )
-        staged_mode = file_temporary.write_and_sync(
-            descriptor, temporary, content, target_mode
-        )
-        os.close(descriptor)
-        descriptor = None
-        staged_state = _validate_staged(
-            parent, temporary, content, staged_mode, staged_identity
-        )
-        checks.require_distinct_inode(destination, expected, staged_identity)
-        checks.validate_devices(
-            destination,
-            parent,
-            expected,
-            temporary,
-            parent,
-            staged_state,
-        )
-        file_state.assert_destination_unchanged(
-            destination, expected, parent=parent
-        )
-        file_state.assert_temporary_owned(
-            temporary, staged_identity, parent=parent
-        )
-        file_descriptor.replace_entry(parent, temporary, parent, destination)
-        replacement_completed = True
-        checks.validate_publication(
+        _write_and_publish_staged(
             parent,
             destination,
-            parent,
             temporary,
             content,
-            staged_mode,
-            staged_identity,
+            expected,
+            target_mode,
+            progress,
+            guarded=guarded,
         )
     except BaseException as operation_error:
-        if not replacement_completed:
-            file_cleanup.remove_failed_temporary(
+        if not progress.replacement_completed:
+            remove_failed_temporary(
                 parent,
                 temporary,
-                staged_identity,
-                descriptor,
+                progress.staged_identity,
+                progress.descriptor,
                 operation_error,
             )
         raise
 
 
+def _write_and_publish_staged(
+    parent: ParentDescriptor,
+    destination: Path,
+    temporary: Path,
+    content: bytes,
+    expected: os.stat_result | None,
+    target_mode: int | None,
+    progress: _StagingProgress,
+    *,
+    guarded: bool,
+) -> None:
+    staged_mode, staged_identity = _write_staged(
+        parent, temporary, content, target_mode, progress
+    )
+    staged_state = _validate_staged(
+        parent, temporary, content, staged_mode, staged_identity
+    )
+    _publish_staged(
+        parent,
+        destination,
+        temporary,
+        content,
+        expected,
+        staged_mode,
+        staged_identity,
+        staged_state,
+        progress,
+        guarded=guarded,
+    )
+
+
+def _write_staged(
+    parent: ParentDescriptor,
+    temporary: Path,
+    content: bytes,
+    target_mode: int | None,
+    progress: _StagingProgress,
+) -> tuple[int, tuple[int, int]]:
+    progress.descriptor = create_descriptor(parent, temporary)
+    staged_identity = file_identity(os.fstat(progress.descriptor))
+    progress.staged_identity = staged_identity
+    assert_temporary_owned(temporary, staged_identity, parent=parent)
+    staged_mode = write_and_sync(progress.descriptor, temporary, content, target_mode)
+    os.close(progress.descriptor)
+    progress.descriptor = None
+    return staged_mode, staged_identity
+
+
+def _publish_staged(
+    parent: ParentDescriptor,
+    destination: Path,
+    temporary: Path,
+    content: bytes,
+    expected: os.stat_result | None,
+    staged_mode: int,
+    staged_identity: tuple[int, int],
+    staged_state: os.stat_result,
+    progress: _StagingProgress,
+    *,
+    guarded: bool,
+) -> None:
+    require_distinct_inode(destination, expected, staged_identity)
+    validate_devices(destination, parent, expected, temporary, parent, staged_state)
+    if guarded:
+        assert_destination_unchanged(destination, expected, parent=parent)
+    assert_temporary_owned(temporary, staged_identity, parent=parent)
+    replace_entry(parent, temporary, parent, destination)
+    progress.replacement_completed = True
+    validate_publication(
+        parent, destination, parent, temporary, content, staged_mode, staged_identity
+    )
+
+
 def _validate_staged(
-    parent: file_descriptor.ParentDescriptor,
+    parent: ParentDescriptor,
     temporary: Path,
     content: bytes,
     mode: int,
     identity: tuple[int, int],
 ) -> os.stat_result:
-    state = file_state.destination_state(temporary, parent=parent)
+    state = file_destination_state(temporary, parent=parent)
     if state is None:
         message = f"atomic temporary disappeared before publication: {temporary}"
         raise FileNotFoundError(errno.ENOENT, message, temporary)
-    checks.require_identity(temporary, state, identity)
-    file_state.validate_precondition(
-        temporary, state, content, enabled=True, parent=parent
-    )
-    file_mode.validate_mode_precondition(temporary, state, mode)
+    require_identity(temporary, state, identity)
+    validate_state_precondition(temporary, state, content, enabled=True, parent=parent)
+    validate_mode_precondition(temporary, state, mode)
     return state
 
 
