@@ -6,8 +6,9 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
-from flext_cli._utilities import _atomic_file_state as file_state
+from . import _atomic_file_descriptor as file_descriptor
+from . import _atomic_file_durability as file_durability
+from . import _atomic_file_state as file_state
 
 
 def remove_failed_temporary(
@@ -32,16 +33,14 @@ def remove_failed_temporary(
         else:
             if state is not None:
                 message = (
-                    "refusing to remove unauthenticated atomic temporary: "
-                    f"{temporary}"
+                    f"refusing to remove unauthenticated atomic temporary: {temporary}"
                 )
                 cleanup_errors.append(OSError(errno.ESTALE, message, temporary))
     else:
         try:
-            file_state.assert_temporary_owned(
-                temporary, identity, parent=parent
-            )
+            file_state.assert_temporary_owned(temporary, identity, parent=parent)
             file_descriptor.unlink_entry(parent, temporary)
+            file_durability.sync_parent(parent)
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
     if cleanup_errors:
@@ -49,9 +48,7 @@ def remove_failed_temporary(
 
 
 def _raise_cleanup_failure(
-    temporary: Path,
-    operation_error: BaseException,
-    cleanup_errors: list[OSError],
+    temporary: Path, operation_error: BaseException, cleanup_errors: list[OSError]
 ) -> None:
     cleanup_summary = "; ".join(str(error) for error in cleanup_errors)
     message = (
@@ -64,9 +61,9 @@ def _raise_cleanup_failure(
             [operation_error, *cleanup_errors],
         )
         raise OSError(errno.EIO, message, temporary) from causes
+    group_message = "atomic write and temporary cleanup failed"
     raise BaseExceptionGroup(
-        "atomic write and temporary cleanup failed",
-        [operation_error, *cleanup_errors],
+        group_message, [operation_error, *cleanup_errors]
     ) from cleanup_errors[-1]
 
 

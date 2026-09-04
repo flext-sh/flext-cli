@@ -15,10 +15,7 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
 
     @staticmethod
     def _pump_process_input(
-        sink: BinaryIO,
-        payload: bytes,
-        failures: list[str],
-        wake: threading.Event,
+        sink: BinaryIO, payload: bytes, failures: list[str], wake: threading.Event
     ) -> None:
         """Write every input byte to the child pipe, then publish EOF."""
         remaining = memoryview(payload)

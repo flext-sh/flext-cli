@@ -6,8 +6,8 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
-from flext_cli._utilities import _atomic_file_state as file_state
+from . import _atomic_file_descriptor as file_descriptor
+from . import _atomic_file_state as file_state
 
 
 def read_authenticated_state(

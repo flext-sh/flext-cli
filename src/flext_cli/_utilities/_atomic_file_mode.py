@@ -19,7 +19,7 @@ def validate_mode(mode: int | None, *, label: str) -> int | None:
     """Return one portable permission mode or fail before any file effect."""
     if mode is None:
         return None
-    if isinstance(mode, bool) or not isinstance(mode, int):
+    if isinstance(mode, bool):
         msg = f"{label} must be an integer permission mode"
         raise OSError(errno.EINVAL, msg)
     if mode < 0 or mode != stat.S_IMODE(mode):

@@ -4,30 +4,27 @@ from __future__ import annotations
 
 import errno
 import os
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_path as file_path
+from . import _atomic_file_path as file_path
 
 
+@dataclass(frozen=True, slots=True)
 class ParentDescriptor:
     """One open physical parent directory bound to its lexical pathname."""
 
-    __slots__ = ("descriptor", "path", "state")
-
-    def __init__(
-        self, path: Path, descriptor: int, state: os.stat_result
-    ) -> None:
-        self.path = path
-        self.descriptor = descriptor
-        self.state = state
+    path: Path
+    descriptor: int
+    state: os.stat_result
 
 
 @contextmanager
 def parent_descriptor(
     path: Path, *, replace: bool = False, unlink: bool = False
-) -> Iterator[ParentDescriptor]:
+) -> Generator[ParentDescriptor]:
     """Yield one authenticated parent descriptor with required OS capabilities."""
     validated = file_path.validate_atomic_path(path)
     _require_capabilities(replace=replace, unlink=unlink)
@@ -75,11 +72,7 @@ def assert_parent_unchanged(parent: ParentDescriptor) -> None:
 def entry_stat(parent: ParentDescriptor, path: Path) -> os.stat_result:
     """Read one final entry relative to its authenticated parent descriptor."""
     _require_entry(parent, path)
-    return os.stat(
-        path.name,
-        dir_fd=parent.descriptor,
-        follow_symlinks=False,
-    )
+    return os.stat(path.name, dir_fd=parent.descriptor, follow_symlinks=False)
 
 
 def open_entry(
@@ -166,9 +159,9 @@ def _close_after_failure(
                 [operation_error, close_error],
             )
             raise OSError(errno.EIO, message, path) from causes
+        group_message = "atomic operation and descriptor close failed"
         raise BaseExceptionGroup(
-            "atomic operation and descriptor close failed",
-            [operation_error, close_error],
+            group_message, [operation_error, close_error]
         ) from close_error
 
 

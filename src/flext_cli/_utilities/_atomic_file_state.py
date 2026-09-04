@@ -7,14 +7,9 @@ import os
 import stat
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
-from flext_cli._utilities import _atomic_file_path as file_path
-from flext_cli._utilities import _atomic_file_read as file_read
-
-
-def validate_parent(parent: Path) -> os.stat_result:
-    """Return the physical state of one normalized immediate parent."""
-    return file_path.validate_parent_path(parent)
+from . import _atomic_file_descriptor as file_descriptor
+from . import _atomic_file_path as file_path
+from . import _atomic_file_read as file_read
 
 
 def destination_state(
@@ -32,11 +27,6 @@ def destination_state(
         return None
     _validate_regular_state(path, state)
     return state
-
-
-def permission_state(path: Path) -> os.stat_result | None:
-    """Return strict mode provenance for one physical regular destination."""
-    return destination_state(path)
 
 
 def validate_precondition(
@@ -144,8 +134,6 @@ __all__: list[str] = [
     "assert_temporary_owned",
     "destination_state",
     "identity",
-    "permission_state",
     "read_authenticated_bytes",
-    "validate_parent",
     "validate_precondition",
 ]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import stat
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
@@ -15,7 +16,7 @@ class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
 
     class AtomicFileState(m.BaseModel):
-        """Exact presence, bytes, and permission mode for one physical file."""
+        """Exact content and physical identity for one regular file version."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid", frozen=True, arbitrary_types_allowed=True
@@ -36,11 +37,34 @@ class FlextCliModelsBase:
         ] = None
         device: Annotated[
             int | None,
-            m.Field(ge=0, strict=True, description="Physical device, or None when absent"),
+            m.Field(
+                ge=0, strict=True, description="Physical device, or None when absent"
+            ),
         ] = None
         inode: Annotated[
             int | None,
-            m.Field(ge=0, strict=True, description="Physical inode, or None when absent"),
+            m.Field(
+                ge=0, strict=True, description="Physical inode, or None when absent"
+            ),
+        ] = None
+        link_count: Annotated[
+            int | None,
+            m.Field(
+                ge=1,
+                le=1,
+                strict=True,
+                description="Required unique link count, or None when absent",
+            ),
+        ] = None
+        file_attributes: Annotated[
+            int | None,
+            m.Field(
+                ge=0, strict=True, description="Host file attributes when available"
+            ),
+        ] = None
+        reparse_tag: Annotated[
+            int | None,
+            m.Field(ge=0, strict=True, description="Host reparse tag when available"),
         ] = None
 
         @u.field_validator("path")
@@ -60,16 +84,34 @@ class FlextCliModelsBase:
 
         @u.model_validator(mode="after")
         def _validate_presence_tuple(self) -> Self:
-            """Require bytes and mode together for every existing state."""
+            """Require one complete, uniquely owned, non-reparse state."""
             presence = tuple(
                 value is not None
-                for value in (self.content, self.mode, self.device, self.inode)
+                for value in (
+                    self.content,
+                    self.mode,
+                    self.device,
+                    self.inode,
+                    self.link_count,
+                )
             )
             if any(presence) != all(presence):
                 msg = (
-                    "atomic file state must contain bytes, mode, device, and inode, "
-                    "or none of them"
+                    "atomic file state must contain bytes, mode, device, inode, and "
+                    "link count, or none of them"
                 )
+                raise ValueError(msg)
+            if self.content is None and (
+                self.file_attributes is not None or self.reparse_tag is not None
+            ):
+                msg = "absent atomic file state cannot contain host metadata"
+                raise ValueError(msg)
+            reparse_marker = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
+            if (
+                self.file_attributes is not None
+                and self.file_attributes & reparse_marker
+            ) or self.reparse_tag not in {None, 0}:
+                msg = "atomic file state cannot identify a reparse point"
                 raise ValueError(msg)
             return self
 

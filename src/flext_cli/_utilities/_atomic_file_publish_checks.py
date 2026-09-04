@@ -6,30 +6,18 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
-from flext_cli._utilities import _atomic_file_mode as file_mode
-from flext_cli._utilities import _atomic_file_state as file_state
+from . import _atomic_file_descriptor as file_descriptor
+from . import _atomic_file_mode as file_mode
+from . import _atomic_file_state as file_state
 
-
-def validate_expected_identity(
-    path: Path,
-    expected_bytes: bytes | None,
-    expected_identity: tuple[int, int] | None,
-) -> None:
-    """Require destination presence and physical identity together."""
-    if (expected_bytes is None) != (expected_identity is None):
-        message = "destination bytes and physical identity must be present together"
-        raise OSError(errno.EINVAL, message, path)
-    if expected_identity is not None:
-        validate_identity(path, expected_identity, label="expected_identity")
+IDENTITY_COMPONENT_COUNT = 2
 
 
 def validate_identity(path: Path, value: tuple[int, int], *, label: str) -> None:
     """Require one strict non-negative device and inode pair."""
     if (
-        not isinstance(value, tuple)
-        or len(value) != 2
-        or any(isinstance(item, bool) or not isinstance(item, int) for item in value)
+        len(value) != IDENTITY_COMPONENT_COUNT
+        or any(isinstance(item, bool) for item in value)
         or any(item < 0 for item in value)
     ):
         message = f"{label} must be a non-negative device and inode pair"
@@ -37,9 +25,7 @@ def validate_identity(path: Path, value: tuple[int, int], *, label: str) -> None
 
 
 def require_identity(
-    path: Path,
-    state: os.stat_result | None,
-    expected: tuple[int, int] | None,
+    path: Path, state: os.stat_result | None, expected: tuple[int, int] | None
 ) -> None:
     """Require an observed physical identity to match its caller snapshot."""
     observed = None if state is None else file_state.identity(state)
@@ -114,7 +100,6 @@ __all__: list[str] = [
     "require_distinct_inode",
     "require_identity",
     "validate_devices",
-    "validate_expected_identity",
     "validate_identity",
     "validate_publication",
 ]

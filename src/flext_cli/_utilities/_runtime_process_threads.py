@@ -21,11 +21,7 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
 
     @classmethod
     def _start_input_pump(
-        cls,
-        sink: BinaryIO,
-        payload: bytes,
-        failures: list[str],
-        wake: threading.Event,
+        cls, sink: BinaryIO, payload: bytes, failures: list[str], wake: threading.Event
     ) -> threading.Thread:
         """Start the sole non-daemon writer for one anonymous stdin pipe."""
         pump = threading.Thread(

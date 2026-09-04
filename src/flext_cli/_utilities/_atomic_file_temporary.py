@@ -8,8 +8,8 @@ import secrets
 import stat
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
-from flext_cli._utilities import _atomic_file_mode as file_mode
+from . import _atomic_file_descriptor as file_descriptor
+from . import _atomic_file_mode as file_mode
 
 _SECURE_CREATE_MODE = 0o600
 
@@ -26,9 +26,7 @@ def require_mode_capability(path: Path, permission_mode: int | None) -> None:
         raise OSError(errno.ENOTSUP, message, path)
 
 
-def create_descriptor(
-    parent: file_descriptor.ParentDescriptor, temporary: Path
-) -> int:
+def create_descriptor(parent: file_descriptor.ParentDescriptor, temporary: Path) -> int:
     """Create one exclusive, securely permissioned sibling through ``dir_fd``."""
     flags = (
         os.O_WRONLY
@@ -43,10 +41,7 @@ def create_descriptor(
 
 
 def write_and_sync(
-    descriptor: int,
-    temporary: Path,
-    content: bytes,
-    permission_mode: int | None,
+    descriptor: int, temporary: Path, content: bytes, permission_mode: int | None
 ) -> int:
     """Write exact bytes, materialize exact mode, and sync the open inode."""
     remaining = memoryview(content)
@@ -58,9 +53,7 @@ def write_and_sync(
         remaining = remaining[written:]
     if permission_mode is not None:
         os.chmod(descriptor, permission_mode)
-        file_mode.assert_observed_mode(
-            temporary, os.fstat(descriptor), permission_mode
-        )
+        file_mode.assert_observed_mode(temporary, os.fstat(descriptor), permission_mode)
     os.fsync(descriptor)
     return stat.S_IMODE(os.fstat(descriptor).st_mode)
 

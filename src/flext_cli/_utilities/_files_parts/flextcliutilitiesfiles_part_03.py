@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
+import csv
 import hashlib
 import shutil
 import stat
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import _atomic_file_snapshot as atomic_snapshot
-from flext_cli._utilities._atomic_file_publish import publish_guarded_staged_file
+from flext_cli._utilities import publish_guarded_staged_file, read_authenticated_state
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
@@ -19,15 +19,36 @@ class FlextCliUtilitiesFiles:
     """Implementation part for FlextCliUtilitiesFiles."""
 
     @staticmethod
+    def files_read_csv_with_headers(
+        file_path: t.Cli.TextPath,
+    ) -> p.Result[t.SequenceOf[t.StrMapping]]:
+        """Read one CSV file into mapping rows using header row."""
+
+        def _load() -> t.SequenceOf[t.StrMapping]:
+            with Path(file_path).open(
+                encoding=c.Cli.ENCODING_DEFAULT, newline=""
+            ) as handle:
+                return [dict(row) for row in csv.DictReader(handle)]
+
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            _load, c.Cli.ERR_CSV_READ_FAILED
+        )
+
+    @staticmethod
+    def files_read_binary(file_path: t.Cli.TextPath) -> p.Result[bytes]:
+        """Read one binary file."""
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            lambda: Path(file_path).read_bytes(), c.Cli.ERR_BINARY_READ_FAILED
+        )
+
+    @staticmethod
     def atomic_read_binary_file_state(
         file_path: t.Cli.TextPath, *, required: bool = False
     ) -> p.Result[m.Cli.AtomicFileState]:
-        """Read exact bytes and mode from one descriptor-authenticated file."""
+        """Read exact bytes, mode, and physical identity through one descriptor."""
         path = Path(file_path)
         try:
-            state, content = atomic_snapshot.read_authenticated_state(
-                path, required=required
-            )
+            state, content = read_authenticated_state(path, required=required)
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(
                 c.Cli.ERR_BINARY_READ_FAILED.format(error=exc)
@@ -39,46 +60,25 @@ class FlextCliUtilitiesFiles:
                 mode=None if state is None else stat.S_IMODE(state.st_mode),
                 device=None if state is None else state.st_dev,
                 inode=None if state is None else state.st_ino,
+                link_count=None if state is None else state.st_nlink,
+                file_attributes=(
+                    None
+                    if state is None
+                    else getattr(state, "st_file_attributes", None)
+                ),
+                reparse_tag=(
+                    None if state is None else getattr(state, "st_reparse_tag", None)
+                ),
             )
         )
 
     @staticmethod
     def atomic_publish_staged_binary_file_guarded(
-        destination_before: m.Cli.AtomicFileState,
-        staged: m.Cli.AtomicFileState,
+        destination_before: m.Cli.AtomicFileState, staged: m.Cli.AtomicFileState
     ) -> p.Result[m.Cli.AtomicFileState]:
         """Consume one authenticated staged file under the caller's lock."""
-        if (
-            staged.content is None
-            or staged.mode is None
-            or staged.device is None
-            or staged.inode is None
-        ):
-            return r[m.Cli.AtomicFileState].fail(
-                f"atomic staged file is absent: {staged.path}"
-            )
-        expected_identity = (
-            None
-            if destination_before.content is None
-            else (destination_before.device, destination_before.inode)
-        )
-        if expected_identity is not None and (
-            expected_identity[0] is None or expected_identity[1] is None
-        ):
-            return r[m.Cli.AtomicFileState].fail(
-                f"atomic destination identity is absent: {destination_before.path}"
-            )
         try:
-            published = publish_guarded_staged_file(
-                destination_before.path,
-                staged.path,
-                expected_bytes=destination_before.content,
-                expected_mode=destination_before.mode,
-                expected_identity=expected_identity,
-                staged_bytes=staged.content,
-                staged_mode=staged.mode,
-                staged_identity=(staged.device, staged.inode),
-            )
+            published = publish_guarded_staged_file(destination_before, staged)
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(
                 c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc)
@@ -90,6 +90,9 @@ class FlextCliUtilitiesFiles:
                 mode=stat.S_IMODE(published.st_mode),
                 device=published.st_dev,
                 inode=published.st_ino,
+                link_count=published.st_nlink,
+                file_attributes=getattr(published, "st_file_attributes", None),
+                reparse_tag=getattr(published, "st_reparse_tag", None),
             )
         )
 
