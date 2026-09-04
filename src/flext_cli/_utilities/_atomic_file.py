@@ -6,6 +6,11 @@ import errno
 import os
 from pathlib import Path
 
+# Why: merge fix/flext-uatvz-atomic-files into 0.12.0-dev — 0.12.0-dev's only
+# change here was a cosmetic import-style rename (module-qualified ->
+# direct-name) over the same pre-decomposition logic; this branch's
+# decomposed descriptor-bound implementation supersedes it with identical
+# semantics plus mode/publish-check/cleanup owners, so it is kept as-is.
 from flext_cli._utilities import _atomic_file_cleanup as file_cleanup
 from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
 from flext_cli._utilities import _atomic_file_mode as file_mode
