@@ -135,7 +135,7 @@ class TestsFlextCliModelsRuntime:
                 }),
                 cls.model_validate({
                     "case_id": "non-utf8-output",
-                    "command": ("sh", "-c", "printf '\\xff\\xfe'"),
+                    "command": ("sh", "-c", "printf '\\377\\376'"),
                     "error_has": "non-UTF-8",
                     "expect_success": False,
                 }),
