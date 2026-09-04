@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from ._models_parts.examples_advanced import ExamplesFlextCliModelsExamplesAdvanced
     from ._models_parts.examples_common import ExamplesFlextCliModelsExamplesCommon
     from ._models_parts.examples_database import ExamplesFlextCliModelsExamplesDatabase
-    from ._models_parts.examplesflextclimodels_part_01 import ExamplesFlextCliModels
     from .constants import ExamplesFlextCliConstants, ExamplesFlextCliConstants as c
     from .ex_01_getting_started import ExamplesFlextCliGettingStarted
     from .ex_02_output_formatting import export_report
@@ -39,7 +38,7 @@ if TYPE_CHECKING:
         validate_business_rules,
         validate_required_fields,
     )
-    from .models import m
+    from .models import ExamplesFlextCliModels, ExamplesFlextCliModels as m
     from .protocols import ExamplesFlextCliProtocols, ExamplesFlextCliProtocols as p
     from .typings import ExamplesFlextCliTypes, ExamplesFlextCliTypes as t
     from .utilities import ExamplesFlextCliUtilities, ExamplesFlextCliUtilities as u
@@ -97,9 +96,6 @@ _LAZY_IMPORTS = MappingProxyType(
             "._models_parts.examples_database": (
                 "ExamplesFlextCliModelsExamplesDatabase",
             ),
-            "._models_parts.examplesflextclimodels_part_01": (
-                "ExamplesFlextCliModels",
-            ),
             ".constants": ("ExamplesFlextCliConstants", "c"),
             ".ex_01_getting_started": ("ExamplesFlextCliGettingStarted",),
             ".ex_02_output_formatting": ("export_report",),
@@ -120,7 +116,7 @@ _LAZY_IMPORTS = MappingProxyType(
                 "validate_business_rules",
                 "validate_required_fields",
             ),
-            ".models": ("m",),
+            ".models": ("ExamplesFlextCliModels", "m"),
             ".protocols": ("ExamplesFlextCliProtocols", "p"),
             ".typings": ("ExamplesFlextCliTypes", "t"),
             ".utilities": ("ExamplesFlextCliUtilities", "u"),

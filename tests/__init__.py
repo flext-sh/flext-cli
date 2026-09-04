@@ -15,15 +15,28 @@ if TYPE_CHECKING:
     from flext_tests import FlextTestsConstants, d, e, h, r, td, tf, tk, tm, tv, x
 
     from .base import TestsFlextCliServiceBase, TestsFlextCliServiceBase as s
-    from .constants import c
-    from .models import m
+    from .constants import TestsFlextCliConstants, TestsFlextCliConstants as c
+    from .models import TestsFlextCliModels, TestsFlextCliModels as m
     from .protocols import TestsFlextCliProtocols, TestsFlextCliProtocols as p
     from .settings import TestsFlextCliSettings
     from .typings import TestsFlextCliTypes, TestsFlextCliTypes as t
+    from .unit.conftest import (
+        TestsFlextCliCaptureLogPrompts,
+        TestsFlextCliFailingLogPrompts,
+        TestsFlextCliScriptedPrompts,
+        make_capture_prompts,
+        make_failing_prompts,
+        make_prompts,
+    )
     from .utilities import TestsFlextCliUtilities, TestsFlextCliUtilities as u
 __all__: tuple[str, ...] = (
     "FlextTestsConstants",
+    "TestsFlextCliCaptureLogPrompts",
+    "TestsFlextCliConstants",
+    "TestsFlextCliFailingLogPrompts",
+    "TestsFlextCliModels",
     "TestsFlextCliProtocols",
+    "TestsFlextCliScriptedPrompts",
     "TestsFlextCliServiceBase",
     "TestsFlextCliSettings",
     "TestsFlextCliTypes",
@@ -34,6 +47,9 @@ __all__: tuple[str, ...] = (
     "flext_cli_c",
     "h",
     "m",
+    "make_capture_prompts",
+    "make_failing_prompts",
+    "make_prompts",
     "p",
     "r",
     "s",
@@ -52,12 +68,20 @@ _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
             ".base": ("TestsFlextCliServiceBase", "s"),
-            ".constants": ("c",),
-            ".models": ("m",),
+            ".constants": ("TestsFlextCliConstants", "c"),
+            ".models": ("TestsFlextCliModels", "m"),
             ".protocols": ("TestsFlextCliProtocols", "p"),
             ".settings": ("TestsFlextCliSettings",),
             ".typings": ("TestsFlextCliTypes", "t"),
             ".unit": ("unit",),
+            ".unit.conftest": (
+                "TestsFlextCliCaptureLogPrompts",
+                "TestsFlextCliFailingLogPrompts",
+                "TestsFlextCliScriptedPrompts",
+                "make_capture_prompts",
+                "make_failing_prompts",
+                "make_prompts",
+            ),
             ".utilities": ("TestsFlextCliUtilities", "u"),
             "flext_tests": (
                 "FlextTestsConstants",

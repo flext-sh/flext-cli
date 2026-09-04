@@ -25,7 +25,7 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
         try:
             while remaining:
                 written = sink.write(remaining)
-                if written is None or written <= 0:
+                if written <= 0:
                     failures.append("stdin write made no progress")
                     return
                 remaining = remaining[written:]
