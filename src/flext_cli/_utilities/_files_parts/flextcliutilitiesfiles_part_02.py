@@ -126,10 +126,7 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def atomic_delete_binary_file_guarded(
-        file_path: t.Cli.TextPath,
-        *,
-        expected_bytes: bytes,
-        expected_mode: int,
+        file_path: t.Cli.TextPath, *, expected_bytes: bytes, expected_mode: int
     ) -> p.Result[bool]:
         """Delete the exact byte-and-mode version under the caller's lock.
 

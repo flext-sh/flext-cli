@@ -21,14 +21,57 @@ if TYPE_CHECKING:
     from . import _xlxx as _xlxx
     from . import _yaml as _yaml
     from ._atomic_file import write_atomic_bytes
+    from ._atomic_file_cleanup import remove_failed_temporary
+    from ._atomic_file_delete import remove_guarded_file
+    from ._atomic_file_descriptor import (
+        ParentDescriptor,
+        assert_parent_unchanged,
+        entry_stat,
+        open_entry,
+        parent_descriptor,
+        replace_entry,
+        unlink_entry,
+    )
+    from ._atomic_file_mode import (
+        NO_MODE_PRECONDITION,
+        assert_observed_mode,
+        publication_mode,
+        validate_guarded_mode_tuple,
+        validate_mode,
+        validate_mode_precondition,
+    )
+    from ._atomic_file_path import (
+        identity,
+        is_reparse_point,
+        validate_atomic_path,
+        validate_directory_state,
+        validate_parent_path,
+    )
+    from ._atomic_file_publish import publish_guarded_staged_file
+    from ._atomic_file_publish_checks import (
+        require_distinct_inode,
+        require_identity,
+        validate_devices,
+        validate_expected_identity,
+        validate_identity,
+        validate_publication,
+    )
+    from ._atomic_file_read import read_descriptor_bytes, state_key
+    from ._atomic_file_snapshot import read_authenticated_state
     from ._atomic_file_state import (
         assert_destination_unchanged,
         assert_temporary_owned,
         destination_state,
-        identity,
         permission_state,
+        read_authenticated_bytes,
         validate_parent,
         validate_precondition,
+    )
+    from ._atomic_file_temporary import (
+        create_descriptor,
+        require_mode_capability,
+        temporary_path,
+        write_and_sync,
     )
     from ._cli_namespace import FlextCliUtilitiesCli
     from ._docx._reader import FlextCliUtilitiesDocxReader
@@ -126,6 +169,7 @@ if TYPE_CHECKING:
     from .yaml import FlextCliUtilitiesYaml
     from .yaml_model import FlextCliUtilitiesYamlModel
 __all__: tuple[str, ...] = (
+    "NO_MODE_PRECONDITION",
     "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
@@ -213,6 +257,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlEditingMixin",
     "FlextCliUtilitiesYamlEngineMixin",
     "FlextCliUtilitiesYamlModel",
+    "ParentDescriptor",
     "_docx",
     "_file_test_helper_parts",
     "_files_parts",
@@ -224,12 +269,44 @@ __all__: tuple[str, ...] = (
     "_xlxx",
     "_yaml",
     "assert_destination_unchanged",
+    "assert_observed_mode",
+    "assert_parent_unchanged",
     "assert_temporary_owned",
+    "create_descriptor",
     "destination_state",
+    "entry_stat",
     "identity",
+    "is_reparse_point",
+    "open_entry",
+    "parent_descriptor",
     "permission_state",
+    "publication_mode",
+    "publish_guarded_staged_file",
+    "read_authenticated_bytes",
+    "read_authenticated_state",
+    "read_descriptor_bytes",
+    "remove_failed_temporary",
+    "remove_guarded_file",
+    "replace_entry",
+    "require_distinct_inode",
+    "require_identity",
+    "require_mode_capability",
+    "state_key",
+    "temporary_path",
+    "unlink_entry",
+    "validate_atomic_path",
+    "validate_devices",
+    "validate_directory_state",
+    "validate_expected_identity",
+    "validate_guarded_mode_tuple",
+    "validate_identity",
+    "validate_mode",
+    "validate_mode_precondition",
     "validate_parent",
+    "validate_parent_path",
     "validate_precondition",
+    "validate_publication",
+    "write_and_sync",
     "write_atomic_bytes",
 )
 
@@ -237,14 +314,57 @@ _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
             "._atomic_file": ("write_atomic_bytes",),
+            "._atomic_file_cleanup": ("remove_failed_temporary",),
+            "._atomic_file_delete": ("remove_guarded_file",),
+            "._atomic_file_descriptor": (
+                "ParentDescriptor",
+                "assert_parent_unchanged",
+                "entry_stat",
+                "open_entry",
+                "parent_descriptor",
+                "replace_entry",
+                "unlink_entry",
+            ),
+            "._atomic_file_mode": (
+                "NO_MODE_PRECONDITION",
+                "assert_observed_mode",
+                "publication_mode",
+                "validate_guarded_mode_tuple",
+                "validate_mode",
+                "validate_mode_precondition",
+            ),
+            "._atomic_file_path": (
+                "identity",
+                "is_reparse_point",
+                "validate_atomic_path",
+                "validate_directory_state",
+                "validate_parent_path",
+            ),
+            "._atomic_file_publish": ("publish_guarded_staged_file",),
+            "._atomic_file_publish_checks": (
+                "require_distinct_inode",
+                "require_identity",
+                "validate_devices",
+                "validate_expected_identity",
+                "validate_identity",
+                "validate_publication",
+            ),
+            "._atomic_file_read": ("read_descriptor_bytes", "state_key"),
+            "._atomic_file_snapshot": ("read_authenticated_state",),
             "._atomic_file_state": (
                 "assert_destination_unchanged",
                 "assert_temporary_owned",
                 "destination_state",
-                "identity",
                 "permission_state",
+                "read_authenticated_bytes",
                 "validate_parent",
                 "validate_precondition",
+            ),
+            "._atomic_file_temporary": (
+                "create_descriptor",
+                "require_mode_capability",
+                "temporary_path",
+                "write_and_sync",
             ),
             "._cli_namespace": ("FlextCliUtilitiesCli",),
             "._docx": ("_docx",),

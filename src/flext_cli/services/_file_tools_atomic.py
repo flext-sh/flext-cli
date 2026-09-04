@@ -44,27 +44,20 @@ class FlextCliFileToolsAtomicMixin:
 
     @staticmethod
     def atomic_delete_binary_file_guarded(
-        file_path: t.Cli.TextPath,
-        *,
-        expected_bytes: bytes,
-        expected_mode: int,
+        file_path: t.Cli.TextPath, *, expected_bytes: bytes, expected_mode: int
     ) -> p.Result[bool]:
         """Delete one exact byte-and-mode version under the caller's lock."""
         return u.Cli.atomic_delete_binary_file_guarded(
-            file_path,
-            expected_bytes=expected_bytes,
-            expected_mode=expected_mode,
+            file_path, expected_bytes=expected_bytes, expected_mode=expected_mode
         )
 
     @staticmethod
     def atomic_publish_staged_binary_file_guarded(
-        destination_before: m.Cli.AtomicFileState,
-        staged: m.Cli.AtomicFileState,
+        destination_before: m.Cli.AtomicFileState, staged: m.Cli.AtomicFileState
     ) -> p.Result[m.Cli.AtomicFileState]:
         """Consume one exact staged file through the utility owner."""
         return u.Cli.atomic_publish_staged_binary_file_guarded(
-            destination_before,
-            staged,
+            destination_before, staged
         )
 
     @staticmethod

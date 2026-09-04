@@ -6,17 +6,15 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
+from flext_cli._utilities._atomic_file_descriptor import ParentDescriptor, open_entry
 
 
 def read_descriptor_bytes(
-    parent: file_descriptor.ParentDescriptor,
-    path: Path,
-    expected: os.stat_result,
+    parent: ParentDescriptor, path: Path, expected: os.stat_result
 ) -> bytes:
     """Read all bytes while one descriptor retains the expected exact state."""
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
-    descriptor = file_descriptor.open_entry(parent, path, flags)
+    descriptor = open_entry(parent, path, flags)
     try:
         content = _read_stable_descriptor(descriptor, path, expected)
     except BaseException as operation_error:
@@ -62,16 +60,15 @@ def _close_after_failure(
     try:
         os.close(descriptor)
     except OSError as close_error:
-        message = f"atomic read failed ({operation_error}); close failed ({close_error})"
+        message = (
+            f"atomic read failed ({operation_error}); close failed ({close_error})"
+        )
+        group_message = "atomic read and descriptor close failed"
         if isinstance(operation_error, Exception):
-            causes = ExceptionGroup(
-                "atomic read and descriptor close failed",
-                [operation_error, close_error],
-            )
+            causes = ExceptionGroup(group_message, [operation_error, close_error])
             raise OSError(errno.EIO, message, path) from causes
         raise BaseExceptionGroup(
-            "atomic read and descriptor close failed",
-            [operation_error, close_error],
+            group_message, [operation_error, close_error]
         ) from close_error
 
 

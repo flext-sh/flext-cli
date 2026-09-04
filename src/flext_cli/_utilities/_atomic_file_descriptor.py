@@ -4,32 +4,34 @@ from __future__ import annotations
 
 import errno
 import os
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_path as file_path
+from flext_cli._utilities._atomic_file_path import (
+    identity,
+    validate_atomic_path,
+    validate_directory_state,
+    validate_parent_path,
+)
 
 
+@dataclass(slots=True, frozen=True)
 class ParentDescriptor:
     """One open physical parent directory bound to its lexical pathname."""
 
-    __slots__ = ("descriptor", "path", "state")
-
-    def __init__(
-        self, path: Path, descriptor: int, state: os.stat_result
-    ) -> None:
-        self.path = path
-        self.descriptor = descriptor
-        self.state = state
+    path: Path
+    descriptor: int
+    state: os.stat_result
 
 
 @contextmanager
 def parent_descriptor(
     path: Path, *, replace: bool = False, unlink: bool = False
-) -> Iterator[ParentDescriptor]:
+) -> Generator[ParentDescriptor]:
     """Yield one authenticated parent descriptor with required OS capabilities."""
-    validated = file_path.validate_atomic_path(path)
+    validated = validate_atomic_path(path)
     _require_capabilities(replace=replace, unlink=unlink)
     directory_flag = getattr(os, "O_DIRECTORY", 0)
     nofollow_flag = getattr(os, "O_NOFOLLOW", 0)
@@ -43,7 +45,7 @@ def parent_descriptor(
     descriptor = os.open(validated.parent, flags)
     try:
         state = os.fstat(descriptor)
-        file_path.validate_directory_state(validated.parent, state)
+        validate_directory_state(validated.parent, state)
         handle = ParentDescriptor(validated.parent, descriptor, state)
         assert_parent_unchanged(handle)
     except BaseException as operation_error:
@@ -61,13 +63,10 @@ def parent_descriptor(
 def assert_parent_unchanged(parent: ParentDescriptor) -> None:
     """Require descriptor and pathname to retain the opened directory identity."""
     descriptor_state = os.fstat(parent.descriptor)
-    file_path.validate_directory_state(parent.path, descriptor_state)
-    pathname_state = file_path.validate_parent_path(parent.path)
-    expected = file_path.identity(parent.state)
-    if (
-        file_path.identity(descriptor_state) != expected
-        or file_path.identity(pathname_state) != expected
-    ):
+    validate_directory_state(parent.path, descriptor_state)
+    pathname_state = validate_parent_path(parent.path)
+    expected = identity(parent.state)
+    if identity(descriptor_state) != expected or identity(pathname_state) != expected:
         message = f"atomic file parent identity changed: {parent.path}"
         raise OSError(errno.ESTALE, message, parent.path)
 
@@ -75,11 +74,7 @@ def assert_parent_unchanged(parent: ParentDescriptor) -> None:
 def entry_stat(parent: ParentDescriptor, path: Path) -> os.stat_result:
     """Read one final entry relative to its authenticated parent descriptor."""
     _require_entry(parent, path)
-    return os.stat(
-        path.name,
-        dir_fd=parent.descriptor,
-        follow_symlinks=False,
-    )
+    return os.stat(path.name, dir_fd=parent.descriptor, follow_symlinks=False)
 
 
 def open_entry(
@@ -145,7 +140,7 @@ def _require_capabilities(*, replace: bool, unlink: bool) -> None:
 
 
 def _require_entry(parent: ParentDescriptor, path: Path) -> None:
-    validated = file_path.validate_atomic_path(path)
+    validated = validate_atomic_path(path)
     if validated.parent != parent.path:
         message = f"atomic file does not belong to authenticated parent: {path}"
         raise OSError(errno.EINVAL, message, path)
@@ -160,15 +155,12 @@ def _close_after_failure(
         message = (
             f"atomic operation failed ({operation_error}); close failed ({close_error})"
         )
+        group_message = "atomic operation and descriptor close failed"
         if isinstance(operation_error, Exception):
-            causes = ExceptionGroup(
-                "atomic operation and descriptor close failed",
-                [operation_error, close_error],
-            )
+            causes = ExceptionGroup(group_message, [operation_error, close_error])
             raise OSError(errno.EIO, message, path) from causes
         raise BaseExceptionGroup(
-            "atomic operation and descriptor close failed",
-            [operation_error, close_error],
+            group_message, [operation_error, close_error]
         ) from close_error
 
 

@@ -36,11 +36,15 @@ class FlextCliModelsBase:
         ] = None
         device: Annotated[
             int | None,
-            m.Field(ge=0, strict=True, description="Physical device, or None when absent"),
+            m.Field(
+                ge=0, strict=True, description="Physical device, or None when absent"
+            ),
         ] = None
         inode: Annotated[
             int | None,
-            m.Field(ge=0, strict=True, description="Physical inode, or None when absent"),
+            m.Field(
+                ge=0, strict=True, description="Physical inode, or None when absent"
+            ),
         ] = None
 
         @u.field_validator("path")

@@ -8,8 +8,8 @@ import stat
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import _atomic_file_snapshot as atomic_snapshot
 from flext_cli._utilities._atomic_file_publish import publish_guarded_staged_file
+from flext_cli._utilities._atomic_file_snapshot import read_authenticated_state
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
@@ -25,9 +25,7 @@ class FlextCliUtilitiesFiles:
         """Read exact bytes and mode from one descriptor-authenticated file."""
         path = Path(file_path)
         try:
-            state, content = atomic_snapshot.read_authenticated_state(
-                path, required=required
-            )
+            state, content = read_authenticated_state(path, required=required)
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(
                 c.Cli.ERR_BINARY_READ_FAILED.format(error=exc)
@@ -44,8 +42,7 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def atomic_publish_staged_binary_file_guarded(
-        destination_before: m.Cli.AtomicFileState,
-        staged: m.Cli.AtomicFileState,
+        destination_before: m.Cli.AtomicFileState, staged: m.Cli.AtomicFileState
     ) -> p.Result[m.Cli.AtomicFileState]:
         """Consume one authenticated staged file under the caller's lock."""
         if (
@@ -57,17 +54,15 @@ class FlextCliUtilitiesFiles:
             return r[m.Cli.AtomicFileState].fail(
                 f"atomic staged file is absent: {staged.path}"
             )
-        expected_identity = (
-            None
-            if destination_before.content is None
-            else (destination_before.device, destination_before.inode)
-        )
-        if expected_identity is not None and (
-            expected_identity[0] is None or expected_identity[1] is None
-        ):
-            return r[m.Cli.AtomicFileState].fail(
-                f"atomic destination identity is absent: {destination_before.path}"
-            )
+        expected_identity: tuple[int, int] | None = None
+        if destination_before.content is not None:
+            expected_device = destination_before.device
+            expected_inode = destination_before.inode
+            if expected_device is None or expected_inode is None:
+                return r[m.Cli.AtomicFileState].fail(
+                    f"atomic destination identity is absent: {destination_before.path}"
+                )
+            expected_identity = (expected_device, expected_inode)
         try:
             published = publish_guarded_staged_file(
                 destination_before.path,

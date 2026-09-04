@@ -6,12 +6,15 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
-from flext_cli._utilities import _atomic_file_state as file_state
+from flext_cli._utilities._atomic_file_descriptor import ParentDescriptor, unlink_entry
+from flext_cli._utilities._atomic_file_state import (
+    assert_temporary_owned,
+    destination_state,
+)
 
 
 def remove_failed_temporary(
-    parent: file_descriptor.ParentDescriptor,
+    parent: ParentDescriptor,
     temporary: Path,
     identity: tuple[int, int] | None,
     descriptor: int | None,
@@ -26,22 +29,19 @@ def remove_failed_temporary(
             cleanup_errors.append(cleanup_error)
     if identity is None:
         try:
-            state = file_state.destination_state(temporary, parent=parent)
+            state = destination_state(temporary, parent=parent)
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
         else:
             if state is not None:
                 message = (
-                    "refusing to remove unauthenticated atomic temporary: "
-                    f"{temporary}"
+                    f"refusing to remove unauthenticated atomic temporary: {temporary}"
                 )
                 cleanup_errors.append(OSError(errno.ESTALE, message, temporary))
     else:
         try:
-            file_state.assert_temporary_owned(
-                temporary, identity, parent=parent
-            )
-            file_descriptor.unlink_entry(parent, temporary)
+            assert_temporary_owned(temporary, identity, parent=parent)
+            unlink_entry(parent, temporary)
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
     if cleanup_errors:
@@ -49,24 +49,19 @@ def remove_failed_temporary(
 
 
 def _raise_cleanup_failure(
-    temporary: Path,
-    operation_error: BaseException,
-    cleanup_errors: list[OSError],
+    temporary: Path, operation_error: BaseException, cleanup_errors: list[OSError]
 ) -> None:
     cleanup_summary = "; ".join(str(error) for error in cleanup_errors)
     message = (
         f"atomic write failed ({operation_error}); "
         f"temporary cleanup failed ({cleanup_summary})"
     )
+    group_message = "atomic write and temporary cleanup failed"
     if isinstance(operation_error, Exception):
-        causes = ExceptionGroup(
-            "atomic write and temporary cleanup failed",
-            [operation_error, *cleanup_errors],
-        )
+        causes = ExceptionGroup(group_message, [operation_error, *cleanup_errors])
         raise OSError(errno.EIO, message, temporary) from causes
     raise BaseExceptionGroup(
-        "atomic write and temporary cleanup failed",
-        [operation_error, *cleanup_errors],
+        group_message, [operation_error, *cleanup_errors]
     ) from cleanup_errors[-1]
 
 
