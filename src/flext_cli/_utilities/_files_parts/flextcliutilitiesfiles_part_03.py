@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import shutil
+import stat
 from pathlib import Path
 
-from flext_cli import c, p, r, t
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities import _atomic_file_snapshot as atomic_snapshot
+from flext_cli._utilities._atomic_file_publish import publish_guarded_staged_file
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
@@ -14,6 +17,81 @@ from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
 
 class FlextCliUtilitiesFiles:
     """Implementation part for FlextCliUtilitiesFiles."""
+
+    @staticmethod
+    def atomic_read_binary_file_state(
+        file_path: t.Cli.TextPath, *, required: bool = False
+    ) -> p.Result[m.Cli.AtomicFileState]:
+        """Read exact bytes and mode from one descriptor-authenticated file."""
+        path = Path(file_path)
+        try:
+            state, content = atomic_snapshot.read_authenticated_state(
+                path, required=required
+            )
+        except OSError as exc:
+            return r[m.Cli.AtomicFileState].fail(
+                c.Cli.ERR_BINARY_READ_FAILED.format(error=exc)
+            )
+        return r[m.Cli.AtomicFileState].ok(
+            m.Cli.AtomicFileState(
+                path=path,
+                content=content,
+                mode=None if state is None else stat.S_IMODE(state.st_mode),
+                device=None if state is None else state.st_dev,
+                inode=None if state is None else state.st_ino,
+            )
+        )
+
+    @staticmethod
+    def atomic_publish_staged_binary_file_guarded(
+        destination_before: m.Cli.AtomicFileState,
+        staged: m.Cli.AtomicFileState,
+    ) -> p.Result[m.Cli.AtomicFileState]:
+        """Consume one authenticated staged file under the caller's lock."""
+        if (
+            staged.content is None
+            or staged.mode is None
+            or staged.device is None
+            or staged.inode is None
+        ):
+            return r[m.Cli.AtomicFileState].fail(
+                f"atomic staged file is absent: {staged.path}"
+            )
+        expected_identity = (
+            None
+            if destination_before.content is None
+            else (destination_before.device, destination_before.inode)
+        )
+        if expected_identity is not None and (
+            expected_identity[0] is None or expected_identity[1] is None
+        ):
+            return r[m.Cli.AtomicFileState].fail(
+                f"atomic destination identity is absent: {destination_before.path}"
+            )
+        try:
+            published = publish_guarded_staged_file(
+                destination_before.path,
+                staged.path,
+                expected_bytes=destination_before.content,
+                expected_mode=destination_before.mode,
+                expected_identity=expected_identity,
+                staged_bytes=staged.content,
+                staged_mode=staged.mode,
+                staged_identity=(staged.device, staged.inode),
+            )
+        except OSError as exc:
+            return r[m.Cli.AtomicFileState].fail(
+                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc)
+            )
+        return r[m.Cli.AtomicFileState].ok(
+            m.Cli.AtomicFileState(
+                path=destination_before.path,
+                content=staged.content,
+                mode=stat.S_IMODE(published.st_mode),
+                device=published.st_dev,
+                inode=published.st_ino,
+            )
+        )
 
     @staticmethod
     def files_list_directory_names(
