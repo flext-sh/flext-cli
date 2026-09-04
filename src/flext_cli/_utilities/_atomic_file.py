@@ -6,13 +6,15 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli._utilities import _atomic_file_cleanup as file_cleanup
-from flext_cli._utilities import _atomic_file_descriptor as file_descriptor
-from flext_cli._utilities import _atomic_file_mode as file_mode
-from flext_cli._utilities import _atomic_file_path as file_path
-from flext_cli._utilities import _atomic_file_publish_checks as checks
-from flext_cli._utilities import _atomic_file_state as file_state
-from flext_cli._utilities import _atomic_file_temporary as file_temporary
+from flext_cli._utilities._atomic_file_state import (
+    assert_destination_unchanged,
+    assert_temporary_owned,
+    destination_state,
+    identity,
+    permission_state,
+    validate_parent,
+    validate_precondition,
+)
 
 
 class _NoPrecondition:
@@ -149,17 +151,54 @@ def _validate_staged(
     content: bytes,
     mode: int,
     identity: tuple[int, int],
-) -> os.stat_result:
-    state = file_state.destination_state(temporary, parent=parent)
-    if state is None:
-        message = f"atomic temporary disappeared before publication: {temporary}"
-        raise FileNotFoundError(errno.ENOENT, message, temporary)
-    checks.require_identity(temporary, state, identity)
-    file_state.validate_precondition(
-        temporary, state, content, enabled=True, parent=parent
-    )
-    file_mode.validate_mode_precondition(temporary, state, mode)
-    return state
+    *,
+    guard_destination: bool,
+) -> None:
+    """Authenticate both pathnames immediately before portable replacement."""
+    assert_temporary_owned(temporary, identity)
+    if guard_destination:
+        assert_destination_unchanged(path, expected)
+    temporary.replace(path)
+
+
+def _remove_failed_temporary(
+    temporary: Path,
+    identity: tuple[int, int] | None,
+    descriptor: int | None,
+    operation_error: BaseException,
+) -> None:
+    """Close and remove owned staging state while retaining every failure cause."""
+    cleanup_errors: list[OSError] = []
+    if descriptor is not None:
+        try:
+            os.close(descriptor)
+        except OSError as cleanup_error:
+            cleanup_errors.append(cleanup_error)
+    if identity is None:
+        msg = f"refusing to remove unauthenticated atomic temporary: {temporary}"
+        cleanup_errors.append(OSError(errno.ESTALE, msg, temporary))
+    else:
+        try:
+            assert_temporary_owned(temporary, identity)
+            temporary.unlink()
+        except OSError as cleanup_error:
+            cleanup_errors.append(cleanup_error)
+    if cleanup_errors:
+        cleanup_summary = "; ".join(str(error) for error in cleanup_errors)
+        message = (
+            f"atomic write failed ({operation_error}); "
+            f"temporary cleanup failed ({cleanup_summary})"
+        )
+        if isinstance(operation_error, Exception):
+            causes = ExceptionGroup(
+                "atomic write and temporary cleanup failed",
+                [operation_error, *cleanup_errors],
+            )
+            raise OSError(errno.EIO, message, temporary) from causes
+        group_message = "atomic write and temporary cleanup failed"
+        raise BaseExceptionGroup(
+            group_message, [operation_error, *cleanup_errors]
+        ) from cleanup_errors[-1]
 
 
 __all__: list[str] = ["write_atomic_bytes"]
