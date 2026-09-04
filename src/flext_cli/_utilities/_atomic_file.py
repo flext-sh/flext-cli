@@ -7,13 +7,12 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-# Why: merge fix/flext-uatvz-atomic-files into 0.12.0-dev — 0.12.0-dev's only
-# change here was a cosmetic import-style rename (module-qualified ->
-# direct-name) over the same pre-decomposition logic; this branch's
-# decomposed descriptor-bound implementation supersedes it with identical
-# semantics plus mode/publish-check/cleanup owners, so it is kept as-is.
-# Every cross-module import below names its symbols directly (never a
-# private-submodule alias) so pyright's ``reportPrivateUsage`` stays clean.
+# Why: merge origin/0.12.0-dev (#131) into fix/flext-uatvz-atomic-files — #131
+# merged a concurrent lane's unfixed tip of this branch directly into
+# 0.12.0-dev with failing CI (module-qualified `file_mode.*`/`file_path.*`/
+# `file_descriptor.*`/`file_state.*` calls with no corresponding module
+# import — NameError at import time). This lane's explicit-import,
+# gate-green implementation is kept as-is.
 from flext_cli._utilities._atomic_file_cleanup import remove_failed_temporary
 from flext_cli._utilities._atomic_file_descriptor import (
     ParentDescriptor,
