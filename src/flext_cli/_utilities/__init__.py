@@ -20,6 +20,16 @@ if TYPE_CHECKING:
     from . import _toml_parts as _toml_parts
     from . import _xlxx as _xlxx
     from . import _yaml as _yaml
+    from ._atomic_file import write_atomic_bytes
+    from ._atomic_file_state import (
+        assert_destination_unchanged,
+        assert_temporary_owned,
+        destination_state,
+        identity,
+        permission_state,
+        validate_parent,
+        validate_precondition,
+    )
     from ._cli_namespace import FlextCliUtilitiesCli
     from ._docx._reader import FlextCliUtilitiesDocxReader
     from ._docx._renderer import FlextCliUtilitiesDocxRenderer
@@ -45,12 +55,14 @@ if TYPE_CHECKING:
     from ._runtime_process_group import FlextCliUtilitiesRuntimeProcessGroupMixin
     from ._runtime_process_monitor import FlextCliUtilitiesRuntimeProcessMonitorMixin
     from ._runtime_process_outcome import FlextCliUtilitiesRuntimeProcessOutcomeMixin
+    from ._runtime_process_output import FlextCliUtilitiesRuntimeProcessOutputMixin
     from ._runtime_process_resources import (
         FlextCliUtilitiesRuntimeProcessResourcesMixin,
     )
     from ._runtime_process_start import FlextCliUtilitiesRuntimeProcessStartMixin
     from ._runtime_process_stream import FlextCliUtilitiesRuntimeProcessStreamMixin
     from ._runtime_process_threads import FlextCliUtilitiesRuntimeProcessThreadsMixin
+    from ._runtime_process_timing import FlextCliUtilitiesRuntimeProcessTimingMixin
     from ._runtime_process_wait import FlextCliUtilitiesRuntimeProcessWaitMixin
     from ._runtime_run_to_file import FlextCliUtilitiesRuntimeRunToFileMixin
     from ._runtime_windows_job_start import FlextCliUtilitiesRuntimeWindowsJobStartMixin
@@ -155,10 +167,12 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesRuntimeProcessGroupMixin",
     "FlextCliUtilitiesRuntimeProcessMonitorMixin",
     "FlextCliUtilitiesRuntimeProcessOutcomeMixin",
+    "FlextCliUtilitiesRuntimeProcessOutputMixin",
     "FlextCliUtilitiesRuntimeProcessResourcesMixin",
     "FlextCliUtilitiesRuntimeProcessStartMixin",
     "FlextCliUtilitiesRuntimeProcessStreamMixin",
     "FlextCliUtilitiesRuntimeProcessThreadsMixin",
+    "FlextCliUtilitiesRuntimeProcessTimingMixin",
     "FlextCliUtilitiesRuntimeProcessWaitMixin",
     "FlextCliUtilitiesRuntimeRunToFileMixin",
     "FlextCliUtilitiesRuntimeWindowsJobStartMixin",
@@ -209,11 +223,29 @@ __all__: tuple[str, ...] = (
     "_toml_parts",
     "_xlxx",
     "_yaml",
+    "assert_destination_unchanged",
+    "assert_temporary_owned",
+    "destination_state",
+    "identity",
+    "permission_state",
+    "validate_parent",
+    "validate_precondition",
+    "write_atomic_bytes",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
+            "._atomic_file": ("write_atomic_bytes",),
+            "._atomic_file_state": (
+                "assert_destination_unchanged",
+                "assert_temporary_owned",
+                "destination_state",
+                "identity",
+                "permission_state",
+                "validate_parent",
+                "validate_precondition",
+            ),
             "._cli_namespace": ("FlextCliUtilitiesCli",),
             "._docx": ("_docx",),
             "._docx._reader": ("FlextCliUtilitiesDocxReader",),
@@ -252,6 +284,7 @@ _LAZY_IMPORTS = MappingProxyType(
             "._runtime_process_outcome": (
                 "FlextCliUtilitiesRuntimeProcessOutcomeMixin",
             ),
+            "._runtime_process_output": ("FlextCliUtilitiesRuntimeProcessOutputMixin",),
             "._runtime_process_resources": (
                 "FlextCliUtilitiesRuntimeProcessResourcesMixin",
             ),
@@ -260,6 +293,7 @@ _LAZY_IMPORTS = MappingProxyType(
             "._runtime_process_threads": (
                 "FlextCliUtilitiesRuntimeProcessThreadsMixin",
             ),
+            "._runtime_process_timing": ("FlextCliUtilitiesRuntimeProcessTimingMixin",),
             "._runtime_process_wait": ("FlextCliUtilitiesRuntimeProcessWaitMixin",),
             "._runtime_run_to_file": ("FlextCliUtilitiesRuntimeRunToFileMixin",),
             "._runtime_windows_job_start": (

@@ -345,14 +345,14 @@ wheels = [
 
 [[package]]
 name = "click"
-version = "8.4.2"
+version = "8.3.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/76/d4/81420972a676e8ffea40450d8c8c92943e7218a78fe9b64359836cc9876b/click-8.4.2.tar.gz", hash = "sha256:9a6cea6e60b17ebe0a44c5cc636d94f09bd66142c1cd7d8b4cd731c4917a15f6", size = 338000, upload-time = "2026-06-24T17:45:15.148Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/63/f9e1ea081ce35720d8b92acde70daaedace594dc93b693c869e0d5910718/click-8.3.3.tar.gz", hash = "sha256:398329ad4837b2ff7cbe1dd166a4c0f8900c3ca3a218de04466f38f6497f18a2", size = 328061, upload-time = "2026-04-22T15:11:27.506Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fb/e2/79c688af8b210d232694e31e59da9f6ec747bae31c3f5946e4e9b98860d5/click-8.4.2-py3-none-any.whl", hash = "sha256:e6f9f66136c816745b9d65817da91d61d957fb16e02e4dcd0552553c5a197b76", size = 119243, upload-time = "2026-06-24T17:45:13.73Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/44/c1221527f6a71a01ec6fbad7fa78f1d50dfa02217385cf0fa3eec7087d59/click-8.3.3-py3-none-any.whl", hash = "sha256:a2bf429bb3033c89fa4936ffb35d5cb471e3719e1f3c8a7c3fff0b8314305613", size = 110502, upload-time = "2026-04-22T15:11:25.044Z" },
 ]
 
 [[package]]
@@ -803,7 +803,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cachetools", specifier = ">=6.2.6" },
-    { name = "click", specifier = ">=8.4.2" },
+    { name = "click", specifier = ">=8.3.3" },
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "flext-core", git = "https://github.com/flext-sh/flext-core.git?rev=0.12.0-dev" },
     { name = "jinja2", specifier = ">=3.1.6" },
@@ -817,7 +817,7 @@ requires-dist = [
     { name = "python-docx", specifier = ">=1.2.0" },
     { name = "python-pptx", specifier = ">=1.0.2" },
     { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "rich", specifier = ">=15.0.0" },
+    { name = "rich", specifier = ">=14.3.4" },
     { name = "ruamel-yaml", specifier = ">=0.18.16" },
     { name = "tabulate", specifier = ">=0.10.0" },
     { name = "tomlkit", specifier = ">=0.15.1" },
@@ -829,7 +829,7 @@ codegen = [{ name = "flext-infra", git = "https://github.com/flext-sh/flext-infr
 dev = [
     { name = "actionlint-py", specifier = ">=1.7.12.24" },
     { name = "autoflake", specifier = ">=2.3.3" },
-    { name = "bandit", specifier = ">=1.9.4" },
+    { name = "bandit", specifier = ">=1.8" },
     { name = "black", specifier = ">=26.5.1" },
     { name = "blacken-docs", specifier = ">=1.20.0" },
     { name = "codespell", specifier = ">=2.4.3" },
@@ -860,14 +860,14 @@ dev = [
     { name = "mkdocs-versioning", specifier = ">=0.4.0" },
     { name = "mkdocstrings", specifier = ">=1.0.6" },
     { name = "mkdocstrings-python", specifier = ">=2.0.7" },
-    { name = "mypy", specifier = ">=2.3.1" },
+    { name = "mypy", specifier = ">=2.3.0" },
     { name = "pip-audit", specifier = ">=2.10.1" },
     { name = "pre-commit", specifier = ">=4.6.2" },
     { name = "psutil", specifier = ">=7.2.2" },
     { name = "pylint", specifier = ">=4.0.7" },
-    { name = "pyrefly", specifier = ">=1.2.0" },
+    { name = "pyrefly", specifier = ">=1.1.1" },
     { name = "pyright", specifier = ">=1.1.411" },
-    { name = "pytest", specifier = ">=9.1.1" },
+    { name = "pytest", specifier = ">=9.0.3" },
     { name = "pytest-benchmark", specifier = ">=5.2.3" },
     { name = "pytest-clarity", specifier = ">=1.0.1" },
     { name = "pytest-codeblocks", specifier = ">=0.18.0" },
@@ -883,8 +883,8 @@ dev = [
     { name = "pytest-xdist", specifier = ">=3.8.0" },
     { name = "pyupgrade", specifier = ">=3.21.2" },
     { name = "radon", specifier = ">=6.0.1" },
-    { name = "ruff", specifier = ">=0.16.4" },
-    { name = "rumdl", specifier = ">=0.2.58" },
+    { name = "ruff", specifier = ">=0.15.12" },
+    { name = "rumdl", specifier = ">=0.2.45" },
     { name = "types-cachetools", specifier = ">=7.0.0.20260713" },
     { name = "types-cffi", specifier = ">=2.0.0.20260518" },
     { name = "types-click", specifier = ">=7.1.8" },
@@ -939,8 +939,8 @@ dependencies = [
 
 [[package]]
 name = "flext-infra"
-version = "0.12.0rc0"
-source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#3c88a6e9b6dcd845809a5266856317bb0d8045de" }
+version = "0.12.0"
+source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#045fd199d632735c5892d70c4648a8c39362ed53" }
 dependencies = [
     { name = "defusedxml" },
     { name = "filelock" },
@@ -2722,15 +2722,15 @@ wheels = [
 
 [[package]]
 name = "rich"
-version = "15.0.0"
+version = "14.3.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c0/8f/0722ca900cc807c13a6a0c696dacf35430f72e0ec571c4275d2371fca3e9/rich-15.0.0.tar.gz", hash = "sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36", size = 230680, upload-time = "2026-04-12T08:24:00.75Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e9/67/cae617f1351490c25a4b8ac3b8b63a4dda609295d8222bad12242dfdc629/rich-14.3.4.tar.gz", hash = "sha256:817e02727f2b25b40ef56f5aa2217f400c8489f79ca8f46ea2b70dd5e14558a9", size = 230524, upload-time = "2026-04-11T02:57:45.419Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/82/3b/64d4899d73f91ba49a8c18a8ff3f0ea8f1c1d75481760df8c68ef5235bf5/rich-15.0.0-py3-none-any.whl", hash = "sha256:33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb", size = 310654, upload-time = "2026-04-12T08:24:02.83Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/76/6d163cfac87b632216f71879e6b2cf17163f773ff59c00b5ff4900a80fa3/rich-14.3.4-py3-none-any.whl", hash = "sha256:07e7adb4690f68864777b1450859253bed81a99a31ac321ac1817b2313558952", size = 310480, upload-time = "2026-04-11T02:57:47.484Z" },
 ]
 
 [[package]]

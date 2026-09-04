@@ -63,7 +63,6 @@
 **/*.egg-info/
 **/dist/
 **/build/
-!scripts/cmd/build/
 **/.eggs/
 
 # Skill validation temporary reports
@@ -112,7 +111,7 @@ fix-report.json
 **/*.dylib
 **/*.test
 **/*.out
-vendor/
+/vendor/
 
 # Node.js inside allowed directories
 **/node_modules/
