@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, t
+from flext_cli._models import atomic_state
 from flext_cli._models._defaults import EMPTY_STR_MAPPING
 from flext_core import m, u
 
@@ -15,12 +15,18 @@ class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
 
     class AtomicFileState(m.BaseModel):
-        """Exact presence, bytes, and permission mode for one physical file."""
+        """Exact content and physical identity for one regular file version."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid", frozen=True, arbitrary_types_allowed=True
         )
         path: Annotated[Path, m.Field(description="Absolute file path")]
+        parent_device: Annotated[
+            int, m.Field(ge=0, strict=True, description="Physical parent device")
+        ]
+        parent_inode: Annotated[
+            int, m.Field(ge=0, strict=True, description="Physical parent inode")
+        ]
         content: Annotated[
             bytes | None,
             m.Field(strict=True, description="Exact bytes, or None when absent"),
@@ -46,35 +52,61 @@ class FlextCliModelsBase:
                 ge=0, strict=True, description="Physical inode, or None when absent"
             ),
         ] = None
+        link_count: Annotated[
+            int | None,
+            m.Field(
+                ge=1,
+                le=1,
+                strict=True,
+                description="Required unique link count, or None when absent",
+            ),
+        ] = None
+        file_attributes: Annotated[
+            int | None,
+            m.Field(
+                ge=0, strict=True, description="Host file attributes when available"
+            ),
+        ] = None
+        reparse_tag: Annotated[
+            int | None,
+            m.Field(ge=0, strict=True, description="Host reparse tag when available"),
+        ] = None
 
         @u.field_validator("path")
         @classmethod
         def _validate_absolute_path(cls, value: Path) -> Path:
             """Reject ambiguous relative identities instead of normalizing them."""
-            normalized = Path(os.path.normpath(value))
-            if (
-                not value.is_absolute()
-                or not value.name
-                or ".." in value.parts
-                or normalized != value
-            ):
-                msg = "atomic file state path must be absolute and normalized"
-                raise ValueError(msg)
-            return value
+            return atomic_state.validate_atomic_state_path(
+                value, label="atomic file state"
+            )
 
         @u.model_validator(mode="after")
         def _validate_presence_tuple(self) -> Self:
-            """Require bytes and mode together for every existing state."""
+            """Require one complete, uniquely owned, non-reparse state."""
             presence = tuple(
                 value is not None
-                for value in (self.content, self.mode, self.device, self.inode)
+                for value in (
+                    self.content,
+                    self.mode,
+                    self.device,
+                    self.inode,
+                    self.link_count,
+                )
             )
             if any(presence) != all(presence):
                 msg = (
-                    "atomic file state must contain bytes, mode, device, and inode, "
-                    "or none of them"
+                    "atomic file state must contain bytes, mode, device, inode, and "
+                    "link count, or none of them"
                 )
                 raise ValueError(msg)
+            if self.content is None and (
+                self.file_attributes is not None or self.reparse_tag is not None
+            ):
+                msg = "absent atomic file state cannot contain host metadata"
+                raise ValueError(msg)
+            atomic_state.validate_non_reparse_state(
+                self.file_attributes, self.reparse_tag, label="atomic file state"
+            )
             return self
 
     class PromptRuntimeState(m.FlexibleInternalModel):

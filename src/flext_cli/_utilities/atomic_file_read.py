@@ -1,4 +1,4 @@
-"""Stable descriptor reads for atomic file state authentication."""
+"""Public stable descriptor reads for atomic file state authentication."""
 
 from __future__ import annotations
 
@@ -6,15 +6,15 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli._utilities._atomic_file_descriptor import ParentDescriptor, open_entry
+from . import atomic_file_descriptor as file_descriptor
 
 
 def read_descriptor_bytes(
-    parent: ParentDescriptor, path: Path, expected: os.stat_result
+    parent: file_descriptor.ParentDescriptor, path: Path, expected: os.stat_result
 ) -> bytes:
     """Read all bytes while one descriptor retains the expected exact state."""
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
-    descriptor = open_entry(parent, path, flags)
+    descriptor = file_descriptor.open_entry(parent, path, flags)
     try:
         content = _read_stable_descriptor(descriptor, path, expected)
     except BaseException as operation_error:

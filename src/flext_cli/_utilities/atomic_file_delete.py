@@ -1,0 +1,36 @@
+"""Public guarded deletion for transaction rollback under a caller-held lock."""
+
+from __future__ import annotations
+
+import errno
+
+from flext_cli import m
+from . import atomic_file_descriptor as file_descriptor
+from . import atomic_file_durability as file_durability
+from . import atomic_file_mode as file_mode
+from . import atomic_file_model as file_model
+from . import atomic_file_path as file_path
+from . import atomic_file_state as file_state
+
+
+def remove_guarded_file(state: m.Cli.AtomicFileState) -> None:
+    """Unlink the complete physical file version authorized by the caller."""
+    path = file_path.validate_atomic_path(state.path)
+    content, mode, _identity = file_model.require_existing(state, purpose="deleted")
+    with file_descriptor.parent_descriptor(path, unlink=True) as parent:
+        file_model.require_parent(state, parent.state)
+        expected = file_state.destination_state(path, parent=parent)
+        file_model.require_observed(state, expected)
+        file_state.validate_precondition(
+            path, expected, content, enabled=True, parent=parent
+        )
+        file_mode.validate_mode_precondition(path, expected, mode)
+        file_state.assert_destination_unchanged(path, expected, parent=parent)
+        file_descriptor.unlink_entry(parent, path)
+        file_durability.sync_parent(parent)
+        if file_state.destination_state(path, parent=parent) is not None:
+            message = f"atomic destination still exists after delete: {path}"
+            raise OSError(errno.ESTALE, message, path)
+
+
+__all__: list[str] = ["remove_guarded_file"]

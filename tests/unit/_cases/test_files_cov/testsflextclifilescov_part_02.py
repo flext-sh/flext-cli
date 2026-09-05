@@ -15,26 +15,26 @@ if TYPE_CHECKING:
 class TestsFlextCliFilesCov:
     """Implementation part for TestsFlextCliFilesCov."""
 
-    def test_ensure_symlink_replaces_existing_directory(self, tmp_path: Path) -> None:
-        """Verify that ensure symlink replaces existing directory."""
+    def test_ensure_symlink_preserves_existing_directory(self, tmp_path: Path) -> None:
+        """Reject a different directory without deleting its content."""
         source = tmp_path / "source_dir"
         source.mkdir()
         target = tmp_path / "target_dir"
         target.mkdir()
         (target / "old.txt").write_text("old", encoding="utf-8")
         result = u.Cli.ensure_symlink(target, source)
-        tm.ok(result)
-        tm.that(target.is_symlink(), eq=True)
+        tm.fail(result)
+        tm.that((target / "old.txt").read_text(encoding="utf-8"), eq="old")
 
-    def test_ensure_symlink_replaces_existing_file(self, tmp_path: Path) -> None:
-        """Verify that ensure symlink replaces existing file."""
+    def test_ensure_symlink_preserves_existing_file(self, tmp_path: Path) -> None:
+        """Reject a different file without deleting its content."""
         source = tmp_path / "source_dir"
         source.mkdir()
         target = tmp_path / "target_file"
         target.write_text("old", encoding="utf-8")
         result = u.Cli.ensure_symlink(target, source)
-        tm.ok(result)
-        tm.that(target.is_symlink(), eq=True)
+        tm.fail(result)
+        tm.that(target.read_text(encoding="utf-8"), eq="old")
 
     def test_atomic_write_text_file(self, tmp_path: Path) -> None:
         """Verify that atomic write text file."""

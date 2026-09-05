@@ -20,59 +20,6 @@ if TYPE_CHECKING:
     from . import _toml_parts as _toml_parts
     from . import _xlxx as _xlxx
     from . import _yaml as _yaml
-    from ._atomic_file import write_atomic_bytes
-    from ._atomic_file_cleanup import remove_failed_temporary
-    from ._atomic_file_delete import remove_guarded_file
-    from ._atomic_file_descriptor import (
-        ParentDescriptor,
-        assert_parent_unchanged,
-        entry_stat,
-        open_entry,
-        parent_descriptor,
-        replace_entry,
-        unlink_entry,
-    )
-    from ._atomic_file_mode import (
-        NO_MODE_PRECONDITION,
-        assert_observed_mode,
-        publication_mode,
-        validate_guarded_mode_tuple,
-        validate_mode,
-        validate_mode_precondition,
-    )
-    from ._atomic_file_path import (
-        identity,
-        is_reparse_point,
-        validate_atomic_path,
-        validate_directory_state,
-        validate_parent_path,
-    )
-    from ._atomic_file_publish import publish_guarded_staged_file
-    from ._atomic_file_publish_checks import (
-        require_distinct_inode,
-        require_identity,
-        validate_devices,
-        validate_expected_identity,
-        validate_identity,
-        validate_publication,
-    )
-    from ._atomic_file_read import read_descriptor_bytes, state_key
-    from ._atomic_file_snapshot import read_authenticated_state
-    from ._atomic_file_state import (
-        assert_destination_unchanged,
-        assert_temporary_owned,
-        destination_state,
-        permission_state,
-        read_authenticated_bytes,
-        validate_parent,
-        validate_precondition,
-    )
-    from ._atomic_file_temporary import (
-        create_descriptor,
-        require_mode_capability,
-        temporary_path,
-        write_and_sync,
-    )
     from ._cli_namespace import FlextCliUtilitiesCli
     from ._docx._reader import FlextCliUtilitiesDocxReader
     from ._docx._renderer import FlextCliUtilitiesDocxRenderer
@@ -138,6 +85,63 @@ if TYPE_CHECKING:
     from ._yaml._convert import FlextCliUtilitiesYamlConvertMixin
     from ._yaml._editing import FlextCliUtilitiesYamlEditingMixin
     from ._yaml._engine import FlextCliUtilitiesYamlEngineMixin
+    from .atomic_file import write_atomic_bytes
+    from .atomic_file_cleanup import remove_failed_temporary
+    from .atomic_file_delete import remove_guarded_file
+    from .atomic_file_descriptor import (
+        ParentDescriptor,
+        assert_parent_unchanged,
+        entry_stat,
+        open_entry,
+        parent_descriptor,
+        replace_entry,
+        unlink_entry,
+    )
+    from .atomic_file_durability import sync_parent, sync_replacement
+    from .atomic_file_mode import (
+        NO_MODE_PRECONDITION,
+        assert_observed_mode,
+        publication_mode,
+        validate_guarded_mode_tuple,
+        validate_mode,
+        validate_mode_precondition,
+    )
+    from .atomic_file_model import (
+        PhysicalState,
+        physical_state,
+        require_existing,
+        require_observed,
+    )
+    from .atomic_file_path import (
+        identity,
+        is_reparse_point,
+        validate_atomic_path,
+        validate_directory_state,
+        validate_parent_path,
+    )
+    from .atomic_file_publish import publish_guarded_staged_file
+    from .atomic_file_publish_checks import (
+        require_distinct_inode,
+        require_identity,
+        validate_devices,
+        validate_identity,
+        validate_publication,
+    )
+    from .atomic_file_read import read_descriptor_bytes, state_key
+    from .atomic_file_snapshot import read_authenticated_state
+    from .atomic_file_state import (
+        assert_destination_unchanged,
+        assert_temporary_owned,
+        destination_state,
+        read_authenticated_bytes,
+        validate_precondition,
+    )
+    from .atomic_file_temporary import (
+        create_descriptor,
+        require_mode_capability,
+        temporary_path,
+        write_and_sync,
+    )
     from .auth import FlextCliUtilitiesAuth
     from .cmd import FlextCliUtilitiesCmd
     from .commands import FlextCliUtilitiesCommands
@@ -258,6 +262,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlEngineMixin",
     "FlextCliUtilitiesYamlModel",
     "ParentDescriptor",
+    "PhysicalState",
     "_docx",
     "_file_test_helper_parts",
     "_files_parts",
@@ -279,7 +284,7 @@ __all__: tuple[str, ...] = (
     "is_reparse_point",
     "open_entry",
     "parent_descriptor",
-    "permission_state",
+    "physical_state",
     "publication_mode",
     "publish_guarded_staged_file",
     "read_authenticated_bytes",
@@ -289,20 +294,22 @@ __all__: tuple[str, ...] = (
     "remove_guarded_file",
     "replace_entry",
     "require_distinct_inode",
+    "require_existing",
     "require_identity",
     "require_mode_capability",
+    "require_observed",
     "state_key",
+    "sync_parent",
+    "sync_replacement",
     "temporary_path",
     "unlink_entry",
     "validate_atomic_path",
     "validate_devices",
     "validate_directory_state",
-    "validate_expected_identity",
     "validate_guarded_mode_tuple",
     "validate_identity",
     "validate_mode",
     "validate_mode_precondition",
-    "validate_parent",
     "validate_parent_path",
     "validate_precondition",
     "validate_publication",
@@ -313,59 +320,6 @@ __all__: tuple[str, ...] = (
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
-            "._atomic_file": ("write_atomic_bytes",),
-            "._atomic_file_cleanup": ("remove_failed_temporary",),
-            "._atomic_file_delete": ("remove_guarded_file",),
-            "._atomic_file_descriptor": (
-                "ParentDescriptor",
-                "assert_parent_unchanged",
-                "entry_stat",
-                "open_entry",
-                "parent_descriptor",
-                "replace_entry",
-                "unlink_entry",
-            ),
-            "._atomic_file_mode": (
-                "NO_MODE_PRECONDITION",
-                "assert_observed_mode",
-                "publication_mode",
-                "validate_guarded_mode_tuple",
-                "validate_mode",
-                "validate_mode_precondition",
-            ),
-            "._atomic_file_path": (
-                "identity",
-                "is_reparse_point",
-                "validate_atomic_path",
-                "validate_directory_state",
-                "validate_parent_path",
-            ),
-            "._atomic_file_publish": ("publish_guarded_staged_file",),
-            "._atomic_file_publish_checks": (
-                "require_distinct_inode",
-                "require_identity",
-                "validate_devices",
-                "validate_expected_identity",
-                "validate_identity",
-                "validate_publication",
-            ),
-            "._atomic_file_read": ("read_descriptor_bytes", "state_key"),
-            "._atomic_file_snapshot": ("read_authenticated_state",),
-            "._atomic_file_state": (
-                "assert_destination_unchanged",
-                "assert_temporary_owned",
-                "destination_state",
-                "permission_state",
-                "read_authenticated_bytes",
-                "validate_parent",
-                "validate_precondition",
-            ),
-            "._atomic_file_temporary": (
-                "create_descriptor",
-                "require_mode_capability",
-                "temporary_path",
-                "write_and_sync",
-            ),
             "._cli_namespace": ("FlextCliUtilitiesCli",),
             "._docx": ("_docx",),
             "._docx._reader": ("FlextCliUtilitiesDocxReader",),
@@ -457,6 +411,63 @@ _LAZY_IMPORTS = MappingProxyType(
             "._yaml._convert": ("FlextCliUtilitiesYamlConvertMixin",),
             "._yaml._editing": ("FlextCliUtilitiesYamlEditingMixin",),
             "._yaml._engine": ("FlextCliUtilitiesYamlEngineMixin",),
+            ".atomic_file": ("write_atomic_bytes",),
+            ".atomic_file_cleanup": ("remove_failed_temporary",),
+            ".atomic_file_delete": ("remove_guarded_file",),
+            ".atomic_file_descriptor": (
+                "ParentDescriptor",
+                "assert_parent_unchanged",
+                "entry_stat",
+                "open_entry",
+                "parent_descriptor",
+                "replace_entry",
+                "unlink_entry",
+            ),
+            ".atomic_file_durability": ("sync_parent", "sync_replacement"),
+            ".atomic_file_mode": (
+                "NO_MODE_PRECONDITION",
+                "assert_observed_mode",
+                "publication_mode",
+                "validate_guarded_mode_tuple",
+                "validate_mode",
+                "validate_mode_precondition",
+            ),
+            ".atomic_file_model": (
+                "PhysicalState",
+                "physical_state",
+                "require_existing",
+                "require_observed",
+            ),
+            ".atomic_file_path": (
+                "identity",
+                "is_reparse_point",
+                "validate_atomic_path",
+                "validate_directory_state",
+                "validate_parent_path",
+            ),
+            ".atomic_file_publish": ("publish_guarded_staged_file",),
+            ".atomic_file_publish_checks": (
+                "require_distinct_inode",
+                "require_identity",
+                "validate_devices",
+                "validate_identity",
+                "validate_publication",
+            ),
+            ".atomic_file_read": ("read_descriptor_bytes", "state_key"),
+            ".atomic_file_snapshot": ("read_authenticated_state",),
+            ".atomic_file_state": (
+                "assert_destination_unchanged",
+                "assert_temporary_owned",
+                "destination_state",
+                "read_authenticated_bytes",
+                "validate_precondition",
+            ),
+            ".atomic_file_temporary": (
+                "create_descriptor",
+                "require_mode_capability",
+                "temporary_path",
+                "write_and_sync",
+            ),
             ".auth": ("FlextCliUtilitiesAuth",),
             ".cmd": ("FlextCliUtilitiesCmd",),
             ".commands": ("FlextCliUtilitiesCommands",),

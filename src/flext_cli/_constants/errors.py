@@ -31,6 +31,30 @@ class FlextCliConstantsErrors:
     ERR_FILE_PATH_EMPTY: Final[str] = "File path must be non-empty"
     ERR_AUTO_LOAD_FAILED: Final[str] = "Auto load failed"
     ERR_FILE_DELETION_FAILED: Final[str] = "File deletion failed: {error}"
+    ERR_ATOMIC_DIRECTORY_READ_FAILED: Final[str] = (
+        "Atomic directory read failed: {error}"
+    )
+    ERR_ATOMIC_DIRECTORY_CREATE_FAILED: Final[str] = (
+        "Atomic directory create failed: {error}"
+    )
+    ERR_ATOMIC_DIRECTORY_DELETE_FAILED: Final[str] = (
+        "Atomic directory delete failed: {error}"
+    )
+    ERR_ATOMIC_DIRECTORY_PUBLISH_FAILED: Final[str] = (
+        "Atomic directory publish failed: {error}"
+    )
+    ERR_ATOMIC_DIRECTORY_PLAN_FAILED: Final[str] = (
+        "Atomic directory-chain plan failed: {error}"
+    )
+    ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED: Final[str] = (
+        "Atomic directory-chain create failed: {error}"
+    )
+    ERR_ATOMIC_PHYSICAL_TREE_INVENTORY_FAILED: Final[str] = (
+        "Atomic physical-tree inventory failed: {error}"
+    )
+    ERR_ATOMIC_PHYSICAL_TREE_CLEANUP_FAILED: Final[str] = (
+        "Atomic physical-tree cleanup failed: {error}"
+    )
     ERR_JSON_LOAD_FAILED: Final[str] = "JSON load failed: {error}"
 
     ERR_INVALID_CREDENTIALS: Final[str] = (

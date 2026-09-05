@@ -1,4 +1,4 @@
-"""Lexical and physical path validation for atomic file owners."""
+"""Public lexical and physical path validation for atomic file owners."""
 
 from __future__ import annotations
 
@@ -10,30 +10,36 @@ from pathlib import Path
 
 def validate_atomic_path(path: Path) -> Path:
     """Require one absolute, normalized file pathname without traversal."""
+    validate_directory_path(path)
+    if not path.name:
+        message = f"atomic file path cannot identify a filesystem root: {path}"
+        raise OSError(errno.EINVAL, message, path)
+    return path
+
+
+def validate_directory_path(path: Path) -> Path:
+    """Require one absolute, normalized directory path without traversal."""
     normalized = Path(os.path.normpath(path))
-    if (
-        not path.is_absolute()
-        or not path.name
-        or ".." in path.parts
-        or normalized != path
-    ):
-        message = f"atomic file path is not absolute and normalized: {path}"
+    if not path.is_absolute() or ".." in path.parts or normalized != path:
+        message = f"atomic directory path is not absolute and normalized: {path}"
         raise OSError(errno.EINVAL, message, path)
     return path
 
 
 def validate_parent_path(parent: Path) -> os.stat_result:
-    """Return one physical directory state without following its final entry."""
-    normalized = Path(os.path.normpath(parent))
-    if not parent.is_absolute() or ".." in parent.parts or normalized != parent:
-        message = f"atomic file parent is not absolute and normalized: {parent}"
-        raise OSError(errno.EINVAL, message, parent)
-    try:
-        state = parent.lstat()
-    except FileNotFoundError as exc:
+    """Return a physical parent only when every path component is non-aliased."""
+    validate_directory_path(parent)
+    state: os.stat_result | None = None
+    for component in (*reversed(parent.parents), parent):
+        try:
+            state = component.lstat()
+        except FileNotFoundError as exc:
+            message = f"atomic destination parent is missing: {component}"
+            raise FileNotFoundError(errno.ENOENT, message, component) from exc
+        validate_directory_state(component, state)
+    if state is None:
         message = f"atomic destination parent is missing: {parent}"
-        raise FileNotFoundError(errno.ENOENT, message, parent) from exc
-    validate_directory_state(parent, state)
+        raise FileNotFoundError(errno.ENOENT, message, parent)
     return state
 
 
@@ -53,13 +59,15 @@ def is_reparse_point(state: os.stat_result) -> bool:
     """Identify Windows reparse-point aliases without platform branching."""
     attributes = getattr(state, "st_file_attributes", 0)
     marker = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
-    return bool(attributes & marker)
+    reparse_tag = getattr(state, "st_reparse_tag", None)
+    return bool(attributes & marker) or reparse_tag not in {None, 0}
 
 
 __all__: list[str] = [
     "identity",
     "is_reparse_point",
     "validate_atomic_path",
+    "validate_directory_path",
     "validate_directory_state",
     "validate_parent_path",
 ]

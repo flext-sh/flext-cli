@@ -1,4 +1,4 @@
-"""Descriptor-owned staging for one atomic file replacement."""
+"""Public descriptor-owned staging for one atomic file replacement."""
 
 from __future__ import annotations
 
@@ -8,13 +8,13 @@ import secrets
 import stat
 from pathlib import Path
 
-from flext_cli._utilities._atomic_file_descriptor import ParentDescriptor, open_entry
-from flext_cli._utilities._atomic_file_mode import assert_observed_mode
+from . import atomic_file_descriptor as file_descriptor
+from . import atomic_file_mode as file_mode
 
 _SECURE_CREATE_MODE = 0o600
 
 
-def temporary_path(parent: ParentDescriptor) -> Path:
+def temporary_path(parent: file_descriptor.ParentDescriptor) -> Path:
     """Return one unpredictable sibling name without probing or retrying."""
     return parent.path / f".flext-atomic-{secrets.token_hex(16)}.tmp"
 
@@ -26,7 +26,7 @@ def require_mode_capability(path: Path, permission_mode: int | None) -> None:
         raise OSError(errno.ENOTSUP, message, path)
 
 
-def create_descriptor(parent: ParentDescriptor, temporary: Path) -> int:
+def create_descriptor(parent: file_descriptor.ParentDescriptor, temporary: Path) -> int:
     """Create one exclusive, securely permissioned sibling through ``dir_fd``."""
     flags = (
         os.O_WRONLY
@@ -35,7 +35,9 @@ def create_descriptor(parent: ParentDescriptor, temporary: Path) -> int:
         | getattr(os, "O_CLOEXEC", 0)
         | getattr(os, "O_BINARY", 0)
     )
-    return open_entry(parent, temporary, flags, mode=_SECURE_CREATE_MODE)
+    return file_descriptor.open_entry(
+        parent, temporary, flags, mode=_SECURE_CREATE_MODE
+    )
 
 
 def write_and_sync(
@@ -51,7 +53,7 @@ def write_and_sync(
         remaining = remaining[written:]
     if permission_mode is not None:
         os.chmod(descriptor, permission_mode)
-        assert_observed_mode(temporary, os.fstat(descriptor), permission_mode)
+        file_mode.assert_observed_mode(temporary, os.fstat(descriptor), permission_mode)
     os.fsync(descriptor)
     return stat.S_IMODE(os.fstat(descriptor).st_mode)
 

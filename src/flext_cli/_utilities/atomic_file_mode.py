@@ -1,4 +1,4 @@
-"""Permission-mode contracts for atomic file publication."""
+"""Public permission-mode contracts for atomic file publication."""
 
 from __future__ import annotations
 

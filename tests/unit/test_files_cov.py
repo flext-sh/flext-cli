@@ -164,24 +164,24 @@ class TestsFlextCliFilesCov:
         tm.ok(u.Cli.ensure_symlink(link, source))
         tm.ok(u.Cli.ensure_symlink(link, source))
 
-    def test_ensure_symlink_replaces_existing_directory(self, tmp_path: Path) -> None:
-        """Verify that ensure symlink replaces existing directory."""
+    def test_ensure_symlink_preserves_existing_directory(self, tmp_path: Path) -> None:
+        """Reject a different directory without deleting its content."""
         source = tmp_path / "source_dir"
         source.mkdir()
         target = tmp_path / "target_dir"
         target.mkdir()
         (target / "old.txt").write_text("old", encoding="utf-8")
-        tm.ok(u.Cli.ensure_symlink(target, source))
-        tm.that(target.is_symlink(), eq=True)
+        tm.fail(u.Cli.ensure_symlink(target, source))
+        tm.that((target / "old.txt").read_text(encoding="utf-8"), eq="old")
 
-    def test_ensure_symlink_replaces_existing_file(self, tmp_path: Path) -> None:
-        """Verify that ensure symlink replaces existing file."""
+    def test_ensure_symlink_preserves_existing_file(self, tmp_path: Path) -> None:
+        """Reject a different file without deleting its content."""
         source = tmp_path / "source_dir"
         source.mkdir()
         target = tmp_path / "target_file"
         target.write_text("old", encoding="utf-8")
-        tm.ok(u.Cli.ensure_symlink(target, source))
-        tm.that(target.is_symlink(), eq=True)
+        tm.fail(u.Cli.ensure_symlink(target, source))
+        tm.that(target.read_text(encoding="utf-8"), eq="old")
 
 
 __all__: list[str] = ["TestsFlextCliFilesCov"]
