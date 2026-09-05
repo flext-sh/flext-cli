@@ -30,9 +30,7 @@ def destination_state(
 
 
 def read_empty_state(
-    parent: file_descriptor.ParentDescriptor,
-    path: Path,
-    expected: os.stat_result,
+    parent: file_descriptor.ParentDescriptor, path: Path, expected: os.stat_result
 ) -> os.stat_result:
     """Prove one exact directory version remains empty through an FD read."""
     flags = (
@@ -104,9 +102,7 @@ def _require_empty(descriptor: int, path: Path) -> None:
 
 
 def _require_path_state(
-    parent: file_descriptor.ParentDescriptor,
-    path: Path,
-    expected: os.stat_result,
+    parent: file_descriptor.ParentDescriptor, path: Path, expected: os.stat_result
 ) -> os.stat_result:
     current = destination_state(path, parent=parent)
     if current is None or file_read.state_key(current) != file_read.state_key(expected):

@@ -21,9 +21,7 @@ from . import atomic_tree_descriptor as tree_descriptor
 from . import atomic_tree_inventory as tree_inventory
 
 
-def cleanup_physical_tree_guarded(
-    manifest: m.Cli.AtomicPhysicalTreeManifest,
-) -> None:
+def cleanup_physical_tree_guarded(manifest: m.Cli.AtomicPhysicalTreeManifest) -> None:
     """Delete only the exact manifested tree under the caller's exclusive lock."""
     _require_cleanup_capabilities(manifest)
     current = tree_inventory.inventory_physical_tree(manifest.root.path)
@@ -32,17 +30,16 @@ def cleanup_physical_tree_guarded(
     files = (entry for entry in manifest.entries if entry.kind == "file")
     for entry in sorted(files, key=_deletion_key, reverse=True):
         _delete_file(entry)
-    directories = [
-        entry for entry in manifest.entries if entry.kind == "directory"
-    ]
+    symlinks = (entry for entry in manifest.entries if entry.kind == "symlink")
+    for entry in sorted(symlinks, key=_deletion_key, reverse=True):
+        _delete_symlink(entry)
+    directories = [entry for entry in manifest.entries if entry.kind == "directory"]
     directories.append(manifest.root)
     for entry in sorted(directories, key=_deletion_key, reverse=True):
         _delete_directory(entry)
 
 
-def _require_cleanup_capabilities(
-    manifest: m.Cli.AtomicPhysicalTreeManifest,
-) -> None:
+def _require_cleanup_capabilities(manifest: m.Cli.AtomicPhysicalTreeManifest) -> None:
     root = manifest.root
     directory_descriptor.require_delete_capabilities(root.path)
     parent_descriptor.require_traversal_capabilities(root.path)
@@ -54,17 +51,11 @@ def _require_cleanup_capabilities(
         raise OSError(errno.ENOTSUP, message, root.path)
     bindings: dict[Path, tuple[int, int, int]] = {}
     for entry in (root, *manifest.entries):
-        expected = (
-            entry.parent_device,
-            entry.parent_inode,
-            entry.parent_mount_id,
-        )
+        expected = (entry.parent_device, entry.parent_inode, entry.parent_mount_id)
         prior = bindings.setdefault(entry.path.parent, expected)
         if prior != expected:
             _raise_changed(entry.path.parent)
-    for path, expected in sorted(
-        bindings.items(), key=lambda item: item[0].as_posix()
-    ):
+    for path, expected in sorted(bindings.items(), key=_binding_path_key):
         with parent_descriptor.physical_directory(path) as opened:
             mount_id = tree_descriptor.mount_id(opened.descriptor, path)
             if (opened.state.st_dev, opened.state.st_ino, mount_id) != expected:
@@ -78,9 +69,7 @@ def _require_cleanup_capabilities(
 def _delete_file(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
     with file_descriptor.parent_descriptor(entry.path, unlink=True) as parent:
         _require_parent(entry, parent.state.st_dev, parent.state.st_ino)
-        parent_mount_id = tree_descriptor.mount_id(
-            parent.descriptor, parent.path
-        )
+        parent_mount_id = tree_descriptor.mount_id(parent.descriptor, parent.path)
         if parent_mount_id != entry.parent_mount_id:
             _raise_changed(parent.path)
         observed = file_state.destination_state(entry.path, parent=parent)
@@ -88,24 +77,62 @@ def _delete_file(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
             _raise_changed(entry.path)
         _require_file_state(entry, observed)
         size, digest = tree_descriptor.measure_authenticated_file(
-            parent,
-            entry.path,
-            observed,
-            required_mount_id=entry.mount_id,
+            parent, entry.path, observed, required_mount_id=entry.mount_id
         )
         if (size, digest) != (entry.size, entry.sha256):
             _raise_changed(entry.path)
-        file_state.assert_destination_unchanged(
-            entry.path, observed, parent=parent
-        )
+        file_state.assert_destination_unchanged(entry.path, observed, parent=parent)
         file_descriptor.unlink_entry(parent, entry.path)
         file_durability.sync_parent(parent)
         if file_state.destination_state(entry.path, parent=parent) is not None:
             message = (
-                "atomic physical-tree file still exists after delete: "
-                f"{entry.path}"
+                f"atomic physical-tree file still exists after delete: {entry.path}"
             )
             raise OSError(errno.ESTALE, message, entry.path)
+
+
+def _delete_symlink(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
+    with file_descriptor.parent_descriptor(entry.path, unlink=True) as parent:
+        _require_parent(entry, parent.state.st_dev, parent.state.st_ino)
+        parent_mount_id = tree_descriptor.mount_id(parent.descriptor, parent.path)
+        if parent_mount_id != entry.parent_mount_id:
+            _raise_changed(parent.path)
+        observed = file_descriptor.entry_stat(parent, entry.path)
+        if not stat.S_ISLNK(observed.st_mode):
+            _raise_changed(entry.path)
+        if (
+            stat.S_IMODE(observed.st_mode),
+            observed.st_dev,
+            observed.st_ino,
+            observed.st_nlink,
+            observed.st_uid,
+            observed.st_gid,
+            observed.st_mtime_ns,
+            observed.st_ctime_ns,
+            getattr(observed, "st_file_attributes", None),
+            getattr(observed, "st_reparse_tag", None),
+            os.readlink(entry.path.name, dir_fd=parent.descriptor),
+        ) != (
+            entry.mode,
+            entry.device,
+            entry.inode,
+            entry.link_count,
+            entry.uid,
+            entry.gid,
+            entry.mtime_ns,
+            entry.ctime_ns,
+            entry.file_attributes,
+            entry.reparse_tag,
+            entry.link_target,
+        ):
+            _raise_changed(entry.path)
+        file_descriptor.unlink_entry(parent, entry.path)
+        file_durability.sync_parent(parent)
+        try:
+            file_descriptor.entry_stat(parent, entry.path)
+        except FileNotFoundError:
+            return
+        _raise_changed(entry.path)
 
 
 def _delete_directory(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
@@ -177,6 +204,11 @@ def _require_parent(
 
 def _deletion_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> tuple[int, str]:
     return (len(entry.path.parts), entry.path.as_posix())
+
+
+def _binding_path_key(item: tuple[Path, tuple[int, int, int]]) -> str:
+    """Return the lexical key for one authenticated parent binding."""
+    return item[0].as_posix()
 
 
 def _raise_changed(path: Path) -> Never:

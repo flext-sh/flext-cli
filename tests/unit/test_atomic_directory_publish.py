@@ -173,17 +173,13 @@ class TestsAtomicDirectoryPublish:
         destination = self._snapshot(destination_path)
         staged = self._snapshot(staged_path, required=True)
 
-        result = cli.atomic_publish_staged_empty_directory_guarded(
-            destination, staged
-        )
+        result = cli.atomic_publish_staged_empty_directory_guarded(destination, staged)
 
         tm.ok(result)
         tm.that(result.value.path, eq=destination_path)
 
     @staticmethod
-    def _snapshot(
-        path: Path, *, required: bool = False
-    ) -> m.Cli.AtomicDirectoryState:
+    def _snapshot(path: Path, *, required: bool = False) -> m.Cli.AtomicDirectoryState:
         result = u.Cli.atomic_read_empty_directory_state(path, required=required)
         tm.ok(result)
         return result.value

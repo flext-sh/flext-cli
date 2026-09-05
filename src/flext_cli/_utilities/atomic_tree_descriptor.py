@@ -106,9 +106,7 @@ def require_entry_state(
         _raise_changed(path)
 
 
-def _require_file_state(
-    descriptor: int, path: Path, expected: os.stat_result
-) -> None:
+def _require_file_state(descriptor: int, path: Path, expected: os.stat_result) -> None:
     if file_read.state_key(os.fstat(descriptor)) != file_read.state_key(expected):
         _raise_changed(path)
 

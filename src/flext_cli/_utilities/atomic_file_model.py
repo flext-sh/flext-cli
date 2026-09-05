@@ -51,10 +51,7 @@ def require_observed(
 
 def require_parent(state: m.Cli.AtomicFileState, observed: os.stat_result) -> None:
     """Require the authenticated parent to equal the snapshot parent identity."""
-    if (state.parent_device, state.parent_inode) != (
-        observed.st_dev,
-        observed.st_ino,
-    ):
+    if (state.parent_device, state.parent_inode) != (observed.st_dev, observed.st_ino):
         message = f"atomic file parent identity changed: {state.path.parent}"
         raise OSError(errno.ESTALE, message, state.path.parent)
 

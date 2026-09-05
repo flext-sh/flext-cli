@@ -105,9 +105,7 @@ class FlextCliModelsBase:
                 msg = "absent atomic file state cannot contain host metadata"
                 raise ValueError(msg)
             atomic_state.validate_non_reparse_state(
-                self.file_attributes,
-                self.reparse_tag,
-                label="atomic file state",
+                self.file_attributes, self.reparse_tag, label="atomic file state"
             )
             return self
 

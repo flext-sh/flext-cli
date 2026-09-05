@@ -12,9 +12,7 @@ from tests import u
 class TestsAtomicDirectoryChain:
     """Prove missing ancestors are explicit, physical, and rollback-capable."""
 
-    def test_plan_anchors_at_deepest_existing_directory(
-        self, tmp_path: Path
-    ) -> None:
+    def test_plan_anchors_at_deepest_existing_directory(self, tmp_path: Path) -> None:
         """Allow a nonempty anchor while recording every lower path as absent."""
         anchor = tmp_path / "docs"
         anchor.mkdir()
@@ -29,10 +27,7 @@ class TestsAtomicDirectoryChain:
         tm.that(plan.anchor_path, eq=anchor)
         tm.that(plan.anchor_device, eq=anchor_state.st_dev)
         tm.that(plan.anchor_inode, eq=anchor_state.st_ino)
-        tm.that(
-            plan.directories,
-            eq=(anchor / "api-reference", target),
-        )
+        tm.that(plan.directories, eq=(anchor / "api-reference", target))
 
     def test_materialize_then_resnapshot_file_parent(self, tmp_path: Path) -> None:
         """Bind file absence only after its planned parent physically exists."""
@@ -45,7 +40,10 @@ class TestsAtomicDirectoryChain:
         )
 
         tm.ok(created)
-        tm.that(tuple(state.path for state in created.value), eq=plan_result.value.directories)
+        tm.that(
+            tuple(state.path for state in created.value),
+            eq=plan_result.value.directories,
+        )
         for directory in plan_result.value.directories:
             tm.that(stat.S_IMODE(directory.lstat().st_mode), eq=0o750)
         file_path = target / "overview.md"

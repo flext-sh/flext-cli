@@ -41,9 +41,7 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
         with file_descriptor.entry_descriptor(
             outer_parent, root_path, _DIRECTORY_FLAGS
         ) as descriptor:
-            tree_descriptor.require_directory_state(
-                descriptor, root_path, root_state
-            )
+            tree_descriptor.require_directory_state(descriptor, root_path, root_state)
             root_mount_id = tree_descriptor.mount_id(descriptor, root_path)
             tree_descriptor.require_mount(root_path, parent_mount_id, root_mount_id)
             root = _entry(
@@ -64,13 +62,10 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
             _inventory_directory(
                 root_parent, root_mount_id, entries, directory_identities
             )
-            tree_descriptor.require_directory_state(
-                descriptor, root_path, root_state
-            )
+            tree_descriptor.require_directory_state(descriptor, root_path, root_state)
         tree_descriptor.require_entry_state(outer_parent, root_path, root_state)
     return m.Cli.AtomicPhysicalTreeManifest(
-        root=root,
-        entries=tuple(sorted(entries, key=lambda entry: entry.path.as_posix())),
+        root=root, entries=tuple(sorted(entries, key=_entry_path_key))
     )
 
 
@@ -83,7 +78,7 @@ def _inventory_directory(
     tree_descriptor.require_directory_state(
         parent.descriptor, parent.path, parent.state
     )
-    names = tuple(sorted(os.listdir(parent.descriptor)))
+    names = _directory_names(parent.descriptor)
     for name in names:
         path = parent.path / name
         observed = file_descriptor.entry_stat(parent, path)
@@ -128,10 +123,7 @@ def _inventory_directory(
                 _raise_changed(path)
             tree_descriptor.require_same_device(path, parent.state, authenticated)
             size, digest = tree_descriptor.measure_authenticated_file(
-                parent,
-                path,
-                authenticated,
-                required_mount_id=parent_mount_id,
+                parent, path, authenticated, required_mount_id=parent_mount_id
             )
             entries.append(
                 _entry(
@@ -145,13 +137,29 @@ def _inventory_directory(
                     mount_id=parent_mount_id,
                 )
             )
+        elif stat.S_ISLNK(observed.st_mode):
+            target = os.readlink(name, dir_fd=parent.descriptor)
+            if not target:
+                _raise_changed(path)
+            tree_descriptor.require_entry_state(parent, path, observed)
+            tree_descriptor.require_same_device(path, parent.state, observed)
+            entries.append(
+                _entry(
+                    path,
+                    "symlink",
+                    parent.state,
+                    observed,
+                    parent_mount_id=parent_mount_id,
+                    mount_id=parent_mount_id,
+                    link_target=target,
+                )
+            )
         else:
             message = (
-                "atomic physical-tree entry is not regular or a directory: "
-                f"{path}"
+                f"atomic physical-tree entry is not regular or a directory: {path}"
             )
             raise OSError(errno.EINVAL, message, path)
-    if tuple(sorted(os.listdir(parent.descriptor))) != names:
+    if _directory_names(parent.descriptor) != names:
         _raise_changed(parent.path)
     tree_descriptor.require_directory_state(
         parent.descriptor, parent.path, parent.state
@@ -160,7 +168,7 @@ def _inventory_directory(
 
 def _entry(
     path: Path,
-    kind: Literal["directory", "file"],
+    kind: Literal["directory", "file", "symlink"],
     parent: os.stat_result,
     observed: os.stat_result,
     *,
@@ -168,6 +176,7 @@ def _entry(
     mount_id: int,
     size: int | None = None,
     digest: str | None = None,
+    link_target: str | None = None,
 ) -> m.Cli.AtomicPhysicalTreeEntry:
     return m.Cli.AtomicPhysicalTreeEntry(
         path=path,
@@ -188,7 +197,19 @@ def _entry(
         reparse_tag=getattr(observed, "st_reparse_tag", None),
         size=size,
         sha256=digest,
+        link_target=link_target,
     )
+
+
+def _directory_names(descriptor: int) -> tuple[str, ...]:
+    """Enumerate names through the authenticated directory descriptor."""
+    with os.scandir(descriptor) as entries:
+        return tuple(sorted(entry.name for entry in entries))
+
+
+def _entry_path_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> str:
+    """Return the deterministic lexical manifest key."""
+    return entry.path.as_posix()
 
 
 def _raise_changed(path: Path) -> Never:

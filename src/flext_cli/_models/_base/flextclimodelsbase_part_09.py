@@ -13,14 +13,15 @@ class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
 
     class AtomicPhysicalTreeEntry(m.BaseModel):
-        """One exact regular file or physical directory in a tree manifest."""
+        """One exact regular file, symlink leaf, or physical directory."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid", frozen=True, arbitrary_types_allowed=True
         )
         path: Annotated[Path, m.Field(description="Absolute entry path")]
         kind: Annotated[
-            Literal["directory", "file"], m.Field(description="Physical entry kind")
+            Literal["directory", "file", "symlink"],
+            m.Field(description="Physical entry kind"),
         ]
         parent_device: Annotated[
             int, m.Field(ge=0, strict=True, description="Physical parent device")
@@ -32,15 +33,12 @@ class FlextCliModelsBase:
             int, m.Field(ge=1, strict=True, description="Physical parent mount ID")
         ]
         mode: Annotated[
-            int,
-            m.Field(ge=0, le=0o7777, strict=True, description="Permission bits"),
+            int, m.Field(ge=0, le=0o7777, strict=True, description="Permission bits")
         ]
         device: Annotated[
             int, m.Field(ge=0, strict=True, description="Physical device")
         ]
-        inode: Annotated[
-            int, m.Field(ge=0, strict=True, description="Physical inode")
-        ]
+        inode: Annotated[int, m.Field(ge=0, strict=True, description="Physical inode")]
         mount_id: Annotated[
             int, m.Field(ge=1, strict=True, description="Physical mount ID")
         ]
@@ -70,6 +68,9 @@ class FlextCliModelsBase:
                 pattern=r"^[0-9a-f]{64}$", description="Regular-file SHA-256 digest"
             ),
         ] = None
+        link_target: Annotated[
+            str | None, m.Field(min_length=1, description="Exact symlink target text")
+        ] = None
 
         @u.field_validator("path")
         @classmethod
@@ -92,12 +93,30 @@ class FlextCliModelsBase:
                 msg = "atomic physical-tree entry crosses its parent mount"
                 raise ValueError(msg)
             if self.kind == "file":
-                if self.link_count != 1 or self.size is None or self.sha256 is None:
+                if (
+                    self.link_count != 1
+                    or self.size is None
+                    or self.sha256 is None
+                    or self.link_target is not None
+                ):
                     msg = (
                         "atomic physical-tree file requires one link, size, and digest"
                     )
                     raise ValueError(msg)
-            elif self.size is not None or self.sha256 is not None:
+            elif self.kind == "symlink":
+                if (
+                    self.link_count != 1
+                    or self.link_target is None
+                    or self.size is not None
+                    or self.sha256 is not None
+                ):
+                    msg = "atomic physical-tree symlink requires one link and target"
+                    raise ValueError(msg)
+            elif (
+                self.size is not None
+                or self.sha256 is not None
+                or self.link_target is not None
+            ):
                 msg = "atomic physical-tree directory cannot contain file content state"
                 raise ValueError(msg)
             return self

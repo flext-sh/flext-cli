@@ -140,9 +140,7 @@ class TestsAtomicDirectoryIdentity:
         alias = tmp_path / "alias"
         alias.symlink_to(physical, target_is_directory=True)
 
-        result = u.Cli.atomic_read_empty_directory_state(
-            alias / "empty", required=True
-        )
+        result = u.Cli.atomic_read_empty_directory_state(alias / "empty", required=True)
 
         tm.fail(result)
         tm.that((physical / "empty").is_dir(), eq=True)
@@ -181,9 +179,7 @@ class TestsAtomicDirectoryIdentity:
         tm.that(target.exists(), eq=False)
 
     @staticmethod
-    def _snapshot(
-        path: Path, *, required: bool = False
-    ) -> m.Cli.AtomicDirectoryState:
+    def _snapshot(path: Path, *, required: bool = False) -> m.Cli.AtomicDirectoryState:
         result = u.Cli.atomic_read_empty_directory_state(path, required=required)
         tm.ok(result)
         return result.value

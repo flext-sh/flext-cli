@@ -12,10 +12,7 @@ from pathlib import Path
 from . import atomic_file_path as file_path
 
 type DirectoryChainInspection = tuple[
-    Path,
-    os.stat_result,
-    tuple[tuple[int, int], ...],
-    tuple[Path, ...],
+    Path, os.stat_result, tuple[tuple[int, int], ...], tuple[Path, ...]
 ]
 
 

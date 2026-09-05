@@ -40,9 +40,7 @@ def parent_descriptor(
             yield handle
         except BaseException as operation_error:
             parent_failure.preserve_recheck_failure(
-                handle.path,
-                operation_error,
-                lambda: assert_parent_unchanged(handle),
+                handle.path, operation_error, lambda: assert_parent_unchanged(handle)
             )
             raise
         assert_parent_unchanged(handle)

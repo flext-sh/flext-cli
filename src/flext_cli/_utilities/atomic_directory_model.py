@@ -13,9 +13,7 @@ type DirectoryPhysicalState = tuple[int, int, int, int, int | None, int | None]
 
 
 def from_observed(
-    path: Path,
-    parent: os.stat_result,
-    observed: os.stat_result | None,
+    path: Path, parent: os.stat_result, observed: os.stat_result | None
 ) -> m.Cli.AtomicDirectoryState:
     """Build the caller-owned state from one authenticated observation."""
     return m.Cli.AtomicDirectoryState(
@@ -100,14 +98,7 @@ def _planned_state(state: m.Cli.AtomicDirectoryState) -> DirectoryPhysicalState:
     if mode is None or device is None or inode is None or link_count is None:
         message = "validated directory identity unexpectedly absent"
         raise AssertionError(message)
-    return (
-        mode,
-        device,
-        inode,
-        link_count,
-        state.file_attributes,
-        state.reparse_tag,
-    )
+    return (mode, device, inode, link_count, state.file_attributes, state.reparse_tag)
 
 
 __all__: list[str] = [

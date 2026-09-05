@@ -35,7 +35,4 @@ def validate_non_reparse_state(
         raise ValueError(msg)
 
 
-__all__: list[str] = [
-    "validate_atomic_state_path",
-    "validate_non_reparse_state",
-]
+__all__: list[str] = ["validate_atomic_state_path", "validate_non_reparse_state"]

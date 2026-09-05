@@ -17,8 +17,7 @@ from . import atomic_file_path as file_path
 
 
 def publish_guarded_staged_empty_directory(
-    destination_before: m.Cli.AtomicDirectoryState,
-    staged: m.Cli.AtomicDirectoryState,
+    destination_before: m.Cli.AtomicDirectoryState, staged: m.Cli.AtomicDirectoryState
 ) -> m.Cli.AtomicDirectoryState:
     """Move one exact empty directory into an exact absent destination.
 
@@ -42,17 +41,13 @@ def publish_guarded_staged_empty_directory(
     ):
         directory_model.require_parent(destination_before, destination_parent.state)
         directory_model.require_parent(staged, staged_parent.state)
-        _require_destination_absent(
-            destination_before, destination_parent, destination
-        )
+        _require_destination_absent(destination_before, destination_parent, destination)
         authenticated = _authenticated_staged(staged, staged_parent, staged_path)
         _require_same_filesystem(
             destination, destination_parent, staged_parent, authenticated
         )
         file_durability.sync_replacement(staged_parent, destination_parent)
-        _require_destination_absent(
-            destination_before, destination_parent, destination
-        )
+        _require_destination_absent(destination_before, destination_parent, destination)
         authenticated = _authenticated_staged(staged, staged_parent, staged_path)
         directory_descriptor.rename_entry_noreplace(
             staged_parent, staged_path, destination_parent, destination
@@ -60,11 +55,7 @@ def publish_guarded_staged_empty_directory(
         try:
             file_durability.sync_replacement(staged_parent, destination_parent)
             return _published_state(
-                destination_parent,
-                destination,
-                staged_parent,
-                staged_path,
-                staged,
+                destination_parent, destination, staged_parent, staged_path, staged
             )
         except OSError as post_error:
             _raise_post_publication_failure(destination, post_error)

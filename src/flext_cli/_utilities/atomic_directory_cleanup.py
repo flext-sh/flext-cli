@@ -58,9 +58,7 @@ def _require_cleanup_identity(
 
 
 def _require_unchanged_cleanup_state(
-    path: Path,
-    current: os.stat_result | None,
-    authenticated: os.stat_result,
+    path: Path, current: os.stat_result | None, authenticated: os.stat_result
 ) -> None:
     if current is None:
         message = f"atomic directory changed before cleanup: {path}"

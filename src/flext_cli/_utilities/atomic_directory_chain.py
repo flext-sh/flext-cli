@@ -17,9 +17,7 @@ from . import atomic_parent_descriptor as parent_descriptor
 def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPlan:
     """Snapshot one physical anchor and every descendant observed absent."""
     path = Path(target)
-    anchor, state, ancestry, missing = parent_descriptor.inspect_directory_chain(
-        path
-    )
+    anchor, state, ancestry, missing = parent_descriptor.inspect_directory_chain(path)
     return m.Cli.AtomicDirectoryChainPlan(
         target=path,
         anchor_path=anchor,
@@ -61,28 +59,23 @@ def create_guarded_directory_chain(
 
 def _require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
     with parent_descriptor.physical_directory(plan.anchor_path) as current:
-        if (
-            (current.state.st_dev, current.state.st_ino)
-            != (plan.anchor_device, plan.anchor_inode)
-            or current.ancestry != plan.anchor_ancestry
-        ):
+        if (current.state.st_dev, current.state.st_ino) != (
+            plan.anchor_device,
+            plan.anchor_inode,
+        ) or current.ancestry != plan.anchor_ancestry:
             message = f"atomic directory-chain anchor changed: {plan.anchor_path}"
             raise OSError(errno.ESTALE, message, plan.anchor_path)
 
 
 def _require_planned_parent(
-    path: Path,
-    state: m.Cli.AtomicDirectoryState,
-    expected: tuple[int, int],
+    path: Path, state: m.Cli.AtomicDirectoryState, expected: tuple[int, int]
 ) -> None:
     if (state.parent_device, state.parent_inode) != expected:
         message = f"atomic directory-chain parent changed: {path}"
         raise OSError(errno.ESTALE, message, path)
 
 
-def _require_created_identity(
-    state: m.Cli.AtomicDirectoryState,
-) -> tuple[int, int]:
+def _require_created_identity(state: m.Cli.AtomicDirectoryState) -> tuple[int, int]:
     if state.device is None or state.inode is None:
         message = f"created directory has no physical identity: {state.path}"
         raise OSError(errno.EINVAL, message, state.path)
@@ -112,7 +105,4 @@ def _rollback_created(
             ) from cleanup_error
 
 
-__all__: list[str] = [
-    "create_guarded_directory_chain",
-    "plan_directory_chain",
-]
+__all__: list[str] = ["create_guarded_directory_chain", "plan_directory_chain"]

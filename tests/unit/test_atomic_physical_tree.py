@@ -32,10 +32,7 @@ class TestsAtomicPhysicalTree:
         manifest = result.value
         tm.that(manifest.root.path, eq=root)
         tm.that(manifest.root.kind, eq="directory")
-        tm.that(
-            tuple(entry.path for entry in manifest.entries),
-            eq=(child, payload),
-        )
+        tm.that(tuple(entry.path for entry in manifest.entries), eq=(child, payload))
         directory, file_entry = manifest.entries
         tm.that(
             (directory.parent_device, directory.parent_inode),
@@ -66,7 +63,7 @@ class TestsAtomicPhysicalTree:
         tm.ok(result)
         tm.that(root.exists(), eq=False)
 
-    @pytest.mark.parametrize("drift", ("unknown", "missing", "content", "metadata"))
+    @pytest.mark.parametrize("drift", ["unknown", "missing", "content", "metadata"])
     def test_manifest_drift_fails_before_any_effect(
         self, tmp_path: Path, drift: str
     ) -> None:
@@ -87,8 +84,7 @@ class TestsAtomicPhysicalTree:
         else:
             observed = target.stat()
             os.utime(
-                target,
-                ns=(observed.st_atime_ns, observed.st_mtime_ns + 1_000_000_000),
+                target, ns=(observed.st_atime_ns, observed.st_mtime_ns + 1_000_000_000)
             )
 
         result = u.Cli.atomic_cleanup_physical_tree_guarded(manifest)
@@ -116,10 +112,10 @@ class TestsAtomicPhysicalTree:
         tm.that((root / "payload.txt").read_text(encoding="utf-8"), eq="payload")
         tm.that((original / "payload.txt").read_text(encoding="utf-8"), eq="payload")
 
-    def test_inventory_rejects_symlink_without_touching_target(
+    def test_inventory_and_cleanup_treat_symlink_as_authenticated_leaf(
         self, tmp_path: Path
     ) -> None:
-        """Treat an aliased child as outside the physical-tree contract."""
+        """Record and unlink an alias without traversing or touching its target."""
         target = tmp_path / "target"
         target.mkdir()
         (target / "owned.txt").write_text("owned", encoding="utf-8")
@@ -129,7 +125,11 @@ class TestsAtomicPhysicalTree:
 
         result = u.Cli.atomic_inventory_physical_tree(root)
 
-        tm.fail(result)
+        tm.ok(result)
+        tm.that(result.value.entries[0].kind, eq="symlink")
+        tm.that(result.value.entries[0].link_target, eq=str(target))
+        tm.ok(u.Cli.atomic_cleanup_physical_tree_guarded(result.value))
+        tm.that(root.exists(), eq=False)
         tm.that((target / "owned.txt").read_text(encoding="utf-8"), eq="owned")
 
     def test_inventory_rejects_hardlinked_file(self, tmp_path: Path) -> None:
@@ -176,9 +176,7 @@ class TestsAtomicPhysicalTree:
         ):
             forged = entry.model_copy(update=update)
             with pytest.raises(m.ValidationError):
-                m.Cli.AtomicPhysicalTreeManifest(
-                    root=manifest.root, entries=(forged,)
-                )
+                m.Cli.AtomicPhysicalTreeManifest(root=manifest.root, entries=(forged,))
 
     def test_forged_parent_binding_fails_before_every_delete(
         self, tmp_path: Path
