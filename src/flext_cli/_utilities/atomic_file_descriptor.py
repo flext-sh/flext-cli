@@ -157,11 +157,9 @@ def _close_after_failure(
         message = (
             f"atomic operation failed ({operation_error}); close failed ({close_error})"
         )
+        group_message = "atomic operation and descriptor close failed"
         if isinstance(operation_error, Exception):
-            causes = ExceptionGroup(
-                "atomic operation and descriptor close failed",
-                [operation_error, close_error],
-            )
+            causes = ExceptionGroup(group_message, [operation_error, close_error])
             raise OSError(errno.EIO, message, path) from causes
         group_message = "atomic operation and descriptor close failed"
         raise BaseExceptionGroup(

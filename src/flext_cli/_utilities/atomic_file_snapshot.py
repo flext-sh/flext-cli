@@ -14,8 +14,8 @@ def read_authenticated_state(
     path: Path, *, required: bool
 ) -> tuple[os.stat_result, os.stat_result | None, bytes | None]:
     """Return one physical regular-file state or exact absence."""
-    with file_descriptor.parent_descriptor(path) as parent:
-        state = file_state.destination_state(path, parent=parent)
+    with parent_descriptor(path) as parent:
+        state = destination_state(path, parent=parent)
         if state is None:
             if required:
                 message = f"required atomic file is missing: {path}"

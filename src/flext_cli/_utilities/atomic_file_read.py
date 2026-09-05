@@ -14,7 +14,7 @@ def read_descriptor_bytes(
 ) -> bytes:
     """Read all bytes while one descriptor retains the expected exact state."""
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
-    descriptor = file_descriptor.open_entry(parent, path, flags)
+    descriptor = open_entry(parent, path, flags)
     try:
         content = _read_stable_descriptor(descriptor, path, expected)
     except BaseException as operation_error:
@@ -64,10 +64,7 @@ def _close_after_failure(
             f"atomic read failed ({operation_error}); close failed ({close_error})"
         )
         if isinstance(operation_error, Exception):
-            causes = ExceptionGroup(
-                "atomic read and descriptor close failed",
-                [operation_error, close_error],
-            )
+            causes = ExceptionGroup(group_message, [operation_error, close_error])
             raise OSError(errno.EIO, message, path) from causes
         group_message = "atomic read and descriptor close failed"
         raise BaseExceptionGroup(
