@@ -13,12 +13,29 @@ from flext_core import m, u
 class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
 
+    class ProcessOutcome(m.Value):
+        """Causal completion state for one fully reaped process."""
+
+        raw_return_code: Annotated[
+            int, m.Field(description="Raw operating-system process return code")
+        ]
+        timed_out: Annotated[
+            bool, m.Field(description="Whether the process deadline expired")
+        ]
+        forwarded_signal: Annotated[
+            int | None,
+            m.Field(description="First operator signal forwarded to the process"),
+        ]
+
     class CommandOutput(m.Value):
         """Standardized external command execution payload. Use m.Cli.CommandOutput."""
 
         stdout: Annotated[str, m.Field("", description="Captured standard output")] = ""
         stderr: Annotated[str, m.Field("", description="Captured standard error")] = ""
-        exit_code: Annotated[int, m.Field(description="Command exit code")] = 0
+        outcome: Annotated[
+            FlextCliModelsBase.ProcessOutcome,
+            m.Field(description="Causal process completion state"),
+        ]
         duration: Annotated[
             t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
         ] = 0.0
@@ -32,7 +49,10 @@ class FlextCliModelsBase:
         stderr: Annotated[
             bytes, m.Field(b"", description="Captured standard error as raw bytes")
         ] = b""
-        exit_code: Annotated[int, m.Field(description="Command exit code")] = 0
+        outcome: Annotated[
+            FlextCliModelsBase.ProcessOutcome,
+            m.Field(description="Causal process completion state"),
+        ]
         duration: Annotated[
             t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
         ] = 0.0
@@ -47,10 +67,6 @@ class FlextCliModelsBase:
         termination_grace_seconds: Annotated[
             t.PositiveFloat,
             m.Field(description="Reserved graceful termination and drain budget"),
-        ]
-        timeout_exit_code: Annotated[
-            t.PositiveInt,
-            m.Field(description="Canonical exit code returned for deadline expiry"),
         ]
 
     class RuntimeComponents(m.BaseModel):

@@ -115,7 +115,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             live: bool = False,
             heartbeat_seconds: float | None = None,
             deadline: p.Cli.ProcessDeadline | None = None,
-        ) -> p.Result[int]:
+        ) -> p.Result[p.Cli.ProcessOutcome]:
             """Execute once with byte-identical combined live and durable output."""
             ...
 
