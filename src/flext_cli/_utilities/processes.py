@@ -183,8 +183,7 @@ class FlextCliUtilitiesProcesses:
         """Start long-running commands; use instead of direct ``subprocess.Popen``."""
         forwarded_fds = tuple(pass_fds)
         if any(
-            isinstance(file_descriptor, bool)
-            or file_descriptor < 0
+            isinstance(file_descriptor, bool) or file_descriptor < 0
             for file_descriptor in forwarded_fds
         ):
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(

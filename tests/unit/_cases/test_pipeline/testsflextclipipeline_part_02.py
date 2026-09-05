@@ -13,7 +13,7 @@ from tests import m
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import p, t
+    from tests import p
 
 
 class TestsFlextCliPipeline:

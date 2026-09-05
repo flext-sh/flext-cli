@@ -40,7 +40,7 @@ class FlextCliProtocolsPipeline:
         """Contract for a callable pipeline stage handler."""
 
         def __call__(
-            self, ctx: FlextCliProtocolsPipeline.PipelineStageContext
+            self, ctx: FlextCliProtocolsPipeline.PipelineStageContext, /
         ) -> p.Result[m.Cli.PipelineStageResult]:
             """Execute stage and return typed result."""
             ...
@@ -50,7 +50,7 @@ class FlextCliProtocolsPipeline:
         """Contract for deciding whether one stage is skipped."""
 
         def __call__(
-            self, ctx: FlextCliProtocolsPipeline.PipelineStageContext
+            self, ctx: FlextCliProtocolsPipeline.PipelineStageContext, /
         ) -> bool:
             """Return whether the stage must be skipped."""
             ...

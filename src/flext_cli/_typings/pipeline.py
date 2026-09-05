@@ -15,4 +15,6 @@ class FlextCliTypesPipeline:
         c.Cli.PipelineStageStatus.SKIPPED,
         c.Cli.PipelineStageStatus.FAILED,
     ]
+
+
 __all__: list[str] = ["FlextCliTypesPipeline"]
