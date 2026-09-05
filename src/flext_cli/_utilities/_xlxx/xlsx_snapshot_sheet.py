@@ -43,9 +43,7 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
                 formula_sheet, value_sheet, position=position
             )
         except (TypeError, m.ValidationError, ValueError) as exc:
-            return r[m.Cli.XlsxSheetSnapshot].fail(
-                f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}"
-            )
+            return r[m.Cli.XlsxSheetSnapshot].fail(f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}", exception=exc)
         return r[m.Cli.XlsxSheetSnapshot].ok(snapshot)
 
     @classmethod

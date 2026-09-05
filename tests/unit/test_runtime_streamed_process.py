@@ -18,15 +18,10 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def _deadline(
-    *, seconds: float, grace: float, exit_code: int = 124
-) -> m.Cli.ProcessDeadline:
+def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
     """Build an absolute deadline with a bounded cleanup reserve."""
-    return m.Cli.ProcessDeadline(
-        expires_at_monotonic=time.monotonic() + seconds,
-        termination_grace_seconds=grace,
-        timeout_exit_code=exit_code,
-    )
+    return m.Cli.ProcessDeadline(expires_at_monotonic=time.monotonic() + seconds,
+    termination_grace_seconds=grace)
 
 
 class TestsFlextCliRuntimeStreamedProcess:
@@ -192,7 +187,7 @@ class TestsFlextCliRuntimeStreamedProcess:
 
     def test_deadline_model_satisfies_public_protocol(self) -> None:
         """Expose one typed model through the structural public protocol."""
-        deadline = _deadline(seconds=2.0, grace=0.5, exit_code=93)
+        deadline = _deadline(seconds=2.0, grace=0.5)
 
         tm.that(deadline, is_=p.Cli.ProcessDeadline)
 

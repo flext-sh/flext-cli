@@ -44,7 +44,7 @@ class Ex05Authentication:
                 f"❌ Login failed: {auth_result.error}",
                 style=c.Cli.MessageStyles.BOLD_RED,
             )
-            return r[bool].fail(auth_result.error or "Login failed")
+            return r[bool].from_failure(auth_result)
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         cli.print("✅ Login successful!", style=c.Cli.MessageStyles.GREEN)
         cli.print(
@@ -61,7 +61,7 @@ class Ex05Authentication:
                 f"⚠️  Not authenticated: {token_result.error}",
                 style=c.Cli.MessageStyles.YELLOW,
             )
-            return r[str].fail(token_result.error or "Not authenticated")
+            return r[str].from_failure(token_result)
         return r[str].ok(token_result.value)
 
     @staticmethod
@@ -70,7 +70,7 @@ class Ex05Authentication:
         token_result = cli.fetch_auth_token()
         if token_result.failure:
             cli.print("⚠️  No token found", style=c.Cli.MessageStyles.YELLOW)
-            return r[bool].fail(token_result.error or "No token found")
+            return r[bool].from_failure(token_result)
         token = token_result.value
         if len(token) < _MIN_VALID_TOKEN_LENGTH:
             cli.print("❌ Invalid token format", style=c.Cli.MessageStyles.BOLD_RED)
@@ -92,7 +92,7 @@ class Ex05Authentication:
             token_file_path.unlink()
         except OSError as exc:
             cli.print(f"❌ Logout failed: {exc}", style=c.Cli.MessageStyles.BOLD_RED)
-            return r[bool].fail(str(exc))
+            return r[bool].fail(str(exc), exception=exc)
         cli.print("✅ Logged out successfully", style=c.Cli.MessageStyles.GREEN)
         cli.print(
             f"   Token removed from: {token_file_path}", style=c.Cli.MessageStyles.CYAN

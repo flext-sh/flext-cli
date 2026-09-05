@@ -20,14 +20,9 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def _deadline(
-    *, seconds: float, grace: float, exit_code: int = 124
-) -> m.Cli.ProcessDeadline:
-    return m.Cli.ProcessDeadline(
-        expires_at_monotonic=time.monotonic() + seconds,
-        termination_grace_seconds=grace,
-        timeout_exit_code=exit_code,
-    )
+def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
+    return m.Cli.ProcessDeadline(expires_at_monotonic=time.monotonic() + seconds,
+    termination_grace_seconds=grace)
 
 
 def _survivor_acknowledged(probe: Path, acknowledgement: Path) -> bool:
@@ -145,7 +140,7 @@ class TestsFlextCliRuntimeProcessContainment:
                 str(survivor_ack),
             ],
             tmp_path / "boundary.log",
-            deadline=_deadline(seconds=2.0, grace=0.8, exit_code=94),
+            deadline=_deadline(seconds=2.0, grace=0.8),
         )
 
         tm.ok(result)
@@ -181,7 +176,7 @@ class TestsFlextCliRuntimeProcessContainment:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", child, str(ready)],
             output_file,
-            deadline=_deadline(seconds=3.0, grace=1.0, exit_code=95),
+            deadline=_deadline(seconds=3.0, grace=1.0),
         )
         signaler.join(timeout=1.0)
 
@@ -226,7 +221,7 @@ class TestsFlextCliRuntimeProcessContainment:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", script],
             output_file,
-            deadline=_deadline(seconds=1.2, grace=0.6, exit_code=91),
+            deadline=_deadline(seconds=1.2, grace=0.6),
         )
 
         tm.ok(result)

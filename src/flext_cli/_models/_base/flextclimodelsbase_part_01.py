@@ -72,7 +72,7 @@ class FlextCliModelsBase:
     class RuntimeComponents(m.BaseModel):
         """Availability state for canonical CLI runtime components."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         settings: Annotated[str, m.Field(description="Settings component state")]
         formatters: Annotated[str, m.Field(description="Formatters component state")]
         prompts: Annotated[str, m.Field(description="Prompts component state")]
@@ -81,7 +81,7 @@ class FlextCliModelsBase:
     class RuntimeStatus(m.BaseModel):
         """Canonical public CLI runtime status payload."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         status: Annotated[str, m.Field(description="Overall service state")]
         service: Annotated[str, m.Field(description="Service identifier")]
         timestamp: Annotated[str, m.Field(description="Status generation timestamp")]
@@ -94,7 +94,7 @@ class FlextCliModelsBase:
     class DisplayData(m.BaseModel):
         """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         data: Annotated[
@@ -113,7 +113,7 @@ class FlextCliModelsBase:
     class LoadedConfig(m.BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         content: Annotated[
@@ -131,7 +131,7 @@ class FlextCliModelsBase:
         ``model_serializer`` required.
         """
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
         root: Annotated[
             t.JsonValue, m.Field(description="Normalized JSON-compatible value")
         ]
@@ -139,7 +139,7 @@ class FlextCliModelsBase:
     class NormalizedJsonList(m.BaseModel):
         """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonList."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         value: Annotated[

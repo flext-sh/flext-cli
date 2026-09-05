@@ -94,7 +94,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
             return FlextCliUtilitiesFiles.files_write_text(path, dumped)
         dumped_result = uj.json_dumps(validated)
         if dumped_result.failure:
-            return r[bool].fail(dumped_result.error or "json_dumps failed")
+            return r[bool].from_failure(dumped_result)
         return FlextCliUtilitiesFiles.files_write_text(path, dumped_result.unwrap())
 
 

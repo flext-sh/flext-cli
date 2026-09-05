@@ -128,9 +128,7 @@ class FlextCliUtilitiesRuntime(
                 stdout = output.stdout.decode("utf-8")
                 stderr = output.stderr.decode("utf-8")
             except UnicodeDecodeError as exc:
-                return r[p.Cli.CommandOutput].fail(
-                    f"non-UTF-8 output from {shlex.join(list(cmd))}: {exc}"
-                )
+                return r[p.Cli.CommandOutput].fail(f"non-UTF-8 output from {shlex.join(list(cmd))}: {exc}", exception=exc)
             return r[p.Cli.CommandOutput].ok(
                 m.Cli.CommandOutput(
                     stdout=stdout,

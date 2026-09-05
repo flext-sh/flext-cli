@@ -71,7 +71,7 @@ class FlextCliUtilitiesProcesses:
             try:
                 self._process.terminate()
             except c.EXC_OS_VALUE as exc:
-                return r[bool].fail(f"process terminate error: {exc}")
+                return r[bool].fail(f"process terminate error: {exc}", exception=exc)
             return r[bool].ok(True)
 
         def kill(self) -> p.Result[bool]:
@@ -80,7 +80,7 @@ class FlextCliUtilitiesProcesses:
             try:
                 self._process.kill()
             except c.EXC_OS_VALUE as exc:
-                return r[bool].fail(f"process kill error: {exc}")
+                return r[bool].fail(f"process kill error: {exc}", exception=exc)
             return r[bool].ok(True)
 
         def wait(self, timeout: float | None = None) -> p.Result[int]:
@@ -91,7 +91,7 @@ class FlextCliUtilitiesProcesses:
             except subprocess.TimeoutExpired as exc:
                 return r[int].fail(f"timeout {exc.timeout}s: pid {self.pid}")
             except c.EXC_OS_VALUE as exc:
-                return r[int].fail(f"process wait error: {exc}")
+                return r[int].fail(f"process wait error: {exc}", exception=exc)
             try:
                 self._stdout = (bytes(self._stdout_buffer) + (stdout or b"")).decode(
                     c.Cli.ENCODING_DEFAULT, errors="strict"
@@ -100,7 +100,7 @@ class FlextCliUtilitiesProcesses:
                     c.Cli.ENCODING_DEFAULT, errors="strict"
                 )
             except UnicodeDecodeError as exc:
-                return r[int].fail(f"process output is not valid UTF-8: {exc}")
+                return r[int].fail(f"process output is not valid UTF-8: {exc}", exception=exc)
             self._stdout_buffer.clear()
             self._communicated = True
             return r[int].ok(self._process.returncode or 0)
@@ -116,7 +116,7 @@ class FlextCliUtilitiesProcesses:
                 stream.write(content)
                 stream.flush()
             except c.EXC_OS_VALUE as exc:
-                return r[bool].fail(f"process stdin write error: {exc}")
+                return r[bool].fail(f"process stdin write error: {exc}", exception=exc)
             return r[bool].ok(True)
 
         def stdout_read_until(
@@ -164,7 +164,7 @@ class FlextCliUtilitiesProcesses:
                     return r[bool].fail(f"process stdout timeout: pid {self.pid}")
                 content = os.read(stream.fileno(), 65536)
             except c.EXC_OS_VALUE as exc:
-                return r[bool].fail(f"process stdout read error: {exc}")
+                return r[bool].fail(f"process stdout read error: {exc}", exception=exc)
             if not content:
                 return r[bool].fail(f"process stdout closed: pid {self.pid}")
             self._stdout_buffer.extend(content)
@@ -211,9 +211,7 @@ class FlextCliUtilitiesProcesses:
                 pass_fds=forwarded_fds,
             )
         except c.EXC_OS_VALUE as exc:
-            return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
-                f"execution error: {shlex.join(list(cmd))}: {exc}"
-            )
+            return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(f"execution error: {shlex.join(list(cmd))}: {exc}", exception=exc)
         return r[FlextCliUtilitiesProcesses.ManagedProcess].ok(
             FlextCliUtilitiesProcesses.ManagedProcess(
                 process, cwd=cwd, env=resolved_env

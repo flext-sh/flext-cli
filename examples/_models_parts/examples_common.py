@@ -18,7 +18,7 @@ class ExamplesFlextCliModelsExamplesCommon:
     class MyAppSettings(m.Value):
         """Custom settings for YOUR CLI application — Pydantic v2 only."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         app_name: Annotated[str, m.Field(description="Application name")] = (

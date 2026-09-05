@@ -55,9 +55,7 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
         cli.print(
             f"⚠️  Could not load: {read_result.error}", style=c.Cli.MessageStyles.YELLOW
         )
-        return r[m.Cli.LoadedConfig].fail(
-            read_result.error or "Could not load preferences"
-        )
+        return r[m.Cli.LoadedConfig].from_failure(read_result)
     if not isinstance(read_result.value, Mapping):
         return r[m.Cli.LoadedConfig].fail("Preferences content must be a mapping")
 
@@ -100,7 +98,7 @@ def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
             f"❌ Config load failed: {load_result.error}",
             style=c.Cli.MessageStyles.BOLD_RED,
         )
-        return r[m.Cli.LoadedConfig].fail(load_result.error or "Config load failed")
+        return r[m.Cli.LoadedConfig].from_failure(load_result)
 
     cli.print("✅ Loaded deployment settings", style=c.Cli.MessageStyles.GREEN)
     return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=load_result.value))
@@ -114,7 +112,7 @@ def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
         cli.print(
             f"❌ Read failed: {read_result.error}", style=c.Cli.MessageStyles.BOLD_RED
         )
-        return r[m.Cli.LoadedConfig].fail(read_result.error or "Read failed")
+        return r[m.Cli.LoadedConfig].from_failure(read_result)
 
     data = read_result.value
     if not isinstance(data, Mapping):

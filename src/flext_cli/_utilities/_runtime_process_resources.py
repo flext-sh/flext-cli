@@ -34,9 +34,7 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
                 )
             )
         except c.EXC_OS_VALUE as exc:
-            return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].fail(
-                f"stdin preparation error: {exc}"
-            )
+            return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].fail(f"stdin preparation error: {exc}", exception=exc)
         return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok((
             reader,
             writer,
@@ -77,9 +75,7 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
                 stack, sys.stderr
             )
         except c.EXC_OS_VALUE as exc:
-            return r[tuple[int | None, int | None]].fail(
-                f"live output preparation error: {exc}"
-            )
+            return r[tuple[int | None, int | None]].fail(f"live output preparation error: {exc}", exception=exc)
         return r[tuple[int | None, int | None]].ok((live_fd, progress_fd))
 
     @staticmethod

@@ -70,9 +70,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             on_main_thread=threading.current_thread() is threading.main_thread(),
         )
         if timing_result.failure:
-            return r[p.Cli.CommandBytesOutput].fail(
-                timing_result.error or "process deadline resolution failed"
-            )
+            return r[p.Cli.CommandBytesOutput].from_failure(timing_result)
         absolute_deadline, grace_seconds, timeout_exit_code = timing_result.unwrap()
         process: p.Cli.ProcessHandle | None = None
         waiter: threading.Thread | None = None

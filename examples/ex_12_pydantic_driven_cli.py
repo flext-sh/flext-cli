@@ -122,9 +122,7 @@ def convert_and_validate_with_pydantic(
             m.Examples.AdvancedDatabaseConfig.model_validate(data)
         )
     except c.ValidationError as error:
-        return r[m.Examples.AdvancedDatabaseConfig].fail(
-            f"Pydantic validation failed: {error}"
-        )
+        return r[m.Examples.AdvancedDatabaseConfig].fail(f"Pydantic validation failed: {error}", exception=error)
 
 
 def validate_business_rules(

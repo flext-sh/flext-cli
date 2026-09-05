@@ -112,9 +112,7 @@ class FlextCliUtilitiesTemplate:
             op_name="template_render",
         )
         if rendered.failure:
-            return r[str].fail(
-                rendered.error or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {path}"
-            )
+            return r[str].from_failure(rendered)
         return r[str].ok(rendered.value)
 
     @staticmethod
@@ -158,7 +156,7 @@ class FlextCliUtilitiesTemplate:
         """Render ``path`` with ``context`` and write it to ``dest`` → ``r[bool]``."""
         rendered = FlextCliUtilitiesTemplate.template_render(path, context)
         if rendered.failure:
-            return r[bool].fail(rendered.error or c.Cli.ERR_TEMPLATE_RENDER_FAILED)
+            return r[bool].from_failure(rendered)
         return u.try_(
             lambda: FlextCliUtilitiesTemplate._write(dest, rendered.value),
             catch=OSError,
