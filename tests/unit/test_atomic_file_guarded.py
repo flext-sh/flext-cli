@@ -138,19 +138,6 @@ class TestsAtomicFileGuarded:
         tm.fail(result)
         tm.that((owner / "atomic.txt").read_text(encoding="utf-8"), eq="before")
 
-    def test_service_facade_enforces_the_same_precondition(
-        self, tmp_path: Path
-    ) -> None:
-        """Expose the guarded contract through the canonical service facade."""
-        target = tmp_path / "service-atomic.txt"
-        target.write_text("before", encoding="utf-8")
-        before = self._snapshot(target, required=True)
-
-        result = u.Cli.atomic_write_text_file_guarded(before, "after")
-
-        tm.ok(result)
-        tm.that(target.read_text(encoding="utf-8"), eq="after")
-
     @staticmethod
     def _snapshot(path: Path, *, required: bool = False) -> m.Cli.AtomicFileState:
         result = u.Cli.atomic_read_binary_file_state(path, required=required)

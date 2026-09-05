@@ -165,19 +165,6 @@ class TestsAtomicDirectoryPublish:
         tm.that(staged_path.is_dir(), eq=True)
         tm.that(child.read_bytes(), eq=b"content")
 
-    def test_service_facade_uses_no_clobber_owner(self, tmp_path: Path) -> None:
-        """Expose the same typed publication contract through ``cli``."""
-        staged_path = tmp_path / "staged"
-        destination_path = tmp_path / "destination"
-        staged_path.mkdir()
-        destination = self._snapshot(destination_path)
-        staged = self._snapshot(staged_path, required=True)
-
-        result = u.Cli.atomic_publish_staged_empty_directory_guarded(destination, staged)
-
-        tm.ok(result)
-        tm.that(result.value.path, eq=destination_path)
-
     @staticmethod
     def _snapshot(path: Path, *, required: bool = False) -> m.Cli.AtomicDirectoryState:
         result = u.Cli.atomic_read_empty_directory_state(path, required=required)

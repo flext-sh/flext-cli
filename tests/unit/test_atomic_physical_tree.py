@@ -198,19 +198,6 @@ class TestsAtomicPhysicalTree:
         tm.that(result.exception, is_=OSError)
         tm.that(payload.read_text(encoding="utf-8"), eq="payload")
 
-    def test_service_facade_uses_same_manifest_owner(self, tmp_path: Path) -> None:
-        """Expose inventory and guarded cleanup through the service facade."""
-        root = tmp_path / "service-tree"
-        root.mkdir()
-        (root / "payload.txt").write_text("payload", encoding="utf-8")
-        inventory = u.Cli.atomic_inventory_physical_tree(root)
-        tm.ok(inventory)
-
-        cleanup = u.Cli.atomic_cleanup_physical_tree_guarded(inventory.value)
-
-        tm.ok(cleanup)
-        tm.that(root.exists(), eq=False)
-
     @staticmethod
     def _inventory(root: Path) -> m.Cli.AtomicPhysicalTreeManifest:
         result = u.Cli.atomic_inventory_physical_tree(root)

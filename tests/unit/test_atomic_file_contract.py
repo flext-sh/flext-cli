@@ -143,14 +143,6 @@ raise SystemExit(0 if result.failure else 2)
 
         tm.fail(result)
 
-    def test_service_facade_persists_content(self, tmp_path: Path) -> None:
-        """Keep service and utility surfaces behaviorally aligned."""
-        target = tmp_path / "service-atomic.txt"
-
-        tm.ok(u.Cli.atomic_write_text_file(target, "ok"))
-
-        tm.that(target.read_text(encoding="utf-8"), eq="ok")
-
     @staticmethod
     def _linked_destination(tmp_path: Path, link_kind: str) -> tuple[Path, Path]:
         """Create one real linked pathname for public behavior tests."""

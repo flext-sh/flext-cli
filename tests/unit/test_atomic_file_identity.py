@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
-import pytest
-
+from flext_cli import m
 from flext_tests import tm
 from tests import u
 
@@ -13,17 +13,101 @@ from tests import u
 class TestsAtomicFileIdentity:
     """Prove callers cannot authorize effects with only matching content."""
 
-    def test_relative_write_fails_before_parent_creation(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    def test_exclusive_create_returns_exact_published_state(
+        self, tmp_path: Path
     ) -> None:
-        """Reject a relative identity without creating its directory tree."""
-        monkeypatch.chdir(tmp_path)
-        destination = Path("relative") / "atomic.txt"
+        """Create one absent binary file with its requested bytes and mode."""
+        destination = tmp_path / "created.bin"
 
-        result = u.Cli.atomic_write_text_file(destination, "content")
+        result = u.Cli.atomic_create_binary_file_guarded(
+            destination, b"content", permission_mode=0o600
+        )
+
+        tm.ok(result)
+        tm.that(result.value.content, eq=b"content")
+        tm.that(result.value.mode, eq=0o600)
+        tm.that(destination.read_bytes(), eq=b"content")
+
+    def test_exclusive_create_rejects_existing_destination(
+        self, tmp_path: Path
+    ) -> None:
+        """Preserve an existing file rather than treating create as overwrite."""
+        destination = tmp_path / "existing.bin"
+        destination.write_bytes(b"before")
+
+        result = u.Cli.atomic_create_binary_file_guarded(
+            destination, b"after", permission_mode=0o600
+        )
 
         tm.fail(result)
-        tm.that(destination.parent.exists(), eq=False)
+        tm.that(destination.read_bytes(), eq=b"before")
+
+    def test_publication_applies_authenticated_staged_replacement(
+        self, tmp_path: Path
+    ) -> None:
+        """Replace one exact live state with one exact staged state."""
+        destination = tmp_path / "published.bin"
+        staged = tmp_path / "staged.bin"
+        destination.write_bytes(b"before")
+        before = u.Cli.atomic_read_binary_file_state(destination, required=True)
+        replacement = u.Cli.atomic_create_binary_file_guarded(
+            staged, b"after", permission_mode=0o640
+        )
+        tm.ok(before)
+        tm.ok(replacement)
+
+        result = u.Cli.atomic_apply_file_publication_guarded(
+            m.Cli.AtomicFilePublication(
+                before=before.value, replacement=replacement.value
+            )
+        )
+
+        tm.ok(result)
+        tm.that(result.value.content, eq=b"after")
+        tm.that(result.value.mode, eq=0o640)
+        tm.that(destination.read_bytes(), eq=b"after")
+        tm.that(staged.exists(), eq=False)
+
+    def test_publication_applies_authenticated_tombstone(
+        self, tmp_path: Path
+    ) -> None:
+        """Delete one exact live state when its replacement is absent."""
+        destination = tmp_path / "deleted.bin"
+        destination.write_bytes(b"content")
+        before = u.Cli.atomic_read_binary_file_state(destination, required=True)
+        tombstone = u.Cli.atomic_read_binary_file_state(tmp_path / "tombstone")
+        tm.ok(before)
+        tm.ok(tombstone)
+
+        result = u.Cli.atomic_apply_file_publication_guarded(
+            m.Cli.AtomicFilePublication(
+                before=before.value, replacement=tombstone.value
+            )
+        )
+
+        tm.ok(result)
+        tm.that(result.value.content, is_=None)
+        tm.that(destination.exists(), eq=False)
+
+    def test_relative_write_fails_before_parent_creation(
+        self, tmp_path: Path
+    ) -> None:
+        """Reject a relative identity without creating its directory tree."""
+        destination = Path("relative") / "atomic.txt"
+        script = (
+            "from pathlib import Path\n"
+            "from flext_cli import u\n"
+            "destination = Path('relative') / 'atomic.txt'\n"
+            "result = u.Cli.atomic_write_text_file(destination, 'content')\n"
+            "raise SystemExit(0 if result.failure and "
+            "not destination.parent.exists() else 1)\n"
+        )
+
+        result = u.Cli.run_raw((sys.executable, "-c", script), cwd=tmp_path)
+
+        tm.ok(result)
+        tm.that(result.value.exit_code, eq=0)
+        tm.that((tmp_path / destination.parent).exists(), eq=False)
 
     def test_delete_consumes_complete_snapshot(self, tmp_path: Path) -> None:
         """Delete the same physical version returned by the snapshot owner."""

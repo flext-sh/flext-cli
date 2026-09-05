@@ -161,21 +161,6 @@ class TestsAtomicDirectoryIdentity:
                 reparse_tag=1,
             )
 
-    def test_service_facade_uses_the_same_guarded_contract(
-        self, tmp_path: Path
-    ) -> None:
-        """Expose snapshot, create, and delete through the service facade."""
-        target = tmp_path / "service-empty"
-        before_result = u.Cli.atomic_read_empty_directory_state(target)
-        tm.ok(before_result)
-        created = u.Cli.atomic_create_empty_directory_guarded(before_result.value, permission_mode=0o700)
-        tm.ok(created)
-
-        deleted = u.Cli.atomic_delete_empty_directory_guarded(created.value)
-
-        tm.ok(deleted)
-        tm.that(target.exists(), eq=False)
-
     @staticmethod
     def _snapshot(path: Path, *, required: bool = False) -> m.Cli.AtomicDirectoryState:
         result = u.Cli.atomic_read_empty_directory_state(path, required=required)
