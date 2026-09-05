@@ -71,7 +71,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         )
         if timing_result.failure:
             return r[p.Cli.CommandBytesOutput].from_failure(timing_result)
-        absolute_deadline, grace_seconds, timeout_exit_code = timing_result.unwrap()
+        absolute_deadline, grace_seconds = timing_result.unwrap()
         process: p.Cli.ProcessHandle | None = None
         waiter: threading.Thread | None = None
         durable_log: BinaryIO | None = None
@@ -247,7 +247,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             max(0.0, time.monotonic() - started),
             timed_out=timed_out,
             timeout_seconds=timeout,
-            timeout_exit_code=timeout_exit_code,
+            ,
         )
 
 

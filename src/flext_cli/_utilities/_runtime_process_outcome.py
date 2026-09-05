@@ -4,11 +4,20 @@ from __future__ import annotations
 
 import shlex
 
-from flext_cli import m, p, r, t
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
     """Map one completed lifecycle to its public result contract."""
+
+    @staticmethod
+    def process_succeeded(outcome: p.Cli.ProcessOutcome) -> bool:
+        """Return whether every causal completion field describes success."""
+        return (
+            outcome.raw_return_code == c.Cli.EXIT_CODE_SUCCESS
+            and not outcome.timed_out
+            and outcome.forwarded_signal is None
+        )
 
     @staticmethod
     def _process_exit_result(
@@ -30,8 +39,7 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
             return r[p.Cli.ProcessOutcome].fail(failure)
         if received_signals:
             primary_exit = -abs(received_signals[0])
-        elif timed_out:
-            primary_exit = timeout_exit_code
+        
         elif return_code is None:
             primary_exit = None
         else:
@@ -74,7 +82,7 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
             timed_out=timed_out,
             legacy_timeout=timeout_seconds is not None,
             legacy_timeout_seconds=timeout_seconds,
-            timeout_exit_code=timeout_exit_code,
+            ,
         ).map(
             lambda outcome: m.Cli.CommandBytesOutput(
                 stdout=bytes(stdout_output),
@@ -83,6 +91,7 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
                 duration=duration,
             )
         )
+
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessOutcomeMixin"]
