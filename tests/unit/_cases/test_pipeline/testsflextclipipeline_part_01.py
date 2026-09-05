@@ -36,14 +36,16 @@ class TestsFlextCliPipeline:
         """Build a handler that fails."""
 
         def handler(
-            _ctx: p.Cli.PipelineStageContext,
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
+            _ = ctx
             return r[m.Cli.PipelineStageResult].fail(f"{stage_id} failed")
 
         return handler
 
     @staticmethod
-    def _skip_always(_ctx: p.Cli.PipelineStageContext) -> bool:
+    def _skip_always(ctx: p.Cli.PipelineStageContext) -> bool:
+        _ = ctx
         return True
 
     def test_single_stage_ok(self, tmp_path: Path) -> None:

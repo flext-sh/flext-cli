@@ -6,9 +6,14 @@ import shlex
 from typing import TYPE_CHECKING
 
 from flext_cli import p, r, t
+from flext_cli._utilities._runtime_process_outcome import (
+    FlextCliUtilitiesRuntimeProcessOutcomeMixin,
+)
 
 
-class FlextCliUtilitiesRuntimeCommandsMixin:
+class FlextCliUtilitiesRuntimeCommandsMixin(
+    FlextCliUtilitiesRuntimeProcessOutcomeMixin
+):
     """Compose captured command primitives without owning subprocess creation."""
 
     if TYPE_CHECKING:

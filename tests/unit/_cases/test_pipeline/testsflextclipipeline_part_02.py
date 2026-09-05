@@ -47,9 +47,10 @@ class TestsFlextCliPipeline:
         call_count = 0
 
         def failing(
-            _ctx: p.Cli.PipelineStageContext,
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             nonlocal call_count
+            _ = ctx
             call_count += 1
             return r[m.Cli.PipelineStageResult].fail("stage failed")
 
@@ -99,8 +100,9 @@ class TestsFlextCliPipeline:
         error_message = "intentional explosion"
 
         def exploding(
-            _ctx: p.Cli.PipelineStageContext,
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
+            _ = ctx
             raise ValueError(error_message)
 
         with pytest.raises(ValueError, match=error_message):
