@@ -21,8 +21,9 @@ if TYPE_CHECKING:
 
 
 def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
-    return m.Cli.ProcessDeadline(expires_at_monotonic=time.monotonic() + seconds,
-    termination_grace_seconds=grace)
+    return m.Cli.ProcessDeadline(
+        expires_at_monotonic=time.monotonic() + seconds, termination_grace_seconds=grace
+    )
 
 
 def _survivor_acknowledged(probe: Path, acknowledgement: Path) -> bool:
@@ -262,7 +263,7 @@ class TestsFlextCliRuntimeProcessContainment:
                 str(survivor_ack),
             ],
             output_file,
-            deadline=_deadline(seconds=1.5, grace=0.7, exit_code=92),
+            deadline=_deadline(seconds=1.5, grace=0.7),
         )
 
         tm.ok(result)

@@ -20,8 +20,9 @@ if TYPE_CHECKING:
 
 def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
     """Build an absolute deadline with a bounded cleanup reserve."""
-    return m.Cli.ProcessDeadline(expires_at_monotonic=time.monotonic() + seconds,
-    termination_grace_seconds=grace)
+    return m.Cli.ProcessDeadline(
+        expires_at_monotonic=time.monotonic() + seconds, termination_grace_seconds=grace
+    )
 
 
 class TestsFlextCliRuntimeStreamedProcess:

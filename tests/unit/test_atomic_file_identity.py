@@ -100,9 +100,7 @@ class TestsAtomicFileIdentity:
         tm.that(destination.read_bytes(), eq=b"after")
         tm.that(staged.exists(), eq=False)
 
-    def test_publication_applies_authenticated_tombstone(
-        self, tmp_path: Path
-    ) -> None:
+    def test_publication_applies_authenticated_tombstone(self, tmp_path: Path) -> None:
         """Delete one exact live state when its replacement is absent."""
         destination = tmp_path / "deleted.bin"
         destination.write_bytes(b"content")
@@ -121,9 +119,7 @@ class TestsAtomicFileIdentity:
         tm.that(result.value.content, is_=None)
         tm.that(destination.exists(), eq=False)
 
-    def test_relative_write_fails_before_parent_creation(
-        self, tmp_path: Path
-    ) -> None:
+    def test_relative_write_fails_before_parent_creation(self, tmp_path: Path) -> None:
         """Reject a relative identity without creating its directory tree."""
         destination = Path("relative") / "atomic.txt"
         script = (

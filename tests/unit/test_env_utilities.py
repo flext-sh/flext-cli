@@ -39,6 +39,4 @@ class TestsFlextCliUtilitiesEnv:
     def test_env_read_name_is_data(self) -> None:
         """The variable name is a plain argument, so callers pass it as data."""
         for name, expected in c.Tests.ENV_READ_CASES.items():
-            tm.that(
-                tm.ok(u.Cli.env_read(name, c.Tests.ENV_READ_CASES)), eq=expected
-            )
+            tm.that(tm.ok(u.Cli.env_read(name, c.Tests.ENV_READ_CASES)), eq=expected)

@@ -44,8 +44,10 @@ class FlextCliUtilitiesTemplate:
             del environment
             relative = Path(template)
             source = (self.search_path / relative).absolute()
-            if relative.is_absolute() or ".." in relative.parts or not source.is_relative_to(
-                self.search_path
+            if (
+                relative.is_absolute()
+                or ".." in relative.parts
+                or not source.is_relative_to(self.search_path)
             ):
                 self.failure = f"template source escapes its root: {template}"
                 raise TemplateNotFound(template)
@@ -55,7 +57,9 @@ class FlextCliUtilitiesTemplate:
                     source, required=True
                 )
                 if snapshot.failure:
-                    self.failure = snapshot.error or f"template snapshot failed: {source}"
+                    self.failure = (
+                        snapshot.error or f"template snapshot failed: {source}"
+                    )
                     raise TemplateNotFound(template)
                 existing = snapshot.value
                 self.source_states[source] = existing

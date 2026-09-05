@@ -66,15 +66,7 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     ) -> threading.Thread:
         pump = threading.Thread(
             target=cls._pump_process_output,
-            args=(
-                source,
-                durable_log,
-                captured_output,
-                live_fd,
-                failures,
-                stop,
-                wake,
-            ),
+            args=(source, durable_log, captured_output, live_fd, failures, stop, wake),
             name=thread_name,
             daemon=False,
         )

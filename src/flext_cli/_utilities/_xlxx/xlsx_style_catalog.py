@@ -33,7 +33,9 @@ class FlextCliUtilitiesXlsxStyleCatalog(
     ) -> p.Result[tuple[m.Cli.XlsxSourceVisualStyle, ...]]:
         workbook_result = cls._load_workbook(source)
         if workbook_result.failure:
-            return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].from_failure(workbook_result)
+            return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].from_failure(
+                workbook_result
+            )
         seen: frozenset[int] = frozenset()
         source_styles: tuple[m.Cli.XlsxSourceVisualStyle, ...] = ()
         for worksheet in workbook_result.value.worksheets:
@@ -51,7 +53,9 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                         continue
                     visual_result = cls._visual_from_styleable(cell)
                     if visual_result.failure:
-                        return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].from_failure(visual_result)
+                        return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].from_failure(
+                            visual_result
+                        )
                     seen = seen.union((source_style_id,))
                     source_styles = (
                         *source_styles,

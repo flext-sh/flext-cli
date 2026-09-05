@@ -60,15 +60,13 @@ class TestsDocumentFacadesAreLazy:
 
     def test_docx_operation_still_resolves_through_the_utility_facade(self) -> None:
         loaded = _loaded_heavy_modules(
-            "from flext_cli import u\n"
-            "u.Cli.docx_read(b'not-a-document')"
+            "from flext_cli import u\nu.Cli.docx_read(b'not-a-document')"
         )
         tm.that("docx" in loaded, eq=True)
 
     def test_pptx_operation_still_resolves_through_the_public_api(self) -> None:
         loaded = _loaded_heavy_modules(
-            "from flext_cli import cli\n"
-            "cli.pptx_read(b'not-a-presentation')"
+            "from flext_cli import cli\ncli.pptx_read(b'not-a-presentation')"
         )
         tm.that("pptx" in loaded, eq=True)
 

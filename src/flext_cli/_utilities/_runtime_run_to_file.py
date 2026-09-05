@@ -24,20 +24,22 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         ) -> dict[str, str] | None: ...
 
     @classmethod
-    def run_to_file(cls,
-    cmd: t.StrSequence,
-    output_file: t.Cli.TextPath,
-    cwd: t.Cli.TextPath | None = None,
-    timeout: int | None = None,
-    env: t.StrMapping | None = None,
-    remove_env_keys: t.StrSequence = (),
-    input_data: str | bytes | None = None,
-    *,
-    live: bool = False,
-    heartbeat_seconds: float | None = None,
-    deadline: p.Cli.ProcessDeadline | None = None,) -> p.Result[p.Cli.ProcessOutcome]:
+    def run_to_file(
+        cls,
+        cmd: t.StrSequence,
+        output_file: t.Cli.TextPath,
+        cwd: t.Cli.TextPath | None = None,
+        timeout: int | None = None,
+        env: t.StrMapping | None = None,
+        remove_env_keys: t.StrSequence = (),
+        input_data: str | bytes | None = None,
+        *,
+        live: bool = False,
+        heartbeat_seconds: float | None = None,
+        deadline: p.Cli.ProcessDeadline | None = None,
+    ) -> p.Result[p.Cli.ProcessOutcome]:
         """Stream combined bytes live and durably under one absolute deadline.
-    
+
         Containment owns the inherited POSIX process group or Windows Job
         Object. Trusted project tools remain inside that boundary; deliberate
         POSIX ``setsid()`` escape is outside this contract. The deadline covers
@@ -45,21 +47,22 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         An outer caller wall remains responsible for an OS syscall that becomes
         uninterruptible.
         """
-        return cls._execute_streamed_process(cmd,
-        Path(output_file),
-        cwd,
-        cls._resolved_env(env, remove_env_keys),
-        input_data,
-        capture_output=False,
-        live=live,
-        heartbeat_seconds=(
-            settings.cli_process_heartbeat_seconds
-            if live and heartbeat_seconds is None
-            else heartbeat_seconds
-        ),
-        timeout=timeout,
-        deadline=deadline,).map(lambda output: output.outcome)
-    
+        return cls._execute_streamed_process(
+            cmd,
+            Path(output_file),
+            cwd,
+            cls._resolved_env(env, remove_env_keys),
+            input_data,
+            capture_output=False,
+            live=live,
+            heartbeat_seconds=(
+                settings.cli_process_heartbeat_seconds
+                if live and heartbeat_seconds is None
+                else heartbeat_seconds
+            ),
+            timeout=timeout,
+            deadline=deadline,
+        ).map(lambda output: output.outcome)
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeRunToFileMixin"]

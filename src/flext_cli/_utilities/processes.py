@@ -100,7 +100,9 @@ class FlextCliUtilitiesProcesses:
                     c.Cli.ENCODING_DEFAULT, errors="strict"
                 )
             except UnicodeDecodeError as exc:
-                return r[int].fail(f"process output is not valid UTF-8: {exc}", exception=exc)
+                return r[int].fail(
+                    f"process output is not valid UTF-8: {exc}", exception=exc
+                )
             self._stdout_buffer.clear()
             self._communicated = True
             return r[int].ok(self._process.returncode or 0)
@@ -211,7 +213,9 @@ class FlextCliUtilitiesProcesses:
                 pass_fds=forwarded_fds,
             )
         except c.EXC_OS_VALUE as exc:
-            return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(f"execution error: {shlex.join(list(cmd))}: {exc}", exception=exc)
+            return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
+                f"execution error: {shlex.join(list(cmd))}: {exc}", exception=exc
+            )
         return r[FlextCliUtilitiesProcesses.ManagedProcess].ok(
             FlextCliUtilitiesProcesses.ManagedProcess(
                 process, cwd=cwd, env=resolved_env

@@ -56,9 +56,7 @@ class TestsFlextCliRuntimeChildEnvironment:
 
     def test_remove_env_keys_unsets_the_variable_in_the_child(self) -> None:
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
-            _MARKER,
-            env={_MARKER: "inherited"},
-            remove_env_keys=(_MARKER,),
+            _MARKER, env={_MARKER: "inherited"}, remove_env_keys=(_MARKER,)
         )
 
         tm.that(probe, eq="<unset>")
@@ -76,9 +74,7 @@ class TestsFlextCliRuntimeChildEnvironment:
 
         tm.that(probe, eq="inherited")
 
-    def test_removal_wins_over_an_inherited_value_with_overrides_present(
-        self,
-    ) -> None:
+    def test_removal_wins_over_an_inherited_value_with_overrides_present(self) -> None:
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
             _MARKER,
             env={_MARKER: "inherited", "FLEXT_CLI_CHILD_ENV_OTHER": "1"},

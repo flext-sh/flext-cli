@@ -28,7 +28,9 @@ class FlextCliUtilitiesConversion:
             instance: M = model_class.model_validate(cli_args)
             return r[M].ok(instance)
         except c.ValidationError as exc:
-            return r[M].fail(f"Validation error for {model_class.__name__}: {exc}", exception=exc)
+            return r[M].fail(
+                f"Validation error for {model_class.__name__}: {exc}", exception=exc
+            )
 
     @staticmethod
     def resolve_optional_path(value: t.Cli.TextPath | None, *, default: Path) -> Path:

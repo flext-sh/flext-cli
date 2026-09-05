@@ -62,11 +62,7 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Attach captured bytes only after the owned process boundary is empty."""
         return cls._process_exit_result(
-            cmd,
-            return_code,
-            received_signals,
-            diagnostics,
-            timed_out=timed_out,
+            cmd, return_code, received_signals, diagnostics, timed_out=timed_out
         ).map(
             lambda outcome: m.Cli.CommandBytesOutput(
                 stdout=bytes(stdout_output),
@@ -75,7 +71,6 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
                 duration=duration,
             )
         )
-
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessOutcomeMixin"]

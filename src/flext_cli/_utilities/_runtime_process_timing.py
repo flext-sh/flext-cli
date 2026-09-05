@@ -52,11 +52,11 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
             )
         absolute_deadline: float | None = None
         grace_seconds = 0.0
-        
+
         if deadline is not None:
             absolute_deadline = deadline.expires_at_monotonic
             grace_seconds = deadline.termination_grace_seconds
-            
+
         elif timeout is not None:
             if timeout <= 0:
                 return r[tuple[float | None, float]].fail(

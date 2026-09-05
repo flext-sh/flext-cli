@@ -74,8 +74,7 @@ class TestsFlextCliConfigEngine:
         rendered = result.unwrap()
         tm.that(rendered.rendered, eq="port=42\n")
         tm.that(
-            tuple(state.path for state in rendered.source_states),
-            eq=(template, macro),
+            tuple(state.path for state in rendered.source_states), eq=(template, macro)
         )
         tm.that(
             tuple(state.content for state in rendered.source_states),

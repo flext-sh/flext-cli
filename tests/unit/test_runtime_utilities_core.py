@@ -202,13 +202,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Verify the public process owner forwards one inherited descriptor."""
         read_fd, write_fd = os.pipe()
         try:
-            script = (
-                "import os, sys; "
-                "os.write(int(sys.argv[1]), b'fd-forwarded')"
-            )
+            script = "import os, sys; os.write(int(sys.argv[1]), b'fd-forwarded')"
             result = runner.process_start(
-                [sys.executable, "-c", script, str(write_fd)],
-                pass_fds=(write_fd,),
+                [sys.executable, "-c", script, str(write_fd)], pass_fds=(write_fd,)
             )
             os.close(write_fd)
             write_fd = -1

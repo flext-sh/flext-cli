@@ -30,10 +30,7 @@ class TestsFlextCliTomlCov:
     _INVALID_TOML = c.Tests.TOML_INVALID_CONTENT
     _EXPECTED_MAPPING: ClassVar[t.MappingKV[str, t.MappingKV[str, t.StrMapping]]] = {
         "tool": {
-            "flext": {
-                "project": "my-project",
-                "version": c.Tests.VERSION_VALID_SEMVER,
-            }
+            "flext": {"project": "my-project", "version": c.Tests.VERSION_VALID_SEMVER}
         }
     }
 
