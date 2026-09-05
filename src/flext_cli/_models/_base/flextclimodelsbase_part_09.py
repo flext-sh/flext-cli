@@ -56,6 +56,9 @@ class FlextCliModelsBase:
         file_attributes: Annotated[
             int | None, m.Field(ge=0, strict=True, description="Host attributes")
         ] = None
+        link_target: Annotated[
+            str | None, m.Field(min_length=1, description="Exact symlink target text")
+        ] = None
         reparse_tag: Annotated[
             int | None, m.Field(ge=0, strict=True, description="Host reparse tag")
         ] = None
@@ -68,10 +71,6 @@ class FlextCliModelsBase:
                 pattern=r"^[0-9a-f]{64}$", description="Regular-file SHA-256 digest"
             ),
         ] = None
-        link_target: Annotated[
-            str | None, m.Field(min_length=1, description="Exact symlink target text")
-        ] = None
-
         @u.field_validator("path")
         @classmethod
         def _validate_path(cls, value: Path) -> Path:

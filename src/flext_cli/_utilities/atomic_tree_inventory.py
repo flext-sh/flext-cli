@@ -155,9 +155,7 @@ def _inventory_directory(
                 )
             )
         else:
-            message = (
-                f"atomic physical-tree entry is not regular or a directory: {path}"
-            )
+            message = f"atomic physical-tree entry is not regular or a directory: {path}"
             raise OSError(errno.EINVAL, message, path)
     if _directory_names(parent.descriptor) != names:
         _raise_changed(parent.path)
