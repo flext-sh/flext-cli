@@ -61,12 +61,11 @@ class ExamplesFlextCliModelsExamplesDatabase:
                 return host
             try:
                 _ = ip_address(host)
-                return host
             except ValueError:
                 if not c.EXAMPLE_REGEX_DOT.search(host):
                     msg = c.EXAMPLE_ERR_INVALID_HOST
                     raise ValueError(msg) from None
-                return host
+            return host
 
 
 __all__: list[str] = ["ExamplesFlextCliModelsExamplesDatabase"]

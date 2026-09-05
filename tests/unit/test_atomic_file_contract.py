@@ -10,7 +10,6 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import cli
 from flext_tests import tm
 from tests import u
 
@@ -148,7 +147,7 @@ raise SystemExit(0 if result.failure else 2)
         """Keep service and utility surfaces behaviorally aligned."""
         target = tmp_path / "service-atomic.txt"
 
-        tm.ok(cli.atomic_write_text_file(target, "ok"))
+        tm.ok(u.Cli.atomic_write_text_file(target, "ok"))
 
         tm.that(target.read_text(encoding="utf-8"), eq="ok")
 

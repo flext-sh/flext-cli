@@ -196,6 +196,34 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(stdout_lines[1], eq="env-ok")
         tm.that(process.stderr.strip(), eq="err-marker")
 
+    def test_process_start_supports_binary_interactive_exchange(
+        self, runner: u.Cli
+    ) -> None:
+        """Exchange exact framed bytes without closing stdin between messages."""
+        script = (
+            "import sys; "
+            "first = sys.stdin.buffer.read(4); "
+            "sys.stdout.buffer.write(b'Length: 3\\r\\n\\r\\n' + first[:3]); "
+            "sys.stdout.buffer.flush(); "
+            "second = sys.stdin.buffer.read(2); "
+            "sys.stdout.buffer.write(second); "
+            "sys.stdout.buffer.flush()"
+        )
+        started = runner.process_start([sys.executable, "-c", script])
+        process = tm.ok(started)
+
+        tm.ok(process.stdin_write(b"abcd"))
+        tm.that(
+            tm.ok(process.stdout_read_until(b"\r\n\r\n", timeout=5)),
+            eq=b"Length: 3\r\n\r\n",
+        )
+        tm.that(tm.ok(process.stdout_read_exact(3, timeout=5)), eq=b"abc")
+        tm.ok(process.stdin_write(b"ef"))
+        tm.that(tm.ok(process.stdout_read_exact(2, timeout=5)), eq=b"ef")
+        tm.that(tm.ok(process.wait(timeout=5)), eq=0)
+        tm.that(process.stdout, eq="")
+        tm.that(process.stderr, eq="")
+
     def test_process_start_timeout_then_terminate(self, runner: u.Cli) -> None:
         """Verify that process start timeout then terminate."""
         result = runner.process_start([

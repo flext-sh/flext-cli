@@ -8,13 +8,12 @@ import secrets
 import stat
 from pathlib import Path
 
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_file_mode as file_mode
+from . import atomic_file_descriptor as file_descriptor, atomic_file_mode as file_mode
 
 _SECURE_CREATE_MODE = 0o600
 
 
-def temporary_path(parent: ParentDescriptor) -> Path:
+def temporary_path(parent: file_descriptor.ParentDescriptor) -> Path:
     """Return one unpredictable sibling name without probing or retrying."""
     return parent.path / f".flext-atomic-{secrets.token_hex(16)}.tmp"
 
@@ -35,7 +34,9 @@ def create_descriptor(parent: file_descriptor.ParentDescriptor, temporary: Path)
         | getattr(os, "O_CLOEXEC", 0)
         | getattr(os, "O_BINARY", 0)
     )
-    return open_entry(parent, temporary, flags, mode=_SECURE_CREATE_MODE)
+    return file_descriptor.open_entry(
+        parent, temporary, flags, mode=_SECURE_CREATE_MODE
+    )
 
 
 def write_and_sync(

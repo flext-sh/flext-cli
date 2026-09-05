@@ -6,10 +6,9 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from flext_cli import c, m, p, r, s, t, u
-from flext_cli.services._file_tools_atomic import FlextCliFileToolsAtomicMixin
 
 
-class FlextCliFileTools(FlextCliFileToolsAtomicMixin, s):
+class FlextCliFileTools(s):
     """File operations with r."""
 
     @staticmethod

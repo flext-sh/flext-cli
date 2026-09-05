@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import cli, m
+from flext_cli import m
 from flext_tests import tm
 from tests import u
 
@@ -166,14 +166,12 @@ class TestsAtomicDirectoryIdentity:
     ) -> None:
         """Expose snapshot, create, and delete through the service facade."""
         target = tmp_path / "service-empty"
-        before_result = cli.atomic_read_empty_directory_state(target)
+        before_result = u.Cli.atomic_read_empty_directory_state(target)
         tm.ok(before_result)
-        created = cli.atomic_create_empty_directory_guarded(
-            before_result.value, permission_mode=0o700
-        )
+        created = u.Cli.atomic_create_empty_directory_guarded(before_result.value, permission_mode=0o700)
         tm.ok(created)
 
-        deleted = cli.atomic_delete_empty_directory_guarded(created.value)
+        deleted = u.Cli.atomic_delete_empty_directory_guarded(created.value)
 
         tm.ok(deleted)
         tm.that(target.exists(), eq=False)

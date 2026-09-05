@@ -29,12 +29,12 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
 
         @property
         def debug(self) -> bool:
-            """Check if debug mode is enabled."""
+            """Whether debug mode is enabled."""
             ...
 
         @property
         def trace(self) -> bool:
-            """Check if trace mode is enabled."""
+            """Whether trace mode is enabled."""
             ...
 
         @classmethod

@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import cli, m
+from flext_cli import m
 from flext_tests import tm
 from tests import u
 
@@ -203,10 +203,10 @@ class TestsAtomicPhysicalTree:
         root = tmp_path / "service-tree"
         root.mkdir()
         (root / "payload.txt").write_text("payload", encoding="utf-8")
-        inventory = cli.atomic_inventory_physical_tree(root)
+        inventory = u.Cli.atomic_inventory_physical_tree(root)
         tm.ok(inventory)
 
-        cleanup = cli.atomic_cleanup_physical_tree_guarded(inventory.value)
+        cleanup = u.Cli.atomic_cleanup_physical_tree_guarded(inventory.value)
 
         tm.ok(cleanup)
         tm.that(root.exists(), eq=False)

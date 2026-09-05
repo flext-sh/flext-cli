@@ -28,10 +28,6 @@ def save_user_preferences(
     """Save user preferences to JSON in YOUR app."""
     config_file = config_dir / "preferences.json"
 
-    # Instead of:
-    # with open(config_file, 'w') as f:
-    #     json.dump(preferences, f)
-
     write_result = cli.write_json_file(
         config_file, u.normalize_to_json_value(preferences)
     )
@@ -81,10 +77,6 @@ def save_deployment_config(
     settings: t.MappingKV[str, t.JsonPayloadCollectionValue], config_file: Path
 ) -> bool:
     """Save deployment settings to YAML in YOUR tool."""
-    # Instead of:
-    # with open(config_file, 'w') as f:
-    #     yaml.dump(settings, f)
-
     # Normalize the mapping into the CLI JSON contract before writing YAML.
     write_result = cli.write_yaml_file(config_file, u.normalize_to_json_value(settings))
 

@@ -11,7 +11,6 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, r, t
 
-
 T = TypeVar("T")
 
 

@@ -8,12 +8,15 @@ from pathlib import Path
 from typing import Never
 
 from flext_cli import m
-from . import atomic_directory_descriptor as directory_descriptor
-from . import atomic_directory_model as directory_model
-from . import atomic_directory_state as directory_state
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_file_durability as file_durability
-from . import atomic_file_path as file_path
+
+from . import (
+    atomic_directory_descriptor as directory_descriptor,
+    atomic_directory_model as directory_model,
+    atomic_directory_state as directory_state,
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_durability as file_durability,
+    atomic_file_path as file_path,
+)
 
 
 def publish_guarded_staged_empty_directory(

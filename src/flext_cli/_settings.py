@@ -17,7 +17,8 @@ from typing import Annotated, ClassVar
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli._constants.settings import FlextCliConstantsSettings
-from flext_core import FlextSettings, m
+from flext_cli.models import m
+from flext_core import FlextSettings
 
 
 class FlextCliSettings(FlextSettings):

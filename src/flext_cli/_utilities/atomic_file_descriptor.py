@@ -9,9 +9,11 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import atomic_file_path as file_path
-from . import atomic_parent_descriptor as parent_path
-from . import atomic_parent_failure as parent_failure
+from . import (
+    atomic_file_path as file_path,
+    atomic_parent_descriptor as parent_path,
+    atomic_parent_failure as parent_failure,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -161,7 +163,6 @@ def _close_after_failure(
         if isinstance(operation_error, Exception):
             causes = ExceptionGroup(group_message, [operation_error, close_error])
             raise OSError(errno.EIO, message, path) from causes
-        group_message = "atomic operation and descriptor close failed"
         raise BaseExceptionGroup(
             group_message, [operation_error, close_error]
         ) from close_error

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from flext_cli import m, p, r
 
 from .xlsx_snapshot_sheet import FlextCliUtilitiesXlsxSnapshotSheet

@@ -124,7 +124,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def debug(self) -> bool | None:
-            """Check if debug mode is enabled."""
+            """Whether debug mode is enabled."""
             ...
 
         @property
@@ -139,7 +139,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def no_color(self) -> bool | None:
-            """Check if color is disabled."""
+            """Whether color is disabled."""
             ...
 
         @property
@@ -154,17 +154,17 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def quiet(self) -> bool | None:
-            """Check if quiet mode is enabled."""
+            """Whether quiet mode is enabled."""
             ...
 
         @property
         def trace(self) -> bool | None:
-            """Check if trace mode is enabled."""
+            """Whether trace mode is enabled."""
             ...
 
         @property
         def verbose(self) -> bool | None:
-            """Check if verbose mode is enabled."""
+            """Whether verbose mode is enabled."""
             ...
 
 

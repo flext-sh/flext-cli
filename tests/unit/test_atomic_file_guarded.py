@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, m
+from flext_cli import m
 from flext_tests import tm
 from tests import u
 
@@ -146,7 +146,7 @@ class TestsAtomicFileGuarded:
         target.write_text("before", encoding="utf-8")
         before = self._snapshot(target, required=True)
 
-        result = cli.atomic_write_text_file_guarded(before, "after")
+        result = u.Cli.atomic_write_text_file_guarded(before, "after")
 
         tm.ok(result)
         tm.that(target.read_text(encoding="utf-8"), eq="after")

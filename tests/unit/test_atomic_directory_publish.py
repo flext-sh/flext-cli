@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import cli, m
+from flext_cli import m
 from flext_tests import tm
 from tests import u
 
@@ -173,7 +173,7 @@ class TestsAtomicDirectoryPublish:
         destination = self._snapshot(destination_path)
         staged = self._snapshot(staged_path, required=True)
 
-        result = cli.atomic_publish_staged_empty_directory_guarded(destination, staged)
+        result = u.Cli.atomic_publish_staged_empty_directory_guarded(destination, staged)
 
         tm.ok(result)
         tm.that(result.value.path, eq=destination_path)
