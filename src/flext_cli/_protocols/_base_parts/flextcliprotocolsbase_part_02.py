@@ -48,7 +48,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
 
         @property
         def raw_return_code(self) -> int:
-            """Return the operating-system process status without normalization."""
+            """The operating-system process status without normalization."""
             ...
 
         @property

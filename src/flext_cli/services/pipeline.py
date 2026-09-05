@@ -7,7 +7,6 @@ from pathlib import Path
 from flext_cli import c, m, p, r, s, t
 
 
-
 class FlextCliPipeline(s):
     """Expose the canonical pipeline DSL through the service layer."""
 
@@ -112,7 +111,6 @@ class FlextCliPipeline(s):
     ) -> p.Result[m.Cli.PipelineResult]:
         """Execute a pipeline through the public CLI DSL surface."""
         return self.execute_pipeline(stages, context, logger=logger or self.logger)
-
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliPipeline"]

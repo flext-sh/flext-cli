@@ -50,6 +50,21 @@ class TestsFlextCliRuntimeStreamedProcess:
             [sys.executable, "-c", script], output_file, live=True
         )
 
+        captured = capfd.readouterr()
+        expected = b"stdout-one\nstderr-two\n"
+        tm.ok(result)
+        tm.that(result.value, eq=0)
+        tm.that(output_file.read_bytes(), eq=expected)
+        tm.that(captured.out.encode(), eq=expected)
+        tm.that(os.get_blocking(sys.stdout.fileno()), eq=stdout_was_blocking)
+        tm.that(
+            any(
+                thread.name == "flext-cli-process-output"
+                for thread in threading.enumerate()
+            ),
+            eq=False,
+        )
+
     def test_silent_live_process_emits_progress_only_to_stderr(
         self, tmp_path: Path, capfd: pytest.CaptureFixture[str]
     ) -> None:
@@ -69,20 +84,6 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(output_file.read_bytes(), eq=b"")
         tm.that(captured.out, eq="")
         tm.that(captured.err, has=c.Cli.CLI_PROCESS_HEARTBEAT_MESSAGE)
-
-        expected = b"stdout-one\nstderr-two\n"
-        tm.ok(result)
-        tm.that(result.value, eq=0)
-        tm.that(output_file.read_bytes(), eq=expected)
-        tm.that(capfd.readouterr().out.encode(), eq=expected)
-        tm.that(os.get_blocking(sys.stdout.fileno()), eq=stdout_was_blocking)
-        tm.that(
-            any(
-                thread.name == "flext-cli-process-output"
-                for thread in threading.enumerate()
-            ),
-            eq=False,
-        )
 
     def test_completed_nonzero_exit_is_returned_exactly(self, tmp_path: Path) -> None:
         """Keep a completed nonzero status in the success channel."""

@@ -31,4 +31,5 @@ class FlextCliUtilitiesPptxSerializer:
             return r[bytes].fail(str(c.Cli.PptxError.SERIALIZE_FAILED))
         return r[bytes].ok(content)
 
+
 __all__: tuple[str, ...] = ("FlextCliUtilitiesPptxSerializer",)

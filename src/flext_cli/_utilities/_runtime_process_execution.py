@@ -10,7 +10,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import IO, BinaryIO
 
-from flext_cli import c, p, r, t
+from flext_cli import p, r, t
 from flext_cli._utilities._runtime_process_cleanup import (
     FlextCliUtilitiesRuntimeProcessCleanupMixin,
 )

@@ -51,6 +51,7 @@ class Ex05Authentication:
             f"   Token saved to: {token_file_path}", style=c.Cli.MessageStyles.CYAN
         )
         return r[bool].ok(True)
+
     @staticmethod
     def fetch_saved_token() -> p.Result[str]:
         """Retrieve saved auth token in YOUR CLI."""

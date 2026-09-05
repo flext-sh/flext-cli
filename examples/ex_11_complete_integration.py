@@ -85,6 +85,7 @@ class DataManagerCLI:
             f"✅ Data saved to {self.data_file.name}", style=c.Cli.MessageStyles.GREEN
         )
         return r[bool].ok(value=True)
+
     def run_workflow(self) -> p.Result[bool]:
         """Run the minimal public workflow exercised by the smoke test."""
         load_result = self.load_data()

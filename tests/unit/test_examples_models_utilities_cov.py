@@ -12,8 +12,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-
 from examples import c, m, u
+
 from flext_cli import cli
 from flext_tests import tm
 from tests import c as tc, t

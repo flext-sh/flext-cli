@@ -23,7 +23,6 @@ class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
     """
 
 
-
 s = FlextCliServiceBase
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliServiceBase", "s"]

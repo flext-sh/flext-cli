@@ -115,8 +115,10 @@ class TestsFlextCliCmd:
                 [
                     sys.executable,
                     "-c",
-                    "from flext_cli import cli;"
-                    "print(cli.settings_snapshot().unwrap().model_dump_json())",
+                    (
+                        "from flext_cli import cli;"
+                        "print(cli.settings_snapshot().unwrap().model_dump_json())"
+                    ),
                 ],
                 env={c.Cli.ENV_VAR_HOME: str(home)},
             )

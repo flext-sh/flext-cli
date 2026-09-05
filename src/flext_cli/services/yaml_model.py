@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from flext_cli import s
 
 
@@ -11,7 +10,6 @@ class FlextCliYamlModel(s):
 
     # NOTE (multi-agent, mro-j2yt.1): public API MRO composition is deferred
     # until the private implementation and real round trip are independently green.
-
 
 
 __all__: tuple[str, ...] = ("FlextCliYamlModel",)

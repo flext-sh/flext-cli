@@ -11,6 +11,7 @@ from flext_tests import tm
 if TYPE_CHECKING:
     from pathlib import Path
 
+
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
