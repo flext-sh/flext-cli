@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import shlex
-
 from flext_cli import c, m, p, r, t
 
 
@@ -27,19 +25,10 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         diagnostics: tuple[str, ...],
         *,
         timed_out: bool,
-        legacy_timeout: bool,
-        legacy_timeout_seconds: int | None,
-        timeout_exit_code: int,
     ) -> p.Result[p.Cli.ProcessOutcome]:
         """Preserve a primary exit while surfacing additive diagnostics."""
-        if legacy_timeout and timed_out:
-            failure = f"timeout {legacy_timeout_seconds}s: {shlex.join(list(cmd))}"
-            if diagnostics:
-                failure = f"{failure}; {'; '.join(diagnostics)}"
-            return r[p.Cli.ProcessOutcome].fail(failure)
         if received_signals:
             primary_exit = -abs(received_signals[0])
-        
         elif return_code is None:
             primary_exit = None
         else:
@@ -70,8 +59,6 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         duration: float,
         *,
         timed_out: bool,
-        timeout_seconds: int | None,
-        timeout_exit_code: int,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Attach captured bytes only after the owned process boundary is empty."""
         return cls._process_exit_result(
@@ -80,8 +67,6 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
             received_signals,
             diagnostics,
             timed_out=timed_out,
-            legacy_timeout=timeout_seconds is not None,
-            legacy_timeout_seconds=timeout_seconds,
         ).map(
             lambda outcome: m.Cli.CommandBytesOutput(
                 stdout=bytes(stdout_output),
