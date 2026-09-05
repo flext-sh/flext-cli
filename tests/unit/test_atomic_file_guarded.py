@@ -15,6 +15,25 @@ if TYPE_CHECKING:
 class TestsAtomicFileGuarded:
     """Observable guarded-write behavior through public Flext CLI surfaces."""
 
+    def test_state_diff_detects_content_and_mode_changes(self, tmp_path: Path) -> None:
+        """Compare desired leaf state through the public utility facade."""
+        path = tmp_path / "atomic.txt"
+        path.write_text("observed", encoding="utf-8")
+        before = self._snapshot(path, required=True)
+
+        tm.that(
+            u.Cli.atomic_file_state_differs(
+                before, desired_content=before.content, desired_mode=before.mode
+            ),
+            eq=False,
+        )
+        tm.that(
+            u.Cli.atomic_file_state_differs(
+                before, desired_content=b"desired", desired_mode=before.mode
+            ),
+            eq=True,
+        )
+
     def test_matching_content_is_replaced(self, tmp_path: Path) -> None:
         """Publish when the complete physical version matches."""
         path = tmp_path / "atomic.txt"

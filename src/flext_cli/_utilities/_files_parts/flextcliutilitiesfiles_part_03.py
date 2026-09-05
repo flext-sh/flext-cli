@@ -21,6 +21,16 @@ class FlextCliUtilitiesFiles:
     """Implementation part for FlextCliUtilitiesFiles."""
 
     @staticmethod
+    def atomic_file_state_differs(
+        before: m.Cli.AtomicFileState,
+        *,
+        desired_content: bytes | None,
+        desired_mode: int | None,
+    ) -> bool:
+        """Return whether the desired leaf state differs from the observed state."""
+        return before.content != desired_content or before.mode != desired_mode
+
+    @staticmethod
     def files_read_csv_with_headers(
         file_path: t.Cli.TextPath,
     ) -> p.Result[t.SequenceOf[t.StrMapping]]:
