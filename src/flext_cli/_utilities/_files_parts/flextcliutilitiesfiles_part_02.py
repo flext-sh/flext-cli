@@ -6,11 +6,9 @@ import shutil
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import (
-    remove_guarded_file,
-    validate_atomic_path,
-    write_atomic_bytes,
-)
+from flext_cli._utilities.atomic_file import write_atomic_bytes
+from flext_cli._utilities.atomic_file_delete import remove_guarded_file
+from flext_cli._utilities.atomic_file_path import validate_atomic_path
 
 
 class FlextCliUtilitiesFiles:

@@ -35,6 +35,9 @@ class TestsAtomicFileIdentity:
         tm.ok(snapshot_result)
         snapshot = snapshot_result.value
         host_state = destination.lstat()
+        parent_state = tmp_path.lstat()
+        tm.that(snapshot.parent_device, eq=parent_state.st_dev)
+        tm.that(snapshot.parent_inode, eq=parent_state.st_ino)
         tm.that(snapshot.link_count, eq=1)
         tm.that(
             snapshot.file_attributes, eq=getattr(host_state, "st_file_attributes", None)

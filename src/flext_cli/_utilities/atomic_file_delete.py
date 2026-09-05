@@ -1,16 +1,16 @@
-"""Guarded deletion for transaction rollback under a caller-held lock."""
+"""Public guarded deletion for transaction rollback under a caller-held lock."""
 
 from __future__ import annotations
 
 import errno
 
 from flext_cli import m
-from . import _atomic_file_descriptor as file_descriptor
-from . import _atomic_file_durability as file_durability
-from . import _atomic_file_mode as file_mode
-from . import _atomic_file_model as file_model
-from . import _atomic_file_path as file_path
-from . import _atomic_file_state as file_state
+from . import atomic_file_descriptor as file_descriptor
+from . import atomic_file_durability as file_durability
+from . import atomic_file_mode as file_mode
+from . import atomic_file_model as file_model
+from . import atomic_file_path as file_path
+from . import atomic_file_state as file_state
 
 
 def remove_guarded_file(state: m.Cli.AtomicFileState) -> None:
@@ -18,6 +18,7 @@ def remove_guarded_file(state: m.Cli.AtomicFileState) -> None:
     path = file_path.validate_atomic_path(state.path)
     content, mode, _identity = file_model.require_existing(state, purpose="deleted")
     with file_descriptor.parent_descriptor(path, unlink=True) as parent:
+        file_model.require_parent(state, parent.state)
         expected = file_state.destination_state(path, parent=parent)
         file_model.require_observed(state, expected)
         file_state.validate_precondition(

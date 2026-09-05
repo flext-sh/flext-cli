@@ -1,4 +1,4 @@
-"""Typed physical-state authentication for public atomic file snapshots."""
+"""Public typed physical-state authentication for atomic file snapshots."""
 
 from __future__ import annotations
 
@@ -49,6 +49,16 @@ def require_observed(
         raise OSError(errno.ESTALE, message, target)
 
 
+def require_parent(state: m.Cli.AtomicFileState, observed: os.stat_result) -> None:
+    """Require the authenticated parent to equal the snapshot parent identity."""
+    if (state.parent_device, state.parent_inode) != (
+        observed.st_dev,
+        observed.st_ino,
+    ):
+        message = f"atomic file parent identity changed: {state.path.parent}"
+        raise OSError(errno.ESTALE, message, state.path.parent)
+
+
 def physical_state(state: os.stat_result) -> PhysicalState:
     """Return every caller-visible physical identity field from host state."""
     return (
@@ -78,4 +88,5 @@ __all__: list[str] = [
     "physical_state",
     "require_existing",
     "require_observed",
+    "require_parent",
 ]

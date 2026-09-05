@@ -1,4 +1,4 @@
-"""Physical identity and publication-result checks for staged files."""
+"""Public physical identity and publication-result checks for staged files."""
 
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ import errno
 import os
 from pathlib import Path
 
-from . import _atomic_file_descriptor as file_descriptor
-from . import _atomic_file_mode as file_mode
-from . import _atomic_file_state as file_state
+from . import atomic_file_descriptor as file_descriptor
+from . import atomic_file_mode as file_mode
+from . import atomic_file_state as file_state
 
 IDENTITY_COMPONENT_COUNT = 2
 

@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import os
 import shutil
 import stat
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import publish_guarded_staged_file, read_authenticated_state
+from flext_cli._utilities.atomic_file_publish import publish_guarded_staged_file
+from flext_cli._utilities.atomic_file_snapshot import read_authenticated_state
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
@@ -45,10 +47,15 @@ class FlextCliUtilitiesFiles:
     def atomic_read_binary_file_state(
         file_path: t.Cli.TextPath, *, required: bool = False
     ) -> p.Result[m.Cli.AtomicFileState]:
-        """Read exact bytes, mode, and physical identity through one descriptor."""
+        """Read exact bytes plus leaf and immediate-parent physical identities.
+
+        The immediate parent must already exist as a physical, non-aliased
+        directory. Materialize a planned directory chain first, then call this
+        method; no future parent identity may be invented for an absent file.
+        """
         path = Path(file_path)
         try:
-            state, content = read_authenticated_state(path, required=required)
+            parent, state, content = read_authenticated_state(path, required=required)
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(
                 c.Cli.ERR_BINARY_READ_FAILED.format(error=exc)
@@ -56,6 +63,8 @@ class FlextCliUtilitiesFiles:
         return r[m.Cli.AtomicFileState].ok(
             m.Cli.AtomicFileState(
                 path=path,
+                parent_device=parent.st_dev,
+                parent_inode=parent.st_ino,
                 content=content,
                 mode=None if state is None else stat.S_IMODE(state.st_mode),
                 device=None if state is None else state.st_dev,
@@ -86,6 +95,8 @@ class FlextCliUtilitiesFiles:
         return r[m.Cli.AtomicFileState].ok(
             m.Cli.AtomicFileState(
                 path=destination_before.path,
+                parent_device=destination_before.parent_device,
+                parent_inode=destination_before.parent_inode,
                 content=staged.content,
                 mode=stat.S_IMODE(published.st_mode),
                 device=published.st_dev,
@@ -128,9 +139,13 @@ class FlextCliUtilitiesFiles:
             )
         if target_path.is_symlink() and target_path.resolve() == source_path:
             return r[bool].ok(True)
-        FlextCliUtilitiesFiles._remove_symlink_target(target_path)
+        if target_path.exists() or target_path.is_symlink():
+            return r[bool].fail(
+                f"symlink destination already exists with a different identity: {target_path}"
+            )
+        relative_source = os.path.relpath(source_path, target_path.parent.resolve())
         try:
-            target_path.symlink_to(source_path, target_is_directory=True)
+            target_path.symlink_to(relative_source, target_is_directory=True)
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ENSURE_SYMLINK_FAILED.format(

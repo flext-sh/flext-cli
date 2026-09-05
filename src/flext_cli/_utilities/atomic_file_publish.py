@@ -1,4 +1,4 @@
-"""Guarded publication of caller-owned staged files."""
+"""Public guarded publication of caller-owned staged files."""
 
 from __future__ import annotations
 
@@ -6,13 +6,13 @@ import errno
 import os
 
 from flext_cli import m
-from . import _atomic_file_descriptor as file_descriptor
-from . import _atomic_file_durability as file_durability
-from . import _atomic_file_mode as file_mode
-from . import _atomic_file_model as file_model
-from . import _atomic_file_path as file_path
-from . import _atomic_file_publish_checks as checks
-from . import _atomic_file_state as file_state
+from . import atomic_file_descriptor as file_descriptor
+from . import atomic_file_durability as file_durability
+from . import atomic_file_mode as file_mode
+from . import atomic_file_model as file_model
+from . import atomic_file_path as file_path
+from . import atomic_file_publish_checks as checks
+from . import atomic_file_state as file_state
 
 
 def publish_guarded_staged_file(
@@ -44,6 +44,8 @@ def publish_guarded_staged_file(
         ) as destination_parent,
         file_descriptor.parent_descriptor(staged_path, replace=True) as staged_parent,
     ):
+        file_model.require_parent(destination_before, destination_parent.state)
+        file_model.require_parent(staged, staged_parent.state)
         destination_state = file_state.destination_state(
             destination, parent=destination_parent
         )

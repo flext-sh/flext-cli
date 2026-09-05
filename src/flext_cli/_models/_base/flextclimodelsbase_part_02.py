@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import os
-import stat
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, t
+from flext_cli._models import atomic_state
 from flext_cli._models._defaults import EMPTY_STR_MAPPING
 from flext_core import m, u
 
@@ -22,6 +21,12 @@ class FlextCliModelsBase:
             extra="forbid", frozen=True, arbitrary_types_allowed=True
         )
         path: Annotated[Path, m.Field(description="Absolute file path")]
+        parent_device: Annotated[
+            int, m.Field(ge=0, strict=True, description="Physical parent device")
+        ]
+        parent_inode: Annotated[
+            int, m.Field(ge=0, strict=True, description="Physical parent inode")
+        ]
         content: Annotated[
             bytes | None,
             m.Field(strict=True, description="Exact bytes, or None when absent"),
@@ -71,16 +76,9 @@ class FlextCliModelsBase:
         @classmethod
         def _validate_absolute_path(cls, value: Path) -> Path:
             """Reject ambiguous relative identities instead of normalizing them."""
-            normalized = Path(os.path.normpath(value))
-            if (
-                not value.is_absolute()
-                or not value.name
-                or ".." in value.parts
-                or normalized != value
-            ):
-                msg = "atomic file state path must be absolute and normalized"
-                raise ValueError(msg)
-            return value
+            return atomic_state.validate_atomic_state_path(
+                value, label="atomic file state"
+            )
 
         @u.model_validator(mode="after")
         def _validate_presence_tuple(self) -> Self:
@@ -106,13 +104,11 @@ class FlextCliModelsBase:
             ):
                 msg = "absent atomic file state cannot contain host metadata"
                 raise ValueError(msg)
-            reparse_marker = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)
-            if (
-                self.file_attributes is not None
-                and self.file_attributes & reparse_marker
-            ) or self.reparse_tag not in {None, 0}:
-                msg = "atomic file state cannot identify a reparse point"
-                raise ValueError(msg)
+            atomic_state.validate_non_reparse_state(
+                self.file_attributes,
+                self.reparse_tag,
+                label="atomic file state",
+            )
             return self
 
     class PromptRuntimeState(m.FlexibleInternalModel):

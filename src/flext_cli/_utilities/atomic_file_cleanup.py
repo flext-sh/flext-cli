@@ -1,4 +1,4 @@
-"""Authenticated temporary cleanup after an atomic write failure."""
+"""Public authenticated temporary cleanup after an atomic write failure."""
 
 from __future__ import annotations
 
@@ -6,9 +6,9 @@ import errno
 import os
 from pathlib import Path
 
-from . import _atomic_file_descriptor as file_descriptor
-from . import _atomic_file_durability as file_durability
-from . import _atomic_file_state as file_state
+from . import atomic_file_descriptor as file_descriptor
+from . import atomic_file_durability as file_durability
+from . import atomic_file_state as file_state
 
 
 def remove_failed_temporary(

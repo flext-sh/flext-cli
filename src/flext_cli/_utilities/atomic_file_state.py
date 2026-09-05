@@ -1,4 +1,4 @@
-"""Filesystem-state authentication for the atomic publication owner."""
+"""Public filesystem-state authentication for the atomic publication owner."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ import os
 import stat
 from pathlib import Path
 
-from . import _atomic_file_descriptor as file_descriptor
-from . import _atomic_file_path as file_path
-from . import _atomic_file_read as file_read
+from . import atomic_file_descriptor as file_descriptor
+from . import atomic_file_path as file_path
+from . import atomic_file_read as file_read
 
 
 def destination_state(

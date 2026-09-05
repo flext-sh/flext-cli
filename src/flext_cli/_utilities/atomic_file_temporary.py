@@ -1,4 +1,4 @@
-"""Descriptor-owned staging for one atomic file replacement."""
+"""Public descriptor-owned staging for one atomic file replacement."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ import secrets
 import stat
 from pathlib import Path
 
-from . import _atomic_file_descriptor as file_descriptor
-from . import _atomic_file_mode as file_mode
+from . import atomic_file_descriptor as file_descriptor
+from . import atomic_file_mode as file_mode
 
 _SECURE_CREATE_MODE = 0o600
 

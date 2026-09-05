@@ -1,4 +1,4 @@
-"""Private atomic-file publication primitive for ``u.Cli`` file helpers."""
+"""Atomic-file publication primitive for ``u.Cli`` file helpers."""
 
 from __future__ import annotations
 
@@ -7,15 +7,15 @@ import os
 from pathlib import Path
 
 from flext_cli import m
-from . import _atomic_file_cleanup as file_cleanup
-from . import _atomic_file_descriptor as file_descriptor
-from . import _atomic_file_durability as file_durability
-from . import _atomic_file_mode as file_mode
-from . import _atomic_file_model as file_model
-from . import _atomic_file_path as file_path
-from . import _atomic_file_publish_checks as checks
-from . import _atomic_file_state as file_state
-from . import _atomic_file_temporary as file_temporary
+from . import atomic_file_cleanup as file_cleanup
+from . import atomic_file_descriptor as file_descriptor
+from . import atomic_file_durability as file_durability
+from . import atomic_file_mode as file_mode
+from . import atomic_file_model as file_model
+from . import atomic_file_path as file_path
+from . import atomic_file_publish_checks as checks
+from . import atomic_file_state as file_state
+from . import atomic_file_temporary as file_temporary
 
 
 class _NoPrecondition:
@@ -27,7 +27,7 @@ _NO_PRECONDITION = _NoPrecondition()
 
 def write_atomic_bytes(
     path: Path,
-    content: bytes,
+    content: object,
     *,
     expected_state: m.Cli.AtomicFileState | _NoPrecondition = _NO_PRECONDITION,
     permission_mode: int | None = None,
@@ -56,6 +56,7 @@ def write_atomic_bytes(
             guarded = True
             expected_content = planned.content
             expected_mode = planned.mode
+            file_model.require_parent(planned, parent.state)
             file_model.require_observed(planned, expected)
         file_state.validate_precondition(
             path, expected, expected_content, enabled=guarded, parent=parent
@@ -73,9 +74,6 @@ def _parse_precondition(
         return None
     if isinstance(expected_state, _NoPrecondition):
         message = "expected_state sentinel must be the canonical singleton"
-        raise OSError(errno.EINVAL, message, path)
-    if not isinstance(expected_state, m.Cli.AtomicFileState):
-        message = "expected_state must be an AtomicFileState"
         raise OSError(errno.EINVAL, message, path)
     if expected_state.path != path:
         message = "expected_state path differs from atomic destination"

@@ -106,6 +106,22 @@ class TestsAtomicFileGuarded:
         tm.fail(result)
         tm.that(parent.exists(), eq=False)
 
+    def test_absent_snapshot_rejects_replaced_parent(self, tmp_path: Path) -> None:
+        """Never create a file under a new parent that reused the planned path."""
+        parent = tmp_path / "parent"
+        parent.mkdir()
+        path = parent / "atomic.txt"
+        before = self._snapshot(path)
+        original = tmp_path / "original-parent"
+        parent.rename(original)
+        parent.mkdir()
+
+        result = u.Cli.atomic_write_text_file_guarded(before, "replacement")
+
+        tm.fail(result)
+        tm.that(path.exists(), eq=False)
+        tm.that((original / path.name).exists(), eq=False)
+
     def test_aliased_parent_is_rejected(self, tmp_path: Path) -> None:
         """Do not publish through a parent directory alias."""
         linked_parent = tmp_path / "linked"

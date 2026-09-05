@@ -1,4 +1,4 @@
-"""Stable descriptor reads for atomic file state authentication."""
+"""Public stable descriptor reads for atomic file state authentication."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import errno
 import os
 from pathlib import Path
 
-from . import _atomic_file_descriptor as file_descriptor
+from . import atomic_file_descriptor as file_descriptor
 
 
 def read_descriptor_bytes(

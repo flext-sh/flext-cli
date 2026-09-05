@@ -1,4 +1,4 @@
-"""Descriptor-bound parent ownership for atomic file operations."""
+"""Public descriptor-bound parent ownership for atomic file operations."""
 
 from __future__ import annotations
 
@@ -9,7 +9,9 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import _atomic_file_path as file_path
+from . import atomic_file_path as file_path
+from . import atomic_parent_descriptor as parent_path
+from . import atomic_parent_failure as parent_failure
 
 
 @dataclass(frozen=True, slots=True)
@@ -19,6 +21,7 @@ class ParentDescriptor:
     path: Path
     descriptor: int
     state: os.stat_result
+    ancestry: tuple[tuple[int, int], ...]
 
 
 @contextmanager
@@ -27,51 +30,44 @@ def parent_descriptor(
 ) -> Generator[ParentDescriptor]:
     """Yield one authenticated parent descriptor with required OS capabilities."""
     validated = file_path.validate_atomic_path(path)
-    _require_capabilities(replace=replace, unlink=unlink)
-    directory_flag = getattr(os, "O_DIRECTORY", 0)
-    nofollow_flag = getattr(os, "O_NOFOLLOW", 0)
-    flags = (
-        os.O_RDONLY
-        | directory_flag
-        | nofollow_flag
-        | getattr(os, "O_CLOEXEC", 0)
-        | getattr(os, "O_BINARY", 0)
-    )
-    descriptor = os.open(validated.parent, flags)
-    try:
-        state = os.fstat(descriptor)
-        file_path.validate_directory_state(validated.parent, state)
-        handle = ParentDescriptor(validated.parent, descriptor, state)
+    _require_capabilities(validated, replace=replace, unlink=unlink)
+    with parent_path.physical_directory(validated.parent) as opened:
+        handle = ParentDescriptor(
+            validated.parent, opened.descriptor, opened.state, opened.ancestry
+        )
         assert_parent_unchanged(handle)
-    except BaseException as operation_error:
-        _close_after_failure(descriptor, validated.parent, operation_error)
-        raise
-    try:
-        yield handle
+        try:
+            yield handle
+        except BaseException as operation_error:
+            parent_failure.preserve_recheck_failure(
+                handle.path,
+                operation_error,
+                lambda: assert_parent_unchanged(handle),
+            )
+            raise
         assert_parent_unchanged(handle)
-    except BaseException as operation_error:
-        _close_after_failure(descriptor, validated.parent, operation_error)
-        raise
-    os.close(descriptor)
 
 
 def assert_parent_unchanged(parent: ParentDescriptor) -> None:
     """Require descriptor and pathname to retain the opened directory identity."""
     descriptor_state = os.fstat(parent.descriptor)
     file_path.validate_directory_state(parent.path, descriptor_state)
-    pathname_state = file_path.validate_parent_path(parent.path)
     expected = file_path.identity(parent.state)
-    if (
-        file_path.identity(descriptor_state) != expected
-        or file_path.identity(pathname_state) != expected
-    ):
+    if file_path.identity(descriptor_state) != expected:
         message = f"atomic file parent identity changed: {parent.path}"
         raise OSError(errno.ESTALE, message, parent.path)
+    with parent_path.physical_directory(parent.path) as current:
+        if (
+            file_path.identity(current.state) != expected
+            or current.ancestry != parent.ancestry
+        ):
+            message = f"atomic file parent ancestry changed: {parent.path}"
+            raise OSError(errno.ESTALE, message, parent.path)
 
 
 def entry_stat(parent: ParentDescriptor, path: Path) -> os.stat_result:
     """Read one final entry relative to its authenticated parent descriptor."""
-    _require_entry(parent, path)
+    require_entry(parent, path)
     return os.stat(path.name, dir_fd=parent.descriptor, follow_symlinks=False)
 
 
@@ -79,7 +75,7 @@ def open_entry(
     parent: ParentDescriptor, path: Path, flags: int, *, mode: int | None = None
 ) -> int:
     """Open one final entry relative to its authenticated parent descriptor."""
-    _require_entry(parent, path)
+    require_entry(parent, path)
     nofollow_flag = getattr(os, "O_NOFOLLOW", 0)
     guarded_flags = flags | nofollow_flag
     if mode is None:
@@ -87,9 +83,23 @@ def open_entry(
     return os.open(path.name, guarded_flags, mode, dir_fd=parent.descriptor)
 
 
+@contextmanager
+def entry_descriptor(
+    parent: ParentDescriptor, path: Path, flags: int
+) -> Generator[int]:
+    """Yield one final-entry descriptor and retain close failures causally."""
+    descriptor = open_entry(parent, path, flags)
+    try:
+        yield descriptor
+    except BaseException as operation_error:
+        _close_after_failure(descriptor, path, operation_error)
+        raise
+    os.close(descriptor)
+
+
 def unlink_entry(parent: ParentDescriptor, path: Path) -> None:
     """Unlink one entry from the still-authorized physical parent."""
-    _require_entry(parent, path)
+    require_entry(parent, path)
     assert_parent_unchanged(parent)
     os.unlink(path.name, dir_fd=parent.descriptor)
 
@@ -101,8 +111,8 @@ def replace_entry(
     destination: Path,
 ) -> None:
     """Replace one entry using only authenticated directory descriptors."""
-    _require_entry(source_parent, source)
-    _require_entry(destination_parent, destination)
+    require_entry(source_parent, source)
+    require_entry(destination_parent, destination)
     assert_parent_unchanged(source_parent)
     assert_parent_unchanged(destination_parent)
     os.replace(
@@ -113,8 +123,9 @@ def replace_entry(
     )
 
 
-def _require_capabilities(*, replace: bool, unlink: bool) -> None:
-    operations: list[tuple[str, object]] = [("open", os.open), ("stat", os.stat)]
+def _require_capabilities(path: Path, *, replace: bool, unlink: bool) -> None:
+    parent_path.require_traversal_capabilities(path)
+    operations: list[tuple[str, object]] = []
     if replace:
         # CPython exposes ``src_dir_fd``/``dst_dir_fd`` on ``os.replace`` via
         # the same renameat primitive as ``os.rename``, but records only
@@ -125,19 +136,14 @@ def _require_capabilities(*, replace: bool, unlink: bool) -> None:
     missing = [
         name for name, operation in operations if operation not in os.supports_dir_fd
     ]
-    if os.stat not in os.supports_follow_symlinks:
-        missing.append("stat(follow_symlinks=False)")
-    if not getattr(os, "O_DIRECTORY", 0):
-        missing.append("O_DIRECTORY")
-    if not getattr(os, "O_NOFOLLOW", 0):
-        missing.append("O_NOFOLLOW")
     if missing:
         unsupported = sorted(set(missing))
         message = f"descriptor-bound atomic files are unsupported: {unsupported}"
         raise OSError(errno.ENOTSUP, message)
 
 
-def _require_entry(parent: ParentDescriptor, path: Path) -> None:
+def require_entry(parent: ParentDescriptor, path: Path) -> None:
+    """Require one validated path to name a child of the opened parent."""
     validated = file_path.validate_atomic_path(path)
     if validated.parent != parent.path:
         message = f"atomic file does not belong to authenticated parent: {path}"
@@ -168,9 +174,11 @@ def _close_after_failure(
 __all__: list[str] = [
     "ParentDescriptor",
     "assert_parent_unchanged",
+    "entry_descriptor",
     "entry_stat",
     "open_entry",
     "parent_descriptor",
     "replace_entry",
+    "require_entry",
     "unlink_entry",
 ]
