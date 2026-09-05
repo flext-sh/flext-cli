@@ -12,7 +12,7 @@ from . import atomic_file_state as file_state
 
 
 def remove_failed_temporary(
-    parent: file_descriptor.ParentDescriptor,
+    parent: ParentDescriptor,
     temporary: Path,
     identity: tuple[int, int] | None,
     descriptor: int | None,
@@ -27,7 +27,7 @@ def remove_failed_temporary(
             cleanup_errors.append(cleanup_error)
     if identity is None:
         try:
-            state = file_state.destination_state(temporary, parent=parent)
+            state = destination_state(temporary, parent=parent)
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
         else:
@@ -55,11 +55,9 @@ def _raise_cleanup_failure(
         f"atomic write failed ({operation_error}); "
         f"temporary cleanup failed ({cleanup_summary})"
     )
+    group_message = "atomic write and temporary cleanup failed"
     if isinstance(operation_error, Exception):
-        causes = ExceptionGroup(
-            "atomic write and temporary cleanup failed",
-            [operation_error, *cleanup_errors],
-        )
+        causes = ExceptionGroup(group_message, [operation_error, *cleanup_errors])
         raise OSError(errno.EIO, message, temporary) from causes
     group_message = "atomic write and temporary cleanup failed"
     raise BaseExceptionGroup(
