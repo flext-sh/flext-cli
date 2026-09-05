@@ -5,10 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import c, m, p, r, s, t
-from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
 
 
-class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
+
+class FlextCliPipeline(s):
     """Expose the canonical pipeline DSL through the service layer."""
 
     @staticmethod
@@ -112,6 +112,7 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
     ) -> p.Result[m.Cli.PipelineResult]:
         """Execute a pipeline through the public CLI DSL surface."""
         return self.execute_pipeline(stages, context, logger=logger or self.logger)
+
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliPipeline"]
