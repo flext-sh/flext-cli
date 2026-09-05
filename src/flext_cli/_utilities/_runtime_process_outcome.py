@@ -21,13 +21,13 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         legacy_timeout: bool,
         legacy_timeout_seconds: int | None,
         timeout_exit_code: int,
-    ) -> p.Result[int]:
+    ) -> p.Result[p.Cli.ProcessOutcome]:
         """Preserve a primary exit while surfacing additive diagnostics."""
         if legacy_timeout and timed_out:
             failure = f"timeout {legacy_timeout_seconds}s: {shlex.join(list(cmd))}"
             if diagnostics:
                 failure = f"{failure}; {'; '.join(diagnostics)}"
-            return r[int].fail(failure)
+            return r[p.Cli.ProcessOutcome].fail(failure)
         if received_signals:
             primary_exit = -abs(received_signals[0])
         elif timed_out:
@@ -37,10 +37,18 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         else:
             primary_exit = return_code
         if diagnostics:
-            return r[int].fail("; ".join(diagnostics))
+            return r[p.Cli.ProcessOutcome].fail("; ".join(diagnostics))
         if primary_exit is None:
-            return r[int].fail("root process did not expose an exit status")
-        return r[int].ok(primary_exit)
+            return r[p.Cli.ProcessOutcome].fail(
+                "root process did not expose an exit status"
+            )
+        return r[p.Cli.ProcessOutcome].ok(
+            m.Cli.ProcessOutcome(
+                raw_return_code=primary_exit,
+                timed_out=timed_out,
+                forwarded_signal=(received_signals[0] if received_signals else None),
+            )
+        )
 
     @classmethod
     def _captured_process_result(
@@ -68,10 +76,10 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
             legacy_timeout_seconds=timeout_seconds,
             timeout_exit_code=timeout_exit_code,
         ).map(
-            lambda exit_code: m.Cli.CommandBytesOutput(
+            lambda outcome: m.Cli.CommandBytesOutput(
                 stdout=bytes(stdout_output),
                 stderr=bytes(stderr_output),
-                exit_code=exit_code,
+                outcome=outcome,
                 duration=duration,
             )
         )

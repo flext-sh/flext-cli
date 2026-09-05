@@ -62,7 +62,7 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
             ),
             timeout=timeout,
             deadline=deadline,
-        ).map(lambda output: output.exit_code)
+        ).map(lambda output: output.outcome.raw_return_code)
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeRunToFileMixin"]
