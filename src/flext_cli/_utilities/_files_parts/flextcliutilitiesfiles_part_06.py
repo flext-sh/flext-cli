@@ -15,6 +15,16 @@ class FlextCliUtilitiesFiles:
     """Implementation part for FlextCliUtilitiesFiles."""
 
     @staticmethod
+    def atomic_file_publication_is_unchanged(
+        publication: m.Cli.AtomicFilePublication,
+    ) -> bool:
+        """Return whether staged bytes and permissions equal the live state."""
+        return (
+            publication.before.content == publication.replacement.content
+            and publication.before.mode == publication.replacement.mode
+        )
+
+    @staticmethod
     def atomic_create_binary_file_guarded(
         file_path: t.Cli.TextPath, data: bytes, *, permission_mode: int
     ) -> p.Result[m.Cli.AtomicFileState]:

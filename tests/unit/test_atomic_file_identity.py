@@ -13,6 +13,38 @@ from tests import u
 class TestsAtomicFileIdentity:
     """Prove callers cannot authorize effects with only matching content."""
 
+    def test_publication_unchanged_requires_equal_bytes_and_mode(
+        self, tmp_path: Path
+    ) -> None:
+        """Treat matching bytes with different permissions as a real change."""
+        destination = tmp_path / "live.bin"
+        staged = tmp_path / "staged.bin"
+        destination.write_bytes(b"content")
+        staged.write_bytes(b"content")
+        destination.chmod(0o600)
+        staged.chmod(0o640)
+        before = u.Cli.atomic_read_binary_file_state(destination, required=True)
+        replacement = u.Cli.atomic_read_binary_file_state(staged, required=True)
+        tm.ok(before)
+        tm.ok(replacement)
+        publication = m.Cli.AtomicFilePublication(
+            before=before.value, replacement=replacement.value
+        )
+
+        tm.that(u.Cli.atomic_file_publication_is_unchanged(publication), eq=False)
+
+        staged.chmod(0o600)
+        identical = u.Cli.atomic_read_binary_file_state(staged, required=True)
+        tm.ok(identical)
+        tm.that(
+            u.Cli.atomic_file_publication_is_unchanged(
+                m.Cli.AtomicFilePublication(
+                    before=before.value, replacement=identical.value
+                )
+            ),
+            eq=True,
+        )
+
     def test_exclusive_create_returns_exact_published_state(
         self, tmp_path: Path
     ) -> None:
