@@ -43,7 +43,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin:
         def require_zero_exit(
             output: p.Cli.CommandOutput,
         ) -> p.Result[p.Cli.CommandOutput]:
-            if output.outcome.raw_return_code != 0:
+            if not cls.process_succeeded(output.outcome):
                 detail = (output.stderr or output.stdout).strip()
                 return r[p.Cli.CommandOutput].fail(
                     f"failed ({output.outcome.raw_return_code}): "

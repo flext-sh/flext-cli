@@ -131,7 +131,11 @@ raise SystemExit(0 if result.failure else 2)
 """
         completed = u.Cli.run_raw((sys.executable, "-c", script, str(path)), timeout=30)
         tm.ok(completed)
-        tm.that(completed.value.exit_code, eq=0, msg=completed.value.stderr)
+        tm.that(
+            completed.value.outcome.raw_return_code,
+            eq=0,
+            msg=completed.value.stderr,
+        )
         tm.that(path.exists(), eq=False)
         tm.that(tuple(tmp_path.iterdir()), eq=())
 

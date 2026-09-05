@@ -24,7 +24,7 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         diagnostics: tuple[str, ...],
         *,
         timed_out: bool,
-    ) -> p.Result[p.Cli.ProcessOutcome]:
+    ) -> p.Result[m.Cli.ProcessOutcome]:
         """Preserve a primary exit while surfacing additive diagnostics."""
         if received_signals:
             primary_exit = -abs(received_signals[0])
@@ -33,12 +33,12 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         else:
             primary_exit = return_code
         if diagnostics:
-            return r[p.Cli.ProcessOutcome].fail("; ".join(diagnostics))
+            return r[m.Cli.ProcessOutcome].fail("; ".join(diagnostics))
         if primary_exit is None:
-            return r[p.Cli.ProcessOutcome].fail(
+            return r[m.Cli.ProcessOutcome].fail(
                 "root process did not expose an exit status"
             )
-        return r[p.Cli.ProcessOutcome].ok(
+        return r[m.Cli.ProcessOutcome].ok(
             m.Cli.ProcessOutcome(
                 raw_return_code=primary_exit,
                 timed_out=timed_out,
@@ -57,7 +57,7 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         duration: float,
         *,
         timed_out: bool,
-    ) -> p.Result[p.Cli.CommandBytesOutput]:
+    ) -> p.Result[m.Cli.CommandBytesOutput]:
         """Attach captured bytes only after the owned process boundary is empty."""
         return cls._process_exit_result(
             return_code, received_signals, diagnostics, timed_out=timed_out

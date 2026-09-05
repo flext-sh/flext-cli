@@ -49,7 +49,12 @@ class TestsFlextCliRuntimeStreamedProcess:
         captured = capfd.readouterr()
         expected = b"stdout-one\nstderr-two\n"
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        outcome = tm.ok(result)
+        tm.that(u.Cli.process_succeeded(outcome), eq=True)
+        tm.that(outcome.raw_return_code, eq=c.Cli.EXIT_CODE_SUCCESS)
+        tm.that(outcome.timed_out, eq=False)
+        tm.that(outcome.forwarded_signal, is_=None)
+
         tm.that(output_file.read_bytes(), eq=expected)
         tm.that(captured.out.encode(), eq=expected)
         tm.that(os.get_blocking(sys.stdout.fileno()), eq=stdout_was_blocking)

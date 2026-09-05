@@ -63,7 +63,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             if case.use_tmp_path:
                 tm.that(output.stdout.strip(), eq=str(tmp_path))
             if case.exit_code is not None:
-                tm.that(output.exit_code, eq=case.exit_code)
+                tm.that(output.outcome.raw_return_code, eq=case.exit_code)
             return
         tm.fail(result, has=case.error_has)
 
@@ -134,7 +134,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Verify run(capture=False) streams live: captured stdout is empty, exit ok."""
         result = runner.run(("sh", "-c", "echo streamed-line"), capture=False)
         output = m.Cli.CommandOutput.model_validate(tm.ok(result))
-        tm.that(output.exit_code, eq=0)
+        tm.that(output.outcome.raw_return_code, eq=0)
         tm.that(output.stdout, eq="")
         tm.that(output.stderr, eq="")
 
@@ -149,7 +149,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ok_result = runner.run_live(("sh", "-c", "echo live-ok"))
         ok_output = m.Cli.CommandOutput.model_validate(tm.ok(ok_result))
         tm.that(ok_output.stdout, eq="")
-        tm.that(ok_output.exit_code, eq=0)
+        tm.that(ok_output.outcome.raw_return_code, eq=0)
         tm.fail(runner.run_live(("sh", "-c", "exit 7")), has="failed")
 
     def test_process_start_wait_captures_stdout(self, runner: u.Cli) -> None:

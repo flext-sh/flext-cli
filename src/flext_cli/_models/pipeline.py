@@ -53,10 +53,8 @@ class FlextCliModelsPipeline:
                 default_factory=frozenset, description="Stage IDs this stage depends on"
             ),
         ]
-        # NOTE: handler/skip_if use inline Callable, not t.Cli.PipelineHandler /
-        # t.Cli.PipelineSkipPredicate.  Those are PEP 695 `type` aliases that
-        # reference p.Cli.PipelineStageContext under TYPE_CHECKING — Pydantic
-        # cannot resolve them at runtime for model field validation.
+        # Pydantic owns runtime validation here; public callback contracts live
+        # in p.Cli and this model retains the equivalent concrete callable shape.
         handler: Annotated[
             Callable[
                 [FlextCliModelsPipeline.PipelineStageContext],

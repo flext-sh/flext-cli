@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, override
 
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from jinja2.exceptions import TemplateError, TemplateNotFound
@@ -37,6 +37,7 @@ class FlextCliUtilitiesTemplate:
             self.source_states: dict[Path, m.Cli.AtomicFileState] = {}
             self.failure: str | None = None
 
+        @override
         def get_source(
             self, environment: Environment, template: str
         ) -> tuple[str, str, None]:

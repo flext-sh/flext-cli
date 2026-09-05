@@ -184,7 +184,6 @@ class FlextCliUtilitiesProcesses:
         forwarded_fds = tuple(pass_fds)
         if any(
             isinstance(file_descriptor, bool)
-            or not isinstance(file_descriptor, int)
             or file_descriptor < 0
             for file_descriptor in forwarded_fds
         ):

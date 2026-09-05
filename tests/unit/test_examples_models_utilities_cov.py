@@ -104,11 +104,11 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ],
     )
     def test_advanced_settings_rejects_invalid_field(
-        self, kwargs: dict[str, str], match: str
+        self, kwargs: t.JsonMapping, match: str
     ) -> None:
         """Verify that advanced settings rejects invalid field."""
         with pytest.raises(ValueError, match=match):
-            m.Examples.AppSettingsAdvanced(**kwargs)
+            m.Examples.AppSettingsAdvanced.model_validate(kwargs)
 
     @pytest.mark.parametrize("host", ["127.0.0.1", "localhost", "db.example.com"])
     def test_database_config_accepts_valid_host(self, host: str) -> None:

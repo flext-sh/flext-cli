@@ -94,7 +94,7 @@ class FlextCliUtilitiesToml:
             .flat_map(
                 lambda output: (
                     r[bool].ok(True)
-                    if output.outcome.raw_return_code == 0
+                    if ur.process_succeeded(output.outcome)
                     else r[bool].fail(
                         (output.stderr or output.stdout).strip()
                         or f"taplo format failed: {path}"

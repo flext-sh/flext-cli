@@ -76,7 +76,11 @@ class FlextCliUtilitiesYamlConvertMixin:
     def yaml_deep_to_commented(data: t.Cli.YamlScalar) -> t.Cli.YamlScalar: ...
 
     @staticmethod
-    def yaml_deep_to_commented(data: t.Cli.YamlValue) -> t.Cli.YamlNode:
+    def yaml_deep_to_commented(
+        data: Mapping[str, t.Cli.YamlValue]
+        | list[t.Cli.YamlValue]
+        | t.Cli.YamlScalar,
+    ) -> t.Cli.YamlNode:
         """Recursively convert plain dict/list into CommentedMap/CommentedSeq.
 
         Existing CommentedMap/CommentedSeq nodes are preserved. Multi-line

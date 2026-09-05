@@ -20,7 +20,7 @@ class TestsFlextCliPipeline:
     """Implementation part for TestsFlextCliPipeline."""
 
     @staticmethod
-    def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
+    def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:
         """Build a handler that succeeds and writes to shared."""
 
         def handler(
