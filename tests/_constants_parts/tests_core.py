@@ -20,6 +20,7 @@ class TestsFlextCliConstantsCore:
     AUTH_VALUE_SAMPLE: Final[str] = "token-123"
     COMMAND_DURATION_TOLERANCE: Final[float] = 1e-9
     CREDENTIAL_SAMPLE_VALUE: Final[str] = "secret-pass"
+    DOCUMENT_STACK_MODULES: Final[t.StrSequence] = ("openpyxl", "docx", "pptx")
     ENV_EXPAND_HOME_VALUE: Final[str] = "/home/tester"
     ENV_EXPAND_OPT_VALUE: Final[str] = "/opt/x"
     ENV_READ_ABSENT_NAME: Final[str] = "FLEXT_CLI_ENV_READ_ABSENT"

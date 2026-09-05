@@ -243,18 +243,19 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.fail(result)
         tm.that(marker.exists(), eq=False)
 
-    @pytest.mark.skipif(os.name == "nt", reason="POSIX EPIPE contract")
     def test_broken_live_sink_fails_after_complete_durable_log(
         self, tmp_path: Path
     ) -> None:
-        """Treat live EPIPE as nonfatal after preserving the child bytes."""
+        """Surface a broken live sink after preserving the durable child bytes."""
         output_file = tmp_path / "broken-live.log"
         child = "import os;os.write(1,b'durable-before-live\\n')"
-        previous_sigpipe = signal.getsignal(signal.SIGPIPE)
+        sigpipe = getattr(signal, "SIGPIPE", None)
+        previous_sigpipe = signal.getsignal(sigpipe) if sigpipe is not None else None
         read_fd, write_fd = os.pipe()
         os.close(read_fd)
         saved_stdout = os.dup(1)
-        signal.signal(signal.SIGPIPE, signal.SIG_IGN)
+        if sigpipe is not None:
+            signal.signal(sigpipe, signal.SIG_IGN)
         try:
             os.dup2(write_fd, 1)
             os.close(write_fd)
@@ -264,7 +265,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         finally:
             os.dup2(saved_stdout, 1)
             os.close(saved_stdout)
-            signal.signal(signal.SIGPIPE, previous_sigpipe)
+            if sigpipe is not None and previous_sigpipe is not None:
+                signal.signal(sigpipe, previous_sigpipe)
 
         tm.fail(result)
         tm.that(tm.not_none(result.error), has="live output")
