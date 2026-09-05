@@ -82,7 +82,6 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
             timed_out=timed_out,
             legacy_timeout=timeout_seconds is not None,
             legacy_timeout_seconds=timeout_seconds,
-            ,
         ).map(
             lambda outcome: m.Cli.CommandBytesOutput(
                 stdout=bytes(stdout_output),
