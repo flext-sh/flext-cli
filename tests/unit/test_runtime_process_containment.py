@@ -153,7 +153,7 @@ class TestsFlextCliRuntimeProcessContainment:
         _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
 
     @pytest.mark.parametrize("signal_number", [signal.SIGINT, signal.SIGTERM])
-    def test_manual_signal_is_forwarded_and_normalized(
+    def test_manual_signal_is_forwarded_without_exit_normalization(
         self, tmp_path: Path, signal_number: signal.Signals
     ) -> None:
         ready = tmp_path / f"child-ready-{signal_number}"
@@ -186,7 +186,7 @@ class TestsFlextCliRuntimeProcessContainment:
         signaler.join(timeout=1.0)
 
         tm.ok(result)
-        tm.that(result.value, eq=128 + signal_number)
+        tm.that(result.value, eq=-signal_number)
         tm.that(signaler_errors, eq=[])
         tm.that(signaler.is_alive(), eq=False)
         tm.that(time.monotonic() - signal_started, lt=6.0)
@@ -206,7 +206,7 @@ class TestsFlextCliRuntimeProcessContainment:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=128 + signal.SIGTERM)
+        tm.that(result.value, eq=-signal.SIGTERM)
         tm.that(marker.exists(), eq=False)
 
     def test_deadline_forwards_interrupt_before_forced_cleanup(

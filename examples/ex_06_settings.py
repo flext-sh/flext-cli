@@ -103,12 +103,13 @@ class Ex06Settings:
         return r[p.Cli.Settings].ok(profile_config)
 
     @classmethod
-    def load_application_settings(cls) -> p.Result[t.MappingKV[str, t.JsonValue]]:
+    def load_application_settings(
+        cls, settings_obj: m.Examples.AppSettingsAdvanced
+    ) -> p.Result[t.MappingKV[str, t.JsonValue]]:
         """Load, validate, and derive application settings from the canonical model."""
         cli.print(
             "\n⚙️  Loading Application Settings:", style=c.Cli.MessageStyles.BOLD_CYAN
         )
-        settings_obj = m.Examples.AppSettingsAdvanced()
         cli.print("✅ Settings model created", style=c.Cli.MessageStyles.GREEN)
         validate_result = settings_obj.validate_to_mapping()
         if validate_result.failure:

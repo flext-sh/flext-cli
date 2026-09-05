@@ -2,46 +2,14 @@
 
 from __future__ import annotations
 
-import os
-from collections.abc import Mapping
-from pathlib import Path
 from typing import Annotated, ClassVar
 
 from examples import c, t
-from flext_cli import m, settings, u
+from flext_cli import m, settings
 
 
 class ExamplesFlextCliModelsExamplesCommon:
     """Split example model common namespace."""
-
-    @staticmethod
-    def merge_env_overrides(
-        data: t.ExampleModelInput,
-        env_fields: t.StrMapping,
-        field_types: t.MappingKV[str, t.TypeHintSpecifier],
-    ) -> t.ExampleModelInput:
-        """Merge explicit input with environment overrides using Pydantic coercion."""
-        if not isinstance(data, Mapping):
-            return data
-        typed_data = t.JSON_DICT_ADAPTER.validate_python(data)
-        env_overrides: dict[str, t.EnvValue] = {}
-        for field_name, env_name in env_fields.items():
-            if env_name not in os.environ or field_name not in field_types:
-                continue
-            validated_value: t.EnvValue = m.TypeAdapter(
-                field_types[field_name]
-            ).validate_python(os.environ[env_name])
-            if isinstance(validated_value, Mapping):
-                env_overrides[field_name] = dict(
-                    t.JSON_DICT_ADAPTER.validate_python(validated_value)
-                )
-                continue
-            if isinstance(validated_value, Path | str | int | float | bool):
-                env_overrides[field_name] = validated_value
-                continue
-            msg = f"Unsupported env override type for {field_name}: {type(validated_value).__name__}"
-            raise TypeError(msg)
-        return {**env_overrides, **typed_data}
 
     # -------------------------------------------------------------------
     # Example 06 - Configuration
@@ -63,18 +31,6 @@ class ExamplesFlextCliModelsExamplesCommon:
         timeout: Annotated[int, m.Field(ge=1, description="Timeout in seconds")] = (
             c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS
         )
-
-        @u.model_validator(mode="before")
-        @classmethod
-        def _inject_env(cls, data: t.ExampleModelInput) -> t.ExampleModelInput:
-            return ExamplesFlextCliModelsExamplesCommon.merge_env_overrides(
-                data,
-                c.EXAMPLE_ENV_MAP_MY_APP,
-                {
-                    field_name: field_info.annotation or str
-                    for field_name, field_info in cls.model_fields.items()
-                },
-            )
 
         def display(self, cli: t.CliApi) -> None:
             """Display app settings; uses the canonical CLI settings singleton."""

@@ -13,18 +13,61 @@ from __future__ import annotations
 from pathlib import Path
 from typing import ClassVar
 
-from jinja2 import StrictUndefined
-from jinja2.exceptions import TemplateError
+from jinja2 import BaseLoader, Environment, StrictUndefined
+from jinja2.exceptions import TemplateError, TemplateNotFound
 from jinja2.loaders import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
+    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart03,
+)
 from flext_core import u
 
 
 class FlextCliUtilitiesTemplate:
     """Generic Jinja2 render helpers (ADR-005 template SSOT)."""
+
+    class _AuthenticatedLoader(BaseLoader):
+        """Load every Jinja source once from descriptor-authenticated bytes."""
+
+        def __init__(self, search_path: Path) -> None:
+            self.search_path = search_path
+            self.source_states: dict[Path, m.Cli.AtomicFileState] = {}
+            self.failure: str | None = None
+
+        def get_source(
+            self, environment: Environment, template: str
+        ) -> tuple[str, str, None]:
+            """Return immutable captured text for one root-contained template."""
+            del environment
+            relative = Path(template)
+            source = (self.search_path / relative).absolute()
+            if relative.is_absolute() or ".." in relative.parts or not source.is_relative_to(
+                self.search_path
+            ):
+                self.failure = f"template source escapes its root: {template}"
+                raise TemplateNotFound(template)
+            existing = self.source_states.get(source)
+            if existing is None:
+                snapshot = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
+                    source, required=True
+                )
+                if snapshot.failure:
+                    self.failure = snapshot.error or f"template snapshot failed: {source}"
+                    raise TemplateNotFound(template)
+                existing = snapshot.value
+                self.source_states[source] = existing
+            if existing.content is None:
+                self.failure = f"authenticated template has no bytes: {source}"
+                raise TemplateNotFound(template)
+            try:
+                content = existing.content.decode(c.Cli.ENCODING_DEFAULT)
+            except UnicodeDecodeError as exc:
+                self.failure = f"decode authenticated template {source}: {exc}"
+                raise TemplateNotFound(template) from exc
+            return content, str(source), None
 
     # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): template
     # contexts retain their validated model identity until the Jinja egress.
@@ -73,6 +116,42 @@ class FlextCliUtilitiesTemplate:
                 rendered.error or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {path}"
             )
         return r[str].ok(rendered.value)
+
+    @staticmethod
+    def template_render_authenticated(
+        path: Path, context: p.Model
+    ) -> p.Result[m.Cli.AuthenticatedTemplateRender]:
+        """Render only descriptor-authenticated bytes and return all source states."""
+        source = path.expanduser().absolute()
+        loader = FlextCliUtilitiesTemplate._AuthenticatedLoader(source.parent)
+        environment = SandboxedEnvironment(
+            loader=loader,
+            undefined=StrictUndefined,
+            trim_blocks=c.Cli.TEMPLATE_TRIM_BLOCKS,
+            lstrip_blocks=c.Cli.TEMPLATE_LSTRIP_BLOCKS,
+            keep_trailing_newline=c.Cli.TEMPLATE_KEEP_TRAILING_NEWLINE,
+            autoescape=select_autoescape(),
+            auto_reload=False,
+        )
+        rendered = u.try_(
+            lambda: environment.get_template(source.name).render(
+                context.model_dump(mode="json")
+            ),
+            catch=(TemplateError, OSError),
+            op_name="template_render_authenticated",
+        )
+        if rendered.failure:
+            return r[m.Cli.AuthenticatedTemplateRender].fail(
+                loader.failure
+                or rendered.error
+                or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {source}"
+            )
+        return r[m.Cli.AuthenticatedTemplateRender].ok(
+            m.Cli.AuthenticatedTemplateRender(
+                rendered=rendered.value,
+                source_states=tuple(loader.source_states.values()),
+            )
+        )
 
     @staticmethod
     def template_render_to(path: Path, dest: Path, context: p.Model) -> p.Result[bool]:

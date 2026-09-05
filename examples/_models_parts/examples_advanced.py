@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, ClassVar
 
 from examples import c, p, r, t
-from examples._models_parts.examples_common import ExamplesFlextCliModelsExamplesCommon
 from flext_cli import m, u
 
 if TYPE_CHECKING:
@@ -45,18 +44,6 @@ class ExamplesFlextCliModelsExamplesAdvanced:
             description="Temp directory",
             validate_default=True,
         )
-
-        @u.model_validator(mode="before")
-        @classmethod
-        def _inject_env(cls, data: t.ExampleModelInput) -> t.ExampleModelInput:
-            return ExamplesFlextCliModelsExamplesCommon.merge_env_overrides(
-                data,
-                c.EXAMPLE_ENV_MAP_ADVANCED_APP,
-                {
-                    field_name: field_info.annotation or str
-                    for field_name, field_info in cls.model_fields.items()
-                },
-            )
 
         @u.field_validator("database_url")
         @classmethod

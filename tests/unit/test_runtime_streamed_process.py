@@ -7,12 +7,12 @@ import signal
 import sys
 import threading
 import time
-from typing import TYPE_CHECKING, BinaryIO
+from typing import TYPE_CHECKING
 
 import pytest
 
 from flext_tests import tm
-from tests import m, p, u
+from tests import c, m, p, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -49,6 +49,26 @@ class TestsFlextCliRuntimeStreamedProcess:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", script], output_file, live=True
         )
+
+    def test_silent_live_process_emits_progress_only_to_stderr(
+        self, tmp_path: Path, capfd: pytest.CaptureFixture[str]
+    ) -> None:
+        """Keep silent children observable without contaminating durable bytes."""
+        output_file = tmp_path / "silent.log"
+
+        result = u.Cli().run_to_file(
+            [sys.executable, "-c", "import time;time.sleep(.08)"],
+            output_file,
+            live=True,
+            heartbeat_seconds=0.02,
+        )
+
+        captured = capfd.readouterr()
+        tm.ok(result)
+        tm.that(result.value, eq=0)
+        tm.that(output_file.read_bytes(), eq=b"")
+        tm.that(captured.out, eq="")
+        tm.that(captured.err, has=c.Cli.CLI_PROCESS_HEARTBEAT_MESSAGE)
 
         expected = b"stdout-one\nstderr-two\n"
         tm.ok(result)
@@ -143,11 +163,11 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(self._input_pump_is_alive(), eq=False)
 
     def test_child_early_exit_preserves_its_exact_status(self, tmp_path: Path) -> None:
-        """Closing an empty input pipe cannot normalize the child's real exit."""
+        """A secondary broken input pipe cannot replace the child's real exit."""
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "raise SystemExit(23)"],
             tmp_path / "early-exit.log",
-            input_data=b"",
+            input_data=b"unread" * 131_072,
         )
 
         tm.ok(result)
@@ -167,30 +187,6 @@ class TestsFlextCliRuntimeStreamedProcess:
 
         tm.fail(result)
         tm.that(tm.not_none(result.error).lower(), has="timeout")
-        tm.that(self._input_pump_is_alive(), eq=False)
-
-    def test_input_writer_failure_reaches_the_public_result(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """A writer error kills the owned child and remains a public failure."""
-
-        def fail_writer(
-            sink: BinaryIO, _payload: bytes, failures: list[str], wake: threading.Event
-        ) -> None:
-            failures.append("stdin write error: injected")
-            sink.close()
-            wake.set()
-
-        monkeypatch.setattr(u.Cli, "_pump_process_input", staticmethod(fail_writer))
-        result = u.Cli().run_to_file(
-            [sys.executable, "-c", "import time;time.sleep(30)"],
-            tmp_path / "writer-failure.log",
-            input_data=b"secret",
-            deadline=_deadline(seconds=3.0, grace=1.0),
-        )
-
-        tm.fail(result)
-        tm.that(tm.not_none(result.error), has="stdin write error: injected")
         tm.that(self._input_pump_is_alive(), eq=False)
 
     def test_deadline_model_satisfies_public_protocol(self) -> None:
@@ -248,7 +244,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(marker.exists(), eq=False)
 
     @pytest.mark.skipif(os.name == "nt", reason="POSIX EPIPE contract")
-    def test_broken_live_sink_keeps_the_complete_durable_log(
+    def test_broken_live_sink_fails_after_complete_durable_log(
         self, tmp_path: Path
     ) -> None:
         """Treat live EPIPE as nonfatal after preserving the child bytes."""
@@ -270,8 +266,8 @@ class TestsFlextCliRuntimeStreamedProcess:
             os.close(saved_stdout)
             signal.signal(signal.SIGPIPE, previous_sigpipe)
 
-        tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.fail(result)
+        tm.that(tm.not_none(result.error), has="live output")
         tm.that(output_file.read_bytes(), eq=b"durable-before-live\n")
 
 

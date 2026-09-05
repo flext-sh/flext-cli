@@ -25,7 +25,6 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
         durable_log: BinaryIO | None,
         live_fd: int | None,
         failures: list[str],
-        live_diagnostics: list[str],
         stop: threading.Event,
         wake: threading.Event,
         stdout_output: bytearray,
@@ -47,7 +46,6 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
                 stdout_output if capture_output else None,
                 live_fd,
                 failures,
-                live_diagnostics,
                 stop,
                 wake,
                 thread_name=(
@@ -68,7 +66,6 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
                 stderr_output,
                 None,
                 failures,
-                live_diagnostics,
                 stop,
                 wake,
                 thread_name="flext-cli-process-stderr",

@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli import p, t
+from flext_cli import p, settings, t
 from flext_cli._utilities._runtime_process_execution import (
     FlextCliUtilitiesRuntimeProcessExecutionMixin,
 )
@@ -35,6 +35,7 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         input_data: str | bytes | None = None,
         *,
         live: bool = False,
+        heartbeat_seconds: float | None = None,
         deadline: p.Cli.ProcessDeadline | None = None,
     ) -> p.Result[int]:
         """Stream combined bytes live and durably under one absolute deadline.
@@ -54,6 +55,11 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
             input_data,
             capture_output=False,
             live=live,
+            heartbeat_seconds=(
+                settings.cli_process_heartbeat_seconds
+                if live and heartbeat_seconds is None
+                else heartbeat_seconds
+            ),
             timeout=timeout,
             deadline=deadline,
         ).map(lambda output: output.exit_code)

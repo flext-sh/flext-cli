@@ -59,5 +59,28 @@ class FlextCliUtilitiesFiles:
             before, replacement
         )
 
+    @staticmethod
+    def atomic_verify_binary_file_states(
+        expected_states: t.SequenceOf[m.Cli.AtomicFileState],
+    ) -> p.Result[bool]:
+        """Verify one coherent set of physical file states without reread fallback."""
+        by_path: dict[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
+        for expected in expected_states:
+            existing = by_path.get(expected.path)
+            if existing is not None and existing != expected:
+                return r[bool].fail(
+                    f"atomic source has conflicting snapshots: {expected.path}"
+                )
+            by_path[expected.path] = expected
+        for expected in by_path.values():
+            current = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
+                expected.path, required=expected.content is not None
+            )
+            if current.failure:
+                return r[bool].from_failure(current)
+            if current.value != expected:
+                return r[bool].fail(f"atomic source changed: {expected.path}")
+        return r[bool].ok(True)
+
 
 __all__: list[str] = ["FlextCliUtilitiesFiles"]

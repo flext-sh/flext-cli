@@ -148,6 +148,7 @@ class FlextCliUtilitiesRuntime(
             input_data,
             capture_output=capture,
             live=False,
+            heartbeat_seconds=None,
             timeout=timeout,
             deadline=None,
         ).flat_map(decode_output)
@@ -171,6 +172,7 @@ class FlextCliUtilitiesRuntime(
             input_data,
             capture_output=True,
             live=False,
+            heartbeat_seconds=None,
             timeout=timeout,
             deadline=None,
         )

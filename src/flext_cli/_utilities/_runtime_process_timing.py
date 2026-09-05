@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import shlex
 
-from flext_cli import p, r, t
+from flext_cli import c, p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessTimingMixin:
@@ -20,6 +20,7 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
         capture_output: bool,
         has_output_path: bool,
         live: bool,
+        heartbeat_seconds: float | None,
         on_main_thread: bool,
     ) -> p.Result[tuple[float | None, float, int]]:
         if timeout is not None and deadline is not None:
@@ -29,6 +30,17 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
         if live and not has_output_path:
             return r[tuple[float | None, float, int]].fail(
                 "live output requires a durable output path"
+            )
+        if heartbeat_seconds is not None and not live:
+            return r[tuple[float | None, float, int]].fail(
+                "process heartbeat requires live output"
+            )
+        if heartbeat_seconds is not None and not (
+            0 < heartbeat_seconds < c.Cli.CLI_PROCESS_HEARTBEAT_MAX_SECONDS
+        ):
+            return r[tuple[float | None, float, int]].fail(
+                "process heartbeat interval must be greater than zero and below "
+                f"{c.Cli.CLI_PROCESS_HEARTBEAT_MAX_SECONDS:g} seconds"
             )
         if capture_output and has_output_path:
             return r[tuple[float | None, float, int]].fail(

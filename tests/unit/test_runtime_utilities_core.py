@@ -24,13 +24,12 @@ class TestsFlextCliRuntimeUtilitiesCore:
         return u.Cli()
 
     def test_run_raw_remove_env_keys_strips_inherited_values(
-        self, runner: u.Cli, monkeypatch: pytest.MonkeyPatch
+        self, runner: u.Cli
     ) -> None:
         """Verify that run raw remove env keys strips inherited values."""
-        monkeypatch.setenv("TEST_RUNTIME_INHERITED", "should-not-leak")
-
         result = runner.run_raw(
             ["sh", "-c", 'printf %s "${TEST_RUNTIME_INHERITED:-missing}"'],
+            env={"TEST_RUNTIME_INHERITED": "should-not-leak"},
             remove_env_keys=("TEST_RUNTIME_INHERITED",),
         )
 

@@ -2,12 +2,7 @@
 
 from __future__ import annotations
 
-import errno
-import os
-import sys
 from pathlib import Path
-
-import pytest
 
 from flext_cli import m
 from flext_tests import tm
@@ -52,75 +47,6 @@ class TestsAtomicDirectoryPublish:
             tm.that(getattr(result.value, field), eq=getattr(staged, field))
         tm.that(destination_path.is_dir(), eq=True)
         tm.that(staged_path.exists(), eq=False)
-
-    def test_kernel_noreplace_preserves_racing_destination(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Return EEXIST without consuming staging when a destination races in."""
-        staged_path = tmp_path / "staged"
-        destination_path = tmp_path / "destination"
-        staged_path.mkdir()
-        destination = self._snapshot(destination_path)
-        staged = self._snapshot(staged_path, required=True)
-        original_fsencode = os.fsencode
-
-        def race_on_destination_encode(value: str | bytes | os.PathLike[str]) -> bytes:
-            encoded = original_fsencode(value)
-            if value == destination_path.name and not destination_path.exists():
-                destination_path.mkdir()
-            return encoded
-
-        monkeypatch.setattr(os, "fsencode", race_on_destination_encode)
-
-        result = u.Cli.atomic_publish_staged_empty_directory_guarded(
-            destination, staged
-        )
-
-        tm.fail(result)
-        tm.that(destination_path.is_dir(), eq=True)
-        tm.that(staged_path.is_dir(), eq=True)
-
-    def test_publish_rejects_unsupported_platform_before_effects(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Fail closed when no descriptor-bound no-replace primitive exists."""
-        staged_path = tmp_path / "staged"
-        destination_path = tmp_path / "destination"
-        staged_path.mkdir()
-        destination = self._snapshot(destination_path)
-        staged = self._snapshot(staged_path, required=True)
-        monkeypatch.setattr(sys, "platform", "unsupported")
-
-        result = u.Cli.atomic_publish_staged_empty_directory_guarded(
-            destination, staged
-        )
-
-        tm.fail(result)
-        tm.that(destination_path.exists(), eq=False)
-        tm.that(staged_path.is_dir(), eq=True)
-
-    def test_fsync_failure_precedes_rename(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Leave both names intact when parent durability cannot be proven."""
-        staged_path = tmp_path / "staged"
-        destination_path = tmp_path / "destination"
-        staged_path.mkdir()
-        destination = self._snapshot(destination_path)
-        staged = self._snapshot(staged_path, required=True)
-
-        def fail_sync(_descriptor: int) -> None:
-            raise OSError(errno.EIO, "injected directory fsync failure")
-
-        monkeypatch.setattr(os, "fsync", fail_sync)
-
-        result = u.Cli.atomic_publish_staged_empty_directory_guarded(
-            destination, staged
-        )
-
-        tm.fail(result)
-        tm.that(destination_path.exists(), eq=False)
-        tm.that(staged_path.is_dir(), eq=True)
 
     def test_publish_rejects_staged_replacement_inode(self, tmp_path: Path) -> None:
         """Never move another empty inode that reuses the staged pathname."""

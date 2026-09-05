@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import signal
 import threading
 import time
 from collections.abc import Callable
@@ -51,6 +52,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         *,
         capture_output: bool,
         live: bool,
+        heartbeat_seconds: float | None,
         timeout: int | None,
         deadline: p.Cli.ProcessDeadline | None,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
@@ -64,6 +66,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             capture_output=capture_output,
             has_output_path=output_path is not None,
             live=live,
+            heartbeat_seconds=heartbeat_seconds,
             on_main_thread=threading.current_thread() is threading.main_thread(),
         )
         if timing_result.failure:
@@ -77,7 +80,6 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         job_handle = 0
         failures: list[str] = []
         cleanup_errors: list[str] = []
-        live_diagnostics: list[str] = []
         restore_handlers: list[Callable[[], object]] = []
         forwarded_signals: list[int] = []
         received_signals: list[int] = []
@@ -94,6 +96,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         timed_out = False
         final_deadline = absolute_deadline
         cleanup_complete = False
+        primary_error: BaseException | None = None
 
         def execute_lifecycle() -> None:
             nonlocal \
@@ -161,7 +164,6 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                             durable_log,
                             live_result.value[0],
                             failures,
-                            live_diagnostics,
                             pump_stop,
                             wake,
                             stdout_output,
@@ -183,6 +185,8 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                         job_handle,
                         absolute_deadline,
                         grace_seconds,
+                        live_result.value[1],
+                        heartbeat_seconds,
                     )
                     return_code = cls._reap_and_drain(
                         owned_process,
@@ -201,8 +205,15 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
 
         try:
             execute_lifecycle()
-        except c.EXC_OS_VALUE as exc:
-            failures.append(f"execution error: {exc}")
+        except BaseException as exc:
+            primary_error = exc
+            if process is not None:
+                signal_error = cls._signal_process_tree(
+                    process, signal.SIGKILL, job_handle, force=True
+                )
+                if signal_error is not None:
+                    exc.add_note(signal_error)
+            raise
         finally:
             if process is not None and waiter is not None and not cleanup_complete:
                 return_code = cls._reap_and_drain(
@@ -225,6 +236,9 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 cleanup_errors.append(close_error)
             cleanup_errors.extend(cls._close_process_resources(stack))
             cleanup_errors.extend(cls._restore_forwarding_handlers(restore_handlers))
+            if primary_error is not None:
+                for cleanup_error in cleanup_errors:
+                    primary_error.add_note(cleanup_error)
         return cls._captured_process_result(
             cmd,
             return_code,
