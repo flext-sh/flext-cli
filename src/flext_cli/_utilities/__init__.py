@@ -35,7 +35,6 @@ if TYPE_CHECKING:
     from ._pptx._reader import FlextCliUtilitiesPptxReader
     from ._pptx._renderer import FlextCliUtilitiesPptxRenderer
     from ._pptx._serializer import FlextCliUtilitiesPptxSerializer
-    from ._pptx._types import FlextCliUtilitiesPptxTypes
     from ._rules._loaders import FlextCliUtilitiesRulesLoadersMixin
     from ._rules._matchers import FlextCliUtilitiesRulesMatchersMixin
     from ._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
@@ -256,7 +255,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesPptxReader",
     "FlextCliUtilitiesPptxRenderer",
     "FlextCliUtilitiesPptxSerializer",
-    "FlextCliUtilitiesPptxTypes",
     "FlextCliUtilitiesProcesses",
     "FlextCliUtilitiesPrompts",
     "FlextCliUtilitiesRules",
@@ -431,7 +429,6 @@ _LAZY_IMPORTS = MappingProxyType(
             "._pptx._reader": ("FlextCliUtilitiesPptxReader",),
             "._pptx._renderer": ("FlextCliUtilitiesPptxRenderer",),
             "._pptx._serializer": ("FlextCliUtilitiesPptxSerializer",),
-            "._pptx._types": ("FlextCliUtilitiesPptxTypes",),
             "._rules": ("_rules",),
             "._rules._loaders": ("FlextCliUtilitiesRulesLoadersMixin",),
             "._rules._matchers": ("FlextCliUtilitiesRulesMatchersMixin",),

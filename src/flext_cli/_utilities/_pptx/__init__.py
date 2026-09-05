@@ -12,12 +12,10 @@ if TYPE_CHECKING:
     from ._reader import FlextCliUtilitiesPptxReader
     from ._renderer import FlextCliUtilitiesPptxRenderer
     from ._serializer import FlextCliUtilitiesPptxSerializer
-    from ._types import FlextCliUtilitiesPptxTypes
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesPptxReader",
     "FlextCliUtilitiesPptxRenderer",
     "FlextCliUtilitiesPptxSerializer",
-    "FlextCliUtilitiesPptxTypes",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
@@ -26,7 +24,6 @@ _LAZY_IMPORTS = MappingProxyType(
             "._reader": ("FlextCliUtilitiesPptxReader",),
             "._renderer": ("FlextCliUtilitiesPptxRenderer",),
             "._serializer": ("FlextCliUtilitiesPptxSerializer",),
-            "._types": ("FlextCliUtilitiesPptxTypes",),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
