@@ -28,7 +28,7 @@ def require_identity(
     path: Path, state: os.stat_result | None, expected: tuple[int, int] | None
 ) -> None:
     """Require an observed physical identity to match its caller snapshot."""
-    observed = None if state is None else file_identity(state)
+    observed = None if state is None else file_state.identity(state)
     if observed != expected:
         message = f"atomic file physical identity changed: {path}"
         raise OSError(errno.ESTALE, message, path)
@@ -42,7 +42,7 @@ def require_distinct_inode(
     """Reject lexical aliases that identify the same physical file."""
     if (
         destination_state is not None
-        and file_identity(destination_state) == staged_identity
+        and file_state.identity(destination_state) == staged_identity
     ):
         message = "staged file and atomic destination share one inode"
         raise OSError(errno.EINVAL, message, destination)
@@ -50,10 +50,10 @@ def require_distinct_inode(
 
 def validate_devices(
     destination: Path,
-    destination_parent: ParentDescriptor,
+    destination_parent: file_descriptor.ParentDescriptor,
     destination_state: os.stat_result | None,
     staged: Path,
-    staged_parent: ParentDescriptor,
+    staged_parent: file_descriptor.ParentDescriptor,
     staged_state: os.stat_result,
 ) -> None:
     """Require both entries and parents to occupy one filesystem."""
@@ -68,29 +68,31 @@ def validate_devices(
 
 
 def validate_publication(
-    destination_parent: ParentDescriptor,
+    destination_parent: file_descriptor.ParentDescriptor,
     destination: Path,
-    staged_parent: ParentDescriptor,
+    staged_parent: file_descriptor.ParentDescriptor,
     staged: Path,
     staged_bytes: bytes,
     staged_mode: int,
     staged_identity: tuple[int, int],
 ) -> os.stat_result:
     """Prove replacement consumed the staged name and retained its exact state."""
-    if file_destination_state(staged, parent=staged_parent) is not None:
+    if file_state.destination_state(staged, parent=staged_parent) is not None:
         message = f"atomic staged file still exists after publication: {staged}"
         raise OSError(errno.ESTALE, message, staged)
-    published = file_destination_state(destination, parent=destination_parent)
-    if published is None or file_identity(published) != staged_identity:
+    published = file_state.destination_state(destination, parent=destination_parent)
+    if published is None or file_state.identity(published) != staged_identity:
         message = f"published atomic file has another identity: {destination}"
         raise OSError(errno.ESTALE, message, destination)
     if (
-        read_authenticated_bytes(destination, published, parent=destination_parent)
+        file_state.read_authenticated_bytes(
+            destination, published, parent=destination_parent
+        )
         != staged_bytes
     ):
         message = f"published atomic file bytes differ: {destination}"
         raise OSError(errno.ESTALE, message, destination)
-    validate_mode_precondition(destination, published, staged_mode)
+    file_mode.validate_mode_precondition(destination, published, staged_mode)
     return published
 
 

@@ -71,6 +71,7 @@ class FlextCliModelsBase:
                 pattern=r"^[0-9a-f]{64}$", description="Regular-file SHA-256 digest"
             ),
         ] = None
+
         @u.field_validator("path")
         @classmethod
         def _validate_path(cls, value: Path) -> Path:
