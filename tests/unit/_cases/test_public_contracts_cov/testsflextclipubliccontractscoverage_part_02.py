@@ -20,7 +20,14 @@ class TestsFlextCliPublicContractsCoverage:
     def test_public_model_contracts_cover_cli_shapes(self, tmp_path: Path) -> None:
         """Verify that public model contracts cover cli shapes."""
         output = m.Cli.CommandOutput(
-            stdout="out", stderr="err", exit_code=0, duration=0.25
+            stdout="out",
+            stderr="err",
+            outcome=m.Cli.ProcessOutcome(
+                raw_return_code=c.Cli.EXIT_CODE_SUCCESS,
+                timed_out=False,
+                forwarded_signal=None,
+            ),
+            duration=0.25,
         )
         display = m.Cli.DisplayData(data={"name": "flext", "count": 1})
         loaded = m.Cli.LoadedConfig(content={"debug": True})

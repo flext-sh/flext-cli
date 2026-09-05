@@ -10,7 +10,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import IO, BinaryIO
 
-from flext_cli import c, p, r, t
+from flext_cli import p, r, t
 from flext_cli._utilities._runtime_process_cleanup import (
     FlextCliUtilitiesRuntimeProcessCleanupMixin,
 )
@@ -238,7 +238,6 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 for cleanup_error in cleanup_errors:
                     primary_error.add_note(cleanup_error)
         return cls._captured_process_result(
-            cmd,
             return_code,
             received_signals,
             (*failures, *cleanup_errors),

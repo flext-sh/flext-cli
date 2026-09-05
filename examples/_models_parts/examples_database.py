@@ -6,7 +6,7 @@ from ipaddress import ip_address
 from typing import ClassVar
 
 from examples import c
-from flext_cli import m, u
+from flext_cli import m, t, u
 
 
 class ExamplesFlextCliModelsExamplesDatabase:
@@ -15,7 +15,7 @@ class ExamplesFlextCliModelsExamplesDatabase:
     class AdvancedDatabaseConfig(m.Value):
         """Database configuration with advanced validation."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         host: str = m.Field(..., description="Database host", validate_default=True)

@@ -7,7 +7,7 @@ from typing import Annotated, ClassVar, Self
 from flext_cli._models._base.flextclimodelsbase_part_02 import (
     FlextCliModelsBase as FlextCliModelsBasePart02,
 )
-from flext_core import m, u
+from flext_core import m, t, u
 
 
 class FlextCliModelsBase:
@@ -16,7 +16,7 @@ class FlextCliModelsBase:
     class AtomicFilePublication(m.BaseModel):
         """One guarded live state and its caller-owned staged replacement."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", frozen=True, arbitrary_types_allowed=True
         )
         before: Annotated[

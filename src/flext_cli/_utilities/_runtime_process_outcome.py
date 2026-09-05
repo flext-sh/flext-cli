@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
 
 
 class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
@@ -19,7 +19,6 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
 
     @staticmethod
     def _process_exit_result(
-        cmd: t.StrSequence,
         return_code: int | None,
         received_signals: list[int],
         diagnostics: tuple[str, ...],
@@ -50,7 +49,6 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
     @classmethod
     def _captured_process_result(
         cls,
-        cmd: t.StrSequence,
         return_code: int | None,
         received_signals: list[int],
         diagnostics: tuple[str, ...],
@@ -62,7 +60,7 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Attach captured bytes only after the owned process boundary is empty."""
         return cls._process_exit_result(
-            cmd, return_code, received_signals, diagnostics, timed_out=timed_out
+            return_code, received_signals, diagnostics, timed_out=timed_out
         ).map(
             lambda outcome: m.Cli.CommandBytesOutput(
                 stdout=bytes(stdout_output),

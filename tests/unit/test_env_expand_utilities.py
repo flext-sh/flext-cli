@@ -14,31 +14,35 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from flext_cli import u
 from flext_tests import tm
-from tests import c
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestsFlextCliUtilitiesEnvExpand:
     """Interpolate ${VAR} / ${VAR:-default} templates through ``u.Cli``."""
 
-    def test_env_expand_substitutes_braced_variable(self) -> None:
+    def test_env_expand_substitutes_braced_variable(self, tmp_path: Path) -> None:
         """A ``${VAR}`` token is replaced by the injected value."""
+        home = str(tmp_path / "home")
         result = u.Cli.env_expand(
-            "${FLEXT_CLI_EXPAND_HOME}/.claude",
-            {"FLEXT_CLI_EXPAND_HOME": c.Tests.ENV_EXPAND_HOME_VALUE},
+            "${FLEXT_CLI_EXPAND_HOME}/.claude", {"FLEXT_CLI_EXPAND_HOME": home}
         )
 
-        tm.that(tm.ok(result), eq=f"{c.Tests.ENV_EXPAND_HOME_VALUE}/.claude")
+        tm.that(tm.ok(result), eq=f"{home}/.claude")
 
-    def test_env_expand_substitutes_bare_variable(self) -> None:
+    def test_env_expand_substitutes_bare_variable(self, tmp_path: Path) -> None:
         """A bare ``$VAR`` token is replaced by the injected value."""
+        base = str(tmp_path / "base")
         result = u.Cli.env_expand(
-            "$FLEXT_CLI_EXPAND_BARE/bin",
-            {"FLEXT_CLI_EXPAND_BARE": c.Tests.ENV_EXPAND_OPT_VALUE},
+            "$FLEXT_CLI_EXPAND_BARE/bin", {"FLEXT_CLI_EXPAND_BARE": base}
         )
 
-        tm.that(tm.ok(result), eq=f"{c.Tests.ENV_EXPAND_OPT_VALUE}/bin")
+        tm.that(tm.ok(result), eq=f"{base}/bin")
 
     def test_env_expand_uses_default_when_unset(self) -> None:
         """``${VAR:-default}`` falls back to the default when the var is unset."""
@@ -52,17 +56,12 @@ class TestsFlextCliUtilitiesEnvExpand:
 
         tm.that(tm.ok(result), eq="prefix--suffix")
 
-    def test_env_expand_template_is_data(self) -> None:
+    def test_env_expand_template_is_data(self, tmp_path: Path) -> None:
         """The template is a plain argument, so callers pass paths as data."""
-        environment = {"FLEXT_CLI_EXPAND_H": c.Tests.ENV_EXPAND_HOME_VALUE}
+        home = str(tmp_path / "home")
+        environment = {"FLEXT_CLI_EXPAND_H": home}
         for template, expected in (
-            (
-                "${FLEXT_CLI_EXPAND_H}/.codex/config.toml",
-                f"{c.Tests.ENV_EXPAND_HOME_VALUE}/.codex/config.toml",
-            ),
-            (
-                "${FLEXT_CLI_EXPAND_H}/.kube/config",
-                f"{c.Tests.ENV_EXPAND_HOME_VALUE}/.kube/config",
-            ),
+            ("${FLEXT_CLI_EXPAND_H}/.codex/config.toml", f"{home}/.codex/config.toml"),
+            ("${FLEXT_CLI_EXPAND_H}/.kube/config", f"{home}/.kube/config"),
         ):
             tm.that(tm.ok(u.Cli.env_expand(template, environment)), eq=expected)

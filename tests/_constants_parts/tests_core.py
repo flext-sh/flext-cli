@@ -21,8 +21,6 @@ class TestsFlextCliConstantsCore:
     COMMAND_DURATION_TOLERANCE: Final[float] = 1e-9
     CREDENTIAL_SAMPLE_VALUE: Final[str] = "secret-pass"
     DOCUMENT_STACK_MODULES: Final[t.StrSequence] = ("openpyxl", "docx", "pptx")
-    ENV_EXPAND_HOME_VALUE: Final[str] = "/home/tester"
-    ENV_EXPAND_OPT_VALUE: Final[str] = "/opt/x"
     ENV_READ_ABSENT_NAME: Final[str] = "FLEXT_CLI_ENV_READ_ABSENT"
     ENV_READ_CASES: Final[t.MappingKV[str, str]] = MappingProxyType({
         "FLEXT_CLI_ENV_READ_A": "value-a",
@@ -30,8 +28,8 @@ class TestsFlextCliConstantsCore:
     })
     ENV_READ_PROBE_NAME: Final[str] = "FLEXT_CLI_ENV_READ_PROBE"
     ENV_READ_PROBE_VALUE: Final[str] = "probe-value"
-    VERSION_COMPATIBLE: Final[str] = "1.0"
-    VERSION_VALID_SEMVER: Final[str] = "1.2.3"
+    VERSION_VALID_SEMVER: Final[str] = c.Cli.CLI_VERSION
+    VERSION_COMPATIBLE: Final[str] = ".".join(VERSION_VALID_SEMVER.split(".")[:2])
     VERSION_VALID_SEMVER_COMPLEX: Final[str] = "1.2.3-alpha.1+build.123"
 
     @unique

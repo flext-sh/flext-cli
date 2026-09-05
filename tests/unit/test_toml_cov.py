@@ -261,7 +261,7 @@ class TestsFlextCliTomlCov:
         tm.that(u.Cli.toml_is_table(table), eq=True)
         tm.that(
             u.Cli.toml_as_mapping(table),
-            eq={"project": "my-project", "version": "1.0.0"},
+            eq={"project": "my-project", "version": c.Tests.VERSION_VALID_SEMVER},
         )
 
     def test_navigate_path_creates_and_wires_missing_intermediate_tables(self) -> None:
@@ -276,7 +276,10 @@ class TestsFlextCliTomlCov:
         table["leaf"] = "wired"
         expected: t.JsonMapping = {
             "tool": {
-                "flext": {"project": "my-project", "version": "1.0.0"},
+                "flext": {
+                    "project": "my-project",
+                    "version": c.Tests.VERSION_VALID_SEMVER,
+                },
                 "created": {"nested": {"leaf": "wired"}},
             }
         }
