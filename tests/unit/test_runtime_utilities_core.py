@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from typing import TYPE_CHECKING
 
@@ -194,6 +195,30 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(stdout_lines[0], eq=str(tmp_path))
         tm.that(stdout_lines[1], eq="env-ok")
         tm.that(process.stderr.strip(), eq="err-marker")
+
+    def test_process_start_forwards_passed_file_descriptors(
+        self, runner: u.Cli
+    ) -> None:
+        """Verify the public process owner forwards one inherited descriptor."""
+        read_fd, write_fd = os.pipe()
+        try:
+            script = (
+                "import os, sys; "
+                "os.write(int(sys.argv[1]), b'fd-forwarded')"
+            )
+            result = runner.process_start(
+                [sys.executable, "-c", script, str(write_fd)],
+                pass_fds=(write_fd,),
+            )
+            os.close(write_fd)
+            write_fd = -1
+            process = tm.ok(result)
+            tm.that(tm.ok(process.wait(timeout=5)), eq=0)
+            tm.that(os.read(read_fd, len(b"fd-forwarded")), eq=b"fd-forwarded")
+        finally:
+            os.close(read_fd)
+            if write_fd >= 0:
+                os.close(write_fd)
 
     def test_process_start_supports_binary_interactive_exchange(
         self, runner: u.Cli

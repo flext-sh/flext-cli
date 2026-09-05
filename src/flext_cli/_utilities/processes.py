@@ -176,8 +176,23 @@ class FlextCliUtilitiesProcesses:
         cwd: t.Cli.TextPath | None = None,
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
+        pass_fds: t.SequenceOf[int] = (),
     ) -> p.Result[FlextCliUtilitiesProcesses.ManagedProcess]:
         """Start long-running commands; use instead of direct ``subprocess.Popen``."""
+        forwarded_fds = tuple(pass_fds)
+        if any(
+            isinstance(file_descriptor, bool)
+            or not isinstance(file_descriptor, int)
+            or file_descriptor < 0
+            for file_descriptor in forwarded_fds
+        ):
+            return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
+                "process pass_fds must contain non-negative file descriptors"
+            )
+        if os.name == "nt" and forwarded_fds:
+            return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
+                "process pass_fds is unsupported on Windows"
+            )
         resolved_env = None
         if env is not None or remove_env_keys:
             resolved_env = FlextCliUtilitiesRuntime.process_env(
@@ -193,6 +208,7 @@ class FlextCliUtilitiesProcesses:
                 text=False,
                 bufsize=0,
                 env=resolved_env,
+                pass_fds=forwarded_fds,
             )
         except c.EXC_OS_VALUE as exc:
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
