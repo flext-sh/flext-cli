@@ -99,8 +99,8 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ("kwargs", "match"),
         [
             ({"log_level": "verbose"}, "LOG_LEVEL must be one of"),
-            ({"database_url": "http://nope"}, c.EXAMPLE_ERR_INVALID_DB_URL),
-            ({"redis_url": "http://nope"}, c.EXAMPLE_ERR_INVALID_REDIS_URL),
+            ({"database_url": c.EXAMPLE_INVALID_URL}, c.EXAMPLE_ERR_INVALID_DB_URL),
+            ({"redis_url": c.EXAMPLE_INVALID_URL}, c.EXAMPLE_ERR_INVALID_REDIS_URL),
         ],
     )
     def test_advanced_settings_rejects_invalid_field(

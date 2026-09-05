@@ -167,3 +167,6 @@ class Ex06Settings:
         result["services_initialized"] = True
         result["initialized_at"] = c.EXAMPLE_DEFAULT_INITIALIZED_AT
         return result
+
+
+__all__: list[str] = ["Ex06Settings"]

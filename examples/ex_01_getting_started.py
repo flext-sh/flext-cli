@@ -123,3 +123,6 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
             ),
         )
         return r[t.JsonMapping].ok(summary)
+
+
+__all__: list[str] = ["ExamplesFlextCliGettingStarted"]

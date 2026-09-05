@@ -20,6 +20,18 @@ class TestsFlextCliConstantsCore:
     AUTH_VALUE_SAMPLE: Final[str] = "token-123"
     COMMAND_DURATION_TOLERANCE: Final[float] = 1e-9
     CREDENTIAL_SAMPLE_VALUE: Final[str] = "secret-pass"
+    ENV_EXPAND_HOME_VALUE: Final[str] = "/home/tester"
+    ENV_EXPAND_OPT_VALUE: Final[str] = "/opt/x"
+    ENV_READ_ABSENT_NAME: Final[str] = "FLEXT_CLI_ENV_READ_ABSENT"
+    ENV_READ_CASES: Final[t.MappingKV[str, str]] = MappingProxyType({
+        "FLEXT_CLI_ENV_READ_A": "value-a",
+        "FLEXT_CLI_ENV_READ_B": "value-b",
+    })
+    ENV_READ_PROBE_NAME: Final[str] = "FLEXT_CLI_ENV_READ_PROBE"
+    ENV_READ_PROBE_VALUE: Final[str] = "probe-value"
+    VERSION_COMPATIBLE: Final[str] = "1.0"
+    VERSION_VALID_SEMVER: Final[str] = "1.2.3"
+    VERSION_VALID_SEMVER_COMPLEX: Final[str] = "1.2.3-alpha.1+build.123"
 
     @unique
     class Environment(StrEnum):
@@ -45,8 +57,8 @@ class TestsFlextCliConstantsCore:
     )
 
     VERSION_STR_CASES: Final[t.MappingKV[str, str]] = MappingProxyType({
-        "valid_semver": "1.2.3",
-        "valid_semver_complex": "1.2.3-alpha.1+build.123",
+        "valid_semver": VERSION_VALID_SEMVER,
+        "valid_semver_complex": VERSION_VALID_SEMVER_COMPLEX,
         "invalid_no_dots": "version",
         "invalid_non_numeric": "a.b.c",
     })

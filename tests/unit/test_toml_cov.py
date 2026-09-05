@@ -29,7 +29,12 @@ class TestsFlextCliTomlCov:
     _VALID_TOML = c.Tests.TOML_VALID_CONTENT
     _INVALID_TOML = c.Tests.TOML_INVALID_CONTENT
     _EXPECTED_MAPPING: ClassVar[t.MappingKV[str, t.MappingKV[str, t.StrMapping]]] = {
-        "tool": {"flext": {"project": "my-project", "version": "1.0.0"}}
+        "tool": {
+            "flext": {
+                "project": "my-project",
+                "version": c.Tests.VERSION_VALID_SEMVER,
+            }
+        }
     }
 
     # ── toml_parse_text ───────────────────────────────────────────────
@@ -115,7 +120,7 @@ class TestsFlextCliTomlCov:
         # fragmented (out-of-order), it must keep every existing entry rather
         # than replace the proxy with a fresh empty table (silent data loss).
         fragmented = (
-            '[project]\nname = "demo"\nversion = "1.0.0"\n\n'
+            f'[project]\nname = "demo"\nversion = "{c.Tests.VERSION_VALID_SEMVER}"\n\n'
             '[build-system]\nrequires = ["hatchling"]\n\n'
             '[project.optional-dependencies]\nextra = ["pkg"]\n'
         )
@@ -244,7 +249,7 @@ class TestsFlextCliTomlCov:
 
     def test_document_from_mapping_preserves_data_on_round_trip(self) -> None:
         """Verify that document from mapping preserves data on round trip."""
-        payload = {"name": "flext", "version": "1.0"}
+        payload = {"name": "flext", "version": c.Tests.VERSION_COMPATIBLE}
         doc = u.Cli.toml_document_from_mapping(payload)
         tm.that(u.Cli.toml_is_document(doc), eq=True)
         tm.that(u.Cli.toml_as_mapping(doc), eq=payload)

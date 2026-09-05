@@ -28,11 +28,9 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_cli import c, cli, m, t
+from examples import c
+from flext_cli import cli, m, t
 from flext_core import p, r
-
-_EXAMPLE_ERR_NO_DATA_FILE_FOUND = "No data file found"
-_EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING = "Data file must contain a mapping"
 
 
 class DataManagerCLI:
@@ -61,7 +59,7 @@ class DataManagerCLI:
     def load_data(self) -> p.Result[t.JsonMapping]:
         """Load previously saved data through the public file surface."""
         if not self.data_file.exists():
-            return r[t.JsonMapping].fail(_EXAMPLE_ERR_NO_DATA_FILE_FOUND)
+            return r[t.JsonMapping].fail(c.EXAMPLE_ERR_NO_DATA_FILE_FOUND)
         read_result = cli.read_json_file(str(self.data_file))
         if read_result.failure:
             error_msg = read_result.error or "Unknown error"
@@ -70,7 +68,7 @@ class DataManagerCLI:
             )
             return r[t.JsonMapping].fail(error_msg)
         if not isinstance(read_result.value, Mapping):
-            return r[t.JsonMapping].fail(_EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING)
+            return r[t.JsonMapping].fail(c.EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING)
         cli.print("✅ Data loaded successfully", style=c.Cli.MessageStyles.GREEN)
         return r[t.JsonMapping].ok(read_result.value)
 
@@ -87,7 +85,6 @@ class DataManagerCLI:
             f"✅ Data saved to {self.data_file.name}", style=c.Cli.MessageStyles.GREEN
         )
         return r[bool].ok(value=True)
-
     def run_workflow(self) -> p.Result[bool]:
         """Run the minimal public workflow exercised by the smoke test."""
         load_result = self.load_data()
@@ -109,3 +106,6 @@ class DataManagerCLI:
             title="📋 Current Data",
         )
         return r[bool].ok(value=True)
+
+
+__all__: list[str] = ["DataManagerCLI"]
