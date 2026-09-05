@@ -247,7 +247,6 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             max(0.0, time.monotonic() - started),
             timed_out=timed_out,
             timeout_seconds=timeout,
-            ,
         )
 
 
