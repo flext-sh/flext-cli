@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from flext_cli import s
 
@@ -16,14 +16,20 @@ class FlextCliXlsx(s):
     if TYPE_CHECKING:
 
         @staticmethod
+        @override
         def xlsx_recalc(
             request: m.Cli.XlsxRecalcRequest,
-        ) -> p.Result[m.Cli.XlsxRecalcResult]: ...
+        ) -> p.Result[m.Cli.XlsxRecalcResult]:
+            """Recalculate workbook bytes through the inherited XLSX owner."""
+            ...
 
         @staticmethod
+        @override
         def xlsx_recalc_parity(
             request: m.Cli.XlsxRecalcParityRequest,
-        ) -> p.Result[m.Cli.XlsxRecalcParityReport]: ...
+        ) -> p.Result[m.Cli.XlsxRecalcParityReport]:
+            """Validate recalculation parity through the inherited XLSX owner."""
+            ...
 
     # NOTE (multi-agent, mro-j2yt.1): this service contains no document or
     # customer rules; consumers provide immutable plans and receive bytes/models.
