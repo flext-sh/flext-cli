@@ -22,11 +22,21 @@ class FlextCliModelsBase:
         )
         path: Annotated[Path, m.Field(description="Absolute file path")]
         parent_device: Annotated[
-            int, m.Field(ge=0, strict=True, description="Physical parent device")
-        ]
+            int | None,
+            m.Field(
+                ge=0,
+                strict=True,
+                description="Physical parent device, or None when the chain is absent",
+            ),
+        ] = None
         parent_inode: Annotated[
-            int, m.Field(ge=0, strict=True, description="Physical parent inode")
-        ]
+            int | None,
+            m.Field(
+                ge=0,
+                strict=True,
+                description="Physical parent inode, or None when the chain is absent",
+            ),
+        ] = None
         content: Annotated[
             bytes | None,
             m.Field(strict=True, description="Exact bytes, or None when absent"),
@@ -104,6 +114,12 @@ class FlextCliModelsBase:
             ):
                 msg = "absent atomic file state cannot contain host metadata"
                 raise ValueError(msg)
+            atomic_state.validate_parent_identity(
+                self.parent_device,
+                self.parent_inode,
+                present=self.content is not None,
+                label="atomic file state",
+            )
             atomic_state.validate_non_reparse_state(
                 self.file_attributes, self.reparse_tag, label="atomic file state"
             )

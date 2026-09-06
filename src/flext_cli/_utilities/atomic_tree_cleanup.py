@@ -198,7 +198,7 @@ def _require_file_state(
 
 
 def _require_parent(
-    entry: m.Cli.AtomicPhysicalTreeEntry, device: int, inode: int
+    entry: m.Cli.AtomicPhysicalTreeEntry, device: int | None, inode: int | None
 ) -> None:
     if (entry.parent_device, entry.parent_inode) != (device, inode):
         _raise_changed(entry.path.parent)
