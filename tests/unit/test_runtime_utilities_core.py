@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import socket
 import os
 import sys
 from typing import TYPE_CHECKING
@@ -172,6 +173,46 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(wait_result.value, eq=0)
         tm.that(process.returncode, eq=0)
         tm.that(process.stdout.strip(), eq="managed-ok")
+        tm.that(process.stderr, eq="")
+
+    def test_process_start_passes_only_the_declared_descriptors(
+        self, runner: u.Cli
+    ) -> None:
+        """A child inherits exactly the descriptors the caller declares."""
+        parent_end, child_end = socket.socketpair()
+        try:
+            script = (
+                "import socket, sys; "
+                "conn = socket.socket(fileno=int(sys.argv[1])); "
+                "conn.sendall(b'ready'); conn.close()"
+            )
+            result = runner.process_start(
+                [sys.executable, "-c", script, str(child_end.fileno())],
+                pass_fds=(child_end.fileno(),),
+            )
+            tm.ok(result)
+            process = result.value
+            child_end.close()
+            parent_end.settimeout(5)
+            tm.that(parent_end.recv(16), eq=b"ready")
+            wait_result = process.wait(timeout=5)
+            tm.ok(wait_result)
+            tm.that(wait_result.value, eq=0)
+        finally:
+            parent_end.close()
+
+    def test_process_start_inherit_stdio_captures_nothing(self, runner: u.Cli) -> None:
+        """Inherited standard streams reach the parent, not the captured buffers."""
+        result = runner.process_start(
+            [sys.executable, "-c", "print('to-parent-stdout')"], inherit_stdio=True
+        )
+        tm.ok(result)
+        process = result.value
+
+        wait_result = process.wait(timeout=5)
+        tm.ok(wait_result)
+        tm.that(wait_result.value, eq=0)
+        tm.that(process.stdout, eq="")
         tm.that(process.stderr, eq="")
 
     def test_process_start_honors_cwd_env_and_stderr(
