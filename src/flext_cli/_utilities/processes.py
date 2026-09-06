@@ -99,21 +99,34 @@ class FlextCliUtilitiesProcesses:
         cwd: t.Cli.TextPath | None = None,
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
+        *,
+        pass_fds: tuple[int, ...] = (),
+        inherit_stdio: bool = False,
     ) -> p.Result[FlextCliUtilitiesProcesses.ManagedProcess]:
-        """Start long-running commands; use instead of direct ``subprocess.Popen``."""
+        """Start long-running commands; use instead of direct ``subprocess.Popen``.
+
+        ``pass_fds`` names the only descriptors the child inherits besides its
+        standard streams, exactly as declared by the caller (a supervised
+        daemon's readiness socket, for example); every other descriptor stays
+        closed. ``inherit_stdio`` leaves stdout and stderr attached to the
+        parent's streams instead of capturing them, so ``wait`` then reports
+        empty captured output for a child that wrote straight to the terminal.
+        """
         resolved_env = None
         if env is not None or remove_env_keys:
             resolved_env = FlextCliUtilitiesRuntime.process_env(
                 overrides=env, remove_keys=remove_env_keys
             )
+        captured = None if inherit_stdio else subprocess.PIPE
         try:
             process = subprocess.Popen(
                 list(cmd),
                 cwd=cwd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdout=captured,
+                stderr=captured,
                 text=True,
                 env=resolved_env,
+                pass_fds=pass_fds,
             )
         except c.EXC_OS_VALUE as exc:
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
