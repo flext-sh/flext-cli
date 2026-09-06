@@ -70,7 +70,9 @@ def require_parent(
 ) -> None:
     """Require the authenticated parent to equal the snapshot parent identity."""
     if planned.parent_device is None or planned.parent_inode is None:
-        message = f"atomic directory parent was absent at snapshot: {planned.path.parent}"
+        message = (
+            f"atomic directory parent was absent at snapshot: {planned.path.parent}"
+        )
         raise FileNotFoundError(errno.ENOENT, message, planned.path.parent)
     if (planned.parent_device, planned.parent_inode) != (
         observed.st_dev,
