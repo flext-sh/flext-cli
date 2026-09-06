@@ -1,23 +1,28 @@
-"""Private MRO composition for the generic PPTX byte boundary."""
+"""Lightweight public utility boundary for generic PPTX bytes."""
 
 from __future__ import annotations
 
-from ._pptx._reader import FlextCliUtilitiesPptxReader
-from ._pptx._renderer import FlextCliUtilitiesPptxRenderer
-from ._pptx._serializer import FlextCliUtilitiesPptxSerializer
-from ._pptx._types import FlextCliUtilitiesPptxTypes
+from flext_cli import m, p
 
 
-class FlextCliUtilitiesPptx(
-    FlextCliUtilitiesPptxTypes,
-    FlextCliUtilitiesPptxReader,
-    FlextCliUtilitiesPptxSerializer,
-    FlextCliUtilitiesPptxRenderer,
-):
-    """Compose reading, rendering, and re-exported types for generic PPTX bytes."""
+class FlextCliUtilitiesPptx:
+    """Load the PPTX adapter only when a presentation operation executes."""
 
-    # NOTE (multi-agent, mro-j2yt.1): one MRO path exposes every generic PPTX
-    # byte operation; consumers exchange only validated plans and bytes.
+    @staticmethod
+    def pptx_read(source: bytes) -> p.Result[m.Cli.PptxPresentationPlan]:
+        """Read presentation bytes through the causal PPTX adapter boundary."""
+        from ._pptx._reader import FlextCliUtilitiesPptxReader
+
+        return FlextCliUtilitiesPptxReader.pptx_read(source)
+
+    @staticmethod
+    def pptx_render(
+        request: m.Cli.PptxRenderRequest,
+    ) -> p.Result[m.Cli.PptxRenderResult]:
+        """Render a typed presentation through the causal PPTX adapter boundary."""
+        from ._pptx._renderer import FlextCliUtilitiesPptxRenderer
+
+        return FlextCliUtilitiesPptxRenderer.pptx_render(request)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesPptx",)

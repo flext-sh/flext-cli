@@ -10,15 +10,17 @@ from typing import Never
 
 from flext_cli import m
 
-from . import atomic_directory_delete as directory_delete
-from . import atomic_directory_descriptor as directory_descriptor
-from . import atomic_directory_snapshot as directory_snapshot
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_file_durability as file_durability
-from . import atomic_file_state as file_state
-from . import atomic_parent_descriptor as parent_descriptor
-from . import atomic_tree_descriptor as tree_descriptor
-from . import atomic_tree_inventory as tree_inventory
+from . import (
+    atomic_directory_delete as directory_delete,
+    atomic_directory_descriptor as directory_descriptor,
+    atomic_directory_snapshot as directory_snapshot,
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_durability as file_durability,
+    atomic_file_state as file_state,
+    atomic_parent_descriptor as parent_descriptor,
+    atomic_tree_descriptor as tree_descriptor,
+    atomic_tree_inventory as tree_inventory,
+)
 
 
 def cleanup_physical_tree_guarded(manifest: m.Cli.AtomicPhysicalTreeManifest) -> None:

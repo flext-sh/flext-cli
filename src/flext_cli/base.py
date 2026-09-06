@@ -9,12 +9,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, p, t
+from flext_cli import m, p, t, u
 from flext_core import s
 
 
 class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
-    s[TDomainResult]
+    s[TDomainResult], u.Cli
 ):
     """Base class for flext-cli services with typed configuration access.
 

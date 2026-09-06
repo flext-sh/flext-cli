@@ -34,7 +34,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
         except ProcessLookupError:
             return r[bool].ok(True)
         except PermissionError as exc:
-            return r[bool].fail(f"process-group probe failed: {exc}")
+            return r[bool].fail(f"process-group probe failed: {exc}", exception=exc)
         return r[bool].ok(False)
 
     @classmethod

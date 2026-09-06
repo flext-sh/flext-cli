@@ -123,7 +123,7 @@ def convert_and_validate_with_pydantic(
         )
     except c.ValidationError as error:
         return r[m.Examples.AdvancedDatabaseConfig].fail(
-            f"Pydantic validation failed: {error}"
+            f"Pydantic validation failed: {error}", exception=error
         )
 
 

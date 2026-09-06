@@ -17,7 +17,8 @@ from typing import Annotated, ClassVar
 from pydantic_settings import SettingsConfigDict
 
 from flext_cli._constants.settings import FlextCliConstantsSettings
-from flext_core import FlextSettings, m
+from flext_cli.models import m
+from flext_core import FlextSettings
 
 
 class FlextCliSettings(FlextSettings):
@@ -48,6 +49,14 @@ class FlextCliSettings(FlextSettings):
     cli_output_format: Annotated[
         str, m.Field(description="Output format (table, json, yaml, csv, plain)")
     ] = FlextCliConstantsSettings.CLI_DEFAULT_OUTPUT_FORMAT
+    cli_process_heartbeat_seconds: Annotated[
+        float,
+        m.Field(
+            gt=0,
+            lt=FlextCliConstantsSettings.CLI_PROCESS_HEARTBEAT_MAX_SECONDS,
+            description="Progress heartbeat interval for live child processes",
+        ),
+    ] = FlextCliConstantsSettings.CLI_PROCESS_HEARTBEAT_SECONDS
     cli_config_file: Annotated[
         str | None, m.Field(description="Path to settings file")
     ] = None

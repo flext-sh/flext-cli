@@ -6,7 +6,6 @@ from types import MappingProxyType
 
 from flext_cli import t
 
-
 EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 EMPTY_STR_MAPPING: t.StrMapping = MappingProxyType({})
 

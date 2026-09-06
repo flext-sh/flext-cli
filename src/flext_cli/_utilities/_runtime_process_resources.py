@@ -6,7 +6,7 @@ import contextlib
 import os
 import sys
 import time
-from typing import BinaryIO
+from typing import BinaryIO, TextIO
 
 from flext_cli import c, p, r
 
@@ -35,7 +35,7 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
             )
         except c.EXC_OS_VALUE as exc:
             return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].fail(
-                f"stdin preparation error: {exc}"
+                f"stdin preparation error: {exc}", exception=exc
             )
         return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok((
             reader,
@@ -66,24 +66,31 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
     @staticmethod
     def _prepare_live_descriptor(
         stack: contextlib.ExitStack, *, live: bool
-    ) -> p.Result[tuple[int | None]]:
+    ) -> p.Result[tuple[int | None, int | None]]:
         if not live:
-            return r[tuple[int | None]].ok((None,))
+            return r[tuple[int | None, int | None]].ok((None, None))
         try:
-            live_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_live_fd(stack)
+            live_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
+                stack, sys.stdout
+            )
+            progress_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
+                stack, sys.stderr
+            )
         except c.EXC_OS_VALUE as exc:
-            return r[tuple[int | None]].fail(f"live output preparation error: {exc}")
-        return r[tuple[int | None]].ok((live_fd,))
+            return r[tuple[int | None, int | None]].fail(
+                f"live output preparation error: {exc}", exception=exc
+            )
+        return r[tuple[int | None, int | None]].ok((live_fd, progress_fd))
 
     @staticmethod
-    def _open_live_fd(stack: contextlib.ExitStack) -> int:
-        live_fd = os.dup(sys.stdout.fileno())
-        stack.callback(os.close, live_fd)
-        if os.name != "nt" or not os.isatty(live_fd):
-            was_blocking = os.get_blocking(live_fd)
-            os.set_blocking(live_fd, False)
-            stack.callback(os.set_blocking, live_fd, was_blocking)
-        return live_fd
+    def _open_stream_fd(stack: contextlib.ExitStack, stream: TextIO) -> int:
+        descriptor = os.dup(stream.fileno())
+        stack.callback(os.close, descriptor)
+        if os.name != "nt" or not os.isatty(descriptor):
+            was_blocking = os.get_blocking(descriptor)
+            os.set_blocking(descriptor, False)
+            stack.callback(os.set_blocking, descriptor, was_blocking)
+        return descriptor
 
     @staticmethod
     def _flush_durable_log(durable_log: BinaryIO) -> tuple[str, ...]:

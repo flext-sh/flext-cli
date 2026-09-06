@@ -5,6 +5,8 @@ function is exposed here; the underlying ``Document`` class is available in
 ``flext_cli.vendor.docx.document`` for type annotations.
 """
 
+from __future__ import annotations
+
 from docx import Document
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
 from docx.enum.text import (

@@ -28,19 +28,17 @@ class FlextCliUtilitiesFileTestHelpersMixin:
         if fmt == c.Cli.FILE_FORMAT_JSON:
             result = uj.json_read(path)
             if result.failure:
-                return r[t.JsonMapping].fail(result.error or "json_read failed")
+                return r[t.JsonMapping].from_failure(result)
             return r[t.JsonMapping].ok(result.value)
         if fmt == c.Cli.FILE_FORMAT_YAML:
             result = uy.yaml_safe_load(path)
             if result.failure:
-                return r[t.JsonMapping].fail(result.error or "yaml_safe_load failed")
+                return r[t.JsonMapping].from_failure(result)
             return r[t.JsonMapping].ok(result.value)
         if fmt == c.Cli.FILE_FORMAT_TOML:
             toml_result = ut.toml_read_json(path)
             if toml_result.failure:
-                return r[t.JsonMapping].fail(
-                    toml_result.error or "toml_read_json failed"
-                )
+                return r[t.JsonMapping].from_failure(toml_result)
             return r[t.JsonMapping].ok(toml_result.value)
         msg = f"Cannot parse format: {fmt}"
         return r[t.JsonMapping].fail(msg)

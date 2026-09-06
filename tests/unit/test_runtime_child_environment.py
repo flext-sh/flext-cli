@@ -13,8 +13,6 @@ import os
 import sys
 from collections.abc import Mapping, Sequence
 
-import pytest
-
 from flext_cli import u
 from flext_tests import tm
 
@@ -56,39 +54,31 @@ class TestsFlextCliRuntimeChildEnvironment:
 
         tm.that(probe, eq=os.environ["PATH"])
 
-    def test_remove_env_keys_unsets_the_variable_in_the_child(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setenv(_MARKER, "inherited")
-
+    def test_remove_env_keys_unsets_the_variable_in_the_child(self) -> None:
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
-            _MARKER, remove_env_keys=(_MARKER,)
+            _MARKER, env={_MARKER: "inherited"}, remove_env_keys=(_MARKER,)
         )
 
         tm.that(probe, eq="<unset>")
 
-    def test_an_omitted_key_in_env_is_not_a_removal(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_an_omitted_key_in_env_is_not_a_removal(self) -> None:
         """``env`` is an overlay: omitting a key never unsets it.
 
         Removal is expressed exclusively through ``remove_env_keys``; relying on
         omission is the failure mode that let poisoned GIT_DIR/GIT_WORK_TREE
         values survive into repository-construction commands.
         """
-        monkeypatch.setenv(_MARKER, "inherited")
-
-        probe = TestsFlextCliRuntimeChildEnvironment._echo(_MARKER, env={})
+        probe = TestsFlextCliRuntimeChildEnvironment._echo(
+            _MARKER, env={_MARKER: "inherited"}
+        )
 
         tm.that(probe, eq="inherited")
 
-    def test_removal_wins_over_an_inherited_value_with_overrides_present(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        monkeypatch.setenv(_MARKER, "inherited")
-
+    def test_removal_wins_over_an_inherited_value_with_overrides_present(self) -> None:
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
-            _MARKER, env={"FLEXT_CLI_CHILD_ENV_OTHER": "1"}, remove_env_keys=(_MARKER,)
+            _MARKER,
+            env={_MARKER: "inherited", "FLEXT_CLI_CHILD_ENV_OTHER": "1"},
+            remove_env_keys=(_MARKER,),
         )
 
         tm.that(probe, eq="<unset>")

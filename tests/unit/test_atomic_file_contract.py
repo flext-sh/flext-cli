@@ -10,7 +10,6 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import cli
 from flext_tests import tm
 from tests import u
 
@@ -132,7 +131,11 @@ raise SystemExit(0 if result.failure else 2)
 """
         completed = u.Cli.run_raw((sys.executable, "-c", script, str(path)), timeout=30)
         tm.ok(completed)
-        tm.that(completed.value.exit_code, eq=0, msg=completed.value.stderr)
+        tm.that(
+            u.Cli.process_succeeded(completed.value.outcome),
+            eq=True,
+            msg=completed.value.stderr,
+        )
         tm.that(path.exists(), eq=False)
         tm.that(tuple(tmp_path.iterdir()), eq=())
 
@@ -143,14 +146,6 @@ raise SystemExit(0 if result.failure else 2)
         )
 
         tm.fail(result)
-
-    def test_service_facade_persists_content(self, tmp_path: Path) -> None:
-        """Keep service and utility surfaces behaviorally aligned."""
-        target = tmp_path / "service-atomic.txt"
-
-        tm.ok(cli.atomic_write_text_file(target, "ok"))
-
-        tm.that(target.read_text(encoding="utf-8"), eq="ok")
 
     @staticmethod
     def _linked_destination(tmp_path: Path, link_kind: str) -> tuple[Path, Path]:

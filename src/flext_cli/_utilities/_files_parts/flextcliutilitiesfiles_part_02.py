@@ -24,9 +24,7 @@ class FlextCliUtilitiesFiles:
             return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
         if ensure_result.failure:
-            return r[bool].fail(
-                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED
-            )
+            return r[bool].from_failure(ensure_result)
         try:
             write_atomic_bytes(path, data)
         except OSError as exc:
@@ -47,9 +45,7 @@ class FlextCliUtilitiesFiles:
             )
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
         if ensure_result.failure:
-            return r[bool].fail(
-                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED
-            )
+            return r[bool].from_failure(ensure_result)
         try:
             write_atomic_bytes(path, content.encode(c.Cli.ENCODING_DEFAULT))
         except OSError as exc:
