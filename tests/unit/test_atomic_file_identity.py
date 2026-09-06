@@ -134,7 +134,7 @@ class TestsAtomicFileIdentity:
         result = u.Cli.run_raw((sys.executable, "-c", script), cwd=tmp_path)
 
         tm.ok(result)
-        tm.that(result.value.outcome.raw_return_code, eq=0)
+        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
         tm.that((tmp_path / destination.parent).exists(), eq=False)
 
     def test_delete_consumes_complete_snapshot(self, tmp_path: Path) -> None:
