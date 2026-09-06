@@ -28,13 +28,13 @@ dependencies = [
   "openpyxl>=3.1.5",
   "pluggy>=1.6.0",
   "prompt-toolkit>=3.0.53",
-  "pydantic>=2.14.0b1",
-  "pydantic-core>=2.48.0",
+  "pydantic>=2.13.4",
+  "pydantic-core>=2.46.4",
   "pydantic-settings>=2.15.0",
   "python-docx>=1.2.0",
   "python-pptx>=1.0.2",
   "pyyaml>=6.0.3",
-  "rich>=14.3.4,<14.4",
+  "rich>=14.3.4",
   "ruamel.yaml>=0.18.16",
   "tabulate>=0.10.0",
   "tomlkit>=0.15.1",
@@ -80,7 +80,7 @@ exclude_also = [
   "if _t.TYPE_CHECKING:",
   "if typing.TYPE_CHECKING:",
 ]
-fail_under = 15
+fail_under = 45
 precision = 2
 show_missing = true
 skip_covered = false
@@ -326,6 +326,24 @@ reportUnusedVariable = "error"
 typeCheckingMode = "strict"
 
 [[tool.pyright.executionEnvironments]]
+extraPaths = [".", "src"]
+reportArgumentType = "none"
+reportAssignmentType = "none"
+reportAttributeAccessIssue = "none"
+reportGeneralTypeIssues = "none"
+reportInvalidTypeForm = "none"
+reportPrivateImportUsage = "none"
+reportPrivateUsage = "none"
+reportReturnType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownLambdaType = "none"
+reportUnknownMemberType = "none"
+reportUnknownParameterType = "none"
+reportUnknownVariableType = "none"
+reportUnusedImport = "none"
+root = "examples"
+
+[[tool.pyright.executionEnvironments]]
 extraPaths = ["src"]
 reportAssignmentType = "none"
 reportAttributeAccessIssue = "none"
@@ -359,24 +377,6 @@ reportUnknownParameterType = "none"
 reportUnknownVariableType = "none"
 reportUnusedImport = "none"
 root = "tests"
-
-[[tool.pyright.executionEnvironments]]
-extraPaths = [".", "src"]
-reportArgumentType = "none"
-reportAssignmentType = "none"
-reportAttributeAccessIssue = "none"
-reportGeneralTypeIssues = "none"
-reportInvalidTypeForm = "none"
-reportPrivateImportUsage = "none"
-reportPrivateUsage = "none"
-reportReturnType = "none"
-reportUnknownArgumentType = "none"
-reportUnknownLambdaType = "none"
-reportUnknownMemberType = "none"
-reportUnknownParameterType = "none"
-reportUnknownVariableType = "none"
-reportUnusedImport = "none"
-root = "examples"
 
 # [MANAGED] pytest
 [tool.pytest.ini_options]
