@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli._models import atomic_state
-from flext_core import m, u
+from flext_core import m, t, u
 
 
 class FlextCliModelsBase:
@@ -15,7 +15,7 @@ class FlextCliModelsBase:
     class AtomicDirectoryChainPlan(m.BaseModel):
         """Exact existing anchor plus contiguous directories observed absent."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", frozen=True, arbitrary_types_allowed=True
         )
         target: Annotated[Path, m.Field(description="Requested directory path")]

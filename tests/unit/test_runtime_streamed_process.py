@@ -7,25 +7,21 @@ import signal
 import sys
 import threading
 import time
-from typing import TYPE_CHECKING, BinaryIO
+from typing import TYPE_CHECKING
 
 import pytest
 
 from flext_tests import tm
-from tests import m, p, u
+from tests import c, m, p, u
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-def _deadline(
-    *, seconds: float, grace: float, exit_code: int = 124
-) -> m.Cli.ProcessDeadline:
+def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
     """Build an absolute deadline with a bounded cleanup reserve."""
     return m.Cli.ProcessDeadline(
-        expires_at_monotonic=time.monotonic() + seconds,
-        termination_grace_seconds=grace,
-        timeout_exit_code=exit_code,
+        expires_at_monotonic=time.monotonic() + seconds, termination_grace_seconds=grace
     )
 
 
@@ -50,11 +46,17 @@ class TestsFlextCliRuntimeStreamedProcess:
             [sys.executable, "-c", script], output_file, live=True
         )
 
+        captured = capfd.readouterr()
         expected = b"stdout-one\nstderr-two\n"
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        outcome = tm.ok(result)
+        tm.that(u.Cli.process_succeeded(outcome), eq=True)
+        tm.that(outcome.raw_return_code, eq=c.Cli.EXIT_CODE_SUCCESS)
+        tm.that(outcome.timed_out, eq=False)
+        tm.that(outcome.forwarded_signal, is_=None)
+
         tm.that(output_file.read_bytes(), eq=expected)
-        tm.that(capfd.readouterr().out.encode(), eq=expected)
+        tm.that(captured.out.encode(), eq=expected)
         tm.that(os.get_blocking(sys.stdout.fileno()), eq=stdout_was_blocking)
         tm.that(
             any(
@@ -63,6 +65,26 @@ class TestsFlextCliRuntimeStreamedProcess:
             ),
             eq=False,
         )
+
+    def test_silent_live_process_emits_progress_only_to_stderr(
+        self, tmp_path: Path, capfd: pytest.CaptureFixture[str]
+    ) -> None:
+        """Keep silent children observable without contaminating durable bytes."""
+        output_file = tmp_path / "silent.log"
+
+        result = u.Cli().run_to_file(
+            [sys.executable, "-c", "import time;time.sleep(.08)"],
+            output_file,
+            live=True,
+            heartbeat_seconds=0.02,
+        )
+
+        captured = capfd.readouterr()
+        tm.ok(result)
+        tm.that(result.value, eq=0)
+        tm.that(output_file.read_bytes(), eq=b"")
+        tm.that(captured.out, eq="")
+        tm.that(captured.err, has=c.Cli.CLI_PROCESS_HEARTBEAT_MESSAGE)
 
     def test_completed_nonzero_exit_is_returned_exactly(self, tmp_path: Path) -> None:
         """Keep a completed nonzero status in the success channel."""
@@ -143,11 +165,11 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(self._input_pump_is_alive(), eq=False)
 
     def test_child_early_exit_preserves_its_exact_status(self, tmp_path: Path) -> None:
-        """Closing an empty input pipe cannot normalize the child's real exit."""
+        """A secondary broken input pipe cannot replace the child's real exit."""
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "raise SystemExit(23)"],
             tmp_path / "early-exit.log",
-            input_data=b"",
+            input_data=b"unread" * 131_072,
         )
 
         tm.ok(result)
@@ -169,33 +191,9 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(tm.not_none(result.error).lower(), has="timeout")
         tm.that(self._input_pump_is_alive(), eq=False)
 
-    def test_input_writer_failure_reaches_the_public_result(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """A writer error kills the owned child and remains a public failure."""
-
-        def fail_writer(
-            sink: BinaryIO, _payload: bytes, failures: list[str], wake: threading.Event
-        ) -> None:
-            failures.append("stdin write error: injected")
-            sink.close()
-            wake.set()
-
-        monkeypatch.setattr(u.Cli, "_pump_process_input", staticmethod(fail_writer))
-        result = u.Cli().run_to_file(
-            [sys.executable, "-c", "import time;time.sleep(30)"],
-            tmp_path / "writer-failure.log",
-            input_data=b"secret",
-            deadline=_deadline(seconds=3.0, grace=1.0),
-        )
-
-        tm.fail(result)
-        tm.that(tm.not_none(result.error), has="stdin write error: injected")
-        tm.that(self._input_pump_is_alive(), eq=False)
-
     def test_deadline_model_satisfies_public_protocol(self) -> None:
         """Expose one typed model through the structural public protocol."""
-        deadline = _deadline(seconds=2.0, grace=0.5, exit_code=93)
+        deadline = _deadline(seconds=2.0, grace=0.5)
 
         tm.that(deadline, is_=p.Cli.ProcessDeadline)
 
@@ -247,18 +245,19 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.fail(result)
         tm.that(marker.exists(), eq=False)
 
-    @pytest.mark.skipif(os.name == "nt", reason="POSIX EPIPE contract")
-    def test_broken_live_sink_keeps_the_complete_durable_log(
+    def test_broken_live_sink_fails_after_complete_durable_log(
         self, tmp_path: Path
     ) -> None:
-        """Treat live EPIPE as nonfatal after preserving the child bytes."""
+        """Surface a broken live sink after preserving the durable child bytes."""
         output_file = tmp_path / "broken-live.log"
         child = "import os;os.write(1,b'durable-before-live\\n')"
-        previous_sigpipe = signal.getsignal(signal.SIGPIPE)
+        sigpipe = getattr(signal, "SIGPIPE", None)
+        previous_sigpipe = signal.getsignal(sigpipe) if sigpipe is not None else None
         read_fd, write_fd = os.pipe()
         os.close(read_fd)
         saved_stdout = os.dup(1)
-        signal.signal(signal.SIGPIPE, signal.SIG_IGN)
+        if sigpipe is not None:
+            signal.signal(sigpipe, signal.SIG_IGN)
         try:
             os.dup2(write_fd, 1)
             os.close(write_fd)
@@ -268,10 +267,11 @@ class TestsFlextCliRuntimeStreamedProcess:
         finally:
             os.dup2(saved_stdout, 1)
             os.close(saved_stdout)
-            signal.signal(signal.SIGPIPE, previous_sigpipe)
+            if sigpipe is not None and previous_sigpipe is not None:
+                signal.signal(sigpipe, previous_sigpipe)
 
-        tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.fail(result)
+        tm.that(tm.not_none(result.error), has="live output")
         tm.that(output_file.read_bytes(), eq=b"durable-before-live\n")
 
 

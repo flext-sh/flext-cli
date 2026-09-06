@@ -47,7 +47,7 @@ class TestsFlextCliService:
         result = cli.invoke_app(app, args=["--debug", "inspect"])
 
         tm.ok(result)
-        tm.that(result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
 
     def test_create_app_with_common_params_applies_log_level(self) -> None:
         """Apply the shared log-level option through the public invocation facade."""
@@ -61,7 +61,7 @@ class TestsFlextCliService:
         result = cli.invoke_app(app, args=["--log-level", c.LogLevel.DEBUG, "inspect"])
 
         tm.ok(result)
-        tm.that(result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
 
     def test_model_command_generates_real_typer_options(self) -> None:
         """Generate and execute real options from a canonical request model."""
@@ -98,10 +98,10 @@ class TestsFlextCliService:
 
         tm.ok(help_result)
         tm.ok(exec_result)
-        tm.that(help_result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(help_result.value.outcome), eq=True)
         tm.that(help_result.value.stdout, has="Target name")
         tm.that(help_result.value.stdout, has="Dry-run mode")
-        tm.that(exec_result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(exec_result.value.outcome), eq=True)
         tm.that(len(captured), eq=1)
         tm.that(captured[0].name, eq="alice")
         tm.that(captured[0].count, eq=3)

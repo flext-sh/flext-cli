@@ -59,7 +59,6 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
         captured_output: bytearray | None,
         live_fd: int | None,
         failures: list[str],
-        live_diagnostics: list[str],
         stop: threading.Event,
         wake: threading.Event,
         *,
@@ -67,16 +66,7 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     ) -> threading.Thread:
         pump = threading.Thread(
             target=cls._pump_process_output,
-            args=(
-                source,
-                durable_log,
-                captured_output,
-                live_fd,
-                failures,
-                live_diagnostics,
-                stop,
-                wake,
-            ),
+            args=(source, durable_log, captured_output, live_fd, failures, stop, wake),
             name=thread_name,
             daemon=False,
         )

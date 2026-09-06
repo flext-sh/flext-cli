@@ -7,9 +7,11 @@ import os
 import stat
 from pathlib import Path
 
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_file_path as file_path
-from . import atomic_file_read as file_read
+from . import (
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_path as file_path,
+    atomic_file_read as file_read,
+)
 
 
 def destination_state(

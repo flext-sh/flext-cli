@@ -48,7 +48,9 @@ class FlextCliUtilitiesPipeline:
         try:
             sorter.prepare()
         except CycleError as exc:
-            return r[m.Cli.PipelineResult].fail(f"pipeline cycle detected: {exc}")
+            return r[m.Cli.PipelineResult].fail(
+                f"pipeline cycle detected: {exc}", exception=exc
+            )
 
         # Walk the graph one READY WAVE at a time instead of flattening it to a
         # single serial order. Stages inside a wave share no dependency edge by

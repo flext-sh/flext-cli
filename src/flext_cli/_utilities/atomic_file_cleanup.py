@@ -6,9 +6,11 @@ import errno
 import os
 from pathlib import Path
 
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_file_durability as file_durability
-from . import atomic_file_state as file_state
+from . import (
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_durability as file_durability,
+    atomic_file_state as file_state,
+)
 
 
 def remove_failed_temporary(

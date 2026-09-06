@@ -14,7 +14,7 @@ class TestsFlextCliModelsRuntime:
     class ApiResponse(m.BaseModel):
         """API response for type scenario tests -- Pydantic v2."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid")
         status: Annotated[str, m.Field(description="Status")]
         data: Annotated[t.JsonMapping | None, m.Field(description="Payload")] = None
         message: Annotated[str, m.Field(description="Message")]
@@ -47,7 +47,7 @@ class TestsFlextCliModelsRuntime:
     class RuntimeCommandCase(m.BaseModel):
         """Runtime command parametrization case."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
 
         case_id: Annotated[str, m.Field(description="Pytest case id")]
         command: Annotated[t.StrSequence, m.Field(description="Command argv")]

@@ -59,7 +59,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         try:
             raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
         except OSError as exc:
-            return r[t.JsonMapping].fail(f"YAML read error: {exc}")
+            return r[t.JsonMapping].fail(f"YAML read error: {exc}", exception=exc)
         return FlextCliUtilitiesYaml.yaml_parse(raw)
 
     @staticmethod
@@ -79,7 +79,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         try:
             validated = t.Cli.YAML_DICT_ADAPTER.validate_python(parsed)
         except c.ValidationError as exc:
-            return r[t.JsonMapping].fail(f"YAML validation error: {exc}")
+            return r[t.JsonMapping].fail(f"YAML validation error: {exc}", exception=exc)
         return r[t.JsonMapping].ok(validated)
 
     @staticmethod
@@ -153,7 +153,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
                 )
             return r[bool].ok(True)
         except (OSError, c.Cli.YamlParseError, ValueError, TypeError) as exc:
-            return r[bool].fail(f"YAML write error: {exc}")
+            return r[bool].fail(f"YAML write error: {exc}", exception=exc)
 
     @staticmethod
     def yaml_dump_str(

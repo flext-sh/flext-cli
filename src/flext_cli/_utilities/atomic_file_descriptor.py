@@ -9,9 +9,11 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from . import atomic_file_path as file_path
-from . import atomic_parent_descriptor as parent_path
-from . import atomic_parent_failure as parent_failure
+from . import (
+    atomic_file_path as file_path,
+    atomic_parent_descriptor as parent_path,
+    atomic_parent_failure as parent_failure,
+)
 
 
 @dataclass(frozen=True, slots=True)

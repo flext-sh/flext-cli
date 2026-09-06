@@ -24,9 +24,7 @@ class FlextCliUtilitiesPptxRenderer:
         """Render typed slides into presentation bytes."""
         presentation_result = cls._presentation_for_request(request)
         if presentation_result.failure:
-            return r[m.Cli.PptxRenderResult].fail(
-                presentation_result.error or str(c.Cli.PptxError.RENDER_FAILED)
-            )
+            return r[m.Cli.PptxRenderResult].from_failure(presentation_result)
         presentation = presentation_result.value
         try:
             cls._apply_presentation(presentation, request.plan)
@@ -37,9 +35,7 @@ class FlextCliUtilitiesPptxRenderer:
             )
         content = FlextCliUtilitiesPptxSerializer.pptx_save(presentation)
         if content.failure:
-            return r[m.Cli.PptxRenderResult].fail(
-                content.error or str(c.Cli.PptxError.SERIALIZE_FAILED)
-            )
+            return r[m.Cli.PptxRenderResult].from_failure(content)
         return r[m.Cli.PptxRenderResult].ok(
             m.Cli.PptxRenderResult(content=content.value, plan=request.plan)
         )

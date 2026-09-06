@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import os
 import signal
 import threading
 import time
 
-from flext_cli import p
+from flext_cli import c, p
 from flext_cli._utilities._runtime_process_group import (
     FlextCliUtilitiesRuntimeProcessGroupMixin,
 )
@@ -28,6 +29,8 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
         job_handle: int,
         absolute_deadline: float | None,
         grace_seconds: float,
+        progress_fd: int | None,
+        heartbeat_seconds: float | None,
     ) -> tuple[bool, float | None]:
         """Forward signals and advance TERM/KILL phases without polling."""
         lifecycle_deadline = absolute_deadline
@@ -41,6 +44,11 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
         term_sent = False
         kill_sent = False
         interrupt_mode = False
+        heartbeat_at = (
+            time.monotonic() + heartbeat_seconds
+            if progress_fd is not None and heartbeat_seconds is not None
+            else None
+        )
         while not process_done.is_set():
             wake.clear()
             now = time.monotonic()
@@ -61,6 +69,13 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
                 term_sent=term_sent,
                 kill_sent=kill_sent,
             )
+            if (
+                heartbeat_at is not None
+                and heartbeat_seconds is not None
+                and now >= heartbeat_at
+            ):
+                cls._write_heartbeat(progress_fd)
+                heartbeat_at = now + heartbeat_seconds
             if failures and not kill_sent:
                 cls._record_signal_error(
                     failures,
@@ -107,6 +122,7 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
                 term_at if not term_sent else None,
                 kill_at if not kill_sent else None,
                 cleanup_at,
+                heartbeat_at,
             )
             wake.wait(
                 None
@@ -114,6 +130,22 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
                 else max(0.0, next_boundary - time.monotonic())
             )
         return timed_out, lifecycle_deadline
+
+    @staticmethod
+    def _write_heartbeat(progress_fd: int | None) -> None:
+        if progress_fd is None:
+            msg = "process heartbeat descriptor is unavailable"
+            raise RuntimeError(msg)
+        payload = f"{c.Cli.CLI_PROCESS_HEARTBEAT_MESSAGE}\n".encode(
+            c.Cli.ENCODING_DEFAULT
+        )
+        written = os.write(progress_fd, payload)
+        if written != len(payload):
+            msg = (
+                "process heartbeat output write was incomplete: "
+                f"{written}/{len(payload)} bytes"
+            )
+            raise OSError(msg)
 
     @staticmethod
     def _soft_boundary(

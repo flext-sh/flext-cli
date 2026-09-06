@@ -53,7 +53,7 @@ class TestsFlextCliFilesCov:
     def test_service_atomic_write_text_file_success(self, tmp_path: Path) -> None:
         """Verify that service atomic write text file success."""
         target = tmp_path / "service_atomic.txt"
-        result = cli.atomic_write_text_file(target, "ok")
+        result = u.Cli.atomic_write_text_file(target, "ok")
         tm.ok(result)
         tm.that(target.read_text(encoding="utf-8"), eq="ok")
 

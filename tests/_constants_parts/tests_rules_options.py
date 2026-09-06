@@ -5,6 +5,8 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
+from flext_cli import c
+
 if TYPE_CHECKING:
     from tests import t
 
@@ -97,7 +99,7 @@ class TestsFlextCliConstantsRulesOptions:
 
     # ── TOML ───────────────────────────────────────────────────────
     TOML_VALID_CONTENT: Final[str] = (
-        '[tool.flext]\nproject = "my-project"\nversion = "1.0.0"\n'
+        f'[tool.flext]\nproject = "my-project"\nversion = "{c.Cli.CLI_VERSION}"\n'
     )
     TOML_INVALID_CONTENT: Final[str] = "[invalid toml\nmissing = "
     TOML_SECTION_CONTENT: Final[str] = "[section]\nkey = true\ncount = 42\n"

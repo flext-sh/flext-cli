@@ -29,7 +29,11 @@ class FlextCliConstantsSettings:
     CLI_DEFAULT_LOG_VERBOSITY: Final[str] = ce.LogVerbosity.COMPACT.value
     CLI_DEFAULT_LOG_LEVEL: Final[str] = c.LogLevel.INFO.value
     CLI_DEFAULT_OUTPUT_FORMAT: Final[str] = ce.OutputFormats.TABLE.value
+    CLI_PROCESS_HEARTBEAT_SECONDS: Final[float] = 30.0
+    CLI_PROCESS_HEARTBEAT_MAX_SECONDS: Final[float] = 60.0
+    CLI_PROCESS_HEARTBEAT_MESSAGE: Final[str] = "flext-cli: process still running"
     ENV_DEFAULT_CI: Final[bool] = False
+    ENV_VAR_HOME: Final[str] = "HOME"
     ENV_VAR_CI: Final[str] = "CI"
     ENV_VAR_PYTEST_CURRENT_TEST: Final[str] = "PYTEST_CURRENT_TEST"
     ENV_VAR_SHELL_COMMAND: Final[str] = "_"

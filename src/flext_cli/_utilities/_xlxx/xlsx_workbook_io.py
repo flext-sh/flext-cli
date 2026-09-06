@@ -25,9 +25,7 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
         )
         inspection_result = cls.xlsx_inspect(inspection_request)
         if inspection_result.failure:
-            return r[Workbook].fail(
-                inspection_result.error or str(c.Cli.XlsxError.ARCHIVE_INVALID)
-            )
+            return r[Workbook].from_failure(inspection_result)
         inspection = inspection_result.value
         if not inspection.clean:
             detail = "; ".join(
