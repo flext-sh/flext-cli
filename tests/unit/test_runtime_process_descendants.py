@@ -87,7 +87,6 @@ class TestsFlextCliRuntimeProcessDescendants:
             deadline=m.Cli.ProcessDeadline(
                 expires_at_monotonic=time.monotonic() + 1.2,
                 termination_grace_seconds=0.6,
-                timeout_exit_code=96,
             ),
         )
 

@@ -141,5 +141,13 @@ class FlextCliProtocolsXlsx(
             self, request: FlextCliProtocolsXlsx.XlsxStyleTemplateRequest
         ) -> p.Result[m.Cli.XlsxStyleTemplateResult]: ...
 
+        def xlsx_recalc(
+            self, request: m.Cli.XlsxRecalcRequest
+        ) -> p.Result[m.Cli.XlsxRecalcResult]: ...
+
+        def xlsx_recalc_parity(
+            self, request: m.Cli.XlsxRecalcParityRequest
+        ) -> p.Result[m.Cli.XlsxRecalcParityReport]: ...
+
 
 __all__: tuple[str, ...] = ("FlextCliProtocolsXlsx",)

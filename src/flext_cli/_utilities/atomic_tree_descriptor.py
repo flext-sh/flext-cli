@@ -9,10 +9,12 @@ import sys
 from pathlib import Path
 from typing import Never
 
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_file_path as file_path
-from . import atomic_file_read as file_read
-from . import atomic_file_state as file_state
+from . import (
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_path as file_path,
+    atomic_file_read as file_read,
+    atomic_file_state as file_state,
+)
 
 _FILE_FLAGS = (
     os.O_RDONLY

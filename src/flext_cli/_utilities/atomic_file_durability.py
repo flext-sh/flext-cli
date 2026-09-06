@@ -4,8 +4,7 @@ from __future__ import annotations
 
 import os
 
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_file_path as file_path
+from . import atomic_file_descriptor as file_descriptor, atomic_file_path as file_path
 
 
 def sync_parent(parent: file_descriptor.ParentDescriptor) -> None:

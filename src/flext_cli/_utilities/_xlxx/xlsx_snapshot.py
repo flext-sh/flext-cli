@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-
 from flext_cli import m, p, r
 
 from .xlsx_snapshot_sheet import FlextCliUtilitiesXlsxSnapshotSheet
@@ -25,7 +24,8 @@ class FlextCliUtilitiesXlsxSnapshot(
             snapshot = cls._snapshot_workbook(request)
         except (TypeError, m.ValidationError, ValueError) as exc:
             return r[m.Cli.XlsxWorkbookSnapshot].fail(
-                f"Workbook snapshot failed ({exc.__class__.__name__}): {exc}"
+                f"Workbook snapshot failed ({exc.__class__.__name__}): {exc}",
+                exception=exc,
             )
         return r[m.Cli.XlsxWorkbookSnapshot].ok(snapshot)
 

@@ -6,11 +6,13 @@ import errno
 import os
 from pathlib import Path
 
-from . import atomic_directory_descriptor as directory_descriptor
-from . import atomic_directory_state as directory_state
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_file_durability as file_durability
-from . import atomic_file_read as file_read
+from . import (
+    atomic_directory_descriptor as directory_descriptor,
+    atomic_directory_state as directory_state,
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_durability as file_durability,
+    atomic_file_read as file_read,
+)
 
 
 def remove_created_directory(

@@ -13,12 +13,29 @@ from flext_core import m, u
 class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
 
+    class ProcessOutcome(m.Value):
+        """Causal completion state for one fully reaped process."""
+
+        raw_return_code: Annotated[
+            int, m.Field(description="Raw operating-system process return code")
+        ]
+        timed_out: Annotated[
+            bool, m.Field(description="Whether the process deadline expired")
+        ]
+        forwarded_signal: Annotated[
+            int | None,
+            m.Field(description="First operator signal forwarded to the process"),
+        ]
+
     class CommandOutput(m.Value):
         """Standardized external command execution payload. Use m.Cli.CommandOutput."""
 
         stdout: Annotated[str, m.Field("", description="Captured standard output")] = ""
         stderr: Annotated[str, m.Field("", description="Captured standard error")] = ""
-        exit_code: Annotated[int, m.Field(description="Command exit code")] = 0
+        outcome: Annotated[
+            FlextCliModelsBase.ProcessOutcome,
+            m.Field(description="Causal process completion state"),
+        ]
         duration: Annotated[
             t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
         ] = 0.0
@@ -32,7 +49,10 @@ class FlextCliModelsBase:
         stderr: Annotated[
             bytes, m.Field(b"", description="Captured standard error as raw bytes")
         ] = b""
-        exit_code: Annotated[int, m.Field(description="Command exit code")] = 0
+        outcome: Annotated[
+            FlextCliModelsBase.ProcessOutcome,
+            m.Field(description="Causal process completion state"),
+        ]
         duration: Annotated[
             t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
         ] = 0.0
@@ -48,15 +68,11 @@ class FlextCliModelsBase:
             t.PositiveFloat,
             m.Field(description="Reserved graceful termination and drain budget"),
         ]
-        timeout_exit_code: Annotated[
-            t.PositiveInt,
-            m.Field(description="Canonical exit code returned for deadline expiry"),
-        ]
 
     class RuntimeComponents(m.BaseModel):
         """Availability state for canonical CLI runtime components."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         settings: Annotated[str, m.Field(description="Settings component state")]
         formatters: Annotated[str, m.Field(description="Formatters component state")]
         prompts: Annotated[str, m.Field(description="Prompts component state")]
@@ -65,7 +81,7 @@ class FlextCliModelsBase:
     class RuntimeStatus(m.BaseModel):
         """Canonical public CLI runtime status payload."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         status: Annotated[str, m.Field(description="Overall service state")]
         service: Annotated[str, m.Field(description="Service identifier")]
         timestamp: Annotated[str, m.Field(description="Status generation timestamp")]
@@ -78,7 +94,7 @@ class FlextCliModelsBase:
     class DisplayData(m.BaseModel):
         """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         data: Annotated[
@@ -97,7 +113,7 @@ class FlextCliModelsBase:
     class LoadedConfig(m.BaseModel):
         """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         content: Annotated[
@@ -115,7 +131,7 @@ class FlextCliModelsBase:
         ``model_serializer`` required.
         """
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
         root: Annotated[
             t.JsonValue, m.Field(description="Normalized JSON-compatible value")
         ]
@@ -123,7 +139,7 @@ class FlextCliModelsBase:
     class NormalizedJsonList(m.BaseModel):
         """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonList."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         value: Annotated[

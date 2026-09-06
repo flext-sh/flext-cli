@@ -17,7 +17,7 @@ class FlextCliModelsBase:
     class AtomicFileState(m.BaseModel):
         """Exact content and physical identity for one regular file version."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", frozen=True, arbitrary_types_allowed=True
         )
         path: Annotated[Path, m.Field(description="Absolute file path")]
@@ -112,7 +112,7 @@ class FlextCliModelsBase:
     class PromptRuntimeState(m.FlexibleInternalModel):
         """Centralized runtime state for CLI prompt behavior."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
 
@@ -129,7 +129,7 @@ class FlextCliModelsBase:
     class AuthCredentialsPayload(m.BaseModel):
         """Validated auth payload for token or username/password flows."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         token: Annotated[
@@ -146,7 +146,7 @@ class FlextCliModelsBase:
     class ProcessEnvironmentSpec(m.BaseModel):
         """Validated process environment contract for runtime command execution."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         base_env: Annotated[
             t.StrMapping,
             m.Field(

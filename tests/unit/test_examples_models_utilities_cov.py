@@ -2,171 +2,88 @@
 
 Contract under test (public API only):
 - ``m.Examples.MyAppSettings`` / ``AppSettingsAdvanced`` / ``AdvancedDatabaseConfig``
-  construction, env-override merging, field validation, and ``validate_to_mapping``
-  returning ``r[T]``.
-- ``m.Examples.merge_env_overrides`` pure merge behavior.
+  construction, field validation, and ``validate_to_mapping`` returning ``r[T]``.
 - ``u.to_json_dict`` normalization and the void rendering helpers rendering without
   raising through their public signatures.
 """
 
 from __future__ import annotations
 
-import importlib
-import sys
 from pathlib import Path
 
 import pytest
+from examples import c, m, u
 
 from flext_cli import cli
 from flext_tests import tm
 from tests import c as tc, t
-
-_PROJECT_ROOT = Path(__file__).resolve().parents[2]
-if str(_PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(_PROJECT_ROOT))
-
-examples_pkg = importlib.import_module("examples")
-c = examples_pkg.c
-m = examples_pkg.m
-u = examples_pkg.u
 
 
 class TestsFlextCliExampleModelsUtilitiesCov:
     """Exercise the public examples model and utility contracts."""
 
     # ------------------------------------------------------------------
-    # MyAppSettings: environment override contract
+    # MyAppSettings: explicit typed input contract
     # ------------------------------------------------------------------
 
-    def test_my_app_settings_defaults_when_no_env(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Verify that my app settings defaults when no env."""
-        for env_key in (
-            c.EXAMPLE_ENV_KEY_APP_NAME,
-            c.EXAMPLE_ENV_KEY_API_KEY,
-            c.EXAMPLE_ENV_KEY_MAX_WORKERS,
-            c.EXAMPLE_ENV_KEY_TIMEOUT,
-        ):
-            monkeypatch.delenv(env_key, raising=False)
-
+    def test_my_app_settings_uses_canonical_defaults(self) -> None:
+        """Build the pure model without reading ambient process state."""
         settings = m.Examples.MyAppSettings()
 
         tm.that(settings.app_name, eq=c.EXAMPLE_DEFAULT_TOOL_NAME)
         tm.that(settings.max_workers, eq=c.EXAMPLE_DEFAULT_MAX_WORKERS)
         tm.that(settings.timeout, eq=c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS)
 
-    def test_my_app_settings_reads_and_coerces_env_overrides(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Verify that my app settings reads and coerces env overrides."""
-        monkeypatch.setenv(c.EXAMPLE_ENV_KEY_APP_NAME, "env-tool")
-        monkeypatch.setenv(c.EXAMPLE_ENV_KEY_API_KEY, "env-secret")
-        monkeypatch.setenv(c.EXAMPLE_ENV_KEY_MAX_WORKERS, "9")
-        monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TIMEOUT, "45")
+    def test_my_app_settings_accepts_explicit_typed_values(self) -> None:
+        """Explicit values cross the model boundary without ambient overrides."""
+        settings = m.Examples.MyAppSettings(
+            app_name="explicit-tool",
+            api_key="explicit-secret",
+            max_workers=9,
+            timeout=45,
+        )
 
-        settings = m.Examples.MyAppSettings()
-
-        tm.that(settings.app_name, eq="env-tool")
-        tm.that(settings.api_key, eq="env-secret")
-        # Strings from the environment are coerced to the declared int fields.
+        tm.that(settings.app_name, eq="explicit-tool")
+        tm.that(settings.api_key, eq="explicit-secret")
         tm.that(settings.max_workers, eq=9)
         tm.that(settings.timeout, eq=45)
-
-    def test_my_app_settings_explicit_arg_overrides_environment(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Verify that my app settings explicit arg overrides environment."""
-        monkeypatch.setenv(c.EXAMPLE_ENV_KEY_APP_NAME, "env-tool")
-
-        settings = m.Examples.MyAppSettings(app_name="explicit-tool")
-
-        # Explicit constructor input wins over the environment override.
-        tm.that(settings.app_name, eq="explicit-tool")
-
-    # ------------------------------------------------------------------
-    # merge_env_overrides: pure merge behavior
-    # ------------------------------------------------------------------
-
-    def test_merge_env_overrides_applies_env_over_defaults(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Verify that merge env overrides applies env over defaults."""
-        monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TIMEOUT, "77")
-
-        merged = m.Examples.merge_env_overrides(
-            {"timeout": 10}, {"timeout": c.EXAMPLE_ENV_KEY_TIMEOUT}, {"timeout": int}
-        )
-
-        # Explicit mapping value takes precedence over the env override.
-        tm.that(merged, eq={"timeout": 10})
-
-    def test_merge_env_overrides_fills_missing_field_from_env(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
-        """Verify that merge env overrides fills missing field from env."""
-        monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TIMEOUT, "77")
-
-        merged = m.Examples.merge_env_overrides(
-            {}, {"timeout": c.EXAMPLE_ENV_KEY_TIMEOUT}, {"timeout": int}
-        )
-
-        tm.that(merged, eq={"timeout": 77})
-
-    def test_merge_env_overrides_passes_non_mapping_through_unchanged(self) -> None:
-        """Verify that merge env overrides passes non mapping through unchanged."""
-        merged = m.Examples.merge_env_overrides(
-            ["raw"], {"timeout": c.EXAMPLE_ENV_KEY_TIMEOUT}, {"timeout": int}
-        )
-
-        tm.that(merged, eq=["raw"])
 
     # ------------------------------------------------------------------
     # AppSettingsAdvanced.validate_to_mapping: r[T] outcomes
     # ------------------------------------------------------------------
 
     def test_advanced_settings_fail_when_api_key_missing_in_production(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+        self, tmp_path: Path
     ) -> None:
         """Verify that advanced settings fail when api key missing in production."""
-        monkeypatch.setenv(
-            c.EXAMPLE_ENV_KEY_ENVIRONMENT, c.EXAMPLE_ENV_VALUE_PRODUCTION
-        )
-        monkeypatch.setenv(
-            c.EXAMPLE_ENV_KEY_TEMP_DIR, str(tmp_path / "created-temp-dir")
-        )
-
-        outcome = m.Examples.AppSettingsAdvanced().validate_to_mapping()
+        outcome = m.Examples.AppSettingsAdvanced(
+            environment=c.DeploymentEnvironment.PRODUCTION,
+            temp_dir=tmp_path / "created-temp-dir",
+        ).validate_to_mapping()
 
         tm.fail(outcome, has="API_KEY is required in production")
 
     def test_advanced_settings_fail_when_temp_dir_is_a_file(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+        self, tmp_path: Path
     ) -> None:
         """Verify that advanced settings fail when temp dir is a file."""
         bad_temp_dir = tmp_path / "not-a-dir"
         bad_temp_dir.write_text("broken", encoding="utf-8")
-        monkeypatch.setenv(c.EXAMPLE_ENV_KEY_ENVIRONMENT, "development")
-        monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TEMP_DIR, str(bad_temp_dir))
-
         outcome = m.Examples.AppSettingsAdvanced(
-            api_key="valid-api-key"
+            api_key="valid-api-key", temp_dir=bad_temp_dir
         ).validate_to_mapping()
 
         tm.fail(outcome, has="TEMP_DIR must be a directory")
 
-    def test_advanced_settings_success_masks_api_key(
-        self, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-    ) -> None:
+    def test_advanced_settings_success_masks_api_key(self, tmp_path: Path) -> None:
         """Verify that advanced settings success masks api key."""
         good_temp_dir = tmp_path / "temp-ok"
-        monkeypatch.setenv(
-            c.EXAMPLE_ENV_KEY_ENVIRONMENT, c.EXAMPLE_ENV_VALUE_PRODUCTION
-        )
-        monkeypatch.setenv(c.EXAMPLE_ENV_KEY_TEMP_DIR, str(good_temp_dir))
-
         mapping: t.JsonMapping = tm.ok(
-            m.Examples.AppSettingsAdvanced(api_key="super-secret").validate_to_mapping()
+            m.Examples.AppSettingsAdvanced(
+                api_key="super-secret",
+                environment=c.DeploymentEnvironment.PRODUCTION,
+                temp_dir=good_temp_dir,
+            ).validate_to_mapping()
         )
 
         # Success payload masks the secret and creates the temp directory.
@@ -182,18 +99,16 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ("kwargs", "match"),
         [
             ({"log_level": "verbose"}, "LOG_LEVEL must be one of"),
-            ({"database_url": "http://nope"}, c.EXAMPLE_ERR_INVALID_DB_URL),
-            ({"redis_url": "http://nope"}, c.EXAMPLE_ERR_INVALID_REDIS_URL),
+            ({"database_url": c.EXAMPLE_INVALID_URL}, c.EXAMPLE_ERR_INVALID_DB_URL),
+            ({"redis_url": c.EXAMPLE_INVALID_URL}, c.EXAMPLE_ERR_INVALID_REDIS_URL),
         ],
     )
     def test_advanced_settings_rejects_invalid_field(
-        self, monkeypatch: pytest.MonkeyPatch, kwargs: dict[str, str], match: str
+        self, kwargs: t.JsonMapping, match: str
     ) -> None:
         """Verify that advanced settings rejects invalid field."""
-        monkeypatch.delenv(c.EXAMPLE_ENV_KEY_ENVIRONMENT, raising=False)
-
         with pytest.raises(ValueError, match=match):
-            m.Examples.AppSettingsAdvanced(**kwargs)
+            m.Examples.AppSettingsAdvanced.model_validate(kwargs)
 
     @pytest.mark.parametrize("host", ["127.0.0.1", "localhost", "db.example.com"])
     def test_database_config_accepts_valid_host(self, host: str) -> None:
@@ -230,7 +145,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ],
     )
     def test_to_json_dict_preserves_values(
-        self, payload: dict[str, object], key: str, expected: object
+        self, payload: t.JsonMapping, key: str, expected: t.JsonValue
     ) -> None:
         """Verify that to json dict preserves values."""
         display = u.to_json_dict(payload)

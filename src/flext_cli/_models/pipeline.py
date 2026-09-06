@@ -17,7 +17,7 @@ class FlextCliModelsPipeline:
     class PipelineStageContext(m.ContractModel):
         """Accumulated state passed between pipeline stages."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True, arbitrary_types_allowed=True
         )
 
@@ -42,7 +42,7 @@ class FlextCliModelsPipeline:
     class PipelineStageSpec(m.ContractModel):
         """Declarative stage definition with dependency tracking."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", arbitrary_types_allowed=True
         )
 
@@ -53,10 +53,8 @@ class FlextCliModelsPipeline:
                 default_factory=frozenset, description="Stage IDs this stage depends on"
             ),
         ]
-        # NOTE: handler/skip_if use inline Callable, not t.Cli.PipelineHandler /
-        # t.Cli.PipelineSkipPredicate.  Those are PEP 695 `type` aliases that
-        # reference p.Cli.PipelineStageContext under TYPE_CHECKING — Pydantic
-        # cannot resolve them at runtime for model field validation.
+        # Pydantic owns runtime validation here; public callback contracts live
+        # in p.Cli and this model retains the equivalent concrete callable shape.
         handler: Annotated[
             Callable[
                 [FlextCliModelsPipeline.PipelineStageContext],
@@ -80,7 +78,7 @@ class FlextCliModelsPipeline:
     class PipelineStageResult(m.ContractModel):
         """What a stage produces after execution."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid")
 
         stage_id: Annotated[str, m.Field(description="Stage that produced this result")]
         status: Annotated[
@@ -103,7 +101,7 @@ class FlextCliModelsPipeline:
     class PipelineResult(m.ContractModel):
         """Full pipeline execution result — aggregated from all stages."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid")
 
         stages: Annotated[
             t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult],

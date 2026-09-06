@@ -10,11 +10,11 @@ import stat
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.atomic_file_publish import publish_guarded_staged_file
-from flext_cli._utilities.atomic_file_snapshot import read_authenticated_state
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
+from flext_cli._utilities.atomic_file_publish import publish_guarded_staged_file
+from flext_cli._utilities.atomic_file_snapshot import read_authenticated_state
 
 
 class FlextCliUtilitiesFiles:
@@ -133,10 +133,7 @@ class FlextCliUtilitiesFiles:
         source_path = Path(source).resolve()
         ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(target_path.parent)
         if ensure_result.failure:
-            return r[bool].fail(
-                ensure_result.error
-                or c.Cli.ERR_CREATE_PARENT_DIR_FAILED.format(target_path=target_path)
-            )
+            return r[bool].from_failure(ensure_result)
         if target_path.is_symlink() and target_path.resolve() == source_path:
             return r[bool].ok(True)
         if target_path.exists() or target_path.is_symlink():
@@ -168,6 +165,11 @@ class FlextCliUtilitiesFiles:
     def sha256_content(content: str) -> str:
         """Return the SHA-256 hex digest for text content."""
         return hashlib.sha256(content.encode(c.Cli.ENCODING_DEFAULT)).hexdigest()
+
+    @staticmethod
+    def sha256_bytes(content: bytes) -> str:
+        """Return the SHA-256 hex digest for exact binary content."""
+        return hashlib.sha256(content).hexdigest()
 
     @staticmethod
     def sha256_file(file_path: t.Cli.TextPath) -> str:
