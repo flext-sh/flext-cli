@@ -219,25 +219,18 @@ class FlextCliUtilitiesFramework:
         # unknown command escape every handler and propagate out of the facade.
         except (click.ClickException, _TYPER_CLICK_EXCEPTION) as exc:
             return e.fail_validation(error=exc, result_type=r[bool])
-        except typer.Abort as exc:
-            return e.fail_operation(
-                c.Cli.OP_EXECUTE_APPLICATION, exc, result_type=r[bool]
-            )
+        except typer.Abort:
+            raise
         except typer.Exit as exc:
             if (failure := cls._active_failure.get()) is not None:
                 return r[bool].from_failure(failure)
-            return cls._exit_code_result(exc.exit_code)
-        except SystemExit as exc:
+            if exc.exit_code == c.Cli.EXIT_CODE_SUCCESS:
+                return r[bool].ok(True)
+            raise
+        except SystemExit:
             if (failure := cls._active_failure.get()) is not None:
                 return r[bool].from_failure(failure)
-            exit_code = (
-                exc.code if isinstance(exc.code, int) else c.Cli.EXIT_CODE_FAILURE
-            )
-            return cls._exit_code_result(exit_code)
-        except c.CATCHABLE_RUNTIME_EXCEPTIONS as exc:
-            return e.fail_operation(
-                c.Cli.OP_EXECUTE_APPLICATION, exc, result_type=r[bool]
-            )
+            raise
         finally:
             sys.argv = original_argv
             captured_failure = cls._active_failure.get()
@@ -272,15 +265,10 @@ class FlextCliUtilitiesFramework:
             )
         except click.ClickException as exc:
             return e.fail_validation(error=exc, result_type=r[bool])
-        except click.Abort as exc:
-            return e.fail_operation(
-                c.Cli.OP_EXECUTE_APPLICATION, exc, result_type=r[bool]
-            )
-        except SystemExit as exc:
-            exit_code = (
-                exc.code if isinstance(exc.code, int) else c.Cli.EXIT_CODE_FAILURE
-            )
-            return cls._exit_code_result(exit_code)
+        except click.Abort:
+            raise
+        except SystemExit:
+            raise
         if (
             isinstance(exit_result, int)
             and not isinstance(exit_result, bool)
@@ -305,10 +293,25 @@ class FlextCliUtilitiesFramework:
         charset: str = c.Cli.ENCODING_DEFAULT,
         env: t.StrMapping | None = None,
     ) -> m.Cli.InvocationResult:
-        """Invoke one application through the real framework test runner."""
+        """Invoke one application through the real framework test runner.
+
+        Captured output renders unstyled so text assertions stay
+        presentation-free and stable in styled environments: the runner sets
+        ``NO_COLOR`` and neutralizes the terminal-forcing signals typer
+        consults instead of it (``GITHUB_ACTIONS``, ``FORCE_COLOR``,
+        ``PY_COLORS``); an explicit caller ``env`` entry still wins.
+        """
         from flext_cli import m
 
-        runner = CliRunner(charset=charset, env=env)
+        runner_env: dict[str, str | None] = {
+            "NO_COLOR": "1",
+            "GITHUB_ACTIONS": "",
+            "FORCE_COLOR": "",
+            "PY_COLORS": "",
+        }
+        if env is not None:
+            runner_env.update(env)
+        runner = CliRunner(charset=charset, env=runner_env)
         private_application = cls._unwrap(application)
         result = runner.invoke(
             private_application.backend, args=list(args) if args is not None else None

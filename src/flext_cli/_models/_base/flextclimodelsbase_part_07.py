@@ -18,7 +18,7 @@ class FlextCliModelsBase:
     class LogLevelResolved(m.BaseModel):
         """Single contract for log level string."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid")
         raw: Annotated[
             str | None, m.Field(None, description="Raw log level input string")
         ]
@@ -43,7 +43,7 @@ class FlextCliModelsBase:
     class TypedExtract(m.BaseModel):
         """Single contract for typed value extraction (str | bool | dict)."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid")
         type_kind: Annotated[t.Cli.TypeKind, m.Field(description="Requested type")]
         value: Annotated[
             t.JsonValue | None, m.Field(None, description="Value to extract and coerce")

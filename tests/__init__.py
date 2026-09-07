@@ -3,26 +3,27 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import unit as unit
     from flext_cli import c as flext_cli_c
     from flext_tests import FlextTestsConstants, d, e, h, r, td, tf, tk, tm, tv, x
 
+    from . import unit as unit
     from .base import TestsFlextCliServiceBase, TestsFlextCliServiceBase as s
-    from .constants import c
-    from .models import m
+    from .constants import TestsFlextCliConstants, TestsFlextCliConstants as c
+    from .models import TestsFlextCliModels, TestsFlextCliModels as m
     from .protocols import TestsFlextCliProtocols, TestsFlextCliProtocols as p
     from .settings import TestsFlextCliSettings
     from .typings import TestsFlextCliTypes, TestsFlextCliTypes as t
     from .utilities import TestsFlextCliUtilities, TestsFlextCliUtilities as u
 __all__: tuple[str, ...] = (
     "FlextTestsConstants",
+    "TestsFlextCliConstants",
+    "TestsFlextCliModels",
     "TestsFlextCliProtocols",
     "TestsFlextCliServiceBase",
     "TestsFlextCliSettings",
@@ -52,8 +53,8 @@ _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
             ".base": ("TestsFlextCliServiceBase", "s"),
-            ".constants": ("c",),
-            ".models": ("m",),
+            ".constants": ("TestsFlextCliConstants", "c"),
+            ".models": ("TestsFlextCliModels", "m"),
             ".protocols": ("TestsFlextCliProtocols", "p"),
             ".settings": ("TestsFlextCliSettings",),
             ".typings": ("TestsFlextCliTypes", "t"),

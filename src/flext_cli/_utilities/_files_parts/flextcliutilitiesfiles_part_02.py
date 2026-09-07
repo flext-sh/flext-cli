@@ -2,47 +2,29 @@
 
 from __future__ import annotations
 
-import csv
 import shutil
 from pathlib import Path
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities._atomic_file import write_atomic_bytes
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities.atomic_file import write_atomic_bytes
+from flext_cli._utilities.atomic_file_delete import remove_guarded_file
+from flext_cli._utilities.atomic_file_path import validate_atomic_path
 
 
 class FlextCliUtilitiesFiles:
     """Implementation part for FlextCliUtilitiesFiles."""
 
     @staticmethod
-    def files_read_csv_with_headers(
-        file_path: t.Cli.TextPath,
-    ) -> p.Result[t.SequenceOf[t.StrMapping]]:
-        """Read one CSV file into mapping rows using header row."""
-
-        def _load() -> t.SequenceOf[t.StrMapping]:
-            with Path(file_path).open(
-                encoding=c.Cli.ENCODING_DEFAULT, newline=""
-            ) as handle:
-                return [dict(row) for row in csv.DictReader(handle)]
-
-        return FlextCliUtilitiesFiles.files_execute(_load, c.Cli.ERR_CSV_READ_FAILED)
-
-    @staticmethod
-    def files_read_binary(file_path: t.Cli.TextPath) -> p.Result[bytes]:
-        """Read one binary file."""
-        return FlextCliUtilitiesFiles.files_execute(
-            lambda: Path(file_path).read_bytes(), c.Cli.ERR_BINARY_READ_FAILED
-        )
-
-    @staticmethod
     def files_write_binary(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
         """Write one binary file atomically in its destination directory."""
-        path = Path(file_path).absolute()
+        path = Path(file_path)
+        try:
+            validate_atomic_path(path)
+        except OSError as exc:
+            return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
         if ensure_result.failure:
-            return r[bool].fail(
-                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED
-            )
+            return r[bool].from_failure(ensure_result)
         try:
             write_atomic_bytes(path, data)
         except OSError as exc:
@@ -54,12 +36,16 @@ class FlextCliUtilitiesFiles:
         file_path: t.Cli.TextPath, content: str
     ) -> p.Result[bool]:
         """Write a text file atomically via the shared byte primitive."""
-        path = Path(file_path).absolute()
+        path = Path(file_path)
+        try:
+            validate_atomic_path(path)
+        except OSError as exc:
+            return r[bool].fail(
+                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc)
+            )
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
         if ensure_result.failure:
-            return r[bool].fail(
-                ensure_result.error or c.Cli.ERR_ENSURE_DIR_GENERIC_FAILED
-            )
+            return r[bool].from_failure(ensure_result)
         try:
             write_atomic_bytes(path, content.encode(c.Cli.ENCODING_DEFAULT))
         except OSError as exc:
@@ -70,28 +56,63 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def atomic_write_text_file_guarded(
-        file_path: t.Cli.TextPath, content: str, *, expected_bytes: bytes | None
+        before: m.Cli.AtomicFileState, content: str
     ) -> p.Result[bool]:
-        """Publish under a caller-held lock after an exact raw-byte precondition.
+        """Publish under a lock after one complete physical-state precondition.
 
         Cooperative writers must hold one exclusive lock from planning through
-        this call.  This portable operation is not compare-and-swap against actors
-        that ignore that lock and does not promise power-loss durability.  ``None``
-        requires absence; bytes require an existing uniquely owned regular,
-        non-reparse destination with exactly that content.  The immediate parent
-        must already exist as a real directory and is never created by this call.
+        this call. This operation is not compare-and-swap against actors that
+        ignore that lock. The immediate parent must exist as a real directory.
+        Publication syncs the staged inode and containing directory before success.
         """
-        path = Path(file_path).absolute()
         try:
             write_atomic_bytes(
-                path,
+                before.path,
                 content.encode(c.Cli.ENCODING_DEFAULT),
-                expected_bytes=expected_bytes,
+                expected_state=before,
             )
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc)
             )
+        return r[bool].ok(True)
+
+    @staticmethod
+    def atomic_write_binary_file_guarded(
+        before: m.Cli.AtomicFileState, data: bytes, *, permission_mode: int
+    ) -> p.Result[bool]:
+        """Publish bytes and mode from one complete physical-state precondition.
+
+        Cooperative writers must hold the same lock through planning and this
+        call. This is not CAS against an actor that ignores that lock. The
+        immediate real parent must exist and is never created here. Publication
+        syncs the staged inode and containing directory before success.
+        """
+        try:
+            write_atomic_bytes(
+                before.path,
+                data,
+                expected_state=before,
+                permission_mode=permission_mode,
+            )
+        except OSError as exc:
+            return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
+        return r[bool].ok(True)
+
+    @staticmethod
+    def atomic_delete_binary_file_guarded(
+        state: m.Cli.AtomicFileState,
+    ) -> p.Result[bool]:
+        """Delete one complete physical file version under the caller's lock.
+
+        The descriptor-bound unlink depends on every writer sharing that lock; it
+        is not CAS against an actor that ignores it. The containing directory is
+        synced after unlink before success.
+        """
+        try:
+            remove_guarded_file(state)
+        except OSError as exc:
+            return r[bool].fail(c.Cli.ERR_FILE_DELETION_FAILED.format(error=exc))
         return r[bool].ok(True)
 
     @staticmethod

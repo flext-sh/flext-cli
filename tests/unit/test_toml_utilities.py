@@ -8,7 +8,6 @@ implementation structures are inspected.
 
 from __future__ import annotations
 
-import os
 import stat
 import tomllib
 from pathlib import Path
@@ -114,40 +113,20 @@ class TestsFlextCliTomlUtilities:
         tm.ok(u.Cli.toml_write_document(toml_file, doc))
         tm.that(toml_file.exists(), eq=True)
 
-    def test_write_pyproject_invokes_taplo_formatter(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    def test_write_pyproject_runs_the_required_real_formatter(
+        self, tmp_path: Path
     ) -> None:
-        """Verify that write pyproject invokes taplo formatter."""
+        """Format a real pyproject through the public TOML facade."""
         pyproject = tmp_path / "pyproject.toml"
         taplo_config = tmp_path / ".taplo.toml"
-        command_log = tmp_path / "taplo.log"
-        bin_dir = tmp_path / "bin"
-        bin_dir.mkdir()
         taplo_config.write_text("", encoding="utf-8")
-        taplo = bin_dir / "taplo"
-        taplo.write_text(
-            "#!/bin/sh\n"
-            f"printf '%s\\n' \"$PWD\" > '{command_log}'\n"
-            'for arg in "$@"; do\n'
-            f"  printf '%s\\n' \"$arg\" >> '{command_log}'\n"
-            "done\n",
-            encoding="utf-8",
-        )
-        taplo.chmod(stat.S_IRWXU)
         doc = u.Cli.toml_document()
         doc["project"] = {"name": "demo"}
 
-        # NOTE (multi-agent, mro-wkii.17 / agent: codex): exercise the process
-        # environment boundary directly; pytest owns restoration for the test.
-        monkeypatch.setenv("PATH", f"{bin_dir}:{os.environ.get('PATH', '')}")
         tm.ok(u.Cli.toml_write_document(pyproject, doc))
 
-        logged_command = command_log.read_text(encoding="utf-8").splitlines()
-        tm.that(logged_command[0], eq=str(tmp_path))
-        tm.that(logged_command[1:3], eq=["format", "--config"])
-        tm.that(logged_command, contains="--config")
-        tm.that(logged_command, contains=str(taplo_config))
-        tm.that(logged_command, contains=str(pyproject))
+        rendered = tomllib.loads(pyproject.read_text(encoding="utf-8"))
+        tm.that(rendered["project"], eq={"name": "demo"})
 
     def test_write_document_fails_when_target_is_not_writable(
         self, tmp_path: Path

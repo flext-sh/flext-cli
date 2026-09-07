@@ -80,7 +80,7 @@ class FlextCliCli(FlextCliCliPart02):
                 app, args=args, charset=charset, env=env
             )
         except (TypeError, ValueError) as exc:
-            return r[m.Cli.InvocationResult].fail(str(exc))
+            return r[m.Cli.InvocationResult].fail(str(exc), exception=exc)
         return r[m.Cli.InvocationResult].ok(invocation)
 
 

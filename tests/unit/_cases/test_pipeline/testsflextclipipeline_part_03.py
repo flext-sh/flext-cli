@@ -12,7 +12,7 @@ from flext_tests import tm
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import m, p, t
+    from tests import m, p
 
 # ── Fixtures ────────────────────────────────────────────────────────
 
@@ -24,7 +24,7 @@ class TestsFlextCliPipeline:
         """Diamond DAG: A -> B, A -> C, B -> D, C -> D."""
         order: list[str] = []
 
-        def track(sid: str) -> t.Cli.PipelineHandler:
+        def track(sid: str) -> p.Cli.PipelineStage:
             def h(
                 ctx: p.Cli.PipelineStageContext,
             ) -> p.Result[m.Cli.PipelineStageResult]:
@@ -56,7 +56,7 @@ class TestsFlextCliPipeline:
         width = 4
         barrier = threading.Barrier(width, timeout=10)
 
-        def blocking(sid: str) -> t.Cli.PipelineHandler:
+        def blocking(sid: str) -> p.Cli.PipelineStage:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
             ) -> p.Result[m.Cli.PipelineStageResult]:
@@ -81,7 +81,7 @@ class TestsFlextCliPipeline:
 
         # Consumers pick "the" failure with next(...) over this sequence, so a
         # concurrent engine must not let completion order leak into the report.
-        def delayed(sid: str, delay: float) -> t.Cli.PipelineHandler:
+        def delayed(sid: str, delay: float) -> p.Cli.PipelineStage:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
             ) -> p.Result[m.Cli.PipelineStageResult]:

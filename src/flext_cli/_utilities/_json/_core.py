@@ -111,7 +111,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             op_name="json_read",
         )
         if loaded.failure:
-            return r[t.JsonMapping].fail(loaded.error or "json_read failed")
+            return r[t.JsonMapping].from_failure(loaded)
         if not isinstance(loaded.value, Mapping):
             return r[t.JsonMapping].fail("json_read: root must be an object")
         return r[t.JsonMapping].ok(

@@ -26,9 +26,9 @@ if TYPE_CHECKING:
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
-    @pytest.fixture(autouse=True)
-    def _restore_token_file(self) -> Iterator[None]:
-        """Restore the canonical token file setting after each example run."""
+    @pytest.fixture
+    def restore_token_file(self) -> Iterator[None]:
+        """Restore the canonical token file setting after an example mutates it."""
         original_token_file = settings.cli_token_file
         try:
             yield
@@ -69,6 +69,7 @@ class TestsFlextCliExamplesSmoke:
         incomplete_import = validate_and_import_data(incomplete_import_file)
         tm.fail(incomplete_import)
 
+    @pytest.mark.usefixtures("restore_token_file")
     def test_authentication_and_settings_examples(self, tmp_path: Path) -> None:
         """Auth and settings examples must work through settings and cli auth APIs."""
         settings.cli_token_file = str(tmp_path / "auth_token.json")

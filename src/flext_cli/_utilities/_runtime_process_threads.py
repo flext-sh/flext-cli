@@ -17,7 +17,21 @@ from flext_cli._utilities._runtime_process_wait import (
 class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     FlextCliUtilitiesRuntimeProcessStreamMixin, FlextCliUtilitiesRuntimeProcessWaitMixin
 ):
-    """Start the two bounded lifecycle threads at their canonical owner."""
+    """Start bounded lifecycle threads at their canonical owner."""
+
+    @classmethod
+    def _start_input_pump(
+        cls, sink: BinaryIO, payload: bytes, failures: list[str], wake: threading.Event
+    ) -> threading.Thread:
+        """Start the sole non-daemon writer for one anonymous stdin pipe."""
+        pump = threading.Thread(
+            target=cls._pump_process_input,
+            args=(sink, payload, failures, wake),
+            name="flext-cli-process-input",
+            daemon=False,
+        )
+        pump.start()
+        return pump
 
     @classmethod
     def _start_root_waiter(
@@ -45,7 +59,6 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
         captured_output: bytearray | None,
         live_fd: int | None,
         failures: list[str],
-        live_diagnostics: list[str],
         stop: threading.Event,
         wake: threading.Event,
         *,
@@ -53,16 +66,7 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     ) -> threading.Thread:
         pump = threading.Thread(
             target=cls._pump_process_output,
-            args=(
-                source,
-                durable_log,
-                captured_output,
-                live_fd,
-                failures,
-                live_diagnostics,
-                stop,
-                wake,
-            ),
+            args=(source, durable_log, captured_output, live_fd, failures, stop, wake),
             name=thread_name,
             daemon=False,
         )

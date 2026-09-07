@@ -39,9 +39,7 @@ class FlextCliUtilitiesXlsxConditional(
             )
         visual = cls._visual_from_styleable(probe)
         if visual.failure:
-            return r[m.Cli.XlsxNamedStyleSpec].fail(
-                visual.error or f"Failed to read registered style: {name}"
-            )
+            return r[m.Cli.XlsxNamedStyleSpec].from_failure(visual)
         return r[m.Cli.XlsxNamedStyleSpec].ok(
             m.Cli.XlsxNamedStyleSpec(name=name, visual=visual.value)
         )
@@ -108,7 +106,7 @@ class FlextCliUtilitiesXlsxConditional(
             for plan in plans:
                 style = cls._registered_style(worksheet, plan.style)
                 if style.failure:
-                    return r[bool].fail(style.error or "Named style resolution failed")
+                    return r[bool].from_failure(style)
                 worksheet.conditional_formatting.add(
                     cls._range_ref(plan.area), cls._rule(plan, style.value)
                 )

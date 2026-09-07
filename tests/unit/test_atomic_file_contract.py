@@ -10,7 +10,6 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import cli
 from flext_tests import tm
 from tests import u
 
@@ -18,8 +17,8 @@ from tests import u
 class TestsAtomicFileContract:
     """Observable atomic-write behavior shared by text and binary APIs."""
 
-    def test_legacy_text_write_persists_content(self, tmp_path: Path) -> None:
-        """Keep the established unconditional text-write contract."""
+    def test_text_write_persists_content(self, tmp_path: Path) -> None:
+        """Keep the unconditional text facade on the strict atomic owner."""
         path = tmp_path / "atomic.txt"
 
         tm.ok(u.Cli.atomic_write_text_file(path, "hello atomic"))
@@ -67,34 +66,33 @@ class TestsAtomicFileContract:
         tm.that(stat.S_IMODE(path.stat().st_mode), eq=expected_mode)
 
     @pytest.mark.parametrize("link_kind", ["symbolic", "hard"])
-    def test_legacy_write_replaces_link_name_without_mutating_owner(
+    def test_unconditional_write_rejects_linked_destination(
         self, tmp_path: Path, link_kind: str
     ) -> None:
-        """Preserve the established unconditional replacement of linked names."""
+        """Reject linked names through every public atomic-write facade."""
         owner, destination = self._linked_destination(tmp_path, link_kind)
         owner_inode = owner.lstat().st_ino
         destination_inode = destination.lstat().st_ino
 
-        tm.ok(u.Cli.atomic_write_text_file(destination, "replacement"))
+        result = u.Cli.atomic_write_text_file(destination, "replacement")
 
+        tm.fail(result)
         tm.that(owner.read_text(encoding="utf-8"), eq="owner")
-        tm.that(destination.read_text(encoding="utf-8"), eq="replacement")
+        tm.that(destination.read_text(encoding="utf-8"), eq="owner")
         tm.that(owner.lstat().st_ino, eq=owner_inode)
-        tm.that(destination.lstat().st_ino == destination_inode, eq=False)
+        tm.that(destination.lstat().st_ino, eq=destination_inode)
 
     @pytest.mark.parametrize(
         ("link_kind", "error_fragment"),
         [("symbolic", "not a regular file"), ("hard", "hard links")],
     )
-    def test_guarded_write_rejects_linked_destination(
+    def test_snapshot_rejects_linked_destination(
         self, tmp_path: Path, link_kind: str, error_fragment: str
     ) -> None:
-        """Reject a guarded pathname that lacks unique ownership."""
+        """Reject a pathname that cannot form a uniquely owned state."""
         owner, destination = self._linked_destination(tmp_path, link_kind)
 
-        result = u.Cli.atomic_write_text_file_guarded(
-            destination, "replacement", expected_bytes=b"owner"
-        )
+        result = u.Cli.atomic_read_binary_file_state(destination, required=True)
 
         tm.fail(result)
         tm.that(result.error or "", has=error_fragment)
@@ -107,9 +105,11 @@ class TestsAtomicFileContract:
         path = tmp_path / "atomic.txt"
         if os.name == "nt":
             path.write_text("before", encoding="utf-8")
+            before = u.Cli.atomic_read_binary_file_state(path, required=True)
+            tm.ok(before)
             with path.open("rb"):
                 result = u.Cli.atomic_write_text_file_guarded(
-                    path, "replacement", expected_bytes=b"before"
+                    before.value, "replacement"
                 )
             tm.fail(result)
             tm.that(path.read_text(encoding="utf-8"), eq="before")
@@ -119,18 +119,23 @@ import resource
 import signal
 import sys
 from pathlib import Path
-from tests import u
+from flext_cli import u
 
 resource.setrlimit(resource.RLIMIT_FSIZE, (1, 1))
 signal.signal(signal.SIGXFSZ, signal.SIG_IGN)
-result = u.Cli.atomic_write_text_file_guarded(
-    Path(sys.argv[1]), "replacement", expected_bytes=None
-)
+before = u.Cli.atomic_read_binary_file_state(Path(sys.argv[1]))
+if before.failure:
+    raise SystemExit(3)
+result = u.Cli.atomic_write_text_file_guarded(before.value, "replacement")
 raise SystemExit(0 if result.failure else 2)
 """
         completed = u.Cli.run_raw((sys.executable, "-c", script, str(path)), timeout=30)
         tm.ok(completed)
-        tm.that(completed.value.exit_code, eq=0, msg=completed.value.stderr)
+        tm.that(
+            u.Cli.process_succeeded(completed.value.outcome),
+            eq=True,
+            msg=completed.value.stderr,
+        )
         tm.that(path.exists(), eq=False)
         tm.that(tuple(tmp_path.iterdir()), eq=())
 
@@ -141,14 +146,6 @@ raise SystemExit(0 if result.failure else 2)
         )
 
         tm.fail(result)
-
-    def test_service_facade_persists_content(self, tmp_path: Path) -> None:
-        """Keep service and utility surfaces behaviorally aligned."""
-        target = tmp_path / "service-atomic.txt"
-
-        tm.ok(cli.atomic_write_text_file(target, "ok"))
-
-        tm.that(target.read_text(encoding="utf-8"), eq="ok")
 
     @staticmethod
     def _linked_destination(tmp_path: Path, link_kind: str) -> tuple[Path, Path]:

@@ -7,7 +7,7 @@
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
 - Package: `flext_cli`
-- Version: `0.12.0rc0`
+- Version: `0.12.0`
 - Description: FLEXT CLI - Developer Command Line Interface
 - Doc summary: Flext Cli package.
 - Classifiers: `Development Status :: 3 - Alpha`, `Intended Audience ::

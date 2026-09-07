@@ -129,13 +129,18 @@ class FlextCliUtilitiesRuntime(
                 stderr = output.stderr.decode("utf-8")
             except UnicodeDecodeError as exc:
                 return r[p.Cli.CommandOutput].fail(
-                    f"non-UTF-8 output from {shlex.join(list(cmd))}: {exc}"
+                    f"non-UTF-8 output from {shlex.join(list(cmd))}: {exc}",
+                    exception=exc,
                 )
             return r[p.Cli.CommandOutput].ok(
                 m.Cli.CommandOutput(
                     stdout=stdout,
                     stderr=stderr,
-                    exit_code=output.exit_code,
+                    outcome=m.Cli.ProcessOutcome(
+                        raw_return_code=output.outcome.raw_return_code,
+                        timed_out=output.outcome.timed_out,
+                        forwarded_signal=output.outcome.forwarded_signal,
+                    ),
                     duration=output.duration,
                 )
             )
@@ -148,6 +153,7 @@ class FlextCliUtilitiesRuntime(
             input_data,
             capture_output=capture,
             live=False,
+            heartbeat_seconds=None,
             timeout=timeout,
             deadline=None,
         ).flat_map(decode_output)
@@ -171,6 +177,7 @@ class FlextCliUtilitiesRuntime(
             input_data,
             capture_output=True,
             live=False,
+            heartbeat_seconds=None,
             timeout=timeout,
             deadline=None,
         )

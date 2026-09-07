@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Annotated, ClassVar
+from pathlib import Path
+from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, t
+from flext_cli._models import atomic_state
 from flext_cli._models._defaults import EMPTY_STR_MAPPING
 from flext_core import m, u
 
@@ -12,10 +14,105 @@ from flext_core import m, u
 class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
 
+    class AtomicFileState(m.BaseModel):
+        """Exact content and physical identity for one regular file version."""
+
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
+            extra="forbid", frozen=True, arbitrary_types_allowed=True
+        )
+        path: Annotated[Path, m.Field(description="Absolute file path")]
+        parent_device: Annotated[
+            int, m.Field(ge=0, strict=True, description="Physical parent device")
+        ]
+        parent_inode: Annotated[
+            int, m.Field(ge=0, strict=True, description="Physical parent inode")
+        ]
+        content: Annotated[
+            bytes | None,
+            m.Field(strict=True, description="Exact bytes, or None when absent"),
+        ] = None
+        mode: Annotated[
+            int | None,
+            m.Field(
+                ge=0,
+                le=0o7777,
+                strict=True,
+                description="Exact permission bits, or None when absent",
+            ),
+        ] = None
+        device: Annotated[
+            int | None,
+            m.Field(
+                ge=0, strict=True, description="Physical device, or None when absent"
+            ),
+        ] = None
+        inode: Annotated[
+            int | None,
+            m.Field(
+                ge=0, strict=True, description="Physical inode, or None when absent"
+            ),
+        ] = None
+        link_count: Annotated[
+            int | None,
+            m.Field(
+                ge=1,
+                le=1,
+                strict=True,
+                description="Required unique link count, or None when absent",
+            ),
+        ] = None
+        file_attributes: Annotated[
+            int | None,
+            m.Field(
+                ge=0, strict=True, description="Host file attributes when available"
+            ),
+        ] = None
+        reparse_tag: Annotated[
+            int | None,
+            m.Field(ge=0, strict=True, description="Host reparse tag when available"),
+        ] = None
+
+        @u.field_validator("path")
+        @classmethod
+        def _validate_absolute_path(cls, value: Path) -> Path:
+            """Reject ambiguous relative identities instead of normalizing them."""
+            return atomic_state.validate_atomic_state_path(
+                value, label="atomic file state"
+            )
+
+        @u.model_validator(mode="after")
+        def _validate_presence_tuple(self) -> Self:
+            """Require one complete, uniquely owned, non-reparse state."""
+            presence = tuple(
+                value is not None
+                for value in (
+                    self.content,
+                    self.mode,
+                    self.device,
+                    self.inode,
+                    self.link_count,
+                )
+            )
+            if any(presence) != all(presence):
+                msg = (
+                    "atomic file state must contain bytes, mode, device, inode, and "
+                    "link count, or none of them"
+                )
+                raise ValueError(msg)
+            if self.content is None and (
+                self.file_attributes is not None or self.reparse_tag is not None
+            ):
+                msg = "absent atomic file state cannot contain host metadata"
+                raise ValueError(msg)
+            atomic_state.validate_non_reparse_state(
+                self.file_attributes, self.reparse_tag, label="atomic file state"
+            )
+            return self
+
     class PromptRuntimeState(m.FlexibleInternalModel):
         """Centralized runtime state for CLI prompt behavior."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
 
@@ -32,7 +129,7 @@ class FlextCliModelsBase:
     class AuthCredentialsPayload(m.BaseModel):
         """Validated auth payload for token or username/password flows."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True
         )
         token: Annotated[
@@ -49,7 +146,7 @@ class FlextCliModelsBase:
     class ProcessEnvironmentSpec(m.BaseModel):
         """Validated process environment contract for runtime command execution."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         base_env: Annotated[
             t.StrMapping,
             m.Field(

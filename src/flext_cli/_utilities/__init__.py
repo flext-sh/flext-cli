@@ -3,23 +3,24 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import _docx as _docx
-    from . import _file_test_helper_parts as _file_test_helper_parts
-    from . import _files_parts as _files_parts
-    from . import _json as _json
-    from . import _options_parts as _options_parts
-    from . import _pptx as _pptx
-    from . import _rules as _rules
-    from . import _toml_parts as _toml_parts
-    from . import _xlxx as _xlxx
-    from . import _yaml as _yaml
+    from . import (
+        _docx as _docx,
+        _file_test_helper_parts as _file_test_helper_parts,
+        _files_parts as _files_parts,
+        _json as _json,
+        _options_parts as _options_parts,
+        _pptx as _pptx,
+        _rules as _rules,
+        _toml_parts as _toml_parts,
+        _xlxx as _xlxx,
+        _yaml as _yaml,
+    )
     from ._cli_namespace import FlextCliUtilitiesCli
     from ._docx._reader import FlextCliUtilitiesDocxReader
     from ._docx._renderer import FlextCliUtilitiesDocxRenderer
@@ -34,7 +35,6 @@ if TYPE_CHECKING:
     from ._pptx._reader import FlextCliUtilitiesPptxReader
     from ._pptx._renderer import FlextCliUtilitiesPptxRenderer
     from ._pptx._serializer import FlextCliUtilitiesPptxSerializer
-    from ._pptx._types import FlextCliUtilitiesPptxTypes
     from ._rules._loaders import FlextCliUtilitiesRulesLoadersMixin
     from ._rules._matchers import FlextCliUtilitiesRulesMatchersMixin
     from ._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
@@ -45,12 +45,14 @@ if TYPE_CHECKING:
     from ._runtime_process_group import FlextCliUtilitiesRuntimeProcessGroupMixin
     from ._runtime_process_monitor import FlextCliUtilitiesRuntimeProcessMonitorMixin
     from ._runtime_process_outcome import FlextCliUtilitiesRuntimeProcessOutcomeMixin
+    from ._runtime_process_output import FlextCliUtilitiesRuntimeProcessOutputMixin
     from ._runtime_process_resources import (
         FlextCliUtilitiesRuntimeProcessResourcesMixin,
     )
     from ._runtime_process_start import FlextCliUtilitiesRuntimeProcessStartMixin
     from ._runtime_process_stream import FlextCliUtilitiesRuntimeProcessStreamMixin
     from ._runtime_process_threads import FlextCliUtilitiesRuntimeProcessThreadsMixin
+    from ._runtime_process_timing import FlextCliUtilitiesRuntimeProcessTimingMixin
     from ._runtime_process_wait import FlextCliUtilitiesRuntimeProcessWaitMixin
     from ._runtime_run_to_file import FlextCliUtilitiesRuntimeRunToFileMixin
     from ._runtime_windows_job_start import FlextCliUtilitiesRuntimeWindowsJobStartMixin
@@ -83,6 +85,114 @@ if TYPE_CHECKING:
     from ._yaml._convert import FlextCliUtilitiesYamlConvertMixin
     from ._yaml._editing import FlextCliUtilitiesYamlEditingMixin
     from ._yaml._engine import FlextCliUtilitiesYamlEngineMixin
+    from .atomic_directory_chain import (
+        create_guarded_directory_chain,
+        plan_directory_chain,
+    )
+    from .atomic_directory_cleanup import remove_created_directory
+    from .atomic_directory_create import create_guarded_empty_directory
+    from .atomic_directory_delete import remove_guarded_empty_directory
+    from .atomic_directory_descriptor import (
+        create_entry,
+        remove_entry,
+        rename_entry_noreplace,
+        require_create_capabilities,
+        require_delete_capabilities,
+        require_publish_capabilities,
+        require_read_capabilities,
+    )
+    from .atomic_directory_model import (
+        DirectoryPhysicalState,
+        from_observed,
+        physical_state,
+        require_absent,
+        require_existing,
+        require_observed,
+        require_parent,
+    )
+    from .atomic_directory_noreplace import (
+        rename_noreplace,
+        require_noreplace_capability,
+    )
+    from .atomic_directory_publish import publish_guarded_staged_empty_directory
+    from .atomic_directory_snapshot import read_authenticated_empty_directory
+    from .atomic_directory_state import (
+        destination_state,
+        initialize_empty_state,
+        read_empty_state,
+        require_identity,
+    )
+    from .atomic_file import write_atomic_bytes
+    from .atomic_file_cleanup import remove_failed_temporary
+    from .atomic_file_delete import remove_guarded_file
+    from .atomic_file_descriptor import (
+        ParentDescriptor,
+        assert_parent_unchanged,
+        entry_descriptor,
+        entry_stat,
+        open_entry,
+        parent_descriptor,
+        replace_entry,
+        require_entry,
+        unlink_entry,
+    )
+    from .atomic_file_durability import sync_parent, sync_replacement
+    from .atomic_file_mode import (
+        NO_MODE_PRECONDITION,
+        assert_observed_mode,
+        publication_mode,
+        validate_guarded_mode_tuple,
+        validate_mode,
+        validate_mode_precondition,
+    )
+    from .atomic_file_model import PhysicalState
+    from .atomic_file_path import (
+        identity,
+        is_reparse_point,
+        validate_atomic_path,
+        validate_directory_path,
+        validate_directory_state,
+        validate_parent_path,
+    )
+    from .atomic_file_publish import publish_guarded_staged_file
+    from .atomic_file_publish_checks import (
+        require_distinct_inode,
+        validate_devices,
+        validate_identity,
+        validate_publication,
+    )
+    from .atomic_file_read import read_descriptor_bytes, state_key
+    from .atomic_file_snapshot import read_authenticated_state
+    from .atomic_file_state import (
+        assert_destination_unchanged,
+        assert_temporary_owned,
+        read_authenticated_bytes,
+        validate_precondition,
+    )
+    from .atomic_file_temporary import (
+        create_descriptor,
+        require_mode_capability,
+        temporary_path,
+        write_and_sync,
+    )
+    from .atomic_parent_descriptor import (
+        DirectoryChainInspection,
+        PhysicalDirectory,
+        inspect_directory_chain,
+        physical_directory,
+        require_traversal_capabilities,
+    )
+    from .atomic_parent_failure import preserve_recheck_failure
+    from .atomic_tree_cleanup import cleanup_physical_tree_guarded
+    from .atomic_tree_descriptor import (
+        measure_authenticated_file,
+        mount_id,
+        require_directory_state,
+        require_entry_state,
+        require_mount,
+        require_same_device,
+    )
+    from .atomic_tree_inventory import inventory_physical_tree
     from .auth import FlextCliUtilitiesAuth
     from .cmd import FlextCliUtilitiesCmd
     from .commands import FlextCliUtilitiesCommands
@@ -114,6 +224,9 @@ if TYPE_CHECKING:
     from .yaml import FlextCliUtilitiesYaml
     from .yaml_model import FlextCliUtilitiesYamlModel
 __all__: tuple[str, ...] = (
+    "NO_MODE_PRECONDITION",
+    "DirectoryChainInspection",
+    "DirectoryPhysicalState",
     "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
@@ -142,7 +255,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesPptxReader",
     "FlextCliUtilitiesPptxRenderer",
     "FlextCliUtilitiesPptxSerializer",
-    "FlextCliUtilitiesPptxTypes",
     "FlextCliUtilitiesProcesses",
     "FlextCliUtilitiesPrompts",
     "FlextCliUtilitiesRules",
@@ -155,10 +267,12 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesRuntimeProcessGroupMixin",
     "FlextCliUtilitiesRuntimeProcessMonitorMixin",
     "FlextCliUtilitiesRuntimeProcessOutcomeMixin",
+    "FlextCliUtilitiesRuntimeProcessOutputMixin",
     "FlextCliUtilitiesRuntimeProcessResourcesMixin",
     "FlextCliUtilitiesRuntimeProcessStartMixin",
     "FlextCliUtilitiesRuntimeProcessStreamMixin",
     "FlextCliUtilitiesRuntimeProcessThreadsMixin",
+    "FlextCliUtilitiesRuntimeProcessTimingMixin",
     "FlextCliUtilitiesRuntimeProcessWaitMixin",
     "FlextCliUtilitiesRuntimeRunToFileMixin",
     "FlextCliUtilitiesRuntimeWindowsJobStartMixin",
@@ -199,6 +313,9 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlEditingMixin",
     "FlextCliUtilitiesYamlEngineMixin",
     "FlextCliUtilitiesYamlModel",
+    "ParentDescriptor",
+    "PhysicalDirectory",
+    "PhysicalState",
     "_docx",
     "_file_test_helper_parts",
     "_files_parts",
@@ -209,6 +326,84 @@ __all__: tuple[str, ...] = (
     "_toml_parts",
     "_xlxx",
     "_yaml",
+    "assert_destination_unchanged",
+    "assert_observed_mode",
+    "assert_parent_unchanged",
+    "assert_temporary_owned",
+    "cleanup_physical_tree_guarded",
+    "create_descriptor",
+    "create_entry",
+    "create_guarded_directory_chain",
+    "create_guarded_empty_directory",
+    "destination_state",
+    "entry_descriptor",
+    "entry_stat",
+    "from_observed",
+    "identity",
+    "initialize_empty_state",
+    "inspect_directory_chain",
+    "inventory_physical_tree",
+    "is_reparse_point",
+    "measure_authenticated_file",
+    "mount_id",
+    "open_entry",
+    "parent_descriptor",
+    "physical_directory",
+    "physical_state",
+    "plan_directory_chain",
+    "preserve_recheck_failure",
+    "publication_mode",
+    "publish_guarded_staged_empty_directory",
+    "publish_guarded_staged_file",
+    "read_authenticated_bytes",
+    "read_authenticated_empty_directory",
+    "read_authenticated_state",
+    "read_descriptor_bytes",
+    "read_empty_state",
+    "remove_created_directory",
+    "remove_entry",
+    "remove_failed_temporary",
+    "remove_guarded_empty_directory",
+    "remove_guarded_file",
+    "rename_entry_noreplace",
+    "rename_noreplace",
+    "replace_entry",
+    "require_absent",
+    "require_create_capabilities",
+    "require_delete_capabilities",
+    "require_directory_state",
+    "require_distinct_inode",
+    "require_entry",
+    "require_entry_state",
+    "require_existing",
+    "require_identity",
+    "require_mode_capability",
+    "require_mount",
+    "require_noreplace_capability",
+    "require_observed",
+    "require_parent",
+    "require_publish_capabilities",
+    "require_read_capabilities",
+    "require_same_device",
+    "require_traversal_capabilities",
+    "state_key",
+    "sync_parent",
+    "sync_replacement",
+    "temporary_path",
+    "unlink_entry",
+    "validate_atomic_path",
+    "validate_devices",
+    "validate_directory_path",
+    "validate_directory_state",
+    "validate_guarded_mode_tuple",
+    "validate_identity",
+    "validate_mode",
+    "validate_mode_precondition",
+    "validate_parent_path",
+    "validate_precondition",
+    "validate_publication",
+    "write_and_sync",
+    "write_atomic_bytes",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
@@ -234,7 +429,6 @@ _LAZY_IMPORTS = MappingProxyType(
             "._pptx._reader": ("FlextCliUtilitiesPptxReader",),
             "._pptx._renderer": ("FlextCliUtilitiesPptxRenderer",),
             "._pptx._serializer": ("FlextCliUtilitiesPptxSerializer",),
-            "._pptx._types": ("FlextCliUtilitiesPptxTypes",),
             "._rules": ("_rules",),
             "._rules._loaders": ("FlextCliUtilitiesRulesLoadersMixin",),
             "._rules._matchers": ("FlextCliUtilitiesRulesMatchersMixin",),
@@ -252,6 +446,7 @@ _LAZY_IMPORTS = MappingProxyType(
             "._runtime_process_outcome": (
                 "FlextCliUtilitiesRuntimeProcessOutcomeMixin",
             ),
+            "._runtime_process_output": ("FlextCliUtilitiesRuntimeProcessOutputMixin",),
             "._runtime_process_resources": (
                 "FlextCliUtilitiesRuntimeProcessResourcesMixin",
             ),
@@ -260,6 +455,7 @@ _LAZY_IMPORTS = MappingProxyType(
             "._runtime_process_threads": (
                 "FlextCliUtilitiesRuntimeProcessThreadsMixin",
             ),
+            "._runtime_process_timing": ("FlextCliUtilitiesRuntimeProcessTimingMixin",),
             "._runtime_process_wait": ("FlextCliUtilitiesRuntimeProcessWaitMixin",),
             "._runtime_run_to_file": ("FlextCliUtilitiesRuntimeRunToFileMixin",),
             "._runtime_windows_job_start": (
@@ -303,6 +499,114 @@ _LAZY_IMPORTS = MappingProxyType(
             "._yaml._convert": ("FlextCliUtilitiesYamlConvertMixin",),
             "._yaml._editing": ("FlextCliUtilitiesYamlEditingMixin",),
             "._yaml._engine": ("FlextCliUtilitiesYamlEngineMixin",),
+            ".atomic_directory_chain": (
+                "create_guarded_directory_chain",
+                "plan_directory_chain",
+            ),
+            ".atomic_directory_cleanup": ("remove_created_directory",),
+            ".atomic_directory_create": ("create_guarded_empty_directory",),
+            ".atomic_directory_delete": ("remove_guarded_empty_directory",),
+            ".atomic_directory_descriptor": (
+                "create_entry",
+                "remove_entry",
+                "rename_entry_noreplace",
+                "require_create_capabilities",
+                "require_delete_capabilities",
+                "require_publish_capabilities",
+                "require_read_capabilities",
+            ),
+            ".atomic_directory_model": (
+                "DirectoryPhysicalState",
+                "from_observed",
+                "physical_state",
+                "require_absent",
+                "require_existing",
+                "require_observed",
+                "require_parent",
+            ),
+            ".atomic_directory_noreplace": (
+                "rename_noreplace",
+                "require_noreplace_capability",
+            ),
+            ".atomic_directory_publish": ("publish_guarded_staged_empty_directory",),
+            ".atomic_directory_snapshot": ("read_authenticated_empty_directory",),
+            ".atomic_directory_state": (
+                "destination_state",
+                "initialize_empty_state",
+                "read_empty_state",
+                "require_identity",
+            ),
+            ".atomic_file": ("write_atomic_bytes",),
+            ".atomic_file_cleanup": ("remove_failed_temporary",),
+            ".atomic_file_delete": ("remove_guarded_file",),
+            ".atomic_file_descriptor": (
+                "ParentDescriptor",
+                "assert_parent_unchanged",
+                "entry_descriptor",
+                "entry_stat",
+                "open_entry",
+                "parent_descriptor",
+                "replace_entry",
+                "require_entry",
+                "unlink_entry",
+            ),
+            ".atomic_file_durability": ("sync_parent", "sync_replacement"),
+            ".atomic_file_mode": (
+                "NO_MODE_PRECONDITION",
+                "assert_observed_mode",
+                "publication_mode",
+                "validate_guarded_mode_tuple",
+                "validate_mode",
+                "validate_mode_precondition",
+            ),
+            ".atomic_file_model": ("PhysicalState",),
+            ".atomic_file_path": (
+                "identity",
+                "is_reparse_point",
+                "validate_atomic_path",
+                "validate_directory_path",
+                "validate_directory_state",
+                "validate_parent_path",
+            ),
+            ".atomic_file_publish": ("publish_guarded_staged_file",),
+            ".atomic_file_publish_checks": (
+                "require_distinct_inode",
+                "validate_devices",
+                "validate_identity",
+                "validate_publication",
+            ),
+            ".atomic_file_read": ("read_descriptor_bytes", "state_key"),
+            ".atomic_file_snapshot": ("read_authenticated_state",),
+            ".atomic_file_state": (
+                "assert_destination_unchanged",
+                "assert_temporary_owned",
+                "read_authenticated_bytes",
+                "validate_precondition",
+            ),
+            ".atomic_file_temporary": (
+                "create_descriptor",
+                "require_mode_capability",
+                "temporary_path",
+                "write_and_sync",
+            ),
+            ".atomic_parent_descriptor": (
+                "DirectoryChainInspection",
+                "PhysicalDirectory",
+                "inspect_directory_chain",
+                "physical_directory",
+                "require_traversal_capabilities",
+            ),
+            ".atomic_parent_failure": ("preserve_recheck_failure",),
+            ".atomic_tree_cleanup": ("cleanup_physical_tree_guarded",),
+            ".atomic_tree_descriptor": (
+                "measure_authenticated_file",
+                "mount_id",
+                "require_directory_state",
+                "require_entry_state",
+                "require_mount",
+                "require_same_device",
+            ),
+            ".atomic_tree_inventory": ("inventory_physical_tree",),
             ".auth": ("FlextCliUtilitiesAuth",),
             ".cmd": ("FlextCliUtilitiesCmd",),
             ".commands": ("FlextCliUtilitiesCommands",),

@@ -24,7 +24,7 @@ class FlextCliUtilitiesYamlModel:
                 ),
             )
         except c.EXC_PYDANTIC_TYPE_VALUE as exc:
-            return r[bool].fail(f"YAML model write error: {exc}")
+            return r[bool].fail(f"YAML model write error: {exc}", exception=exc)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesYamlModel",)

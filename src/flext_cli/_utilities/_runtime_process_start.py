@@ -70,9 +70,7 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
         job_result = cls._windows_job_create(process.pid)
         if job_result.failure:
             cls._discard_uncontained_process(process, 0)
-            return r[tuple[p.Cli.ProcessHandle, int]].fail(
-                job_result.error or "Windows Job Object assignment failed"
-            )
+            return r[tuple[p.Cli.ProcessHandle, int]].from_failure(job_result)
         job_handle = job_result.value
         resume_error = cls._windows_process_resume(process.pid)
         if resume_error is not None:

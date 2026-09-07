@@ -34,6 +34,27 @@
           }
         ],
         "matcher": "startup|resume|clear"
+      },
+      {
+        "hooks": [
+          {
+            "command": "python3 /home/marlonsc/flext/flext-cli/.codex/aihub-hooks/codex-sessionstart.py",
+            "statusMessage": "Applying synchronized governance",
+            "type": "command"
+          }
+        ],
+        "matcher": "startup|resume|clear|compact"
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "command": "python3 /home/marlonsc/flext/flext-cli/.codex/aihub-hooks/codex-subagentstart.py",
+            "statusMessage": "Applying synchronized governance",
+            "type": "command"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -42,6 +63,15 @@
           {
             "command": "bd codex-hook UserPromptSubmit",
             "statusMessage": "Refreshing Beads context",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "python3 /home/marlonsc/flext/flext-cli/.codex/aihub-hooks/codex-userpromptsubmit.py",
+            "statusMessage": "Applying synchronized governance",
             "type": "command"
           }
         ]
