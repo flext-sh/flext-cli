@@ -18,7 +18,7 @@ class FlextCliUtilitiesRuntimeWindowsJobStateMixin:
         try:
             return cls._windows_job_active_count_native(job_handle)
         except (OSError, TypeError, ValueError) as exc:
-            return r[int].fail(f"Windows Job Object query error: {exc}")
+            return r[int].fail(f"Windows Job Object query error: {exc}", exception=exc)
 
     @staticmethod
     def _windows_job_active_count_native(job_handle: int) -> p.Result[int]:

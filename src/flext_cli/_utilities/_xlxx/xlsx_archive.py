@@ -109,9 +109,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
         for member in xml_members:
             root_result = cls._xml_root(archive, member)
             if root_result.failure:
-                return r[m.Cli.XlsxArchiveInspection].fail(
-                    root_result.error or f"Invalid OOXML member: {member}"
-                )
+                return r[m.Cli.XlsxArchiveInspection].from_failure(root_result)
             root = root_result.value
             if member in worksheets:
                 violations = (

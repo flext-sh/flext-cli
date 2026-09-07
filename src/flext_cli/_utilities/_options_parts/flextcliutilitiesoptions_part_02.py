@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from flext_cli import c, m, t
+from flext_cli import c, t
 from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
     FlextCliUtilitiesOptionBuilder,
 )
 from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_01 import (
     FlextCliUtilitiesOptions as FlextCliUtilitiesOptionsPart01,
 )
+from flext_cli.models import m
 
 
 class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):

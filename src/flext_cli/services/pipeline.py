@@ -4,23 +4,22 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli import c, m, p, r, s, t
-from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
+from flext_cli import c, m, p, r, s, t, u
 
 
-class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
+class FlextCliPipeline(s):
     """Expose the canonical pipeline DSL through the service layer."""
 
     @staticmethod
     def stage_context(
-        workspace_root: Path,
+        repository_root: Path,
         *,
         shared: t.MutableJsonMapping | None = None,
         settings: t.JsonMapping | None = None,
     ) -> m.Cli.PipelineStageContext:
         """Build one validated stage context from the public DSL."""
         return m.Cli.PipelineStageContext.model_validate({
-            "workspace_root": workspace_root,
+            "repository_root": repository_root,
             "shared": {} if shared is None else shared,
             "settings": {} if settings is None else settings,
         })
@@ -29,9 +28,9 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
     def stage(
         stage_id: str,
         *,
-        handler: t.Cli.PipelineHandler,
+        handler: p.Cli.PipelineStage,
         depends_on: t.SequenceOf[str] | frozenset[str] = (),
-        skip_if: t.Cli.PipelineSkipPredicate | None = None,
+        skip_if: p.Cli.PipelineSkipPredicate | None = None,
     ) -> m.Cli.PipelineStageSpec:
         """Build one declarative stage spec from the public DSL."""
         return m.Cli.PipelineStageSpec.model_validate({
@@ -81,9 +80,9 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
     def linear_pipeline(
         cls,
         stage_order: t.StrSequence,
-        handlers: t.Cli.PipelineHandlerMap,
+        handlers: t.MappingKV[str, p.Cli.PipelineStage],
         *,
-        skip_by_stage: t.Cli.PipelineSkipMap | None = None,
+        skip_by_stage: t.MappingKV[str, p.Cli.PipelineSkipPredicate] | None = None,
     ) -> t.SequenceOf[m.Cli.PipelineStageSpec]:
         """Build a linear dependency chain from ordered stage handlers."""
         skips = skip_by_stage or {}
@@ -111,7 +110,7 @@ class FlextCliPipeline(s, FlextCliUtilitiesPipeline):
         logger: p.Logger | None = None,
     ) -> p.Result[m.Cli.PipelineResult]:
         """Execute a pipeline through the public CLI DSL surface."""
-        return self.execute_pipeline(stages, context, logger=logger or self.logger)
+        return u.Cli.execute_pipeline(stages, context, logger=logger or self.logger)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliPipeline"]

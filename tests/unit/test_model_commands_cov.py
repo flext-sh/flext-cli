@@ -114,11 +114,7 @@ class TestsFlextCliModelCommandsCov:
         """Verify that model command applies field default for omitted optional."""
 
         def handler(model: m.Tests.ModelCommandSample) -> int:
-            value = model.value
-            if not isinstance(value, int):
-                message = "ModelCommandSample.value must be an integer"
-                raise TypeError(message)
-            return value
+            return model.value
 
         cmd = cli.model_command(m.Tests.ModelCommandSample, handler)
 
@@ -132,11 +128,7 @@ class TestsFlextCliModelCommandsCov:
         settings = m.Tests.ModelCommandSample(name="from_settings", value=0)
 
         def handler(model: m.Tests.ModelCommandSample) -> str:
-            name = model.name
-            if not isinstance(name, str):
-                message = "ModelCommandSample.name must be a string"
-                raise TypeError(message)
-            return name
+            return model.name
 
         cmd = cli.model_command(m.Tests.ModelCommandSample, handler, settings=settings)
         result = cmd(name="override", value=1)
@@ -149,11 +141,7 @@ class TestsFlextCliModelCommandsCov:
         """Verify that model command raises validation error for missing required."""
 
         def handler(model: m.Tests.ModelCommandRequired) -> str:
-            key = model.key
-            if not isinstance(key, str):
-                message = "ModelCommandRequired.key must be a string"
-                raise TypeError(message)
-            return key
+            return model.key
 
         cmd = cli.model_command(m.Tests.ModelCommandRequired, handler)
 

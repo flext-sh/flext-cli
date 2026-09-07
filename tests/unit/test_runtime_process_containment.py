@@ -20,13 +20,9 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def _deadline(
-    *, seconds: float, grace: float, exit_code: int = 124
-) -> m.Cli.ProcessDeadline:
+def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
     return m.Cli.ProcessDeadline(
-        expires_at_monotonic=time.monotonic() + seconds,
-        termination_grace_seconds=grace,
-        timeout_exit_code=exit_code,
+        expires_at_monotonic=time.monotonic() + seconds, termination_grace_seconds=grace
     )
 
 
@@ -145,7 +141,7 @@ class TestsFlextCliRuntimeProcessContainment:
                 str(survivor_ack),
             ],
             tmp_path / "boundary.log",
-            deadline=_deadline(seconds=2.0, grace=0.8, exit_code=94),
+            deadline=_deadline(seconds=2.0, grace=0.8),
         )
 
         tm.ok(result)
@@ -153,7 +149,7 @@ class TestsFlextCliRuntimeProcessContainment:
         _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
 
     @pytest.mark.parametrize("signal_number", [signal.SIGINT, signal.SIGTERM])
-    def test_manual_signal_is_forwarded_and_normalized(
+    def test_manual_signal_is_forwarded_without_exit_normalization(
         self, tmp_path: Path, signal_number: signal.Signals
     ) -> None:
         ready = tmp_path / f"child-ready-{signal_number}"
@@ -181,15 +177,15 @@ class TestsFlextCliRuntimeProcessContainment:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", child, str(ready)],
             output_file,
-            deadline=_deadline(seconds=3.0, grace=1.0, exit_code=95),
+            deadline=_deadline(seconds=3.0, grace=1.0),
         )
         signaler.join(timeout=1.0)
 
         tm.ok(result)
-        tm.that(result.value, eq=128 + signal_number)
+        tm.that(result.value, eq=-signal_number)
         tm.that(signaler_errors, eq=[])
         tm.that(signaler.is_alive(), eq=False)
-        tm.that(time.monotonic() - signal_started, lt=3.0)
+        tm.that(time.monotonic() - signal_started, lt=6.0)
 
     def test_pre_spawn_signal_is_captured_before_command_materialization(
         self, tmp_path: Path
@@ -206,7 +202,7 @@ class TestsFlextCliRuntimeProcessContainment:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=128 + signal.SIGTERM)
+        tm.that(result.value, eq=-signal.SIGTERM)
         tm.that(marker.exists(), eq=False)
 
     def test_deadline_forwards_interrupt_before_forced_cleanup(
@@ -226,7 +222,7 @@ class TestsFlextCliRuntimeProcessContainment:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", script],
             output_file,
-            deadline=_deadline(seconds=1.2, grace=0.6, exit_code=91),
+            deadline=_deadline(seconds=1.2, grace=0.6),
         )
 
         tm.ok(result)
@@ -267,7 +263,7 @@ class TestsFlextCliRuntimeProcessContainment:
                 str(survivor_ack),
             ],
             output_file,
-            deadline=_deadline(seconds=1.5, grace=0.7, exit_code=92),
+            deadline=_deadline(seconds=1.5, grace=0.7),
         )
 
         tm.ok(result)

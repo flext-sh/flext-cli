@@ -23,7 +23,8 @@ class FlextCliModelsPptxPresentation:
             default=(), strict=False, description="Presentation slides."
         )
         core_properties: t.JsonMapping = m.Field(
-            default=EMPTY_JSON_MAPPING, description="Core document properties."
+            default_factory=lambda: EMPTY_JSON_MAPPING,
+            description="Core document properties.",
         )
 
     class PptxRenderRequest(m.FrozenModel):

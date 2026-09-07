@@ -14,6 +14,12 @@ from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart04,
 )
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_05 import (
+    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart05,
+)
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_06 import (
+    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart06,
+)
 
 
 class FlextCliUtilitiesFiles(
@@ -21,6 +27,8 @@ class FlextCliUtilitiesFiles(
     FlextCliUtilitiesFilesPart02,
     FlextCliUtilitiesFilesPart03,
     FlextCliUtilitiesFilesPart04,
+    FlextCliUtilitiesFilesPart05,
+    FlextCliUtilitiesFilesPart06,
 ):
     """Public facade for FlextCliUtilitiesFiles."""
 

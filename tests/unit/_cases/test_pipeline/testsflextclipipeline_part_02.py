@@ -13,14 +13,14 @@ from tests import m
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import p, t
+    from tests import p
 
 
 class TestsFlextCliPipeline:
     """Implementation part for TestsFlextCliPipeline."""
 
     @staticmethod
-    def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
+    def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:
         """Build a handler that succeeds and writes to shared."""
 
         def handler(
@@ -47,9 +47,10 @@ class TestsFlextCliPipeline:
         call_count = 0
 
         def failing(
-            _ctx: p.Cli.PipelineStageContext,
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             nonlocal call_count
+            _ = ctx
             call_count += 1
             return r[m.Cli.PipelineStageResult].fail("stage failed")
 
@@ -92,22 +93,23 @@ class TestsFlextCliPipeline:
         tm.ok(result)
         tm.that(result.value.total_duration_ms, gte=0.0)
 
-    def test_stage_raise_marks_pipeline_result_failed(self, tmp_path: Path) -> None:
-        """A stage handler that raises produces a failed overall pipeline result."""
+    def test_stage_raise_escapes_without_result_normalization(
+        self, tmp_path: Path
+    ) -> None:
+        """A stage handler exception escapes; exceptions are never normalized."""
         error_message = "intentional explosion"
 
         def exploding(
-            _ctx: p.Cli.PipelineStageContext,
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
+            _ = ctx
             raise ValueError(error_message)
 
-        result = cli.pipeline(
-            [cli.stage("boom", handler=exploding)], context=cli.stage_context(tmp_path)
-        )
-
-        tm.fail(result)
-        tm.that(result.failure, eq=True)
-        tm.that(bool(result), eq=False)
+        with pytest.raises(ValueError, match=error_message):
+            cli.pipeline(
+                [cli.stage("boom", handler=exploding)],
+                context=cli.stage_context(tmp_path),
+            )
 
 
 __all__: list[str] = ["TestsFlextCliPipeline"]

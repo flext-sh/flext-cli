@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_cli import cli
-from flext_tests import tm
+from flext_tests import tm, u
 from tests import c, m
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
@@ -52,7 +52,7 @@ class TestsFlextCliService:
         )
 
         tm.ok(exec_result)
-        tm.that(exec_result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(exec_result.value.outcome), eq=True)
         tm.that(len(captured), eq=1)
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
@@ -101,7 +101,7 @@ class TestsFlextCliService:
         help_result = cli.invoke_app(app, args=["run", "--help"])
 
         tm.ok(help_result)
-        tm.that(help_result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(help_result.value.outcome), eq=True)
         tm.that(help_result.value.stdout, has="--flaggy")
 
 

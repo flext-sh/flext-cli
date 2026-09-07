@@ -100,7 +100,8 @@ class FlextCliModelsDocxDocument:
             default=(), strict=False, description="Document sections."
         )
         core_properties: t.JsonMapping = m.Field(
-            default=EMPTY_JSON_MAPPING, description="Core document properties."
+            default_factory=lambda: EMPTY_JSON_MAPPING,
+            description="Core document properties.",
         )
 
     class DocxRenderRequest(m.FrozenModel):

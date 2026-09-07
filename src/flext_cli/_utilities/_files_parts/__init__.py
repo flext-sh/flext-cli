@@ -3,20 +3,19 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from .flextcliutilitiesfiles_part_04 import FlextCliUtilitiesFiles
+    from .flextcliutilitiesfiles_part_06 import FlextCliUtilitiesFiles
 __all__: tuple[str, ...] = ("FlextCliUtilitiesFiles",)
 
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
-            ".flextcliutilitiesfiles_part_04": ("FlextCliUtilitiesFiles",)
+            ".flextcliutilitiesfiles_part_06": ("FlextCliUtilitiesFiles",)
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

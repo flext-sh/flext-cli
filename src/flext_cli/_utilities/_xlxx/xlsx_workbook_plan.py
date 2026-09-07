@@ -54,17 +54,13 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
     ) -> p.Result[Workbook]:
         validation = cls._validate_plan(request.plan)
         if validation.failure:
-            return r[Workbook].fail(
-                validation.error or str(c.Cli.XlsxError.PLAN_INVALID)
-            )
+            return r[Workbook].from_failure(validation)
         if request.template is None:
             workbook = cls._new_workbook()
         else:
             loaded = cls._load_workbook(request.template)
             if loaded.failure:
-                return r[Workbook].fail(
-                    loaded.error or str(c.Cli.XlsxError.WORKBOOK_LOAD_FAILED)
-                )
+                return r[Workbook].from_failure(loaded)
             workbook = loaded.value
         try:
             return cls._prepare_workbook(workbook, request.plan)

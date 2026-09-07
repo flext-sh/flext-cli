@@ -22,6 +22,7 @@ class FlextCliConstantsBase:
     # adapters and consumers cannot drift into local magic exit codes/messages.
     EXIT_CODE_SUCCESS: Final[int] = 0
     EXIT_CODE_FAILURE: Final[int] = 1
+    PROCESS_TIMEOUT_EXIT_CODE: Final[int] = 124
     OP_EXECUTE_APPLICATION: Final[str] = "execute CLI application"
     ERR_EXIT_WITH_CODE: Final[str] = "CLI exited with code {exit_code}"
 
@@ -30,6 +31,10 @@ class FlextCliConstantsBase:
         TypeError,
         KeyError,
     )
+    # Pipeline retries fail loud by default; the bound prevents accidental
+    # exponential fan-out when a caller declares a retry policy.
+    PIPELINE_DEFAULT_RETRY: Final[int] = 0
+    PIPELINE_MAX_RETRY: Final[int] = 3
 
     PATH_FLEXT_DIR_NAME: Final[str] = ".flext"
 

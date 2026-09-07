@@ -53,9 +53,7 @@ class FlextCliUtilitiesConfig:
         """
         read = FlextCliUtilitiesConfig._read_by_suffix(path)
         if read.failure:
-            return r[m.ConfigDocument].fail(
-                read.error or f"{c.ERR_CONFIG_READ_FAILED}: {path}"
-            )
+            return r[m.ConfigDocument].from_failure(read)
         data: t.JsonValue = dict(read.value)
         if expand_env:
             data = u.config_env_override(data, dict(os.environ))
@@ -64,9 +62,7 @@ class FlextCliUtilitiesConfig:
         if schema_path is not None:
             validated = FlextCliUtilitiesConfig.schema_validate(data, schema_path)
             if validated.failure:
-                return r[m.ConfigDocument].fail(
-                    validated.error or c.Cli.ERR_SCHEMA_INVALID
-                )
+                return r[m.ConfigDocument].from_failure(validated)
         return r[m.ConfigDocument].ok(
             m.ConfigDocument(
                 data=data,
@@ -96,9 +92,7 @@ class FlextCliUtilitiesConfig:
                 source, schema_path=schema if schema.is_file() else None
             )
             if loaded.failure:
-                return r[t.MappingKV[str, m.ConfigDocument]].fail(
-                    loaded.error or f"{c.ERR_CONFIG_PARSE_FAILED}: {source}"
-                )
+                return r[t.MappingKV[str, m.ConfigDocument]].from_failure(loaded)
             documents[source.stem] = loaded.value
         return r[t.MappingKV[str, m.ConfigDocument]].ok(documents)
 
@@ -107,9 +101,7 @@ class FlextCliUtilitiesConfig:
         """Validate ``data`` against the JSON Schema at ``schema_path`` → ``r[bool]``."""
         schema_read = FlextCliUtilitiesJson.json_read(schema_path)
         if schema_read.failure:
-            return r[bool].fail(
-                schema_read.error or f"{c.Cli.ERR_SCHEMA_READ_FAILED}: {schema_path}"
-            )
+            return r[bool].from_failure(schema_read)
         return u.try_(
             lambda: FlextCliUtilitiesConfig._run_validator(schema_read.value, data),
             catch=(ValidationError, SchemaError),

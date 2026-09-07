@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
@@ -22,8 +21,8 @@ class FlextCliProtocolsPipeline:
         """Contract for stage execution context — carries shared state between stages."""
 
         @property
-        def workspace_root(self) -> Path:
-            """Workspace root directory."""
+        def repository_root(self) -> Path:
+            """Repository root directory."""
             ...
 
         @property
@@ -41,9 +40,19 @@ class FlextCliProtocolsPipeline:
         """Contract for a callable pipeline stage handler."""
 
         def __call__(
-            self, ctx: FlextCliProtocolsPipeline.PipelineStageContext
+            self, ctx: FlextCliProtocolsPipeline.PipelineStageContext, /
         ) -> p.Result[m.Cli.PipelineStageResult]:
             """Execute stage and return typed result."""
+            ...
+
+    @runtime_checkable
+    class PipelineSkipPredicate(Protocol):
+        """Contract for deciding whether one stage is skipped."""
+
+        def __call__(
+            self, ctx: FlextCliProtocolsPipeline.PipelineStageContext, /
+        ) -> bool:
+            """Return whether the stage must be skipped."""
             ...
 
     @runtime_checkable
@@ -52,7 +61,7 @@ class FlextCliProtocolsPipeline:
 
         def stage_context(
             self,
-            workspace_root: Path,
+            repository_root: Path,
             *,
             shared: t.MutableJsonMapping | None = None,
             settings: t.JsonMapping | None = None,
@@ -64,13 +73,9 @@ class FlextCliProtocolsPipeline:
             self,
             stage_id: str,
             *,
-            handler: Callable[
-                [FlextCliProtocolsPipeline.PipelineStageContext],
-                p.Result[m.Cli.PipelineStageResult],
-            ],
+            handler: FlextCliProtocolsPipeline.PipelineStage,
             depends_on: t.SequenceOf[str] | frozenset[str] = (),
-            skip_if: Callable[[FlextCliProtocolsPipeline.PipelineStageContext], bool]
-            | None = None,
+            skip_if: FlextCliProtocolsPipeline.PipelineSkipPredicate | None = None,
         ) -> m.Cli.PipelineStageSpec:
             """Build one declarative pipeline stage spec."""
             ...
@@ -110,9 +115,12 @@ class FlextCliProtocolsPipeline:
         def linear_pipeline(
             self,
             stage_order: t.StrSequence,
-            handlers: t.Cli.PipelineHandlerMap,
+            handlers: t.MappingKV[str, FlextCliProtocolsPipeline.PipelineStage],
             *,
-            skip_by_stage: t.Cli.PipelineSkipMap | None = None,
+            skip_by_stage: t.MappingKV[
+                str, FlextCliProtocolsPipeline.PipelineSkipPredicate
+            ]
+            | None = None,
         ) -> t.SequenceOf[m.Cli.PipelineStageSpec]:
             """Build a linear dependency chain with canonical previous-stage deps."""
             ...

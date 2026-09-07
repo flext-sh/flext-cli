@@ -17,27 +17,32 @@ class FlextCliModelsPipeline:
     class PipelineStageContext(m.ContractModel):
         """Accumulated state passed between pipeline stages."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", validate_assignment=True, arbitrary_types_allowed=True
         )
 
-        workspace_root: Annotated[Path, m.Field(description="Workspace root directory")]
+        repository_root: Annotated[
+            Path, m.Field(description="Repository root directory")
+        ]
 
         shared: Annotated[
             t.MutableJsonMapping,
             m.Field(
-                default_factory=dict[str, t.JsonValue],
-                description="Mutable shared state between stages",
+                default_factory=dict, description="Mutable shared state between stages"
             ),
         ]
         settings: Annotated[
-            t.JsonMapping, m.Field(description="Immutable pipeline configuration")
-        ] = EMPTY_JSON_MAPPING
+            t.JsonMapping,
+            m.Field(
+                default_factory=lambda: EMPTY_JSON_MAPPING,
+                description="Immutable pipeline configuration",
+            ),
+        ]
 
     class PipelineStageSpec(m.ContractModel):
         """Declarative stage definition with dependency tracking."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", arbitrary_types_allowed=True
         )
 
@@ -48,10 +53,8 @@ class FlextCliModelsPipeline:
                 default_factory=frozenset, description="Stage IDs this stage depends on"
             ),
         ]
-        # NOTE: handler/skip_if use inline Callable, not t.Cli.PipelineHandler /
-        # t.Cli.PipelineSkipPredicate.  Those are PEP 695 `type` aliases that
-        # reference p.Cli.PipelineStageContext under TYPE_CHECKING — Pydantic
-        # cannot resolve them at runtime for model field validation.
+        # Pydantic owns runtime validation here; public callback contracts live
+        # in p.Cli and this model retains the equivalent concrete callable shape.
         handler: Annotated[
             Callable[
                 [FlextCliModelsPipeline.PipelineStageContext],
@@ -63,19 +66,31 @@ class FlextCliModelsPipeline:
             Callable[[FlextCliModelsPipeline.PipelineStageContext], bool] | None,
             m.Field(description="Predicate — skip stage if returns True"),
         ] = None
+        retry: Annotated[
+            int,
+            m.Field(
+                ge=0,
+                le=c.Cli.PIPELINE_MAX_RETRY,
+                description="Number of retries on failure",
+            ),
+        ] = c.Cli.PIPELINE_DEFAULT_RETRY
 
     class PipelineStageResult(m.ContractModel):
         """What a stage produces after execution."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid")
 
         stage_id: Annotated[str, m.Field(description="Stage that produced this result")]
         status: Annotated[
             t.Cli.PipelineStageStatus, m.Field(description="Execution outcome")
         ]
         output: Annotated[
-            t.JsonMapping, m.Field(description="Stage output payload")
-        ] = EMPTY_JSON_MAPPING
+            t.JsonMapping,
+            m.Field(
+                default_factory=lambda: EMPTY_JSON_MAPPING,
+                description="Stage output payload",
+            ),
+        ]
         duration_ms: Annotated[
             float, m.Field(description="Execution duration in milliseconds")
         ] = 0.0
@@ -86,7 +101,7 @@ class FlextCliModelsPipeline:
     class PipelineResult(m.ContractModel):
         """Full pipeline execution result — aggregated from all stages."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid")
 
         stages: Annotated[
             t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult],
