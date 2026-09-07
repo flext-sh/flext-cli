@@ -817,6 +817,10 @@ _builtin_setup_submodules:
 			git -C "$$superproject" submodule update --init -- "$$child_path"; \
 		fi; \
 		current=$$(git -C "$$child_root" branch --show-current); \
+		if [ -n "$$current" ] && [ "$$current" != "$$declared_branch" ] && \
+		   [ -n "$$super_branch" ] && [ "$$current" = "$$super_branch" ]; then \
+			branch="$$super_branch"; \
+		fi; \
 		head=$$(git -C "$$child_root" rev-parse HEAD); \
 		if git -C "$$child_root" merge-base --is-ancestor "$$gitlink" HEAD; then \
 			ancestor=Y; \

@@ -41,6 +41,9 @@ jobs:
     timeout-minutes: 60
     env:
       CI: Y
+      # The credential helper installed below reads the token from the
+      # environment of every later step, so it is a job-level value.
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -226,11 +229,10 @@ jobs:
   # === SECTION: merge-guard job (managed) ===
   merge-guard:
     name: merge-guard
-    permissions:
-      contents: read
-    # Draft is the typed WIP state: no repository Action is selected until the
-    # operator promotes the same PR to Review with a non-WIP head.
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft == false }}
+    # Reads only the event payload: no checkout, no API call, no token use.
+    permissions: {}
+    # Always run on PRs so a WIP/DRAFT source cannot slip past the skipped CI job.
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout promoted head
