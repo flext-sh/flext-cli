@@ -28,7 +28,8 @@ from __future__ import annotations
 
 from examples import c, m, t, u
 from flext_cli import cli
-from flext_core import p, r
+from flext_cli.protocols import p
+from flext_core import r
 
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): the example enters
 # the railway as one validated model and retains that object through services.

@@ -25,7 +25,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import c, cli, settings, u
-from flext_core import p, r
+from flext_cli.protocols import p
+from flext_core import r
 
 # mro-p68a.9.3 (agent: claude): named threshold keeps the example Ruff-clean
 # (no magic value) and documents the minimum valid token length.

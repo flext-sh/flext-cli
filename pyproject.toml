@@ -80,7 +80,7 @@ exclude_also = [
   "if _t.TYPE_CHECKING:",
   "if typing.TYPE_CHECKING:",
 ]
-fail_under = 15
+fail_under = 45
 precision = 2
 show_missing = true
 skip_covered = false
@@ -415,9 +415,12 @@ testpaths = ["tests"]
 exclude = [
   "**/.archive/**",
   "**/__pyrefly_virtual__/**",
+  "**/aihub-hooks/**",
   ".archive",
   ".archive/**",
   ".git",
+  ".github/hooks",
+  ".github/hooks/**",
   ".mypy_cache",
   ".pytest_cache",
   ".ruff_cache",
