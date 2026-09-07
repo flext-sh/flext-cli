@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import cli, settings
-from flext_tests import tm
+from flext_tests import tm, u
 from tests import c, m
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
