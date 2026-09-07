@@ -198,7 +198,6 @@ class FlextCliUtilitiesProcesses:
             resolved_env = FlextCliUtilitiesRuntime.process_env(
                 overrides=env, remove_keys=remove_env_keys
             )
-        captured = None if inherit_stdio else subprocess.PIPE
         try:
             process = subprocess.Popen(
                 list(cmd),
