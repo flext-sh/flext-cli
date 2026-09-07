@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import socket
 import os
+import socket
 import sys
 from typing import TYPE_CHECKING
 
