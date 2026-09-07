@@ -13,14 +13,14 @@ type DirectoryPhysicalState = tuple[int, int, int, int, int | None, int | None]
 
 
 def from_observed(
-    path: Path, parent: os.stat_result, observed: os.stat_result | None
+    path: Path, parent: os.stat_result | None, observed: os.stat_result | None
 ) -> m.Cli.AtomicDirectoryState:
     """Build the caller-owned state from one authenticated observation."""
     return m.Cli.AtomicDirectoryState(
         path=path,
         exists=observed is not None,
-        parent_device=parent.st_dev,
-        parent_inode=parent.st_ino,
+        parent_device=None if parent is None else parent.st_dev,
+        parent_inode=None if parent is None else parent.st_ino,
         mode=None if observed is None else stat.S_IMODE(observed.st_mode),
         device=None if observed is None else observed.st_dev,
         inode=None if observed is None else observed.st_ino,
@@ -69,6 +69,11 @@ def require_parent(
     planned: m.Cli.AtomicDirectoryState, observed: os.stat_result
 ) -> None:
     """Require the authenticated parent to equal the snapshot parent identity."""
+    if planned.parent_device is None or planned.parent_inode is None:
+        message = (
+            f"atomic directory parent was absent at snapshot: {planned.path.parent}"
+        )
+        raise FileNotFoundError(errno.ENOENT, message, planned.path.parent)
     if (planned.parent_device, planned.parent_inode) != (
         observed.st_dev,
         observed.st_ino,
@@ -90,14 +95,15 @@ def physical_state(state: os.stat_result) -> DirectoryPhysicalState:
 
 
 def _planned_state(state: m.Cli.AtomicDirectoryState) -> DirectoryPhysicalState:
-    values = (state.mode, state.device, state.inode, state.link_count)
-    if any(value is None for value in values):
+    mode, device, inode, link_count = (
+        state.mode,
+        state.device,
+        state.inode,
+        state.link_count,
+    )
+    if mode is None or device is None or inode is None or link_count is None:
         message = f"existing atomic directory lacks physical identity: {state.path}"
         raise OSError(errno.EINVAL, message, state.path)
-    mode, device, inode, link_count = values
-    if mode is None or device is None or inode is None or link_count is None:
-        message = "validated directory identity unexpectedly absent"
-        raise AssertionError(message)
     return (mode, device, inode, link_count, state.file_attributes, state.reparse_tag)
 
 

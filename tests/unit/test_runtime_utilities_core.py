@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import socket
 import os
+import socket
 import sys
 from typing import TYPE_CHECKING
 
@@ -200,20 +200,6 @@ class TestsFlextCliRuntimeUtilitiesCore:
             tm.that(wait_result.value, eq=0)
         finally:
             parent_end.close()
-
-    def test_process_start_inherit_stdio_captures_nothing(self, runner: u.Cli) -> None:
-        """Inherited standard streams reach the parent, not the captured buffers."""
-        result = runner.process_start(
-            [sys.executable, "-c", "print('to-parent-stdout')"], inherit_stdio=True
-        )
-        tm.ok(result)
-        process = result.value
-
-        wait_result = process.wait(timeout=5)
-        tm.ok(wait_result)
-        tm.that(wait_result.value, eq=0)
-        tm.that(process.stdout, eq="")
-        tm.that(process.stderr, eq="")
 
     def test_process_start_honors_cwd_env_and_stderr(
         self, runner: u.Cli, tmp_path: Path

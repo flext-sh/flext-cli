@@ -23,6 +23,23 @@ def validate_atomic_state_path(
     return value
 
 
+def validate_parent_identity(
+    device: int | None, inode: int | None, *, present: bool, label: str
+) -> None:
+    """Require one complete parent identity, absent only for an absent leaf.
+
+    An optional read of a path whose directory chain is not materialized has no
+    parent to authenticate, so absence is recorded as absence. A present leaf
+    always carries the physical parent that authenticated it.
+    """
+    if (device is None) != (inode is None):
+        msg = f"{label} parent identity requires both device and inode"
+        raise ValueError(msg)
+    if device is None and present:
+        msg = f"{label} cannot exist without a physical parent identity"
+        raise ValueError(msg)
+
+
 def validate_non_reparse_state(
     file_attributes: int | None, reparse_tag: int | None, *, label: str
 ) -> None:
@@ -35,4 +52,8 @@ def validate_non_reparse_state(
         raise ValueError(msg)
 
 
-__all__: list[str] = ["validate_atomic_state_path", "validate_non_reparse_state"]
+__all__: list[str] = [
+    "validate_atomic_state_path",
+    "validate_non_reparse_state",
+    "validate_parent_identity",
+]

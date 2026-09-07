@@ -28,8 +28,8 @@ dependencies = [
   "openpyxl>=3.1.5",
   "pluggy>=1.6.0",
   "prompt-toolkit>=3.0.53",
-  "pydantic>=2.14.0b1",
-  "pydantic-core>=2.48.0",
+  "pydantic>=2.13.4",
+  "pydantic-core>=2.46.4",
   "pydantic-settings>=2.15.0",
   "python-docx>=1.2.0",
   "python-pptx>=1.0.2",
@@ -326,6 +326,24 @@ reportUnusedVariable = "error"
 typeCheckingMode = "strict"
 
 [[tool.pyright.executionEnvironments]]
+extraPaths = [".", "src"]
+reportArgumentType = "none"
+reportAssignmentType = "none"
+reportAttributeAccessIssue = "none"
+reportGeneralTypeIssues = "none"
+reportInvalidTypeForm = "none"
+reportPrivateImportUsage = "none"
+reportPrivateUsage = "none"
+reportReturnType = "none"
+reportUnknownArgumentType = "none"
+reportUnknownLambdaType = "none"
+reportUnknownMemberType = "none"
+reportUnknownParameterType = "none"
+reportUnknownVariableType = "none"
+reportUnusedImport = "none"
+root = "examples"
+
+[[tool.pyright.executionEnvironments]]
 extraPaths = ["src"]
 reportAssignmentType = "none"
 reportAttributeAccessIssue = "none"
@@ -359,24 +377,6 @@ reportUnknownParameterType = "none"
 reportUnknownVariableType = "none"
 reportUnusedImport = "none"
 root = "tests"
-
-[[tool.pyright.executionEnvironments]]
-extraPaths = [".", "src"]
-reportArgumentType = "none"
-reportAssignmentType = "none"
-reportAttributeAccessIssue = "none"
-reportGeneralTypeIssues = "none"
-reportInvalidTypeForm = "none"
-reportPrivateImportUsage = "none"
-reportPrivateUsage = "none"
-reportReturnType = "none"
-reportUnknownArgumentType = "none"
-reportUnknownLambdaType = "none"
-reportUnknownMemberType = "none"
-reportUnknownParameterType = "none"
-reportUnknownVariableType = "none"
-reportUnusedImport = "none"
-root = "examples"
 
 # [MANAGED] pytest
 [tool.pytest.ini_options]

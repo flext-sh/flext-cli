@@ -1,22 +1,25 @@
 {
-  "version": 2,
   "agents": [],
-  "opt_ins": [],
-  "selected_tags": [],
   "detection_rules": [
     {
-      "id": "flext-project",
-      "description": "FLEXT package with managed pyproject",
+      "activate_tags": [
+        "flext"
+      ],
+      "id": "flext-managed",
       "when": {
-        "all": [
+        "any": [
           {
-            "type": "file_contains",
+            "paths": [
+              "pyproject.toml"
+            ],
             "pattern": "@flext-managed",
-            "paths": ["pyproject.toml"]
+            "type": "file_contains"
           }
         ]
-      },
-      "activate_tags": ["flext"]
+      }
     }
-  ]
+  ],
+  "opt_ins": [],
+  "selected_tags": [],
+  "version": 2
 }
