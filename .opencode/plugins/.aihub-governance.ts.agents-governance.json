@@ -41,7 +41,11 @@
   },
   "managed": {
     ".opencode/plugins/aihub-governance.ts": {
+<<<<<<< HEAD
       "digest": "0bdad6c10bdd6e8d5623224fd47adc0003e0d239ce3a51a546a18386ad7bc4eb",
+=======
+      "digest": "736239e74d8b0bab55b77657b3620b97343ef21dd5d5cd8da464fc6a6b3d1cd5",
+>>>>>>> origin/integration/sweep-20260830
       "mode": "0644"
     }
   },

@@ -7,7 +7,11 @@ applyTo: '**'
 At plan start or update, reconcile every correlated owner, WIP, branch, commit,
 and PR within the authorized repository. Preserve and adopt useful work into
 the existing change branch under
+<<<<<<< HEAD
 `fix-forward collaboration` (rule file). Destroy, stash, or
+=======
+[fix-forward collaboration](coordination--fix-forward-collaboration.instructions.md). Destroy, stash, or
+>>>>>>> origin/integration/sweep-20260830
 revert nothing.
 
 When required work has not reached the integration branch, adopt it into the

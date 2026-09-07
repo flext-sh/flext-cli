@@ -15,10 +15,13 @@
       {
         "hooks": [
           {
-            "command": "bd prime --hook-json",
+            "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-cli/.claude/aihub-hooks/claude-sessionstart.py",
+            "statusMessage": "Applying synchronized governance",
+            "timeout": 10,
             "type": "command"
           }
         ],
+<<<<<<< HEAD
         "matcher": ""
       },
       {
@@ -30,6 +33,8 @@
             "type": "command"
           }
         ],
+=======
+>>>>>>> origin/integration/sweep-20260830
         "matcher": "startup|resume|clear|compact"
       }
     ],
@@ -37,7 +42,11 @@
       {
         "hooks": [
           {
+<<<<<<< HEAD
             "command": "python3 /home/marlonsc/flext/flext-cli/.claude/aihub-hooks/claude-subagentstart.py",
+=======
+            "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-cli/.claude/aihub-hooks/claude-subagentstart.py",
+>>>>>>> origin/integration/sweep-20260830
             "statusMessage": "Applying synchronized governance",
             "timeout": 10,
             "type": "command"
@@ -49,7 +58,11 @@
       {
         "hooks": [
           {
+<<<<<<< HEAD
             "command": "python3 /home/marlonsc/flext/flext-cli/.claude/aihub-hooks/claude-userpromptsubmit.py",
+=======
+            "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-cli/.claude/aihub-hooks/claude-userpromptsubmit.py",
+>>>>>>> origin/integration/sweep-20260830
             "statusMessage": "Applying synchronized governance",
             "timeout": 10,
             "type": "command"

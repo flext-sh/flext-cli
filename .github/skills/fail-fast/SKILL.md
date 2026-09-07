@@ -13,7 +13,11 @@ Activate when an operation may swallow, normalize, retry, aggregate, suppress, o
 reroute an error; ignore a child failure; publish stale/partial success; or leave
 owned work running.
 
+<<<<<<< HEAD
 Read the `failure-path procedure` (skill file). The first exception is
+=======
+Read the [failure-path procedure](references/procedure.md). The first exception is
+>>>>>>> origin/integration/sweep-20260830
 the result: preserve its raw traceback and causal chain, stop immediately, and
 remove every false-success or alternate path at the owner.
 

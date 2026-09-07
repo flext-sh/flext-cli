@@ -18,6 +18,7 @@ Do not load a missing value from a file, shell profile, keyring, service,
 alternate name, inherited compatibility alias, prompt, or error-triggered default.
 Do not silently trim, coerce, repair, or substitute it. Never print secret
 values, derived fingerprints, or full environments in failure evidence.
+<<<<<<< HEAD
 
 ## One credential, one variable, every consumer
 
@@ -32,3 +33,5 @@ quota, reduced verification, or unsigned artifacts — is failing quietly; requi
 the variable at its boundary so the workflow stops instead.
 
 See also: `strict-execution.md` (rule file) — aggregate parent policy.
+=======
+>>>>>>> origin/integration/sweep-20260830

@@ -14,12 +14,17 @@ the active collaboration channel before editing; do not add coordination-only
 comments to product code or documentation.
 
 The complete preservation, fix-forward, and severe-conflict contract is owned by
+<<<<<<< HEAD
 `fix-forward collaboration` (rule file).
+=======
+[fix-forward collaboration](coordination--fix-forward-collaboration.md).
+>>>>>>> origin/integration/sweep-20260830
 
 - Re-read a mutable file right before editing; converge, never revert another
   actor's valid change.
 - Never overwrite or stash uncommitted WIP. Preserve durable evidence in the next
   canonical commit/PR/CI artifact.
+<<<<<<< HEAD
 - The checkout's current branch is shared state too. When another actor may hold
   the same working tree, re-read the branch immediately before committing and
   verify the commit landed on the intended ref: a concurrent switch relocates
@@ -35,3 +40,7 @@ The complete preservation, fix-forward, and severe-conflict contract is owned by
   tracker action; while that authority declares suspension, invoke no tracker
   command, create no substitute tracker or ledger, and keep phase closure
   unavailable.
+=======
+- Tracker runtime is suspended. Invoke no tracker command, create no substitute
+  tracker or ledger, and keep phase closure unavailable.
+>>>>>>> origin/integration/sweep-20260830

@@ -1,5 +1,9 @@
 ---
+<<<<<<< HEAD
 applyTo: commands/**/*.md,config/governance.json,evals/**,rules/**/*.md,skills/**
+=======
+applyTo: commands/*.md,config/governance.json,evals/**,rules/**/*.md,skills/**,skills.lock.json
+>>>>>>> origin/integration/sweep-20260830
 ---
 
 # Compose governance through one owner per behavior
@@ -28,6 +32,7 @@ execution, copied projections, private paths, and behavior with no current
 consumer. After convergence, update the ownership map, evaluations, inventory,
 documentation, and projections through their canonical owners and prove a
 second generation makes no change.
+<<<<<<< HEAD
 
 ## Retire a declaration whose subject the governed process consumed
 
@@ -48,3 +53,5 @@ validation, and every implementation only it fed. Prove first that whatever the
 declaration verified is still verified by something at least as strong, and
 name that owner in the change. If nothing else verifies it, the declaration is
 still doing work and stays.
+=======
+>>>>>>> origin/integration/sweep-20260830

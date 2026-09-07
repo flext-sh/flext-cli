@@ -10,7 +10,11 @@ metadata:
 Apply the active project's Python version, dependency owner, public contracts,
 and canonical commands.
 
+<<<<<<< HEAD
 Read the `single owner procedure` (skill file) for implementation,
+=======
+Read the [single owner procedure](references/procedure.md) for implementation,
+>>>>>>> origin/integration/sweep-20260830
 debugging, testing, packaging, and native-gate evidence.
 
 Use the distinct `python-parallelization` skill for async, thread, process,

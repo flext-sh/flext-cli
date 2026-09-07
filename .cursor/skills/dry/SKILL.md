@@ -14,7 +14,11 @@ dead ownership, or measured repeated work in the authorized graph. Consume the
 current requirement set from `yagni`, authority map from `ssot`, and boundaries
 from `solid`; `search-first` owns the route.
 
+<<<<<<< HEAD
 Read the `structural remediation procedure` (skill file). Remove the
+=======
+Read the [structural remediation procedure](references/procedure.md). Remove the
+>>>>>>> origin/integration/sweep-20260830
 maximum confirmed waste while preserving the full public contract, causal
 failures, security, readability, types, observability, and measured performance.
 Line reduction is evidence, never the goal.

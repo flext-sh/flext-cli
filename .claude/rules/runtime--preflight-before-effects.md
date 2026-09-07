@@ -34,6 +34,7 @@ ownership and provenance evidence, normalized semantic delta, affected consumers
 and blast radius, proposed disposition, destructive effects, recovery contract,
 and fixed-point validation plan. Do not overwrite, delete, quarantine, back up,
 stash, roll back, or silently promote it to a source while that decision is open.
+<<<<<<< HEAD
 
 See also: `strict-execution.md` (rule file) — aggregate parent policy.
 
@@ -55,3 +56,5 @@ newest, or the merge — a rule that silently picks makes the disagreement
 invisible exactly when it matters.
 
 See also: `strict-execution.md` (rule file) — aggregate parent policy.
+=======
+>>>>>>> origin/integration/sweep-20260830

@@ -579,6 +579,13 @@ name = "flext-tests"
 
 [tool.uv.exclude-newer-package]
 cryptography = false
+<<<<<<< HEAD
+=======
+django-stubs = "2026-08-13T00:00:00Z"
+mkdocstrings-python = "2026-08-18T00:00:00Z"
+mypy = "2026-08-15T03:04:00Z"
+types-setuptools = "2026-08-13T00:00:00Z"
+>>>>>>> origin/integration/sweep-20260830
 
 [tool.vulture]
 exclude = ["*/_protocols/*"]

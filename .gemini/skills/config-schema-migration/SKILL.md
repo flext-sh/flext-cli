@@ -7,7 +7,11 @@ metadata:
 
 # Configuration Schema Migration
 
+<<<<<<< HEAD
 Read `the complete procedure` (skill file) before changing a
+=======
+Read [the complete procedure](references/procedure.md) before changing a
+>>>>>>> origin/integration/sweep-20260830
 configuration schema, serialized representation, environment mapping, loader,
 validator, or generated configuration contract.
 

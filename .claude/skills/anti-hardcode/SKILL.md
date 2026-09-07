@@ -14,7 +14,11 @@ installation-controlled values embedded outside their declared typed owner,
 including endpoints, providers, models, credentials, databases, paths, timeouts,
 feature decisions, and duplicated owner defaults.
 
+<<<<<<< HEAD
 Read the `owner migration procedure` (skill file). One confirmed
+=======
+Read the [owner migration procedure](references/procedure.md). One confirmed
+>>>>>>> origin/integration/sweep-20260830
 hardcode blocks delivery until the typed owner validates it, every consumer is
 rewired, and the literal plus alternate lookup paths are removed.
 
