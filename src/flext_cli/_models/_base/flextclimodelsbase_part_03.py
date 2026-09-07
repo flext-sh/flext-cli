@@ -24,11 +24,21 @@ class FlextCliModelsBase:
             bool, m.Field(strict=True, description="Whether the directory exists")
         ]
         parent_device: Annotated[
-            int, m.Field(ge=0, strict=True, description="Physical parent device")
-        ]
+            int | None,
+            m.Field(
+                ge=0,
+                strict=True,
+                description="Physical parent device, or None when the chain is absent",
+            ),
+        ] = None
         parent_inode: Annotated[
-            int, m.Field(ge=0, strict=True, description="Physical parent inode")
-        ]
+            int | None,
+            m.Field(
+                ge=0,
+                strict=True,
+                description="Physical parent inode, or None when the chain is absent",
+            ),
+        ] = None
         mode: Annotated[
             int | None,
             m.Field(ge=0, le=0o7777, strict=True, description="Permission bits"),
@@ -72,6 +82,12 @@ class FlextCliModelsBase:
             ):
                 msg = "absent atomic directory state cannot contain host metadata"
                 raise ValueError(msg)
+            atomic_state.validate_parent_identity(
+                self.parent_device,
+                self.parent_inode,
+                present=self.exists,
+                label="atomic directory state",
+            )
             atomic_state.validate_non_reparse_state(
                 self.file_attributes, self.reparse_tag, label="atomic directory state"
             )

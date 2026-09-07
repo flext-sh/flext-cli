@@ -49,9 +49,11 @@ class FlextCliUtilitiesFiles:
     ) -> p.Result[m.Cli.AtomicFileState]:
         """Read exact bytes plus leaf and immediate-parent physical identities.
 
-        The immediate parent must already exist as a physical, non-aliased
-        directory. Materialize a planned directory chain first, then call this
-        method; no future parent identity may be invented for an absent file.
+        A required read demands one physical, non-aliased parent directory. An
+        optional read of a path whose directory chain is not materialized is
+        absence: the returned state carries no leaf and no parent identity.
+        Publication still requires an authenticated parent, so materialize the
+        planned directory chain and read again before publishing into it.
         """
         path = Path(file_path)
         try:
@@ -63,8 +65,8 @@ class FlextCliUtilitiesFiles:
         return r[m.Cli.AtomicFileState].ok(
             m.Cli.AtomicFileState(
                 path=path,
-                parent_device=parent.st_dev,
-                parent_inode=parent.st_ino,
+                parent_device=None if parent is None else parent.st_dev,
+                parent_inode=None if parent is None else parent.st_ino,
                 content=content,
                 mode=None if state is None else stat.S_IMODE(state.st_mode),
                 device=None if state is None else state.st_dev,

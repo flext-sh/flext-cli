@@ -51,6 +51,9 @@ def require_observed(
 
 def require_parent(state: m.Cli.AtomicFileState, observed: os.stat_result) -> None:
     """Require the authenticated parent to equal the snapshot parent identity."""
+    if state.parent_device is None or state.parent_inode is None:
+        message = f"atomic file parent was absent at snapshot: {state.path.parent}"
+        raise FileNotFoundError(errno.ENOENT, message, state.path.parent)
     if (state.parent_device, state.parent_inode) != (observed.st_dev, observed.st_ino):
         message = f"atomic file parent identity changed: {state.path.parent}"
         raise OSError(errno.ESTALE, message, state.path.parent)

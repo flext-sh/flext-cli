@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 
 from flext_cli import cli
 from flext_tests import tm
-from tests import c, m
+from tests import c, m, u
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
