@@ -26,7 +26,9 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
                     failures.append("stdin write made no progress")
                     return
                 remaining = remaining[written:]
-        except (BrokenPipeError, OSError, ValueError) as exc:
+        except BrokenPipeError:
+            pass
+        except (OSError, ValueError) as exc:
             failures.append(f"stdin write error: {exc}")
         finally:
             try:
@@ -43,7 +45,6 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
         captured_output: bytearray | None,
         live_fd: int | None,
         failures: list[str],
-        live_diagnostics: list[str],
         stop: threading.Event,
         wake: threading.Event,
     ) -> None:
@@ -63,7 +64,7 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
                     captured_output.extend(chunk)
                 if live_available and live_fd is not None:
                     live_available = cls._write_live_chunk(
-                        live_fd, chunk, stop, live_diagnostics
+                        live_fd, chunk, stop, failures
                     )
         finally:
             wake.set()

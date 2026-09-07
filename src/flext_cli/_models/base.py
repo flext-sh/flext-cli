@@ -29,6 +29,9 @@ from flext_cli._models._base.flextclimodelsbase_part_08 import (
 from flext_cli._models._base.flextclimodelsbase_part_09 import (
     FlextCliModelsBase as FlextCliModelsBasePart09,
 )
+from flext_cli._models._base.flextclimodelsbase_part_10 import (
+    FlextCliModelsBase as FlextCliModelsBasePart10,
+)
 
 
 class FlextCliModelsBase(
@@ -41,6 +44,7 @@ class FlextCliModelsBase(
     FlextCliModelsBasePart07,
     FlextCliModelsBasePart08,
     FlextCliModelsBasePart09,
+    FlextCliModelsBasePart10,
 ):
     """Public facade for FlextCliModelsBase."""
 

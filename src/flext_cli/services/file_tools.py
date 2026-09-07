@@ -6,16 +6,10 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from flext_cli import c, m, p, r, s, t, u
-from flext_cli.services._file_tools_atomic import FlextCliFileToolsAtomicMixin
 
 
-class FlextCliFileTools(FlextCliFileToolsAtomicMixin, s):
+class FlextCliFileTools(s):
     """File operations with r."""
-
-    @staticmethod
-    def ensure_dir(file_path: t.Cli.TextPath) -> p.Result[Path]:
-        """Create a directory tree when missing and return the path."""
-        return u.Cli.ensure_dir(Path(file_path))
 
     @staticmethod
     def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:

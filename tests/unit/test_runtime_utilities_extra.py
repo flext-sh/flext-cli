@@ -30,16 +30,19 @@ class TestsFlextCliRuntimeUtilitiesExtra:
     ) -> None:
         # Arrange / Act
         """Verify that command output exposes constructor values via public state."""
-        output = m.Cli.CommandOutput(stdout=stdout, stderr=stderr, exit_code=exit_code)
+        outcome = m.Cli.ProcessOutcome(
+            raw_return_code=exit_code, timed_out=False, forwarded_signal=None
+        )
+        output = m.Cli.CommandOutput(stdout=stdout, stderr=stderr, outcome=outcome)
 
         # Assert — public fields and model_dump round-trip
         tm.that(output.stdout, eq=stdout)
         tm.that(output.stderr, eq=stderr)
-        tm.that(output.exit_code, eq=exit_code)
+        tm.that(output.outcome.raw_return_code, eq=exit_code)
         dumped = output.model_dump()
         tm.that(dumped["stdout"], eq=stdout)
         tm.that(dumped["stderr"], eq=stderr)
-        tm.that(dumped["exit_code"], eq=exit_code)
+        tm.that(dumped["outcome"]["raw_return_code"], eq=exit_code)
 
     def test_run_checked_returns_true_on_zero_exit(self) -> None:
         # Arrange / Act

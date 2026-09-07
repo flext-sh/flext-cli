@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Literal, Self
 
 from flext_cli._models import atomic_state
-from flext_core import m, u
+from flext_core import m, t, u
 
 
 class FlextCliModelsBase:
@@ -15,7 +15,7 @@ class FlextCliModelsBase:
     class AtomicPhysicalTreeEntry(m.BaseModel):
         """One exact regular file, symlink leaf, or physical directory."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", frozen=True, arbitrary_types_allowed=True
         )
         path: Annotated[Path, m.Field(description="Absolute entry path")]
@@ -124,7 +124,7 @@ class FlextCliModelsBase:
     class AtomicPhysicalTreeManifest(m.BaseModel):
         """Exact root identity plus its ordered descriptor-authenticated entries."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid", frozen=True, arbitrary_types_allowed=True
         )
         root: Annotated[

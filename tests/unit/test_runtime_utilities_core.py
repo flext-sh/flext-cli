@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import socket
+import os
 import sys
 from typing import TYPE_CHECKING
 
@@ -24,13 +26,12 @@ class TestsFlextCliRuntimeUtilitiesCore:
         return u.Cli()
 
     def test_run_raw_remove_env_keys_strips_inherited_values(
-        self, runner: u.Cli, monkeypatch: pytest.MonkeyPatch
+        self, runner: u.Cli
     ) -> None:
         """Verify that run raw remove env keys strips inherited values."""
-        monkeypatch.setenv("TEST_RUNTIME_INHERITED", "should-not-leak")
-
         result = runner.run_raw(
             ["sh", "-c", 'printf %s "${TEST_RUNTIME_INHERITED:-missing}"'],
+            env={"TEST_RUNTIME_INHERITED": "should-not-leak"},
             remove_env_keys=("TEST_RUNTIME_INHERITED",),
         )
 
@@ -63,7 +64,14 @@ class TestsFlextCliRuntimeUtilitiesCore:
             if case.use_tmp_path:
                 tm.that(output.stdout.strip(), eq=str(tmp_path))
             if case.exit_code is not None:
-                tm.that(output.exit_code, eq=case.exit_code)
+                tm.that(
+                    (
+                        u.Cli.process_succeeded(output.outcome),
+                        output.outcome.raw_return_code,
+                    ),
+                    eq=(True, case.exit_code),
+                )
+
             return
         tm.fail(result, has=case.error_has)
 
@@ -134,7 +142,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Verify run(capture=False) streams live: captured stdout is empty, exit ok."""
         result = runner.run(("sh", "-c", "echo streamed-line"), capture=False)
         output = m.Cli.CommandOutput.model_validate(tm.ok(result))
-        tm.that(output.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(output.outcome), eq=True)
         tm.that(output.stdout, eq="")
         tm.that(output.stderr, eq="")
 
@@ -149,7 +157,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ok_result = runner.run_live(("sh", "-c", "echo live-ok"))
         ok_output = m.Cli.CommandOutput.model_validate(tm.ok(ok_result))
         tm.that(ok_output.stdout, eq="")
-        tm.that(ok_output.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(ok_output.outcome), eq=True)
         tm.fail(runner.run_live(("sh", "-c", "exit 7")), has="failed")
 
     def test_process_start_wait_captures_stdout(self, runner: u.Cli) -> None:
@@ -165,6 +173,46 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(wait_result.value, eq=0)
         tm.that(process.returncode, eq=0)
         tm.that(process.stdout.strip(), eq="managed-ok")
+        tm.that(process.stderr, eq="")
+
+    def test_process_start_passes_only_the_declared_descriptors(
+        self, runner: u.Cli
+    ) -> None:
+        """A child inherits exactly the descriptors the caller declares."""
+        parent_end, child_end = socket.socketpair()
+        try:
+            script = (
+                "import socket, sys; "
+                "conn = socket.socket(fileno=int(sys.argv[1])); "
+                "conn.sendall(b'ready'); conn.close()"
+            )
+            result = runner.process_start(
+                [sys.executable, "-c", script, str(child_end.fileno())],
+                pass_fds=(child_end.fileno(),),
+            )
+            tm.ok(result)
+            process = result.value
+            child_end.close()
+            parent_end.settimeout(5)
+            tm.that(parent_end.recv(16), eq=b"ready")
+            wait_result = process.wait(timeout=5)
+            tm.ok(wait_result)
+            tm.that(wait_result.value, eq=0)
+        finally:
+            parent_end.close()
+
+    def test_process_start_inherit_stdio_captures_nothing(self, runner: u.Cli) -> None:
+        """Inherited standard streams reach the parent, not the captured buffers."""
+        result = runner.process_start(
+            [sys.executable, "-c", "print('to-parent-stdout')"], inherit_stdio=True
+        )
+        tm.ok(result)
+        process = result.value
+
+        wait_result = process.wait(timeout=5)
+        tm.ok(wait_result)
+        tm.that(wait_result.value, eq=0)
+        tm.that(process.stdout, eq="")
         tm.that(process.stderr, eq="")
 
     def test_process_start_honors_cwd_env_and_stderr(
@@ -195,6 +243,54 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(stdout_lines[0], eq=str(tmp_path))
         tm.that(stdout_lines[1], eq="env-ok")
         tm.that(process.stderr.strip(), eq="err-marker")
+
+    def test_process_start_forwards_passed_file_descriptors(
+        self, runner: u.Cli
+    ) -> None:
+        """Verify the public process owner forwards one inherited descriptor."""
+        read_fd, write_fd = os.pipe()
+        try:
+            script = "import os, sys; os.write(int(sys.argv[1]), b'fd-forwarded')"
+            result = runner.process_start(
+                [sys.executable, "-c", script, str(write_fd)], pass_fds=(write_fd,)
+            )
+            os.close(write_fd)
+            write_fd = -1
+            process = tm.ok(result)
+            tm.that(tm.ok(process.wait(timeout=5)), eq=0)
+            tm.that(os.read(read_fd, len(b"fd-forwarded")), eq=b"fd-forwarded")
+        finally:
+            os.close(read_fd)
+            if write_fd >= 0:
+                os.close(write_fd)
+
+    def test_process_start_supports_binary_interactive_exchange(
+        self, runner: u.Cli
+    ) -> None:
+        """Exchange exact framed bytes without closing stdin between messages."""
+        script = (
+            "import sys; "
+            "first = sys.stdin.buffer.read(4); "
+            "sys.stdout.buffer.write(b'Length: 3\\r\\n\\r\\n' + first[:3]); "
+            "sys.stdout.buffer.flush(); "
+            "second = sys.stdin.buffer.read(2); "
+            "sys.stdout.buffer.write(second); "
+            "sys.stdout.buffer.flush()"
+        )
+        started = runner.process_start([sys.executable, "-c", script])
+        process = tm.ok(started)
+
+        tm.ok(process.stdin_write(b"abcd"))
+        tm.that(
+            tm.ok(process.stdout_read_until(b"\r\n\r\n", timeout=5)),
+            eq=b"Length: 3\r\n\r\n",
+        )
+        tm.that(tm.ok(process.stdout_read_exact(3, timeout=5)), eq=b"abc")
+        tm.ok(process.stdin_write(b"ef"))
+        tm.that(tm.ok(process.stdout_read_exact(2, timeout=5)), eq=b"ef")
+        tm.that(tm.ok(process.wait(timeout=5)), eq=0)
+        tm.that(process.stdout, eq="")
+        tm.that(process.stderr, eq="")
 
     def test_process_start_timeout_then_terminate(self, runner: u.Cli) -> None:
         """Verify that process start timeout then terminate."""

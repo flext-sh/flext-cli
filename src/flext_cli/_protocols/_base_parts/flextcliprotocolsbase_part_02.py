@@ -29,17 +29,36 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
 
         @property
         def debug(self) -> bool:
-            """Check if debug mode is enabled."""
+            """Whether debug mode is enabled."""
             ...
 
         @property
         def trace(self) -> bool:
-            """Check if trace mode is enabled."""
+            """Whether trace mode is enabled."""
             ...
 
         @classmethod
         def reset_for_testing(cls) -> None:
             """Reset the process-wide singleton (test isolation only)."""
+            ...
+
+    @runtime_checkable
+    class ProcessOutcome(Protocol):
+        """Causal completion state for one fully reaped process."""
+
+        @property
+        def raw_return_code(self) -> int:
+            """The operating-system process status without normalization."""
+            ...
+
+        @property
+        def timed_out(self) -> bool:
+            """Whether the process deadline expired."""
+            ...
+
+        @property
+        def forwarded_signal(self) -> int | None:
+            """First operator signal forwarded to the process, when present."""
             ...
 
     @runtime_checkable
@@ -52,8 +71,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
             ...
 
         @property
-        def exit_code(self) -> int:
-            """Command exit code."""
+        def outcome(self) -> FlextCliProtocolsBase.ProcessOutcome:
+            """Causal process completion state."""
             ...
 
         @property
@@ -77,8 +96,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
             ...
 
         @property
-        def exit_code(self) -> int:
-            """Command exit code."""
+        def outcome(self) -> FlextCliProtocolsBase.ProcessOutcome:
+            """Causal process completion state."""
             ...
 
         @property
@@ -103,11 +122,6 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
         @property
         def termination_grace_seconds(self) -> float:
             """Reserved graceful termination and drain budget."""
-            ...
-
-        @property
-        def timeout_exit_code(self) -> int:
-            """Canonical exit code returned for deadline expiry."""
             ...
 
     @runtime_checkable

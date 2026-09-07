@@ -10,12 +10,14 @@ from typing import Literal, Never
 
 from flext_cli import m
 
-from . import atomic_directory_descriptor as directory_descriptor
-from . import atomic_directory_state as directory_state
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_file_path as file_path
-from . import atomic_file_state as file_state
-from . import atomic_tree_descriptor as tree_descriptor
+from . import (
+    atomic_directory_descriptor as directory_descriptor,
+    atomic_directory_state as directory_state,
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_path as file_path,
+    atomic_file_state as file_state,
+    atomic_tree_descriptor as tree_descriptor,
+)
 
 _DIRECTORY_FLAGS = (
     os.O_RDONLY

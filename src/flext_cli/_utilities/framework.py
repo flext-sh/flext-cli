@@ -219,21 +219,18 @@ class FlextCliUtilitiesFramework:
         # unknown command escape every handler and propagate out of the facade.
         except (click.ClickException, _TYPER_CLICK_EXCEPTION) as exc:
             return e.fail_validation(error=exc, result_type=r[bool])
-        except typer.Abort as exc:
-            return e.fail_operation(
-                c.Cli.OP_EXECUTE_APPLICATION, exc, result_type=r[bool]
-            )
+        except typer.Abort:
+            raise
         except typer.Exit as exc:
             if (failure := cls._active_failure.get()) is not None:
                 return r[bool].from_failure(failure)
-            return cls._exit_code_result(exc.exit_code)
-        except SystemExit as exc:
+            if exc.exit_code == c.Cli.EXIT_CODE_SUCCESS:
+                return r[bool].ok(True)
+            raise
+        except SystemExit:
             if (failure := cls._active_failure.get()) is not None:
                 return r[bool].from_failure(failure)
-            exit_code = (
-                exc.code if isinstance(exc.code, int) else c.Cli.EXIT_CODE_FAILURE
-            )
-            return cls._exit_code_result(exit_code)
+            raise
         finally:
             sys.argv = original_argv
             captured_failure = cls._active_failure.get()
@@ -268,15 +265,10 @@ class FlextCliUtilitiesFramework:
             )
         except click.ClickException as exc:
             return e.fail_validation(error=exc, result_type=r[bool])
-        except click.Abort as exc:
-            return e.fail_operation(
-                c.Cli.OP_EXECUTE_APPLICATION, exc, result_type=r[bool]
-            )
-        except SystemExit as exc:
-            exit_code = (
-                exc.code if isinstance(exc.code, int) else c.Cli.EXIT_CODE_FAILURE
-            )
-            return cls._exit_code_result(exit_code)
+        except click.Abort:
+            raise
+        except SystemExit:
+            raise
         if (
             isinstance(exit_result, int)
             and not isinstance(exit_result, bool)

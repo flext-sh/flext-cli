@@ -6,12 +6,15 @@ import errno
 from pathlib import Path
 
 from flext_cli import m, t
-from . import atomic_directory_create as directory_create
-from . import atomic_directory_delete as directory_delete
-from . import atomic_directory_descriptor as directory_descriptor
-from . import atomic_directory_snapshot as directory_snapshot
-from . import atomic_file_mode as file_mode
-from . import atomic_parent_descriptor as parent_descriptor
+
+from . import (
+    atomic_directory_create as directory_create,
+    atomic_directory_delete as directory_delete,
+    atomic_directory_descriptor as directory_descriptor,
+    atomic_directory_snapshot as directory_snapshot,
+    atomic_file_mode as file_mode,
+    atomic_parent_descriptor as parent_descriptor,
+)
 
 
 def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPlan:

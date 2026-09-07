@@ -6,9 +6,11 @@ import errno
 import os
 from pathlib import Path
 
-from . import atomic_directory_noreplace as directory_noreplace
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_parent_descriptor as parent_descriptor
+from . import (
+    atomic_directory_noreplace as directory_noreplace,
+    atomic_file_descriptor as file_descriptor,
+    atomic_parent_descriptor as parent_descriptor,
+)
 
 _SECURE_CREATE_MODE = 0o700
 

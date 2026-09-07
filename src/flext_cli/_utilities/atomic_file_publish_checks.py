@@ -6,9 +6,11 @@ import errno
 import os
 from pathlib import Path
 
-from . import atomic_file_descriptor as file_descriptor
-from . import atomic_file_mode as file_mode
-from . import atomic_file_state as file_state
+from . import (
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_mode as file_mode,
+    atomic_file_state as file_state,
+)
 
 IDENTITY_COMPONENT_COUNT = 2
 

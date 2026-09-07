@@ -11,7 +11,6 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, r, t
 
-
 T = TypeVar("T")
 
 
@@ -168,7 +167,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                 formula_sheet, value_sheet, data_only=data_only
             )
         except ValueError as exc:
-            return r[tuple[m.Cli.XlsxCellSnapshot, ...]].fail(str(exc))
+            return r[tuple[m.Cli.XlsxCellSnapshot, ...]].fail(str(exc), exception=exc)
         return r[tuple[m.Cli.XlsxCellSnapshot, ...]].ok(cells)
 
     @classmethod

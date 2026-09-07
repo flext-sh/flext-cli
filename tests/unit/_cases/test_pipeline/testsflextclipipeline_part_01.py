@@ -18,7 +18,7 @@ class TestsFlextCliPipeline:
     """Implementation part for TestsFlextCliPipeline."""
 
     @staticmethod
-    def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
+    def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:
         """Build a handler that succeeds and writes to shared."""
 
         def handler(
@@ -32,18 +32,20 @@ class TestsFlextCliPipeline:
         return handler
 
     @staticmethod
-    def _fail_handler(stage_id: str) -> t.Cli.PipelineHandler:
+    def _fail_handler(stage_id: str) -> p.Cli.PipelineStage:
         """Build a handler that fails."""
 
         def handler(
-            _ctx: p.Cli.PipelineStageContext,
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
+            _ = ctx
             return r[m.Cli.PipelineStageResult].fail(f"{stage_id} failed")
 
         return handler
 
     @staticmethod
-    def _skip_always(_ctx: p.Cli.PipelineStageContext) -> bool:
+    def _skip_always(ctx: p.Cli.PipelineStageContext) -> bool:
+        _ = ctx
         return True
 
     def test_single_stage_ok(self, tmp_path: Path) -> None:
@@ -61,7 +63,7 @@ class TestsFlextCliPipeline:
         """Stages execute in topological order — B depends on A."""
         execution_order: list[str] = []
 
-        def tracking_handler(stage_id: str) -> t.Cli.PipelineHandler:
+        def tracking_handler(stage_id: str) -> p.Cli.PipelineStage:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
             ) -> p.Result[m.Cli.PipelineStageResult]:

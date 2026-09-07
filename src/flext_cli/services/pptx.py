@@ -2,11 +2,10 @@
 
 from __future__ import annotations
 
-from flext_cli._utilities.pptx import FlextCliUtilitiesPptx
-from flext_cli.base import s
+from flext_cli import s
 
 
-class FlextCliPptx(s, FlextCliUtilitiesPptx):
+class FlextCliPptx(s):
     """Expose byte-only PPTX operations and re-exported types for public API composition."""
 
     # NOTE (multi-agent, mro-j2yt.1): this service contains no document or
