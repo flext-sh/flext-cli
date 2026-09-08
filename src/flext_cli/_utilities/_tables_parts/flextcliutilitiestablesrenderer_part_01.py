@@ -25,8 +25,11 @@ _SHAPES: Final[dict[str, str]] = {
     c.Cli.TabularFormat.TSV: "tsv",
     c.Cli.TabularFormat.GRID: "grid",
     c.Cli.TabularFormat.FANCY_GRID: "grid",
+    c.Cli.TabularFormat.PIPE: "pipe",
+    c.Cli.TabularFormat.RST: "rst",
 }
 _SHAPE_SIMPLE: Final[str] = "simple"
+_RST_GLYPH: Final[str] = "="
 
 
 class FlextCliUtilitiesTablesRenderer:
@@ -200,8 +203,29 @@ class FlextCliUtilitiesTablesRenderer:
     ) -> str:
         shape = _SHAPES.get(settings.table_format, _SHAPE_SIMPLE)
         lines: list[str] = []
-        if settings.title:
-            lines.append(settings.title)
+        if shape == "pipe":
+            if header_labels and settings.show_header:
+                lines.extend([
+                    _COLUMN_EDGE
+                    + _COLUMN_EDGE.join(
+                        f" {cls._pad(label, widths[index], alignments[index])} "
+                        for index, label in enumerate(header_labels)
+                    )
+                    + _COLUMN_EDGE,
+                    _COLUMN_EDGE
+                    + _COLUMN_EDGE.join(f" {_ROW_GLYPH * width} " for width in widths)
+                    + _COLUMN_EDGE,
+                ])
+            lines.extend(
+                _COLUMN_EDGE
+                + _COLUMN_EDGE.join(
+                    f" {cls._pad(cell, widths[index], alignments[index])} "
+                    for index, cell in enumerate(row)
+                )
+                + _COLUMN_EDGE
+                for row in cells
+            )
+            return "\n".join(lines)
         if shape == "tsv":
             if header_labels and settings.show_header:
                 lines.append(_TSV_GAP.join(header_labels))
@@ -212,6 +236,7 @@ class FlextCliUtilitiesTablesRenderer:
             + _ROW_EDGE.join(_ROW_GLYPH * (width + 2) for width in widths)
             + _ROW_EDGE
         )
+        rst_rule = _RST_GLYPH * (sum(widths) + 2 * (len(widths) - 1))
         if shape == "grid":
             lines.append(border)
         if header_labels and settings.show_header:
@@ -221,12 +246,12 @@ class FlextCliUtilitiesTablesRenderer:
                     for index, label in enumerate(header_labels)
                 )
             )
-            if shape != "plain":
-                lines.append(
-                    border
-                    if shape == "grid"
-                    else _GAP.join(_ROW_GLYPH * width for width in widths)
-                )
+            if shape == "simple":
+                lines.append(_GAP.join(_ROW_GLYPH * width for width in widths))
+            elif shape == "grid":
+                lines.append(border)
+            elif shape == "rst":
+                lines.append(rst_rule)
         lines.extend(
             _GAP.join(
                 cls._pad(cell, widths[index], alignments[index])
@@ -236,6 +261,8 @@ class FlextCliUtilitiesTablesRenderer:
         )
         if shape == "grid":
             lines.append(border)
+        elif shape == "rst":
+            lines.append(rst_rule)
         return "\n".join(lines)
 
 

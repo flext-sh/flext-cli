@@ -74,7 +74,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert — return value is the return code; file holds the output
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.that(result.value.raw_return_code, eq=0)
         tm.that(output_file.exists(), eq=True)
         tm.that(output_file.read_text(), has="hello")
 
@@ -90,7 +90,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert
         tm.ok(result)
-        tm.that(result.value, eq=7)
+        tm.that(result.value.raw_return_code, eq=7)
         tm.that(output_file.exists(), eq=True)
 
     def test_run_to_file_creates_missing_parent_directories(
@@ -119,9 +119,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         result = u.Cli().run_to_file(["sleep", "10"], output_file, timeout=1)
 
         # Assert
-        tm.fail(result)
-        tm.that(result.error, is_=str)
-        tm.that(tm.not_none(result.error).lower(), has="timeout")
+        tm.ok(result)
+        tm.that(result.value.timed_out, eq=True)
 
     def test_run_to_file_fails_with_execution_error_on_unwritable_target(
         self, tmp_path: Path

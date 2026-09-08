@@ -58,6 +58,7 @@ class FlextCliConstantsOutput:
     OUTPUT_STATUS_FAIL: Final[str] = "[FAIL]"
     OUTPUT_STATUS_OK: Final[str] = "[OK]"
     OUTPUT_SUMMARY_DEFAULT_VERB: Final[str] = "summary"
+    OUTPUT_EXECUTION_ERROR: Final[str] = "execution error"
     OUTPUT_TABLE_ERROR_LABEL: Final[str] = "[table error]"
     OUTPUT_TABLE_CONFIG_INVALID: Final[str] = "Invalid table configuration"
     OUTPUT_TABLE_CONFIG_INVALID_FMT: Final[str] = (

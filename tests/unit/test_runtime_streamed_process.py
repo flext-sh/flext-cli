@@ -81,7 +81,7 @@ class TestsFlextCliRuntimeStreamedProcess:
 
         captured = capfd.readouterr()
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.that(result.value.raw_return_code, eq=0)
         tm.that(output_file.read_bytes(), eq=b"")
         tm.that(captured.out, eq="")
         tm.that(captured.err, has=c.Cli.CLI_PROCESS_HEARTBEAT_MESSAGE)
@@ -93,7 +93,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=37)
+        tm.that(result.value.raw_return_code, eq=37)
 
     def test_existing_input_data_contract_is_preserved(self, tmp_path: Path) -> None:
         """Feed binary stdin through the same canonical run-to-file path."""
@@ -111,7 +111,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.that(result.value.raw_return_code, eq=0)
         tm.that(output_file.read_bytes(), eq=payload)
 
     @pytest.mark.parametrize(
@@ -142,7 +142,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.that(result.value.raw_return_code, eq=0)
         tm.that(output_file.read_bytes(), eq=expected_bytes)
         tm.that(self._input_pump_is_alive(), eq=False)
 
@@ -160,7 +160,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.that(result.value.raw_return_code, eq=0)
         tm.that(output_file.read_text(encoding="utf-8"), eq="0")
         tm.that(self._input_pump_is_alive(), eq=False)
 
@@ -173,7 +173,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=23)
+        tm.that(result.value.raw_return_code, eq=23)
         tm.that(self._input_pump_is_alive(), eq=False)
 
     def test_nonreading_child_timeout_unblocks_the_input_writer(
@@ -187,8 +187,8 @@ class TestsFlextCliRuntimeStreamedProcess:
             timeout=1,
         )
 
-        tm.fail(result)
-        tm.that(tm.not_none(result.error).lower(), has="timeout")
+        tm.ok(result)
+        tm.that(result.value.timed_out, eq=True)
         tm.that(self._input_pump_is_alive(), eq=False)
 
     def test_deadline_model_satisfies_public_protocol(self) -> None:
@@ -197,16 +197,16 @@ class TestsFlextCliRuntimeStreamedProcess:
 
         tm.that(deadline, is_=p.Cli.ProcessDeadline)
 
-    def test_legacy_timeout_contract_remains_a_failure(self, tmp_path: Path) -> None:
-        """Keep the existing relative-timeout failure contract on one path."""
+    def test_deadline_timeout_reports_causal_outcome(self, tmp_path: Path) -> None:
+        """Deadline expiry reports its causal outcome instead of failing."""
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "import time;time.sleep(30)"],
             tmp_path / "legacy-timeout.log",
             timeout=1,
         )
 
-        tm.fail(result)
-        tm.that(tm.not_none(result.error).lower(), has="timeout")
+        tm.ok(result)
+        tm.that(result.value.timed_out, eq=True)
 
     def test_conflicting_deadlines_fail_before_spawn(self, tmp_path: Path) -> None:
         """Reject two timeout owners without starting the command."""
