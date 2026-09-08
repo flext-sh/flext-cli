@@ -154,7 +154,7 @@ Every project and projected agent applies all of these policies together:
 - `causal subprocess propagation` (rule file);
 
 - `no keyring` (rule file);
-# - `zero residue` (rule file); fail loud
+- `zero residue` (rule file); fail loud
 
 - no fallback;
 
