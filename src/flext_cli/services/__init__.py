@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import _cli_parts as _cli_parts
+    from . import _cli_parts
     from .auth import FlextCliAuth
     from .cli import FlextCliCli
     from .cli_params import FlextCliCommonParams

@@ -11,7 +11,7 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 if TYPE_CHECKING:
     from flext_cli import d, e, h, r, s, x
 
-    from . import _models_parts as _models_parts
+    from . import _models_parts
     from .constants import ExamplesFlextCliConstants, ExamplesFlextCliConstants as c
     from .ex_01_getting_started import ExamplesFlextCliGettingStarted
     from .ex_05_authentication import Ex05Authentication

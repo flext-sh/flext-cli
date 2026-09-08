@@ -22,7 +22,7 @@ from .__version__ import (
 if TYPE_CHECKING:
     from flext_core import d, e, h, r, x
 
-    from . import services as services
+    from . import services
     from ._config import FlextCliConfig, config
     from ._settings import FlextCliSettings, settings
     from .api import FlextCli, cli

@@ -10,17 +10,17 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from . import (
-        _docx as _docx,
-        _file_test_helper_parts as _file_test_helper_parts,
-        _files_parts as _files_parts,
-        _json as _json,
-        _options_parts as _options_parts,
-        _pptx as _pptx,
-        _rules as _rules,
-        _tables_parts as _tables_parts,
-        _toml_parts as _toml_parts,
-        _xlxx as _xlxx,
-        _yaml as _yaml,
+        _docx,
+        _file_test_helper_parts,
+        _files_parts,
+        _json,
+        _options_parts,
+        _pptx,
+        _rules,
+        _tables_parts,
+        _toml_parts,
+        _xlxx,
+        _yaml,
     )
     from ._cli_namespace import FlextCliUtilitiesCli
     from ._docx._reader import FlextCliUtilitiesDocxReader

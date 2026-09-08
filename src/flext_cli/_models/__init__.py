@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import _base as _base, _xlsx as _xlsx
+    from . import _base, _xlsx
     from ._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
     from ._xlsx.xlsx_cells import FlextCliModelsXlsxCells
     from ._xlsx.xlsx_layout import FlextCliModelsXlsxLayout
