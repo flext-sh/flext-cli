@@ -51,7 +51,12 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
 ]
-dependencies = ["flext-core", "pydantic>=2.13.4", "pydantic-settings>=2.15.0"]
+dependencies = [
+  "flext-core",
+  "pydantic>=2.13.4",
+  "pydantic-settings>=2.15.0",
+  "tomlkit>=0.13",
+]
 description = "FLEXT CLI - Developer Command Line Interface"
 keywords = ["cli", "command-line", "enterprise", "flext", "tools", "typed"]
 license = "MIT"
