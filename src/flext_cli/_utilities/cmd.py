@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.settings import FlextCliUtilitiesSettings as us
 from flext_core import u
+
+from .settings import FlextCliUtilitiesSettings as us
 
 
 class FlextCliUtilitiesCmd:

@@ -2,39 +2,37 @@
 
 from __future__ import annotations
 
-from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
-    FlextCliUtilitiesOptions,
-)
-from flext_cli._utilities.auth import FlextCliUtilitiesAuth
-from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
-from flext_cli._utilities.commands import FlextCliUtilitiesCommands
-from flext_cli._utilities.config import FlextCliUtilitiesConfig
-from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
-from flext_cli._utilities.docx import FlextCliUtilitiesDocx
-from flext_cli._utilities.env import FlextCliUtilitiesEnv
-from flext_cli._utilities.file_test_helpers import FlextCliUtilitiesFileTestHelpersMixin
-from flext_cli._utilities.files import FlextCliUtilitiesFiles
-from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
-from flext_cli._utilities.framework import FlextCliUtilitiesFramework
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_cli._utilities.matching import FlextCliUtilitiesMatching
-from flext_cli._utilities.model_commands import FlextCliUtilitiesModelCommands
-from flext_cli._utilities.output import FlextCliUtilitiesOutput
-from flext_cli._utilities.params import FlextCliUtilitiesParams
-from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
-from flext_cli._utilities.pptx import FlextCliUtilitiesPptx
-from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
-from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
-from flext_cli._utilities.rules import FlextCliUtilitiesRules
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-from flext_cli._utilities.settings import FlextCliUtilitiesSettings
-from flext_cli._utilities.tables import FlextCliUtilitiesTables
-from flext_cli._utilities.template import FlextCliUtilitiesTemplate
-from flext_cli._utilities.toml import FlextCliUtilitiesToml
-from flext_cli._utilities.validation import FlextCliUtilitiesValidation
-from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
-from flext_cli._utilities.yaml_model import FlextCliUtilitiesYamlModel
+from ._options_parts.flextcliutilitiesoptions_part_02 import FlextCliUtilitiesOptions
+from .auth import FlextCliUtilitiesAuth
+from .cmd import FlextCliUtilitiesCmd
+from .commands import FlextCliUtilitiesCommands
+from .config import FlextCliUtilitiesConfig
+from .conversion import FlextCliUtilitiesConversion
+from .docx import FlextCliUtilitiesDocx
+from .env import FlextCliUtilitiesEnv
+from .file_test_helpers import FlextCliUtilitiesFileTestHelpersMixin
+from .files import FlextCliUtilitiesFiles
+from .formatters import FlextCliUtilitiesFormatters
+from .framework import FlextCliUtilitiesFramework
+from .json import FlextCliUtilitiesJson
+from .matching import FlextCliUtilitiesMatching
+from .model_commands import FlextCliUtilitiesModelCommands
+from .output import FlextCliUtilitiesOutput
+from .params import FlextCliUtilitiesParams
+from .pipeline import FlextCliUtilitiesPipeline
+from .pptx import FlextCliUtilitiesPptx
+from .processes import FlextCliUtilitiesProcesses
+from .prompts import FlextCliUtilitiesPrompts
+from .rules import FlextCliUtilitiesRules
+from .runtime import FlextCliUtilitiesRuntime
+from .settings import FlextCliUtilitiesSettings
+from .tables import FlextCliUtilitiesTables
+from .template import FlextCliUtilitiesTemplate
+from .toml import FlextCliUtilitiesToml
+from .validation import FlextCliUtilitiesValidation
+from .xlsx import FlextCliUtilitiesXlsx
+from .yaml import FlextCliUtilitiesYaml
+from .yaml_model import FlextCliUtilitiesYamlModel
 
 
 class FlextCliUtilitiesCli(
@@ -47,8 +45,8 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesTemplate,
     FlextCliUtilitiesFileTestHelpersMixin,
     FlextCliUtilitiesFiles,
-    FlextCliUtilitiesFramework,
     FlextCliUtilitiesFormatters,
+    FlextCliUtilitiesFramework,
     FlextCliUtilitiesJson,
     FlextCliUtilitiesMatching,
     FlextCliUtilitiesModelCommands,

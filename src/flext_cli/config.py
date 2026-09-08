@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from flext_cli._config import FlextCliConfig, config
+from ._config import FlextCliConfig, config
 
 __all__: tuple[str, ...] = ("FlextCliConfig", "config")

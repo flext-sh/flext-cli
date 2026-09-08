@@ -10,11 +10,12 @@ import stat
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
+
+from ..atomic_file_publish import publish_guarded_staged_file
+from ..atomic_file_snapshot import read_authenticated_state
+from .flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
-from flext_cli._utilities.atomic_file_publish import publish_guarded_staged_file
-from flext_cli._utilities.atomic_file_snapshot import read_authenticated_state
 
 
 class FlextCliUtilitiesFiles:

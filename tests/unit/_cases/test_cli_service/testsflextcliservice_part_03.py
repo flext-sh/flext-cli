@@ -7,6 +7,7 @@ import pytest
 from flext_cli import cli, settings
 from flext_tests import tm
 from tests import c, m
+from tests.utilities import u
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): derive_model tests
@@ -35,7 +36,7 @@ class TestsFlextCliService:
         help_result = cli.invoke_app(app, args=["run", "--help"])
 
         tm.ok(help_result)
-        tm.that(help_result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(help_result.value.outcome), eq=True)
         tm.that(help_result.value.stdout, has="--visible")
         tm.that("--hidden" in help_result.value.stdout, eq=False)
 
@@ -49,7 +50,7 @@ class TestsFlextCliService:
         invoke_result = cli.invoke_app(app, args=["--trace", "ok"])
 
         tm.ok(invoke_result)
-        tm.that(invoke_result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=True)
         tm.that(settings.trace, eq=False)
 
     def test_create_app_with_common_params_no_flags_keeps_settings(self) -> None:
@@ -62,7 +63,7 @@ class TestsFlextCliService:
         invoke_result = cli.invoke_app(app, args=["ok"])
 
         tm.ok(invoke_result)
-        tm.that(invoke_result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=True)
         tm.that(settings.debug, eq=False)
 
     def test_derive_model_merges_canonical_model_sources(self) -> None:

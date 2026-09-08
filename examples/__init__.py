@@ -9,9 +9,6 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from enum import StrEnum, unique
-    from typing import TYPE_CHECKING, Final
-
     from flext_cli import d, e, h, r, s, x
 
     from . import _models_parts as _models_parts
@@ -25,7 +22,6 @@ if TYPE_CHECKING:
     from .typings import ExamplesFlextCliTypes, ExamplesFlextCliTypes as t
     from .utilities import ExamplesFlextCliUtilities, ExamplesFlextCliUtilities as u
 __all__: tuple[str, ...] = (
-    "TYPE_CHECKING",
     "DataManagerCLI",
     "Ex05Authentication",
     "Ex06Settings",
@@ -35,9 +31,6 @@ __all__: tuple[str, ...] = (
     "ExamplesFlextCliProtocols",
     "ExamplesFlextCliTypes",
     "ExamplesFlextCliUtilities",
-    "Final",
-    "MappingProxyType",
-    "StrEnum",
     "_models_parts",
     "c",
     "d",
@@ -49,7 +42,6 @@ __all__: tuple[str, ...] = (
     "s",
     "t",
     "u",
-    "unique",
     "x",
 )
 
@@ -66,10 +58,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".protocols": ("ExamplesFlextCliProtocols", "p"),
             ".typings": ("ExamplesFlextCliTypes", "t"),
             ".utilities": ("ExamplesFlextCliUtilities", "u"),
-            "enum": ("StrEnum", "unique"),
             "flext_cli": ("d", "e", "h", "r", "s", "x"),
-            "types": ("MappingProxyType",),
-            "typing": ("Final", "TYPE_CHECKING"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

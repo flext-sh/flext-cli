@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
 from flext_core import u
+
+from ._utilities._cli_namespace import FlextCliUtilitiesCli
 
 
 class FlextCliUtilities(u):

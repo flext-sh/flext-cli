@@ -6,9 +6,10 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, t
-from flext_cli._models import atomic_state
-from flext_cli._models._defaults import EMPTY_STR_MAPPING
 from flext_core import m, u
+
+from .. import atomic_state
+from .._defaults import EMPTY_STR_MAPPING
 
 
 class FlextCliModelsBase:

@@ -12,9 +12,9 @@ class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
 
     class TableConfig(m.Value):
-        """Table display configuration for tabulate extending Value via inheritance.
+        """Table display configuration extending Value via inheritance.
 
-        Fields map directly to tabulate() parameters.
+        Fields map directly to the table renderer parameters.
         Inherits frozen=True and extra="forbid" from m.Value.
         """
 
@@ -45,7 +45,7 @@ class FlextCliModelsBase:
         @u.computed_field
         @property
         def table_backend_format(self) -> c.Cli.TabularFormat:
-            """Canonical backend format used by tabulate rendering."""
+            """Canonical backend format used by table rendering."""
             return (
                 c.Cli.TabularFormat.SIMPLE
                 if self.table_format == c.Cli.TabularFormat.TABLE

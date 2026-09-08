@@ -17,6 +17,7 @@ if TYPE_CHECKING:
         _options_parts as _options_parts,
         _pptx as _pptx,
         _rules as _rules,
+        _tables_parts as _tables_parts,
         _toml_parts as _toml_parts,
         _xlxx as _xlxx,
         _yaml as _yaml,
@@ -57,6 +58,9 @@ if TYPE_CHECKING:
     from ._runtime_run_to_file import FlextCliUtilitiesRuntimeRunToFileMixin
     from ._runtime_windows_job_start import FlextCliUtilitiesRuntimeWindowsJobStartMixin
     from ._runtime_windows_job_state import FlextCliUtilitiesRuntimeWindowsJobStateMixin
+    from ._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
+        FlextCliUtilitiesTablesRenderer,
+    )
     from ._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
     from ._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
     from ._xlxx.xlsx_archive_checks import FlextCliUtilitiesXlsxArchiveChecks
@@ -149,6 +153,7 @@ if TYPE_CHECKING:
     from .atomic_file_path import (
         identity,
         is_reparse_point,
+        resolve_parent_path,
         validate_atomic_path,
         validate_directory_path,
         validate_directory_state,
@@ -279,6 +284,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesRuntimeWindowsJobStateMixin",
     "FlextCliUtilitiesSettings",
     "FlextCliUtilitiesTables",
+    "FlextCliUtilitiesTablesRenderer",
     "FlextCliUtilitiesTemplate",
     "FlextCliUtilitiesToml",
     "FlextCliUtilitiesValidation",
@@ -323,6 +329,7 @@ __all__: tuple[str, ...] = (
     "_options_parts",
     "_pptx",
     "_rules",
+    "_tables_parts",
     "_toml_parts",
     "_xlxx",
     "_yaml",
@@ -386,6 +393,7 @@ __all__: tuple[str, ...] = (
     "require_read_capabilities",
     "require_same_device",
     "require_traversal_capabilities",
+    "resolve_parent_path",
     "state_key",
     "sync_parent",
     "sync_replacement",
@@ -463,6 +471,10 @@ _LAZY_IMPORTS = MappingProxyType(
             ),
             "._runtime_windows_job_state": (
                 "FlextCliUtilitiesRuntimeWindowsJobStateMixin",
+            ),
+            "._tables_parts": ("_tables_parts",),
+            "._tables_parts.flextcliutilitiestablesrenderer_part_01": (
+                "FlextCliUtilitiesTablesRenderer",
             ),
             "._toml_parts": ("_toml_parts",),
             "._xlxx": ("_xlxx",),
@@ -563,6 +575,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".atomic_file_path": (
                 "identity",
                 "is_reparse_point",
+                "resolve_parent_path",
                 "validate_atomic_path",
                 "validate_directory_path",
                 "validate_directory_state",

@@ -75,7 +75,7 @@ class FlextCliConstantsEnums:
 
     @unique
     class TabularFormat(StrEnum):
-        """Tabulate library format string authority — for table rendering."""
+        """Tabular format string authority — for table rendering."""
 
         PLAIN = "plain"
         SIMPLE = "simple"

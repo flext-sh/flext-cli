@@ -6,8 +6,9 @@ from collections.abc import Mapping
 from typing import Annotated, ClassVar
 
 from flext_cli import t
-from flext_cli._models._defaults import EMPTY_JSON_MAPPING
 from flext_core import m, u
+
+from .._defaults import EMPTY_JSON_MAPPING
 
 
 class FlextCliModelsBase:

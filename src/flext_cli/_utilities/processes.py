@@ -12,7 +12,8 @@ from pathlib import Path
 from types import MappingProxyType
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
+
+from .runtime import FlextCliUtilitiesRuntime
 
 
 class FlextCliUtilitiesProcesses:

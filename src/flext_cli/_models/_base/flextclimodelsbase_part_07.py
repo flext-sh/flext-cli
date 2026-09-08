@@ -119,7 +119,7 @@ class FlextCliModelsBase:
         )
 
     class TableRenderRequest(m.Value):
-        """Validated table-rendering request for the Rich boundary."""
+        """Validated table-rendering request for the formatter boundary."""
 
         columns: Annotated[
             t.StrSequence, m.Field(description="Ordered table column labels")

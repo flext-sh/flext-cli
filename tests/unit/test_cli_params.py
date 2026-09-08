@@ -138,7 +138,7 @@ class TestsFlextCliCliParams:
         result = cli.invoke_app(app, args=["test", "--help"])
 
         tm.ok(result)
-        tm.that(result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
         for flag in ("--verbose", "--debug", "--log-level", "--output-format"):
             tm.that(result.value.stdout, has=flag)
 
@@ -149,7 +149,7 @@ class TestsFlextCliCliParams:
         result = cli.invoke_app(app, args=["test", "--verbose", "--debug"])
 
         tm.ok(result)
-        tm.that(result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
         tm.that(result.value.stdout, has="Verbose: enabled")
         tm.that(result.value.stdout, has="Debug: enabled")
 
@@ -167,6 +167,6 @@ class TestsFlextCliCliParams:
         )
 
         tm.ok(result)
-        tm.that(result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
         tm.that(result.value.stdout, has="Log level: WARNING")
         tm.that(result.value.stdout, has="Output format: json")

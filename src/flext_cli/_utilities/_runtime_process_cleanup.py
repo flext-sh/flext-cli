@@ -11,12 +11,9 @@ from types import FrameType
 from typing import IO, BinaryIO
 
 from flext_cli import p
-from flext_cli._utilities._runtime_process_monitor import (
-    FlextCliUtilitiesRuntimeProcessMonitorMixin,
-)
-from flext_cli._utilities._runtime_process_threads import (
-    FlextCliUtilitiesRuntimeProcessThreadsMixin,
-)
+
+from ._runtime_process_monitor import FlextCliUtilitiesRuntimeProcessMonitorMixin
+from ._runtime_process_threads import FlextCliUtilitiesRuntimeProcessThreadsMixin
 
 
 class FlextCliUtilitiesRuntimeProcessCleanupMixin(
