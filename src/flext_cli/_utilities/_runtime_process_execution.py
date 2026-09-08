@@ -192,7 +192,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
 
         try:
             execute_lifecycle()
-        except Exception as exc:
+        except (OSError, TypeError, ValueError) as exc:
             primary_error = exc
             if process is not None:
                 signal_error = cls._signal_process_tree(
