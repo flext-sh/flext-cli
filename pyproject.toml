@@ -52,10 +52,20 @@ classifiers = [
   "Typing :: Typed",
 ]
 dependencies = [
+  "click>=8.5.0",
+  "defusedxml>=0.7.1",
   "flext-core",
+  "jinja2>=3.1.6",
+  "jsonschema>=4.26.0",
+  "openpyxl>=3.1.5",
   "pydantic>=2.13.4",
   "pydantic-settings>=2.15.0",
+  "python-docx>=1.2.0",
+  "python-pptx>=1.0.2",
+  "pyyaml>=6.0.3",
+  "ruamel.yaml>=0.19.1",
   "tomlkit>=0.13",
+  "typer>=0.27.2",
 ]
 description = "FLEXT CLI - Developer Command Line Interface"
 keywords = ["cli", "command-line", "enterprise", "flext", "tools", "typed"]
