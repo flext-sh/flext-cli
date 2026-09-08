@@ -5,7 +5,7 @@ from __future__ import annotations
 import os
 import select
 import shlex
-import subprocess
+import subprocess  # nosec B404 - canonical process execution owner for CLI verbs
 import time
 from collections.abc import Mapping
 from pathlib import Path
@@ -200,7 +200,7 @@ class FlextCliUtilitiesProcesses:
                 overrides=env, remove_keys=remove_env_keys
             )
         try:
-            process = subprocess.Popen(
+            process = subprocess.Popen(  # nosec B603 - internal process execution, inputs from typed config
                 list(cmd),
                 cwd=cwd,
                 stdin=subprocess.PIPE,
