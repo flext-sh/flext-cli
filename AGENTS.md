@@ -129,13 +129,13 @@ never authorizes an unchanged retry.
 
 <!-- AIHUB-GOVERNANCE-INSTRUCTIONS-BEGIN -->
 <!-- AIHUB-GOVERNANCE-CAPSULE v1 sha256:5888ee9f8147f63364a4f7cd6906e9d837f58cb8a8546844760c526ecb1a303b -->
-# Generated session governance capsule
+# Generated session governance capsule (2)
 
 This projection is derived by `agentsctl sync`; edit canonical `AGENTS.md`, `rules/`, `skills/`, or `commands/`, never this output. The operator's newest request has precedence. Provider hooks are delivery mechanisms, not policy owners.
 
-## Rule `architecture/engineering-core`
+## Rule `architecture/engineering-core` (2)
 
-# Engineering core
+# Engineering core (2)
 
 For every implementation:
 

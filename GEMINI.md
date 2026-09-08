@@ -49,7 +49,7 @@ Compose with `generalized ownership` (rule file),
 `strict execution` (rule file),
 `runtime evidence` (rule file),
 `storage isolation` (rule file),
-# `security closure` (rule file)Compose with generalized ownership,
+# `security closure` (rule file)Compose with generalized ownership
 strict execution,
 runtime evidence,
 storage isolation,
@@ -154,7 +154,7 @@ Every project and projected agent applies all of these policies together:
 - `causal subprocess propagation` (rule file);
 
 - `no keyring` (rule file);
-# - `zero residue` (rule file)- fail loud;
+# - `zero residue` (rule file)- fail loud
 
 - no fallback;
 
