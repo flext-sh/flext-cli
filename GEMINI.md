@@ -1,9 +1,5 @@
 <!-- AIHUB-GOVERNANCE-INSTRUCTIONS-BEGIN -->
-<<<<<<< HEAD
-<!-- AIHUB-GOVERNANCE-CAPSULE v1 sha256:5888ee9f8147f63364a4f7cd6906e9d837f58cb8a8546844760c526ecb1a303b -->
-=======
 <!-- AIHUB-GOVERNANCE-CAPSULE v1 sha256:e1b7a9ae088643bf660b78ff1aea55d49076ec46518707976d77c78ed23db5db -->
->>>>>>> origin/integration/sweep-20260830
 # Generated session governance capsule
 
 This projection is derived by `agentsctl sync`; edit canonical `AGENTS.md`, `rules/`, `skills/`, or `commands/`, never this output. The operator's newest request has precedence. Provider hooks are delivery mechanisms, not policy owners.
@@ -43,13 +39,6 @@ as `NOT EXECUTED`, never green; it does not block offline gates, landing, or
 post-merge proof. Direct invocation selects it: the token becomes required and
 any failure escapes without skip, catch, fallback, or normalization.
 
-<<<<<<< HEAD
-Compose with `generalized ownership` (rule file),
-`strict execution` (rule file),
-`runtime evidence` (rule file),
-`storage isolation` (rule file),
-`security closure` (rule file).
-=======
 Compose with generalized ownership,
 strict execution,
 runtime evidence,
@@ -85,7 +74,6 @@ Compose this invariant with shared-file coordination,
 operator precedence,
 plan adoption, and
 the destructive Git guard.
->>>>>>> origin/integration/sweep-20260830
 
 ## Rule `coordination/operator-precedence`
 
@@ -105,8 +93,6 @@ validation survives interruption, divergence, and red gates; re-preflight and
 continue. Ask only when the effect expands beyond it or two evidenced current
 intentions conflict. State alone proves no intention, actor, or process.
 
-<<<<<<< HEAD
-=======
 ## Rule `coordination/session-governance`
 
 # Rehydrate governance at every agent context boundary
@@ -137,7 +123,6 @@ fix-forward collaboration,
 strict execution, and
 runtime evidence.
 
->>>>>>> origin/integration/sweep-20260830
 ## Rule `ethics/professional-integrity`
 
 # Professional integrity is absolute
@@ -152,16 +137,6 @@ report exact command, working directory, exit code and decisive output.
 
 Every project and projected agent applies all of these policies together:
 
-<<<<<<< HEAD
-- `fail loud` (rule file);
-- `no fallback` (rule file);
-- `preflight before effects` (rule file);
-- `required environment` (rule file);
-- `atomic effects` (rule file);
-- `causal subprocess propagation` (rule file);
-- `no keyring` (rule file);
-- `zero residue` (rule file).
-=======
 - fail loud;
 - no fallback;
 - preflight before effects;
@@ -170,7 +145,6 @@ Every project and projected agent applies all of these policies together:
 - causal subprocess propagation;
 - no keyring;
 - zero residue.
->>>>>>> origin/integration/sweep-20260830
 
 The policies are cumulative. A project rule may make them narrower or reject
 more inputs; it cannot relax, catch, normalize, skip, defer, or route around any
@@ -180,8 +154,6 @@ its owner, never grandfathered compatibility.
 Resolve gate applicability before invocation. A dormant external-token gate is
 not executed; selecting or invoking it applies every policy above.
 
-<<<<<<< HEAD
-=======
 ## Rule `workflow/canonical-commands`
 
 # Run agent functions only through the optionless CLI
@@ -226,7 +198,6 @@ sufficient.
   discussion, reproducible evidence, and explicit authorization; without all
   three, correct the owner and rerun that released version.
 
->>>>>>> origin/integration/sweep-20260830
 ## Capability indexes
 
 Skills: caveman, context-canary, fix-forward-collaboration, governance-audit, operator-correction-learning, plan-focus-recovery, sprint-closure, strategic-compact, verification-loop
