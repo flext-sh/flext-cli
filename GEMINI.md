@@ -1,25 +1,27 @@
 <!-- AIHUB-GOVERNANCE-INSTRUCTIONS-BEGIN -->
 <<<<<<< HEAD
-# <!-- AIHUB-GOVERNANCE-CAPSULE v1 sha256:5888ee9f8147f63364a4f7cd6906e9d837f58cb8a8546844760c526ecb1a303b -->
-<!-- AIHUB-GOVERNANCE-CAPSULE v1 sha256:e1b7a9ae088643bf660b78ff1aea55d49076ec46518707976d77c78ed23db5db -->
+# <!-- AIHUB-GOVERNANCE-CAPSULE v1 sha256:5888ee9f8147f63364a4f7cd6906e9d837f58cb8a8546844760c526ecb1a303b --><!-- AIHUB-GOVERNANCE-CAPSULE v1 sha256:e1b7a9ae088643bf660b78ff1aea55d49076ec46518707976d77c78ed23db5db -->
 >>>>>>> origin/integration/sweep-20260830
 # Generated session governance capsule
-
 This projection is derived by `agentsctl sync`; edit canonical `AGENTS.md`, `rules/`, `skills/`, or `commands/`, never this output. The operator's newest request has precedence. Provider hooks are delivery mechanisms, not policy owners.
 
 ## Rule `architecture/engineering-core`
-
 # Engineering core
-
 For every implementation:
 
 1. Research repository owners, dependencies, and canonical documentation.
+
 2. Remove scope without a current requirement or consumer (YAGNI).
+
 3. Elect one writable authority; every other copy is a generated projection
    (SSOT).
+
 4. Apply SOLID only to a responsibility or dependency boundary under change.
+
 5. Implement through the owner and simplify without weakening behavior.
+
 6. Remove duplication and god components; recheck YAGNI, SSOT, SOLID.
+
 7. Exercise runtime behavior, run every applicable native gate, and complete
    the approved landing cycle before changing phase.
 
@@ -47,17 +49,14 @@ Compose with `generalized ownership` (rule file),
 `strict execution` (rule file),
 `runtime evidence` (rule file),
 `storage isolation` (rule file),
-# `security closure` (rule file).
-Compose with generalized ownership,
+# `security closure` (rule file)Compose with generalized ownership,
 strict execution,
 runtime evidence,
 storage isolation,
 security closure.
 
 ## Rule `coordination/fix-forward-collaboration`
-
 # Adopt the current state and collaborate by fix-forward
-
 Treat every current authorized-repository change as owned input regardless of
 provenance or age. Re-read shared files, attribute overlapping intent, preserve
 compatible contributions, and adopt them through the integration lane. The
@@ -86,9 +85,7 @@ the destructive Git guard.
 >>>>>>> origin/integration/sweep-20260830
 
 ## Rule `coordination/operator-precedence`
-
 # Newest operator instruction wins; adjust artifacts to it
-
 Authority order: operator request > declared orchestration contract > canonical
 tracker > ADRs > skills > docs, and newest supersedes oldest. On conflict,
 adjust the lower or older artifact to match; never override the operator to
@@ -103,11 +100,8 @@ validation survives interruption, divergence, and red gates; re-preflight and
 continue. Ask only when the effect expands beyond it or two evidenced current
 intentions conflict. State alone proves no intention, actor, or process.
 
-# <<<<<<< HEAD
-## Rule `coordination/session-governance`
-
+# <<<<<<< HEAD## Rule `coordination/session-governance`
 # Rehydrate governance at every agent context boundary
-
 Static provider instructions own the complete standing contract. Provider hooks
 refresh a compact governance capsule at every native equivalent of session
 start, prompt submission, context compaction, and subagent start. A hook is a
@@ -136,36 +130,46 @@ runtime evidence.
 
 >>>>>>> origin/integration/sweep-20260830
 ## Rule `ethics/professional-integrity`
-
 # Professional integrity is absolute
-
 Never lie, fabricate evidence, hide a blocker, bypass a gate, or patch a symptom
 only to make a check pass. Fix the generalized root cause with full context and
 report exact command, working directory, exit code and decisive output.
 
 ## Rule `runtime/strict-execution`
-
 # Strict execution is universal and non-optional
-
 Every project and projected agent applies all of these policies together:
 
 <<<<<<< HEAD
+
 - `fail loud` (rule file);
+
 - `no fallback` (rule file);
+
 - `preflight before effects` (rule file);
+
 - `required environment` (rule file);
+
 - `atomic effects` (rule file);
+
 - `causal subprocess propagation` (rule file);
+
 - `no keyring` (rule file);
-# - `zero residue` (rule file).
-- fail loud;
+# - `zero residue` (rule file)- fail loud;
+
 - no fallback;
+
 - preflight before effects;
+
 - required environment;
+
 - atomic effects;
+
 - causal subprocess propagation;
+
 - no keyring;
+
 - zero residue.
+
 >>>>>>> origin/integration/sweep-20260830
 
 The policies are cumulative. A project rule may make them narrower or reject
@@ -176,11 +180,8 @@ its owner, never grandfathered compatibility.
 Resolve gate applicability before invocation. A dormant external-token gate is
 not executed; selecting or invoking it applies every policy above.
 
-# <<<<<<< HEAD
-## Rule `workflow/canonical-commands`
-
+# <<<<<<< HEAD## Rule `workflow/canonical-commands`
 # Run agent functions only through the optionless CLI
-
 `agentsctl` is the sole agent-runtime facade: `help`, `doctor`, `check`, `sync`,
 `evaluate`, `secure`, `clean`, and `live`. Each invocation has exactly one verb
 and no option, argument, mode, selector, alias, or compatibility syntax.
@@ -198,23 +199,25 @@ A broken or out-of-pattern command is a defect to fix at its owner and rerun
 through the same surface. Bypasses are blocking violations, not warnings.
 
 ## Rule `workflow/runtime-is-reality`
-
 # Reality is the running system; tests are checks, not the SSOT
-
 Validate against the real declared runtime (CLI, daemon, config, or public API)
 and exercise the actual feature—type and lint green are necessary, not
 sufficient.
 
 - A test that only passes by keeping removed or legacy artifacts is wrong: fix or
   delete the test; never restore legacy just to make it pass.
+
 - A config/settings test that breaks when a valid SSOT value changes is defective.
   Test contracts and derivations across arbitrary valid inputs; goldens may lock
   generated structure, never mutable config-owned values.
+
 - A missing facade constant fails only at runtime — import and run the real path.
+
 - Before concluding root cause, prove the running or installed artifact matches
   the declared authoritative revision or release. An editable checkout, local
   cache, generated copy, or stale environment is not evidence of remote/runtime
   behavior until identity is verified.
+
 - Use the newest released version of every required tool. Every diagnostic it
   emits is blocking. A cap, downgrade, substitution, suppression, compatibility
   classification, or false-positive classification requires prior operator
@@ -223,7 +226,6 @@ sufficient.
 
 >>>>>>> origin/integration/sweep-20260830
 ## Capability indexes
-
 Skills: caveman, context-canary, fix-forward-collaboration, governance-audit, operator-correction-learning, plan-focus-recovery, sprint-closure, strategic-compact, verification-loop
 Commands: add-language-rules, database-migration, feature-development, ghi-list, pr-list, ralph-loop, security-triage, synthesize-governance
 <!-- AIHUB-GOVERNANCE-INSTRUCTIONS-END -->
