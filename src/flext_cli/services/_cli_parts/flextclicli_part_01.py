@@ -53,6 +53,20 @@ class FlextCliCli:
         alias = getattr(field_info, "alias", None)
         cli_name = alias or field_name
         option_name = f"--{cli_name.replace('_', '-')}"
+        # Every validation alias is a first-class input name: the CLI exposes
+        # the canonical alias plus each string validation_alias choice, so a
+        # field migrated between names (e.g. workspace -> repository_root)
+        # accepts both spellings instead of stranding one of them.
+        extra_option_names: list[str] = []
+        validation_alias = getattr(field_info, "validation_alias", None)
+        choices = getattr(validation_alias, "choices", None)
+        if isinstance(choices, tuple):
+            for choice in choices:
+                if not isinstance(choice, str):
+                    continue
+                candidate = f"--{choice.replace('_', '-')}"
+                if candidate != option_name and candidate not in extra_option_names:
+                    extra_option_names.append(candidate)
         annotation = u.Cli.resolve_typer_annotation(
             getattr(field_info, "annotation", None) or str
         )
@@ -62,7 +76,7 @@ class FlextCliCli:
             if is_required
             else u.Cli.field_default(field_name, field_info, settings)
         )
-        option_decls = [option_name]
+        option_decls = [option_name, *extra_option_names]
         extra = getattr(field_info, "json_schema_extra", None)
         custom_param_decls: list[str] | None = None
         if isinstance(extra, Mapping):
