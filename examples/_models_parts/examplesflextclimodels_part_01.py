@@ -2,13 +2,9 @@
 
 from __future__ import annotations
 
-from .examples_advanced import (
-    ExamplesFlextCliModelsExamplesAdvanced,
-)
+from .examples_advanced import ExamplesFlextCliModelsExamplesAdvanced
 from .examples_common import ExamplesFlextCliModelsExamplesCommon
-from .examples_database import (
-    ExamplesFlextCliModelsExamplesDatabase,
-)
+from .examples_database import ExamplesFlextCliModelsExamplesDatabase
 
 
 class ExamplesFlextCliModels:

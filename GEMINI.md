@@ -1,7 +1,6 @@
 <!-- AIHUB-GOVERNANCE-INSTRUCTIONS-BEGIN -->
 <<<<<<< HEAD
-<!-- AIHUB-GOVERNANCE-CAPSULE v1 sha256:5888ee9f8147f63364a4f7cd6906e9d837f58cb8a8546844760c526ecb1a303b -->
-=======
+# <!-- AIHUB-GOVERNANCE-CAPSULE v1 sha256:5888ee9f8147f63364a4f7cd6906e9d837f58cb8a8546844760c526ecb1a303b -->
 <!-- AIHUB-GOVERNANCE-CAPSULE v1 sha256:e1b7a9ae088643bf660b78ff1aea55d49076ec46518707976d77c78ed23db5db -->
 >>>>>>> origin/integration/sweep-20260830
 # Generated session governance capsule
@@ -48,8 +47,7 @@ Compose with `generalized ownership` (rule file),
 `strict execution` (rule file),
 `runtime evidence` (rule file),
 `storage isolation` (rule file),
-`security closure` (rule file).
-=======
+# `security closure` (rule file).
 Compose with generalized ownership,
 strict execution,
 runtime evidence,
@@ -105,8 +103,7 @@ validation survives interruption, divergence, and red gates; re-preflight and
 continue. Ask only when the effect expands beyond it or two evidenced current
 intentions conflict. State alone proves no intention, actor, or process.
 
-<<<<<<< HEAD
-=======
+# <<<<<<< HEAD
 ## Rule `coordination/session-governance`
 
 # Rehydrate governance at every agent context boundary
@@ -160,8 +157,7 @@ Every project and projected agent applies all of these policies together:
 - `atomic effects` (rule file);
 - `causal subprocess propagation` (rule file);
 - `no keyring` (rule file);
-- `zero residue` (rule file).
-=======
+# - `zero residue` (rule file).
 - fail loud;
 - no fallback;
 - preflight before effects;
@@ -180,8 +176,7 @@ its owner, never grandfathered compatibility.
 Resolve gate applicability before invocation. A dormant external-token gate is
 not executed; selecting or invoking it applies every policy above.
 
-<<<<<<< HEAD
-=======
+# <<<<<<< HEAD
 ## Rule `workflow/canonical-commands`
 
 # Run agent functions only through the optionless CLI
