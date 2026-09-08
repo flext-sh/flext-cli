@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import Final
 
 from flext_cli import c, m, t
@@ -14,10 +14,10 @@ _ROW_GLYPH: Final[str] = "-"
 _ROW_EDGE: Final[str] = "+"
 _COLUMN_EDGE: Final[str] = "|"
 _INDEX_HEADER: Final[str] = ""
-_PAD_METHODS: Final[dict[str, str]] = {
-    "left": "ljust",
-    "right": "rjust",
-    "center": "center",
+_PAD_METHODS: Final[dict[str, Callable[[str, int], str]]] = {
+    "left": str.ljust,
+    "right": str.rjust,
+    "center": str.center,
 }
 _DECIMAL_ALIASES: Final[frozenset[str]] = frozenset({"decimal", "right"})
 _SHAPES: Final[dict[str, str]] = {
@@ -45,8 +45,7 @@ class FlextCliUtilitiesTablesRenderer:
 
     @staticmethod
     def _pad(cell: str, width: int, alignment: str) -> str:
-        method = _PAD_METHODS.get(alignment, "ljust")
-        return getattr(cell, method)(width)
+        return _PAD_METHODS.get(alignment, str.ljust)(cell, width)
 
     @staticmethod
     def _is_numeric(cell: str) -> bool:
@@ -63,7 +62,7 @@ class FlextCliUtilitiesTablesRenderer:
         if headers == "firstrow" and rows:
             return [str(cell) for cell in rows[0]]
         if headers == "keys" and rows and isinstance(rows[0], Mapping):
-            return [str(key) for key in rows[0]]
+            return list(rows[0])
         if isinstance(headers, str):
             return []
         return list(headers)
@@ -175,7 +174,7 @@ class FlextCliUtilitiesTablesRenderer:
     @staticmethod
     def _apply_index(
         data_rows: Sequence[t.Cli.TableRow], settings: m.Cli.TableConfig
-    ) -> tuple[list[str] | None, list[list[t.JsonPayload]]]:
+    ) -> tuple[list[str] | None, Sequence[t.Cli.TableRow]]:
         if settings.showindex is True:
             return (
                 [_INDEX_HEADER],

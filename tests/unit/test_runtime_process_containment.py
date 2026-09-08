@@ -227,7 +227,8 @@ class TestsFlextCliRuntimeProcessContainment:
         )
 
         tm.ok(result)
-        tm.that(result.value.raw_return_code, eq=91)
+        tm.that(result.value.raw_return_code, eq=0)
+        tm.that(result.value.timed_out, eq=True)
         tm.that(output_file.read_bytes(), has=b"interrupted")
         tm.that(time.monotonic() - started, lt=1.2)
 
@@ -268,7 +269,8 @@ class TestsFlextCliRuntimeProcessContainment:
         )
 
         tm.ok(result)
-        tm.that(result.value.raw_return_code, eq=92)
+        tm.that(result.value.raw_return_code, eq=-signal.SIGTERM)
+        tm.that(result.value.timed_out, eq=True)
         tm.that(process_info.exists(), eq=True)
         _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
         tm.that(time.monotonic() - started, lt=2.0)

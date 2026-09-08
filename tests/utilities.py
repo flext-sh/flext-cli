@@ -10,15 +10,27 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Annotated
+from typing import TYPE_CHECKING, Annotated
 
 from flext_cli import cli, u
-from flext_tests import FlextTestsUtilities, r
-from tests import TestsFlextCliSettings, c, p
+from flext_tests import FlextTestsUtilities, r, tm
+from tests import TestsFlextCliSettings, c, m, p
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class TestsFlextCliUtilities(FlextTestsUtilities, u):
     """Test utilities for flext-cli."""
+
+    @staticmethod
+    def atomic_directory_snapshot(
+        path: Path, *, required: bool = False
+    ) -> m.Cli.AtomicDirectoryState:
+        """Read one authenticated empty-directory state through the facade."""
+        result = u.Cli.atomic_read_empty_directory_state(path, required=required)
+        tm.ok(result)
+        return result.value
 
     class Tests(FlextTestsUtilities.Tests):
         """flext-cli-specific test utilities."""

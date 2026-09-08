@@ -20,14 +20,14 @@ class TestsAtomicDirectoryIdentity:
     ) -> None:
         """Return parent identity for absence and complete identity for presence."""
         target = tmp_path / "state"
-        absent = self._snapshot(target)
+        absent = u.atomic_directory_snapshot(target)
         parent_state = tmp_path.lstat()
         tm.that(absent.exists, eq=False)
         tm.that(absent.parent_device, eq=parent_state.st_dev)
         tm.that(absent.parent_inode, eq=parent_state.st_ino)
 
         target.mkdir()
-        present = self._snapshot(target, required=True)
+        present = u.atomic_directory_snapshot(target, required=True)
         host_state = target.lstat()
         tm.that(present.exists, eq=True)
         tm.that(present.mode, eq=stat.S_IMODE(host_state.st_mode))
@@ -48,7 +48,7 @@ class TestsAtomicDirectoryIdentity:
     ) -> None:
         """Create from exact absence and report the materialized physical state."""
         target = tmp_path / "created"
-        before = self._snapshot(target)
+        before = u.atomic_directory_snapshot(target)
 
         result = u.Cli.atomic_create_empty_directory_guarded(
             before, permission_mode=0o750
@@ -65,7 +65,7 @@ class TestsAtomicDirectoryIdentity:
         parent = tmp_path / "parent"
         parent.mkdir()
         target = parent / "created"
-        before = self._snapshot(target)
+        before = u.atomic_directory_snapshot(target)
         original_parent = tmp_path / "original-parent"
         parent.rename(original_parent)
         parent.mkdir()
@@ -84,7 +84,7 @@ class TestsAtomicDirectoryIdentity:
         """Do not remove a new empty inode that merely matches visible mode."""
         target = tmp_path / "empty"
         target.mkdir(mode=0o750)
-        before = self._snapshot(target, required=True)
+        before = u.atomic_directory_snapshot(target, required=True)
         old = tmp_path / "old"
         target.rename(old)
         target.mkdir()
@@ -106,7 +106,7 @@ class TestsAtomicDirectoryIdentity:
         """Preserve regular or directory content added after the empty snapshot."""
         target = tmp_path / f"empty-{entry_kind}"
         target.mkdir()
-        before = self._snapshot(target, required=True)
+        before = u.atomic_directory_snapshot(target, required=True)
         child = target / "late"
         if entry_kind == "file":
             child.write_bytes(b"content")
@@ -160,12 +160,6 @@ class TestsAtomicDirectoryIdentity:
                 link_count=1,
                 reparse_tag=1,
             )
-
-    @staticmethod
-    def _snapshot(path: Path, *, required: bool = False) -> m.Cli.AtomicDirectoryState:
-        result = u.Cli.atomic_read_empty_directory_state(path, required=required)
-        tm.ok(result)
-        return result.value
 
 
 __all__: list[str] = ["TestsAtomicDirectoryIdentity"]

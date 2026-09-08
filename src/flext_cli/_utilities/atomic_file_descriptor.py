@@ -92,7 +92,7 @@ def entry_descriptor(
     try:
         yield descriptor
     except BaseException as operation_error:
-        _close_after_failure(descriptor, path, operation_error)
+        close_after_failure(descriptor, path, operation_error, label="operation")
         raise
     os.close(descriptor)
 
@@ -150,16 +150,17 @@ def require_entry(parent: ParentDescriptor, path: Path) -> None:
         raise OSError(errno.EINVAL, message, path)
 
 
-def _close_after_failure(
-    descriptor: int, path: Path, operation_error: BaseException
+def close_after_failure(
+    descriptor: int, path: Path, operation_error: BaseException, *, label: str
 ) -> None:
+    """Close one failed operation's descriptor, preserving causal close errors."""
     try:
         os.close(descriptor)
     except OSError as close_error:
         message = (
-            f"atomic operation failed ({operation_error}); close failed ({close_error})"
+            f"atomic {label} failed ({operation_error}); close failed ({close_error})"
         )
-        group_message = "atomic operation and descriptor close failed"
+        group_message = f"atomic {label} and descriptor close failed"
         if isinstance(operation_error, Exception):
             causes = ExceptionGroup(group_message, [operation_error, close_error])
             raise OSError(errno.EIO, message, path) from causes
@@ -171,6 +172,7 @@ def _close_after_failure(
 __all__: list[str] = [
     "ParentDescriptor",
     "assert_parent_unchanged",
+    "close_after_failure",
     "entry_descriptor",
     "entry_stat",
     "open_entry",

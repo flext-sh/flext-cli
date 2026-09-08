@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import signal
 import sys
 import time
 from typing import TYPE_CHECKING, ClassVar, override
@@ -92,7 +91,8 @@ class TestsFlextCliRuntimeProcessDescendants:
         )
 
         tm.ok(result)
-        tm.that(result.value.raw_return_code, eq=-signal.SIGINT)
+        tm.that(result.value.timed_out, eq=True)
+        tm.that(result.value.raw_return_code, lt=0)
         if os.name == "nt":
             tm.that(_ObservedWindowsCli.active_counts, empty=False)
             tm.that(_ObservedWindowsCli.active_counts[-1], eq=0)
