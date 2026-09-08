@@ -113,6 +113,54 @@ class TestsFlextCliJsonCov:
         tm.fail(result)
         tm.that(result.error, none=False)
 
+    # ----- duplicate key rejection (opt-in) ---------------------------------
+
+    def test_json_loads_rejects_duplicate_key_when_enabled(self) -> None:
+        """Verify that json loads rejects a repeated key with key and path."""
+        result = u.Cli.json_loads('{"a": 1, "a": 2}', reject_duplicate_keys=True)
+        tm.fail(result)
+        tm.that(result.error, has="duplicate JSON key 'a'")
+        tm.that(result.error, has="$.a")
+
+    def test_json_loads_rejects_nested_duplicate_key_when_enabled(self) -> None:
+        """Verify that json loads rejects a repeated nested key with its path."""
+        result = u.Cli.json_loads(
+            '{"outer": {"dup": 1, "dup": 2}}', reject_duplicate_keys=True
+        )
+        tm.fail(result)
+        tm.that(result.error, has="duplicate JSON key 'dup'")
+        tm.that(result.error, has="$.outer.dup")
+
+    def test_json_loads_accepts_unique_keys_when_enabled(self) -> None:
+        """Verify that json loads keeps parsing unique-key payloads enabled."""
+        result = u.Cli.json_loads('{"a": 1, "b": [1, 2]}', reject_duplicate_keys=True)
+        tm.ok(result)
+        expected: t.JsonValue = {"a": 1, "b": [1, 2]}
+        tm.that(result.value, eq=expected)
+
+    def test_json_loads_default_keeps_duplicate_tolerance(self) -> None:
+        """Verify that json loads default behavior stays unchanged on duplicates."""
+        result = u.Cli.json_loads('{"a": 1, "a": 2}')
+        tm.ok(result)
+        expected: t.JsonValue = {"a": 2}
+        tm.that(result.value, eq=expected)
+
+    def test_json_parse_rejects_duplicate_key_when_enabled(self) -> None:
+        """Verify that json parse rejects a repeated key with key and path."""
+        result = u.Cli.json_parse(
+            '{"dup": {"k": 1, "k": 2}}', reject_duplicate_keys=True
+        )
+        tm.fail(result)
+        tm.that(result.error, has="duplicate JSON key 'k'")
+        tm.that(result.error, has="$.dup.k")
+
+    def test_json_parse_accepts_unique_keys_when_enabled(self) -> None:
+        """Verify that json parse keeps parsing unique-key payloads enabled."""
+        result = u.Cli.json_parse('{"x": 1}', reject_duplicate_keys=True)
+        tm.ok(result)
+        expected: t.JsonValue = {"x": 1}
+        tm.that(result.value, eq=expected)
+
     # ----- coercion helpers: mapping / sequence ----------------------------
 
     @pytest.mark.parametrize(

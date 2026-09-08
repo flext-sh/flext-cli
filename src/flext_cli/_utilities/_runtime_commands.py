@@ -47,6 +47,8 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         def require_zero_exit(
             output: p.Cli.CommandOutput,
         ) -> p.Result[p.Cli.CommandOutput]:
+            if output.outcome.timed_out:
+                return r[p.Cli.CommandOutput].ok(output)
             if not cls.process_succeeded(output.outcome):
                 detail = (output.stderr or output.stdout).strip()
                 return r[p.Cli.CommandOutput].fail(

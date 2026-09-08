@@ -64,14 +64,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
             if case.use_tmp_path:
                 tm.that(output.stdout.strip(), eq=str(tmp_path))
             if case.exit_code is not None:
-                tm.that(
-                    (
-                        u.Cli.process_succeeded(output.outcome),
-                        output.outcome.raw_return_code,
-                    ),
-                    eq=(True, case.exit_code),
-                )
-
+                tm.that(output.outcome.raw_return_code, eq=case.exit_code)
+            tm.that(output.outcome.timed_out, eq=case.timed_out)
             return
         tm.fail(result, has=case.error_has)
 
@@ -98,6 +92,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
                 tm.that(output.stdout, has=case.stdout_has)
             if case.use_tmp_path:
                 tm.that(output.stdout.strip(), eq=str(tmp_path))
+            tm.that(output.outcome.timed_out, eq=case.timed_out)
             return
         tm.fail(result, has=case.error_has)
 

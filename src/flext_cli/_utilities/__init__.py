@@ -132,6 +132,7 @@ if TYPE_CHECKING:
     from .atomic_file_descriptor import (
         ParentDescriptor,
         assert_parent_unchanged,
+        close_after_failure,
         entry_descriptor,
         entry_stat,
         open_entry,
@@ -338,6 +339,7 @@ __all__: tuple[str, ...] = (
     "assert_parent_unchanged",
     "assert_temporary_owned",
     "cleanup_physical_tree_guarded",
+    "close_after_failure",
     "create_descriptor",
     "create_entry",
     "create_guarded_directory_chain",
@@ -554,6 +556,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".atomic_file_descriptor": (
                 "ParentDescriptor",
                 "assert_parent_unchanged",
+                "close_after_failure",
                 "entry_descriptor",
                 "entry_stat",
                 "open_entry",
