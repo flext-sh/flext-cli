@@ -200,13 +200,11 @@ class FlextCliModelsBase:
                 for key, value in self.base_env.items()
                 if key not in remove_keys
             }
-            resolved.update(
-                {
-                    key: value
-                    for key, value in self.overrides.items()
-                    if key not in remove_keys
-                }
-            )
+            resolved.update({
+                key: value
+                for key, value in self.overrides.items()
+                if key not in remove_keys
+            })
             return resolved
 
 

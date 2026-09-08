@@ -61,9 +61,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return u.try_(
-            _parse,
-            catch=(c.ValidationError, ValueError),
-            op_name="json_loads",
+            _parse, catch=(c.ValidationError, ValueError), op_name="json_loads"
         )
 
     @staticmethod
@@ -206,11 +204,7 @@ class FlextCliUtilitiesJsonCoreMixin:
                 FlextCliUtilitiesJsonCoreMixin._reject_duplicate_json_keys(text)
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(text)
 
-        return u.try_(
-            _parse,
-            catch=c.EXC_VALIDATION_VALUE,
-            op_name="json_parse",
-        )
+        return u.try_(_parse, catch=c.EXC_VALIDATION_VALUE, op_name="json_parse")
 
     @staticmethod
     def json_as_mapping(value: t.JsonPayload | None) -> t.JsonMapping:
