@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import shlex
-import subprocess
+import subprocess  # nosec B404 - canonical process execution owner for CLI verbs
 from typing import BinaryIO, ClassVar, override
 
 from flext_cli import m, p, r, t
@@ -68,7 +68,7 @@ class FlextCliUtilitiesRuntime(
         creation_flags: int,
     ) -> p.Cli.ProcessHandle:
         """Create the sole raw child owned by the streamed lifecycle."""
-        return subprocess.Popen(
+        return subprocess.Popen(  # nosec B603 - internal process execution, inputs from typed config
             list(cmd),
             cwd=cwd,
             stdin=subprocess.DEVNULL if stdin_handle is None else stdin_handle,
