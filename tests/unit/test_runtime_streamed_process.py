@@ -10,8 +10,8 @@ import time
 from typing import TYPE_CHECKING
 
 import pytest
-
 from flext_tests import tm
+
 from tests import c, m, p, u
 
 if TYPE_CHECKING:

@@ -13,9 +13,9 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING
 
 import pytest
+from flext_tests import tm
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-from flext_tests import tm
 from tests import c, t, u
 
 if TYPE_CHECKING:

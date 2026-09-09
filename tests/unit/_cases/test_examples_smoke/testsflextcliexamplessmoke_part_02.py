@@ -13,10 +13,10 @@ from examples.ex_04_file_operations import (
     save_user_preferences,
     validate_and_import_data,
 )
-
-from flext_cli import cli, settings
 from flext_tests import tm
 from tests import c
+
+from flext_cli import cli, settings
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

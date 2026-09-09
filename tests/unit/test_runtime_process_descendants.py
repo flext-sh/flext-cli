@@ -8,8 +8,8 @@ import time
 from typing import TYPE_CHECKING, ClassVar, override
 
 import pytest
-
 from flext_tests import tm
+
 from tests import m, p, u
 
 if TYPE_CHECKING:

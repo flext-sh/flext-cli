@@ -5,9 +5,9 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import cli, m, p
-from flext_tests import tm
 
 
 def _render_workbook() -> bytes:

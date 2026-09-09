@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-
-from flext_cli import cli, r
 from flext_tests import tm
 from tests import m
+
+from flext_cli import cli, r
 
 if TYPE_CHECKING:
     from pathlib import Path

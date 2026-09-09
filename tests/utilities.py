@@ -12,8 +12,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Annotated
 
-from flext_cli import cli, u
 from flext_tests import FlextTestsUtilities, r, tm
+
+from flext_cli import cli, u
 from tests import TestsFlextCliSettings, c, m, p
 
 if TYPE_CHECKING:

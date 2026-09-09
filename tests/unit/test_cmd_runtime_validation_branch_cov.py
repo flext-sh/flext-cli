@@ -11,8 +11,8 @@ from __future__ import annotations
 from collections.abc import Callable
 
 import pytest
-
 from flext_tests import tm
+
 from tests import c, m, t, u
 
 type MappingProcessor = Callable[[str, int], int]
