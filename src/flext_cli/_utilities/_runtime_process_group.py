@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import os
+import platform
 import signal
-import sys
 
 from flext_cli import p, r
 
@@ -32,7 +32,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
                 lambda active_count: active_count == 0
             )
         try:
-            if sys.platform == "darwin":
+            if platform.system() == "Darwin":
                 return r[bool].ok(
                     not cls._darwin_process_group_members(process_group_id)
                 )
@@ -67,7 +67,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
         except PermissionError as exc:
             # XNU killpg excludes zombies and returns EPERM if none are live.
             # Confirm that state; cleanup still waits for every PID to be reaped.
-            if sys.platform == "darwin":
+            if platform.system() == "Darwin":
                 try:
                     if cls._darwin_process_group_exited(process.pid):
                         return None
