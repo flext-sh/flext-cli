@@ -12,6 +12,25 @@ from tests import u
 class TestsAtomicDirectoryPublish:
     """Prove staged directory publication preserves identities and names."""
 
+    def test_publish_preserves_late_empty_destination(self, tmp_path: Path) -> None:
+        """Never replace an empty directory created after the absent snapshot."""
+        staged_path = tmp_path / "staged"
+        destination_path = tmp_path / "destination"
+        staged_path.mkdir()
+        destination = u.atomic_directory_snapshot(destination_path)
+        staged = u.atomic_directory_snapshot(staged_path, required=True)
+        destination_path.mkdir()
+        destination_inode = destination_path.stat().st_ino
+        staged_inode = staged_path.stat().st_ino
+
+        result = u.Cli.atomic_publish_staged_empty_directory_guarded(
+            destination, staged
+        )
+
+        tm.fail(result)
+        tm.that(destination_path.stat().st_ino, eq=destination_inode)
+        tm.that(staged_path.stat().st_ino, eq=staged_inode)
+
     def test_publish_moves_exact_empty_inode_across_parents(
         self, tmp_path: Path
     ) -> None:

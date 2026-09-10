@@ -3,15 +3,20 @@
 from __future__ import annotations
 
 import os
+import platform
 import signal
 
 from flext_cli import p, r
 
+from ._runtime_darwin_process_group import (
+    FlextCliUtilitiesRuntimeDarwinProcessGroupMixin,
+)
 from ._runtime_windows_job_start import FlextCliUtilitiesRuntimeWindowsJobStartMixin
 from ._runtime_windows_job_state import FlextCliUtilitiesRuntimeWindowsJobStateMixin
 
 
 class FlextCliUtilitiesRuntimeProcessGroupMixin(
+    FlextCliUtilitiesRuntimeDarwinProcessGroupMixin,
     FlextCliUtilitiesRuntimeWindowsJobStartMixin,
     FlextCliUtilitiesRuntimeWindowsJobStateMixin,
 ):
@@ -27,10 +32,14 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
                 lambda active_count: active_count == 0
             )
         try:
+            if platform.system() == "Darwin":
+                return r[bool].ok(
+                    not cls._darwin_process_group_members(process_group_id)
+                )
             os.killpg(process_group_id, 0)
         except ProcessLookupError:
             return r[bool].ok(True)
-        except PermissionError as exc:
+        except OSError as exc:
             return r[bool].fail(f"process-group probe failed: {exc}", exception=exc)
         return r[bool].ok(False)
 
@@ -55,6 +64,16 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
             os.killpg(process.pid, signal.SIGKILL if force else signal_number)
         except ProcessLookupError:
             return None
+        except PermissionError as exc:
+            # XNU killpg excludes zombies and returns EPERM if none are live.
+            # Confirm that state; cleanup still waits for every PID to be reaped.
+            if platform.system() == "Darwin":
+                try:
+                    if cls._darwin_process_group_exited(process.pid):
+                        return None
+                except OSError as probe_error:
+                    return f"process-tree state error: {probe_error}"
+            return f"process-tree signal error: {exc}"
         except (OSError, ValueError) as exc:
             return f"process-tree signal error: {exc}"
         return None
