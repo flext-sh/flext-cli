@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import shutil
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 from flext_tests import tm
 
-from flext_cli import cli, m, p
+from flext_cli import c, cli, m, p
+
+pytestmark = pytest.mark.skipif(
+    shutil.which(c.Cli.XLSX_RECALC_COMMAND[0]) is None,
+    reason="LibreOffice (soffice) is not installed or available on PATH",
+)
 
 
 def _render_workbook() -> bytes:
