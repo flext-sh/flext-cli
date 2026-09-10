@@ -14,6 +14,7 @@ from . import (
     atomic_file_path as file_path,
     atomic_file_read as file_read,
     atomic_file_state as file_state,
+    atomic_tree_darwin as tree_darwin,
 )
 
 _FILE_FLAGS = (
@@ -46,8 +47,11 @@ def measure_authenticated_file(
 
 
 def mount_id(descriptor: int, path: Path) -> int:
-    """Return Linux's descriptor-bound mount ID or fail closed."""
-    if _runtime_platform() != "linux":
+    """Return the host's descriptor-bound mount identity or fail closed."""
+    platform_name = _runtime_platform()
+    if platform_name == "darwin":
+        return tree_darwin.FlextCliAtomicTreeDarwin.mount_id(descriptor, path)
+    if platform_name != "linux":
         message = "descriptor-bound mount identity is unsupported"
         raise OSError(errno.ENOTSUP, message, path)
     values: list[str]
