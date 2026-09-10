@@ -81,20 +81,20 @@ def _runtime_platform() -> tuple[str, str]:
 
 
 def _linux_renameat2(path: Path) -> RenameAt2:
-    return _load_rename("renameat2", path)
+    return _load_rename("renameat2", "Linux", path)
 
 
 def _darwin_renameatx(path: Path) -> RenameAt2:
     """Load Apple's descriptor-relative exclusive rename, never plain rename."""
-    return _load_rename("renameatx_np", path)
+    return _load_rename("renameatx_np", "Darwin", path)
 
 
-def _load_rename(symbol: str, path: Path) -> RenameAt2:
+def _load_rename(symbol: str, platform_name: str, path: Path) -> RenameAt2:
     try:
         library = ctypes.CDLL(None, use_errno=True)
         operation = library[symbol]
     except (AttributeError, OSError) as exc:
-        message = f"host libc does not expose {symbol}"
+        message = f"{platform_name} libc does not expose {symbol}"
         raise OSError(errno.ENOTSUP, message, path) from exc
     operation.argtypes = (
         ctypes.c_int,
