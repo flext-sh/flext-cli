@@ -72,6 +72,11 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
             ...
 
         @property
+        def exit_code(self) -> int:
+            """Raw process return code, derived from the completion outcome."""
+            ...
+
+        @property
         def outcome(self) -> FlextCliProtocolsBase.ProcessOutcome:
             """Causal process completion state."""
             ...
@@ -94,6 +99,11 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
         @property
         def duration(self) -> float:
             """Command duration in seconds."""
+            ...
+
+        @property
+        def exit_code(self) -> int:
+            """Raw process return code, derived from the completion outcome."""
             ...
 
         @property
