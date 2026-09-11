@@ -14,7 +14,7 @@ class TestsFlextCliModelsRuntime:
     class ApiResponse(m.BaseModel):
         """API response for type scenario tests -- Pydantic v2."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid")
         status: Annotated[str, m.Field(description="Status")]
         data: Annotated[t.JsonMapping | None, m.Field(description="Payload")] = None
         message: Annotated[str, m.Field(description="Message")]
@@ -47,7 +47,7 @@ class TestsFlextCliModelsRuntime:
     class RuntimeCommandCase(m.BaseModel):
         """Runtime command parametrization case."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
 
         case_id: Annotated[str, m.Field(description="Pytest case id")]
         command: Annotated[t.StrSequence, m.Field(description="Command argv")]
@@ -79,6 +79,9 @@ class TestsFlextCliModelsRuntime:
         ] = None
         expected: Annotated[str, m.Field(description="Expected captured output")] = ""
         error_has: Annotated[str, m.Field(description="Expected error substring")] = ""
+        timed_out: Annotated[
+            bool, m.Field(description="Whether the run must end owned-timeout")
+        ] = False
 
         @staticmethod
         def id_for(case: TestsFlextCliModelsRuntime.RuntimeCommandCase) -> str:
@@ -135,15 +138,15 @@ class TestsFlextCliModelsRuntime:
                 }),
                 cls.model_validate({
                     "case_id": "non-utf8-output",
-                    "command": ("sh", "-c", "printf '\\xff\\xfe'"),
+                    "command": ("sh", "-c", "printf '\\377\\376'"),
                     "error_has": "non-UTF-8",
                     "expect_success": False,
                 }),
                 cls.model_validate({
                     "case_id": "timeout",
                     "command": ("sleep", "10"),
-                    "error_has": "timeout",
-                    "expect_success": False,
+                    "expect_success": True,
+                    "timed_out": True,
                     "timeout": 1,
                 }),
                 cls.model_validate({
@@ -192,8 +195,8 @@ class TestsFlextCliModelsRuntime:
                 cls.model_validate({
                     "case_id": "timeout",
                     "command": ("sleep", "10"),
-                    "error_has": "timeout",
-                    "expect_success": False,
+                    "expect_success": True,
+                    "timed_out": True,
                     "timeout": 1,
                 }),
             )

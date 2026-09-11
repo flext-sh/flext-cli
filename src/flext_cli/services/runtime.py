@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from flext_cli import s, t
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
 
-class FlextCliRuntime(s, FlextCliUtilitiesRuntime):
+class FlextCliRuntime(s):
     """Expose process execution helpers through ``cli`` and ``FlextCli``."""
 
 

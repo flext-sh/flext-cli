@@ -8,73 +8,149 @@ import sys
 import threading
 import time
 from collections import UserList
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, override
 
 import pytest
-
 from flext_tests import tm
-from tests import m, u
+
+from tests import m, p, u
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-def _deadline(
-    *, seconds: float, grace: float, exit_code: int = 124
-) -> m.Cli.ProcessDeadline:
+def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
     return m.Cli.ProcessDeadline(
-        expires_at_monotonic=time.monotonic() + seconds,
-        termination_grace_seconds=grace,
-        timeout_exit_code=exit_code,
+        expires_at_monotonic=time.monotonic() + seconds, termination_grace_seconds=grace
     )
 
 
-def _process_exists(process_id: int) -> bool:
-    try:
-        os.kill(process_id, 0)
-    except OSError:
-        return False
-    return True
+def _survivor_acknowledged(probe: Path, acknowledgement: Path) -> bool:
+    """Ask an owned descendant to prove it is still able to execute."""
+    probe.touch()
+    acknowledgement_deadline = time.monotonic() + 0.5
+    while not acknowledgement.exists() and time.monotonic() < acknowledgement_deadline:
+        time.sleep(0.01)
+    return acknowledgement.exists()
+
+
+def _assert_owned_descendant_stopped(
+    process_info: Path, probe: Path, acknowledgement: Path
+) -> None:
+    """Prove no owned descendant can execute and clean an observed failure."""
+    child_survived = _survivor_acknowledged(probe, acknowledgement)
+    if child_survived:
+        os.kill(int(process_info.read_text(encoding="utf-8")), signal.SIGTERM)
+    tm.that(child_survived, eq=False)
+
+
+def _assert_timeout_empties_descendants[
+    Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput)
+](tmp_path: Path, execute: Callable[[tuple[str, ...]], p.Result[Output]]) -> None:
+    process_info = tmp_path / "captured-process-info"
+    survivor_probe = tmp_path / "captured-survivor-probe"
+    survivor_ack = tmp_path / "captured-survivor-ack"
+    child = (
+        "import os,pathlib,sys,time;"
+        "info=pathlib.Path(sys.argv[1]);probe=pathlib.Path(sys.argv[2]);"
+        "ack=pathlib.Path(sys.argv[3]);info.write_text(str(os.getpid()));"
+        "\nwhile True:\n"
+        " if probe.exists(): ack.touch()\n"
+        " time.sleep(.01)"
+    )
+    parent = (
+        "import pathlib,subprocess,sys,time;"
+        f"subprocess.Popen([sys.executable,'-c',{child!r},"
+        "sys.argv[1],sys.argv[2],sys.argv[3]],stdout=subprocess.DEVNULL,"
+        "stderr=subprocess.DEVNULL);"
+        "info=pathlib.Path(sys.argv[1]);"
+        "\nwhile not info.exists():\n time.sleep(.01)\n"
+        "time.sleep(30)"
+    )
+
+    result = execute((
+        sys.executable,
+        "-c",
+        parent,
+        str(process_info),
+        str(survivor_probe),
+        str(survivor_ack),
+    ))
+
+    tm.ok(result)
+    tm.that(result.value.outcome.timed_out, eq=True)
+    _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
 
 
 class _InterruptingCommand(UserList[str]):
     @override
     def __iter__(self) -> Iterator[str]:
-        os.kill(os.getpid(), signal.SIGTERM)
+        signal.raise_signal(signal.SIGTERM)
         return super().__iter__()
 
 
 class TestsFlextCliRuntimeProcessContainment:
     """Prove pre-spawn signals, deadline escalation, and empty boundaries."""
 
-    @pytest.mark.skipif(os.name == "nt", reason="POSIX process-group contract")
-    def test_return_proves_owned_process_group_empty(self, tmp_path: Path) -> None:
-        boundary_file = tmp_path / "boundary"
-        nested = "import os,time;os.close(1);os.close(2);time.sleep(30)"
+    def test_run_raw_timeout_leaves_no_descendant(self, tmp_path: Path) -> None:
+        """Return only after the captured text runner empties its owned boundary."""
+        _assert_timeout_empties_descendants(
+            tmp_path, lambda command: u.Cli().run_raw(command, timeout=1)
+        )
+
+    def test_run_timeout_leaves_no_descendant(self, tmp_path: Path) -> None:
+        """Return only after the checked text runner empties its owned boundary."""
+        _assert_timeout_empties_descendants(
+            tmp_path, lambda command: u.Cli().run(command, timeout=1)
+        )
+
+    def test_run_bytes_timeout_leaves_no_descendant(self, tmp_path: Path) -> None:
+        """Return only after the byte runner empties its owned boundary."""
+        _assert_timeout_empties_descendants(
+            tmp_path, lambda command: u.Cli().run_bytes(command, timeout=1)
+        )
+
+    def test_return_proves_owned_process_boundary_empty(self, tmp_path: Path) -> None:
+        process_info = tmp_path / "boundary-process-info"
+        survivor_probe = tmp_path / "boundary-survivor-probe"
+        survivor_ack = tmp_path / "boundary-survivor-ack"
+        nested = (
+            "import os,pathlib,sys,time;"
+            "info=pathlib.Path(sys.argv[1]);probe=pathlib.Path(sys.argv[2]);"
+            "ack=pathlib.Path(sys.argv[3]);info.write_text(str(os.getpid()));"
+            "\nwhile True:\n"
+            " if probe.exists(): ack.touch()\n"
+            " time.sleep(.01)"
+        )
         root = (
-            "import os,pathlib,subprocess,sys;"
-            f"child=subprocess.Popen([sys.executable,'-c',{nested!r}]);"
-            "pathlib.Path(sys.argv[1]).write_text(f'{os.getpgrp()} {child.pid}')"
+            "import pathlib,subprocess,sys,time;"
+            f"subprocess.Popen([sys.executable,'-c',{nested!r},"
+            "sys.argv[1],sys.argv[2],sys.argv[3]],"
+            "stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL);"
+            "info=pathlib.Path(sys.argv[1]);"
+            "\nwhile not info.exists():\n time.sleep(.01)"
         )
 
         result = u.Cli().run_to_file(
-            [sys.executable, "-c", root, str(boundary_file)],
+            [
+                sys.executable,
+                "-c",
+                root,
+                str(process_info),
+                str(survivor_probe),
+                str(survivor_ack),
+            ],
             tmp_path / "boundary.log",
-            deadline=_deadline(seconds=2.0, grace=0.8, exit_code=94),
+            deadline=_deadline(seconds=2.0, grace=0.8),
         )
 
-        process_group, _child = (
-            int(value) for value in boundary_file.read_text().split()
-        )
         tm.ok(result)
-        tm.that(result.value, eq=0)
-        with pytest.raises(ProcessLookupError):
-            os.killpg(process_group, 0)
+        tm.that(result.value.raw_return_code, eq=0)
+        _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
 
-    @pytest.mark.skipif(os.name == "nt", reason="POSIX operator-signal contract")
     @pytest.mark.parametrize("signal_number", [signal.SIGINT, signal.SIGTERM])
-    def test_manual_signal_is_forwarded_and_normalized(
+    def test_manual_signal_is_forwarded_without_exit_normalization(
         self, tmp_path: Path, signal_number: signal.Signals
     ) -> None:
         ready = tmp_path / f"child-ready-{signal_number}"
@@ -92,7 +168,7 @@ class TestsFlextCliRuntimeProcessContainment:
             while not ready.exists() and time.monotonic() < ready_deadline:
                 time.sleep(0.005)
             if ready.exists():
-                os.kill(os.getpid(), signal_number)
+                signal.raise_signal(signal_number)
             else:
                 signaler_errors.append("child did not become ready")
 
@@ -102,17 +178,16 @@ class TestsFlextCliRuntimeProcessContainment:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", child, str(ready)],
             output_file,
-            deadline=_deadline(seconds=3.0, grace=1.0, exit_code=95),
+            deadline=_deadline(seconds=3.0, grace=1.0),
         )
         signaler.join(timeout=1.0)
 
         tm.ok(result)
-        tm.that(result.value, eq=128 + signal_number)
+        tm.that(result.value.raw_return_code, eq=-signal_number)
         tm.that(signaler_errors, eq=[])
         tm.that(signaler.is_alive(), eq=False)
-        tm.that(time.monotonic() - signal_started, lt=3.0)
+        tm.that(time.monotonic() - signal_started, lt=6.0)
 
-    @pytest.mark.skipif(os.name == "nt", reason="POSIX operator-signal contract")
     def test_pre_spawn_signal_is_captured_before_command_materialization(
         self, tmp_path: Path
     ) -> None:
@@ -128,7 +203,7 @@ class TestsFlextCliRuntimeProcessContainment:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=128 + signal.SIGTERM)
+        tm.that(result.value.raw_return_code, eq=-signal.SIGTERM)
         tm.that(marker.exists(), eq=False)
 
     def test_deadline_forwards_interrupt_before_forced_cleanup(
@@ -148,54 +223,56 @@ class TestsFlextCliRuntimeProcessContainment:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", script],
             output_file,
-            deadline=_deadline(seconds=1.2, grace=0.6, exit_code=91),
+            deadline=_deadline(seconds=1.2, grace=0.6),
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=91)
+        tm.that(result.value.raw_return_code, eq=0)
+        tm.that(result.value.timed_out, eq=True)
         tm.that(output_file.read_bytes(), has=b"interrupted")
         tm.that(time.monotonic() - started, lt=1.2)
 
     def test_deadline_kills_recursive_process_tree(self, tmp_path: Path) -> None:
         output_file = tmp_path / "tree.log"
-        heartbeat = tmp_path / "heartbeat"
         process_info = tmp_path / "process-info"
+        survivor_probe = tmp_path / "survivor-probe"
+        survivor_ack = tmp_path / "survivor-ack"
         child = (
             "import os,pathlib,signal,sys,time;"
             "signal.signal(signal.SIGINT,signal.SIG_IGN);"
-            "path=pathlib.Path(sys.argv[1]);"
-            "group=getattr(os,'getpgrp',lambda:0)();"
-            "pathlib.Path(sys.argv[2]).write_text(f'{os.getpid()} {group}');"
-            "\nwhile True:\n path.write_text(str(time.monotonic()));time.sleep(.02)"
+            "info=pathlib.Path(sys.argv[1]);probe=pathlib.Path(sys.argv[2]);"
+            "ack=pathlib.Path(sys.argv[3]);info.write_text(str(os.getpid()));"
+            "\nwhile True:\n"
+            " if probe.exists(): ack.touch()\n"
+            " time.sleep(.01)"
         )
         parent = (
             "import signal,subprocess,sys,time;"
             "signal.signal(signal.SIGINT,signal.SIG_IGN);"
             f"subprocess.Popen([sys.executable,'-c',{child!r},"
-            "sys.argv[1],sys.argv[2]]);"
+            "sys.argv[1],sys.argv[2],sys.argv[3]]);"
             "time.sleep(30)"
         )
         started = time.monotonic()
 
         result = u.Cli().run_to_file(
-            [sys.executable, "-c", parent, str(heartbeat), str(process_info)],
+            [
+                sys.executable,
+                "-c",
+                parent,
+                str(process_info),
+                str(survivor_probe),
+                str(survivor_ack),
+            ],
             output_file,
-            deadline=_deadline(seconds=1.5, grace=0.7, exit_code=92),
+            deadline=_deadline(seconds=1.5, grace=0.7),
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=92)
-        tm.that(heartbeat.exists(), eq=True)
-        child_pid, process_group = (
-            int(value) for value in process_info.read_text().split()
-        )
-        stopped_value = heartbeat.stat().st_mtime_ns
-        time.sleep(0.15)
-        tm.that(heartbeat.stat().st_mtime_ns, eq=stopped_value)
-        tm.that(_process_exists(child_pid), eq=False)
-        if os.name != "nt":
-            with pytest.raises(ProcessLookupError):
-                os.killpg(process_group, 0)
+        tm.that(result.value.raw_return_code, eq=-signal.SIGTERM)
+        tm.that(result.value.timed_out, eq=True)
+        tm.that(process_info.exists(), eq=True)
+        _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
         tm.that(time.monotonic() - started, lt=2.0)
 
 

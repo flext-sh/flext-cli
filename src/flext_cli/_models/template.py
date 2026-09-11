@@ -15,6 +15,8 @@ from typing import Annotated
 
 from flext_core import m
 
+from .base import FlextCliModelsBase
+
 
 class FlextCliModelsTemplate:
     """Generic template-engine models, flat in ``m.Cli.*``."""
@@ -70,6 +72,20 @@ class FlextCliModelsTemplate:
             m.Field(
                 default_factory=tuple,
                 description="(destination, error) pairs that failed to render",
+            ),
+        ]
+
+    class AuthenticatedTemplateRender(m.ArbitraryTypesModel):
+        """Rendered text plus every physical template state Jinja consumed."""
+
+        rendered: Annotated[
+            str, m.Field(description="Text rendered from authenticated template bytes")
+        ]
+        source_states: Annotated[
+            tuple[FlextCliModelsBase.AtomicFileState, ...],
+            m.Field(
+                min_length=1,
+                description="Ordered physical states of the template and its imports",
             ),
         ]
 

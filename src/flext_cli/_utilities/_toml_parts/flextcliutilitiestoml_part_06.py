@@ -8,11 +8,12 @@ import tomlkit
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c, e, p, r, t
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
+from flext_core import u
+
+from ..runtime import FlextCliUtilitiesRuntime as ur
+from .flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
 )
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur
-from flext_core import u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -94,7 +95,7 @@ class FlextCliUtilitiesToml:
             .flat_map(
                 lambda output: (
                     r[bool].ok(True)
-                    if output.exit_code == 0
+                    if ur.process_succeeded(output.outcome)
                     else r[bool].fail(
                         (output.stderr or output.stdout).strip()
                         or f"taplo format failed: {path}"

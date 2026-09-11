@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_03 import (
+from flext_core import p
+
+from .flextcliprotocolsbase_part_03 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart03,
 )
-from flext_core import p
 
 if TYPE_CHECKING:
     # Why (multi-agent): defer flext_cli import to break the __init__-time
@@ -107,18 +108,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             ...
 
     @runtime_checkable
-    class ErasedCommandResult(Protocol):
+    class ErasedCommandResult(p.FailureLike, Protocol):
         """Type-erased result surface consumed by declarative CLI routes."""
-
-        @property
-        def failure(self) -> bool:
-            """Indicate whether the command failed."""
-            ...
-
-        @property
-        def error(self) -> str | None:
-            """Expose the normalized failure message, if any."""
-            ...
 
         @property
         def value(self) -> t.Cli.ResultValue:

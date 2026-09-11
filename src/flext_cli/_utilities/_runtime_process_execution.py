@@ -3,31 +3,30 @@
 from __future__ import annotations
 
 import contextlib
+import signal
 import threading
+import time
 from collections.abc import Callable
 from pathlib import Path
 from typing import IO, BinaryIO
 
-from flext_cli import c, p, t
-from flext_cli._utilities._runtime_process_cleanup import (
-    FlextCliUtilitiesRuntimeProcessCleanupMixin,
-)
-from flext_cli._utilities._runtime_process_outcome import (
-    FlextCliUtilitiesRuntimeProcessOutcomeMixin,
-)
-from flext_cli._utilities._runtime_process_resources import (
-    FlextCliUtilitiesRuntimeProcessResourcesMixin,
-)
-from flext_cli._utilities._runtime_process_start import (
-    FlextCliUtilitiesRuntimeProcessStartMixin,
-)
+from flext_cli import c, p, r, t
+
+from ._runtime_process_cleanup import FlextCliUtilitiesRuntimeProcessCleanupMixin
+from ._runtime_process_outcome import FlextCliUtilitiesRuntimeProcessOutcomeMixin
+from ._runtime_process_output import FlextCliUtilitiesRuntimeProcessOutputMixin
+from ._runtime_process_resources import FlextCliUtilitiesRuntimeProcessResourcesMixin
+from ._runtime_process_start import FlextCliUtilitiesRuntimeProcessStartMixin
+from ._runtime_process_timing import FlextCliUtilitiesRuntimeProcessTimingMixin
 
 
 class FlextCliUtilitiesRuntimeProcessExecutionMixin(
     FlextCliUtilitiesRuntimeProcessCleanupMixin,
     FlextCliUtilitiesRuntimeProcessOutcomeMixin,
+    FlextCliUtilitiesRuntimeProcessOutputMixin,
     FlextCliUtilitiesRuntimeProcessResourcesMixin,
     FlextCliUtilitiesRuntimeProcessStartMixin,
+    FlextCliUtilitiesRuntimeProcessTimingMixin,
 ):
     """Own one child process and its streaming resources."""
 
@@ -35,32 +34,47 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
     def _execute_streamed_process(
         cls,
         cmd: t.StrSequence,
-        output_path: Path,
+        output_path: Path | None,
         cwd: t.Cli.TextPath | None,
         env: dict[str, str] | None,
         input_data: str | bytes | None,
         *,
+        capture_output: bool,
         live: bool,
-        absolute_deadline: float | None,
-        grace_seconds: float,
-        timeout_exit_code: int,
-        legacy_timeout: bool,
-        legacy_timeout_seconds: int | None,
-    ) -> p.Result[int]:
+        heartbeat_seconds: float | None,
+        timeout: int | None,
+        deadline: p.Cli.ProcessDeadline | None,
+    ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Own resources and complete one streamed child lifecycle."""
+        started = time.monotonic()
+        timing_result = cls._resolve_process_timing(
+            cmd,
+            timeout,
+            deadline,
+            started,
+            capture_output=capture_output,
+            has_output_path=output_path is not None,
+            live=live,
+            heartbeat_seconds=heartbeat_seconds,
+            on_main_thread=threading.current_thread() is threading.main_thread(),
+        )
+        if timing_result.failure:
+            return r[p.Cli.CommandBytesOutput].from_failure(timing_result)
+        absolute_deadline, grace_seconds = timing_result.unwrap()
         process: p.Cli.ProcessHandle | None = None
         waiter: threading.Thread | None = None
-        pump: threading.Thread | None = None
-        source: IO[bytes] | None = None
         durable_log: BinaryIO | None = None
         job_handle = 0
         failures: list[str] = []
         cleanup_errors: list[str] = []
-        live_diagnostics: list[str] = []
         restore_handlers: list[Callable[[], object]] = []
         forwarded_signals: list[int] = []
         received_signals: list[int] = []
         return_codes: list[int] = []
+        stdout_output = bytearray()
+        stderr_output = bytearray()
+        pump_streams: list[tuple[threading.Thread, IO[bytes]]] = []
+        input_pump: tuple[threading.Thread, BinaryIO] | None = None
         pump_stop = threading.Event()
         process_done = threading.Event()
         wake = threading.Event()
@@ -69,6 +83,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         timed_out = False
         final_deadline = absolute_deadline
         cleanup_complete = False
+        primary_error: BaseException | None = None
 
         def execute_lifecycle() -> None:
             nonlocal \
@@ -77,11 +92,10 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 final_deadline, \
                 job_handle, \
                 process, \
-                pump, \
                 return_code, \
-                source, \
                 timed_out, \
-                waiter
+                waiter, \
+                input_pump
             if threading.current_thread() is threading.main_thread():
                 restore_handlers.extend(
                     cls._install_forwarding_handlers(
@@ -92,8 +106,9 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             if received_signals:
                 wake.set()
                 return
-            output_path.parent.mkdir(parents=True, exist_ok=True)
-            durable_log = stack.enter_context(output_path.open("wb", buffering=0))
+            if output_path is not None:
+                output_path.parent.mkdir(parents=True, exist_ok=True)
+                durable_log = stack.enter_context(output_path.open("wb", buffering=0))
             stdin_result = cls._prepare_streamed_stdin(stack, input_data)
             live_result = cls._prepare_live_descriptor(stack, live=live)
             if stdin_result.failure:
@@ -105,32 +120,51 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             elif cls._spawn_deadline_exhausted(absolute_deadline, grace_seconds):
                 failures.append("process deadline exhausted before child spawn")
             else:
-                started = cls._start_contained_process(
-                    prepared_cmd, cwd, env, stdin_result.value[0]
+                combine_output = output_path is not None
+                pipe_output = combine_output or capture_output
+                start_result = cls._start_contained_process(
+                    prepared_cmd,
+                    cwd,
+                    env,
+                    stdin_result.value[0],
+                    capture_output=pipe_output,
+                    combine_output=combine_output,
                 )
-                if started.failure:
-                    failures.append(started.error or "process start failed")
+                if start_result.failure:
+                    failures.append(start_result.error or "process start failed")
                 else:
-                    process, job_handle = started.unwrap()
-                    source = process.stdout
-                    if source is None:
-                        failures.append("process stdout is not available")
-                        return
-                    stack.callback(source.close)
+                    owned_process, job_handle = start_result.unwrap()
+                    process = owned_process
+                    stdin_reader, stdin_writer, stdin_payload = stdin_result.unwrap()
+                    if stdin_reader is not None:
+                        try:
+                            stdin_reader.close()
+                        except (OSError, ValueError) as exc:
+                            failures.append(f"parent stdin reader close error: {exc}")
                     waiter = cls._start_root_waiter(
-                        process, return_codes, failures, process_done, wake
+                        owned_process, return_codes, failures, process_done, wake
                     )
-                    pump = cls._start_output_pump(
-                        source,
-                        durable_log,
-                        live_result.value[0],
-                        failures,
-                        live_diagnostics,
-                        pump_stop,
-                        wake,
+                    pump_streams.extend(
+                        cls._start_process_output(
+                            owned_process,
+                            stack,
+                            durable_log,
+                            live_result.value[0],
+                            failures,
+                            pump_stop,
+                            wake,
+                            stdout_output,
+                            stderr_output,
+                            capture_output=capture_output,
+                        )
                     )
+                    if stdin_writer is not None:
+                        input_thread = cls._start_input_pump(
+                            stdin_writer, stdin_payload, failures, wake
+                        )
+                        input_pump = (input_thread, stdin_writer)
                     timed_out, final_deadline = cls._monitor_process(
-                        process,
+                        owned_process,
                         process_done,
                         wake,
                         failures,
@@ -138,15 +172,17 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                         job_handle,
                         absolute_deadline,
                         grace_seconds,
+                        live_result.value[1],
+                        heartbeat_seconds,
                     )
                     return_code = cls._reap_and_drain(
-                        process,
+                        owned_process,
                         waiter,
-                        pump,
                         process_done,
                         wake,
                         pump_stop,
-                        source,
+                        tuple(pump_streams),
+                        input_pump,
                         cleanup_errors,
                         job_handle,
                         final_deadline,
@@ -156,48 +192,54 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
 
         try:
             execute_lifecycle()
-        except c.EXC_OS_VALUE as exc:
-            failures.append(f"execution error: {exc}")
+        except (OSError, TypeError, ValueError) as exc:
+            primary_error = exc
+            if process is not None:
+                signal_error = cls._signal_process_tree(
+                    process, signal.SIGKILL, job_handle, force=True
+                )
+                if signal_error is not None:
+                    exc.add_note(signal_error)
         finally:
-            if (
-                process is not None
-                and waiter is not None
-                and pump is not None
-                and source is not None
-                and not cleanup_complete
-            ):
+            if process is not None and waiter is not None and not cleanup_complete:
                 return_code = cls._reap_and_drain(
                     process,
                     waiter,
-                    pump,
                     process_done,
                     wake,
                     pump_stop,
-                    source,
+                    tuple(pump_streams),
+                    input_pump,
                     cleanup_errors,
                     job_handle,
                     final_deadline,
                     return_codes,
                 )
             if durable_log is not None:
-                cleanup_errors.extend(
-                    cls._flush_durable_log(durable_log, final_deadline)
-                )
+                cleanup_errors.extend(cls._flush_durable_log(durable_log))
             close_error = cls._windows_job_close(job_handle)
             if close_error is not None:
                 cleanup_errors.append(close_error)
             cleanup_errors.extend(cls._close_process_resources(stack))
             cleanup_errors.extend(cls._restore_forwarding_handlers(restore_handlers))
-        return cls._process_exit_result(
-            cmd,
+            if primary_error is not None:
+                for cleanup_error in cleanup_errors:
+                    primary_error.add_note(cleanup_error)
+        if primary_error is not None:
+            if isinstance(primary_error, Exception):
+                return r[p.Cli.CommandBytesOutput].fail(
+                    f"{c.Cli.OUTPUT_EXECUTION_ERROR}: {primary_error}",
+                    exception=primary_error,
+                )
+            raise primary_error
+        return cls._captured_process_result(
             return_code,
             received_signals,
             (*failures, *cleanup_errors),
-            nonfatal_diagnostics=tuple(live_diagnostics),
+            stdout_output,
+            stderr_output,
+            max(0.0, time.monotonic() - started),
             timed_out=timed_out,
-            legacy_timeout=legacy_timeout,
-            legacy_timeout_seconds=legacy_timeout_seconds,
-            timeout_exit_code=timeout_exit_code,
         )
 
 

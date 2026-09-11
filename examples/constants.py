@@ -96,6 +96,7 @@ class ExamplesFlextCliConstants(c):
     EXAMPLE_DEFAULT_REDIS_URL: Final[str] = "redis://localhost:6379"
     EXAMPLE_DEFAULT_TEMP_SUBDIR: Final[str] = "myapp"
     EXAMPLE_DEFAULT_INITIALIZED_AT: Final[str] = "2025-11-23T10:00:00Z"
+    EXAMPLE_INVALID_URL: Final[str] = "http://nope"
 
     EXAMPLE_ENV_KEY_APP_NAME: Final[str] = "APP_NAME"
     EXAMPLE_ENV_KEY_API_KEY: Final[str] = "API_KEY"

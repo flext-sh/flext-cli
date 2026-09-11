@@ -65,11 +65,11 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
                 loaded = _roundtrip_yaml().load(fh)
             node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
         except OSError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML read error: {exc}")
+            return r[t.Cli.YamlNode].fail(f"YAML read error: {exc}", exception=exc)
         except c.Cli.YamlRoundtripError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}")
+            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
         except TypeError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}")
+            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
         if node is None:
             return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
         return r[t.Cli.YamlNode].ok(node)
@@ -81,9 +81,9 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             loaded = _roundtrip_yaml().load(text)
             node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
         except c.Cli.YamlRoundtripError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}")
+            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
         except TypeError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}")
+            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
         if node is None:
             return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
         return r[t.Cli.YamlNode].ok(node)
@@ -122,7 +122,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         try:
             _roundtrip_yaml().dump(data, stream)
         except (OSError, c.Cli.YamlRoundtripError, TypeError, ValueError) as exc:
-            return r[bool].fail(f"YAML dump error: {exc}")
+            return r[bool].fail(f"YAML dump error: {exc}", exception=exc)
         return r[bool].ok(True)
 
     @staticmethod

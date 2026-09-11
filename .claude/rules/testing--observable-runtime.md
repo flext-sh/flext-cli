@@ -1,0 +1,12 @@
+# Test observable runtime behavior
+
+Tests validate what the public module does. Do not mock, assert private methods,
+ignore violations, aggregate defects, or freeze implementation shape. Prove
+that raw exceptions, causes, child failures, and pre-effect validation escape
+through the public surface. Runtime is reality; fix a defective test instead of
+restoring incorrect or legacy production behavior.
+<<<<<<< HEAD
+
+See also: `runtime-is-reality.md` (rule file) — runtime-first contract.
+=======
+>>>>>>> origin/integration/sweep-20260830

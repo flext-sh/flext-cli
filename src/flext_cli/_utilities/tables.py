@@ -5,10 +5,12 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
-from tabulate import tabulate
-
 from flext_cli import c, m, p, r, t
 from flext_core import u
+
+from ._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
+    FlextCliUtilitiesTablesRenderer,
+)
 
 
 class FlextCliUtilitiesTables:
@@ -98,7 +100,7 @@ class FlextCliUtilitiesTables:
         t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow],
         str | t.StrSequence,
     ]:
-        """Build table data/header values accepted by tabulate."""
+        """Build table data/header values accepted by the renderer."""
         table_data: (
             t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow]
         ) = rows
@@ -114,7 +116,7 @@ class FlextCliUtilitiesTables:
     def tables_render(
         rows: t.SequenceOf[t.Cli.TableRow], settings: m.Cli.TableConfig
     ) -> p.Result[str]:
-        """Render normalized rows to a tabulated string."""
+        """Render normalized rows to a plain-text table string."""
         headers: str | t.StrSequence
         if not settings.show_header:
             # NOTE (multi-agent): Empty headers use the immutable sequence contract.
@@ -138,21 +140,9 @@ class FlextCliUtilitiesTables:
         if colalign is not None and column_count > 0 and len(colalign) > column_count:
             colalign = colalign[:column_count]
 
-        table_data, table_headers = FlextCliUtilitiesTables.tables_tabulate_payload(
-            rows, headers
-        )
         try:
-            rendered_table = tabulate(
-                table_data,
-                headers=table_headers,
-                tablefmt=settings.table_backend_format,
-                floatfmt=settings.floatfmt,
-                numalign=settings.numalign,
-                stralign=settings.stralign,
-                missingval=settings.missingval,
-                showindex=settings.showindex,
-                disable_numparse=settings.disable_numparse,
-                colalign=colalign,
+            rendered_table = FlextCliUtilitiesTablesRenderer.render(
+                rows, headers, colalign=colalign or (), settings=settings
             )
             return r[str].ok(rendered_table)
         except c.Cli.CLI_SAFE_EXCEPTIONS as exc:

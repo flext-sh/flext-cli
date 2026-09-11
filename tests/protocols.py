@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, Self
 
-from flext_cli import p
 from flext_tests import FlextTestsProtocols
+
+from flext_cli import p
 
 if TYPE_CHECKING:
     from types import EllipsisType

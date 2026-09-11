@@ -10,16 +10,13 @@ from inspect import Parameter
 from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p, r, t, u
-from flext_cli.services._cli_parts.flextclicli_part_02 import (
-    FlextCliCli as FlextCliCliPart02,
-)
+
+from .flextclicli_part_02 import FlextCliCli as FlextCliCliPart02
 
 if TYPE_CHECKING:
     # mro-j47u (codex): the earlier MRO part is referenced only by annotation;
     # inspect.Parameter remains runtime because it constructs the CLI signature.
-    from flext_cli.services._cli_parts.flextclicli_part_01 import (
-        FlextCliCli as FlextCliCliPart01,
-    )
+    from .flextclicli_part_01 import FlextCliCli as FlextCliCliPart01
 
 
 class FlextCliCli(FlextCliCliPart02):
@@ -80,7 +77,7 @@ class FlextCliCli(FlextCliCliPart02):
                 app, args=args, charset=charset, env=env
             )
         except (TypeError, ValueError) as exc:
-            return r[m.Cli.InvocationResult].fail(str(exc))
+            return r[m.Cli.InvocationResult].fail(str(exc), exception=exc)
         return r[m.Cli.InvocationResult].ok(invocation)
 
 

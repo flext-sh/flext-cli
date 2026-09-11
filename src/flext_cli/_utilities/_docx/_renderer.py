@@ -81,9 +81,7 @@ class FlextCliUtilitiesDocxRenderer:
         """Render typed paragraphs, tables, and sections into document bytes."""
         document_result = cls._document_for_request(request)
         if document_result.failure:
-            return r[m.Cli.DocxRenderResult].fail(
-                document_result.error or str(c.Cli.DocxError.RENDER_FAILED)
-            )
+            return r[m.Cli.DocxRenderResult].from_failure(document_result)
         document = document_result.value
         try:
             cls._apply_document(document, request.plan)
@@ -97,9 +95,7 @@ class FlextCliUtilitiesDocxRenderer:
             document, source_date_epoch=request.source_date_epoch
         )
         if content.failure:
-            return r[m.Cli.DocxRenderResult].fail(
-                content.error or str(c.Cli.DocxError.SERIALIZE_FAILED)
-            )
+            return r[m.Cli.DocxRenderResult].from_failure(content)
         return r[m.Cli.DocxRenderResult].ok(
             m.Cli.DocxRenderResult(content=content.value, plan=request.plan)
         )

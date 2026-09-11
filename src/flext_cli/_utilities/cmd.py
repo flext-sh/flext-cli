@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.settings import FlextCliUtilitiesSettings as us
 from flext_core import u
+
+from .settings import FlextCliUtilitiesSettings as us
 
 
 class FlextCliUtilitiesCmd:
@@ -28,13 +29,8 @@ class FlextCliUtilitiesCmd:
 
     @staticmethod
     def cmd_settings_snapshot() -> p.Result[m.Cli.SettingsSnapshot]:
-        """Return settings snapshot with canonical error mapping."""
-        try:
-            return r[m.Cli.SettingsSnapshot].ok(us.settings_snapshot())
-        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[m.Cli.SettingsSnapshot].fail(
-                c.Cli.ERR_SETTINGS_INFO_FAILED.format(error=exc)
-            )
+        """Return the canonical settings snapshot without normalizing failures."""
+        return r[m.Cli.SettingsSnapshot].ok(us.settings_snapshot_model())
 
     @staticmethod
     def cmd_show_settings(logger: p.Logger) -> p.Result[bool]:

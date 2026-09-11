@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, Mapping, MutableMapping
+from collections.abc import Callable, MutableMapping
 from pathlib import Path
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
@@ -11,26 +11,18 @@ from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c
-from flext_cli._typings.base import FlextCliTypesBase as tb
 from flext_core import p, t
 
-# NOTE (multi-agent): YAML round-trip aliases live at module level because a
-# self-referencing PEP 695 alias in CLASS scope breaks pyrefly/pyright (proven
-# in cosmos-charts). The class body only re-exports them as ``t.Cli.Yaml*``;
-# never inline the recursion into the class body.
-type _YamlScalar = str | int | float | bool | None
-type _YamlValue = _YamlScalar | list[_YamlValue] | Mapping[str, _YamlValue]
-type _YamlNode = CommentedMap | CommentedSeq | _YamlScalar
-type _YamlSequence = CommentedSeq | list[_YamlValue]
+from .base import FlextCliTypesBase as tb
 
 
 class FlextCliTypesDomain:
     """Composite CLI aliases built from canonical protocols and core types."""
 
-    type YamlScalar = _YamlScalar
-    type YamlValue = _YamlValue
-    type YamlNode = _YamlNode
-    type YamlSequence = _YamlSequence
+    type YamlScalar = str | int | float | bool | None
+    type YamlValue = t.JsonValue
+    type YamlNode = CommentedMap | CommentedSeq | YamlScalar
+    type YamlSequence = CommentedSeq | list[t.JsonValue]
 
     type ResultValue = t.JsonPayload
     type RuleDefinitions = t.SequenceOf[t.JsonMapping]
@@ -74,7 +66,6 @@ class FlextCliTypesDomain:
     type CliCommand = Callable[..., t.JsonPayload]
     # mro-j47u (codex): one generic alias owns formatter data and call contracts.
     type JsonCommandFn = Callable[..., p.Result[t.JsonPayload]]
-    type ResultRouteHandler = Callable[..., p.Result[ResultValue]]
     type SuccessMessageFormatter[TResult: ResultValue = ResultValue] = Callable[
         [TResult], str
     ]

@@ -11,6 +11,7 @@ cohesive core module. Navigation/extraction helpers live in
 
 from __future__ import annotations
 
+import json
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import MappingProxyType
@@ -45,13 +46,61 @@ class FlextCliUtilitiesJsonCoreMixin:
         )
 
     @staticmethod
-    def json_loads(raw: str | bytes) -> p.Result[t.JsonValue]:
-        """Parse a JSON-encoded string/bytes into a JSON-compatible value."""
+    def json_loads(
+        raw: str | bytes, *, reject_duplicate_keys: bool = False
+    ) -> p.Result[t.JsonValue]:
+        """Parse a JSON-encoded string/bytes into a JSON-compatible value.
+
+        With ``reject_duplicate_keys``, a key repeated inside the same JSON
+        object fails the parse; the error cites the key and its path.
+        """
+
+        def _parse() -> t.JsonValue:
+            if reject_duplicate_keys:
+                FlextCliUtilitiesJsonCoreMixin._reject_duplicate_json_keys(raw)
+            return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
+
         return u.try_(
-            lambda: t.Cli.JSON_VALUE_ADAPTER.validate_json(raw),
-            catch=(c.ValidationError, ValueError),
-            op_name="json_loads",
+            _parse, catch=(c.ValidationError, ValueError), op_name="json_loads"
         )
+
+    @staticmethod
+    def _reject_duplicate_json_keys(raw: str | bytes) -> None:
+        """Reject duplicate keys inside the same JSON object.
+
+        stdlib ``json`` serves only as the duplicate detector; the parsed
+        value is discarded and canonical validation stays with the adapter.
+        """
+        violations: list[tuple[int, str]] = []
+
+        def _object_pairs_hook(
+            pairs: list[tuple[str, t.JsonValue]],
+        ) -> dict[str, t.JsonValue]:
+            obj = dict(pairs)
+            seen: set[str] = set()
+            for key, _ in pairs:
+                if key in seen:
+                    violations.append((id(obj), key))
+                else:
+                    seen.add(key)
+            return obj
+
+        root: t.JsonValue = json.loads(raw, object_pairs_hook=_object_pairs_hook)
+        paths: dict[int, str] = {}
+        stack: list[tuple[t.JsonValue, str]] = [(root, "$")]
+        while stack:
+            node, path = stack.pop()
+            if isinstance(node, Mapping):
+                paths[id(node)] = path
+                stack.extend((value, f"{path}.{key}") for key, value in node.items())
+            elif isinstance(node, list):
+                stack.extend(
+                    (value, f"{path}[{index}]") for index, value in enumerate(node)
+                )
+        if violations:
+            node_id, key = violations[0]
+            msg = f"duplicate JSON key {key!r} at path {paths.get(node_id, '$')}.{key}"
+            raise ValueError(msg)
 
     @staticmethod
     def json_sort_keys(data: t.JsonValue) -> t.JsonValue:
@@ -111,7 +160,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             op_name="json_read",
         )
         if loaded.failure:
-            return r[t.JsonMapping].fail(loaded.error or "json_read failed")
+            return r[t.JsonMapping].from_failure(loaded)
         if not isinstance(loaded.value, Mapping):
             return r[t.JsonMapping].fail("json_read: root must be an object")
         return r[t.JsonMapping].ok(
@@ -141,13 +190,21 @@ class FlextCliUtilitiesJsonCoreMixin:
         return written
 
     @staticmethod
-    def json_parse(text: str) -> p.Result[t.JsonValue]:
-        """Parse a JSON string into a validated JsonValue."""
-        return u.try_(
-            lambda: t.Cli.JSON_VALUE_ADAPTER.validate_json(text),
-            catch=c.EXC_VALIDATION_VALUE,
-            op_name="json_parse",
-        )
+    def json_parse(
+        text: str, *, reject_duplicate_keys: bool = False
+    ) -> p.Result[t.JsonValue]:
+        """Parse a JSON string into a validated JsonValue.
+
+        With ``reject_duplicate_keys``, a key repeated inside the same JSON
+        object fails the parse; the error cites the key and its path.
+        """
+
+        def _parse() -> t.JsonValue:
+            if reject_duplicate_keys:
+                FlextCliUtilitiesJsonCoreMixin._reject_duplicate_json_keys(text)
+            return t.Cli.JSON_VALUE_ADAPTER.validate_json(text)
+
+        return u.try_(_parse, catch=c.EXC_VALIDATION_VALUE, op_name="json_parse")
 
     @staticmethod
     def json_as_mapping(value: t.JsonPayload | None) -> t.JsonMapping:

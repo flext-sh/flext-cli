@@ -16,9 +16,10 @@ from typing import ClassVar
 from yaml import safe_dump, safe_load
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
-from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_core import u
+
+from ._yaml._editing import FlextCliUtilitiesYamlEditingMixin
+from .json import FlextCliUtilitiesJson
 
 _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 _EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()
@@ -59,7 +60,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         try:
             raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
         except OSError as exc:
-            return r[t.JsonMapping].fail(f"YAML read error: {exc}")
+            return r[t.JsonMapping].fail(f"YAML read error: {exc}", exception=exc)
         return FlextCliUtilitiesYaml.yaml_parse(raw)
 
     @staticmethod
@@ -79,7 +80,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         try:
             validated = t.Cli.YAML_DICT_ADAPTER.validate_python(parsed)
         except c.ValidationError as exc:
-            return r[t.JsonMapping].fail(f"YAML validation error: {exc}")
+            return r[t.JsonMapping].fail(f"YAML validation error: {exc}", exception=exc)
         return r[t.JsonMapping].ok(validated)
 
     @staticmethod
@@ -153,7 +154,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
                 )
             return r[bool].ok(True)
         except (OSError, c.Cli.YamlParseError, ValueError, TypeError) as exc:
-            return r[bool].fail(f"YAML write error: {exc}")
+            return r[bool].fail(f"YAML write error: {exc}", exception=exc)
 
     @staticmethod
     def yaml_dump_str(

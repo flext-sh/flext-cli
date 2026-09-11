@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, m, r
 from flext_tests import tm
 from tests import c, p
+
+from flext_cli import cli, m, r
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -20,17 +21,17 @@ class TestsFlextCliPublicContractsCoverage:
         context = cli.stage_context(tmp_path, settings={"mode": "test"})
 
         def stage_handler(
-            current: m.Cli.PipelineStageContext,
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             return r[m.Cli.PipelineStageResult].ok(
                 m.Cli.PipelineStageResult.model_validate({
                     "stage_id": "build",
                     "status": c.Cli.PipelineStageStatus.OK,
-                    "output": {"workspace": str(current.workspace_root)},
+                    "output": {"workspace": str(ctx.repository_root)},
                 })
             )
 
-        spec = cli.stage("build", handler=stage_handler, depends_on=("fetch",), retry=1)
+        spec = cli.stage("build", handler=stage_handler, depends_on=("fetch",))
         pipeline = m.Cli.PipelineResult(
             stages=[
                 cli.stage_result("ok", status=c.Cli.PipelineStageStatus.OK),
@@ -48,7 +49,6 @@ class TestsFlextCliPublicContractsCoverage:
 
         tm.that(cli, is_=p.Cli.PipelineService)
         tm.that(context.settings, eq={"mode": "test"})
-        tm.that(spec.retry, eq=1)
         tm.that(pipeline.success, eq=False)
         tm.that([stage.stage_id for stage in pipeline.failed_stages], eq=["fail"])
         tm.that([stage.stage_id for stage in pipeline.skipped_stages], eq=["skip"])

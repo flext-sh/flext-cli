@@ -16,9 +16,10 @@ from pathlib import Path
 from typing import cast
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities.files import FlextCliUtilitiesFiles
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
+
+from ..files import FlextCliUtilitiesFiles
+from ..json import FlextCliUtilitiesJson as uj
+from ..yaml import FlextCliUtilitiesYaml as uy
 
 
 class FlextCliUtilitiesFileTestHelpersMixin:
@@ -94,7 +95,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
             return FlextCliUtilitiesFiles.files_write_text(path, dumped)
         dumped_result = uj.json_dumps(validated)
         if dumped_result.failure:
-            return r[bool].fail(dumped_result.error or "json_dumps failed")
+            return r[bool].from_failure(dumped_result)
         return FlextCliUtilitiesFiles.files_write_text(path, dumped_result.unwrap())
 
 

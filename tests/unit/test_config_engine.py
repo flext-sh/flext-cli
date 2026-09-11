@@ -10,7 +10,9 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import pytest
 from flext_tests import tm
+
 from tests import c, m, u
 
 
@@ -43,14 +45,53 @@ class TestsFlextCliConfigEngine:
         other = u.Cli.template_environment(tmp_path / "nested")
         tm.that(first is other, eq=False)
 
-    def test_template_render_observes_source_edits(self, tmp_path: Path) -> None:
+    @pytest.mark.parametrize("included", [False, True])
+    def test_template_render_observes_source_edits(
+        self, tmp_path: Path, *, included: bool
+    ) -> None:
         """Serve edited template source instead of a stale compiled body."""
         tpl = tmp_path / "greeting.j2"
-        tpl.write_text("port={{ server.port }}\n", encoding="utf-8")
+        source = tmp_path / "included.j2" if included else tpl
+        if included:
+            tpl.write_text('{% include "included.j2" %}', encoding="utf-8")
+        source.write_text("port={{ server.port }}\n", encoding="utf-8")
         context = m.Tests.TemplateServerContext(server=m.Tests.TemplateServer(port=42))
         tm.that(u.Cli.template_render(tpl, context).unwrap(), eq="port=42\n")
-        tpl.write_text("PORT={{ server.port }}!\n", encoding="utf-8")
-        tm.that(u.Cli.template_render(tpl, context).unwrap(), eq="PORT=42!\n")
+        initial = source.stat()
+        source.write_text("PORT={{ server.port }}\n", encoding="utf-8")
+        os.utime(source, ns=(initial.st_atime_ns, initial.st_mtime_ns))
+        tm.that(source.stat().st_size, eq=initial.st_size)
+        tm.that(source.stat().st_mtime_ns, eq=initial.st_mtime_ns)
+        tm.that(u.Cli.template_render(tpl, context).unwrap(), eq="PORT=42\n")
+
+    def test_authenticated_template_render_snapshots_imported_bytes(
+        self, tmp_path: Path
+    ) -> None:
+        """Render a template and its import only from authenticated snapshots."""
+        macro = tmp_path / "macro.j2"
+        macro.write_text(
+            "{% macro endpoint(server) -%}port={{ server.port }}{%- endmacro %}",
+            encoding="utf-8",
+        )
+        template = tmp_path / "greeting.j2"
+        template.write_text(
+            '{% from "macro.j2" import endpoint -%}{{ endpoint(server) }}\n',
+            encoding="utf-8",
+        )
+        context = m.Tests.TemplateServerContext(server=m.Tests.TemplateServer(port=42))
+
+        result = u.Cli.template_render_authenticated(template, context)
+
+        tm.ok(result)
+        rendered = result.unwrap()
+        tm.that(rendered.rendered, eq="port=42\n")
+        tm.that(
+            tuple(state.path for state in rendered.source_states), eq=(template, macro)
+        )
+        tm.that(
+            tuple(state.content for state in rendered.source_states),
+            eq=(template.read_bytes(), macro.read_bytes()),
+        )
 
     def test_template_render_strict_undefined_fails(self, tmp_path: Path) -> None:
         """Verify that template render strict undefined fails."""

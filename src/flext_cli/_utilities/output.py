@@ -190,10 +190,12 @@ class FlextCliUtilitiesOutput:
             cls.emit_raw(f"      ... and {remaining} more (see log)\n")
 
     @staticmethod
-    def resolve_report_dir(workspace_root: Path | str, scope: str, verb: str) -> Path:
+    def resolve_report_dir(repository_root: Path | str, scope: str, verb: str) -> Path:
         """Resolve standardized report directory path."""
         root_path = (
-            Path(workspace_root) if isinstance(workspace_root, str) else workspace_root
+            Path(repository_root)
+            if isinstance(repository_root, str)
+            else repository_root
         )
         base = root_path / c.Cli.OUTPUT_REPORTS_DIR_NAME
         if scope == c.Cli.OUTPUT_SCOPE_WORKSPACE:
@@ -202,10 +204,10 @@ class FlextCliUtilitiesOutput:
 
     @classmethod
     def resolve_report_path(
-        cls, workspace_root: Path | str, scope: str, verb: str, filename: str
+        cls, repository_root: Path | str, scope: str, verb: str, filename: str
     ) -> Path:
         """Resolve standardized report file path."""
-        return cls.resolve_report_dir(workspace_root, scope, verb) / filename
+        return cls.resolve_report_dir(repository_root, scope, verb) / filename
 
 
 __all__: list[str] = ["FlextCliUtilitiesOutput"]

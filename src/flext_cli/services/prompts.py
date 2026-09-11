@@ -5,7 +5,8 @@ from __future__ import annotations
 from typing import override
 
 from flext_cli import c, m, p, r, t, u
-from flext_cli.services._prompts_support import FlextCliPromptsSupport
+
+from ._prompts_support import FlextCliPromptsSupport
 
 # NOTE (multi-agent): mro-i6nq.13 — consolidated _prompts_parts/part_01+part_02
 # (and the empty part_03 + facade pass-through layers) into this single cohesive

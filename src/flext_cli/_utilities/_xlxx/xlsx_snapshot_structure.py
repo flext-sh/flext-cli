@@ -7,6 +7,7 @@ from openpyxl.utils.cell import column_index_from_string
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table
 from openpyxl.worksheet.worksheet import Worksheet
+from pydantic import ValidationError
 
 from flext_cli import m, r
 
@@ -16,6 +17,26 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
 
     # NOTE (multi-agent, mro-j2yt.1): vendor collections terminate here and
     # become ordered tuples of canonical models before entering the service.
+    @staticmethod
+    def _table_name(item: m.Cli.XlsxTableSnapshot) -> str:
+        """Return the deterministic table sort key."""
+        return item.name
+
+    @staticmethod
+    def _row_position(item: m.Cli.XlsxRowDimensionSnapshot) -> int:
+        """Return the deterministic row-dimension sort key."""
+        return item.position
+
+    @staticmethod
+    def _column_position(item: m.Cli.XlsxColumnDimensionSnapshot) -> int:
+        """Return the deterministic column-dimension sort key."""
+        return item.first
+
+    @staticmethod
+    def _defined_name(item: m.Cli.XlsxDefinedNameSnapshot) -> str:
+        """Return the deterministic defined-name sort key."""
+        return item.name
+
     @staticmethod
     def _snapshot_tables(
         worksheet: Worksheet,
@@ -42,13 +63,15 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         name=item.name, reference=item.ref, style_name=style_name
                     ),
                 )
-        except (AttributeError, TypeError, m.ValidationError, ValueError) as exc:
+        except (AttributeError, TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxTableSnapshot, ...]].fail(
                 f"Table snapshot failed: {detail}"
             )
         return r[tuple[m.Cli.XlsxTableSnapshot, ...]].ok(
-            tuple(sorted(tables, key=lambda item: item.name))
+            tuple(
+                sorted(tables, key=FlextCliUtilitiesXlsxSnapshotStructure._table_name)
+            )
         )
 
     @staticmethod
@@ -67,13 +90,15 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         outline_level=item.outlineLevel,
                     ),
                 )
-        except (TypeError, m.ValidationError, ValueError) as exc:
+        except (TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]].fail(
                 f"Row-dimension snapshot failed: {detail}"
             )
         return r[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]].ok(
-            tuple(sorted(rows, key=lambda item: item.position))
+            tuple(
+                sorted(rows, key=FlextCliUtilitiesXlsxSnapshotStructure._row_position)
+            )
         )
 
     @staticmethod
@@ -95,13 +120,17 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         outline_level=item.outlineLevel,
                     ),
                 )
-        except (TypeError, m.ValidationError, ValueError) as exc:
+        except (TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]].fail(
                 f"Column-dimension snapshot failed: {detail}"
             )
         return r[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]].ok(
-            tuple(sorted(columns, key=lambda item: item.first))
+            tuple(
+                sorted(
+                    columns, key=FlextCliUtilitiesXlsxSnapshotStructure._column_position
+                )
+            )
         )
 
     @staticmethod
@@ -129,13 +158,15 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                         hidden=item.hidden,
                     ),
                 )
-        except (TypeError, m.ValidationError, ValueError) as exc:
+        except (TypeError, ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]].fail(
                 f"Defined-name snapshot failed: {detail}"
             )
         return r[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]].ok(
-            tuple(sorted(names, key=lambda item: item.name))
+            tuple(
+                sorted(names, key=FlextCliUtilitiesXlsxSnapshotStructure._defined_name)
+            )
         )
 
 

@@ -52,9 +52,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
         for sheet_title, coordinate in defined_name.destinations:
             resolved = cls._destination_cells(workbook[sheet_title], coordinate)
             if resolved.failure:
-                return r[m.Cli.XlsxDefinedNameValuesResult].fail(
-                    resolved.error or str(c.Cli.XlsxError.DEFINED_NAME_INVALID)
-                )
+                return r[m.Cli.XlsxDefinedNameValuesResult].from_failure(resolved)
             cells = (*cells, *resolved.value)
         if not cells:
             return r[m.Cli.XlsxDefinedNameValuesResult].fail(

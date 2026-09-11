@@ -18,6 +18,20 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+class _PromptInputReaderDefault:
+    """Resolve the built-in input reader without storing a method descriptor."""
+
+    def __call__(self, prompt: str) -> str:
+        return input(prompt)
+
+
+class _PromptPasswordReaderDefault:
+    """Resolve the password reader without storing a method descriptor."""
+
+    def __call__(self, prompt: str) -> str:
+        return getpass.getpass(prompt)
+
+
 class FlextCliPromptsSupport(s):
     """Support owner for prompt runtime state, logging, and input readers."""
 
@@ -26,13 +40,13 @@ class FlextCliPromptsSupport(s):
         m.Field(description="Prompt runtime state for interaction behavior."),
     ] = m.Field(m.Cli.PromptRuntimeState(), validate_default=True)
 
-    _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(default_factory=lambda: input)
+    _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(_PromptInputReaderDefault())
 
     _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(
-        default_factory=lambda: getpass.getpass
+        _PromptPasswordReaderDefault()
     )
 
-    _test_env_override: bool | None = m.PrivateAttr(default_factory=lambda: None)
+    _test_env_override: bool | None = m.PrivateAttr(None)
 
     def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
         """Replace prompt runtime state using the canonical CLI model."""

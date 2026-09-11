@@ -5,7 +5,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
+
+from .yaml import FlextCliUtilitiesYaml
 
 
 class FlextCliUtilitiesYamlModel:
@@ -24,7 +25,7 @@ class FlextCliUtilitiesYamlModel:
                 ),
             )
         except c.EXC_PYDANTIC_TYPE_VALUE as exc:
-            return r[bool].fail(f"YAML model write error: {exc}")
+            return r[bool].fail(f"YAML model write error: {exc}", exception=exc)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesYamlModel",)

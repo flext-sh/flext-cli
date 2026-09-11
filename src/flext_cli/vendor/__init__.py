@@ -1,6 +1,6 @@
-"""Vendor re-export boundaries for third-party document libraries.
+"""Vendor boundary for python-docx.
 
-The ``docx`` and ``pptx`` subpackages mirror the public API of python-docx and
-python-pptx so that consumers can be configured to use a single dependency
-boundary.
+The ``docx`` subpackage exposes the remaining consumer-facing document types.
 """
+
+from __future__ import annotations

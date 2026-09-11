@@ -18,7 +18,7 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
         try:
             return cls._windows_job_create_native(process_id)
         except (OSError, TypeError, ValueError) as exc:
-            return r[int].fail(f"Windows Job Object error: {exc}")
+            return r[int].fail(f"Windows Job Object error: {exc}", exception=exc)
 
     @staticmethod
     def _windows_job_create_native(process_id: int) -> p.Result[int]:

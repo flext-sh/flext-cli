@@ -9,15 +9,16 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_01 import (
+from flext_core import u
+
+from ..json import FlextCliUtilitiesJson as uj
+from ..yaml import FlextCliUtilitiesYaml as uy
+from .flextcliutilitiesfiles_part_01 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart01,
 )
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
+from .flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml as uy
-from flext_core import u
 
 
 class FlextCliUtilitiesFiles:
@@ -91,7 +92,7 @@ class FlextCliUtilitiesFiles:
             )
         loaded = read_result.map_error(lambda err: err or c.Cli.ERR_AUTO_LOAD_FAILED)
         if loaded.failure:
-            return r[t.JsonMapping].fail(loaded.error or c.Cli.ERR_AUTO_LOAD_FAILED)
+            return r[t.JsonMapping].from_failure(loaded)
         payload = loaded.value
         normalized_payload: t.JsonMapping = {
             key: u.normalize_to_json_value(value) for key, value in payload.items()
@@ -104,7 +105,7 @@ class FlextCliUtilitiesFiles:
         try:
             rows = list(csv.reader(text.splitlines(), delimiter=delimiter))
         except csv.Error as exc:
-            return r[list[list[str]]].fail(f"csv_loads: {exc}")
+            return r[list[list[str]]].fail(f"csv_loads: {exc}", exception=exc)
         return r[list[list[str]]].ok(rows)
 
     @staticmethod

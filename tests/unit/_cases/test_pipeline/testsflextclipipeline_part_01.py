@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, r
 from flext_tests import tm
 from tests import c, m
+
+from flext_cli import cli, r
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -18,7 +19,7 @@ class TestsFlextCliPipeline:
     """Implementation part for TestsFlextCliPipeline."""
 
     @staticmethod
-    def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
+    def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:
         """Build a handler that succeeds and writes to shared."""
 
         def handler(
@@ -32,18 +33,20 @@ class TestsFlextCliPipeline:
         return handler
 
     @staticmethod
-    def _fail_handler(stage_id: str) -> t.Cli.PipelineHandler:
+    def _fail_handler(stage_id: str) -> p.Cli.PipelineStage:
         """Build a handler that fails."""
 
         def handler(
-            _ctx: p.Cli.PipelineStageContext,
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
+            _ = ctx
             return r[m.Cli.PipelineStageResult].fail(f"{stage_id} failed")
 
         return handler
 
     @staticmethod
-    def _skip_always(_ctx: p.Cli.PipelineStageContext) -> bool:
+    def _skip_always(ctx: p.Cli.PipelineStageContext) -> bool:
+        _ = ctx
         return True
 
     def test_single_stage_ok(self, tmp_path: Path) -> None:
@@ -61,7 +64,7 @@ class TestsFlextCliPipeline:
         """Stages execute in topological order — B depends on A."""
         execution_order: list[str] = []
 
-        def tracking_handler(stage_id: str) -> t.Cli.PipelineHandler:
+        def tracking_handler(stage_id: str) -> p.Cli.PipelineStage:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
             ) -> p.Result[m.Cli.PipelineStageResult]:
@@ -102,15 +105,13 @@ class TestsFlextCliPipeline:
         tm.ok(result)
         tm.that(received["from_a"], eq="hello")
 
-    def test_fail_fast_stops_on_failure(self, tmp_path: Path) -> None:
-        """With fail_fast=True, pipeline stops after first failure."""
+    def test_pipeline_stops_on_failure(self, tmp_path: Path) -> None:
+        """Pipeline always stops after its first failed stage."""
         stages = [
             cli.stage("a", handler=self._fail_handler("a")),
             cli.stage("b", depends_on=frozenset({"a"}), handler=self._ok_handler("b")),
         ]
-        result = cli.pipeline(
-            stages, context=cli.stage_context(tmp_path), fail_fast=True
-        )
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.fail(result)
 
     def test_skip_predicate(self, tmp_path: Path) -> None:

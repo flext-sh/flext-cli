@@ -103,25 +103,24 @@ class Ex06Settings:
         return r[p.Cli.Settings].ok(profile_config)
 
     @classmethod
-    def load_application_settings(cls) -> p.Result[t.MappingKV[str, t.JsonValue]]:
+    def load_application_settings(
+        cls, settings_obj: m.Examples.AppSettingsAdvanced
+    ) -> p.Result[t.MappingKV[str, t.JsonValue]]:
         """Load, validate, and derive application settings from the canonical model."""
         cli.print(
             "\n⚙️  Loading Application Settings:", style=c.Cli.MessageStyles.BOLD_CYAN
         )
-        settings_obj = m.Examples.AppSettingsAdvanced()
         cli.print("✅ Settings model created", style=c.Cli.MessageStyles.GREEN)
         validate_result = settings_obj.validate_to_mapping()
         if validate_result.failure:
-            return r[t.MappingKV[str, t.JsonValue]].fail(
-                validate_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
-            )
+            return r[t.MappingKV[str, t.JsonValue]].from_failure(validate_result)
         cli.print("✅ Settings validated", style=c.Cli.MessageStyles.GREEN)
         try:
             overridden_data = cls.apply_environment_overrides(
                 validate_result.value, settings_obj.environment
             )
         except (TypeError, ValueError) as exc:
-            return r[t.MappingKV[str, t.JsonValue]].fail(str(exc))
+            return r[t.MappingKV[str, t.JsonValue]].fail(str(exc), exception=exc)
         cli.print("✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN)
         final_data = cls.initialize_services(overridden_data)
         cli.print("✅ Services initialized", style=c.Cli.MessageStyles.GREEN)
@@ -166,3 +165,6 @@ class Ex06Settings:
         result["services_initialized"] = True
         result["initialized_at"] = c.EXAMPLE_DEFAULT_INITIALIZED_AT
         return result
+
+
+__all__: list[str] = ["Ex06Settings"]

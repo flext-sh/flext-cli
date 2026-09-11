@@ -26,15 +26,15 @@ class FlextCliUtilitiesXlsxRules(
     ) -> p.Result[bool]:
         validations = cls._apply_validations(worksheet, plan.validations)
         if validations.failure:
-            return r[bool].fail(validations.error or "Data validation failed")
+            return r[bool].from_failure(validations)
         conditional = cls._apply_conditional_formats(
             worksheet, plan.conditional_formats
         )
         if conditional.failure:
-            return r[bool].fail(conditional.error or "Conditional formatting failed")
+            return r[bool].from_failure(conditional)
         protection = cls._apply_protection(worksheet, plan.protection)
         if protection.failure:
-            return r[bool].fail(protection.error or "Worksheet protection failed")
+            return r[bool].from_failure(protection)
         return r[bool].ok(True)
 
 

@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 from io import BytesIO
-from zipfile import BadZipFile
-
-from pptx import Presentation
-from pptx.exc import PackageNotFoundError
-from pptx.presentation import Presentation as PresentationType
+from typing import TYPE_CHECKING
 
 from flext_cli import c, p, r
+
+if TYPE_CHECKING:
+    from pptx.presentation import Presentation as PresentationType
 
 
 class FlextCliUtilitiesPptxSerializer:
@@ -31,18 +30,6 @@ class FlextCliUtilitiesPptxSerializer:
         if not content:
             return r[bytes].fail(str(c.Cli.PptxError.SERIALIZE_FAILED))
         return r[bytes].ok(content)
-
-    @classmethod
-    def pptx_open(cls, source: bytes) -> p.Result[PresentationType]:
-        """Deserialize bytes into a presentation object."""
-        try:
-            presentation = Presentation(BytesIO(source))
-        except (OSError, ValueError, KeyError, BadZipFile, PackageNotFoundError) as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
-            return r[PresentationType].fail(
-                f"{c.Cli.PptxError.PRESENTATION_LOAD_FAILED}: {detail}"
-            )
-        return r[PresentationType].ok(presentation)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesPptxSerializer",)

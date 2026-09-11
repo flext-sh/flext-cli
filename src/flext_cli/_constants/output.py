@@ -5,8 +5,9 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar, Final
 
-from flext_cli._constants.enums import FlextCliConstantsEnums as ce
 from flext_core import c, t
+
+from .enums import FlextCliConstantsEnums as ce
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -57,6 +58,7 @@ class FlextCliConstantsOutput:
     OUTPUT_STATUS_FAIL: Final[str] = "[FAIL]"
     OUTPUT_STATUS_OK: Final[str] = "[OK]"
     OUTPUT_SUMMARY_DEFAULT_VERB: Final[str] = "summary"
+    OUTPUT_EXECUTION_ERROR: Final[str] = "execution error"
     OUTPUT_TABLE_ERROR_LABEL: Final[str] = "[table error]"
     OUTPUT_TABLE_CONFIG_INVALID: Final[str] = "Invalid table configuration"
     OUTPUT_TABLE_CONFIG_INVALID_FMT: Final[str] = (

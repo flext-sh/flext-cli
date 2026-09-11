@@ -18,9 +18,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import t
-from flext_tests import tm
 from tests import p
 
 
@@ -53,7 +53,7 @@ class _ConformingContext:
     """Object structurally conforming to ``PipelineStageContext``."""
 
     @property
-    def workspace_root(self) -> Path:
+    def repository_root(self) -> Path:
         return Path()
 
     @property
@@ -86,7 +86,11 @@ class TestsFlextCliProtocols:
 
     def test_callable_protocol_accepts_plain_callable(self) -> None:
         """Any single-arg callable conforms to ``JsonValueProcessor``."""
-        tm.that(lambda value: value, is_=p.Cli.JsonValueProcessor)
+
+        def identity(value: t.JsonValue) -> t.JsonValue:
+            return value
+
+        tm.that(identity, is_=p.Cli.JsonValueProcessor)
 
     def test_property_protocol_accepts_object_exposing_properties(self) -> None:
         """An object exposing all context properties satisfies the protocol."""
@@ -97,7 +101,7 @@ class TestsFlextCliProtocols:
 
         class _MissingSettings:
             @property
-            def workspace_root(self) -> object: ...
+            def repository_root(self) -> object: ...
 
             @property
             def shared(self) -> object: ...
@@ -113,7 +117,6 @@ class TestsFlextCliProtocols:
             "JsonValueProcessor",
             "YamlModule",
             "PipelineStageContext",
-            "PipelineExecutor",
             "PipelineService",
         ],
     )
@@ -131,7 +134,6 @@ class TestsFlextCliProtocols:
             "SummaryStats",
             "YamlModule",
             "JsonValueProcessor",
-            "PipelineExecutor",
             "PipelineService",
         ],
     )

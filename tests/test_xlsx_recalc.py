@@ -2,12 +2,18 @@
 
 from __future__ import annotations
 
+import shutil
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-
-from flext_cli import cli, m, p
 from flext_tests import tm
+
+from flext_cli import c, cli, m, p
+
+pytestmark = pytest.mark.skipif(
+    shutil.which(c.Cli.XLSX_RECALC_COMMAND[0]) is None,
+    reason="LibreOffice (soffice) is not installed or available on PATH",
+)
 
 
 def _render_workbook() -> bytes:
@@ -127,8 +133,12 @@ def test_xlsx_recalc_supports_concurrent_public_calls() -> None:
     """Concurrent callers receive independently recalculated workbooks."""
     source = _render_workbook()
     request = m.Cli.XlsxRecalcRequest(source=source)
+
+    def recalculate(_index: int) -> p.Result[m.Cli.XlsxRecalcResult]:
+        return cli.xlsx_recalc(request)
+
     with ThreadPoolExecutor(max_workers=3) as executor:
-        results = tuple(executor.map(lambda _index: cli.xlsx_recalc(request), range(3)))
+        results = tuple(executor.map(recalculate, range(3)))
     for result in results:
         tm.that(result.success, eq=True, msg=result.error)
         value = _numeric_cell_value(result.value.content, "Report", "A1")

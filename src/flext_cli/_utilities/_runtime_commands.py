@@ -7,14 +7,19 @@ from typing import TYPE_CHECKING
 
 from flext_cli import p, r, t
 
+from ._runtime_process_outcome import FlextCliUtilitiesRuntimeProcessOutcomeMixin
 
-class FlextCliUtilitiesRuntimeCommandsMixin:
+
+class FlextCliUtilitiesRuntimeCommandsMixin(
+    FlextCliUtilitiesRuntimeProcessOutcomeMixin
+):
     """Compose captured command primitives without owning subprocess creation."""
 
     if TYPE_CHECKING:
 
-        @staticmethod
+        @classmethod
         def run_raw(
+            cls,
             cmd: t.StrSequence,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
@@ -42,10 +47,13 @@ class FlextCliUtilitiesRuntimeCommandsMixin:
         def require_zero_exit(
             output: p.Cli.CommandOutput,
         ) -> p.Result[p.Cli.CommandOutput]:
-            if output.exit_code != 0:
+            if output.outcome.timed_out:
+                return r[p.Cli.CommandOutput].ok(output)
+            if not cls.process_succeeded(output.outcome):
                 detail = (output.stderr or output.stdout).strip()
                 return r[p.Cli.CommandOutput].fail(
-                    f"failed ({output.exit_code}): {shlex.join(list(cmd))}: {detail}"
+                    f"failed ({output.outcome.raw_return_code}): "
+                    f"{shlex.join(list(cmd))}: {detail}"
                 )
             return r[p.Cli.CommandOutput].ok(output)
 

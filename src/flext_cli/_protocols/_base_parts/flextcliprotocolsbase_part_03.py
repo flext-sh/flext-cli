@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_02 import (
+from .flextcliprotocolsbase_part_02 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart02,
 )
 
@@ -30,6 +30,9 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            input_data: str | bytes | None = None,
+            *,
+            capture: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command and require zero exit status."""
             ...
@@ -41,6 +44,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            input_data: str | bytes | None = None,
         ) -> p.Result[str]:
             """Execute a command and return stripped stdout."""
             ...
@@ -52,7 +56,9 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
-            input_data: bytes | None = None,
+            input_data: str | bytes | None = None,
+            *,
+            capture: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
             ...
@@ -65,7 +71,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
-            input_data: bytes | None = None,
+            input_data: str | bytes | None = None,
         ) -> p.Result[p.Cli.CommandBytesOutput]:
             """Execute a command and preserve byte-exact output."""
             ...
@@ -77,8 +83,23 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             env: t.StrMapping | None = None,
             remove_env_keys: t.StrSequence = (),
+            input_data: str | bytes | None = None,
+            *,
+            capture: bool = True,
         ) -> p.Result[bool]:
             """Execute a command and return a success flag."""
+            ...
+
+        def run_live(
+            self,
+            cmd: t.StrSequence,
+            cwd: t.Cli.TextPath | None = None,
+            timeout: int | None = None,
+            env: t.StrMapping | None = None,
+            remove_env_keys: t.StrSequence = (),
+            input_data: str | bytes | None = None,
+        ) -> p.Result[p.Cli.CommandOutput]:
+            """Execute a checked command with inherited live output."""
             ...
 
         def run_to_file(
@@ -92,8 +113,9 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
             input_data: str | bytes | None = None,
             *,
             live: bool = False,
+            heartbeat_seconds: float | None = None,
             deadline: p.Cli.ProcessDeadline | None = None,
-        ) -> p.Result[int]:
+        ) -> p.Result[p.Cli.ProcessOutcome]:
             """Execute once with byte-identical combined live and durable output."""
             ...
 
@@ -103,7 +125,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def debug(self) -> bool | None:
-            """Check if debug mode is enabled."""
+            """Whether debug mode is enabled."""
             ...
 
         @property
@@ -118,7 +140,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def no_color(self) -> bool | None:
-            """Check if color is disabled."""
+            """Whether color is disabled."""
             ...
 
         @property
@@ -133,17 +155,17 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart02):
 
         @property
         def quiet(self) -> bool | None:
-            """Check if quiet mode is enabled."""
+            """Whether quiet mode is enabled."""
             ...
 
         @property
         def trace(self) -> bool | None:
-            """Check if trace mode is enabled."""
+            """Whether trace mode is enabled."""
             ...
 
         @property
         def verbose(self) -> bool | None:
-            """Check if verbose mode is enabled."""
+            """Whether verbose mode is enabled."""
             ...
 
 

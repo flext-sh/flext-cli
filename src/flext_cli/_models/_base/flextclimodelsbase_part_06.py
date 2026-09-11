@@ -7,6 +7,8 @@ from typing import Annotated, ClassVar
 from flext_cli import t
 from flext_core import m
 
+from .flextclimodelsbase_part_01 import FlextCliModelsBase as FlextCliModelsBasePart01
+
 
 class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
@@ -61,7 +63,7 @@ class FlextCliModelsBase:
     class OptionMetadata(m.BaseModel):
         """Validated option-registry metadata for Typer option generation."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="ignore", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="ignore", frozen=True)
 
         help: Annotated[
             str, m.Field("", description="Option help text", strict=True)
@@ -107,6 +109,10 @@ class FlextCliModelsBase:
         exit_code: Annotated[int, m.Field(description="Process-compatible exit code")]
         stdout: Annotated[str, m.Field(description="Captured standard output")] = ""
         stderr: Annotated[str, m.Field(description="Captured standard error")] = ""
+        outcome: Annotated[
+            FlextCliModelsBasePart01.ProcessOutcome,
+            m.Field(description="Causal completion state for the invocation"),
+        ]
 
 
 __all__: list[str] = ["FlextCliModelsBase"]

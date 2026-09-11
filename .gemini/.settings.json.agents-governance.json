@@ -1,0 +1,112 @@
+{
+  "config": "settings.json",
+  "context": "project",
+  "entries": {
+    "BeforeAgent": {
+      "hooks": [
+        {
+<<<<<<< HEAD
+          "command": "python3 /home/marlonsc/flext/flext-cli/.gemini/aihub-hooks/gemini-beforeagent.py",
+=======
+          "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-cli/.gemini/aihub-hooks/gemini-beforeagent.py",
+>>>>>>> origin/integration/sweep-20260830
+          "name": "aihub-governance-beforeagent",
+          "timeout": 10000,
+          "type": "command"
+        }
+      ],
+      "matcher": "*"
+    },
+    "PreCompress": {
+      "hooks": [
+        {
+<<<<<<< HEAD
+          "command": "python3 /home/marlonsc/flext/flext-cli/.gemini/aihub-hooks/gemini-precompress.py",
+=======
+          "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-cli/.gemini/aihub-hooks/gemini-precompress.py",
+>>>>>>> origin/integration/sweep-20260830
+          "name": "aihub-governance-precompress",
+          "timeout": 10000,
+          "type": "command"
+        }
+      ]
+    },
+    "SessionStart": {
+      "hooks": [
+        {
+<<<<<<< HEAD
+          "command": "python3 /home/marlonsc/flext/flext-cli/.gemini/aihub-hooks/gemini-sessionstart.py",
+=======
+          "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-cli/.gemini/aihub-hooks/gemini-sessionstart.py",
+>>>>>>> origin/integration/sweep-20260830
+          "name": "aihub-governance-sessionstart",
+          "timeout": 10000,
+          "type": "command"
+        }
+      ],
+      "matcher": "startup|resume|clear|compact"
+    }
+  },
+  "events": {
+    "context_refresh": {
+      "clients": [
+        "local"
+      ],
+      "coverage": "equivalent",
+      "native": [
+        "PreCompress",
+        "BeforeAgent"
+      ],
+      "status": "SUPPORTED"
+    },
+    "prompt_submit": {
+      "clients": [
+        "local"
+      ],
+      "coverage": "exact",
+      "native": [
+        "BeforeAgent"
+      ],
+      "status": "SUPPORTED"
+    },
+    "session_start": {
+      "clients": [
+        "local"
+      ],
+      "coverage": "exact",
+      "native": [
+        "SessionStart"
+      ],
+      "status": "SUPPORTED"
+    },
+    "subagent_start": {
+      "reason": "UNSUPPORTED: Gemini exposes no documented subagent lifecycle boundary",
+      "status": "UNSUPPORTED"
+    }
+  },
+  "managed": {
+    ".gemini/aihub-hooks/gemini-beforeagent.py": {
+<<<<<<< HEAD
+      "digest": "a82de9770da48bcbc4cb9d16cb3f23e1843914cddee6c04524febd5139a09607",
+=======
+      "digest": "3521ce33a05a6a38176f20d0ad2ffddbf6c72788a0ae01c06ac244190990c661",
+>>>>>>> origin/integration/sweep-20260830
+      "mode": "0755"
+    },
+    ".gemini/aihub-hooks/gemini-precompress.py": {
+      "digest": "e61a6313fe6f1dfcf974f71667ac7ae8a432881822cfca94f9ca3b189c2d924c",
+      "mode": "0755"
+    },
+    ".gemini/aihub-hooks/gemini-sessionstart.py": {
+<<<<<<< HEAD
+      "digest": "867c98133785dbe5c89c1923750f45b772a81140679ea4f0103e496b4c635f24",
+=======
+      "digest": "4c289d497553b357a639e67cba57ac78ac2e8b04b1877ab6aaffa66f57d90014",
+>>>>>>> origin/integration/sweep-20260830
+      "mode": "0755"
+    }
+  },
+  "owner": "agents-governance",
+  "provider": "gemini",
+  "version": 3
+}

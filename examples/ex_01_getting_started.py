@@ -63,9 +63,7 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
 
         settings_result = self.build_example_settings()
         if settings_result.failure:
-            return r[t.JsonMapping].fail(
-                settings_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
-            )
+            return r[t.JsonMapping].from_failure(settings_result)
 
         cli.print(
             "\n2. Pydantic 2 models via m.Examples", style=c.Cli.MessageStyles.BOLD_CYAN
@@ -75,9 +73,7 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
 
         loaded_result = self.persist_example_settings(app_settings)
         if loaded_result.failure:
-            return r[t.JsonMapping].fail(
-                loaded_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
-            )
+            return r[t.JsonMapping].from_failure(loaded_result)
 
         cli.print(
             "\n3. Public cli facade round-trip", style=c.Cli.MessageStyles.BOLD_CYAN
@@ -123,3 +119,6 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
             ),
         )
         return r[t.JsonMapping].ok(summary)
+
+
+__all__: list[str] = ["ExamplesFlextCliGettingStarted"]
