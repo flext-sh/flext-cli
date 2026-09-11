@@ -343,11 +343,11 @@ wheels = [
 
 [[package]]
 name = "click"
-version = "8.5.0"
+version = "8.3.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/c7/0e/7fa0ef50764b67090eca4114772a2abf8b6148198475e54c660b97caeee6/click-8.5.0.tar.gz", hash = "sha256:ba0d2089de75ea0310e2dde03160e6ca10009947fb95a182f9b54021bb272e34", size = 382235, upload-time = "2026-08-26T13:33:14.56Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/bb/63/f9e1ea081ce35720d8b92acde70daaedace594dc93b693c869e0d5910718/click-8.3.3.tar.gz", hash = "sha256:398329ad4837b2ff7cbe1dd166a4c0f8900c3ca3a218de04466f38f6497f18a2", size = 328061, upload-time = "2026-04-22T15:11:27.506Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/58/50/6c0d534c5f134586a8e1ba4e330569e32f057e33372ae556463212fb4cd3/click-8.5.0-py3-none-any.whl", hash = "sha256:255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360", size = 125251, upload-time = "2026-08-26T13:33:12.928Z" },
+    { url = "https://files.pythonhosted.org/packages/ae/44/c1221527f6a71a01ec6fbad7fa78f1d50dfa02217385cf0fa3eec7087d59/click-8.3.3-py3-none-any.whl", hash = "sha256:a2bf429bb3033c89fa4936ffb35d5cb471e3719e1f3c8a7c3fff0b8314305613", size = 110502, upload-time = "2026-04-22T15:11:25.044Z" },
 ]
 
 [[package]]
@@ -687,10 +687,8 @@ dependencies = [
     { name = "openpyxl" },
     { name = "pluggy" },
     { name = "prompt-toolkit" },
-    { name = "pydantic", version = "2.13.5", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
-    { name = "pydantic", version = "2.14.0b1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "pydantic-core", version = "2.46.5", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
-    { name = "pydantic-core", version = "2.48.0", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "pydantic" },
+    { name = "pydantic-core" },
     { name = "pydantic-settings" },
     { name = "python-docx" },
     { name = "python-pptx" },
@@ -793,8 +791,8 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cachetools", specifier = ">=6.2.6" },
-    { name = "click", specifier = ">=8.3.3" },
+    { name = "cachetools", specifier = ">=7.1.7" },
+    { name = "click", specifier = ">=8.3.3,<8.4" },
     { name = "defusedxml", specifier = ">=0.7.1" },
     { name = "flext-core", git = "https://github.com/flext-sh/flext-core.git?rev=0.12.0-dev" },
     { name = "jinja2", specifier = ">=3.1.6" },
@@ -802,24 +800,24 @@ requires-dist = [
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pluggy", specifier = ">=1.6.0" },
     { name = "prompt-toolkit", specifier = ">=3.0.53" },
-    { name = "pydantic", specifier = ">=2.13.4" },
-    { name = "pydantic-core", specifier = ">=2.46.4" },
+    { name = "pydantic", specifier = ">=2.14.0b1" },
+    { name = "pydantic-core", specifier = ">=2.48.0" },
     { name = "pydantic-settings", specifier = ">=2.15.0" },
     { name = "python-docx", specifier = ">=1.2.0" },
     { name = "python-pptx", specifier = ">=1.0.2" },
     { name = "pyyaml", specifier = ">=6.0.3" },
-    { name = "rich", specifier = ">=14.3.4" },
+    { name = "rich", specifier = ">=14.3.4,<14.4" },
     { name = "ruamel-yaml", specifier = ">=0.18.16" },
     { name = "tabulate", specifier = ">=0.10.0" },
     { name = "tomlkit", specifier = ">=0.15.1" },
-    { name = "typer", specifier = ">=0.27.1" },
+    { name = "typer", specifier = ">=0.27.2" },
 ]
 
 [package.metadata.requires-dev]
 codegen = [{ name = "flext-infra", git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev" }]
 dev = [
     { name = "actionlint-py", specifier = ">=1.7.12.24" },
-    { name = "autoflake", specifier = ">=2.3.3" },
+    { name = "autoflake", specifier = ">=2.4.0" },
     { name = "bandit", specifier = ">=1.9.4" },
     { name = "black", specifier = ">=26.5.1" },
     { name = "blacken-docs", specifier = ">=1.20.0" },
@@ -859,7 +857,7 @@ dev = [
     { name = "pyrefly", specifier = ">=1.2.0" },
     { name = "pyright", specifier = ">=1.1.411" },
     { name = "pytest", specifier = ">=9.1.1" },
-    { name = "pytest-benchmark", specifier = ">=5.2.3" },
+    { name = "pytest-benchmark", specifier = ">=5.3.0" },
     { name = "pytest-clarity", specifier = ">=1.0.1" },
     { name = "pytest-codeblocks", specifier = ">=0.18.0" },
     { name = "pytest-cov", specifier = ">=7.1.0" },
@@ -877,17 +875,17 @@ dev = [
     { name = "ruff", specifier = ">=0.16.0" },
     { name = "rumdl", specifier = ">=0.2.45" },
     { name = "types-cachetools", specifier = ">=7.0.0.20260713" },
-    { name = "types-cffi", specifier = ">=2.0.0.20260518" },
+    { name = "types-cffi", specifier = ">=2.1.0.20260827" },
     { name = "types-click", specifier = ">=7.1.8" },
     { name = "types-defusedxml", specifier = ">=0.7.0.20260504" },
-    { name = "types-docker", specifier = ">=7.2.0.20260819" },
+    { name = "types-docker", specifier = ">=7.2.0.20260827" },
     { name = "types-flask", specifier = ">=1.1.6" },
     { name = "types-jsonschema", specifier = ">=4.26.0.20260518" },
-    { name = "types-ldap3", specifier = ">=2.9.13.20260518" },
-    { name = "types-openpyxl", specifier = ">=3.1.5.20260807" },
+    { name = "types-ldap3", specifier = ">=2.9.13.20260827" },
+    { name = "types-openpyxl", specifier = ">=3.1.5.20260827" },
     { name = "types-paramiko", specifier = ">=5.0.0.20260724" },
-    { name = "types-protobuf", specifier = ">=7.35.1.20260821" },
-    { name = "types-psutil", specifier = ">=7.2.2.20260518" },
+    { name = "types-protobuf", specifier = ">=7.35.1.20260827" },
+    { name = "types-psutil", specifier = ">=7.2.2.20260827" },
     { name = "types-psycopg2", specifier = ">=2.9.21.20260724" },
     { name = "types-pyasn1", specifier = ">=0.6.0.20260724" },
     { name = "types-pyopenssl", specifier = ">=24.1.0.20240722" },
@@ -915,10 +913,8 @@ dependencies = [
     { name = "orjson" },
     { name = "packaging" },
     { name = "pybreaker" },
-    { name = "pydantic", version = "2.13.5", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
-    { name = "pydantic", version = "2.14.0b1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
-    { name = "pydantic-core", version = "2.46.5", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
-    { name = "pydantic-core", version = "2.48.0", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "pydantic" },
+    { name = "pydantic-core" },
     { name = "pydantic-extra-types", extra = ["semver"] },
     { name = "pydantic-settings" },
     { name = "python-dotenv" },
@@ -2127,32 +2123,11 @@ wheels = [
 
 [[package]]
 name = "pydantic"
-version = "2.13.5"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'darwin'",
-]
-dependencies = [
-    { name = "annotated-types" },
-    { name = "pydantic-core", version = "2.46.5", source = { registry = "https://pypi.org/simple" } },
-    { name = "typing-extensions" },
-    { name = "typing-inspection" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/53/ef/fc4f868f4e2cee79f863883abffceff107875f569b848507319842d2a681/pydantic-2.13.5.tar.gz", hash = "sha256:51a9c5f7b2f8e636f04c6cada605d9b6a3bf1348fdf945a3d8869b19bba0ee08", size = 845750, upload-time = "2026-08-28T14:04:00.916Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/eb/47/c95ffc2009878c7aac0c5e08528022dcb885933252a88b5f170058014464/pydantic-2.13.5-py3-none-any.whl", hash = "sha256:346a034f080da3755d8e9cb5e00e8b07de1d39e4f6e2c87d8ab7cafa0b269a73", size = 472589, upload-time = "2026-08-28T14:03:59.136Z" },
-]
-
-[[package]]
-name = "pydantic"
 version = "2.14.0b1"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 dependencies = [
     { name = "annotated-types" },
-    { name = "pydantic-core", version = "2.48.0", source = { registry = "https://pypi.org/simple" } },
+    { name = "pydantic-core" },
     { name = "typing-extensions" },
     { name = "typing-inspection" },
 ]
@@ -2163,32 +2138,15 @@ wheels = [
 
 [[package]]
 name = "pydantic-core"
-version = "2.46.5"
-source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'darwin'",
-]
-dependencies = [
-    { name = "typing-extensions" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/af/f9/8a06bea35ef8daf588f707784c973a7046e0034c8d8cfb08828eeffb8b75/pydantic_core-2.46.5.tar.gz", hash = "sha256:10416c15b8839ecc4ef4d0885da76da6fd0f67333a0eb8aff6d93c4b8f2910fc", size = 472262, upload-time = "2026-08-28T10:01:31.677Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f5/37/5abe39a8372a61d3dc3c1338fc504281c01b32fdb3169cd7187153b56d3e/pydantic_core-2.46.5-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:b7ca9034437b6022f941f4857459562ee00a560b97e7cce8a0ec5a74fc6766e0", size = 2075885, upload-time = "2026-08-28T09:58:47.856Z" },
-    { url = "https://files.pythonhosted.org/packages/21/43/6323b1f8b217780454c61304bcd2b38ae4762f50754414124603ccc90bb2/pydantic_core-2.46.5-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:f332f0e72a5a0400141f830744e141bf9f97917878dbe968669e8a7fefea78ff", size = 1922768, upload-time = "2026-08-28T09:58:49.58Z" },
-]
-
-[[package]]
-name = "pydantic-core"
 version = "2.48.0"
 source = { registry = "https://pypi.org/simple" }
-resolution-markers = [
-    "sys_platform == 'linux'",
-]
 dependencies = [
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/26/1b/34440c0294cbc90e57873cbc28465a7e6d6216984cf3ce195cb8ca6791ee/pydantic_core-2.48.0.tar.gz", hash = "sha256:8714f70dafdffea0a5596cc88eddbdc71f5856563947970dcbd0f1ced61ed05f", size = 479692, upload-time = "2026-08-06T14:27:05.602Z" }
 wheels = [
+    { url = "https://files.pythonhosted.org/packages/83/ba/da6251d26ab569e7c87a3acfa0528af3e0ba0bb49ddcd27183d6f1257d97/pydantic_core-2.48.0-cp313-cp313-macosx_10_12_x86_64.whl", hash = "sha256:742e93d9bcb63d9e5a0fb26e82f175ebf183bc861f8ee18b2b5d7ed09d831803", size = 2122895, upload-time = "2026-08-06T14:23:09.786Z" },
+    { url = "https://files.pythonhosted.org/packages/a6/29/70787c54ff498d961d02432cdb343dfe5b59574b22fe5887240a7cdff095/pydantic_core-2.48.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:482c3707518a7163c8148686cd18d27c8f11f89cafa43a6834b42505d266b117", size = 1948678, upload-time = "2026-08-06T14:23:11.503Z" },
     { url = "https://files.pythonhosted.org/packages/46/4c/debee51c5ef9161093fb1334e4a70728ee244db32952f4cb1c57d24a6de8/pydantic_core-2.48.0-cp313-cp313-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:73a5e0f879c9fee3b94473f92860119b6c87779214e8545a1334f346ce5adc2e", size = 1957645, upload-time = "2026-08-06T14:23:13.48Z" },
     { url = "https://files.pythonhosted.org/packages/66/e7/55e5f27b74401e070c9eb1e2a4356864207896aa997c25e0b895574de8d8/pydantic_core-2.48.0-cp313-cp313-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:8fde25b657fc1d960ab48f9282f6d01bcbe691a80f67aaa08055cf0842e35d5c", size = 2076704, upload-time = "2026-08-06T14:23:15.525Z" },
     { url = "https://files.pythonhosted.org/packages/19/af/3704e32aa527920e861d9f632dc080e2316a3cd9c57706e5e2c293d0fefc/pydantic_core-2.48.0-cp313-cp313-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:b630303e2c555395d633c699c7b51b7a3428cee40382b1409698e0feec35f519", size = 2257147, upload-time = "2026-08-06T14:23:17.413Z" },
@@ -2206,8 +2164,7 @@ name = "pydantic-extra-types"
 version = "2.11.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pydantic", version = "2.13.5", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
-    { name = "pydantic", version = "2.14.0b1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "pydantic" },
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/66/71/dba38ee2651f84f7842206adbd2233d8bbdb59fb85e9fa14232486a8c471/pydantic_extra_types-2.11.1.tar.gz", hash = "sha256:46792d2307383859e923d8fcefa82108b1a141f8a9c0198982b3832ab5ef1049", size = 172002, upload-time = "2026-03-16T08:08:03.92Z" }
@@ -2225,8 +2182,7 @@ name = "pydantic-settings"
 version = "2.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pydantic", version = "2.13.5", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
-    { name = "pydantic", version = "2.14.0b1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "typing-inspection" },
 ]
@@ -2561,8 +2517,7 @@ name = "python-on-whales"
 version = "0.81.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pydantic", version = "2.13.5", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
-    { name = "pydantic", version = "2.14.0b1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "pydantic" },
     { name = "typing-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/e9/81/4b545de811e41ff90762a1c7045fcae215f20f4114eebddedab8eab6f63e/python_on_whales-0.81.0.tar.gz", hash = "sha256:bb6172014e3fe949f908092748bddf34df758cb92c2c3d0536b75bf236abce1b", size = 115066, upload-time = "2026-03-09T14:17:43.534Z" }
@@ -2731,15 +2686,15 @@ wheels = [
 
 [[package]]
 name = "rich"
-version = "15.0.0"
+version = "14.3.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "markdown-it-py" },
     { name = "pygments" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c0/8f/0722ca900cc807c13a6a0c696dacf35430f72e0ec571c4275d2371fca3e9/rich-15.0.0.tar.gz", hash = "sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36", size = 230680, upload-time = "2026-04-12T08:24:00.75Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e9/67/cae617f1351490c25a4b8ac3b8b63a4dda609295d8222bad12242dfdc629/rich-14.3.4.tar.gz", hash = "sha256:817e02727f2b25b40ef56f5aa2217f400c8489f79ca8f46ea2b70dd5e14558a9", size = 230524, upload-time = "2026-04-11T02:57:45.419Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/82/3b/64d4899d73f91ba49a8c18a8ff3f0ea8f1c1d75481760df8c68ef5235bf5/rich-15.0.0-py3-none-any.whl", hash = "sha256:33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb", size = 310654, upload-time = "2026-04-12T08:24:02.83Z" },
+    { url = "https://files.pythonhosted.org/packages/b3/76/6d163cfac87b632216f71879e6b2cf17163f773ff59c00b5ff4900a80fa3/rich-14.3.4-py3-none-any.whl", hash = "sha256:07e7adb4690f68864777b1450859253bed81a99a31ac321ac1817b2313558952", size = 310480, upload-time = "2026-04-11T02:57:47.484Z" },
 ]
 
 [[package]]
@@ -3402,8 +3357,7 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
     { name = "maison" },
-    { name = "pydantic", version = "2.13.5", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
-    { name = "pydantic", version = "2.14.0b1", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'linux'" },
+    { name = "pydantic" },
     { name = "ruyaml" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/93/1d/b60d4411ff495de9b7598cc041e29c661e8e2f9d476a8a09bad1f54c1bce/yamlfix-1.19.1.tar.gz", hash = "sha256:05f6add13959637564f278e9237f6e201ff75e061a0a4cb9fc06fa95c3001a22", size = 39483, upload-time = "2025-12-18T09:57:23.179Z" }

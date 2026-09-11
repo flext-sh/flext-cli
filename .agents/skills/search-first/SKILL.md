@@ -15,7 +15,11 @@ code, pinned dependencies, current consumers, runtime, and native gates.
 
 Apply automatically to features, fixes, refactors, integrations, dependency or
 configuration changes, and new abstractions. Read the
+<<<<<<< HEAD
 `search and decision procedure` (skill file).
+=======
+[search and decision procedure](references/procedure.md).
+>>>>>>> origin/integration/sweep-20260830
 
 Produce one reusable evidence packet and follow the bounded owner route in the
 procedure. That procedure is the SSOT for sequencing `yagni`, `ssot`, `solid`,

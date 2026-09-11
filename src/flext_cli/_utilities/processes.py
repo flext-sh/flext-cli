@@ -5,14 +5,15 @@ from __future__ import annotations
 import os
 import select
 import shlex
-import subprocess
+import subprocess  # nosec B404 - canonical process execution owner for CLI verbs
 import time
 from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
+
+from .runtime import FlextCliUtilitiesRuntime
 
 
 class FlextCliUtilitiesProcesses:
@@ -198,9 +199,8 @@ class FlextCliUtilitiesProcesses:
             resolved_env = FlextCliUtilitiesRuntime.process_env(
                 overrides=env, remove_keys=remove_env_keys
             )
-        captured = None if inherit_stdio else subprocess.PIPE
         try:
-            process = subprocess.Popen(
+            process = subprocess.Popen(  # nosec B603 - internal process execution, inputs from typed config
                 list(cmd),
                 cwd=cwd,
                 stdin=subprocess.PIPE,

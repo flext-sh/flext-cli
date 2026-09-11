@@ -5,7 +5,11 @@
     "SessionStart": {
       "hooks": [
         {
+<<<<<<< HEAD
           "command": "python3 /home/marlonsc/flext/flext-cli/.claude/aihub-hooks/claude-sessionstart.py",
+=======
+          "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-cli/.claude/aihub-hooks/claude-sessionstart.py",
+>>>>>>> origin/integration/sweep-20260830
           "statusMessage": "Applying synchronized governance",
           "timeout": 10,
           "type": "command"
@@ -16,7 +20,11 @@
     "SubagentStart": {
       "hooks": [
         {
+<<<<<<< HEAD
           "command": "python3 /home/marlonsc/flext/flext-cli/.claude/aihub-hooks/claude-subagentstart.py",
+=======
+          "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-cli/.claude/aihub-hooks/claude-subagentstart.py",
+>>>>>>> origin/integration/sweep-20260830
           "statusMessage": "Applying synchronized governance",
           "timeout": 10,
           "type": "command"
@@ -26,7 +34,11 @@
     "UserPromptSubmit": {
       "hooks": [
         {
+<<<<<<< HEAD
           "command": "python3 /home/marlonsc/flext/flext-cli/.claude/aihub-hooks/claude-userpromptsubmit.py",
+=======
+          "command": "python3 /home/marlonsc/workspaces/agents-skill-sync/flext/flext-cli/.claude/aihub-hooks/claude-userpromptsubmit.py",
+>>>>>>> origin/integration/sweep-20260830
           "statusMessage": "Applying synchronized governance",
           "timeout": 10,
           "type": "command"
@@ -78,6 +90,7 @@
   },
   "managed": {
     ".claude/aihub-hooks/claude-sessionstart.py": {
+<<<<<<< HEAD
       "digest": "867c98133785dbe5c89c1923750f45b772a81140679ea4f0103e496b4c635f24",
       "mode": "0755"
     },
@@ -87,6 +100,17 @@
     },
     ".claude/aihub-hooks/claude-userpromptsubmit.py": {
       "digest": "bc6c7b23ac47943a6ae6cf88b803bbb63115fa779e088e4d35d24a2fef711e80",
+=======
+      "digest": "4c289d497553b357a639e67cba57ac78ac2e8b04b1877ab6aaffa66f57d90014",
+      "mode": "0755"
+    },
+    ".claude/aihub-hooks/claude-subagentstart.py": {
+      "digest": "18182d4223b1ce8df35a3dc64266ad5ad5e8eead408ed56a593ad3419b0c6062",
+      "mode": "0755"
+    },
+    ".claude/aihub-hooks/claude-userpromptsubmit.py": {
+      "digest": "4321ab9a339f30c14ff4acedc29f5a7950dab1da5cc97faf89f7c15c3a8bcebe",
+>>>>>>> origin/integration/sweep-20260830
       "mode": "0755"
     }
   },

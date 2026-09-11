@@ -8,9 +8,8 @@ import threading
 import time
 
 from flext_cli import c, p
-from flext_cli._utilities._runtime_process_group import (
-    FlextCliUtilitiesRuntimeProcessGroupMixin,
-)
+
+from ._runtime_process_group import FlextCliUtilitiesRuntimeProcessGroupMixin
 
 
 class FlextCliUtilitiesRuntimeProcessMonitorMixin(

@@ -10,25 +10,14 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import IO, BinaryIO
 
-from flext_cli import p, r, t
-from flext_cli._utilities._runtime_process_cleanup import (
-    FlextCliUtilitiesRuntimeProcessCleanupMixin,
-)
-from flext_cli._utilities._runtime_process_outcome import (
-    FlextCliUtilitiesRuntimeProcessOutcomeMixin,
-)
-from flext_cli._utilities._runtime_process_output import (
-    FlextCliUtilitiesRuntimeProcessOutputMixin,
-)
-from flext_cli._utilities._runtime_process_resources import (
-    FlextCliUtilitiesRuntimeProcessResourcesMixin,
-)
-from flext_cli._utilities._runtime_process_start import (
-    FlextCliUtilitiesRuntimeProcessStartMixin,
-)
-from flext_cli._utilities._runtime_process_timing import (
-    FlextCliUtilitiesRuntimeProcessTimingMixin,
-)
+from flext_cli import c, p, r, t
+
+from ._runtime_process_cleanup import FlextCliUtilitiesRuntimeProcessCleanupMixin
+from ._runtime_process_outcome import FlextCliUtilitiesRuntimeProcessOutcomeMixin
+from ._runtime_process_output import FlextCliUtilitiesRuntimeProcessOutputMixin
+from ._runtime_process_resources import FlextCliUtilitiesRuntimeProcessResourcesMixin
+from ._runtime_process_start import FlextCliUtilitiesRuntimeProcessStartMixin
+from ._runtime_process_timing import FlextCliUtilitiesRuntimeProcessTimingMixin
 
 
 class FlextCliUtilitiesRuntimeProcessExecutionMixin(
@@ -203,7 +192,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
 
         try:
             execute_lifecycle()
-        except BaseException as exc:
+        except (OSError, TypeError, ValueError) as exc:
             primary_error = exc
             if process is not None:
                 signal_error = cls._signal_process_tree(
@@ -211,7 +200,6 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 )
                 if signal_error is not None:
                     exc.add_note(signal_error)
-            raise
         finally:
             if process is not None and waiter is not None and not cleanup_complete:
                 return_code = cls._reap_and_drain(
@@ -237,6 +225,13 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             if primary_error is not None:
                 for cleanup_error in cleanup_errors:
                     primary_error.add_note(cleanup_error)
+        if primary_error is not None:
+            if isinstance(primary_error, Exception):
+                return r[p.Cli.CommandBytesOutput].fail(
+                    f"{c.Cli.OUTPUT_EXECUTION_ERROR}: {primary_error}",
+                    exception=primary_error,
+                )
+            raise primary_error
         return cls._captured_process_result(
             return_code,
             received_signals,

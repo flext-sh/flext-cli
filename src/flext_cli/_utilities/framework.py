@@ -317,7 +317,12 @@ class FlextCliUtilitiesFramework:
             private_application.backend, args=list(args) if args is not None else None
         )
         return m.Cli.InvocationResult(
-            exit_code=result.exit_code, stdout=result.stdout, stderr=result.stderr
+            exit_code=result.exit_code,
+            stdout=result.stdout,
+            stderr=result.stderr,
+            outcome=m.Cli.ProcessOutcome(
+                raw_return_code=result.exit_code, timed_out=False, forwarded_signal=None
+            ),
         )
 
     @classmethod

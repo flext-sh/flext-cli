@@ -11,8 +11,9 @@ from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c
-from flext_cli._typings.base import FlextCliTypesBase as tb
 from flext_core import p, t
+
+from .base import FlextCliTypesBase as tb
 
 
 class FlextCliTypesDomain:

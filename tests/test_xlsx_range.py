@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from flext_cli import cli, m
 from flext_tests import tm
+
+from flext_cli import cli, m
 
 
 def test_xlsx_parse_range_returns_typed_concrete_bounds() -> None:

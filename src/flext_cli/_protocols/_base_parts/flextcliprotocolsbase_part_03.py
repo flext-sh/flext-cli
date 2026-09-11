@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_02 import (
+from .flextcliprotocolsbase_part_02 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart02,
 )
 

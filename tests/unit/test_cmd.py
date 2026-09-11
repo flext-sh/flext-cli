@@ -20,8 +20,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from flext_cli import cli, m
 from flext_tests import tm
+
+from flext_cli import cli, m
 from tests import c, p, t, u
 
 

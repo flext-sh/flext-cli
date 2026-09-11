@@ -6,6 +6,7 @@ applyTo: '**'
 
 Every project and projected agent applies all of these policies together:
 
+<<<<<<< HEAD
 - `fail loud` (rule file);
 - `no fallback` (rule file);
 - `preflight before effects` (rule file);
@@ -14,6 +15,16 @@ Every project and projected agent applies all of these policies together:
 - `causal subprocess propagation` (rule file);
 - `no keyring` (rule file);
 - `zero residue` (rule file).
+=======
+- [fail loud](runtime--fail-loud.instructions.md);
+- [no fallback](runtime--no-fallback.instructions.md);
+- [preflight before effects](runtime--preflight-before-effects.instructions.md);
+- [required environment](runtime--required-environment.instructions.md);
+- [atomic effects](runtime--atomic-effects.instructions.md);
+- [causal subprocess propagation](runtime--causal-subprocess.instructions.md);
+- [no keyring](runtime--no-keyring.instructions.md);
+- [zero residue](runtime--zero-residue.instructions.md).
+>>>>>>> origin/integration/sweep-20260830
 
 The policies are cumulative. A project rule may make them narrower or reject
 more inputs; it cannot relax, catch, normalize, skip, defer, or route around any

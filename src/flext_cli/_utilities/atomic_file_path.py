@@ -26,20 +26,31 @@ def validate_directory_path(path: Path) -> Path:
     return path
 
 
-def validate_parent_path(parent: Path) -> os.stat_result:
-    """Return a physical parent only when every path component is non-aliased."""
+def resolve_parent_path(parent: Path) -> tuple[os.stat_result | None, Path]:
+    """Return one physical parent state, or the first missing path component.
+
+    Every present component is still required to be a non-aliased physical
+    directory: an aliased component is a defect, never absence.
+    """
     validate_directory_path(parent)
     state: os.stat_result | None = None
     for component in (*reversed(parent.parents), parent):
         try:
             state = component.lstat()
-        except FileNotFoundError as exc:
-            message = f"atomic destination parent is missing: {component}"
-            raise FileNotFoundError(errno.ENOENT, message, component) from exc
+        except FileNotFoundError:
+            return None, component
         validate_directory_state(component, state)
     if state is None:
-        message = f"atomic destination parent is missing: {parent}"
-        raise FileNotFoundError(errno.ENOENT, message, parent)
+        return None, parent
+    return state, parent
+
+
+def validate_parent_path(parent: Path) -> os.stat_result:
+    """Return a physical parent only when every path component is non-aliased."""
+    state, component = resolve_parent_path(parent)
+    if state is None:
+        message = f"atomic destination parent is missing: {component}"
+        raise FileNotFoundError(errno.ENOENT, message, component)
     return state
 
 
@@ -66,6 +77,7 @@ def is_reparse_point(state: os.stat_result) -> bool:
 __all__: list[str] = [
     "identity",
     "is_reparse_point",
+    "resolve_parent_path",
     "validate_atomic_path",
     "validate_directory_path",
     "validate_directory_state",

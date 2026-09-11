@@ -16,5 +16,8 @@ Rollback may remove or restore only effects attributable to the current
 invocation and only from already validated recovery data. Rollback failure is
 attached to the original exception, which remains the exception re-raised.
 Never delete unknown, foreign, live, dirty, or ownership-ambiguous state.
+<<<<<<< HEAD
 
 See also: `strict-execution.md` (rule file) — aggregate parent policy.
+=======
+>>>>>>> origin/integration/sweep-20260830

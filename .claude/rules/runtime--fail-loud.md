@@ -14,5 +14,8 @@ Only cleanup and rollback may catch an exception. They must retain the original
 exception as the one re-raised, attach any cleanup/rollback exception to its
 causal evidence, and never replace the original failure with cleanup success or
 failure.
+<<<<<<< HEAD
 
 See also: `strict-execution.md` (rule file) — aggregate parent policy.
+=======
+>>>>>>> origin/integration/sweep-20260830

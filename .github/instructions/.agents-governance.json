@@ -9,9 +9,15 @@
       "adapter_version": 1,
       "destination": "architecture--engineering-core.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "19237803de32675bef0422d3bc9c82f328a83ac92e80ee87bd2e5e8aefcd1f9b",
       "slug": "architecture/engineering-core",
       "source_digest": "706b18fc4efec92f228a074bea359a21b1e91c8265466795aba7f9739940856e",
+=======
+      "physical_digest": "ee27a9fddbdfc9ddaf6df53c698fcaef7276b66a4a40aac54d2efdc3867b4b87",
+      "slug": "architecture/engineering-core",
+      "source_digest": "600c588ab0aae1a11ef43f01dccdbcf66e6991c5385d5a64626ea04e9615b5f1",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "architecture--generalized-abstraction.instructions.md": {
@@ -33,9 +39,15 @@
       "adapter_version": 1,
       "destination": "architecture--governance-artifact-composition.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "1be03ba0c7e11201dd99f127d2dfce30c6ca3b6fe09968306e8da8adde1d5697",
       "slug": "architecture/governance-artifact-composition",
       "source_digest": "cf57f4ac8b6218d02dc799f4b08bb803fa59f1dda68dc682ee0c57bbdfc6db57",
+=======
+      "physical_digest": "d630f38cdec19020d890bfec9e534d01a49e0946c6f1c98ee857fab7079df651",
+      "slug": "architecture/governance-artifact-composition",
+      "source_digest": "c0de50b57a7771107ebff6a0d823bf2b0af2c95148516e23f0eccff01e6ee8ca",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "communication--caveman.instructions.md": {
@@ -57,9 +69,15 @@
       "adapter_version": 1,
       "destination": "coordination--fix-forward-collaboration.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "c6a5851bc12a0e2f3eb0a1a3d74ee0986596ae545628a5debf4c7426dfd14101",
       "slug": "coordination/fix-forward-collaboration",
       "source_digest": "14882a304d4c273d1fa2463378942b6cd44267c49bbdb766ae52126b2c906563",
+=======
+      "physical_digest": "7fec3ecdcd3066580d458f40b47e898fd9486aaebfbcedc1e7ed14a1a158201e",
+      "slug": "coordination/fix-forward-collaboration",
+      "source_digest": "f34b7de1ea97b9a0f90abdcac144e7582567929fdab85529d0d0c8851da1a804",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "coordination--multiagent-edit-breadcrumb.instructions.md": {
@@ -69,9 +87,15 @@
       "adapter_version": 1,
       "destination": "coordination--multiagent-edit-breadcrumb.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "8cd42cc65898127bbf35ceaea298b5db9685f3c0ea7e8927f8f5ae3ffaf35acc",
       "slug": "coordination/multiagent-edit-breadcrumb",
       "source_digest": "054af9c6f59764f42feb0e05e06addc1f31401b8858c2fe237f61221d57113b8",
+=======
+      "physical_digest": "07a4e49438c3db2d3cc3848bc81e5da4af178615ad3106416ee4431dbde76c29",
+      "slug": "coordination/multiagent-edit-breadcrumb",
+      "source_digest": "e1c7177edca47dfc51ca969366ad98f807c7fc2bcb0cfccb43967833128afa1a",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "coordination--operator-precedence.instructions.md": {
@@ -93,9 +117,15 @@
       "adapter_version": 1,
       "destination": "coordination--plan-topic-monopoly.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "6d3ffb9bc2f310ee8bdba844abeca2ec0a5f435e77af352d6a174c600385cdd3",
       "slug": "coordination/plan-topic-monopoly",
       "source_digest": "8eb11455c674c252a8eb587c4efeff6ecb141a7edbc12ff161b14acd22b513c8",
+=======
+      "physical_digest": "f201c87d4cf3823b8aa08034e2a424d77df83a8606817826a5abf9d80530d2fa",
+      "slug": "coordination/plan-topic-monopoly",
+      "source_digest": "2b177c564ef562213f758e22a4555e38399bd3235a63e7e6e670a0480c47ae40",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "coordination--session-governance.instructions.md": {
@@ -105,9 +135,15 @@
       "adapter_version": 1,
       "destination": "coordination--session-governance.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "36b3fe2aad50533bf020e15031da921623faa1eb80a066bf13666e4c0e94e342",
       "slug": "coordination/session-governance",
       "source_digest": "0db5e5bd94072f357e08f6830a20980297b383d547da70226942307888678348",
+=======
+      "physical_digest": "a0320fb909f502994bcb6e6a17f4ac5e7b1bfc88e0d94eb4e25ffa6bf8ff5275",
+      "slug": "coordination/session-governance",
+      "source_digest": "6661e574d92d686e7f7def443cd7f756e0065739626f190a2fd6d2ba533ddf6e",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "coordination--shared-venv-guard.instructions.md": {
@@ -117,9 +153,15 @@
       "adapter_version": 1,
       "destination": "coordination--shared-venv-guard.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "eeea6099b81d0d099ecda2c4c5b3078bfbf5619007dd4f39891039874ef3948e",
       "slug": "coordination/shared-venv-guard",
       "source_digest": "c9758f69d5a0386f6347957dcef0151e07fb520db7217e475da8064388dc3525",
+=======
+      "physical_digest": "a8e5db9eab2786f3705ca9d007d76c9e3af3aa0594892771bc7b3edd53b7fc97",
+      "slug": "coordination/shared-venv-guard",
+      "source_digest": "c3d60941b29834b65b510882424c6d8288f884864aba83dfcbb3716b5dc72a57",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "ethics--professional-integrity.instructions.md": {
@@ -141,9 +183,15 @@
       "adapter_version": 1,
       "destination": "git--destructive-git-guard.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "3c0147ce952baf292237ca6c77ddf53c13bc0d23ca73378c4864af30b359ad1b",
       "slug": "git/destructive-git-guard",
       "source_digest": "750f724875c0a44b5a1343d010ca99d7ceb9f7ffdeb4582d13f4848d60cd05ba",
+=======
+      "physical_digest": "9fbccc7447a70cb6c843fa4c38cd3b44fe9cc2e0f365cb4fa2f2200077d60242",
+      "slug": "git/destructive-git-guard",
+      "source_digest": "4f4dbc896a1ef86f2748cce1ac27b29d84ac2fee91f00a128ccaf22336ecbef2",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "python--config-settings-ssot.instructions.md": {
@@ -165,9 +213,15 @@
       "adapter_version": 1,
       "destination": "python--no-hidden-errors.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "4830ea7e872a97a3e4e885f4c1c8c166cef6d758c291811eec2a9f087410c9b7",
       "slug": "python/no-hidden-errors",
       "source_digest": "51d36c283451859096508cab29c4fc86adb6edff553258970cd7d815e9d9b2b0",
+=======
+      "physical_digest": "21a0458abbc05ed8f7b1f1387c2f2caad60c94e8d1049edfe6830e5ad81c45ca",
+      "slug": "python/no-hidden-errors",
+      "source_digest": "5dd03531a6a14c14422dc76dcc6f545b28b34e7617eb49119c9622ab3f20edd1",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "python.instructions.md": {
@@ -189,9 +243,15 @@
       "adapter_version": 1,
       "destination": "runtime--atomic-effects.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "68db05a37cdcc17374670124c6dc210b718febc6197f91ffbfef61a54db4111c",
       "slug": "runtime/atomic-effects",
       "source_digest": "96c3f589108761926610a1703c0bc10cefd9be7cf29ef602c26c99b14079d6d4",
+=======
+      "physical_digest": "fdfdc84ae91d5c2c520fba197bf0aa37f31d423c5c9a7befa8ede70fb57dfdeb",
+      "slug": "runtime/atomic-effects",
+      "source_digest": "349d4a1f1d870b053c5f25f5690d9134fcf5f3329dca5f86f134293c517b0f24",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "runtime--causal-subprocess.instructions.md": {
@@ -201,9 +261,15 @@
       "adapter_version": 1,
       "destination": "runtime--causal-subprocess.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "ebba2f5c1c77342bdf305a702f0a8a18033f413b2e59de1179756f048525c34d",
       "slug": "runtime/causal-subprocess",
       "source_digest": "8c096d198d24d198b650a1a693375950edffeb30fd08b35e756d0aa7c03c122e",
+=======
+      "physical_digest": "941b0a563c35f0c4b0e31e586530e68bae06e394f91ccbf5c74a1517003e9785",
+      "slug": "runtime/causal-subprocess",
+      "source_digest": "b0f91b20bec50fa3b957e807875d9b8752a6208306f840df6ef20ee56011b703",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "runtime--fail-loud.instructions.md": {
@@ -213,9 +279,15 @@
       "adapter_version": 1,
       "destination": "runtime--fail-loud.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "45988875dec39c3b5eace6763b802527f3852c04a6f9d6daf32bdde953ed0e88",
       "slug": "runtime/fail-loud",
       "source_digest": "a496a4fd85ba2be44bdb4b5b7430963ebc7f4494d5ac1bf764580d0b9dedd981",
+=======
+      "physical_digest": "8472693f760884eb76d3d9af4474308cac0c603a6a54fab8c655c618abbf333b",
+      "slug": "runtime/fail-loud",
+      "source_digest": "7470cf9fd90540523eb05a8496b3956a93c404de443a41047acbb92bea6f90cd",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "runtime--no-fallback.instructions.md": {
@@ -225,9 +297,15 @@
       "adapter_version": 1,
       "destination": "runtime--no-fallback.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "1b41acb9033eb99333112ffb7ff92aea46068fb1f12b8afe4a787f7a38a1f536",
       "slug": "runtime/no-fallback",
       "source_digest": "92dee80a490b194a7f42f88a643b6c7de015f1beace9c60f7683837e46d097ad",
+=======
+      "physical_digest": "6d03b4cd1f6011742a1cafe45de7da8ccfa0d9b4a1ab8d78c8c2a05e55f94dc0",
+      "slug": "runtime/no-fallback",
+      "source_digest": "77ce8ad98f7f073f4cb5dd11251b243b27e552859b4ee45f6551055e2022d472",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "runtime--no-keyring.instructions.md": {
@@ -237,9 +315,15 @@
       "adapter_version": 1,
       "destination": "runtime--no-keyring.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "df46983198fac951329f69e5e43befd73b2a7417b8d37ee9f3a43d2ac45d0a6b",
       "slug": "runtime/no-keyring",
       "source_digest": "be020c47da3cc777bfdf77a054ed5051773f8edfbd87136af28b5b9d7d2ece8c",
+=======
+      "physical_digest": "c8ec11a288aa5cae8049908a2e9e104f6bf6978a1785da9fbb470ffc1d59272d",
+      "slug": "runtime/no-keyring",
+      "source_digest": "d898e0135a670acfec9c95501c51a6eded99b7b6434a21ba5377cd6ed33df159",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "runtime--preflight-before-effects.instructions.md": {
@@ -249,9 +333,15 @@
       "adapter_version": 1,
       "destination": "runtime--preflight-before-effects.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "870a1af045d7d45d0a8cd766c27069e2a6e1c29eeeba256efe8c804e2195b66c",
       "slug": "runtime/preflight-before-effects",
       "source_digest": "f7835edfccacdc70c13e2e92f1bc1ae540566bb1ebf87666bc8f4dbf815aa0f6",
+=======
+      "physical_digest": "829363575c20d03a426502c65af61af117ed5869d0ec26d0e51e2a99c43a76ee",
+      "slug": "runtime/preflight-before-effects",
+      "source_digest": "eb6adfd6ad0cc7ea69345c0387fce824ce3fccf50b4e11d4f302eee291c93ccb",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "runtime--required-environment.instructions.md": {
@@ -261,9 +351,15 @@
       "adapter_version": 1,
       "destination": "runtime--required-environment.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "29109f8c120de8231a5bb481cf434c49deab2c0e1634ce3d1713c2b637231c26",
       "slug": "runtime/required-environment",
       "source_digest": "be0e4b47a03e5159374d331167997c9b2db9e63892d94e9adee11c8e0164ae0a",
+=======
+      "physical_digest": "e5c545b133dee10bd638add988837756b6417da4d13ab5eb78a3f920b701498a",
+      "slug": "runtime/required-environment",
+      "source_digest": "39f42ec1bcf166d5cb361aca1f49942ac925bd7502ac0672ff76687b120ca786",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "runtime--strict-execution.instructions.md": {
@@ -273,9 +369,15 @@
       "adapter_version": 1,
       "destination": "runtime--strict-execution.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "a93cc8e1f27dc4389c6246ed4848e35e69edb14ebebd64aaeadcce88049b6f57",
       "slug": "runtime/strict-execution",
       "source_digest": "81625551a5a9aae9fa6ac513d358c165089d2ef388b38b9f8ffdaf13b6970703",
+=======
+      "physical_digest": "f33d0ad7d8f250826a4d5d2762facf07cc1a28b0c11e479fdbb3d7b5d7185afe",
+      "slug": "runtime/strict-execution",
+      "source_digest": "86d538d4d162b2fce6272a41df0fe25386a7aa7eea2b0875277988af14d702b5",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "runtime--zero-residue.instructions.md": {
@@ -285,9 +387,15 @@
       "adapter_version": 1,
       "destination": "runtime--zero-residue.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "bc47ed13b5867f93f13b79fb06500c84c053f2361efb3999ce2cd0d9793b12eb",
       "slug": "runtime/zero-residue",
       "source_digest": "1fec1bdeea792fdd17f67bb654e9e35437042a0c192e37e2a7e12df871fa3273",
+=======
+      "physical_digest": "26f5dc247d65b6c171d5ff9366cfddbd72f265bcc3a5c9d137b1c189339dcab6",
+      "slug": "runtime/zero-residue",
+      "source_digest": "9bfbf3fb19d4438f80bee2fe76048b6d8ca7044d31d761bf97bc628c36be0cfb",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "rust.instructions.md": {
@@ -309,9 +417,15 @@
       "adapter_version": 1,
       "destination": "security--prompt-defense.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "0ae4922ef8b0dcd3e299684c04a20c8b21751ccebde649b7df97d9297cd5550c",
       "slug": "security/prompt-defense",
       "source_digest": "0919ae991a4bd9139addd92af5b86acf0677ad768997e1bf9c5d699f46d3a27e",
+=======
+      "physical_digest": "f133af2975357fb977874ab5fedc124c60c4aa2a1713d50ae459c0383d574674",
+      "slug": "security/prompt-defense",
+      "source_digest": "6594d32ed4dec2a8052e007c5444e444a4dd370e9021a773c9c7f5461e571619",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "security--scanner-closure.instructions.md": {
@@ -369,9 +483,15 @@
       "adapter_version": 1,
       "destination": "testing--observable-runtime.instructions.md",
       "origin": "agents:rules:copilot",
+<<<<<<< HEAD
       "physical_digest": "f3a6680b701caf13da8551083f4b89f254a7d21272f7b0f360d81d5ac8c074cd",
       "slug": "testing/observable-runtime",
       "source_digest": "0d97c73059d1710716b11d5983c2817553733ad216fb565fa6ca8cfeab572aa0",
+=======
+      "physical_digest": "88f77dec83797fbc699ecaa4baac64ab17078f91da07b75dd76689bbf06912b9",
+      "slug": "testing/observable-runtime",
+      "source_digest": "24ed2efa2bcbfacc2f75032721a0a2058c06c3efec57eb67da4c8cee20d89126",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "rule"
     },
     "typescript.instructions.md": {
@@ -422,6 +542,7 @@
       "source_digest": "9e3ec2a1292a276fce6c6e55e35e1968beaaf4b6d5b7074f9ce82cd8cb5fd43a",
       "source_type": "rule"
     },
+<<<<<<< HEAD
     "workflow--production-readiness.instructions.md": {
       "activation": [
         "route:both"
@@ -434,6 +555,8 @@
       "source_digest": "8dd7bc4ad487dce10943bd1d00f5331a436c56efeaae63a2ad8e9c7a62e320fa",
       "source_type": "rule"
     },
+=======
+>>>>>>> origin/integration/sweep-20260830
     "workflow--runtime-is-reality.instructions.md": {
       "activation": [
         "route:both"

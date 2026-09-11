@@ -25,7 +25,14 @@ remain observational. Never claim an exact lifecycle semantic that the provider
 does not expose. Declarative instructions and projected skills/rules remain the
 standing guarantee when a hook can only observe or advise.
 
+<<<<<<< HEAD
 Compose with `operator precedence` (rule file),
 `fix-forward collaboration` (rule file),
 `strict execution` (rule file), and
 `runtime evidence` (rule file).
+=======
+Compose with [operator precedence](coordination--operator-precedence.instructions.md),
+[fix-forward collaboration](coordination--fix-forward-collaboration.instructions.md),
+[strict execution](runtime--strict-execution.instructions.md), and
+[runtime evidence](workflow--runtime-is-reality.instructions.md).
+>>>>>>> origin/integration/sweep-20260830

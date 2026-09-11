@@ -7,14 +7,33 @@ import os
 from pathlib import Path
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import m
-from flext_tests import tm
 from tests import u
 
 
 class TestsAtomicPhysicalTree:
     """Prove manifests authenticate every entry before nonrecursive cleanup."""
+
+    def test_inventory_preserves_mount_identity_across_entries_and_reads(
+        self, tmp_path: Path
+    ) -> None:
+        """Native mount identity is stable for a directory and its regular file."""
+        root = tmp_path / "tree"
+        root.mkdir()
+        payload = root / "payload"
+        payload.write_bytes(b"payload")
+
+        first = self._inventory(root)
+        second = self._inventory(root)
+
+        tm.that(first.root.mount_id > 0, eq=True)
+        tm.that(second.root.mount_id, eq=first.root.mount_id)
+        tm.that(first.entries[0].mount_id, eq=first.root.mount_id)
+        tm.that(second.entries[0].mount_id, eq=first.entries[0].mount_id)
+        tm.ok(u.Cli.atomic_cleanup_physical_tree_guarded(second))
+        tm.that(root.exists(), eq=False)
 
     def test_inventory_records_ordered_parent_bound_physical_state(
         self, tmp_path: Path

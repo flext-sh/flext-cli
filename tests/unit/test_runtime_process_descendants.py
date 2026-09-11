@@ -8,8 +8,8 @@ import time
 from typing import TYPE_CHECKING, ClassVar, override
 
 import pytest
-
 from flext_tests import tm
+
 from tests import m, p, u
 
 if TYPE_CHECKING:
@@ -66,7 +66,7 @@ class TestsFlextCliRuntimeProcessDescendants:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.that(result.value.raw_return_code, eq=0)
         child_pid, process_group = (
             int(value) for value in process_info.read_text().split()
         )
@@ -91,7 +91,8 @@ class TestsFlextCliRuntimeProcessDescendants:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=96)
+        tm.that(result.value.timed_out, eq=True)
+        tm.that(result.value.raw_return_code, lt=0)
         if os.name == "nt":
             tm.that(_ObservedWindowsCli.active_counts, empty=False)
             tm.that(_ObservedWindowsCli.active_counts[-1], eq=0)

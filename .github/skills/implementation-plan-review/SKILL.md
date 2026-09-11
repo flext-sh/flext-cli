@@ -11,7 +11,11 @@ Activate to review or promote a concrete implementation plan before coding.
 Do not activate for source-code review, product discovery without approved
 intent, or implementation of a plan whose review is not requested.
 
+<<<<<<< HEAD
 Read the `decision-completeness procedure` (skill file). Ground the
+=======
+Read the [decision-completeness procedure](references/procedure.md). Ground the
+>>>>>>> origin/integration/sweep-20260830
 review in current repository owners and pinned dependencies, preserve supported
 choices, and ask only for decisions that cannot be derived.
 

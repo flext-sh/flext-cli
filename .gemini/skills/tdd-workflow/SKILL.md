@@ -9,6 +9,10 @@ metadata:
 
 Activate when implementing or correcting observable behavior through a
 red-green-refactor cycle. Before changing behavior, read the
+<<<<<<< HEAD
 `complete procedure` (skill file) and follow the active project's
+=======
+[complete procedure](references/procedure.md) and follow the active project's
+>>>>>>> origin/integration/sweep-20260830
 public contract and native validation surface. Do not add tests for a prose-only
 or configuration-preserving edit with no behavior boundary.

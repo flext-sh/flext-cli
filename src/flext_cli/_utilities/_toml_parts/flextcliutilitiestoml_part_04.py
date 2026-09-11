@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
+from flext_core import u
+
+from .flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
 )
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_03 import (
+from .flextcliutilitiestoml_part_03 import (
     FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart03,
 )
-from flext_core import u
 
 if TYPE_CHECKING:
     from tomlkit.items import Table

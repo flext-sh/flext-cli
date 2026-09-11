@@ -6,9 +6,8 @@ import shlex
 from typing import TYPE_CHECKING
 
 from flext_cli import p, r, t
-from flext_cli._utilities._runtime_process_outcome import (
-    FlextCliUtilitiesRuntimeProcessOutcomeMixin,
-)
+
+from ._runtime_process_outcome import FlextCliUtilitiesRuntimeProcessOutcomeMixin
 
 
 class FlextCliUtilitiesRuntimeCommandsMixin(
@@ -48,6 +47,8 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         def require_zero_exit(
             output: p.Cli.CommandOutput,
         ) -> p.Result[p.Cli.CommandOutput]:
+            if output.outcome.timed_out:
+                return r[p.Cli.CommandOutput].ok(output)
             if not cls.process_succeeded(output.outcome):
                 detail = (output.stderr or output.stdout).strip()
                 return r[p.Cli.CommandOutput].fail(

@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, u
 from flext_tests import tm
+
+from flext_cli import cli, u
 from tests import m
 
 if TYPE_CHECKING:

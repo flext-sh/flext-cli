@@ -19,12 +19,13 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06 import (
+from flext_core import u
+
+from ._toml_parts.flextcliutilitiestoml_part_06 import (
     FlextCliUtilitiesToml as _TomlRead,
 )
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
-from flext_core import u
+from .json import FlextCliUtilitiesJson
+from .yaml import FlextCliUtilitiesYaml
 
 
 class FlextCliUtilitiesConfig:

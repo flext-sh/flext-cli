@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import _base as _base, _xlsx as _xlsx
+    from . import _base, _xlsx
     from ._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
     from ._xlsx.xlsx_cells import FlextCliModelsXlsxCells
     from ._xlsx.xlsx_layout import FlextCliModelsXlsxLayout
@@ -23,7 +23,11 @@ if TYPE_CHECKING:
     from ._xlsx.xlsx_tables import FlextCliModelsXlsxTables
     from ._xlsx.xlsx_validation import FlextCliModelsXlsxValidation
     from ._xlsx.xlsx_workbook import FlextCliModelsXlsxWorkbook
-    from .atomic_state import validate_atomic_state_path, validate_non_reparse_state
+    from .atomic_state import (
+        validate_atomic_state_path,
+        validate_non_reparse_state,
+        validate_parent_identity,
+    )
     from .base import FlextCliModelsBase
     from .config import FlextCliConfigModels
     from .docx import FlextCliModelsDocx
@@ -64,6 +68,7 @@ __all__: tuple[str, ...] = (
     "_xlsx",
     "validate_atomic_state_path",
     "validate_non_reparse_state",
+    "validate_parent_identity",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
@@ -87,6 +92,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".atomic_state": (
                 "validate_atomic_state_path",
                 "validate_non_reparse_state",
+                "validate_parent_identity",
             ),
             ".base": ("FlextCliModelsBase",),
             ".config": ("FlextCliConfigModels",),

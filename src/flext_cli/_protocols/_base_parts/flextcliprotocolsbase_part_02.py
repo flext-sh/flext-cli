@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from typing import IO, Protocol, runtime_checkable
 
-from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_01 import (
+from flext_core import p
+
+from .flextcliprotocolsbase_part_01 import (
     FlextCliProtocolsBase as FlextCliProtocolsBasePart01,
 )
-from flext_core import p
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
@@ -71,6 +72,11 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
             ...
 
         @property
+        def exit_code(self) -> int:
+            """Raw process return code, derived from the completion outcome."""
+            ...
+
+        @property
         def outcome(self) -> FlextCliProtocolsBase.ProcessOutcome:
             """Causal process completion state."""
             ...
@@ -93,6 +99,11 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
         @property
         def duration(self) -> float:
             """Command duration in seconds."""
+            ...
+
+        @property
+        def exit_code(self) -> int:
+            """Raw process return code, derived from the completion outcome."""
             ...
 
         @property

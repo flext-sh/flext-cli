@@ -20,9 +20,9 @@ import inspect
 from typing import Annotated, ClassVar
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import cli, m
-from flext_tests import tm
 from tests import c, p, t
 
 

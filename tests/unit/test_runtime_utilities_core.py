@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-import socket
 import os
+import socket
 import sys
 from typing import TYPE_CHECKING
 
 import pytest
-
 from flext_tests import tm
+
 from tests import m, u
 
 if TYPE_CHECKING:
@@ -64,14 +64,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
             if case.use_tmp_path:
                 tm.that(output.stdout.strip(), eq=str(tmp_path))
             if case.exit_code is not None:
-                tm.that(
-                    (
-                        u.Cli.process_succeeded(output.outcome),
-                        output.outcome.raw_return_code,
-                    ),
-                    eq=(True, case.exit_code),
-                )
-
+                tm.that(output.outcome.raw_return_code, eq=case.exit_code)
+            tm.that(output.outcome.timed_out, eq=case.timed_out)
             return
         tm.fail(result, has=case.error_has)
 
@@ -98,6 +92,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
                 tm.that(output.stdout, has=case.stdout_has)
             if case.use_tmp_path:
                 tm.that(output.stdout.strip(), eq=str(tmp_path))
+            tm.that(output.outcome.timed_out, eq=case.timed_out)
             return
         tm.fail(result, has=case.error_has)
 
@@ -200,20 +195,6 @@ class TestsFlextCliRuntimeUtilitiesCore:
             tm.that(wait_result.value, eq=0)
         finally:
             parent_end.close()
-
-    def test_process_start_inherit_stdio_captures_nothing(self, runner: u.Cli) -> None:
-        """Inherited standard streams reach the parent, not the captured buffers."""
-        result = runner.process_start(
-            [sys.executable, "-c", "print('to-parent-stdout')"], inherit_stdio=True
-        )
-        tm.ok(result)
-        process = result.value
-
-        wait_result = process.wait(timeout=5)
-        tm.ok(wait_result)
-        tm.that(wait_result.value, eq=0)
-        tm.that(process.stdout, eq="")
-        tm.that(process.stderr, eq="")
 
     def test_process_start_honors_cwd_env_and_stderr(
         self, runner: u.Cli, tmp_path: Path

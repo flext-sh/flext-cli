@@ -10,8 +10,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-
 from flext_tests import tm
+
 from tests import m, u
 
 if TYPE_CHECKING:
@@ -23,7 +23,13 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
     @pytest.mark.parametrize(
         ("stdout", "stderr", "exit_code"),
-        [("out", "err", 0), ("", "", 0), ("data", "warning", 2)],
+        [
+            ("out", "err", 0),
+            ("", "", 0),
+            ("data", "warning", 2),
+            ("", "", -15),
+            ("  out\n", "\twarning\n", 0),
+        ],
     )
     def test_command_output_exposes_constructor_values_via_public_state(
         self, stdout: str, stderr: str, exit_code: int
@@ -39,6 +45,9 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.that(output.stdout, eq=stdout)
         tm.that(output.stderr, eq=stderr)
         tm.that(output.outcome.raw_return_code, eq=exit_code)
+        tm.that(output.exit_code, eq=exit_code)
+        binary = m.Cli.CommandBytesOutput(outcome=outcome)
+        tm.that(binary.exit_code, eq=exit_code)
         dumped = output.model_dump()
         tm.that(dumped["stdout"], eq=stdout)
         tm.that(dumped["stderr"], eq=stderr)
@@ -74,7 +83,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert — return value is the return code; file holds the output
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.that(result.value.raw_return_code, eq=0)
         tm.that(output_file.exists(), eq=True)
         tm.that(output_file.read_text(), has="hello")
 
@@ -90,7 +99,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert
         tm.ok(result)
-        tm.that(result.value, eq=7)
+        tm.that(result.value.raw_return_code, eq=7)
         tm.that(output_file.exists(), eq=True)
 
     def test_run_to_file_creates_missing_parent_directories(
@@ -119,9 +128,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         result = u.Cli().run_to_file(["sleep", "10"], output_file, timeout=1)
 
         # Assert
-        tm.fail(result)
-        tm.that(result.error, is_=str)
-        tm.that(tm.not_none(result.error).lower(), has="timeout")
+        tm.ok(result)
+        tm.that(result.value.timed_out, eq=True)
 
     def test_run_to_file_fails_with_execution_error_on_unwritable_target(
         self, tmp_path: Path

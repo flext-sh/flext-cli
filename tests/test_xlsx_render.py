@@ -6,12 +6,12 @@ import datetime as dt
 from io import BytesIO
 
 import pytest
+from flext_tests import tm
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 from openpyxl.workbook.defined_name import DefinedName
 
 from flext_cli import cli, m
-from flext_tests import tm
 
 
 def _defined_name_workbook() -> bytes:

@@ -14,7 +14,11 @@ complete required behavior, then remove accidental complexity before leaving the
 unit. Consume necessity, authority, and boundary decisions from the upstream
 `search-first` route; do not rediscover or redesign them.
 
+<<<<<<< HEAD
 Read the `inline procedure` (skill file). Preserve public contracts,
+=======
+Read the [inline procedure](references/procedure.md). Preserve public contracts,
+>>>>>>> origin/integration/sweep-20260830
 errors and causes, effects, ordering, security, types, observability, measured
 performance, tests, and useful owner documentation.
 

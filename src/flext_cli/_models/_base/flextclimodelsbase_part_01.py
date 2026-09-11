@@ -6,8 +6,9 @@ from collections.abc import Mapping
 from typing import Annotated, ClassVar
 
 from flext_cli import t
-from flext_cli._models._defaults import EMPTY_JSON_MAPPING
 from flext_core import m, u
+
+from .._defaults import EMPTY_JSON_MAPPING
 
 
 class FlextCliModelsBase:
@@ -30,8 +31,16 @@ class FlextCliModelsBase:
     class CommandOutput(m.Value):
         """Standardized external command execution payload. Use m.Cli.CommandOutput."""
 
-        stdout: Annotated[str, m.Field("", description="Captured standard output")] = ""
-        stderr: Annotated[str, m.Field("", description="Captured standard error")] = ""
+        stdout: Annotated[
+            str,
+            t.StringConstraints(strip_whitespace=False),
+            m.Field("", description="Captured standard output"),
+        ] = ""
+        stderr: Annotated[
+            str,
+            t.StringConstraints(strip_whitespace=False),
+            m.Field("", description="Captured standard error"),
+        ] = ""
         outcome: Annotated[
             FlextCliModelsBase.ProcessOutcome,
             m.Field(description="Causal process completion state"),
@@ -39,6 +48,11 @@ class FlextCliModelsBase:
         duration: Annotated[
             t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
         ] = 0.0
+
+        @property
+        def exit_code(self) -> int:
+            """Expose the process return code without duplicating stored state."""
+            return self.outcome.raw_return_code
 
     class CommandBytesOutput(m.Value):
         """Byte-exact external command payload. Use m.Cli.CommandBytesOutput."""
@@ -56,6 +70,11 @@ class FlextCliModelsBase:
         duration: Annotated[
             t.NonNegativeFloat, m.Field(0.0, description="Duration in seconds")
         ] = 0.0
+
+        @property
+        def exit_code(self) -> int:
+            """Expose the process return code without duplicating stored state."""
+            return self.outcome.raw_return_code
 
     class ProcessDeadline(m.Value):
         """Absolute monotonic process deadline. Use m.Cli.ProcessDeadline."""

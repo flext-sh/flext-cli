@@ -10,6 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 from typing import ClassVar, override
 
@@ -20,14 +21,30 @@ from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
+from flext_core import u
+
+from ._files_parts.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart03,
 )
-from flext_core import u
 
 
 class FlextCliUtilitiesTemplate:
     """Generic Jinja2 render helpers (ADR-005 template SSOT)."""
+
+    class _ContentLoader(FileSystemLoader):
+        """Keep compiled templates only while their source content is unchanged."""
+
+        @override
+        def get_source(
+            self, environment: Environment, template: str
+        ) -> tuple[str, str, Callable[[], bool]]:
+            content, filename, _ = super().get_source(environment, template)
+            # Timestamp precision (or preserved mtimes) cannot prove freshness.
+            return (
+                content,
+                filename,
+                lambda: Path(filename).read_text(encoding=self.encoding) == content,
+            )
 
     class _AuthenticatedLoader(BaseLoader):
         """Load every Jinja source once from descriptor-authenticated bytes."""
@@ -90,7 +107,7 @@ class FlextCliUtilitiesTemplate:
         if cached is not None:
             return cached
         environment = SandboxedEnvironment(
-            loader=FileSystemLoader(key),
+            loader=cls._ContentLoader(key),
             undefined=StrictUndefined,
             trim_blocks=c.Cli.TEMPLATE_TRIM_BLOCKS,
             lstrip_blocks=c.Cli.TEMPLATE_LSTRIP_BLOCKS,

@@ -13,6 +13,7 @@ from typing import cast
 type RenameAt2 = Callable[[int, bytes, int, bytes, int], int]
 
 _RENAME_NOREPLACE = 1
+_RENAME_EXCL = 4
 
 
 def require_noreplace_capability(path: Path) -> None:
@@ -20,6 +21,9 @@ def require_noreplace_capability(path: Path) -> None:
     platform_name, os_name = _runtime_platform()
     if platform_name == "linux":
         _ = _linux_renameat2(path)
+        return
+    if platform_name == "darwin":
+        _ = _darwin_renameatx(path)
         return
     if os_name == "nt" and os.rename in os.supports_dir_fd:
         return
@@ -39,15 +43,20 @@ def rename_noreplace(
     source_bytes = _encode_name(source_name, path)
     destination_bytes = _encode_name(destination_name, path)
     platform_name, os_name = _runtime_platform()
-    if platform_name == "linux":
-        operation = _linux_renameat2(path)
+    if platform_name in {"linux", "darwin"}:
+        if platform_name == "linux":
+            operation = _linux_renameat2(path)
+            flags = _RENAME_NOREPLACE
+        else:
+            operation = _darwin_renameatx(path)
+            flags = _RENAME_EXCL
         ctypes.set_errno(0)
         result = operation(
             source_descriptor,
             source_bytes,
             destination_descriptor,
             destination_bytes,
-            _RENAME_NOREPLACE,
+            flags,
         )
         if result != 0:
             error_number = ctypes.get_errno() or errno.EIO
@@ -72,11 +81,20 @@ def _runtime_platform() -> tuple[str, str]:
 
 
 def _linux_renameat2(path: Path) -> RenameAt2:
+    return _load_rename("renameat2", "Linux", path)
+
+
+def _darwin_renameatx(path: Path) -> RenameAt2:
+    """Load Apple's descriptor-relative exclusive rename, never plain rename."""
+    return _load_rename("renameatx_np", "Darwin", path)
+
+
+def _load_rename(symbol: str, platform_name: str, path: Path) -> RenameAt2:
     try:
         library = ctypes.CDLL(None, use_errno=True)
-        operation = library.renameat2
+        operation = library[symbol]
     except (AttributeError, OSError) as exc:
-        message = "Linux libc does not expose renameat2"
+        message = f"{platform_name} libc does not expose {symbol}"
         raise OSError(errno.ENOTSUP, message, path) from exc
     operation.argtypes = (
         ctypes.c_int,

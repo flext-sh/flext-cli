@@ -8,7 +8,8 @@ from pptx import Presentation
 from pptx.presentation import Presentation as PresentationType
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._pptx._serializer import FlextCliUtilitiesPptxSerializer
+
+from ._serializer import FlextCliUtilitiesPptxSerializer
 
 
 class FlextCliUtilitiesPptxRenderer:

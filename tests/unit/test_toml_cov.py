@@ -15,8 +15,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, ClassVar
 
 import pytest
-
 from flext_tests import tm
+
 from tests import c, t, u
 
 if TYPE_CHECKING:
@@ -124,7 +124,7 @@ class TestsFlextCliTomlCov:
         doc = tm.not_none(u.Cli.toml_parse_text(fragmented))
         table = u.Cli.toml_ensure_table(doc, "project")
         tm.that(u.Cli.toml_value(table, "name"), eq="demo")
-        tm.that(u.Cli.toml_value(table, "version"), eq="1.0.0")
+        tm.that(u.Cli.toml_value(table, "version"), eq=c.Tests.VERSION_VALID_SEMVER)
         rendered = tm.not_none(u.Cli.toml_parse_text(u.Cli.toml_dumps(doc)))
         preserved = tm.not_none(u.Cli.toml_table_child(rendered, "project"))
         tm.that(u.Cli.toml_value(preserved, "name"), eq="demo")

@@ -18,7 +18,9 @@ def read_descriptor_bytes(
     try:
         content = _read_stable_descriptor(descriptor, path, expected)
     except BaseException as operation_error:
-        _close_after_failure(descriptor, path, operation_error)
+        file_descriptor.close_after_failure(
+            descriptor, path, operation_error, label="read"
+        )
         raise
     os.close(descriptor)
     return content
@@ -52,24 +54,6 @@ def _read_stable_descriptor(
     if state_key(os.fstat(descriptor)) != state_key(expected):
         _raise_changed(path)
     return b"".join(chunks)
-
-
-def _close_after_failure(
-    descriptor: int, path: Path, operation_error: BaseException
-) -> None:
-    try:
-        os.close(descriptor)
-    except OSError as close_error:
-        message = (
-            f"atomic read failed ({operation_error}); close failed ({close_error})"
-        )
-        group_message = "atomic read and descriptor close failed"
-        if isinstance(operation_error, Exception):
-            causes = ExceptionGroup(group_message, [operation_error, close_error])
-            raise OSError(errno.EIO, message, path) from causes
-        raise BaseExceptionGroup(
-            group_message, [operation_error, close_error]
-        ) from close_error
 
 
 def _raise_changed(path: Path) -> None:

@@ -8,9 +8,9 @@ API. No private attributes, no internal-collaborator spying, no patching.
 from __future__ import annotations
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import c, m, p, settings as cli_settings, u
-from flext_tests import tm
 from tests import c as tc
 
 

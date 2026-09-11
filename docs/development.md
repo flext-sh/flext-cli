@@ -563,6 +563,27 @@ ______________________________________________________________________
 
 ## Debug and Troubleshooting
 
+### Atomic directory publication on macOS
+
+Physical-tree authentication reads the complete two-word filesystem identifier
+from `fstatfs` on the open descriptor. It deliberately does not use
+`os.fstatvfs().f_fsid`, which CPython truncates to the first word on macOS.
+The binding follows Darwin's 64-bit-inode `statfs` layout: `fstatfs` on arm64
+and `fstatfs$INODE64` on x86_64. Unsupported architectures and unavailable
+identities fail closed. These identities are local mount measurements, not
+persistent identifiers across reboots.
+
+Directory publication uses descriptor-relative `renameatx_np` with `RENAME_EXCL`.
+An existing destination is rejected; syscall failures propagate without a
+check-then-rename fallback. Linux retains `/proc/self/fdinfo` mount IDs and
+`renameat2(RENAME_NOREPLACE)`; the Windows rename branch is unchanged.
+
+External contracts:
+[Darwin statfs ABI](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/mount.h),
+[Darwin symbol selection](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/cdefs.h),
+[exclusive rename](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/man/man2/rename.2),
+and [CPython statvfs conversion](https://github.com/python/cpython/blob/main/Modules/posixmodule.c).
+
 ### Common Issues
 
 1. **Import Errors**: Ensure proper module structure

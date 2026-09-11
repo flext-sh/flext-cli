@@ -46,7 +46,11 @@
   },
   "managed": {
     ".github/hooks/aihub-governance.json": {
+<<<<<<< HEAD
       "digest": "7bd3ff52aeda77a279e6eb71648c3ae305d1eefc15b38c3f6e8464db48a4f11a",
+=======
+      "digest": "695b7f5a37aaab6bd0d7a0bd429d8913139d34d21043fd009200f9b05d185f89",
+>>>>>>> origin/integration/sweep-20260830
       "mode": "0644"
     },
     ".github/hooks/aihub-hooks/copilot-precompact.py": {
@@ -54,11 +58,19 @@
       "mode": "0755"
     },
     ".github/hooks/aihub-hooks/copilot-sessionstart.py": {
+<<<<<<< HEAD
       "digest": "283670595c65c8ade7b299d05e4f6f6a3c3709fc50976210b1e3fe7bb0e0b6ad",
       "mode": "0755"
     },
     ".github/hooks/aihub-hooks/copilot-subagentstart.py": {
       "digest": "283670595c65c8ade7b299d05e4f6f6a3c3709fc50976210b1e3fe7bb0e0b6ad",
+=======
+      "digest": "bc5eb9f809fcfa366e8d2c86299b53ede006c40d389b9bdab0fa132f6706f308",
+      "mode": "0755"
+    },
+    ".github/hooks/aihub-hooks/copilot-subagentstart.py": {
+      "digest": "bc5eb9f809fcfa366e8d2c86299b53ede006c40d389b9bdab0fa132f6706f308",
+>>>>>>> origin/integration/sweep-20260830
       "mode": "0755"
     },
     ".github/hooks/aihub-hooks/copilot-userpromptsubmitted.py": {

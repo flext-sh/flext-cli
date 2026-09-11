@@ -9,9 +9,15 @@
       "adapter_version": 1,
       "destination": "python-reviewer.md",
       "origin": "agents:agents:claude",
+<<<<<<< HEAD
       "physical_digest": "cff0b17bc39a64d2745f2bfed50ce52359fb0b8a3abfb1553095fa844f8a7abc",
       "slug": "python-reviewer",
       "source_digest": "7f1de7e628c5bc5b52eed4bab8df026a767a06ff05b9009bfc710319be1c5aab",
+=======
+      "physical_digest": "365aca803181ee5fb212c53e492bbc43abd7e0fab56982620d89a3386b427561",
+      "slug": "python-reviewer",
+      "source_digest": "c37714ae49b4e487a1adc26451a31c359fab2d1109b5b46a13f911c1c9e6104b",
+>>>>>>> origin/integration/sweep-20260830
       "source_type": "agent"
     }
   },

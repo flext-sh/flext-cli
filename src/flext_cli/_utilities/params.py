@@ -4,7 +4,8 @@ from __future__ import annotations
 
 # mro-j47u (kimi): utilities consume local facades only, never flext_core p/r.
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.validation import FlextCliUtilitiesValidation as uv
+
+from .validation import FlextCliUtilitiesValidation as uv
 
 
 class FlextCliUtilitiesParams:

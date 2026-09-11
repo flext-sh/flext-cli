@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import contextlib
 import os
-import sys
 import time
-from typing import BinaryIO, TextIO
+from typing import BinaryIO, Final
 
 from flext_cli import c, p, r
+
+_STDOUT_DESCRIPTOR: Final[int] = 1
+_STDERR_DESCRIPTOR: Final[int] = 2
 
 
 class FlextCliUtilitiesRuntimeProcessResourcesMixin:
@@ -71,10 +73,10 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
             return r[tuple[int | None, int | None]].ok((None, None))
         try:
             live_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
-                stack, sys.stdout
+                stack, _STDOUT_DESCRIPTOR
             )
             progress_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
-                stack, sys.stderr
+                stack, _STDERR_DESCRIPTOR
             )
         except c.EXC_OS_VALUE as exc:
             return r[tuple[int | None, int | None]].fail(
@@ -83,14 +85,14 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         return r[tuple[int | None, int | None]].ok((live_fd, progress_fd))
 
     @staticmethod
-    def _open_stream_fd(stack: contextlib.ExitStack, stream: TextIO) -> int:
-        descriptor = os.dup(stream.fileno())
-        stack.callback(os.close, descriptor)
-        if os.name != "nt" or not os.isatty(descriptor):
-            was_blocking = os.get_blocking(descriptor)
-            os.set_blocking(descriptor, False)
-            stack.callback(os.set_blocking, descriptor, was_blocking)
-        return descriptor
+    def _open_stream_fd(stack: contextlib.ExitStack, descriptor: int) -> int:
+        mirrored = os.dup(descriptor)
+        stack.callback(os.close, mirrored)
+        if os.name != "nt" or not os.isatty(mirrored):
+            was_blocking = os.get_blocking(mirrored)
+            os.set_blocking(mirrored, False)
+            stack.callback(os.set_blocking, mirrored, was_blocking)
+        return mirrored
 
     @staticmethod
     def _flush_durable_log(durable_log: BinaryIO) -> tuple[str, ...]:

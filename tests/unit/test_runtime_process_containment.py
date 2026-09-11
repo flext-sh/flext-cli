@@ -12,8 +12,8 @@ from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, override
 
 import pytest
-
 from flext_tests import tm
+
 from tests import m, p, u
 
 if TYPE_CHECKING:
@@ -78,7 +78,8 @@ def _assert_timeout_empties_descendants[
         str(survivor_ack),
     ))
 
-    tm.fail(result, has="timeout")
+    tm.ok(result)
+    tm.that(result.value.outcome.timed_out, eq=True)
     _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
 
 
@@ -145,7 +146,7 @@ class TestsFlextCliRuntimeProcessContainment:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.that(result.value.raw_return_code, eq=0)
         _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
 
     @pytest.mark.parametrize("signal_number", [signal.SIGINT, signal.SIGTERM])
@@ -182,7 +183,7 @@ class TestsFlextCliRuntimeProcessContainment:
         signaler.join(timeout=1.0)
 
         tm.ok(result)
-        tm.that(result.value, eq=-signal_number)
+        tm.that(result.value.raw_return_code, eq=-signal_number)
         tm.that(signaler_errors, eq=[])
         tm.that(signaler.is_alive(), eq=False)
         tm.that(time.monotonic() - signal_started, lt=6.0)
@@ -202,7 +203,7 @@ class TestsFlextCliRuntimeProcessContainment:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=-signal.SIGTERM)
+        tm.that(result.value.raw_return_code, eq=-signal.SIGTERM)
         tm.that(marker.exists(), eq=False)
 
     def test_deadline_forwards_interrupt_before_forced_cleanup(
@@ -226,7 +227,8 @@ class TestsFlextCliRuntimeProcessContainment:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=91)
+        tm.that(result.value.raw_return_code, eq=0)
+        tm.that(result.value.timed_out, eq=True)
         tm.that(output_file.read_bytes(), has=b"interrupted")
         tm.that(time.monotonic() - started, lt=1.2)
 
@@ -267,7 +269,8 @@ class TestsFlextCliRuntimeProcessContainment:
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=92)
+        tm.that(result.value.raw_return_code, eq=-signal.SIGTERM)
+        tm.that(result.value.timed_out, eq=True)
         tm.that(process_info.exists(), eq=True)
         _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
         tm.that(time.monotonic() - started, lt=2.0)

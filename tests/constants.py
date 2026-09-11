@@ -13,9 +13,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c as flext_cli_c
 from flext_tests import FlextTestsConstants
-from tests._constants_parts.testsflextcliconstants_part_01 import (
+
+from flext_cli import c as flext_cli_c
+
+from ._constants_parts.testsflextcliconstants_part_01 import (
     TestsFlextCliConstants as TestsFlextCliConstantsPart01,
 )
 
