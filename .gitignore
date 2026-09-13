@@ -354,7 +354,6 @@ CLAUDE.local.md
 !.vscode/settings.json
 !config/
 !config/gitleaks-release.toml
-# Why: layout-gitignore gate requires this pattern per flext-infra
-# config/codegen-overrides.yaml project_overrides.flext-cli.gitignore_additions;
-# make gen did not materialize it this run, added directly at the SSOT value.
+
+# Project layout exceptions
 settings.json
