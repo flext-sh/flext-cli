@@ -535,7 +535,7 @@ SHARED_RUNTIME := $(if $(filter-out $(PROJECT_ROOT),$(RUNTIME_ROOT)),1,$(if $(st
 # resolves dependency floors from pyproject on every setup, in CI exactly as
 # locally. `--upgrade` advances existing local resolutions; `--refresh` re-reads
 # branch metadata instead of retaining a cached tip (operator 2026-09-14).
-UV_SYNC_FLAGS := $(if $(SHARED_RUNTIME),--all-packages ,)--all-extras --all-groups --upgrade --refresh
+UV_SYNC_FLAGS := $(if $(SHARED_RUNTIME),--all-packages --reinstall-package flext-infra ,)--all-extras --all-groups --upgrade --refresh
 
 ifeq ($(GEN_INIT_ONLY),)
 -include custom.mk
@@ -961,9 +961,9 @@ _builtin_setup_submodules:
 		fi; \
 		if [ "$$ancestor" = N ]; then \
 			if [ -z "$$current" ]; then \
-				printf 'ERROR: %s: detached HEAD %s does not contain recorded gitlink %s\n' "$$child_path" "$$head" "$$gitlink" >&2; \
+				printf 'ERROR: %s: detached HEAD %s does not contain recorded gitlink %s; merge the superproject gitlink into this head\n' "$$child_path" "$$head" "$$gitlink" >&2; \
 			else \
-				printf 'ERROR: %s: branch %s does not contain recorded gitlink %s\n' "$$child_path" "$$branch" "$$gitlink" >&2; \
+				printf 'ERROR: %s: checked-out branch %s at %s does not contain recorded gitlink %s; merge the superproject gitlink into this branch\n' "$$child_path" "$$current" "$$head" "$$gitlink" >&2; \
 			fi; \
 			exit 1; \
 		fi; \
