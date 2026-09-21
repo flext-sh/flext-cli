@@ -10,9 +10,17 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from . import (
-        _docx, _file_test_helper_parts, _files_parts, _json,
-        _options_parts, _pptx, _rules, _tables_parts,
-        _toml_parts, _xlxx, _yaml,
+        _docx,
+        _file_test_helper_parts,
+        _files_parts,
+        _json,
+        _options_parts,
+        _pptx,
+        _rules,
+        _tables_parts,
+        _toml_parts,
+        _xlxx,
+        _yaml,
     )
     from ._cli_namespace import Cli, FlextCliUtilitiesCli
     from ._docx._reader import FlextCliUtilitiesDocxReader
@@ -92,12 +100,22 @@ if TYPE_CHECKING:
     from .atomic_directory_create import create_guarded_empty_directory
     from .atomic_directory_delete import remove_guarded_empty_directory
     from .atomic_directory_descriptor import (
-        create_entry, remove_entry, rename_entry_noreplace, require_create_capabilities,
-        require_delete_capabilities, require_publish_capabilities, require_read_capabilities,
+        create_entry,
+        remove_entry,
+        rename_entry_noreplace,
+        require_create_capabilities,
+        require_delete_capabilities,
+        require_publish_capabilities,
+        require_read_capabilities,
     )
     from .atomic_directory_model import (
-        DirectoryPhysicalState, from_observed, physical_state, require_absent,
-        require_existing, require_observed, require_parent,
+        DirectoryPhysicalState,
+        from_observed,
+        physical_state,
+        require_absent,
+        require_existing,
+        require_observed,
+        require_parent,
     )
     from .atomic_directory_noreplace import (
         rename_noreplace,
@@ -115,19 +133,35 @@ if TYPE_CHECKING:
     from .atomic_file_cleanup import remove_failed_temporary
     from .atomic_file_delete import remove_guarded_file
     from .atomic_file_descriptor import (
-        ParentDescriptor, assert_parent_unchanged, close_after_failure, entry_descriptor,
-        entry_stat, open_entry, parent_descriptor, replace_entry,
-        require_entry, unlink_entry,
+        ParentDescriptor,
+        assert_parent_unchanged,
+        close_after_failure,
+        entry_descriptor,
+        entry_stat,
+        open_entry,
+        parent_descriptor,
+        replace_entry,
+        require_entry,
+        unlink_entry,
     )
     from .atomic_file_durability import sync_parent, sync_replacement
     from .atomic_file_mode import (
-        NO_MODE_PRECONDITION, assert_observed_mode, publication_mode, validate_guarded_mode_tuple,
-        validate_mode, validate_mode_precondition,
+        NO_MODE_PRECONDITION,
+        assert_observed_mode,
+        publication_mode,
+        validate_guarded_mode_tuple,
+        validate_mode,
+        validate_mode_precondition,
     )
     from .atomic_file_model import PhysicalState
     from .atomic_file_path import (
-        identity, is_reparse_point, resolve_parent_path, validate_atomic_path,
-        validate_directory_path, validate_directory_state, validate_parent_path,
+        identity,
+        is_reparse_point,
+        resolve_parent_path,
+        validate_atomic_path,
+        validate_directory_path,
+        validate_directory_state,
+        validate_parent_path,
     )
     from .atomic_file_publish import publish_guarded_staged_file
     from .atomic_file_publish_checks import (
@@ -151,15 +185,22 @@ if TYPE_CHECKING:
         write_and_sync,
     )
     from .atomic_parent_descriptor import (
-        DirectoryChainInspection, PhysicalDirectory, inspect_directory_chain, physical_directory,
+        DirectoryChainInspection,
+        PhysicalDirectory,
+        inspect_directory_chain,
+        physical_directory,
         require_traversal_capabilities,
     )
     from .atomic_parent_failure import preserve_recheck_failure
     from .atomic_tree_cleanup import cleanup_physical_tree_guarded
     from .atomic_tree_darwin import FlextCliAtomicTreeDarwin
     from .atomic_tree_descriptor import (
-        measure_authenticated_file, mount_id, require_directory_state, require_entry_state,
-        require_mount, require_same_device,
+        measure_authenticated_file,
+        mount_id,
+        require_directory_state,
+        require_entry_state,
+        require_mount,
+        require_same_device,
     )
     from .atomic_tree_inventory import inventory_physical_tree
     from .auth import FlextCliUtilitiesAuth
