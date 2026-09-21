@@ -14,7 +14,10 @@ if TYPE_CHECKING:
     from .pipeline import FlextCliTypesPipeline
     from .xlsx import FlextCliTypesXlsx
 __all__: tuple[str, ...] = (
-    "FlextCliTypesBase", "FlextCliTypesDomain", "FlextCliTypesPipeline", "FlextCliTypesXlsx",
+    "FlextCliTypesBase",
+    "FlextCliTypesDomain",
+    "FlextCliTypesPipeline",
+    "FlextCliTypesXlsx",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
