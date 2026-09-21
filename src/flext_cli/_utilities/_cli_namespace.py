@@ -69,8 +69,3 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesYamlModel,
 ):
     """Compose utilities; document adapters load only during their operation."""
-
-
-Cli = FlextCliUtilitiesCli
-
-__all__: tuple[str, ...] = ("Cli", "FlextCliUtilitiesCli")
