@@ -16,7 +16,7 @@ class FlextCliConstantsXlsx:
     XLSX_RANGE_BOUNDARY_SIZE: ClassVar[int] = 4
     XLSX_INLINE_VALIDATION_FORMULA_LIMIT: ClassVar[int] = 255
     XLSX_DEFAULT_NUMBER_FORMAT: ClassVar[str] = "General"
-    XLSX_DEFAULT_CALCULATION_MODE: Final = "auto"
+    XLSX_DEFAULT_CALCULATION_MODE: ClassVar[str] = "auto"
     XLSX_WORKBOOK_MEMBER: ClassVar[str] = "xl/workbook.xml"
     XLSX_STYLES_MEMBER: ClassVar[str] = "xl/styles.xml"
     XLSX_WORKSHEET_PREFIX: ClassVar[str] = "xl/worksheets/sheet"
