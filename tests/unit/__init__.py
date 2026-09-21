@@ -12,262 +12,100 @@ if TYPE_CHECKING:
     from flext_tests import c, d, e, h, m, p, r, s, t, td, tf, tk, tm, tv, u, x
 
     from .conftest import (
-        TestsFlextCliCaptureLogPrompts,
-        TestsFlextCliFailingLogPrompts,
-        TestsFlextCliScriptedPrompts,
-        make_capture_prompts,
-        make_failing_prompts,
-        make_prompts,
-        scripted_password_pair,
+        TestsFlextCliCaptureLogPrompts, TestsFlextCliFailingLogPrompts, TestsFlextCliScriptedPrompts, make_capture_prompts,
+        make_failing_prompts, make_prompts, scripted_password_pair,
     )
     from .test_atomic_directory_chain import TestsAtomicDirectoryChain
     from .test_atomic_directory_identity import TestsAtomicDirectoryIdentity
     from .test_atomic_directory_publish import TestsAtomicDirectoryPublish
-    from .test_atomic_file_contract import TestsAtomicFileContract
-    from .test_atomic_file_guarded import TestsAtomicFileGuarded
     from .test_atomic_file_identity import TestsAtomicFileIdentity
     from .test_atomic_physical_tree import TestsAtomicPhysicalTree
     from .test_auth_utils_cov import TestsFlextCliAuthUtilsCov
-    from .test_base import TestsFlextCliBase
-    from .test_cli_params import TestsFlextCliCliParams
     from .test_cli_service import TestsFlextCliService
-    from .test_cmd import TestsFlextCliCmd
-    from .test_cmd_cov import TestsFlextCliCmdCov
     from .test_cmd_runtime_validation_branch_cov import (
         TestsFlextCliCmdRuntimeValidationBranchCov,
     )
     from .test_commands_utils_cov import TestsFlextCliCommands
-    from .test_config_engine import (
-        TestsFlextCliConfigEngine,
-        TestsFlextCliTemplateRenderDir,
-    )
-    from .test_constants import TestsFlextCliConstants
-    from .test_conversion_cov import TestsFlextCliConversion
-    from .test_env_expand_utilities import TestsFlextCliUtilitiesEnvExpand
-    from .test_env_utilities import TestsFlextCliUtilitiesEnv
-    from .test_examples_models_utilities_cov import (
-        TestsFlextCliExampleModelsUtilitiesCov,
-    )
     from .test_examples_smoke import TestsFlextCliExamplesSmoke
-    from .test_file_derived_contracts import TestsFileDerivedContracts
     from .test_file_tools_yaml import TestsFlextCliYamlModelLoading
     from .test_files_cov import TestsFlextCliFilesCov
     from .test_formatters_cov import TestsFlextCliFormattersCov
     from .test_json_cov import TestsFlextCliJsonCov
     from .test_matching_cov import TestsFlextCliMatchingCov
-    from .test_model_commands_cov import TestsFlextCliModelCommandsCov
+    from .test_options import TestsFlextCliOptions
     from .test_options_cov import TestsFlextCliOptionsUtilsCov
-    from .test_options_public_cov import TestsFlextCliOptions
     from .test_output_cov import TestsFlextCliOutputCov
     from .test_params_branch_cov import TestsFlextCliParams
     from .test_pipeline import TestsFlextCliPipeline
     from .test_prompts import TestsFlextCliPrompts
     from .test_prompts_cov import TestsFlextCliPromptsCov
-    from .test_protocols import (
-        TestsFlextCliProtocols,
-        _ConformingContext,
-        _ConformingSummary,
-        _ConformingYamlModule,
-        _PartialSummary,
-    )
     from .test_public_contracts_cov import TestsFlextCliPublicContractsCoverage
     from .test_rules_cov import TestsFlextCliRulesCov
-    from .test_runtime_child_environment import TestsFlextCliRuntimeChildEnvironment
-    from .test_runtime_process_completion import TestsRuntimeProcessCompletion
     from .test_runtime_process_containment import TestsFlextCliRuntimeProcessContainment
     from .test_runtime_process_descendants import TestsFlextCliRuntimeProcessDescendants
     from .test_runtime_streamed_process import TestsFlextCliRuntimeStreamedProcess
-    from .test_runtime_utilities_core import TestsFlextCliRuntimeUtilitiesCore
-    from .test_runtime_utilities_extra import TestsFlextCliRuntimeUtilitiesExtra
     from .test_services_auth_branch_cov import TestsFlextCliServicesAuth
     from .test_services_auth_cov import TestsFlextCliServicesAuthCov
     from .test_services_output_cov import TestsFlextCliServicesOutputCov
     from .test_services_tables_branch_cov import TestsFlextCliServicesTablesBranchCov
     from .test_services_tables_cov import TestsFlextCliServicesTablesCov
-    from .test_settings import TestsFlextCliSettingsUnit
     from .test_tables_branch_cov import TestsFlextCliTablesBranchCov
     from .test_tables_cov import TestsFlextCliTables
-    from .test_toml_cov import TestsFlextCliTomlCov
-    from .test_toml_sync_cov import TestsFlextCliTomlSyncCoverage
     from .test_toml_utilities import TestsFlextCliTomlUtilities
-    from .test_typings import TestsFlextCliTypings
     from .test_utilities_cov import TestsFlextCliUtilitiesCov
-    from .test_version import TestsFlextCliVersion
     from .test_yaml_cov import TestsFlextCliYamlCov
-    from .test_yaml_roundtrip import (
-        TestsFlextCliYamlAnchors,
-        TestsFlextCliYamlComments,
-        TestsFlextCliYamlEdit,
-        TestsFlextCliYamlRoundtripConvert,
-        TestsFlextCliYamlRoundtripLoad,
-        TestsFlextCliYamlScalars,
-    )
 __all__: tuple[str, ...] = (
-    "TestsAtomicDirectoryChain",
-    "TestsAtomicDirectoryIdentity",
-    "TestsAtomicDirectoryPublish",
-    "TestsAtomicFileContract",
-    "TestsAtomicFileGuarded",
-    "TestsAtomicFileIdentity",
-    "TestsAtomicPhysicalTree",
-    "TestsFileDerivedContracts",
-    "TestsFlextCliAuthUtilsCov",
-    "TestsFlextCliBase",
-    "TestsFlextCliCaptureLogPrompts",
-    "TestsFlextCliCliParams",
-    "TestsFlextCliCmd",
-    "TestsFlextCliCmdCov",
-    "TestsFlextCliCmdRuntimeValidationBranchCov",
-    "TestsFlextCliCommands",
-    "TestsFlextCliConfigEngine",
-    "TestsFlextCliConstants",
-    "TestsFlextCliConversion",
-    "TestsFlextCliExampleModelsUtilitiesCov",
-    "TestsFlextCliExamplesSmoke",
-    "TestsFlextCliFailingLogPrompts",
-    "TestsFlextCliFilesCov",
-    "TestsFlextCliFormattersCov",
-    "TestsFlextCliJsonCov",
-    "TestsFlextCliMatchingCov",
-    "TestsFlextCliModelCommandsCov",
-    "TestsFlextCliOptions",
-    "TestsFlextCliOptionsUtilsCov",
-    "TestsFlextCliOutputCov",
-    "TestsFlextCliParams",
-    "TestsFlextCliPipeline",
-    "TestsFlextCliPrompts",
-    "TestsFlextCliPromptsCov",
-    "TestsFlextCliProtocols",
-    "TestsFlextCliPublicContractsCoverage",
-    "TestsFlextCliRulesCov",
-    "TestsFlextCliRuntimeChildEnvironment",
-    "TestsFlextCliRuntimeProcessContainment",
-    "TestsFlextCliRuntimeProcessDescendants",
-    "TestsFlextCliRuntimeStreamedProcess",
-    "TestsFlextCliRuntimeUtilitiesCore",
-    "TestsFlextCliRuntimeUtilitiesExtra",
-    "TestsFlextCliScriptedPrompts",
-    "TestsFlextCliService",
-    "TestsFlextCliServicesAuth",
-    "TestsFlextCliServicesAuthCov",
-    "TestsFlextCliServicesOutputCov",
-    "TestsFlextCliServicesTablesBranchCov",
-    "TestsFlextCliServicesTablesCov",
-    "TestsFlextCliSettingsUnit",
-    "TestsFlextCliTables",
-    "TestsFlextCliTablesBranchCov",
-    "TestsFlextCliTemplateRenderDir",
-    "TestsFlextCliTomlCov",
-    "TestsFlextCliTomlSyncCoverage",
-    "TestsFlextCliTomlUtilities",
-    "TestsFlextCliTypings",
-    "TestsFlextCliUtilitiesCov",
-    "TestsFlextCliUtilitiesEnv",
-    "TestsFlextCliUtilitiesEnvExpand",
-    "TestsFlextCliVersion",
-    "TestsFlextCliYamlAnchors",
-    "TestsFlextCliYamlComments",
-    "TestsFlextCliYamlCov",
-    "TestsFlextCliYamlEdit",
-    "TestsFlextCliYamlModelLoading",
-    "TestsFlextCliYamlRoundtripConvert",
-    "TestsFlextCliYamlRoundtripLoad",
-    "TestsFlextCliYamlScalars",
-    "TestsRuntimeProcessCompletion",
-    "_ConformingContext",
-    "_ConformingSummary",
-    "_ConformingYamlModule",
-    "_PartialSummary",
-    "c",
-    "d",
-    "e",
-    "h",
-    "m",
-    "make_capture_prompts",
-    "make_failing_prompts",
-    "make_prompts",
-    "p",
-    "r",
-    "s",
-    "scripted_password_pair",
-    "t",
-    "td",
-    "tf",
-    "tk",
-    "tm",
-    "tv",
-    "u",
-    "x",
+    "TestsAtomicDirectoryChain", "TestsAtomicDirectoryIdentity", "TestsAtomicDirectoryPublish", "TestsAtomicFileIdentity",
+    "TestsAtomicPhysicalTree", "TestsFlextCliAuthUtilsCov", "TestsFlextCliCaptureLogPrompts", "TestsFlextCliCmdRuntimeValidationBranchCov",
+    "TestsFlextCliCommands", "TestsFlextCliExamplesSmoke", "TestsFlextCliFailingLogPrompts", "TestsFlextCliFilesCov",
+    "TestsFlextCliFormattersCov", "TestsFlextCliJsonCov", "TestsFlextCliMatchingCov", "TestsFlextCliOptions",
+    "TestsFlextCliOptionsUtilsCov", "TestsFlextCliOutputCov", "TestsFlextCliParams", "TestsFlextCliPipeline",
+    "TestsFlextCliPrompts", "TestsFlextCliPromptsCov", "TestsFlextCliPublicContractsCoverage", "TestsFlextCliRulesCov",
+    "TestsFlextCliRuntimeProcessContainment", "TestsFlextCliRuntimeProcessDescendants", "TestsFlextCliRuntimeStreamedProcess", "TestsFlextCliScriptedPrompts",
+    "TestsFlextCliService", "TestsFlextCliServicesAuth", "TestsFlextCliServicesAuthCov", "TestsFlextCliServicesOutputCov",
+    "TestsFlextCliServicesTablesBranchCov", "TestsFlextCliServicesTablesCov", "TestsFlextCliTables", "TestsFlextCliTablesBranchCov",
+    "TestsFlextCliTomlUtilities", "TestsFlextCliUtilitiesCov", "TestsFlextCliYamlCov", "TestsFlextCliYamlModelLoading",
+    "c", "d", "e", "h",
+    "m", "make_capture_prompts", "make_failing_prompts", "make_prompts",
+    "p", "r", "s", "scripted_password_pair",
+    "t", "td", "tf", "tk",
+    "tm", "tv", "u", "x",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
             ".conftest": (
-                "TestsFlextCliCaptureLogPrompts",
-                "TestsFlextCliFailingLogPrompts",
-                "TestsFlextCliScriptedPrompts",
-                "make_capture_prompts",
-                "make_failing_prompts",
-                "make_prompts",
-                "scripted_password_pair",
+                "TestsFlextCliCaptureLogPrompts", "TestsFlextCliFailingLogPrompts",
+                "TestsFlextCliScriptedPrompts", "make_capture_prompts",
+                "make_failing_prompts", "make_prompts", "scripted_password_pair",
             ),
             ".test_atomic_directory_chain": ("TestsAtomicDirectoryChain",),
             ".test_atomic_directory_identity": ("TestsAtomicDirectoryIdentity",),
             ".test_atomic_directory_publish": ("TestsAtomicDirectoryPublish",),
-            ".test_atomic_file_contract": ("TestsAtomicFileContract",),
-            ".test_atomic_file_guarded": ("TestsAtomicFileGuarded",),
             ".test_atomic_file_identity": ("TestsAtomicFileIdentity",),
             ".test_atomic_physical_tree": ("TestsAtomicPhysicalTree",),
             ".test_auth_utils_cov": ("TestsFlextCliAuthUtilsCov",),
-            ".test_base": ("TestsFlextCliBase",),
-            ".test_cli_params": ("TestsFlextCliCliParams",),
             ".test_cli_service": ("TestsFlextCliService",),
-            ".test_cmd": ("TestsFlextCliCmd",),
-            ".test_cmd_cov": ("TestsFlextCliCmdCov",),
             ".test_cmd_runtime_validation_branch_cov": (
                 "TestsFlextCliCmdRuntimeValidationBranchCov",
             ),
             ".test_commands_utils_cov": ("TestsFlextCliCommands",),
-            ".test_config_engine": (
-                "TestsFlextCliConfigEngine",
-                "TestsFlextCliTemplateRenderDir",
-            ),
-            ".test_constants": ("TestsFlextCliConstants",),
-            ".test_conversion_cov": ("TestsFlextCliConversion",),
-            ".test_env_expand_utilities": ("TestsFlextCliUtilitiesEnvExpand",),
-            ".test_env_utilities": ("TestsFlextCliUtilitiesEnv",),
-            ".test_examples_models_utilities_cov": (
-                "TestsFlextCliExampleModelsUtilitiesCov",
-            ),
             ".test_examples_smoke": ("TestsFlextCliExamplesSmoke",),
-            ".test_file_derived_contracts": ("TestsFileDerivedContracts",),
             ".test_file_tools_yaml": ("TestsFlextCliYamlModelLoading",),
             ".test_files_cov": ("TestsFlextCliFilesCov",),
             ".test_formatters_cov": ("TestsFlextCliFormattersCov",),
             ".test_json_cov": ("TestsFlextCliJsonCov",),
             ".test_matching_cov": ("TestsFlextCliMatchingCov",),
-            ".test_model_commands_cov": ("TestsFlextCliModelCommandsCov",),
+            ".test_options": ("TestsFlextCliOptions",),
             ".test_options_cov": ("TestsFlextCliOptionsUtilsCov",),
-            ".test_options_public_cov": ("TestsFlextCliOptions",),
             ".test_output_cov": ("TestsFlextCliOutputCov",),
             ".test_params_branch_cov": ("TestsFlextCliParams",),
             ".test_pipeline": ("TestsFlextCliPipeline",),
             ".test_prompts": ("TestsFlextCliPrompts",),
             ".test_prompts_cov": ("TestsFlextCliPromptsCov",),
-            ".test_protocols": (
-                "TestsFlextCliProtocols",
-                "_ConformingContext",
-                "_ConformingSummary",
-                "_ConformingYamlModule",
-                "_PartialSummary",
-            ),
             ".test_public_contracts_cov": ("TestsFlextCliPublicContractsCoverage",),
             ".test_rules_cov": ("TestsFlextCliRulesCov",),
-            ".test_runtime_child_environment": (
-                "TestsFlextCliRuntimeChildEnvironment",
-            ),
-            ".test_runtime_process_completion": ("TestsRuntimeProcessCompletion",),
             ".test_runtime_process_containment": (
                 "TestsFlextCliRuntimeProcessContainment",
             ),
@@ -275,8 +113,6 @@ _LAZY_IMPORTS = MappingProxyType(
                 "TestsFlextCliRuntimeProcessDescendants",
             ),
             ".test_runtime_streamed_process": ("TestsFlextCliRuntimeStreamedProcess",),
-            ".test_runtime_utilities_core": ("TestsFlextCliRuntimeUtilitiesCore",),
-            ".test_runtime_utilities_extra": ("TestsFlextCliRuntimeUtilitiesExtra",),
             ".test_services_auth_branch_cov": ("TestsFlextCliServicesAuth",),
             ".test_services_auth_cov": ("TestsFlextCliServicesAuthCov",),
             ".test_services_output_cov": ("TestsFlextCliServicesOutputCov",),
@@ -284,41 +120,14 @@ _LAZY_IMPORTS = MappingProxyType(
                 "TestsFlextCliServicesTablesBranchCov",
             ),
             ".test_services_tables_cov": ("TestsFlextCliServicesTablesCov",),
-            ".test_settings": ("TestsFlextCliSettingsUnit",),
             ".test_tables_branch_cov": ("TestsFlextCliTablesBranchCov",),
             ".test_tables_cov": ("TestsFlextCliTables",),
-            ".test_toml_cov": ("TestsFlextCliTomlCov",),
-            ".test_toml_sync_cov": ("TestsFlextCliTomlSyncCoverage",),
             ".test_toml_utilities": ("TestsFlextCliTomlUtilities",),
-            ".test_typings": ("TestsFlextCliTypings",),
             ".test_utilities_cov": ("TestsFlextCliUtilitiesCov",),
-            ".test_version": ("TestsFlextCliVersion",),
             ".test_yaml_cov": ("TestsFlextCliYamlCov",),
-            ".test_yaml_roundtrip": (
-                "TestsFlextCliYamlAnchors",
-                "TestsFlextCliYamlComments",
-                "TestsFlextCliYamlEdit",
-                "TestsFlextCliYamlRoundtripConvert",
-                "TestsFlextCliYamlRoundtripLoad",
-                "TestsFlextCliYamlScalars",
-            ),
             "flext_tests": (
-                "c",
-                "d",
-                "e",
-                "h",
-                "m",
-                "p",
-                "r",
-                "s",
-                "t",
-                "td",
-                "tf",
-                "tk",
-                "tm",
-                "tv",
-                "u",
-                "x",
+                "c", "d", "e", "h", "m", "p", "r", "s", "t", "td", "tf", "tk", "tm",
+                "tv", "u", "x",
             ),
         }),
         alias_groups=MappingProxyType({}),

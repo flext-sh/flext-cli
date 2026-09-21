@@ -13,9 +13,7 @@ if TYPE_CHECKING:
     from ._renderer import FlextCliUtilitiesPptxRenderer
     from ._serializer import FlextCliUtilitiesPptxSerializer
 __all__: tuple[str, ...] = (
-    "FlextCliUtilitiesPptxReader",
-    "FlextCliUtilitiesPptxRenderer",
-    "FlextCliUtilitiesPptxSerializer",
+    "FlextCliUtilitiesPptxReader", "FlextCliUtilitiesPptxRenderer", "FlextCliUtilitiesPptxSerializer",
 )
 
 _LAZY_IMPORTS = MappingProxyType(

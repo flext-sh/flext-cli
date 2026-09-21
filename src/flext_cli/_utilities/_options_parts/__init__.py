@@ -12,8 +12,7 @@ if TYPE_CHECKING:
     from .flextcliutilitiesoptionbuilder_part_01 import FlextCliUtilitiesOptionBuilder
     from .flextcliutilitiesoptions_part_02 import FlextCliUtilitiesOptions
 __all__: tuple[str, ...] = (
-    "FlextCliUtilitiesOptionBuilder",
-    "FlextCliUtilitiesOptions",
+    "FlextCliUtilitiesOptionBuilder", "FlextCliUtilitiesOptions",
 )
 
 _LAZY_IMPORTS = MappingProxyType(

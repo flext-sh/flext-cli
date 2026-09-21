@@ -71,4 +71,6 @@ class FlextCliUtilitiesCli(
     """Compose utilities; document adapters load only during their operation."""
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesCli",)
+Cli = FlextCliUtilitiesCli
+
+__all__: tuple[str, ...] = ("FlextCliUtilitiesCli", "Cli")
