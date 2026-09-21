@@ -12,8 +12,13 @@ if TYPE_CHECKING:
     from flext_tests import c, d, e, h, m, p, r, s, t, td, tf, tk, tm, tv, u, x
 
     from .conftest import (
-        TestsFlextCliCaptureLogPrompts, TestsFlextCliFailingLogPrompts, TestsFlextCliScriptedPrompts, make_capture_prompts,
-        make_failing_prompts, make_prompts, scripted_password_pair,
+        TestsFlextCliCaptureLogPrompts,
+        TestsFlextCliFailingLogPrompts,
+        TestsFlextCliScriptedPrompts,
+        make_capture_prompts,
+        make_failing_prompts,
+        make_prompts,
+        scripted_password_pair,
     )
     from .test_atomic_directory_chain import TestsAtomicDirectoryChain
     from .test_atomic_directory_identity import TestsAtomicDirectoryIdentity

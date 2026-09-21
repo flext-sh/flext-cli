@@ -73,4 +73,4 @@ class FlextCliUtilitiesCli(
 
 Cli = FlextCliUtilitiesCli
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesCli", "Cli")
+__all__: tuple[str, ...] = ("Cli", "FlextCliUtilitiesCli")

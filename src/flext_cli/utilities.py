@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from flext_core import u
 from pydantic import ConfigDict
+
+from flext_core import u
 
 from ._utilities._cli_namespace import FlextCliUtilitiesCli
 
