@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import ClassVar, Final, Self
+from typing import ClassVar, Self
 
 from flext_core import FlextSettings, c, t
 
@@ -42,61 +42,61 @@ class FlextCliConstantsSettings(FlextSettings):
         item.value for item in ce.MessageTypes
     )
 
-    CLI_DEFAULT_NO_COLOR: Final[bool] = False
-    CLI_DEFAULT_VERBOSE: Final[bool] = False
-    CLI_DEFAULT_QUIET: Final[bool] = False
+    CLI_DEFAULT_NO_COLOR: ClassVar[bool] = False
+    CLI_DEFAULT_VERBOSE: ClassVar[bool] = False
+    CLI_DEFAULT_QUIET: ClassVar[bool] = False
     # NOTE (multi-agent): canonical scalar defaults consumed by _settings.py —
     # the settings foundation imports this PURE private module directly
     # (no facade cycle) so defaults stay SSOT with the enums (§1.8/§2.5).
-    CLI_DEFAULT_LOG_VERBOSITY: Final[str] = ce.LogVerbosity.COMPACT.value
-    CLI_DEFAULT_LOG_LEVEL: Final[str] = c.LogLevel.INFO.value
-    CLI_DEFAULT_OUTPUT_FORMAT: Final[str] = ce.OutputFormats.TABLE.value
-    CLI_PROCESS_HEARTBEAT_SECONDS: Final[float] = 30.0
-    CLI_PROCESS_HEARTBEAT_MAX_SECONDS: Final[float] = 60.0
-    CLI_PROCESS_HEARTBEAT_MESSAGE: Final[str] = "flext-cli: process still running"
-    ENV_DEFAULT_CI: Final[bool] = False
-    ENV_VAR_HOME: Final[str] = "HOME"
-    ENV_VAR_CI: Final[str] = "CI"
-    ENV_VAR_PYTEST_CURRENT_TEST: Final[str] = "PYTEST_CURRENT_TEST"
-    ENV_VAR_SHELL_COMMAND: Final[str] = "_"
+    CLI_DEFAULT_LOG_VERBOSITY: ClassVar[str] = ce.LogVerbosity.COMPACT.value
+    CLI_DEFAULT_LOG_LEVEL: ClassVar[str] = c.LogLevel.INFO.value
+    CLI_DEFAULT_OUTPUT_FORMAT: ClassVar[str] = ce.OutputFormats.TABLE.value
+    CLI_PROCESS_HEARTBEAT_SECONDS: ClassVar[float] = 30.0
+    CLI_PROCESS_HEARTBEAT_MAX_SECONDS: ClassVar[float] = 60.0
+    CLI_PROCESS_HEARTBEAT_MESSAGE: ClassVar[str] = "flext-cli: process still running"
+    ENV_DEFAULT_CI: ClassVar[bool] = False
+    ENV_VAR_HOME: ClassVar[str] = "HOME"
+    ENV_VAR_CI: ClassVar[str] = "CI"
+    ENV_VAR_PYTEST_CURRENT_TEST: ClassVar[str] = "PYTEST_CURRENT_TEST"
+    ENV_VAR_SHELL_COMMAND: ClassVar[str] = "_"
 
-    FLEXT_CLI: Final[str] = "flext-cli"
-    CLI_VERSION: Final[str] = "2.0.0"
-    OPTIONAL_UNION_ARG_COUNT: Final[int] = 2
+    FLEXT_CLI: ClassVar[str] = "flext-cli"
+    CLI_VERSION: ClassVar[str] = "2.0.0"
+    OPTIONAL_UNION_ARG_COUNT: ClassVar[int] = 2
     CLI_SCALAR_TYPES_TUPLE: ClassVar[
         tuple[type[str], type[int], type[float], type[bool]]
     ] = t.PRIMITIVES_TYPES
 
-    CLI_PARAM_SHORT_FLAG_VERBOSE: Final[str] = "v"
-    CLI_PARAM_SHORT_FLAG_QUIET: Final[str] = "q"
-    CLI_PARAM_SHORT_FLAG_DEBUG: Final[str] = "d"
-    CLI_PARAM_SHORT_FLAG_TRACE: Final[str] = "t"
-    CLI_PARAM_SHORT_FLAG_LOG_LEVEL: Final[str] = "L"
-    CLI_PARAM_SHORT_FLAG_OUTPUT_FORMAT: Final[str] = "o"
-    CLI_PARAM_SHORT_FLAG_CONFIG_FILE: Final[str] = "c"
-    CLI_PARAM_PRIORITY_VERBOSE: Final[int] = 1
-    CLI_PARAM_PRIORITY_QUIET: Final[int] = 2
-    CLI_PARAM_PRIORITY_DEBUG: Final[int] = 3
-    CLI_PARAM_PRIORITY_TRACE: Final[int] = 4
-    CLI_PARAM_PRIORITY_LOG_LEVEL: Final[int] = 5
-    CLI_PARAM_PRIORITY_LOG_FORMAT: Final[int] = 6
-    CLI_PARAM_PRIORITY_OUTPUT_FORMAT: Final[int] = 7
-    CLI_PARAM_PRIORITY_NO_COLOR: Final[int] = 8
-    CLI_PARAM_PRIORITY_CONFIG_FILE: Final[int] = 9
-    CLI_PARAM_KEY_SHORT: Final[str] = "short"
-    CLI_PARAM_KEY_DEFAULT: Final[str] = "default"
-    CLI_PARAM_KEY_PRIORITY: Final[str] = "priority"
-    CLI_PARAM_KEY_CHOICES: Final[str] = "choices"
-    CLI_PARAM_KEY_CASE_SENSITIVE: Final[str] = "case_sensitive"
-    CLI_PARAM_KEY_FIELD_NAME_OVERRIDE: Final[str] = "field_name_override"
-    CLI_PARAM_LOG_FORMAT_OVERRIDE: Final[str] = "log-format"
-    CLI_PARAM_CASE_INSENSITIVE: Final[bool] = False
+    CLI_PARAM_SHORT_FLAG_VERBOSE: ClassVar[str] = "v"
+    CLI_PARAM_SHORT_FLAG_QUIET: ClassVar[str] = "q"
+    CLI_PARAM_SHORT_FLAG_DEBUG: ClassVar[str] = "d"
+    CLI_PARAM_SHORT_FLAG_TRACE: ClassVar[str] = "t"
+    CLI_PARAM_SHORT_FLAG_LOG_LEVEL: ClassVar[str] = "L"
+    CLI_PARAM_SHORT_FLAG_OUTPUT_FORMAT: ClassVar[str] = "o"
+    CLI_PARAM_SHORT_FLAG_CONFIG_FILE: ClassVar[str] = "c"
+    CLI_PARAM_PRIORITY_VERBOSE: ClassVar[int] = 1
+    CLI_PARAM_PRIORITY_QUIET: ClassVar[int] = 2
+    CLI_PARAM_PRIORITY_DEBUG: ClassVar[int] = 3
+    CLI_PARAM_PRIORITY_TRACE: ClassVar[int] = 4
+    CLI_PARAM_PRIORITY_LOG_LEVEL: ClassVar[int] = 5
+    CLI_PARAM_PRIORITY_LOG_FORMAT: ClassVar[int] = 6
+    CLI_PARAM_PRIORITY_OUTPUT_FORMAT: ClassVar[int] = 7
+    CLI_PARAM_PRIORITY_NO_COLOR: ClassVar[int] = 8
+    CLI_PARAM_PRIORITY_CONFIG_FILE: ClassVar[int] = 9
+    CLI_PARAM_KEY_SHORT: ClassVar[str] = "short"
+    CLI_PARAM_KEY_DEFAULT: ClassVar[str] = "default"
+    CLI_PARAM_KEY_PRIORITY: ClassVar[str] = "priority"
+    CLI_PARAM_KEY_CHOICES: ClassVar[str] = "choices"
+    CLI_PARAM_KEY_CASE_SENSITIVE: ClassVar[str] = "case_sensitive"
+    CLI_PARAM_KEY_FIELD_NAME_OVERRIDE: ClassVar[str] = "field_name_override"
+    CLI_PARAM_LOG_FORMAT_OVERRIDE: ClassVar[str] = "log-format"
+    CLI_PARAM_CASE_INSENSITIVE: ClassVar[bool] = False
     CLI_VALID_LOG_FORMATS: ClassVar[t.StrSequence] = tuple(
         item.value for item in ce.LogVerbosity
     )
 
-    COMMANDS_DEFAULT_NAME: Final[str] = "flext"
-    COMMANDS_DEFAULT_DESCRIPTION: Final[str] = "FLEXT CLI"
+    COMMANDS_DEFAULT_NAME: ClassVar[str] = "flext"
+    COMMANDS_DEFAULT_DESCRIPTION: ClassVar[str] = "FLEXT CLI"
 
     CLI_PARAM_REGISTRY: ClassVar[
         t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]

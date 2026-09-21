@@ -10,19 +10,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Final
+from typing import ClassVar
 
 
 class FlextCliConstantsConfig:
     """SSOT for CLI config, template, and schema constants (ADR-005)."""
 
-    TEMPLATE_SUFFIX: Final[str] = ".j2"
-    TEMPLATE_TRIM_BLOCKS: Final[bool] = False
-    TEMPLATE_LSTRIP_BLOCKS: Final[bool] = False
-    TEMPLATE_KEEP_TRAILING_NEWLINE: Final[bool] = True
-    ERR_TEMPLATE_RENDER_FAILED: Final[str] = "template: render failed"
-    ERR_TEMPLATE_NOT_FOUND: Final[str] = "template: source not found"
-    ERR_TEMPLATE_OUTPUT_ESCAPE: Final[str] = "template: output path escapes output_root"
-    ERR_SCHEMA_INVALID: Final[str] = "schema: document failed validation"
-    ERR_SCHEMA_READ_FAILED: Final[str] = "schema: cannot read schema file"
-    ERR_CONFIG_UNSUPPORTED_FORMAT: Final[str] = "config: unsupported source format"
+    TEMPLATE_SUFFIX: ClassVar[str] = ".j2"
+    TEMPLATE_TRIM_BLOCKS: ClassVar[bool] = False
+    TEMPLATE_LSTRIP_BLOCKS: ClassVar[bool] = False
+    TEMPLATE_KEEP_TRAILING_NEWLINE: ClassVar[bool] = True
+    ERR_TEMPLATE_RENDER_FAILED: ClassVar[str] = "template: render failed"
+    ERR_TEMPLATE_NOT_FOUND: ClassVar[str] = "template: source not found"
+    ERR_TEMPLATE_OUTPUT_ESCAPE: ClassVar[str] = "template: output path escapes output_root"
+    ERR_SCHEMA_INVALID: ClassVar[str] = "schema: document failed validation"
+    ERR_SCHEMA_READ_FAILED: ClassVar[str] = "schema: cannot read schema file"
+    ERR_CONFIG_UNSUPPORTED_FORMAT: ClassVar[str] = "config: unsupported source format"

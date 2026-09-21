@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import TYPE_CHECKING, ClassVar, Final
+from typing import ClassVar, TYPE_CHECKING
 
 from flext_core import c, t
 
@@ -16,61 +16,61 @@ if TYPE_CHECKING:
 class FlextCliConstantsOutput:
     """Flat output/message constants authority."""
 
-    EMOJI_INFO: Final[str] = "i"
-    EMOJI_SUCCESS: Final[str] = "\u2705"
-    EMOJI_ERROR: Final[str] = "\u274c"
-    EMOJI_WARNING: Final[str] = "\u26a0\ufe0f"
-    EMOJI_DEBUG: Final[str] = "D"
+    EMOJI_INFO: ClassVar[str] = "i"
+    EMOJI_SUCCESS: ClassVar[str] = "\u2705"
+    EMOJI_ERROR: ClassVar[str] = "\u274c"
+    EMOJI_WARNING: ClassVar[str] = "\u26a0\ufe0f"
+    EMOJI_DEBUG: ClassVar[str] = "D"
 
-    MSG_SUBDIR_EXISTS: Final[str] = "{symbol} {subdir} directory exists"
-    MSG_SUBDIR_MISSING: Final[str] = "{symbol} {subdir} directory missing"
+    MSG_SUBDIR_EXISTS: ClassVar[str] = "{symbol} {subdir} directory exists"
+    MSG_SUBDIR_MISSING: ClassVar[str] = "{symbol} {subdir} directory missing"
 
-    LOG_MSG_SETTINGS_DISPLAYED: Final[str] = "Settings displayed"
-    LOG_MSG_SETTINGS_VALIDATION_RESULTS: Final[str] = (
+    LOG_MSG_SETTINGS_DISPLAYED: ClassVar[str] = "Settings displayed"
+    LOG_MSG_SETTINGS_VALIDATION_RESULTS: ClassVar[str] = (
         "Settings validation results: {results}"
     )
 
-    PROMPT_DEFAULT_TIMEOUT: Final[int] = c.DEFAULT_TIMEOUT_SECONDS
-    PROMPT_MIN_PASSWORD_LENGTH: Final[int] = 1
-    PROMPT_CONFIRM_YES: Final[str] = " [Y/n]: "
-    PROMPT_CONFIRM_NO: Final[str] = " [y/N]: "
-    PROMPT_ERROR_FMT: Final[str] = "[bold red]Error:[/bold red] {message}"
-    PROMPT_SUCCESS_FMT: Final[str] = "[bold green]Success:[/bold green] {message}"
-    PROMPT_WARNING_FMT: Final[str] = "[bold yellow]Warning:[/bold yellow] {message}"
-    PROMPT_DEFAULT_FMT: Final[str] = " [{default}]"
-    PROMPT_SEP: Final[str] = ": "
-    PROMPT_LOG_FMT: Final[str] = "User input for '{message}': {input}"
-    PROMPT_SPACE: Final[str] = " "
+    PROMPT_DEFAULT_TIMEOUT: ClassVar[int] = c.DEFAULT_TIMEOUT_SECONDS
+    PROMPT_MIN_PASSWORD_LENGTH: ClassVar[int] = 1
+    PROMPT_CONFIRM_YES: ClassVar[str] = " [Y/n]: "
+    PROMPT_CONFIRM_NO: ClassVar[str] = " [y/N]: "
+    PROMPT_ERROR_FMT: ClassVar[str] = "[bold red]Error:[/bold red] {message}"
+    PROMPT_SUCCESS_FMT: ClassVar[str] = "[bold green]Success:[/bold green] {message}"
+    PROMPT_WARNING_FMT: ClassVar[str] = "[bold yellow]Warning:[/bold yellow] {message}"
+    PROMPT_DEFAULT_FMT: ClassVar[str] = " [{default}]"
+    PROMPT_SEP: ClassVar[str] = ": "
+    PROMPT_LOG_FMT: ClassVar[str] = "User input for '{message}': {input}"
+    PROMPT_SPACE: ClassVar[str] = " "
     PROMPT_YES_VALUES: ClassVar[frozenset[str]] = frozenset({"y", "yes"})
     PROMPT_NO_VALUES: ClassVar[frozenset[str]] = frozenset({"n", "no"})
 
-    OUTPUT_EMPTY_STYLE: Final[str] = ""
-    OUTPUT_DEFAULT_MESSAGE_TYPE: Final[ce.MessageTypes] = ce.MessageTypes.INFO
-    OUTPUT_DEFAULT_FORMAT_TYPE: Final[ce.OutputFormats] = ce.OutputFormats.TABLE
-    OUTPUT_HEADER_RULE_WIDTH: Final[int] = 60
-    OUTPUT_PLAIN_MESSAGE_THRESHOLD: Final[int] = 10000
-    OUTPUT_LOG_LEVEL_DEBUG: Final[str] = "DEBUG"
-    OUTPUT_LOG_LEVEL_ERROR: Final[str] = "ERROR"
-    OUTPUT_LOG_LEVEL_INFO: Final[str] = "INFO"
-    OUTPUT_LOG_LEVEL_WARNING: Final[str] = "WARN"
-    OUTPUT_REPORTS_DIR_NAME: Final[str] = ".reports"
-    OUTPUT_SCOPE_WORKSPACE: Final[str] = "workspace"
-    OUTPUT_STATUS_FAIL: Final[str] = "[FAIL]"
-    OUTPUT_STATUS_OK: Final[str] = "[OK]"
-    OUTPUT_SUMMARY_DEFAULT_VERB: Final[str] = "summary"
-    OUTPUT_EXECUTION_ERROR: Final[str] = "execution error"
-    OUTPUT_TABLE_ERROR_LABEL: Final[str] = "[table error]"
-    OUTPUT_TABLE_CONFIG_INVALID: Final[str] = "Invalid table configuration"
-    OUTPUT_TABLE_CONFIG_INVALID_FMT: Final[str] = (
+    OUTPUT_EMPTY_STYLE: ClassVar[str] = ""
+    OUTPUT_DEFAULT_MESSAGE_TYPE: ClassVar[ce.MessageTypes] = ce.MessageTypes.INFO
+    OUTPUT_DEFAULT_FORMAT_TYPE: ClassVar[ce.OutputFormats] = ce.OutputFormats.TABLE
+    OUTPUT_HEADER_RULE_WIDTH: ClassVar[int] = 60
+    OUTPUT_PLAIN_MESSAGE_THRESHOLD: ClassVar[int] = 10000
+    OUTPUT_LOG_LEVEL_DEBUG: ClassVar[str] = "DEBUG"
+    OUTPUT_LOG_LEVEL_ERROR: ClassVar[str] = "ERROR"
+    OUTPUT_LOG_LEVEL_INFO: ClassVar[str] = "INFO"
+    OUTPUT_LOG_LEVEL_WARNING: ClassVar[str] = "WARN"
+    OUTPUT_REPORTS_DIR_NAME: ClassVar[str] = ".reports"
+    OUTPUT_SCOPE_WORKSPACE: ClassVar[str] = "workspace"
+    OUTPUT_STATUS_FAIL: ClassVar[str] = "[FAIL]"
+    OUTPUT_STATUS_OK: ClassVar[str] = "[OK]"
+    OUTPUT_SUMMARY_DEFAULT_VERB: ClassVar[str] = "summary"
+    OUTPUT_EXECUTION_ERROR: ClassVar[str] = "execution error"
+    OUTPUT_TABLE_ERROR_LABEL: ClassVar[str] = "[table error]"
+    OUTPUT_TABLE_CONFIG_INVALID: ClassVar[str] = "Invalid table configuration"
+    OUTPUT_TABLE_CONFIG_INVALID_FMT: ClassVar[str] = (
         f"{OUTPUT_TABLE_CONFIG_INVALID}: {{error}}"
     )
-    OUTPUT_TABLE_DATA_INVALID: Final[str] = "Table data invalid"
-    OUTPUT_TABLE_DATA_INVALID_FMT: Final[str] = (
+    OUTPUT_TABLE_DATA_INVALID: ClassVar[str] = "Table data invalid"
+    OUTPUT_TABLE_DATA_INVALID_FMT: ClassVar[str] = (
         f"{OUTPUT_TABLE_DATA_INVALID}: {{error}}"
     )
-    OUTPUT_TABLE_NORMALIZATION_FAILED: Final[str] = "Table normalization failed"
-    OUTPUT_TABLE_ROW_INVALID: Final[str] = "Table row invalid after validation"
-    OUTPUT_TABLE_FORMATTING_OPERATION: Final[str] = "Table formatting"
+    OUTPUT_TABLE_NORMALIZATION_FAILED: ClassVar[str] = "Table normalization failed"
+    OUTPUT_TABLE_ROW_INVALID: ClassVar[str] = "Table row invalid after validation"
+    OUTPUT_TABLE_FORMATTING_OPERATION: ClassVar[str] = "Table formatting"
 
     TABLE_FORMATS: ClassVar[t.StrMapping] = MappingProxyType({
         ce.TabularFormat.PLAIN: "Minimal formatting, no borders",

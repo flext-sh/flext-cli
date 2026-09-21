@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Final
+from typing import ClassVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from flext_core import t
@@ -30,16 +30,16 @@ class FlextCliConstantsFiles:
         CSV = "csv"
         UNKNOWN = "unknown"
 
-    FILE_FORMAT_AUTO: Final[FileFormat] = FileFormat.AUTO
-    FILE_FORMAT_TEXT: Final[FileFormat] = FileFormat.TEXT
-    FILE_FORMAT_BIN: Final[FileFormat] = FileFormat.BIN
-    FILE_FORMAT_JSON: Final[FileFormat] = FileFormat.JSON
-    FILE_FORMAT_YAML: Final[FileFormat] = FileFormat.YAML
-    FILE_FORMAT_TOML: Final[FileFormat] = FileFormat.TOML
-    FILE_FORMAT_CSV: Final[FileFormat] = FileFormat.CSV
-    FILE_FORMAT_UNKNOWN: Final[FileFormat] = FileFormat.UNKNOWN
+    FILE_FORMAT_AUTO: ClassVar[FileFormat] = FileFormat.AUTO
+    FILE_FORMAT_TEXT: ClassVar[FileFormat] = FileFormat.TEXT
+    FILE_FORMAT_BIN: ClassVar[FileFormat] = FileFormat.BIN
+    FILE_FORMAT_JSON: ClassVar[FileFormat] = FileFormat.JSON
+    FILE_FORMAT_YAML: ClassVar[FileFormat] = FileFormat.YAML
+    FILE_FORMAT_TOML: ClassVar[FileFormat] = FileFormat.TOML
+    FILE_FORMAT_CSV: ClassVar[FileFormat] = FileFormat.CSV
+    FILE_FORMAT_UNKNOWN: ClassVar[FileFormat] = FileFormat.UNKNOWN
 
-    KNOWN_FORMATS: Final[frozenset[str]] = frozenset({
+    KNOWN_FORMATS: ClassVar[frozenset[str]] = frozenset({
         "auto",
         "text",
         "bin",
@@ -48,7 +48,7 @@ class FlextCliConstantsFiles:
         "csv",
     })
 
-    EXT_TO_FMT: Final[t.StrMapping] = MappingProxyType({
+    EXT_TO_FMT: ClassVar[t.StrMapping] = MappingProxyType({
         ".txt": "text",
         ".log": "text",
         ".md": "text",
@@ -62,13 +62,13 @@ class FlextCliConstantsFiles:
         ".tsv": "csv",
     })
 
-    DEFAULT_FILENAME: Final[str] = "file"
-    DEFAULT_EXTENSION: Final[str] = ".txt"
-    DEFAULT_JSON_INDENT: Final[int] = 2
-    DEFAULT_CSV_DELIMITER: Final[str] = ","
+    DEFAULT_FILENAME: ClassVar[str] = "file"
+    DEFAULT_EXTENSION: ClassVar[str] = ".txt"
+    DEFAULT_JSON_INDENT: ClassVar[int] = 2
+    DEFAULT_CSV_DELIMITER: ClassVar[str] = ","
 
-    SIZE_UNITS: Final[t.StrSequence] = ("B", "KB", "MB", "GB", "TB", "PB")
-    SIZE_THRESHOLD: Final[int] = 1024
+    SIZE_UNITS: ClassVar[t.StrSequence] = ("B", "KB", "MB", "GB", "TB", "PB")
+    SIZE_THRESHOLD: ClassVar[int] = 1024
 
     @classmethod
     def format_size(cls, size: int) -> str:

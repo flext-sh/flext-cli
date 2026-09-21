@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Final
+from typing import ClassVar
 
 
 class FlextCliConstantsXlsxFutureFunctions:
@@ -11,8 +11,8 @@ class FlextCliConstantsXlsxFutureFunctions:
     # NOTE (multi-agent, mro-j2yt.1): OOXML encodes functions introduced
     # after Excel 2007 with the _xlfn. storage prefix; writers must emit it
     # so Excel and LibreOffice resolve the name instead of failing #NAME?.
-    XLSX_FUTURE_FUNCTION_PREFIX: Final[str] = "_xlfn."
-    XLSX_FUTURE_FUNCTIONS: Final[frozenset[str]] = frozenset((
+    XLSX_FUTURE_FUNCTION_PREFIX: ClassVar[str] = "_xlfn."
+    XLSX_FUTURE_FUNCTIONS: ClassVar[frozenset[str]] = frozenset((
         "ACOT",
         "ACOTH",
         "AGGREGATE",

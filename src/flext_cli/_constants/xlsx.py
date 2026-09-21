@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from enum import StrEnum, unique
-from typing import Final
+from typing import ClassVar
 
 
 class FlextCliConstantsXlsx:
@@ -11,50 +11,50 @@ class FlextCliConstantsXlsx:
 
     # NOTE (multi-agent, mro-j2yt.1): keep workbook protocol facts out of
     # consumer packages so every external XLSX dependency has one owner.
-    XLSX_MIN_INDEX: Final[int] = 1
-    XLSX_MAX_OUTLINE_LEVEL: Final[int] = 8
-    XLSX_RANGE_BOUNDARY_SIZE: Final[int] = 4
-    XLSX_INLINE_VALIDATION_FORMULA_LIMIT: Final[int] = 255
-    XLSX_DEFAULT_NUMBER_FORMAT: Final[str] = "General"
+    XLSX_MIN_INDEX: ClassVar[int] = 1
+    XLSX_MAX_OUTLINE_LEVEL: ClassVar[int] = 8
+    XLSX_RANGE_BOUNDARY_SIZE: ClassVar[int] = 4
+    XLSX_INLINE_VALIDATION_FORMULA_LIMIT: ClassVar[int] = 255
+    XLSX_DEFAULT_NUMBER_FORMAT: ClassVar[str] = "General"
     XLSX_DEFAULT_CALCULATION_MODE: Final = "auto"
-    XLSX_WORKBOOK_MEMBER: Final[str] = "xl/workbook.xml"
-    XLSX_STYLES_MEMBER: Final[str] = "xl/styles.xml"
-    XLSX_WORKSHEET_PREFIX: Final[str] = "xl/worksheets/sheet"
-    XLSX_XML_SUFFIX: Final[str] = ".xml"
-    XLSX_STYLE_GROUPS_WITH_PROTECTION: Final[frozenset[str]] = frozenset((
+    XLSX_WORKBOOK_MEMBER: ClassVar[str] = "xl/workbook.xml"
+    XLSX_STYLES_MEMBER: ClassVar[str] = "xl/styles.xml"
+    XLSX_WORKSHEET_PREFIX: ClassVar[str] = "xl/worksheets/sheet"
+    XLSX_XML_SUFFIX: ClassVar[str] = ".xml"
+    XLSX_STYLE_GROUPS_WITH_PROTECTION: ClassVar[frozenset[str]] = frozenset((
         "cellStyleXfs",
         "cellXfs",
     ))
-    XLSX_TRUE_TOKENS: Final[frozenset[str | None]] = frozenset((
+    XLSX_TRUE_TOKENS: ClassVar[frozenset[str | None]] = frozenset((
         None,
         "1",
         "on",
         "true",
     ))
-    XLSX_FALSE_TOKENS: Final[frozenset[str | None]] = frozenset((
+    XLSX_FALSE_TOKENS: ClassVar[frozenset[str | None]] = frozenset((
         None,
         "0",
         "false",
         "off",
     ))
-    XLSX_ERROR_CELL_PREFIX: Final[str] = "#"
-    XLSX_PACKAGE_PREFIX: Final[str] = "xl/"
-    XLSX_RECALC_COMMAND: Final[tuple[str, ...]] = (
+    XLSX_ERROR_CELL_PREFIX: ClassVar[str] = "#"
+    XLSX_PACKAGE_PREFIX: ClassVar[str] = "xl/"
+    XLSX_RECALC_COMMAND: ClassVar[tuple[str, ...]] = (
         "soffice",
         "--headless",
         "--convert-to",
         "xlsx",
         "--outdir",
     )
-    XLSX_RECALC_SOURCE_NAME: Final[str] = "source.xlsx"
-    XLSX_RECALC_TEMP_PREFIX: Final[str] = "flext-xlsx-recalc-"
-    XLSX_RECALC_PROFILE_DIR_NAME: Final[str] = "profile"
-    XLSX_RECALC_USER_PROFILE_ARGUMENT_PREFIX: Final[str] = "-env:UserInstallation="
-    XLSX_RECALC_TIMEOUT_SECONDS: Final[float] = 120.0
-    XLSX_RELATIONSHIPS_ID_ATTRIBUTE: Final[str] = (
+    XLSX_RECALC_SOURCE_NAME: ClassVar[str] = "source.xlsx"
+    XLSX_RECALC_TEMP_PREFIX: ClassVar[str] = "flext-xlsx-recalc-"
+    XLSX_RECALC_PROFILE_DIR_NAME: ClassVar[str] = "profile"
+    XLSX_RECALC_USER_PROFILE_ARGUMENT_PREFIX: ClassVar[str] = "-env:UserInstallation="
+    XLSX_RECALC_TIMEOUT_SECONDS: ClassVar[float] = 120.0
+    XLSX_RELATIONSHIPS_ID_ATTRIBUTE: ClassVar[str] = (
         "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
     )
-    XLSX_WORKBOOK_RELS_MEMBER: Final[str] = "xl/_rels/workbook.xml.rels"
+    XLSX_WORKBOOK_RELS_MEMBER: ClassVar[str] = "xl/_rels/workbook.xml.rels"
 
     @unique
     class XlsxError(StrEnum):
