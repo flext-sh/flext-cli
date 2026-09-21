@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from pydantic import ConfigDict
 
 from flext_core import u
@@ -18,7 +20,7 @@ class FlextCliUtilities(u):
     model_config = ConfigDict(ignored_types=(type(FlextCliUtilitiesCli),))
 
     # NOTE (multi-agent): mro-wkii.17.17 publishes the canonical class directly.
-    Cli: type[FlextCliUtilitiesCli] = FlextCliUtilitiesCli
+    Cli: ClassVar[type[FlextCliUtilitiesCli]] = FlextCliUtilitiesCli
 
 
 u = FlextCliUtilities
