@@ -22,9 +22,18 @@ if TYPE_CHECKING:
     from .xlsx import FlextCliConstantsXlsx
     from .xlsx_future_functions import FlextCliConstantsXlsxFutureFunctions
 __all__: tuple[str, ...] = (
-    "FlextCliConstantsBase", "FlextCliConstantsConfig", "FlextCliConstantsDocx", "FlextCliConstantsEnums",
-    "FlextCliConstantsErrors", "FlextCliConstantsExceptions", "FlextCliConstantsFiles", "FlextCliConstantsOutput",
-    "FlextCliConstantsPptx", "FlextCliConstantsSettings", "FlextCliConstantsXlsx", "FlextCliConstantsXlsxFutureFunctions",
+    "FlextCliConstantsBase",
+    "FlextCliConstantsConfig",
+    "FlextCliConstantsDocx",
+    "FlextCliConstantsEnums",
+    "FlextCliConstantsErrors",
+    "FlextCliConstantsExceptions",
+    "FlextCliConstantsFiles",
+    "FlextCliConstantsOutput",
+    "FlextCliConstantsPptx",
+    "FlextCliConstantsSettings",
+    "FlextCliConstantsXlsx",
+    "FlextCliConstantsXlsxFutureFunctions",
 )
 
 _LAZY_IMPORTS = MappingProxyType(

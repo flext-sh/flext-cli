@@ -22,7 +22,9 @@ class FlextCliConstantsConfig:
     TEMPLATE_KEEP_TRAILING_NEWLINE: ClassVar[bool] = True
     ERR_TEMPLATE_RENDER_FAILED: ClassVar[str] = "template: render failed"
     ERR_TEMPLATE_NOT_FOUND: ClassVar[str] = "template: source not found"
-    ERR_TEMPLATE_OUTPUT_ESCAPE: ClassVar[str] = "template: output path escapes output_root"
+    ERR_TEMPLATE_OUTPUT_ESCAPE: ClassVar[str] = (
+        "template: output path escapes output_root"
+    )
     ERR_SCHEMA_INVALID: ClassVar[str] = "schema: document failed validation"
     ERR_SCHEMA_READ_FAILED: ClassVar[str] = "schema: cannot read schema file"
     ERR_CONFIG_UNSUPPORTED_FORMAT: ClassVar[str] = "config: unsupported source format"

@@ -23,9 +23,18 @@ if TYPE_CHECKING:
     from .xlsx_validation import FlextCliModelsXlsxValidation
     from .xlsx_workbook import FlextCliModelsXlsxWorkbook
 __all__: tuple[str, ...] = (
-    "FlextCliModelsXlsxArchive", "FlextCliModelsXlsxCells", "FlextCliModelsXlsxLayout", "FlextCliModelsXlsxRecalc",
-    "FlextCliModelsXlsxRules", "FlextCliModelsXlsxSnapshot", "FlextCliModelsXlsxStyleCatalog", "FlextCliModelsXlsxStyleFills",
-    "FlextCliModelsXlsxStylePrimitives", "FlextCliModelsXlsxStyles", "FlextCliModelsXlsxTables", "FlextCliModelsXlsxValidation",
+    "FlextCliModelsXlsxArchive",
+    "FlextCliModelsXlsxCells",
+    "FlextCliModelsXlsxLayout",
+    "FlextCliModelsXlsxRecalc",
+    "FlextCliModelsXlsxRules",
+    "FlextCliModelsXlsxSnapshot",
+    "FlextCliModelsXlsxStyleCatalog",
+    "FlextCliModelsXlsxStyleFills",
+    "FlextCliModelsXlsxStylePrimitives",
+    "FlextCliModelsXlsxStyles",
+    "FlextCliModelsXlsxTables",
+    "FlextCliModelsXlsxValidation",
     "FlextCliModelsXlsxWorkbook",
 )
 

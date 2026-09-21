@@ -12,7 +12,8 @@ if TYPE_CHECKING:
     from ._loaders import FlextCliUtilitiesRulesLoadersMixin
     from ._matchers import FlextCliUtilitiesRulesMatchersMixin
 __all__: tuple[str, ...] = (
-    "FlextCliUtilitiesRulesLoadersMixin", "FlextCliUtilitiesRulesMatchersMixin",
+    "FlextCliUtilitiesRulesLoadersMixin",
+    "FlextCliUtilitiesRulesMatchersMixin",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
