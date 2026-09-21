@@ -9,17 +9,29 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli import c, d, e, h, m, p, r, s, t, u, x
+    from flext_cli import c, m, p, s, t, u
+    from flext_core import d, e, h, r, x
 
     from .examples_advanced import ExamplesFlextCliModelsExamplesAdvanced
     from .examples_common import ExamplesFlextCliModelsExamplesCommon
     from .examples_database import ExamplesFlextCliModelsExamplesDatabase
     from .examplesflextclimodels_part_01 import ExamplesFlextCliModels
 __all__: tuple[str, ...] = (
-    "ExamplesFlextCliModels", "ExamplesFlextCliModelsExamplesAdvanced", "ExamplesFlextCliModelsExamplesCommon", "ExamplesFlextCliModelsExamplesDatabase",
-    "c", "d", "e", "h",
-    "m", "p", "r", "s",
-    "t", "u", "x",
+    "ExamplesFlextCliModels",
+    "ExamplesFlextCliModelsExamplesAdvanced",
+    "ExamplesFlextCliModelsExamplesCommon",
+    "ExamplesFlextCliModelsExamplesDatabase",
+    "c",
+    "d",
+    "e",
+    "h",
+    "m",
+    "p",
+    "r",
+    "s",
+    "t",
+    "u",
+    "x",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
@@ -29,7 +41,8 @@ _LAZY_IMPORTS = MappingProxyType(
             ".examples_common": ("ExamplesFlextCliModelsExamplesCommon",),
             ".examples_database": ("ExamplesFlextCliModelsExamplesDatabase",),
             ".examplesflextclimodels_part_01": ("ExamplesFlextCliModels",),
-            "flext_cli": ("c", "d", "e", "h", "m", "p", "r", "s", "t", "u", "x"),
+            "flext_cli": ("c", "m", "p", "s", "t", "u"),
+            "flext_core": ("d", "e", "h", "r", "x"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

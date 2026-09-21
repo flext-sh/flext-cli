@@ -12,7 +12,8 @@ if TYPE_CHECKING:
     from ._reader import FlextCliUtilitiesDocxReader
     from ._renderer import FlextCliUtilitiesDocxRenderer
 __all__: tuple[str, ...] = (
-    "FlextCliUtilitiesDocxReader", "FlextCliUtilitiesDocxRenderer",
+    "FlextCliUtilitiesDocxReader",
+    "FlextCliUtilitiesDocxRenderer",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
