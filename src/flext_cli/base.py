@@ -9,7 +9,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, p, t, u
+# Concrete-module imports: this module resolves during the package root's
+# lazy ``s`` export, when the root namespace is still initializing.
+from flext_cli.models import m
+from flext_cli.protocols import p
+from flext_cli.typings import t
+from flext_cli.utilities import u
 from flext_core import s
 
 
