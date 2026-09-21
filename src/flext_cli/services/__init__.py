@@ -28,24 +28,11 @@ if TYPE_CHECKING:
     from .xlsx import FlextCliXlsx
     from .yaml_model import FlextCliYamlModel
 __all__: tuple[str, ...] = (
-    "FlextCliAuth",
-    "FlextCliCli",
-    "FlextCliCmd",
-    "FlextCliCommonParams",
-    "FlextCliDocx",
-    "FlextCliFileTools",
-    "FlextCliFormatters",
-    "FlextCliOutput",
-    "FlextCliPipeline",
-    "FlextCliPptx",
-    "FlextCliPrompts",
-    "FlextCliPromptsSupport",
-    "FlextCliRules",
-    "FlextCliRuntime",
-    "FlextCliTables",
-    "FlextCliXlsx",
-    "FlextCliYamlModel",
-    "_cli_parts",
+    "FlextCliAuth", "FlextCliCli", "FlextCliCmd", "FlextCliCommonParams",
+    "FlextCliDocx", "FlextCliFileTools", "FlextCliFormatters", "FlextCliOutput",
+    "FlextCliPipeline", "FlextCliPptx", "FlextCliPrompts", "FlextCliPromptsSupport",
+    "FlextCliRules", "FlextCliRuntime", "FlextCliTables", "FlextCliXlsx",
+    "FlextCliYamlModel", "_cli_parts",
 )
 
 _LAZY_IMPORTS = MappingProxyType(

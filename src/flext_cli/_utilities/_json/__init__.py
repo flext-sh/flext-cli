@@ -12,8 +12,7 @@ if TYPE_CHECKING:
     from ._core import FlextCliUtilitiesJsonCoreMixin
     from ._navigate import FlextCliUtilitiesJsonNavigateMixin
 __all__: tuple[str, ...] = (
-    "FlextCliUtilitiesJsonCoreMixin",
-    "FlextCliUtilitiesJsonNavigateMixin",
+    "FlextCliUtilitiesJsonCoreMixin", "FlextCliUtilitiesJsonNavigateMixin",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
