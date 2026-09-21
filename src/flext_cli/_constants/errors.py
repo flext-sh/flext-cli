@@ -60,7 +60,9 @@ class FlextCliConstantsErrors:
     ERR_INVALID_CREDENTIALS: ClassVar[str] = (
         "Invalid credentials: missing token or username/password"
     )
-    ERR_SETTINGS_VALIDATION_FAILED: ClassVar[str] = "Settings validation failed: {error}"
+    ERR_SETTINGS_VALIDATION_FAILED: ClassVar[str] = (
+        "Settings validation failed: {error}"
+    )
     ERR_AUTH_SAVE_FAILED: ClassVar[str] = "Failed to save token: {error}"
     ERR_AUTH_LOAD_FAILED: ClassVar[str] = "Failed to load token: {error}"
     ERR_AUTH_FILE_NOT_FOUND: ClassVar[str] = "Token file does not exist"

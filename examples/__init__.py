@@ -22,11 +22,26 @@ if TYPE_CHECKING:
     from .typings import ExamplesFlextCliTypes, ExamplesFlextCliTypes as t
     from .utilities import ExamplesFlextCliUtilities, ExamplesFlextCliUtilities as u
 __all__: tuple[str, ...] = (
-    "DataManagerCLI", "Ex05Authentication", "Ex06Settings", "ExamplesFlextCliConstants",
-    "ExamplesFlextCliGettingStarted", "ExamplesFlextCliModels", "ExamplesFlextCliProtocols", "ExamplesFlextCliTypes",
-    "ExamplesFlextCliUtilities", "_models_parts", "c", "d",
-    "e", "h", "m", "p",
-    "r", "s", "t", "u",
+    "DataManagerCLI",
+    "Ex05Authentication",
+    "Ex06Settings",
+    "ExamplesFlextCliConstants",
+    "ExamplesFlextCliGettingStarted",
+    "ExamplesFlextCliModels",
+    "ExamplesFlextCliProtocols",
+    "ExamplesFlextCliTypes",
+    "ExamplesFlextCliUtilities",
+    "_models_parts",
+    "c",
+    "d",
+    "e",
+    "h",
+    "m",
+    "p",
+    "r",
+    "s",
+    "t",
+    "u",
     "x",
 )
 
