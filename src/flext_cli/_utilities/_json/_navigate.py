@@ -85,7 +85,9 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
     @staticmethod
     def json_pick_bool(data: t.JsonMapping, key: str, *, default: bool = False) -> bool:
         """Extract a boolean value from mapping with string/int coercion."""
-        return bool(u.parse(data.get(key, None), bool, default=default).unwrap_or(default))
+        return bool(
+            u.parse(data.get(key, None), bool, default=default).unwrap_or(default)
+        )
 
     @staticmethod
     def json_nested_int(data: t.JsonMapping, *keys: str, default: int = 0) -> int:
