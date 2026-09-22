@@ -11,7 +11,8 @@
   - [4 · 🟡 MEDIUM · conf high · package_managers.uv.uv-missing-dependency-cooldown.uv-missing-dependency-cooldown](#4-medium-conf-high-package_managersuvuv-missing-dependency-cooldownuv-missing-dependency-cooldown)
   - [5 · 🟡 MEDIUM · conf low · python.django.security.audit.unvalidated-password.unvalidated-password](#5-medium-conf-low-pythondjangosecurityauditunvalidated-passwordunvalidated-password)
   - [6 · ⚪ LOW · conf low · python.lang.security.audit.dangerous-annotations-usage.dangerous-annotations-usage](#6-low-conf-low-pythonlangsecurityauditdangerous-annotations-usagedangerous-annotations-usage)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 Gerado do dump da plataforma Semgrep (deployment `datacosmos`, 2026-08-06).
 

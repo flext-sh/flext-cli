@@ -44,7 +44,8 @@
   - [Atomic directory publication on macOS](#atomic-directory-publication-on-macos)
   - [Common Issues](#common-issues)
   - [Debug Commands](#debug-commands)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **Contributing guidelines and development workflow for flext-cli.**
 

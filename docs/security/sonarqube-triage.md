@@ -91,7 +91,8 @@
   - [84 · ⚪ MINOR · CODE_SMELL · python:S7504](#84-minor-code_smell-pythons7504)
   - [85 · ⚪ MINOR · CODE_SMELL · python:S7504](#85-minor-code_smell-pythons7504)
   - [86 · ⚪ MINOR · CODE_SMELL · python:S6353](#86-minor-code_smell-pythons6353)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 Gerado do dump da plataforma SonarCloud (2026-08-06).
 

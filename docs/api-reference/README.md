@@ -28,7 +28,7 @@ This section is generated from public exports and real docstrings.
 ## Surface Summary
 
 - Primary facades: `FlextCli`, `FlextCliAuth`, `FlextCliCli`, `FlextCliCmd`,
-  `FlextCliCommonParams`, `FlextCliConfig` (+20 more)
-- Generated module pages: `25`
+  `FlextCliCommonParams`, `FlextCliConfig` (+19 more)
+- Generated module pages: `24`
 
 Back to [project docs](../index.md).
