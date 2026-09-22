@@ -37,8 +37,8 @@ class FlextCliModelsBase:
 
         def resolve(self) -> str:
             """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
-            s = (self.raw or self.default).strip().upper()
-            return s or self.default
+            normalized = (self.raw or self.default).strip().upper()
+            return normalized or self.default
 
     class TypedExtract(m.BaseModel):
         """Single contract for typed value extraction (str | bool | dict)."""
