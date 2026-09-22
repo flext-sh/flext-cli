@@ -128,8 +128,10 @@ class FlextCliProtocolsXlsxWorkbook:
 
         def save(self, filename: BytesIO) -> None: ...
 
+    @runtime_checkable
     class XlsxDefinedName(Protocol): ...
 
+    @runtime_checkable
     class XlsxTable(Protocol): ...
 
 
