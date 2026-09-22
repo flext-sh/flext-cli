@@ -4,36 +4,22 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Self, overload
+from typing import overload
 
 from flext_cli import c, m, p, t
-from flext_core import FlextSettings, u
+from flext_core import u
 
 
-class FlextCliUtilitiesSettings(FlextSettings):
+class FlextCliUtilitiesSettings:
     """Settings and selector methods exposed directly on ``u.Cli``.
 
-    MRO carries ``FlextSettings`` (ENFORCE-042); the class is a namespace
-    holder, never instantiated — class-attribute access resolves via the MRO.
+    A plain namespace holder, never instantiated — class-attribute access
+    resolves via the MRO. It does not inherit ``FlextSettings``: the settings
+    *fields* (``debug``, ``trace``, …) would then leak into the ``u.Cli`` MRO
+    and shadow the ``u.Cli.debug()`` emitter, which is what consumers call.
+    ``FlextSettings`` stays the settings owner; this class only carries the
+    utility methods, exactly like flext-core's ``FlextUtilitiesSettings``.
     """
-
-    # ENFORCE-042 namespace-holder contract: ``FlextSettings`` contributes
-    # namespacing only — instance machinery stays plain object semantics so the
-    # settings singleton/validation machinery cannot leak into instantiated
-    # facade composites (e.g. the ``u`` logging facade).
-    def __new__(cls, *args: object, **kwargs: object) -> Self:
-        _ = args, kwargs
-        return object.__new__(cls)
-
-    def __init__(self, *args: object, **kwargs: object) -> None:
-        _ = self, args, kwargs
-
-    def __setattr__(self, name: str, value: object) -> None:
-        object.__setattr__(self, name, value)
-
-    __eq__ = object.__eq__
-
-    __hash__ = object.__hash__
 
     @staticmethod
     def cli_test_env(cli_settings: p.Cli.CliSettings) -> bool:
