@@ -107,7 +107,6 @@ class FlextCliUtilitiesFramework:
         # NOTE (multi-agent): this outer framework boundary is the single point
         # that exposes a failed Result to the user before the process exits;
         # every service layer keeps the canonical Result intact up to here.
-        _ = r.require_error(result)
         if not cls._active_execution.get():
             return False
         from flext_cli import settings, u
