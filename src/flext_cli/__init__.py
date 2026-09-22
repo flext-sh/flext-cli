@@ -20,17 +20,16 @@ from .__version__ import (
 )
 
 if TYPE_CHECKING:
-    from flext_core import d, e, h, r, x
+    from pydantic_core import from_json, to_json, to_jsonable_python
 
     from . import services
-    from .__version__ import FlextCliVersion
+    from ._config import FlextCliConfig, config
     from ._settings import FlextCliSettings, settings
     from .api import FlextCli, cli
-    from .base import FlextCliServiceBase, FlextCliServiceBase as s
-    from .config import FlextCliConfig, config
-    from .constants import FlextCliConstants, FlextCliConstants as c
-    from .models import FlextCliModels, FlextCliModels as m
-    from .protocols import FlextCliProtocols, FlextCliProtocols as p
+    from .base import FlextCliServiceBase, s
+    from .constants import FlextCliConstants, c
+    from .models import FlextCliModels, m
+    from .protocols import FlextCliProtocols, p
     from .services.auth import FlextCliAuth
     from .services.cli import FlextCliCli
     from .services.cli_params import FlextCliCommonParams
@@ -47,8 +46,8 @@ if TYPE_CHECKING:
     from .services.tables import FlextCliTables
     from .services.xlsx import FlextCliXlsx
     from .services.yaml_model import FlextCliYamlModel
-    from .typings import FlextCliTypes, FlextCliTypes as t
-    from .utilities import FlextCliUtilities, FlextCliUtilities as u
+    from .typings import FlextCliTypes, t
+    from .utilities import FlextCliUtilities, u
 __all__: tuple[str, ...] = (
     "FlextCli",
     "FlextCliAuth",
@@ -73,7 +72,6 @@ __all__: tuple[str, ...] = (
     "FlextCliTables",
     "FlextCliTypes",
     "FlextCliUtilities",
-    "FlextCliVersion",
     "FlextCliXlsx",
     "FlextCliYamlModel",
     "__author__",
@@ -87,28 +85,25 @@ __all__: tuple[str, ...] = (
     "c",
     "cli",
     "config",
-    "d",
-    "e",
-    "h",
+    "from_json",
     "m",
     "p",
-    "r",
     "s",
     "services",
     "settings",
     "t",
+    "to_json",
+    "to_jsonable_python",
     "u",
-    "x",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
-            ".__version__": ("FlextCliVersion",),
+            "._config": ("FlextCliConfig", "config"),
             "._settings": ("FlextCliSettings", "settings"),
             ".api": ("FlextCli", "cli"),
             ".base": ("FlextCliServiceBase", "s"),
-            ".config": ("FlextCliConfig", "config"),
             ".constants": ("FlextCliConstants", "c"),
             ".models": ("FlextCliModels", "m"),
             ".protocols": ("FlextCliProtocols", "p"),
@@ -131,7 +126,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".services.yaml_model": ("FlextCliYamlModel",),
             ".typings": ("FlextCliTypes", "t"),
             ".utilities": ("FlextCliUtilities", "u"),
-            "flext_core": ("d", "e", "h", "r", "x"),
+            "pydantic_core": ("from_json", "to_json", "to_jsonable_python"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

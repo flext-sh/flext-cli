@@ -22,7 +22,7 @@ if TYPE_CHECKING:
         _xlxx,
         _yaml,
     )
-    from ._cli_namespace import Cli, FlextCliUtilitiesCli
+    from ._cli_namespace import FlextCliUtilitiesCli
     from ._docx._reader import FlextCliUtilitiesDocxReader
     from ._docx._renderer import FlextCliUtilitiesDocxRenderer
     from ._json._core import FlextCliUtilitiesJsonCoreMixin
@@ -235,7 +235,6 @@ if TYPE_CHECKING:
     from .yaml_model import FlextCliUtilitiesYamlModel
 __all__: tuple[str, ...] = (
     "NO_MODE_PRECONDITION",
-    "Cli",
     "DirectoryChainInspection",
     "DirectoryPhysicalState",
     "FlextCliAtomicTreeDarwin",
@@ -426,7 +425,7 @@ __all__: tuple[str, ...] = (
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
-            "._cli_namespace": ("Cli", "FlextCliUtilitiesCli"),
+            "._cli_namespace": ("FlextCliUtilitiesCli",),
             "._docx": ("_docx",),
             "._docx._reader": ("FlextCliUtilitiesDocxReader",),
             "._docx._renderer": ("FlextCliUtilitiesDocxRenderer",),
