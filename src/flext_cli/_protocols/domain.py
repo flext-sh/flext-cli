@@ -24,6 +24,7 @@ class FlextCliProtocolsDomain:
             """Transform one JSON-compatible value."""
             ...
 
+    @runtime_checkable
     class YamlAnchorNode(Protocol):
         """ruamel.yaml node surface that can carry YAML anchors.
 

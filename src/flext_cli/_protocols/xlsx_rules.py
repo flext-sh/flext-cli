@@ -36,12 +36,16 @@ class FlextCliProtocolsXlsxRules:
         alignment: FlextCliProtocolsXlsxRules.XlsxAlignment
         number_format: str
 
+    @runtime_checkable
     class XlsxFont(Protocol): ...
 
+    @runtime_checkable
     class XlsxFill(Protocol): ...
 
+    @runtime_checkable
     class XlsxBorder(Protocol): ...
 
+    @runtime_checkable
     class XlsxAlignment(Protocol): ...
 
 
