@@ -12,6 +12,8 @@ if TYPE_CHECKING:
     from .testsflextclipubliccontractscoverage_part_03 import (
         TestsFlextCliPublicContractsCoverage,
     )
+
+
 __all__: tuple[str, ...] = ("TestsFlextCliPublicContractsCoverage",)
 
 _LAZY_IMPORTS = MappingProxyType(

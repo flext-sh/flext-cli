@@ -39,6 +39,8 @@ if TYPE_CHECKING:
     from .rules import FlextCliModelsRules
     from .template import FlextCliModelsTemplate
     from .xlsx import FlextCliModelsXlsx
+
+
 __all__: tuple[str, ...] = (
     "FlextCliConfigModels",
     "FlextCliModelsBase",

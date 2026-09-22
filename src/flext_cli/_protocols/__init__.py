@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from .xlsx_snapshot import FlextCliProtocolsXlsxSnapshot
     from .xlsx_snapshot_structure import FlextCliProtocolsXlsxSnapshotStructure
     from .xlsx_workbook import FlextCliProtocolsXlsxWorkbook
+
+
 __all__: tuple[str, ...] = (
     "FlextCliProtocolsBase",
     "FlextCliProtocolsConfig",

@@ -27,6 +27,8 @@ if TYPE_CHECKING:
     from .tables import FlextCliTables
     from .xlsx import FlextCliXlsx
     from .yaml_model import FlextCliYamlModel
+
+
 __all__: tuple[str, ...] = (
     "FlextCliAuth",
     "FlextCliCli",

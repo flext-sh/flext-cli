@@ -10,19 +10,18 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_tests import (
+        active_rules,
         api,
         config,
-        from_json,
+        discover_repository_root,
         install_local_packages,
         load_infra_report,
-        services,
         settings,
+        split_csv,
         td,
         tf,
         tk,
         tm,
-        to_json,
-        to_jsonable_python,
         tv,
     )
 
@@ -37,6 +36,8 @@ if TYPE_CHECKING:
     from .settings import TestsFlextCliSettings
     from .typings import TestsFlextCliTypes, t
     from .utilities import TestsFlextCliUtilities, u
+
+
 __all__: tuple[str, ...] = (
     "TestsFlextCliConstants",
     "TestsFlextCliModels",
@@ -45,14 +46,15 @@ __all__: tuple[str, ...] = (
     "TestsFlextCliSettings",
     "TestsFlextCliTypes",
     "TestsFlextCliUtilities",
+    "active_rules",
     "api",
     "c",
     "cli",
     "config",
     "core",
     "d",
+    "discover_repository_root",
     "e",
-    "from_json",
     "h",
     "install_local_packages",
     "lazy_attribute",
@@ -62,15 +64,13 @@ __all__: tuple[str, ...] = (
     "p",
     "r",
     "s",
-    "services",
     "settings",
+    "split_csv",
     "t",
     "td",
     "tf",
     "tk",
     "tm",
-    "to_json",
-    "to_jsonable_python",
     "tv",
     "u",
     "unit",
@@ -91,19 +91,18 @@ _LAZY_IMPORTS = MappingProxyType(
             "flext_cli": ("cli", "main"),
             "flext_core": ("core", "d", "e", "h", "lazy_attribute", "r", "x"),
             "flext_tests": (
+                "active_rules",
                 "api",
                 "config",
-                "from_json",
+                "discover_repository_root",
                 "install_local_packages",
                 "load_infra_report",
-                "services",
                 "settings",
+                "split_csv",
                 "td",
                 "tf",
                 "tk",
                 "tm",
-                "to_json",
-                "to_jsonable_python",
                 "tv",
             ),
         }),
