@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD
   "agents": [],
   "detection_rules": [
     {
@@ -23,12 +22,4 @@
   "opt_ins": [],
   "selected_tags": [],
   "version": 2
-=======
-  "version": 1,
-  "agents": [],
-  "opt_ins": [],
-  "selected_tags": [
-    "flext"
-  ]
->>>>>>> origin/integration/sweep-20260830
 }

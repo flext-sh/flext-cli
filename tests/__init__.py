@@ -9,29 +9,36 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_tests import FlextTestsConstants, d, e, h, r, td, tf, tk, tm, tv, x
+    from flext_infra import docs_main, infra, main
+    from flext_tests import (
+        active_rules,
+        api,
+        config,
+        discover_repository_root,
+        install_local_packages,
+        load_infra_report,
+        settings,
+        split_csv,
+        td,
+        tf,
+        tk,
+        tm,
+        tv,
+    )
+    from pydantic_core import from_json, to_json, to_jsonable_python
 
-    from flext_cli import c as flext_cli_c
+    from flext_cli import cli
+    from flext_core import core, d, e, h, lazy_attribute, r, x
 
     from . import unit
     from .base import TestsFlextCliServiceBase, TestsFlextCliServiceBase as s
-    from .constants import TestsFlextCliConstants, TestsFlextCliConstants as c
-    from .models import TestsFlextCliModels, TestsFlextCliModels as m
-    from .protocols import TestsFlextCliProtocols, TestsFlextCliProtocols as p
+    from .constants import TestsFlextCliConstants, c
+    from .models import TestsFlextCliModels, m
+    from .protocols import TestsFlextCliProtocols, p
     from .settings import TestsFlextCliSettings
-    from .test_xlsx_range import (
-        test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion,
-        test_xlsx_format_reference_exposes_every_typed_rendering_mode,
-        test_xlsx_parse_range_fails_loud_for_non_concrete_or_inverted_input,
-        test_xlsx_parse_range_returns_typed_concrete_bounds,
-    )
-    from .test_yaml_model_write import (
-        test_write_yaml_model_round_trips_the_same_model_contract,
-    )
-    from .typings import TestsFlextCliTypes, TestsFlextCliTypes as t
-    from .utilities import TestsFlextCliUtilities, TestsFlextCliUtilities as u
+    from .typings import TestsFlextCliTypes, t
+    from .utilities import TestsFlextCliUtilities, u
 __all__: tuple[str, ...] = (
-    "FlextTestsConstants",
     "TestsFlextCliConstants",
     "TestsFlextCliModels",
     "TestsFlextCliProtocols",
@@ -39,25 +46,36 @@ __all__: tuple[str, ...] = (
     "TestsFlextCliSettings",
     "TestsFlextCliTypes",
     "TestsFlextCliUtilities",
+    "active_rules",
+    "api",
     "c",
+    "cli",
+    "config",
+    "core",
     "d",
+    "discover_repository_root",
+    "docs_main",
     "e",
-    "flext_cli_c",
+    "from_json",
     "h",
+    "infra",
+    "install_local_packages",
+    "lazy_attribute",
+    "load_infra_report",
     "m",
+    "main",
     "p",
     "r",
     "s",
+    "settings",
+    "split_csv",
     "t",
     "td",
-    "test_write_yaml_model_round_trips_the_same_model_contract",
-    "test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion",
-    "test_xlsx_format_reference_exposes_every_typed_rendering_mode",
-    "test_xlsx_parse_range_fails_loud_for_non_concrete_or_inverted_input",
-    "test_xlsx_parse_range_returns_typed_concrete_bounds",
     "tf",
     "tk",
     "tm",
+    "to_json",
+    "to_jsonable_python",
     "tv",
     "u",
     "unit",
@@ -72,33 +90,30 @@ _LAZY_IMPORTS = MappingProxyType(
             ".models": ("TestsFlextCliModels", "m"),
             ".protocols": ("TestsFlextCliProtocols", "p"),
             ".settings": ("TestsFlextCliSettings",),
-            ".test_xlsx_range": (
-                "test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion",
-                "test_xlsx_format_reference_exposes_every_typed_rendering_mode",
-                "test_xlsx_parse_range_fails_loud_for_non_concrete_or_inverted_input",
-                "test_xlsx_parse_range_returns_typed_concrete_bounds",
-            ),
-            ".test_yaml_model_write": (
-                "test_write_yaml_model_round_trips_the_same_model_contract",
-            ),
             ".typings": ("TestsFlextCliTypes", "t"),
             ".unit": ("unit",),
             ".utilities": ("TestsFlextCliUtilities", "u"),
+            "flext_cli": ("cli",),
+            "flext_core": ("core", "d", "e", "h", "lazy_attribute", "r", "x"),
+            "flext_infra": ("docs_main", "infra", "main"),
             "flext_tests": (
-                "FlextTestsConstants",
-                "d",
-                "e",
-                "h",
-                "r",
+                "active_rules",
+                "api",
+                "config",
+                "discover_repository_root",
+                "install_local_packages",
+                "load_infra_report",
+                "settings",
+                "split_csv",
                 "td",
                 "tf",
                 "tk",
                 "tm",
                 "tv",
-                "x",
             ),
+            "pydantic_core": ("from_json", "to_json", "to_jsonable_python"),
         }),
-        alias_groups=MappingProxyType({"flext_cli": (("flext_cli_c", "c"),)}),
+        alias_groups=MappingProxyType({}),
         sort_keys=False,
     )
 )

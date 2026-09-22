@@ -9,17 +9,6 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_tests import c, d, e, h, m, p, r, s, t, td, tf, tk, tm, tv, u, x
-
-    from .conftest import (
-        TestsFlextCliCaptureLogPrompts,
-        TestsFlextCliFailingLogPrompts,
-        TestsFlextCliScriptedPrompts,
-        make_capture_prompts,
-        make_failing_prompts,
-        make_prompts,
-        scripted_password_pair,
-    )
     from .test_atomic_directory_chain import TestsAtomicDirectoryChain
     from .test_atomic_directory_identity import TestsAtomicDirectoryIdentity
     from .test_atomic_directory_publish import TestsAtomicDirectoryPublish
@@ -66,11 +55,9 @@ __all__: tuple[str, ...] = (
     "TestsAtomicFileIdentity",
     "TestsAtomicPhysicalTree",
     "TestsFlextCliAuthUtilsCov",
-    "TestsFlextCliCaptureLogPrompts",
     "TestsFlextCliCmdRuntimeValidationBranchCov",
     "TestsFlextCliCommands",
     "TestsFlextCliExamplesSmoke",
-    "TestsFlextCliFailingLogPrompts",
     "TestsFlextCliFilesCov",
     "TestsFlextCliFormattersCov",
     "TestsFlextCliJsonCov",
@@ -87,7 +74,6 @@ __all__: tuple[str, ...] = (
     "TestsFlextCliRuntimeProcessContainment",
     "TestsFlextCliRuntimeProcessDescendants",
     "TestsFlextCliRuntimeStreamedProcess",
-    "TestsFlextCliScriptedPrompts",
     "TestsFlextCliService",
     "TestsFlextCliServicesAuth",
     "TestsFlextCliServicesAuthCov",
@@ -100,40 +86,11 @@ __all__: tuple[str, ...] = (
     "TestsFlextCliUtilitiesCov",
     "TestsFlextCliYamlCov",
     "TestsFlextCliYamlModelLoading",
-    "c",
-    "d",
-    "e",
-    "h",
-    "m",
-    "make_capture_prompts",
-    "make_failing_prompts",
-    "make_prompts",
-    "p",
-    "r",
-    "s",
-    "scripted_password_pair",
-    "t",
-    "td",
-    "tf",
-    "tk",
-    "tm",
-    "tv",
-    "u",
-    "x",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
-            ".conftest": (
-                "TestsFlextCliCaptureLogPrompts",
-                "TestsFlextCliFailingLogPrompts",
-                "TestsFlextCliScriptedPrompts",
-                "make_capture_prompts",
-                "make_failing_prompts",
-                "make_prompts",
-                "scripted_password_pair",
-            ),
             ".test_atomic_directory_chain": ("TestsAtomicDirectoryChain",),
             ".test_atomic_directory_identity": ("TestsAtomicDirectoryIdentity",),
             ".test_atomic_directory_publish": ("TestsAtomicDirectoryPublish",),
@@ -179,24 +136,6 @@ _LAZY_IMPORTS = MappingProxyType(
             ".test_toml_utilities": ("TestsFlextCliTomlUtilities",),
             ".test_utilities_cov": ("TestsFlextCliUtilitiesCov",),
             ".test_yaml_cov": ("TestsFlextCliYamlCov",),
-            "flext_tests": (
-                "c",
-                "d",
-                "e",
-                "h",
-                "m",
-                "p",
-                "r",
-                "s",
-                "t",
-                "td",
-                "tf",
-                "tk",
-                "tm",
-                "tv",
-                "u",
-                "x",
-            ),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
