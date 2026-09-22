@@ -14,6 +14,7 @@ from .xlsx_workbook import FlextCliProtocolsXlsxWorkbook
 if TYPE_CHECKING:
     # mro-j47u (codex): p -> m stays type-only through the canonical facade.
     from flext_cli import m
+    from flext_core import t
 
 
 class FlextCliProtocolsXlsx(
@@ -150,4 +151,4 @@ class FlextCliProtocolsXlsx(
         ) -> p.Result[m.Cli.XlsxRecalcParityReport]: ...
 
 
-__all__: tuple[str, ...] = ("FlextCliProtocolsXlsx",)
+__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsx",)

@@ -7,6 +7,7 @@ from pathlib import Path
 from flext_tests import tm
 
 from flext_cli import u
+from flext_core import t
 
 
 class TestsFlextCliOptions:
@@ -14,7 +15,7 @@ class TestsFlextCliOptions:
 
     def test_tuple_field_becomes_repeated_typer_input(self) -> None:
         """Canonical tuple fields accept repeated CLI values through a list."""
-        resolved = u.Cli.resolve_typer_annotation(tuple[Path, ...])
+        resolved = u.Cli.resolve_typer_annotation(t.VariadicTuple[Path])
 
         tm.that(resolved, eq=list[Path])
 

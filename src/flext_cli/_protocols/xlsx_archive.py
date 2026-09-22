@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
-from typing import Protocol, Self, overload, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, Self, overload, runtime_checkable
+
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliProtocolsXlsxArchive:
@@ -39,4 +42,4 @@ class FlextCliProtocolsXlsxArchive:
         def iter(self, tag: str | None = None) -> Iterator[Self]: ...
 
 
-__all__: tuple[str, ...] = ("FlextCliProtocolsXlsxArchive",)
+__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsxArchive",)

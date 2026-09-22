@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from enum import StrEnum, unique
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
+
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliConstantsPptx:
@@ -28,4 +31,4 @@ class FlextCliConstantsPptx:
         SERIALIZE_FAILED = "pptx_serialize_failed"
 
 
-__all__: tuple[str, ...] = ("FlextCliConstantsPptx",)
+__all__: t.VariadicTuple[str] = ("FlextCliConstantsPptx",)

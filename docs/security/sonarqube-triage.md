@@ -523,12 +523,12 @@ padrão.
 
 ```text
        77              )
-       78          return r[tuple[tuple[str, ...], tuple[str, ...]]].ok(evidence)
+       78          return r[tuple[t.VariadicTuple[str], t.VariadicTuple[str]]].ok(evidence)
        79
        80      @classmethod
 >>>    81      def _formula_cache_evidence_unchecked(
        82          cls, source: bytes
-       83      ) -> tuple[tuple[str, ...], tuple[str, ...]]:
+       83      ) -> tuple[t.VariadicTuple[str], t.VariadicTuple[str]]:
        84          with ZipFile(BytesIO(source)) as archive:
        85              workbook_root = cls._require_xml(archive, c.Cli.XLSX_WORKBOOK_MEMBER)
 ```
@@ -1098,7 +1098,7 @@ padrão.
        80          return tuple(errors)
        81
        82      @staticmethod
->>>    83      def _close_process_resources(stack: contextlib.ExitStack) -> tuple[str, ...]:
+>>>    83      def _close_process_resources(stack: contextlib.ExitStack) -> t.VariadicTuple[str]:
        84          try:
        85              stack.close()
        86          except c.EXC_OS_VALUE as exc:
@@ -1739,7 +1739,7 @@ padrão.
        42      Pt = Pt
        43
        44
-       45  __all__: tuple[str, ...] = ("FlextCliUtilitiesPptxTypes",)
+       45  __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesPptxTypes",)
 ```
 
 **Decisão**:
@@ -1758,7 +1758,7 @@ padrão.
 >>>    42      Pt = Pt
        43
        44
-       45  __all__: tuple[str, ...] = ("FlextCliUtilitiesPptxTypes",)
+       45  __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesPptxTypes",)
 ```
 
 **Decisão**:

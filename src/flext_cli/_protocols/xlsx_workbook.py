@@ -133,4 +133,4 @@ class FlextCliProtocolsXlsxWorkbook:
     class XlsxTable(Protocol): ...
 
 
-__all__: tuple[str, ...] = ("FlextCliProtocolsXlsxWorkbook",)
+__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsxWorkbook",)

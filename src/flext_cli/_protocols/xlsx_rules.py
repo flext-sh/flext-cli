@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliProtocolsXlsxRules:
@@ -42,4 +45,4 @@ class FlextCliProtocolsXlsxRules:
     class XlsxAlignment(Protocol): ...
 
 
-__all__: tuple[str, ...] = ("FlextCliProtocolsXlsxRules",)
+__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsxRules",)

@@ -72,10 +72,10 @@ class FlextCliUtilitiesXlsxRecalcEvidence(FlextCliUtilitiesXlsxArchiveChecks):
             evidence = cls._formula_cache_evidence_unchecked(source)
         except (BadZipFile, LargeZipFile, OSError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[tuple[tuple[str, ...], tuple[str, ...]]].fail(
+            return r[tuple[t.VariadicTuple[str], t.VariadicTuple[str]]].fail(
                 f"{c.Cli.XlsxError.PARITY_FAILED}: {detail}"
             )
-        return r[tuple[tuple[str, ...], tuple[str, ...]]].ok(evidence)
+        return r[tuple[t.VariadicTuple[str], t.VariadicTuple[str]]].ok(evidence)
 
     @classmethod
     def _formula_cache_evidence_unchecked(
