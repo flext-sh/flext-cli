@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 import pytest
 from flext_tests import tm
 
-from tests import m, u
+from tests import c, m, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -69,7 +69,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
                         u.Cli.process_succeeded(output.outcome),
                         output.outcome.raw_return_code,
                     ),
-                    eq=(True, case.exit_code),
+                    eq=(case.exit_code == c.Cli.EXIT_CODE_SUCCESS, case.exit_code),
                 )
 
             tm.that(output.outcome.timed_out, eq=case.timed_out)
@@ -139,6 +139,13 @@ class TestsFlextCliRuntimeUtilitiesCore:
             tm.ok(runner.run_bytes(("cat",), input_data=b"\x00\xff\x01"))
         )
         tm.that(binary_out.stdout, eq=b"\x00\xff\x01")
+
+    def test_run_checked_rejects_a_real_timeout(self, runner: u.Cli) -> None:
+        """A terminated child cannot become a successful boolean receipt."""
+        result = runner.run_checked(
+            [sys.executable, "-c", "import time; time.sleep(10)"], timeout=1
+        )
+        tm.fail(result, has="timed_out=True")
 
     def test_run_capture_false_empties_captured_output(self, runner: u.Cli) -> None:
         """Verify run(capture=False) streams live: captured stdout is empty, exit ok."""

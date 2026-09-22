@@ -195,7 +195,8 @@ class TestsFlextCliModelsRuntime:
                 cls.model_validate({
                     "case_id": "timeout",
                     "command": ("sleep", "10"),
-                    "expect_success": True,
+                    "expect_success": False,
+                    "error_has": "timed_out=True",
                     "timed_out": True,
                     "timeout": 1,
                 }),
