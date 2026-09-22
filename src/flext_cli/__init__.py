@@ -22,6 +22,8 @@ from .__version__ import (
 if TYPE_CHECKING:
     from pydantic_core import from_json, to_json, to_jsonable_python
 
+    from flext_core import core, d, e, h, lazy_attribute, r, x
+
     from . import services
     from ._config import FlextCliConfig, config
     from ._settings import FlextCliSettings, settings
@@ -85,9 +87,15 @@ __all__: tuple[str, ...] = (
     "c",
     "cli",
     "config",
+    "core",
+    "d",
+    "e",
     "from_json",
+    "h",
+    "lazy_attribute",
     "m",
     "p",
+    "r",
     "s",
     "services",
     "settings",
@@ -95,6 +103,7 @@ __all__: tuple[str, ...] = (
     "to_json",
     "to_jsonable_python",
     "u",
+    "x",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
@@ -126,6 +135,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".services.yaml_model": ("FlextCliYamlModel",),
             ".typings": ("FlextCliTypes", "t"),
             ".utilities": ("FlextCliUtilities", "u"),
+            "flext_core": ("core", "d", "e", "h", "lazy_attribute", "r", "x"),
             "pydantic_core": ("from_json", "to_json", "to_jsonable_python"),
         }),
         alias_groups=MappingProxyType({}),
