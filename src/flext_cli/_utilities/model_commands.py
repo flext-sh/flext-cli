@@ -60,7 +60,7 @@ class FlextCliUtilitiesModelCommands:
 
         def build(self) -> t.Cli.CliCommand:
             """Build a direct callable with a real runtime signature."""
-            model_fields = getattr(self.model_class, "model_fields", {})
+            model_fields = self.model_class.model_fields
             parameters = [
                 inspect.Parameter(
                     name=field_name,

@@ -106,14 +106,15 @@ class TestsFlextCliAuthUtilsCov:
     def test_extract_token_returns_token_from_mapping(self) -> None:
         # Arrange
         """Verify that extract token returns token from mapping."""
-        payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_AUTH_TOKEN: "t" + "1" * 12}
+        token = "t" + "1" * 12
+        payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_AUTH_TOKEN: token}
 
         # Act
         result = u.Cli.auth_extract_token(payload)
 
         # Assert — the exact token value is delivered on success
         tm.ok(result)
-        tm.that(result.unwrap(), eq="my-secret-token")
+        tm.that(result.unwrap(), eq=token)
 
     @pytest.mark.parametrize(
         "payload", [{"user": "admin"}, {c.Cli.DICT_KEY_AUTH_TOKEN: ""}]

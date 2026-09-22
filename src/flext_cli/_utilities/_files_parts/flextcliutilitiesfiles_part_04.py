@@ -94,6 +94,11 @@ class FlextCliUtilitiesFiles:
         if loaded.failure:
             return r[t.JsonMapping].from_failure(loaded)
         payload = loaded.value
+        if not isinstance(payload, Mapping):
+            return r[t.JsonMapping].fail(
+                f"Unsupported payload root in {path.name}: "
+                f"expected a mapping, got {type(payload).__name__}"
+            )
         normalized_payload: t.JsonMapping = {
             key: u.normalize_to_json_value(value) for key, value in payload.items()
         }

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, ClassVar
 
 from flext_cli import c
 
@@ -15,7 +15,7 @@ class TestsFlextCliConstantsRulesOptions:
     """Split test constants namespace."""
 
     # ── RULES (services/rules.py) ──────────────────────────────────
-    RULES_SCOPE_CASES: Final[
+    RULES_SCOPE_CASES: ClassVar[
         t.VariadicTuple[t.Quad[t.JsonValue, str, t.StrSequence, int]]
     ] = (
         ({"lint": {"rule_a": True, "rule_b": False}}, "lint", ("rule_a", "rule_b"), 2),
@@ -24,7 +24,7 @@ class TestsFlextCliConstantsRulesOptions:
         ({"lint": {"rule_a": 99, "unrelated": "x"}}, "lint", ("rule_a",), 1),
     )
 
-    RULES_MATCH_FILTER_CASES: Final[
+    RULES_MATCH_FILTER_CASES: ClassVar[
         t.VariadicTuple[t.Triple[str, t.StrSequence, bool]]
     ] = (
         ("my-rule", (), True),
@@ -35,76 +35,78 @@ class TestsFlextCliConstantsRulesOptions:
         ("my-rule", ("foobar",), False),
     )
 
-    RULES_REGISTRY_YAML: Final[str] = "rules:\n  - id: rule-a\n    kind: lint\n"
-    RULES_FILE_YAML: Final[str] = (
+    RULES_REGISTRY_YAML: ClassVar[str] = "rules:\n  - id: rule-a\n    kind: lint\n"
+    RULES_FILE_YAML: ClassVar[str] = (
         "rules:\n  - id: rule-a\n    action: check\n    check: lint\n    config: {}\n"
     )
-    RULES_FILE_NO_ID_YAML: Final[str] = "rules:\n  - action: check\n    check: lint\n"
-    RULES_FILE_DISABLED_YAML: Final[str] = (
+    RULES_FILE_NO_ID_YAML: ClassVar[str] = (
+        "rules:\n  - action: check\n    check: lint\n"
+    )
+    RULES_FILE_DISABLED_YAML: ClassVar[str] = (
         "rules:\n"
         "  - id: rule-disabled\n"
         "    enabled: false\n"
         "    action: check\n"
         "    check: lint\n"
     )
-    RULES_FILE_NO_MATCHER_KEYS_YAML: Final[str] = (
+    RULES_FILE_NO_MATCHER_KEYS_YAML: ClassVar[str] = (
         "rules:\n  - id: rule-empty\n    description: no action or check\n"
     )
-    RULES_FILE_UNKNOWN_YAML: Final[str] = (
+    RULES_FILE_UNKNOWN_YAML: ClassVar[str] = (
         "rules:\n  - id: rule-unknown\n    action: unknown\n    check: unknown\n"
     )
-    RULES_FILE_INVALID_MAPPING_YAML: Final[str] = (
+    RULES_FILE_INVALID_MAPPING_YAML: ClassVar[str] = (
         "rules:\n"
         "  - id: rule-invalid\n"
         "    action: check\n"
         "    check: lint\n"
         "    config: bad\n"
     )
-    RULES_BASIC_MATCHER: Final[t.Cli.RuleMatcher] = (
+    RULES_BASIC_MATCHER: ClassVar[t.Cli.RuleMatcher] = (
         frozenset({"check"}),
         frozenset({"lint"}),
         frozenset(),
         frozenset(),
     )
-    RULES_MAPPING_MATCHER: Final[t.Cli.RuleMatcher] = (
+    RULES_MAPPING_MATCHER: ClassVar[t.Cli.RuleMatcher] = (
         frozenset({"check"}),
         frozenset({"lint"}),
         frozenset({"config"}),
         frozenset(),
     )
-    RULES_LIST_MATCHER: Final[t.Cli.RuleMatcher] = (
+    RULES_LIST_MATCHER: ClassVar[t.Cli.RuleMatcher] = (
         frozenset({"check"}),
         frozenset({"lint"}),
         frozenset(),
         frozenset({"actions"}),
     )
-    RULES_CATALOG_BASIC: Final[t.Cli.RuleCatalog[str]] = MappingProxyType({
+    RULES_CATALOG_BASIC: ClassVar[t.Cli.RuleCatalog[str]] = MappingProxyType({
         "lint": (RULES_BASIC_MATCHER,)
     })
-    RULES_CATALOG_MAPPING: Final[t.Cli.RuleCatalog[str]] = MappingProxyType({
+    RULES_CATALOG_MAPPING: ClassVar[t.Cli.RuleCatalog[str]] = MappingProxyType({
         "lint": (RULES_MAPPING_MATCHER,)
     })
-    RULES_FILE_CATALOG_BASIC: Final[t.Cli.RuleCatalog[str]] = MappingProxyType({
+    RULES_FILE_CATALOG_BASIC: ClassVar[t.Cli.RuleCatalog[str]] = MappingProxyType({
         "file-lint": (RULES_BASIC_MATCHER,)
     })
-    RULES_FILE_CATALOG_MAPPING: Final[t.Cli.RuleCatalog[str]] = MappingProxyType({
+    RULES_FILE_CATALOG_MAPPING: ClassVar[t.Cli.RuleCatalog[str]] = MappingProxyType({
         "file-lint": (RULES_MAPPING_MATCHER,)
     })
 
     # ── OPTIONS (utilities/options.py) ─────────────────────────────
-    OPTIONS_FIELD_DEFAULT_VALID_MAPPING: Final[t.Cli.DefaultMapping] = (
+    OPTIONS_FIELD_DEFAULT_VALID_MAPPING: ClassVar[t.Cli.DefaultMapping] = (
         MappingProxyType({"name": "alpha", "count": 3, "tags": ("x", "y")})
     )
-    OPTIONS_FIELD_DEFAULT_INVALID_MAPPING: Final[t.JsonMapping] = {
+    OPTIONS_FIELD_DEFAULT_INVALID_MAPPING: ClassVar[t.JsonMapping] = {
         "nested": {"ignore": True}
     }
 
     # ── TOML ───────────────────────────────────────────────────────
-    TOML_VALID_CONTENT: Final[str] = (
+    TOML_VALID_CONTENT: ClassVar[str] = (
         f'[tool.flext]\nproject = "my-project"\nversion = "{c.Cli.CLI_VERSION}"\n'
     )
-    TOML_INVALID_CONTENT: Final[str] = "[invalid toml\nmissing = "
-    TOML_SECTION_CONTENT: Final[str] = "[section]\nkey = true\ncount = 42\n"
+    TOML_INVALID_CONTENT: ClassVar[str] = "[invalid toml\nmissing = "
+    TOML_SECTION_CONTENT: ClassVar[str] = "[section]\nkey = true\ncount = 42\n"
 
 
 __all__: list[str] = ["TestsFlextCliConstantsRulesOptions"]

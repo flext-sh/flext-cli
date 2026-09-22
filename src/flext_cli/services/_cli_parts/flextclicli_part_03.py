@@ -32,7 +32,7 @@ class FlextCliCli(FlextCliCliPart02):
         """Build a Typer command directly from a Pydantic request model."""
         parameters: t.MutableSequenceOf[Parameter] = []
         annotations: t.Cli.CliAnnotations = {"return": type(None)}
-        fields = getattr(model_cls, "model_fields", {})
+        fields = model_cls.model_fields
         for field_name, field_info in fields.items():
             if getattr(field_info, "exclude", None) is True:
                 continue
