@@ -42,18 +42,18 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         *,
         capture: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
-        """Run a command and fail on non-zero exit status."""
+        """Require a zero exit without timeout or forwarded interruption."""
 
         def require_zero_exit(
             output: p.Cli.CommandOutput,
         ) -> p.Result[p.Cli.CommandOutput]:
-            if output.outcome.timed_out:
-                return r[p.Cli.CommandOutput].ok(output)
             if not cls.process_succeeded(output.outcome):
                 detail = (output.stderr or output.stdout).strip()
                 return r[p.Cli.CommandOutput].fail(
                     f"failed ({output.outcome.raw_return_code}): "
-                    f"{shlex.join(list(cmd))}: {detail}"
+                    f"{shlex.join(list(cmd))}: "
+                    f"timed_out={output.outcome.timed_out}, "
+                    f"forwarded_signal={output.outcome.forwarded_signal}: {detail}"
                 )
             return r[p.Cli.CommandOutput].ok(output)
 
