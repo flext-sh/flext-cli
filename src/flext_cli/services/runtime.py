@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from flext_cli import s, t
+from flext_cli import m, s, t
 
 
-class FlextCliRuntime(s):
+class FlextCliRuntime(s[m.Cli.RuntimeStatus]):
     """Expose process execution helpers through ``cli`` and ``FlextCli``."""
 
 

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from flext_cli import s, t
+from flext_cli import m, s, t
 
 
-class FlextCliDocx(s):
+class FlextCliDocx(s[m.Cli.RuntimeStatus]):
     """Expose byte-only DOCX operations for later public API composition."""
 
     # NOTE (multi-agent, mro-j2yt.1): this service contains no document or

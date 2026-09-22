@@ -19,7 +19,7 @@ from flext_cli.services.file_tools import FlextCliFileTools
 from flext_core import r, s
 
 
-class FlextCliAuth(s):
+class FlextCliAuth(s[m.Cli.RuntimeStatus]):
     """Unified Typer/Click abstraction marker for the FLEXT CLI ecosystem.
 
     Container and logger are provided by x via MRO.

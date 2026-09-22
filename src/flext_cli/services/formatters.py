@@ -8,7 +8,7 @@ from __future__ import annotations
 from flext_cli import m, s, t, u
 
 
-class FlextCliFormatters(s):
+class FlextCliFormatters(s[m.Cli.RuntimeStatus]):
     """Plain-text formatters facade for the CLI command surface."""
 
     @classmethod

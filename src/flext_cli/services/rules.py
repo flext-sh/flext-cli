@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from flext_cli import s, t
+from flext_cli import m, s, t
 
 
-class FlextCliRules(s):
+class FlextCliRules(s[m.Cli.RuntimeStatus]):
     """Expose the generic rule-loading DSL through ``cli`` and ``u.Cli``."""
 
 

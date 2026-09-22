@@ -13,7 +13,7 @@ from __future__ import annotations
 from flext_cli import m, p, s, t, u
 
 
-class FlextCliCmd(s):
+class FlextCliCmd(s[m.Cli.RuntimeStatus]):
     """Execute registered CLI commands and expose execution metadata.
 
     Extends s for consistent logging and container access.

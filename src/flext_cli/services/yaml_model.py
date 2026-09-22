@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from flext_cli import s, t
+from flext_cli import m, s, t
 
 
-class FlextCliYamlModel(s):
+class FlextCliYamlModel(s[m.Cli.RuntimeStatus]):
     """Expose model-only YAML egress for public API composition."""
 
     # NOTE (multi-agent, mro-j2yt.1): public API MRO composition is deferred

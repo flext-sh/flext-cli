@@ -32,7 +32,7 @@ class _PromptPasswordReaderDefault:
         return getpass.getpass(prompt)
 
 
-class FlextCliPromptsSupport(s):
+class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
     """Support owner for prompt runtime state, logging, and input readers."""
 
     state: Annotated[

@@ -5,7 +5,7 @@ from __future__ import annotations
 from flext_cli import c, m, p, r, s, t, u
 
 
-class FlextCliCommonParams(s):
+class FlextCliCommonParams(s[m.Cli.RuntimeStatus]):
     """Common CLI parameters auto-generated from FlextSettings field metadata.
 
     Business Rules:
