@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import sys
 
-from flext_cli import c, s, t, u
+from flext_cli import c, m, s, t, u
 from flext_cli.services.formatters import FlextCliFormatters
 
 
-class FlextCliOutput(s):
+class FlextCliOutput(s[m.Cli.RuntimeStatus]):
     """CLI output tools for the flext ecosystem.
 
     Provides a unified output API while delegating to specialized

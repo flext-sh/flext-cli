@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
-from flext_cli import s
+from flext_cli import m, s
 
 if TYPE_CHECKING:
-    from flext_cli import m, p, t
+    from flext_cli import p, t
 
 
-class FlextCliXlsx(s):
+class FlextCliXlsx(s[m.Cli.RuntimeStatus]):
     """Expose byte-only XLSX operations for later public API composition."""
 
     if TYPE_CHECKING:

@@ -151,7 +151,7 @@ com justificativa) / `risco-aceito`. Priorizar high com confidence=high.
        66          return r[bool].ok(True)
        67
        68
-       69  __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxProtection",)
+       69  __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxProtection",)
 ```
 
 **Decisão**:

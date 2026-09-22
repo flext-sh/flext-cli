@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from enum import StrEnum, unique
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
+
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliConstantsDocx:
@@ -33,4 +36,4 @@ class FlextCliConstantsDocx:
         STYLE_MISSING = "docx_style_missing"
 
 
-__all__: tuple[str, ...] = ("FlextCliConstantsDocx",)
+__all__: t.VariadicTuple[str] = ("FlextCliConstantsDocx",)

@@ -11,6 +11,7 @@ from .xlsx_snapshot_structure import FlextCliProtocolsXlsxSnapshotStructure
 if TYPE_CHECKING:
     # mro-j47u (codex): p -> m stays type-only through the canonical facade.
     from flext_cli import m
+    from flext_core import t
 
 
 class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
@@ -115,7 +116,7 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
         ) -> tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]: ...
 
         @property
-        def merged_ranges(self) -> tuple[str, ...]: ...
+        def merged_ranges(self) -> t.VariadicTuple[str]: ...
 
         @property
         def freeze_pane(self) -> str | None: ...
@@ -153,7 +154,7 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
         def defined_names(self) -> tuple[m.Cli.XlsxDefinedNameSnapshot, ...]: ...
 
         @property
-        def named_styles(self) -> tuple[str, ...]: ...
+        def named_styles(self) -> t.VariadicTuple[str]: ...
 
         @property
         def formula_count(self) -> int: ...
@@ -172,4 +173,4 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
         ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]: ...
 
 
-__all__: tuple[str, ...] = ("FlextCliProtocolsXlsxSnapshot",)
+__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsxSnapshot",)

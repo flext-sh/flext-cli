@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from enum import StrEnum, unique
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliConstantsXlsx:
@@ -16,7 +19,7 @@ class FlextCliConstantsXlsx:
     XLSX_RANGE_BOUNDARY_SIZE: ClassVar[int] = 4
     XLSX_INLINE_VALIDATION_FORMULA_LIMIT: ClassVar[int] = 255
     XLSX_DEFAULT_NUMBER_FORMAT: ClassVar[str] = "General"
-    XLSX_DEFAULT_CALCULATION_MODE: ClassVar[str] = "auto"
+    XLSX_DEFAULT_CALCULATION_MODE: ClassVar[t.Cli.XlsxCalcMode] = "auto"
     XLSX_WORKBOOK_MEMBER: ClassVar[str] = "xl/workbook.xml"
     XLSX_STYLES_MEMBER: ClassVar[str] = "xl/styles.xml"
     XLSX_WORKSHEET_PREFIX: ClassVar[str] = "xl/worksheets/sheet"
@@ -39,7 +42,7 @@ class FlextCliConstantsXlsx:
     ))
     XLSX_ERROR_CELL_PREFIX: ClassVar[str] = "#"
     XLSX_PACKAGE_PREFIX: ClassVar[str] = "xl/"
-    XLSX_RECALC_COMMAND: ClassVar[tuple[str, ...]] = (
+    XLSX_RECALC_COMMAND: ClassVar[t.VariadicTuple[str]] = (
         "soffice",
         "--headless",
         "--convert-to",
@@ -79,4 +82,4 @@ class FlextCliConstantsXlsx:
         WORKBOOK_LOAD_FAILED = "xlsx_workbook_load_failed"
 
 
-__all__: tuple[str, ...] = ("FlextCliConstantsXlsx",)
+__all__: t.VariadicTuple[str] = ("FlextCliConstantsXlsx",)
