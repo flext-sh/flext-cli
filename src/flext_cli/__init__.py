@@ -20,7 +20,7 @@ from .__version__ import (
 )
 
 if TYPE_CHECKING:
-    from flext_core import core, d, e, h, lazy_attribute, r, x
+    from flext_core import d, e, h, r, x
 
     from . import services
     from ._config import FlextCliConfig, config
@@ -88,11 +88,9 @@ __all__: tuple[str, ...] = (
     "c",
     "cli",
     "config",
-    "core",
     "d",
     "e",
     "h",
-    "lazy_attribute",
     "m",
     "main",
     "p",
@@ -135,7 +133,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".services.yaml_model": ("FlextCliYamlModel",),
             ".typings": ("FlextCliTypes", "t"),
             ".utilities": ("FlextCliUtilities", "u"),
-            "flext_core": ("core", "d", "e", "h", "lazy_attribute", "r", "x"),
+            "flext_core": ("d", "e", "h", "r", "x"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
