@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 from flext_tests import tm
+
 from tests import c
 
 if TYPE_CHECKING:
