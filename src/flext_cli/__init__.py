@@ -49,6 +49,8 @@ if TYPE_CHECKING:
     from .services.yaml_model import FlextCliYamlModel
     from .typings import FlextCliTypes, t
     from .utilities import FlextCliUtilities, u
+
+
 __all__: tuple[str, ...] = (
     "FlextCli",
     "FlextCliAuth",

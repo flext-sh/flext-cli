@@ -32,6 +32,8 @@ if TYPE_CHECKING:
     from .protocols import ExamplesFlextCliProtocols, p
     from .typings import ExamplesFlextCliTypes, t
     from .utilities import ExamplesFlextCliUtilities, u
+
+
 __all__: tuple[str, ...] = (
     "DataManagerCLI",
     "Ex05Authentication",

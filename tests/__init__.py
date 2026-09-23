@@ -36,6 +36,8 @@ if TYPE_CHECKING:
     from .settings import TestsFlextCliSettings
     from .typings import TestsFlextCliTypes, t
     from .utilities import TestsFlextCliUtilities, u
+
+
 __all__: tuple[str, ...] = (
     "TestsFlextCliConstants",
     "TestsFlextCliModels",

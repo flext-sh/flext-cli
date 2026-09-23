@@ -11,6 +11,8 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 if TYPE_CHECKING:
     from ._core import FlextCliUtilitiesJsonCoreMixin
     from ._navigate import FlextCliUtilitiesJsonNavigateMixin
+
+
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesJsonCoreMixin",
     "FlextCliUtilitiesJsonNavigateMixin",

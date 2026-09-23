@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from .settings import FlextCliConstantsSettings
     from .xlsx import FlextCliConstantsXlsx
     from .xlsx_future_functions import FlextCliConstantsXlsxFutureFunctions
+
+
 __all__: tuple[str, ...] = (
     "FlextCliConstantsBase",
     "FlextCliConstantsConfig",

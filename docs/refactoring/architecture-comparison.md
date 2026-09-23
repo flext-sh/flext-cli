@@ -34,7 +34,8 @@
   - [What Improved](#what-improved)
   - [Trade-offs](#trade-offs)
   - [Overall Assessment](#overall-assessment)
-  <!-- TOC END -->
+
+<!-- TOC END -->
 
 **Visual side-by-side comparison of the old and new architectures**
 

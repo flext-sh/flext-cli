@@ -13,6 +13,8 @@ if TYPE_CHECKING:
     from .domain import FlextCliTypesDomain
     from .pipeline import FlextCliTypesPipeline
     from .xlsx import FlextCliTypesXlsx
+
+
 __all__: tuple[str, ...] = (
     "FlextCliTypesBase",
     "FlextCliTypesDomain",

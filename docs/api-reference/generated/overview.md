@@ -19,13 +19,13 @@
 - Project class: `domain`
 - Keywords: `cli`, `command-line`, `enterprise`, `flext`, `tools`, `typed`
 - Main facades: `FlextCli`, `FlextCliAuth`, `FlextCliCli`, `FlextCliCmd`,
-  `FlextCliCommonParams`, `FlextCliConfig`, `FlextCliConstants`, `FlextCliDocx` (+18
+  `FlextCliCommonParams`, `FlextCliConfig`, `FlextCliConstants`, `FlextCliDocx` (+17
   more)
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
 - Public symbol exports: `FlextCli`, `FlextCliAuth`, `FlextCliCli`, `FlextCliCmd`,
   `FlextCliCommonParams`, `FlextCliConfig`, `FlextCliConstants`, `FlextCliDocx`,
-  `FlextCliFileTools`, `FlextCliFormatters` (+18 more)
-- Exported module shortcuts: `config`, `services`
+  `FlextCliFileTools`, `FlextCliFormatters` (+19 more)
+- Exported module shortcuts: `services`
 - Generated module pages: `25`
 
 ## Next Pages

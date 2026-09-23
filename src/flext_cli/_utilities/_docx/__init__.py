@@ -11,6 +11,8 @@ from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 if TYPE_CHECKING:
     from ._reader import FlextCliUtilitiesDocxReader
     from ._renderer import FlextCliUtilitiesDocxRenderer
+
+
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesDocxReader",
     "FlextCliUtilitiesDocxRenderer",
