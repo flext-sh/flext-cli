@@ -89,6 +89,8 @@ class FlextCliModelsBase:
                         if source_mapping is not None
                         else _EMPTY_JSON_MAPPING
                     )
+                case _:
+                    pass
             return resolved_value
 
         def _default_for_kind(self) -> t.Cli.TypedExtractValue:
