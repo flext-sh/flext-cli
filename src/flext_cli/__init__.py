@@ -20,14 +20,29 @@ from .__version__ import (
 )
 
 if TYPE_CHECKING:
+    from flext_infra import docs_main, infra
+    from flext_tests import (
+        active_rules,
+        api,
+        discover_repository_root,
+        install_local_packages,
+        load_infra_report,
+        split_csv,
+        td,
+        tf,
+        tk,
+        tm,
+        tv,
+    )
+
     from flext_core import core, d, e, h, lazy_attribute, r, x
 
     from . import services
-    from ._config import FlextCliConfig, config
     from ._settings import FlextCliSettings, settings
     from .api import FlextCli, cli
     from .base import FlextCliServiceBase, s
     from .cli import main
+    from .config import FlextCliConfig, config
     from .constants import FlextCliConstants, c
     from .models import FlextCliModels, m
     from .protocols import FlextCliProtocols, p
@@ -85,14 +100,21 @@ __all__: tuple[str, ...] = (
     "__url__",
     "__version__",
     "__version_info__",
+    "active_rules",
+    "api",
     "c",
     "cli",
     "config",
     "core",
     "d",
+    "discover_repository_root",
+    "docs_main",
     "e",
     "h",
+    "infra",
+    "install_local_packages",
     "lazy_attribute",
+    "load_infra_report",
     "m",
     "main",
     "p",
@@ -100,7 +122,13 @@ __all__: tuple[str, ...] = (
     "s",
     "services",
     "settings",
+    "split_csv",
     "t",
+    "td",
+    "tf",
+    "tk",
+    "tm",
+    "tv",
     "u",
     "x",
 )
@@ -108,11 +136,11 @@ __all__: tuple[str, ...] = (
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
-            "._config": ("FlextCliConfig", "config"),
             "._settings": ("FlextCliSettings", "settings"),
             ".api": ("FlextCli", "cli"),
             ".base": ("FlextCliServiceBase", "s"),
             ".cli": ("main",),
+            ".config": ("FlextCliConfig", "config"),
             ".constants": ("FlextCliConstants", "c"),
             ".models": ("FlextCliModels", "m"),
             ".protocols": ("FlextCliProtocols", "p"),
@@ -136,6 +164,20 @@ _LAZY_IMPORTS = MappingProxyType(
             ".typings": ("FlextCliTypes", "t"),
             ".utilities": ("FlextCliUtilities", "u"),
             "flext_core": ("core", "d", "e", "h", "lazy_attribute", "r", "x"),
+            "flext_infra": ("docs_main", "infra"),
+            "flext_tests": (
+                "active_rules",
+                "api",
+                "discover_repository_root",
+                "install_local_packages",
+                "load_infra_report",
+                "split_csv",
+                "td",
+                "tf",
+                "tk",
+                "tm",
+                "tv",
+            ),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
