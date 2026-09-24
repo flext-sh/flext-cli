@@ -13,11 +13,11 @@ if TYPE_CHECKING:
 
     from . import unit
     from .base import TestsFlextCliServiceBase, TestsFlextCliServiceBase as s
-    from .constants import TestsFlextCliConstants, c
+    from .constants import TestsFlextCliConstants, TestsFlextCliConstants as c
     from .models import TestsFlextCliModels, m
-    from .protocols import TestsFlextCliProtocols, p
+    from .protocols import TestsFlextCliProtocols, TestsFlextCliProtocols as p
     from .settings import TestsFlextCliSettings
-    from .typings import TestsFlextCliTypes, t
+    from .typings import TestsFlextCliTypes, TestsFlextCliTypes as t
     from .utilities import TestsFlextCliUtilities, u
 
 

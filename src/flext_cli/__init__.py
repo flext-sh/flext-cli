@@ -28,9 +28,9 @@ if TYPE_CHECKING:
     from .api import FlextCli, cli
     from .base import FlextCliServiceBase, s
     from .cli import main
-    from .constants import FlextCliConstants, c
-    from .models import FlextCliModels, m
-    from .protocols import FlextCliProtocols, p
+    from .constants import FlextCliConstants, FlextCliConstants as c
+    from .models import FlextCliModels, FlextCliModels as m
+    from .protocols import FlextCliProtocols, FlextCliProtocols as p
     from .services.auth import FlextCliAuth
     from .services.cli import FlextCliCli
     from .services.cli_params import FlextCliCommonParams
@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     from .services.tables import FlextCliTables
     from .services.xlsx import FlextCliXlsx
     from .services.yaml_model import FlextCliYamlModel
-    from .typings import FlextCliTypes, t
+    from .typings import FlextCliTypes, FlextCliTypes as t
     from .utilities import FlextCliUtilities, u
 
 

@@ -10,17 +10,17 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m as flext_cli_m
+from flext_cli import FlextCliModels
 
 from ._models_parts.examplesflextclimodels_part_01 import (
     ExamplesFlextCliModels as ExamplesFlextCliModelsPart01,
 )
 
 
-class ExamplesFlextCliModels(ExamplesFlextCliModelsPart01, flext_cli_m):
+class ExamplesFlextCliModels(ExamplesFlextCliModelsPart01, FlextCliModels):
     """Public facade for ExamplesFlextCliModels."""
 
 
-m: type[ExamplesFlextCliModels] = ExamplesFlextCliModels
+m = ExamplesFlextCliModels
 
 __all__: list[str] = ["ExamplesFlextCliModels", "m"]
