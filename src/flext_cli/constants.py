@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_core import c, t
+from flext_core import FlextConstants, t
 
 from ._constants.base import FlextCliConstantsBase
 from ._constants.config import FlextCliConstantsConfig
@@ -18,7 +18,7 @@ from ._constants.xlsx import FlextCliConstantsXlsx
 from ._constants.xlsx_future_functions import FlextCliConstantsXlsxFutureFunctions
 
 
-class FlextCliConstants(c):
+class FlextCliConstants(FlextConstants):
     """Constants for Flext CLI."""
 
     class Cli(

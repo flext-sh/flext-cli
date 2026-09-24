@@ -49,7 +49,11 @@ def _assert_owned_descendant_stopped(
 
 def _assert_timeout_empties_descendants[
     Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput)
-](tmp_path: Path, execute: Callable[[t.VariadicTuple[str]], p.Result[Output]]) -> None:
+](
+    tmp_path: Path,
+    execute: Callable[[t.VariadicTuple[str]], p.Result[Output]],
+    assert_timeout: Callable[[p.Result[Output]], None],
+) -> None:
     process_info = tmp_path / "captured-process-info"
     survivor_probe = tmp_path / "captured-survivor-probe"
     survivor_ack = tmp_path / "captured-survivor-ack"
@@ -80,9 +84,21 @@ def _assert_timeout_empties_descendants[
         str(survivor_ack),
     ))
 
+    assert_timeout(result)
+    _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
+
+
+def _timed_out_outcome[Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput)](
+    result: p.Result[Output],
+) -> None:
+    """Raw and byte runners report the timeout as an observed outcome."""
     tm.ok(result)
     tm.that(result.value.outcome.timed_out, eq=True)
-    _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
+
+
+def _timed_out_failure(result: p.Result[p.Cli.CommandOutput]) -> None:
+    """The checked runner refuses a timed-out child as a failure."""
+    tm.fail(result, has="timed_out=True")
 
 
 class _InterruptingCommand(UserList[str]):
@@ -98,19 +114,25 @@ class TestsFlextCliRuntimeProcessContainment:
     def test_run_raw_timeout_leaves_no_descendant(self, tmp_path: Path) -> None:
         """Return only after the captured text runner empties its owned boundary."""
         _assert_timeout_empties_descendants(
-            tmp_path, lambda command: u.Cli().run_raw(command, timeout=1)
+            tmp_path,
+            lambda command: u.Cli().run_raw(command, timeout=1),
+            _timed_out_outcome,
         )
 
     def test_run_timeout_leaves_no_descendant(self, tmp_path: Path) -> None:
-        """Return only after the checked text runner empties its owned boundary."""
+        """Fail on timeout only after the checked runner empties its owned boundary."""
         _assert_timeout_empties_descendants(
-            tmp_path, lambda command: u.Cli().run(command, timeout=1)
+            tmp_path,
+            lambda command: u.Cli().run(command, timeout=1),
+            _timed_out_failure,
         )
 
     def test_run_bytes_timeout_leaves_no_descendant(self, tmp_path: Path) -> None:
         """Return only after the byte runner empties its owned boundary."""
         _assert_timeout_empties_descendants(
-            tmp_path, lambda command: u.Cli().run_bytes(command, timeout=1)
+            tmp_path,
+            lambda command: u.Cli().run_bytes(command, timeout=1),
+            _timed_out_outcome,
         )
 
     def test_return_proves_owned_process_boundary_empty(self, tmp_path: Path) -> None:

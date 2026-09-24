@@ -31,11 +31,11 @@ if TYPE_CHECKING:
 
     from . import unit
     from .base import TestsFlextCliServiceBase, TestsFlextCliServiceBase as s
-    from .constants import TestsFlextCliConstants, c
+    from .constants import TestsFlextCliConstants, TestsFlextCliConstants as c
     from .models import TestsFlextCliModels, m
-    from .protocols import TestsFlextCliProtocols, p
+    from .protocols import TestsFlextCliProtocols, TestsFlextCliProtocols as p
     from .settings import TestsFlextCliSettings
-    from .typings import TestsFlextCliTypes, t
+    from .typings import TestsFlextCliTypes, TestsFlextCliTypes as t
     from .utilities import TestsFlextCliUtilities, u
 
 
@@ -50,9 +50,6 @@ __all__: tuple[str, ...] = (
     "active_rules",
     "api",
     "c",
-    "cli",
-    "config",
-    "core",
     "d",
     "discover_repository_root",
     "docs_main",
@@ -63,7 +60,6 @@ __all__: tuple[str, ...] = (
     "lazy_attribute",
     "load_infra_report",
     "m",
-    "main",
     "p",
     "r",
     "s",
@@ -108,6 +104,7 @@ _LAZY_IMPORTS = MappingProxyType(
                 "tk",
                 "tm",
                 "tv",
+                "x",
             ),
         }),
         alias_groups=MappingProxyType({}),

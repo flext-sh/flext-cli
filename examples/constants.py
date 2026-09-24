@@ -7,13 +7,13 @@ from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
-from flext_cli import c
+from flext_cli import FlextCliConstants
 
 if TYPE_CHECKING:
     from examples import t
 
 
-class ExamplesFlextCliConstants(c):
+class ExamplesFlextCliConstants(FlextCliConstants):
     """Public examples constants facade extending flext-cli constants."""
 
     @unique

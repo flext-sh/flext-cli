@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from flext_cli import t
-from flext_core import m
+from flext_core import FlextModels
 
 from ._models.base import FlextCliModelsBase
 from ._models.docx import FlextCliModelsDocx
@@ -14,7 +14,7 @@ from ._models.template import FlextCliModelsTemplate
 from ._models.xlsx import FlextCliModelsXlsx
 
 
-class FlextCliModels(m):
+class FlextCliModels(FlextModels):
     """FlextCli models extending FlextModels."""
 
     class Cli(

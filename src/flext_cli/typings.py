@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from flext_core import t
+from flext_core import FlextTypes
 
 from ._typings.base import FlextCliTypesBase
 from ._typings.domain import FlextCliTypesDomain
@@ -10,7 +10,7 @@ from ._typings.pipeline import FlextCliTypesPipeline
 from ._typings.xlsx import FlextCliTypesXlsx
 
 
-class FlextCliTypes(t):
+class FlextCliTypes(FlextTypes):
     """CLI type definitions extending flext-core FlextTypes via inheritance."""
 
     class Cli(

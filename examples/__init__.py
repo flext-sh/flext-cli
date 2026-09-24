@@ -9,32 +9,16 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_infra import docs_main, infra
-    from flext_tests import (
-        active_rules,
-        api,
-        discover_repository_root,
-        install_local_packages,
-        load_infra_report,
-        split_csv,
-        td,
-        tf,
-        tk,
-        tm,
-        tv,
-    )
-
-    from flext_cli import cli, config, main, s, settings
-    from flext_core import core, d, e, h, lazy_attribute, r, x
+    from flext_cli import d, e, h, r, s, x
 
     from . import _models_parts
-    from .constants import ExamplesFlextCliConstants, c
+    from .constants import ExamplesFlextCliConstants, ExamplesFlextCliConstants as c
     from .ex_01_getting_started import ExamplesFlextCliGettingStarted
     from .ex_05_authentication import Ex05Authentication
     from .ex_06_settings import Ex06Settings
     from .ex_11_complete_integration import DataManagerCLI
-    from .models import ExamplesFlextCliModels, m
-    from .protocols import ExamplesFlextCliProtocols, p
+    from .models import ExamplesFlextCliModels, ExamplesFlextCliModels as m
+    from .protocols import ExamplesFlextCliProtocols, ExamplesFlextCliProtocols as p
     from .typings import ExamplesFlextCliTypes, t
     from .utilities import ExamplesFlextCliUtilities, u
 
@@ -53,25 +37,15 @@ __all__: tuple[str, ...] = (
     "active_rules",
     "api",
     "c",
-    "cli",
-    "config",
-    "core",
     "d",
     "discover_repository_root",
     "docs_main",
     "e",
     "h",
-    "infra",
-    "install_local_packages",
-    "lazy_attribute",
-    "load_infra_report",
     "m",
-    "main",
     "p",
     "r",
     "s",
-    "settings",
-    "split_csv",
     "t",
     "td",
     "tf",
@@ -95,22 +69,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".protocols": ("ExamplesFlextCliProtocols", "p"),
             ".typings": ("ExamplesFlextCliTypes", "t"),
             ".utilities": ("ExamplesFlextCliUtilities", "u"),
-            "flext_cli": ("cli", "config", "main", "s", "settings"),
-            "flext_core": ("core", "d", "e", "h", "lazy_attribute", "r", "x"),
-            "flext_infra": ("docs_main", "infra"),
-            "flext_tests": (
-                "active_rules",
-                "api",
-                "discover_repository_root",
-                "install_local_packages",
-                "load_infra_report",
-                "split_csv",
-                "td",
-                "tf",
-                "tk",
-                "tm",
-                "tv",
-            ),
+            "flext_cli": ("d", "e", "h", "r", "s", "x"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

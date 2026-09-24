@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Protocol, Self
 
 from flext_tests import FlextTestsProtocols
 
-from flext_cli import p
+from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
     from types import EllipsisType
@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from tests import m, t
 
 
-class TestsFlextCliProtocols(FlextTestsProtocols, p):
+class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
     """Test protocols for flext-cli."""
 
     class Tests(FlextTestsProtocols.Tests):
