@@ -105,7 +105,7 @@ class FlextCliUtilitiesValidation:
     def assert_model_definition(model_cls: object, *, command: str) -> None:
         """Raise a located definition error if ``model_cls`` is not pydantic."""
         model_name = getattr(model_cls, "__name__", repr(model_cls))
-        model_fields = model_cls.model_fields
+        model_fields = getattr(model_cls, "model_fields", None)
         if not isinstance(model_fields, dict) or not model_fields:
             raise c.Cli.CliDefinitionError(
                 c.Cli.ERR_CLI_DEFINITION_INVALID_MODEL.format(
