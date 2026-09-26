@@ -110,9 +110,7 @@ class TestsFlextCliOptions:
         default = u.Cli.field_default("flags", fields["flags"], settings)
 
         tm.that(isinstance(default, str), eq=True)
-        tm.that(
-            t.Cli.JSON_VALUE_ADAPTER.validate_json(str(default)), eq=settings.flags
-        )
+        tm.that(t.Cli.JSON_VALUE_ADAPTER.validate_json(str(default)), eq=settings.flags)
 
     def test_field_default_falls_back_to_field_metadata_without_settings(self) -> None:
         """Verify that field default falls back to field metadata without settings."""

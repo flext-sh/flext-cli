@@ -106,6 +106,21 @@ class TestsFlextCliOptionsUtilsCov:
         tags: t.StrSequence = ("a", "b")
         generated: t.StrSequence = m.Field(("gen", "value"), validate_default=True)
 
+    class IntSequenceDefaultModel(m.BaseModel):
+        """Model whose validated default has no CLI option form."""
+
+        counts: t.SequenceOf[int] = (1, 2)
+
+    class NestedListSettings(m.BaseModel):
+        """Settings whose value is not a CLI default source at all."""
+
+        value: t.SequenceOf[t.SequenceOf[int]] = ((1,),)
+
+    class StrSequenceDefaultModel(m.BaseModel):
+        """Model seeded by ``NestedListSettings``."""
+
+        value: t.StrSequence = ("a",)
+
     _INVOCATION_CASES: ClassVar[
         t.VariadicTuple[t.Pair[t.StrSequence, t.Cli.ModelLike]]
     ] = (
@@ -194,6 +209,20 @@ class TestsFlextCliOptionsUtilsCov:
         invocation, received = self._run(self.AliasOptionsModel, [])
         tm.that(u.Cli.process_succeeded(invocation.outcome), eq=False)
         tm.that(received, empty=True)
+
+    def test_model_command_rejects_default_without_cli_form_at_build(self) -> None:
+        """A validated default no option can carry fails the build, naming it."""
+        with pytest.raises(TypeError, match="counts"):
+            cli.model_command(self.IntSequenceDefaultModel, self._noop_handler)
+
+    def test_model_command_propagates_invalid_default_source_at_build(self) -> None:
+        """A settings value outside the default-source contract escapes unchanged."""
+        with pytest.raises(m.ValidationError):
+            cli.model_command(
+                self.StrSequenceDefaultModel,
+                self._noop_handler,
+                settings=self.NestedListSettings(),
+            )
 
     def test_field_default_prefers_settings_value_over_model_default(self) -> None:
         """An omitted option takes the value of the supplied settings model."""

@@ -94,7 +94,6 @@ class FlextCliConstantsErrors:
     )
     ERR_USER_CANCELLED_CONFIRMATION: ClassVar[str] = "User cancelled confirmation"
     ERR_INPUT_STREAM_ENDED: ClassVar[str] = "Input stream ended"
-    ERR_CONFIRMATION_FAILED_FMT: ClassVar[str] = "Confirmation failed: {error}"
     ERR_NO_CHOICES: ClassVar[str] = "No choices provided"
     ERR_INTERACTIVE_CHOICE_DISABLED: ClassVar[str] = (
         "Interactive mode disabled for choice prompt"
@@ -107,9 +106,6 @@ class FlextCliConstantsErrors:
     ERR_PASSWORD_TOO_SHORT_FMT: ClassVar[str] = (
         "Password too short: minimum {min_length} characters"
     )
-    ERR_PROMPT_FAILED_FMT: ClassVar[str] = "Prompt failed: {error}"
-    ERR_CHOICE_PROMPT_FAILED_FMT: ClassVar[str] = "Choice prompt failed: {error}"
-    ERR_PASSWORD_PROMPT_FAILED_FMT: ClassVar[str] = "Password prompt failed: {error}"
 
     ERR_INVALID_COMMAND_NAME: ClassVar[str] = "Invalid command name"
     ERR_COMMAND_FAILED: ClassVar[str] = "Command failed"
@@ -122,6 +118,9 @@ class FlextCliConstantsErrors:
     )
     ERR_CLI_DEFINITION_FIELD: ClassVar[str] = (
         "command '{command}' model '{model}' field '{field}': {reason}"
+    )
+    ERR_FIELD_DEFAULT_NOT_CLI_VALUE_FMT: ClassVar[str] = (
+        "field '{field_name}' default {value!r} has no CLI option form"
     )
 
 

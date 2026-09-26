@@ -140,7 +140,9 @@ class TestsFlextCliModelCommandJsonOptions:
 
         executed: list[TestsFlextCliModelCommandJsonOptions.MappingModel] = []
         app = self._app(self.MappingModel, executed)
-        result = cli.execute_app(app, prog_name="json-app", args=["run", "--labels", raw])
+        result = cli.execute_app(
+            app, prog_name="json-app", args=["run", "--labels", raw]
+        )
         tm.fail(result, has=error_type)
         tm.that(executed, empty=True)
 
