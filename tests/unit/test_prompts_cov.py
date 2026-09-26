@@ -161,20 +161,26 @@ class TestsFlextCliPromptsCov:
         tm.fail(result)
 
     def test_prompt_password_returns_value_meeting_min_length(
-        self, make_prompts: Callable[..., p.Tests.Prompts]
+        self,
+        make_prompts: Callable[..., p.Tests.Prompts],
+        scripted_password_pair: Callable[[], tuple[str, str]],
     ) -> None:
         """Verify that prompt password returns value meeting min length."""
-        prompts = make_prompts(password="s3cret")
-        result = prompts.prompt_password("Password:", min_length=4)
+        _, secret = scripted_password_pair()
+        prompts = make_prompts(password=secret)
+        result = prompts.prompt_password("Password:", min_length=len(secret))
         tm.ok(result)
-        tm.that(result.value, eq="s3cret")
+        tm.that(result.value, eq=secret)
 
     def test_prompt_password_fails_when_too_short(
-        self, make_prompts: Callable[..., p.Tests.Prompts]
+        self,
+        make_prompts: Callable[..., p.Tests.Prompts],
+        scripted_password_pair: Callable[[], tuple[str, str]],
     ) -> None:
         """Verify that prompt password fails when too short."""
-        prompts = make_prompts(password="ab")
-        result = prompts.prompt_password("Password:", min_length=5)
+        secret, _ = scripted_password_pair()
+        prompts = make_prompts(password=secret)
+        result = prompts.prompt_password("Password:", min_length=len(secret) + 1)
         tm.fail(result)
 
     def test_prompt_password_fails_when_non_interactive(

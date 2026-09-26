@@ -29,12 +29,7 @@ class TestsFlextCliOptions:
 
     @pytest.mark.parametrize(
         ("annotation", "expected"),
-        [
-            (str | None, str),
-            (str | int, str),
-            (dict[str, int], dict),
-            (int, int),
-        ],
+        [(str | None, str), (str | int, str), (dict[str, int], dict), (int, int)],
     )
     def test_resolve_typer_annotation_maps_scalars_unions_and_collections(
         self, annotation: t.Cli.RuntimeAnnotation, expected: type
@@ -42,9 +37,7 @@ class TestsFlextCliOptions:
         """Verify that resolve typer annotation maps scalars unions and collections."""
         tm.that(u.Cli.resolve_typer_annotation(annotation) is expected, eq=True)
 
-    @pytest.mark.parametrize(
-        "annotation", [t.StrSequence, set[str], frozenset[str]]
-    )
+    @pytest.mark.parametrize("annotation", [t.StrSequence, set[str], frozenset[str]])
     def test_resolve_typer_annotation_maps_string_collections_to_list_of_str(
         self, annotation: t.Cli.RuntimeAnnotation
     ) -> None:

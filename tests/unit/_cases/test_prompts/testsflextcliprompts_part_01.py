@@ -18,7 +18,9 @@ if TYPE_CHECKING:
 class TestsFlextCliPrompts:
     """Implementation part for TestsFlextCliPrompts."""
 
-    def test_execute_success(self, make_prompts: Callable[..., p.Tests.Prompts]) -> None:
+    def test_execute_success(
+        self, make_prompts: Callable[..., p.Tests.Prompts]
+    ) -> None:
         """Verify that execute success."""
         prompts = make_prompts(interactive_mode=False)
         result = prompts.execute()

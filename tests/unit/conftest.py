@@ -78,7 +78,4 @@ def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item | None) -> 
     FlextCliSettings.reset_for_testing()
 
 
-__all__: list[str] = [
-    "make_prompts",
-    "scripted_password_pair",
-]
+__all__: list[str] = ["make_prompts", "scripted_password_pair"]

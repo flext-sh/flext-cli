@@ -107,23 +107,20 @@ class TestsFlextCliOptionsUtilsCov:
         generated: t.StrSequence = m.Field(("gen", "value"), validate_default=True)
 
     _INVOCATION_CASES: ClassVar[
-        t.VariadicTuple[
-            tuple[type[t.Cli.ModelLike], t.StrSequence, t.Cli.CliValue]
-        ]
+        t.VariadicTuple[t.Pair[t.StrSequence, t.Cli.ModelLike]]
     ] = (
-        (StringAnnotationModel, ("--value", "x"), "x"),
-        (OptionalStringAnnotationModel, ("--value", "x"), "x"),
-        (UnionAnnotationModel, ("--value", "7"), "7"),
-        (ListAnnotationModel, ("--value", "a", "--value", "b"), ["a", "b"]),
-        (TupleAnnotationModel, ("--value", "a", "--value", "b"), ["a", "b"]),
-        (SetAnnotationModel, ("--value", "a", "--value", "b"), {"a", "b"}),
+        (("--value", "x"), StringAnnotationModel(value="x")),
+        (("--value", "x"), OptionalStringAnnotationModel(value="x")),
+        (("--value", "7"), UnionAnnotationModel(value="7")),
+        (("--value", "a", "--value", "b"), ListAnnotationModel(value=["a", "b"])),
+        (("--value", "a", "--value", "b"), TupleAnnotationModel(value=["a", "b"])),
+        (("--value", "a", "--value", "b"), SetAnnotationModel(value={"a", "b"})),
         (
-            FrozenSetAnnotationModel,
             ("--value", "a", "--value", "b"),
-            frozenset({"a", "b"}),
+            FrozenSetAnnotationModel(value=frozenset({"a", "b"})),
         ),
-        (AnnotatedStringModel, ("--value", "x"), "x"),
-        (StringListAliasModel, ("--value", "a", "--value", "b"), ["a", "b"]),
+        (("--value", "x"), AnnotatedStringModel(value="x")),
+        (("--value", "a", "--value", "b"), StringListAliasModel(value=["a", "b"])),
     )
 
     @staticmethod
@@ -183,17 +180,14 @@ class TestsFlextCliOptionsUtilsCov:
         tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
         tm.that(received[0].debug, eq=expected)
 
-    @pytest.mark.parametrize(("model_cls", "args", "expected"), _INVOCATION_CASES)
+    @pytest.mark.parametrize(("args", "expected"), _INVOCATION_CASES)
     def test_model_command_parses_values_for_each_annotation(
-        self,
-        model_cls: type[t.Cli.ModelLike],
-        args: t.StrSequence,
-        expected: t.Cli.CliValue,
+        self, args: t.StrSequence, expected: t.Cli.ModelLike
     ) -> None:
-        """Command-line values reach the handler validated to the field type."""
-        invocation, received = self._run(model_cls, args)
+        """Command-line values build the same model as direct construction."""
+        invocation, received = self._run(type(expected), args)
         tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
-        tm.that(received[0].model_dump()["value"], eq=expected)
+        tm.that(received, eq=[expected])
 
     def test_model_command_rejects_missing_required_option(self) -> None:
         """A required field without its option is a usage failure; no handler call."""
