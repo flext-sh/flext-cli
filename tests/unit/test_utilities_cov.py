@@ -1,7 +1,8 @@
 """Behavioral tests for the CLI utilities public contract (``u`` / ``u.Cli``).
 
 Exercises only the observable contract of the utility helpers:
-- ``u.process`` — item processing with predicate filtering and error policy.
+- ``u.process`` — item processing with predicate filtering and fail-loud
+  first-failure propagation.
 - ``u.Cli.validate_not_empty`` — emptiness validation returning ``r[bool]``.
 - ``u.Cli.project_names_from_values`` / ``project_numbers_from_values`` —
   CLI selector normalization.
@@ -34,15 +35,25 @@ class TestsFlextCliUtilitiesCov:
 
     def test_process_fails_when_processor_raises(self) -> None:
         """Verify that process fails when processor raises."""
-        result = u.process([1, 0], _raise_on_zero, on_error="fail")
+        result = u.process([1, 0], _raise_on_zero)
         tm.fail(result)
         tm.that(result.error or "", has="0")
 
-    def test_process_skip_policy_drops_failing_items(self) -> None:
-        """Verify that process skip policy drops failing items."""
-        result = u.process([1, 0, 5], _raise_on_zero, on_error="skip")
-        tm.ok(result)
-        tm.that(list(result.unwrap()), eq=[10, 2])
+    def test_process_fails_loud_with_original_exception_and_stops_at_first_failure(
+        self,
+    ) -> None:
+        """Verify process stops at the first failure, never visiting later items."""
+        visited: list[int] = []
+
+        def _tracking_raise_on_zero(value: int) -> int:
+            visited.append(value)
+            return _raise_on_zero(value)
+
+        result = u.process([1, 0, 5], _tracking_raise_on_zero)
+        tm.fail(result)
+        tm.that(visited, eq=[1, 0])
+        assert isinstance(result.exception, ValueError)
+        tm.that(str(result.exception), eq="div zero")
 
     def test_process_predicate_excludes_items_before_processing(self) -> None:
         """Verify that process predicate excludes items before processing."""
