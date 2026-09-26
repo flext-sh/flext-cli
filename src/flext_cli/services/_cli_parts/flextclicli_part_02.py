@@ -22,11 +22,13 @@ class FlextCliCli(FlextCliCliPart01):
         resolved_log_level: str = (
             params.log_level if params.log_level is not None else settings.cli_log_level
         )
-        next_params = params.model_copy(update={"log_level": resolved_log_level})
-        result = FlextCliCommonParams.apply_to_config(settings, params=next_params)
-        if result.failure:
-            self._exit_failure(result)
-        self._apply_updated_settings(result.value)
+        next_params = m.Cli.CliParamsConfig.model_validate({
+            **params.model_dump(),
+            "log_level": resolved_log_level,
+        })
+        self._apply_updated_settings(
+            FlextCliCommonParams.apply_to_config(settings, params=next_params).unwrap()
+        )
 
     @staticmethod
     def _apply_updated_settings(updated_settings: p.Cli.Settings) -> None:

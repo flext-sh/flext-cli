@@ -7,6 +7,8 @@ operation runs without options, and ``--help`` never builds the service.
 
 from __future__ import annotations
 
+from typing import override
+
 import pytest
 from flext_tests import tm
 
@@ -31,6 +33,7 @@ class TestsFlextCliServiceRoutes:
     class Greeter(s[bool]):
         """Service whose public operations are the CLI."""
 
+        @override
         def execute(self) -> p.Result[bool]:
             """Run the default service action."""
             return r[bool].ok(True)
@@ -41,7 +44,7 @@ class TestsFlextCliServiceRoutes:
             """Greet someone by name."""
             return r[str].ok(" ".join([f"hello {request.name}"] * request.times))
 
-        def status(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
+        def report(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
             """Report the service status."""
             return r[TestsFlextCliServiceRoutes.Status].ok(
                 TestsFlextCliServiceRoutes.Status(ready=1)
@@ -88,13 +91,13 @@ class TestsFlextCliServiceRoutes:
         """An operation without a request model runs with no options."""
         app = self._app(self.Greeter)
 
-        outcome = tm.ok(cli.invoke_app(app, args=["status"]))
+        outcome = tm.ok(cli.invoke_app(app, args=["report"]))
 
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
         tm.that(outcome.stdout, has='{"ready":1}')
 
     @pytest.mark.parametrize(
-        "args", [["--help"], ["greet-all", "--help"], ["status", "--help"]]
+        "args", [["--help"], ["greet-all", "--help"], ["report", "--help"]]
     )
     def test_help_builds_no_adapter(self, args: list[str]) -> None:
         """Help renders from the class; the unconfigured provider never runs."""
@@ -110,7 +113,7 @@ class TestsFlextCliServiceRoutes:
         app = self._app(self._unconfigured)
 
         with pytest.raises(RuntimeError, match="not configured"):
-            cli.execute_app(app, prog_name="greeter", args=["status"])
+            cli.execute_app(app, prog_name="greeter", args=["report"])
 
     def test_required_excluded_request_field_fails_at_build(self) -> None:
         """A required field that no option can supply is a build-time defect."""
