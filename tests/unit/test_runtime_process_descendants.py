@@ -64,8 +64,7 @@ class TestsFlextCliRuntimeProcessDescendants:
         )
 
         result = u.Cli().run_to_file(
-            [sys.executable, "-I", "-S", "-c", parent, str(process_info)],
-            output_file,
+            [sys.executable, "-I", "-S", "-c", parent, str(process_info)], output_file
         )
 
         tm.ok(result)
