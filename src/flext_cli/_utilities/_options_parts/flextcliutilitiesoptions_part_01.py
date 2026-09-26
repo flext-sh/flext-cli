@@ -2,23 +2,70 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import Annotated, TypeAliasType, get_args, get_origin
 
 from flext_cli import c, t
+from flext_cli.models import m
 
 
 class FlextCliUtilitiesOptions:
     """Implementation part for FlextCliUtilitiesOptions."""
 
     @staticmethod
-    def resolve_typer_annotation(
+    def unwrap_annotation(
         annotation: t.Cli.RuntimeAnnotation,
-    ) -> type | GenericAlias:
-        """Resolve runtime annotations to concrete types accepted by Typer."""
+    ) -> t.Cli.RuntimeAnnotation:
+        """Strip type aliases and ``Annotated`` metadata down to the carried type."""
         annotated_origin = get_origin(Annotated[str, "meta"])
+        resolved = annotation
+        while (
+            isinstance(resolved, TypeAliasType)
+            or get_origin(resolved) == annotated_origin
+        ):
+            resolved = (
+                resolved.__value__
+                if isinstance(resolved, TypeAliasType)
+                else get_args(resolved)[0]
+            )
+        return resolved
+
+    @classmethod
+    def is_json_option(cls, annotation: t.Cli.RuntimeAnnotation) -> bool:
+        """Return True when a field has no native CLI form and travels as JSON.
+
+        Mappings, nested models, and the collections or unions that carry them
+        are exposed as one JSON option that Pydantic validates into the
+        field's declared type.
+        """
+        resolved = cls.unwrap_annotation(annotation)
+        if isinstance(resolved, UnionType):
+            return any(cls.is_json_option(arg) for arg in get_args(resolved))
+        origin = get_origin(resolved)
+        while isinstance(origin, TypeAliasType):
+            origin = get_origin(origin.__value__)
+        carrier = resolved if origin is None else origin
+        if isinstance(carrier, type) and (
+            issubclass(carrier, m.BaseModel) or issubclass(carrier, Mapping)
+        ):
+            return True
+        return origin is not None and any(
+            cls.is_json_option(arg) for arg in get_args(resolved)
+        )
+
+    @classmethod
+    def resolve_typer_annotation(
+        cls, annotation: t.Cli.RuntimeAnnotation
+    ) -> type | GenericAlias:
+        """Resolve runtime annotations to concrete types accepted by Typer.
+
+        A field without a native CLI form (see ``is_json_option``) resolves to
+        ``str``: its option carries JSON that Pydantic validates on parse.
+        """
+        if cls.is_json_option(annotation):
+            return str
         sequence_origins: frozenset[object] = frozenset(
             filter(
                 None,
@@ -37,23 +84,12 @@ class FlextCliUtilitiesOptions:
                 ],
             )
         )
-        mapping_origin = get_origin(dict[str, t.Scalar])
-        resolved_annotation_input = annotation
+        resolved_annotation_input = cls.unwrap_annotation(annotation)
         origin = get_origin(resolved_annotation_input)
-        while (
-            isinstance(resolved_annotation_input, TypeAliasType)
-            or origin == annotated_origin
-        ):
-            resolved_annotation_input = (
-                resolved_annotation_input.__value__
-                if isinstance(resolved_annotation_input, TypeAliasType)
-                else get_args(resolved_annotation_input)[0]
-            )
-            origin = get_origin(resolved_annotation_input)
 
         if isinstance(resolved_annotation_input, UnionType):
             resolved_args = tuple(
-                FlextCliUtilitiesOptions.resolve_typer_annotation(arg)
+                cls.resolve_typer_annotation(arg)
                 for arg in get_args(resolved_annotation_input)
             )
             non_none_args = tuple(arg for arg in resolved_args if arg is not NoneType)
@@ -66,14 +102,9 @@ class FlextCliUtilitiesOptions:
 
         if origin in sequence_origins:
             inner_annotation = next(iter(get_args(resolved_annotation_input)), str)
-            resolved_inner = FlextCliUtilitiesOptions.resolve_typer_annotation(
-                inner_annotation
-            )
+            resolved_inner = cls.resolve_typer_annotation(inner_annotation)
             sequence_item = resolved_inner if isinstance(resolved_inner, type) else str
             return GenericAlias(list, (sequence_item,))
-
-        if origin == mapping_origin:
-            return dict
 
         return (
             resolved_annotation_input

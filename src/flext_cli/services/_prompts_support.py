@@ -130,23 +130,10 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
         message: str,
         log_level: str,
         message_format: str,
-        error_message_template: str,
     ) -> p.Result[bool]:
-        try:
-            formatted_message = message_format.format(message=message)
-            self._log(log_level, formatted_message)
-            return r[bool].ok(True)
-        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            self.logger.exception(
-                "FAILED to print message - operation aborted",
-                operation="_print_message",
-                log_level=log_level,
-                prompt_message=message,
-                error=str(exc),
-                error_type=type(exc).__name__,
-                consequence="Message not displayed",
-            )
-            return r[bool].fail(error_message_template.format(error=exc))
+        # Fail loud: a logger failure propagates with its cause.
+        self._log(log_level, message_format.format(message=message))
+        return r[bool].ok(True)
 
     def _read_confirmation_input(
         self, message: str, prompt_text: str, *, default: bool

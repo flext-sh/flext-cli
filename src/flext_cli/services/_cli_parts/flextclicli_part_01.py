@@ -10,7 +10,7 @@ from collections.abc import Mapping, Sequence
 from inspect import Parameter, Signature
 from types import GenericAlias
 
-from flext_cli import m, p, t, u
+from flext_cli import c, m, p, t, u
 
 
 class FlextCliCli:
@@ -69,9 +69,14 @@ class FlextCliCli:
                 candidate = f"--{choice.replace('_', '-')}"
                 if candidate != option_name and candidate not in extra_option_names:
                     extra_option_names.append(candidate)
-        annotation = u.Cli.resolve_typer_annotation(
-            getattr(field_info, "annotation", None) or str
+        field_annotation = getattr(field_info, "annotation", None) or str
+        annotation = u.Cli.resolve_typer_annotation(field_annotation)
+        json_annotation = (
+            field_annotation if u.Cli.is_json_option(field_annotation) else None
         )
+        help_text = getattr(field_info, "description", None) or ""
+        if json_annotation is not None:
+            help_text = f"{help_text} {c.Cli.CLI_JSON_OPTION_HELP}".strip()
         is_required = field_info.is_required()
         default_value: t.Cli.CliValue | None = (
             None
@@ -92,12 +97,14 @@ class FlextCliCli:
             option_decls = custom_param_decls
         spec = m.Cli.OptionSpec(
             declarations=tuple(option_decls),
-            help_text=getattr(field_info, "description", None) or "",
+            help_text=help_text,
             default=default_value,
             required=is_required,
         )
         return (
-            u.Cli.framework_build_parameter(field_name, annotation, spec),
+            u.Cli.framework_build_parameter(
+                field_name, annotation, spec, json_annotation=json_annotation
+            ),
             annotation,
         )
 
