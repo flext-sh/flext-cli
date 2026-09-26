@@ -56,13 +56,13 @@ class TestsFlextCliPromptsCov:
         tm.ok(result)
         tm.that(result.value, eq="fallback")
 
-    def test_prompt_fails_when_input_reader_raises(
+    def test_prompt_propagates_input_reader_failure(
         self, make_prompts: Callable[..., p.Tests.Prompts]
     ) -> None:
-        """Verify that prompt fails when input reader raises."""
+        """An input-port failure escapes ``prompt`` with its original cause."""
         prompts = make_prompts(error=ValueError("boom"))
-        result = prompts.prompt("message", default="default")
-        tm.fail(result, has="boom")
+        with pytest.raises(ValueError, match="boom"):
+            prompts.prompt("message", default="default")
 
     @pytest.mark.parametrize(
         ("answer", "default", "expected"),
@@ -113,26 +113,34 @@ class TestsFlextCliPromptsCov:
         [
             (KeyboardInterrupt(), c.Cli.ERR_USER_CANCELLED_CONFIRMATION),
             (EOFError(), c.Cli.ERR_INPUT_STREAM_ENDED),
-            (ValueError("bad"), "bad"),
         ],
     )
-    def test_confirm_fails_on_input_errors(
+    def test_confirm_fails_on_cancellation_carrying_its_cause(
         self,
         make_prompts: Callable[..., p.Tests.Prompts],
-        error: Exception,
+        error: BaseException,
         expected: str,
     ) -> None:
-        """Verify that confirm fails on input errors."""
+        """Cancellation and end of input are declared outcomes with their cause."""
         prompts = make_prompts(error=error)
         result = prompts.confirm("message", default=False)
         tm.fail(result, has=expected)
+        tm.that(result.exception is error, eq=True)
+
+    def test_confirm_propagates_input_reader_failure(
+        self, make_prompts: Callable[..., p.Tests.Prompts]
+    ) -> None:
+        """Any other input-port failure escapes ``confirm`` unchanged."""
+        prompts = make_prompts(error=ValueError("bad"))
+        with pytest.raises(ValueError, match="bad"):
+            prompts.confirm("message", default=False)
 
     def test_prompt_choice_returns_default_when_present(
         self, make_prompts: Callable[..., p.Tests.Prompts]
     ) -> None:
         """Verify that prompt choice returns default when present."""
         prompts = make_prompts()
-        result = prompts.prompt_choice("Choose", choices=("a", "b"), default="a")
+        result = prompts.prompt_choice(choices=("a", "b"), default="a")
         tm.ok(result)
         tm.that(result.value, eq="a")
 
@@ -141,7 +149,7 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """Verify that prompt choice fails with empty choices."""
         prompts = make_prompts()
-        result = prompts.prompt_choice("Choose", choices=(), default=None)
+        result = prompts.prompt_choice(choices=(), default=None)
         tm.fail(result, has=c.Cli.ERR_NO_CHOICES)
 
     def test_prompt_choice_fails_when_default_not_in_choices(
@@ -149,7 +157,7 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """Verify that prompt choice fails when default not in choices."""
         prompts = make_prompts()
-        result = prompts.prompt_choice("Choose", choices=("a", "b"), default="z")
+        result = prompts.prompt_choice(choices=("a", "b"), default="z")
         tm.fail(result, has="z")
 
     def test_prompt_choice_fails_when_default_required(
@@ -157,7 +165,7 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """Verify that prompt choice fails when default required."""
         prompts = make_prompts()
-        result = prompts.prompt_choice("Choose", choices=("a", "b"), default=None)
+        result = prompts.prompt_choice(choices=("a", "b"), default=None)
         tm.fail(result)
 
     def test_prompt_password_returns_value_meeting_min_length(
@@ -191,13 +199,13 @@ class TestsFlextCliPromptsCov:
         result = prompts.prompt_password("Password:")
         tm.fail(result, has=c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED)
 
-    def test_prompt_password_fails_when_reader_raises(
+    def test_prompt_password_propagates_reader_failure(
         self, make_prompts: Callable[..., p.Tests.Prompts]
     ) -> None:
-        """Verify that prompt password fails when reader raises."""
+        """A password-port failure escapes ``prompt_password`` unchanged."""
         prompts = make_prompts(error=ValueError("no tty"))
-        result = prompts.prompt_password("Password:")
-        tm.fail(result, has="no tty")
+        with pytest.raises(ValueError, match="no tty"):
+            prompts.prompt_password("Password:")
 
 
 __all__: list[str] = ["TestsFlextCliPromptsCov"]

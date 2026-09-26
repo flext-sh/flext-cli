@@ -54,14 +54,6 @@ class TestsFlextCliPrompts:
         tm.ok(default_result)
         tm.that(default_result.value, eq="default")
 
-    def test_prompt_handles_input_failure(
-        self, make_prompts: Callable[..., p.Tests.Prompts]
-    ) -> None:
-        """Verify that prompt handles input failure."""
-        prompts = make_prompts(error=ValueError("Input error"))
-        result = prompts.prompt("Enter value")
-        tm.fail(result, has="Input error")
-
     def test_confirm_returns_defaults_when_not_interactive(
         self, make_prompts: Callable[..., p.Tests.Prompts]
     ) -> None:
@@ -90,7 +82,6 @@ class TestsFlextCliPrompts:
         [
             (KeyboardInterrupt(), c.Cli.ERR_USER_CANCELLED_CONFIRMATION),
             (EOFError(), c.Cli.ERR_INPUT_STREAM_ENDED),
-            (ValueError("Test error"), "Test error"),
         ],
     )
     def test_confirm_handles_failures(
@@ -122,10 +113,6 @@ class TestsFlextCliPrompts:
         valid_result = valid_prompts.prompt_password("Password:", min_length=8)
         tm.ok(valid_result)
         tm.that(valid_result.value, eq=valid_secret)
-        failing_prompts = make_prompts(error=ValueError("Password input error"))
-        tm.fail(
-            failing_prompts.prompt_password("Password:"), has="Password input error"
-        )
 
 
 __all__: list[str] = ["TestsFlextCliPrompts"]

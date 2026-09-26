@@ -25,32 +25,28 @@ class TestsFlextCliPrompts:
         """Verify that prompt choice paths."""
         quiet_prompts = make_prompts(interactive_mode=False)
         tm.fail(
-            quiet_prompts.prompt_choice("Select:", choices=[], default=None),
+            quiet_prompts.prompt_choice(choices=[], default=None),
             has=c.Cli.ERR_NO_CHOICES,
         )
         tm.fail(
-            quiet_prompts.prompt_choice("Select:", choices=["a", "b"], default=None),
+            quiet_prompts.prompt_choice(choices=["a", "b"], default=None),
             has=c.Cli.ERR_INTERACTIVE_CHOICE_DISABLED,
         )
-        valid_default = quiet_prompts.prompt_choice(
-            "Select:", choices=["a", "b"], default="a"
-        )
+        valid_default = quiet_prompts.prompt_choice(choices=["a", "b"], default="a")
         tm.ok(valid_default)
         tm.that(valid_default.value, eq="a")
         interactive_prompts = make_prompts()
         required = interactive_prompts.prompt_choice(
-            "Select:", choices=["alpha", "beta"], default=None
+            choices=["alpha", "beta"], default=None
         )
         tm.fail(required, has="alpha")
         tm.fail(required, has="beta")
         tm.fail(
-            interactive_prompts.prompt_choice(
-                "Select:", choices=["a", "b"], default="c"
-            ),
+            interactive_prompts.prompt_choice(choices=["a", "b"], default="c"),
             has=c.Cli.ERR_INVALID_CHOICE_FMT.format(choice="c"),
         )
         selected = interactive_prompts.prompt_choice(
-            "Select:", choices=["simple", "complex", "advanced"], default="simple"
+            choices=["simple", "complex", "advanced"], default="simple"
         )
         tm.ok(selected)
         tm.that(selected.value, eq="simple")

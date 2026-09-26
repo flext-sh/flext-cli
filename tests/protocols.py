@@ -38,7 +38,7 @@ class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
                 ...
 
             def prompt_choice(
-                self, message: str, choices: t.StrSequence, default: str | None = None
+                self, choices: t.StrSequence, default: str | None = None
             ) -> p.Result[str]:
                 """Define the prompt choice test contract."""
                 ...
