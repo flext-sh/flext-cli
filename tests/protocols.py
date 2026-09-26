@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, Self
+from typing import TYPE_CHECKING, Protocol
 
 from flext_tests import FlextTestsProtocols
 
@@ -24,34 +24,8 @@ class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
     class Tests(FlextTestsProtocols.Tests):
         """Test-specific protocols."""
 
-        class ScriptedPrompts(Protocol):
-            """Prompt test double contract exposed through the canonical `p`."""
-
-            def override_test_env(self, *, enabled: bool | None = True) -> Self:
-                """Define the override test env test contract."""
-                ...
-
-            def use_input_values(self, values: t.StrSequence) -> Self:
-                """Define the use input values test contract."""
-                ...
-
-            def use_input_error(self, error: Exception) -> Self:
-                """Define the use input error test contract."""
-                ...
-
-            def use_password(self, password: str) -> Self:
-                """Define the use password test contract."""
-                ...
-
-            def use_password_error(self, error: Exception) -> Self:
-                """Define the use password error test contract."""
-                ...
-
-            def configure_state(
-                self, *, interactive: bool = True, quiet: bool = False
-            ) -> Self:
-                """Define the configure state test contract."""
-                ...
+        class Prompts(Protocol):
+            """Public prompt service surface exercised by the prompt tests."""
 
             def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
                 """Define the execute test contract."""
@@ -100,21 +74,6 @@ class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
             @property
             def default(self) -> t.Cli.CliValue | EllipsisType | None:
                 """Generated option default."""
-                ...
-
-        class CaptureLogPrompts(ScriptedPrompts, Protocol):
-            """Prompt test double that exposes captured log records."""
-
-            @property
-            def records(self) -> list[tuple[str, str]]:
-                """Define the records test contract."""
-                ...
-
-        class FailingLogPrompts(ScriptedPrompts, Protocol):
-            """Prompt test double that can fail a selected log call."""
-
-            def fail_on_log(self, *, level: str, message: str) -> Self:
-                """Define the fail on log test contract."""
                 ...
 
 
