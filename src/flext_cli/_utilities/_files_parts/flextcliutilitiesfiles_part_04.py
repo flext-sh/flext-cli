@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+import io
 import shutil
 import tempfile
 from collections.abc import Mapping
@@ -108,6 +109,13 @@ class FlextCliUtilitiesFiles:
         except csv.Error as exc:
             return r[list[list[str]]].fail(f"csv_loads: {exc}", exception=exc)
         return r[list[list[str]]].ok(rows)
+
+    @staticmethod
+    def csv_dumps(rows: list[list[str]], *, delimiter: str = ",") -> str:
+        """Serialize rows into a CSV-encoded string with LF terminators."""
+        buffer = io.StringIO()
+        csv.writer(buffer, delimiter=delimiter, lineterminator="\n").writerows(rows)
+        return buffer.getvalue()
 
     @staticmethod
     def files_copy_directory(
