@@ -15,7 +15,7 @@ class FlextCliCli(FlextCliCliPart05):
     """Implementation part for FlextCliCli."""
 
     @classmethod
-    def service_routes[S: s](
+    def service_routes[S: s[p.Base]](
         cls, service_type: type[S], *, provide: t.Cli.NullaryOperation[S]
     ) -> tuple[m.Cli.ResultCommandRoute, ...]:
         """Derive one result route per operation of a service class.
@@ -39,7 +39,7 @@ class FlextCliCli(FlextCliCliPart05):
         )
 
     @staticmethod
-    def _operation_handler[S: s](
+    def _operation_handler[S: s[p.Base]](
         operation: m.ServiceOperation, provide: t.Cli.NullaryOperation[S]
     ) -> p.Cli.ResultRouteHandler:
         """Bind one operation to the service instance built at execution."""

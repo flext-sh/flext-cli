@@ -30,13 +30,15 @@ class TestsFlextCliServiceRoutes:
 
         ready: int
 
-    class Greeter(s[bool]):
+    class Greeter(s[Status]):
         """Service whose public operations are the CLI."""
 
         @override
-        def execute(self) -> p.Result[bool]:
+        def execute(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
             """Run the default service action."""
-            return r[bool].ok(True)
+            return r[TestsFlextCliServiceRoutes.Status].ok(
+                TestsFlextCliServiceRoutes.Status(ready=1)
+            )
 
         def greet_all(
             self, request: TestsFlextCliServiceRoutes.Greeting
