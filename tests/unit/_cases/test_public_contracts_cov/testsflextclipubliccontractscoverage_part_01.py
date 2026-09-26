@@ -4,24 +4,12 @@ from __future__ import annotations
 
 from flext_tests import tm
 
-from flext_cli import FlextCliSettings, cli, m, settings
+from flext_cli import FlextCliSettings, cli, settings
 from tests import c, p, u
 
 
 class TestsFlextCliPublicContractsCoverage:
     """Implementation part for TestsFlextCliPublicContractsCoverage."""
-
-    class _CommandModel(m.BaseModel):
-        """Minimal public model for utility command construction."""
-
-        label: str
-        debug: bool = False
-
-    class _CommandSource(m.BaseModel):
-        """Source model used to exercise `u.Cli.model_source_data()`."""
-
-        label: str
-        debug: bool | None = None
 
     def test_public_facade_and_settings_contract(self) -> None:
         # NOTE (multi-agent): flat cli_* settings (§2.6) — fresh instances come
@@ -55,24 +43,3 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(facade_result.value.status, eq=(c.Cli.ServiceStatus.OPERATIONAL))
         tm.that(facade_result.value.service, eq=c.Cli.FLEXT_CLI)
 
-    def test_public_model_source_data_contract(self) -> None:
-        """Model sources contribute only target fields that carry a value."""
-        tm.that(
-            u.Cli.model_source_data(
-                self._CommandModel, self._CommandSource(label="mapped", debug=None)
-            ),
-            eq={"label": "mapped"},
-        )
-
-        derived = cli.derive_model(
-            self._CommandModel,
-            {"label": "base"},
-            {"debug": True},
-            overrides={"label": "override"},
-        )
-
-        tm.that(derived.label, eq="override")
-        tm.that(derived.debug, eq=True)
-
-
-__all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]

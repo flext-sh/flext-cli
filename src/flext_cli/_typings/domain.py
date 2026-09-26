@@ -57,8 +57,6 @@ class FlextCliTypesDomain:
     type IntTextValue = int | str
     type MessageType = c.Cli.MessageTypes
     type ModelLike = t.BaseModel
-    # mro-j47u (codex): model classes use the canonical core type alias.
-    type ModelSource = ModelLike | t.JsonMapping | t.ScalarMapping
     type OptionRegistry = t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]
     type NullaryOperation[T] = Callable[[], T]
     type PromptTextReader = Callable[[str], str]

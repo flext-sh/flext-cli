@@ -25,11 +25,8 @@ class FlextCliCli(FlextCliCliPart01):
         next_params = params.model_copy(update={"log_level": resolved_log_level})
         result = FlextCliCommonParams.apply_to_config(settings, params=next_params)
         if result.failure:
-            u.fetch_logger(__name__).warning(
-                "failed to apply cli params", error=result.error or ""
-            )
-        else:
-            self._apply_updated_settings(result.value)
+            self._exit_failure(result)
+        self._apply_updated_settings(result.value)
 
     @staticmethod
     def _apply_updated_settings(updated_settings: p.Cli.Settings) -> None:
@@ -86,6 +83,7 @@ class FlextCliCli(FlextCliCliPart01):
                 handler=apply_common_params,
                 model_cls=m.Cli.CliParamsConfig,
                 parameters=parameters,
+                result_border=True,
             )
         )
         global_callback.__annotations__ = dict(annotations)
