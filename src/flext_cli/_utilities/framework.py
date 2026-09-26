@@ -174,16 +174,38 @@ class FlextCliUtilitiesFramework:
 
     @staticmethod
     def framework_build_parameter(
-        field_name: str, annotation: type | GenericAlias, spec: m.Cli.OptionSpec
+        field_name: str,
+        annotation: type | GenericAlias,
+        spec: m.Cli.OptionSpec,
+        *,
+        json_annotation: t.Cli.RuntimeAnnotation | None = None,
     ) -> Parameter:
-        """Build one inspect parameter with a private Typer option default."""
+        """Build one inspect parameter with a private Typer option default.
+
+        With ``json_annotation`` the option carries JSON text that Pydantic
+        validates into that declared type while Click parses the argument, so
+        malformed JSON or a schema mismatch is a usage error with its cause.
+        The adapter is built only on parse; rendering help never builds it.
+        """
         option_default: t.Cli.CliValue | EllipsisType | None = (
             ... if spec.required else spec.default
         )
+
+        def json_option(raw: str) -> t.JsonPayload:
+            adapter: t.ValueAdapter[t.JsonPayload] = t.TypeAdapter(json_annotation)
+            try:
+                return adapter.validate_json(raw)
+            except ValueError as exc:
+                # Click's parser hook discards a ValueError's text; the usage
+                # error carries the Pydantic cause and chains the original.
+                raise typer.BadParameter(str(exc)) from exc
+
         option = OptionInfo(
             default=option_default,
             param_decls=list(spec.declarations),
             help=spec.help_text or None,
+            parser=None if json_annotation is None else json_option,
+            metavar=None if json_annotation is None else c.Cli.CLI_JSON_OPTION_METAVAR,
         )
         return Parameter(
             field_name,

@@ -42,6 +42,7 @@ if TYPE_CHECKING:
     from .api import FlextCli, cli
     from .base import FlextCliServiceBase, s
     from .cli import main
+    from .config import FlextCliConfig, config
     from .constants import FlextCliConstants, FlextCliConstants as c
     from .models import FlextCliModels, FlextCliModels as m
     from .protocols import FlextCliProtocols, FlextCliProtocols as p

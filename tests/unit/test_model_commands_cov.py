@@ -94,12 +94,6 @@ class TestsFlextCliModelCommandsCov:
 
     # ---- model_command --------------------------------------------------
 
-    def test_model_command_returns_callable(self) -> None:
-        """Verify that model command returns callable."""
-        cmd = cli.model_command(m.Tests.ModelCommandSample, lambda model: model.name)
-
-        tm.that(callable(cmd), eq=True)
-
     def test_model_command_dispatches_to_handler_with_bound_model(self) -> None:
         """Verify that model command dispatches to handler with bound model."""
 

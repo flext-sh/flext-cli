@@ -26,11 +26,6 @@ class FlextCliConstantsBase:
     OP_EXECUTE_APPLICATION: ClassVar[str] = "execute CLI application"
     ERR_EXIT_WITH_CODE: ClassVar[str] = "CLI exited with code {exit_code}"
 
-    CLI_SAFE_EXCEPTIONS: ClassVar[t.VariadicTuple[type[Exception]]] = (
-        ValueError,
-        TypeError,
-        KeyError,
-    )
     # Pipeline retries fail loud by default; the bound prevents accidental
     # exponential fan-out when a caller declares a retry policy.
     PIPELINE_DEFAULT_RETRY: ClassVar[int] = 0

@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 from flext_cli import c, t
 from flext_cli.models import m
+from flext_core import u
 
 from .flextcliutilitiesoptionbuilder_part_01 import FlextCliUtilitiesOptionBuilder
 from .flextcliutilitiesoptions_part_01 import (
@@ -20,7 +19,14 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
     def field_default(
         cls, field_name: str, field_info: m.FieldInfo, settings: t.Cli.ModelLike | None
     ) -> t.Cli.CliValue | None:
-        """Resolve CLI default from settings first, then from model field metadata."""
+        """Resolve CLI default from settings first, then from model field metadata.
+
+        ``None`` is the typed absence of a default. Any other default without a
+        CLI form fails at command build with its cause: the default-source
+        validation error escapes unchanged, and a validated default that no
+        Typer option carries raises ``TypeError``. Structured defaults travel
+        through the JSON-option path.
+        """
         default_factory = getattr(field_info, "default_factory", None)
         source_value = (
             getattr(settings, field_name)
@@ -29,33 +35,21 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             if callable(default_factory)
             else getattr(field_info, "default", None)
         )
-        try:
-            normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
-                source_value
-            )
-        except c.EXC_VALIDATION_TYPE_VALUE:
-            normalized_source = None
-        if normalized_source is None:
+        if source_value is None:
             return None
-        match normalized_source:
-            case _ if (
-                normalized_atom := cls.normalize_cli_atom(normalized_source)
-            ) is not None:
-                normalized_default: t.Cli.CliValue | None = normalized_atom
-            case Mapping() as normalized_source_mapping:
-                normalized_mapping: t.Cli.MutableDefaultMapping = {}
-                for key, item_value in normalized_source_mapping.items():
-                    normalized_item = cls.normalize_cli_atom(item_value)
-                    if normalized_item is not None:
-                        normalized_mapping[key] = normalized_item
-                normalized_default = normalized_mapping or None
-            case _ if cls.is_string_sequence(normalized_source):
-                normalized_default = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(
-                    normalized_source
+        if cls.is_json_option(getattr(field_info, "annotation", None) or str):
+            # A JSON option's default is the JSON text its parser validates.
+            return u.to_json(source_value).decode()
+        normalized_atom = cls.normalize_cli_atom(
+            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value)
+        )
+        if normalized_atom is None:
+            raise TypeError(
+                c.Cli.ERR_FIELD_DEFAULT_NOT_CLI_VALUE_FMT.format(
+                    field_name=field_name, value=source_value
                 )
-            case _:
-                normalized_default = None
-        return normalized_default
+            )
+        return normalized_atom
 
     @staticmethod
     def build_option(

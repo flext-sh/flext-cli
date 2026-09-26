@@ -70,7 +70,6 @@ class FlextCliConstantsOutput:
     )
     OUTPUT_TABLE_NORMALIZATION_FAILED: ClassVar[str] = "Table normalization failed"
     OUTPUT_TABLE_ROW_INVALID: ClassVar[str] = "Table row invalid after validation"
-    OUTPUT_TABLE_FORMATTING_OPERATION: ClassVar[str] = "Table formatting"
 
     TABLE_FORMATS: ClassVar[t.StrMapping] = MappingProxyType({
         ce.TabularFormat.PLAIN: "Minimal formatting, no borders",

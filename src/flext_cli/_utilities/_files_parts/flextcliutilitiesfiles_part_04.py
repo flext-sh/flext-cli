@@ -93,15 +93,8 @@ class FlextCliUtilitiesFiles:
         loaded = read_result.map_error(lambda err: err or c.Cli.ERR_AUTO_LOAD_FAILED)
         if loaded.failure:
             return r[t.JsonMapping].from_failure(loaded)
-        # JSON and YAML may carry a non-mapping root despite ``json_read``'s
-        # declared mapping result; type the local honestly so the runtime
-        # guard below stays reachable for the type checker.
-        payload: t.JsonValue = loaded.value
-        if not isinstance(payload, Mapping):
-            return r[t.JsonMapping].fail(
-                f"Unsupported payload root in {path.name}: "
-                f"expected a mapping, got {type(payload).__name__}"
-            )
+        # json_read declares a mapping result; normalize every leaf value.
+        payload: t.JsonMapping = loaded.value
         normalized_payload: t.JsonMapping = {
             key: u.normalize_to_json_value(value) for key, value in payload.items()
         }

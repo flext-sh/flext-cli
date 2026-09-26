@@ -1,21 +1,15 @@
 """Prompt service support primitives.
 
-NOTE (multi-agent): mro-i6nq.13 — moved here from the removed
-``_prompts_parts/flextcliprompts_support.py`` so the whole numbered
-``_prompts_parts`` package could be eliminated. Adds the ``_guarded`` DRY
-helper that collapses the repeated ``try/except CLI_SAFE_EXCEPTIONS -> _fatal
--> r.fail(fmt)`` idiom into one canonical ``u.guard_result`` boundary.
+Input-port failures are not caught here: the reader's exception escapes the
+prompt method with its cause. Only declared prompt outcomes return ``r``.
 """
 
 from __future__ import annotations
 
 import getpass
-from typing import TYPE_CHECKING, Annotated, Self
+from typing import Annotated, Self
 
 from flext_cli import c, m, p, r, s, settings, t, u
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
 
 
 class _PromptInputReaderDefault:
@@ -40,13 +34,27 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
         m.Field(description="Prompt runtime state for interaction behavior."),
     ] = m.Field(m.Cli.PromptRuntimeState(), validate_default=True)
 
-    _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(_PromptInputReaderDefault())
+    input_reader: Annotated[
+        t.Cli.PromptTextReader,
+        m.Field(
+            description=(
+                "Text input port; reads the process stdin unless the embedding "
+                "application injects its own source."
+            ),
+            exclude=True,
+        ),
+    ] = m.Field(default_factory=_PromptInputReaderDefault, validate_default=True)
 
-    _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(
-        _PromptPasswordReaderDefault()
-    )
-
-    _test_env_override: bool | None = m.PrivateAttr(None)
+    password_reader: Annotated[
+        t.Cli.PromptTextReader,
+        m.Field(
+            description=(
+                "Secret input port; reads the terminal without echo unless the "
+                "embedding application injects its own source."
+            ),
+            exclude=True,
+        ),
+    ] = m.Field(default_factory=_PromptPasswordReaderDefault, validate_default=True)
 
     def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
         """Replace prompt runtime state using the canonical CLI model."""
@@ -56,52 +64,11 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
     def _is_test_env(self) -> bool:
         """Whether prompt logging must use test-safe behavior.
 
-        The override private attr wins when set (tests pin it via
-        ``override_test_env``); otherwise delegate to the canonical
-        ``u.Cli.cli_test_env`` utility — settings stay pure flat data (§2.6),
-        detection logic lives in the utilities layer, never reimplemented here.
+        Delegates to the canonical ``u.Cli.cli_test_env`` utility — settings
+        stay pure flat data (§2.6), detection logic lives in the utilities
+        layer, never reimplemented here.
         """
-        if self._test_env_override is not None:
-            return self._test_env_override
         return u.Cli.cli_test_env(settings)
-
-    def _guarded[TResult](
-        self,
-        operation: str,
-        message: str,
-        work: Callable[[], p.Result[TResult]],
-        *,
-        consequence: str,
-        error_format: str,
-    ) -> p.Result[TResult]:
-        """Run a Result-returning prompt operation behind one exception boundary.
-
-        Collapses the canonical ``try/except CLI_SAFE_EXCEPTIONS -> _fatal ->
-        r.fail(fmt)`` idiom shared by every interactive prompt method into a
-        single ``u.guard_result`` call plus structured fatal logging.
-        """
-        guarded = u.guard_result(
-            work, catch=c.Cli.CLI_SAFE_EXCEPTIONS, op_name=operation
-        )
-        if guarded.success:
-            return guarded
-        exc = guarded.error or operation
-        self._fatal(operation, message, Exception(exc), consequence)
-        return r[TResult].fail(error_format.format(error=exc))
-
-    def _fatal(
-        self, operation: str, message: str, exc: Exception, consequence: str
-    ) -> None:
-        self._log(
-            c.LogLevel.ERROR,
-            f"FATAL ERROR during {operation} - operation aborted",
-            operation=operation,
-            prompt_message=message,
-            error=str(exc),
-            error_type=type(exc).__name__,
-            consequence=consequence,
-            severity="critical",
-        )
 
     def _log(self, log_level: str, message: str, **context: t.LogValue) -> None:
         match log_level:
@@ -115,33 +82,17 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
                 self.logger.info(message, **context)
 
     def _print_message(
-        self,
-        message: str,
-        log_level: str,
-        message_format: str,
-        error_message_template: str,
+        self, message: str, log_level: str, message_format: str
     ) -> p.Result[bool]:
-        try:
-            formatted_message = message_format.format(message=message)
-            self._log(log_level, formatted_message)
-            return r[bool].ok(True)
-        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            self.logger.exception(
-                "FAILED to print message - operation aborted",
-                operation="_print_message",
-                log_level=log_level,
-                prompt_message=message,
-                error=str(exc),
-                error_type=type(exc).__name__,
-                consequence="Message not displayed",
-            )
-            return r[bool].fail(error_message_template.format(error=exc))
+        # Fail loud: a logger failure propagates with its cause.
+        self._log(log_level, message_format.format(message=message))
+        return r[bool].ok(True)
 
     def _read_confirmation_input(
         self, message: str, prompt_text: str, *, default: bool
     ) -> p.Result[bool]:
         while True:
-            input_text = self._input_reader(prompt_text)
+            input_text = self.input_reader(prompt_text)
             parsed = u.Cli.prompts_parse_confirmation(input_text, default=default)
             if parsed is not None:
                 return r[bool].ok(parsed)

@@ -93,14 +93,6 @@ class TestsFlextCliConstantsRulesOptions:
         "file-lint": (RULES_MAPPING_MATCHER,)
     })
 
-    # ── OPTIONS (utilities/options.py) ─────────────────────────────
-    OPTIONS_FIELD_DEFAULT_VALID_MAPPING: ClassVar[t.Cli.DefaultMapping] = (
-        MappingProxyType({"name": "alpha", "count": 3, "tags": ("x", "y")})
-    )
-    OPTIONS_FIELD_DEFAULT_INVALID_MAPPING: ClassVar[t.JsonMapping] = {
-        "nested": {"ignore": True}
-    }
-
     # ── TOML ───────────────────────────────────────────────────────
     TOML_VALID_CONTENT: ClassVar[str] = (
         f'[tool.flext]\nproject = "my-project"\nversion = "{c.Cli.CLI_VERSION}"\n'
