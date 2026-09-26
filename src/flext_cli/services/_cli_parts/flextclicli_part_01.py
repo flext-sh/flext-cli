@@ -42,7 +42,9 @@ class FlextCliCli:
             self._model_cls = model_cls
 
         def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
-            model = self._model_cls.model_validate(kwargs)
+            # Typer passes each option under its parameter (field) name, so an
+            # aliased field must validate by name as well as by alias.
+            model = self._model_cls.model_validate(kwargs, by_name=True)
             return self._handler(model)
 
     @classmethod

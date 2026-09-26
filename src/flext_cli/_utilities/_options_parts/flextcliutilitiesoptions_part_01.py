@@ -30,16 +30,14 @@ class FlextCliUtilitiesOptions:
                     get_origin(t.StrSequence),
                     t.SequenceOf,
                     t.MutableSequenceOf,
+                    # Typer has no set type: sets are repeated options whose
+                    # list the request model validates into set/frozenset.
+                    get_origin(set[str]),
+                    get_origin(frozenset[str]),
                 ],
             )
         )
-        # Why: get_origin() on these concrete generics never returns None;
-        # the prior None-filter was dead code (pyright reportUnnecessaryComparison).
-        set_origins: dict[object, type] = {
-            get_origin(dict[str, t.Scalar]): dict,
-            get_origin(frozenset[str]): frozenset,
-            get_origin(set[str]): set,
-        }
+        mapping_origin = get_origin(dict[str, t.Scalar])
         resolved_annotation_input = annotation
         origin = get_origin(resolved_annotation_input)
         while (
@@ -74,9 +72,8 @@ class FlextCliUtilitiesOptions:
             sequence_item = resolved_inner if isinstance(resolved_inner, type) else str
             return GenericAlias(list, (sequence_item,))
 
-        set_annotation = set_origins.get(origin)
-        if set_annotation is not None:
-            return set_annotation
+        if origin == mapping_origin:
+            return dict
 
         return (
             resolved_annotation_input

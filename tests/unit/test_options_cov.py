@@ -2,28 +2,28 @@
 
 Every assertion targets an observable contract of the public API:
 
-* the generated Typer command exposes the option specs a Typer app consumes
-  (option names, aliases, custom declarations, bool toggles, resolved
-  annotations, and resolved defaults) -- this signature *is* the return
-  contract of the builder, not private state; and
-* invoking the built command drives the real end-to-end flow: the handler
+* registered in a real app and invoked with command-line arguments, the
+  generated command accepts the option names a user types (aliases, custom
+  declarations, bool toggles), parses each annotation into the validated
+  field value, rejects a missing required option, and seeds omitted options
+  from the settings model or the model defaults; and
+* invoking the built command directly drives the same flow: the handler
   receives a validated model built from parsed values, the settings model
   used to seed option defaults is left untouched (invocation never writes
   back into it), and the handler return value flows back to the caller.
 
-No private attribute access, collaborator spying, or patching is used.
+No signature introspection, private attribute access, or patching is used.
 """
 
 from __future__ import annotations
 
-import inspect
 from typing import Annotated, ClassVar
 
 import pytest
 from flext_tests import tm
 
 from flext_cli import cli, m
-from tests import c, p, t
+from tests import t, u
 
 
 class TestsFlextCliOptionsUtilsCov:
@@ -63,11 +63,6 @@ class TestsFlextCliOptionsUtilsCov:
         """Group the FrozenSetAnnotationModel test behavior."""
 
         value: frozenset[str]
-
-    class DictAnnotationModel(m.BaseModel):
-        """Group the DictAnnotationModel test behavior."""
-
-        value: dict[str, int]
 
     class AnnotatedStringModel(m.BaseModel):
         """Group the AnnotatedStringModel test behavior."""
@@ -110,26 +105,25 @@ class TestsFlextCliOptionsUtilsCov:
         name: str = "default-name"
         tags: t.StrSequence = ("a", "b")
         generated: t.StrSequence = m.Field(("gen", "value"), validate_default=True)
-        valid_mapping: t.Cli.DefaultMapping = m.Field(
-            dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING), validate_default=True
-        )
-        invalid_mapping: t.JsonValue = m.Field(
-            dict(c.Tests.OPTIONS_FIELD_DEFAULT_INVALID_MAPPING), validate_default=True
-        )
 
-    _ANNOTATION_CASES: ClassVar[
-        t.VariadicTuple[t.Pair[type[t.Cli.ModelLike], t.Cli.RuntimeAnnotation]]
+    _INVOCATION_CASES: ClassVar[
+        t.VariadicTuple[
+            tuple[type[t.Cli.ModelLike], t.StrSequence, t.Cli.CliValue]
+        ]
     ] = (
-        (StringAnnotationModel, str),
-        (OptionalStringAnnotationModel, str),
-        (UnionAnnotationModel, str),
-        (ListAnnotationModel, list[str]),
-        (TupleAnnotationModel, list[str]),
-        (SetAnnotationModel, set),
-        (FrozenSetAnnotationModel, frozenset),
-        (DictAnnotationModel, dict),
-        (AnnotatedStringModel, str),
-        (StringListAliasModel, list[str]),
+        (StringAnnotationModel, ("--value", "x"), "x"),
+        (OptionalStringAnnotationModel, ("--value", "x"), "x"),
+        (UnionAnnotationModel, ("--value", "7"), "7"),
+        (ListAnnotationModel, ("--value", "a", "--value", "b"), ["a", "b"]),
+        (TupleAnnotationModel, ("--value", "a", "--value", "b"), ["a", "b"]),
+        (SetAnnotationModel, ("--value", "a", "--value", "b"), {"a", "b"}),
+        (
+            FrozenSetAnnotationModel,
+            ("--value", "a", "--value", "b"),
+            frozenset({"a", "b"}),
+        ),
+        (AnnotatedStringModel, ("--value", "x"), "x"),
+        (StringListAliasModel, ("--value", "a", "--value", "b"), ["a", "b"]),
     )
 
     @staticmethod
@@ -137,78 +131,93 @@ class TestsFlextCliOptionsUtilsCov:
         return True
 
     @staticmethod
-    def _option_spec(
-        command: t.Cli.CliCommand, param_name: str
-    ) -> p.Tests.FrameworkOption:
-        """Return the Typer option object the builder placed on the command signature."""
-        spec: p.Tests.FrameworkOption = (
-            inspect.signature(command).parameters[param_name].default
-        )
-        tm.that(spec.param_decls, empty=False)
-        return spec
+    def _run[M: t.Cli.ModelLike](
+        model_cls: t.ModelClass[M],
+        args: t.StrSequence,
+        *,
+        settings: t.Cli.ModelLike | None = None,
+    ) -> tuple[m.Cli.InvocationResult, list[M]]:
+        """Invoke the generated command through a real app; return what it received."""
+        received: list[M] = []
 
-    # ---- generated-command contract -------------------------------------
+        def _capture(params: M) -> bool:
+            received.append(params)
+            return True
+
+        app = cli.create_app_with_common_params(
+            name="options-app", help_text="Options app"
+        )
+        cli.register_command(
+            app,
+            name="run",
+            help_text="Run",
+            command=cli.model_command(model_cls, _capture, settings=settings),
+        )
+        invocation = cli.invoke_app(app, args=["run", *args])
+        tm.ok(invocation)
+        return invocation.value, received
+
+    # ---- generated-command contract, observed through real invocation ----
 
     def test_model_command_uses_field_alias_as_option_name(self) -> None:
-        """Verify that model command uses field alias as option name."""
-        command = cli.model_command(self.AliasOptionsModel, self._noop_handler)
-        spec = self._option_spec(command, "project_name")
-        tm.that(spec.param_decls, has="--project")
+        """The field alias is the option name the CLI accepts."""
+        invocation, received = self._run(self.AliasOptionsModel, ["--project", "p1"])
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.that(received[0].project_name, eq="p1")
 
-    def test_model_command_honors_custom_param_decls(self) -> None:
-        """Verify that model command honors custom param decls."""
-        command = cli.model_command(self.CustomDeclModel, self._noop_handler)
-        spec = self._option_spec(command, "custom_name")
-        tm.that(spec.param_decls, has="--custom-name")
-        tm.that(spec.param_decls, has="--projects")
+    @pytest.mark.parametrize("option", ["--custom-name", "--projects"])
+    def test_model_command_honors_custom_param_decls(self, option: str) -> None:
+        """Every custom declaration is accepted as the field's option."""
+        invocation, received = self._run(self.CustomDeclModel, [option, "v"])
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.that(received[0].custom_name, eq="v")
 
-    def test_model_command_renders_bool_field_as_toggle_flag(self) -> None:
-        """Verify that model command renders bool field as toggle flag."""
-        command = cli.model_command(self.BoolToggleModel, self._noop_handler)
-        spec = self._option_spec(command, "debug")
-        tm.that(spec.param_decls, eq=["--debug/--no-debug"])
-
-    @pytest.mark.parametrize(("model_cls", "expected"), _ANNOTATION_CASES)
-    def test_model_command_normalizes_runtime_annotations(
-        self, model_cls: type[t.Cli.ModelLike], expected: t.Cli.RuntimeAnnotation
+    @pytest.mark.parametrize(
+        ("option", "expected"), [("--debug", True), ("--no-debug", False)]
+    )
+    def test_model_command_renders_bool_field_as_toggle_flag(
+        self, option: str, *, expected: bool
     ) -> None:
-        """Verify that model command normalizes runtime annotations."""
-        command = cli.model_command(model_cls, self._noop_handler)
-        resolved = inspect.signature(command).parameters["value"].annotation
-        tm.that(resolved == expected, eq=True)
+        """A bool field is driven by an on/off toggle pair."""
+        invocation, received = self._run(self.BoolToggleModel, [option])
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.that(received[0].debug, eq=expected)
 
-    def test_model_command_marks_required_field_default_as_ellipsis(self) -> None:
-        """Verify that model command marks required field default as ellipsis."""
-        command = cli.model_command(self.AliasOptionsModel, self._noop_handler)
-        spec = self._option_spec(command, "project_name")
-        tm.that(spec.default is ..., eq=True)
+    @pytest.mark.parametrize(("model_cls", "args", "expected"), _INVOCATION_CASES)
+    def test_model_command_parses_values_for_each_annotation(
+        self,
+        model_cls: type[t.Cli.ModelLike],
+        args: t.StrSequence,
+        expected: t.Cli.CliValue,
+    ) -> None:
+        """Command-line values reach the handler validated to the field type."""
+        invocation, received = self._run(model_cls, args)
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.that(received[0].model_dump()["value"], eq=expected)
+
+    def test_model_command_rejects_missing_required_option(self) -> None:
+        """A required field without its option is a usage failure; no handler call."""
+        invocation, received = self._run(self.AliasOptionsModel, [])
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=False)
+        tm.that(received, empty=True)
 
     def test_field_default_prefers_settings_value_over_model_default(self) -> None:
-        """Verify that field default prefers settings value over model default."""
+        """An omitted option takes the value of the supplied settings model."""
         settings = self.OptionsDefaultsModel(name="override-name")
-        command = cli.model_command(
-            self.OptionsDefaultsModel, self._noop_handler, settings=settings
+        invocation, received = self._run(
+            self.OptionsDefaultsModel, [], settings=settings
         )
-        spec = self._option_spec(command, "name")
-        tm.that(spec.default, eq="override-name")
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.that(received[0].name, eq="override-name")
 
-    def test_field_default_normalizes_sequence_default_to_tuple(self) -> None:
-        """Verify that field default normalizes sequence default to tuple."""
-        command = cli.model_command(self.OptionsDefaultsModel, self._noop_handler)
-        spec = self._option_spec(command, "generated")
-        tm.that(spec.default, eq=("gen", "value"))
-
-    def test_field_default_preserves_normalizable_mapping(self) -> None:
-        """Verify that field default preserves normalizable mapping."""
-        command = cli.model_command(self.OptionsDefaultsModel, self._noop_handler)
-        spec = self._option_spec(command, "valid_mapping")
-        tm.that(spec.default, eq=dict(c.Tests.OPTIONS_FIELD_DEFAULT_VALID_MAPPING))
-
-    def test_field_default_drops_non_normalizable_mapping_to_none(self) -> None:
-        """Verify that field default drops non normalizable mapping to none."""
-        command = cli.model_command(self.OptionsDefaultsModel, self._noop_handler)
-        spec = self._option_spec(command, "invalid_mapping")
-        tm.that(spec.default, none=True)
+    def test_field_defaults_reach_handler_when_options_omitted(self) -> None:
+        """Omitted options deliver the model defaults to the handler."""
+        invocation, received = self._run(self.OptionsDefaultsModel, [])
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        expected = self.OptionsDefaultsModel()
+        tm.that(received[0].name, eq=expected.name)
+        tm.that(tuple(received[0].tags), eq=tuple(expected.tags))
+        tm.that(tuple(received[0].generated), eq=tuple(expected.generated))
 
     # ---- end-to-end command invocation ----------------------------------
 

@@ -13,8 +13,6 @@ from flext_tests import FlextTestsProtocols
 from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
-    from types import EllipsisType
-
     from tests import m, t
 
 
@@ -61,19 +59,6 @@ class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
 
             def print_warning(self, message: str) -> p.Result[bool]:
                 """Define the print warning test contract."""
-                ...
-
-        class FrameworkOption(Protocol):
-            """Typed option metadata exposed in a generated command signature."""
-
-            @property
-            def param_decls(self) -> t.StrSequence | None:
-                """Ordered framework option declarations."""
-                ...
-
-            @property
-            def default(self) -> t.Cli.CliValue | EllipsisType | None:
-                """Generated option default."""
                 ...
 
 
