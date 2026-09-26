@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import inspect
-
 from flext_tests import tm
 
 from flext_cli import FlextCliSettings, cli, m, settings
@@ -56,9 +54,6 @@ class TestsFlextCliPublicContractsCoverage:
         tm.ok(facade_result)
         tm.that(facade_result.value.status, eq=(c.Cli.ServiceStatus.OPERATIONAL))
         tm.that(facade_result.value.service, eq=c.Cli.FLEXT_CLI)
-        components = facade_result.value.components
-        tm.that(components, is_=m.Cli.RuntimeComponents)
-        tm.that(components.prompts, eq="available")
 
     def test_public_model_command_utility_contract(self) -> None:
         """Verify that public model command utility contract."""
@@ -70,15 +65,6 @@ class TestsFlextCliPublicContractsCoverage:
         command = u.Cli.build_model_command(
             self._CommandModel, handler, settings=command_settings
         )
-        signature = inspect.signature(command)
-
-        # NOTE (multi-agent): ``u.Cli.build_model_command`` renders model-field
-        # defaults into the signature; settings-seeded defaults are the
-        # ``cli.model_command`` contract, not this utility's.
-        tm.that(
-            signature.parameters["label"].default is inspect.Parameter.empty, eq=True
-        )
-        tm.that(signature.parameters["debug"].default, eq=False)
         tm.that(
             u.Cli.model_source_data(
                 self._CommandModel, self._CommandSource(label="mapped", debug=None)

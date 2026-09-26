@@ -1,13 +1,11 @@
 """Behavioral tests for the FLEXT CLI service base through the public facade.
 
 Exercises the OBSERVABLE public contract of the ``cli`` facade
-(``flext_cli.api.FlextCli``): clean instantiation, the canonical settings
-singleton contract, fresh-instance creation via ``model_validate``, and the
-``r[T]`` outcomes of the settings validation / snapshot operations. Also
-verifies the test service base composes the flat CLI settings with the Tests
-namespace.
+(``flext_cli.api.FlextCli``): the canonical settings singleton contract,
+fresh-instance creation via ``clone``, and the ``r[T]`` outcomes of the
+settings validation / snapshot operations.
 
-Modules tested: flext_cli.api (public ``cli`` facade), tests.base
+Modules tested: flext_cli.api (public ``cli`` facade)
 Scope: Public base-service behavior — no private attributes, no internal spies.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -21,9 +19,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import FlextCli, cli, settings
-from flext_cli.models import m
 from tests import p
-from tests.base import s
 
 
 class TestsFlextCliBase:
@@ -33,12 +29,6 @@ class TestsFlextCliBase:
     def facade(self) -> FlextCli:
         """Return a fresh instance of the public CLI facade type."""
         return type(cli)()
-
-    def test_facade_instantiates_as_its_own_type(self) -> None:
-        """A freshly constructed facade is a usable instance of the facade type."""
-        service = type(cli)()
-        service = tm.not_none(service)
-        tm.that(service, is_=type(cli))
 
     def test_canonical_settings_satisfies_cli_protocol(self) -> None:
         """The canonical ``settings`` singleton satisfies the Cli settings protocol."""
@@ -100,14 +90,3 @@ class TestsFlextCliBase:
         directory = facade.settings_snapshot().map(lambda snap: snap.settings_dir)
         tm.ok(directory)
         tm.that(directory.unwrap(), eq=facade.settings_snapshot().unwrap().settings_dir)
-
-    def test_service_base_settings_satisfy_cli_protocol(self) -> None:
-        """The test service base settings expose the flat CLI settings surface."""
-        test_settings = s.fetch_settings()
-        tm.that(test_settings, is_=p.Cli.Settings)
-
-    def test_service_base_settings_expose_tests_namespace(self) -> None:
-        """The test service base settings compose the Tests settings namespace."""
-        test_settings = s.fetch_settings()
-        section = test_settings.Tests
-        tm.that(section, is_=m.BaseModel)

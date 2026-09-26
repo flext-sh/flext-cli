@@ -76,7 +76,7 @@ class FlextCliPrompts(FlextCliPromptsSupport):
             "prompt_password",
             message,
             lambda: u.Cli.prompts_password_result(
-                self._password_reader(f"{message}{c.Cli.PROMPT_SPACE}"),
+                self.password_reader(f"{message}{c.Cli.PROMPT_SPACE}"),
                 min_length=min_length,
             ),
             consequence="Password prompt failed completely",
@@ -113,7 +113,7 @@ class FlextCliPrompts(FlextCliPromptsSupport):
     def _read_prompt_value(self, message: str, default: str) -> str:
         """Read one prompt value and record the canonical prompt log."""
         display_message = u.Cli.prompts_display_message(message, default)
-        raw = self._input_reader(f"{display_message}{c.Cli.PROMPT_SEP}")
+        raw = self.input_reader(f"{display_message}{c.Cli.PROMPT_SEP}")
         value: str = u.Cli.prompts_effective_text(raw, default)
         if not self._is_test_env():
             self._log(

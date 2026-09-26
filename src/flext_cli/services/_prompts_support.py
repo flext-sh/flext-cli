@@ -40,13 +40,27 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
         m.Field(description="Prompt runtime state for interaction behavior."),
     ] = m.Field(m.Cli.PromptRuntimeState(), validate_default=True)
 
-    _input_reader: t.Cli.PromptTextReader = m.PrivateAttr(_PromptInputReaderDefault())
+    input_reader: Annotated[
+        t.Cli.PromptTextReader,
+        m.Field(
+            description=(
+                "Text input port; reads the process stdin unless the embedding "
+                "application injects its own source."
+            ),
+            exclude=True,
+        ),
+    ] = m.Field(default_factory=_PromptInputReaderDefault, validate_default=True)
 
-    _password_reader: t.Cli.PromptTextReader = m.PrivateAttr(
-        _PromptPasswordReaderDefault()
-    )
-
-    _test_env_override: bool | None = m.PrivateAttr(None)
+    password_reader: Annotated[
+        t.Cli.PromptTextReader,
+        m.Field(
+            description=(
+                "Secret input port; reads the terminal without echo unless the "
+                "embedding application injects its own source."
+            ),
+            exclude=True,
+        ),
+    ] = m.Field(default_factory=_PromptPasswordReaderDefault, validate_default=True)
 
     def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
         """Replace prompt runtime state using the canonical CLI model."""
@@ -56,13 +70,10 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
     def _is_test_env(self) -> bool:
         """Whether prompt logging must use test-safe behavior.
 
-        The override private attr wins when set (tests pin it via
-        ``override_test_env``); otherwise delegate to the canonical
-        ``u.Cli.cli_test_env`` utility — settings stay pure flat data (§2.6),
-        detection logic lives in the utilities layer, never reimplemented here.
+        Delegates to the canonical ``u.Cli.cli_test_env`` utility — settings
+        stay pure flat data (§2.6), detection logic lives in the utilities
+        layer, never reimplemented here.
         """
-        if self._test_env_override is not None:
-            return self._test_env_override
         return u.Cli.cli_test_env(settings)
 
     def _guarded[TResult](
@@ -141,7 +152,7 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
         self, message: str, prompt_text: str, *, default: bool
     ) -> p.Result[bool]:
         while True:
-            input_text = self._input_reader(prompt_text)
+            input_text = self.input_reader(prompt_text)
             parsed = u.Cli.prompts_parse_confirmation(input_text, default=default)
             if parsed is not None:
                 return r[bool].ok(parsed)

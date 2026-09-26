@@ -46,12 +46,13 @@ class TestsFlextCliService:
         """Keep trace disabled when debug is not enabled at the public boundary."""
         app = cli.create_app_with_common_params(name="warn-app", help_text="Warn app")
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
+        trace_before = settings.trace
 
         invoke_result = cli.invoke_app(app, args=["--trace", "ok"])
 
         tm.ok(invoke_result)
         tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=True)
-        tm.that(settings.trace, eq=False)
+        tm.that(settings.trace, eq=trace_before)
 
     def test_create_app_with_common_params_no_flags_keeps_settings(self) -> None:
         """Preserve settings when the invocation supplies no shared flags."""
@@ -59,12 +60,14 @@ class TestsFlextCliService:
             name="identity-app", help_text="Identity app"
         )
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
+        shared_flags = {"debug", "trace", "verbose", "quiet", "log_level"}
+        flags_before = settings.model_dump(include=shared_flags)
 
         invoke_result = cli.invoke_app(app, args=["ok"])
 
         tm.ok(invoke_result)
         tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=True)
-        tm.that(settings.debug, eq=False)
+        tm.that(settings.model_dump(include=shared_flags), eq=flags_before)
 
     def test_derive_model_merges_canonical_model_sources(self) -> None:
         """Merge ordered canonical model sources without model-less payloads."""

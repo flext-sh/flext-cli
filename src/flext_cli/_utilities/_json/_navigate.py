@@ -85,9 +85,9 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
     @staticmethod
     def json_pick_bool(data: t.JsonMapping, key: str, *, default: bool = False) -> bool:
         """Extract a boolean value from mapping with string/int coercion."""
-        parsed: bool = u.parse(
-            data.get(key, None), bool, default=default
-        ).unwrap_or(default)
+        parsed: bool = u.parse(data.get(key, None), bool, default=default).unwrap_or(
+            default
+        )
         return parsed
 
     @staticmethod
