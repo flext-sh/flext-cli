@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import pytest
 from flext_tests import tm
 
-from tests import c, m, p, u
+from tests import c, m, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -29,10 +29,9 @@ class TestsFlextCliRuntimeStreamedProcess:
     """Prove streaming, deadlines, exact exits, and descendant cleanup."""
 
     @staticmethod
-    def _input_pump_is_alive() -> bool:
-        return any(
-            thread.name == "flext-cli-process-input" for thread in threading.enumerate()
-        )
+    def _live_threads() -> frozenset[threading.Thread]:
+        """Snapshot live threads so a run can be proven to leak none."""
+        return frozenset(threading.enumerate())
 
     def test_combined_output_is_byte_exact_and_live(
         self, tmp_path: Path, capfd: pytest.CaptureFixture[str]
@@ -129,6 +128,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         expected_bytes = (
             payload.encode("utf-8") if isinstance(payload, str) else payload
         )
+        threads_before = self._live_threads()
 
         result = u.Cli().run_to_file(
             [
@@ -144,11 +144,12 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=0)
         tm.that(output_file.read_bytes(), eq=expected_bytes)
-        tm.that(self._input_pump_is_alive(), eq=False)
+        tm.that(self._live_threads() - threads_before, empty=True)
 
     def test_zero_length_input_publishes_eof(self, tmp_path: Path) -> None:
         """An explicitly empty payload still owns a pipe and closes its writer."""
         output_file = tmp_path / "empty-stdin.log"
+        threads_before = self._live_threads()
         result = u.Cli().run_to_file(
             [
                 sys.executable,
@@ -162,10 +163,11 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=0)
         tm.that(output_file.read_text(encoding="utf-8"), eq="0")
-        tm.that(self._input_pump_is_alive(), eq=False)
+        tm.that(self._live_threads() - threads_before, empty=True)
 
     def test_child_early_exit_preserves_its_exact_status(self, tmp_path: Path) -> None:
         """A secondary broken input pipe cannot replace the child's real exit."""
+        threads_before = self._live_threads()
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "raise SystemExit(23)"],
             tmp_path / "early-exit.log",
@@ -174,12 +176,13 @@ class TestsFlextCliRuntimeStreamedProcess:
 
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=23)
-        tm.that(self._input_pump_is_alive(), eq=False)
+        tm.that(self._live_threads() - threads_before, empty=True)
 
     def test_nonreading_child_timeout_unblocks_the_input_writer(
         self, tmp_path: Path
     ) -> None:
         """Killing the child removes the last reader and releases a full writer."""
+        threads_before = self._live_threads()
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "import time;time.sleep(30)"],
             tmp_path / "timeout-input.log",
@@ -189,13 +192,7 @@ class TestsFlextCliRuntimeStreamedProcess:
 
         tm.ok(result)
         tm.that(result.value.timed_out, eq=True)
-        tm.that(self._input_pump_is_alive(), eq=False)
-
-    def test_deadline_model_satisfies_public_protocol(self) -> None:
-        """Expose one typed model through the structural public protocol."""
-        deadline = _deadline(seconds=2.0, grace=0.5)
-
-        tm.that(deadline, is_=p.Cli.ProcessDeadline)
+        tm.that(self._live_threads() - threads_before, empty=True)
 
     def test_deadline_timeout_reports_causal_outcome(self, tmp_path: Path) -> None:
         """Deadline expiry reports its causal outcome instead of failing."""

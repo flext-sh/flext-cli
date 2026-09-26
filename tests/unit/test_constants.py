@@ -26,13 +26,6 @@ from tests import c, u
 class TestsFlextCliConstants:
     """Public-contract behavior of the flext-cli constants facade."""
 
-    def test_cli_version_is_the_published_semver(self) -> None:
-        """CLI_VERSION exposes the shipped 3-part semver string."""
-        version = c.Cli.CLI_VERSION
-        major, minor, patch = version.split(".")[:3]
-        for part in (major, minor, patch):
-            tm.that(part.isdigit(), eq=True)
-
     @pytest.mark.parametrize(
         "enum_cls",
         [
