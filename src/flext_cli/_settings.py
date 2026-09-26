@@ -56,6 +56,10 @@ class FlextCliSettings(FlextSettings):
             description="Progress heartbeat interval for live child processes",
         ),
     ] = FlextCliConstantsSettings.CLI_PROCESS_HEARTBEAT_SECONDS
+    cli_pipeline_max_workers: Annotated[
+        int,
+        m.Field(ge=1, description="Maximum concurrent stages in one pipeline wave"),
+    ] = 4
     cli_config_file: Annotated[
         str | None, m.Field(description="Path to settings file")
     ] = None
