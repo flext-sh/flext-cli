@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from inspect import Parameter
 
-from flext_cli import m, p, settings, t, u
+from flext_cli import m, p, r, settings, t, u
 from flext_cli.services.cli_params import FlextCliCommonParams
 
 from .flextclicli_part_01 import FlextCliCli as FlextCliCliPart01
@@ -26,9 +26,10 @@ class FlextCliCli(FlextCliCliPart01):
             **params.model_dump(),
             "log_level": resolved_log_level,
         })
-        self._apply_updated_settings(
-            FlextCliCommonParams.apply_to_config(settings, params=next_params).unwrap()
-        )
+        applied = FlextCliCommonParams.apply_to_config(settings, params=next_params)
+        if applied.failure:
+            self._exit_failure(r[bool].from_failure(applied))
+        self._apply_updated_settings(applied.value)
 
     @staticmethod
     def _apply_updated_settings(updated_settings: p.Cli.Settings) -> None:
