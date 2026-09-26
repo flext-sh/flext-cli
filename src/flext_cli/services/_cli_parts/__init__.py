@@ -9,14 +9,14 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from .flextclicli_part_05 import FlextCliCli
+    from .flextclicli_part_06 import FlextCliCli
 
 
 __all__: tuple[str, ...] = ("FlextCliCli",)
 
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
-        MappingProxyType({".flextclicli_part_05": ("FlextCliCli",)}),
+        MappingProxyType({".flextclicli_part_06": ("FlextCliCli",)}),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
     )

@@ -216,7 +216,6 @@ if TYPE_CHECKING:
     from .framework import FlextCliUtilitiesFramework
     from .json import FlextCliUtilitiesJson
     from .matching import FlextCliUtilitiesMatching
-    from .model_commands import FlextCliUtilitiesModelCommands
     from .output import FlextCliUtilitiesOutput
     from .params import FlextCliUtilitiesParams
     from .pipeline import FlextCliUtilitiesPipeline
@@ -258,7 +257,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesJsonCoreMixin",
     "FlextCliUtilitiesJsonNavigateMixin",
     "FlextCliUtilitiesMatching",
-    "FlextCliUtilitiesModelCommands",
     "FlextCliUtilitiesOptionBuilder",
     "FlextCliUtilitiesOptions",
     "FlextCliUtilitiesOutput",
@@ -648,7 +646,6 @@ _LAZY_IMPORTS = MappingProxyType(
             ".framework": ("FlextCliUtilitiesFramework",),
             ".json": ("FlextCliUtilitiesJson",),
             ".matching": ("FlextCliUtilitiesMatching",),
-            ".model_commands": ("FlextCliUtilitiesModelCommands",),
             ".output": ("FlextCliUtilitiesOutput",),
             ".params": ("FlextCliUtilitiesParams",),
             ".pipeline": ("FlextCliUtilitiesPipeline",),

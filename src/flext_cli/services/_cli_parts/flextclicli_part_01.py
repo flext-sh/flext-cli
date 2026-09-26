@@ -9,8 +9,9 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from inspect import Parameter, Signature
 from types import GenericAlias
+from typing import Never
 
-from flext_cli import c, m, p, t, u
+from flext_cli import c, e, m, p, r, settings, t, u
 
 
 class FlextCliCli:
@@ -28,6 +29,7 @@ class FlextCliCli:
         __signature__: Signature
         _handler: p.Cli.ModelCommandHandler[M]
         _model_cls: t.ModelClass[M]
+        _result_border: bool
 
         def __init__(
             self,
@@ -35,17 +37,37 @@ class FlextCliCli:
             handler: p.Cli.ModelCommandHandler[M],
             model_cls: t.ModelClass[M],
             parameters: t.SequenceOf[Parameter],
+            result_border: bool,
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
             self.__signature__ = Signature(parameters)
             self._handler = handler
             self._model_cls = model_cls
+            self._result_border = result_border
 
         def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
             # Typer passes each option under its parameter (field) name, so an
-            # aliased field must validate by name as well as by alias.
-            model = self._model_cls.model_validate(kwargs, by_name=True)
+            # aliased field must validate by name as well as by alias. A result
+            # border turns rejected input into ``e.fail_validation`` carrying
+            # the ValidationError and exits non-zero; a plain command raises it.
+            try:
+                model = self._model_cls.model_validate(kwargs, by_name=True)
+            except m.ValidationError as exc:
+                if not self._result_border:
+                    raise
+                FlextCliCli._exit_failure(
+                    e.fail_validation(
+                        self._model_cls.__name__, error=exc, result_type=r[bool]
+                    )
+                )
             return self._handler(model)
+
+    @staticmethod
+    def _exit_failure[TResult: t.Cli.ResultValue](result: p.Result[TResult]) -> Never:
+        """Expose a failed Result once at the CLI border and exit non-zero."""
+        u.Cli.framework_exit_result(result)
+        u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)
+        u.Cli.framework_exit(c.Cli.EXIT_CODE_FAILURE)
 
     @classmethod
     def _build_model_parameter(
@@ -69,7 +91,7 @@ class FlextCliCli:
                 candidate = f"--{choice.replace('_', '-')}"
                 if candidate != option_name and candidate not in extra_option_names:
                     extra_option_names.append(candidate)
-        field_annotation = getattr(field_info, "annotation", None) or str
+        field_annotation = u.Cli.field_annotation(field_name, field_info)
         annotation = u.Cli.resolve_typer_annotation(field_annotation)
         json_annotation = (
             field_annotation if u.Cli.is_json_option(field_annotation) else None

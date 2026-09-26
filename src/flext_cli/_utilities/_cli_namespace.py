@@ -16,7 +16,6 @@ from .formatters import FlextCliUtilitiesFormatters
 from .framework import FlextCliUtilitiesFramework
 from .json import FlextCliUtilitiesJson
 from .matching import FlextCliUtilitiesMatching
-from .model_commands import FlextCliUtilitiesModelCommands
 from .output import FlextCliUtilitiesOutput
 from .params import FlextCliUtilitiesParams
 from .pipeline import FlextCliUtilitiesPipeline
@@ -49,7 +48,6 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesFramework,
     FlextCliUtilitiesJson,
     FlextCliUtilitiesMatching,
-    FlextCliUtilitiesModelCommands,
     FlextCliUtilitiesOptions,
     FlextCliUtilitiesOutput,
     FlextCliUtilitiesParams,
