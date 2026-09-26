@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable
 from pathlib import Path
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
@@ -49,7 +49,6 @@ class FlextCliTypesDomain:
         | FlextCliTypesDomain.RuleCatalog[TFileRuleKind]
         | None
     )
-    type MutableDefaultMapping = MutableMapping[str, t.Scalar | t.StrSequence]
     type CliParamValue = bool | str
     type CliParamKwargs = t.MappingKV[str, CliParamValue]
     type DefaultAtom = t.Scalar | t.StrSequence

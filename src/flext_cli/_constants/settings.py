@@ -47,6 +47,10 @@ class FlextCliConstantsSettings:
     FLEXT_CLI: ClassVar[str] = "flext-cli"
     CLI_VERSION: ClassVar[str] = "2.0.0"
     OPTIONAL_UNION_ARG_COUNT: ClassVar[int] = 2
+    CLI_JSON_OPTION_METAVAR: ClassVar[str] = "JSON"
+    CLI_JSON_OPTION_HELP: ClassVar[str] = (
+        "Format: JSON text, validated into the option's declared type."
+    )
     CLI_SCALAR_TYPES_TUPLE: ClassVar[
         tuple[type[str], type[int], type[float], type[bool]]
     ] = t.PRIMITIVES_TYPES

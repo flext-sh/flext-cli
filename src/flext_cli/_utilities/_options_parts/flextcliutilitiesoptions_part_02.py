@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-
 from flext_cli import c, t
 from flext_cli.models import m
+from flext_core import u
 
 from .flextcliutilitiesoptionbuilder_part_01 import FlextCliUtilitiesOptionBuilder
 from .flextcliutilitiesoptions_part_01 import (
@@ -29,6 +28,9 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             if callable(default_factory)
             else getattr(field_info, "default", None)
         )
+        if cls.is_json_option(getattr(field_info, "annotation", None) or str):
+            # A JSON option's default is the JSON text its parser validates.
+            return None if source_value is None else u.to_json(source_value).decode()
         try:
             normalized_source = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
                 source_value
@@ -42,13 +44,6 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
                 normalized_atom := cls.normalize_cli_atom(normalized_source)
             ) is not None:
                 normalized_default: t.Cli.CliValue | None = normalized_atom
-            case Mapping() as normalized_source_mapping:
-                normalized_mapping: t.Cli.MutableDefaultMapping = {}
-                for key, item_value in normalized_source_mapping.items():
-                    normalized_item = cls.normalize_cli_atom(item_value)
-                    if normalized_item is not None:
-                        normalized_mapping[key] = normalized_item
-                normalized_default = normalized_mapping or None
             case _ if cls.is_string_sequence(normalized_source):
                 normalized_default = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(
                     normalized_source

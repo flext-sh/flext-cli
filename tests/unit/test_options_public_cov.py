@@ -29,7 +29,7 @@ class TestsFlextCliOptions:
 
     @pytest.mark.parametrize(
         ("annotation", "expected"),
-        [(str | None, str), (str | int, str), (dict[str, int], dict), (int, int)],
+        [(str | None, str), (str | int, str), (dict[str, int], str), (int, int)],
     )
     def test_resolve_typer_annotation_maps_scalars_unions_and_collections(
         self, annotation: t.Cli.RuntimeAnnotation, expected: type
@@ -102,13 +102,16 @@ class TestsFlextCliOptions:
             eq=("lint", "typecheck"),
         )
 
-    def test_field_default_normalizes_mapping_field_preserving_entries(self) -> None:
-        """Verify that field default normalizes mapping field preserving entries."""
+    def test_field_default_renders_mapping_field_as_json_text(self) -> None:
+        """A mapping default is the JSON text that decodes to the same entries."""
         settings = self._OptionSettings()
         fields = self._OptionSettings.model_fields
 
+        default = u.Cli.field_default("flags", fields["flags"], settings)
+
+        tm.that(isinstance(default, str), eq=True)
         tm.that(
-            u.Cli.field_default("flags", fields["flags"], settings), eq={"debug": True}
+            t.Cli.JSON_VALUE_ADAPTER.validate_json(str(default)), eq=settings.flags
         )
 
     def test_field_default_falls_back_to_field_metadata_without_settings(self) -> None:
