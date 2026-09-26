@@ -69,7 +69,6 @@ class FlextCliTypesDomain:
     type SuccessMessageFormatter[TResult: ResultValue = ResultValue] = Callable[
         [TResult], str
     ]
-    type MappingProcessor[T, U] = Callable[[str, T], U]
     type TomlMappingSource = (
         t.JsonPayload | t.JsonMapping | t.ScalarMapping | Item | TOMLDocument
     )
