@@ -42,4 +42,3 @@ class TestsFlextCliPublicContractsCoverage:
         tm.ok(facade_result)
         tm.that(facade_result.value.status, eq=(c.Cli.ServiceStatus.OPERATIONAL))
         tm.that(facade_result.value.service, eq=c.Cli.FLEXT_CLI)
-

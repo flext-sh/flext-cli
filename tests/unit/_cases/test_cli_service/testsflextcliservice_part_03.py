@@ -6,7 +6,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import cli, settings
-from tests import c, m
+from tests import m
 from tests.utilities import u
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
@@ -80,4 +80,3 @@ class TestsFlextCliService:
 
         with pytest.raises(ValueError, match="boom"):
             cli.execute_app(app, prog_name="error-app", args=["boom"])
-

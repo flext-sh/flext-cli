@@ -23,6 +23,11 @@ class TestsFlextCliServiceRoutes:
         name: str
         times: int = m.Field(default=1, ge=1)
 
+    class Status(m.BaseModel):
+        """Result of the status operation."""
+
+        ready: int
+
     class Greeter(s[bool]):
         """Service whose public operations are the CLI."""
 
@@ -36,9 +41,11 @@ class TestsFlextCliServiceRoutes:
             """Greet someone by name."""
             return r[str].ok(" ".join([f"hello {request.name}"] * request.times))
 
-        def status(self) -> p.Result[dict[str, int]]:
+        def status(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
             """Report the service status."""
-            return r[dict[str, int]].ok({"ready": 1})
+            return r[TestsFlextCliServiceRoutes.Status].ok(
+                TestsFlextCliServiceRoutes.Status(ready=1)
+            )
 
     @staticmethod
     def _app(
@@ -113,4 +120,3 @@ class TestsFlextCliServiceRoutes:
 
         with pytest.raises(TypeError, match="token"):
             cli.model_command(Hidden, lambda _params: True)
-
