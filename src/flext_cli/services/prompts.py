@@ -89,7 +89,6 @@ class FlextCliPrompts(FlextCliPromptsSupport):
             message,
             c.LogLevel.ERROR,
             c.Cli.PROMPT_ERROR_FMT,
-            "Print error failed: {error}",
         )
 
     def print_success(self, message: str) -> p.Result[bool]:
@@ -98,7 +97,6 @@ class FlextCliPrompts(FlextCliPromptsSupport):
             message,
             c.LogLevel.INFO,
             c.Cli.PROMPT_SUCCESS_FMT,
-            "Print success failed: {error}",
         )
 
     def print_warning(self, message: str) -> p.Result[bool]:
@@ -107,7 +105,6 @@ class FlextCliPrompts(FlextCliPromptsSupport):
             message,
             c.LogLevel.WARNING,
             c.Cli.PROMPT_WARNING_FMT,
-            "Print warning failed: {error}",
         )
 
     def _read_prompt_value(self, message: str, default: str) -> str:
