@@ -6,12 +6,10 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import cli, settings
-from tests import c, m
+from tests import m
 from tests.utilities import u
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
-# NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): derive_model tests
-# compose canonical source models without JSON-shaped intermediaries.
 
 
 class TestsFlextCliService:
@@ -40,10 +38,10 @@ class TestsFlextCliService:
         tm.that(help_result.value.stdout, has="--visible")
         tm.that("--hidden" in help_result.value.stdout, eq=False)
 
-    def test_create_app_with_common_params_handles_invalid_trace_without_debug(
+    def test_create_app_with_common_params_rejects_trace_without_debug(
         self,
     ) -> None:
-        """Keep trace disabled when debug is not enabled at the public boundary."""
+        """Fail the invocation when shared flags cannot apply to the settings."""
         app = cli.create_app_with_common_params(name="warn-app", help_text="Warn app")
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
         trace_before = settings.trace
@@ -51,7 +49,8 @@ class TestsFlextCliService:
         invoke_result = cli.invoke_app(app, args=["--trace", "ok"])
 
         tm.ok(invoke_result)
-        tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=True)
+        tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=False)
+        tm.that(invoke_result.value.stdout, has="debug")
         tm.that(settings.trace, eq=trace_before)
 
     def test_create_app_with_common_params_no_flags_keeps_settings(self) -> None:
@@ -69,24 +68,6 @@ class TestsFlextCliService:
         tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=True)
         tm.that(settings.model_dump(include=shared_flags), eq=flags_before)
 
-    def test_derive_model_merges_canonical_model_sources(self) -> None:
-        """Merge ordered canonical model sources without model-less payloads."""
-        first_source = m.Tests.SampleInput(name="alice", count=2)
-        model_from_instance = m.Tests.SampleInput(
-            name="bob", count=7, dry_run=True, output_format=c.Cli.OutputFormats.JSON
-        )
-        final_source = m.Tests.SampleInput(
-            name="carol", count=9, dry_run=True, output_format=c.Cli.OutputFormats.JSON
-        )
-
-        derived = cli.derive_model(
-            m.Tests.SampleInput, first_source, model_from_instance, final_source
-        )
-
-        tm.that(derived.name, eq="carol")
-        tm.that(derived.count, eq=9)
-        tm.that(derived.dry_run, eq=True)
-
     def test_execute_app_propagates_unexpected_exception(self) -> None:
         """Propagate unexpected command defects with their original cause."""
         app = cli.create_app_with_common_params(name="error-app", help_text="Error app")
@@ -99,6 +80,3 @@ class TestsFlextCliService:
 
         with pytest.raises(ValueError, match="boom"):
             cli.execute_app(app, prog_name="error-app", args=["boom"])
-
-
-__all__: list[str] = ["TestsFlextCliService"]

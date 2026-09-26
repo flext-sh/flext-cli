@@ -20,14 +20,8 @@ class TestsFlextCliModelsRuntime:
         message: Annotated[str, m.Field(description="Message")]
         error: Annotated[str | None, m.Field(description="Error")] = None
 
-    class ModelCommandSource(m.BaseModel):
-        """Partial override source for the model-command DSL (all optional)."""
-
-        name: Annotated[str | None, m.Field(description="Command name")] = None
-        value: Annotated[int | None, m.Field(description="Command value")] = None
-
     class ModelCommandSample(m.BaseModel):
-        """Target model for derive_model/model_command tests."""
+        """Target model for model_command tests."""
 
         name: Annotated[str, m.Field(description="Required command name")]
         value: Annotated[int, m.Field(description="Command value with default")] = 42

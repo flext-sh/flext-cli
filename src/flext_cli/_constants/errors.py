@@ -119,6 +119,13 @@ class FlextCliConstantsErrors:
     ERR_FIELD_DEFAULT_NOT_CLI_VALUE_FMT: ClassVar[str] = (
         "field '{field_name}' default {value!r} has no CLI option form"
     )
+    ERR_FIELD_WITHOUT_ANNOTATION_FMT: ClassVar[str] = (
+        "field '{field_name}' declares no annotation, so it has no CLI option form"
+    )
+    ERR_REQUIRED_EXCLUDED_FIELD_FMT: ClassVar[str] = (
+        "model '{model}' field '{field_name}' is required and exclude=True, "
+        "so no CLI option can supply it; give it a default or expose it"
+    )
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliConstantsErrors"]

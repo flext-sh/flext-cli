@@ -15,6 +15,18 @@ from .flextcliutilitiesoptions_part_01 import (
 class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
     """Implementation part for FlextCliUtilitiesOptions."""
 
+    @staticmethod
+    def field_annotation(
+        field_name: str, field_info: m.FieldInfo
+    ) -> t.Cli.RuntimeAnnotation:
+        """Return the declared annotation of a CLI field or fail naming the field."""
+        annotation = field_info.annotation
+        if annotation is None:
+            raise TypeError(
+                c.Cli.ERR_FIELD_WITHOUT_ANNOTATION_FMT.format(field_name=field_name)
+            )
+        return annotation
+
     @classmethod
     def field_default(
         cls, field_name: str, field_info: m.FieldInfo, settings: t.Cli.ModelLike | None
@@ -27,17 +39,14 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
         Typer option carries raises ``TypeError``. Structured defaults travel
         through the JSON-option path.
         """
-        default_factory = getattr(field_info, "default_factory", None)
         source_value = (
             getattr(settings, field_name)
-            if settings is not None and hasattr(settings, field_name)
-            else default_factory()
-            if callable(default_factory)
-            else getattr(field_info, "default", None)
+            if settings is not None and field_name in type(settings).model_fields
+            else field_info.get_default(call_default_factory=True, validated_data={})
         )
         if source_value is None:
             return None
-        if cls.is_json_option(getattr(field_info, "annotation", None) or str):
+        if cls.is_json_option(cls.field_annotation(field_name, field_info)):
             # A JSON option's default is the JSON text its parser validates.
             return u.to_json(source_value).decode()
         normalized_atom = cls.normalize_cli_atom(
