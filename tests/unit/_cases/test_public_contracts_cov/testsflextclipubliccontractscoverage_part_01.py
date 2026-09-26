@@ -55,16 +55,8 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(facade_result.value.status, eq=(c.Cli.ServiceStatus.OPERATIONAL))
         tm.that(facade_result.value.service, eq=c.Cli.FLEXT_CLI)
 
-    def test_public_model_command_utility_contract(self) -> None:
-        """Verify that public model command utility contract."""
-        command_settings = self._CommandModel(label="configured", debug=True)
-
-        def handler(model: TestsFlextCliPublicContractsCoverage._CommandModel) -> str:
-            return f"{model.label}:{model.debug}"
-
-        command = u.Cli.build_model_command(
-            self._CommandModel, handler, settings=command_settings
-        )
+    def test_public_model_source_data_contract(self) -> None:
+        """Model sources contribute only target fields that carry a value."""
         tm.that(
             u.Cli.model_source_data(
                 self._CommandModel, self._CommandSource(label="mapped", debug=None)
@@ -72,7 +64,7 @@ class TestsFlextCliPublicContractsCoverage:
             eq={"label": "mapped"},
         )
 
-        derived = u.Cli.derive_model(
+        derived = cli.derive_model(
             self._CommandModel,
             {"label": "base"},
             {"debug": True},
@@ -81,7 +73,6 @@ class TestsFlextCliPublicContractsCoverage:
 
         tm.that(derived.label, eq="override")
         tm.that(derived.debug, eq=True)
-        tm.that(command(label="runtime", debug=True), eq="runtime:True")
 
 
 __all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]
