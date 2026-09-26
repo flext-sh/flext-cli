@@ -8,20 +8,10 @@ internal-collaborator spying, no line-coverage pokes.
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
 import pytest
 from flext_tests import tm
 
 from tests import c, m, t, u
-
-type MappingProcessor = Callable[[str, int], int]
-
-
-def _raise_bad(_key: str, _value: int) -> int:
-    """Processor that always raises to drive the error-handling branches."""
-    msg = "bad-item"
-    raise ValueError(msg)
 
 
 class TestsFlextCliCmdRuntimeValidationBranchCov:
@@ -81,42 +71,6 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
         tm.that(pruned, eq=baseline)
 
     # ---------------------------------------------------------- validation
-    def test_process_mapping_maps_every_value_on_success(self) -> None:
-        """Verify that process mapping maps every value on success."""
-        result = u.Cli.process_mapping({"a": 1, "b": 2}, lambda _key, value: value * 10)
-
-        tm.ok(result)
-        tm.that(result.unwrap(), eq={"a": 10, "b": 20})
-
-    def test_process_mapping_fail_mode_stops_at_first_error(self) -> None:
-        """Verify that process mapping fail mode stops at first error."""
-        result = u.Cli.process_mapping({"a": 1}, _raise_bad, on_error="fail")
-
-        tm.fail(result)
-        tm.that((result.error or ""), has="a")
-        tm.that((result.error or ""), has="bad-item")
-
-    def test_process_mapping_collect_mode_aggregates_errors(self) -> None:
-        """Verify that process mapping collect mode aggregates errors."""
-        result = u.Cli.process_mapping({"a": 1}, _raise_bad, on_error="collect")
-
-        tm.fail(result)
-        tm.that((result.error or ""), has="a: bad-item")
-
-    def test_process_mapping_skip_mode_yields_only_successful_items(self) -> None:
-        """Verify that process mapping skip mode yields only successful items."""
-
-        def raise_on_a(key: str, value: int) -> int:
-            if key == "a":
-                msg = "boom"
-                raise ValueError(msg)
-            return value
-
-        result = u.Cli.process_mapping({"a": 1, "b": 2}, raise_on_a, on_error="skip")
-
-        tm.ok(result)
-        tm.that(result.unwrap(), eq={"b": 2})
-
     @pytest.mark.parametrize("output_format", tuple(c.Cli.OUTPUT_FORMATS))
     def test_validate_format_accepts_every_supported_format(
         self, output_format: str

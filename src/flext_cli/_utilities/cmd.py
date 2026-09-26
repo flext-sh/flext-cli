@@ -49,15 +49,12 @@ class FlextCliUtilitiesCmd:
     @staticmethod
     def cmd_validate_settings(logger: p.Logger) -> p.Result[bool]:
         """Validate canonical settings structure and log normalized results."""
-        try:
-            results = us.validate_settings_structure()
-            if results:
-                logger.info(
-                    c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results)
-                )
-            return r[bool].ok(True)
-        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[bool].fail(c.Cli.ERR_SETTINGS_VALIDATION_FAILED.format(error=exc))
+        results = us.validate_settings_structure()
+        if results:
+            logger.info(
+                c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results)
+            )
+        return r[bool].ok(True)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCmd"]

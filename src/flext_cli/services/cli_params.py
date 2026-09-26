@@ -27,15 +27,18 @@ class FlextCliCommonParams(s[m.Cli.RuntimeStatus]):
         """Apply CLI parameter values to FlextSettings using Pydantic validation.
 
         Business Rule: Applies CLI parameter values with Pydantic validation.
-        Trace mode requires debug mode to be enabled.
+        Trace mode requires debug mode to be enabled. Parameter values the
+        ``CliParamsConfig`` model rejects are the declared failure outcome and
+        the result carries the ``ValidationError``; every other exception
+        escapes.
         """
         try:
             params_to_use = u.Cli.params_resolve(params, kwargs)
-            return u.Cli.params_apply(settings, params_to_use)
-        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
+        except c.ValidationError as exc:
             return r[p.Cli.Settings].fail(
-                c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc)
+                c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc), exception=exc
             )
+        return u.Cli.params_apply(settings, params_to_use)
 
     @classmethod
     def create_option(cls, field_name: str) -> m.Cli.OptionSpec:

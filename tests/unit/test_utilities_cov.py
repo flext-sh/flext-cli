@@ -2,7 +2,6 @@
 
 Exercises only the observable contract of the utility helpers:
 - ``u.process`` — item processing with predicate filtering and error policy.
-- ``u.Cli.process_mapping`` — keyed processing with fail/collect/skip policy.
 - ``u.Cli.validate_not_empty`` — emptiness validation returning ``r[bool]``.
 - ``u.Cli.project_names_from_values`` / ``project_numbers_from_values`` —
   CLI selector normalization.
@@ -22,11 +21,6 @@ def _raise_on_zero(value: int) -> int:
         msg = "div zero"
         raise ValueError(msg)
     return 10 // value
-
-
-def _raise_on_zero_kv(_key: str, value: int) -> int:
-    """Delegate key/value arguments to :func:`_raise_on_zero`."""
-    return _raise_on_zero(value)
 
 
 class TestsFlextCliUtilitiesCov:
@@ -55,36 +49,6 @@ class TestsFlextCliUtilitiesCov:
         result = u.process([1, 0, 5], _raise_on_zero, predicate=lambda x: x != 0)
         tm.ok(result)
         tm.that(list(result.unwrap()), eq=[10, 2])
-
-    def test_process_mapping_returns_mapped_values_on_success(self) -> None:
-        """Verify that process mapping returns mapped values on success."""
-        result = u.Cli.process_mapping({"a": 2, "b": 5}, _raise_on_zero_kv)
-        tm.ok(result)
-        tm.that(result.unwrap(), eq={"a": 5, "b": 2})
-
-    def test_process_mapping_fail_policy_reports_offending_key(self) -> None:
-        """Verify that process mapping fail policy reports offending key."""
-        result = u.Cli.process_mapping(
-            {"ok": 2, "bad": 0}, _raise_on_zero_kv, on_error="fail"
-        )
-        tm.fail(result)
-        tm.that(result.error or "", has="bad")
-
-    def test_process_mapping_collect_policy_reports_offending_key(self) -> None:
-        """Verify that process mapping collect policy reports offending key."""
-        result = u.Cli.process_mapping(
-            {"ok": 2, "bad": 0}, _raise_on_zero_kv, on_error="collect"
-        )
-        tm.fail(result)
-        tm.that(result.error or "", has="bad")
-
-    def test_process_mapping_skip_policy_keeps_only_successes(self) -> None:
-        """Verify that process mapping skip policy keeps only successes."""
-        result = u.Cli.process_mapping(
-            {"ok": 2, "bad": 0}, _raise_on_zero_kv, on_error="skip"
-        )
-        tm.ok(result)
-        tm.that(result.unwrap(), eq={"ok": 5})
 
     @pytest.mark.parametrize("value", [None, "", "   "])
     def test_validate_not_empty_fails_for_empty_inputs(self, value: str | None) -> None:
