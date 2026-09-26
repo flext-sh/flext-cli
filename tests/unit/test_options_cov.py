@@ -217,11 +217,10 @@ class TestsFlextCliOptionsUtilsCov:
 
     def test_model_command_propagates_invalid_default_source_at_build(self) -> None:
         """A settings value outside the default-source contract escapes unchanged."""
+        settings = self.NestedListSettings()
         with pytest.raises(m.ValidationError):
             cli.model_command(
-                self.StrSequenceDefaultModel,
-                self._noop_handler,
-                settings=self.NestedListSettings(),
+                self.StrSequenceDefaultModel, self._noop_handler, settings=settings
             )
 
     def test_field_default_prefers_settings_value_over_model_default(self) -> None:
