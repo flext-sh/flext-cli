@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from flext_tests import tm
 
-from flext_cli import cli
+from flext_cli import cli, settings
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -54,7 +54,7 @@ class TestsFlextCliPipeline:
         # the slowest one. Each handler blocks on a barrier that releases only
         # once all of them are inside it, so this passes only when the engine
         # actually overlaps them.
-        width = 4
+        width = settings.cli_pipeline_max_workers
         barrier = threading.Barrier(width, timeout=10)
 
         def blocking(sid: str) -> p.Cli.PipelineStage:
@@ -74,6 +74,40 @@ class TestsFlextCliPipeline:
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
         tm.that(len(result.unwrap().stages), eq=width)
+
+    def test_independent_stages_never_exceed_the_worker_bound(
+        self, tmp_path: Path
+    ) -> None:
+        """A wave wider than the configured bound runs at most that many stages."""
+        bound = settings.cli_pipeline_max_workers
+        guard = threading.Lock()
+        active = 0
+        peak = 0
+
+        def counted(sid: str) -> p.Cli.PipelineStage:
+            def handler(
+                ctx: p.Cli.PipelineStageContext,
+            ) -> p.Result[m.Cli.PipelineStageResult]:
+                nonlocal active, peak
+                _ = ctx
+                with guard:
+                    active += 1
+                    peak = max(peak, active)
+                time.sleep(0.02)
+                with guard:
+                    active -= 1
+                return cli.ok_stage(sid)
+
+            return handler
+
+        stages = [
+            cli.stage(f"gate{index}", handler=counted(f"gate{index}"))
+            for index in range(bound * 2)
+        ]
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
+        tm.ok(result)
+        tm.that(len(result.unwrap().stages), eq=bound * 2)
+        tm.that(peak, lte=bound)
 
     def test_results_follow_declared_order_not_completion_order(
         self, tmp_path: Path
