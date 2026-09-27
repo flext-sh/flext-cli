@@ -172,6 +172,57 @@ raise SystemExit(0 if result.failure else 2)
         tm.that(path.exists(), eq=False)
         tm.that(tuple(tmp_path.iterdir()), eq=())
 
+    def test_timer_interrupt_preserves_cause_and_removes_authenticated_stage(
+        self, tmp_path: Path
+    ) -> None:
+        """A real timer interruption escapes unchanged and leaves zero residue."""
+        script = """
+import signal
+import sys
+from pathlib import Path
+from flext_cli import u
+
+class AtomicDeadline(BaseException):
+    pass
+
+root = Path(sys.argv[1])
+destination = root / "published.txt"
+
+def expire(_signum, _frame):
+    # Disarm before any check: the glob below is slow enough (tens of
+    # microseconds against a 0.1ms period) that a still-armed repeating
+    # timer can re-enter this handler before it returns, recursing without
+    # bound. Re-arming only on the negative branch keeps the polling alive
+    # without ever letting two invocations overlap.
+    signal.setitimer(signal.ITIMER_REAL, 0)
+    if tuple(root.glob(".flext-atomic-*.tmp")):
+        raise AtomicDeadline("atomic deadline")
+    signal.setitimer(signal.ITIMER_REAL, 0.0001, 0.0001)
+
+signal.signal(signal.SIGALRM, expire)
+signal.setitimer(signal.ITIMER_REAL, 0.0001, 0.0001)
+try:
+    u.Cli.atomic_write_text_file(destination, "x" * (64 * 1024 * 1024))
+except AtomicDeadline as error:
+    signal.setitimer(signal.ITIMER_REAL, 0)
+    if str(error) != "atomic deadline":
+        raise SystemExit(3)
+    if destination.exists() or tuple(root.iterdir()):
+        raise SystemExit(4)
+    raise SystemExit(0)
+raise SystemExit(2)
+"""
+
+        completed = u.Cli.run_raw((sys.executable, "-c", script, str(tmp_path)))
+
+        tm.ok(completed)
+        tm.that(
+            u.Cli.process_succeeded(completed.value.outcome),
+            eq=True,
+            msg=completed.value.stderr,
+        )
+        tm.that(tuple(tmp_path.iterdir()), eq=())
+
     def test_unwritable_parent_fails(self) -> None:
         """Expose an invalid destination through the public result contract."""
         result = u.Cli.atomic_write_text_file(

@@ -5,10 +5,19 @@ from __future__ import annotations
 import errno
 import os
 import secrets
+import signal
 import stat
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 
-from . import atomic_file_descriptor as file_descriptor, atomic_file_mode as file_mode
+from flext_cli import t
+
+from . import (
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_mode as file_mode,
+    atomic_file_state as file_state,
+)
 
 _SECURE_CREATE_MODE = 0o600
 
@@ -39,6 +48,51 @@ def create_descriptor(parent: file_descriptor.ParentDescriptor, temporary: Path)
     )
 
 
+@contextmanager
+def authenticated_descriptor(
+    parent: file_descriptor.ParentDescriptor, temporary: Path
+) -> Generator[t.Pair[int, t.Pair[int, int]]]:
+    """Transfer one descriptor only after its identity is bound.
+
+    POSIX timer signals are held across ``open`` and the caller's assignment of
+    both fields.  A timer signal can still reach this critical section through
+    a thread this function does not own (for example a process-wide interval
+    timer delivered to an unrelated background thread that has not blocked
+    it), so failure cleanup never assumes the interrupt landed at a known
+    line: it always closes a captured descriptor and, because ``temporary``
+    names an exclusive (``O_EXCL``), unpredictable sibling this call alone can
+    have created, always removes that exact sibling if it exists before the
+    signal mask is restored. Restoring the mask therefore only ever propagates
+    the original timeout once no unauthenticated descriptor or temporary can
+    remain. Windows has no ``pthread_sigmask`` or POSIX interval-timer
+    delivery.
+    """
+    timer_signals = {
+        candidate
+        for name in ("SIGALRM", "SIGVTALRM", "SIGPROF")
+        if (candidate := getattr(signal, name, None)) is not None
+    }
+    previous_mask = (
+        signal.pthread_sigmask(signal.SIG_BLOCK, timer_signals)
+        if timer_signals and hasattr(signal, "pthread_sigmask")
+        else None
+    )
+    descriptor: int | None = None
+    transferred = False
+    try:
+        descriptor = create_descriptor(parent, temporary)
+        yield (descriptor, file_state.identity(os.fstat(descriptor)))
+        transferred = True
+    finally:
+        if not transferred:
+            if descriptor is not None:
+                os.close(descriptor)
+            if file_state.destination_state(temporary, parent=parent) is not None:
+                file_descriptor.unlink_entry(parent, temporary)
+        if previous_mask is not None:
+            signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
+
+
 def write_and_sync(
     descriptor: int, temporary: Path, content: bytes, permission_mode: int | None
 ) -> int:
@@ -58,6 +112,7 @@ def write_and_sync(
 
 
 __all__: list[str] = [
+    "authenticated_descriptor",
     "create_descriptor",
     "require_mode_capability",
     "temporary_path",
