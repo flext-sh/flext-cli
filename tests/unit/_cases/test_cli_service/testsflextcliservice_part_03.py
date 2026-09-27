@@ -38,9 +38,7 @@ class TestsFlextCliService:
         tm.that(help_result.value.stdout, has="--visible")
         tm.that("--hidden" in help_result.value.stdout, eq=False)
 
-    def test_create_app_with_common_params_rejects_trace_without_debug(
-        self,
-    ) -> None:
+    def test_create_app_with_common_params_rejects_trace_without_debug(self) -> None:
         """Fail the invocation when shared flags cannot apply to the settings."""
         app = cli.create_app_with_common_params(name="warn-app", help_text="Warn app")
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)

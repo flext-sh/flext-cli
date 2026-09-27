@@ -1,9 +1,13 @@
-"""Generic guarded publication helpers shared through ``u.Cli``."""
+"""Generic guarded publication and file selection helpers shared through ``u.Cli``."""
 
 from __future__ import annotations
 
-from flext_cli import m, p, r, t
+import fnmatch
+from pathlib import Path
 
+from flext_cli import c, m, p, r, t
+
+from ..runtime import FlextCliUtilitiesRuntime
 from .flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
@@ -92,6 +96,77 @@ class FlextCliUtilitiesFiles:
             if current.value != expected:
                 return r[bool].fail(f"atomic source changed: {expected.path}")
         return r[bool].ok(True)
+
+    @staticmethod
+    def files_matching(
+        root: Path, *, includes: t.StrSequence, excludes: t.StrSequence = ()
+    ) -> p.Result[t.SequenceOf[Path]]:
+        """Select Git-visible files under ``root``: tracked, untracked, never ignored.
+
+        Outside a Git worktree every file on disk is a candidate. Patterns match the
+        POSIX path relative to ``root``; an empty ``includes`` selects every file.
+        """
+        result = r[t.SequenceOf[Path]]
+        if not root.is_dir():
+            return result.fail(f"file selection root is not a directory: {root}")
+        scope = root.resolve()
+        probe = FlextCliUtilitiesRuntime.run_bytes(
+            ["git", "rev-parse", "--is-inside-work-tree"],
+            cwd=scope,
+            timeout=c.DEFAULT_TIMEOUT_SECONDS,
+            env={"LC_ALL": "C"},
+        )
+        if probe.failure:
+            return result.from_failure(probe)
+        outcome = probe.value.outcome
+        if outcome.timed_out or outcome.forwarded_signal is not None:
+            return result.fail(f"Git worktree probe interrupted: {scope}")
+        if outcome.raw_return_code == c.Cli.EXIT_CODE_SUCCESS:
+            if probe.value.stdout.strip() != b"true":
+                return result.fail(f"file selection root is not in a worktree: {scope}")
+            listed = FlextCliUtilitiesRuntime.run_bytes(
+                ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+                cwd=scope,
+                timeout=c.DEFAULT_TIMEOUT_SECONDS,
+            )
+            if listed.failure:
+                return result.from_failure(listed)
+            listing = listed.value
+            if (
+                listing.outcome.raw_return_code != c.Cli.EXIT_CODE_SUCCESS
+                or listing.outcome.timed_out
+                or listing.outcome.forwarded_signal is not None
+            ):
+                return result.fail(
+                    listing.stderr.decode(c.Cli.ENCODING_DEFAULT, errors="strict")
+                )
+            candidates = [
+                scope / relative.decode(c.Cli.ENCODING_DEFAULT, errors="strict")
+                for relative in listing.stdout.split(b"\0")
+                if relative
+            ]
+        elif (
+            outcome.raw_return_code == c.Cli.GIT_NOT_A_REPOSITORY_EXIT_CODE
+            and b"not a git repository" in probe.value.stderr
+        ):
+            candidates = list(scope.rglob("*"))
+        else:
+            return result.fail(
+                probe.value.stderr.decode(c.Cli.ENCODING_DEFAULT, errors="strict")
+            )
+
+        def selected(path: Path) -> bool:
+            relative = path.relative_to(scope).as_posix()
+            return (
+                path.is_file()
+                and (
+                    not includes
+                    or any(fnmatch.fnmatchcase(relative, rule) for rule in includes)
+                )
+                and not any(fnmatch.fnmatchcase(relative, rule) for rule in excludes)
+            )
+
+        return result.ok(sorted(path for path in candidates if selected(path)))
 
 
 __all__: list[str] = ["FlextCliUtilitiesFiles"]

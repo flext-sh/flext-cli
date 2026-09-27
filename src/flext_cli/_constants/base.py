@@ -23,6 +23,7 @@ class FlextCliConstantsBase:
     EXIT_CODE_SUCCESS: ClassVar[int] = 0
     EXIT_CODE_FAILURE: ClassVar[int] = 1
     PROCESS_TIMEOUT_EXIT_CODE: ClassVar[int] = 124
+    GIT_NOT_A_REPOSITORY_EXIT_CODE: ClassVar[int] = 128
     OP_EXECUTE_APPLICATION: ClassVar[str] = "execute CLI application"
     ERR_EXIT_WITH_CODE: ClassVar[str] = "CLI exited with code {exit_code}"
 
