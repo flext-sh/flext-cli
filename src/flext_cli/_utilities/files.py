@@ -91,11 +91,11 @@ class FlextCliUtilitiesFiles(
             if path.is_file()
             if not includes
             or any(
-                fnmatch.fnmatch(path.relative_to(scope).as_posix(), pattern)
+                fnmatch.fnmatchcase(path.relative_to(scope).as_posix(), pattern)
                 for pattern in includes
             )
             if not any(
-                fnmatch.fnmatch(path.relative_to(scope).as_posix(), pattern)
+                fnmatch.fnmatchcase(path.relative_to(scope).as_posix(), pattern)
                 for pattern in excludes
             )
         })
