@@ -5,10 +5,19 @@ from __future__ import annotations
 import errno
 import os
 import secrets
+import signal
 import stat
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 
-from . import atomic_file_descriptor as file_descriptor, atomic_file_mode as file_mode
+from flext_cli import t
+
+from . import (
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_mode as file_mode,
+    atomic_file_state as file_state,
+)
 
 _SECURE_CREATE_MODE = 0o600
 
@@ -39,6 +48,41 @@ def create_descriptor(parent: file_descriptor.ParentDescriptor, temporary: Path)
     )
 
 
+@contextmanager
+def authenticated_descriptor(
+    parent: file_descriptor.ParentDescriptor, temporary: Path
+) -> Generator[t.Pair[int, t.Pair[int, int]]]:
+    """Transfer one descriptor only after its identity is bound.
+
+    POSIX timer signals are held across ``open`` and the caller's assignment of
+    both fields.  Restoring the mask can therefore propagate the original
+    timeout only after cleanup has an authenticated inode and live descriptor.
+    Windows has no ``pthread_sigmask`` or POSIX interval-timer delivery.
+    """
+    timer_signals = {
+        candidate
+        for name in ("SIGALRM", "SIGVTALRM", "SIGPROF")
+        if (candidate := getattr(signal, name, None)) is not None
+    }
+    previous_mask = (
+        signal.pthread_sigmask(signal.SIG_BLOCK, timer_signals)
+        if timer_signals and hasattr(signal, "pthread_sigmask")
+        else None
+    )
+    descriptor: int | None = None
+    transferred = False
+    try:
+        descriptor = create_descriptor(parent, temporary)
+        authenticated = (descriptor, file_state.identity(os.fstat(descriptor)))
+        yield authenticated
+        transferred = True
+    finally:
+        if descriptor is not None and not transferred:
+            os.close(descriptor)
+        if previous_mask is not None:
+            signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
+
+
 def write_and_sync(
     descriptor: int, temporary: Path, content: bytes, permission_mode: int | None
 ) -> int:
@@ -58,6 +102,7 @@ def write_and_sync(
 
 
 __all__: list[str] = [
+    "authenticated_descriptor",
     "create_descriptor",
     "require_mode_capability",
     "temporary_path",

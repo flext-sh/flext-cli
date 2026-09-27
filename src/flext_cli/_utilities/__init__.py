@@ -179,6 +179,7 @@ if TYPE_CHECKING:
         validate_precondition,
     )
     from .atomic_file_temporary import (
+        authenticated_descriptor,
         create_descriptor,
         require_mode_capability,
         temporary_path,
@@ -346,6 +347,7 @@ __all__: tuple[str, ...] = (
     "assert_observed_mode",
     "assert_parent_unchanged",
     "assert_temporary_owned",
+    "authenticated_descriptor",
     "cleanup_physical_tree_guarded",
     "close_after_failure",
     "create_descriptor",
@@ -611,6 +613,7 @@ _LAZY_IMPORTS = MappingProxyType(
                 "validate_precondition",
             ),
             ".atomic_file_temporary": (
+                "authenticated_descriptor",
                 "create_descriptor",
                 "require_mode_capability",
                 "temporary_path",

@@ -24,9 +24,9 @@
 - Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
 - Public symbol exports: `FlextCli`, `FlextCliAuth`, `FlextCliCli`, `FlextCliCmd`,
   `FlextCliCommonParams`, `FlextCliConfig`, `FlextCliConstants`, `FlextCliDocx`,
-  `FlextCliFileTools`, `FlextCliFormatters` (+19 more)
-- Exported module shortcuts: `services`
-- Generated module pages: `25`
+  `FlextCliFileTools`, `FlextCliFormatters` (+18 more)
+- Exported module shortcuts: `config`, `services`
+- Generated module pages: `26`
 
 ## Next Pages
 

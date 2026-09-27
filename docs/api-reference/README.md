@@ -29,6 +29,6 @@ This section is generated from public exports and real docstrings.
 
 - Primary facades: `FlextCli`, `FlextCliAuth`, `FlextCliCli`, `FlextCliCmd`,
   `FlextCliCommonParams`, `FlextCliConfig` (+19 more)
-- Generated module pages: `25`
+- Generated module pages: `26`
 
 Back to [project docs](../index.md).
