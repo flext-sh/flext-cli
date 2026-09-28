@@ -184,23 +184,23 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.stdout.strip(), eq="managed-ok")
         tm.that(process.stderr, eq="")
 
-    def test_process_start_inherits_streams(
-        self, runner: u.Cli
-    ) -> None:
+    def test_process_start_inherits_streams(self, runner: u.Cli) -> None:
         """A supervised child consumes inherited input and forwards both outputs."""
         script = (
             "import sys; from flext_cli import u; "
             "child = u.Cli.process_start("
             "[sys.executable, '-c', "
-            "\"import sys; print(sys.stdin.readline().strip()); "
+            '"import sys; print(sys.stdin.readline().strip()); '
             "print('inherited-error', file=sys.stderr)\"], "
             "capture=False, start_new_session=True).unwrap(); "
             "status = child.wait(timeout=5).unwrap(); "
             "print(repr(child.stdout), repr(child.stderr)); sys.exit(status)"
         )
-        output = tm.ok(runner.run_raw(
-            [sys.executable, "-c", script], input_data="inherited-input\n"
-        ))
+        output = tm.ok(
+            runner.run_raw(
+                [sys.executable, "-c", script], input_data="inherited-input\n"
+            )
+        )
         tm.that(u.Cli.process_succeeded(output.outcome), eq=True)
         tm.that(output.stdout.splitlines(), eq=["inherited-input", "'' ''"])
         tm.that(output.stderr.strip(), eq="inherited-error")
@@ -210,10 +210,12 @@ class TestsFlextCliRuntimeUtilitiesCore:
         self, runner: u.Cli, *, start_new_session: bool
     ) -> None:
         """The public child boundary either retains or owns its POSIX session."""
-        child = tm.ok(runner.process_start(
-            [sys.executable, "-c", "import os; print(os.getsid(0), os.getpgrp())"],
-            start_new_session=start_new_session,
-        ))
+        child = tm.ok(
+            runner.process_start(
+                [sys.executable, "-c", "import os; print(os.getsid(0), os.getpgrp())"],
+                start_new_session=start_new_session,
+            )
+        )
         tm.that(tm.ok(child.wait(timeout=5)), eq=0)
         session, group = (int(value) for value in child.stdout.split())
         tm.that(session, eq=child.pid if start_new_session else os.getsid(0))
