@@ -179,6 +179,7 @@ if TYPE_CHECKING:
         validate_precondition,
     )
     from .atomic_file_temporary import (
+        authenticated_descriptor,
         create_descriptor,
         require_mode_capability,
         temporary_path,
@@ -216,7 +217,6 @@ if TYPE_CHECKING:
     from .framework import FlextCliUtilitiesFramework
     from .json import FlextCliUtilitiesJson
     from .matching import FlextCliUtilitiesMatching
-    from .model_commands import FlextCliUtilitiesModelCommands
     from .output import FlextCliUtilitiesOutput
     from .params import FlextCliUtilitiesParams
     from .pipeline import FlextCliUtilitiesPipeline
@@ -258,7 +258,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesJsonCoreMixin",
     "FlextCliUtilitiesJsonNavigateMixin",
     "FlextCliUtilitiesMatching",
-    "FlextCliUtilitiesModelCommands",
     "FlextCliUtilitiesOptionBuilder",
     "FlextCliUtilitiesOptions",
     "FlextCliUtilitiesOutput",
@@ -346,6 +345,7 @@ __all__: tuple[str, ...] = (
     "assert_observed_mode",
     "assert_parent_unchanged",
     "assert_temporary_owned",
+    "authenticated_descriptor",
     "cleanup_physical_tree_guarded",
     "close_after_failure",
     "create_descriptor",
@@ -611,6 +611,7 @@ _LAZY_IMPORTS = MappingProxyType(
                 "validate_precondition",
             ),
             ".atomic_file_temporary": (
+                "authenticated_descriptor",
                 "create_descriptor",
                 "require_mode_capability",
                 "temporary_path",
@@ -648,7 +649,6 @@ _LAZY_IMPORTS = MappingProxyType(
             ".framework": ("FlextCliUtilitiesFramework",),
             ".json": ("FlextCliUtilitiesJson",),
             ".matching": ("FlextCliUtilitiesMatching",),
-            ".model_commands": ("FlextCliUtilitiesModelCommands",),
             ".output": ("FlextCliUtilitiesOutput",),
             ".params": ("FlextCliUtilitiesParams",),
             ".pipeline": ("FlextCliUtilitiesPipeline",),

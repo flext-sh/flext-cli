@@ -5,7 +5,6 @@ from __future__ import annotations
 import linecache
 import sys
 import threading
-import time
 from pathlib import Path
 from types import FrameType
 from typing import TYPE_CHECKING
@@ -21,11 +20,14 @@ if TYPE_CHECKING:
 class TestsRuntimeProcessCompletion:
     """A completed child must not wait for its execution deadline."""
 
-    def test_completion_before_wake_clear_returns_promptly(
-        self, tmp_path: Path
-    ) -> None:
+    def test_completion_before_wake_clear_ends_monitoring(self, tmp_path: Path) -> None:
         """Schedule a real waiter at the exact lost-notification boundary.
 
+        The trace holds the monitor at its first ``wake.clear()`` until the
+        root waiter has set both ``process_done`` and ``wake``, so completion
+        is always observed before the wake is cleared. A monitor that lost
+        that notification would sleep until its deadline and report
+        ``timed_out``; the outcome, not the host clock, proves it did not.
         Tracing only controls thread scheduling; process creation, events,
         waiting, output and cleanup all use the unmodified public runtime.
         """
@@ -43,26 +45,23 @@ class TestsRuntimeProcessCompletion:
                 wake = frame.f_locals["wake"]
                 assert isinstance(done, threading.Event)
                 assert isinstance(wake, threading.Event)
-                assert done.wait(2)
-                assert wake.wait(2)
+                done.wait()
+                wake.wait()
                 scheduled.append(True)
             return trace
 
         previous = sys.gettrace()
-        started = time.monotonic()
         try:
             sys.settrace(trace)
             result = u.Cli().run_to_file(
-                [sys.executable, "-c", "import time;time.sleep(.1);print('complete')"],
+                [sys.executable, "-I", "-S", "-c", "print('complete')"],
                 tmp_path / "completion.log",
                 timeout=4,
             )
         finally:
             sys.settrace(previous)
-        elapsed = time.monotonic() - started
         outcome = tm.ok(result)
         assert scheduled == [True]
         assert outcome.raw_return_code == 0
         assert not outcome.timed_out
-        assert elapsed < 2
         assert (tmp_path / "completion.log").read_text() == "complete\n"

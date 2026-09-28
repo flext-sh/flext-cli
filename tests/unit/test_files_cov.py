@@ -183,5 +183,30 @@ class TestsFlextCliFilesCov:
         tm.fail(u.Cli.ensure_symlink(target, source))
         tm.that(target.read_text(encoding="utf-8"), eq="old")
 
+    @pytest.mark.parametrize("inside_git", [True, False], ids=["git", "plain"])
+    def test_files_matching_selects_visible_files_by_pattern(
+        self, tmp_path: Path, *, inside_git: bool
+    ) -> None:
+        """Git-ignored files are never selected; patterns filter the rest."""
+        if inside_git:
+            tm.ok(u.Cli.run_bytes(["git", "init", "--quiet"], cwd=tmp_path))
+        for relative in ("pkg/mod.py", "pkg/notes.txt", "build/gen.py", "tests/t.py"):
+            tm.ok(u.Cli.ensure_dir((tmp_path / relative).parent))
+            tm.ok(u.Cli.files_write_text(tmp_path / relative, ""))
+        tm.ok(u.Cli.files_write_text(tmp_path / ".gitignore", "build/\n"))
+
+        result = u.Cli.files_matching(tmp_path, includes=["*.py"], excludes=["tests/*"])
+
+        tm.ok(result)
+        visible = ["pkg/mod.py"] if inside_git else ["build/gen.py", "pkg/mod.py"]
+        tm.that(
+            [path.relative_to(tmp_path.resolve()).as_posix() for path in result.value],
+            eq=visible,
+        )
+
+    def test_files_matching_fails_for_missing_root(self, tmp_path: Path) -> None:
+        """A root that is not a directory fails instead of selecting nothing."""
+        tm.fail(u.Cli.files_matching(tmp_path / "missing", includes=["*.py"]))
+
 
 __all__: list[str] = ["TestsFlextCliFilesCov"]

@@ -98,8 +98,8 @@ def _stage_and_publish(
     descriptor: int | None = None
     staged_identity: t.Pair[int, int] | None = None
     try:
-        descriptor = file_temporary.create_descriptor(parent, temporary)
-        staged_identity = file_state.identity(os.fstat(descriptor))
+        with file_temporary.authenticated_descriptor(parent, temporary) as staged:
+            descriptor, staged_identity = staged
         staged_mode = _write_staged(
             parent, temporary, descriptor, staged_identity, content, target_mode
         )

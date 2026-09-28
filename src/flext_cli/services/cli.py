@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from flext_cli import m, s
 
-from ._cli_parts.flextclicli_part_05 import FlextCliCli as FlextCliCliPart05
+from ._cli_parts.flextclicli_part_06 import FlextCliCli as FlextCliCliPart06
 
 
-class FlextCliCli(s[m.Cli.RuntimeStatus], FlextCliCliPart05):
+class FlextCliCli(s[m.Cli.RuntimeStatus], FlextCliCliPart06):
     """Public facade for FlextCliCli."""
 
 

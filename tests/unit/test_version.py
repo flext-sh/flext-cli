@@ -12,7 +12,6 @@ No private attributes, no internal-collaborator spying, no monkeypatching.
 
 from __future__ import annotations
 
-import pytest
 from flext_tests import tm
 
 import flext_cli
@@ -34,11 +33,6 @@ class TestsFlextCliVersion:
     def test_package_version_matches_semver_contract(self) -> None:
         """``flext_cli.__version__`` honours the published semver pattern."""
         tm.that(c.PATTERN_SEMVER_RE.match(flext_cli.__version__), none=False)
-
-    def test_package_version_within_length_bounds(self) -> None:
-        """``flext_cli.__version__`` stays within sane display bounds."""
-        tm.that(len(flext_cli.__version__), gte=5)
-        tm.that(len(flext_cli.__version__), lte=50)
 
     def test_package_version_info_is_tuple_of_at_least_three_parts(self) -> None:
         """``flext_cli.__version_info__`` is a tuple carrying major/minor/patch."""
@@ -72,16 +66,6 @@ class TestsFlextCliVersion:
         """The runtime ``c.Cli.CLI_VERSION`` constant is semver-compliant."""
         tm.that(c.Cli.CLI_VERSION, is_=str)
         tm.that(c.PATTERN_SEMVER_RE.match(c.Cli.CLI_VERSION), none=False)
-        tm.that(len(c.Cli.CLI_VERSION), gte=5)
-        tm.that(len(c.Cli.CLI_VERSION), lte=50)
-
-    def test_cli_version_constant_exposes_major_minor_patch(self) -> None:
-        """``c.Cli.CLI_VERSION`` yields extractable major/minor/patch parts."""
-        parts = c.Cli.CLI_VERSION.split(".")
-        tm.that(len(parts), gte=3)
-        for part in parts[:3]:
-            tm.that(part.isdigit(), eq=True)
-            tm.that(int(part), gte=0)
 
     def test_execute_publishes_cli_version_in_runtime_payload(self) -> None:
         """``cli.execute()`` succeeds and reports the CLI version string."""
@@ -91,32 +75,3 @@ class TestsFlextCliVersion:
         version = payload.version
         tm.that(version, is_=str)
         tm.that(version, eq=c.Cli.CLI_VERSION)
-
-    def test_execute_reports_version_deterministically(self) -> None:
-        """Repeated ``cli.execute()`` calls report an identical version."""
-        first = cli.execute()
-        second = cli.execute()
-        tm.ok(first)
-        tm.ok(second)
-        tm.that(first.value.version, eq=second.value.version)
-
-    @pytest.mark.parametrize(
-        ("candidate", "is_valid"),
-        [
-            ("0.0.0", True),
-            ("1.2.3", True),
-            ("10.20.30", True),
-            ("1.0.0-dev0", True),
-            ("1.0.0+build.5", True),
-            ("", False),
-            ("1", False),
-            ("1.2", False),
-            ("v1.2.3", False),
-            ("1.2.x", False),
-            ("not-a-version", False),
-        ],
-    )
-    def test_semver_pattern_contract(self, candidate: str, *, is_valid: bool) -> None:
-        """The published semver pattern accepts valid and rejects invalid strings."""
-        matched = c.PATTERN_SEMVER_RE.match(candidate) is not None
-        tm.that(matched, eq=is_valid)

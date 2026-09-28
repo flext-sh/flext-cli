@@ -46,11 +46,6 @@ class FlextCliTypesBase:
     type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType
     type TemplateEnvironmentCache = MutableMapping[str, SandboxedEnvironment]
 
-    PRIMITIVE_TYPES: ClassVar[tuple[type[str], type[int], type[float], type[bool]]] = (
-        t.PRIMITIVES_TYPES
-    )
-    SCALAR_TYPES: ClassVar[t.VariadicTuple[type]] = t.SCALAR_TYPES
-
     STR_SEQUENCE_ADAPTER: ClassVar[t.ValueAdapter[t.StrSequence]] = (
         t.str_sequence_adapter()
     )

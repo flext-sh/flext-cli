@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated
 
 from flext_cli import m
@@ -58,6 +59,28 @@ class TestsFlextCliModelsCli:
         id: Annotated[int, m.Field(description="Record identifier")]
         name: Annotated[str, m.Field(description="Record name")]
         value: Annotated[str, m.Field(description="Record value")]
+
+    class SummaryStats(m.FrozenModel):
+        """Orchestration summary payload satisfying ``p.Cli.SummaryStats``."""
+
+        verb: Annotated[str, m.Field(description="Verb label")]
+        total: Annotated[int, m.Field(description="Total processed items")]
+        success: Annotated[int, m.Field(description="Successful items")]
+        failed: Annotated[int, m.Field(description="Failed items")]
+        skipped: Annotated[int, m.Field(description="Skipped items")]
+        elapsed: Annotated[float, m.Field(description="Elapsed seconds")]
+
+    class ProjectFailureInfo(m.FrozenModel):
+        """Per-project failure payload satisfying ``p.Cli.ProjectFailureInfo``."""
+
+        project: Annotated[str, m.Field(description="Project name")]
+        elapsed: Annotated[float, m.Field(description="Elapsed seconds")]
+        error_count: Annotated[int, m.Field(description="Total project errors")]
+        log_path: Annotated[Path, m.Field(description="Project log path")]
+        max_show: Annotated[int, m.Field(description="Maximum errors rendered")]
+        errors: Annotated[
+            tuple[str, ...], m.Field(description="Rendered error excerpt lines")
+        ]
 
 
 __all__: list[str] = ["TestsFlextCliModelsCli"]

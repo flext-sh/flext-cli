@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable
 from pathlib import Path
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
@@ -49,7 +49,6 @@ class FlextCliTypesDomain:
         | FlextCliTypesDomain.RuleCatalog[TFileRuleKind]
         | None
     )
-    type MutableDefaultMapping = MutableMapping[str, t.Scalar | t.StrSequence]
     type CliParamValue = bool | str
     type CliParamKwargs = t.MappingKV[str, CliParamValue]
     type DefaultAtom = t.Scalar | t.StrSequence
@@ -58,8 +57,6 @@ class FlextCliTypesDomain:
     type IntTextValue = int | str
     type MessageType = c.Cli.MessageTypes
     type ModelLike = t.BaseModel
-    # mro-j47u (codex): model classes use the canonical core type alias.
-    type ModelSource = ModelLike | t.JsonMapping | t.ScalarMapping
     type OptionRegistry = t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]
     type NullaryOperation[T] = Callable[[], T]
     type PromptTextReader = Callable[[str], str]
@@ -70,7 +67,6 @@ class FlextCliTypesDomain:
     type SuccessMessageFormatter[TResult: ResultValue = ResultValue] = Callable[
         [TResult], str
     ]
-    type MappingProcessor[T, U] = Callable[[str, T], U]
     type TomlMappingSource = (
         t.JsonPayload | t.JsonMapping | t.ScalarMapping | Item | TOMLDocument
     )

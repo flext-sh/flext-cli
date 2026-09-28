@@ -105,6 +105,11 @@ class FlextCliModelsBase:
             t.Cli.JsonCommandFn, m.Field(..., description="Command handler callable")
         ]
 
+    class EmptyRequest(m.BaseModel):
+        """Shared request model of a service operation that takes no input."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+
     class ResultCommandRoute(m.BaseModel):
         """Type-erased route contract for heterogeneous batch registration."""
 
