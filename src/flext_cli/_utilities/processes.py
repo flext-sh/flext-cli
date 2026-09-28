@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import select
 import shlex
+import signal
 import subprocess  # nosec B404 - canonical process execution owner for CLI verbs
 import time
 from collections.abc import Mapping
@@ -13,14 +14,19 @@ from types import MappingProxyType
 
 from flext_cli import c, p, r, t
 
+from ._runtime_process_group import FlextCliUtilitiesRuntimeProcessGroupMixin
 from .runtime import FlextCliUtilitiesRuntime
 
 
 class FlextCliUtilitiesProcesses:
     """Runtime helpers for managed external processes."""
 
-    class ManagedProcess:
-        """Typed handle for a long-running child process."""
+    class ManagedProcess(FlextCliUtilitiesRuntimeProcessGroupMixin):
+        """Typed handle for a long-running child process.
+
+        Session leaders own their POSIX process group: ``terminate`` and ``kill``
+        signal the whole group, including descendants that outlive the leader.
+        """
 
         def __init__(
             self,
@@ -28,10 +34,12 @@ class FlextCliUtilitiesProcesses:
             *,
             cwd: t.Cli.TextPath | None,
             env: t.StrMapping | None,
+            session_leader: bool = False,
         ) -> None:
             self._process = process
             self._cwd = Path(cwd) if cwd is not None else None
             self._env = dict(env) if env is not None else None
+            self._session_leader = session_leader and os.name == "posix"
             self._stdout = ""
             self._stderr = ""
             self._stdout_buffer = bytearray()
@@ -67,21 +75,31 @@ class FlextCliUtilitiesProcesses:
             return self._process.poll()
 
         def terminate(self) -> p.Result[bool]:
-            if self.poll() is not None:
-                return r[bool].ok(True)
-            try:
-                self._process.terminate()
-            except c.EXC_OS_VALUE as exc:
-                return r[bool].fail(f"process terminate error: {exc}", exception=exc)
-            return r[bool].ok(True)
+            """Signal the owned session group, or the child, to finish."""
+            return self._signal_owned(signal.SIGTERM, force=False)
 
         def kill(self) -> p.Result[bool]:
+            """Force the owned session group, or the child, to stop."""
+            return self._signal_owned(signal.SIGTERM, force=True)
+
+        def _signal_owned(self, signal_number: int, *, force: bool) -> p.Result[bool]:
+            """Tear down the process group this handle owns, or the single child."""
+            if self._session_leader:
+                return self._signal_process_tree(
+                    self._process, signal_number, 0, force=force
+                )
             if self.poll() is not None:
                 return r[bool].ok(True)
             try:
-                self._process.kill()
+                if force:
+                    self._process.kill()
+                else:
+                    self._process.terminate()
             except c.EXC_OS_VALUE as exc:
-                return r[bool].fail(f"process kill error: {exc}", exception=exc)
+                return r[bool].fail(
+                    f"process {'kill' if force else 'terminate'} error: {exc}",
+                    exception=exc,
+                )
             return r[bool].ok(True)
 
         def wait(self, timeout: float | None = None) -> p.Result[int]:
@@ -188,8 +206,10 @@ class FlextCliUtilitiesProcesses:
 
         Capture preserves interactive pipes by default. Disabling it inherits
         stdin, stdout, and stderr without accumulating output in the handle.
-        A new POSIX session gives a supervisor ownership of the child's group;
-        the caller remains responsible for signaling and reaping that group.
+        A new POSIX session gives the returned handle ownership of the child's
+        process group: ``terminate`` and ``kill`` signal every descendant,
+        including ones that outlive the leader; the caller stays responsible
+        for reaping.
         """
         forwarded_fds = tuple(pass_fds)
         if any(
@@ -227,7 +247,7 @@ class FlextCliUtilitiesProcesses:
             )
         return r[FlextCliUtilitiesProcesses.ManagedProcess].ok(
             FlextCliUtilitiesProcesses.ManagedProcess(
-                process, cwd=cwd, env=resolved_env
+                process, cwd=cwd, env=resolved_env, session_leader=start_new_session
             )
         )
 

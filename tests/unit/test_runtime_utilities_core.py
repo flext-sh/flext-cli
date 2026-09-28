@@ -3,17 +3,21 @@
 from __future__ import annotations
 
 import os
+import signal
 import socket
 import sys
-from typing import TYPE_CHECKING
+import time
+from pathlib import Path
 
 import pytest
 from flext_tests import tm
 
 from tests import c, m, u
 
-if TYPE_CHECKING:
-    from pathlib import Path
+
+def fixtures_path(name: str) -> str:
+    """Return the absolute path of one tests/fixtures helper script."""
+    return str(Path(__file__).resolve().parent.parent / "fixtures" / name)
 
 
 class TestsFlextCliRuntimeUtilitiesCore:
@@ -356,3 +360,88 @@ class TestsFlextCliRuntimeUtilitiesCore:
         wait_result = process.wait(timeout=5)
         tm.ok(wait_result)
         tm.that(process.returncode is not None, eq=True)
+
+    def test_process_start_terminate_reaches_leader_exited_descendants(
+        self, runner: u.Cli, tmp_path: Path
+    ) -> None:
+        """Verify session-leader terminate reaches descendants after leader exit."""
+        sentinel = tmp_path / "terminated"
+        result = runner.process_start(
+            [
+                sys.executable,
+                fixtures_path("process_session_descendant.py"),
+                str(sentinel),
+                "terminate",
+            ],
+            start_new_session=True,
+        )
+        tm.ok(result)
+        process = result.value
+
+        pid_line = process.stdout_read_until(b"\n", timeout=10)
+        tm.ok(pid_line)
+        tm.ok(process.wait(timeout=10))
+        tm.ok(process.terminate())
+
+        deadline = time.monotonic() + 10
+        while not sentinel.exists() and time.monotonic() < deadline:
+            time.sleep(0.05)
+        tm.that(sentinel.exists(), eq=True)
+        tm.ok(process.kill())
+
+    def test_process_start_kill_stops_leader_exited_descendants(
+        self, runner: u.Cli, tmp_path: Path
+    ) -> None:
+        """Verify session-leader kill stops descendants after leader exit."""
+        result = runner.process_start(
+            [
+                sys.executable,
+                fixtures_path("process_session_descendant.py"),
+                str(tmp_path / "unused"),
+                "sleep",
+            ],
+            start_new_session=True,
+        )
+        tm.ok(result)
+        process = result.value
+
+        pid_line = process.stdout_read_until(b"\n", timeout=10)
+        tm.ok(pid_line)
+        descendant_pid = int(pid_line.value)
+        tm.ok(process.wait(timeout=10))
+        tm.ok(process.kill())
+
+        deadline = time.monotonic() + 10
+        gone = False
+        while time.monotonic() < deadline:
+            try:
+                os.kill(descendant_pid, 0)
+            except ProcessLookupError:
+                gone = True
+                break
+            time.sleep(0.05)
+        tm.that(gone, eq=True)
+
+    def test_process_start_terminate_without_session_leaves_descendants(
+        self, runner: u.Cli, tmp_path: Path
+    ) -> None:
+        """Verify a non-session terminate targets only the exited leader."""
+        sentinel = tmp_path / "terminated"
+        result = runner.process_start([
+            sys.executable,
+            fixtures_path("process_session_descendant.py"),
+            str(sentinel),
+            "terminate",
+        ])
+        tm.ok(result)
+        process = result.value
+
+        pid_line = process.stdout_read_until(b"\n", timeout=10)
+        tm.ok(pid_line)
+        descendant_pid = int(pid_line.value)
+        tm.ok(process.wait(timeout=10))
+        tm.ok(process.terminate())
+
+        time.sleep(0.5)
+        tm.that(sentinel.exists(), eq=False)
+        os.kill(descendant_pid, signal.SIGKILL)
