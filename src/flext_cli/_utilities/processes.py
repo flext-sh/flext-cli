@@ -180,8 +180,17 @@ class FlextCliUtilitiesProcesses:
         env: t.StrMapping | None = None,
         remove_env_keys: t.StrSequence = (),
         pass_fds: t.SequenceOf[int] = (),
+        *,
+        capture: bool = True,
+        start_new_session: bool = False,
     ) -> p.Result[FlextCliUtilitiesProcesses.ManagedProcess]:
-        """Start long-running commands; use instead of direct ``subprocess.Popen``."""
+        """Start a managed child with captured or inherited standard streams.
+
+        Capture preserves interactive pipes by default. Disabling it inherits
+        stdin, stdout, and stderr without accumulating output in the handle.
+        A new POSIX session gives a supervisor ownership of the child's group;
+        the caller remains responsible for signaling and reaping that group.
+        """
         forwarded_fds = tuple(pass_fds)
         if any(
             isinstance(file_descriptor, bool) or file_descriptor < 0
@@ -203,13 +212,14 @@ class FlextCliUtilitiesProcesses:
             process = subprocess.Popen(  # nosec B603 - internal process execution, inputs from typed config
                 list(cmd),
                 cwd=cwd,
-                stdin=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
+                stdin=subprocess.PIPE if capture else None,
+                stdout=subprocess.PIPE if capture else None,
+                stderr=subprocess.PIPE if capture else None,
                 text=False,
                 bufsize=0,
                 env=resolved_env,
                 pass_fds=forwarded_fds,
+                start_new_session=start_new_session,
             )
         except c.EXC_OS_VALUE as exc:
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(

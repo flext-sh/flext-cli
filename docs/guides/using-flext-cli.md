@@ -164,6 +164,16 @@ def greet_handler(model: GreetInput) -> str:
 assert greet_handler(GreetInput(name="Ada")) == "Hello, Ada!"
 ```
 
+## Managed child processes
+
+Use `u.Cli.process_start` for a child that needs an explicit lifecycle handle.
+Its default `capture=True` keeps binary interactive pipes; `capture=False`
+inherits stdin, stdout, and stderr, leaving the handle's captured strings empty.
+On POSIX, `start_new_session=True` creates a child-owned session and process group.
+The supervisor must signal the group and reap the child with `wait().unwrap()`;
+creating a session does not add automatic group cleanup. Existing calls retain
+captured streams and the parent's session by default.
+
 ## Related
 
 - `flext-cli/src/flext_cli/services/cli.py`
