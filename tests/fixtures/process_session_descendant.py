@@ -26,13 +26,14 @@ def _descendant(sentinel: Path, mode: str) -> None:
 
 
 def main() -> None:
-    """Fork the descendant, print its pid, and exit while it keeps running."""
+    """Fork the descendant, record its pid, and exit while it keeps running."""
     sentinel = Path(sys.argv[1])
     mode = sys.argv[2]
+    pid_file = Path(sys.argv[3])
     pid = os.fork()
     if pid == 0:
         _descendant(sentinel, mode)
-    print(pid, flush=True)
+    pid_file.write_text(f"{pid}\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

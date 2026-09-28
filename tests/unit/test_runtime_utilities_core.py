@@ -20,6 +20,14 @@ def fixtures_path(name: str) -> str:
     return str(Path(__file__).resolve().parent.parent / "fixtures" / name)
 
 
+def read_recorded_pid(pid_file: Path) -> int:
+    """Return the descendant pid a leader recorded before exiting."""
+    deadline = time.monotonic() + 10
+    while not pid_file.exists() and time.monotonic() < deadline:
+        time.sleep(0.05)
+    return int(pid_file.read_text(encoding="utf-8").strip())
+
+
 class TestsFlextCliRuntimeUtilitiesCore:
     """Behavior contract for test_runtime_utilities_core."""
 
@@ -366,21 +374,23 @@ class TestsFlextCliRuntimeUtilitiesCore:
     ) -> None:
         """Verify session-leader terminate reaches descendants after leader exit."""
         sentinel = tmp_path / "terminated"
+        pid_file = tmp_path / "descendant.pid"
         result = runner.process_start(
             [
                 sys.executable,
                 fixtures_path("process_session_descendant.py"),
                 str(sentinel),
                 "terminate",
+                str(pid_file),
             ],
             start_new_session=True,
         )
         tm.ok(result)
         process = result.value
 
-        pid_line = process.stdout_read_until(b"\n", timeout=10)
-        tm.ok(pid_line)
         tm.ok(process.wait(timeout=10))
+        descendant_pid = read_recorded_pid(pid_file)
+        tm.that(descendant_pid > 0, eq=True)
         tm.ok(process.terminate())
 
         deadline = time.monotonic() + 10
@@ -393,22 +403,23 @@ class TestsFlextCliRuntimeUtilitiesCore:
         self, runner: u.Cli, tmp_path: Path
     ) -> None:
         """Verify session-leader kill stops descendants after leader exit."""
+        pid_file = tmp_path / "descendant.pid"
         result = runner.process_start(
             [
                 sys.executable,
                 fixtures_path("process_session_descendant.py"),
                 str(tmp_path / "unused"),
                 "sleep",
+                str(pid_file),
             ],
             start_new_session=True,
         )
         tm.ok(result)
         process = result.value
 
-        pid_line = process.stdout_read_until(b"\n", timeout=10)
-        tm.ok(pid_line)
-        descendant_pid = int(pid_line.value)
         tm.ok(process.wait(timeout=10))
+        descendant_pid = read_recorded_pid(pid_file)
+        tm.that(descendant_pid > 0, eq=True)
         tm.ok(process.kill())
 
         deadline = time.monotonic() + 10
@@ -427,19 +438,20 @@ class TestsFlextCliRuntimeUtilitiesCore:
     ) -> None:
         """Verify a non-session terminate targets only the exited leader."""
         sentinel = tmp_path / "terminated"
+        pid_file = tmp_path / "descendant.pid"
         result = runner.process_start([
             sys.executable,
             fixtures_path("process_session_descendant.py"),
             str(sentinel),
             "terminate",
+            str(pid_file),
         ])
         tm.ok(result)
         process = result.value
 
-        pid_line = process.stdout_read_until(b"\n", timeout=10)
-        tm.ok(pid_line)
-        descendant_pid = int(pid_line.value)
         tm.ok(process.wait(timeout=10))
+        descendant_pid = read_recorded_pid(pid_file)
+        tm.that(descendant_pid > 0, eq=True)
         tm.ok(process.terminate())
 
         time.sleep(0.5)
