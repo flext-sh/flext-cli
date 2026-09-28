@@ -13,11 +13,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from functools import cached_property
-from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 from flext_core import FlextConfig
 
+from ._constants.base import FlextCliConstantsBase
 from ._models.config import FlextCliConfigModels
 
 if TYPE_CHECKING:
@@ -31,7 +31,9 @@ class FlextCliConfig(FlextConfig):
 
     # NOTE (multi-agent): anchored to the package dir so the YAML SSOT loads
     # regardless of the caller's CWD (library code must not depend on CWD).
-    CONFIG_DIR: ClassVar[str] = str(Path(__file__).resolve().parent / "config")
+    # The literal path owner is the _constants surface (runtime census SSOT);
+    # this class consumes it through the shared base.
+    CONFIG_DIR: str = FlextCliConstantsBase.CONFIG_DIR
 
     @cached_property
     def Cli(self) -> FlextCliProtocolsConfig.Cli:

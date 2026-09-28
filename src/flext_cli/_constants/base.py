@@ -8,6 +8,8 @@ regex construction must not live on this constants surface.
 from __future__ import annotations
 
 import re
+from pathlib import Path
+from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar
 
 if TYPE_CHECKING:
@@ -18,6 +20,20 @@ class FlextCliConstantsBase:
     """Base CLI constants for metadata, paths, symbols, and static values."""
 
     ENCODING_DEFAULT: ClassVar[str] = "utf-8"
+
+    # Anchor for the config SSOT loader: the installed package's config dir,
+    # independent of the caller's CWD (library code must not depend on CWD).
+    CONFIG_DIR: ClassVar[str] = str(Path(__file__).resolve().parents[1] / "config")
+
+    # Suffix→output-format owner (files helpers consume it through ``c.Cli``).
+    FORMAT_BY_SUFFIX: ClassVar[t.MappingKV[str, str]] = MappingProxyType({
+        ".json": "json",
+        ".yaml": "yaml",
+        ".yml": "yaml",
+        ".csv": "csv",
+        ".txt": "text",
+        ".log": "text",
+    })
     # NOTE (multi-agent): process finalization is owned once by ``c.Cli`` so
     # adapters and consumers cannot drift into local magic exit codes/messages.
     EXIT_CODE_SUCCESS: ClassVar[int] = 0

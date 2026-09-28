@@ -8,14 +8,27 @@
 
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
+- Package: `flext_cli`
 - Version: `0.12.0`
 - Description: FLEXT CLI - Developer Command Line Interface
-- Governed projects: `0`
-- Project classes: _none_
-
-Generated from workspace discovery, `pyproject.toml`, public exports, and docstrings.
+- Doc summary: Flext Cli package.
+- Classifiers: Development Status :: 3 - Alpha, Intended Audience :: Developers,
+  Operating System :: OS Independent, Programming Language :: Python :: 3 :: Only,
+  Programming Language :: Python :: 3.13, Topic :: Software Development :: Libraries ::
+  Python Modules, Typing :: Typed
+- Project class: `domain`
+- Keywords: `cli`, `command-line`, `enterprise`, `flext`, `tools`, `typed`
+- Main facades: `FlextCli`, `FlextCliAuth`, `FlextCliCli`, `FlextCliCmd`,
+  `FlextCliCommonParams`, `FlextCliConfig`, `FlextCliConstants`, `FlextCliDocx` (+17
+  more)
+- Alias exports: `c`, `d`, `e`, `h`, `m`, `p`, `r`, `s`, `t`, `u`, `x`
+- Public symbol exports: `FlextCli`, `FlextCliAuth`, `FlextCliCli`, `FlextCliCmd`,
+  `FlextCliCommonParams`, `FlextCliConfig`, `FlextCliConstants`, `FlextCliDocx`,
+  `FlextCliFileTools`, `FlextCliFormatters` (+18 more)
+- Exported module shortcuts: `config`, `services`
+- Generated module pages: `26`
 
 ## Next Pages
 
-- [Workspace Module Pages](projects/index.md)
-- [Project Catalog](../../projects/generated/catalog.md)
+- [Public API](public-api.md)
+- [Module Index](modules/index.md)
