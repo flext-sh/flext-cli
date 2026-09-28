@@ -131,5 +131,26 @@ class FlextCliModelsBase:
         ]
         title: Annotated[str, m.Field(description="Optional table title")] = ""
 
+    class DataReportRequest(m.Value):
+        """Validated generic data-report payload shared by every CLI domain."""
+
+        columns: Annotated[
+            t.StrSequence, m.Field(description="Ordered report column labels")
+        ]
+        rows: Annotated[
+            t.SequenceOf[t.StrSequence], m.Field(description="Ordered report row values")
+        ]
+        title: Annotated[str, m.Field(description="Optional report title")] = ""
+        message: Annotated[
+            str, m.Field(description="Trailing verdict line emitted after the table")
+        ] = ""
+        table_format: Annotated[
+            c.Cli.TabularFormat,
+            m.Field(description="Table rendering format for the data report"),
+        ] = c.Cli.TabularFormat.SIMPLE
+        show_header: Annotated[
+            bool, m.Field(description="Whether to render the header row")
+        ] = True
+
 
 __all__: list[str] = ["FlextCliModelsBase"]
