@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
     from flext_core import d, e, h, r, x
 
-    from . import unit
+    from . import fixtures, unit
     from .base import TestsFlextCliServiceBase, TestsFlextCliServiceBase as s
     from .constants import TestsFlextCliConstants, TestsFlextCliConstants as c
     from .models import TestsFlextCliModels, m
@@ -35,6 +35,7 @@ __all__: tuple[str, ...] = (
     "c",
     "d",
     "e",
+    "fixtures",
     "h",
     "m",
     "p",
@@ -56,6 +57,7 @@ _LAZY_IMPORTS = MappingProxyType(
         MappingProxyType({
             ".base": ("TestsFlextCliServiceBase", "s"),
             ".constants": ("TestsFlextCliConstants", "c"),
+            ".fixtures": ("fixtures",),
             ".models": ("TestsFlextCliModels", "m"),
             ".protocols": ("TestsFlextCliProtocols", "p"),
             ".settings": ("TestsFlextCliSettings",),
