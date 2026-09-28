@@ -223,6 +223,7 @@ if TYPE_CHECKING:
     from .pptx import FlextCliUtilitiesPptx
     from .processes import FlextCliUtilitiesProcesses
     from .prompts import FlextCliUtilitiesPrompts
+    from .report import FlextCliUtilitiesReport
     from .rules import FlextCliUtilitiesRules
     from .runtime import FlextCliUtilitiesRuntime
     from .settings import FlextCliUtilitiesSettings
@@ -269,6 +270,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesPptxSerializer",
     "FlextCliUtilitiesProcesses",
     "FlextCliUtilitiesPrompts",
+    "FlextCliUtilitiesReport",
     "FlextCliUtilitiesRules",
     "FlextCliUtilitiesRulesLoadersMixin",
     "FlextCliUtilitiesRulesMatchersMixin",
@@ -655,6 +657,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".pptx": ("FlextCliUtilitiesPptx",),
             ".processes": ("FlextCliUtilitiesProcesses",),
             ".prompts": ("FlextCliUtilitiesPrompts",),
+            ".report": ("FlextCliUtilitiesReport",),
             ".rules": ("FlextCliUtilitiesRules",),
             ".runtime": ("FlextCliUtilitiesRuntime",),
             ".settings": ("FlextCliUtilitiesSettings",),
