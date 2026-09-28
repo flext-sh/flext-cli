@@ -13,9 +13,6 @@ from flext_cli import c, m, p, r, t
 from flext_core import u
 
 from ..json import FlextCliUtilitiesJson as uj
-from .flextcliutilitiesfiles_part_01 import (
-    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart01,
-)
 from .flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
@@ -28,7 +25,7 @@ class FlextCliUtilitiesFiles:
     def files_detect_format(file_path: t.Cli.TextPath) -> p.Result[str]:
         """Detect one file format from extension using canonical output enums."""
         suffix = Path(file_path).suffix.lower()
-        detected_format = FlextCliUtilitiesFilesPart01.FORMAT_BY_SUFFIX.get(suffix)
+        detected_format = c.Cli.FORMAT_BY_SUFFIX.get(suffix)
         if detected_format is not None:
             return r[str].ok(detected_format)
         if not suffix:

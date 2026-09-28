@@ -5,8 +5,6 @@ from __future__ import annotations
 import csv
 import shutil
 from pathlib import Path
-from types import MappingProxyType
-from typing import ClassVar
 
 import flext_core
 from flext_cli import c, p, r, t
@@ -19,15 +17,6 @@ from .flextcliutilitiesfiles_part_02 import (
 
 class FlextCliUtilitiesFiles:
     """Implementation part for FlextCliUtilitiesFiles."""
-
-    FORMAT_BY_SUFFIX: ClassVar[t.MappingKV[str, str]] = MappingProxyType({
-        ".json": c.Cli.OutputFormats.JSON,
-        ".yaml": c.Cli.OutputFormats.YAML,
-        ".yml": c.Cli.OutputFormats.YAML,
-        ".csv": c.Cli.OutputFormats.CSV,
-        ".txt": c.Cli.OutputFormats.TEXT,
-        ".log": c.Cli.OutputFormats.TEXT,
-    })
 
     @staticmethod
     def files_delete(file_path: t.Cli.TextPath) -> p.Result[bool]:
