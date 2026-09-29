@@ -22,6 +22,7 @@ from .pipeline import FlextCliUtilitiesPipeline
 from .pptx import FlextCliUtilitiesPptx
 from .processes import FlextCliUtilitiesProcesses
 from .prompts import FlextCliUtilitiesPrompts
+from .report import FlextCliUtilitiesReport
 from .rules import FlextCliUtilitiesRules
 from .runtime import FlextCliUtilitiesRuntime
 from .settings import FlextCliUtilitiesSettings
@@ -53,6 +54,7 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesParams,
     FlextCliUtilitiesPipeline,
     FlextCliUtilitiesPrompts,
+    FlextCliUtilitiesReport,
     FlextCliUtilitiesProcesses,
     FlextCliUtilitiesRules,
     FlextCliUtilitiesRuntime,
