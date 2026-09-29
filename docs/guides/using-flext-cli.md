@@ -14,6 +14,7 @@
 - [Testing a command](#testing-a-command)
 - [Good practices](#good-practices)
 - [Bad practices](#bad-practices)
+- [Managed child processes](#managed-child-processes)
 - [Related](#related)
 
 <!-- TOC END -->
