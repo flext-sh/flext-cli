@@ -26,20 +26,29 @@ class ParentDescriptor:
     descriptor: int
     state: os.stat_result
     ancestry: t.VariadicTuple[t.Pair[int, int]]
+    lineage: t.VariadicTuple[int]
 
 
 @contextmanager
 def parent_descriptor(
     path: Path, *, replace: bool = False, unlink: bool = False
 ) -> Generator[ParentDescriptor]:
-    """Yield one authenticated parent descriptor with required OS capabilities."""
+    """Yield one authenticated parent descriptor with required OS capabilities.
+
+    The descriptor walk that opens the parent is itself the entry
+    authentication of pathname, identity and ancestry; the pathname is
+    re-walked where time has passed (before a namespace mutation, and on exit).
+    """
     validated = file_path.validate_atomic_path(path)
     _require_capabilities(validated, replace=replace, unlink=unlink)
     with parent_path.physical_directory(validated.parent) as opened:
         handle = ParentDescriptor(
-            validated.parent, opened.descriptor, opened.state, opened.ancestry
+            validated.parent,
+            opened.descriptor,
+            opened.state,
+            opened.ancestry,
+            opened.lineage,
         )
-        assert_parent_unchanged(handle)
         try:
             yield handle
         except BaseException as operation_error:
@@ -58,13 +67,10 @@ def assert_parent_unchanged(parent: ParentDescriptor) -> None:
     if file_path.identity(descriptor_state) != expected:
         message = f"atomic file parent identity changed: {parent.path}"
         raise OSError(errno.ESTALE, message, parent.path)
-    with parent_path.physical_directory(parent.path) as current:
-        if (
-            file_path.identity(current.state) != expected
-            or current.ancestry != parent.ancestry
-        ):
-            message = f"atomic file parent ancestry changed: {parent.path}"
-            raise OSError(errno.ESTALE, message, parent.path)
+    if parent.ancestry[-1] != expected:
+        message = f"atomic file parent ancestry changed: {parent.path}"
+        raise OSError(errno.ESTALE, message, parent.path)
+    parent_path.verify_lineage(parent.path, parent.lineage, parent.ancestry)
 
 
 def entry_stat(parent: ParentDescriptor, path: Path) -> os.stat_result:
