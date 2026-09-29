@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
-from tests import m, t
+from tests import c, m, t
 
 
 class TestsFlextCliTypings:
@@ -93,11 +93,11 @@ class TestsFlextCliTypings:
 
     def test_primitive_types_expose_scalar_primitives(self) -> None:
         """The primitives tuple publishes the four JSON scalar primitive types."""
-        tm.that(set(t.PRIMITIVES_TYPES), eq={str, int, float, bool})
+        tm.that(set(c.PRIMITIVES_TYPES), eq={str, int, float, bool})
 
     def test_scalar_types_superset_primitive_types(self) -> None:
         """SCALAR_TYPES includes every primitive plus richer scalar types."""
-        primitives = set(t.PRIMITIVES_TYPES)
+        primitives = set(c.PRIMITIVES_TYPES)
         scalars = set(t.SCALAR_TYPES)
         tm.that(primitives.issubset(scalars), eq=True)
         tm.that(len(scalars) > len(primitives), eq=True)

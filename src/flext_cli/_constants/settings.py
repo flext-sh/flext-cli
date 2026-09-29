@@ -54,7 +54,7 @@ class FlextCliConstantsSettings:
     )
     CLI_SCALAR_TYPES_TUPLE: ClassVar[
         tuple[type[str], type[int], type[float], type[bool]]
-    ] = t.PRIMITIVES_TYPES
+    ] = c.PRIMITIVES_TYPES
 
     CLI_PARAM_SHORT_FLAG_VERBOSE: ClassVar[str] = "v"
     CLI_PARAM_SHORT_FLAG_QUIET: ClassVar[str] = "q"
