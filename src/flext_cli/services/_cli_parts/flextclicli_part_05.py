@@ -39,7 +39,10 @@ class FlextCliCli(FlextCliCliPart04):
             success_type=success_type,
         )
         cls.register_callback(
-            app, command=cls.model_command(model_cls, execute, settings=settings)
+            app,
+            command=cls.model_command(
+                model_cls, execute, settings=settings, result_border=True
+            ),
         )
 
     @classmethod
@@ -68,7 +71,9 @@ class FlextCliCli(FlextCliCliPart04):
             app,
             name=name,
             help_text=help_text,
-            command=cls.model_command(model_cls, execute, settings=settings),
+            command=cls.model_command(
+                model_cls, execute, settings=settings, result_border=True
+            ),
         )
 
     @classmethod
@@ -82,16 +87,10 @@ class FlextCliCli(FlextCliCliPart04):
     ) -> p.Cli.ModelCommandHandler[M]:
         """Build the shared executor used by single and batched route registration."""
 
-        def _exit_with_failure(result: p.Result[TResult]) -> None:
-            # NOTE (multi-agent): programmatic execution propagates the original
-            # Result; direct framework execution finalizes it at this boundary.
-            if not u.Cli.framework_exit_result(result):
-                cls.exit(code=cls.finalize_result(result))
-
         def execute(params: M) -> t.JsonValue:
             result: p.Result[TResult] = handler(params)
             if result.failure:
-                _exit_with_failure(result)
+                cls._exit_failure(result)
             result_value: TResult = result.value
             message = u.Cli.commands_resolve_success_message(
                 result_value=result_value,

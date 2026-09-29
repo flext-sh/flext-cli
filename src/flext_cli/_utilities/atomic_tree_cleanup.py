@@ -63,7 +63,7 @@ def _require_cleanup_capabilities(manifest: m.Cli.AtomicPhysicalTreeManifest) ->
             if (opened.state.st_dev, opened.state.st_ino, mount_id) != expected:
                 _raise_changed(path)
             authenticated = file_descriptor.ParentDescriptor(
-                path, opened.descriptor, opened.state, opened.ancestry
+                path, opened.descriptor, opened.state, opened.ancestry, opened.lineage
             )
             file_durability.sync_parent(authenticated)
 

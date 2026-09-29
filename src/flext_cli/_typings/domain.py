@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable
 from pathlib import Path
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
@@ -10,9 +10,9 @@ from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c
 from flext_core import p, t
 
+from .._constants.enums import FlextCliConstantsEnums as ce
 from .base import FlextCliTypesBase as tb
 
 
@@ -49,17 +49,14 @@ class FlextCliTypesDomain:
         | FlextCliTypesDomain.RuleCatalog[TFileRuleKind]
         | None
     )
-    type MutableDefaultMapping = MutableMapping[str, t.Scalar | t.StrSequence]
     type CliParamValue = bool | str
     type CliParamKwargs = t.MappingKV[str, CliParamValue]
     type DefaultAtom = t.Scalar | t.StrSequence
     type ProjectNamesValue = str | t.StrSequence
     type TableHeaders = str | t.StrSequence
     type IntTextValue = int | str
-    type MessageType = c.Cli.MessageTypes
+    type MessageType = ce.MessageTypes
     type ModelLike = t.BaseModel
-    # mro-j47u (codex): model classes use the canonical core type alias.
-    type ModelSource = ModelLike | t.JsonMapping | t.ScalarMapping
     type OptionRegistry = t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]
     type NullaryOperation[T] = Callable[[], T]
     type PromptTextReader = Callable[[str], str]
@@ -70,7 +67,6 @@ class FlextCliTypesDomain:
     type SuccessMessageFormatter[TResult: ResultValue = ResultValue] = Callable[
         [TResult], str
     ]
-    type MappingProcessor[T, U] = Callable[[str, T], U]
     type TomlMappingSource = (
         t.JsonPayload | t.JsonMapping | t.ScalarMapping | Item | TOMLDocument
     )
@@ -88,7 +84,7 @@ class FlextCliTypesDomain:
         | t.JsonMapping
         | t.JsonPayload
     )
-    type TypeKind = c.Cli.TypeKind
+    type TypeKind = ce.TypeKind
     type TypedExtractValue = str | bool | t.JsonMapping
     type TableDataSource = tb.TabularData | t.SequenceOf[t.JsonMapping]
     type TextPath = str | Path

@@ -39,22 +39,26 @@ class FlextCliUtilitiesTables:
         settings: m.Cli.TableConfig | None = None,
         **settings_kwargs: t.Cli.TableConfigValue,
     ) -> p.Result[m.Cli.TableConfig]:
-        """Resolve table config via canonical Pydantic model contract."""
+        """Resolve table config via canonical Pydantic model contract.
+
+        An override the model rejects is the declared failure outcome and the
+        result carries the ``ValidationError``; every other exception escapes.
+        """
+        if settings is not None and not settings_kwargs:
+            return r[m.Cli.TableConfig].ok(settings)
+        base_data = (
+            settings.model_dump(exclude_computed_fields=True)
+            if settings is not None
+            else {}
+        )
+        settings_data = {**base_data, **settings_kwargs}
         try:
-            if settings is not None and not settings_kwargs:
-                return r[m.Cli.TableConfig].ok(settings)
-            base_data = (
-                settings.model_dump(exclude_computed_fields=True)
-                if settings is not None
-                else {}
-            )
-            settings_data = {**base_data, **settings_kwargs}
             resolved = m.Cli.TableConfig.model_validate(settings_data)
-            return r[m.Cli.TableConfig].ok(resolved)
-        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
+        except c.ValidationError as exc:
             return r[m.Cli.TableConfig].fail(
-                c.Cli.OUTPUT_TABLE_CONFIG_INVALID_FMT.format(error=exc)
+                c.Cli.OUTPUT_TABLE_CONFIG_INVALID_FMT.format(error=exc), exception=exc
             )
+        return r[m.Cli.TableConfig].ok(resolved)
 
     @staticmethod
     def tables_normalize_data(
@@ -140,13 +144,10 @@ class FlextCliUtilitiesTables:
         if colalign is not None and column_count > 0 and len(colalign) > column_count:
             colalign = colalign[:column_count]
 
-        try:
-            rendered_table = FlextCliUtilitiesTablesRenderer.render(
-                rows, headers, colalign=colalign or (), settings=settings
-            )
-            return r[str].ok(rendered_table)
-        except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-            return r[str].fail_op(c.Cli.OUTPUT_TABLE_FORMATTING_OPERATION, exc)
+        rendered_table = FlextCliUtilitiesTablesRenderer.render(
+            rows, headers, colalign=colalign or (), settings=settings
+        )
+        return r[str].ok(rendered_table)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesTables"]

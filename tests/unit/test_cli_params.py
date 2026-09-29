@@ -94,6 +94,16 @@ class TestsFlextCliCliParams:
         tm.fail(result)
         tm.that((result.error or "").lower(), has="trace mode requires debug mode")
 
+    def test_apply_to_config_unknown_parameter_fails_carrying_validation_error(
+        self, settings: p.Cli.Settings
+    ) -> None:
+        """A parameter the params model rejects fails and keeps its cause."""
+        result = cli.apply_to_config(settings, not_a_param=True)
+
+        tm.fail(result)
+        tm.that((result.error or ""), has="not_a_param")
+        tm.that(result.exception, is_=c.ValidationError)
+
     @pytest.mark.parametrize(
         ("field_name", "expected_fragments"),
         [

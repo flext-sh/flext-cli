@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from graphlib import CycleError, TopologicalSorter
 from typing import ClassVar
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r, settings, t
 from flext_core import u
 
 
@@ -86,7 +86,10 @@ class FlextCliUtilitiesPipeline:
                 )
                 sorter.done(stage_id)
             elif known:
-                with ThreadPoolExecutor(thread_name_prefix="pipeline_") as executor:
+                with ThreadPoolExecutor(
+                    max_workers=min(settings.cli_pipeline_max_workers, len(known)),
+                    thread_name_prefix="pipeline_",
+                ) as executor:
                     futures = {
                         stage_id: executor.submit(
                             FlextCliUtilitiesPipeline._run_stage,

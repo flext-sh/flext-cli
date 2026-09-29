@@ -16,13 +16,13 @@ from .formatters import FlextCliUtilitiesFormatters
 from .framework import FlextCliUtilitiesFramework
 from .json import FlextCliUtilitiesJson
 from .matching import FlextCliUtilitiesMatching
-from .model_commands import FlextCliUtilitiesModelCommands
 from .output import FlextCliUtilitiesOutput
 from .params import FlextCliUtilitiesParams
 from .pipeline import FlextCliUtilitiesPipeline
 from .pptx import FlextCliUtilitiesPptx
 from .processes import FlextCliUtilitiesProcesses
 from .prompts import FlextCliUtilitiesPrompts
+from .report import FlextCliUtilitiesReport
 from .rules import FlextCliUtilitiesRules
 from .runtime import FlextCliUtilitiesRuntime
 from .settings import FlextCliUtilitiesSettings
@@ -49,12 +49,12 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesFramework,
     FlextCliUtilitiesJson,
     FlextCliUtilitiesMatching,
-    FlextCliUtilitiesModelCommands,
     FlextCliUtilitiesOptions,
     FlextCliUtilitiesOutput,
     FlextCliUtilitiesParams,
     FlextCliUtilitiesPipeline,
     FlextCliUtilitiesPrompts,
+    FlextCliUtilitiesReport,
     FlextCliUtilitiesProcesses,
     FlextCliUtilitiesRules,
     FlextCliUtilitiesRuntime,

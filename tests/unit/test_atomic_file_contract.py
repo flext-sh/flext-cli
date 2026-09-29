@@ -189,9 +189,15 @@ root = Path(sys.argv[1])
 destination = root / "published.txt"
 
 def expire(_signum, _frame):
+    # Disarm before any check: the glob below is slow enough (tens of
+    # microseconds against a 0.1ms period) that a still-armed repeating
+    # timer can re-enter this handler before it returns, recursing without
+    # bound. Re-arming only on the negative branch keeps the polling alive
+    # without ever letting two invocations overlap.
+    signal.setitimer(signal.ITIMER_REAL, 0)
     if tuple(root.glob(".flext-atomic-*.tmp")):
-        signal.setitimer(signal.ITIMER_REAL, 0)
         raise AtomicDeadline("atomic deadline")
+    signal.setitimer(signal.ITIMER_REAL, 0.0001, 0.0001)
 
 signal.signal(signal.SIGALRM, expire)
 signal.setitimer(signal.ITIMER_REAL, 0.0001, 0.0001)

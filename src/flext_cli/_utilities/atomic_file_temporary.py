@@ -55,9 +55,17 @@ def authenticated_descriptor(
     """Transfer one descriptor only after its identity is bound.
 
     POSIX timer signals are held across ``open`` and the caller's assignment of
-    both fields.  Restoring the mask can therefore propagate the original
-    timeout only after cleanup has an authenticated inode and live descriptor.
-    Windows has no ``pthread_sigmask`` or POSIX interval-timer delivery.
+    both fields.  A timer signal can still reach this critical section through
+    a thread this function does not own (for example a process-wide interval
+    timer delivered to an unrelated background thread that has not blocked
+    it), so failure cleanup never assumes the interrupt landed at a known
+    line: it always closes a captured descriptor and, because ``temporary``
+    names an exclusive (``O_EXCL``), unpredictable sibling this call alone can
+    have created, always removes that exact sibling if it exists before the
+    signal mask is restored. Restoring the mask therefore only ever propagates
+    the original timeout once no unauthenticated descriptor or temporary can
+    remain. Windows has no ``pthread_sigmask`` or POSIX interval-timer
+    delivery.
     """
     timer_signals = {
         candidate
@@ -73,12 +81,14 @@ def authenticated_descriptor(
     transferred = False
     try:
         descriptor = create_descriptor(parent, temporary)
-        authenticated = (descriptor, file_state.identity(os.fstat(descriptor)))
-        yield authenticated
+        yield (descriptor, file_state.identity(os.fstat(descriptor)))
         transferred = True
     finally:
-        if descriptor is not None and not transferred:
-            os.close(descriptor)
+        if not transferred:
+            if descriptor is not None:
+                os.close(descriptor)
+            if file_state.destination_state(temporary, parent=parent) is not None:
+                file_descriptor.unlink_entry(parent, temporary)
         if previous_mask is not None:
             signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
 

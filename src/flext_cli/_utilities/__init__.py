@@ -191,6 +191,7 @@ if TYPE_CHECKING:
         inspect_directory_chain,
         physical_directory,
         require_traversal_capabilities,
+        verify_lineage,
     )
     from .atomic_parent_failure import preserve_recheck_failure
     from .atomic_tree_cleanup import cleanup_physical_tree_guarded
@@ -217,13 +218,13 @@ if TYPE_CHECKING:
     from .framework import FlextCliUtilitiesFramework
     from .json import FlextCliUtilitiesJson
     from .matching import FlextCliUtilitiesMatching
-    from .model_commands import FlextCliUtilitiesModelCommands
     from .output import FlextCliUtilitiesOutput
     from .params import FlextCliUtilitiesParams
     from .pipeline import FlextCliUtilitiesPipeline
     from .pptx import FlextCliUtilitiesPptx
     from .processes import FlextCliUtilitiesProcesses
     from .prompts import FlextCliUtilitiesPrompts
+    from .report import FlextCliUtilitiesReport
     from .rules import FlextCliUtilitiesRules
     from .runtime import FlextCliUtilitiesRuntime
     from .settings import FlextCliUtilitiesSettings
@@ -259,7 +260,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesJsonCoreMixin",
     "FlextCliUtilitiesJsonNavigateMixin",
     "FlextCliUtilitiesMatching",
-    "FlextCliUtilitiesModelCommands",
     "FlextCliUtilitiesOptionBuilder",
     "FlextCliUtilitiesOptions",
     "FlextCliUtilitiesOutput",
@@ -271,6 +271,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesPptxSerializer",
     "FlextCliUtilitiesProcesses",
     "FlextCliUtilitiesPrompts",
+    "FlextCliUtilitiesReport",
     "FlextCliUtilitiesRules",
     "FlextCliUtilitiesRulesLoadersMixin",
     "FlextCliUtilitiesRulesMatchersMixin",
@@ -422,6 +423,7 @@ __all__: tuple[str, ...] = (
     "validate_parent_path",
     "validate_precondition",
     "validate_publication",
+    "verify_lineage",
     "write_and_sync",
     "write_atomic_bytes",
 )
@@ -625,6 +627,7 @@ _LAZY_IMPORTS = MappingProxyType(
                 "inspect_directory_chain",
                 "physical_directory",
                 "require_traversal_capabilities",
+                "verify_lineage",
             ),
             ".atomic_parent_failure": ("preserve_recheck_failure",),
             ".atomic_tree_cleanup": ("cleanup_physical_tree_guarded",),
@@ -651,13 +654,13 @@ _LAZY_IMPORTS = MappingProxyType(
             ".framework": ("FlextCliUtilitiesFramework",),
             ".json": ("FlextCliUtilitiesJson",),
             ".matching": ("FlextCliUtilitiesMatching",),
-            ".model_commands": ("FlextCliUtilitiesModelCommands",),
             ".output": ("FlextCliUtilitiesOutput",),
             ".params": ("FlextCliUtilitiesParams",),
             ".pipeline": ("FlextCliUtilitiesPipeline",),
             ".pptx": ("FlextCliUtilitiesPptx",),
             ".processes": ("FlextCliUtilitiesProcesses",),
             ".prompts": ("FlextCliUtilitiesPrompts",),
+            ".report": ("FlextCliUtilitiesReport",),
             ".rules": ("FlextCliUtilitiesRules",),
             ".runtime": ("FlextCliUtilitiesRuntime",),
             ".settings": ("FlextCliUtilitiesSettings",),

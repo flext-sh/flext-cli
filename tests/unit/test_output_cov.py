@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
-from tests import c, u
+from tests import c, m, u
 
 
 class TestsFlextCliOutputCov:
@@ -239,16 +239,11 @@ class TestsFlextCliOutputCov:
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Verify that summary emits verb and counts."""
-
-        class _FakeSummaryStats:
-            verb = "check"
-            total = 5
-            success = 4
-            failed = 1
-            skipped = 0
-            elapsed = 2.5
-
-        u.Cli.summary(_FakeSummaryStats())
+        u.Cli.summary(
+            m.Tests.SummaryStats(
+                verb="check", total=5, success=4, failed=1, skipped=0, elapsed=2.5
+            )
+        )
         out = capsys.readouterr().out
         tm.that(out, has="check")
         tm.that(out, has="Total: 5")
@@ -257,16 +252,16 @@ class TestsFlextCliOutputCov:
         self, capsys: pytest.CaptureFixture[str]
     ) -> None:
         """Verify that project failure lists errors and truncation notice."""
-
-        class _FakeProjectFailureInfo:
-            project = "flext-cli"
-            elapsed = 3.0
-            error_count = 2
-            log_path = Path("log.txt")
-            max_show = 1
-            errors = ("error line 1", "error line 2")
-
-        u.Cli.project_failure(_FakeProjectFailureInfo())
+        u.Cli.project_failure(
+            m.Tests.ProjectFailureInfo(
+                project="flext-cli",
+                elapsed=3.0,
+                error_count=2,
+                log_path=Path("log.txt"),
+                max_show=1,
+                errors=("error line 1", "error line 2"),
+            )
+        )
         out = capsys.readouterr().out
         tm.that(out, has="flext-cli")
         tm.that(out, has="error line 1")

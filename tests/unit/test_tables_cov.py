@@ -92,6 +92,7 @@ class TestsFlextCliTables:
         result = u.Cli.tables_resolve_config(not_a_field="oops")
         tm.fail(result)
         tm.that((result.error or ""), has="Invalid table configuration")
+        tm.that(result.exception, is_=c.ValidationError)
 
     # ── tables_normalize_data ─────────────────────────────────────────
 
