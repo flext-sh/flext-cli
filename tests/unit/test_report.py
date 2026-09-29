@@ -23,25 +23,20 @@ class TestsFlextCliDataReport:
 
     def test_report_render_accepts_an_empty_report(self) -> None:
         """An empty report renders deterministically without failing."""
-        rendered = u.Cli.report_render(
-            m.Cli.DataReportRequest(columns=(), rows=())
-        )
+        rendered = u.Cli.report_render(m.Cli.DataReportRequest(columns=(), rows=()))
         assert rendered.success
 
     def test_report_emit_json_returns_success(self) -> None:
         """Emitting the typed report as JSON returns the success boundary."""
         emitted = u.Cli.report_emit(
-            m.Cli.DataReportRequest(columns=("a",), rows=[["b"]]),
-            json_output=True,
+            m.Cli.DataReportRequest(columns=("a",), rows=[["b"]]), json_output=True
         )
         assert emitted.success
 
     def test_report_emit_table_returns_success(self) -> None:
         """Emitting the typed report as a table returns the success boundary."""
         emitted = u.Cli.report_emit(
-            m.Cli.DataReportRequest(
-                columns=("a",), rows=[["b"]], message="verdict"
-            ),
+            m.Cli.DataReportRequest(columns=("a",), rows=[["b"]], message="verdict"),
             json_output=False,
         )
         assert emitted.success

@@ -138,7 +138,8 @@ class FlextCliModelsBase:
             t.StrSequence, m.Field(description="Ordered report column labels")
         ]
         rows: Annotated[
-            t.SequenceOf[t.StrSequence], m.Field(description="Ordered report row values")
+            t.SequenceOf[t.StrSequence],
+            m.Field(description="Ordered report row values"),
         ]
         title: Annotated[str, m.Field(description="Optional report title")] = ""
         message: Annotated[
