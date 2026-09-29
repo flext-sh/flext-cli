@@ -191,6 +191,7 @@ if TYPE_CHECKING:
         inspect_directory_chain,
         physical_directory,
         require_traversal_capabilities,
+        verify_lineage,
     )
     from .atomic_parent_failure import preserve_recheck_failure
     from .atomic_tree_cleanup import cleanup_physical_tree_guarded
@@ -422,6 +423,7 @@ __all__: tuple[str, ...] = (
     "validate_parent_path",
     "validate_precondition",
     "validate_publication",
+    "verify_lineage",
     "write_and_sync",
     "write_atomic_bytes",
 )
@@ -625,6 +627,7 @@ _LAZY_IMPORTS = MappingProxyType(
                 "inspect_directory_chain",
                 "physical_directory",
                 "require_traversal_capabilities",
+                "verify_lineage",
             ),
             ".atomic_parent_failure": ("preserve_recheck_failure",),
             ".atomic_tree_cleanup": ("cleanup_physical_tree_guarded",),

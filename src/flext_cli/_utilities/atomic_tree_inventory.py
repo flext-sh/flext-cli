@@ -59,6 +59,7 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
                 descriptor,
                 root_state,
                 (*outer_parent.ancestry, file_path.identity(root_state)),
+                (*outer_parent.lineage, outer_parent.descriptor),
             )
             directory_identities = {file_path.identity(root_state)}
             _inventory_directory(
@@ -113,6 +114,7 @@ def _inventory_directory(
                     descriptor,
                     observed,
                     (*parent.ancestry, file_path.identity(observed)),
+                    (*parent.lineage, parent.descriptor),
                 )
                 _inventory_directory(
                     child_parent, mount_id, entries, directory_identities
