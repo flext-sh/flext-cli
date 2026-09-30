@@ -207,3 +207,41 @@ class TestsFlextCliFilesCov:
     def test_files_matching_fails_for_missing_root(self, tmp_path: Path) -> None:
         """A root that is not a directory fails instead of selecting nothing."""
         tm.fail(u.Cli.files_matching(tmp_path / "missing", includes=["*.py"]))
+
+    def test_read_symlink_target_returns_resolved_destination(
+        self, tmp_path: Path
+    ) -> None:
+        """Verify authenticated read returns the link's resolved destination."""
+        source = tmp_path / "real_dir"
+        source.mkdir()
+        link = tmp_path / "link_dir"
+        tm.ok(u.Cli.ensure_symlink(link, source))
+        destination = tm.ok(u.Cli.read_symlink_target(link))
+        tm.that(destination, eq=source.resolve().as_posix())
+
+    def test_read_symlink_target_fails_for_regular_path(self, tmp_path: Path) -> None:
+        """A regular directory is not a symlink and must fail with a typed error."""
+        plain = tmp_path / "plain_dir"
+        plain.mkdir()
+        tm.fail(u.Cli.read_symlink_target(plain))
+
+    def test_remove_symlink_target_removes_link_and_keeps_source(
+        self, tmp_path: Path
+    ) -> None:
+        """Removing a symlink deletes only the link, never the real target."""
+        source = tmp_path / "real_dir"
+        source.mkdir()
+        link = tmp_path / "link_dir"
+        tm.ok(u.Cli.ensure_symlink(link, source))
+        tm.ok(u.Cli.remove_symlink_target(link))
+        tm.that(link.is_symlink(), eq=False)
+        tm.that(source.is_dir(), eq=True)
+
+    def test_remove_symlink_target_is_noop_for_absent_path(
+        self, tmp_path: Path
+    ) -> None:
+        """Removing an absent target succeeds so callers need no pre-check race."""
+        tm.ok(u.Cli.remove_symlink_target(tmp_path / "absent"))
+
+
+__all__: list[str] = ["TestsFlextCliFilesCov"]
