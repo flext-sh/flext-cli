@@ -206,6 +206,3 @@ class TestsFlextCliPromptsCov:
         prompts = make_prompts(error=ValueError("no tty"))
         with pytest.raises(ValueError, match="no tty"):
             prompts.prompt_password("Password:")
-
-
-__all__: list[str] = ["TestsFlextCliPromptsCov"]

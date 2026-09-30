@@ -28,6 +28,7 @@ class FlextCliConstantsErrors:
     ERR_ENSURE_SYMLINK_FAILED: ClassVar[str] = (
         "failed to ensure symlink for {target_path}: {error}"
     )
+    ERR_READ_SYMLINK_FAILED: ClassVar[str] = "path is not a symlink: {target_path}"
     ERR_FILE_PATH_EMPTY: ClassVar[str] = "File path must be non-empty"
     ERR_AUTO_LOAD_FAILED: ClassVar[str] = "Auto load failed"
     ERR_FILE_DELETION_FAILED: ClassVar[str] = "File deletion failed: {error}"

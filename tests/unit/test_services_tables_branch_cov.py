@@ -142,6 +142,3 @@ class TestsFlextCliServicesTablesBranchCov:
 
         captured = capsys.readouterr().out
         tm.that(captured, has=c.Cli.OUTPUT_TABLE_CONFIG_INVALID)
-
-
-__all__: list[str] = ["TestsFlextCliServicesTablesBranchCov"]

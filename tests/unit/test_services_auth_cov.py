@@ -232,6 +232,3 @@ class TestsFlextCliServicesAuthCov:
         tm.ok(auth.clear_auth_tokens())
 
         tm.fail(auth.fetch_auth_token())
-
-
-__all__: list[str] = ["TestsFlextCliServicesAuthCov"]

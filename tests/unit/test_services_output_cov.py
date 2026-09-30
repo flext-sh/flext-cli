@@ -236,6 +236,3 @@ class TestsFlextCliServicesOutputCov:
         out = capsys.readouterr().out
         tm.that(out, has="DEBUG")
         tm.that(out, has="visible")
-
-
-__all__: list[str] = ["TestsFlextCliServicesOutputCov"]

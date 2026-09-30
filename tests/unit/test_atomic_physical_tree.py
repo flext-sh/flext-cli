@@ -222,6 +222,3 @@ class TestsAtomicPhysicalTree:
         result = u.Cli.atomic_inventory_physical_tree(root)
         tm.ok(result)
         return result.value
-
-
-__all__: list[str] = ["TestsAtomicPhysicalTree"]

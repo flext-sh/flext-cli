@@ -395,6 +395,3 @@ class TestsFlextCliRulesCov:
         )
         result = tm.not_none(result)
         tm.that(result, has="actions must be a non-empty list")
-
-
-__all__: list[str] = ["TestsFlextCliRulesCov"]

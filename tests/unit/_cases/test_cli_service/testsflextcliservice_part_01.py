@@ -109,6 +109,3 @@ class TestsFlextCliService:
         tm.that(captured[0].count, eq=3)
         tm.that(captured[0].dry_run, eq=True)
         tm.that(captured[0].output_format, eq=c.Cli.OutputFormats.JSON)
-
-
-__all__: list[str] = ["TestsFlextCliService"]

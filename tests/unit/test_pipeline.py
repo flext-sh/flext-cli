@@ -19,6 +19,3 @@ class TestsFlextCliPipeline(
     TestsFlextCliPipelinePart03,
 ):
     """Public facade for TestsFlextCliPipeline."""
-
-
-__all__: list[str] = ["TestsFlextCliPipeline"]

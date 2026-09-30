@@ -24,23 +24,19 @@ def remove_failed_temporary(
 ) -> None:
     """Close and unlink only caller-owned staging while retaining every cause."""
     cleanup_errors: list[OSError] = []
+    if identity is None and descriptor is not None:
+        try:
+            identity = file_state.identity(os.fstat(descriptor))
+        except OSError as cleanup_error:
+            cleanup_errors.append(cleanup_error)
     if descriptor is not None:
         try:
             os.close(descriptor)
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
-    if identity is None:
-        try:
-            state = file_state.destination_state(temporary, parent=parent)
-        except OSError as cleanup_error:
-            cleanup_errors.append(cleanup_error)
-        else:
-            if state is not None:
-                message = (
-                    f"refusing to remove unauthenticated atomic temporary: {temporary}"
-                )
-                cleanup_errors.append(OSError(errno.ESTALE, message, temporary))
-    else:
+    # No captured identity grants no authority over the directory entry.
+    # Leave unknown artifacts untouched; the original operation still raises.
+    if identity is not None:
         try:
             file_state.assert_temporary_owned(temporary, identity, parent=parent)
             file_descriptor.unlink_entry(parent, temporary)

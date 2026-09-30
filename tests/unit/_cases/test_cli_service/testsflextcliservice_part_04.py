@@ -119,6 +119,3 @@ class TestsFlextCliService:
         )
 
         tm.ok(result)
-
-
-__all__: list[str] = ["TestsFlextCliService"]

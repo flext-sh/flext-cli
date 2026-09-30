@@ -32,9 +32,11 @@ from ._base.flextclimodelsbase_part_09 import (
 from ._base.flextclimodelsbase_part_10 import (
     FlextCliModelsBase as FlextCliModelsBasePart10,
 )
+from .atomic_symlink import FlextCliModelsAtomicSymlink
 
 
 class FlextCliModelsBase(
+    FlextCliModelsAtomicSymlink,
     FlextCliModelsBasePart01,
     FlextCliModelsBasePart02,
     FlextCliModelsBasePart03,

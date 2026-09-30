@@ -37,6 +37,3 @@ class TestsFlextCliService(
     _CliServicePart05,
 ):
     """Public behavioral suite for the flext-cli CLI facade."""
-
-
-__all__: list[str] = ["TestsFlextCliService"]

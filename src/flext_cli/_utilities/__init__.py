@@ -179,7 +179,6 @@ if TYPE_CHECKING:
         validate_precondition,
     )
     from .atomic_file_temporary import (
-        authenticated_descriptor,
         create_descriptor,
         require_mode_capability,
         temporary_path,
@@ -191,8 +190,15 @@ if TYPE_CHECKING:
         inspect_directory_chain,
         physical_directory,
         require_traversal_capabilities,
+        verify_lineage,
     )
     from .atomic_parent_failure import preserve_recheck_failure
+    from .atomic_symlink_publish import delete_guarded_symlink, write_guarded_symlink
+    from .atomic_symlink_state import (
+        read_symlink_state,
+        require_symlink_state,
+        symlink_identity,
+    )
     from .atomic_tree_cleanup import cleanup_physical_tree_guarded
     from .atomic_tree_darwin import FlextCliAtomicTreeDarwin
     from .atomic_tree_descriptor import (
@@ -223,9 +229,11 @@ if TYPE_CHECKING:
     from .pptx import FlextCliUtilitiesPptx
     from .processes import FlextCliUtilitiesProcesses
     from .prompts import FlextCliUtilitiesPrompts
+    from .report import FlextCliUtilitiesReport
     from .rules import FlextCliUtilitiesRules
     from .runtime import FlextCliUtilitiesRuntime
     from .settings import FlextCliUtilitiesSettings
+    from .symlink import FlextCliUtilitiesSymlink
     from .tables import FlextCliUtilitiesTables
     from .template import FlextCliUtilitiesTemplate
     from .toml import FlextCliUtilitiesToml
@@ -269,6 +277,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesPptxSerializer",
     "FlextCliUtilitiesProcesses",
     "FlextCliUtilitiesPrompts",
+    "FlextCliUtilitiesReport",
     "FlextCliUtilitiesRules",
     "FlextCliUtilitiesRulesLoadersMixin",
     "FlextCliUtilitiesRulesMatchersMixin",
@@ -291,6 +300,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesRuntimeWindowsJobStartMixin",
     "FlextCliUtilitiesRuntimeWindowsJobStateMixin",
     "FlextCliUtilitiesSettings",
+    "FlextCliUtilitiesSymlink",
     "FlextCliUtilitiesTables",
     "FlextCliUtilitiesTablesRenderer",
     "FlextCliUtilitiesTemplate",
@@ -345,13 +355,13 @@ __all__: tuple[str, ...] = (
     "assert_observed_mode",
     "assert_parent_unchanged",
     "assert_temporary_owned",
-    "authenticated_descriptor",
     "cleanup_physical_tree_guarded",
     "close_after_failure",
     "create_descriptor",
     "create_entry",
     "create_guarded_directory_chain",
     "create_guarded_empty_directory",
+    "delete_guarded_symlink",
     "destination_state",
     "entry_descriptor",
     "entry_stat",
@@ -377,6 +387,7 @@ __all__: tuple[str, ...] = (
     "read_authenticated_state",
     "read_descriptor_bytes",
     "read_empty_state",
+    "read_symlink_state",
     "remove_created_directory",
     "remove_entry",
     "remove_failed_temporary",
@@ -402,9 +413,11 @@ __all__: tuple[str, ...] = (
     "require_publish_capabilities",
     "require_read_capabilities",
     "require_same_device",
+    "require_symlink_state",
     "require_traversal_capabilities",
     "resolve_parent_path",
     "state_key",
+    "symlink_identity",
     "sync_parent",
     "sync_replacement",
     "temporary_path",
@@ -420,8 +433,10 @@ __all__: tuple[str, ...] = (
     "validate_parent_path",
     "validate_precondition",
     "validate_publication",
+    "verify_lineage",
     "write_and_sync",
     "write_atomic_bytes",
+    "write_guarded_symlink",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
@@ -611,7 +626,6 @@ _LAZY_IMPORTS = MappingProxyType(
                 "validate_precondition",
             ),
             ".atomic_file_temporary": (
-                "authenticated_descriptor",
                 "create_descriptor",
                 "require_mode_capability",
                 "temporary_path",
@@ -623,8 +637,18 @@ _LAZY_IMPORTS = MappingProxyType(
                 "inspect_directory_chain",
                 "physical_directory",
                 "require_traversal_capabilities",
+                "verify_lineage",
             ),
             ".atomic_parent_failure": ("preserve_recheck_failure",),
+            ".atomic_symlink_publish": (
+                "delete_guarded_symlink",
+                "write_guarded_symlink",
+            ),
+            ".atomic_symlink_state": (
+                "read_symlink_state",
+                "require_symlink_state",
+                "symlink_identity",
+            ),
             ".atomic_tree_cleanup": ("cleanup_physical_tree_guarded",),
             ".atomic_tree_darwin": ("FlextCliAtomicTreeDarwin",),
             ".atomic_tree_descriptor": (
@@ -655,9 +679,11 @@ _LAZY_IMPORTS = MappingProxyType(
             ".pptx": ("FlextCliUtilitiesPptx",),
             ".processes": ("FlextCliUtilitiesProcesses",),
             ".prompts": ("FlextCliUtilitiesPrompts",),
+            ".report": ("FlextCliUtilitiesReport",),
             ".rules": ("FlextCliUtilitiesRules",),
             ".runtime": ("FlextCliUtilitiesRuntime",),
             ".settings": ("FlextCliUtilitiesSettings",),
+            ".symlink": ("FlextCliUtilitiesSymlink",),
             ".tables": ("FlextCliUtilitiesTables",),
             ".template": ("FlextCliUtilitiesTemplate",),
             ".toml": ("FlextCliUtilitiesToml",),

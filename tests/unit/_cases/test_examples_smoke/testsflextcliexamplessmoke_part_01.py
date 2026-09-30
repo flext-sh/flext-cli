@@ -100,6 +100,3 @@ class TestsFlextCliExamplesSmoke:
             validation_result.value.content
         )
         tm.that(loaded_record, eq=record)
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

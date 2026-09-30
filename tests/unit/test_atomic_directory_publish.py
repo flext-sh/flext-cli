@@ -109,6 +109,3 @@ class TestsAtomicDirectoryPublish:
         tm.that(destination_path.exists(), eq=False)
         tm.that(staged_path.is_dir(), eq=True)
         tm.that(child.read_bytes(), eq=b"content")
-
-
-__all__: list[str] = ["TestsAtomicDirectoryPublish"]

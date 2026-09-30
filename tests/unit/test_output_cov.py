@@ -301,6 +301,3 @@ class TestsFlextCliOutputCov:
                 tmp_path, c.Cli.OUTPUT_SCOPE_WORKSPACE, "check"
             ),
         )
-
-
-__all__: list[str] = ["TestsFlextCliOutputCov"]

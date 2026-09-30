@@ -160,6 +160,3 @@ class TestsAtomicDirectoryIdentity:
                 link_count=1,
                 reparse_tag=1,
             )
-
-
-__all__: list[str] = ["TestsAtomicDirectoryIdentity"]
