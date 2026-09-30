@@ -27,6 +27,3 @@ class TestsFlextCliExamplesSmoke(
     TestsFlextCliExamplesSmokePart05,
 ):
     """Public facade for TestsFlextCliExamplesSmoke."""
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

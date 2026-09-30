@@ -17,6 +17,7 @@ No signature introspection, private attribute access, or patching is used.
 
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import Annotated, ClassVar
 
 import pytest
@@ -121,6 +122,24 @@ class TestsFlextCliOptionsUtilsCov:
 
         value: t.StrSequence = ("a",)
 
+    class ImmutableMappingDefaultModel(m.BaseModel):
+        """An immutable default retains the field's declared mapping contract."""
+
+        bindings: t.MappingKV[str, t.StrSequence] = m.Field(
+            default_factory=lambda: MappingProxyType({"owner": ("first", "second")}),
+            description="Declared symbol owner bindings.",
+        )
+
+    class InvalidMappingDefaultModel(m.BaseModel):
+        """Field constraints apply before a structured default becomes JSON."""
+
+        bindings: Annotated[t.MappingKV[str, t.StrSequence], m.Field(min_length=1)] = (
+            m.Field(
+                default_factory=lambda: MappingProxyType[str, t.StrSequence]({}),
+                description="A nonempty mapping with an invalid empty default.",
+            )
+        )
+
     _INVOCATION_CASES: ClassVar[
         t.VariadicTuple[t.Pair[t.StrSequence, t.Cli.ModelLike]]
     ] = (
@@ -170,6 +189,42 @@ class TestsFlextCliOptionsUtilsCov:
         return invocation.value, received
 
     # ---- generated-command contract, observed through real invocation ----
+
+    def test_immutable_mapping_default_reaches_real_cli_handler(self) -> None:
+        """Omitted JSON options validate immutable metadata through their schema."""
+        outcome, received = self._run(self.ImmutableMappingDefaultModel, ())
+        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.that(len(received), eq=1)
+        expected = self.ImmutableMappingDefaultModel()
+        tm.that(received[0].bindings, eq=expected.bindings)
+
+    def test_immutable_mapping_option_accepts_explicit_json(self) -> None:
+        """The same generated option parses an explicit payload normally."""
+        payload = '{"selected":["third"]}'
+        outcome, received = self._run(
+            self.ImmutableMappingDefaultModel, ("--bindings", payload)
+        )
+        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        expected = self.ImmutableMappingDefaultModel.model_validate_json(
+            '{"bindings":' + payload + "}"
+        )
+        tm.that(received[0].bindings, eq=expected.bindings)
+
+    def test_mapping_settings_default_uses_the_same_field_contract(self) -> None:
+        """Validated settings override metadata without changing serialization."""
+        settings = self.ImmutableMappingDefaultModel(
+            bindings=MappingProxyType({"configured": ("settings",)})
+        )
+        outcome, received = self._run(
+            self.ImmutableMappingDefaultModel, (), settings=settings
+        )
+        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.that(received[0].bindings, eq=settings.bindings)
+
+    def test_invalid_structured_default_keeps_field_validation_failure(self) -> None:
+        """Default rendering cannot bypass the declared minimum mapping length."""
+        with pytest.raises(m.ValidationError, match="at least 1 item"):
+            cli.model_command(self.InvalidMappingDefaultModel, self._noop_handler)
 
     def test_model_command_uses_field_alias_as_option_name(self) -> None:
         """The field alias is the option name the CLI accepts."""
@@ -298,6 +353,3 @@ class TestsFlextCliOptionsUtilsCov:
         tm.that(result, eq="parsed-name")
         tm.that(received["model"].name, eq="parsed-name")
         tm.that(settings.name, eq="start-name")
-
-
-__all__: list[str] = ["TestsFlextCliOptionsUtilsCov"]

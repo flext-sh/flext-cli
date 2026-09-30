@@ -110,6 +110,3 @@ class TestsFlextCliPipeline:
                 [cli.stage("boom", handler=exploding)],
                 context=cli.stage_context(tmp_path),
             )
-
-
-__all__: list[str] = ["TestsFlextCliPipeline"]

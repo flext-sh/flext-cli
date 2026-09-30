@@ -81,6 +81,3 @@ class TestsFlextCliPrompts:
             tm.ok(result)
             tm.that(result.value, eq="text")
         tm.that(time.time() - started_at, lt=0.5)
-
-
-__all__: list[str] = ["TestsFlextCliPrompts"]

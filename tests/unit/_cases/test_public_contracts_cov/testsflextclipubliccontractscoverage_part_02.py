@@ -116,6 +116,3 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(write_options.indent, eq=4)
         tm.that(write_options.sort_keys, eq=True)
         tm.that(write_options.ensure_ascii, eq=True)
-
-
-__all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]

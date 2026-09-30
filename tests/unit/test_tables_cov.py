@@ -170,6 +170,3 @@ class TestsFlextCliTables:
         result = u.Cli.tables_render(rows, config)
         tm.ok(result)
         tm.that(result.unwrap(), is_=str)
-
-
-__all__: list[str] = ["TestsFlextCliTables"]

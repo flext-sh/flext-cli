@@ -70,6 +70,14 @@ class FlextApiSettings(FlextSettings):
 
 ## Model-driven command
 
+Structured option defaults are validated against the field annotation, including its
+metadata constraints, before being serialized as JSON. This supports immutable mapping
+defaults without converting the model's declared mapping contract into a mutable one.
+Settings values use the same field contract. Invalid defaults raise the original
+Pydantic validation error during command construction; serialization warnings are
+errors. The implementation uses Pydantic's
+[TypeAdapter validation and serialization](https://docs.pydantic.dev/latest/api/type_adapter/).
+
 ```python
 from __future__ import annotations
 

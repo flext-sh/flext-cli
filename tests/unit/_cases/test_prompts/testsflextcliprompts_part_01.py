@@ -113,6 +113,3 @@ class TestsFlextCliPrompts:
         valid_result = valid_prompts.prompt_password("Password:", min_length=8)
         tm.ok(valid_result)
         tm.that(valid_result.value, eq=valid_secret)
-
-
-__all__: list[str] = ["TestsFlextCliPrompts"]

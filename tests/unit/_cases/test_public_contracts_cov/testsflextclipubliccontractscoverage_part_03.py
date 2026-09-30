@@ -56,6 +56,3 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(stage_result.value.output, eq={"workspace": str(tmp_path)})
         tm.ok(pipeline_run)
         tm.that(pipeline_run.value.success, eq=True)
-
-
-__all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]

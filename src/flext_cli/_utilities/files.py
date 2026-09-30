@@ -20,9 +20,11 @@ from ._files_parts.flextcliutilitiesfiles_part_05 import (
 from ._files_parts.flextcliutilitiesfiles_part_06 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart06,
 )
+from .symlink import FlextCliUtilitiesSymlink
 
 
 class FlextCliUtilitiesFiles(
+    FlextCliUtilitiesSymlink,
     FlextCliUtilitiesFilesPart01,
     FlextCliUtilitiesFilesPart02,
     FlextCliUtilitiesFilesPart03,

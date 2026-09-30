@@ -274,6 +274,3 @@ class TestsAtomicFileIdentity:
         tm.that(destination.exists(), eq=False)
         tm.that(staged.read_bytes(), eq=b"content")
         tm.that(alias.read_bytes(), eq=b"content")
-
-
-__all__: list[str] = ["TestsAtomicFileIdentity"]

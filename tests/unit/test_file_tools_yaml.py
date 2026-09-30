@@ -107,6 +107,3 @@ class TestsFlextCliYamlModelLoading:
         result = cli.read_yaml_model(source, m.Tests.YamlConsumerConfig)
 
         tm.that(result.failure, eq=True)
-
-
-__all__: list[str] = ["TestsFlextCliYamlModelLoading"]

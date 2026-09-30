@@ -64,30 +64,5 @@ class FlextCliUtilitiesValidation:
             command=command, model=model, reason="validation failed"
         )
 
-    @staticmethod
-    def first_error_field(exc: PydanticValidationError) -> str | None:
-        """Return the first pydantic error location as a dotted field name."""
-        errors = exc.errors()
-        if not errors:
-            return None
-        loc = ".".join(str(part) for part in errors[0].get("loc", ()) if part != "body")
-        return loc or None
-
-    @staticmethod
-    def assert_model_definition(model_cls: object, *, command: str) -> None:
-        """Raise a located definition error if ``model_cls`` is not pydantic."""
-        model_name = getattr(model_cls, "__name__", repr(model_cls))
-        model_fields = getattr(model_cls, "model_fields", None)
-        if not isinstance(model_fields, dict) or not model_fields:
-            raise c.Cli.CliDefinitionError(
-                c.Cli.ERR_CLI_DEFINITION_INVALID_MODEL.format(
-                    command=command,
-                    model=model_name,
-                    reason="missing pydantic model_fields",
-                ),
-                command=command,
-                model=model_name,
-            )
-
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesValidation"]

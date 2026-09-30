@@ -18,6 +18,3 @@ class TestsFlextCliOptions:
         resolved = u.Cli.resolve_typer_annotation(t.VariadicTuple[Path])
 
         tm.that(resolved, eq=list[Path])
-
-
-__all__: list[str] = ["TestsFlextCliOptions"]
