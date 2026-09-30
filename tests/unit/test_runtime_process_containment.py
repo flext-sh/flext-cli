@@ -298,6 +298,3 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(process_info.exists(), eq=True)
         _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
         tm.that(time.monotonic() - started, lt=2.0)
-
-
-__all__: list[str] = ["TestsFlextCliRuntimeProcessContainment"]

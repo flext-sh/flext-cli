@@ -108,6 +108,3 @@ class TestsFlextCliExamplesSmoke:
                 {"max_workers": "bad", "enable_metrics": False},
                 ec.DeploymentEnvironment.PRODUCTION,
             )
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

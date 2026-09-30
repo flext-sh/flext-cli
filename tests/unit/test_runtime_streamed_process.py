@@ -270,6 +270,3 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.fail(result)
         tm.that(tm.not_none(result.error), has="live output")
         tm.that(output_file.read_bytes(), eq=b"durable-before-live\n")
-
-
-__all__: list[str] = ["TestsFlextCliRuntimeStreamedProcess"]

@@ -294,6 +294,3 @@ class TestsFlextCliJsonCov:
     def test_json_get_str_key_trims_value(self) -> None:
         """Verify that json get str key trims value."""
         tm.that(u.Cli.json_get_str_key({"name": "  Hello  "}, "name"), eq="Hello")
-
-
-__all__: list[str] = ["TestsFlextCliJsonCov"]

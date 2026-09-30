@@ -102,6 +102,3 @@ class TestsFlextCliExamplesSmoke:
         tm.ok(logout_result)
         cleared_result = cli.fetch_auth_token()
         tm.fail(cleared_result)
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

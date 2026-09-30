@@ -317,6 +317,3 @@ class TestsFlextCliTomlUtilities:
         workspace = u.Cli.toml_mapping_child(uv, "workspace")
         workspace = tm.not_none(workspace)
         tm.that(workspace.get("members"), eq=["flext-cli", "flext-core"])
-
-
-__all__: list[str] = ["TestsFlextCliTomlUtilities"]

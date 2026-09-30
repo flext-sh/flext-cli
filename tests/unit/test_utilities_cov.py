@@ -100,6 +100,3 @@ class TestsFlextCliUtilitiesCov:
     def test_project_numbers_returns_none_without_selectors_or_default(self) -> None:
         """Verify that project numbers returns none without selectors or default."""
         tm.that(u.Cli.project_numbers_from_values(None), eq=None)
-
-
-__all__: list[str] = ["TestsFlextCliUtilitiesCov"]

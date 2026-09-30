@@ -11,9 +11,11 @@
 Curated operational guides live here. Keep API behavior in generated reference pages
 sourced from code and docstrings.
 
+- [Atomic file interruption](atomic-file-interruption.md)
 - [Configuration](configuration.md)
 - [Development](development.md)
 - [Getting started](getting-started.md)
+- [Guarded symlinks](guarded-symlinks.md)
 - [Make commands](make-commands.md)
 - [Migration to v0.13.0](migration-to-v0.13.0.md)
 - [Onboarding](onboarding.md)

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from flext_cli import c, t
 from flext_cli.models import m
-from flext_core import u
 
 from .flextcliutilitiesoptionbuilder_part_01 import FlextCliUtilitiesOptionBuilder
 from .flextcliutilitiesoptions_part_01 import (
@@ -48,7 +47,11 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             return None
         if cls.is_json_option(cls.field_annotation(field_name, field_info)):
             # A JSON option's default is the JSON text its parser validates.
-            return u.to_json(source_value).decode()
+            adapter = m.TypeAdapter(field_info.rebuild_annotation())
+            validated = adapter.validate_python(source_value)
+            return adapter.dump_json(validated, warnings="error").decode(
+                c.Cli.ENCODING_DEFAULT
+            )
         normalized_atom = cls.normalize_cli_atom(
             t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value)
         )

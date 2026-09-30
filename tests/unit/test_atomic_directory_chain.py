@@ -104,6 +104,3 @@ class TestsAtomicDirectoryChain:
 
         tm.fail(result)
         tm.that(tuple(physical.iterdir()), eq=())
-
-
-__all__: list[str] = ["TestsAtomicDirectoryChain"]

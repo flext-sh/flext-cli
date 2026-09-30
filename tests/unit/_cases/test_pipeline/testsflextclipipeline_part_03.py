@@ -135,6 +135,3 @@ class TestsFlextCliPipeline:
         tm.that(
             [stage.stage_id for stage in result.unwrap().stages], eq=["slow", "fast"]
         )
-
-
-__all__: list[str] = ["TestsFlextCliPipeline"]

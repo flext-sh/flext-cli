@@ -199,6 +199,3 @@ class TestsFlextCliServicesTablesCov:
         out = capsys.readouterr().out
         tm.that(out, has="Quarterly Numbers")
         tm.that(out, has="Alice")
-
-
-__all__: list[str] = ["TestsFlextCliServicesTablesCov"]

@@ -253,6 +253,3 @@ class TestsFlextCliServicesAuth:
         tm.fail(fetch_after_clear)
         tm.ok(second_clear)
         tm.that(second_clear.value, eq=True)
-
-
-__all__: list[str] = ["TestsFlextCliServicesAuth"]

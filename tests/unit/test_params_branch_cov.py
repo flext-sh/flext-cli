@@ -195,6 +195,3 @@ class TestsFlextCliParams:
         result = u.Cli.params_apply(settings, m.Cli.CliParamsConfig())
         tm.that(result, is_=p.Result)
         tm.ok(result)
-
-
-__all__: list[str] = ["TestsFlextCliParams"]

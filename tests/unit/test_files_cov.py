@@ -207,6 +207,3 @@ class TestsFlextCliFilesCov:
     def test_files_matching_fails_for_missing_root(self, tmp_path: Path) -> None:
         """A root that is not a directory fails instead of selecting nothing."""
         tm.fail(u.Cli.files_matching(tmp_path / "missing", includes=["*.py"]))
-
-
-__all__: list[str] = ["TestsFlextCliFilesCov"]

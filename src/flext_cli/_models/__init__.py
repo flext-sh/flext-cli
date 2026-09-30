@@ -28,6 +28,7 @@ if TYPE_CHECKING:
         validate_non_reparse_state,
         validate_parent_identity,
     )
+    from .atomic_symlink import FlextCliModelsAtomicSymlink
     from .base import FlextCliModelsBase
     from .config import FlextCliConfigModels
     from .docx import FlextCliModelsDocx
@@ -43,6 +44,7 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     "FlextCliConfigModels",
+    "FlextCliModelsAtomicSymlink",
     "FlextCliModelsBase",
     "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
@@ -96,6 +98,7 @@ _LAZY_IMPORTS = MappingProxyType(
                 "validate_non_reparse_state",
                 "validate_parent_identity",
             ),
+            ".atomic_symlink": ("FlextCliModelsAtomicSymlink",),
             ".base": ("FlextCliModelsBase",),
             ".config": ("FlextCliConfigModels",),
             ".docx": ("FlextCliModelsDocx",),

@@ -105,6 +105,3 @@ class TestsFlextCliService:
         tm.ok(help_result)
         tm.that(u.Cli.process_succeeded(help_result.value.outcome), eq=True)
         tm.that(help_result.value.stdout, has="--flaggy")
-
-
-__all__: list[str] = ["TestsFlextCliService"]

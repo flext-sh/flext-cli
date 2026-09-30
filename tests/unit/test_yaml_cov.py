@@ -253,6 +253,3 @@ class TestsFlextCliYamlCov:
         text = u.Cli.yaml_dump_str(model)
 
         tm.that(u.Cli.yaml_parse(text).unwrap(), eq=model.model_dump())
-
-
-__all__: list[str] = ["TestsFlextCliYamlCov"]
