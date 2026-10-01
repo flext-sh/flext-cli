@@ -30,6 +30,14 @@ class FlextCliCli(FlextCliCliPart01):
         if applied.failure:
             self._exit_failure(r[bool].from_failure(applied))
         self._apply_updated_settings(applied.value)
+        if any(flag is not None for flag in (params.log_level, params.debug, params.trace)):
+            # Explicit operator flags win over the application settings the
+            # process entry applied before options were parsed.
+            u.apply_log_level(
+                log_level=applied.value.cli_log_level,
+                debug=applied.value.debug,
+                trace=applied.value.trace,
+            )
 
     @staticmethod
     def _apply_updated_settings(updated_settings: p.Cli.Settings) -> None:
