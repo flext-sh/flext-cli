@@ -26,7 +26,7 @@
   `FlextCliCommonParams`, `FlextCliConfig`, `FlextCliConstants`, `FlextCliDocx`,
   `FlextCliFileTools`, `FlextCliFormatters` (+18 more)
 - Exported module shortcuts: `config`, `services`
-- Generated module pages: `26`
+- Generated module pages: `9`
 
 ## Next Pages
 

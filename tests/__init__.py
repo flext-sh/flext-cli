@@ -1,5 +1,9 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Tests package."""
+"""Tests package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -9,18 +13,17 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_tests import api, td, tf, tk, tm, tv
+    from flext_tests import api, td, tf, tk, tm
 
     from flext_core import d, e, h, r, x
-
-    from . import fixtures, unit
-    from .base import TestsFlextCliServiceBase, TestsFlextCliServiceBase as s
-    from .constants import TestsFlextCliConstants, TestsFlextCliConstants as c
-    from .models import TestsFlextCliModels, m
-    from .protocols import TestsFlextCliProtocols, TestsFlextCliProtocols as p
-    from .settings import TestsFlextCliSettings
-    from .typings import TestsFlextCliTypes, TestsFlextCliTypes as t
-    from .utilities import TestsFlextCliUtilities, u
+    from tests import fixtures, unit
+    from tests.base import TestsFlextCliServiceBase, s
+    from tests.constants import TestsFlextCliConstants, c
+    from tests.models import TestsFlextCliModels, m
+    from tests.protocols import TestsFlextCliProtocols, p
+    from tests.settings import TestsFlextCliSettings
+    from tests.typings import TestsFlextCliTypes, t
+    from tests.utilities import TestsFlextCliUtilities, u
 
 
 __all__: tuple[str, ...] = (
@@ -46,7 +49,6 @@ __all__: tuple[str, ...] = (
     "tf",
     "tk",
     "tm",
-    "tv",
     "u",
     "unit",
     "x",
@@ -65,11 +67,11 @@ _LAZY_IMPORTS = MappingProxyType(
             ".unit": ("unit",),
             ".utilities": ("TestsFlextCliUtilities", "u"),
             "flext_core": ("d", "e", "h", "r", "x"),
-            "flext_tests": ("api", "td", "tf", "tk", "tm", "tv"),
+            "flext_tests": ("api", "td", "tf", "tk", "tm"),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
-    )
+    ),
 )
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)
