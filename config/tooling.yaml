@@ -1,12 +1,24 @@
 ManagedArtifacts:
   Ruff:
-    per_file_ignores:
-      src/flext_cli/_config.py: [invalid-function-name]
-      src/flext_cli/_constants/base.py: [hardcoded-password-string]
-      src/flext_cli/_constants/errors.py: [hardcoded-password-string]
-      src/flext_cli/_utilities/formatters.py: [banned-api]
-      src/flext_cli/_utilities/framework.py: [banned-api]
-      src/flext_cli/_utilities/runtime.py:
-        [suspicious-subprocess-import, subprocess-without-shell-equals-true]
-      src/flext_cli/_utilities/processes.py:
-        [suspicious-subprocess-import, subprocess-without-shell-equals-true]
+    authorized-exceptions:
+      - files: src/flext_cli/_config.py
+        rules: [invalid-function-name]
+        authority: "cli config: carried from the retired per_file_ignores map"
+      - files: src/flext_cli/_constants/base.py
+        rules: [hardcoded-password-string]
+        authority: "cli config: carried from the retired per_file_ignores map"
+      - files: src/flext_cli/_constants/errors.py
+        rules: [hardcoded-password-string]
+        authority: "cli config: carried from the retired per_file_ignores map"
+      - files: src/flext_cli/_utilities/formatters.py
+        rules: [banned-api]
+        authority: "cli config: carried from the retired per_file_ignores map"
+      - files: src/flext_cli/_utilities/framework.py
+        rules: [banned-api]
+        authority: "cli config: carried from the retired per_file_ignores map"
+      - files: src/flext_cli/_utilities/runtime.py
+        rules: [suspicious-subprocess-import, subprocess-without-shell-equals-true]
+        authority: "cli config: carried from the retired per_file_ignores map"
+      - files: src/flext_cli/_utilities/processes.py
+        rules: [suspicious-subprocess-import, subprocess-without-shell-equals-true]
+        authority: "cli config: carried from the retired per_file_ignores map"
