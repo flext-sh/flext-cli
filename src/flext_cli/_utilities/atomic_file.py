@@ -63,7 +63,11 @@ def write_atomic_bytes(
             file_model.require_parent(planned, parent.state)
             file_model.require_observed(planned, expected)
         file_state.validate_precondition(
-            path, expected, expected_content, enabled=guarded, parent=parent
+            path,
+            expected,
+            expected_content,
+            enabled=guarded,
+            parent=parent,
         )
         file_mode.validate_mode_precondition(path, expected, expected_mode)
         target_mode = file_mode.publication_mode(expected, permission_mode)
@@ -72,7 +76,8 @@ def write_atomic_bytes(
 
 
 def _parse_precondition(
-    path: Path, expected_state: m.Cli.AtomicFileState | _NoPrecondition
+    path: Path,
+    expected_state: m.Cli.AtomicFileState | _NoPrecondition,
 ) -> m.Cli.AtomicFileState | None:
     if expected_state is _NO_PRECONDITION:
         return None
@@ -83,7 +88,9 @@ def _parse_precondition(
         message = "expected_state path differs from atomic destination"
         raise OSError(errno.EINVAL, message, path)
     file_mode.validate_guarded_mode_tuple(
-        path, expected_state.content, expected_state.mode
+        path,
+        expected_state.content,
+        expected_state.mode,
     )
     return expected_state
 
@@ -131,7 +138,8 @@ class _AtomicStage:
         )
         try:
             self.descriptor = file_temporary.create_descriptor(
-                self.parent, self.temporary
+                self.parent,
+                self.temporary,
             )
             self.identity = file_state.identity(os.fstat(self.descriptor))
         finally:
@@ -144,16 +152,24 @@ class _AtomicStage:
             message = "atomic staging must be acquired before writing"
             raise RuntimeError(message)
         file_state.assert_temporary_owned(
-            self.temporary, self.identity, parent=self.parent
+            self.temporary,
+            self.identity,
+            parent=self.parent,
         )
         self.mode = file_temporary.write_and_sync(
-            self.descriptor, self.temporary, content, target_mode
+            self.descriptor,
+            self.temporary,
+            content,
+            target_mode,
         )
         os.close(self.descriptor)
         self.descriptor = None
 
     def publish(
-        self, destination: Path, expected: os.stat_result | None, content: bytes
+        self,
+        destination: Path,
+        expected: os.stat_result | None,
+        content: bytes,
     ) -> None:
         """Publish the authenticated bytes and retain completion before proof."""
         if self.identity is None or self.mode is None:
@@ -169,7 +185,10 @@ class _AtomicStage:
             self.identity,
         )
         file_descriptor.replace_entry(
-            self.parent, self.temporary, self.parent, destination
+            self.parent,
+            self.temporary,
+            self.parent,
+            destination,
         )
         self.replacement_completed = True
         file_durability.sync_replacement(self.parent, self.parent)
@@ -205,11 +224,20 @@ def _validate_replacement(
     staged_identity: t.Pair[int, int],
 ) -> None:
     staged_state = _validate_staged(
-        parent, temporary, content, staged_mode, staged_identity
+        parent,
+        temporary,
+        content,
+        staged_mode,
+        staged_identity,
     )
     checks.require_distinct_inode(destination, expected, staged_identity)
     checks.validate_devices(
-        destination, parent, expected, temporary, parent, staged_state
+        destination,
+        parent,
+        expected,
+        temporary,
+        parent,
+        staged_state,
     )
     file_state.assert_destination_unchanged(destination, expected, parent=parent)
     file_state.assert_temporary_owned(temporary, staged_identity, parent=parent)
@@ -228,7 +256,11 @@ def _validate_staged(
         raise FileNotFoundError(errno.ENOENT, message, temporary)
     checks.require_identity(temporary, state, identity)
     file_state.validate_precondition(
-        temporary, state, content, enabled=True, parent=parent
+        temporary,
+        state,
+        content,
+        enabled=True,
+        parent=parent,
     )
     file_mode.validate_mode_precondition(temporary, state, mode)
     return state

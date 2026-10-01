@@ -26,7 +26,8 @@ class TestsFlextCliYamlRoundtripLoad:
     """Load/dump round-trip contract of ``u.Cli.yaml_roundtrip_*``."""
 
     def test_round_trip_preserves_comments_quotes_and_order(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that round trip preserves comments quotes and order."""
         source = (
@@ -247,7 +248,7 @@ class TestsFlextCliYamlAnchors:
     def test_clear_anchors_strips_anchor_definitions(self) -> None:
         """Verify that clear anchors strips anchor definitions."""
         node = u.Cli.yaml_roundtrip_load_map_text(
-            "base: &base\n  a: 1\nuse: *base\n"
+            "base: &base\n  a: 1\nuse: *base\n",
         ).unwrap()
 
         u.Cli.yaml_clear_anchors(node)

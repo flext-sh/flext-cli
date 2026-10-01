@@ -29,7 +29,8 @@ class TestsFlextCliExamplesSmoke:
 
     @pytest.mark.usefixtures("restore_token_file")
     def test_authentication_example_surfaces_missing_invalid_and_failed_login(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Authentication example must handle no-session, invalid-token, and bad-login cases."""
         token_path = tmp_path / "auth_token.json"
@@ -60,7 +61,8 @@ class TestsFlextCliExamplesSmoke:
 
     @pytest.mark.usefixtures("restore_token_file")
     def test_authentication_example_surfaces_logout_unlink_failure(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Authentication example must keep going when token removal raises an OS error."""
         token_dir = tmp_path / "locked-token-dir"
@@ -81,15 +83,17 @@ class TestsFlextCliExamplesSmoke:
         tm.that(token_path.exists(), eq=True)
 
     def test_settings_example_surfaces_profile_and_override_branches(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Settings example must cover alternate profiles and environment override failures."""
         production_profile = Ex06Settings.load_profile_settings(
-            ec.DeploymentEnvironment.PRODUCTION
+            ec.DeploymentEnvironment.PRODUCTION,
         )
         tm.ok(production_profile)
         tm.that(
-            production_profile.value.cli_output_format, eq=ec.Cli.OutputFormats.JSON
+            production_profile.value.cli_output_format,
+            eq=ec.Cli.OutputFormats.JSON,
         )
 
         testing_settings = Ex06Settings.apply_environment_overrides(

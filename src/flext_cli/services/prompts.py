@@ -36,11 +36,15 @@ class FlextCliPrompts(FlextCliPromptsSupport):
         return r[str].ok(self._read_prompt_value(message, default))
 
     def prompt_choice(
-        self, choices: t.StrSequence, default: str | None = None
+        self,
+        choices: t.StrSequence,
+        default: str | None = None,
     ) -> p.Result[str]:
         """Resolve one value constrained to the supplied choices."""
         return u.Cli.prompts_choice_result(
-            interactive=self.state.interactive, choices=choices, default=default
+            interactive=self.state.interactive,
+            choices=choices,
+            default=default,
         )
 
     def prompt_password(
@@ -67,7 +71,9 @@ class FlextCliPrompts(FlextCliPromptsSupport):
     def print_warning(self, message: str) -> p.Result[bool]:
         """Render a warning message through the canonical prompt output path."""
         return self._print_message(
-            message, c.LogLevel.WARNING, c.Cli.PROMPT_WARNING_FMT
+            message,
+            c.LogLevel.WARNING,
+            c.Cli.PROMPT_WARNING_FMT,
         )
 
     def _read_prompt_value(self, message: str, default: str) -> str:

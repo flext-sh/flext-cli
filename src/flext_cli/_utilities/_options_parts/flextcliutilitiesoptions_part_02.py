@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from flext_cli import c, t
 from pydantic import TypeAdapter
 
+from flext_cli import c, t
 from flext_cli.models import m
 
 from .flextcliutilitiesoptionbuilder_part_01 import FlextCliUtilitiesOptionBuilder
@@ -18,19 +18,23 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
 
     @staticmethod
     def field_annotation(
-        field_name: str, field_info: m.FieldInfo
+        field_name: str,
+        field_info: m.FieldInfo,
     ) -> t.Cli.RuntimeAnnotation:
         """Return the declared annotation of a CLI field or fail naming the field."""
         annotation = field_info.annotation
         if annotation is None:
             raise TypeError(
-                c.Cli.ERR_FIELD_WITHOUT_ANNOTATION_FMT.format(field_name=field_name)
+                c.Cli.ERR_FIELD_WITHOUT_ANNOTATION_FMT.format(field_name=field_name),
             )
         return annotation
 
     @classmethod
     def field_default(
-        cls, field_name: str, field_info: m.FieldInfo, settings: t.Cli.ModelLike | None
+        cls,
+        field_name: str,
+        field_info: m.FieldInfo,
+        settings: t.Cli.ModelLike | None,
     ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata.
 
@@ -52,22 +56,24 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             adapter = TypeAdapter(field_info.rebuild_annotation())
             validated = adapter.validate_python(source_value)
             return adapter.dump_json(validated, warnings="error").decode(
-                c.Cli.ENCODING_DEFAULT
+                c.Cli.ENCODING_DEFAULT,
             )
         normalized_atom = cls.normalize_cli_atom(
-            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value)
+            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value),
         )
         if normalized_atom is None:
             raise TypeError(
                 c.Cli.ERR_FIELD_DEFAULT_NOT_CLI_VALUE_FMT.format(
-                    field_name=field_name, value=source_value
-                )
+                    field_name=field_name,
+                    value=source_value,
+                ),
             )
         return normalized_atom
 
     @staticmethod
     def build_option(
-        field_name: str, registry: t.Cli.OptionRegistry
+        field_name: str,
+        registry: t.Cli.OptionRegistry,
     ) -> m.Cli.OptionSpec:
         """Build one CLI option spec from the canonical registry."""
         return FlextCliUtilitiesOptionBuilder(field_name, registry).build()

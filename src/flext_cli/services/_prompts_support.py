@@ -82,14 +82,21 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
                 self.logger.info(message, **context)
 
     def _print_message(
-        self, message: str, log_level: str, message_format: str
+        self,
+        message: str,
+        log_level: str,
+        message_format: str,
     ) -> p.Result[bool]:
         # Fail loud: a logger failure propagates with its cause.
         self._log(log_level, message_format.format(message=message))
         return r[bool].ok(True)
 
     def _read_confirmation_input(
-        self, message: str, prompt_text: str, *, default: bool
+        self,
+        message: str,
+        prompt_text: str,
+        *,
+        default: bool,
     ) -> p.Result[bool]:
         while True:
             input_text = self.input_reader(prompt_text)

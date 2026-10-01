@@ -63,7 +63,7 @@ class ExamplesFlextCliConstants(FlextCliConstants):
     EXAMPLE_TABLE_HEADERS_SETTING_VALUE: Final[t.Pair[str, str]] = ("Setting", "Value")
 
     EXAMPLE_REGEX_EMAIL: Final[t.RegexPattern] = re.compile(
-        r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+        r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
     )
     EXAMPLE_REGEX_DOT: Final[t.RegexPattern] = re.compile(r"\.")
 

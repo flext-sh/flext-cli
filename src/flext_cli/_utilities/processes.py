@@ -86,7 +86,10 @@ class FlextCliUtilitiesProcesses:
             """Tear down the process group this handle owns, or the single child."""
             if self._session_leader:
                 return self._signal_process_tree(
-                    self._process, signal_number, 0, force=force
+                    self._process,
+                    signal_number,
+                    0,
+                    force=force,
                 )
             if self.poll() is not None:
                 return r[bool].ok(True)
@@ -113,14 +116,17 @@ class FlextCliUtilitiesProcesses:
                 return r[int].fail(f"process wait error: {exc}", exception=exc)
             try:
                 self._stdout = (bytes(self._stdout_buffer) + (stdout or b"")).decode(
-                    c.Cli.ENCODING_DEFAULT, errors="strict"
+                    c.Cli.ENCODING_DEFAULT,
+                    errors="strict",
                 )
                 self._stderr = (stderr or b"").decode(
-                    c.Cli.ENCODING_DEFAULT, errors="strict"
+                    c.Cli.ENCODING_DEFAULT,
+                    errors="strict",
                 )
             except UnicodeDecodeError as exc:
                 return r[int].fail(
-                    f"process output is not valid UTF-8: {exc}", exception=exc
+                    f"process output is not valid UTF-8: {exc}",
+                    exception=exc,
                 )
             self._stdout_buffer.clear()
             self._communicated = True
@@ -141,7 +147,10 @@ class FlextCliUtilitiesProcesses:
             return r[bool].ok(True)
 
         def stdout_read_until(
-            self, delimiter: bytes, *, timeout: float
+            self,
+            delimiter: bytes,
+            *,
+            timeout: float,
         ) -> p.Result[bytes]:
             """Read through one exact delimiter within the supplied deadline."""
             if not delimiter:
@@ -217,16 +226,17 @@ class FlextCliUtilitiesProcesses:
             for file_descriptor in forwarded_fds
         ):
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
-                "process pass_fds must contain non-negative file descriptors"
+                "process pass_fds must contain non-negative file descriptors",
             )
         if os.name == "nt" and forwarded_fds:
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
-                "process pass_fds is unsupported on Windows"
+                "process pass_fds is unsupported on Windows",
             )
         resolved_env = None
         if env is not None or remove_env_keys:
             resolved_env = FlextCliUtilitiesRuntime.process_env(
-                overrides=env, remove_keys=remove_env_keys
+                overrides=env,
+                remove_keys=remove_env_keys,
             )
         try:
             process = subprocess.Popen(  # nosec B603 - internal process execution, inputs from typed config
@@ -243,12 +253,16 @@ class FlextCliUtilitiesProcesses:
             )
         except c.EXC_OS_VALUE as exc:
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
-                f"execution error: {shlex.join(list(cmd))}: {exc}", exception=exc
+                f"execution error: {shlex.join(list(cmd))}: {exc}",
+                exception=exc,
             )
         return r[FlextCliUtilitiesProcesses.ManagedProcess].ok(
             FlextCliUtilitiesProcesses.ManagedProcess(
-                process, cwd=cwd, env=resolved_env, session_leader=start_new_session
-            )
+                process,
+                cwd=cwd,
+                env=resolved_env,
+                session_leader=start_new_session,
+            ),
         )
 
 

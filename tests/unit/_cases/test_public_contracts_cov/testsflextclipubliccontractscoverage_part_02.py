@@ -42,7 +42,8 @@ class TestsFlextCliPublicContractsCoverage:
             remove_keys=("DROP",),
         )
         entry = m.Cli.CommandEntryModel(
-            name="inspect", handler=lambda: r[t.JsonPayload].ok(True)
+            name="inspect",
+            handler=lambda: r[t.JsonPayload].ok(True),
         )
 
         def route_handler(_params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
@@ -56,16 +57,21 @@ class TestsFlextCliPublicContractsCoverage:
         )
         table = m.Cli.TableConfig(table_format=c.Cli.TabularFormat.TABLE)
         snapshot = m.Cli.SettingsSnapshot(
-            settings_dir=str(tmp_path), settings_exists=True, settings_readable=True
+            settings_dir=str(tmp_path),
+            settings_exists=True,
+            settings_readable=True,
         )
         option = m.Cli.OptionMetadata(help="Show help", short="h", default=True)
         write_options = m.Cli.JsonWriteOptions(
-            indent=4, sort_keys=True, ensure_ascii=True
+            indent=4,
+            sort_keys=True,
+            ensure_ascii=True,
         )
 
         tm.that(output.stdout, eq="out")
         tm.that(
-            abs(output.duration - 0.25) < c.Tests.COMMAND_DURATION_TOLERANCE, eq=True
+            abs(output.duration - 0.25) < c.Tests.COMMAND_DURATION_TOLERANCE,
+            eq=True,
         )
         expected_display: t.JsonMapping = {"name": "flext", "count": 1}
         tm.that(display.model_dump(), eq=expected_display)
@@ -74,7 +80,8 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(m.Cli.NormalizedJsonList(value={"ok": True}).resolved, eq={"ok": True})
         tm.that(
             m.Cli.NormalizedJsonList(
-                value="plain-text", default={"fallback": "yes"}
+                value="plain-text",
+                default={"fallback": "yes"},
             ).resolved,
             eq={"fallback": "yes"},
         )
@@ -92,7 +99,9 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(m.Cli.LogLevelResolved(raw=" debug ").resolved, eq=c.LogLevel.DEBUG)
         tm.that(
             m.Cli.TypedExtract(
-                type_kind=c.Cli.TypeKind.STR, value="  name  ", default="fallback"
+                type_kind=c.Cli.TypeKind.STR,
+                value="  name  ",
+                default="fallback",
             ).resolved
             == "name",
             eq=True,
@@ -103,13 +112,16 @@ class TestsFlextCliPublicContractsCoverage:
         )
         tm.that(
             m.Cli.TypedExtract(
-                type_kind=c.Cli.TypeKind.DICT, value={"count": 1}
+                type_kind=c.Cli.TypeKind.DICT,
+                value={"count": 1},
             ).resolved,
             eq={"count": 1},
         )
         tm.that(
             m.Cli.TypedExtract(
-                type_kind=c.Cli.TypeKind.DICT, value=None, default={"fallback": 2}
+                type_kind=c.Cli.TypeKind.DICT,
+                value=None,
+                default={"fallback": 2},
             ).resolved,
             eq={"fallback": 2},
         )

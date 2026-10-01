@@ -70,7 +70,8 @@ class TestsFlextCliUtilitiesCov:
 
     @pytest.mark.parametrize("value", ["name", " padded ", 0, 42])
     def test_validate_not_empty_succeeds_for_present_values(
-        self, value: t.Cli.CliValue
+        self,
+        value: t.Cli.CliValue,
     ) -> None:
         """Verify that validate not empty succeeds for present values."""
         result = u.Cli.validate_not_empty(value, name="project")

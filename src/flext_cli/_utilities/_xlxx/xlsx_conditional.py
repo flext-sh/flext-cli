@@ -29,20 +29,22 @@ class FlextCliUtilitiesXlsxConditional(
     # typed plans and top-left addresses; no worksheet-specific formulas live here.
     @classmethod
     def _registered_style(
-        cls, worksheet: Worksheet, name: str
+        cls,
+        worksheet: Worksheet,
+        name: str,
     ) -> p.Result[m.Cli.XlsxNamedStyleSpec]:
         try:
             probe = Cell(worksheet, row=1, column=1)
             probe.style = name
         except (KeyError, ValueError):
             return r[m.Cli.XlsxNamedStyleSpec].fail(
-                f"{c.Cli.XlsxError.NAMED_STYLE_MISSING}: {name}"
+                f"{c.Cli.XlsxError.NAMED_STYLE_MISSING}: {name}",
             )
         visual = cls._visual_from_styleable(probe)
         if visual.failure:
             return r[m.Cli.XlsxNamedStyleSpec].from_failure(visual)
         return r[m.Cli.XlsxNamedStyleSpec].ok(
-            m.Cli.XlsxNamedStyleSpec(name=name, visual=visual.value)
+            m.Cli.XlsxNamedStyleSpec(name=name, visual=visual.value),
         )
 
     @classmethod
@@ -55,13 +57,16 @@ class FlextCliUtilitiesXlsxConditional(
             border=cls._border(visual.border),
             alignment=cls._alignment(visual.alignment),
             numFmt=NumberFormat(
-                numFmtId=number_format_id, formatCode=visual.number_format
+                numFmtId=number_format_id,
+                formatCode=visual.number_format,
             ),
         )
 
     @classmethod
     def _rule(
-        cls, plan: m.Cli.XlsxConditionalFormatPlan, style: m.Cli.XlsxNamedStyleSpec
+        cls,
+        plan: m.Cli.XlsxConditionalFormatPlan,
+        style: m.Cli.XlsxNamedStyleSpec,
     ) -> Rule:
         differential = cls._differential_style(style)
         if plan.kind == "contains_text":
@@ -111,7 +116,8 @@ class FlextCliUtilitiesXlsxConditional(
                 if style.failure:
                     return r[bool].from_failure(style)
                 worksheet.conditional_formatting.add(
-                    cls._range_ref(plan.area), cls._rule(plan, style.value)
+                    cls._range_ref(plan.area),
+                    cls._rule(plan, style.value),
                 )
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__

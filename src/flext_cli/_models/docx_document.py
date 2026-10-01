@@ -26,14 +26,17 @@ class FlextCliModelsDocxDocument:
 
     class DocxParagraphPlan(m.FrozenModel):
         runs: t.VariadicTuple[FlextCliModelsDocxDocument.DocxRunPlan] = m.Field(
-            default=(), strict=False, description="Paragraph runs."
+            default=(),
+            strict=False,
+            description="Paragraph runs.",
         )
         style: (
             Annotated[str, m.Field(min_length=1, description="Named paragraph style.")]
             | None
         ) = None
         style_spec: FlextCliModelsDocxStyles.DocxParagraphStyleSpec | None = m.Field(
-            default=None, description="Inline paragraph style specification."
+            default=None,
+            description="Inline paragraph style specification.",
         )
         alignment: (
             Annotated[
@@ -53,12 +56,16 @@ class FlextCliModelsDocxDocument:
 
     class DocxTableRowPlan(m.FrozenModel):
         cells: t.VariadicTuple[FlextCliModelsDocxDocument.DocxTableCellPlan] = m.Field(
-            default=(), strict=False, description="Row cells."
+            default=(),
+            strict=False,
+            description="Row cells.",
         )
 
     class DocxTablePlan(m.FrozenModel):
         rows: t.VariadicTuple[FlextCliModelsDocxDocument.DocxTableRowPlan] = m.Field(
-            default=(), strict=False, description="Table rows."
+            default=(),
+            strict=False,
+            description="Table rows.",
         )
         style: (
             Annotated[str, m.Field(min_length=1, description="Named table style.")]
@@ -94,10 +101,14 @@ class FlextCliModelsDocxDocument:
             m.Field(default=(), strict=False, description="Document paragraphs.")
         )
         tables: t.VariadicTuple[FlextCliModelsDocxDocument.DocxTablePlan] = m.Field(
-            default=(), strict=False, description="Document tables."
+            default=(),
+            strict=False,
+            description="Document tables.",
         )
         sections: t.VariadicTuple[FlextCliModelsDocxDocument.DocxSectionPlan] = m.Field(
-            default=(), strict=False, description="Document sections."
+            default=(),
+            strict=False,
+            description="Document sections.",
         )
         core_properties: t.JsonMapping = m.Field(
             default_factory=lambda: EMPTY_JSON_MAPPING,
@@ -107,18 +118,20 @@ class FlextCliModelsDocxDocument:
     class DocxRenderRequest(m.FrozenModel):
         template: (
             Annotated[
-                bytes, m.Field(min_length=1, description="Formatting template bytes.")
+                bytes,
+                m.Field(min_length=1, description="Formatting template bytes."),
             ]
             | None
         ) = m.Field(default=None, description="Optional source document.")
         plan: FlextCliModelsDocxDocument.DocxDocumentPlan = m.Field(
-            description="Validated document plan."
+            description="Validated document plan.",
         )
         source_date_epoch: (
             Annotated[
                 int,
                 m.Field(
-                    ge=0, description="Deterministic build epoch in seconds since 1970."
+                    ge=0,
+                    description="Deterministic build epoch in seconds since 1970.",
                 ),
             ]
             | None
@@ -129,10 +142,11 @@ class FlextCliModelsDocxDocument:
 
     class DocxRenderResult(m.FrozenModel):
         content: Annotated[
-            bytes, m.Field(min_length=1, description="Rendered document bytes.")
+            bytes,
+            m.Field(min_length=1, description="Rendered document bytes."),
         ]
         plan: FlextCliModelsDocxDocument.DocxDocumentPlan = m.Field(
-            description="Exact source plan."
+            description="Exact source plan.",
         )
 
 

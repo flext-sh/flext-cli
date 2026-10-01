@@ -25,7 +25,11 @@ def remove_guarded_file(state: m.Cli.AtomicFileState) -> None:
         expected = file_state.destination_state(path, parent=parent)
         file_model.require_observed(state, expected)
         file_state.validate_precondition(
-            path, expected, content, enabled=True, parent=parent
+            path,
+            expected,
+            content,
+            enabled=True,
+            parent=parent,
         )
         file_mode.validate_mode_precondition(path, expected, mode)
         file_state.assert_destination_unchanged(path, expected, parent=parent)

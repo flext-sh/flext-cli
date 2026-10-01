@@ -34,13 +34,15 @@ class FlextCliUtilitiesFiles:
             plan = plan_directory_chain(Path(directory_path))
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryChainPlan].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_PLAN_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_PLAN_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicDirectoryChainPlan].ok(plan)
 
     @staticmethod
     def atomic_create_directory_chain_guarded(
-        plan: m.Cli.AtomicDirectoryChainPlan, *, permission_mode: int
+        plan: m.Cli.AtomicDirectoryChainPlan,
+        *,
+        permission_mode: int,
     ) -> p.Result[t.SequenceOf[m.Cli.AtomicDirectoryState]]:
         """Materialize a planned chain under the caller's exclusive lock.
 
@@ -50,32 +52,38 @@ class FlextCliUtilitiesFiles:
         """
         try:
             created = create_guarded_directory_chain(
-                plan, permission_mode=permission_mode
+                plan,
+                permission_mode=permission_mode,
             )
         except OSError as exc:
             return r[t.SequenceOf[m.Cli.AtomicDirectoryState]].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED.format(error=exc),
             )
         return r[t.SequenceOf[m.Cli.AtomicDirectoryState]].ok(created)
 
     @staticmethod
     def atomic_read_empty_directory_state(
-        directory_path: t.Cli.TextPath, *, required: bool = False
+        directory_path: t.Cli.TextPath,
+        *,
+        required: bool = False,
     ) -> p.Result[m.Cli.AtomicDirectoryState]:
         """Read exact absence or one stable physical empty-directory identity."""
         try:
             state = read_authenticated_empty_directory(
-                Path(directory_path), required=required
+                Path(directory_path),
+                required=required,
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_READ_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_READ_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicDirectoryState].ok(state)
 
     @staticmethod
     def atomic_create_empty_directory_guarded(
-        before: m.Cli.AtomicDirectoryState, *, permission_mode: int
+        before: m.Cli.AtomicDirectoryState,
+        *,
+        permission_mode: int,
     ) -> p.Result[m.Cli.AtomicDirectoryState]:
         """Create one exact empty directory under the caller's exclusive lock.
 
@@ -84,11 +92,12 @@ class FlextCliUtilitiesFiles:
         """
         try:
             state = create_guarded_empty_directory(
-                before, permission_mode=permission_mode
+                before,
+                permission_mode=permission_mode,
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_CREATE_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_CREATE_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicDirectoryState].ok(state)
 
@@ -106,7 +115,7 @@ class FlextCliUtilitiesFiles:
             remove_guarded_empty_directory(state)
         except OSError as exc:
             return r[bool].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_DELETE_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_DELETE_FAILED.format(error=exc),
             )
         return r[bool].ok(True)
 
@@ -122,11 +131,12 @@ class FlextCliUtilitiesFiles:
         """
         try:
             published = publish_guarded_staged_empty_directory(
-                destination_before, staged
+                destination_before,
+                staged,
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_PUBLISH_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_PUBLISH_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicDirectoryState].ok(published)
 

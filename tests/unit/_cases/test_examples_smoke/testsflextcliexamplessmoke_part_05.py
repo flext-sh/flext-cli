@@ -19,7 +19,8 @@ class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
     def test_settings_and_pydantic_examples_validate_production_flow(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Settings examples consume injected models and typed workflow rules."""
         cache_dir = tmp_path / "cache"
@@ -29,7 +30,7 @@ class TestsFlextCliExamplesSmoke:
                 api_key="k" + "3" * 14,
                 max_workers=25,
                 temp_dir=cache_dir,
-            )
+            ),
         )
         tm.ok(settings_result)
         tm.that(settings_result.value["max_workers"], eq=20)
@@ -59,7 +60,7 @@ class TestsFlextCliExamplesSmoke:
                 "password": "secret",
                 "ssl_enabled": True,
                 "connection_pool": 10,
-            })
+            }),
         )
         tm.fail(invalid_model)
 
@@ -72,18 +73,18 @@ class TestsFlextCliExamplesSmoke:
                 "password": "p" + "3" * 10,
                 "ssl_enabled": False,
                 "connection_pool": 10,
-            })
+            }),
         )
         tm.ok(base_config)
 
         oversized_localhost = base_config.value.model_copy(
-            update={"host": "localhost", "connection_pool": 60}
+            update={"host": "localhost", "connection_pool": 60},
         )
         business_rule_result = validate_business_rules(oversized_localhost)
         tm.fail(business_rule_result)
 
         failing_connection = base_config.value.model_copy(
-            update={"host": "fail-db.example.com"}
+            update={"host": "fail-db.example.com"},
         )
         connection_result = perform_connection_test(failing_connection)
         tm.fail(connection_result)

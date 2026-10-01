@@ -36,14 +36,14 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
             return r[m.Cli.ProcessOutcome].fail("; ".join(diagnostics))
         if primary_exit is None:
             return r[m.Cli.ProcessOutcome].fail(
-                "root process did not expose an exit status"
+                "root process did not expose an exit status",
             )
         return r[m.Cli.ProcessOutcome].ok(
             m.Cli.ProcessOutcome(
                 raw_return_code=primary_exit,
                 timed_out=timed_out,
                 forwarded_signal=(received_signals[0] if received_signals else None),
-            )
+            ),
         )
 
     @classmethod
@@ -60,7 +60,10 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Attach captured bytes only after the owned process boundary is empty."""
         return cls._process_exit_result(
-            return_code, received_signals, diagnostics, timed_out=timed_out
+            return_code,
+            received_signals,
+            diagnostics,
+            timed_out=timed_out,
         ).flat_map(
             lambda outcome: r[p.Cli.CommandBytesOutput].ok(
                 m.Cli.CommandBytesOutput(
@@ -68,8 +71,8 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
                     stderr=bytes(stderr_output),
                     outcome=outcome,
                     duration=duration,
-                )
-            )
+                ),
+            ),
         )
 
 

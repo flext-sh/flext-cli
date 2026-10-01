@@ -32,7 +32,9 @@ def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPl
 
 
 def create_guarded_directory_chain(
-    plan: m.Cli.AtomicDirectoryChainPlan, *, permission_mode: int
+    plan: m.Cli.AtomicDirectoryChainPlan,
+    *,
+    permission_mode: int,
 ) -> t.SequenceOf[m.Cli.AtomicDirectoryState]:
     """Create every planned level, rolling back successful levels on failure."""
     mode = file_mode.validate_mode(permission_mode, label="permission_mode")
@@ -46,11 +48,13 @@ def create_guarded_directory_chain(
     try:
         for directory in plan.directories:
             before = directory_snapshot.read_authenticated_empty_directory(
-                directory, required=False
+                directory,
+                required=False,
             )
             _require_planned_parent(directory, before, expected_parent)
             state = directory_create.create_guarded_empty_directory(
-                before, permission_mode=mode
+                before,
+                permission_mode=mode,
             )
             created.append(state)
             expected_parent = _require_created_identity(state)
@@ -71,7 +75,9 @@ def _require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
 
 
 def _require_planned_parent(
-    path: Path, state: m.Cli.AtomicDirectoryState, expected: t.Pair[int, int]
+    path: Path,
+    state: m.Cli.AtomicDirectoryState,
+    expected: t.Pair[int, int],
 ) -> None:
     if (state.parent_device, state.parent_inode) != expected:
         message = f"atomic directory-chain parent changed: {path}"
@@ -86,7 +92,8 @@ def _require_created_identity(state: m.Cli.AtomicDirectoryState) -> t.Pair[int, 
 
 
 def _rollback_created(
-    created: list[m.Cli.AtomicDirectoryState], operation_error: BaseException
+    created: list[m.Cli.AtomicDirectoryState],
+    operation_error: BaseException,
 ) -> None:
     for state in reversed(created):
         try:
@@ -104,7 +111,8 @@ def _rollback_created(
                 raise OSError(errno.EIO, message, state.path) from causes
             group_message = "directory-chain creation and rollback failed"
             raise BaseExceptionGroup(
-                group_message, [operation_error, cleanup_error]
+                group_message,
+                [operation_error, cleanup_error],
             ) from cleanup_error
 
 

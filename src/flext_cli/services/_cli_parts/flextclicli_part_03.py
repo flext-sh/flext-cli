@@ -46,12 +46,15 @@ class FlextCliCli(FlextCliCliPart02):
                 if field_info.is_required():
                     raise TypeError(
                         c.Cli.ERR_REQUIRED_EXCLUDED_FIELD_FMT.format(
-                            model=model_cls.__name__, field_name=field_name
-                        )
+                            model=model_cls.__name__,
+                            field_name=field_name,
+                        ),
                     )
                 continue
             parameter, annotation = cls._build_model_parameter(
-                field_name, field_info, settings
+                field_name,
+                field_info,
+                settings,
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
@@ -78,7 +81,7 @@ class FlextCliCli(FlextCliCliPart02):
         and raises; the command outcome travels in the invocation result.
         """
         return r[m.Cli.InvocationResult].ok(
-            u.Cli.framework_invoke(app, args=args, charset=charset, env=env)
+            u.Cli.framework_invoke(app, args=args, charset=charset, env=env),
         )
 
 

@@ -22,7 +22,8 @@ class FlextCliUtilitiesRuntimeDarwinProcessGroupMixin:
         if capacity <= 0:
             error = ctypes.get_errno()
             raise OSError(
-                error, f"proc_listpgrppids sizing failed: {os.strerror(error)}"
+                error,
+                f"proc_listpgrppids sizing failed: {os.strerror(error)}",
             )
         while True:
             buffer = (ctypes.c_int * capacity)()
@@ -71,7 +72,7 @@ class FlextCliUtilitiesRuntimeDarwinProcessGroupMixin:
             info = _BsdShortInfo()
             ctypes.set_errno(0)
             size = int(
-                pid_info(process_id, 13, 0, ctypes.byref(info), ctypes.sizeof(info))
+                pid_info(process_id, 13, 0, ctypes.byref(info), ctypes.sizeof(info)),
             )
             error = ctypes.get_errno()
             if size == 0 and error == errno.ESRCH:

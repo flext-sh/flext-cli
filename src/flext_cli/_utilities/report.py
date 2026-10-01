@@ -30,7 +30,9 @@ class FlextCliUtilitiesReport:
 
     @staticmethod
     def report_emit(
-        request: m.Cli.DataReportRequest, *, json_output: bool
+        request: m.Cli.DataReportRequest,
+        *,
+        json_output: bool,
     ) -> p.Result[bool]:
         """Emit one data report as canonical JSON or as a rendered table."""
         if json_output:

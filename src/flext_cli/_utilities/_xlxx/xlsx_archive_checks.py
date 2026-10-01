@@ -15,7 +15,9 @@ class FlextCliUtilitiesXlsxArchiveChecks:
     # narrow protocols; proposal-specific member or tag rules stay in config.
     @staticmethod
     def _violation(
-        kind: t.Cli.XlsxArchiveViolationKind, location: str, detail: str
+        kind: t.Cli.XlsxArchiveViolationKind,
+        location: str,
+        detail: str,
     ) -> m.Cli.XlsxArchiveViolation:
         return m.Cli.XlsxArchiveViolation(kind=kind, location=location, detail=detail)
 
@@ -26,7 +28,9 @@ class FlextCliUtilitiesXlsxArchiveChecks:
 
     @classmethod
     def _xml_root(
-        cls, archive: p.Cli.XlsxArchiveReader, member: str
+        cls,
+        archive: p.Cli.XlsxArchiveReader,
+        member: str,
     ) -> p.Result[p.Cli.XlsxXmlElement]:
         """Read and safely parse one XML archive member."""
         try:
@@ -39,14 +43,17 @@ class FlextCliUtilitiesXlsxArchiveChecks:
         except (DefusedET.ParseError, DefusedXmlException, KeyError, OSError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[p.Cli.XlsxXmlElement].fail(
-                f"Invalid OOXML member {member}: {detail}"
+                f"Invalid OOXML member {member}: {detail}",
             )
         # mro-j47u (codex): defusedxml's parsed Element implements the exact port.
         return r[p.Cli.XlsxXmlElement].ok(raw_root)
 
     @classmethod
     def _worksheet_violations(
-        cls, root: p.Cli.XlsxXmlElement, member: str, policy: m.Cli.XlsxArchivePolicy
+        cls,
+        root: p.Cli.XlsxXmlElement,
+        member: str,
+        policy: m.Cli.XlsxArchivePolicy,
     ) -> t.VariadicTuple[m.Cli.XlsxArchiveViolation]:
         violations: t.VariadicTuple[m.Cli.XlsxArchiveViolation] = ()
         for element in root.iter():
@@ -57,7 +64,10 @@ class FlextCliUtilitiesXlsxArchiveChecks:
 
     @classmethod
     def _workbook_violations(
-        cls, root: p.Cli.XlsxXmlElement, member: str, policy: m.Cli.XlsxArchivePolicy
+        cls,
+        root: p.Cli.XlsxXmlElement,
+        member: str,
+        policy: m.Cli.XlsxArchivePolicy,
     ) -> t.VariadicTuple[m.Cli.XlsxArchiveViolation]:
         if not policy.reject_defined_names:
             return ()
@@ -69,7 +79,10 @@ class FlextCliUtilitiesXlsxArchiveChecks:
 
     @classmethod
     def _style_violations(
-        cls, root: p.Cli.XlsxXmlElement, member: str, policy: m.Cli.XlsxArchivePolicy
+        cls,
+        root: p.Cli.XlsxXmlElement,
+        member: str,
+        policy: m.Cli.XlsxArchivePolicy,
     ) -> t.VariadicTuple[m.Cli.XlsxArchiveViolation]:
         if not policy.reject_style_protection:
             return ()

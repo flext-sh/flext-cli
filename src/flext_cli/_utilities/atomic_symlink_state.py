@@ -13,7 +13,10 @@ from . import atomic_file_descriptor as descriptor
 
 
 def read_symlink_state(
-    path: Path, parent: descriptor.ParentDescriptor, *, required: bool = False
+    path: Path,
+    parent: descriptor.ParentDescriptor,
+    *,
+    required: bool = False,
 ) -> m.Cli.AtomicSymlinkState:
     """Read link text through the same pinned parent as its lstat identity."""
     try:
@@ -65,7 +68,8 @@ def symlink_identity(observed: os.stat_result) -> m.Cli.AtomicSymlinkIdentity:
 
 
 def require_symlink_state(
-    before: m.Cli.AtomicSymlinkState, parent: descriptor.ParentDescriptor
+    before: m.Cli.AtomicSymlinkState,
+    parent: descriptor.ParentDescriptor,
 ) -> None:
     """Reject any parent, leaf identity or link-text drift before mutation."""
     if read_symlink_state(before.path, parent) != before:

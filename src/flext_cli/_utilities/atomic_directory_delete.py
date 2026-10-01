@@ -34,7 +34,7 @@ def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:
         current = directory_state.destination_state(path, parent=parent)
         directory_model.require_observed(state, current)
         if current is None or file_read.state_key(current) != file_read.state_key(
-            authenticated
+            authenticated,
         ):
             message = f"atomic directory changed immediately before rmdir: {path}"
             raise OSError(errno.ESTALE, message, path)

@@ -49,7 +49,8 @@ class Ex05Authentication:
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         cli.print("✅ Login successful!", style=c.Cli.MessageStyles.GREEN)
         cli.print(
-            f"   Token saved to: {token_file_path}", style=c.Cli.MessageStyles.CYAN
+            f"   Token saved to: {token_file_path}",
+            style=c.Cli.MessageStyles.CYAN,
         )
         return r[bool].ok(True)
 
@@ -96,7 +97,8 @@ class Ex05Authentication:
             return r[bool].fail(str(exc), exception=exc)
         cli.print("✅ Logged out successfully", style=c.Cli.MessageStyles.GREEN)
         cli.print(
-            f"   Token removed from: {token_file_path}", style=c.Cli.MessageStyles.CYAN
+            f"   Token removed from: {token_file_path}",
+            style=c.Cli.MessageStyles.CYAN,
         )
         return r[bool].ok(True)
 

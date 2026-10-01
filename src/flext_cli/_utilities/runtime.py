@@ -15,7 +15,8 @@ from ._runtime_run_to_file import FlextCliUtilitiesRuntimeRunToFileMixin
 
 
 class FlextCliUtilitiesRuntime(
-    FlextCliUtilitiesRuntimeRunToFileMixin, FlextCliUtilitiesRuntimeCommandsMixin
+    FlextCliUtilitiesRuntimeRunToFileMixin,
+    FlextCliUtilitiesRuntimeCommandsMixin,
 ):
     """Runtime helpers for external command execution."""
 
@@ -23,7 +24,9 @@ class FlextCliUtilitiesRuntime(
 
     @staticmethod
     def process_env(
-        *, overrides: t.StrMapping | None = None, remove_keys: t.StrSequence = ()
+        *,
+        overrides: t.StrMapping | None = None,
+        remove_keys: t.StrSequence = (),
     ) -> dict[str, str]:
         """Return one inherited process environment with optional overrides."""
         return m.Cli.ProcessEnvironmentSpec.model_validate({
@@ -35,7 +38,8 @@ class FlextCliUtilitiesRuntime(
     @staticmethod
     @override
     def _resolved_env(
-        env: t.StrMapping | None, remove_env_keys: t.StrSequence = ()
+        env: t.StrMapping | None,
+        remove_env_keys: t.StrSequence = (),
     ) -> dict[str, str] | None:
         """Resolve the child environment from overrides and removals.
 
@@ -51,7 +55,8 @@ class FlextCliUtilitiesRuntime(
         if env is None and not remove_env_keys:
             return None
         return FlextCliUtilitiesRuntime.process_env(
-            overrides=env, remove_keys=remove_env_keys
+            overrides=env,
+            remove_keys=remove_env_keys,
         )
 
     @staticmethod
@@ -93,7 +98,7 @@ class FlextCliUtilitiesRuntime(
         if os.name != "nt":
             return 0
         return int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)) | int(
-            getattr(subprocess, "CREATE_SUSPENDED", 0x00000004)
+            getattr(subprocess, "CREATE_SUSPENDED", 0x00000004),
         )
 
     @classmethod
@@ -141,7 +146,7 @@ class FlextCliUtilitiesRuntime(
                         forwarded_signal=output.outcome.forwarded_signal,
                     ),
                     duration=output.duration,
-                )
+                ),
             )
 
         return cls._execute_streamed_process(

@@ -36,7 +36,8 @@ class TestsFlextCliExamplesSmoke:
             settings.cli_token_file = original_token_file
 
     def test_file_operation_examples_surface_failure_paths(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """File examples must report invalid filesystem and payload failures."""
         broken_config_root = tmp_path / "broken-config-root"
@@ -49,7 +50,8 @@ class TestsFlextCliExamplesSmoke:
         invalid_preferences_dir = tmp_path / "invalid-preferences"
         invalid_preferences_dir.mkdir()
         (invalid_preferences_dir / "preferences.json").write_text(
-            '["a", "b"]', encoding="utf-8"
+            '["a", "b"]',
+            encoding="utf-8",
         )
         invalid_preferences = load_user_preferences(invalid_preferences_dir)
         tm.fail(invalid_preferences)
@@ -64,7 +66,8 @@ class TestsFlextCliExamplesSmoke:
 
         incomplete_import_file = tmp_path / "incomplete-record.json"
         incomplete_import_file.write_text(
-            '{"id": 1, "name": "Alice"}', encoding="utf-8"
+            '{"id": 1, "name": "Alice"}',
+            encoding="utf-8",
         )
         incomplete_import = validate_and_import_data(incomplete_import_file)
         tm.fail(incomplete_import)
@@ -92,7 +95,7 @@ class TestsFlextCliExamplesSmoke:
         tm.that(locations.data["Token Exists"], eq="Yes")
 
         profile_result = Ex06Settings.load_profile_settings(
-            ec.DeploymentEnvironment.DEVELOPMENT
+            ec.DeploymentEnvironment.DEVELOPMENT,
         )
         tm.ok(profile_result)
         tm.that(profile_result.value.debug, eq=True)

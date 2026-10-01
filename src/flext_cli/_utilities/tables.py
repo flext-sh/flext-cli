@@ -19,7 +19,7 @@ class FlextCliUtilitiesTables:
     """Table helpers exposed through ``u.Cli.tables_*``."""
 
     TABLE_DATA_ADAPTER: ClassVar[t.ValueAdapter[t.Cli.TableDataSource]] = TypeAdapter(
-        t.Cli.TableDataSource
+        t.Cli.TableDataSource,
     )
 
     @staticmethod
@@ -58,7 +58,8 @@ class FlextCliUtilitiesTables:
             resolved = m.Cli.TableConfig.model_validate(settings_data)
         except c.ValidationError as exc:
             return r[m.Cli.TableConfig].fail(
-                c.Cli.OUTPUT_TABLE_CONFIG_INVALID_FMT.format(error=exc), exception=exc
+                c.Cli.OUTPUT_TABLE_CONFIG_INVALID_FMT.format(error=exc),
+                exception=exc,
             )
         return r[m.Cli.TableConfig].ok(resolved)
 
@@ -69,11 +70,11 @@ class FlextCliUtilitiesTables:
         """Validate and normalize mapping/sequence inputs to tabulate rows."""
         try:
             validated_data = FlextCliUtilitiesTables.TABLE_DATA_ADAPTER.validate_python(
-                data
+                data,
             )
         except c.ValidationError as exc:
             return r[Sequence[t.Cli.TableRow]].fail(
-                c.Cli.OUTPUT_TABLE_DATA_INVALID_FMT.format(error=exc)
+                c.Cli.OUTPUT_TABLE_DATA_INVALID_FMT.format(error=exc),
             )
 
         if isinstance(validated_data, Mapping):
@@ -87,12 +88,12 @@ class FlextCliUtilitiesTables:
         for row in validated_data:
             if isinstance(row, Mapping):
                 normalized_rows.append(
-                    FlextCliUtilitiesTables.tables_normalize_mapping_row(row)
+                    FlextCliUtilitiesTables.tables_normalize_mapping_row(row),
                 )
                 continue
             if not isinstance(row, str):
                 normalized_rows.append(
-                    FlextCliUtilitiesTables.tables_normalize_sequence_row(row)
+                    FlextCliUtilitiesTables.tables_normalize_sequence_row(row),
                 )
                 continue
             return r[Sequence[t.Cli.TableRow]].fail(c.Cli.OUTPUT_TABLE_ROW_INVALID)
@@ -101,7 +102,8 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_tabulate_payload(
-        rows: t.SequenceOf[t.Cli.TableRow], headers: str | t.StrSequence
+        rows: t.SequenceOf[t.Cli.TableRow],
+        headers: str | t.StrSequence,
     ) -> t.Pair[
         t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow],
         str | t.StrSequence,
@@ -120,7 +122,8 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_render(
-        rows: t.SequenceOf[t.Cli.TableRow], settings: m.Cli.TableConfig
+        rows: t.SequenceOf[t.Cli.TableRow],
+        settings: m.Cli.TableConfig,
     ) -> p.Result[str]:
         """Render normalized rows to a plain-text table string."""
         headers: str | t.StrSequence
@@ -147,7 +150,10 @@ class FlextCliUtilitiesTables:
             colalign = colalign[:column_count]
 
         rendered_table = FlextCliUtilitiesTablesRenderer.render(
-            rows, headers, colalign=colalign or (), settings=settings
+            rows,
+            headers,
+            colalign=colalign or (),
+            settings=settings,
         )
         return r[str].ok(rendered_table)
 

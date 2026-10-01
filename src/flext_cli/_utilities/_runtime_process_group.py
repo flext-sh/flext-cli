@@ -24,17 +24,19 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
 
     @classmethod
     def _process_boundary_empty(
-        cls, process_group_id: int, job_handle: int
+        cls,
+        process_group_id: int,
+        job_handle: int,
     ) -> p.Result[bool]:
         """Prove the owned group/Job has no active members."""
         if os.name == "nt":
             return cls.windows_job_active_count(job_handle).map(
-                lambda active_count: active_count == 0
+                lambda active_count: active_count == 0,
             )
         try:
             if platform.system() == "Darwin":
                 return r[bool].ok(
-                    not cls._darwin_process_group_members(process_group_id)
+                    not cls._darwin_process_group_members(process_group_id),
                 )
             os.killpg(process_group_id, 0)
         except ProcessLookupError:
@@ -57,7 +59,8 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
             process.send_signal(int(getattr(signal, "CTRL_BREAK_EVENT", signal.SIGINT)))
             return r[bool].ok(True)
         terminate_error = cls._windows_job_terminate(
-            job_handle, 128 + abs(signal_number)
+            job_handle,
+            128 + abs(signal_number),
         )
         if terminate_error is not None:
             return r[bool].fail(terminate_error)
@@ -75,7 +78,10 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
         """Signal the complete owned process tree."""
         if os.name == "nt":
             return cls._signal_process_tree_windows(
-                process, signal_number, job_handle, force=force
+                process,
+                signal_number,
+                job_handle,
+                force=force,
             )
         try:
             os.killpg(process.pid, signal.SIGKILL if force else signal_number)

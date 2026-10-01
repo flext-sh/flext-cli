@@ -76,7 +76,8 @@ class FlextCliUtilitiesDocxRenderer:
 
     @classmethod
     def docx_render(
-        cls, request: m.Cli.DocxRenderRequest
+        cls,
+        request: m.Cli.DocxRenderRequest,
     ) -> p.Result[m.Cli.DocxRenderResult]:
         """Render typed paragraphs, tables, and sections into document bytes."""
         document_result = cls._document_for_request(request)
@@ -89,20 +90,22 @@ class FlextCliUtilitiesDocxRenderer:
         except (KeyError, TypeError, ValueError, AttributeError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.DocxRenderResult].fail(
-                f"{c.Cli.DocxError.RENDER_FAILED}: {detail}"
+                f"{c.Cli.DocxError.RENDER_FAILED}: {detail}",
             )
         content = cls._serialize_document(
-            document, source_date_epoch=request.source_date_epoch
+            document,
+            source_date_epoch=request.source_date_epoch,
         )
         if content.failure:
             return r[m.Cli.DocxRenderResult].from_failure(content)
         return r[m.Cli.DocxRenderResult].ok(
-            m.Cli.DocxRenderResult(content=content.value, plan=request.plan)
+            m.Cli.DocxRenderResult(content=content.value, plan=request.plan),
         )
 
     @classmethod
     def _document_for_request(
-        cls, request: m.Cli.DocxRenderRequest
+        cls,
+        request: m.Cli.DocxRenderRequest,
     ) -> p.Result[DocumentType]:
         if request.template is None:
             return r[DocumentType].ok(Document())
@@ -111,13 +114,15 @@ class FlextCliUtilitiesDocxRenderer:
         except (OSError, ValueError, KeyError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[DocumentType].fail(
-                f"{c.Cli.DocxError.DOCUMENT_LOAD_FAILED}: {detail}"
+                f"{c.Cli.DocxError.DOCUMENT_LOAD_FAILED}: {detail}",
             )
         return r[DocumentType].ok(document)
 
     @classmethod
     def _apply_source_date(
-        cls, document: DocumentType, source_date_epoch: int | None
+        cls,
+        document: DocumentType,
+        source_date_epoch: int | None,
     ) -> None:
         if source_date_epoch is None:
             return
@@ -128,7 +133,10 @@ class FlextCliUtilitiesDocxRenderer:
 
     @classmethod
     def _serialize_document(
-        cls, document: DocumentType, *, source_date_epoch: int | None = None
+        cls,
+        document: DocumentType,
+        *,
+        source_date_epoch: int | None = None,
     ) -> p.Result[bytes]:
         target = BytesIO()
         try:
@@ -145,7 +153,9 @@ class FlextCliUtilitiesDocxRenderer:
 
     @classmethod
     def _normalize_archive(
-        cls, content: bytes, source_date_epoch: int
+        cls,
+        content: bytes,
+        source_date_epoch: int,
     ) -> p.Result[bytes]:
         member_date = cls._stable_member_date(source_date_epoch)
         target = BytesIO()
@@ -195,7 +205,9 @@ class FlextCliUtilitiesDocxRenderer:
 
     @classmethod
     def _apply_document(
-        cls, document: DocumentType, plan: m.Cli.DocxDocumentPlan
+        cls,
+        document: DocumentType,
+        plan: m.Cli.DocxDocumentPlan,
     ) -> None:
         cls._apply_core_properties(document, plan.core_properties)
         for paragraph in plan.paragraphs:
@@ -206,7 +218,9 @@ class FlextCliUtilitiesDocxRenderer:
 
     @classmethod
     def _apply_core_properties(
-        cls, document: DocumentType, properties: t.JsonMapping
+        cls,
+        document: DocumentType,
+        properties: t.JsonMapping,
     ) -> None:
         core_props = document.core_properties
         for key, value in properties.items():
@@ -234,7 +248,9 @@ class FlextCliUtilitiesDocxRenderer:
 
     @classmethod
     def _apply_paragraph_style(
-        cls, paragraph: Paragraph, spec: m.Cli.DocxParagraphStyleSpec
+        cls,
+        paragraph: Paragraph,
+        spec: m.Cli.DocxParagraphStyleSpec,
     ) -> None:
         if spec.font:
             if not paragraph.runs:
@@ -242,7 +258,8 @@ class FlextCliUtilitiesDocxRenderer:
             cls._apply_font(paragraph.runs[0].font, spec.font)
         if spec.paragraph_format:
             cls._apply_paragraph_format(
-                paragraph.paragraph_format, spec.paragraph_format
+                paragraph.paragraph_format,
+                spec.paragraph_format,
             )
 
     @classmethod
@@ -280,7 +297,9 @@ class FlextCliUtilitiesDocxRenderer:
 
     @classmethod
     def _apply_paragraph_format(
-        cls, fmt: ParagraphFormat, spec: m.Cli.DocxParagraphFormatSpec
+        cls,
+        fmt: ParagraphFormat,
+        spec: m.Cli.DocxParagraphFormatSpec,
     ) -> None:
         if spec.alignment is not None:
             fmt.alignment = cls._ALIGNMENT_MAP[spec.alignment]
@@ -328,13 +347,15 @@ class FlextCliUtilitiesDocxRenderer:
 
     @classmethod
     def _apply_sections(
-        cls, document: DocumentType, sections: t.VariadicTuple[m.Cli.DocxSectionPlan]
+        cls,
+        document: DocumentType,
+        sections: t.VariadicTuple[m.Cli.DocxSectionPlan],
     ) -> None:
         for section_plan in sections:
             section = document.add_section()
             if section_plan.width is not None:
                 section.page_width = Inches(
-                    section_plan.width / 914400
+                    section_plan.width / 914400,
                 )  # EMU to inches
             if section_plan.height is not None:
                 section.page_height = Inches(section_plan.height / 914400)

@@ -31,7 +31,8 @@ class TestsFlextCliUtilitiesEnvExpand:
         """A ``${VAR}`` token is replaced by the injected value."""
         home = str(tmp_path / "home")
         result = u.Cli.env_expand(
-            "${FLEXT_CLI_EXPAND_HOME}/.claude", {"FLEXT_CLI_EXPAND_HOME": home}
+            "${FLEXT_CLI_EXPAND_HOME}/.claude",
+            {"FLEXT_CLI_EXPAND_HOME": home},
         )
 
         tm.that(tm.ok(result), eq=f"{home}/.claude")
@@ -40,7 +41,8 @@ class TestsFlextCliUtilitiesEnvExpand:
         """A bare ``$VAR`` token is replaced by the injected value."""
         base = str(tmp_path / "base")
         result = u.Cli.env_expand(
-            "$FLEXT_CLI_EXPAND_BARE/bin", {"FLEXT_CLI_EXPAND_BARE": base}
+            "$FLEXT_CLI_EXPAND_BARE/bin",
+            {"FLEXT_CLI_EXPAND_BARE": base},
         )
 
         tm.that(tm.ok(result), eq=f"{base}/bin")

@@ -8,7 +8,10 @@ from pathlib import Path
 
 
 def validate_atomic_state_path(
-    value: Path, *, label: str, allow_root: bool = False
+    value: Path,
+    *,
+    label: str,
+    allow_root: bool = False,
 ) -> Path:
     """Reject relative, traversing, root, or lexically non-normal paths."""
     normalized = Path(os.path.normpath(value))
@@ -24,7 +27,11 @@ def validate_atomic_state_path(
 
 
 def validate_parent_identity(
-    device: int | None, inode: int | None, *, present: bool, label: str
+    device: int | None,
+    inode: int | None,
+    *,
+    present: bool,
+    label: str,
 ) -> None:
     """Require one complete parent identity, absent only for an absent leaf.
 
@@ -41,7 +48,10 @@ def validate_parent_identity(
 
 
 def validate_non_reparse_state(
-    file_attributes: int | None, reparse_tag: int | None, *, label: str
+    file_attributes: int | None,
+    reparse_tag: int | None,
+    *,
+    label: str,
 ) -> None:
     """Reject a Windows reparse identity in any atomic state model."""
     reparse_marker = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)

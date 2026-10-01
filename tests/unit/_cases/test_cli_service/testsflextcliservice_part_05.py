@@ -21,20 +21,21 @@ class TestsFlextCliService:
     def test_register_result_command_renders_success_and_failure(self) -> None:
         """Verify that register result command renders success and failure."""
         app = cli.create_app_with_common_params(
-            name="result-app", help_text="Result application"
+            name="result-app",
+            help_text="Result application",
         )
         group = cli.create_group(help_text="Grouped commands", name="group")
 
         def ok_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return cli.execute().map(
                 lambda _payload: m.Tests.SampleOutput(
-                    message=f"processed {params.name}"
-                )
+                    message=f"processed {params.name}",
+                ),
             )
 
         def fail_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return cli.validate_credentials("", "password").map(
-                lambda _value: m.Tests.SampleOutput(message=params.name)
+                lambda _value: m.Tests.SampleOutput(message=params.name),
             )
 
         def build_ok_route() -> m.Cli.ResultCommandRoute:
@@ -71,7 +72,8 @@ class TestsFlextCliService:
     def test_register_result_routes_propagates_real_failure(self) -> None:
         """Verify that register result routes propagates real failure."""
         app = cli.create_app_with_common_params(
-            name="result-app", help_text="Result application"
+            name="result-app",
+            help_text="Result application",
         )
 
         def fail_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
@@ -90,11 +92,13 @@ class TestsFlextCliService:
                     help_text="Failing command",
                     model_cls=m.Tests.SampleInput,
                     handler=fail_handler,
-                )
+                ),
             ],
         )
         fail_result = cli.execute_app(
-            app, prog_name="result-app", args=["fail", "--name", "alice"]
+            app,
+            prog_name="result-app",
+            args=["fail", "--name", "alice"],
         )
 
         tm.fail(fail_result)

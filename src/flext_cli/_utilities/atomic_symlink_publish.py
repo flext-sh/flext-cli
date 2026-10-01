@@ -128,7 +128,8 @@ def write_guarded_symlink(before: m.Cli.AtomicSymlinkState, target: str) -> None
             except BaseException as cleanup_error:
                 msg = "symlink publication and staged cleanup failed"
                 raise BaseExceptionGroup(
-                    msg, [primary, cleanup_error]
+                    msg,
+                    [primary, cleanup_error],
                 ) from cleanup_error
             raise
 

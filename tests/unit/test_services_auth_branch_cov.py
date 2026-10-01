@@ -45,7 +45,9 @@ class TestsFlextCliServicesAuth:
         settings.cli_token_file = str(path)
 
     def test_authenticate_with_token_persists_and_round_trips(
-        self, service: FlextCli, tmp_path: Path
+        self,
+        service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         # Arrange
         """Verify that authenticate with token persists and round trips."""
@@ -59,7 +61,9 @@ class TestsFlextCliServicesAuth:
         tm.that(tm.ok(service.fetch_auth_token()), eq="t" + "0" * 9)
 
     def test_authenticate_with_username_password_returns_reloadable_token(
-        self, service: FlextCli, tmp_path: Path
+        self,
+        service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         # Arrange
         """Verify that authenticate with username password returns reloadable token."""
@@ -88,7 +92,10 @@ class TestsFlextCliServicesAuth:
         ],
     )
     def test_authenticate_rejects_malformed_credentials_payload(
-        self, service: FlextCli, tmp_path: Path, credentials: t.MappingKV[str, str]
+        self,
+        service: FlextCli,
+        tmp_path: Path,
+        credentials: t.MappingKV[str, str],
     ) -> None:
         # Arrange
         """Verify that authenticate rejects malformed credentials payload."""
@@ -107,7 +114,9 @@ class TestsFlextCliServicesAuth:
         [
             pytest.param({}, "username", id="empty-payload"),
             pytest.param(
-                {c.Cli.DICT_KEY_USERNAME: "user"}, "password", id="username-only"
+                {c.Cli.DICT_KEY_USERNAME: "user"},
+                "password",
+                id="username-only",
             ),
             pytest.param(
                 {c.Cli.DICT_KEY_USER_SECRET: "s" + "0" * 9},
@@ -149,7 +158,10 @@ class TestsFlextCliServicesAuth:
         ],
     )
     def test_authenticate_fails_when_token_cannot_be_persisted(
-        self, service: FlextCli, tmp_path: Path, credentials: t.MappingKV[str, str]
+        self,
+        service: FlextCli,
+        tmp_path: Path,
+        credentials: t.MappingKV[str, str],
     ) -> None:
         # Arrange: point token_file at a directory so the write cannot succeed.
         """Verify that authenticate fails when token cannot be persisted."""
@@ -165,7 +177,9 @@ class TestsFlextCliServicesAuth:
         tm.that(result.error, has="json_write failed:")
 
     def test_save_auth_token_rejects_blank_token(
-        self, service: FlextCli, tmp_path: Path
+        self,
+        service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         # Arrange
         """Verify that save auth token rejects blank token."""
@@ -180,7 +194,8 @@ class TestsFlextCliServicesAuth:
         tm.that(result.error, has="empty")
 
     def test_validate_credentials_rejects_empty_password(
-        self, service: FlextCli
+        self,
+        service: FlextCli,
     ) -> None:
         # Act
         """Verify that validate credentials rejects empty password."""
@@ -191,7 +206,9 @@ class TestsFlextCliServicesAuth:
         tm.that((result.error or "").lower(), has="password")
 
     def test_fetch_auth_token_fails_when_file_missing(
-        self, service: FlextCli, tmp_path: Path
+        self,
+        service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         # Arrange
         """Verify that fetch auth token fails when file missing."""
@@ -205,7 +222,9 @@ class TestsFlextCliServicesAuth:
         tm.that((result.error or "").lower(), has="load")
 
     def test_fetch_auth_token_fails_when_path_is_directory(
-        self, service: FlextCli, tmp_path: Path
+        self,
+        service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         # Arrange
         """Verify that fetch auth token fails when path is directory."""
@@ -221,7 +240,9 @@ class TestsFlextCliServicesAuth:
         tm.that((result.error or "").lower(), has="load")
 
     def test_clear_auth_tokens_is_ok_when_file_missing(
-        self, service: FlextCli, tmp_path: Path
+        self,
+        service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         # Arrange
         """Verify that clear auth tokens is ok when file missing."""
@@ -235,7 +256,9 @@ class TestsFlextCliServicesAuth:
         tm.that(result.value, eq=True)
 
     def test_clear_auth_tokens_removes_persisted_token_and_is_idempotent(
-        self, service: FlextCli, tmp_path: Path
+        self,
+        service: FlextCli,
+        tmp_path: Path,
     ) -> None:
         # Arrange: persist a token first.
         """Verify that clear auth tokens removes persisted token and is idempotent."""

@@ -20,7 +20,8 @@ class FlextCliUtilitiesPptxRenderer:
 
     @classmethod
     def pptx_render(
-        cls, request: m.Cli.PptxRenderRequest
+        cls,
+        request: m.Cli.PptxRenderRequest,
     ) -> p.Result[m.Cli.PptxRenderResult]:
         """Render typed slides into presentation bytes."""
         presentation_result = cls._presentation_for_request(request)
@@ -32,18 +33,19 @@ class FlextCliUtilitiesPptxRenderer:
         except (KeyError, TypeError, ValueError, AttributeError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.PptxRenderResult].fail(
-                f"{c.Cli.PptxError.RENDER_FAILED}: {detail}"
+                f"{c.Cli.PptxError.RENDER_FAILED}: {detail}",
             )
         content = FlextCliUtilitiesPptxSerializer.pptx_save(presentation)
         if content.failure:
             return r[m.Cli.PptxRenderResult].from_failure(content)
         return r[m.Cli.PptxRenderResult].ok(
-            m.Cli.PptxRenderResult(content=content.value, plan=request.plan)
+            m.Cli.PptxRenderResult(content=content.value, plan=request.plan),
         )
 
     @classmethod
     def _presentation_for_request(
-        cls, request: m.Cli.PptxRenderRequest
+        cls,
+        request: m.Cli.PptxRenderRequest,
     ) -> p.Result[PresentationType]:
         if request.template is None:
             return r[PresentationType].ok(Presentation())
@@ -52,13 +54,15 @@ class FlextCliUtilitiesPptxRenderer:
         except (OSError, ValueError, KeyError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[PresentationType].fail(
-                f"{c.Cli.PptxError.PRESENTATION_LOAD_FAILED}: {detail}"
+                f"{c.Cli.PptxError.PRESENTATION_LOAD_FAILED}: {detail}",
             )
         return r[PresentationType].ok(presentation)
 
     @classmethod
     def _apply_presentation(
-        cls, presentation: PresentationType, plan: m.Cli.PptxPresentationPlan
+        cls,
+        presentation: PresentationType,
+        plan: m.Cli.PptxPresentationPlan,
     ) -> None:
         cls._apply_pptx_core_properties(presentation, plan.core_properties)
         for slide in plan.slides:
@@ -66,7 +70,9 @@ class FlextCliUtilitiesPptxRenderer:
 
     @classmethod
     def _apply_pptx_core_properties(
-        cls, presentation: PresentationType, properties: t.JsonMapping
+        cls,
+        presentation: PresentationType,
+        properties: t.JsonMapping,
     ) -> None:
         core_props = presentation.core_properties
         for key, value in properties.items():
@@ -75,7 +81,9 @@ class FlextCliUtilitiesPptxRenderer:
 
     @classmethod
     def _apply_slide(
-        cls, presentation: PresentationType, plan: m.Cli.PptxSlidePlan
+        cls,
+        presentation: PresentationType,
+        plan: m.Cli.PptxSlidePlan,
     ) -> None:
         layout = presentation.slide_layouts[0]
         new_slide = presentation.slides.add_slide(layout)

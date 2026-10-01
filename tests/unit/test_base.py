@@ -36,7 +36,8 @@ class TestsFlextCliBase:
         tm.that(resolved_settings, is_=p.Cli.Settings)
 
     def test_settings_property_is_stable_within_instance(
-        self, facade: FlextCli
+        self,
+        facade: FlextCli,
     ) -> None:
         """Repeated `settings` reads return the same singleton (idempotent access)."""
         first = facade.settings

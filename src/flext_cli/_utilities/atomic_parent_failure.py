@@ -8,7 +8,9 @@ from pathlib import Path
 
 
 def preserve_recheck_failure(
-    path: Path, operation_error: BaseException, recheck: Callable[[], None]
+    path: Path,
+    operation_error: BaseException,
+    recheck: Callable[[], None],
 ) -> None:
     """Attach a failed parent recheck to the active operation failure."""
     try:
@@ -26,7 +28,8 @@ def preserve_recheck_failure(
             raise OSError(errno.ESTALE, message, path) from causes
         group_message = "atomic operation and parent recheck failed"
         raise BaseExceptionGroup(
-            group_message, [operation_error, recheck_error]
+            group_message,
+            [operation_error, recheck_error],
         ) from recheck_error
 
 

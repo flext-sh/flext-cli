@@ -49,7 +49,8 @@ class FlextCliModelsDocxStyles:
         ) = m.Field(default=None, description="Underline style.")
         strike: bool | None = m.Field(default=None, description="Strike font state.")
         color: FlextCliModelsDocxStyles.DocxColor | None = m.Field(
-            default=None, description="Optional font color."
+            default=None,
+            description="Optional font color.",
         )
         highlight: (
             Literal[
@@ -99,25 +100,30 @@ class FlextCliModelsDocxStyles:
         )
         keep_together: bool | None = m.Field(default=None, description="Keep together.")
         keep_with_next: bool | None = m.Field(
-            default=None, description="Keep with next paragraph."
+            default=None,
+            description="Keep with next paragraph.",
         )
         page_break_before: bool | None = m.Field(
-            default=None, description="Page break before paragraph."
+            default=None,
+            description="Page break before paragraph.",
         )
         widow_control: bool | None = m.Field(default=None, description="Widow control.")
 
     class DocxRunStyleSpec(m.FrozenModel):
         font: FlextCliModelsDocxStyles.DocxFontSpec | None = m.Field(
-            default=None, description="Optional run font specification."
+            default=None,
+            description="Optional run font specification.",
         )
 
     class DocxParagraphStyleSpec(m.FrozenModel):
         font: FlextCliModelsDocxStyles.DocxFontSpec | None = m.Field(
-            default=None, description="Optional paragraph font specification."
+            default=None,
+            description="Optional paragraph font specification.",
         )
         paragraph_format: FlextCliModelsDocxStyles.DocxParagraphFormatSpec | None = (
             m.Field(
-                default=None, description="Optional paragraph format specification."
+                default=None,
+                description="Optional paragraph format specification.",
             )
         )
 

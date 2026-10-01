@@ -12,7 +12,8 @@ from ._runtime_process_wait import FlextCliUtilitiesRuntimeProcessWaitMixin
 
 
 class FlextCliUtilitiesRuntimeProcessThreadsMixin(
-    FlextCliUtilitiesRuntimeProcessStreamMixin, FlextCliUtilitiesRuntimeProcessWaitMixin
+    FlextCliUtilitiesRuntimeProcessStreamMixin,
+    FlextCliUtilitiesRuntimeProcessWaitMixin,
 ):
     """Start bounded lifecycle threads at their canonical owner."""
 

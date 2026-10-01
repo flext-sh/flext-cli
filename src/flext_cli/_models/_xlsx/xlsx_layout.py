@@ -17,12 +17,12 @@ class FlextCliModelsXlsxLayout:
     # document or customer policy.
     class XlsxMergePlan(m.FrozenModel):
         area: FlextCliModelsXlsxCells.XlsxCellRange = m.Field(
-            description="Merged cell range."
+            description="Merged cell range.",
         )
 
     class XlsxCommentPlan(m.FrozenModel):
         at: FlextCliModelsXlsxCells.XlsxCellAddress = m.Field(
-            description="Comment cell."
+            description="Comment cell.",
         )
         text: Annotated[str, m.Field(min_length=1, description="Comment text.")]
         author: Annotated[str, m.Field(min_length=1, description="Comment author.")]
@@ -33,27 +33,31 @@ class FlextCliModelsXlsxLayout:
 
     class XlsxExternalHyperlinkPlan(m.FrozenModel):
         kind: Literal["external"] = m.Field(
-            default="external", description="Hyperlink kind."
+            default="external",
+            description="Hyperlink kind.",
         )
         at: FlextCliModelsXlsxCells.XlsxCellAddress = m.Field(
-            description="Hyperlink cell."
+            description="Hyperlink cell.",
         )
         target: Annotated[
-            str, m.Field(min_length=1, description="External hyperlink target.")
+            str,
+            m.Field(min_length=1, description="External hyperlink target."),
         ]
 
     class XlsxNavigationHyperlinkPlan(m.FrozenModel):
         kind: Literal["navigation"] = m.Field(
-            default="navigation", description="Hyperlink kind."
+            default="navigation",
+            description="Hyperlink kind.",
         )
         at: FlextCliModelsXlsxCells.XlsxCellAddress = m.Field(
-            description="Hyperlink cell."
+            description="Hyperlink cell.",
         )
         destination_sheet: Annotated[
-            str, m.Field(min_length=1, description="Destination worksheet.")
+            str,
+            m.Field(min_length=1, description="Destination worksheet."),
         ]
         destination: FlextCliModelsXlsxCells.XlsxCellAddress = m.Field(
-            description="Destination address."
+            description="Destination address.",
         )
 
     type XlsxHyperlinkPlan = Annotated[
@@ -79,17 +83,18 @@ class FlextCliModelsXlsxLayout:
 
     class XlsxFreezePanePlan(m.FrozenModel):
         at: FlextCliModelsXlsxCells.XlsxCellAddress = m.Field(
-            description="First scrolling cell."
+            description="First scrolling cell.",
         )
 
     class XlsxAutoFilterPlan(m.FrozenModel):
         area: FlextCliModelsXlsxCells.XlsxCellRange = m.Field(
-            description="Auto-filter range."
+            description="Auto-filter range.",
         )
 
     class XlsxViewPlan(m.FrozenModel):
         visibility: Literal["visible", "hidden", "veryHidden"] = m.Field(
-            default="visible", description="Worksheet visibility."
+            default="visible",
+            description="Worksheet visibility.",
         )
         tab_color: (
             Annotated[
@@ -104,10 +109,14 @@ class FlextCliModelsXlsxLayout:
 
     class XlsxSheetLayoutPlan(m.FrozenModel):
         merges: t.VariadicTuple[FlextCliModelsXlsxLayout.XlsxMergePlan] = m.Field(
-            default=(), strict=False, description="Merged ranges."
+            default=(),
+            strict=False,
+            description="Merged ranges.",
         )
         comments: t.VariadicTuple[FlextCliModelsXlsxLayout.XlsxCommentPlan] = m.Field(
-            default=(), strict=False, description="Cell comments."
+            default=(),
+            strict=False,
+            description="Cell comments.",
         )
         hyperlinks: t.VariadicTuple[FlextCliModelsXlsxLayout.XlsxHyperlinkPlan] = (
             m.Field(default=(), strict=False, description="Cell hyperlinks.")
@@ -116,16 +125,21 @@ class FlextCliModelsXlsxLayout:
             m.Field(default=(), strict=False, description="Row and column dimensions.")
         )
         groups: t.VariadicTuple[FlextCliModelsXlsxLayout.XlsxGroupPlan] = m.Field(
-            default=(), strict=False, description="Row and column groups."
+            default=(),
+            strict=False,
+            description="Row and column groups.",
         )
         freeze_pane: FlextCliModelsXlsxLayout.XlsxFreezePanePlan | None = m.Field(
-            default=None, description="Optional freeze pane."
+            default=None,
+            description="Optional freeze pane.",
         )
         auto_filter: FlextCliModelsXlsxLayout.XlsxAutoFilterPlan | None = m.Field(
-            default=None, description="Optional auto-filter."
+            default=None,
+            description="Optional auto-filter.",
         )
         view: FlextCliModelsXlsxLayout.XlsxViewPlan | None = m.Field(
-            default=None, description="Optional worksheet view."
+            default=None,
+            description="Optional worksheet view.",
         )
 
 

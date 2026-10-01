@@ -25,7 +25,8 @@ class TestsFlextCliService:
         """Accept repeated model-derived options through the public invocation facade."""
         captured: MutableSequence[m.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
-            name="root", help_text="Root application"
+            name="root",
+            help_text="Root application",
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
@@ -71,7 +72,10 @@ class TestsFlextCliService:
 
         command = cli.model_command(m.Tests.SampleInput, handle)
         result = command(
-            name="alice", count=3, dry_run=True, output_format=c.Cli.OutputFormats.JSON
+            name="alice",
+            count=3,
+            dry_run=True,
+            output_format=c.Cli.OutputFormats.JSON,
         )
 
         expected: t.JsonMapping = {

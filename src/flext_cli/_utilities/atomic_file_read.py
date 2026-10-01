@@ -12,7 +12,9 @@ from . import atomic_file_descriptor as file_descriptor
 
 
 def read_descriptor_bytes(
-    parent: file_descriptor.ParentDescriptor, path: Path, expected: os.stat_result
+    parent: file_descriptor.ParentDescriptor,
+    path: Path,
+    expected: os.stat_result,
 ) -> bytes:
     """Read all bytes while one descriptor retains the expected exact state."""
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
@@ -21,7 +23,10 @@ def read_descriptor_bytes(
         content = _read_stable_descriptor(descriptor, path, expected)
     except BaseException as operation_error:
         file_descriptor.close_after_failure(
-            descriptor, path, operation_error, label="read"
+            descriptor,
+            path,
+            operation_error,
+            label="read",
         )
         raise
     os.close(descriptor)
@@ -46,7 +51,9 @@ def state_key(state: os.stat_result) -> t.VariadicTuple[int]:
 
 
 def _read_stable_descriptor(
-    descriptor: int, path: Path, expected: os.stat_result
+    descriptor: int,
+    path: Path,
+    expected: os.stat_result,
 ) -> bytes:
     if state_key(os.fstat(descriptor)) != state_key(expected):
         _raise_changed(path)

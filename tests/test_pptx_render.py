@@ -19,7 +19,7 @@ def test_pptx_render_empty_presentation() -> None:
 def test_pptx_render_with_slides() -> None:
     """Rendered slides contain the supplied titles."""
     plan = m.Cli.PptxPresentationPlan(
-        slides=(m.Cli.PptxSlidePlan(title="Hello"), m.Cli.PptxSlidePlan(title="World"))
+        slides=(m.Cli.PptxSlidePlan(title="Hello"), m.Cli.PptxSlidePlan(title="World")),
     )
     rendered = tm.ok(cli.pptx_render(m.Cli.PptxRenderRequest(plan=plan)))
     restored = tm.ok(cli.pptx_read(rendered.content))
@@ -41,7 +41,7 @@ def test_pptx_render_core_properties() -> None:
 def test_pptx_read_round_trip() -> None:
     """Reading rendered bytes reproduces the presentation plan."""
     plan = m.Cli.PptxPresentationPlan(
-        slides=(m.Cli.PptxSlidePlan(title="Hello"), m.Cli.PptxSlidePlan(title="World"))
+        slides=(m.Cli.PptxSlidePlan(title="Hello"), m.Cli.PptxSlidePlan(title="World")),
     )
     render_result = cli.pptx_render(m.Cli.PptxRenderRequest(plan=plan))
     tm.that(render_result.success, eq=True, msg=render_result.error)

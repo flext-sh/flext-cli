@@ -16,7 +16,9 @@ class FlextCliUtilitiesSymlink:
 
     @staticmethod
     def atomic_read_symlink_state(
-        path: t.Cli.TextPath, *, required: bool = False
+        path: t.Cli.TextPath,
+        *,
+        required: bool = False,
     ) -> p.Result[m.Cli.AtomicSymlinkState]:
         """Read link text and identity without following even a dangling target.
 
@@ -32,7 +34,8 @@ class FlextCliUtilitiesSymlink:
 
     @staticmethod
     def atomic_write_symlink_guarded(
-        before: m.Cli.AtomicSymlinkState, target: str
+        before: m.Cli.AtomicSymlinkState,
+        target: str,
     ) -> p.Result[bool]:
         """Publish exact link text under the caller's shared exclusive lease.
 

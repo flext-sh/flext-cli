@@ -165,11 +165,13 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
     @runtime_checkable
     class XlsxSnapshotService(Protocol):
         def xlsx_snapshot(
-            self, request: FlextCliProtocolsXlsxSnapshot.XlsxSnapshotRequest
+            self,
+            request: FlextCliProtocolsXlsxSnapshot.XlsxSnapshotRequest,
         ) -> p.Result[m.Cli.XlsxWorkbookSnapshot]: ...
 
         def xlsx_defined_name_values(
-            self, request: m.Cli.XlsxDefinedNameValuesRequest
+            self,
+            request: m.Cli.XlsxDefinedNameValuesRequest,
         ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]: ...
 
 

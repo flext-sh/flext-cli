@@ -36,7 +36,9 @@ class FlextCliUtilitiesTemplate:
 
         @override
         def get_source(
-            self, environment: Environment, template: str
+            self,
+            environment: Environment,
+            template: str,
         ) -> t.Triple[str, str, Callable[[], bool]]:
             content, filename, _ = super().get_source(environment, template)
             # Timestamp precision (or preserved mtimes) cannot prove freshness.
@@ -56,7 +58,9 @@ class FlextCliUtilitiesTemplate:
 
         @override
         def get_source(
-            self, environment: Environment, template: str
+            self,
+            environment: Environment,
+            template: str,
         ) -> t.Triple[str, str, None]:
             """Return immutable captured text for one root-contained template."""
             del environment
@@ -72,7 +76,8 @@ class FlextCliUtilitiesTemplate:
             existing = self.source_states.get(source)
             if existing is None:
                 snapshot = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-                    source, required=True
+                    source,
+                    required=True,
                 )
                 if snapshot.failure:
                     self.failure = (
@@ -139,7 +144,8 @@ class FlextCliUtilitiesTemplate:
 
     @staticmethod
     def template_render_authenticated(
-        path: Path, context: p.Model
+        path: Path,
+        context: p.Model,
     ) -> p.Result[m.Cli.AuthenticatedTemplateRender]:
         """Render only descriptor-authenticated bytes and return all source states."""
         source = path.expanduser().absolute()
@@ -155,7 +161,7 @@ class FlextCliUtilitiesTemplate:
         )
         rendered = u.try_(
             lambda: environment.get_template(source.name).render(
-                context.model_dump(mode="json")
+                context.model_dump(mode="json"),
             ),
             catch=(TemplateError, OSError),
             op_name="template_render_authenticated",
@@ -164,13 +170,13 @@ class FlextCliUtilitiesTemplate:
             return r[m.Cli.AuthenticatedTemplateRender].fail(
                 loader.failure
                 or rendered.error
-                or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {source}"
+                or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {source}",
             )
         return r[m.Cli.AuthenticatedTemplateRender].ok(
             m.Cli.AuthenticatedTemplateRender(
                 rendered=rendered.value,
                 source_states=tuple(loader.source_states.values()),
-            )
+            ),
         )
 
     @staticmethod
@@ -209,7 +215,7 @@ class FlextCliUtilitiesTemplate:
         """
         if not templates_root.is_dir():
             return r[m.Cli.TemplateRenderReport].fail(
-                f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}"
+                f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}",
             )
         root = output_root.resolve()
         created: list[Path] = []
@@ -244,7 +250,9 @@ class FlextCliUtilitiesTemplate:
                 continue
             created.append(dest)
         report = m.Cli.TemplateRenderReport(
-            created=tuple(created), skipped=tuple(skipped), failed=tuple(failed)
+            created=tuple(created),
+            skipped=tuple(skipped),
+            failed=tuple(failed),
         )
         return r[m.Cli.TemplateRenderReport].ok(report)
 

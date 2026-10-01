@@ -28,7 +28,7 @@ class TestsFlextCliPublicContractsCoverage:
         pytest_settings = settings.clone(
             cli_pytest_current_test=(
                 "tests/unit/test_public_contracts_cov.py::test_public_facade"
-            )
+            ),
         )
         tm.that(u.Cli.cli_test_env(pytest_settings), eq=True)
 

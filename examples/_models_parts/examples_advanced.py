@@ -19,7 +19,8 @@ class ExamplesFlextCliModelsExamplesAdvanced:
         """Advanced application settings — Pydantic v2 only."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True
+            extra="forbid",
+            validate_assignment=True,
         )
         database_url: Annotated[str, m.Field(description="Database URL")] = (
             c.EXAMPLE_DEFAULT_DB_URL
@@ -29,7 +30,8 @@ class ExamplesFlextCliModelsExamplesAdvanced:
         )
         api_key: Annotated[str, m.Field(description="API key")] = ""
         environment: Annotated[
-            c.DeploymentEnvironment, m.Field(description="Deployment environment")
+            c.DeploymentEnvironment,
+            m.Field(description="Deployment environment"),
         ] = c.EXAMPLE_DEFAULT_ENVIRONMENT
         max_workers: Annotated[
             int,

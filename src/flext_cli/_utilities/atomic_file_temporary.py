@@ -35,12 +35,18 @@ def create_descriptor(parent: file_descriptor.ParentDescriptor, temporary: Path)
         | getattr(os, "O_BINARY", 0)
     )
     return file_descriptor.open_entry(
-        parent, temporary, flags, mode=_SECURE_CREATE_MODE
+        parent,
+        temporary,
+        flags,
+        mode=_SECURE_CREATE_MODE,
     )
 
 
 def write_and_sync(
-    descriptor: int, temporary: Path, content: bytes, permission_mode: int | None
+    descriptor: int,
+    temporary: Path,
+    content: bytes,
+    permission_mode: int | None,
 ) -> int:
     """Write exact bytes, materialize exact mode, and sync the open inode."""
     remaining = memoryview(content)

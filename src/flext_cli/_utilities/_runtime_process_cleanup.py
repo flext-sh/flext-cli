@@ -46,8 +46,9 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
                 forwarded_signals.append(int(signal_number))
                 restore_handlers.append(
                     lambda number=int(signal_number), handler=previous: signal.signal(
-                        number, handler
-                    )
+                        number,
+                        handler,
+                    ),
                 )
         except (OSError, ValueError):
             for restore in reversed(restore_handlers):
@@ -72,7 +73,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
                     r[str]
                     .fail(f"signal handler restore failed: {exc}", exception=exc)
                     .error
-                    or str(exc)
+                    or str(exc),
                 )
         return tuple(failures)
 
@@ -98,14 +99,22 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
             else time.monotonic() + 1.0
         )
         cls._empty_owned_boundary(
-            process, process_done, wake, cleanup_errors, job_handle, cleanup_deadline
+            process,
+            process_done,
+            wake,
+            cleanup_errors,
+            job_handle,
+            cleanup_deadline,
         )
         waiter.join(cls._remaining(cleanup_deadline))
         if waiter.is_alive():
             cleanup_errors.append("process deadline expired before root reaping")
         if input_pump is not None:
             cls._drain_input(
-                input_pump[0], input_pump[1], cleanup_errors, cleanup_deadline
+                input_pump[0],
+                input_pump[1],
+                cleanup_errors,
+                cleanup_deadline,
             )
         for pump, source in pump_streams:
             cls._drain_output(pump, stop, source, cleanup_errors, cleanup_deadline)
@@ -129,7 +138,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
                     r[str]
                     .fail(f"process input close error: {exc}", exception=exc)
                     .error
-                    or str(exc)
+                    or str(exc),
                 )
             pump.join(cls._remaining(cleanup_deadline))
         if pump.is_alive():
@@ -158,7 +167,10 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
             cls._append_signal_error(
                 cleanup_errors,
                 cls._signal_process_tree(
-                    process, signal.SIGKILL, job_handle, force=True
+                    process,
+                    signal.SIGKILL,
+                    job_handle,
+                    force=True,
                 ),
             )
         while (
@@ -171,7 +183,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
             boundary = cls._process_boundary_empty(process.pid, job_handle)
         if boundary.failure:
             cleanup_errors.append(
-                boundary.error or "owned process-boundary probe failed"
+                boundary.error or "owned process-boundary probe failed",
             )
         elif not boundary.value:
             cleanup_errors.append("owned process boundary was not empty before return")
@@ -195,7 +207,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
                     r[str]
                     .fail(f"process output close error: {exc}", exception=exc)
                     .error
-                    or str(exc)
+                    or str(exc),
                 )
             pump.join(cls._remaining(cleanup_deadline))
         if pump.is_alive():

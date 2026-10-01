@@ -34,7 +34,10 @@ class TestsFlextCliYamlCov:
 
     @pytest.mark.parametrize(("text", "expect_ok"), c.Tests.YAML_PARSE_CASES)
     def test_yaml_parse_reports_outcome_per_input(
-        self, text: str, *, expect_ok: bool
+        self,
+        text: str,
+        *,
+        expect_ok: bool,
     ) -> None:
         """Verify that yaml parse reports outcome per input."""
         result = u.Cli.yaml_parse(text)
@@ -84,7 +87,8 @@ class TestsFlextCliYamlCov:
         tm.that(result.unwrap(), eq=expected)
 
     def test_yaml_safe_load_missing_file_reports_not_found(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that yaml safe load missing file reports not found."""
         missing = tmp_path / "nonexistent.yml"
@@ -147,7 +151,8 @@ class TestsFlextCliYamlCov:
         tm.that(result, eq={})
 
     def test_yaml_load_mapping_missing_uses_provided_default(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that yaml load mapping missing uses provided default."""
         default: t.JsonMapping = {"fallback": True}
@@ -169,7 +174,11 @@ class TestsFlextCliYamlCov:
 
     @pytest.mark.parametrize(("content", "expect_list"), c.Tests.YAML_LIST_CASES)
     def test_yaml_load_list_returns_list_only_for_sequences(
-        self, tmp_path: Path, content: str, *, expect_list: bool
+        self,
+        tmp_path: Path,
+        content: str,
+        *,
+        expect_list: bool,
     ) -> None:
         """Verify that yaml load list returns list only for sequences."""
         data_file = tmp_path / "data.yml"
@@ -200,10 +209,16 @@ class TestsFlextCliYamlCov:
     # ── yaml_dump ────────────────────────────────────────────────────
 
     @pytest.mark.parametrize(
-        ("data", "sort_keys", "expect_ok"), c.Tests.YAML_DUMP_CASES
+        ("data", "sort_keys", "expect_ok"),
+        c.Tests.YAML_DUMP_CASES,
     )
     def test_yaml_dump_writes_roundtrippable_file(
-        self, tmp_path: Path, data: t.JsonMapping, *, sort_keys: bool, expect_ok: bool
+        self,
+        tmp_path: Path,
+        data: t.JsonMapping,
+        *,
+        sort_keys: bool,
+        expect_ok: bool,
     ) -> None:
         """Verify that yaml dump writes roundtrippable file."""
         outfile = tmp_path / "out.yml"

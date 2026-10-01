@@ -9,7 +9,8 @@ from .xlsx_style_readers import FlextCliUtilitiesXlsxStyleReaders
 
 
 class FlextCliUtilitiesXlsxStyleCodec(
-    FlextCliUtilitiesXlsxStyleBuilders, FlextCliUtilitiesXlsxStyleReaders
+    FlextCliUtilitiesXlsxStyleBuilders,
+    FlextCliUtilitiesXlsxStyleReaders,
 ):
     """Compose vendor-to-model and model-to-vendor style translation once."""
 

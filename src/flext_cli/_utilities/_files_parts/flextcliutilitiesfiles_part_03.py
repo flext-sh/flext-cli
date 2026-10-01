@@ -29,24 +29,29 @@ class FlextCliUtilitiesFiles:
 
         def _load() -> t.SequenceOf[t.StrMapping]:
             with Path(file_path).open(
-                encoding=c.Cli.ENCODING_DEFAULT, newline=""
+                encoding=c.Cli.ENCODING_DEFAULT,
+                newline="",
             ) as handle:
                 return [dict(row) for row in csv.DictReader(handle)]
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _load, c.Cli.ERR_CSV_READ_FAILED
+            _load,
+            c.Cli.ERR_CSV_READ_FAILED,
         )
 
     @staticmethod
     def files_read_binary(file_path: t.Cli.TextPath) -> p.Result[bytes]:
         """Read one binary file."""
         return FlextCliUtilitiesFilesPart02.files_execute(
-            lambda: Path(file_path).read_bytes(), c.Cli.ERR_BINARY_READ_FAILED
+            lambda: Path(file_path).read_bytes(),
+            c.Cli.ERR_BINARY_READ_FAILED,
         )
 
     @staticmethod
     def atomic_read_binary_file_state(
-        file_path: t.Cli.TextPath, *, required: bool = False
+        file_path: t.Cli.TextPath,
+        *,
+        required: bool = False,
     ) -> p.Result[m.Cli.AtomicFileState]:
         """Read exact bytes plus leaf and immediate-parent physical identities.
 
@@ -61,7 +66,7 @@ class FlextCliUtilitiesFiles:
             parent, state, content = read_authenticated_state(path, required=required)
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(
-                c.Cli.ERR_BINARY_READ_FAILED.format(error=exc)
+                c.Cli.ERR_BINARY_READ_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicFileState].ok(
             m.Cli.AtomicFileState(
@@ -81,19 +86,20 @@ class FlextCliUtilitiesFiles:
                 reparse_tag=(
                     None if state is None else getattr(state, "st_reparse_tag", None)
                 ),
-            )
+            ),
         )
 
     @staticmethod
     def atomic_publish_staged_binary_file_guarded(
-        destination_before: m.Cli.AtomicFileState, staged: m.Cli.AtomicFileState
+        destination_before: m.Cli.AtomicFileState,
+        staged: m.Cli.AtomicFileState,
     ) -> p.Result[m.Cli.AtomicFileState]:
         """Consume one authenticated staged file under the caller's lock."""
         try:
             published = publish_guarded_staged_file(destination_before, staged)
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(
-                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc)
+                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicFileState].ok(
             m.Cli.AtomicFileState(
@@ -107,7 +113,7 @@ class FlextCliUtilitiesFiles:
                 link_count=published.st_nlink,
                 file_attributes=getattr(published, "st_file_attributes", None),
                 reparse_tag=getattr(published, "st_reparse_tag", None),
-            )
+            ),
         )
 
     @staticmethod
@@ -124,12 +130,14 @@ class FlextCliUtilitiesFiles:
             return tuple(names)
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _list, c.Cli.ERR_TEXT_READ_FAILED
+            _list,
+            c.Cli.ERR_TEXT_READ_FAILED,
         )
 
     @staticmethod
     def ensure_symlink(
-        target: t.Cli.TextPath, source: t.Cli.TextPath
+        target: t.Cli.TextPath,
+        source: t.Cli.TextPath,
     ) -> p.Result[bool]:
         """Ensure target points to source via directory symlink."""
         target_path = Path(target)
@@ -141,7 +149,7 @@ class FlextCliUtilitiesFiles:
             return r[bool].ok(True)
         if target_path.exists() or target_path.is_symlink():
             return r[bool].fail(
-                f"symlink destination already exists with a different identity: {target_path}"
+                f"symlink destination already exists with a different identity: {target_path}",
             )
         relative_source = os.path.relpath(source_path, target_path.parent.resolve())
         try:
@@ -149,8 +157,9 @@ class FlextCliUtilitiesFiles:
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ENSURE_SYMLINK_FAILED.format(
-                    target_path=target_path, error=exc
-                )
+                    target_path=target_path,
+                    error=exc,
+                ),
             )
         return r[bool].ok(True)
 
@@ -164,7 +173,7 @@ class FlextCliUtilitiesFiles:
         target_path = Path(target)
         if not target_path.is_symlink():
             return r[t.Cli.TextPath].fail(
-                c.Cli.ERR_READ_SYMLINK_FAILED.format(target_path=target_path)
+                c.Cli.ERR_READ_SYMLINK_FAILED.format(target_path=target_path),
             )
         return r[t.Cli.TextPath].ok(target_path.resolve().as_posix())
 

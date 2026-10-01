@@ -21,7 +21,9 @@ from . import (
 
 
 def create_guarded_empty_directory(
-    before: m.Cli.AtomicDirectoryState, *, permission_mode: int
+    before: m.Cli.AtomicDirectoryState,
+    *,
+    permission_mode: int,
 ) -> m.Cli.AtomicDirectoryState:
     """Create one directory only from an exact absent state under caller lock."""
     path = file_path.validate_atomic_path(before.path)
@@ -46,14 +48,18 @@ def create_guarded_empty_directory(
         except BaseException as operation_error:
             if created:
                 directory_cleanup.remove_created_directory(
-                    parent, path, identity, operation_error
+                    parent,
+                    path,
+                    identity,
+                    operation_error,
                 )
             raise
         return directory_model.from_observed(path, parent.state, authenticated)
 
 
 def _require_created_state(
-    parent: file_descriptor.ParentDescriptor, path: Path
+    parent: file_descriptor.ParentDescriptor,
+    path: Path,
 ) -> os.stat_result:
     initial = directory_state.destination_state(path, parent=parent)
     if initial is None:

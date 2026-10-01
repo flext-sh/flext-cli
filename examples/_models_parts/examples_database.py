@@ -16,7 +16,8 @@ class ExamplesFlextCliModelsExamplesDatabase:
         """Database configuration with advanced validation."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True
+            extra="forbid",
+            validate_assignment=True,
         )
         host: str = m.Field(..., description="Database host", validate_default=True)
         port: int = m.Field(
@@ -27,10 +28,16 @@ class ExamplesFlextCliModelsExamplesDatabase:
             validate_default=True,
         )
         name: str = m.Field(
-            ..., description="Database name", min_length=1, validate_default=True
+            ...,
+            description="Database name",
+            min_length=1,
+            validate_default=True,
         )
         username: str = m.Field(
-            ..., description="Database username", min_length=1, validate_default=True
+            ...,
+            description="Database username",
+            min_length=1,
+            validate_default=True,
         )
         password: str = m.Field(
             ...,
@@ -39,7 +46,9 @@ class ExamplesFlextCliModelsExamplesDatabase:
             validate_default=True,
         )
         ssl_enabled: bool = m.Field(
-            True, description="Enable SSL", validate_default=True
+            True,
+            description="Enable SSL",
+            validate_default=True,
         )
         connection_pool: int = m.Field(
             c.EXAMPLE_DEFAULT_CONNECTION_POOL,

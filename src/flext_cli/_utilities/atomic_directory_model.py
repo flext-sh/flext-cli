@@ -13,7 +13,9 @@ type DirectoryPhysicalState = tuple[int, int, int, int, int | None, int | None]
 
 
 def from_observed(
-    path: Path, parent: os.stat_result | None, observed: os.stat_result | None
+    path: Path,
+    parent: os.stat_result | None,
+    observed: os.stat_result | None,
 ) -> m.Cli.AtomicDirectoryState:
     """Build the caller-owned state from one authenticated observation."""
     return m.Cli.AtomicDirectoryState(
@@ -49,7 +51,8 @@ def require_existing(state: m.Cli.AtomicDirectoryState, *, purpose: str) -> None
 
 
 def require_observed(
-    planned: m.Cli.AtomicDirectoryState, observed: os.stat_result | None
+    planned: m.Cli.AtomicDirectoryState,
+    observed: os.stat_result | None,
 ) -> None:
     """Require presence, mode, and every physical field to match the snapshot."""
     if not planned.exists:
@@ -66,7 +69,8 @@ def require_observed(
 
 
 def require_parent(
-    planned: m.Cli.AtomicDirectoryState, observed: os.stat_result
+    planned: m.Cli.AtomicDirectoryState,
+    observed: os.stat_result,
 ) -> None:
     """Require the authenticated parent to equal the snapshot parent identity."""
     if planned.parent_device is None or planned.parent_inode is None:

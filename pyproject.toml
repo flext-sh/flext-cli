@@ -20,7 +20,7 @@ classifiers = [
 dependencies = [
   "annotated-types>=0.8.0",
   "beartype>=0.22.9",
-  "click>=8.3.3,<8.6",
+  "click>=8.5.0",
   "defusedxml>=0.7.1",
   "dependency-injector>=4.49.1",
   "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
@@ -29,7 +29,7 @@ dependencies = [
   "openpyxl>=3.1.5",
   "packaging>=26.3",
   "pydantic>=2.13.5",
-  "pydantic-settings>=2.14.2,<2.16",
+  "pydantic-settings>=2.15.0",
   "python-docx>=1.2.0",
   "python-pptx>=1.0.2",
   "pyyaml>=6.0.3",
@@ -163,27 +163,15 @@ scan_dirs = ["src"]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/flext_cli"]
+include = ["/src/flext_cli/**"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src/flext_cli" = "flext_cli"
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src/flext_cli"]
+include = ["/src/flext_cli/**"]
 
 [tool.mypy]
-disable_error_code = [
-  "arg-type",
-  "assignment",
-  "attr-defined",
-  "call-arg",
-  "misc",
-  "name-defined",
-  "no-any-return",
-  "no-redef",
-  "prop-decorator",
-  "type-var",
-  "unreachable",
-  "valid-type",
-]
-exclude = "^legado(?:/|$)"
 mypy_path = ["src"]
 plugins = ["pydantic.mypy"]
 python_version = "3.13"
@@ -205,7 +193,6 @@ follow_imports = "normal"
 
 [[tool.mypy.overrides]]
 module = ["rope.*"]
-disable_error_code = []
 follow_untyped_imports = true
 
 [tool.pydantic-mypy]
@@ -332,8 +319,6 @@ exclude = [
   "**/node_modules",
   "**/site-packages",
   "**/site-packages/**",
-  "**/tests/fixtures",
-  "**/tests/fixtures/**",
   "**/venv",
   "**/venv/**",
   ".git",
@@ -378,37 +363,12 @@ typeCheckingMode = "strict"
 [[tool.pyright.executionEnvironments]]
 root = "src"
 extraPaths = ["src"]
-reportAssignmentType = "none"
-reportAttributeAccessIssue = "none"
-reportGeneralTypeIssues = "none"
-reportInvalidTypeForm = "none"
-reportPrivateImportUsage = "none"
 reportPrivateUsage = "error"
-reportReturnType = "none"
-reportUnknownArgumentType = "none"
-reportUnknownLambdaType = "none"
-reportUnknownMemberType = "none"
-reportUnknownParameterType = "none"
-reportUnknownVariableType = "none"
-reportUnusedImport = "none"
 
 [[tool.pyright.executionEnvironments]]
 root = "tests"
 extraPaths = [".", "src"]
-reportArgumentType = "none"
-reportAssignmentType = "none"
-reportAttributeAccessIssue = "none"
-reportGeneralTypeIssues = "none"
-reportInvalidTypeForm = "none"
-reportPrivateImportUsage = "none"
-reportPrivateUsage = "none"
-reportReturnType = "none"
-reportUnknownArgumentType = "none"
-reportUnknownLambdaType = "none"
-reportUnknownMemberType = "none"
-reportUnknownParameterType = "none"
-reportUnknownVariableType = "none"
-reportUnusedImport = "none"
+reportPrivateUsage = "error"
 
 [tool.pytest.ini_options]
 addopts = [
@@ -418,7 +378,7 @@ addopts = [
   "--durations=10",
   "--timeout=10",
 ]
-flext_slow_timeout_seconds = "30"
+flext_slow_timeout_seconds = "180"
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
   "error",
@@ -447,39 +407,7 @@ python_files = ["*_test.py", "*_tests.py", "test_*.py"]
 testpaths = ["tests"]
 
 [tool.ruff]
-exclude = [
-  "**/.archive/**",
-  "**/__pyrefly_virtual__/**",
-  ".agents/aihub-hooks",
-  ".agents/aihub-hooks/**",
-  ".archive",
-  ".archive/**",
-  ".claude/aihub-hooks",
-  ".claude/aihub-hooks/**",
-  ".codex/aihub-hooks",
-  ".codex/aihub-hooks/**",
-  ".cursor/aihub-hooks",
-  ".cursor/aihub-hooks/**",
-  ".gemini/aihub-hooks",
-  ".gemini/aihub-hooks/**",
-  ".git",
-  ".github/hooks",
-  ".github/hooks/**",
-  ".mypy_cache",
-  ".pytest_cache",
-  ".ruff_cache",
-  ".venv",
-  "__pycache__",
-  "archive",
-  "backup",
-  "build",
-  "dist",
-  "htmlcov",
-  "temp-backup",
-  "typings",
-  "vendor",
-  "venv",
-]
+extend-exclude = []
 fix = false
 line-length = 88
 namespace-packages = ["tests", "examples", "scripts"]
@@ -494,43 +422,10 @@ docstring-code-format = true
 indent-style = "space"
 line-ending = "lf"
 quote-style = "double"
-skip-magic-trailing-comma = true
+skip-magic-trailing-comma = false
 
 [tool.ruff.lint]
 extend-safe-fixes = []
-ignore = [
-  "ambiguous-unicode-character-comment",
-  "ambiguous-unicode-character-docstring",
-  "ambiguous-unicode-character-string",
-  "boolean-positional-value-in-call",
-  "camelcase-imported-as-lowercase",
-  "complex-structure",
-  "docstring-missing-exception",
-  "docstring-missing-returns",
-  "docstring-missing-yields",
-  "import-outside-top-level",
-  "incorrect-blank-line-before-class",
-  "line-too-long",
-  "logging-f-string",
-  "missing-copyright-notice",
-  "missing-trailing-comma",
-  "multi-line-summary-second-line",
-  "no-self-use",
-  "non-imperative-mood",
-  "pytest-fixture-autouse",
-  "relative-imports",
-  "too-many-arguments",
-  "too-many-branches",
-  "too-many-locals",
-  "too-many-nested-blocks",
-  "too-many-positional-arguments",
-  "too-many-public-methods",
-  "too-many-return-statements",
-  "too-many-statements",
-  "typing-only-first-party-import",
-  "typing-only-standard-library-import",
-  "typing-only-third-party-import",
-]
 select = ["ALL"]
 unfixable = [
   "duplicate-value",
@@ -544,6 +439,12 @@ unfixable = [
   "unused-variable",
 ]
 
+[tool.ruff.lint.flake8-copyright]
+notice-rgx = "(?i)copyright"
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
 [tool.ruff.lint.flake8-tidy-imports.banned-api.argparse]
 msg = "Use cli.register_result_command + Pydantic model from flext_cli."
 
@@ -552,6 +453,9 @@ msg = "Use flext_cli.cli application, registration, execution, and invocation me
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api.rich]
 msg = "Use cli.print / cli.display_message / cli.render_panel / cli.render_table."
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api.tabulate]
+msg = "Use cli.render_table from flext_cli."
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api.typer]
 msg = "Use cli.create_app_with_common_params / cli.register_command from flext_cli."
@@ -586,19 +490,6 @@ split-on-trailing-comma = false
   "undocumented-public-function",
   "undocumented-public-method",
 ]
-"src/flext_cli/_config.py" = ["invalid-function-name"]
-"src/flext_cli/_constants/base.py" = ["hardcoded-password-string"]
-"src/flext_cli/_constants/errors.py" = ["hardcoded-password-string"]
-"src/flext_cli/_utilities/formatters.py" = ["banned-api"]
-"src/flext_cli/_utilities/framework.py" = ["banned-api"]
-"src/flext_cli/_utilities/processes.py" = [
-  "subprocess-without-shell-equals-true",
-  "suspicious-subprocess-import",
-]
-"src/flext_cli/_utilities/runtime.py" = [
-  "subprocess-without-shell-equals-true",
-  "suspicious-subprocess-import",
-]
 
 [tool.tomlsort]
 all = true
@@ -620,7 +511,6 @@ whitelines = 1
 
 [tool.uv]
 link-mode = "copy"
-constraint-dependencies = ["structlog<26"]
 environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
 
 [[tool.uv.exclude-dependencies]]

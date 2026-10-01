@@ -17,7 +17,9 @@ from . import (
 
 
 def read_authenticated_empty_directory(
-    path: Path, *, required: bool
+    path: Path,
+    *,
+    required: bool,
 ) -> m.Cli.AtomicDirectoryState:
     """Return exact absence or one stable, physical, empty directory state.
 

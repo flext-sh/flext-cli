@@ -20,7 +20,10 @@ if TYPE_CHECKING:
 
 
 _DOCX_UNDERLINE_VALUE = Literal[
-    "single", "double", "singleAccounting", "doubleAccounting"
+    "single",
+    "double",
+    "singleAccounting",
+    "doubleAccounting",
 ]
 
 
@@ -38,14 +41,14 @@ class FlextCliUtilitiesDocxReader:
         except (OSError, ValueError, KeyError, BadZipFile) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.DocxDocumentPlan].fail(
-                f"{c.Cli.DocxError.DOCUMENT_LOAD_FAILED}: {detail}"
+                f"{c.Cli.DocxError.DOCUMENT_LOAD_FAILED}: {detail}",
             )
         try:
             plan = cls._snapshot_document(document)
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.DocxDocumentPlan].fail(
-                f"{c.Cli.DocxError.RENDER_FAILED}: {detail}"
+                f"{c.Cli.DocxError.RENDER_FAILED}: {detail}",
             )
         return r[m.Cli.DocxDocumentPlan].ok(plan)
 
@@ -85,7 +88,7 @@ class FlextCliUtilitiesDocxReader:
                 underline=cls._snapshot_underline(underline=font.underline),
                 strike=font.strike,
                 color=color,
-            )
+            ),
         )
         return m.Cli.DocxRunPlan(text=run.text, style=style)
 
@@ -97,7 +100,7 @@ class FlextCliUtilitiesDocxReader:
                 m.Cli.DocxTableCellPlan(
                     paragraphs=tuple(
                         cls._snapshot_paragraph(p) for p in cell.paragraphs
-                    )
+                    ),
                 )
                 for cell in row.cells
             )
@@ -129,7 +132,8 @@ class FlextCliUtilitiesDocxReader:
 
     @staticmethod
     def _snapshot_underline(
-        *, underline: WD_UNDERLINE | int | bool | None
+        *,
+        underline: WD_UNDERLINE | int | bool | None,
     ) -> _DOCX_UNDERLINE_VALUE | None:
         if underline is None or underline is False:
             return None

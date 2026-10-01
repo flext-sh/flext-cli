@@ -33,7 +33,13 @@ class FlextCliTypesXlsx:
         "notEqual",
     ]
     type XlsxValidationType = Literal[
-        "custom", "date", "decimal", "list", "textLength", "time", "whole"
+        "custom",
+        "date",
+        "decimal",
+        "list",
+        "textLength",
+        "time",
+        "whole",
     ]
     type XlsxArchiveViolationKind = Literal[
         "defined_name",

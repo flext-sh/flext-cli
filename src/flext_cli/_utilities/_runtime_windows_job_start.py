@@ -59,7 +59,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             ]
 
         kernel32 = getattr(ctypes, "WinDLL", ctypes.CDLL)(
-            "kernel32", use_last_error=True
+            "kernel32",
+            use_last_error=True,
         )
         create_job = kernel32.CreateJobObjectW
         create_job.argtypes = (wintypes.LPVOID, wintypes.LPCWSTR)
@@ -113,7 +114,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             return cls._windows_process_resume_native(process_id)
         except (OSError, TypeError, ValueError) as exc:
             return r[str].fail(
-                f"Windows process resume error: {exc}", exception=exc
+                f"Windows process resume error: {exc}",
+                exception=exc,
             ).error or str(exc)
 
     @staticmethod
@@ -131,7 +133,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             ]
 
         kernel32 = getattr(ctypes, "WinDLL", ctypes.CDLL)(
-            "kernel32", use_last_error=True
+            "kernel32",
+            use_last_error=True,
         )
         create_snapshot = kernel32.CreateToolhelp32Snapshot
         create_snapshot.argtypes = (wintypes.DWORD, wintypes.DWORD)

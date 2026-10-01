@@ -22,13 +22,16 @@ class FlextCliUtilitiesXlsxRules(
     # no dump, revalidation, or rule-specific transport is introduced.
     @classmethod
     def _apply_rules(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetRulesPlan
+        cls,
+        worksheet: Worksheet,
+        plan: m.Cli.XlsxSheetRulesPlan,
     ) -> p.Result[bool]:
         validations = cls._apply_validations(worksheet, plan.validations)
         if validations.failure:
             return r[bool].from_failure(validations)
         conditional = cls._apply_conditional_formats(
-            worksheet, plan.conditional_formats
+            worksheet,
+            plan.conditional_formats,
         )
         if conditional.failure:
             return r[bool].from_failure(conditional)

@@ -38,13 +38,13 @@ class FlextCliUtilitiesXlsxCells:
             for plan in plans:
                 if plan.style not in named_styles:
                     return r[bool].fail(
-                        f"{c.Cli.XlsxError.NAMED_STYLE_MISSING}: {plan.style}"
+                        f"{c.Cli.XlsxError.NAMED_STYLE_MISSING}: {plan.style}",
                     )
                 cell = worksheet.cell(row=plan.at.row, column=plan.at.column)
                 if not isinstance(cell, Cell):
                     return r[bool].fail(
                         f"Cannot write merged cell: row={plan.at.row}, "
-                        f"column={plan.at.column}"
+                        f"column={plan.at.column}",
                     )
                 cell.value = cls._cell_value(plan.value)
                 cell.style = plan.style

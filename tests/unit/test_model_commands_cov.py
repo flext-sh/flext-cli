@@ -25,7 +25,8 @@ class TestsFlextCliModelCommandsCov:
     def test_model_command_rejects_invalid_data_with_validation_error(self) -> None:
         """A plain model command raises the ValidationError of rejected input."""
         command = cli.model_command(
-            m.Tests.ModelCommandSample, lambda model: model.value
+            m.Tests.ModelCommandSample,
+            lambda model: model.value,
         )
 
         with pytest.raises(m.ValidationError):

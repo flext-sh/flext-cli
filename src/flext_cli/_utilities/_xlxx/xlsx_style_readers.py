@@ -87,7 +87,8 @@ class FlextCliUtilitiesXlsxStyleReaders:
         if side is None:
             return None
         return m.Cli.XlsxBorderSideSpec(
-            style=side.style, color=cls._color_spec(side.color)
+            style=side.style,
+            color=cls._color_spec(side.color),
         )
 
     @classmethod
@@ -123,7 +124,8 @@ class FlextCliUtilitiesXlsxStyleReaders:
 
     @classmethod
     def _visual_from_styleable(
-        cls, value: StyleableObject
+        cls,
+        value: StyleableObject,
     ) -> p.Result[m.Cli.XlsxVisualStyleSpec]:
         try:
             visual = cls._visual_from_styleable_unchecked(value)
@@ -134,7 +136,8 @@ class FlextCliUtilitiesXlsxStyleReaders:
 
     @classmethod
     def _visual_from_styleable_unchecked(
-        cls, value: StyleableObject
+        cls,
+        value: StyleableObject,
     ) -> m.Cli.XlsxVisualStyleSpec:
         font = copy(value.font)
         fill = copy(value.fill)

@@ -17,18 +17,21 @@ class FlextCliModelsXlsxStyleCatalog:
     # while protection is intentionally excluded from visual signatures.
     class XlsxStyleMapEntry(m.FrozenModel):
         source_style_id: Annotated[
-            int, m.Field(ge=0, description="Source workbook style identifier.")
+            int,
+            m.Field(ge=0, description="Source workbook style identifier."),
         ]
         style_name: Annotated[
-            str, m.Field(min_length=1, description="Generated named style key.")
+            str,
+            m.Field(min_length=1, description="Generated named style key."),
         ]
 
     class XlsxSourceVisualStyle(m.FrozenModel):
         source_style_id: Annotated[
-            int, m.Field(ge=0, description="Source workbook style identifier.")
+            int,
+            m.Field(ge=0, description="Source workbook style identifier."),
         ]
         visual: FlextCliModelsXlsxStyles.XlsxVisualStyleSpec = m.Field(
-            description="Protection-free source visual signature."
+            description="Protection-free source visual signature.",
         )
 
     class XlsxStyleCatalog(m.FrozenModel):
@@ -36,12 +39,15 @@ class FlextCliModelsXlsxStyleCatalog:
             m.Field(default=(), strict=False, description="Source style assignments.")
         )
         styles: t.VariadicTuple[FlextCliModelsXlsxStyles.XlsxNamedStyleSpec] = m.Field(
-            default=(), strict=False, description="Unique visual styles."
+            default=(),
+            strict=False,
+            description="Unique visual styles.",
         )
 
     class XlsxStyleCatalogRequest(m.FrozenModel):
         source: Annotated[
-            bytes, m.Field(min_length=1, description="Source workbook bytes.")
+            bytes,
+            m.Field(min_length=1, description="Source workbook bytes."),
         ]
         style_name_prefix: Annotated[
             str,
@@ -55,7 +61,8 @@ class FlextCliModelsXlsxStyleCatalog:
 
     class XlsxStyleTemplateRequest(m.FrozenModel):
         source: Annotated[
-            bytes, m.Field(min_length=1, description="Source workbook bytes.")
+            bytes,
+            m.Field(min_length=1, description="Source workbook bytes."),
         ]
         style_name_prefix: Annotated[
             str,
@@ -69,7 +76,8 @@ class FlextCliModelsXlsxStyleCatalog:
 
     class XlsxStyleTemplateResult(m.FrozenModel):
         content: Annotated[
-            bytes, m.Field(min_length=1, description="Format-only workbook bytes.")
+            bytes,
+            m.Field(min_length=1, description="Format-only workbook bytes."),
         ]
         style_map: t.VariadicTuple[FlextCliModelsXlsxStyleCatalog.XlsxStyleMapEntry] = (
             m.Field(default=(), strict=False, description="Source style assignments.")

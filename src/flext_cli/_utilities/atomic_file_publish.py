@@ -19,7 +19,8 @@ from . import (
 
 
 def publish_guarded_staged_file(
-    destination_before: m.Cli.AtomicFileState, staged: m.Cli.AtomicFileState
+    destination_before: m.Cli.AtomicFileState,
+    staged: m.Cli.AtomicFileState,
 ) -> os.stat_result:
     """Move one exact caller-owned staged file over an exact destination state.
 
@@ -35,22 +36,27 @@ def publish_guarded_staged_file(
         message = "staged file and atomic destination must differ"
         raise OSError(errno.EINVAL, message, destination)
     staged_bytes, staged_mode, staged_identity = file_model.require_existing(
-        staged, purpose="staged"
+        staged,
+        purpose="staged",
     )
     file_mode.validate_guarded_mode_tuple(
-        destination, destination_before.content, destination_before.mode
+        destination,
+        destination_before.content,
+        destination_before.mode,
     )
     checks.validate_identity(staged_path, staged_identity, label="staged_identity")
     with (
         file_descriptor.parent_descriptor(
-            destination, replace=True
+            destination,
+            replace=True,
         ) as destination_parent,
         file_descriptor.parent_descriptor(staged_path, replace=True) as staged_parent,
     ):
         file_model.require_parent(destination_before, destination_parent.state)
         file_model.require_parent(staged, staged_parent.state)
         destination_state = file_state.destination_state(
-            destination, parent=destination_parent
+            destination,
+            parent=destination_parent,
         )
         file_model.require_observed(destination_before, destination_state)
         file_state.validate_precondition(
@@ -61,7 +67,9 @@ def publish_guarded_staged_file(
             parent=destination_parent,
         )
         file_mode.validate_mode_precondition(
-            destination, destination_state, destination_before.mode
+            destination,
+            destination_state,
+            destination_before.mode,
         )
         staged_state = file_state.destination_state(staged_path, parent=staged_parent)
         if staged_state is None:
@@ -78,17 +86,28 @@ def publish_guarded_staged_file(
             staged_state,
         )
         file_state.validate_precondition(
-            staged_path, staged_state, staged_bytes, enabled=True, parent=staged_parent
+            staged_path,
+            staged_state,
+            staged_bytes,
+            enabled=True,
+            parent=staged_parent,
         )
         file_mode.validate_mode_precondition(staged_path, staged_state, staged_mode)
         file_state.assert_destination_unchanged(
-            destination, destination_state, parent=destination_parent
+            destination,
+            destination_state,
+            parent=destination_parent,
         )
         file_state.assert_temporary_owned(
-            staged_path, staged_identity, parent=staged_parent
+            staged_path,
+            staged_identity,
+            parent=staged_parent,
         )
         file_descriptor.replace_entry(
-            staged_parent, staged_path, destination_parent, destination
+            staged_parent,
+            staged_path,
+            destination_parent,
+            destination,
         )
         file_durability.sync_replacement(staged_parent, destination_parent)
         published = checks.validate_publication(

@@ -20,10 +20,14 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
     # inventory before openpyxl receives them; workbook objects stay private.
     @classmethod
     def _load_workbook(
-        cls, source: bytes, *, data_only: bool = False
+        cls,
+        source: bytes,
+        *,
+        data_only: bool = False,
     ) -> p.Result[Workbook]:
         inspection_request = m.Cli.XlsxArchiveInspectionRequest(
-            source=source, policy=m.Cli.XlsxArchivePolicy()
+            source=source,
+            policy=m.Cli.XlsxArchivePolicy(),
         )
         inspection_result = cls.xlsx_inspect(inspection_request)
         if inspection_result.failure:
@@ -35,7 +39,7 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
                 for item in inspection.violations
             )
             return r[Workbook].fail(
-                f"{c.Cli.XlsxError.ARCHIVE_POLICY_VIOLATION}: {detail}"
+                f"{c.Cli.XlsxError.ARCHIVE_POLICY_VIOLATION}: {detail}",
             )
         try:
             workbook = load_workbook(

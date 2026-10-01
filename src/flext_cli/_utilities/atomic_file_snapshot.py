@@ -16,7 +16,9 @@ from . import (
 
 
 def read_authenticated_state(
-    path: Path, *, required: bool
+    path: Path,
+    *,
+    required: bool,
 ) -> t.Triple[os.stat_result | None, os.stat_result | None, bytes | None]:
     """Return one physical regular-file state or exact absence.
 

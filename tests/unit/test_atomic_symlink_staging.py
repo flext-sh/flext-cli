@@ -17,7 +17,8 @@ class TestsAtomicSymlinkStaging:
     """An unverified staged inode must stay discoverable through its failure."""
 
     def test_snapshot_failure_retains_original_cause_and_unverified_stage(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         script = tmp_path / "consumer.py"
         script.write_text(
@@ -66,7 +67,7 @@ class TestsAtomicSymlinkStaging:
             encoding="utf-8",
         )
         outcome = tm.ok(
-            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path)))
+            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path))),
         )
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
         tm.that(outcome.stderr, eq="")

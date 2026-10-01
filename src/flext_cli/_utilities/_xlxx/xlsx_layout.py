@@ -18,7 +18,9 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
     # and hyperlinks can still target every concrete cell in the plan.
     @classmethod
     def _apply_layout(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetLayoutPlan
+        cls,
+        worksheet: Worksheet,
+        plan: m.Cli.XlsxSheetLayoutPlan,
     ) -> p.Result[bool]:
         try:
             return cls._apply_layout_unchecked(worksheet, plan)
@@ -28,7 +30,9 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
 
     @classmethod
     def _apply_layout_unchecked(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetLayoutPlan
+        cls,
+        worksheet: Worksheet,
+        plan: m.Cli.XlsxSheetLayoutPlan,
     ) -> p.Result[bool]:
         for item in plan.comments:
             comment = Comment(item.text, item.author)
@@ -40,7 +44,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
             if not isinstance(cell, Cell):
                 return r[bool].fail(
                     f"Cannot comment merged cell: row={item.at.row}, "
-                    f"column={item.at.column}"
+                    f"column={item.at.column}",
                 )
             cell.comment = comment
         for item in plan.hyperlinks:
@@ -48,7 +52,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
             if not isinstance(cell, Cell):
                 return r[bool].fail(
                     f"Cannot link merged cell: row={item.at.row}, "
-                    f"column={item.at.column}"
+                    f"column={item.at.column}",
                 )
             if item.kind == "external":
                 cell.hyperlink = item.target

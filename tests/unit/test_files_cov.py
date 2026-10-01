@@ -27,10 +27,13 @@ class TestsFlextCliFilesCov:
     """Public file-IO contract of ``cli`` file helpers and ``u.Cli``."""
 
     @pytest.mark.parametrize(
-        ("filename", "expected_format"), c.Tests.FILES_DETECT_FORMAT_CASES
+        ("filename", "expected_format"),
+        c.Tests.FILES_DETECT_FORMAT_CASES,
     )
     def test_detect_file_format_returns_known_format(
-        self, filename: str, expected_format: c.Cli.OutputFormats
+        self,
+        filename: str,
+        expected_format: c.Cli.OutputFormats,
     ) -> None:
         """Verify that detect file format returns known format."""
         result = cli.detect_file_format(filename)
@@ -39,7 +42,8 @@ class TestsFlextCliFilesCov:
 
     @pytest.mark.parametrize("filename", c.Tests.FILES_DETECT_FORMAT_FAIL_CASES)
     def test_detect_file_format_fails_for_unknown_extension(
-        self, filename: str
+        self,
+        filename: str,
     ) -> None:
         """Verify that detect file format fails for unknown extension."""
         result = cli.detect_file_format(filename)
@@ -185,7 +189,10 @@ class TestsFlextCliFilesCov:
 
     @pytest.mark.parametrize("inside_git", [True, False], ids=["git", "plain"])
     def test_files_matching_selects_visible_files_by_pattern(
-        self, tmp_path: Path, *, inside_git: bool
+        self,
+        tmp_path: Path,
+        *,
+        inside_git: bool,
     ) -> None:
         """Git-ignored files are never selected; patterns filter the rest."""
         if inside_git:
@@ -209,7 +216,8 @@ class TestsFlextCliFilesCov:
         tm.fail(u.Cli.files_matching(tmp_path / "missing", includes=["*.py"]))
 
     def test_read_symlink_target_returns_resolved_destination(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify authenticated read returns the link's resolved destination."""
         source = tmp_path / "real_dir"
@@ -226,7 +234,8 @@ class TestsFlextCliFilesCov:
         tm.fail(u.Cli.read_symlink_target(plain))
 
     def test_remove_symlink_target_removes_link_and_keeps_source(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Removing a symlink deletes only the link, never the real target."""
         source = tmp_path / "real_dir"
@@ -238,7 +247,8 @@ class TestsFlextCliFilesCov:
         tm.that(source.is_dir(), eq=True)
 
     def test_remove_symlink_target_is_noop_for_absent_path(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Removing an absent target succeeds so callers need no pre-check race."""
         tm.ok(u.Cli.remove_symlink_target(tmp_path / "absent"))

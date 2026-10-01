@@ -37,11 +37,12 @@ class TestsFlextCliServiceRoutes:
         def execute(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
             """Run the default service action."""
             return r[TestsFlextCliServiceRoutes.Status].ok(
-                TestsFlextCliServiceRoutes.Status(ready=1)
+                TestsFlextCliServiceRoutes.Status(ready=1),
             )
 
         def greet_all(
-            self, request: TestsFlextCliServiceRoutes.Greeting
+            self,
+            request: TestsFlextCliServiceRoutes.Greeting,
         ) -> p.Result[str]:
             """Greet someone by name."""
             return r[str].ok(" ".join([f"hello {request.name}"] * request.times))
@@ -49,7 +50,7 @@ class TestsFlextCliServiceRoutes:
         def report(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
             """Report the service status."""
             return r[TestsFlextCliServiceRoutes.Status].ok(
-                TestsFlextCliServiceRoutes.Status(ready=1)
+                TestsFlextCliServiceRoutes.Status(ready=1),
             )
 
     @staticmethod
@@ -58,7 +59,8 @@ class TestsFlextCliServiceRoutes:
     ) -> p.Cli.Application:
         app = cli.create_app_with_common_params(name="greeter", help_text="Greeter")
         cli.register_result_routes(
-            app, cli.service_routes(TestsFlextCliServiceRoutes.Greeter, provide=provide)
+            app,
+            cli.service_routes(TestsFlextCliServiceRoutes.Greeter, provide=provide),
         )
         return app
 
@@ -72,7 +74,7 @@ class TestsFlextCliServiceRoutes:
         app = self._app(self.Greeter)
 
         outcome = tm.ok(
-            cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "2"])
+            cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "2"]),
         )
 
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
@@ -83,7 +85,7 @@ class TestsFlextCliServiceRoutes:
         app = self._app(self.Greeter)
 
         outcome = tm.ok(
-            cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "0"])
+            cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "0"]),
         )
 
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=False)
@@ -99,7 +101,8 @@ class TestsFlextCliServiceRoutes:
         tm.that(outcome.stdout, has='{"ready":1}')
 
     @pytest.mark.parametrize(
-        "args", [["--help"], ["greet-all", "--help"], ["report", "--help"]]
+        "args",
+        [["--help"], ["greet-all", "--help"], ["report", "--help"]],
     )
     def test_help_builds_no_adapter(self, args: list[str]) -> None:
         """Help renders from the class; the unconfigured provider never runs."""

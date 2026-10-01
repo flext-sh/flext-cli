@@ -37,7 +37,8 @@ class TestsAtomicDirectoryChain:
         tm.ok(plan_result)
 
         created = u.Cli.atomic_create_directory_chain_guarded(
-            plan_result.value, permission_mode=0o750
+            plan_result.value,
+            permission_mode=0o750,
         )
 
         tm.ok(created)
@@ -69,7 +70,8 @@ class TestsAtomicDirectoryChain:
         anchor.mkdir()
 
         result = u.Cli.atomic_create_directory_chain_guarded(
-            plan_result.value, permission_mode=0o700
+            plan_result.value,
+            permission_mode=0o700,
         )
 
         tm.fail(result)
@@ -86,7 +88,8 @@ class TestsAtomicDirectoryChain:
         tm.that(plan_result.value.directories, eq=())
 
         result = u.Cli.atomic_create_directory_chain_guarded(
-            plan_result.value, permission_mode=0o700
+            plan_result.value,
+            permission_mode=0o700,
         )
 
         tm.ok(result)

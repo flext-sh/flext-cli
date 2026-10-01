@@ -23,13 +23,15 @@ _EXAMPLE_REQUIRED_DATA_FIELDS: t.VariadicTuple[str] = ("id", "name", "value")
 
 
 def save_user_preferences(
-    preferences: t.MappingKV[str, t.JsonPayloadCollectionValue], config_dir: Path
+    preferences: t.MappingKV[str, t.JsonPayloadCollectionValue],
+    config_dir: Path,
 ) -> p.Result[bool]:
     """Save user preferences to JSON in YOUR app. Returns r[bool]; no bare bool sentinel."""
     config_file = config_dir / "preferences.json"
 
     write_result = cli.write_json_file(
-        config_file, u.normalize_to_json_value(preferences)
+        config_file,
+        u.normalize_to_json_value(preferences),
     )
 
     if write_result.failure:
@@ -40,7 +42,8 @@ def save_user_preferences(
         return r[bool].from_failure(write_result)
 
     cli.print(
-        f"✅ Saved preferences to {config_file.name}", style=c.Cli.MessageStyles.GREEN
+        f"✅ Saved preferences to {config_file.name}",
+        style=c.Cli.MessageStyles.GREEN,
     )
     return r[bool].ok(True)
 
@@ -53,7 +56,8 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
 
     if read_result.failure:
         cli.print(
-            f"⚠️  Could not load: {read_result.error}", style=c.Cli.MessageStyles.YELLOW
+            f"⚠️  Could not load: {read_result.error}",
+            style=c.Cli.MessageStyles.YELLOW,
         )
         return r[m.Cli.LoadedConfig].from_failure(read_result)
     if not isinstance(read_result.value, Mapping):
@@ -72,7 +76,8 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def save_deployment_config(
-    settings: t.MappingKV[str, t.JsonPayloadCollectionValue], config_file: Path
+    settings: t.MappingKV[str, t.JsonPayloadCollectionValue],
+    config_file: Path,
 ) -> p.Result[bool]:
     """Save deployment settings to YAML in YOUR tool. Returns r[bool]; no bare bool sentinel."""
     # Normalize the mapping into the CLI JSON contract before writing YAML.
@@ -110,7 +115,8 @@ def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
 
     if read_result.failure:
         cli.print(
-            f"❌ Read failed: {read_result.error}", style=c.Cli.MessageStyles.BOLD_RED
+            f"❌ Read failed: {read_result.error}",
+            style=c.Cli.MessageStyles.BOLD_RED,
         )
         return r[m.Cli.LoadedConfig].from_failure(read_result)
 

@@ -18,30 +18,42 @@ class TestsFlextCliConversion:
     """Behavioral contract of ``u.Cli`` conversion helpers."""
 
     @pytest.mark.parametrize(
-        ("kind", "default", "expected"), c.Tests.CONVERSION_STR_CASES
+        ("kind", "default", "expected"),
+        c.Tests.CONVERSION_STR_CASES,
     )
     def test_default_for_type_kind_str(
-        self, kind: t.Cli.TypeKind, default: t.JsonValue | None, expected: t.JsonValue
+        self,
+        kind: t.Cli.TypeKind,
+        default: t.JsonValue | None,
+        expected: t.JsonValue,
     ) -> None:
         """Verify that default for type kind str."""
         result = u.Cli.default_for_type_kind(kind, default)
         tm.that(result, eq=expected)
 
     @pytest.mark.parametrize(
-        ("kind", "default", "expected"), c.Tests.CONVERSION_BOOL_CASES
+        ("kind", "default", "expected"),
+        c.Tests.CONVERSION_BOOL_CASES,
     )
     def test_default_for_type_kind_bool(
-        self, kind: t.Cli.TypeKind, default: t.JsonValue | None, expected: t.JsonValue
+        self,
+        kind: t.Cli.TypeKind,
+        default: t.JsonValue | None,
+        expected: t.JsonValue,
     ) -> None:
         """Verify that default for type kind bool."""
         result = u.Cli.default_for_type_kind(kind, default)
         tm.that(result, eq=expected)
 
     @pytest.mark.parametrize(
-        ("kind", "default", "expected"), c.Tests.CONVERSION_DICT_CASES
+        ("kind", "default", "expected"),
+        c.Tests.CONVERSION_DICT_CASES,
     )
     def test_default_for_type_kind_dict(
-        self, kind: t.Cli.TypeKind, default: t.JsonValue | None, expected: t.JsonValue
+        self,
+        kind: t.Cli.TypeKind,
+        default: t.JsonValue | None,
+        expected: t.JsonValue,
     ) -> None:
         """Verify that default for type kind dict."""
         result = u.Cli.default_for_type_kind(kind, default)

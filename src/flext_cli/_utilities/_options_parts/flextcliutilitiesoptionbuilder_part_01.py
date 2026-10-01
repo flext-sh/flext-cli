@@ -33,7 +33,7 @@ class FlextCliUtilitiesOptionBuilder:
         )
 
         option_args: t.MutableSequenceOf[str] = [
-            f"--{cli_param_name.replace('_', '-')}"
+            f"--{cli_param_name.replace('_', '-')}",
         ]
         if cli_param_name == "project":
             option_args.append("--projects")

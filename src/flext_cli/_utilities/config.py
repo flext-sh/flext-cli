@@ -44,7 +44,10 @@ class FlextCliUtilitiesConfig:
 
     @staticmethod
     def config_load(
-        path: Path, *, schema_path: Path | None = None, expand_env: bool = True
+        path: Path,
+        *,
+        schema_path: Path | None = None,
+        expand_env: bool = True,
     ) -> p.Result[m.ConfigDocument]:
         """Load a YAML/JSON/TOML config into a validated ``m.ConfigDocument``.
 
@@ -68,7 +71,7 @@ class FlextCliUtilitiesConfig:
                 data=data,
                 source_path=str(path),
                 schema_ref=str(schema_path) if schema_path is not None else None,
-            )
+            ),
         )
 
     @staticmethod
@@ -82,14 +85,15 @@ class FlextCliUtilitiesConfig:
         """
         if not config_dir.is_dir():
             return r[t.MappingKV[str, m.ConfigDocument]].fail(
-                f"{c.ERR_CONFIG_READ_FAILED}: {config_dir}"
+                f"{c.ERR_CONFIG_READ_FAILED}: {config_dir}",
             )
         schemas_dir = config_dir.parent / c.CONFIG_SCHEMAS_DIR_NAME
         documents: dict[str, m.ConfigDocument] = {}
         for source in sorted(config_dir.glob(f"*{c.CONFIG_YAML_SUFFIX}")):
             schema = schemas_dir / f"{source.stem}{c.CONFIG_SCHEMA_SUFFIX}"
             loaded = FlextCliUtilitiesConfig.config_load(
-                source, schema_path=schema if schema.is_file() else None
+                source,
+                schema_path=schema if schema.is_file() else None,
             )
             if loaded.failure:
                 return r[t.MappingKV[str, m.ConfigDocument]].from_failure(loaded)

@@ -29,7 +29,9 @@ def validate_identity(path: Path, value: t.Pair[int, int], *, label: str) -> Non
 
 
 def require_identity(
-    path: Path, state: os.stat_result | None, expected: t.Pair[int, int] | None
+    path: Path,
+    state: os.stat_result | None,
+    expected: t.Pair[int, int] | None,
 ) -> None:
     """Require an observed physical identity to match its caller snapshot."""
     observed = None if state is None else file_state.identity(state)
@@ -90,7 +92,9 @@ def validate_publication(
         raise OSError(errno.ESTALE, message, destination)
     if (
         file_state.read_authenticated_bytes(
-            destination, published, parent=destination_parent
+            destination,
+            published,
+            parent=destination_parent,
         )
         != staged_bytes
     ):

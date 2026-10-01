@@ -20,7 +20,7 @@ class FlextCliUtilitiesYamlModel:
             return u.Yaml.yaml_dump(
                 Path(file_path),
                 t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-                    model.model_dump(mode="json")
+                    model.model_dump(mode="json"),
                 ),
             )
         except c.EXC_PYDANTIC_TYPE_VALUE as exc:

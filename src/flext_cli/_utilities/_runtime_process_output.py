@@ -12,7 +12,7 @@ from ._runtime_process_threads import FlextCliUtilitiesRuntimeProcessThreadsMixi
 
 
 class FlextCliUtilitiesRuntimeProcessOutputMixin(
-    FlextCliUtilitiesRuntimeProcessThreadsMixin
+    FlextCliUtilitiesRuntimeProcessThreadsMixin,
 ):
     """Attach every requested child pipe to exactly one bounded pump."""
 

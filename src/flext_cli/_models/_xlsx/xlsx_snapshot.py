@@ -17,21 +17,24 @@ class FlextCliModelsXlsxSnapshot:
     # ordered workbook structure without exposing vendor objects or mappings.
     class XlsxSnapshotRequest(m.FrozenModel):
         source: Annotated[
-            bytes, m.Field(min_length=1, description="Source workbook bytes.")
+            bytes,
+            m.Field(min_length=1, description="Source workbook bytes."),
         ]
         data_only: bool = m.Field(
-            default=False, description="Read cached values instead of formulas."
+            default=False,
+            description="Read cached values instead of formulas.",
         )
 
     class XlsxCellSnapshot(m.FrozenModel):
         coordinate: Annotated[
-            str, m.Field(min_length=2, description="A1 cell coordinate.")
+            str,
+            m.Field(min_length=2, description="A1 cell coordinate."),
         ]
         position: FlextCliModelsXlsxCells.XlsxCellAddress = m.Field(
-            description="One-based row and column position."
+            description="One-based row and column position.",
         )
         value: FlextCliModelsXlsxCells.XlsxCellValue = m.Field(
-            description="Typed value from the selected workbook view."
+            description="Typed value from the selected workbook view.",
         )
         formula: (
             Annotated[
@@ -52,10 +55,12 @@ class FlextCliModelsXlsxSnapshot:
             description="Named style when the external workbook registers its label.",
         )
         style_id: Annotated[
-            int, m.Field(ge=0, description="Source workbook style identifier.")
+            int,
+            m.Field(ge=0, description="Source workbook style identifier."),
         ]
         number_format: Annotated[
-            str, m.Field(min_length=1, description="Applied number format.")
+            str,
+            m.Field(min_length=1, description="Applied number format."),
         ]
         locked: bool = m.Field(description="Cell protection locked state.")
         hidden: bool = m.Field(description="Cell protection hidden state.")
@@ -63,52 +68,63 @@ class FlextCliModelsXlsxSnapshot:
     class XlsxTableSnapshot(m.FrozenModel):
         name: Annotated[str, m.Field(min_length=1, description="Table name.")]
         reference: Annotated[
-            str, m.Field(min_length=2, description="Table range reference.")
+            str,
+            m.Field(min_length=2, description="Table range reference."),
         ]
         style_name: str | None = m.Field(
-            default=None, description="Optional table style name."
+            default=None,
+            description="Optional table style name.",
         )
 
     class XlsxDefinedNameSnapshot(m.FrozenModel):
         name: Annotated[str, m.Field(min_length=1, description="Defined name.")]
         expression: Annotated[
-            str, m.Field(min_length=1, description="Defined-name expression.")
+            str,
+            m.Field(min_length=1, description="Defined-name expression."),
         ]
         kind: Annotated[
-            str, m.Field(min_length=1, description="Defined-name value kind.")
+            str,
+            m.Field(min_length=1, description="Defined-name value kind."),
         ]
         sheet_position: (
             Annotated[
-                int, m.Field(ge=0, description="Zero-based local sheet position.")
+                int,
+                m.Field(ge=0, description="Zero-based local sheet position."),
             ]
             | None
         ) = None
         hidden: bool | None = m.Field(
-            default=None, description="Defined-name hidden state when declared."
+            default=None,
+            description="Defined-name hidden state when declared.",
         )
 
     class XlsxDefinedNameValuesRequest(m.FrozenModel):
         source: Annotated[
-            bytes, m.Field(min_length=1, description="Source workbook bytes.")
+            bytes,
+            m.Field(min_length=1, description="Source workbook bytes."),
         ]
         name: Annotated[
-            str, m.Field(min_length=1, description="Defined name to resolve.")
+            str,
+            m.Field(min_length=1, description="Defined name to resolve."),
         ]
 
     class XlsxDefinedNameCell(m.FrozenModel):
         sheet: Annotated[
-            str, m.Field(min_length=1, description="Owning worksheet name.")
+            str,
+            m.Field(min_length=1, description="Owning worksheet name."),
         ]
         coordinate: Annotated[
-            str, m.Field(min_length=2, description="A1 cell coordinate.")
+            str,
+            m.Field(min_length=2, description="A1 cell coordinate."),
         ]
         value: FlextCliModelsXlsxCells.XlsxCellValue = m.Field(
-            description="Typed cached value from the data-only workbook view."
+            description="Typed cached value from the data-only workbook view.",
         )
 
     class XlsxDefinedNameValuesResult(m.FrozenModel):
         name: Annotated[
-            str, m.Field(min_length=1, description="Resolved defined name.")
+            str,
+            m.Field(min_length=1, description="Resolved defined name."),
         ]
         cells: t.VariadicTuple[FlextCliModelsXlsxSnapshot.XlsxDefinedNameCell] = (
             m.Field(
@@ -143,7 +159,8 @@ class FlextCliModelsXlsxSnapshot:
         enabled: bool = m.Field(description="Whether worksheet protection is active.")
         legacy_password_hash: (
             Annotated[
-                str, m.Field(min_length=1, description="Stored legacy protection hash.")
+                str,
+                m.Field(min_length=1, description="Stored legacy protection hash."),
             ]
             | None
         ) = None
@@ -151,20 +168,26 @@ class FlextCliModelsXlsxSnapshot:
     class XlsxSheetSnapshot(m.FrozenModel):
         name: Annotated[str, m.Field(min_length=1, description="Worksheet name.")]
         position: Annotated[
-            int, m.Field(ge=1, description="One-based worksheet position.")
+            int,
+            m.Field(ge=1, description="One-based worksheet position."),
         ]
         state: Literal["visible", "hidden", "veryHidden"] = m.Field(
-            description="Worksheet visibility state."
+            description="Worksheet visibility state.",
         )
         max_row: Annotated[int, m.Field(ge=1, description="Maximum occupied row.")]
         max_column: Annotated[
-            int, m.Field(ge=1, description="Maximum occupied column.")
+            int,
+            m.Field(ge=1, description="Maximum occupied column."),
         ]
         cells: t.VariadicTuple[FlextCliModelsXlsxSnapshot.XlsxCellSnapshot] = m.Field(
-            default=(), strict=False, description="Ordered semantic cells."
+            default=(),
+            strict=False,
+            description="Ordered semantic cells.",
         )
         tables: t.VariadicTuple[FlextCliModelsXlsxSnapshot.XlsxTableSnapshot] = m.Field(
-            default=(), strict=False, description="Ordered worksheet tables."
+            default=(),
+            strict=False,
+            description="Ordered worksheet tables.",
         )
         row_dimensions: t.VariadicTuple[
             FlextCliModelsXlsxSnapshot.XlsxRowDimensionSnapshot
@@ -173,45 +196,58 @@ class FlextCliModelsXlsxSnapshot:
             FlextCliModelsXlsxSnapshot.XlsxColumnDimensionSnapshot
         ] = m.Field(default=(), strict=False, description="Explicit column dimensions.")
         merged_ranges: t.VariadicTuple[str] = m.Field(
-            default=(), strict=False, description="Ordered merged ranges."
+            default=(),
+            strict=False,
+            description="Ordered merged ranges.",
         )
         freeze_pane: str | None = m.Field(
-            default=None, description="Optional frozen-pane coordinate."
+            default=None,
+            description="Optional frozen-pane coordinate.",
         )
         auto_filter: str | None = m.Field(
-            default=None, description="Optional auto-filter range."
+            default=None,
+            description="Optional auto-filter range.",
         )
         protection: FlextCliModelsXlsxSnapshot.XlsxSheetProtectionSnapshot = m.Field(
-            description="Vendor-independent worksheet protection evidence."
+            description="Vendor-independent worksheet protection evidence.",
         )
         formula_count: Annotated[int, m.Field(ge=0, description="Formula cell count.")]
         literal_count: Annotated[
-            int, m.Field(ge=0, description="Nonblank literal cell count.")
+            int,
+            m.Field(ge=0, description="Nonblank literal cell count."),
         ]
         data_validation_count: Annotated[
-            int, m.Field(ge=0, description="Data-validation rule count.")
+            int,
+            m.Field(ge=0, description="Data-validation rule count."),
         ]
         conditional_format_count: Annotated[
-            int, m.Field(ge=0, description="Conditional-format rule count.")
+            int,
+            m.Field(ge=0, description="Conditional-format rule count."),
         ]
         merge_count: Annotated[int, m.Field(ge=0, description="Merged-range count.")]
 
     class XlsxWorkbookSnapshot(m.FrozenModel):
         data_only: bool = m.Field(description="Whether cells expose cached values.")
         sheets: t.VariadicTuple[FlextCliModelsXlsxSnapshot.XlsxSheetSnapshot] = m.Field(
-            min_length=1, strict=False, description="Exact worksheet order."
+            min_length=1,
+            strict=False,
+            description="Exact worksheet order.",
         )
         defined_names: t.VariadicTuple[
             FlextCliModelsXlsxSnapshot.XlsxDefinedNameSnapshot
         ] = m.Field(default=(), strict=False, description="Ordered defined names.")
         named_styles: t.VariadicTuple[str] = m.Field(
-            default=(), strict=False, description="Registered named styles."
+            default=(),
+            strict=False,
+            description="Registered named styles.",
         )
         formula_count: Annotated[
-            int, m.Field(ge=0, description="Workbook formula cell count.")
+            int,
+            m.Field(ge=0, description="Workbook formula cell count."),
         ]
         literal_count: Annotated[
-            int, m.Field(ge=0, description="Workbook nonblank literal cell count.")
+            int,
+            m.Field(ge=0, description="Workbook nonblank literal cell count."),
         ]
 
 

@@ -33,7 +33,8 @@ class FlextCliUtilitiesFiles:
             return True
 
         return FlextCliUtilitiesFilesPart02.files_execute_bool(
-            _delete, c.Cli.ERR_FILE_DELETION_FAILED
+            _delete,
+            c.Cli.ERR_FILE_DELETION_FAILED,
         )
 
     @staticmethod
@@ -53,7 +54,8 @@ class FlextCliUtilitiesFiles:
             return True
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _write, c.Cli.ERR_TEXT_WRITE_FAILED
+            _write,
+            c.Cli.ERR_TEXT_WRITE_FAILED,
         )
 
     @staticmethod
@@ -65,12 +67,14 @@ class FlextCliUtilitiesFiles:
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _load, c.Cli.ERR_JSON_LOAD_FAILED
+            _load,
+            c.Cli.ERR_JSON_LOAD_FAILED,
         )
 
     @staticmethod
     def files_read_json_model[M: t.Cli.ModelLike](
-        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+        file_path: t.Cli.TextPath,
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
         """Read one JSON file directly into one Pydantic model."""
         # NOTE (multi-agent): Model classes use the canonical t.ModelClass alias.
@@ -81,26 +85,29 @@ class FlextCliUtilitiesFiles:
             return loaded
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _load, c.Cli.ERR_JSON_LOAD_FAILED
+            _load,
+            c.Cli.ERR_JSON_LOAD_FAILED,
         )
 
     @staticmethod
     def files_read_yaml(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
         """Read one YAML file and validate to canonical JSON value."""
         return u.Yaml.yaml_safe_load(Path(file_path)).map(
-            t.Cli.JSON_VALUE_ADAPTER.validate_python
+            t.Cli.JSON_VALUE_ADAPTER.validate_python,
         )
 
     @staticmethod
     def files_read_yaml_model[M: t.Cli.ModelLike](
-        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+        file_path: t.Cli.TextPath,
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
         """Read YAML directly into one caller-supplied validated model."""
         return u.Yaml.yaml_safe_load(Path(file_path)).map(model_type.model_validate)
 
     @staticmethod
     def files_read_yaml_model_chain[M: t.Cli.ModelLike](
-        file_paths: t.SequenceOf[t.Cli.TextPath], model_type: t.ModelClass[M]
+        file_paths: t.SequenceOf[t.Cli.TextPath],
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
         """Merge ordered YAML sources and validate the final payload once."""
         sources = tuple(Path(file_path) for file_path in file_paths)
@@ -119,13 +126,16 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_write_csv(
-        file_path: t.Cli.TextPath, rows: t.SequenceOf[t.StrSequence]
+        file_path: t.Cli.TextPath,
+        rows: t.SequenceOf[t.StrSequence],
     ) -> p.Result[bool]:
         """Write one CSV file from row sequence."""
 
         def _write() -> bool:
             with Path(file_path).open(
-                mode="w", encoding=c.Cli.ENCODING_DEFAULT, newline=""
+                mode="w",
+                encoding=c.Cli.ENCODING_DEFAULT,
+                newline="",
             ) as handle:
                 writer = csv.writer(handle)
                 for row in rows:
@@ -133,7 +143,8 @@ class FlextCliUtilitiesFiles:
             return True
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _write, c.Cli.ERR_CSV_WRITE_FAILED
+            _write,
+            c.Cli.ERR_CSV_WRITE_FAILED,
         )
 
 

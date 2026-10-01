@@ -11,7 +11,7 @@ from ._runtime_process_outcome import FlextCliUtilitiesRuntimeProcessOutcomeMixi
 
 
 class FlextCliUtilitiesRuntimeCommandsMixin(
-    FlextCliUtilitiesRuntimeProcessOutcomeMixin
+    FlextCliUtilitiesRuntimeProcessOutcomeMixin,
 ):
     """Compose captured command primitives without owning subprocess creation."""
 
@@ -53,7 +53,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
                     f"failed ({output.outcome.raw_return_code}): "
                     f"{shlex.join(list(cmd))}: "
                     f"timed_out={output.outcome.timed_out}, "
-                    f"forwarded_signal={output.outcome.forwarded_signal}: {detail}"
+                    f"forwarded_signal={output.outcome.forwarded_signal}: {detail}",
                 )
             return r[p.Cli.CommandOutput].ok(output)
 

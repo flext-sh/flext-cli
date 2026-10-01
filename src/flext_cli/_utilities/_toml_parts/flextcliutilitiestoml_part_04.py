@@ -25,7 +25,9 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_sync_value(
-        container: TOMLDocument | Table, key: str, expected: t.JsonValue
+        container: TOMLDocument | Table,
+        key: str,
+        expected: t.JsonValue,
     ) -> bool:
         """Synchronize a scalar TOML value; return True if mutated."""
         current = FlextCliUtilitiesTomlPart03.toml_value(container, key)
@@ -44,7 +46,7 @@ class FlextCliUtilitiesToml:
     ) -> bool:
         """Synchronize a TOML string-array value; return True if mutated."""
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            FlextCliUtilitiesTomlPart03.toml_value(container, key)
+            FlextCliUtilitiesTomlPart03.toml_value(container, key),
         )
         normalized_expected = sorted(expected) if sort_values else [*expected]
         normalized_current = sorted(current) if sort_values else [*current]
@@ -55,11 +57,13 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_merge_string_list(
-        container: TOMLDocument | Table, key: str, required: t.StrSequence
+        container: TOMLDocument | Table,
+        key: str,
+        required: t.StrSequence,
     ) -> bool:
         """Merge required values into a TOML string-array; return True if mutated."""
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            FlextCliUtilitiesTomlPart03.toml_value(container, key)
+            FlextCliUtilitiesTomlPart03.toml_value(container, key),
         )
         merged = sorted({*current, *required})
         if list(current) == merged:
@@ -69,7 +73,8 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_remove_key_if_present(
-        container: t.MutableJsonMapping, key: str
+        container: t.MutableJsonMapping,
+        key: str,
     ) -> bool:
         """Remove one plain mapping key when it exists; return True if removed."""
         if key not in container:
@@ -79,7 +84,9 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_sync_value(
-        container: t.MutableJsonMapping, key: str, expected: t.JsonValue
+        container: t.MutableJsonMapping,
+        key: str,
+        expected: t.JsonValue,
     ) -> bool:
         """Synchronize a scalar/structured plain TOML value; return True if mutated."""
         current: t.JsonValue = u.normalize_to_json_value(container.get(key, None))
@@ -91,11 +98,13 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_merge_string_list(
-        container: t.MutableJsonMapping, key: str, required: t.StrSequence
+        container: t.MutableJsonMapping,
+        key: str,
+        required: t.StrSequence,
     ) -> bool:
         """Merge required values into a plain string-list; return True if mutated."""
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            container.get(key, None)
+            container.get(key, None),
         )
         merged = sorted({*current, *required})
         if list(current) == merged:

@@ -17,7 +17,8 @@ if TYPE_CHECKING:
 
 
 def _scripted_reader(
-    values: t.StrSequence, error: Exception | None
+    values: t.StrSequence,
+    error: Exception | None,
 ) -> Callable[[str], str]:
     """Build an input port that replays ``values`` or raises ``error``."""
     values_iter = iter(values)
@@ -51,7 +52,7 @@ def make_prompts() -> Callable[..., p.Tests.Prompts]:
             password_reader=_scripted_reader((password,), error),
         )
         return prompts.configure(
-            m.Cli.PromptRuntimeState(interactive=interactive_mode, quiet=quiet)
+            m.Cli.PromptRuntimeState(interactive=interactive_mode, quiet=quiet),
         )
 
     return _make

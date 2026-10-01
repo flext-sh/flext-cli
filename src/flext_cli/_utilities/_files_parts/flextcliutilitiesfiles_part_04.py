@@ -66,7 +66,8 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_detect_format_from_path(
-        path: t.Cli.TextPath, fmt: str = c.Cli.FILE_FORMAT_AUTO
+        path: t.Cli.TextPath,
+        fmt: str = c.Cli.FILE_FORMAT_AUTO,
     ) -> str:
         """Detect file format from a path extension.
 
@@ -86,7 +87,7 @@ class FlextCliUtilitiesFiles:
             read_result = u.Yaml.yaml_safe_load(path)
         else:
             return r[t.JsonMapping].fail(
-                f"Unsupported format: {path.suffix or '<none>'}"
+                f"Unsupported format: {path.suffix or '<none>'}",
             )
         loaded = read_result.map_error(lambda err: err or c.Cli.ERR_AUTO_LOAD_FAILED)
         if loaded.failure:
@@ -127,12 +128,15 @@ class FlextCliUtilitiesFiles:
         def _copy() -> Path:
             return Path(
                 shutil.copytree(
-                    Path(source_path), destination, dirs_exist_ok=dirs_exist_ok
-                )
+                    Path(source_path),
+                    destination,
+                    dirs_exist_ok=dirs_exist_ok,
+                ),
             )
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _copy, "copy_directory: {error}"
+            _copy,
+            "copy_directory: {error}",
         )
 
     @staticmethod
@@ -148,7 +152,8 @@ class FlextCliUtilitiesFiles:
             return Path(tempfile.mkdtemp(prefix=prefix, suffix=suffix, dir=parent_path))
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _create, "create_temporary_directory: {error}"
+            _create,
+            "create_temporary_directory: {error}",
         )
 
     @staticmethod
@@ -165,7 +170,8 @@ class FlextCliUtilitiesFiles:
             return True
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _remove, "remove_directory: {error}"
+            _remove,
+            "remove_directory: {error}",
         )
 
 

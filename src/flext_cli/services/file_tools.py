@@ -23,7 +23,8 @@ class FlextCliFileTools(s[m.Cli.RuntimeStatus]):
 
     @staticmethod
     def read_json_model[M: t.Cli.ModelLike](
-        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+        file_path: t.Cli.TextPath,
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
         """Read JSON into the canonical structural model-class contract."""
         return u.Cli.files_read_json_model(Path(file_path), model_type)
@@ -38,14 +39,16 @@ class FlextCliFileTools(s[m.Cli.RuntimeStatus]):
 
     @staticmethod
     def read_yaml_model[M: t.Cli.ModelLike](
-        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+        file_path: t.Cli.TextPath,
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
         """Read YAML and validate it once into the requested model type."""
         return u.Cli.files_read_yaml_model(Path(file_path), model_type)
 
     @staticmethod
     def read_yaml_model_chain[M: t.Cli.ModelLike](
-        file_paths: Sequence[t.Cli.TextPath], model_type: t.ModelClass[M]
+        file_paths: Sequence[t.Cli.TextPath],
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
         """Merge ordered YAML sources and validate the final payload once."""
         return u.Cli.files_read_yaml_model_chain(file_paths, model_type)
@@ -61,14 +64,16 @@ class FlextCliFileTools(s[m.Cli.RuntimeStatus]):
 
     @staticmethod
     def write_yaml_file(
-        file_path: t.Cli.TextPath, data: t.Cli.JsonWriteData
+        file_path: t.Cli.TextPath,
+        data: t.Cli.JsonWriteData,
     ) -> p.Result[bool]:
         """Write JSON-compatible data as YAML."""
         return u.Cli.yaml_dump(Path(file_path), data)
 
     @staticmethod
     def write_csv_file(
-        file_path: t.Cli.TextPath, rows: t.SequenceOf[t.StrSequence]
+        file_path: t.Cli.TextPath,
+        rows: t.SequenceOf[t.StrSequence],
     ) -> p.Result[bool]:
         """Write rows to a CSV file."""
         return u.Cli.files_write_csv(Path(file_path), rows)
@@ -92,7 +97,8 @@ class FlextCliFileTools(s[m.Cli.RuntimeStatus]):
 
     @staticmethod
     def copy_file(
-        source_path: t.Cli.TextPath, destination_path: t.Cli.TextPath
+        source_path: t.Cli.TextPath,
+        destination_path: t.Cli.TextPath,
     ) -> p.Result[bool]:
         """Copy one file to another path."""
         return u.Cli.files_copy(Path(source_path), Path(destination_path))

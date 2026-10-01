@@ -81,16 +81,16 @@ class TestsFlextCliConstantsRulesOptions:
         frozenset({"actions"}),
     )
     RULES_CATALOG_BASIC: ClassVar[t.Cli.RuleCatalog[str]] = MappingProxyType({
-        "lint": (RULES_BASIC_MATCHER,)
+        "lint": (RULES_BASIC_MATCHER,),
     })
     RULES_CATALOG_MAPPING: ClassVar[t.Cli.RuleCatalog[str]] = MappingProxyType({
-        "lint": (RULES_MAPPING_MATCHER,)
+        "lint": (RULES_MAPPING_MATCHER,),
     })
     RULES_FILE_CATALOG_BASIC: ClassVar[t.Cli.RuleCatalog[str]] = MappingProxyType({
-        "file-lint": (RULES_BASIC_MATCHER,)
+        "file-lint": (RULES_BASIC_MATCHER,),
     })
     RULES_FILE_CATALOG_MAPPING: ClassVar[t.Cli.RuleCatalog[str]] = MappingProxyType({
-        "file-lint": (RULES_MAPPING_MATCHER,)
+        "file-lint": (RULES_MAPPING_MATCHER,),
     })
 
     # ── TOML ───────────────────────────────────────────────────────

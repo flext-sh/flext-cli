@@ -36,7 +36,8 @@ class FlextCliCommonParams(s[m.Cli.RuntimeStatus]):
             params_to_use = u.Cli.params_resolve(params, kwargs)
         except c.ValidationError as exc:
             return r[p.Cli.Settings].fail(
-                c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc), exception=exc
+                c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc),
+                exception=exc,
             )
         return u.Cli.params_apply(settings, params_to_use)
 

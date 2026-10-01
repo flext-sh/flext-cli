@@ -28,7 +28,9 @@ class TestsFlextCliPipeline:
         ) -> p.Result[m.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
-                stage_id, output={output_key: stage_id}, duration_ms=1.0
+                stage_id,
+                output={output_key: stage_id},
+                duration_ms=1.0,
             )
 
         return handler
@@ -94,7 +96,8 @@ class TestsFlextCliPipeline:
         tm.that(result.value.total_duration_ms, gte=0.0)
 
     def test_stage_raise_escapes_without_result_normalization(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """A stage handler exception escapes; exceptions are never normalized."""
         error_message = "intentional explosion"

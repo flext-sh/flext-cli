@@ -16,7 +16,10 @@ class FlextCliCli(FlextCliCliPart03):
 
     @staticmethod
     def execute_app(
-        app: p.Cli.Application, *, prog_name: str, args: t.StrSequence | None = None
+        app: p.Cli.Application,
+        *,
+        prog_name: str,
+        args: t.StrSequence | None = None,
     ) -> p.Result[bool]:
         """Execute an application through the private framework boundary."""
         return u.Cli.framework_execute(app, prog_name=prog_name, args=args)
@@ -48,11 +51,18 @@ class FlextCliCli(FlextCliCliPart03):
 
     @staticmethod
     def register_command(
-        app: p.Cli.Application, *, name: str, help_text: str, command: t.Cli.CliCommand
+        app: p.Cli.Application,
+        *,
+        name: str,
+        help_text: str,
+        command: t.Cli.CliCommand,
     ) -> None:
         """Register a command through the private framework boundary."""
         u.Cli.framework_register_command(
-            app, name=name, help_text=help_text, command=command
+            app,
+            name=name,
+            help_text=help_text,
+            command=command,
         )
 
 

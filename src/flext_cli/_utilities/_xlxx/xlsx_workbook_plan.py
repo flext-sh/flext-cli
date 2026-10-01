@@ -15,7 +15,8 @@ from .xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
 
 
 class FlextCliUtilitiesXlsxWorkbookPlan(
-    FlextCliUtilitiesXlsxStyleCodec, FlextCliUtilitiesXlsxWorkbookIo
+    FlextCliUtilitiesXlsxStyleCodec,
+    FlextCliUtilitiesXlsxWorkbookIo,
 ):
     """Load visual resources and recreate the exact planned sheet graph."""
 
@@ -34,7 +35,7 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
             for table in sheet.tables:
                 if table.name in table_names:
                     return r[bool].fail(
-                        f"{c.Cli.XlsxError.DUPLICATE_TABLE}: {table.name}"
+                        f"{c.Cli.XlsxError.DUPLICATE_TABLE}: {table.name}",
                     )
                 table_names = table_names.union((table.name,))
         for style in plan.named_styles:
@@ -44,14 +45,15 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
         for item in plan.defined_names:
             if item.name in defined_names:
                 return r[bool].fail(
-                    f"{c.Cli.XlsxError.DUPLICATE_DEFINED_NAME}: {item.name}"
+                    f"{c.Cli.XlsxError.DUPLICATE_DEFINED_NAME}: {item.name}",
                 )
             defined_names = defined_names.union((item.name,))
         return r[bool].ok(True)
 
     @classmethod
     def _workbook_for_request(
-        cls, request: m.Cli.XlsxRenderRequest
+        cls,
+        request: m.Cli.XlsxRenderRequest,
     ) -> p.Result[Workbook]:
         validation = cls._validate_plan(request.plan)
         if validation.failure:
@@ -71,7 +73,9 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
 
     @classmethod
     def _prepare_workbook(
-        cls, workbook: Workbook, plan: m.Cli.XlsxWorkbookPlan
+        cls,
+        workbook: Workbook,
+        plan: m.Cli.XlsxWorkbookPlan,
     ) -> p.Result[Workbook]:
         for worksheet in tuple(workbook.worksheets):
             workbook.remove(worksheet)

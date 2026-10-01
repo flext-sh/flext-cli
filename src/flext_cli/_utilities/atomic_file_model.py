@@ -12,7 +12,9 @@ type PhysicalState = tuple[int, int, int, int | None, int | None]
 
 
 def require_existing(
-    state: m.Cli.AtomicFileState, *, purpose: str
+    state: m.Cli.AtomicFileState,
+    *,
+    purpose: str,
 ) -> t.Triple[bytes, int, t.Pair[int, int]]:
     """Return required content, mode, and inode identity from an existing state."""
     if (

@@ -72,7 +72,8 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         loaded = FlextCliUtilitiesYaml.yaml_roundtrip_load_map_text(text)
         if loaded.failure:
             return r[t.JsonMapping].fail(
-                loaded.error or "YAML parse error", exception=loaded.exception
+                loaded.error or "YAML parse error",
+                exception=loaded.exception,
             )
         parsed = FlextCliUtilitiesYaml.yaml_to_plain(loaded.value)
         try:
@@ -83,14 +84,16 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
     @staticmethod
     def yaml_load_mapping(
-        path: Path, *, default: t.JsonMapping | None = None
+        path: Path,
+        *,
+        default: t.JsonMapping | None = None,
     ) -> t.JsonMapping:
         """Load YAML file returning a mapping, or *default* (empty dict) on any error.
 
         Ergonomic shorthand — use ``yaml_safe_load`` when you need ``r[T]`` semantics.
         """
         return FlextCliUtilitiesYaml.yaml_safe_load(path).unwrap_or(
-            default if default is not None else _EMPTY_JSON_MAPPING
+            default if default is not None else _EMPTY_JSON_MAPPING,
         )
 
     @staticmethod
@@ -102,7 +105,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             msg = f"YAML content is not a list: {type(parsed).__name__}"
             raise TypeError(msg)
         validated: t.SequenceOf[t.JsonValue] = t.Cli.YAML_SEQ_ADAPTER.validate_python(
-            parsed
+            parsed,
         )
         return validated
 
@@ -160,7 +163,10 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
     @staticmethod
     def yaml_dump_str(
-        data: t.JsonValue | t.JsonPayload, *, sort_keys: bool = False, indent: int = 2
+        data: t.JsonValue | t.JsonPayload,
+        *,
+        sort_keys: bool = False,
+        indent: int = 2,
     ) -> str:
         """Serialize *data* to a YAML string.
 

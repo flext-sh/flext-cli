@@ -80,7 +80,8 @@ def assert_observed_mode(path: Path, state: os.stat_result, expected: int) -> No
 
 
 def publication_mode(
-    state: os.stat_result | None, permission_mode: int | None
+    state: os.stat_result | None,
+    permission_mode: int | None,
 ) -> int | None:
     """Resolve the mode applied to the temporary before publication."""
     requested = validate_mode(permission_mode, label="permission_mode")

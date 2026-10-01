@@ -38,22 +38,29 @@ class FlextCliUtilitiesOutput:
 
     @staticmethod
     def output_message_payload(
-        message: str, message_type: c.Cli.MessageTypes | None
+        message: str,
+        message_type: c.Cli.MessageTypes | None,
     ) -> t.Pair[str, str]:
         """Build one canonical display payload and style from message type."""
         final_type = FlextCliUtilitiesOutput.output_resolve_message_type(message_type)
         default_type = c.Cli.OUTPUT_DEFAULT_MESSAGE_TYPE
         style = c.Cli.MESSAGE_STYLE_MAP.get(
-            final_type, c.Cli.MESSAGE_STYLE_MAP[default_type]
+            final_type,
+            c.Cli.MESSAGE_STYLE_MAP[default_type],
         )
         emoji = c.Cli.MESSAGE_EMOJI_MAP.get(
-            final_type, c.Cli.MESSAGE_EMOJI_MAP[default_type]
+            final_type,
+            c.Cli.MESSAGE_EMOJI_MAP[default_type],
         )
         return f"{emoji} {message}", style
 
     @staticmethod
     def output_progress_line(
-        current: int, total: int, label: str, *, detail: str
+        current: int,
+        total: int,
+        label: str,
+        *,
+        detail: str,
     ) -> str:
         """Build one canonical progress line text."""
         width = len(str(total))
@@ -62,7 +69,11 @@ class FlextCliUtilitiesOutput:
 
     @staticmethod
     def output_summary_content(
-        *, total: int, success: int, failed: int, skipped: int
+        *,
+        total: int,
+        success: int,
+        failed: int,
+        skipped: int,
     ) -> str:
         """Build one canonical summary content string."""
         return (
@@ -82,7 +93,11 @@ class FlextCliUtilitiesOutput:
 
     @staticmethod
     def output_status_line(
-        label: str, detail: str, *, success: bool, elapsed: float | None
+        label: str,
+        detail: str,
+        *,
+        success: bool,
+        elapsed: float | None,
     ) -> t.Pair[str, str]:
         """Build one canonical status line and style."""
         symbol = c.Cli.SYMBOL_SUCCESS_MARK if success else c.Cli.SYMBOL_FAILURE_MARK
@@ -160,12 +175,17 @@ class FlextCliUtilitiesOutput:
             skipped=stats.skipped,
         )
         cls.emit_raw(
-            f"\n-- {stats.verb} summary --\n{content}  ({stats.elapsed:.2f}s)\n"
+            f"\n-- {stats.verb} summary --\n{content}  ({stats.elapsed:.2f}s)\n",
         )
 
     @classmethod
     def gate_result(
-        cls, gate: str, count: int, *, passed: bool, elapsed: float
+        cls,
+        gate: str,
+        count: int,
+        *,
+        passed: bool,
+        elapsed: float,
     ) -> None:
         """Emit one canonical gate-result line."""
         symbol = c.Cli.OUTPUT_STATUS_OK if passed else c.Cli.OUTPUT_STATUS_FAIL
@@ -181,7 +201,7 @@ class FlextCliUtilitiesOutput:
         )
         cls.emit_raw(
             f"  {c.Cli.OUTPUT_STATUS_FAIL} {info.project} completed in "
-            f"{info.elapsed}s{count_label}  ({info.log_path})\n"
+            f"{info.elapsed}s{count_label}  ({info.log_path})\n",
         )
         for line in info.errors[: info.max_show]:
             cls.emit_raw(f"      {line}\n")
@@ -204,7 +224,11 @@ class FlextCliUtilitiesOutput:
 
     @classmethod
     def resolve_report_path(
-        cls, repository_root: Path | str, scope: str, verb: str, filename: str
+        cls,
+        repository_root: Path | str,
+        scope: str,
+        verb: str,
+        filename: str,
     ) -> Path:
         """Resolve standardized report file path."""
         return cls.resolve_report_dir(repository_root, scope, verb) / filename

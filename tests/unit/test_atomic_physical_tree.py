@@ -17,7 +17,8 @@ class TestsAtomicPhysicalTree:
     """Prove manifests authenticate every entry before nonrecursive cleanup."""
 
     def test_inventory_preserves_mount_identity_across_entries_and_reads(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Native mount identity is stable for a directory and its regular file."""
         root = tmp_path / "tree"
@@ -36,7 +37,8 @@ class TestsAtomicPhysicalTree:
         tm.that(root.exists(), eq=False)
 
     def test_inventory_records_ordered_parent_bound_physical_state(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Expose exact root, directory, and regular-file identities and digest."""
         root = tmp_path / "tree"
@@ -64,7 +66,7 @@ class TestsAtomicPhysicalTree:
         tm.that(file_entry.size, eq=len(b"payload"))
         tm.that(file_entry.sha256, eq=hashlib.sha256(b"payload").hexdigest())
         restored = m.Cli.AtomicPhysicalTreeManifest.model_validate_json(
-            manifest.model_dump_json()
+            manifest.model_dump_json(),
         )
         tm.that(restored, eq=manifest)
 
@@ -84,7 +86,9 @@ class TestsAtomicPhysicalTree:
 
     @pytest.mark.parametrize("drift", ["unknown", "missing", "content", "metadata"])
     def test_manifest_drift_fails_before_any_effect(
-        self, tmp_path: Path, drift: str
+        self,
+        tmp_path: Path,
+        drift: str,
     ) -> None:
         """Preserve the tree for every unknown, missing, or changed entry."""
         root = tmp_path / drift
@@ -103,7 +107,8 @@ class TestsAtomicPhysicalTree:
         else:
             observed = target.stat()
             os.utime(
-                target, ns=(observed.st_atime_ns, observed.st_mtime_ns + 1_000_000_000)
+                target,
+                ns=(observed.st_atime_ns, observed.st_mtime_ns + 1_000_000_000),
             )
 
         result = u.Cli.atomic_cleanup_physical_tree_guarded(manifest)
@@ -132,7 +137,8 @@ class TestsAtomicPhysicalTree:
         tm.that((original / "payload.txt").read_text(encoding="utf-8"), eq="payload")
 
     def test_inventory_and_cleanup_treat_symlink_as_authenticated_leaf(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Record and unlink an alias without traversing or touching its target."""
         target = tmp_path / "target"
@@ -198,7 +204,8 @@ class TestsAtomicPhysicalTree:
                 m.Cli.AtomicPhysicalTreeManifest(root=manifest.root, entries=(forged,))
 
     def test_forged_parent_binding_fails_before_every_delete(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Preserve the complete tree when integral preflight rejects its source."""
         root = tmp_path / "tree"
@@ -207,7 +214,7 @@ class TestsAtomicPhysicalTree:
         payload.write_text("payload", encoding="utf-8")
         manifest = self._inventory(root)
         forged_root = manifest.root.model_copy(
-            update={"parent_inode": manifest.root.parent_inode + 1}
+            update={"parent_inode": manifest.root.parent_inode + 1},
         )
         forged = manifest.model_copy(update={"root": forged_root})
 

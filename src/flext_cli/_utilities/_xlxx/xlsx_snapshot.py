@@ -9,7 +9,8 @@ from .xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
 
 
 class FlextCliUtilitiesXlsxSnapshot(
-    FlextCliUtilitiesXlsxSnapshotSheet, FlextCliUtilitiesXlsxWorkbookIo
+    FlextCliUtilitiesXlsxSnapshotSheet,
+    FlextCliUtilitiesXlsxWorkbookIo,
 ):
     """Expose vendor-independent workbook parity evidence."""
 
@@ -17,7 +18,8 @@ class FlextCliUtilitiesXlsxSnapshot(
     # counts; a second data-only view supplies cached values only when asked.
     @classmethod
     def xlsx_snapshot(
-        cls, request: m.Cli.XlsxSnapshotRequest
+        cls,
+        request: m.Cli.XlsxSnapshotRequest,
     ) -> p.Result[m.Cli.XlsxWorkbookSnapshot]:
         """Inspect workbook bytes into one immutable semantic snapshot."""
         try:
@@ -31,10 +33,11 @@ class FlextCliUtilitiesXlsxSnapshot(
 
     @classmethod
     def _snapshot_workbook(
-        cls, request: m.Cli.XlsxSnapshotRequest
+        cls,
+        request: m.Cli.XlsxSnapshotRequest,
     ) -> m.Cli.XlsxWorkbookSnapshot:
         formula_workbook = cls._require_success(
-            cls._load_workbook(request.source, data_only=False)
+            cls._load_workbook(request.source, data_only=False),
         )
         value_workbook = (
             cls._require_success(cls._load_workbook(request.source, data_only=True))
@@ -50,7 +53,7 @@ class FlextCliUtilitiesXlsxSnapshot(
             start=1,
         ):
             sheet = cls._require_success(
-                cls._snapshot_sheet(formula_sheet, value_sheet, position=position)
+                cls._snapshot_sheet(formula_sheet, value_sheet, position=position),
             )
             sheets = (*sheets, sheet)
         defined_names = cls._require_success(cls._snapshot_names(formula_workbook))

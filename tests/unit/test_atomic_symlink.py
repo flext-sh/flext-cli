@@ -96,7 +96,9 @@ class TestsAtomicSymlink:
 
     @pytest.mark.parametrize("target", ["line one\nline two\n", " \tname\t ", "\n"])
     def test_newline_target_round_trips_without_normalization(
-        self, tmp_path: Path, target: str
+        self,
+        tmp_path: Path,
+        target: str,
     ) -> None:
         path = tmp_path / "link"
         before = tm.ok(u.Cli.atomic_read_symlink_state(path))

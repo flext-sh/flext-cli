@@ -33,7 +33,8 @@ class TestsFlextCliOutputCov:
         ],
     )
     def test_resolve_message_type_preserves_explicit_value(
-        self, msg_type: c.Cli.MessageTypes
+        self,
+        msg_type: c.Cli.MessageTypes,
     ) -> None:
         """Verify that resolve message type preserves explicit value."""
         tm.that(u.Cli.output_resolve_message_type(msg_type), eq=msg_type)
@@ -59,7 +60,8 @@ class TestsFlextCliOutputCov:
         ],
     )
     def test_message_payload_carries_message_and_canonical_style(
-        self, msg_type: c.Cli.MessageTypes | None
+        self,
+        msg_type: c.Cli.MessageTypes | None,
     ) -> None:
         """Verify that message payload carries message and canonical style."""
         text, style = u.Cli.output_message_payload("hello", msg_type)
@@ -86,7 +88,10 @@ class TestsFlextCliOutputCov:
     def test_status_line_success_includes_timing_and_green_style(self) -> None:
         """Verify that status line success includes timing and green style."""
         line, style = u.Cli.output_status_line(
-            "build", "flext-cli", success=True, elapsed=1.23
+            "build",
+            "flext-cli",
+            success=True,
+            elapsed=1.23,
         )
         tm.that(line, has="(1.23s)")
         tm.that(line, has=c.Cli.SYMBOL_SUCCESS_MARK)
@@ -95,7 +100,10 @@ class TestsFlextCliOutputCov:
     def test_status_line_failure_without_elapsed_omits_timing(self) -> None:
         """Verify that status line failure without elapsed omits timing."""
         line, style = u.Cli.output_status_line(
-            "test", "flext-core", success=False, elapsed=None
+            "test",
+            "flext-core",
+            success=False,
+            elapsed=None,
         )
         tm.that(line, lacks="s)")
         tm.that(line, has=c.Cli.SYMBOL_FAILURE_MARK)
@@ -144,14 +152,16 @@ class TestsFlextCliOutputCov:
     # ---- stdout emitters ------------------------------------------------
 
     def test_emit_raw_writes_text_verbatim(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that emit raw writes text verbatim."""
         u.Cli.emit_raw("hello test\n")
         tm.that(capsys.readouterr().out, eq="hello test\n")
 
     def test_info_emits_message_with_info_level(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that info emits message with info level."""
         u.Cli.info("test info")
@@ -160,7 +170,8 @@ class TestsFlextCliOutputCov:
         tm.that(out, has=c.Cli.OUTPUT_LOG_LEVEL_INFO)
 
     def test_error_with_detail_emits_both_lines(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that error with detail emits both lines."""
         u.Cli.error("fail msg", detail="extra detail")
@@ -169,7 +180,8 @@ class TestsFlextCliOutputCov:
         tm.that(out, has="extra detail")
 
     def test_error_without_detail_omits_detail_indent(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that error without detail omits detail indent."""
         u.Cli.error("just error")
@@ -178,7 +190,8 @@ class TestsFlextCliOutputCov:
         tm.that(out.endswith("  \n"), eq=False)
 
     def test_warning_emits_message_with_warning_level(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that warning emits message with warning level."""
         u.Cli.warning("be warned")
@@ -187,7 +200,8 @@ class TestsFlextCliOutputCov:
         tm.that(out, has=c.Cli.OUTPUT_LOG_LEVEL_WARNING)
 
     def test_debug_emits_message_with_debug_level(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that debug emits message with debug level."""
         u.Cli.debug("debug message")
@@ -196,7 +210,8 @@ class TestsFlextCliOutputCov:
         tm.that(out, has=c.Cli.OUTPUT_LOG_LEVEL_DEBUG)
 
     def test_header_frames_title_with_rules(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that header frames title with rules."""
         u.Cli.header("My Title")
@@ -205,7 +220,8 @@ class TestsFlextCliOutputCov:
         tm.that(out, has="=" * c.Cli.OUTPUT_HEADER_RULE_WIDTH)
 
     def test_progress_emits_project_and_verb(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that progress emits project and verb."""
         u.Cli.progress(2, 5, "my-proj", "build")
@@ -218,7 +234,11 @@ class TestsFlextCliOutputCov:
         [(True, c.Cli.OUTPUT_STATUS_OK), (False, c.Cli.OUTPUT_STATUS_FAIL)],
     )
     def test_status_emits_project_and_result_symbol(
-        self, capsys: pytest.CaptureFixture[str], *, result: bool, symbol: str
+        self,
+        capsys: pytest.CaptureFixture[str],
+        *,
+        result: bool,
+        symbol: str,
     ) -> None:
         """Verify that status emits project and result symbol."""
         u.Cli.status("build", "flext-cli", result=result, elapsed=0.5)
@@ -227,7 +247,8 @@ class TestsFlextCliOutputCov:
         tm.that(out, has=symbol)
 
     def test_gate_result_emits_gate_name(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that gate result emits gate name."""
         u.Cli.gate_result("ruff", 0, passed=True, elapsed=0.2)
@@ -236,20 +257,27 @@ class TestsFlextCliOutputCov:
         tm.that(out, has=c.Cli.OUTPUT_STATUS_OK)
 
     def test_summary_emits_verb_and_counts(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that summary emits verb and counts."""
         u.Cli.summary(
             m.Tests.SummaryStats(
-                verb="check", total=5, success=4, failed=1, skipped=0, elapsed=2.5
-            )
+                verb="check",
+                total=5,
+                success=4,
+                failed=1,
+                skipped=0,
+                elapsed=2.5,
+            ),
         )
         out = capsys.readouterr().out
         tm.that(out, has="check")
         tm.that(out, has="Total: 5")
 
     def test_project_failure_lists_errors_and_truncation_notice(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that project failure lists errors and truncation notice."""
         u.Cli.project_failure(
@@ -260,7 +288,7 @@ class TestsFlextCliOutputCov:
                 log_path=Path("log.txt"),
                 max_show=1,
                 errors=("error line 1", "error line 2"),
-            )
+            ),
         )
         out = capsys.readouterr().out
         tm.that(out, has="flext-cli")
@@ -272,17 +300,21 @@ class TestsFlextCliOutputCov:
     # ---- report path resolution ----------------------------------------
 
     def test_resolve_report_dir_workspace_scope_includes_scope_and_verb(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that resolve report dir workspace scope includes scope and verb."""
         result = u.Cli.resolve_report_dir(
-            tmp_path, c.Cli.OUTPUT_SCOPE_WORKSPACE, "check"
+            tmp_path,
+            c.Cli.OUTPUT_SCOPE_WORKSPACE,
+            "check",
         )
         tm.that(result.parent.name, eq=c.Cli.OUTPUT_SCOPE_WORKSPACE)
         tm.that(result.name, eq="check")
 
     def test_resolve_report_dir_project_scope_ends_with_verb(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that resolve report dir project scope ends with verb."""
         result = u.Cli.resolve_report_dir(tmp_path, "project", "test")
@@ -292,12 +324,17 @@ class TestsFlextCliOutputCov:
     def test_resolve_report_path_appends_filename(self, tmp_path: Path) -> None:
         """Verify that resolve report path appends filename."""
         result = u.Cli.resolve_report_path(
-            str(tmp_path), c.Cli.OUTPUT_SCOPE_WORKSPACE, "check", "report.json"
+            str(tmp_path),
+            c.Cli.OUTPUT_SCOPE_WORKSPACE,
+            "check",
+            "report.json",
         )
         tm.that(result.name, eq="report.json")
         tm.that(
             result.parent,
             eq=u.Cli.resolve_report_dir(
-                tmp_path, c.Cli.OUTPUT_SCOPE_WORKSPACE, "check"
+                tmp_path,
+                c.Cli.OUTPUT_SCOPE_WORKSPACE,
+                "check",
             ),
         )

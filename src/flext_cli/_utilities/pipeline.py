@@ -34,7 +34,7 @@ class FlextCliUtilitiesPipeline:
 
         if not stages:
             return r[m.Cli.PipelineResult].ok(
-                m.Cli.PipelineResult(stages=[], total_duration_ms=0.0)
+                m.Cli.PipelineResult(stages=[], total_duration_ms=0.0),
             )
 
         # Build stage lookup and dependency graph.
@@ -49,7 +49,8 @@ class FlextCliUtilitiesPipeline:
             sorter.prepare()
         except CycleError as exc:
             return r[m.Cli.PipelineResult].fail(
-                f"pipeline cycle detected: {exc}", exception=exc
+                f"pipeline cycle detected: {exc}",
+                exception=exc,
             )
 
         # Walk the graph one READY WAVE at a time instead of flattening it to a
@@ -82,7 +83,9 @@ class FlextCliUtilitiesPipeline:
             if len(known) == 1:
                 stage_id = known[0]
                 completed[stage_id] = FlextCliUtilitiesPipeline._run_stage(
-                    stage_map[stage_id], context, log
+                    stage_map[stage_id],
+                    context,
+                    log,
                 )
                 sorter.done(stage_id)
             elif known:
@@ -117,7 +120,8 @@ class FlextCliUtilitiesPipeline:
 
         total_ms = (time.monotonic() - pipeline_start) * 1000
         pipeline_result = m.Cli.PipelineResult(
-            stages=results, total_duration_ms=total_ms
+            stages=results,
+            total_duration_ms=total_ms,
         )
 
         log.info(
@@ -142,7 +146,8 @@ class FlextCliUtilitiesPipeline:
         if spec.skip_if is not None and spec.skip_if(context):
             log.debug("stage_skipped", stage_id=spec.stage_id, reason="skip_if")
             return m.Cli.PipelineStageResult(
-                stage_id=spec.stage_id, status=c.Cli.PipelineStageStatus.SKIPPED
+                stage_id=spec.stage_id,
+                status=c.Cli.PipelineStageStatus.SKIPPED,
             )
 
         stage_start = time.monotonic()

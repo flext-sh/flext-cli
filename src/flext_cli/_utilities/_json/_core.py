@@ -31,7 +31,10 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def json_dumps(
-        value: t.JsonValue, *, sort_keys: bool = False, indent: int | None = None
+        value: t.JsonValue,
+        *,
+        sort_keys: bool = False,
+        indent: int | None = None,
     ) -> p.Result[str]:
         """Serialize a JSON-compatible value to a string via canonical adapters."""
         normalized = (
@@ -39,7 +42,8 @@ class FlextCliUtilitiesJsonCoreMixin:
         )
         return u.try_(
             lambda: t.Cli.JSON_VALUE_ADAPTER.dump_json(
-                normalized, indent=indent
+                normalized,
+                indent=indent,
             ).decode(c.Cli.ENCODING_DEFAULT),
             catch=(c.ValidationError, ValueError, TypeError),
             op_name="json_dumps",
@@ -47,7 +51,9 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def json_loads(
-        raw: str | bytes, *, reject_duplicate_keys: bool = False
+        raw: str | bytes,
+        *,
+        reject_duplicate_keys: bool = False,
     ) -> p.Result[t.JsonValue]:
         """Parse a JSON-encoded string/bytes into a JSON-compatible value.
 
@@ -61,7 +67,9 @@ class FlextCliUtilitiesJsonCoreMixin:
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return u.try_(
-            _parse, catch=(c.ValidationError, ValueError), op_name="json_loads"
+            _parse,
+            catch=(c.ValidationError, ValueError),
+            op_name="json_loads",
         )
 
     @staticmethod
@@ -109,7 +117,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             validated = t.Cli.JSON_MAPPING_ADAPTER.validate_python(data)
             return {
                 key: FlextCliUtilitiesJsonCoreMixin.json_sort_keys(
-                    t.Cli.JSON_VALUE_ADAPTER.validate_python(value)
+                    t.Cli.JSON_VALUE_ADAPTER.validate_python(value),
                 )
                 for key, value in sorted(validated.items())
             }
@@ -117,7 +125,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             items = t.Cli.JSON_LIST_ADAPTER.validate_python(data)
             return [
                 FlextCliUtilitiesJsonCoreMixin.json_sort_keys(
-                    t.Cli.JSON_VALUE_ADAPTER.validate_python(item)
+                    t.Cli.JSON_VALUE_ADAPTER.validate_python(item),
                 )
                 for item in items
             ]
@@ -130,7 +138,8 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def _json_write_content(
-        payload: t.JsonValue | t.JsonPayload, options: m.Cli.JsonWriteOptions
+        payload: t.JsonValue | t.JsonPayload,
+        options: m.Cli.JsonWriteOptions,
     ) -> str:
         """Serialize a JSON payload using canonical write options."""
         validated = FlextCliUtilitiesJsonCoreMixin.normalize_json_value(payload)
@@ -140,7 +149,9 @@ class FlextCliUtilitiesJsonCoreMixin:
             else validated
         )
         payload_bytes: bytes = t.Cli.JSON_VALUE_ADAPTER.dump_json(
-            normalized, indent=options.indent, ensure_ascii=options.ensure_ascii
+            normalized,
+            indent=options.indent,
+            ensure_ascii=options.ensure_ascii,
         )
         return payload_bytes.decode(c.Cli.ENCODING_DEFAULT) + "\n"
 
@@ -154,7 +165,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             return r[t.JsonMapping].fail(f"json_read: file not found: {path}")
         loaded = u.try_(
             lambda: t.Cli.JSON_VALUE_ADAPTER.validate_json(
-                path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
+                path.read_text(encoding=c.Cli.ENCODING_DEFAULT),
             ),
             catch=(c.ValidationError, OSError),
             op_name="json_read",
@@ -164,7 +175,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         if not isinstance(loaded.value, Mapping):
             return r[t.JsonMapping].fail("json_read: root must be an object")
         return r[t.JsonMapping].ok(
-            t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded.value)
+            t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded.value),
         )
 
     @staticmethod
@@ -185,13 +196,17 @@ class FlextCliUtilitiesJsonCoreMixin:
         written = u.try_(_write, catch=c.EXC_OS_VALIDATION, op_name="json_write")
         if written.failure:
             FlextCliUtilitiesJsonCoreMixin._module_logger.debug(
-                "json_write failed", error=written.error, exc_info=False
+                "json_write failed",
+                error=written.error,
+                exc_info=False,
             )
         return written
 
     @staticmethod
     def json_parse(
-        text: str, *, reject_duplicate_keys: bool = False
+        text: str,
+        *,
+        reject_duplicate_keys: bool = False,
     ) -> p.Result[t.JsonValue]:
         """Parse a JSON string into a validated JsonValue.
 

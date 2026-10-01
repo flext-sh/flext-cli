@@ -78,23 +78,28 @@ def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseCon
         .ok(cli_args)
         .map(
             lambda settings: _report_step_success(
-                settings, "✅ Required fields validated"
-            )
+                settings,
+                "✅ Required fields validated",
+            ),
         )
         .map(
             lambda settings: _report_step_success(
-                settings, "✅ Pydantic validation passed"
-            )
+                settings,
+                "✅ Pydantic validation passed",
+            ),
         )
         .flat_map(validate_business_rules)
         .map(
             lambda settings: _report_step_success(
-                settings, "✅ Business rules validated"
-            )
+                settings,
+                "✅ Business rules validated",
+            ),
         )
         .flat_map(perform_connection_test)
         .map(
-            lambda settings: _report_step_success(settings, "✅ Connection test passed")
+            lambda settings: _report_step_success(
+                settings, "✅ Connection test passed"
+            ),
         )
         .map(_finish_database_config)
     )
@@ -109,7 +114,7 @@ def validate_required_fields(
     if missing:
         return r[t.JsonMapping].fail(f"Missing required fields: {missing}")
     normalized_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-        u.normalize_to_json_value(data)
+        u.normalize_to_json_value(data),
     )
     return r[t.JsonMapping].ok(normalized_data)
 
@@ -120,11 +125,12 @@ def convert_and_validate_with_pydantic(
     """Convert raw data to validated Pydantic model."""
     try:
         return r[m.Examples.AdvancedDatabaseConfig].ok(
-            m.Examples.AdvancedDatabaseConfig.model_validate(data)
+            m.Examples.AdvancedDatabaseConfig.model_validate(data),
         )
     except c.ValidationError as error:
         return r[m.Examples.AdvancedDatabaseConfig].fail(
-            f"Pydantic validation failed: {error}", exception=error
+            f"Pydantic validation failed: {error}",
+            exception=error,
         )
 
 
@@ -139,7 +145,7 @@ def validate_business_rules(
         and settings.host == "localhost"
     ):
         return r[m.Examples.AdvancedDatabaseConfig].fail(
-            "Localhost cannot handle large connection pools"
+            "Localhost cannot handle large connection pools",
         )
     return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
 

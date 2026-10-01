@@ -73,7 +73,7 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
                 status=c.Cli.PipelineStageStatus.OK,
                 output=output,
                 duration_ms=duration_ms,
-            )
+            ),
         )
 
     @classmethod
@@ -97,7 +97,7 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
                     if previous_stage_id is None
                     else (previous_stage_id,),
                     skip_if=skips.get(stage_id),
-                )
+                ),
             )
             previous_stage_id = stage_id
         return tuple(stage_list)

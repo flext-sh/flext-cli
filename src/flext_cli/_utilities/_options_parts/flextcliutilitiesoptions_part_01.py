@@ -57,7 +57,8 @@ class FlextCliUtilitiesOptions:
 
     @classmethod
     def resolve_typer_annotation(
-        cls, annotation: t.Cli.RuntimeAnnotation
+        cls,
+        annotation: t.Cli.RuntimeAnnotation,
     ) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer.
 
@@ -82,7 +83,7 @@ class FlextCliUtilitiesOptions:
                     get_origin(set[str]),
                     get_origin(frozenset[str]),
                 ],
-            )
+            ),
         )
         resolved_annotation_input = cls.unwrap_annotation(annotation)
         origin = get_origin(resolved_annotation_input)
@@ -123,7 +124,8 @@ class FlextCliUtilitiesOptions:
 
     @classmethod
     def normalize_cli_atom(
-        cls, value: t.Cli.CliDefaultSource
+        cls,
+        value: t.Cli.CliDefaultSource,
     ) -> t.Cli.DefaultAtom | None:
         """Normalize one runtime value into an allowed Typer scalar or string sequence."""
         if isinstance(value, c.Cli.CLI_SCALAR_TYPES_TUPLE):

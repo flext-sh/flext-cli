@@ -11,7 +11,8 @@ if TYPE_CHECKING:
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config, items: t.SequenceOf[pytest.Item]
+    config: pytest.Config,
+    items: t.SequenceOf[pytest.Item],
 ) -> None:
     """Modify test collection to add markers based on test names."""
     _ = config

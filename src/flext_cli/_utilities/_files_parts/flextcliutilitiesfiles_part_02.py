@@ -34,7 +34,8 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def atomic_write_text_file(
-        file_path: t.Cli.TextPath, content: str
+        file_path: t.Cli.TextPath,
+        content: str,
     ) -> p.Result[bool]:
         """Write a text file atomically via the shared byte primitive."""
         path = Path(file_path)
@@ -42,7 +43,7 @@ class FlextCliUtilitiesFiles:
             validate_atomic_path(path)
         except OSError as exc:
             return r[bool].fail(
-                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
             )
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
         if ensure_result.failure:
@@ -51,13 +52,14 @@ class FlextCliUtilitiesFiles:
             write_atomic_bytes(path, content.encode(c.Cli.ENCODING_DEFAULT))
         except OSError as exc:
             return r[bool].fail(
-                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
             )
         return r[bool].ok(True)
 
     @staticmethod
     def atomic_write_text_file_guarded(
-        before: m.Cli.AtomicFileState, content: str
+        before: m.Cli.AtomicFileState,
+        content: str,
     ) -> p.Result[bool]:
         """Publish under a lock after one complete physical-state precondition.
 
@@ -74,13 +76,16 @@ class FlextCliUtilitiesFiles:
             )
         except OSError as exc:
             return r[bool].fail(
-                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
             )
         return r[bool].ok(True)
 
     @staticmethod
     def atomic_write_binary_file_guarded(
-        before: m.Cli.AtomicFileState, data: bytes, *, permission_mode: int
+        before: m.Cli.AtomicFileState,
+        data: bytes,
+        *,
+        permission_mode: int,
     ) -> p.Result[bool]:
         """Publish bytes and mode from one complete physical-state precondition.
 
@@ -118,7 +123,8 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_copy(
-        source_path: t.Cli.TextPath, destination_path: t.Cli.TextPath
+        source_path: t.Cli.TextPath,
+        destination_path: t.Cli.TextPath,
     ) -> p.Result[bool]:
         """Copy one file preserving metadata."""
 
@@ -153,7 +159,9 @@ class FlextCliUtilitiesFiles:
             return True
 
         return FlextCliUtilitiesFiles.files_execute(
-            _run, error_template, **format_kwargs
+            _run,
+            error_template,
+            **format_kwargs,
         )
 
     @staticmethod

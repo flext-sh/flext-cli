@@ -54,7 +54,7 @@ class FlextCliUtilitiesFormatters:
         border = _PANEL_GLYPH * 4
         if title:
             FlextCliUtilitiesOutput.emit_raw(
-                f"{cls._styled(f'{border} {title} {border}', c.Cli.MessageStyles.BOLD)}\n"
+                f"{cls._styled(f'{border} {title} {border}', c.Cli.MessageStyles.BOLD)}\n",
             )
         else:
             FlextCliUtilitiesOutput.emit_raw(f"{border}\n")
@@ -67,7 +67,8 @@ class FlextCliUtilitiesFormatters:
         rendered = FlextCliUtilitiesTables.tables_render(
             request.rows,
             m.Cli.TableConfig(
-                headers=tuple(request.columns), title=request.title or None
+                headers=tuple(request.columns),
+                title=request.title or None,
             ),
         )
         FlextCliUtilitiesOutput.emit_raw(f"{rendered.unwrap()}\n")

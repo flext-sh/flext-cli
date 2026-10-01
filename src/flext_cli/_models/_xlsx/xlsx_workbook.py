@@ -22,21 +22,27 @@ class FlextCliModelsXlsxWorkbook:
     class XlsxSheetPlan(m.FrozenModel):
         name: Annotated[str, m.Field(min_length=1, description="Worksheet name.")]
         cells: t.VariadicTuple[FlextCliModelsXlsxCells.XlsxCellPlan] = m.Field(
-            default=(), strict=False, description="Concrete cell writes."
+            default=(),
+            strict=False,
+            description="Concrete cell writes.",
         )
         tables: t.VariadicTuple[FlextCliModelsXlsxTables.XlsxTablePlan] = m.Field(
-            default=(), strict=False, description="Concrete worksheet tables."
+            default=(),
+            strict=False,
+            description="Concrete worksheet tables.",
         )
         layout: FlextCliModelsXlsxLayout.XlsxSheetLayoutPlan = m.Field(
-            description="Worksheet layout operations."
+            description="Worksheet layout operations.",
         )
         rules: FlextCliModelsXlsxRules.XlsxSheetRulesPlan = m.Field(
-            description="Worksheet validation and protection operations."
+            description="Worksheet validation and protection operations.",
         )
 
     class XlsxWorkbookPlan(m.FrozenModel):
         sheets: t.VariadicTuple[FlextCliModelsXlsxWorkbook.XlsxSheetPlan] = m.Field(
-            min_length=1, strict=False, description="Exact worksheet order."
+            min_length=1,
+            strict=False,
+            description="Exact worksheet order.",
         )
         defined_names: t.VariadicTuple[FlextCliModelsXlsxTables.XlsxDefinedNamePlan] = (
             m.Field(default=(), strict=False, description="Workbook defined names.")
@@ -45,26 +51,29 @@ class FlextCliModelsXlsxWorkbook:
             m.Field(default=(), strict=False, description="Visual styles to register.")
         )
         full_calculation_on_load: bool = m.Field(
-            default=True, description="Require complete formula recalculation."
+            default=True,
+            description="Require complete formula recalculation.",
         )
 
     class XlsxRenderRequest(m.FrozenModel):
         template: (
             Annotated[
-                bytes, m.Field(min_length=1, description="Formatting template bytes.")
+                bytes,
+                m.Field(min_length=1, description="Formatting template bytes."),
             ]
             | None
         ) = m.Field(default=None, description="Optional source workbook.")
         plan: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan = m.Field(
-            description="Validated workbook plan."
+            description="Validated workbook plan.",
         )
 
     class XlsxRenderResult(m.FrozenModel):
         content: Annotated[
-            bytes, m.Field(min_length=1, description="Rendered workbook bytes.")
+            bytes,
+            m.Field(min_length=1, description="Rendered workbook bytes."),
         ]
         plan: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan = m.Field(
-            description="Exact source plan."
+            description="Exact source plan.",
         )
 
 

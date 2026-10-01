@@ -60,19 +60,23 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             for key in src:
                 if key in dst:
                     FlextCliUtilitiesYamlEditingMixin.yaml_deep_copy_comments(
-                        src[key], dst[key]
+                        src[key],
+                        dst[key],
                     )
         elif isinstance(src, CommentedSeq) and isinstance(dst, CommentedSeq):
             dst.ca.comment = src.ca.comment
             for index, item in enumerate(src):
                 if index < len(dst):
                     FlextCliUtilitiesYamlEditingMixin.yaml_deep_copy_comments(
-                        item, dst[index]
+                        item,
+                        dst[index],
                     )
 
     @staticmethod
     def yaml_copy_key_comment(
-        parent: CommentedMap, key: str, target: CommentedMap
+        parent: CommentedMap,
+        key: str,
+        target: CommentedMap,
     ) -> None:
         """Copy ruamel pre-key comments for one key between two maps."""
         if key in parent.ca.items:
@@ -112,13 +116,17 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
         return any(
             FlextCliUtilitiesYamlEditingMixin._yaml_comment_core(token.value) == wanted
             for token in FlextCliUtilitiesYamlEditingMixin.yaml_pre_key_tokens(
-                node, key
+                node,
+                key,
             )
         )
 
     @staticmethod
     def yaml_add_pre_key_comment(
-        node: CommentedMap, key: str, text: str, path: t.VariadicTuple[str] = ()
+        node: CommentedMap,
+        key: str,
+        text: str,
+        path: t.VariadicTuple[str] = (),
     ) -> None:
         """Insert one pre-key comment for a key. Idempotent for any input form."""
         if FlextCliUtilitiesYamlEditingMixin.yaml_has_key_comment(node, key, text):
@@ -145,7 +153,9 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
 
     @staticmethod
     def yaml_update_value_inplace(
-        node: CommentedMap, key: str, value: t.Cli.YamlValue
+        node: CommentedMap,
+        key: str,
+        value: t.Cli.YamlValue,
     ) -> None:
         """Update one key value, preserving its existing pre-key comments."""
         if isinstance(value, (dict, list)):
@@ -155,7 +165,8 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
 
     @staticmethod
     def yaml_overlay_preserving_order(
-        base: CommentedMap, overlay: Mapping[str, t.Cli.YamlValue] | CommentedMap
+        base: CommentedMap,
+        overlay: Mapping[str, t.Cli.YamlValue] | CommentedMap,
     ) -> None:
         """Overwrite *base* with *overlay*, preserving the original key order.
 
@@ -167,11 +178,14 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             if key in base:
                 if isinstance(base[key], CommentedMap) and isinstance(value, dict):
                     FlextCliUtilitiesYamlEditingMixin.yaml_overlay_preserving_order(
-                        base[key], value
+                        base[key],
+                        value,
                     )
                 else:
                     FlextCliUtilitiesYamlEditingMixin.yaml_update_value_inplace(
-                        base, key, value
+                        base,
+                        key,
+                        value,
                     )
             else:
                 new_keys.append((

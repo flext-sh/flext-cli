@@ -11,10 +11,9 @@ from typing import TYPE_CHECKING, Never
 
 import click
 import typer
+from pydantic import TypeAdapter
 from typer.models import OptionInfo
 from typer.testing import CliRunner
-
-from pydantic import TypeAdapter
 
 from flext_cli import c, e, r, t
 
@@ -61,7 +60,10 @@ class FlextCliUtilitiesFramework:
             return self._app.callback()
 
         def command[TCommand: Callable[..., t.JsonPayload]](
-            self, name: str | None = None, *, help_text: str | None = None
+            self,
+            name: str | None = None,
+            *,
+            help_text: str | None = None,
         ) -> Callable[[TCommand], TCommand]:
             """Return a typed command decorator through the neutral contract."""
             return self._app.command(name, help=help_text)
@@ -90,20 +92,25 @@ class FlextCliUtilitiesFramework:
         ) -> t.JsonPayload:
             """Execute and validate the backend command result at the boundary."""
             result = self._command.main(
-                args=args, prog_name=prog_name, standalone_mode=standalone_mode
+                args=args,
+                prog_name=prog_name,
+                standalone_mode=standalone_mode,
             )
             return t.Cli.JSON_VALUE_ADAPTER.validate_python(result)
 
     _active_execution: ContextVar[bool] = ContextVar(
-        "flext_cli_active_execution", default=False
+        "flext_cli_active_execution",
+        default=False,
     )
     _active_failure: ContextVar[p.Result[t.Cli.ResultValue] | None] = ContextVar(
-        "flext_cli_active_failure", default=None
+        "flext_cli_active_failure",
+        default=None,
     )
 
     @classmethod
     def framework_exit_result[TResult: t.Cli.ResultValue](
-        cls, result: p.Result[TResult]
+        cls,
+        result: p.Result[TResult],
     ) -> bool:
         """Exit with a captured Result, or report a direct framework invocation."""
         # NOTE (multi-agent): this outer framework boundary is the single point
@@ -140,7 +147,11 @@ class FlextCliUtilitiesFramework:
 
     @classmethod
     def framework_create_app(
-        cls, *, name: str | None, help_text: str, add_completion: bool = True
+        cls,
+        *,
+        name: str | None,
+        help_text: str,
+        add_completion: bool = True,
     ) -> p.Cli.Application:
         """Create one private Typer application behind the neutral protocol."""
         return FlextCliUtilitiesFramework.TyperApplication(
@@ -150,14 +161,20 @@ class FlextCliUtilitiesFramework:
 
     @classmethod
     def framework_add_group(
-        cls, application: p.Cli.Application, *, name: str, group: p.Cli.Application
+        cls,
+        application: p.Cli.Application,
+        *,
+        name: str,
+        group: p.Cli.Application,
     ) -> None:
         """Attach one private application group."""
         cls._unwrap(application).add_typer(group, name=name)
 
     @classmethod
     def framework_register_callback(
-        cls, application: p.Cli.Application, callback: t.Cli.CliCommand
+        cls,
+        application: p.Cli.Application,
+        callback: t.Cli.CliCommand,
     ) -> None:
         """Register one application callback."""
         _ = cls._unwrap(application).callback()(callback)
@@ -235,7 +252,9 @@ class FlextCliUtilitiesFramework:
         try:
             sys.argv = [prog_name, *cli_args]
             exit_result = command.main(
-                args=cli_args, prog_name=prog_name, standalone_mode=False
+                args=cli_args,
+                prog_name=prog_name,
+                standalone_mode=False,
             )
         # typer vendors its own click, so a usage error raised while resolving a
         # command is typer._click.exceptions.UsageError -- a DIFFERENT class from
@@ -303,11 +322,12 @@ class FlextCliUtilitiesFramework:
 
     @classmethod
     def framework_external_command(
-        cls, application: p.Cli.Application
+        cls,
+        application: p.Cli.Application,
     ) -> p.Cli.ExternalCommand:
         """Expose an adapter-owned application through the command protocol."""
         return FlextCliUtilitiesFramework.ClickCommand(
-            typer.main.get_command(cls._unwrap(application).backend)
+            typer.main.get_command(cls._unwrap(application).backend),
         )
 
     @classmethod
@@ -340,14 +360,17 @@ class FlextCliUtilitiesFramework:
         runner = CliRunner(charset=charset, env=runner_env)
         private_application = cls._unwrap(application)
         result = runner.invoke(
-            private_application.backend, args=list(args) if args is not None else None
+            private_application.backend,
+            args=list(args) if args is not None else None,
         )
         return m.Cli.InvocationResult(
             exit_code=result.exit_code,
             stdout=result.stdout,
             stderr=result.stderr,
             outcome=m.Cli.ProcessOutcome(
-                raw_return_code=result.exit_code, timed_out=False, forwarded_signal=None
+                raw_return_code=result.exit_code,
+                timed_out=False,
+                forwarded_signal=None,
             ),
         )
 

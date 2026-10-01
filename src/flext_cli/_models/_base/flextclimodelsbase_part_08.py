@@ -18,17 +18,22 @@ class FlextCliModelsBase:
         """Exact existing anchor plus contiguous directories observed absent."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", frozen=True, arbitrary_types_allowed=True
+            extra="forbid",
+            frozen=True,
+            arbitrary_types_allowed=True,
         )
         target: Annotated[Path, m.Field(description="Requested directory path")]
         anchor_path: Annotated[
-            Path, m.Field(description="Deepest physical existing ancestor")
+            Path,
+            m.Field(description="Deepest physical existing ancestor"),
         ]
         anchor_device: Annotated[
-            int, m.Field(ge=0, strict=True, description="Anchor device")
+            int,
+            m.Field(ge=0, strict=True, description="Anchor device"),
         ]
         anchor_inode: Annotated[
-            int, m.Field(ge=0, strict=True, description="Anchor inode")
+            int,
+            m.Field(ge=0, strict=True, description="Anchor inode"),
         ]
         anchor_ancestry: Annotated[
             t.VariadicTuple[t.Pair[int, int]],
@@ -43,17 +48,21 @@ class FlextCliModelsBase:
         @classmethod
         def _validate_paths(cls, value: Path) -> Path:
             return atomic_state.validate_atomic_state_path(
-                value, label="atomic directory-chain", allow_root=True
+                value,
+                label="atomic directory-chain",
+                allow_root=True,
             )
 
         @u.field_validator("directories")
         @classmethod
         def _validate_directories(
-            cls, value: t.VariadicTuple[Path]
+            cls,
+            value: t.VariadicTuple[Path],
         ) -> t.VariadicTuple[Path]:
             return tuple(
                 atomic_state.validate_atomic_state_path(
-                    path, label="atomic directory-chain entry"
+                    path,
+                    label="atomic directory-chain entry",
                 )
                 for path in value
             )

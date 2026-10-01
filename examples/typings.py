@@ -20,7 +20,7 @@ class ExamplesFlextCliTypes(t):
     type DataProcessor = Callable[[str], str]
     type ProcessorRegistry = t.MappingKV[str, DataProcessor]
     JSON_DICT_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = m.TypeAdapter(
-        t.JsonMapping
+        t.JsonMapping,
     )
 
 

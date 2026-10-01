@@ -27,7 +27,9 @@ class TestsFlextCliPipeline:
         ) -> p.Result[m.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
-                stage_id, output={output_key: stage_id}, duration_ms=1.0
+                stage_id,
+                output={output_key: stage_id},
+                duration_ms=1.0,
             )
 
         return handler
@@ -75,7 +77,8 @@ class TestsFlextCliPipeline:
             return handler
 
         stages = cli.linear_pipeline(
-            ("a", "b"), {"a": tracking_handler("a"), "b": tracking_handler("b")}
+            ("a", "b"),
+            {"a": tracking_handler("a"), "b": tracking_handler("b")},
         )
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
@@ -121,7 +124,7 @@ class TestsFlextCliPipeline:
                 "skippable",
                 handler=self._ok_handler("skippable"),
                 skip_if=self._skip_always,
-            )
+            ),
         ]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)

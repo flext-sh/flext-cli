@@ -80,7 +80,9 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
 
     @classmethod
     def _discard_uncontained_process(
-        cls, process: p.Cli.ProcessHandle, job_handle: int
+        cls,
+        process: p.Cli.ProcessHandle,
+        job_handle: int,
     ) -> None:
         _ = cls._signal_process_tree(process, signal.SIGKILL, job_handle, force=True)
         process.wait()

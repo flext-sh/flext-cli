@@ -29,7 +29,8 @@ class TestsFlextCliDataReport:
     def test_report_emit_json_returns_success(self) -> None:
         """Emitting the typed report as JSON returns the success boundary."""
         emitted = u.Cli.report_emit(
-            m.Cli.DataReportRequest(columns=("a",), rows=[["b"]]), json_output=True
+            m.Cli.DataReportRequest(columns=("a",), rows=[["b"]]),
+            json_output=True,
         )
         assert emitted.success
 

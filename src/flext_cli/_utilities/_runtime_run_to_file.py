@@ -11,7 +11,7 @@ from ._runtime_process_execution import FlextCliUtilitiesRuntimeProcessExecution
 
 
 class FlextCliUtilitiesRuntimeRunToFileMixin(
-    FlextCliUtilitiesRuntimeProcessExecutionMixin
+    FlextCliUtilitiesRuntimeProcessExecutionMixin,
 ):
     """Validate and dispatch one portable streamed process lifecycle."""
 
@@ -19,7 +19,8 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
 
         @staticmethod
         def _resolved_env(
-            env: t.StrMapping | None, remove_env_keys: t.StrSequence = ()
+            env: t.StrMapping | None,
+            remove_env_keys: t.StrSequence = (),
         ) -> dict[str, str] | None: ...
 
     @classmethod

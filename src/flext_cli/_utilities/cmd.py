@@ -38,7 +38,7 @@ class FlextCliUtilitiesCmd:
         info_result = FlextCliUtilitiesCmd.cmd_settings_snapshot()
         if info_result.failure:
             return r[bool].fail(
-                c.Cli.ERR_SHOW_SETTINGS_FAILED.format(error=info_result.error)
+                c.Cli.ERR_SHOW_SETTINGS_FAILED.format(error=info_result.error),
             )
         logger.info(
             c.Cli.LOG_MSG_SETTINGS_DISPLAYED,
@@ -52,7 +52,7 @@ class FlextCliUtilitiesCmd:
         results = us.validate_settings_structure()
         if results:
             logger.info(
-                c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results)
+                c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results),
             )
         return r[bool].ok(True)
 

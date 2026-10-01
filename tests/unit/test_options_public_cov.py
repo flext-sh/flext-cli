@@ -32,14 +32,17 @@ class TestsFlextCliOptions:
         [(str | None, str), (str | int, str), (dict[str, int], str), (int, int)],
     )
     def test_resolve_typer_annotation_maps_scalars_unions_and_collections(
-        self, annotation: t.Cli.RuntimeAnnotation, expected: type
+        self,
+        annotation: t.Cli.RuntimeAnnotation,
+        expected: type,
     ) -> None:
         """Verify that resolve typer annotation maps scalars unions and collections."""
         tm.that(u.Cli.resolve_typer_annotation(annotation) is expected, eq=True)
 
     @pytest.mark.parametrize("annotation", [t.StrSequence, set[str], frozenset[str]])
     def test_resolve_typer_annotation_maps_string_collections_to_list_of_str(
-        self, annotation: t.Cli.RuntimeAnnotation
+        self,
+        annotation: t.Cli.RuntimeAnnotation,
     ) -> None:
         """String sequences and sets become repeated options typed ``list[str]``."""
         tm.that(u.Cli.resolve_typer_annotation(annotation), eq=list[str])
@@ -58,7 +61,9 @@ class TestsFlextCliOptions:
         ],
     )
     def test_normalize_cli_atom_returns_typer_ready_value_or_none(
-        self, value: t.Cli.CliDefaultSource, expected: t.Cli.DefaultAtom | None
+        self,
+        value: t.Cli.CliDefaultSource,
+        expected: t.Cli.DefaultAtom | None,
     ) -> None:
         """Verify that normalize cli atom returns typer ready value or none."""
         tm.that(u.Cli.normalize_cli_atom(value), eq=expected)
@@ -76,7 +81,10 @@ class TestsFlextCliOptions:
         ],
     )
     def test_is_string_sequence_recognizes_only_str_sequences(
-        self, value: t.Cli.CliDefaultSource, *, expected: bool
+        self,
+        value: t.Cli.CliDefaultSource,
+        *,
+        expected: bool,
     ) -> None:
         """Verify that is string sequence recognizes only str sequences."""
         tm.that(u.Cli.is_string_sequence(value) is expected, eq=True)
@@ -162,12 +170,15 @@ class TestsFlextCliOptions:
 
     @pytest.mark.parametrize("args", [["check", "--all"], []])
     def test_reorder_prefixed_options_is_identity_without_leading_prefixes(
-        self, args: t.SequenceOf[str]
+        self,
+        args: t.SequenceOf[str],
     ) -> None:
         """Verify that reorder prefixed options is identity without leading prefixes."""
         tm.that(
             u.Cli.reorder_prefixed_options(
-                args, bool_options=("--debug",), value_options=("--log-level",)
+                args,
+                bool_options=("--debug",),
+                value_options=("--log-level",),
             )
             == args,
             eq=True,
@@ -181,7 +192,9 @@ class TestsFlextCliOptions:
             value_options=("--log-level",),
         )
         twice = u.Cli.reorder_prefixed_options(
-            once, bool_options=("--debug",), value_options=("--log-level",)
+            once,
+            bool_options=("--debug",),
+            value_options=("--log-level",),
         )
 
         tm.that(once, eq=twice)

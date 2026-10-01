@@ -53,7 +53,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
         if mode == "hash":
             return r[bool].ok(
                 FlextCliUtilitiesFiles.sha256_file(file1)
-                == FlextCliUtilitiesFiles.sha256_file(file2)
+                == FlextCliUtilitiesFiles.sha256_file(file2),
             )
         if mode == "lines":
             try:
@@ -85,7 +85,10 @@ class FlextCliUtilitiesFileTestHelpersMixin:
 
     @staticmethod
     def files_info(
-        path: Path, *, compute_hash: bool = False, parse_content: bool = False
+        path: Path,
+        *,
+        compute_hash: bool = False,
+        parse_content: bool = False,
     ) -> p.Result[Mapping[str, object]]:
         """Return generic file metadata.
 
@@ -118,7 +121,8 @@ class FlextCliUtilitiesFileTestHelpersMixin:
         if parse_content and path.is_file():
             parsed_result = (
                 FlextCliUtilitiesFileTestHelpersMixinPart04.files_parse_content(
-                    path, str(info["format"])
+                    path,
+                    str(info["format"]),
                 )
             )
             info["parsed"] = parsed_result

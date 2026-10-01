@@ -23,14 +23,20 @@ class FlextCliProtocolsFramework:
             ...
 
         def command[TCommand: Callable[..., t.JsonPayload]](
-            self, name: str | None = None, *, help_text: str | None = None
+            self,
+            name: str | None = None,
+            *,
+            help_text: str | None = None,
         ) -> Callable[[TCommand], TCommand]:
             """Return a named command decorator."""
             ...
 
         # mro-j47u (codex): match the sole adapter and mandatory named-group API.
         def add_typer(
-            self, group: FlextCliProtocolsFramework.Application, *, name: str
+            self,
+            group: FlextCliProtocolsFramework.Application,
+            *,
+            name: str,
         ) -> None:
             """Attach a child application under ``name``."""
             ...

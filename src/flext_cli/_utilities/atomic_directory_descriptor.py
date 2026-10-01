@@ -85,7 +85,8 @@ def rename_entry_noreplace(
 
 
 def _require_dir_fd(
-    path: Path, operations: t.VariadicTuple[t.Pair[str, t.Cli.DirFdOperation]]
+    path: Path,
+    operations: t.VariadicTuple[t.Pair[str, t.Cli.DirFdOperation]],
 ) -> None:
     missing = [
         name for name, operation in operations if operation not in os.supports_dir_fd

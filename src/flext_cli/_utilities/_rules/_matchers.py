@@ -40,7 +40,10 @@ class FlextCliUtilitiesRulesMatchersMixin:
 
     @staticmethod
     def rules_resolve_directory(
-        config_path: Path, *, package_rules_dir: Path, rules_dir_name: str
+        config_path: Path,
+        *,
+        package_rules_dir: Path,
+        rules_dir_name: str,
     ) -> Path:
         """Prefer a local rules directory, else fall back to the packaged one."""
         local_rules_dir = config_path.parent / rules_dir_name
@@ -50,7 +53,9 @@ class FlextCliUtilitiesRulesMatchersMixin:
 
     @staticmethod
     def rules_match_catalog_entry[TKind](
-        action_name: str, check_name: str, rule_catalog: t.Cli.RuleCatalog[TKind] | None
+        action_name: str,
+        check_name: str,
+        rule_catalog: t.Cli.RuleCatalog[TKind] | None,
     ) -> t.Pair[TKind, t.Cli.RuleMatcher] | None:
         """Find the catalog kind whose matcher covers the action/check name."""
         if rule_catalog is None:
@@ -66,7 +71,10 @@ class FlextCliUtilitiesRulesMatchersMixin:
 
     @staticmethod
     def rules_validate_matcher(
-        rule_def: t.JsonMapping, matcher: t.Cli.RuleMatcher, *, rule_id_key: str
+        rule_def: t.JsonMapping,
+        matcher: t.Cli.RuleMatcher,
+        *,
+        rule_id_key: str,
     ) -> str | None:
         """Validate one rule definition against a matcher's required shape."""
         rule_id = uj.json_get_str_key(rule_def, rule_id_key)

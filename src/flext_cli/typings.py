@@ -14,7 +14,10 @@ class FlextCliTypes(FlextTypes):
     """CLI type definitions extending flext-core FlextTypes via inheritance."""
 
     class Cli(
-        FlextCliTypesPipeline, FlextCliTypesDomain, FlextCliTypesBase, FlextCliTypesXlsx
+        FlextCliTypesPipeline,
+        FlextCliTypesDomain,
+        FlextCliTypesBase,
+        FlextCliTypesXlsx,
     ):
         """CLI types namespace for cross-project access."""
 

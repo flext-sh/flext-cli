@@ -97,7 +97,7 @@ class FlextCliUtilitiesYamlConvertMixin:
             node = CommentedMap()
             for key, value in data.items():
                 node[key] = FlextCliUtilitiesYamlConvertMixin.yaml_deep_to_commented(
-                    value
+                    value,
                 )
             return node
         if FlextCliUtilitiesYamlConvertMixin.yaml_is_sequence(data):
@@ -179,7 +179,8 @@ class FlextCliUtilitiesYamlConvertMixin:
         if value is None:
             return None
         if isinstance(
-            value, Mapping
+            value,
+            Mapping,
         ) or FlextCliUtilitiesYamlConvertMixin.yaml_is_sequence(value):
             return FlextCliUtilitiesYamlConvertMixin.yaml_deep_to_commented(value)
         msg = f"unsupported YAML root type: {type(value).__name__}"

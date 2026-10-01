@@ -32,7 +32,7 @@ def test_xlsx_inspect_reports_policy_violations_without_extracting() -> None:
                 reject_defined_names=True,
                 reject_style_protection=True,
             ),
-        )
+        ),
     )
 
     tm.that(result.success, eq=True)
@@ -47,8 +47,9 @@ def test_xlsx_inspect_rejects_invalid_archive_bytes() -> None:
     """Malformed bytes fail instead of yielding a synthetic inventory."""
     result = cli.xlsx_inspect(
         m.Cli.XlsxArchiveInspectionRequest(
-            source=b"not-an-xlsx", policy=m.Cli.XlsxArchivePolicy()
-        )
+            source=b"not-an-xlsx",
+            policy=m.Cli.XlsxArchivePolicy(),
+        ),
     )
 
     tm.that(result.failure, eq=True)

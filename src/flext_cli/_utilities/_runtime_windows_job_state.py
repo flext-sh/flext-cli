@@ -38,7 +38,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStateMixin:
             ]
 
         kernel32 = getattr(ctypes, "WinDLL", ctypes.CDLL)(
-            "kernel32", use_last_error=True
+            "kernel32",
+            use_last_error=True,
         )
         query_job = kernel32.QueryInformationJobObject
         query_job.argtypes = (
@@ -64,14 +65,16 @@ class FlextCliUtilitiesRuntimeWindowsJobStateMixin:
             return cls._windows_job_terminate_native(job_handle, exit_code)
         except (OSError, TypeError, ValueError) as exc:
             return r[str].fail(
-                f"Windows Job Object termination error: {exc}", exception=exc
+                f"Windows Job Object termination error: {exc}",
+                exception=exc,
             ).error or str(exc)
 
     @staticmethod
     def _windows_job_terminate_native(job_handle: int, exit_code: int) -> str | None:
 
         kernel32 = getattr(ctypes, "WinDLL", ctypes.CDLL)(
-            "kernel32", use_last_error=True
+            "kernel32",
+            use_last_error=True,
         )
         terminate_job = kernel32.TerminateJobObject
         terminate_job.argtypes = (wintypes.HANDLE, wintypes.UINT)
@@ -90,14 +93,16 @@ class FlextCliUtilitiesRuntimeWindowsJobStateMixin:
             return cls._windows_job_close_native(job_handle)
         except (OSError, TypeError, ValueError) as exc:
             return r[str].fail(
-                f"Windows Job Object close error: {exc}", exception=exc
+                f"Windows Job Object close error: {exc}",
+                exception=exc,
             ).error or str(exc)
 
     @staticmethod
     def _windows_job_close_native(job_handle: int) -> str | None:
 
         kernel32 = getattr(ctypes, "WinDLL", ctypes.CDLL)(
-            "kernel32", use_last_error=True
+            "kernel32",
+            use_last_error=True,
         )
         close_handle = kernel32.CloseHandle
         close_handle.argtypes = (wintypes.HANDLE,)

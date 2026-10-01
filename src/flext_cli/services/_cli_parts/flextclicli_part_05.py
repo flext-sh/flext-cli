@@ -41,7 +41,10 @@ class FlextCliCli(FlextCliCliPart04):
         cls.register_callback(
             app,
             command=cls.model_command(
-                model_cls, execute, settings=settings, result_border=True
+                model_cls,
+                execute,
+                settings=settings,
+                result_border=True,
             ),
         )
 
@@ -72,7 +75,10 @@ class FlextCliCli(FlextCliCliPart04):
             name=name,
             help_text=help_text,
             command=cls.model_command(
-                model_cls, execute, settings=settings, result_border=True
+                model_cls,
+                execute,
+                settings=settings,
+                result_border=True,
             ),
         )
 
@@ -105,7 +111,10 @@ class FlextCliCli(FlextCliCliPart04):
 
     @classmethod
     def register_result_route(
-        cls, app: p.Cli.Application, *, route: p.Cli.ResultCommandRoute
+        cls,
+        app: p.Cli.Application,
+        *,
+        route: p.Cli.ResultCommandRoute,
     ) -> None:
         """Register a declarative result route on a Typer app."""
 
@@ -128,7 +137,9 @@ class FlextCliCli(FlextCliCliPart04):
 
     @classmethod
     def register_result_routes(
-        cls, app: p.Cli.Application, routes: t.SequenceOf[p.Cli.ResultCommandRoute]
+        cls,
+        app: p.Cli.Application,
+        routes: t.SequenceOf[p.Cli.ResultCommandRoute],
     ) -> None:
         """Register multiple heterogeneous result routes in one call."""
         for route in routes:
@@ -136,7 +147,9 @@ class FlextCliCli(FlextCliCliPart04):
 
     @staticmethod
     def finalize_result[TResult: t.Cli.ResultValue](
-        result: p.Result[TResult], *, failure_exit_code: int = c.Cli.EXIT_CODE_FAILURE
+        result: p.Result[TResult],
+        *,
+        failure_exit_code: int = c.Cli.EXIT_CODE_FAILURE,
     ) -> int:
         """Finalize one public CLI Result into output/logging and an exit code."""
         if result.success:

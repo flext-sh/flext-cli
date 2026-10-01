@@ -71,26 +71,26 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
                 cls._inline_formula(plan.source.values)
                 if plan.source.kind == "values"
                 else FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                    plan.source.expression
+                    plan.source.expression,
                 )
             )
         elif plan.kind == "custom":
             formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                plan.expression
+                plan.expression,
             )
         else:
             comparison = plan.comparison
             operator = cls._comparison_operator(comparison.mode)
             if isinstance(comparison, m.Cli.XlsxRangeComparison):
                 formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                    comparison.minimum
+                    comparison.minimum,
                 )
                 formula2 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                    comparison.maximum
+                    comparison.maximum,
                 )
             else:
                 formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                    comparison.expression
+                    comparison.expression,
                 )
         return DataValidation(
             type=cls._validation_type(plan.kind),
@@ -110,7 +110,9 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
 
     @classmethod
     def _apply_validations(
-        cls, worksheet: Worksheet, plans: t.VariadicTuple[m.Cli.XlsxDataValidationPlan]
+        cls,
+        worksheet: Worksheet,
+        plans: t.VariadicTuple[m.Cli.XlsxDataValidationPlan],
     ) -> p.Result[bool]:
         try:
             for plan in plans:

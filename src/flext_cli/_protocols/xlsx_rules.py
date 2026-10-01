@@ -20,7 +20,9 @@ class FlextCliProtocolsXlsxRules:
     @runtime_checkable
     class XlsxConditionalFormatting(Protocol):
         def add(
-            self, cell_range: str, rule: FlextCliProtocolsXlsxRules.XlsxRule
+            self,
+            cell_range: str,
+            rule: FlextCliProtocolsXlsxRules.XlsxRule,
         ) -> None: ...
 
     @runtime_checkable

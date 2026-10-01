@@ -48,7 +48,8 @@ class FlextCliUtilitiesToml:
         doc = FlextCliUtilitiesToml.toml_read(path)
         if doc is None:
             return e.fail_validation(
-                f"TOML parse failed for: {path}", result_type=r[TOMLDocument]
+                f"TOML parse failed for: {path}",
+                result_type=r[TOMLDocument],
             )
         return r[TOMLDocument].ok(doc)
 
@@ -57,7 +58,9 @@ class FlextCliUtilitiesToml:
         """Read TOML and return the unwrapped root table as ``JsonMapping``."""
         if not path.exists():
             return e.fail_not_found(
-                "TOML file", str(path), result_type=r[t.JsonMapping]
+                "TOML file",
+                str(path),
+                result_type=r[t.JsonMapping],
             )
         try:
             original_rendered = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
@@ -66,7 +69,8 @@ class FlextCliUtilitiesToml:
         mapping = FlextCliUtilitiesTomlPart01.toml_mapping_from_text(original_rendered)
         if mapping is None:
             return e.fail_validation(
-                f"TOML parse failed for: {path}", result_type=r[t.JsonMapping]
+                f"TOML parse failed for: {path}",
+                result_type=r[t.JsonMapping],
             )
         return r[t.JsonMapping].ok(mapping)
 
@@ -100,9 +104,9 @@ class FlextCliUtilitiesToml:
                     if ur.process_succeeded(output.outcome)
                     else r[bool].fail(
                         (output.stderr or output.stdout).strip()
-                        or f"taplo format failed: {path}"
+                        or f"taplo format failed: {path}",
                     )
-                )
+                ),
             )
         )
 

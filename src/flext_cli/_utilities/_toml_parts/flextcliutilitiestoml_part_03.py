@@ -23,7 +23,8 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_table_path(
-        parent: TOMLDocument | Table, path: t.StrSequence
+        parent: TOMLDocument | Table,
+        path: t.StrSequence,
     ) -> Table | None:
         """Return a nested table path without creating missing tables."""
         current: TOMLDocument | Table = parent
@@ -75,7 +76,8 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_ensure_path(
-        parent: t.MutableJsonMapping, path: t.StrSequence
+        parent: t.MutableJsonMapping,
+        path: t.StrSequence,
     ) -> t.MutableJsonMapping:
         """Return one nested mutable mapping path, creating tables as needed."""
         current = parent
@@ -85,7 +87,8 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_path(
-        parent: t.JsonMapping, path: t.StrSequence
+        parent: t.JsonMapping,
+        path: t.StrSequence,
     ) -> t.MutableJsonMapping | None:
         """Return one nested mutable mapping path without creating missing tables."""
         if not isinstance(parent, MutableMapping):

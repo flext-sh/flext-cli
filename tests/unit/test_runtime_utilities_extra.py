@@ -32,12 +32,17 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         ],
     )
     def test_command_output_exposes_constructor_values_via_public_state(
-        self, stdout: str, stderr: str, exit_code: int
+        self,
+        stdout: str,
+        stderr: str,
+        exit_code: int,
     ) -> None:
         # Arrange / Act
         """Verify that command output exposes constructor values via public state."""
         outcome = m.Cli.ProcessOutcome(
-            raw_return_code=exit_code, timed_out=False, forwarded_signal=None
+            raw_return_code=exit_code,
+            timed_out=False,
+            forwarded_signal=None,
         )
         output = m.Cli.CommandOutput(stdout=stdout, stderr=stderr, outcome=outcome)
 
@@ -88,7 +93,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.that(output_file.read_text(), has="hello")
 
     def test_run_to_file_returns_nonzero_returncode_as_success(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         # Arrange
         """Verify that run to file returns nonzero returncode as success."""
@@ -103,7 +109,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.that(output_file.exists(), eq=True)
 
     def test_run_to_file_creates_missing_parent_directories(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         # Arrange — nested path whose parents do not yet exist
         """Verify that run to file creates missing parent directories."""
@@ -118,7 +125,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.that(output_file.read_text(), has="nested")
 
     def test_run_to_file_fails_with_timeout_error_on_slow_command(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         # Arrange
         """Verify that run to file fails with timeout error on slow command."""
@@ -132,7 +140,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.that(result.value.timed_out, eq=True)
 
     def test_run_to_file_fails_with_execution_error_on_unwritable_target(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         # Arrange — read-only directory makes opening the output file fail
         """Verify that run to file fails with execution error on unwritable target."""
@@ -152,7 +161,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
             readonly_dir.chmod(0o755)
 
     def test_run_to_file_fails_with_execution_error_on_invalid_env(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         # Arrange — NUL byte in an env value raises ValueError inside subprocess
         """Verify that run to file fails with execution error on invalid env."""

@@ -27,7 +27,7 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
             "timeout": c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS,
         }
         return r[m.Examples.MyAppSettings].ok(
-            m.Examples.MyAppSettings.model_validate(settings_payload)
+            m.Examples.MyAppSettings.model_validate(settings_payload),
         )
 
     @staticmethod
@@ -39,9 +39,10 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
         with TemporaryDirectory(prefix=f"{c.EXAMPLE_DEFAULT_TEMP_SUBDIR}-") as temp_dir:
             config_path = Path(temp_dir) / "settings.json"
             return cli.write_json_file(
-                str(config_path), wrapped_config.model_dump(mode="json")
+                str(config_path),
+                wrapped_config.model_dump(mode="json"),
             ).flat_map(
-                lambda _: cli.read_json_model(str(config_path), m.Cli.LoadedConfig)
+                lambda _: cli.read_json_model(str(config_path), m.Cli.LoadedConfig),
             )
 
     @override
@@ -67,7 +68,8 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
             return r[t.JsonMapping].from_failure(settings_result)
 
         cli.print(
-            "\n2. Pydantic 2 models via m.Examples", style=c.Cli.MessageStyles.BOLD_CYAN
+            "\n2. Pydantic 2 models via m.Examples",
+            style=c.Cli.MessageStyles.BOLD_CYAN,
         )
         app_settings = settings_result.value
         app_settings.display(cli)
@@ -77,7 +79,8 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
             return r[t.JsonMapping].from_failure(loaded_result)
 
         cli.print(
-            "\n3. Public cli facade round-trip", style=c.Cli.MessageStyles.BOLD_CYAN
+            "\n3. Public cli facade round-trip",
+            style=c.Cli.MessageStyles.BOLD_CYAN,
         )
         loaded_config = loaded_result.value
         roundtrip_summary = m.Cli.DisplayData(
@@ -86,10 +89,11 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
                 "api_key_present": str(bool(loaded_config.content.get("api_key"))),
                 "max_workers": str(loaded_config.content.get("max_workers")),
                 "timeout": str(loaded_config.content.get("timeout")),
-            }
+            },
         )
         u.display_config_table(
-            roundtrip_summary, headers=c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE
+            roundtrip_summary,
+            headers=c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE,
         )
 
         cli.print("\n4. Railway result ergonomics", style=c.Cli.MessageStyles.BOLD_CYAN)

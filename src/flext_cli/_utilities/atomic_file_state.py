@@ -17,7 +17,9 @@ from . import (
 
 
 def destination_state(
-    path: Path, *, parent: file_descriptor.ParentDescriptor | None = None
+    path: Path,
+    *,
+    parent: file_descriptor.ParentDescriptor | None = None,
 ) -> os.stat_result | None:
     """Return an authorized destination snapshot without following links."""
     if parent is None:
@@ -100,7 +102,7 @@ def assert_destination_unchanged(
             message = f"atomic destination appeared during write: {path}"
             raise FileExistsError(errno.EEXIST, message, path)
     elif current is None or file_read.state_key(current) != file_read.state_key(
-        expected
+        expected,
     ):
         message = f"atomic destination changed during write: {path}"
         raise OSError(errno.ESTALE, message, path)

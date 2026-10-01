@@ -32,7 +32,10 @@ class TestsFlextCliFormattersCov:
 
     @pytest.mark.parametrize(("msg", "style"), c.Tests.FORMATTERS_PRINT_CASES)
     def test_print_renders_message_to_stdout(
-        self, capsys: pytest.CaptureFixture[str], msg: str, style: str | None
+        self,
+        capsys: pytest.CaptureFixture[str],
+        msg: str,
+        style: str | None,
     ) -> None:
         """Verify that print renders message to stdout."""
         if style is not None:
@@ -44,7 +47,8 @@ class TestsFlextCliFormattersCov:
         tm.that(out, has=msg)
 
     def test_public_cli_print_renders_message_to_stdout(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify the canonical public cli.print endpoint."""
         cli.print("public-cli-print")
@@ -55,7 +59,9 @@ class TestsFlextCliFormattersCov:
 
     @pytest.mark.parametrize("label", c.Tests.FORMATTER_RULE_LABELS)
     def test_render_rule_renders_label_to_stdout(
-        self, capsys: pytest.CaptureFixture[str], label: str
+        self,
+        capsys: pytest.CaptureFixture[str],
+        label: str,
     ) -> None:
         """Verify that render rule renders label to stdout."""
         cli.render_rule(label)
@@ -69,7 +75,10 @@ class TestsFlextCliFormattersCov:
 
     @pytest.mark.parametrize(("content", "title"), c.Tests.FORMATTER_PANEL_CASES)
     def test_render_panel_renders_content_to_stdout(
-        self, capsys: pytest.CaptureFixture[str], content: str, title: str
+        self,
+        capsys: pytest.CaptureFixture[str],
+        content: str,
+        title: str,
     ) -> None:
         """Verify that render panel renders content to stdout."""
         cli.render_panel(content, title=title)
@@ -80,7 +89,8 @@ class TestsFlextCliFormattersCov:
     # ── render_table: columns and cells rendered to stdout ───────────
 
     @pytest.mark.parametrize(
-        ("columns", "rows", "title"), c.Tests.FORMATTER_TABLE_CASES
+        ("columns", "rows", "title"),
+        c.Tests.FORMATTER_TABLE_CASES,
     )
     def test_render_table_renders_columns_and_cells(
         self,
@@ -91,7 +101,9 @@ class TestsFlextCliFormattersCov:
     ) -> None:
         """Verify that render table renders columns and cells."""
         cli.render_table(
-            columns=list(columns), rows=[list(row) for row in rows], title=title
+            columns=list(columns),
+            rows=[list(row) for row in rows],
+            title=title,
         )
 
         out = capsys.readouterr().out

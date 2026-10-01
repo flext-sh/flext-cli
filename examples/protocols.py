@@ -29,13 +29,17 @@ class ExamplesFlextCliProtocols(FlextCliProtocols):
         """
 
         def command(
-            self, *args: str, **kwargs: str
+            self,
+            *args: str,
+            **kwargs: str,
         ) -> Callable[[Callable[..., None]], Callable[..., None]]:
             """Create a command decorator."""
             ...
 
         def group(
-            self, *args: str, **kwargs: str
+            self,
+            *args: str,
+            **kwargs: str,
         ) -> Callable[[Callable[..., None]], Callable[..., None]]:
             """Create a command group decorator."""
             ...
@@ -56,7 +60,9 @@ class ExamplesFlextCliProtocols(FlextCliProtocols):
         """
 
         def command(
-            self, *args: str, **kwargs: str
+            self,
+            *args: str,
+            **kwargs: str,
         ) -> Callable[[Callable[..., None]], Callable[..., None]]:
             """Create a command decorator."""
             ...

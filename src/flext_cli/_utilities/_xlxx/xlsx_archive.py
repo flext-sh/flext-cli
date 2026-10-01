@@ -17,7 +17,9 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
     # this private adapter; consumers receive immutable inspection models.
     @classmethod
     def _inventory(
-        cls, archive: p.Cli.XlsxArchiveReader, policy: m.Cli.XlsxArchivePolicy
+        cls,
+        archive: p.Cli.XlsxArchiveReader,
+        policy: m.Cli.XlsxArchivePolicy,
     ) -> m.Cli.XlsxArchiveInventory:
         members: t.VariadicTuple[str] = ()
         blocked: frozenset[str] = frozenset()
@@ -70,7 +72,9 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
 
     @classmethod
     def _inspect_archive(
-        cls, archive: p.Cli.XlsxArchiveReader, policy: m.Cli.XlsxArchivePolicy
+        cls,
+        archive: p.Cli.XlsxArchiveReader,
+        policy: m.Cli.XlsxArchivePolicy,
     ) -> p.Result[m.Cli.XlsxArchiveInspection]:
         inventory = cls._inventory(archive, policy)
         violations = inventory.violations
@@ -80,7 +84,9 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
             violations = (
                 *violations,
                 cls._violation(
-                    "required_member", workbook_member, "required OOXML member"
+                    "required_member",
+                    workbook_member,
+                    "required OOXML member",
                 ),
             )
         worksheets = tuple(
@@ -134,7 +140,8 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
 
     @classmethod
     def xlsx_inspect(
-        cls, request: m.Cli.XlsxArchiveInspectionRequest
+        cls,
+        request: m.Cli.XlsxArchiveInspectionRequest,
     ) -> p.Result[m.Cli.XlsxArchiveInspection]:
         """Inspect workbook bytes without extracting or trusting package XML."""
         try:
@@ -144,7 +151,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
         except (BadZipFile, LargeZipFile, OSError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxArchiveInspection].fail(
-                f"{c.Cli.XlsxError.ARCHIVE_INVALID}: {detail}"
+                f"{c.Cli.XlsxError.ARCHIVE_INVALID}: {detail}",
             )
 
 

@@ -24,7 +24,8 @@ if TYPE_CHECKING:
 
 def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
     return m.Cli.ProcessDeadline(
-        expires_at_monotonic=time.monotonic() + seconds, termination_grace_seconds=grace
+        expires_at_monotonic=time.monotonic() + seconds,
+        termination_grace_seconds=grace,
     )
 
 
@@ -38,7 +39,9 @@ def _survivor_acknowledged(probe: Path, acknowledgement: Path) -> bool:
 
 
 def _assert_owned_descendant_stopped(
-    process_info: Path, probe: Path, acknowledgement: Path
+    process_info: Path,
+    probe: Path,
+    acknowledgement: Path,
 ) -> None:
     """Prove no owned descendant can execute and clean an observed failure."""
     child_survived = _survivor_acknowledged(probe, acknowledgement)
@@ -48,7 +51,7 @@ def _assert_owned_descendant_stopped(
 
 
 def _assert_timeout_empties_descendants[
-    Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput)
+    Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput),
 ](
     tmp_path: Path,
     execute: Callable[[t.VariadicTuple[str]], p.Result[Output]],
@@ -175,7 +178,9 @@ class TestsFlextCliRuntimeProcessContainment:
 
     @pytest.mark.parametrize("signal_number", [signal.SIGINT, signal.SIGTERM])
     def test_manual_signal_is_forwarded_without_exit_normalization(
-        self, tmp_path: Path, signal_number: signal.Signals
+        self,
+        tmp_path: Path,
+        signal_number: signal.Signals,
     ) -> None:
         ready = tmp_path / f"child-ready-{signal_number}"
         output_file = tmp_path / f"manual-{signal_number}.log"
@@ -213,7 +218,8 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(time.monotonic() - signal_started, lt=6.0)
 
     def test_pre_spawn_signal_is_captured_before_command_materialization(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         marker = tmp_path / "must-not-spawn"
         result = u.Cli().run_to_file(
@@ -231,7 +237,8 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(marker.exists(), eq=False)
 
     def test_deadline_forwards_interrupt_before_forced_cleanup(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         output_file = tmp_path / "interrupt.log"
         script = (

@@ -31,7 +31,10 @@ class ParentDescriptor:
 
 @contextmanager
 def parent_descriptor(
-    path: Path, *, replace: bool = False, unlink: bool = False
+    path: Path,
+    *,
+    replace: bool = False,
+    unlink: bool = False,
 ) -> Generator[ParentDescriptor]:
     """Yield one authenticated parent descriptor with required OS capabilities.
 
@@ -53,7 +56,9 @@ def parent_descriptor(
             yield handle
         except BaseException as operation_error:
             parent_failure.preserve_recheck_failure(
-                handle.path, operation_error, lambda: assert_parent_unchanged(handle)
+                handle.path,
+                operation_error,
+                lambda: assert_parent_unchanged(handle),
             )
             raise
         assert_parent_unchanged(handle)
@@ -80,7 +85,11 @@ def entry_stat(parent: ParentDescriptor, path: Path) -> os.stat_result:
 
 
 def open_entry(
-    parent: ParentDescriptor, path: Path, flags: int, *, mode: int | None = None
+    parent: ParentDescriptor,
+    path: Path,
+    flags: int,
+    *,
+    mode: int | None = None,
 ) -> int:
     """Open one final entry relative to its authenticated parent descriptor."""
     require_entry(parent, path)
@@ -93,7 +102,9 @@ def open_entry(
 
 @contextmanager
 def entry_descriptor(
-    parent: ParentDescriptor, path: Path, flags: int
+    parent: ParentDescriptor,
+    path: Path,
+    flags: int,
 ) -> Generator[int]:
     """Yield one final-entry descriptor and retain close failures causally."""
     descriptor = open_entry(parent, path, flags)
@@ -159,7 +170,11 @@ def require_entry(parent: ParentDescriptor, path: Path) -> None:
 
 
 def close_after_failure(
-    descriptor: int, path: Path, operation_error: BaseException, *, label: str
+    descriptor: int,
+    path: Path,
+    operation_error: BaseException,
+    *,
+    label: str,
 ) -> None:
     """Close one failed operation's descriptor, preserving causal close errors."""
     try:
@@ -173,7 +188,8 @@ def close_after_failure(
             causes = ExceptionGroup(group_message, [operation_error, close_error])
             raise OSError(errno.EIO, message, path) from causes
         raise BaseExceptionGroup(
-            group_message, [operation_error, close_error]
+            group_message,
+            [operation_error, close_error],
         ) from close_error
 
 

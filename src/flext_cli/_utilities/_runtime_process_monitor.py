@@ -13,7 +13,7 @@ from ._runtime_process_group import FlextCliUtilitiesRuntimeProcessGroupMixin
 
 
 class FlextCliUtilitiesRuntimeProcessMonitorMixin(
-    FlextCliUtilitiesRuntimeProcessGroupMixin
+    FlextCliUtilitiesRuntimeProcessGroupMixin,
 ):
     """Monitor one process group through events and one absolute deadline."""
 
@@ -83,7 +83,10 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
                 cls._record_signal_error(
                     failures,
                     cls._signal_process_tree(
-                        process, signal.SIGKILL, job_handle, force=True
+                        process,
+                        signal.SIGKILL,
+                        job_handle,
+                        force=True,
                     ),
                 )
                 kill_sent = True
@@ -97,7 +100,10 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
                 cls._record_signal_error(
                     failures,
                     cls._signal_process_tree(
-                        process, signal.SIGINT, job_handle, force=False
+                        process,
+                        signal.SIGINT,
+                        job_handle,
+                        force=False,
                     ),
                 )
                 timeout_interrupt_sent = True
@@ -105,7 +111,10 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
                 cls._record_signal_error(
                     failures,
                     cls._signal_process_tree(
-                        process, signal.SIGTERM, job_handle, force=False
+                        process,
+                        signal.SIGTERM,
+                        job_handle,
+                        force=False,
                     ),
                 )
                 term_sent = True
@@ -113,7 +122,10 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
                 cls._record_signal_error(
                     failures,
                     cls._signal_process_tree(
-                        process, signal.SIGKILL, job_handle, force=True
+                        process,
+                        signal.SIGKILL,
+                        job_handle,
+                        force=True,
                     ),
                 )
                 kill_sent = True
@@ -130,7 +142,7 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
             wake.wait(
                 None
                 if next_boundary is None
-                else max(0.0, next_boundary - time.monotonic())
+                else max(0.0, next_boundary - time.monotonic()),
             )
         return timed_out, lifecycle_deadline
 
@@ -140,7 +152,7 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
             msg = "process heartbeat descriptor is unavailable"
             raise RuntimeError(msg)
         payload = f"{c.Cli.CLI_PROCESS_HEARTBEAT_MESSAGE}\n".encode(
-            c.Cli.ENCODING_DEFAULT
+            c.Cli.ENCODING_DEFAULT,
         )
         written = os.write(progress_fd, payload)
         if written != len(payload):
@@ -152,7 +164,8 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
 
     @staticmethod
     def _soft_boundary(
-        absolute_deadline: float | None, grace_seconds: float
+        absolute_deadline: float | None,
+        grace_seconds: float,
     ) -> float | None:
         return (
             absolute_deadline - grace_seconds if absolute_deadline is not None else None
@@ -160,7 +173,10 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
 
     @staticmethod
     def _phase_boundary(
-        start: float | None, reserve: float, *, numerator: int
+        start: float | None,
+        reserve: float,
+        *,
+        numerator: int,
     ) -> float | None:
         return None if start is None else start + (reserve * numerator / 6.0)
 
@@ -199,7 +215,10 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
             cls._record_signal_error(
                 failures,
                 cls._signal_process_tree(
-                    process, forwarded_signal, job_handle, force=force
+                    process,
+                    forwarded_signal,
+                    job_handle,
+                    force=force,
                 ),
             )
             forwarded_count += 1
@@ -209,7 +228,8 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
 
     @staticmethod
     def _record_signal_error(
-        failures: list[str], signal_result: p.Result[bool]
+        failures: list[str],
+        signal_result: p.Result[bool],
     ) -> None:
         if signal_result.failure:
             failures.append(signal_result.error or "process signal failed")

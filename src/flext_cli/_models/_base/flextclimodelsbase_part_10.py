@@ -16,7 +16,9 @@ class FlextCliModelsBase:
         """One guarded live state and its caller-owned staged replacement."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", frozen=True, arbitrary_types_allowed=True
+            extra="forbid",
+            frozen=True,
+            arbitrary_types_allowed=True,
         )
         before: Annotated[
             FlextCliModelsBasePart02.AtomicFileState,

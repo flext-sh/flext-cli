@@ -37,12 +37,13 @@ class TestsFlextCliRuntimeChildEnvironment:
                 [sys.executable, "-c", _ECHO, key],
                 env=env,
                 remove_env_keys=remove_env_keys,
-            )
+            ),
         )
 
     def test_override_reaches_the_child(self) -> None:
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
-            _MARKER, env={_MARKER: "overridden"}
+            _MARKER,
+            env={_MARKER: "overridden"},
         )
 
         tm.that(probe, eq="overridden")
@@ -50,14 +51,17 @@ class TestsFlextCliRuntimeChildEnvironment:
     def test_override_does_not_discard_the_inherited_environment(self) -> None:
         """An overlay adds one key; PATH and the rest of the parent survive."""
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
-            "PATH", env={_MARKER: "overridden"}
+            "PATH",
+            env={_MARKER: "overridden"},
         )
 
         tm.that(probe, eq=os.environ["PATH"])
 
     def test_remove_env_keys_unsets_the_variable_in_the_child(self) -> None:
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
-            _MARKER, env={_MARKER: "inherited"}, remove_env_keys=(_MARKER,)
+            _MARKER,
+            env={_MARKER: "inherited"},
+            remove_env_keys=(_MARKER,),
         )
 
         tm.that(probe, eq="<unset>")
@@ -70,7 +74,8 @@ class TestsFlextCliRuntimeChildEnvironment:
         values survive into repository-construction commands.
         """
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
-            _MARKER, env={_MARKER: "inherited"}
+            _MARKER,
+            env={_MARKER: "inherited"},
         )
 
         tm.that(probe, eq="inherited")

@@ -63,7 +63,8 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
 
     @staticmethod
     def json_deep_mapping_list(
-        data: t.JsonMapping, *keys: str
+        data: t.JsonMapping,
+        *keys: str,
     ) -> t.SequenceOf[t.JsonMapping]:
         """Navigate nested mappings and normalize the final node as mapping list."""
         raw = FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys)
@@ -78,7 +79,7 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
     def json_pick_int(data: t.JsonMapping, key: str, default: int = 0) -> int:
         """Extract an integer value from mapping with safe coercion."""
         parsed = u.parse(data.get(key, default), int, default=default).unwrap_or(
-            default
+            default,
         )
         return int(parsed) if isinstance(parsed, bool) else parsed
 
@@ -86,7 +87,7 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
     def json_pick_bool(data: t.JsonMapping, key: str, *, default: bool = False) -> bool:
         """Extract a boolean value from mapping with string/int coercion."""
         parsed: bool = u.parse(data.get(key, None), bool, default=default).unwrap_or(
-            default
+            default,
         )
         return parsed
 
@@ -102,7 +103,11 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
 
     @staticmethod
     def json_get_str_key(
-        mapping: t.JsonMapping, key: str, *, default: str = "", case: str | None = None
+        mapping: t.JsonMapping,
+        key: str,
+        *,
+        default: str = "",
+        case: str | None = None,
     ) -> str:
         """Extract and normalize a string key from a mapping."""
         raw = FlextCliUtilitiesJsonNavigateMixin.json_pick_str(mapping, key, default)

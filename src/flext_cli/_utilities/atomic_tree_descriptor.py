@@ -59,7 +59,7 @@ def mount_id(descriptor: int, path: Path) -> int:
     values: list[str]
     try:
         with (Path("/proc/self/fdinfo") / str(descriptor)).open(
-            encoding="ascii"
+            encoding="ascii",
         ) as stream:
             values = [
                 line.removeprefix("mnt_id:").strip()
@@ -87,7 +87,9 @@ def require_mount(path: Path, expected: int, observed: int) -> None:
 
 
 def require_same_device(
-    path: Path, parent: os.stat_result, observed: os.stat_result
+    path: Path,
+    parent: os.stat_result,
+    observed: os.stat_result,
 ) -> None:
     """Reject a device transition before traversing or reading an entry."""
     if observed.st_dev != parent.st_dev:
@@ -96,7 +98,9 @@ def require_same_device(
 
 
 def require_directory_state(
-    descriptor: int, path: Path, expected: os.stat_result
+    descriptor: int,
+    path: Path,
+    expected: os.stat_result,
 ) -> None:
     """Require one directory FD to retain the complete observed state."""
     observed = os.fstat(descriptor)
@@ -106,7 +110,9 @@ def require_directory_state(
 
 
 def require_entry_state(
-    parent: file_descriptor.ParentDescriptor, path: Path, expected: os.stat_result
+    parent: file_descriptor.ParentDescriptor,
+    path: Path,
+    expected: os.stat_result,
 ) -> None:
     """Require one parent-relative name to retain the complete observed state."""
     observed = file_descriptor.entry_stat(parent, path)
