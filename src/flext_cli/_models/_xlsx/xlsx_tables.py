@@ -1,4 +1,8 @@
-"""Typed table and defined-name declarations for XLSX rendering."""
+"""Typed table and defined-name declarations for XLSX rendering.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,37 +22,43 @@ class FlextCliModelsXlsxTables:
     class XlsxTablePlan(m.FrozenModel):
         name: Annotated[str, m.Field(min_length=1, description="Table name.")]
         area: FlextCliModelsXlsxCells.XlsxCellRange = m.Field(
-            description="Concrete table range."
+            description="Concrete table range.",
         )
         style: Annotated[str, m.Field(min_length=1, description="Table style.")]
         show_first_column: bool = m.Field(
-            default=False, description="Emphasize first column."
+            default=False,
+            description="Emphasize first column.",
         )
         show_last_column: bool = m.Field(
-            default=False, description="Emphasize last column."
+            default=False,
+            description="Emphasize last column.",
         )
         show_row_stripes: bool = m.Field(
-            default=True, description="Show alternating row stripes."
+            default=True,
+            description="Show alternating row stripes.",
         )
         show_column_stripes: bool = m.Field(
-            default=False, description="Show alternating column stripes."
+            default=False,
+            description="Show alternating column stripes.",
         )
 
     class XlsxRangeDefinedNamePlan(m.FrozenModel):
         kind: Literal["range"] = m.Field(default="range", description="Name kind.")
         name: Annotated[str, m.Field(min_length=1, description="Defined name.")]
         sheet: Annotated[
-            str, m.Field(min_length=1, description="Referenced worksheet.")
+            str,
+            m.Field(min_length=1, description="Referenced worksheet."),
         ]
         area: FlextCliModelsXlsxCells.XlsxCellRange = m.Field(
-            description="Referenced cell range."
+            description="Referenced cell range.",
         )
 
     class XlsxFormulaDefinedNamePlan(m.FrozenModel):
         kind: Literal["formula"] = m.Field(default="formula", description="Name kind.")
         name: Annotated[str, m.Field(min_length=1, description="Defined name.")]
         expression: Annotated[
-            str, m.Field(min_length=1, description="Defined-name expression.")
+            str,
+            m.Field(min_length=1, description="Defined-name expression."),
         ]
 
     type XlsxDefinedNamePlan = Annotated[

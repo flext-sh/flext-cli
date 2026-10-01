@@ -1,4 +1,8 @@
-"""Public descriptor-owned staging for one atomic file replacement."""
+"""Public descriptor-owned staging for one atomic file replacement.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -14,19 +18,34 @@ _SECURE_CREATE_MODE = 0o600
 
 
 def temporary_path(parent: file_descriptor.ParentDescriptor) -> Path:
-    """Return one unpredictable sibling name without probing or retrying."""
+    """Return one unpredictable sibling name without probing or retrying.
+
+    Returns:
+        One unpredictable sibling name without probing or retrying.
+
+    """
     return parent.path / f".flext-atomic-{secrets.token_hex(16)}.tmp"
 
 
 def require_mode_capability(path: Path, permission_mode: int | None) -> None:
-    """Fail before staging if an exact requested mode cannot use its descriptor."""
+    """Fail before staging if an exact requested mode cannot use its descriptor.
+
+    Raises:
+        OSError: If ``permission_mode is not None and os.chmod not in os.supports_fd``.
+
+    """
     if permission_mode is not None and os.chmod not in os.supports_fd:
         message = "descriptor permission changes are unsupported"
         raise OSError(errno.ENOTSUP, message, path)
 
 
 def create_descriptor(parent: file_descriptor.ParentDescriptor, temporary: Path) -> int:
-    """Create one exclusive, securely permissioned sibling through ``dir_fd``."""
+    """Create one exclusive, securely permissioned sibling through ``dir_fd``.
+
+    Returns:
+        The resulting ``int``.
+
+    """
     flags = (
         os.O_WRONLY
         | os.O_CREAT
@@ -35,14 +54,28 @@ def create_descriptor(parent: file_descriptor.ParentDescriptor, temporary: Path)
         | getattr(os, "O_BINARY", 0)
     )
     return file_descriptor.open_entry(
-        parent, temporary, flags, mode=_SECURE_CREATE_MODE
+        parent,
+        temporary,
+        flags,
+        mode=_SECURE_CREATE_MODE,
     )
 
 
 def write_and_sync(
-    descriptor: int, temporary: Path, content: bytes, permission_mode: int | None
+    descriptor: int,
+    temporary: Path,
+    content: bytes,
+    permission_mode: int | None,
 ) -> int:
-    """Write exact bytes, materialize exact mode, and sync the open inode."""
+    """Write exact bytes, materialize exact mode, and sync the open inode.
+
+    Returns:
+        The resulting ``int``.
+
+    Raises:
+        OSError: If ``written == 0``.
+
+    """
     remaining = memoryview(content)
     while remaining:
         written = os.write(descriptor, remaining)

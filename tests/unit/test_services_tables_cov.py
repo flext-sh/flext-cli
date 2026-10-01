@@ -24,18 +24,29 @@ class TestsFlextCliServicesTablesCov:
 
     @pytest.fixture
     def single_record(self) -> t.Cli.TableDataSource:
-        """One mapping rendered as a Key/Value table."""
+        """One mapping rendered as a Key/Value table.
+
+        Returns:
+            The resulting ``t.Cli.TableDataSource``.
+
+        """
         return {"name": "Alice", "age": 30}
 
     @pytest.fixture
     def record_rows(self) -> t.Cli.TableDataSource:
-        """Return a list of homogeneous mappings rendered as a column table."""
+        """Return a list of homogeneous mappings rendered as a column table.
+
+        Returns:
+            A list of homogeneous mappings rendered as a column table.
+
+        """
         return [{"col": "val1"}, {"col": "val2"}]
 
     # ── format_table: return contract ─────────────────────────────────
 
     def test_format_table_returns_successful_result_with_str_value(
-        self, single_record: t.Cli.TableDataSource
+        self,
+        single_record: t.Cli.TableDataSource,
     ) -> None:
         # Act
         """Verify that format table returns successful result with str value."""
@@ -46,7 +57,8 @@ class TestsFlextCliServicesTablesCov:
         tm.that(result.unwrap(), is_=str)
 
     def test_format_table_dict_renders_keys_and_values(
-        self, single_record: t.Cli.TableDataSource
+        self,
+        single_record: t.Cli.TableDataSource,
     ) -> None:
         # Act
         """Verify that format table dict renders keys and values."""
@@ -59,7 +71,8 @@ class TestsFlextCliServicesTablesCov:
         tm.that(rendered, has="30")
 
     def test_format_table_list_of_dicts_renders_every_row(
-        self, record_rows: t.Cli.TableDataSource
+        self,
+        record_rows: t.Cli.TableDataSource,
     ) -> None:
         # Act
         """Verify that format table list of dicts renders every row."""
@@ -77,7 +90,8 @@ class TestsFlextCliServicesTablesCov:
         [pytest.param({}, id="empty-dict"), pytest.param([], id="empty-list")],
     )
     def test_format_table_empty_source_yields_empty_string(
-        self, empty_source: t.Cli.TableDataSource
+        self,
+        empty_source: t.Cli.TableDataSource,
     ) -> None:
         # Act
         """Verify that format table empty source yields empty string."""
@@ -88,7 +102,8 @@ class TestsFlextCliServicesTablesCov:
         tm.that(result.unwrap(), eq="")
 
     def test_format_table_is_idempotent_for_equal_input(
-        self, single_record: t.Cli.TableDataSource
+        self,
+        single_record: t.Cli.TableDataSource,
     ) -> None:
         # Act — same input rendered twice
         """Verify that format table is idempotent for equal input."""
@@ -101,7 +116,8 @@ class TestsFlextCliServicesTablesCov:
     # ── format_table: configuration behavior ──────────────────────────
 
     def test_format_table_title_is_not_embedded_in_returned_string(
-        self, single_record: t.Cli.TableDataSource
+        self,
+        single_record: t.Cli.TableDataSource,
     ) -> None:
         # Arrange — title is a display concern, not part of the formatted table
         """Verify that format table title is not embedded in returned string."""
@@ -122,7 +138,9 @@ class TestsFlextCliServicesTablesCov:
         ],
     )
     def test_format_table_format_changes_rendered_output(
-        self, single_record: t.Cli.TableDataSource, table_format: c.Cli.TabularFormat
+        self,
+        single_record: t.Cli.TableDataSource,
+        table_format: c.Cli.TabularFormat,
     ) -> None:
         # Arrange
         """Verify that format table format changes rendered output."""
@@ -138,15 +156,18 @@ class TestsFlextCliServicesTablesCov:
         tm.that(styled_rendered, has="Alice")
 
     def test_format_table_accepts_config_via_keyword_argument(
-        self, single_record: t.Cli.TableDataSource
+        self,
+        single_record: t.Cli.TableDataSource,
     ) -> None:
         # Act — config field supplied as a kwarg is equivalent to the model
         """Verify that format table accepts config via keyword argument."""
         via_kwarg = cli.format_table(
-            single_record, table_format=c.Cli.TabularFormat.GRID
+            single_record,
+            table_format=c.Cli.TabularFormat.GRID,
         ).unwrap()
         via_model = cli.format_table(
-            single_record, m.Cli.TableConfig(table_format=c.Cli.TabularFormat.GRID)
+            single_record,
+            m.Cli.TableConfig(table_format=c.Cli.TabularFormat.GRID),
         ).unwrap()
 
         # Assert
@@ -167,14 +188,17 @@ class TestsFlextCliServicesTablesCov:
     # ── show_table: return + observable output ────────────────────────
 
     def test_show_table_returns_none(
-        self, single_record: t.Cli.TableDataSource
+        self,
+        single_record: t.Cli.TableDataSource,
     ) -> None:
         # Act / Assert — display is a side-effecting command returning None
         """Verify that show table returns none."""
         tm.that(cli.show_table(single_record), none=True)
 
     def test_show_table_writes_data_to_stdout(
-        self, record_rows: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
+        self,
+        record_rows: t.Cli.TableDataSource,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that show table writes data to stdout."""
@@ -186,7 +210,9 @@ class TestsFlextCliServicesTablesCov:
         tm.that(out, has="val2")
 
     def test_show_table_prints_title_when_configured(
-        self, single_record: t.Cli.TableDataSource, capsys: pytest.CaptureFixture[str]
+        self,
+        single_record: t.Cli.TableDataSource,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Arrange
         """Verify that show table prints title when configured."""

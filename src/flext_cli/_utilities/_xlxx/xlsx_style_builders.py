@@ -1,4 +1,8 @@
-"""Translate typed visual style models into openpyxl objects."""
+"""Translate typed visual style models into openpyxl objects.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

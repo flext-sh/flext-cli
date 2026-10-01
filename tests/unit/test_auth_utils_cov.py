@@ -37,7 +37,8 @@ class TestsFlextCliAuthUtilsCov:
 
     @pytest.mark.parametrize("token_file", [None, "", "   ", "\t\n"])
     def test_token_file_path_defaults_to_canonical_when_blank(
-        self, token_file: str | None
+        self,
+        token_file: str | None,
     ) -> None:
         # Arrange / Act
         """Verify that token file path defaults to canonical when blank."""
@@ -72,10 +73,15 @@ class TestsFlextCliAuthUtilsCov:
     # ── auth_validate_credentials ─────────────────────────────────────
 
     @pytest.mark.parametrize(
-        ("username", "password", "expect_ok"), c.Tests.AUTH_CRED_CASES
+        ("username", "password", "expect_ok"),
+        c.Tests.AUTH_CRED_CASES,
     )
     def test_validate_credentials_success_reflects_non_blank_fields(
-        self, username: str, password: str, *, expect_ok: bool
+        self,
+        username: str,
+        password: str,
+        *,
+        expect_ok: bool,
     ) -> None:
         # Act
         """Verify that validate credentials success reflects non blank fields."""
@@ -117,10 +123,12 @@ class TestsFlextCliAuthUtilsCov:
         tm.that(result.unwrap(), eq=token)
 
     @pytest.mark.parametrize(
-        "payload", [{"user": "admin"}, {c.Cli.DICT_KEY_AUTH_TOKEN: ""}]
+        "payload",
+        [{"user": "admin"}, {c.Cli.DICT_KEY_AUTH_TOKEN: ""}],
     )
     def test_extract_token_fails_when_no_usable_token(
-        self, payload: t.JsonValue
+        self,
+        payload: t.JsonValue,
     ) -> None:
         # Act
         """Verify that extract token fails when no usable token."""
@@ -133,7 +141,8 @@ class TestsFlextCliAuthUtilsCov:
 
     @pytest.mark.parametrize("payload", ["not-a-mapping", ["token", "value"], 42, None])
     def test_extract_token_rejects_non_mapping_payload(
-        self, payload: t.JsonValue
+        self,
+        payload: t.JsonValue,
     ) -> None:
         # Act
         """Verify that extract token rejects non mapping payload."""

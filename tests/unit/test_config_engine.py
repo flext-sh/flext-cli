@@ -3,6 +3,9 @@
 Covers ``u.Cli.template_render`` (Jinja2, StrictUndefined, sandboxed),
 ``u.Cli.config_load`` / ``config_load_dir`` (multi-format, reuses core
 ``u.config_env_override``), and ``u.Cli.schema_validate`` (JSON Schema).
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -30,7 +33,8 @@ class TestsFlextCliConfigEngine:
         tm.that(result.unwrap(), eq="port=8080\n")
 
     def test_template_render_reuses_one_environment_per_directory(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Render the same directory repeatedly through a single Jinja engine."""
         # Why: building a SandboxedEnvironment per render discards Jinja's
@@ -47,7 +51,10 @@ class TestsFlextCliConfigEngine:
 
     @pytest.mark.parametrize("included", [False, True])
     def test_template_render_observes_source_edits(
-        self, tmp_path: Path, *, included: bool
+        self,
+        tmp_path: Path,
+        *,
+        included: bool,
     ) -> None:
         """Serve edited template source instead of a stale compiled body."""
         tpl = tmp_path / "greeting.j2"
@@ -65,7 +72,8 @@ class TestsFlextCliConfigEngine:
         tm.that(u.Cli.template_render(tpl, context).unwrap(), eq="PORT=42\n")
 
     def test_authenticated_template_render_snapshots_imported_bytes(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Render a template and its import only from authenticated snapshots."""
         macro = tmp_path / "macro.j2"
@@ -86,7 +94,8 @@ class TestsFlextCliConfigEngine:
         rendered = result.unwrap()
         tm.that(rendered.rendered, eq="port=42\n")
         tm.that(
-            tuple(state.path for state in rendered.source_states), eq=(template, macro)
+            tuple(state.path for state in rendered.source_states),
+            eq=(template, macro),
         )
         tm.that(
             tuple(state.content for state in rendered.source_states),
@@ -177,7 +186,8 @@ class TestsFlextCliConfigEngine:
         (cfg / "mcp.yaml").write_text("enabled: true\n", encoding="utf-8")
         (cfg / "agents.yaml").write_text("count: 3\n", encoding="utf-8")
         (schemas / "mcp.schema.json").write_text(
-            '{"type":"object","required":["enabled"]}', encoding="utf-8"
+            '{"type":"object","required":["enabled"]}',
+            encoding="utf-8",
         )
         result = u.Cli.config_load_dir(cfg)
         tm.ok(result)
@@ -199,7 +209,8 @@ class TestsFlextCliTemplateRenderDir:
         out = tmp_path / "out"
         entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("a.txt.j2"), output_relpath=Path("a.txt.j2")
+                relpath_template=Path("a.txt.j2"),
+                output_relpath=Path("a.txt.j2"),
             ),
             m.Cli.TemplateRenderEntry(
                 relpath_template=Path("sub/b.txt.j2"),
@@ -207,7 +218,10 @@ class TestsFlextCliTemplateRenderDir:
             ),
         )
         result = u.Cli.template_render_dir(
-            root, out, m.Tests.TemplateValue(value=1), entries
+            root,
+            out,
+            m.Tests.TemplateValue(value=1),
+            entries,
         )
         tm.ok(result)
         report = result.unwrap()
@@ -224,11 +238,16 @@ class TestsFlextCliTemplateRenderDir:
         out = tmp_path / "out"
         entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("a.j2"), output_relpath=Path("a"), when=False
+                relpath_template=Path("a.j2"),
+                output_relpath=Path("a"),
+                when=False,
             ),
         )
         report = u.Cli.template_render_dir(
-            root, out, m.Tests.TemplateEmpty(), entries
+            root,
+            out,
+            m.Tests.TemplateEmpty(),
+            entries,
         ).unwrap()
         tm.that(len(report.skipped), eq=1)
         tm.that(report.created, empty=True)
@@ -244,21 +263,30 @@ class TestsFlextCliTemplateRenderDir:
         (out / "a").write_text("old", encoding="utf-8")
         skip_entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("a.j2"), output_relpath=Path("a")
+                relpath_template=Path("a.j2"),
+                output_relpath=Path("a"),
             ),
         )
         skipped = u.Cli.template_render_dir(
-            root, out, m.Tests.TemplateValue(value=1), skip_entries
+            root,
+            out,
+            m.Tests.TemplateValue(value=1),
+            skip_entries,
         ).unwrap()
         tm.that(len(skipped.skipped), eq=1)
         tm.that((out / "a").read_text(encoding="utf-8"), eq="old")
         over_entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("a.j2"), output_relpath=Path("a"), overwrite=True
+                relpath_template=Path("a.j2"),
+                output_relpath=Path("a"),
+                overwrite=True,
             ),
         )
         created = u.Cli.template_render_dir(
-            root, out, m.Tests.TemplateValue(value=2), over_entries
+            root,
+            out,
+            m.Tests.TemplateValue(value=2),
+            over_entries,
         ).unwrap()
         tm.that(len(created.created), eq=1)
         tm.that((out / "a").read_text(encoding="utf-8"), eq="new=2")
@@ -271,11 +299,15 @@ class TestsFlextCliTemplateRenderDir:
         out = tmp_path / "out"
         entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("a.j2"), output_relpath=Path("../escape")
+                relpath_template=Path("a.j2"),
+                output_relpath=Path("../escape"),
             ),
         )
         report = u.Cli.template_render_dir(
-            root, out, m.Tests.TemplateEmpty(), entries
+            root,
+            out,
+            m.Tests.TemplateEmpty(),
+            entries,
         ).unwrap()
         tm.that(report.failed, empty=False)
         tm.that(report.failed[0][1], has=c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE)
@@ -284,7 +316,10 @@ class TestsFlextCliTemplateRenderDir:
     def test_render_dir_missing_root_fails(self, tmp_path: Path) -> None:
         """Verify that render dir missing root fails."""
         result = u.Cli.template_render_dir(
-            tmp_path / "nope", tmp_path / "out", m.Tests.TemplateEmpty(), ()
+            tmp_path / "nope",
+            tmp_path / "out",
+            m.Tests.TemplateEmpty(),
+            (),
         )
         tm.fail(result)
 
@@ -296,11 +331,15 @@ class TestsFlextCliTemplateRenderDir:
         out = tmp_path / "out"
         entries = (
             m.Cli.TemplateRenderEntry(
-                relpath_template=Path("bad.j2"), output_relpath=Path("bad")
+                relpath_template=Path("bad.j2"),
+                output_relpath=Path("bad"),
             ),
         )
         report = u.Cli.template_render_dir(
-            root, out, m.Tests.TemplateEmpty(), entries
+            root,
+            out,
+            m.Tests.TemplateEmpty(),
+            entries,
         ).unwrap()
         # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): assert the
         # public failure payload directly; TemplateRenderReport has no behavior.

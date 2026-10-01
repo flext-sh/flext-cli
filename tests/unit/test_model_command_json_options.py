@@ -5,6 +5,9 @@ collection of them) is exposed as one option carrying JSON text that Pydantic
 validates into the field's declared type. Every assertion registers the
 generated command in a real app and observes it through ``cli.invoke_app`` or
 ``cli.execute_app``; nothing is patched or introspected.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -34,12 +37,14 @@ class TestsFlextCliModelCommandJsonOptions:
         """Request whose JSON options all carry defaults."""
 
         labels: t.MappingKV[str, int] = m.Field(
-            default_factory=lambda: {"seed": 1}, description="Label weights."
+            default_factory=lambda: {"seed": 1},
+            description="Label weights.",
         )
         prefs: m.Tests.UserPreferences = m.Field(
             default_factory=lambda: m.Tests.UserPreferences(
-                theme="light", notifications=False
-            )
+                theme="light",
+                notifications=False,
+            ),
         )
 
     @staticmethod
@@ -49,7 +54,12 @@ class TestsFlextCliModelCommandJsonOptions:
         *,
         settings: t.Cli.ModelLike | None = None,
     ) -> p.Cli.Application:
-        """Register the model command in a real app that records its input."""
+        """Register the model command in a real app that records its input.
+
+        Returns:
+            The resulting ``p.Cli.Application``.
+
+        """
 
         def _capture(params: M) -> bool:
             received.append(params)
@@ -85,7 +95,8 @@ class TestsFlextCliModelCommandJsonOptions:
         """A JSON object passed to a mapping option is the model's mapping."""
         expected = self.MappingModel(labels={"alpha": 1, "beta": 2})
         invocation, received = self._invoke(
-            self.MappingModel, ["--labels", self._json(expected.labels)]
+            self.MappingModel,
+            ["--labels", self._json(expected.labels)],
         )
         tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
         tm.that(received, eq=[expected])
@@ -121,7 +132,9 @@ class TestsFlextCliModelCommandJsonOptions:
             prefs=m.Tests.UserPreferences(theme="settings", notifications=True),
         )
         invocation, received = self._invoke(
-            self.JsonDefaultsModel, [], settings=settings
+            self.JsonDefaultsModel,
+            [],
+            settings=settings,
         )
         tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
         tm.that(received, eq=[settings])
@@ -131,7 +144,9 @@ class TestsFlextCliModelCommandJsonOptions:
         [("{not json", "json_invalid"), ('{"alpha": "one"}', "int_parsing")],
     )
     def test_invalid_json_option_fails_loud_with_cause(
-        self, raw: str, error_type: str
+        self,
+        raw: str,
+        error_type: str,
     ) -> None:
         """Malformed JSON or a schema mismatch fails before the handler runs."""
         invocation, received = self._invoke(self.MappingModel, ["--labels", raw])
@@ -141,7 +156,9 @@ class TestsFlextCliModelCommandJsonOptions:
         executed: list[TestsFlextCliModelCommandJsonOptions.MappingModel] = []
         app = self._app(self.MappingModel, executed)
         result = cli.execute_app(
-            app, prog_name="json-app", args=["run", "--labels", raw]
+            app,
+            prog_name="json-app",
+            args=["run", "--labels", raw],
         )
         tm.fail(result, has=error_type)
         tm.that(executed, empty=True)

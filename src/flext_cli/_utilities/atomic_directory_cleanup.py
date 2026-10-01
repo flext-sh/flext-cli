@@ -1,4 +1,8 @@
-"""Authenticated cleanup for a failed guarded empty-directory creation."""
+"""Authenticated cleanup for a failed guarded empty-directory creation.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -52,7 +56,9 @@ def _remove_created_directory(
 
 
 def _require_cleanup_identity(
-    path: Path, state: os.stat_result, identity: t.Pair[int, int] | None
+    path: Path,
+    state: os.stat_result,
+    identity: t.Pair[int, int] | None,
 ) -> t.Pair[int, int]:
     if identity is None:
         message = f"refusing unauthenticated directory cleanup: {path}"
@@ -62,7 +68,9 @@ def _require_cleanup_identity(
 
 
 def _require_unchanged_cleanup_state(
-    path: Path, current: os.stat_result | None, authenticated: os.stat_result
+    path: Path,
+    current: os.stat_result | None,
+    authenticated: os.stat_result,
 ) -> None:
     if current is None:
         message = f"atomic directory changed before cleanup: {path}"
@@ -73,7 +81,9 @@ def _require_unchanged_cleanup_state(
 
 
 def _raise_cleanup_failure(
-    path: Path, operation_error: BaseException, cleanup_errors: list[OSError]
+    path: Path,
+    operation_error: BaseException,
+    cleanup_errors: list[OSError],
 ) -> None:
     cleanup_summary = "; ".join(str(error) for error in cleanup_errors)
     message = (
@@ -88,7 +98,8 @@ def _raise_cleanup_failure(
         raise OSError(errno.EIO, message, path) from causes
     group_message = "atomic directory creation and cleanup failed"
     raise BaseExceptionGroup(
-        group_message, [operation_error, *cleanup_errors]
+        group_message,
+        [operation_error, *cleanup_errors],
     ) from cleanup_errors[-1]
 
 

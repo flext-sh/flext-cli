@@ -1,4 +1,8 @@
-"""Behavioral tests for typed YAML loading through the public CLI facade."""
+"""Behavioral tests for typed YAML loading through the public CLI facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -35,17 +39,20 @@ class TestsFlextCliYamlModelLoading:
         tm.that(result.value.features.enabled, eq=True)
 
     def test_chain_deep_merges_before_one_final_validation(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Individually incomplete layers become one valid final model."""
         base_source = tmp_path / "base.yaml"
         type_source = tmp_path / "sheet.yaml"
         consumer_source = tmp_path / "consumer.yaml"
         base_written = u.Cli.atomic_write_text_file(
-            base_source, "service:\n  host: base.internal\n"
+            base_source,
+            "service:\n  host: base.internal\n",
         )
         type_written = u.Cli.atomic_write_text_file(
-            type_source, "service:\n  port: 443\n"
+            type_source,
+            "service:\n  port: 443\n",
         )
         consumer_written = u.Cli.atomic_write_text_file(
             consumer_source,
@@ -56,7 +63,8 @@ class TestsFlextCliYamlModelLoading:
         tm.that(consumer_written.success, eq=True)
 
         result = cli.read_yaml_model_chain(
-            (base_source, type_source, consumer_source), m.Tests.YamlConsumerConfig
+            (base_source, type_source, consumer_source),
+            m.Tests.YamlConsumerConfig,
         )
 
         tm.that(result.success, eq=True)
@@ -68,7 +76,8 @@ class TestsFlextCliYamlModelLoading:
     def test_missing_file_fails_loud(self, tmp_path: Path) -> None:
         """A missing external source returns a failed public result."""
         result = cli.read_yaml_model(
-            tmp_path / "missing.yaml", m.Tests.YamlConsumerConfig
+            tmp_path / "missing.yaml",
+            m.Tests.YamlConsumerConfig,
         )
 
         tm.that(result.failure, eq=True)
@@ -83,13 +92,15 @@ class TestsFlextCliYamlModelLoading:
             "features:\n  enabled: true\n",
         )
         malformed_written = u.Cli.atomic_write_text_file(
-            malformed_source, "service:\n  host: [unterminated\n"
+            malformed_source,
+            "service:\n  host: [unterminated\n",
         )
         tm.that(base_written.success, eq=True)
         tm.that(malformed_written.success, eq=True)
 
         result = cli.read_yaml_model_chain(
-            (base_source, malformed_source), m.Tests.YamlConsumerConfig
+            (base_source, malformed_source),
+            m.Tests.YamlConsumerConfig,
         )
 
         tm.that(result.failure, eq=True)

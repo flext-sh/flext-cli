@@ -1,4 +1,8 @@
-"""Split example model advanced namespace."""
+"""Split example model advanced namespace.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -19,7 +23,8 @@ class ExamplesFlextCliModelsExamplesAdvanced:
         """Advanced application settings — Pydantic v2 only."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True
+            extra="forbid",
+            validate_assignment=True,
         )
         database_url: Annotated[str, m.Field(description="Database URL")] = (
             c.EXAMPLE_DEFAULT_DB_URL
@@ -29,7 +34,8 @@ class ExamplesFlextCliModelsExamplesAdvanced:
         )
         api_key: Annotated[str, m.Field(description="API key")] = ""
         environment: Annotated[
-            c.DeploymentEnvironment, m.Field(description="Deployment environment")
+            c.DeploymentEnvironment,
+            m.Field(description="Deployment environment"),
         ] = c.EXAMPLE_DEFAULT_ENVIRONMENT
         max_workers: Annotated[
             int,
@@ -71,7 +77,12 @@ class ExamplesFlextCliModelsExamplesAdvanced:
             return v.upper()
 
         def validate_to_mapping(self) -> p.Result[t.MappingKV[str, t.JsonValue]]:
-            """Validate configuration and return as mapping or failure."""
+            """Validate configuration and return as mapping or failure.
+
+            Returns:
+                The resulting ``p.Result[t.MappingKV[str, t.JsonValue]]``.
+
+            """
             errors: MutableSequence[str] = []
             if (
                 not self.api_key

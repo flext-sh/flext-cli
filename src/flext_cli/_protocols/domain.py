@@ -1,4 +1,8 @@
-"""Higher-level CLI structural contracts."""
+"""Higher-level CLI structural contracts.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

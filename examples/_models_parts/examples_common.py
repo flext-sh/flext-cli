@@ -1,4 +1,8 @@
-"""Split example model common namespace."""
+"""Split example model common namespace.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -19,7 +23,8 @@ class ExamplesFlextCliModelsExamplesCommon:
         """Custom settings for YOUR CLI application — Pydantic v2 only."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True
+            extra="forbid",
+            validate_assignment=True,
         )
         app_name: Annotated[str, m.Field(description="Application name")] = (
             c.EXAMPLE_DEFAULT_TOOL_NAME
@@ -48,7 +53,9 @@ class ExamplesFlextCliModelsExamplesCommon:
                     k: str(v) for k, v in payload.data.items()
                 }
                 cli.show_table(
-                    safe_data, show_header=True, title="⚙️  Application Settings"
+                    safe_data,
+                    show_header=True,
+                    title="⚙️  Application Settings",
                 )
 
 

@@ -1,4 +1,8 @@
-"""Behavioral contract tests for the ``u.Cli.tables_*`` public surface."""
+"""Behavioral contract tests for the ``u.Cli.tables_*`` public surface.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -13,7 +17,12 @@ class TestsFlextCliTablesBranchCov:
 
     @pytest.fixture
     def two_column_config(self) -> m.Cli.TableConfig:
-        """Return a minimal two-column table configuration."""
+        """Return a minimal two-column table configuration.
+
+        Returns:
+            A minimal two-column table configuration.
+
+        """
         return m.Cli.TableConfig(headers=("Key", "Value"))
 
     def test_normalize_mapping_input_yields_key_value_rows(self) -> None:
@@ -52,7 +61,8 @@ class TestsFlextCliTablesBranchCov:
 
     @pytest.mark.parametrize("bad_data", [["abc"], ["x", "y"], [["ok", 1], "bad-row"]])
     def test_normalize_rejects_string_rows_as_data_invalid(
-        self, bad_data: t.Cli.TableDataSource
+        self,
+        bad_data: t.Cli.TableDataSource,
     ) -> None:
         """Verify that normalize rejects string rows as data invalid."""
         result = u.Cli.tables_normalize_data(bad_data)
@@ -61,7 +71,8 @@ class TestsFlextCliTablesBranchCov:
         tm.that((result.error or ""), has=c.Cli.OUTPUT_TABLE_DATA_INVALID)
 
     def test_render_returns_string_containing_cell_values(
-        self, two_column_config: m.Cli.TableConfig
+        self,
+        two_column_config: m.Cli.TableConfig,
     ) -> None:
         """Verify that render returns string containing cell values."""
         result = u.Cli.tables_render([{"Key": "a", "Value": 1}], two_column_config)
@@ -75,7 +86,8 @@ class TestsFlextCliTablesBranchCov:
     def test_render_trims_overlong_colalign_to_column_count(self) -> None:
         """Verify that render trims overlong colalign to column count."""
         settings = m.Cli.TableConfig(
-            headers=("Key", "Value"), colalign=("left", "right", "center")
+            headers=("Key", "Value"),
+            colalign=("left", "right", "center"),
         )
 
         result = u.Cli.tables_render([{"Key": "a", "Value": 1}], settings)
@@ -86,7 +98,8 @@ class TestsFlextCliTablesBranchCov:
     def test_render_without_header_omits_header_labels(self) -> None:
         """Verify that render without header omits header labels."""
         result = u.Cli.tables_render(
-            [["a", 1]], m.Cli.TableConfig(show_header=False, headers=("col1", "col2"))
+            [["a", 1]],
+            m.Cli.TableConfig(show_header=False, headers=("col1", "col2")),
         )
 
         tm.ok(result)
@@ -95,7 +108,8 @@ class TestsFlextCliTablesBranchCov:
         tm.that(rendered, has="a")
 
     def test_render_empty_rows_still_succeeds(
-        self, two_column_config: m.Cli.TableConfig
+        self,
+        two_column_config: m.Cli.TableConfig,
     ) -> None:
         """Verify that render empty rows still succeeds."""
         result = u.Cli.tables_render([], two_column_config)
@@ -104,7 +118,8 @@ class TestsFlextCliTablesBranchCov:
         tm.that(result.unwrap(), is_=str)
 
     def test_render_is_idempotent_for_same_input(
-        self, two_column_config: m.Cli.TableConfig
+        self,
+        two_column_config: m.Cli.TableConfig,
     ) -> None:
         """Verify that render is idempotent for same input."""
         rows: t.SequenceOf[t.Cli.TableRow] = [{"Key": "a", "Value": 1}]
@@ -117,7 +132,8 @@ class TestsFlextCliTablesBranchCov:
         tm.that(first.unwrap(), eq=second.unwrap())
 
     def test_resolve_config_returns_provided_settings_unchanged(
-        self, two_column_config: m.Cli.TableConfig
+        self,
+        two_column_config: m.Cli.TableConfig,
     ) -> None:
         """Verify that resolve config returns provided settings unchanged."""
         result = u.Cli.tables_resolve_config(two_column_config)
@@ -126,7 +142,8 @@ class TestsFlextCliTablesBranchCov:
         tm.that(result.unwrap().headers, eq=("Key", "Value"))
 
     def test_resolve_config_reports_invalid_override_as_failure(
-        self, two_column_config: m.Cli.TableConfig
+        self,
+        two_column_config: m.Cli.TableConfig,
     ) -> None:
         """Verify that resolve config reports invalid override as failure."""
         result = u.Cli.tables_resolve_config(two_column_config, show_header="nope")
@@ -135,7 +152,8 @@ class TestsFlextCliTablesBranchCov:
         tm.that((result.error or ""), has=c.Cli.OUTPUT_TABLE_CONFIG_INVALID)
 
     def test_normalize_then_render_round_trips_mapping_source(
-        self, two_column_config: m.Cli.TableConfig
+        self,
+        two_column_config: m.Cli.TableConfig,
     ) -> None:
         """Verify that normalize then render round trips mapping source."""
         normalized = u.Cli.tables_normalize_data({"alpha": 1})

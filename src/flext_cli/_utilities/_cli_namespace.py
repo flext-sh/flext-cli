@@ -1,4 +1,8 @@
-"""Heavy ``u.Cli`` utility namespace materialized on demand."""
+"""Heavy ``u.Cli`` utility namespace materialized on demand.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

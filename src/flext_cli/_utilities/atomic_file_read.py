@@ -1,4 +1,8 @@
-"""Public stable descriptor reads for atomic file state authentication."""
+"""Public stable descriptor reads for atomic file state authentication.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -12,16 +16,26 @@ from . import atomic_file_descriptor as file_descriptor
 
 
 def read_descriptor_bytes(
-    parent: file_descriptor.ParentDescriptor, path: Path, expected: os.stat_result
+    parent: file_descriptor.ParentDescriptor,
+    path: Path,
+    expected: os.stat_result,
 ) -> bytes:
-    """Read all bytes while one descriptor retains the expected exact state."""
+    """Read all bytes while one descriptor retains the expected exact state.
+
+    Returns:
+        The resulting ``bytes``.
+
+    """
     flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
     descriptor = file_descriptor.open_entry(parent, path, flags)
     try:
         content = _read_stable_descriptor(descriptor, path, expected)
     except BaseException as operation_error:
         file_descriptor.close_after_failure(
-            descriptor, path, operation_error, label="read"
+            descriptor,
+            path,
+            operation_error,
+            label="read",
         )
         raise
     os.close(descriptor)
@@ -29,7 +43,12 @@ def read_descriptor_bytes(
 
 
 def state_key(state: os.stat_result) -> t.VariadicTuple[int]:
-    """Return fields that identify one authorized regular-file version."""
+    """Return fields that identify one authorized regular-file version.
+
+    Returns:
+        Fields that identify one authorized regular-file version.
+
+    """
     return (
         state.st_dev,
         state.st_ino,
@@ -46,7 +65,9 @@ def state_key(state: os.stat_result) -> t.VariadicTuple[int]:
 
 
 def _read_stable_descriptor(
-    descriptor: int, path: Path, expected: os.stat_result
+    descriptor: int,
+    path: Path,
+    expected: os.stat_result,
 ) -> bytes:
     if state_key(os.fstat(descriptor)) != state_key(expected):
         _raise_changed(path)

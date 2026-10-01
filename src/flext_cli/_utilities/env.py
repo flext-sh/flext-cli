@@ -1,4 +1,8 @@
-"""Environment reading and interpolation primitives shared through ``u.Cli``."""
+"""Environment reading and interpolation primitives shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,6 +24,10 @@ class FlextCliUtilitiesEnv:
         pass both the variable name and environment as data. An empty or missing
         variable is a legitimate empty-string state, not a failure; callers decide
         whether an empty value is acceptable.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
         """
         return r[str].ok(environment.get(name, ""))
 
@@ -31,6 +39,10 @@ class FlextCliUtilitiesEnv:
         value, honouring ``${VAR:-default}`` declarations; an
         unset variable without a default resolves to an empty segment. Callers
         pass the template and environment as data and receive the resolved string.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
         """
 
         def _replace(match: re.Match[str]) -> str:

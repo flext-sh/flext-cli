@@ -1,4 +1,8 @@
-"""Pipeline DSL service exposed through the flext-cli public facade."""
+"""Pipeline DSL service exposed through the flext-cli public facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -17,7 +21,12 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
         shared: t.MutableJsonMapping | None = None,
         settings: t.JsonMapping | None = None,
     ) -> m.Cli.PipelineStageContext:
-        """Build one validated stage context from the public DSL."""
+        """Build one validated stage context from the public DSL.
+
+        Returns:
+            The resulting ``m.Cli.PipelineStageContext``.
+
+        """
         return m.Cli.PipelineStageContext.model_validate({
             "repository_root": repository_root,
             "shared": {} if shared is None else shared,
@@ -32,7 +41,12 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
         depends_on: t.SequenceOf[str] | frozenset[str] = (),
         skip_if: p.Cli.PipelineSkipPredicate | None = None,
     ) -> m.Cli.PipelineStageSpec:
-        """Build one declarative stage spec from the public DSL."""
+        """Build one declarative stage spec from the public DSL.
+
+        Returns:
+            The resulting ``m.Cli.PipelineStageSpec``.
+
+        """
         return m.Cli.PipelineStageSpec.model_validate({
             "stage_id": stage_id,
             "depends_on": frozenset(depends_on),
@@ -49,7 +63,12 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
         duration_ms: float = 0.0,
         error: str | None = None,
     ) -> m.Cli.PipelineStageResult:
-        """Build one typed stage result payload."""
+        """Build one typed stage result payload.
+
+        Returns:
+            The resulting ``m.Cli.PipelineStageResult``.
+
+        """
         return m.Cli.PipelineStageResult.model_validate({
             "stage_id": stage_id,
             "status": status,
@@ -66,14 +85,19 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
         output: t.JsonMapping | None = None,
         duration_ms: float = 0.0,
     ) -> p.Result[m.Cli.PipelineStageResult]:
-        """Return one successful stage result via the canonical ``r`` API."""
+        """Return one successful stage result via the canonical ``r`` API.
+
+        Returns:
+            One successful stage result via the canonical ``r`` API.
+
+        """
         return r[m.Cli.PipelineStageResult].ok(
             cls.stage_result(
                 stage_id,
                 status=c.Cli.PipelineStageStatus.OK,
                 output=output,
                 duration_ms=duration_ms,
-            )
+            ),
         )
 
     @classmethod
@@ -84,7 +108,12 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
         *,
         skip_by_stage: t.MappingKV[str, p.Cli.PipelineSkipPredicate] | None = None,
     ) -> t.SequenceOf[m.Cli.PipelineStageSpec]:
-        """Build a linear dependency chain from ordered stage handlers."""
+        """Build a linear dependency chain from ordered stage handlers.
+
+        Returns:
+            The resulting ``t.SequenceOf[m.Cli.PipelineStageSpec]``.
+
+        """
         skips = skip_by_stage or {}
         stage_list: t.MutableSequenceOf[m.Cli.PipelineStageSpec] = []
         previous_stage_id: str | None = None
@@ -97,7 +126,7 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
                     if previous_stage_id is None
                     else (previous_stage_id,),
                     skip_if=skips.get(stage_id),
-                )
+                ),
             )
             previous_stage_id = stage_id
         return tuple(stage_list)
@@ -109,7 +138,12 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
         context: m.Cli.PipelineStageContext,
         logger: p.Logger | None = None,
     ) -> p.Result[m.Cli.PipelineResult]:
-        """Execute a pipeline through the public CLI DSL surface."""
+        """Execute a pipeline through the public CLI DSL surface.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.PipelineResult]``.
+
+        """
         return u.Cli.execute_pipeline(stages, context, logger=logger or self.logger)
 
 

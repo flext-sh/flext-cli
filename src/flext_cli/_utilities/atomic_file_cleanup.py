@@ -1,4 +1,8 @@
-"""Public authenticated temporary cleanup after an atomic write failure."""
+"""Public authenticated temporary cleanup after an atomic write failure.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -48,7 +52,9 @@ def remove_failed_temporary(
 
 
 def _raise_cleanup_failure(
-    temporary: Path, operation_error: BaseException, cleanup_errors: list[OSError]
+    temporary: Path,
+    operation_error: BaseException,
+    cleanup_errors: list[OSError],
 ) -> None:
     cleanup_summary = "; ".join(str(error) for error in cleanup_errors)
     message = (
@@ -60,7 +66,8 @@ def _raise_cleanup_failure(
         causes = ExceptionGroup(group_message, [operation_error, *cleanup_errors])
         raise OSError(errno.EIO, message, temporary) from causes
     raise BaseExceptionGroup(
-        group_message, [operation_error, *cleanup_errors]
+        group_message,
+        [operation_error, *cleanup_errors],
     ) from cleanup_errors[-1]
 
 

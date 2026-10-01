@@ -1,4 +1,8 @@
-"""Public guarded deletion for transaction rollback under a caller-held lock."""
+"""Public guarded deletion for transaction rollback under a caller-held lock.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -17,7 +21,12 @@ from . import (
 
 
 def remove_guarded_file(state: m.Cli.AtomicFileState) -> None:
-    """Unlink the complete physical file version authorized by the caller."""
+    """Unlink the complete physical file version authorized by the caller.
+
+    Raises:
+        OSError: If ``file_state.destination_state(path, parent=parent) is not None``.
+
+    """
     path = file_path.validate_atomic_path(state.path)
     content, mode, _identity = file_model.require_existing(state, purpose="deleted")
     with file_descriptor.parent_descriptor(path, unlink=True) as parent:
@@ -25,7 +34,11 @@ def remove_guarded_file(state: m.Cli.AtomicFileState) -> None:
         expected = file_state.destination_state(path, parent=parent)
         file_model.require_observed(state, expected)
         file_state.validate_precondition(
-            path, expected, content, enabled=True, parent=parent
+            path,
+            expected,
+            content,
+            enabled=True,
+            parent=parent,
         )
         file_mode.validate_mode_precondition(path, expected, mode)
         file_state.assert_destination_unchanged(path, expected, parent=parent)

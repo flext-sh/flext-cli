@@ -1,4 +1,8 @@
-"""Tests for ``u.Cli`` runtime core run/capture operations."""
+"""Tests for ``u.Cli`` runtime core run/capture operations.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -16,12 +20,22 @@ from tests import c, m, u
 
 
 def fixtures_path(name: str) -> str:
-    """Return the absolute path of one tests/fixtures helper script."""
+    """Return the absolute path of one tests/fixtures helper script.
+
+    Returns:
+        The absolute path of one tests/fixtures helper script.
+
+    """
     return str(Path(__file__).resolve().parent.parent / "fixtures" / name)
 
 
 def read_recorded_pid(pid_file: Path) -> int:
-    """Return the descendant pid a leader recorded before exiting."""
+    """Return the descendant pid a leader recorded before exiting.
+
+    Returns:
+        The descendant pid a leader recorded before exiting.
+
+    """
     deadline = time.monotonic() + 10
     while not pid_file.exists() and time.monotonic() < deadline:
         time.sleep(0.05)
@@ -34,11 +48,17 @@ class TestsFlextCliRuntimeUtilitiesCore:
     @pytest.fixture
     @staticmethod
     def runner() -> u.Cli:
-        """Define the runner test contract."""
+        """Define the runner test contract.
+
+        Returns:
+            The resulting ``u.Cli``.
+
+        """
         return u.Cli()
 
     def test_run_raw_remove_env_keys_strips_inherited_values(
-        self, runner: u.Cli
+        self,
+        runner: u.Cli,
     ) -> None:
         """Verify that run raw remove env keys strips inherited values."""
         result = runner.run_raw(
@@ -56,7 +76,10 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_run_raw_cases(
-        self, runner: u.Cli, tmp_path: Path, case: m.Tests.RuntimeCommandCase
+        self,
+        runner: u.Cli,
+        tmp_path: Path,
+        case: m.Tests.RuntimeCommandCase,
     ) -> None:
         """Verify that run raw cases."""
         cwd = tmp_path if case.use_tmp_path else None
@@ -94,7 +117,10 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_run_cases(
-        self, runner: u.Cli, tmp_path: Path, case: m.Tests.RuntimeCommandCase
+        self,
+        runner: u.Cli,
+        tmp_path: Path,
+        case: m.Tests.RuntimeCommandCase,
     ) -> None:
         """Verify that run cases."""
         cwd = tmp_path if case.use_tmp_path else None
@@ -121,7 +147,10 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_capture_cases(
-        self, runner: u.Cli, tmp_path: Path, case: m.Tests.RuntimeCommandCase
+        self,
+        runner: u.Cli,
+        tmp_path: Path,
+        case: m.Tests.RuntimeCommandCase,
     ) -> None:
         """Verify that capture cases."""
         cwd = tmp_path if case.use_tmp_path else None
@@ -144,18 +173,19 @@ class TestsFlextCliRuntimeUtilitiesCore:
     def test_run_bytes_accepts_text_and_binary_stdin(self, runner: u.Cli) -> None:
         """Verify run_bytes accepts str or bytes stdin and echoes byte-exact."""
         text_out = m.Cli.CommandBytesOutput.model_validate(
-            tm.ok(runner.run_bytes(("cat",), input_data="text-payload"))
+            tm.ok(runner.run_bytes(("cat",), input_data="text-payload")),
         )
         tm.that(text_out.stdout, eq=b"text-payload")
         binary_out = m.Cli.CommandBytesOutput.model_validate(
-            tm.ok(runner.run_bytes(("cat",), input_data=b"\x00\xff\x01"))
+            tm.ok(runner.run_bytes(("cat",), input_data=b"\x00\xff\x01")),
         )
         tm.that(binary_out.stdout, eq=b"\x00\xff\x01")
 
     def test_run_checked_rejects_a_real_timeout(self, runner: u.Cli) -> None:
         """A terminated child cannot become a successful boolean receipt."""
         result = runner.run_checked(
-            [sys.executable, "-c", "import time; time.sleep(10)"], timeout=1
+            [sys.executable, "-c", "import time; time.sleep(10)"],
+            timeout=1,
         )
         tm.fail(result, has="timed_out=True")
 
@@ -210,8 +240,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
         )
         output = tm.ok(
             runner.run_raw(
-                [sys.executable, "-c", script], input_data="inherited-input\n"
-            )
+                [sys.executable, "-c", script],
+                input_data="inherited-input\n",
+            ),
         )
         tm.that(u.Cli.process_succeeded(output.outcome), eq=True)
         tm.that(output.stdout.splitlines(), eq=["inherited-input", "'' ''"])
@@ -219,14 +250,17 @@ class TestsFlextCliRuntimeUtilitiesCore:
 
     @pytest.mark.parametrize("start_new_session", [False, True])
     def test_process_start_session_ownership(
-        self, runner: u.Cli, *, start_new_session: bool
+        self,
+        runner: u.Cli,
+        *,
+        start_new_session: bool,
     ) -> None:
         """The public child boundary either retains or owns its POSIX session."""
         child = tm.ok(
             runner.process_start(
                 [sys.executable, "-c", "import os; print(os.getsid(0), os.getpgrp())"],
                 start_new_session=start_new_session,
-            )
+            ),
         )
         tm.that(tm.ok(child.wait(timeout=5)), eq=0)
         session, group = (int(value) for value in child.stdout.split())
@@ -234,7 +268,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(group, eq=child.pid if start_new_session else os.getpgrp())
 
     def test_process_start_passes_only_the_declared_descriptors(
-        self, runner: u.Cli
+        self,
+        runner: u.Cli,
     ) -> None:
         """A child inherits exactly the descriptors the caller declares."""
         parent_end, child_end = socket.socketpair()
@@ -260,7 +295,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
             parent_end.close()
 
     def test_process_start_honors_cwd_env_and_stderr(
-        self, runner: u.Cli, tmp_path: Path
+        self,
+        runner: u.Cli,
+        tmp_path: Path,
     ) -> None:
         """Verify that process start honors cwd env and stderr."""
         script = (
@@ -289,14 +326,16 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.stderr.strip(), eq="err-marker")
 
     def test_process_start_forwards_passed_file_descriptors(
-        self, runner: u.Cli
+        self,
+        runner: u.Cli,
     ) -> None:
         """Verify the public process owner forwards one inherited descriptor."""
         read_fd, write_fd = os.pipe()
         try:
             script = "import os, sys; os.write(int(sys.argv[1]), b'fd-forwarded')"
             result = runner.process_start(
-                [sys.executable, "-c", script, str(write_fd)], pass_fds=(write_fd,)
+                [sys.executable, "-c", script, str(write_fd)],
+                pass_fds=(write_fd,),
             )
             os.close(write_fd)
             write_fd = -1
@@ -309,7 +348,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
                 os.close(write_fd)
 
     def test_process_start_supports_binary_interactive_exchange(
-        self, runner: u.Cli
+        self,
+        runner: u.Cli,
     ) -> None:
         """Exchange exact framed bytes without closing stdin between messages."""
         script = (
@@ -370,7 +410,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.returncode is not None, eq=True)
 
     def test_process_start_terminate_reaches_leader_exited_descendants(
-        self, runner: u.Cli, tmp_path: Path
+        self,
+        runner: u.Cli,
+        tmp_path: Path,
     ) -> None:
         """Verify session-leader terminate reaches descendants after leader exit."""
         sentinel = tmp_path / "terminated"
@@ -400,7 +442,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.ok(process.kill())
 
     def test_process_start_kill_stops_leader_exited_descendants(
-        self, runner: u.Cli, tmp_path: Path
+        self,
+        runner: u.Cli,
+        tmp_path: Path,
     ) -> None:
         """Verify session-leader kill stops descendants after leader exit."""
         pid_file = tmp_path / "descendant.pid"
@@ -434,7 +478,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(gone, eq=True)
 
     def test_process_start_terminate_without_session_leaves_descendants(
-        self, runner: u.Cli, tmp_path: Path
+        self,
+        runner: u.Cli,
+        tmp_path: Path,
     ) -> None:
         """Verify a non-session terminate targets only the exited leader."""
         sentinel = tmp_path / "terminated"

@@ -1,4 +1,8 @@
-"""Aggregate plans and byte-boundary results for generic PPTX rendering."""
+"""Aggregate plans and byte-boundary results for generic PPTX rendering.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -21,7 +25,9 @@ class FlextCliModelsPptxPresentation:
 
     class PptxPresentationPlan(m.FrozenModel):
         slides: t.VariadicTuple[FlextCliModelsPptxPresentation.PptxSlidePlan] = m.Field(
-            default=(), strict=False, description="Presentation slides."
+            default=(),
+            strict=False,
+            description="Presentation slides.",
         )
         core_properties: t.JsonMapping = m.Field(
             default_factory=lambda: EMPTY_JSON_MAPPING,
@@ -31,20 +37,22 @@ class FlextCliModelsPptxPresentation:
     class PptxRenderRequest(m.FrozenModel):
         template: (
             Annotated[
-                bytes, m.Field(min_length=1, description="Formatting template bytes.")
+                bytes,
+                m.Field(min_length=1, description="Formatting template bytes."),
             ]
             | None
         ) = m.Field(default=None, description="Optional source presentation.")
         plan: FlextCliModelsPptxPresentation.PptxPresentationPlan = m.Field(
-            description="Validated presentation plan."
+            description="Validated presentation plan.",
         )
 
     class PptxRenderResult(m.FrozenModel):
         content: Annotated[
-            bytes, m.Field(min_length=1, description="Rendered presentation bytes.")
+            bytes,
+            m.Field(min_length=1, description="Rendered presentation bytes."),
         ]
         plan: FlextCliModelsPptxPresentation.PptxPresentationPlan = m.Field(
-            description="Exact source plan."
+            description="Exact source plan.",
         )
 
 

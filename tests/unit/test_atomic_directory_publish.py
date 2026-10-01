@@ -1,4 +1,8 @@
-"""No-clobber publication contract for staged empty directories."""
+"""No-clobber publication contract for staged empty directories.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -24,7 +28,8 @@ class TestsAtomicDirectoryPublish:
         staged_inode = staged_path.stat().st_ino
 
         result = u.Cli.atomic_publish_staged_empty_directory_guarded(
-            destination, staged
+            destination,
+            staged,
         )
 
         tm.fail(result)
@@ -32,7 +37,8 @@ class TestsAtomicDirectoryPublish:
         tm.that(staged_path.stat().st_ino, eq=staged_inode)
 
     def test_publish_moves_exact_empty_inode_across_parents(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Return destination identity while preserving every staged leaf field."""
         source_parent = tmp_path / "source"
@@ -47,7 +53,8 @@ class TestsAtomicDirectoryPublish:
         staged = u.atomic_directory_snapshot(staged_path, required=True)
 
         result = u.Cli.atomic_publish_staged_empty_directory_guarded(
-            destination, staged
+            destination,
+            staged,
         )
 
         tm.ok(result)
@@ -68,7 +75,12 @@ class TestsAtomicDirectoryPublish:
         tm.that(staged_path.exists(), eq=False)
 
     def test_publish_rejects_staged_replacement_inode(self, tmp_path: Path) -> None:
-        """Never move another empty inode that reuses the staged pathname."""
+        """Never move another empty inode that reuses the staged pathname.
+
+        Raises:
+            AssertionError: If required staged snapshot unexpectedly absent.
+
+        """
         staged_path = tmp_path / "staged"
         destination_path = tmp_path / "destination"
         staged_path.mkdir()
@@ -83,7 +95,8 @@ class TestsAtomicDirectoryPublish:
         staged_path.chmod(staged.mode)
 
         result = u.Cli.atomic_publish_staged_empty_directory_guarded(
-            destination, staged
+            destination,
+            staged,
         )
 
         tm.fail(result)
@@ -102,7 +115,8 @@ class TestsAtomicDirectoryPublish:
         child.write_bytes(b"content")
 
         result = u.Cli.atomic_publish_staged_empty_directory_guarded(
-            destination, staged
+            destination,
+            staged,
         )
 
         tm.fail(result)

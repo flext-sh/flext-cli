@@ -3,6 +3,9 @@
 Owns every fixed compiled ``re.Pattern`` for the CLI domain. Consumer modules
 import the pre-compiled ``*_REGEXES`` constants directly; runtime-supplied
 regex construction must not live on this constants surface.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations

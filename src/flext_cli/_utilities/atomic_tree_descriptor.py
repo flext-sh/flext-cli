@@ -1,4 +1,8 @@
-"""Low-level descriptor measurements for physical-tree ownership."""
+"""Low-level descriptor measurements for physical-tree ownership.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -34,7 +38,12 @@ def measure_authenticated_file(
     *,
     required_mount_id: int,
 ) -> t.Pair[int, str]:
-    """Hash one stable regular file without materializing it in memory."""
+    """Hash one stable regular file without materializing it in memory.
+
+    Returns:
+        The resulting ``t.Pair[int, str]``.
+
+    """
     digest = hashlib.sha256()
     size = 0
     with file_descriptor.entry_descriptor(parent, path, _FILE_FLAGS) as descriptor:
@@ -49,7 +58,17 @@ def measure_authenticated_file(
 
 
 def mount_id(descriptor: int, path: Path) -> int:
-    """Return the host's descriptor-bound mount identity or fail closed."""
+    """Return the host's descriptor-bound mount identity or fail closed.
+
+    Returns:
+        The host's descriptor-bound mount identity or fail closed.
+
+    Raises:
+        OSError: If ``platform_name != 'linux'``; or if ``len(values) != 1 or not
+            values[0].isdecimal()``; or if ``value < 1``; or if a ``(OSError,
+            UnicodeError)`` is caught.
+
+    """
     platform_name = _runtime_platform()
     if platform_name == "darwin":
         return tree_darwin.FlextCliAtomicTreeDarwin.mount_id(descriptor, path)
@@ -59,7 +78,7 @@ def mount_id(descriptor: int, path: Path) -> int:
     values: list[str]
     try:
         with (Path("/proc/self/fdinfo") / str(descriptor)).open(
-            encoding="ascii"
+            encoding="ascii",
         ) as stream:
             values = [
                 line.removeprefix("mnt_id:").strip()
@@ -80,23 +99,37 @@ def mount_id(descriptor: int, path: Path) -> int:
 
 
 def require_mount(path: Path, expected: int, observed: int) -> None:
-    """Reject a mount transition before reading through the descriptor."""
+    """Reject a mount transition before reading through the descriptor.
+
+    Raises:
+        OSError: If ``observed != expected``.
+
+    """
     if observed != expected:
         message = f"atomic physical-tree entry crosses its parent mount: {path}"
         raise OSError(errno.EXDEV, message, path)
 
 
 def require_same_device(
-    path: Path, parent: os.stat_result, observed: os.stat_result
+    path: Path,
+    parent: os.stat_result,
+    observed: os.stat_result,
 ) -> None:
-    """Reject a device transition before traversing or reading an entry."""
+    """Reject a device transition before traversing or reading an entry.
+
+    Raises:
+        OSError: If ``observed.st_dev != parent.st_dev``.
+
+    """
     if observed.st_dev != parent.st_dev:
         message = f"atomic physical-tree entry crosses its parent device: {path}"
         raise OSError(errno.EXDEV, message, path)
 
 
 def require_directory_state(
-    descriptor: int, path: Path, expected: os.stat_result
+    descriptor: int,
+    path: Path,
+    expected: os.stat_result,
 ) -> None:
     """Require one directory FD to retain the complete observed state."""
     observed = os.fstat(descriptor)
@@ -106,7 +139,9 @@ def require_directory_state(
 
 
 def require_entry_state(
-    parent: file_descriptor.ParentDescriptor, path: Path, expected: os.stat_result
+    parent: file_descriptor.ParentDescriptor,
+    path: Path,
+    expected: os.stat_result,
 ) -> None:
     """Require one parent-relative name to retain the complete observed state."""
     observed = file_descriptor.entry_stat(parent, path)
@@ -120,7 +155,12 @@ def _require_file_state(descriptor: int, path: Path, expected: os.stat_result) -
 
 
 def _runtime_platform() -> str:
-    """Read the platform at invocation time for typed portable dispatch."""
+    """Read the platform at invocation time for typed portable dispatch.
+
+    Returns:
+        The resulting ``str``.
+
+    """
     return sys.platform
 
 

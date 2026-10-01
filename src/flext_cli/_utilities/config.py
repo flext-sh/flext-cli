@@ -32,7 +32,12 @@ class FlextCliUtilitiesConfig:
 
     @staticmethod
     def _read_by_suffix(path: Path) -> p.Result[t.JsonMapping]:
-        """Dispatch to the reader matching ``path`` suffix; reuse core cli readers."""
+        """Dispatch to the reader matching ``path`` suffix; reuse core cli readers.
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
+        """
         suffix = path.suffix.lower()
         if suffix in {c.CONFIG_YAML_SUFFIX, ".yml"}:
             return u.Yaml.yaml_safe_load(path)
@@ -44,12 +49,19 @@ class FlextCliUtilitiesConfig:
 
     @staticmethod
     def config_load(
-        path: Path, *, schema_path: Path | None = None, expand_env: bool = True
+        path: Path,
+        *,
+        schema_path: Path | None = None,
+        expand_env: bool = True,
     ) -> p.Result[m.ConfigDocument]:
         """Load a YAML/JSON/TOML config into a validated ``m.ConfigDocument``.
 
         Reuses core ``u.config_env_override`` for ``${VAR}`` expansion and
         ``u.Cli.schema_validate`` for optional JSON-Schema validation.
+
+        Returns:
+            The resulting ``p.Result[m.ConfigDocument]``.
+
         """
         read = FlextCliUtilitiesConfig._read_by_suffix(path)
         if read.failure:
@@ -68,7 +80,7 @@ class FlextCliUtilitiesConfig:
                 data=data,
                 source_path=str(path),
                 schema_ref=str(schema_path) if schema_path is not None else None,
-            )
+            ),
         )
 
     @staticmethod
@@ -79,17 +91,22 @@ class FlextCliUtilitiesConfig:
 
         The schema for ``config/<name>.yaml`` is
         ``<config_dir>/../schemas/<name>.schema.json`` when present.
+
+        Returns:
+            The resulting ``p.Result[t.MappingKV[str, m.ConfigDocument]]``.
+
         """
         if not config_dir.is_dir():
             return r[t.MappingKV[str, m.ConfigDocument]].fail(
-                f"{c.ERR_CONFIG_READ_FAILED}: {config_dir}"
+                f"{c.ERR_CONFIG_READ_FAILED}: {config_dir}",
             )
         schemas_dir = config_dir.parent / c.CONFIG_SCHEMAS_DIR_NAME
         documents: dict[str, m.ConfigDocument] = {}
         for source in sorted(config_dir.glob(f"*{c.CONFIG_YAML_SUFFIX}")):
             schema = schemas_dir / f"{source.stem}{c.CONFIG_SCHEMA_SUFFIX}"
             loaded = FlextCliUtilitiesConfig.config_load(
-                source, schema_path=schema if schema.is_file() else None
+                source,
+                schema_path=schema if schema.is_file() else None,
             )
             if loaded.failure:
                 return r[t.MappingKV[str, m.ConfigDocument]].from_failure(loaded)
@@ -98,7 +115,12 @@ class FlextCliUtilitiesConfig:
 
     @staticmethod
     def schema_validate(data: t.JsonMapping, schema_path: Path) -> p.Result[bool]:
-        """Validate ``data`` against the JSON Schema at ``schema_path`` → ``r[bool]``."""
+        """Validate ``data`` against the JSON Schema at ``schema_path`` → ``r[bool]``.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         schema_read = FlextCliUtilitiesJson.json_read(schema_path)
         if schema_read.failure:
             return r[bool].from_failure(schema_read)
@@ -110,7 +132,12 @@ class FlextCliUtilitiesConfig:
 
     @staticmethod
     def _run_validator(schema: t.JsonMapping, data: t.JsonMapping) -> bool:
-        """Run a Draft 2020-12 validator; raise on first violation, else ``True``."""
+        """Run a Draft 2020-12 validator; raise on first violation, else ``True``.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         Draft202012Validator(dict(schema)).validate(dict(data))
         return True
 

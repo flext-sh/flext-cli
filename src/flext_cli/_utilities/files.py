@@ -1,4 +1,8 @@
-"""Generic filesystem helpers shared through ``u.Cli``."""
+"""Generic filesystem helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

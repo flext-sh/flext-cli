@@ -1,4 +1,8 @@
-"""Public typed physical-state authentication for atomic file snapshots."""
+"""Public typed physical-state authentication for atomic file snapshots.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -12,9 +16,21 @@ type PhysicalState = tuple[int, int, int, int | None, int | None]
 
 
 def require_existing(
-    state: m.Cli.AtomicFileState, *, purpose: str
+    state: m.Cli.AtomicFileState,
+    *,
+    purpose: str,
 ) -> t.Triple[bytes, int, t.Pair[int, int]]:
-    """Return required content, mode, and inode identity from an existing state."""
+    """Return required content, mode, and inode identity from an existing state.
+
+    Returns:
+        Required content, mode, and inode identity from an existing state.
+
+    Raises:
+        FileNotFoundError: If ``state.content is None or state.mode is None or
+            state.device is None or (state.inode is None) or (state.link_count is
+            None)``.
+
+    """
     if (
         state.content is None
         or state.mode is None
@@ -33,7 +49,13 @@ def require_observed(
     *,
     path: Path | None = None,
 ) -> None:
-    """Require host metadata to equal every available planned physical field."""
+    """Require host metadata to equal every available planned physical field.
+
+    Raises:
+        OSError: If ``observed is None``; or if ``expected !=
+            physical_state(observed)``; or if ``observed is not None``.
+
+    """
     target = planned.path if path is None else path
     if planned.content is None:
         if observed is not None:
@@ -50,7 +72,15 @@ def require_observed(
 
 
 def require_parent(state: m.Cli.AtomicFileState, observed: os.stat_result) -> None:
-    """Require the authenticated parent to equal the snapshot parent identity."""
+    """Require the authenticated parent to equal the snapshot parent identity.
+
+    Raises:
+        FileNotFoundError: If ``state.parent_device is None or state.parent_inode is
+            None``.
+        OSError: If ``(state.parent_device, state.parent_inode) != (observed.st_dev,
+            observed.st_ino)``.
+
+    """
     if state.parent_device is None or state.parent_inode is None:
         message = f"atomic file parent was absent at snapshot: {state.path.parent}"
         raise FileNotFoundError(errno.ENOENT, message, state.path.parent)
@@ -60,7 +90,12 @@ def require_parent(state: m.Cli.AtomicFileState, observed: os.stat_result) -> No
 
 
 def physical_state(state: os.stat_result) -> PhysicalState:
-    """Return every caller-visible physical identity field from host state."""
+    """Return every caller-visible physical identity field from host state.
+
+    Returns:
+        Every caller-visible physical identity field from host state.
+
+    """
     return (
         state.st_dev,
         state.st_ino,

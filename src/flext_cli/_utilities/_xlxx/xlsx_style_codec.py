@@ -1,4 +1,8 @@
-"""Canonical MRO owner for typed XLSX visual-style translation."""
+"""Canonical MRO owner for typed XLSX visual-style translation.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -9,7 +13,8 @@ from .xlsx_style_readers import FlextCliUtilitiesXlsxStyleReaders
 
 
 class FlextCliUtilitiesXlsxStyleCodec(
-    FlextCliUtilitiesXlsxStyleBuilders, FlextCliUtilitiesXlsxStyleReaders
+    FlextCliUtilitiesXlsxStyleBuilders,
+    FlextCliUtilitiesXlsxStyleReaders,
 ):
     """Compose vendor-to-model and model-to-vendor style translation once."""
 

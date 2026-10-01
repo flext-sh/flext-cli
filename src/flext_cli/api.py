@@ -50,7 +50,12 @@ class FlextCli(
 
     @override
     def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
-        """Report the public CLI runtime surface state."""
+        """Report the public CLI runtime surface state.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.RuntimeStatus]``.
+
+        """
         return r[m.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
 
 

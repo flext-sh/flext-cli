@@ -1,4 +1,8 @@
-"""Typed data-validation declarations for XLSX rendering."""
+"""Typed data-validation declarations for XLSX rendering.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -23,7 +27,8 @@ class FlextCliModelsXlsxValidation:
         input_message: str | None = m.Field(default=None, description="Input message.")
         show_error: bool = m.Field(default=True, description="Show validation error.")
         error_style: Literal["stop", "warning", "information"] | None = m.Field(
-            default=None, description="Error behavior."
+            default=None,
+            description="Error behavior.",
         )
         error_title: str | None = m.Field(default=None, description="Error title.")
         error_message: str | None = m.Field(default=None, description="Error message.")
@@ -31,19 +36,24 @@ class FlextCliModelsXlsxValidation:
     class XlsxInlineListSource(m.FrozenModel):
         kind: Literal["values"] = m.Field(default="values", description="Source kind.")
         values: t.VariadicTuple[str] = m.Field(
-            min_length=1, strict=False, description="Allowed literal values."
+            min_length=1,
+            strict=False,
+            description="Allowed literal values.",
         )
 
     class XlsxFormulaListSource(m.FrozenModel):
         kind: Literal["formula"] = m.Field(
-            default="formula", description="Source kind."
+            default="formula",
+            description="Source kind.",
         )
         expression: Annotated[
-            str, m.Field(min_length=1, description="List formula or name.")
+            str,
+            m.Field(min_length=1, description="List formula or name."),
         ]
 
     type XlsxListSource = Annotated[
-        XlsxInlineListSource | XlsxFormulaListSource, m.Field(discriminator="kind")
+        XlsxInlineListSource | XlsxFormulaListSource,
+        m.Field(discriminator="kind"),
     ]
 
     class XlsxUnaryComparison(m.FrozenModel):
@@ -56,60 +66,65 @@ class FlextCliModelsXlsxValidation:
             "greater_or_equal",
         ] = m.Field(description="Unary comparison operator.")
         expression: Annotated[
-            str, m.Field(min_length=1, description="Comparison operand.")
+            str,
+            m.Field(min_length=1, description="Comparison operand."),
         ]
 
     class XlsxRangeComparison(m.FrozenModel):
         mode: Literal["between", "not_between"] = m.Field(
-            description="Range comparison operator."
+            description="Range comparison operator.",
         )
         minimum: Annotated[
-            str, m.Field(min_length=1, description="Lower comparison operand.")
+            str,
+            m.Field(min_length=1, description="Lower comparison operand."),
         ]
         maximum: Annotated[
-            str, m.Field(min_length=1, description="Upper comparison operand.")
+            str,
+            m.Field(min_length=1, description="Upper comparison operand."),
         ]
 
     type XlsxComparison = Annotated[
-        XlsxUnaryComparison | XlsxRangeComparison, m.Field(discriminator="mode")
+        XlsxUnaryComparison | XlsxRangeComparison,
+        m.Field(discriminator="mode"),
     ]
 
     class XlsxListValidationPlan(m.FrozenModel):
         kind: Literal["list"] = m.Field(default="list", description="Rule kind.")
         area: FlextCliModelsXlsxCells.XlsxCellRange = m.Field(
-            description="Validated cell range."
+            description="Validated cell range.",
         )
         source: FlextCliModelsXlsxValidation.XlsxListSource = m.Field(
-            description="Allowed-value source."
+            description="Allowed-value source.",
         )
         messages: FlextCliModelsXlsxValidation.XlsxValidationMessages = m.Field(
-            description="Validation UI behavior."
+            description="Validation UI behavior.",
         )
 
     class XlsxComparisonValidationPlan(m.FrozenModel):
         kind: Literal["whole", "decimal", "date", "time", "text_length"] = m.Field(
-            description="Rule kind."
+            description="Rule kind.",
         )
         area: FlextCliModelsXlsxCells.XlsxCellRange = m.Field(
-            description="Validated cell range."
+            description="Validated cell range.",
         )
         comparison: FlextCliModelsXlsxValidation.XlsxComparison = m.Field(
-            description="Typed comparison."
+            description="Typed comparison.",
         )
         messages: FlextCliModelsXlsxValidation.XlsxValidationMessages = m.Field(
-            description="Validation UI behavior."
+            description="Validation UI behavior.",
         )
 
     class XlsxCustomValidationPlan(m.FrozenModel):
         kind: Literal["custom"] = m.Field(default="custom", description="Rule kind.")
         area: FlextCliModelsXlsxCells.XlsxCellRange = m.Field(
-            description="Validated cell range."
+            description="Validated cell range.",
         )
         expression: Annotated[
-            str, m.Field(min_length=1, description="Custom validation formula.")
+            str,
+            m.Field(min_length=1, description="Custom validation formula."),
         ]
         messages: FlextCliModelsXlsxValidation.XlsxValidationMessages = m.Field(
-            description="Validation UI behavior."
+            description="Validation UI behavior.",
         )
 
     type XlsxDataValidationPlan = Annotated[

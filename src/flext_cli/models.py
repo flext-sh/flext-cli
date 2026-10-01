@@ -1,4 +1,8 @@
-"""FlextCli models module - Pydantic domain models."""
+"""FlextCli models module - Pydantic domain models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

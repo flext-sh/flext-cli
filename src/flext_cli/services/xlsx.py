@@ -1,4 +1,8 @@
-"""Generic typed XLSX service."""
+"""Generic typed XLSX service.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

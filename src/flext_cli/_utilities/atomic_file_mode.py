@@ -1,4 +1,8 @@
-"""Public permission-mode contracts for atomic file publication."""
+"""Public permission-mode contracts for atomic file publication.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -16,7 +20,16 @@ NO_MODE_PRECONDITION = NoModePrecondition()
 
 
 def validate_mode(mode: int | None, *, label: str) -> int | None:
-    """Return one portable permission mode or fail before any file effect."""
+    """Return one portable permission mode or fail before any file effect.
+
+    Returns:
+        One portable permission mode or fail before any file effect.
+
+    Raises:
+        OSError: If ``isinstance(mode, bool)``; or if ``mode < 0 or mode !=
+            stat.S_IMODE(mode)``.
+
+    """
     if mode is None:
         return None
     if isinstance(mode, bool):
@@ -33,7 +46,13 @@ def validate_mode_precondition(
     state: os.stat_result | None,
     expected_mode: int | NoModePrecondition | None,
 ) -> None:
-    """Require the observed mode to match one explicit planned version."""
+    """Require the observed mode to match one explicit planned version.
+
+    Raises:
+        OSError: If ``isinstance(expected_mode, NoModePrecondition)``; or if ``observed
+            != planned``.
+
+    """
     if expected_mode is NO_MODE_PRECONDITION:
         return
     if isinstance(expected_mode, NoModePrecondition):
@@ -51,7 +70,13 @@ def validate_guarded_mode_tuple(
     expected_bytes: bytes | None,
     expected_mode: int | NoModePrecondition | None,
 ) -> None:
-    """Require absence or one complete existing byte-and-mode version."""
+    """Require absence or one complete existing byte-and-mode version.
+
+    Raises:
+        OSError: If ``isinstance(expected_mode, NoModePrecondition)``; or if
+            ``expected_bytes is None``; or if ``expected_mode is None``.
+
+    """
     if expected_mode is NO_MODE_PRECONDITION:
         return
     if isinstance(expected_mode, NoModePrecondition):
@@ -69,7 +94,12 @@ def validate_guarded_mode_tuple(
 
 
 def assert_observed_mode(path: Path, state: os.stat_result, expected: int) -> None:
-    """Require a filesystem to represent the requested permission mode exactly."""
+    """Require a filesystem to represent the requested permission mode exactly.
+
+    Raises:
+        OSError: If ``observed != expected``.
+
+    """
     observed = stat.S_IMODE(state.st_mode)
     if observed != expected:
         msg = (
@@ -80,9 +110,15 @@ def assert_observed_mode(path: Path, state: os.stat_result, expected: int) -> No
 
 
 def publication_mode(
-    state: os.stat_result | None, permission_mode: int | None
+    state: os.stat_result | None,
+    permission_mode: int | None,
 ) -> int | None:
-    """Resolve the mode applied to the temporary before publication."""
+    """Resolve the mode applied to the temporary before publication.
+
+    Returns:
+        The resulting ``int | None``.
+
+    """
     requested = validate_mode(permission_mode, label="permission_mode")
     if requested is not None:
         return requested

@@ -1,4 +1,8 @@
-"""Behavioral tests for the generic data report facade ``u.Cli.report_*``."""
+"""Behavioral tests for the generic data report facade ``u.Cli.report_*``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -29,7 +33,8 @@ class TestsFlextCliDataReport:
     def test_report_emit_json_returns_success(self) -> None:
         """Emitting the typed report as JSON returns the success boundary."""
         emitted = u.Cli.report_emit(
-            m.Cli.DataReportRequest(columns=("a",), rows=[["b"]]), json_output=True
+            m.Cli.DataReportRequest(columns=("a",), rows=[["b"]]),
+            json_output=True,
         )
         assert emitted.success
 

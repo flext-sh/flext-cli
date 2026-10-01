@@ -1,4 +1,8 @@
-"""Public directory durability for completed atomic namespace mutations."""
+"""Public directory durability for completed atomic namespace mutations.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,8 @@
-"""CLI message matching helpers shared through ``u.Cli``."""
+"""CLI message matching helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -10,27 +14,49 @@ class FlextCliUtilitiesMatching:
 
     @staticmethod
     def matches(msg: str, *patterns: str) -> bool:
-        """Check whether a message matches any of the given substring patterns."""
+        """Check whether a message matches any of the given substring patterns.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         text = msg.lower()
         return any(pattern in text for pattern in patterns)
 
     @staticmethod
     def matches_regex(msg: str, *patterns: t.RegexPattern) -> bool:
-        """Check whether a message matches any compiled regex pattern."""
+        """Check whether a message matches any compiled regex pattern.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         return any(pattern.search(msg) is not None for pattern in patterns)
 
     @staticmethod
     def file_not_found_error(error_msg: str) -> bool:
-        """Match error messages that indicate a missing file (RFC-grade regex)."""
+        """Match error messages that indicate a missing file (RFC-grade regex).
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         return FlextCliUtilitiesMatching.matches_regex(
-            error_msg, *c.Cli.FILE_NOT_FOUND_REGEXES
+            error_msg,
+            *c.Cli.FILE_NOT_FOUND_REGEXES,
         )
 
     @staticmethod
     def cli_usage_error(error_msg: str) -> bool:
-        """Match error messages that indicate CLI usage/input failure."""
+        """Match error messages that indicate CLI usage/input failure.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         return FlextCliUtilitiesMatching.matches_regex(
-            error_msg, *c.Cli.CLI_USAGE_ERROR_REGEXES
+            error_msg,
+            *c.Cli.CLI_USAGE_ERROR_REGEXES,
         )
 
 

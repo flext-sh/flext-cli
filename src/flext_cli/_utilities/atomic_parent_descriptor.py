@@ -1,4 +1,8 @@
-"""Component-authenticated physical directory descriptor traversal."""
+"""Component-authenticated physical directory descriptor traversal.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -15,7 +19,10 @@ from flext_cli import t
 from . import atomic_file_path as file_path
 
 type DirectoryChainInspection = tuple[
-    Path, os.stat_result, tuple[tuple[int, int], ...], t.VariadicTuple[Path]
+    Path,
+    os.stat_result,
+    tuple[tuple[int, int], ...],
+    t.VariadicTuple[Path],
 ]
 
 
@@ -43,13 +50,19 @@ def physical_directory(path: Path) -> Generator[PhysicalDirectory]:
     descriptor, opened with ``O_NOFOLLOW``, and its descriptor identity must
     equal that stat. A missing or aliased component fails with the same
     verdict and component path a separate lexical pre-pass would report.
+
+    Yields:
+        Each ``PhysicalDirectory``.
+
     """
     require_traversal_capabilities(path)
     file_path.validate_directory_path(path)
     descriptors: list[int] = []
     try:
         descriptor, state, ancestry, _consumed = _open_components(
-            path, descriptors, stop_at_missing=False
+            path,
+            descriptors,
+            stop_at_missing=False,
         )
     except BaseException as operation_error:
         _close_after_failure(descriptors, path, operation_error)
@@ -74,6 +87,13 @@ def verify_lineage(
     ancestor descriptor, which is exactly what a fresh walk from the root
     observes at that instant: a missing, aliased, replaced or renamed ancestor
     fails with the same verdict a re-walk reports, without reopening the chain.
+
+    Raises:
+        FileNotFoundError: If a ``FileNotFoundError`` is caught.
+        OSError: If ``len(parts) != len(ancestry) or len(lineage) != len(ancestry) -
+            1``; or if ``file_path.identity(root_state) != ancestry[0]``; or if
+            ``file_path.identity(state) != ancestry[index + 1]``.
+
     """
     parts = path.parts
     if len(parts) != len(ancestry) or len(lineage) != len(ancestry) - 1:
@@ -95,7 +115,8 @@ def verify_lineage(
             raise FileNotFoundError(errno.ENOENT, message, absent) from missing
         if not stat.S_ISDIR(state.st_mode) or file_path.is_reparse_point(state):
             file_path.validate_directory_state(
-                root.joinpath(*parts[1 : index + 2]), state
+                root.joinpath(*parts[1 : index + 2]),
+                state,
             )
         if file_path.identity(state) != ancestry[index + 1]:
             message = f"atomic file parent ancestry changed: {path}"
@@ -103,13 +124,24 @@ def verify_lineage(
 
 
 def inspect_directory_chain(path: Path) -> DirectoryChainInspection:
-    """Find the exact existing anchor and every contiguous missing directory."""
+    """Find the exact existing anchor and every contiguous missing directory.
+
+    Returns:
+        The resulting ``DirectoryChainInspection``.
+
+    Raises:
+        OSError: If ``current.ancestry != ancestry or file_path.identity(current.state)
+            != (state.st_dev, state.st_ino)``.
+
+    """
     target = file_path.validate_directory_path(path)
     require_traversal_capabilities(target)
     descriptors: list[int] = []
     try:
         _descriptor, state, ancestry, consumed = _open_components(
-            target, descriptors, stop_at_missing=True
+            target,
+            descriptors,
+            stop_at_missing=True,
         )
         parts = target.relative_to(Path(target.anchor)).parts
         anchor = Path(target.anchor).joinpath(*parts[:consumed])
@@ -129,7 +161,12 @@ def inspect_directory_chain(path: Path) -> DirectoryChainInspection:
 
 
 def require_traversal_capabilities(path: Path) -> None:
-    """Require the descriptor and no-follow operations used for path traversal."""
+    """Require the descriptor and no-follow operations used for path traversal.
+
+    Raises:
+        OSError: If ``missing``.
+
+    """
     missing = [
         name
         for name, operation in (("open", os.open), ("stat", os.stat))
@@ -148,7 +185,10 @@ def require_traversal_capabilities(path: Path) -> None:
 
 
 def _open_components(
-    path: Path, descriptors: list[int], *, stop_at_missing: bool
+    path: Path,
+    descriptors: list[int],
+    *,
+    stop_at_missing: bool,
 ) -> t.Quad[int, os.stat_result, t.VariadicTuple[t.Pair[int, int]], int]:
     flags = (
         os.O_RDONLY
@@ -167,7 +207,9 @@ def _open_components(
     for index, component in enumerate(parts):
         try:
             relative_state = os.stat(
-                component, dir_fd=descriptor, follow_symlinks=False
+                component,
+                dir_fd=descriptor,
+                follow_symlinks=False,
             )
         except FileNotFoundError as missing:
             if stop_at_missing:
@@ -176,10 +218,11 @@ def _open_components(
             message = f"atomic destination parent is missing: {absent}"
             raise FileNotFoundError(errno.ENOENT, message, absent) from missing
         if not stat.S_ISDIR(relative_state.st_mode) or file_path.is_reparse_point(
-            relative_state
+            relative_state,
         ):
             file_path.validate_directory_state(
-                root.joinpath(*parts[: index + 1]), relative_state
+                root.joinpath(*parts[: index + 1]),
+                relative_state,
             )
         next_descriptor = os.open(component, flags, dir_fd=descriptor)
         descriptors.append(next_descriptor)
@@ -216,7 +259,9 @@ def _close_descriptors(descriptors: list[int], path: Path) -> None:
 
 
 def _close_after_failure(
-    descriptors: list[int], path: Path, operation_error: BaseException
+    descriptors: list[int],
+    path: Path,
+    operation_error: BaseException,
 ) -> None:
     try:
         _close_descriptors(descriptors, path)
@@ -230,7 +275,8 @@ def _close_after_failure(
             raise OSError(errno.EIO, message, path) from causes
         group_message = "atomic operation and descriptor close failed"
         raise BaseExceptionGroup(
-            group_message, [operation_error, close_error]
+            group_message,
+            [operation_error, close_error],
         ) from close_error
 
 

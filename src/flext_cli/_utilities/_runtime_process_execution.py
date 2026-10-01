@@ -1,4 +1,8 @@
-"""Resource ownership for one portable streamed process lifecycle."""
+"""Resource ownership for one portable streamed process lifecycle.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -45,7 +49,12 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         timeout: int | None,
         deadline: p.Cli.ProcessDeadline | None,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
-        """Own resources and complete one streamed child lifecycle."""
+        """Own resources and complete one streamed child lifecycle.
+
+        Returns:
+            The resulting ``p.Result[p.Cli.CommandBytesOutput]``.
+
+        """
         started = time.monotonic()
         timing_result = cls._resolve_process_timing(
             cmd,
@@ -99,8 +108,10 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             if threading.current_thread() is threading.main_thread():
                 restore_handlers.extend(
                     cls._install_forwarding_handlers(
-                        received_signals, forwarded_signals, wake
-                    )
+                        received_signals,
+                        forwarded_signals,
+                        wake,
+                    ),
                 )
             prepared_cmd = tuple(cmd)
             if received_signals:
@@ -147,10 +158,14 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                                     exception=exc,
                                 )
                                 .error
-                                or str(exc)
+                                or str(exc),
                             )
                     waiter = cls._start_root_waiter(
-                        owned_process, return_codes, failures, process_done, wake
+                        owned_process,
+                        return_codes,
+                        failures,
+                        process_done,
+                        wake,
                     )
                     pump_streams.extend(
                         cls._start_process_output(
@@ -164,11 +179,14 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                             stdout_output,
                             stderr_output,
                             capture_output=capture_output,
-                        )
+                        ),
                     )
                     if stdin_writer is not None:
                         input_thread = cls._start_input_pump(
-                            stdin_writer, stdin_payload, failures, wake
+                            stdin_writer,
+                            stdin_payload,
+                            failures,
+                            wake,
                         )
                         input_pump = (input_thread, stdin_writer)
                     timed_out, final_deadline = cls._monitor_process(
@@ -209,7 +227,10 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             primary_error = exc
             if process is not None:
                 signal_result = cls._signal_process_tree(
-                    process, signal.SIGKILL, job_handle, force=True
+                    process,
+                    signal.SIGKILL,
+                    job_handle,
+                    force=True,
                 )
                 if signal_result.failure:
                     exc.add_note(signal_result.error or "process signal failed")

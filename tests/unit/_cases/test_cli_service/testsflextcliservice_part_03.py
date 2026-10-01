@@ -1,4 +1,8 @@
-"""Real Typer integration tests for the public flext-cli CLI facade."""
+"""Real Typer integration tests for the public flext-cli CLI facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -23,7 +27,8 @@ class TestsFlextCliService:
             hidden: str = m.Field("secret", exclude=True, validate_default=True)
 
         app = cli.create_app_with_common_params(
-            name="exclude-app", help_text="Exclude app"
+            name="exclude-app",
+            help_text="Exclude app",
         )
         cli.register_command(
             app,
@@ -54,7 +59,8 @@ class TestsFlextCliService:
     def test_create_app_with_common_params_no_flags_keeps_settings(self) -> None:
         """Preserve settings when the invocation supplies no shared flags."""
         app = cli.create_app_with_common_params(
-            name="identity-app", help_text="Identity app"
+            name="identity-app",
+            help_text="Identity app",
         )
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
         shared_flags = {"debug", "trace", "verbose", "quiet", "log_level"}

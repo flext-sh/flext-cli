@@ -11,6 +11,9 @@ Public contract under test (``flext_cli._utilities.commands`` via ``u.Cli``):
   and a trailing newline.
 
 Assertions target observable return values and emitted stdout only.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -34,7 +37,9 @@ class TestsFlextCliCommands:
 
         # Act
         resolved = u.Cli.commands_resolve_success_message(
-            result_value=7, success_message="fallback", success_formatter=formatter
+            result_value=7,
+            success_message="fallback",
+            success_formatter=formatter,
         )
 
         # Assert
@@ -45,7 +50,9 @@ class TestsFlextCliCommands:
         [
             pytest.param("direct", "direct", id="string-value-returned"),
             pytest.param(
-                {c.Cli.DICT_KEY_MESSAGE: "mapped"}, "mapped", id="mapping-message-key"
+                {c.Cli.DICT_KEY_MESSAGE: "mapped"},
+                "mapped",
+                id="mapping-message-key",
             ),
             pytest.param(False, "fallback", id="bool-falls-back"),
             pytest.param("", "fallback", id="empty-string-falls-back"),
@@ -55,14 +62,18 @@ class TestsFlextCliCommands:
                 id="empty-mapping-message-falls-back",
             ),
             pytest.param(
-                {"other": "x"}, "fallback", id="mapping-without-message-key-falls-back"
+                {"other": "x"},
+                "fallback",
+                id="mapping-without-message-key-falls-back",
             ),
             pytest.param([1, 2, 3], "fallback", id="list-falls-back"),
             pytest.param(0, "fallback", id="zero-falls-back"),
         ],
     )
     def test_resolve_without_formatter_follows_value_then_fallback_order(
-        self, result_value: t.Cli.ResultValue, expected: str
+        self,
+        result_value: t.Cli.ResultValue,
+        expected: str,
     ) -> None:
         # Act
         """Verify that resolve without formatter follows value then fallback order."""
@@ -79,7 +90,9 @@ class TestsFlextCliCommands:
         # Act
         """Verify that resolve returns none fallback when message is none."""
         resolved = u.Cli.commands_resolve_success_message(
-            result_value=0, success_message=None, success_formatter=None
+            result_value=0,
+            success_message=None,
+            success_formatter=None,
         )
 
         # Assert
@@ -94,7 +107,9 @@ class TestsFlextCliCommands:
         ],
     )
     def test_structured_payload_is_emitted_verbatim_with_newline(
-        self, payload: str, capsys: pytest.CaptureFixture[str]
+        self,
+        payload: str,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that structured payload is emitted verbatim with newline."""
@@ -104,7 +119,8 @@ class TestsFlextCliCommands:
         tm.that(capsys.readouterr().out, eq=f"{payload}\n")
 
     def test_plain_success_text_is_styled_and_newline_terminated(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that plain success text is styled and newline terminated."""
@@ -117,7 +133,8 @@ class TestsFlextCliCommands:
         tm.that(out.endswith("\n"), eq=True)
 
     def test_error_message_is_styled_and_newline_terminated(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that error message is styled and newline terminated."""
@@ -130,7 +147,8 @@ class TestsFlextCliCommands:
         tm.that(out.endswith("\n"), eq=True)
 
     def test_error_message_surfaces_code_without_traceback_in_normal_mode(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that error message surfaces code without traceback in normal mode."""
@@ -149,13 +167,19 @@ class TestsFlextCliCommands:
         tm.that("FileNotFoundError" not in out, eq=True)
 
     def test_error_message_adds_traceback_in_verbose_mode(
-        self, capsys: pytest.CaptureFixture[str]
+        self,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Arrange
         """Verify that error message adds traceback in verbose mode."""
 
         def _raise_missing_config() -> None:
-            """Raise the error this test needs a real traceback for."""
+            """Raise the error this test needs a real traceback for.
+
+            Raises:
+                FileNotFoundError: If nope.
+
+            """
             error_message = "nope"
             raise FileNotFoundError(error_message)
 

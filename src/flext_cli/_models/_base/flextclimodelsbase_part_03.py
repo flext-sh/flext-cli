@@ -1,4 +1,8 @@
-"""CLI Pydantic domain models."""
+"""CLI Pydantic domain models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,11 +22,14 @@ class FlextCliModelsBase:
         """Exact empty-directory presence and physical identity."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", frozen=True, arbitrary_types_allowed=True
+            extra="forbid",
+            frozen=True,
+            arbitrary_types_allowed=True,
         )
         path: Annotated[Path, m.Field(description="Absolute directory path")]
         exists: Annotated[
-            bool, m.Field(strict=True, description="Whether the directory exists")
+            bool,
+            m.Field(strict=True, description="Whether the directory exists"),
         ]
         parent_device: Annotated[
             int | None,
@@ -45,26 +52,32 @@ class FlextCliModelsBase:
             m.Field(ge=0, le=0o7777, strict=True, description="Permission bits"),
         ] = None
         device: Annotated[
-            int | None, m.Field(ge=0, strict=True, description="Physical device")
+            int | None,
+            m.Field(ge=0, strict=True, description="Physical device"),
         ] = None
         inode: Annotated[
-            int | None, m.Field(ge=0, strict=True, description="Physical inode")
+            int | None,
+            m.Field(ge=0, strict=True, description="Physical inode"),
         ] = None
         link_count: Annotated[
-            int | None, m.Field(ge=1, strict=True, description="Exact link count")
+            int | None,
+            m.Field(ge=1, strict=True, description="Exact link count"),
         ] = None
         file_attributes: Annotated[
-            int | None, m.Field(ge=0, strict=True, description="Host attributes")
+            int | None,
+            m.Field(ge=0, strict=True, description="Host attributes"),
         ] = None
         reparse_tag: Annotated[
-            int | None, m.Field(ge=0, strict=True, description="Host reparse tag")
+            int | None,
+            m.Field(ge=0, strict=True, description="Host reparse tag"),
         ] = None
 
         @u.field_validator("path")
         @classmethod
         def _validate_absolute_path(cls, value: Path) -> Path:
             return atomic_state.validate_atomic_state_path(
-                value, label="atomic directory state"
+                value,
+                label="atomic directory state",
             )
 
         @u.model_validator(mode="after")
@@ -90,7 +103,9 @@ class FlextCliModelsBase:
                 label="atomic directory state",
             )
             atomic_state.validate_non_reparse_state(
-                self.file_attributes, self.reparse_tag, label="atomic directory state"
+                self.file_attributes,
+                self.reparse_tag,
+                label="atomic directory state",
             )
             return self
 
@@ -98,11 +113,13 @@ class FlextCliModelsBase:
         """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            arbitrary_types_allowed=True, extra="forbid"
+            arbitrary_types_allowed=True,
+            extra="forbid",
         )
         name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]
         handler: Annotated[
-            t.Cli.JsonCommandFn, m.Field(..., description="Command handler callable")
+            t.Cli.JsonCommandFn,
+            m.Field(..., description="Command handler callable"),
         ]
 
     class EmptyRequest(m.BaseModel):
@@ -114,7 +131,9 @@ class FlextCliModelsBase:
         """Type-erased route contract for heterogeneous batch registration."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            arbitrary_types_allowed=True, extra="forbid", frozen=True
+            arbitrary_types_allowed=True,
+            extra="forbid",
+            frozen=True,
         )
         name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]
         help_text: Annotated[str, m.Field(..., description="User-facing help text")]
@@ -127,14 +146,16 @@ class FlextCliModelsBase:
             m.Field(..., description="Command handler returning r[...]"),
         ]
         success_message: Annotated[
-            str | None, m.Field(None, description="Static success message")
+            str | None,
+            m.Field(None, description="Static success message"),
         ] = None
         success_formatter: Annotated[
             t.Cli.SuccessMessageFormatter | None,
             m.Field(None, description="Dynamic success formatter"),
         ] = None
         success_type: Annotated[
-            c.Cli.MessageTypes, m.Field(description="CLI output style on success")
+            c.Cli.MessageTypes,
+            m.Field(description="CLI output style on success"),
         ] = c.Cli.MessageTypes.SUCCESS
 
 

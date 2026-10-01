@@ -1,4 +1,8 @@
-"""Descriptor-authenticated inventory for one physical filesystem tree."""
+"""Descriptor-authenticated inventory for one physical filesystem tree.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -28,12 +32,21 @@ _DIRECTORY_FLAGS = (
 
 
 def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest:
-    """Inventory one exact tree through non-aliased directory descriptors."""
+    """Inventory one exact tree through non-aliased directory descriptors.
+
+    Returns:
+        The resulting ``m.Cli.AtomicPhysicalTreeManifest``.
+
+    Raises:
+        FileNotFoundError: If ``root_state is None``.
+
+    """
     root_path = file_path.validate_atomic_path(root_path)
     directory_descriptor.require_read_capabilities(root_path)
     with file_descriptor.parent_descriptor(root_path) as outer_parent:
         parent_mount_id = tree_descriptor.mount_id(
-            outer_parent.descriptor, outer_parent.path
+            outer_parent.descriptor,
+            outer_parent.path,
         )
         root_state = directory_state.destination_state(root_path, parent=outer_parent)
         if root_state is None:
@@ -41,7 +54,9 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
             raise FileNotFoundError(errno.ENOENT, message, root_path)
         entries: list[m.Cli.AtomicPhysicalTreeEntry] = []
         with file_descriptor.entry_descriptor(
-            outer_parent, root_path, _DIRECTORY_FLAGS
+            outer_parent,
+            root_path,
+            _DIRECTORY_FLAGS,
         ) as descriptor:
             tree_descriptor.require_directory_state(descriptor, root_path, root_state)
             root_mount_id = tree_descriptor.mount_id(descriptor, root_path)
@@ -63,12 +78,16 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
             )
             directory_identities = {file_path.identity(root_state)}
             _inventory_directory(
-                root_parent, root_mount_id, entries, directory_identities
+                root_parent,
+                root_mount_id,
+                entries,
+                directory_identities,
             )
             tree_descriptor.require_directory_state(descriptor, root_path, root_state)
         tree_descriptor.require_entry_state(outer_parent, root_path, root_state)
     return m.Cli.AtomicPhysicalTreeManifest(
-        root=root, entries=tuple(sorted(entries, key=_entry_path_key))
+        root=root,
+        entries=tuple(sorted(entries, key=_entry_path_key)),
     )
 
 
@@ -79,7 +98,9 @@ def _inventory_directory(
     directory_identities: set[t.Pair[int, int]],
 ) -> None:
     tree_descriptor.require_directory_state(
-        parent.descriptor, parent.path, parent.state
+        parent.descriptor,
+        parent.path,
+        parent.state,
     )
     names = _directory_names(parent.descriptor)
     for name in names:
@@ -93,7 +114,9 @@ def _inventory_directory(
                 message = f"atomic physical-tree directory identity repeats: {path}"
                 raise OSError(errno.ELOOP, message, path)
             with file_descriptor.entry_descriptor(
-                parent, path, _DIRECTORY_FLAGS
+                parent,
+                path,
+                _DIRECTORY_FLAGS,
             ) as descriptor:
                 tree_descriptor.require_directory_state(descriptor, path, observed)
                 mount_id = tree_descriptor.mount_id(descriptor, path)
@@ -107,7 +130,7 @@ def _inventory_directory(
                         observed,
                         parent_mount_id=parent_mount_id,
                         mount_id=mount_id,
-                    )
+                    ),
                 )
                 child_parent = file_descriptor.ParentDescriptor(
                     path,
@@ -117,7 +140,10 @@ def _inventory_directory(
                     (*parent.lineage, parent.descriptor),
                 )
                 _inventory_directory(
-                    child_parent, mount_id, entries, directory_identities
+                    child_parent,
+                    mount_id,
+                    entries,
+                    directory_identities,
                 )
                 tree_descriptor.require_directory_state(descriptor, path, observed)
             tree_descriptor.require_entry_state(parent, path, observed)
@@ -127,7 +153,10 @@ def _inventory_directory(
                 _raise_changed(path)
             tree_descriptor.require_same_device(path, parent.state, authenticated)
             size, digest = tree_descriptor.measure_authenticated_file(
-                parent, path, authenticated, required_mount_id=parent_mount_id
+                parent,
+                path,
+                authenticated,
+                required_mount_id=parent_mount_id,
             )
             entries.append(
                 _entry(
@@ -139,7 +168,7 @@ def _inventory_directory(
                     size=size,
                     digest=digest,
                     mount_id=parent_mount_id,
-                )
+                ),
             )
         elif stat.S_ISLNK(observed.st_mode):
             target = os.readlink(name, dir_fd=parent.descriptor)
@@ -156,7 +185,7 @@ def _inventory_directory(
                     parent_mount_id=parent_mount_id,
                     mount_id=parent_mount_id,
                     link_target=target,
-                )
+                ),
             )
         else:
             message = (
@@ -166,7 +195,9 @@ def _inventory_directory(
     if _directory_names(parent.descriptor) != names:
         _raise_changed(parent.path)
     tree_descriptor.require_directory_state(
-        parent.descriptor, parent.path, parent.state
+        parent.descriptor,
+        parent.path,
+        parent.state,
     )
 
 
@@ -216,13 +247,23 @@ def _entry(
 
 
 def _directory_names(descriptor: int) -> t.VariadicTuple[str]:
-    """Enumerate names through the authenticated directory descriptor."""
+    """Enumerate names through the authenticated directory descriptor.
+
+    Returns:
+        The resulting ``t.VariadicTuple[str]``.
+
+    """
     with os.scandir(descriptor) as entries:
         return tuple(sorted(entry.name for entry in entries))
 
 
 def _entry_path_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> str:
-    """Return the deterministic lexical manifest key."""
+    """Return the deterministic lexical manifest key.
+
+    Returns:
+        The deterministic lexical manifest key.
+
+    """
     return entry.path.as_posix()
 
 

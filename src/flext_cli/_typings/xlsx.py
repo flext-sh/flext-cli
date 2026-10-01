@@ -1,4 +1,8 @@
-"""Strict scalar aliases for the generic XLSX boundary."""
+"""Strict scalar aliases for the generic XLSX boundary.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -33,7 +37,13 @@ class FlextCliTypesXlsx:
         "notEqual",
     ]
     type XlsxValidationType = Literal[
-        "custom", "date", "decimal", "list", "textLength", "time", "whole"
+        "custom",
+        "date",
+        "decimal",
+        "list",
+        "textLength",
+        "time",
+        "whole",
     ]
     type XlsxArchiveViolationKind = Literal[
         "defined_name",

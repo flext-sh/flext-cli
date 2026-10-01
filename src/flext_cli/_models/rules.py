@@ -1,4 +1,8 @@
-"""Rules Pydantic domain models for local rule loading."""
+"""Rules Pydantic domain models for local rule loading.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -40,14 +44,16 @@ class FlextCliModelsRules:
             m.Field(description="Top-level key under which rules are nested in YAMLs"),
         ] = c.Cli.DICT_KEY_RULES
         rule_id_key: Annotated[
-            str, m.Field(description="Per-rule key holding the unique rule identifier")
+            str,
+            m.Field(description="Per-rule key holding the unique rule identifier"),
         ] = c.Cli.DICT_KEY_RULE_ID
         enabled_key: Annotated[
             str,
             m.Field(description="Per-rule key controlling whether the rule is active"),
         ] = c.Cli.DICT_KEY_ENABLED
         action_key: Annotated[
-            str, m.Field(description="Per-rule key naming the fix action to dispatch")
+            str,
+            m.Field(description="Per-rule key naming the fix action to dispatch"),
         ] = c.Cli.RULES_ACTION_KEY
         check_key: Annotated[
             str,

@@ -1,4 +1,8 @@
-"""Apply positive typed protection permissions at the openpyxl edge."""
+"""Apply positive typed protection permissions at the openpyxl edge.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -15,7 +19,9 @@ class FlextCliUtilitiesXlsxProtection:
     # actions, so positive allow_* model flags are inverted exactly once here.
     @classmethod
     def _apply_protection(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetProtectionPlan | None
+        cls,
+        worksheet: Worksheet,
+        plan: m.Cli.XlsxSheetProtectionPlan | None,
     ) -> p.Result[bool]:
         if plan is None:
             return r[bool].ok(True)
@@ -27,7 +33,9 @@ class FlextCliUtilitiesXlsxProtection:
 
     @classmethod
     def _apply_protection_unchecked(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetProtectionPlan
+        cls,
+        worksheet: Worksheet,
+        plan: m.Cli.XlsxSheetProtectionPlan,
     ) -> p.Result[bool]:
         for item in plan.cells:
             if (
@@ -38,7 +46,8 @@ class FlextCliUtilitiesXlsxProtection:
             for row in range(item.area.first.row, item.area.last.row + 1):
                 for column in range(item.area.first.column, item.area.last.column + 1):
                     worksheet.cell(row, column).protection = Protection(
-                        locked=item.locked, hidden=item.hidden
+                        locked=item.locked,
+                        hidden=item.hidden,
                     )
         permissions = plan.permissions
         protection = worksheet.protection
