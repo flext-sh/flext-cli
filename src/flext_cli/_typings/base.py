@@ -60,7 +60,7 @@ class FlextCliTypesBase:
     )
     YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
     CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
-        TypeAdapter(CliDefaultSource)
+        TypeAdapter(CliValue | t.SequenceOf[str | int] | Path)
     )
 
 
