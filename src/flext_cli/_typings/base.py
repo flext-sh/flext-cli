@@ -8,6 +8,7 @@ from types import GenericAlias, UnionType
 from typing import ClassVar, TypeAliasType
 
 from jinja2.sandbox import SandboxedEnvironment
+from pydantic import TypeAdapter
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
@@ -59,7 +60,7 @@ class FlextCliTypesBase:
     )
     YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
     CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
-        t.TypeAdapter(CliDefaultSource)
+        TypeAdapter(CliDefaultSource)
     )
 
 
