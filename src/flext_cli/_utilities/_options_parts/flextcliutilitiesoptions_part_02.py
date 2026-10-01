@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from flext_cli import c, t
+from pydantic import TypeAdapter
+
 from flext_cli.models import m
 
 from .flextcliutilitiesoptionbuilder_part_01 import FlextCliUtilitiesOptionBuilder
@@ -47,7 +49,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             return None
         if cls.is_json_option(cls.field_annotation(field_name, field_info)):
             # A JSON option's default is the JSON text its parser validates.
-            adapter = m.TypeAdapter(field_info.rebuild_annotation())
+            adapter = TypeAdapter(field_info.rebuild_annotation())
             validated = adapter.validate_python(source_value)
             return adapter.dump_json(validated, warnings="error").decode(
                 c.Cli.ENCODING_DEFAULT

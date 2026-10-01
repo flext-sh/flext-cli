@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
+from pydantic import TypeAdapter
+
 from flext_cli import c, m, p, r, t
 from flext_core import u
 
@@ -16,7 +18,7 @@ from ._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
 class FlextCliUtilitiesTables:
     """Table helpers exposed through ``u.Cli.tables_*``."""
 
-    TABLE_DATA_ADAPTER: ClassVar[t.ValueAdapter[t.Cli.TableDataSource]] = m.TypeAdapter(
+    TABLE_DATA_ADAPTER: ClassVar[t.ValueAdapter[t.Cli.TableDataSource]] = TypeAdapter(
         t.Cli.TableDataSource
     )
 
