@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from functools import cache
+
 from flext_cli import c, t
 from flext_cli.models import m
 from flext_core import u
@@ -14,6 +16,12 @@ from .flextcliutilitiesoptions_part_01 import (
 
 class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
     """Implementation part for FlextCliUtilitiesOptions."""
+
+    @classmethod
+    @cache
+    def cli_default_source_adapter(cls) -> t.ValueAdapter[t.Cli.CliDefaultSource]:
+        """Build the CLI default adapter once at the utility boundary."""
+        return u.type_adapter(t.Cli.CliDefaultSource)
 
     @staticmethod
     def field_annotation(
@@ -54,7 +62,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
                 c.Cli.ENCODING_DEFAULT
             )
         normalized_atom = cls.normalize_cli_atom(
-            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value)
+            cls.cli_default_source_adapter().validate_python(source_value)
         )
         if normalized_atom is None:
             raise TypeError(

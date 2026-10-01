@@ -4,7 +4,7 @@ Modules tested: flext_cli.typings.FlextCliTypes (via the tests `t` facade).
 
 These tests assert the OBSERVABLE contract of the CLI type facade: the
 runtime-validatable behaviour of its published type aliases and the public
-``TypeAdapter`` / type-tuple ClassVars exposed on ``t.Cli``. No private
+type-tuple ClassVars exposed on ``t.Cli``. No private
 attributes, internal collaborators, or implementation structure are touched.
 """
 
@@ -85,8 +85,8 @@ class TestsFlextCliTypings:
     def test_cli_default_source_adapter_accepts_cli_value_kinds(
         self, payload: object, expected: object
     ) -> None:
-        """CLI_DEFAULT_SOURCE_ADAPTER accepts scalars, sequences, and paths."""
-        result = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)
+        """The CLI default-source adapter accepts scalars, sequences, and paths."""
+        result = u.Cli.cli_default_source_adapter().validate_python(payload)
         tm.that(result == expected, eq=True)
 
     # --- Published type-tuple ClassVars ---------------------------------

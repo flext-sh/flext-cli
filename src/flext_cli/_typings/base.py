@@ -12,7 +12,7 @@ from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_core import t, u
+from flext_core import t
 
 
 class FlextCliTypesBase:
@@ -58,9 +58,6 @@ class FlextCliTypesBase:
         t.json_mapping_adapter()
     )
     YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
-    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
-        u.type_adapter(CliDefaultSource)
-    )
 
 
 __all__: list[str] = ["FlextCliTypesBase"]
