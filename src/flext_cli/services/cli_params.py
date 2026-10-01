@@ -1,4 +1,8 @@
-"""FLEXT CLI Common Parameters - Auto-generated from FlextSettings properties."""
+"""FLEXT CLI Common Parameters - Auto-generated from FlextSettings properties.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -31,18 +35,31 @@ class FlextCliCommonParams(s[m.Cli.RuntimeStatus]):
         ``CliParamsConfig`` model rejects are the declared failure outcome and
         the result carries the ``ValidationError``; every other exception
         escapes.
+
+        Returns:
+            The resulting ``p.Result[p.Cli.Settings]``.
+
         """
         try:
             params_to_use = u.Cli.params_resolve(params, kwargs)
         except c.ValidationError as exc:
             return r[p.Cli.Settings].fail(
-                c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc), exception=exc
+                c.Cli.CLI_PARAM_ERR_APPLY_FAILED_FMT.format(error=exc),
+                exception=exc,
             )
         return u.Cli.params_apply(settings, params_to_use)
 
     @classmethod
     def create_option(cls, field_name: str) -> m.Cli.OptionSpec:
-        """Create one validated framework-neutral option model."""
+        """Create one validated framework-neutral option model.
+
+        Returns:
+            The resulting ``m.Cli.OptionSpec``.
+
+        Raises:
+            ValueError: If ``field_name not in c.Cli.CLI_PARAM_REGISTRY``.
+
+        """
         if field_name not in c.Cli.CLI_PARAM_REGISTRY:
             msg = c.Cli.CLI_PARAM_ERR_FIELD_NOT_FOUND_FMT.format(field_name=field_name)
             raise ValueError(msg)

@@ -43,7 +43,12 @@ class FlextCliUtilitiesYamlConvertMixin:
 
     @staticmethod
     def yaml_to_plain(data: t.Cli.YamlNode) -> t.Cli.YamlValue:
-        """Recursively convert ruamel containers into plain Python values."""
+        """Recursively convert ruamel containers into plain Python values.
+
+        Returns:
+            The resulting ``t.Cli.YamlValue``.
+
+        """
         if isinstance(data, dict):
             return {
                 key: FlextCliUtilitiesYamlConvertMixin.yaml_to_plain(value)
@@ -90,6 +95,13 @@ class FlextCliUtilitiesYamlConvertMixin:
         Existing CommentedMap/CommentedSeq nodes are preserved. Multi-line
         strings become LiteralScalarString; YAML 1.1 implicit string tokens are
         double-quoted so they survive a round-trip as strings.
+
+        Returns:
+            The resulting ``t.Cli.YamlNode``.
+
+        Raises:
+            TypeError: If unsupported YAML value type.
+
         """
         if isinstance(data, CommentedMap | CommentedSeq):
             return data
@@ -97,7 +109,7 @@ class FlextCliUtilitiesYamlConvertMixin:
             node = CommentedMap()
             for key, value in data.items():
                 node[key] = FlextCliUtilitiesYamlConvertMixin.yaml_deep_to_commented(
-                    value
+                    value,
                 )
             return node
         if FlextCliUtilitiesYamlConvertMixin.yaml_is_sequence(data):
@@ -125,12 +137,21 @@ class FlextCliUtilitiesYamlConvertMixin:
         charts helper) — ``t.Cli.YamlValue`` cannot type a tuple, so a runtime
         tuple now fails loud in ``yaml_deep_to_commented`` instead of being
         silently treated as a sequence.
+
+        Returns:
+            True for YAML sequence nodes while keeping strings scalar.
+
         """
         return isinstance(value, (CommentedSeq, list))
 
     @staticmethod
     def yaml_normalize_scalar(value: t.Cli.YamlValue) -> t.Cli.YamlValue:
-        """Normalize ruamel scalar wrappers to plain Python scalars."""
+        """Normalize ruamel scalar wrappers to plain Python scalars.
+
+        Returns:
+            The resulting ``t.Cli.YamlValue``.
+
+        """
         if isinstance(value, str):
             return FlextCliUtilitiesYamlConvertMixin.yaml_plain_str(value)
         if isinstance(value, bool):
@@ -143,12 +164,22 @@ class FlextCliUtilitiesYamlConvertMixin:
 
     @staticmethod
     def yaml_plain_str(value: t.Cli.YamlScalar) -> str:
-        """Return *value* as a plain builtin str (unwrap ruamel subclasses)."""
+        """Return *value* as a plain builtin str (unwrap ruamel subclasses).
+
+        Returns:
+            *value* as a plain builtin str (unwrap ruamel subclasses).
+
+        """
         return value if type(value) is str else str(value)
 
     @staticmethod
     def yaml_plain_bool(value: t.Cli.YamlScalar) -> bool:
-        """Return *value* as a plain builtin bool (unwrap ruamel subclasses)."""
+        """Return *value* as a plain builtin bool (unwrap ruamel subclasses).
+
+        Returns:
+            *value* as a plain builtin bool (unwrap ruamel subclasses).
+
+        """
         return value if type(value) is bool else bool(value)
 
     @staticmethod
@@ -159,6 +190,10 @@ class FlextCliUtilitiesYamlConvertMixin:
         contract — only ``int`` and ruamel int subclasses (which implement both
         protocols) arrive here. Never widen to ``object`` (hides str/object and
         breaks the 4-checker gate).
+
+        Returns:
+            *value* as a plain builtin int (unwrap ruamel subclasses).
+
         """
         return value if type(value) is int else int(value)
 
@@ -168,18 +203,31 @@ class FlextCliUtilitiesYamlConvertMixin:
 
         NOTE (multi-agent): same contract as ``yaml_plain_int`` — keep the
         ``SupportsFloat | SupportsIndex`` union; never widen to ``object``.
+
+        Returns:
+            *value* as a plain builtin float (unwrap ruamel subclasses).
+
         """
         return value if type(value) is float else float(value)
 
     @staticmethod
     def _yaml_coerce_node(value: t.Cli.YamlValue) -> t.Cli.YamlNode:
-        """Validate a parsed ruamel root against the supported node contract."""
+        """Validate a parsed ruamel root against the supported node contract.
+
+        Returns:
+            The resulting ``t.Cli.YamlNode``.
+
+        Raises:
+            TypeError: If unsupported YAML root type.
+
+        """
         if isinstance(value, (CommentedMap, CommentedSeq, str, int, float, bool)):
             return value
         if value is None:
             return None
         if isinstance(
-            value, Mapping
+            value,
+            Mapping,
         ) or FlextCliUtilitiesYamlConvertMixin.yaml_is_sequence(value):
             return FlextCliUtilitiesYamlConvertMixin.yaml_deep_to_commented(value)
         msg = f"unsupported YAML root type: {type(value).__name__}"

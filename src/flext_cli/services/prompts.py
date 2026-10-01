@@ -1,4 +1,8 @@
-"""User interaction tools for CLI applications."""
+"""User interaction tools for CLI applications.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -14,11 +18,21 @@ class FlextCliPrompts(FlextCliPromptsSupport):
 
     @override
     def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
-        """Return the current CLI runtime status."""
+        """Return the current CLI runtime status.
+
+        Returns:
+            The current CLI runtime status.
+
+        """
         return r[m.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
 
     def confirm(self, message: str, *, default: bool = False) -> p.Result[bool]:
-        """Read a yes/no confirmation or return the configured default."""
+        """Read a yes/no confirmation or return the configured default.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         try:
             if self.state.quiet or not self.state.interactive:
                 return r[bool].ok(default)
@@ -30,17 +44,31 @@ class FlextCliPrompts(FlextCliPromptsSupport):
             return r[bool].fail(c.Cli.ERR_INPUT_STREAM_ENDED, exception=exc)
 
     def prompt(self, message: str, default: str = "") -> p.Result[str]:
-        """Read one text value or return the configured default."""
+        """Read one text value or return the configured default.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         if self.state.quiet or not self.state.interactive:
             return r[str].ok(default)
         return r[str].ok(self._read_prompt_value(message, default))
 
     def prompt_choice(
-        self, choices: t.StrSequence, default: str | None = None
+        self,
+        choices: t.StrSequence,
+        default: str | None = None,
     ) -> p.Result[str]:
-        """Resolve one value constrained to the supplied choices."""
+        """Resolve one value constrained to the supplied choices.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         return u.Cli.prompts_choice_result(
-            interactive=self.state.interactive, choices=choices, default=default
+            interactive=self.state.interactive,
+            choices=choices,
+            default=default,
         )
 
     def prompt_password(
@@ -48,7 +76,12 @@ class FlextCliPrompts(FlextCliPromptsSupport):
         message: str = "Password:",
         min_length: int = c.Cli.PROMPT_MIN_PASSWORD_LENGTH,
     ) -> p.Result[str]:
-        """Read a password and enforce the minimum length."""
+        """Read a password and enforce the minimum length.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         if not self.state.interactive:
             return r[str].fail(c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED)
         return u.Cli.prompts_password_result(
@@ -57,21 +90,43 @@ class FlextCliPrompts(FlextCliPromptsSupport):
         )
 
     def print_error(self, message: str) -> p.Result[bool]:
-        """Render an error message through the canonical prompt output path."""
+        """Render an error message through the canonical prompt output path.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         return self._print_message(message, c.LogLevel.ERROR, c.Cli.PROMPT_ERROR_FMT)
 
     def print_success(self, message: str) -> p.Result[bool]:
-        """Render a success message through the canonical prompt output path."""
+        """Render a success message through the canonical prompt output path.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         return self._print_message(message, c.LogLevel.INFO, c.Cli.PROMPT_SUCCESS_FMT)
 
     def print_warning(self, message: str) -> p.Result[bool]:
-        """Render a warning message through the canonical prompt output path."""
+        """Render a warning message through the canonical prompt output path.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         return self._print_message(
-            message, c.LogLevel.WARNING, c.Cli.PROMPT_WARNING_FMT
+            message,
+            c.LogLevel.WARNING,
+            c.Cli.PROMPT_WARNING_FMT,
         )
 
     def _read_prompt_value(self, message: str, default: str) -> str:
-        """Read one prompt value and record the canonical prompt log."""
+        """Read one prompt value and record the canonical prompt log.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         display_message = u.Cli.prompts_display_message(message, default)
         raw = self.input_reader(f"{display_message}{c.Cli.PROMPT_SEP}")
         value: str = u.Cli.prompts_effective_text(raw, default)

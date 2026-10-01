@@ -1,4 +1,8 @@
-"""Physical-identity contracts for public atomic file operations."""
+"""Physical-identity contracts for public atomic file operations.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -15,7 +19,8 @@ class TestsAtomicFileIdentity:
     """Prove callers cannot authorize effects with only matching content."""
 
     def test_publication_unchanged_requires_equal_bytes_and_mode(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Treat matching bytes with different permissions as a real change."""
         destination = tmp_path / "live.bin"
@@ -29,7 +34,8 @@ class TestsAtomicFileIdentity:
         tm.ok(before)
         tm.ok(replacement)
         publication = m.Cli.AtomicFilePublication(
-            before=before.value, replacement=replacement.value
+            before=before.value,
+            replacement=replacement.value,
         )
 
         tm.that(u.Cli.atomic_file_publication_is_unchanged(publication), eq=False)
@@ -40,20 +46,24 @@ class TestsAtomicFileIdentity:
         tm.that(
             u.Cli.atomic_file_publication_is_unchanged(
                 m.Cli.AtomicFilePublication(
-                    before=before.value, replacement=identical.value
-                )
+                    before=before.value,
+                    replacement=identical.value,
+                ),
             ),
             eq=True,
         )
 
     def test_exclusive_create_returns_exact_published_state(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Create one absent binary file with its requested bytes and mode."""
         destination = tmp_path / "created.bin"
 
         result = u.Cli.atomic_create_binary_file_guarded(
-            destination, b"content", permission_mode=0o600
+            destination,
+            b"content",
+            permission_mode=0o600,
         )
 
         tm.ok(result)
@@ -62,21 +72,25 @@ class TestsAtomicFileIdentity:
         tm.that(destination.read_bytes(), eq=b"content")
 
     def test_exclusive_create_rejects_existing_destination(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Preserve an existing file rather than treating create as overwrite."""
         destination = tmp_path / "existing.bin"
         destination.write_bytes(b"before")
 
         result = u.Cli.atomic_create_binary_file_guarded(
-            destination, b"after", permission_mode=0o600
+            destination,
+            b"after",
+            permission_mode=0o600,
         )
 
         tm.fail(result)
         tm.that(destination.read_bytes(), eq=b"before")
 
     def test_publication_applies_authenticated_staged_replacement(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Replace one exact live state with one exact staged state."""
         destination = tmp_path / "published.bin"
@@ -84,15 +98,18 @@ class TestsAtomicFileIdentity:
         destination.write_bytes(b"before")
         before = u.Cli.atomic_read_binary_file_state(destination, required=True)
         replacement = u.Cli.atomic_create_binary_file_guarded(
-            staged, b"after", permission_mode=0o640
+            staged,
+            b"after",
+            permission_mode=0o640,
         )
         tm.ok(before)
         tm.ok(replacement)
 
         result = u.Cli.atomic_apply_file_publication_guarded(
             m.Cli.AtomicFilePublication(
-                before=before.value, replacement=replacement.value
-            )
+                before=before.value,
+                replacement=replacement.value,
+            ),
         )
 
         tm.ok(result)
@@ -112,8 +129,9 @@ class TestsAtomicFileIdentity:
 
         result = u.Cli.atomic_apply_file_publication_guarded(
             m.Cli.AtomicFilePublication(
-                before=before.value, replacement=tombstone.value
-            )
+                before=before.value,
+                replacement=tombstone.value,
+            ),
         )
 
         tm.ok(result)
@@ -143,7 +161,8 @@ class TestsAtomicFileIdentity:
         destination = tmp_path / "atomic.bin"
         destination.write_bytes(b"content")
         snapshot_result = u.Cli.atomic_read_binary_file_state(
-            destination, required=True
+            destination,
+            required=True,
         )
         tm.ok(snapshot_result)
         snapshot = snapshot_result.value
@@ -153,7 +172,8 @@ class TestsAtomicFileIdentity:
         tm.that(snapshot.parent_inode, eq=parent_state.st_ino)
         tm.that(snapshot.link_count, eq=1)
         tm.that(
-            snapshot.file_attributes, eq=getattr(host_state, "st_file_attributes", None)
+            snapshot.file_attributes,
+            eq=getattr(host_state, "st_file_attributes", None),
         )
         tm.that(snapshot.reparse_tag, eq=getattr(host_state, "st_reparse_tag", None))
 
@@ -163,13 +183,20 @@ class TestsAtomicFileIdentity:
         tm.that(destination.exists(), eq=False)
 
     def test_delete_rejects_replacement_with_same_bytes_and_mode(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
-        """Treat a new inode as stale even when bytes and mode are unchanged."""
+        """Treat a new inode as stale even when bytes and mode are unchanged.
+
+        Raises:
+            AssertionError: If required atomic snapshot was absent.
+
+        """
         destination = tmp_path / "atomic.bin"
         destination.write_bytes(b"content")
         snapshot_result = u.Cli.atomic_read_binary_file_state(
-            destination, required=True
+            destination,
+            required=True,
         )
         tm.ok(snapshot_result)
         snapshot = snapshot_result.value
@@ -187,13 +214,15 @@ class TestsAtomicFileIdentity:
         tm.that(destination.read_bytes(), eq=b"content")
 
     def test_delete_rejects_link_count_changed_after_snapshot(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Reject a hard link added after the caller observed unique ownership."""
         destination = tmp_path / "atomic.bin"
         destination.write_bytes(b"content")
         snapshot_result = u.Cli.atomic_read_binary_file_state(
-            destination, required=True
+            destination,
+            required=True,
         )
         tm.ok(snapshot_result)
         alias = tmp_path / "alias.bin"
@@ -206,13 +235,20 @@ class TestsAtomicFileIdentity:
         tm.that(alias.read_bytes(), eq=b"content")
 
     def test_guarded_write_rejects_link_count_changed_after_snapshot(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
-        """Require unique ownership from plan through binary publication."""
+        """Require unique ownership from plan through binary publication.
+
+        Raises:
+            AssertionError: If required atomic snapshot was absent.
+
+        """
         destination = tmp_path / "atomic.bin"
         destination.write_bytes(b"before")
         snapshot_result = u.Cli.atomic_read_binary_file_state(
-            destination, required=True
+            destination,
+            required=True,
         )
         tm.ok(snapshot_result)
         snapshot = snapshot_result.value
@@ -223,7 +259,9 @@ class TestsAtomicFileIdentity:
         alias.hardlink_to(destination)
 
         result = u.Cli.atomic_write_binary_file_guarded(
-            snapshot, b"after", permission_mode=snapshot.mode
+            snapshot,
+            b"after",
+            permission_mode=snapshot.mode,
         )
 
         tm.fail(result)
@@ -231,7 +269,8 @@ class TestsAtomicFileIdentity:
         tm.that(alias.read_bytes(), eq=b"before")
 
     def test_staged_publish_preserves_complete_physical_state(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Move the authenticated staged inode and every available host field."""
         destination = tmp_path / "published.bin"
@@ -243,7 +282,8 @@ class TestsAtomicFileIdentity:
         tm.ok(staged_result)
 
         result = u.Cli.atomic_publish_staged_binary_file_guarded(
-            destination_result.value, staged_result.value
+            destination_result.value,
+            staged_result.value,
         )
 
         tm.ok(result)
@@ -267,7 +307,8 @@ class TestsAtomicFileIdentity:
         alias.hardlink_to(staged)
 
         result = u.Cli.atomic_publish_staged_binary_file_guarded(
-            destination_result.value, staged_result.value
+            destination_result.value,
+            staged_result.value,
         )
 
         tm.fail(result)

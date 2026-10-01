@@ -1,4 +1,8 @@
-"""Private MRO composition for generic XLSX models."""
+"""Private MRO composition for generic XLSX models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

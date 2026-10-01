@@ -1,4 +1,8 @@
-"""Safe byte IO for the private openpyxl adapter."""
+"""Safe byte IO for the private openpyxl adapter.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,10 +24,14 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
     # inventory before openpyxl receives them; workbook objects stay private.
     @classmethod
     def _load_workbook(
-        cls, source: bytes, *, data_only: bool = False
+        cls,
+        source: bytes,
+        *,
+        data_only: bool = False,
     ) -> p.Result[Workbook]:
         inspection_request = m.Cli.XlsxArchiveInspectionRequest(
-            source=source, policy=m.Cli.XlsxArchivePolicy()
+            source=source,
+            policy=m.Cli.XlsxArchivePolicy(),
         )
         inspection_result = cls.xlsx_inspect(inspection_request)
         if inspection_result.failure:
@@ -35,7 +43,7 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
                 for item in inspection.violations
             )
             return r[Workbook].fail(
-                f"{c.Cli.XlsxError.ARCHIVE_POLICY_VIOLATION}: {detail}"
+                f"{c.Cli.XlsxError.ARCHIVE_POLICY_VIOLATION}: {detail}",
             )
         try:
             workbook = load_workbook(
@@ -52,12 +60,22 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
 
     @staticmethod
     def _new_workbook() -> Workbook:
-        """Create one editable workbook with the implementation default sheet."""
+        """Create one editable workbook with the implementation default sheet.
+
+        Returns:
+            The resulting ``Workbook``.
+
+        """
         return Workbook(write_only=False, iso_dates=False)
 
     @staticmethod
     def _serialize_workbook(workbook: Workbook) -> p.Result[bytes]:
-        """Serialize one private workbook to immutable bytes."""
+        """Serialize one private workbook to immutable bytes.
+
+        Returns:
+            The resulting ``p.Result[bytes]``.
+
+        """
         target = BytesIO()
         try:
             workbook.save(target)

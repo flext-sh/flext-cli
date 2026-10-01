@@ -1,4 +1,8 @@
-"""Byte-exact process stream mirroring for ``u.Cli``."""
+"""Byte-exact process stream mirroring for ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -17,7 +21,10 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
 
     @staticmethod
     def _pump_process_input(
-        sink: BinaryIO, payload: bytes, failures: list[str], wake: threading.Event
+        sink: BinaryIO,
+        payload: bytes,
+        failures: list[str],
+        wake: threading.Event,
     ) -> None:
         """Write every input byte to the child pipe, then publish EOF."""
         remaining = memoryview(payload)
@@ -36,7 +43,7 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
         except (OSError, ValueError) as exc:
             failures.append(
                 r[str].fail(f"stdin write error: {exc}", exception=exc).error
-                or str(exc)
+                or str(exc),
             )
         finally:
             try:
@@ -44,7 +51,7 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
             except (OSError, ValueError) as exc:
                 failures.append(
                     r[str].fail(f"stdin close error: {exc}", exception=exc).error
-                    or str(exc)
+                    or str(exc),
                 )
             wake.set()
 
@@ -75,21 +82,26 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
                     captured_output.extend(chunk)
                 if live_available and live_fd is not None:
                     live_available = cls._write_live_chunk(
-                        live_fd, chunk, stop, failures
+                        live_fd,
+                        chunk,
+                        stop,
+                        failures,
                     )
         finally:
             wake.set()
 
     @classmethod
     def _read_process_chunk(
-        cls, source: IO[bytes], failures: list[str]
+        cls,
+        source: IO[bytes],
+        failures: list[str],
     ) -> bytes | None:
         try:
             chunk = source.read(cls._STREAM_CHUNK_BYTES)
         except (OSError, ValueError) as exc:
             failures.append(
                 r[str].fail(f"output read error: {exc}", exception=exc).error
-                or str(exc)
+                or str(exc),
             )
             return None
         return chunk or None
@@ -106,13 +118,18 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
             durable_log.flush()
         except (OSError, ValueError) as exc:
             return r[str].fail(
-                f"durable log write error: {exc}", exception=exc
+                f"durable log write error: {exc}",
+                exception=exc,
             ).error or str(exc)
         return None
 
     @classmethod
     def _write_live_chunk(
-        cls, live_fd: int, chunk: bytes, stop: threading.Event, diagnostics: list[str]
+        cls,
+        live_fd: int,
+        chunk: bytes,
+        stop: threading.Event,
+        diagnostics: list[str],
     ) -> bool:
         remaining = memoryview(chunk)
         while remaining and not stop.is_set():
@@ -124,7 +141,7 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
             except (BrokenPipeError, OSError, ValueError) as exc:
                 diagnostics.append(
                     r[str].fail(f"live output unavailable: {exc}", exception=exc).error
-                    or str(exc)
+                    or str(exc),
                 )
                 return False
             if written <= 0:

@@ -1,4 +1,8 @@
-"""Plain-text table rendering engine for the CLI tables facade."""
+"""Plain-text table rendering engine for the CLI tables facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -59,7 +63,9 @@ class FlextCliUtilitiesTablesRenderer:
 
     @classmethod
     def _header_labels(
-        cls, rows: Sequence[t.Cli.TableRow], headers: str | t.StrSequence
+        cls,
+        rows: Sequence[t.Cli.TableRow],
+        headers: str | t.StrSequence,
     ) -> list[str]:
         if headers == "firstrow" and rows:
             return [str(cell) for cell in rows[0]]
@@ -121,7 +127,10 @@ class FlextCliUtilitiesTablesRenderer:
 
     @classmethod
     def _numeric_columns(
-        cls, cells: t.SequenceOf[t.SequenceOf[str]], *, settings: m.Cli.TableConfig
+        cls,
+        cells: t.SequenceOf[t.SequenceOf[str]],
+        *,
+        settings: m.Cli.TableConfig,
     ) -> set[int]:
         if settings.disable_numparse is True or not cells:
             return set()
@@ -149,7 +158,12 @@ class FlextCliUtilitiesTablesRenderer:
         colalign: t.SequenceOf[str],
         settings: m.Cli.TableConfig,
     ) -> str:
-        """Render normalized rows with the configured tabular format shape."""
+        """Render normalized rows with the configured tabular format shape.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         header_labels = cls._header_labels(rows, headers)
         data_rows = rows[1:] if headers == "firstrow" and rows else rows
         indexed_labels, indexed_rows = cls._apply_index(data_rows, settings)
@@ -157,12 +171,16 @@ class FlextCliUtilitiesTablesRenderer:
             header_labels = [*indexed_labels, *header_labels]
             data_rows = indexed_rows
         column_count = max(
-            [len(header_labels), *(len(row) for row in data_rows)], default=0
+            [len(header_labels), *(len(row) for row in data_rows)],
+            default=0,
         )
         cells = cls._prepare_cells(data_rows, column_count, settings=settings)
         numeric_columns = cls._numeric_columns(cells, settings=settings)
         alignments = cls._column_alignments(
-            column_count, numeric_columns, colalign=colalign, settings=settings
+            column_count,
+            numeric_columns,
+            colalign=colalign,
+            settings=settings,
         )
         widths = [
             max([
@@ -175,7 +193,8 @@ class FlextCliUtilitiesTablesRenderer:
 
     @staticmethod
     def _apply_index(
-        data_rows: Sequence[t.Cli.TableRow], settings: m.Cli.TableConfig
+        data_rows: Sequence[t.Cli.TableRow],
+        settings: m.Cli.TableConfig,
     ) -> tuple[list[str] | None, Sequence[t.Cli.TableRow]]:
         if settings.showindex is True:
             return (
@@ -245,7 +264,7 @@ class FlextCliUtilitiesTablesRenderer:
                 _GAP.join(
                     cls._pad(label, widths[index], alignments[index])
                     for index, label in enumerate(header_labels)
-                )
+                ),
             )
             if shape == "simple":
                 lines.append(_GAP.join(_ROW_GLYPH * width for width in widths))

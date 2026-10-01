@@ -1,4 +1,8 @@
-"""Descriptor-bound symbolic-link snapshots and exact preconditions."""
+"""Descriptor-bound symbolic-link snapshots and exact preconditions.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -13,9 +17,22 @@ from . import atomic_file_descriptor as descriptor
 
 
 def read_symlink_state(
-    path: Path, parent: descriptor.ParentDescriptor, *, required: bool = False
+    path: Path,
+    parent: descriptor.ParentDescriptor,
+    *,
+    required: bool = False,
 ) -> m.Cli.AtomicSymlinkState:
-    """Read link text through the same pinned parent as its lstat identity."""
+    """Read link text through the same pinned parent as its lstat identity.
+
+    Returns:
+        The resulting ``m.Cli.AtomicSymlinkState``.
+
+    Raises:
+        FileNotFoundError: If ``required``.
+        OSError: If ``not stat.S_ISLNK(observed.st_mode)``; or if
+            ``symlink_identity(observed) != symlink_identity(after)``.
+
+    """
     try:
         observed = descriptor.entry_stat(parent, path)
     except FileNotFoundError:
@@ -49,7 +66,12 @@ def read_symlink_state(
 
 
 def symlink_identity(observed: os.stat_result) -> m.Cli.AtomicSymlinkIdentity:
-    """Bind mutation-relevant identity without read-induced access time."""
+    """Bind mutation-relevant identity without read-induced access time.
+
+    Returns:
+        The resulting ``m.Cli.AtomicSymlinkIdentity``.
+
+    """
     return m.Cli.AtomicSymlinkIdentity(
         mode=stat.S_IMODE(observed.st_mode),
         device=observed.st_dev,
@@ -65,9 +87,15 @@ def symlink_identity(observed: os.stat_result) -> m.Cli.AtomicSymlinkIdentity:
 
 
 def require_symlink_state(
-    before: m.Cli.AtomicSymlinkState, parent: descriptor.ParentDescriptor
+    before: m.Cli.AtomicSymlinkState,
+    parent: descriptor.ParentDescriptor,
 ) -> None:
-    """Reject any parent, leaf identity or link-text drift before mutation."""
+    """Reject any parent, leaf identity or link-text drift before mutation.
+
+    Raises:
+        OSError: If ``read_symlink_state(before.path, parent) != before``.
+
+    """
     if read_symlink_state(before.path, parent) != before:
         msg = f"atomic symlink changed after snapshot: {before.path}"
         raise OSError(errno.ESTALE, msg, before.path)

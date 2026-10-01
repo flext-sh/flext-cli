@@ -1,4 +1,8 @@
-"""FLEXT CLI example type aliases."""
+"""FLEXT CLI example type aliases.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,7 +24,7 @@ class ExamplesFlextCliTypes(t):
     type DataProcessor = Callable[[str], str]
     type ProcessorRegistry = t.MappingKV[str, DataProcessor]
     JSON_DICT_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = u.type_adapter(
-        t.JsonMapping
+        t.JsonMapping,
     )
 
 

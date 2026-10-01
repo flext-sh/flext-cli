@@ -1,4 +1,8 @@
-"""Public contract coverage tests for the flext-cli facade and models."""
+"""Public contract coverage tests for the flext-cli facade and models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -28,7 +32,7 @@ class TestsFlextCliPublicContractsCoverage:
         pytest_settings = settings.clone(
             cli_pytest_current_test=(
                 "tests/unit/test_public_contracts_cov.py::test_public_facade"
-            )
+            ),
         )
         tm.that(u.Cli.cli_test_env(pytest_settings), eq=True)
 

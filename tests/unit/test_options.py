@@ -1,4 +1,8 @@
-"""Behavioral tests for public CLI option annotation resolution."""
+"""Behavioral tests for public CLI option annotation resolution.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

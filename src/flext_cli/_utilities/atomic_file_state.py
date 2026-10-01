@@ -1,4 +1,8 @@
-"""Public filesystem-state authentication for the atomic publication owner."""
+"""Public filesystem-state authentication for the atomic publication owner.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -17,9 +21,16 @@ from . import (
 
 
 def destination_state(
-    path: Path, *, parent: file_descriptor.ParentDescriptor | None = None
+    path: Path,
+    *,
+    parent: file_descriptor.ParentDescriptor | None = None,
 ) -> os.stat_result | None:
-    """Return an authorized destination snapshot without following links."""
+    """Return an authorized destination snapshot without following links.
+
+    Returns:
+        An authorized destination snapshot without following links.
+
+    """
     if parent is None:
         with file_descriptor.parent_descriptor(path) as opened:
             state = destination_state(path, parent=opened)
@@ -43,7 +54,15 @@ def validate_precondition(
     enabled: bool,
     parent: file_descriptor.ParentDescriptor | None = None,
 ) -> None:
-    """Authenticate an explicit raw-byte version before staging."""
+    """Authenticate an explicit raw-byte version before staging.
+
+    Raises:
+        FileExistsError: If ``state is not None``.
+        FileNotFoundError: If ``state is None``.
+        OSError: If ``read_authenticated_bytes(path, state, parent=parent) !=
+            expected_bytes``.
+
+    """
     if not enabled:
         return
     if expected_bytes is None:
@@ -65,7 +84,13 @@ def assert_temporary_owned(
     *,
     parent: file_descriptor.ParentDescriptor | None = None,
 ) -> None:
-    """Require the staged pathname to retain its uniquely owned inode."""
+    """Require the staged pathname to retain its uniquely owned inode.
+
+    Raises:
+        FileNotFoundError: If a ``FileNotFoundError`` is caught.
+        OSError: If ``identity(state) != expected_identity``.
+
+    """
     if parent is None:
         with file_descriptor.parent_descriptor(temporary) as opened:
             assert_temporary_owned(temporary, expected_identity, parent=opened)
@@ -89,7 +114,14 @@ def assert_destination_unchanged(
     *,
     parent: file_descriptor.ParentDescriptor | None = None,
 ) -> None:
-    """Fail before publication when destination identity or state changed."""
+    """Fail before publication when destination identity or state changed.
+
+    Raises:
+        FileExistsError: If ``current is not None``.
+        OSError: If ``current is None or file_read.state_key(current) !=
+            file_read.state_key(expected)``.
+
+    """
     if parent is None:
         with file_descriptor.parent_descriptor(path) as opened:
             assert_destination_unchanged(path, expected, parent=opened)
@@ -100,7 +132,7 @@ def assert_destination_unchanged(
             message = f"atomic destination appeared during write: {path}"
             raise FileExistsError(errno.EEXIST, message, path)
     elif current is None or file_read.state_key(current) != file_read.state_key(
-        expected
+        expected,
     ):
         message = f"atomic destination changed during write: {path}"
         raise OSError(errno.ESTALE, message, path)
@@ -108,7 +140,12 @@ def assert_destination_unchanged(
 
 
 def identity(state: os.stat_result) -> t.Pair[int, int]:
-    """Return the filesystem identity shared by descriptor and pathname stats."""
+    """Return the filesystem identity shared by descriptor and pathname stats.
+
+    Returns:
+        The filesystem identity shared by descriptor and pathname stats.
+
+    """
     return file_path.identity(state)
 
 
@@ -118,7 +155,12 @@ def read_authenticated_bytes(
     *,
     parent: file_descriptor.ParentDescriptor | None = None,
 ) -> bytes:
-    """Read exact bytes and prove the descriptor remains bound to its pathname."""
+    """Read exact bytes and prove the descriptor remains bound to its pathname.
+
+    Returns:
+        The resulting ``bytes``.
+
+    """
     if parent is None:
         with file_descriptor.parent_descriptor(path) as opened:
             return read_authenticated_bytes(path, expected, parent=opened)
@@ -140,6 +182,10 @@ def _validate_exclusive_link(path: Path, state: os.stat_result) -> None:
     package managers (uv ``link-mode = clone``) are safe to replace; the
     staged temporary, however, must be uniquely owned or the descriptor-bound
     identity proof cannot distinguish the staged bytes from a sibling link.
+
+    Raises:
+        OSError: If ``state.st_nlink != 1``.
+
     """
     if state.st_nlink != 1:
         message = f"atomic staged file has {state.st_nlink} hard links: {path}"

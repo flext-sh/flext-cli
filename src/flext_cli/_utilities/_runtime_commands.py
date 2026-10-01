@@ -1,4 +1,8 @@
-"""Public command-result composition for ``u.Cli`` runtime."""
+"""Public command-result composition for ``u.Cli`` runtime.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -11,7 +15,7 @@ from ._runtime_process_outcome import FlextCliUtilitiesRuntimeProcessOutcomeMixi
 
 
 class FlextCliUtilitiesRuntimeCommandsMixin(
-    FlextCliUtilitiesRuntimeProcessOutcomeMixin
+    FlextCliUtilitiesRuntimeProcessOutcomeMixin,
 ):
     """Compose captured command primitives without owning subprocess creation."""
 
@@ -42,7 +46,12 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         *,
         capture: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
-        """Require a zero exit without timeout or forwarded interruption."""
+        """Require a zero exit without timeout or forwarded interruption.
+
+        Returns:
+            The resulting ``p.Result[p.Cli.CommandOutput]``.
+
+        """
 
         def require_zero_exit(
             output: p.Cli.CommandOutput,
@@ -53,7 +62,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
                     f"failed ({output.outcome.raw_return_code}): "
                     f"{shlex.join(list(cmd))}: "
                     f"timed_out={output.outcome.timed_out}, "
-                    f"forwarded_signal={output.outcome.forwarded_signal}: {detail}"
+                    f"forwarded_signal={output.outcome.forwarded_signal}: {detail}",
                 )
             return r[p.Cli.CommandOutput].ok(output)
 
@@ -79,7 +88,12 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         *,
         capture: bool = True,
     ) -> p.Result[bool]:
-        """Run a command and return a success flag."""
+        """Run a command and return a success flag.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         return cls.run(
             cmd,
             cwd=cwd,
@@ -100,7 +114,12 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
     ) -> p.Result[p.Cli.CommandOutput]:
-        """Run a command with inherited live stdout and stderr."""
+        """Run a command with inherited live stdout and stderr.
+
+        Returns:
+            The resulting ``p.Result[p.Cli.CommandOutput]``.
+
+        """
         return cls.run(
             cmd,
             cwd=cwd,
@@ -121,7 +140,12 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         remove_env_keys: t.StrSequence = (),
         input_data: str | bytes | None = None,
     ) -> p.Result[str]:
-        """Run a command and return stripped stdout."""
+        """Run a command and return stripped stdout.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         return cls.run(
             cmd,
             cwd=cwd,

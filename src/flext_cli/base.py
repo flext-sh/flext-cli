@@ -19,7 +19,8 @@ from flext_core import s
 
 
 class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
-    s[TDomainResult], u.Cli
+    s[TDomainResult],
+    u.Cli,
 ):
     """Base class for flext-cli services with typed configuration access.
 

@@ -1,4 +1,8 @@
-"""Unit tests for the DAG pipeline engine."""
+"""Unit tests for the DAG pipeline engine.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -21,14 +25,21 @@ class TestsFlextCliPipeline:
 
     @staticmethod
     def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:
-        """Build a handler that succeeds and writes to shared."""
+        """Build a handler that succeeds and writes to shared.
+
+        Returns:
+            The resulting ``p.Cli.PipelineStage``.
+
+        """
 
         def handler(
             ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
-                stage_id, output={output_key: stage_id}, duration_ms=1.0
+                stage_id,
+                output={output_key: stage_id},
+                duration_ms=1.0,
             )
 
         return handler
@@ -94,7 +105,8 @@ class TestsFlextCliPipeline:
         tm.that(result.value.total_duration_ms, gte=0.0)
 
     def test_stage_raise_escapes_without_result_normalization(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """A stage handler exception escapes; exceptions are never normalized."""
         error_message = "intentional explosion"

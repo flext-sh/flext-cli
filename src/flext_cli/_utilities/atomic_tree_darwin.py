@@ -1,4 +1,8 @@
-"""Descriptor-bound Darwin filesystem identity using the complete fsid_t."""
+"""Descriptor-bound Darwin filesystem identity using the complete fsid_t.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -38,7 +42,17 @@ class FlextCliAtomicTreeDarwin:
 
     @staticmethod
     def mount_id(descriptor: int, path: Path) -> int:
-        """Read both fsid words from the open FD, without resolving its pathname."""
+        """Read both fsid words from the open FD, without resolving its pathname.
+
+        Returns:
+            The resulting ``int``.
+
+        Raises:
+            OSError: If ``operation(descriptor, ctypes.byref(state)) != 0``; or if
+                ``value == 0``; or if ``not (architecture == 'x86_64')``; or if a
+                ``(AttributeError, OSError)`` is caught.
+
+        """
         architecture = platform.machine()
         if architecture == "arm64":
             symbol = "fstatfs"

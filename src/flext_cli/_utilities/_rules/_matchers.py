@@ -7,6 +7,9 @@ validation. Base of the ``_rules`` mixin chain composed into
 NOTE (multi-agent): mro-i6nq.13 — extracted from the removed numbered
 ``_rules_parts`` matcher-primitive base (part_03). The loading orchestration
 lives in ``_rules/_loaders.py``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -28,7 +31,12 @@ class FlextCliUtilitiesRulesMatchersMixin:
 
     @staticmethod
     def rules_matches_filters(rule_id: str, rule_filters: t.StrSequence) -> bool:
-        """Return True when a rule id passes the active glob/substring filters."""
+        """Return True when a rule id passes the active glob/substring filters.
+
+        Returns:
+            True when a rule id passes the active glob/substring filters.
+
+        """
         if not rule_filters:
             return True
         rule_id_lower = rule_id.lower()
@@ -40,9 +48,17 @@ class FlextCliUtilitiesRulesMatchersMixin:
 
     @staticmethod
     def rules_resolve_directory(
-        config_path: Path, *, package_rules_dir: Path, rules_dir_name: str
+        config_path: Path,
+        *,
+        package_rules_dir: Path,
+        rules_dir_name: str,
     ) -> Path:
-        """Prefer a local rules directory, else fall back to the packaged one."""
+        """Prefer a local rules directory, else fall back to the packaged one.
+
+        Returns:
+            The resulting ``Path``.
+
+        """
         local_rules_dir = config_path.parent / rules_dir_name
         if local_rules_dir.is_dir():
             return local_rules_dir
@@ -50,9 +66,16 @@ class FlextCliUtilitiesRulesMatchersMixin:
 
     @staticmethod
     def rules_match_catalog_entry[TKind](
-        action_name: str, check_name: str, rule_catalog: t.Cli.RuleCatalog[TKind] | None
+        action_name: str,
+        check_name: str,
+        rule_catalog: t.Cli.RuleCatalog[TKind] | None,
     ) -> t.Pair[TKind, t.Cli.RuleMatcher] | None:
-        """Find the catalog kind whose matcher covers the action/check name."""
+        """Find the catalog kind whose matcher covers the action/check name.
+
+        Returns:
+            The resulting ``t.Pair[TKind, t.Cli.RuleMatcher] | None``.
+
+        """
         if rule_catalog is None:
             return None
         for rule_kind, matchers in rule_catalog.items():
@@ -66,9 +89,17 @@ class FlextCliUtilitiesRulesMatchersMixin:
 
     @staticmethod
     def rules_validate_matcher(
-        rule_def: t.JsonMapping, matcher: t.Cli.RuleMatcher, *, rule_id_key: str
+        rule_def: t.JsonMapping,
+        matcher: t.Cli.RuleMatcher,
+        *,
+        rule_id_key: str,
     ) -> str | None:
-        """Validate one rule definition against a matcher's required shape."""
+        """Validate one rule definition against a matcher's required shape.
+
+        Returns:
+            The resulting ``str | None``.
+
+        """
         rule_id = uj.json_get_str_key(rule_def, rule_id_key)
         _, _, required_mapping_keys, required_non_empty_list_keys = matcher
         for key in required_mapping_keys:

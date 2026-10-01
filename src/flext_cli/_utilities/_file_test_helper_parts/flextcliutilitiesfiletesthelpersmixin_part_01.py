@@ -4,6 +4,9 @@ These operations are generic enough to be used by tests, examples, and
 maintenance scripts, but were originally duplicated in ``flext-tests``.
 They live here so ``flext-tests`` can delegate to ``u.Cli`` instead of
 reimplementing them.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -67,7 +70,8 @@ class FlextCliUtilitiesFileTestHelpersMixin:
                     cls._files_write_structured(file_path, raw, fmt)
                 elif isinstance(raw, list):
                     FlextCliUtilitiesFiles.files_write_csv(
-                        file_path, cast("t.SequenceOf[t.StrSequence]", raw)
+                        file_path,
+                        cast("t.SequenceOf[t.StrSequence]", raw),
                     )
                 else:
                     file_path.write_text(str(raw), encoding=c.Cli.ENCODING_DEFAULT)
@@ -86,9 +90,16 @@ class FlextCliUtilitiesFileTestHelpersMixin:
 
     @staticmethod
     def _files_write_structured(
-        path: Path, data: t.JsonValue, fmt: str
+        path: Path,
+        data: t.JsonValue,
+        fmt: str,
     ) -> p.Result[bool]:
-        """Write a structured payload as JSON or YAML."""
+        """Write a structured payload as JSON or YAML.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         validated = t.Cli.JSON_VALUE_ADAPTER.validate_python(data)
         if fmt == c.Cli.FILE_FORMAT_YAML:
             dumped = u.Yaml.safe_dump(validated)

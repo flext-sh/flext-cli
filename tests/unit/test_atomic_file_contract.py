@@ -1,4 +1,8 @@
-"""Portable publication, permission-mode, link, and failure contracts."""
+"""Portable publication, permission-mode, link, and failure contracts.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -40,7 +44,9 @@ class TestsAtomicFileContract:
 
     @pytest.mark.parametrize("requested_mode", [0o640, 0o750])
     def test_text_write_preserves_host_permission_mode(
-        self, tmp_path: Path, requested_mode: int
+        self,
+        tmp_path: Path,
+        requested_mode: int,
     ) -> None:
         """Retain the mode the host applied to a uniquely owned regular file."""
         path = tmp_path / "atomic.txt"
@@ -67,7 +73,9 @@ class TestsAtomicFileContract:
 
     @pytest.mark.parametrize("link_kind", ["symbolic"])
     def test_unconditional_write_rejects_linked_destination(
-        self, tmp_path: Path, link_kind: str
+        self,
+        tmp_path: Path,
+        link_kind: str,
     ) -> None:
         """Reject non-regular linked names through the atomic-write facade."""
         owner, destination = self._linked_destination(tmp_path, link_kind)
@@ -83,10 +91,14 @@ class TestsAtomicFileContract:
         tm.that(destination.lstat().st_ino, eq=destination_inode)
 
     @pytest.mark.parametrize(
-        ("link_kind", "error_fragment"), [("symbolic", "not a regular file")]
+        ("link_kind", "error_fragment"),
+        [("symbolic", "not a regular file")],
     )
     def test_snapshot_rejects_linked_destination(
-        self, tmp_path: Path, link_kind: str, error_fragment: str
+        self,
+        tmp_path: Path,
+        link_kind: str,
+        error_fragment: str,
     ) -> None:
         """Reject non-regular pathnames; hard destinations read fine."""
         owner, destination = self._linked_destination(tmp_path, link_kind)
@@ -113,7 +125,8 @@ class TestsAtomicFileContract:
         tm.that(owner.read_text(encoding="utf-8"), eq="owner")
 
     def test_unconditional_write_replaces_hardlinked_destination(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Writing over a hard destination replaces that pathname only.
 
@@ -132,7 +145,8 @@ class TestsAtomicFileContract:
         tm.that(destination.lstat().st_ino != owner_inode)
 
     def test_write_failure_after_staging_leaves_no_partial_file(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Expose a real host write failure without publishing partial state."""
         path = tmp_path / "atomic.txt"
@@ -142,7 +156,8 @@ class TestsAtomicFileContract:
             tm.ok(before)
             with path.open("rb"):
                 result = u.Cli.atomic_write_text_file_guarded(
-                    before.value, "replacement"
+                    before.value,
+                    "replacement",
                 )
             tm.fail(result)
             tm.that(path.read_text(encoding="utf-8"), eq="before")
@@ -173,7 +188,8 @@ raise SystemExit(0 if result.failure else 2)
         tm.that(tuple(tmp_path.iterdir()), eq=())
 
     def test_timer_interrupt_preserves_cause_and_removes_authenticated_stage(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Preserve timer failure and never delete unauthenticated staging."""
         script = """
@@ -236,7 +252,9 @@ raise SystemExit(2)
 
     @pytest.mark.parametrize("phase", ["before-registration", "authenticated"])
     def test_interrupt_cleanup_requires_captured_inode_identity(
-        self, tmp_path: Path, phase: str
+        self,
+        tmp_path: Path,
+        phase: str,
     ) -> None:
         """Keep an unowned entry and remove an owned inode on the same failure."""
         script = """
@@ -301,23 +319,31 @@ except Interrupted as error:
 raise SystemExit(6)
 """
         completed = tm.ok(
-            u.Cli.run_raw((sys.executable, "-c", script, str(tmp_path), phase))
+            u.Cli.run_raw((sys.executable, "-c", script, str(tmp_path), phase)),
         )
         tm.that(
-            u.Cli.process_succeeded(completed.outcome), eq=True, msg=completed.stderr
+            u.Cli.process_succeeded(completed.outcome),
+            eq=True,
+            msg=completed.stderr,
         )
 
     def test_unwritable_parent_fails(self) -> None:
         """Expose an invalid destination through the public result contract."""
         result = u.Cli.atomic_write_text_file(
-            "/nonexistent_root_dir/x/y/z/file.txt", "x"
+            "/nonexistent_root_dir/x/y/z/file.txt",
+            "x",
         )
 
         tm.fail(result)
 
     @staticmethod
     def _linked_destination(tmp_path: Path, link_kind: str) -> t.Pair[Path, Path]:
-        """Create one real linked pathname for public behavior tests."""
+        """Create one real linked pathname for public behavior tests.
+
+        Returns:
+            The resulting ``t.Pair[Path, Path]``.
+
+        """
         owner = tmp_path / "owner.txt"
         owner.write_text("owner", encoding="utf-8")
         destination = tmp_path / "atomic.txt"

@@ -1,4 +1,8 @@
-"""Public descriptor-authenticated snapshots composed from atomic file-state owners."""
+"""Public descriptor-authenticated snapshots composed from atomic file-state owners.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -16,7 +20,9 @@ from . import (
 
 
 def read_authenticated_state(
-    path: Path, *, required: bool
+    path: Path,
+    *,
+    required: bool,
 ) -> t.Triple[os.stat_result | None, os.stat_result | None, bytes | None]:
     """Return one physical regular-file state or exact absence.
 
@@ -25,6 +31,13 @@ def read_authenticated_state(
     parent exists to authenticate, so the parent identity is absent too. A
     required read, and every write owner, still demand one physical, non-aliased
     parent directory.
+
+    Returns:
+        One physical regular-file state or exact absence.
+
+    Raises:
+        FileNotFoundError: If ``required``.
+
     """
     validated = file_path.validate_atomic_path(path)
     if not required and file_path.resolve_parent_path(validated.parent)[0] is None:

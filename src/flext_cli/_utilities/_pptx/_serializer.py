@@ -1,4 +1,8 @@
-"""Generic PPTX byte serializer and object opener."""
+"""Generic PPTX byte serializer and object opener.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -21,7 +25,12 @@ class FlextCliUtilitiesPptxSerializer:
 
     @classmethod
     def pptx_save(cls, presentation: PresentationType) -> p.Result[bytes]:
-        """Serialize a presentation object to bytes."""
+        """Serialize a presentation object to bytes.
+
+        Returns:
+            The resulting ``p.Result[bytes]``.
+
+        """
         target = BytesIO()
         try:
             presentation.save(target)

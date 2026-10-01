@@ -1,4 +1,8 @@
-"""Smoke tests for flext-cli examples using the public cli facade."""
+"""Smoke tests for flext-cli examples using the public cli facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -15,7 +19,8 @@ class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
     def test_complete_integration_example_persists_validated_workflow_data(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Complete integration example must persist and reload real workflow data."""
         app = DataManagerCLI()
@@ -30,7 +35,8 @@ class TestsFlextCliExamplesSmoke:
         tm.that(load_result.value["sample_key"], eq="sample_value")
 
     def test_complete_integration_example_surfaces_load_and_save_failures(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Complete integration example must fail honestly for missing, invalid, and unwritable data files."""
         app = DataManagerCLI()
@@ -52,7 +58,8 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(save_result)
 
     def test_complete_integration_example_surfaces_runtime_failures(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Complete integration surfaces invalid JSON and publication failures."""
         app = DataManagerCLI()

@@ -5,6 +5,9 @@ conversion, scalar normalization, anchor clearing, comment editing, and
 order-preserving overlays) through the published ``u.Cli`` surface. Every
 assertion checks observable behavior: ``r[T]`` outcomes, dumped text, and
 tree state read back through the public API.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -26,7 +29,8 @@ class TestsFlextCliYamlRoundtripLoad:
     """Load/dump round-trip contract of ``u.Cli.yaml_roundtrip_*``."""
 
     def test_round_trip_preserves_comments_quotes_and_order(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that round trip preserves comments quotes and order."""
         source = (
@@ -247,7 +251,7 @@ class TestsFlextCliYamlAnchors:
     def test_clear_anchors_strips_anchor_definitions(self) -> None:
         """Verify that clear anchors strips anchor definitions."""
         node = u.Cli.yaml_roundtrip_load_map_text(
-            "base: &base\n  a: 1\nuse: *base\n"
+            "base: &base\n  a: 1\nuse: *base\n",
         ).unwrap()
 
         u.Cli.yaml_clear_anchors(node)

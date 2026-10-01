@@ -1,4 +1,8 @@
-"""Deterministic scheduling of real child completion at the monitor boundary."""
+"""Deterministic scheduling of real child completion at the monitor boundary.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

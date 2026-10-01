@@ -1,4 +1,8 @@
-"""CLI command helpers shared through ``u.Cli``."""
+"""CLI command helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -25,7 +29,12 @@ class FlextCliUtilitiesCommands:
         success_message: str | None,
         success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None,
     ) -> str | None:
-        """Resolve success message using formatter/value fallback order."""
+        """Resolve success message using formatter/value fallback order.
+
+        Returns:
+            The resulting ``str | None``.
+
+        """
         if success_formatter is not None:
             formatted: str = success_formatter(result_value)
             return formatted
@@ -40,7 +49,8 @@ class FlextCliUtilitiesCommands:
 
     @staticmethod
     def commands_emit_success_message(
-        message: str, success_type: c.Cli.MessageTypes
+        message: str,
+        success_type: c.Cli.MessageTypes,
     ) -> None:
         """Emit success output as raw payload or styled CLI message."""
         rendered = (
@@ -52,7 +62,9 @@ class FlextCliUtilitiesCommands:
 
     @staticmethod
     def commands_emit_result_error[TResult: t.Cli.ResultValue](
-        result: p.Result[TResult], *, verbose: bool = False
+        result: p.Result[TResult],
+        *,
+        verbose: bool = False,
     ) -> None:
         """Finalize one failed Result through structured logging and CLI output."""
         # NOTE (multi-agent): keep the canonical Result intact through every
@@ -68,10 +80,12 @@ class FlextCliUtilitiesCommands:
             )
         else:
             logger.error(
-                error, error_code=result.error_code, error_data=result.error_data
+                error,
+                error_code=result.error_code,
+                error_data=result.error_data,
             )
         uo.emit_raw(
-            f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n"
+            f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
         )
         if result.error_code:
             uo.emit_raw(f"   [{result.error_code}]\n")
@@ -81,7 +95,7 @@ class FlextCliUtilitiesCommands:
                     type(result.exception),
                     result.exception,
                     result.exception.__traceback__,
-                )
+                ),
             )
             uo.emit_raw(detail if detail.endswith("\n") else f"{detail}\n")
 

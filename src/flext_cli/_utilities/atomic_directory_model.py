@@ -1,4 +1,8 @@
-"""Typed physical-state contracts for guarded empty-directory operations."""
+"""Typed physical-state contracts for guarded empty-directory operations.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -13,9 +17,16 @@ type DirectoryPhysicalState = tuple[int, int, int, int, int | None, int | None]
 
 
 def from_observed(
-    path: Path, parent: os.stat_result | None, observed: os.stat_result | None
+    path: Path,
+    parent: os.stat_result | None,
+    observed: os.stat_result | None,
 ) -> m.Cli.AtomicDirectoryState:
-    """Build the caller-owned state from one authenticated observation."""
+    """Build the caller-owned state from one authenticated observation.
+
+    Returns:
+        The resulting ``m.Cli.AtomicDirectoryState``.
+
+    """
     return m.Cli.AtomicDirectoryState(
         path=path,
         exists=observed is not None,
@@ -35,23 +46,40 @@ def from_observed(
 
 
 def require_absent(state: m.Cli.AtomicDirectoryState, *, purpose: str) -> None:
-    """Require the caller state to authorize creation from exact absence."""
+    """Require the caller state to authorize creation from exact absence.
+
+    Raises:
+        FileExistsError: If ``state.exists``.
+
+    """
     if state.exists:
         message = f"{purpose} atomic directory state already exists: {state.path}"
         raise FileExistsError(errno.EEXIST, message, state.path)
 
 
 def require_existing(state: m.Cli.AtomicDirectoryState, *, purpose: str) -> None:
-    """Require the caller state to authorize an existing empty directory."""
+    """Require the caller state to authorize an existing empty directory.
+
+    Raises:
+        FileNotFoundError: If ``not state.exists``.
+
+    """
     if not state.exists:
         message = f"{purpose} atomic directory state is absent: {state.path}"
         raise FileNotFoundError(errno.ENOENT, message, state.path)
 
 
 def require_observed(
-    planned: m.Cli.AtomicDirectoryState, observed: os.stat_result | None
+    planned: m.Cli.AtomicDirectoryState,
+    observed: os.stat_result | None,
 ) -> None:
-    """Require presence, mode, and every physical field to match the snapshot."""
+    """Require presence, mode, and every physical field to match the snapshot.
+
+    Raises:
+        OSError: If ``observed is None``; or if ``_planned_state(planned) !=
+            physical_state(observed)``; or if ``observed is not None``.
+
+    """
     if not planned.exists:
         if observed is not None:
             message = f"atomic directory appeared after absent snapshot: {planned.path}"
@@ -66,9 +94,18 @@ def require_observed(
 
 
 def require_parent(
-    planned: m.Cli.AtomicDirectoryState, observed: os.stat_result
+    planned: m.Cli.AtomicDirectoryState,
+    observed: os.stat_result,
 ) -> None:
-    """Require the authenticated parent to equal the snapshot parent identity."""
+    """Require the authenticated parent to equal the snapshot parent identity.
+
+    Raises:
+        FileNotFoundError: If ``planned.parent_device is None or planned.parent_inode is
+            None``.
+        OSError: If ``(planned.parent_device, planned.parent_inode) != (observed.st_dev,
+            observed.st_ino)``.
+
+    """
     if planned.parent_device is None or planned.parent_inode is None:
         message = (
             f"atomic directory parent was absent at snapshot: {planned.path.parent}"
@@ -83,7 +120,12 @@ def require_parent(
 
 
 def physical_state(state: os.stat_result) -> DirectoryPhysicalState:
-    """Return every caller-visible directory identity field."""
+    """Return every caller-visible directory identity field.
+
+    Returns:
+        Every caller-visible directory identity field.
+
+    """
     return (
         stat.S_IMODE(state.st_mode),
         state.st_dev,

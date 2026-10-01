@@ -5,6 +5,9 @@ returned/validated model state, handler dispatch, settings-seeded defaults,
 default resolution, and error propagation via the Pydantic validation family.
 No private attribute access, no internal-collaborator spying, no signature
 introspection.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -25,7 +28,8 @@ class TestsFlextCliModelCommandsCov:
     def test_model_command_rejects_invalid_data_with_validation_error(self) -> None:
         """A plain model command raises the ValidationError of rejected input."""
         command = cli.model_command(
-            m.Tests.ModelCommandSample, lambda model: model.value
+            m.Tests.ModelCommandSample,
+            lambda model: model.value,
         )
 
         with pytest.raises(m.ValidationError):

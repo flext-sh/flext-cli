@@ -1,4 +1,8 @@
-"""Fork one descendant and exit, for managed-process session-group tests."""
+"""Fork one descendant and exit, for managed-process session-group tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,8 @@
-"""Generic TOML helpers shared through ``u.Cli.toml_*``."""
+"""Generic TOML helpers shared through ``u.Cli.toml_*``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -35,13 +39,18 @@ class FlextCliUtilitiesToml:
         *,
         sort_keys: bool = False,
     ) -> bool:
-        """Synchronize a TOML table mapping in place; return True if mutated."""
+        """Synchronize a TOML table mapping in place; return True if mutated.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         existing = container.get(key, None)
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing
             if existing is not None
             and (u.mapping(existing) or isinstance(existing, TOMLDocument | Item))
-            else None
+            else None,
         )
         normalized_expected = {
             item_key: expected[item_key]
@@ -65,9 +74,14 @@ class FlextCliUtilitiesToml:
         *,
         sort_values: bool = False,
     ) -> bool:
-        """Synchronize a plain string-list field; return True if mutated."""
+        """Synchronize a plain string-list field; return True if mutated.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            container.get(key, None)
+            container.get(key, None),
         )
         normalized_expected = sorted(expected) if sort_values else [*expected]
         normalized_current = sorted(current) if sort_values else [*current]
@@ -85,10 +99,15 @@ class FlextCliUtilitiesToml:
         *,
         sort_keys: bool = False,
     ) -> bool:
-        """Synchronize a plain mapping-table field; return True if mutated."""
+        """Synchronize a plain mapping-table field; return True if mutated.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         existing = container.get(key, None)
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
-            existing if isinstance(existing, Mapping) else None
+            existing if isinstance(existing, Mapping) else None,
         )
         normalized_expected = {
             item_key: expected[item_key]
@@ -114,6 +133,10 @@ class FlextCliUtilitiesToml:
 
         Always roots at [tool]. Skips "tool" in path if present.
         Creates intermediate tables as needed.
+
+        Returns:
+            The resulting ``Table``.
+
         """
         return FlextCliUtilitiesTomlPart02.toml_ensure_path(
             FlextCliUtilitiesTomlPart03.toml_ensure_tool_table(doc),
@@ -122,14 +145,25 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_dot_path(*parts: str) -> str:
-        """Build one dotted TOML path from non-empty segments."""
+        """Build one dotted TOML path from non-empty segments.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         return ".".join(part for part in parts if part)
 
     @staticmethod
     def toml_table_prefix(path: t.StrSequence) -> str:
-        """Build a dotted prefix string from table path (e.g. "tool.ruff.lint")."""
+        """Build a dotted prefix string from table path (e.g. "tool.ruff.lint").
+
+        Returns:
+            The resulting ``str``.
+
+        """
         return FlextCliUtilitiesToml.toml_dot_path(
-            "tool", *(segment for segment in path if segment != "tool")
+            "tool",
+            *(segment for segment in path if segment != "tool"),
         )
 
 

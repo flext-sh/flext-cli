@@ -1,4 +1,8 @@
-"""Generic guarded publication and file selection helpers shared through ``u.Cli``."""
+"""Generic guarded publication and file selection helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -23,7 +27,12 @@ class FlextCliUtilitiesFiles:
     def atomic_file_publication_is_unchanged(
         publication: m.Cli.AtomicFilePublication,
     ) -> bool:
-        """Return whether staged bytes and permissions equal the live state."""
+        """Return whether staged bytes and permissions equal the live state.
+
+        Returns:
+            Whether staged bytes and permissions equal the live state.
+
+        """
         return (
             publication.before.content == publication.replacement.content
             and publication.before.mode == publication.replacement.mode
@@ -31,65 +40,90 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def atomic_create_binary_file_guarded(
-        file_path: t.Cli.TextPath, data: bytes, *, permission_mode: int
+        file_path: t.Cli.TextPath,
+        data: bytes,
+        *,
+        permission_mode: int,
     ) -> p.Result[m.Cli.AtomicFileState]:
-        """Create one absent file and return its authenticated published state."""
+        """Create one absent file and return its authenticated published state.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicFileState]``.
+
+        """
         before = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-            file_path, required=False
+            file_path,
+            required=False,
         )
         if before.failure:
             return r[m.Cli.AtomicFileState].from_failure(before)
         if before.value.content is not None:
             return r[m.Cli.AtomicFileState].fail(
-                f"atomic create destination already exists: {before.value.path}"
+                f"atomic create destination already exists: {before.value.path}",
             )
         written = FlextCliUtilitiesFilesPart02.atomic_write_binary_file_guarded(
-            before.value, data, permission_mode=permission_mode
+            before.value,
+            data,
+            permission_mode=permission_mode,
         )
         if written.failure:
             return r[m.Cli.AtomicFileState].from_failure(written)
         return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-            before.value.path, required=True
+            before.value.path,
+            required=True,
         )
 
     @staticmethod
     def atomic_apply_file_publication_guarded(
         publication: m.Cli.AtomicFilePublication,
     ) -> p.Result[m.Cli.AtomicFileState]:
-        """Apply one exact staged replacement or tombstone under caller lock."""
+        """Apply one exact staged replacement or tombstone under caller lock.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicFileState]``.
+
+        """
         before = publication.before
         replacement = publication.replacement
         if replacement.content is None:
             if before.content is None:
                 return r[m.Cli.AtomicFileState].ok(before)
             removed = FlextCliUtilitiesFilesPart02.atomic_delete_binary_file_guarded(
-                before
+                before,
             )
             if removed.failure:
                 return r[m.Cli.AtomicFileState].from_failure(removed)
             return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-                before.path, required=False
+                before.path,
+                required=False,
             )
         return FlextCliUtilitiesFilesPart03.atomic_publish_staged_binary_file_guarded(
-            before, replacement
+            before,
+            replacement,
         )
 
     @staticmethod
     def atomic_verify_binary_file_states(
         expected_states: t.SequenceOf[m.Cli.AtomicFileState],
     ) -> p.Result[bool]:
-        """Verify one coherent set of physical file states without reread fallback."""
+        """Verify one coherent set of physical file states without reread fallback.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         by_path: dict[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
         for expected in expected_states:
             existing = by_path.get(expected.path)
             if existing is not None and existing != expected:
                 return r[bool].fail(
-                    f"atomic source has conflicting snapshots: {expected.path}"
+                    f"atomic source has conflicting snapshots: {expected.path}",
                 )
             by_path[expected.path] = expected
         for expected in by_path.values():
             current = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-                expected.path, required=expected.content is not None
+                expected.path,
+                required=expected.content is not None,
             )
             if current.failure:
                 return r[bool].from_failure(current)
@@ -99,12 +133,19 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_matching(
-        root: Path, *, includes: t.StrSequence, excludes: t.StrSequence = ()
+        root: Path,
+        *,
+        includes: t.StrSequence,
+        excludes: t.StrSequence = (),
     ) -> p.Result[t.SequenceOf[Path]]:
         """Select Git-visible files under ``root``: tracked, untracked, never ignored.
 
         Outside a Git worktree every file on disk is a candidate. Patterns match the
         POSIX path relative to ``root``; an empty ``includes`` selects every file.
+
+        Returns:
+            The resulting ``p.Result[t.SequenceOf[Path]]``.
+
         """
         result = r[t.SequenceOf[Path]]
         if not root.is_dir():
@@ -138,7 +179,7 @@ class FlextCliUtilitiesFiles:
                 or listing.outcome.forwarded_signal is not None
             ):
                 return result.fail(
-                    listing.stderr.decode(c.Cli.ENCODING_DEFAULT, errors="strict")
+                    listing.stderr.decode(c.Cli.ENCODING_DEFAULT, errors="strict"),
                 )
             candidates = [
                 scope / relative.decode(c.Cli.ENCODING_DEFAULT, errors="strict")
@@ -152,7 +193,7 @@ class FlextCliUtilitiesFiles:
             candidates = list(scope.rglob("*"))
         else:
             return result.fail(
-                probe.value.stderr.decode(c.Cli.ENCODING_DEFAULT, errors="strict")
+                probe.value.stderr.decode(c.Cli.ENCODING_DEFAULT, errors="strict"),
             )
 
         def selected(path: Path) -> bool:

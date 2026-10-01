@@ -1,4 +1,8 @@
-"""Generic TOML helpers shared through ``u.Cli.toml_*``."""
+"""Generic TOML helpers shared through ``u.Cli.toml_*``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -25,9 +29,16 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_sync_value(
-        container: TOMLDocument | Table, key: str, expected: t.JsonValue
+        container: TOMLDocument | Table,
+        key: str,
+        expected: t.JsonValue,
     ) -> bool:
-        """Synchronize a scalar TOML value; return True if mutated."""
+        """Synchronize a scalar TOML value; return True if mutated.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         current = FlextCliUtilitiesTomlPart03.toml_value(container, key)
         if current == expected:
             return False
@@ -42,9 +53,14 @@ class FlextCliUtilitiesToml:
         *,
         sort_values: bool = False,
     ) -> bool:
-        """Synchronize a TOML string-array value; return True if mutated."""
+        """Synchronize a TOML string-array value; return True if mutated.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            FlextCliUtilitiesTomlPart03.toml_value(container, key)
+            FlextCliUtilitiesTomlPart03.toml_value(container, key),
         )
         normalized_expected = sorted(expected) if sort_values else [*expected]
         normalized_current = sorted(current) if sort_values else [*current]
@@ -55,11 +71,18 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_merge_string_list(
-        container: TOMLDocument | Table, key: str, required: t.StrSequence
+        container: TOMLDocument | Table,
+        key: str,
+        required: t.StrSequence,
     ) -> bool:
-        """Merge required values into a TOML string-array; return True if mutated."""
+        """Merge required values into a TOML string-array; return True if mutated.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            FlextCliUtilitiesTomlPart03.toml_value(container, key)
+            FlextCliUtilitiesTomlPart03.toml_value(container, key),
         )
         merged = sorted({*current, *required})
         if list(current) == merged:
@@ -69,9 +92,15 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_remove_key_if_present(
-        container: t.MutableJsonMapping, key: str
+        container: t.MutableJsonMapping,
+        key: str,
     ) -> bool:
-        """Remove one plain mapping key when it exists; return True if removed."""
+        """Remove one plain mapping key when it exists; return True if removed.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         if key not in container:
             return False
         del container[key]
@@ -79,9 +108,16 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_sync_value(
-        container: t.MutableJsonMapping, key: str, expected: t.JsonValue
+        container: t.MutableJsonMapping,
+        key: str,
+        expected: t.JsonValue,
     ) -> bool:
-        """Synchronize a scalar/structured plain TOML value; return True if mutated."""
+        """Synchronize a scalar/structured plain TOML value; return True if mutated.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         current: t.JsonValue = u.normalize_to_json_value(container.get(key, None))
         normalized_expected: t.JsonValue = u.normalize_to_json_value(expected)
         if current == normalized_expected:
@@ -91,11 +127,18 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_merge_string_list(
-        container: t.MutableJsonMapping, key: str, required: t.StrSequence
+        container: t.MutableJsonMapping,
+        key: str,
+        required: t.StrSequence,
     ) -> bool:
-        """Merge required values into a plain string-list; return True if mutated."""
+        """Merge required values into a plain string-list; return True if mutated.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            container.get(key, None)
+            container.get(key, None),
         )
         merged = sorted({*current, *required})
         if list(current) == merged:

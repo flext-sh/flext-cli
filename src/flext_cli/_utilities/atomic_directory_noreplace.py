@@ -1,4 +1,8 @@
-"""Platform owner for descriptor-bound, no-clobber directory rename."""
+"""Platform owner for descriptor-bound, no-clobber directory rename.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -19,7 +23,12 @@ _RENAME_EXCL = 4
 
 
 def require_noreplace_capability(path: Path) -> None:
-    """Fail before effects unless this host has a real no-replace primitive."""
+    """Fail before effects unless this host has a real no-replace primitive.
+
+    Raises:
+        OSError: Always.
+
+    """
     platform_name, os_name = _runtime_platform()
     if platform_name == "linux":
         _ = _linux_renameat2(path)
@@ -41,7 +50,12 @@ def rename_noreplace(
     *,
     path: Path,
 ) -> None:
-    """Rename one relative entry without replacing an existing destination."""
+    """Rename one relative entry without replacing an existing destination.
+
+    Raises:
+        OSError: Always; or if ``result != 0``.
+
+    """
     source_bytes = _encode_name(source_name, path)
     destination_bytes = _encode_name(destination_name, path)
     platform_name, os_name = _runtime_platform()
@@ -78,7 +92,12 @@ def rename_noreplace(
 
 
 def _runtime_platform() -> t.Pair[str, str]:
-    """Read host selectors at invocation time for portable typed dispatch."""
+    """Read host selectors at invocation time for portable typed dispatch.
+
+    Returns:
+        The resulting ``t.Pair[str, str]``.
+
+    """
     return sys.platform, os.name
 
 
@@ -87,7 +106,12 @@ def _linux_renameat2(path: Path) -> RenameAt2:
 
 
 def _darwin_renameatx(path: Path) -> RenameAt2:
-    """Load Apple's descriptor-relative exclusive rename, never plain rename."""
+    """Load Apple's descriptor-relative exclusive rename, never plain rename.
+
+    Returns:
+        The resulting ``RenameAt2``.
+
+    """
     return _load_rename("renameatx_np", "Darwin", path)
 
 

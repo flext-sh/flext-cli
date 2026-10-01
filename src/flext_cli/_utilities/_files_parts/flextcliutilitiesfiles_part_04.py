@@ -1,4 +1,8 @@
-"""Generic filesystem helpers shared through ``u.Cli``."""
+"""Generic filesystem helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -23,7 +27,12 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_detect_format(file_path: t.Cli.TextPath) -> p.Result[str]:
-        """Detect one file format from extension using canonical output enums."""
+        """Detect one file format from extension using canonical output enums.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         suffix = Path(file_path).suffix.lower()
         detected_format = c.Cli.FORMAT_BY_SUFFIX.get(suffix)
         if detected_format is not None:
@@ -48,6 +57,10 @@ class FlextCliUtilitiesFiles:
 
         Uses the test-domain convention (``text`` as the default fallback) so
         callers from ``flext-tests`` keep their existing contract.
+
+        Returns:
+            The resulting ``str``.
+
         """
         if fmt != c.Cli.FILE_FORMAT_AUTO:
             return fmt
@@ -66,11 +79,16 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_detect_format_from_path(
-        path: t.Cli.TextPath, fmt: str = c.Cli.FILE_FORMAT_AUTO
+        path: t.Cli.TextPath,
+        fmt: str = c.Cli.FILE_FORMAT_AUTO,
     ) -> str:
         """Detect file format from a path extension.
 
         Uses the test-domain convention (``text`` as the default fallback).
+
+        Returns:
+            The resulting ``str``.
+
         """
         if fmt != c.Cli.FILE_FORMAT_AUTO:
             return fmt
@@ -78,7 +96,12 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_load_auto_mapping(file_path: t.Cli.TextPath) -> p.Result[t.JsonMapping]:
-        """Load JSON/YAML file and normalize to one mapping payload."""
+        """Load JSON/YAML file and normalize to one mapping payload.
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
+        """
         path = Path(file_path)
         if path.suffix.lower() == ".json":
             read_result = uj.json_read(path)
@@ -86,7 +109,7 @@ class FlextCliUtilitiesFiles:
             read_result = u.Yaml.yaml_safe_load(path)
         else:
             return r[t.JsonMapping].fail(
-                f"Unsupported format: {path.suffix or '<none>'}"
+                f"Unsupported format: {path.suffix or '<none>'}",
             )
         loaded = read_result.map_error(lambda err: err or c.Cli.ERR_AUTO_LOAD_FAILED)
         if loaded.failure:
@@ -100,7 +123,12 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def csv_loads(text: str, *, delimiter: str = ",") -> p.Result[list[list[str]]]:
-        """Parse a CSV-encoded string into a list of rows."""
+        """Parse a CSV-encoded string into a list of rows.
+
+        Returns:
+            The resulting ``p.Result[list[list[str]]]``.
+
+        """
         try:
             rows = list(csv.reader(text.splitlines(), delimiter=delimiter))
         except csv.Error as exc:
@@ -109,7 +137,12 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def csv_dumps(rows: list[list[str]], *, delimiter: str = ",") -> str:
-        """Serialize rows into a CSV-encoded string with LF terminators."""
+        """Serialize rows into a CSV-encoded string with LF terminators.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         buffer = io.StringIO()
         csv.writer(buffer, delimiter=delimiter, lineterminator="\n").writerows(rows)
         return buffer.getvalue()
@@ -121,18 +154,26 @@ class FlextCliUtilitiesFiles:
         *,
         dirs_exist_ok: bool = False,
     ) -> p.Result[Path]:
-        """Recursively copy *source_path* to *dest_path*, returning the destination."""
+        """Recursively copy *source_path* to *dest_path*, returning the destination.
+
+        Returns:
+            The resulting ``p.Result[Path]``.
+
+        """
         destination = Path(dest_path)
 
         def _copy() -> Path:
             return Path(
                 shutil.copytree(
-                    Path(source_path), destination, dirs_exist_ok=dirs_exist_ok
-                )
+                    Path(source_path),
+                    destination,
+                    dirs_exist_ok=dirs_exist_ok,
+                ),
             )
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _copy, "copy_directory: {error}"
+            _copy,
+            "copy_directory: {error}",
         )
 
     @staticmethod
@@ -142,18 +183,29 @@ class FlextCliUtilitiesFiles:
         suffix: str = "",
         parent_path: t.Cli.TextPath | None = None,
     ) -> p.Result[Path]:
-        """Create one temporary directory and return its path for caller cleanup."""
+        """Create one temporary directory and return its path for caller cleanup.
+
+        Returns:
+            The resulting ``p.Result[Path]``.
+
+        """
 
         def _create() -> Path:
             return Path(tempfile.mkdtemp(prefix=prefix, suffix=suffix, dir=parent_path))
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _create, "create_temporary_directory: {error}"
+            _create,
+            "create_temporary_directory: {error}",
         )
 
     @staticmethod
     def files_remove_directory(directory_path: t.Cli.TextPath) -> p.Result[bool]:
-        """Remove one directory tree while rejecting non-directory paths."""
+        """Remove one directory tree while rejecting non-directory paths.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         path = Path(directory_path)
         if not path.exists() and not path.is_symlink():
             return r[bool].ok(True)
@@ -165,7 +217,8 @@ class FlextCliUtilitiesFiles:
             return True
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _remove, "remove_directory: {error}"
+            _remove,
+            "remove_directory: {error}",
         )
 
 

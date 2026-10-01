@@ -1,4 +1,8 @@
-"""FLEXT CLI configuration and registry constants."""
+"""FLEXT CLI configuration and registry constants.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

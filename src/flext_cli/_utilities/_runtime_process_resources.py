@@ -1,4 +1,8 @@
-"""Pre-spawn and durable-resource ownership for streamed processes."""
+"""Pre-spawn and durable-resource ownership for streamed processes.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,7 +22,8 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
 
     @staticmethod
     def _prepare_streamed_stdin(
-        stack: contextlib.ExitStack, input_data: str | bytes | None
+        stack: contextlib.ExitStack,
+        input_data: str | bytes | None,
     ) -> p.Result[t.Triple[BinaryIO | None, BinaryIO | None, bytes]]:
         if input_data is None:
             return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok((
@@ -32,12 +37,13 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         try:
             reader, writer = (
                 FlextCliUtilitiesRuntimeProcessResourcesMixin._anonymous_stdin_pipe(
-                    stack
+                    stack,
                 )
             )
         except c.EXC_OS_VALUE as exc:
             return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].fail(
-                f"stdin preparation error: {exc}", exception=exc
+                f"stdin preparation error: {exc}",
+                exception=exc,
             )
         return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok((
             reader,
@@ -49,7 +55,15 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
     def _anonymous_stdin_pipe(
         stack: contextlib.ExitStack,
     ) -> t.Pair[BinaryIO, BinaryIO]:
-        """Open one memory-only parent-writer/child-reader pipe pair."""
+        """Open one memory-only parent-writer/child-reader pipe pair.
+
+        Returns:
+            The resulting ``t.Pair[BinaryIO, BinaryIO]``.
+
+        Raises:
+            EXC_OS_VALUE: If a ``c.EXC_OS_VALUE`` is caught.
+
+        """
         read_fd, write_fd = os.pipe()
         try:
             reader = os.fdopen(read_fd, "rb", buffering=0)
@@ -69,20 +83,25 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
 
     @staticmethod
     def _prepare_live_descriptor(
-        stack: contextlib.ExitStack, *, live: bool
+        stack: contextlib.ExitStack,
+        *,
+        live: bool,
     ) -> p.Result[t.Pair[int | None, int | None]]:
         if not live:
             return r[tuple[int | None, int | None]].ok((None, None))
         try:
             live_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
-                stack, _STDOUT_DESCRIPTOR
+                stack,
+                _STDOUT_DESCRIPTOR,
             )
             progress_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
-                stack, _STDERR_DESCRIPTOR
+                stack,
+                _STDERR_DESCRIPTOR,
             )
         except c.EXC_OS_VALUE as exc:
             return r[tuple[int | None, int | None]].fail(
-                f"live output preparation error: {exc}", exception=exc
+                f"live output preparation error: {exc}",
+                exception=exc,
             )
         return r[tuple[int | None, int | None]].ok((live_fd, progress_fd))
 
@@ -103,6 +122,10 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         The flush runs post-reaping, after bounded cleanup has deliberately
         consumed its deadline window, so wall-clock position relative to the
         child deadline is not a failure condition.
+
+        Returns:
+            The resulting ``t.VariadicTuple[str]``.
+
         """
         errors: list[str] = []
         try:
@@ -122,7 +145,8 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
 
     @staticmethod
     def _spawn_deadline_exhausted(
-        absolute_deadline: float | None, grace_seconds: float
+        absolute_deadline: float | None,
+        grace_seconds: float,
     ) -> bool:
         return (
             absolute_deadline is not None

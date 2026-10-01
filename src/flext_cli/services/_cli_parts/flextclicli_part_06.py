@@ -16,7 +16,10 @@ class FlextCliCli(FlextCliCliPart05):
 
     @classmethod
     def service_routes[R: p.Base](
-        cls, service_type: type[s[R]], *, provide: t.Cli.NullaryOperation[s[R]]
+        cls,
+        service_type: type[s[R]],
+        *,
+        provide: t.Cli.NullaryOperation[s[R]],
     ) -> tuple[m.Cli.ResultCommandRoute, ...]:
         """Derive one result route per operation of a service class.
 
@@ -26,6 +29,10 @@ class FlextCliCli(FlextCliCliPart05):
         a command executes, so ``--help`` constructs no adapter. A successful
         result value is rendered; rejected input exits non-zero with the
         ``ValidationError`` as the failure cause.
+
+        Returns:
+            The resulting ``tuple[m.Cli.ResultCommandRoute, ...]``.
+
         """
         return tuple(
             m.Cli.ResultCommandRoute(
@@ -40,9 +47,15 @@ class FlextCliCli(FlextCliCliPart05):
 
     @staticmethod
     def _operation_handler[R: p.Base](
-        operation: m.ServiceOperation, provide: t.Cli.NullaryOperation[s[R]]
+        operation: m.ServiceOperation,
+        provide: t.Cli.NullaryOperation[s[R]],
     ) -> p.Cli.ResultRouteHandler:
-        """Bind one operation to the service instance built at execution."""
+        """Bind one operation to the service instance built at execution.
+
+        Returns:
+            The resulting ``p.Cli.ResultRouteHandler``.
+
+        """
 
         def handle(params: t.Cli.ModelLike) -> p.Result[t.Cli.ResultValue]:
             run = getattr(provide(), operation.name)
@@ -55,7 +68,12 @@ class FlextCliCli(FlextCliCliPart05):
 
     @staticmethod
     def _render_result_value(value: t.Cli.ResultValue) -> str:
-        """Render a successful operation value as text or JSON."""
+        """Render a successful operation value as text or JSON.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         normalized = u.normalize_to_json_value(value)
         if isinstance(normalized, str):
             return normalized

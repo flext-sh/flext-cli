@@ -2,6 +2,9 @@
 
 Follows the same pattern as ``_utilities/toml.py`` for TOML helpers.
 All methods use the ``json_`` prefix for namespace consistency.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations

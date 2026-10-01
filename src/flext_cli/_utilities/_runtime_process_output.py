@@ -1,4 +1,8 @@
-"""Output-pipe ownership for the canonical contained process lifecycle."""
+"""Output-pipe ownership for the canonical contained process lifecycle.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -12,7 +16,7 @@ from ._runtime_process_threads import FlextCliUtilitiesRuntimeProcessThreadsMixi
 
 
 class FlextCliUtilitiesRuntimeProcessOutputMixin(
-    FlextCliUtilitiesRuntimeProcessThreadsMixin
+    FlextCliUtilitiesRuntimeProcessThreadsMixin,
 ):
     """Attach every requested child pipe to exactly one bounded pump."""
 

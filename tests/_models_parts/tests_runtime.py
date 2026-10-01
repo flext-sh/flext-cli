@@ -1,4 +1,8 @@
-"""Split test model namespace."""
+"""Split test model namespace.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -46,21 +50,24 @@ class TestsFlextCliModelsRuntime:
         case_id: Annotated[str, m.Field(description="Pytest case id")]
         command: Annotated[t.StrSequence, m.Field(description="Command argv")]
         timeout: Annotated[
-            int | None, m.Field(description="Optional timeout in seconds")
+            int | None,
+            m.Field(description="Optional timeout in seconds"),
         ] = None
         env: Annotated[
             t.StrMapping | None,
             m.Field(description="Optional child environment overrides"),
         ] = None
         use_tmp_path: Annotated[
-            bool, m.Field(description="Use pytest tmp_path as cwd")
+            bool,
+            m.Field(description="Use pytest tmp_path as cwd"),
         ] = False
         input_data: Annotated[
             str | bytes | None,
             m.Field(description="Optional stdin payload (text or binary)"),
         ] = None
         expect_success: Annotated[
-            bool, m.Field(description="Whether command should succeed")
+            bool,
+            m.Field(description="Whether command should succeed"),
         ] = True
         stdout_has: Annotated[str, m.Field(description="Expected stdout substring")] = (
             ""
@@ -69,22 +76,34 @@ class TestsFlextCliModelsRuntime:
             ""
         )
         exit_code: Annotated[
-            int | None, m.Field(description="Expected exit code when applicable")
+            int | None,
+            m.Field(description="Expected exit code when applicable"),
         ] = None
         expected: Annotated[str, m.Field(description="Expected captured output")] = ""
         error_has: Annotated[str, m.Field(description="Expected error substring")] = ""
         timed_out: Annotated[
-            bool, m.Field(description="Whether the run must end owned-timeout")
+            bool,
+            m.Field(description="Whether the run must end owned-timeout"),
         ] = False
 
         @staticmethod
         def id_for(case: TestsFlextCliModelsRuntime.RuntimeCommandCase) -> str:
-            """Return pytest id for one case."""
+            """Return pytest id for one case.
+
+            Returns:
+                Pytest id for one case.
+
+            """
             return case.case_id
 
         @classmethod
         def run_raw_cases(cls) -> t.VariadicTuple[Self]:
-            """Cases for raw command execution."""
+            """Cases for raw command execution.
+
+            Returns:
+                The resulting ``t.VariadicTuple[Self]``.
+
+            """
             return (
                 cls.model_validate({
                     "case_id": "echo",
@@ -153,7 +172,12 @@ class TestsFlextCliModelsRuntime:
 
         @classmethod
         def output_cases(cls) -> t.VariadicTuple[Self]:
-            """Cases shared by run and capture."""
+            """Cases shared by run and capture.
+
+            Returns:
+                The resulting ``t.VariadicTuple[Self]``.
+
+            """
             return (
                 cls.model_validate({
                     "case_id": "success",

@@ -1,4 +1,8 @@
-"""Public contract coverage tests for the flext-cli facade and models."""
+"""Public contract coverage tests for the flext-cli facade and models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

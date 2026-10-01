@@ -23,7 +23,12 @@ class FlextCliCmd(s[m.Cli.RuntimeStatus]):
 
     @staticmethod
     def settings_snapshot() -> p.Result[m.Cli.SettingsSnapshot]:
-        """Return the current settings snapshot using ``u.Cli``."""
+        """Return the current settings snapshot using ``u.Cli``.
+
+        Returns:
+            The current settings snapshot using ``u.Cli``.
+
+        """
         return u.Cli.cmd_settings_snapshot()
 
     def show_settings(self) -> p.Result[bool]:

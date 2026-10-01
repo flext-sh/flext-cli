@@ -1,4 +1,8 @@
-"""Real Typer integration tests for the public flext-cli CLI facade."""
+"""Real Typer integration tests for the public flext-cli CLI facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -40,10 +44,14 @@ class TestsFlextCliService:
     def test_create_app_with_common_params_applies_settings(self) -> None:
         """Apply the shared debug option through the public invocation facade."""
         app = cli.create_app_with_common_params(
-            name="sample", help_text="Sample application"
+            name="sample",
+            help_text="Sample application",
         )
         cli.register_command(
-            app, name="inspect", help_text="Inspect settings", command=lambda: True
+            app,
+            name="inspect",
+            help_text="Inspect settings",
+            command=lambda: True,
         )
 
         result = cli.invoke_app(app, args=["--debug", "inspect"])
@@ -54,10 +62,14 @@ class TestsFlextCliService:
     def test_create_app_with_common_params_applies_log_level(self) -> None:
         """Apply the shared log-level option through the public invocation facade."""
         app = cli.create_app_with_common_params(
-            name="sample", help_text="Sample application"
+            name="sample",
+            help_text="Sample application",
         )
         cli.register_command(
-            app, name="inspect", help_text="Inspect settings", command=lambda: True
+            app,
+            name="inspect",
+            help_text="Inspect settings",
+            command=lambda: True,
         )
 
         result = cli.invoke_app(app, args=["--log-level", c.LogLevel.DEBUG, "inspect"])
@@ -69,7 +81,8 @@ class TestsFlextCliService:
         """Generate and execute real options from a canonical request model."""
         captured: MutableSequence[m.Tests.SampleInput] = []
         app = cli.create_app_with_common_params(
-            name="root", help_text="Root application"
+            name="root",
+            help_text="Root application",
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
@@ -79,7 +92,10 @@ class TestsFlextCliService:
 
         command = cli.model_command(m.Tests.SampleInput, handle)
         cli.register_command(
-            group, name="run", help_text="Run sample command", command=command
+            group,
+            name="run",
+            help_text="Run sample command",
+            command=command,
         )
         cli.add_group(app, name="sample", group=group)
         help_result = cli.invoke_app(app, args=["sample", "run", "--help"])

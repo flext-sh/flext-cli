@@ -5,6 +5,9 @@ Contract under test (public API only):
   construction, field validation, and ``validate_to_mapping`` returning ``r[T]``.
 - ``u.to_json_dict`` normalization and the void rendering helpers rendering without
   raising through their public signatures.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -37,7 +40,10 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_my_app_settings_accepts_explicit_typed_values(self) -> None:
         """Explicit values cross the model boundary without ambient overrides."""
         settings = m.Examples.MyAppSettings(
-            app_name="explicit-tool", api_key="k" + "0" * 14, max_workers=9, timeout=45
+            app_name="explicit-tool",
+            api_key="k" + "0" * 14,
+            max_workers=9,
+            timeout=45,
         )
 
         tm.that(settings.app_name, eq="explicit-tool")
@@ -50,7 +56,8 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     # ------------------------------------------------------------------
 
     def test_advanced_settings_fail_when_api_key_missing_in_production(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that advanced settings fail when api key missing in production."""
         outcome = m.Examples.AppSettingsAdvanced(
@@ -61,13 +68,15 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         tm.fail(outcome, has="API_KEY is required in production")
 
     def test_advanced_settings_fail_when_temp_dir_is_a_file(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that advanced settings fail when temp dir is a file."""
         bad_temp_dir = tmp_path / "not-a-dir"
         bad_temp_dir.write_text("broken", encoding="utf-8")
         outcome = m.Examples.AppSettingsAdvanced(
-            api_key="k" + "1" * 14, temp_dir=bad_temp_dir
+            api_key="k" + "1" * 14,
+            temp_dir=bad_temp_dir,
         ).validate_to_mapping()
 
         tm.fail(outcome, has="TEMP_DIR must be a directory")
@@ -80,7 +89,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
                 api_key="k" + "2" * 14,
                 environment=c.DeploymentEnvironment.PRODUCTION,
                 temp_dir=good_temp_dir,
-            ).validate_to_mapping()
+            ).validate_to_mapping(),
         )
 
         # Success payload masks the secret and creates the temp directory.
@@ -101,7 +110,9 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ],
     )
     def test_advanced_settings_rejects_invalid_field(
-        self, kwargs: t.JsonMapping, match: str
+        self,
+        kwargs: t.JsonMapping,
+        match: str,
     ) -> None:
         """Verify that advanced settings rejects invalid field."""
         with pytest.raises(ValueError, match=match):
@@ -142,7 +153,10 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ],
     )
     def test_to_json_dict_preserves_values(
-        self, payload: t.JsonMapping, key: str, expected: t.JsonValue
+        self,
+        payload: t.JsonMapping,
+        key: str,
+        expected: t.JsonValue,
     ) -> None:
         """Verify that to json dict preserves values."""
         display = u.to_json_dict(payload)
@@ -152,7 +166,10 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     def test_public_renderers_do_not_raise(self) -> None:
         """Verify that public renderers do not raise."""
         settings = m.Examples.MyAppSettings(
-            app_name="demo", api_key="demo-secret", max_workers=4, timeout=30
+            app_name="demo",
+            api_key="demo-secret",
+            max_workers=4,
+            timeout=30,
         )
 
         # Void public rendering helpers must complete through their public

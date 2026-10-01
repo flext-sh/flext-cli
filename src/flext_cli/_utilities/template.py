@@ -36,7 +36,9 @@ class FlextCliUtilitiesTemplate:
 
         @override
         def get_source(
-            self, environment: Environment, template: str
+            self,
+            environment: Environment,
+            template: str,
         ) -> t.Triple[str, str, Callable[[], bool]]:
             content, filename, _ = super().get_source(environment, template)
             # Timestamp precision (or preserved mtimes) cannot prove freshness.
@@ -56,9 +58,22 @@ class FlextCliUtilitiesTemplate:
 
         @override
         def get_source(
-            self, environment: Environment, template: str
+            self,
+            environment: Environment,
+            template: str,
         ) -> t.Triple[str, str, None]:
-            """Return immutable captured text for one root-contained template."""
+            """Return immutable captured text for one root-contained template.
+
+            Returns:
+                Immutable captured text for one root-contained template.
+
+            Raises:
+                TemplateNotFound: If ``relative.is_absolute() or '..' in relative.parts
+                    or (not source.is_relative_to(self.search_path))``; or if
+                    ``existing.content is None``; or if ``snapshot.failure``; or if a
+                    ``UnicodeDecodeError`` is caught.
+
+            """
             del environment
             relative = Path(template)
             source = (self.search_path / relative).absolute()
@@ -72,7 +87,8 @@ class FlextCliUtilitiesTemplate:
             existing = self.source_states.get(source)
             if existing is None:
                 snapshot = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-                    source, required=True
+                    source,
+                    required=True,
                 )
                 if snapshot.failure:
                     self.failure = (
@@ -101,7 +117,12 @@ class FlextCliUtilitiesTemplate:
 
     @classmethod
     def template_environment(cls, search_path: Path) -> SandboxedEnvironment:
-        """Return the process-wide strict, sandboxed engine for a directory."""
+        """Return the process-wide strict, sandboxed engine for a directory.
+
+        Returns:
+            The process-wide strict, sandboxed engine for a directory.
+
+        """
         key = str(search_path.resolve())
         cached = cls._environments.get(key)
         if cached is not None:
@@ -124,6 +145,10 @@ class FlextCliUtilitiesTemplate:
 
         Fail-closed: a missing template or any Jinja error (including undefined
         variables via ``StrictUndefined``) is a failed ``r[T]``.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
         """
         if not path.is_file():
             return r[str].fail(f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {path}")
@@ -139,9 +164,15 @@ class FlextCliUtilitiesTemplate:
 
     @staticmethod
     def template_render_authenticated(
-        path: Path, context: p.Model
+        path: Path,
+        context: p.Model,
     ) -> p.Result[m.Cli.AuthenticatedTemplateRender]:
-        """Render only descriptor-authenticated bytes and return all source states."""
+        """Render only descriptor-authenticated bytes and return all source states.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AuthenticatedTemplateRender]``.
+
+        """
         source = path.expanduser().absolute()
         loader = FlextCliUtilitiesTemplate._AuthenticatedLoader(source.parent)
         environment = SandboxedEnvironment(
@@ -155,7 +186,7 @@ class FlextCliUtilitiesTemplate:
         )
         rendered = u.try_(
             lambda: environment.get_template(source.name).render(
-                context.model_dump(mode="json")
+                context.model_dump(mode="json"),
             ),
             catch=(TemplateError, OSError),
             op_name="template_render_authenticated",
@@ -164,18 +195,23 @@ class FlextCliUtilitiesTemplate:
             return r[m.Cli.AuthenticatedTemplateRender].fail(
                 loader.failure
                 or rendered.error
-                or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {source}"
+                or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {source}",
             )
         return r[m.Cli.AuthenticatedTemplateRender].ok(
             m.Cli.AuthenticatedTemplateRender(
                 rendered=rendered.value,
                 source_states=tuple(loader.source_states.values()),
-            )
+            ),
         )
 
     @staticmethod
     def template_render_to(path: Path, dest: Path, context: p.Model) -> p.Result[bool]:
-        """Render ``path`` with ``context`` and write it to ``dest`` → ``r[bool]``."""
+        """Render ``path`` with ``context`` and write it to ``dest`` → ``r[bool]``.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         rendered = FlextCliUtilitiesTemplate.template_render(path, context)
         if rendered.failure:
             return r[bool].from_failure(rendered)
@@ -206,10 +242,14 @@ class FlextCliUtilitiesTemplate:
         Fail-closed on a missing templates root. Per-entry render failures and
         path-escape attempts are accumulated in ``TemplateRenderReport.failed``;
         the caller decides the fail policy (the report is always returned).
+
+        Returns:
+            The resulting ``p.Result[m.Cli.TemplateRenderReport]``.
+
         """
         if not templates_root.is_dir():
             return r[m.Cli.TemplateRenderReport].fail(
-                f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}"
+                f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}",
             )
         root = output_root.resolve()
         created: list[Path] = []
@@ -244,13 +284,20 @@ class FlextCliUtilitiesTemplate:
                 continue
             created.append(dest)
         report = m.Cli.TemplateRenderReport(
-            created=tuple(created), skipped=tuple(skipped), failed=tuple(failed)
+            created=tuple(created),
+            skipped=tuple(skipped),
+            failed=tuple(failed),
         )
         return r[m.Cli.TemplateRenderReport].ok(report)
 
     @staticmethod
     def _write(dest: Path, content: str) -> bool:
-        """Write ``content`` to ``dest``, creating parents; return ``True``."""
+        """Write ``content`` to ``dest``, creating parents; return ``True``.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
         return True
