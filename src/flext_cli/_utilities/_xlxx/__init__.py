@@ -1,5 +1,9 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Utilities. Xlxx package."""
+"""Flext Cli. Utilities. Xlxx package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -9,31 +13,63 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
-    from .xlsx_archive import FlextCliUtilitiesXlsxArchive
-    from .xlsx_archive_checks import FlextCliUtilitiesXlsxArchiveChecks
-    from .xlsx_cells import FlextCliUtilitiesXlsxCells
-    from .xlsx_conditional import FlextCliUtilitiesXlsxConditional
-    from .xlsx_defined_name_values import FlextCliUtilitiesXlsxDefinedNameValues
-    from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
-    from .xlsx_layout import FlextCliUtilitiesXlsxLayout
-    from .xlsx_protection import FlextCliUtilitiesXlsxProtection
-    from .xlsx_recalc import FlextCliUtilitiesXlsxRecalc
-    from .xlsx_recalc_evidence import FlextCliUtilitiesXlsxRecalcEvidence
-    from .xlsx_renderer import FlextCliUtilitiesXlsxRenderer
-    from .xlsx_rules import FlextCliUtilitiesXlsxRules
-    from .xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
-    from .xlsx_snapshot_sheet import FlextCliUtilitiesXlsxSnapshotSheet
-    from .xlsx_snapshot_structure import FlextCliUtilitiesXlsxSnapshotStructure
-    from .xlsx_snapshot_values import FlextCliUtilitiesXlsxSnapshotValues
-    from .xlsx_style_builders import FlextCliUtilitiesXlsxStyleBuilders
-    from .xlsx_style_catalog import FlextCliUtilitiesXlsxStyleCatalog
-    from .xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
-    from .xlsx_style_readers import FlextCliUtilitiesXlsxStyleReaders
-    from .xlsx_tables import FlextCliUtilitiesXlsxTables
-    from .xlsx_validations import FlextCliUtilitiesXlsxValidations
-    from .xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
-    from .xlsx_workbook_plan import FlextCliUtilitiesXlsxWorkbookPlan
+    from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+    from flext_cli._utilities._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
+    from flext_cli._utilities._xlxx.xlsx_archive_checks import (
+        FlextCliUtilitiesXlsxArchiveChecks,
+    )
+    from flext_cli._utilities._xlxx.xlsx_cells import FlextCliUtilitiesXlsxCells
+    from flext_cli._utilities._xlxx.xlsx_conditional import (
+        FlextCliUtilitiesXlsxConditional,
+    )
+    from flext_cli._utilities._xlxx.xlsx_defined_name_values import (
+        FlextCliUtilitiesXlsxDefinedNameValues,
+    )
+    from flext_cli._utilities._xlxx.xlsx_formula_codec import (
+        FlextCliUtilitiesXlsxFormulaCodec,
+    )
+    from flext_cli._utilities._xlxx.xlsx_layout import FlextCliUtilitiesXlsxLayout
+    from flext_cli._utilities._xlxx.xlsx_protection import (
+        FlextCliUtilitiesXlsxProtection,
+    )
+    from flext_cli._utilities._xlxx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
+    from flext_cli._utilities._xlxx.xlsx_recalc_evidence import (
+        FlextCliUtilitiesXlsxRecalcEvidence,
+    )
+    from flext_cli._utilities._xlxx.xlsx_renderer import FlextCliUtilitiesXlsxRenderer
+    from flext_cli._utilities._xlxx.xlsx_rules import FlextCliUtilitiesXlsxRules
+    from flext_cli._utilities._xlxx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
+    from flext_cli._utilities._xlxx.xlsx_snapshot_sheet import (
+        FlextCliUtilitiesXlsxSnapshotSheet,
+    )
+    from flext_cli._utilities._xlxx.xlsx_snapshot_structure import (
+        FlextCliUtilitiesXlsxSnapshotStructure,
+    )
+    from flext_cli._utilities._xlxx.xlsx_snapshot_values import (
+        FlextCliUtilitiesXlsxSnapshotValues,
+    )
+    from flext_cli._utilities._xlxx.xlsx_style_builders import (
+        FlextCliUtilitiesXlsxStyleBuilders,
+    )
+    from flext_cli._utilities._xlxx.xlsx_style_catalog import (
+        FlextCliUtilitiesXlsxStyleCatalog,
+    )
+    from flext_cli._utilities._xlxx.xlsx_style_codec import (
+        FlextCliUtilitiesXlsxStyleCodec,
+    )
+    from flext_cli._utilities._xlxx.xlsx_style_readers import (
+        FlextCliUtilitiesXlsxStyleReaders,
+    )
+    from flext_cli._utilities._xlxx.xlsx_tables import FlextCliUtilitiesXlsxTables
+    from flext_cli._utilities._xlxx.xlsx_validations import (
+        FlextCliUtilitiesXlsxValidations,
+    )
+    from flext_cli._utilities._xlxx.xlsx_workbook_io import (
+        FlextCliUtilitiesXlsxWorkbookIo,
+    )
+    from flext_cli._utilities._xlxx.xlsx_workbook_plan import (
+        FlextCliUtilitiesXlsxWorkbookPlan,
+    )
 
 
 __all__: tuple[str, ...] = (
@@ -95,7 +131,7 @@ _LAZY_IMPORTS = MappingProxyType(
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
-    )
+    ),
 )
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)
