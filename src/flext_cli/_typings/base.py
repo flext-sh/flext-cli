@@ -58,6 +58,9 @@ class FlextCliTypesBase:
         t.json_mapping_adapter()
     )
     YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
+    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
+        TypeAdapter(CliValue | t.SequenceOf[str | int] | Path)
+    )
 
 
 __all__: list[str] = ["FlextCliTypesBase"]
