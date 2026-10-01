@@ -1,5 +1,9 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Examples. Models Parts package."""
+"""Examples. Models Parts package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -9,10 +13,18 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from .examples_advanced import ExamplesFlextCliModelsExamplesAdvanced
-    from .examples_common import ExamplesFlextCliModelsExamplesCommon
-    from .examples_database import ExamplesFlextCliModelsExamplesDatabase
-    from .examplesflextclimodels_part_01 import ExamplesFlextCliModels
+    from examples._models_parts.examples_advanced import (
+        ExamplesFlextCliModelsExamplesAdvanced,
+    )
+    from examples._models_parts.examples_common import (
+        ExamplesFlextCliModelsExamplesCommon,
+    )
+    from examples._models_parts.examples_database import (
+        ExamplesFlextCliModelsExamplesDatabase,
+    )
+    from examples._models_parts.examplesflextclimodels_part_01 import (
+        ExamplesFlextCliModels,
+    )
 
 
 __all__: tuple[str, ...] = (
@@ -32,7 +44,7 @@ _LAZY_IMPORTS = MappingProxyType(
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
-    )
+    ),
 )
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

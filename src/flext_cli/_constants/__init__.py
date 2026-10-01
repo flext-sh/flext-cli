@@ -1,5 +1,9 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Constants package."""
+"""Flext Cli. Constants package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -9,18 +13,20 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from .base import FlextCliConstantsBase
-    from .config import FlextCliConstantsConfig
-    from .docx import FlextCliConstantsDocx
-    from .enums import FlextCliConstantsEnums
-    from .errors import FlextCliConstantsErrors
-    from .exceptions import FlextCliConstantsExceptions
-    from .files import FlextCliConstantsFiles
-    from .output import FlextCliConstantsOutput
-    from .pptx import FlextCliConstantsPptx
-    from .settings import FlextCliConstantsSettings
-    from .xlsx import FlextCliConstantsXlsx
-    from .xlsx_future_functions import FlextCliConstantsXlsxFutureFunctions
+    from flext_cli._constants.base import FlextCliConstantsBase
+    from flext_cli._constants.config import FlextCliConstantsConfig
+    from flext_cli._constants.docx import FlextCliConstantsDocx
+    from flext_cli._constants.enums import FlextCliConstantsEnums
+    from flext_cli._constants.errors import FlextCliConstantsErrors
+    from flext_cli._constants.exceptions import FlextCliConstantsExceptions
+    from flext_cli._constants.files import FlextCliConstantsFiles
+    from flext_cli._constants.output import FlextCliConstantsOutput
+    from flext_cli._constants.pptx import FlextCliConstantsPptx
+    from flext_cli._constants.settings import FlextCliConstantsSettings
+    from flext_cli._constants.xlsx import FlextCliConstantsXlsx
+    from flext_cli._constants.xlsx_future_functions import (
+        FlextCliConstantsXlsxFutureFunctions,
+    )
 
 
 __all__: tuple[str, ...] = (
@@ -56,7 +62,7 @@ _LAZY_IMPORTS = MappingProxyType(
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
-    )
+    ),
 )
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)
