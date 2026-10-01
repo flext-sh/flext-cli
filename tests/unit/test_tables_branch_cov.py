@@ -145,6 +145,3 @@ class TestsFlextCliTablesBranchCov:
 
         tm.ok(rendered)
         tm.that(rendered.unwrap(), has="alpha")
-
-
-__all__: list[str] = ["TestsFlextCliTablesBranchCov"]

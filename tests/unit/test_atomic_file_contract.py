@@ -175,7 +175,7 @@ raise SystemExit(0 if result.failure else 2)
     def test_timer_interrupt_preserves_cause_and_removes_authenticated_stage(
         self, tmp_path: Path
     ) -> None:
-        """A real timer interruption escapes unchanged and leaves zero residue."""
+        """Preserve timer failure and never delete unauthenticated staging."""
         script = """
 import signal
 import sys
@@ -187,6 +187,8 @@ class AtomicDeadline(BaseException):
 
 root = Path(sys.argv[1])
 destination = root / "published.txt"
+interrupted = {}
+deadline = AtomicDeadline("atomic deadline")
 
 def expire(_signum, _frame):
     # Disarm before any check: the glob below is slow enough (tens of
@@ -195,8 +197,12 @@ def expire(_signum, _frame):
     # bound. Re-arming only on the negative branch keeps the polling alive
     # without ever letting two invocations overlap.
     signal.setitimer(signal.ITIMER_REAL, 0)
-    if tuple(root.glob(".flext-atomic-*.tmp")):
-        raise AtomicDeadline("atomic deadline")
+    stages = tuple(root.glob(".flext-atomic-*.tmp"))
+    if stages:
+        for path in stages:
+            state = path.lstat()
+            interrupted[path] = (state.st_dev, state.st_ino, state.st_size)
+        raise deadline
     signal.setitimer(signal.ITIMER_REAL, 0.0001, 0.0001)
 
 signal.signal(signal.SIGALRM, expire)
@@ -205,10 +211,15 @@ try:
     u.Cli.atomic_write_text_file(destination, "x" * (64 * 1024 * 1024))
 except AtomicDeadline as error:
     signal.setitimer(signal.ITIMER_REAL, 0)
-    if str(error) != "atomic deadline":
+    if error is not deadline or error.__cause__ is not None:
         raise SystemExit(3)
-    if destination.exists() or tuple(root.iterdir()):
+    if destination.exists():
         raise SystemExit(4)
+    for path in root.iterdir():
+        state = path.lstat()
+        if interrupted.get(path) != (state.st_dev, state.st_ino, state.st_size):
+            raise SystemExit(5)
+    print(len(tuple(root.iterdir())))
     raise SystemExit(0)
 raise SystemExit(2)
 """
@@ -221,7 +232,80 @@ raise SystemExit(2)
             eq=True,
             msg=completed.value.stderr,
         )
-        tm.that(tuple(tmp_path.iterdir()), eq=())
+        tm.that(len(tuple(tmp_path.iterdir())), eq=int(completed.value.stdout.strip()))
+
+    @pytest.mark.parametrize("phase", ["before-registration", "authenticated"])
+    def test_interrupt_cleanup_requires_captured_inode_identity(
+        self, tmp_path: Path, phase: str
+    ) -> None:
+        """Keep an unowned entry and remove an owned inode on the same failure."""
+        script = """
+import os
+import sys
+from pathlib import Path
+from flext_cli import u
+
+class Interrupted(BaseException):
+    pass
+
+root = Path(sys.argv[1])
+phase = sys.argv[2]
+destination = root / 'published.txt'
+failure = Interrupted('interrupted')
+observed = {}
+fired = False
+
+def interrupt(event, args):
+    global fired
+    if fired:
+        return
+    if phase == 'before-registration' and event == 'open':
+        name = args[0]
+        if not isinstance(name, str) or not name.startswith('.flext-atomic-'):
+            return
+        fired = True
+        path = root / name
+        path.write_bytes(b'independent owner')
+        state = path.lstat()
+        observed[path] = (state.st_dev, state.st_ino, path.read_bytes())
+        raise failure
+    if phase == 'authenticated' and event == 'os.chmod':
+        if not isinstance(args[0], int):
+            return
+        fired = True
+        state = os.fstat(args[0])
+        for path in root.glob('.flext-atomic-*.tmp'):
+            current = path.lstat()
+            if (current.st_dev, current.st_ino) == (state.st_dev, state.st_ino):
+                observed[path] = (current.st_dev, current.st_ino, path.read_bytes())
+        raise failure
+
+before = u.Cli.atomic_read_binary_file_state(destination).unwrap()
+sys.addaudithook(interrupt)
+try:
+    u.Cli.atomic_write_binary_file_guarded(before, b'written', permission_mode=0o600)
+except Interrupted as error:
+    if error is not failure or error.__cause__ is not None or not fired:
+        raise SystemExit(2)
+    if destination.exists() or len(observed) != 1:
+        raise SystemExit(3)
+    if phase == 'authenticated':
+        if tuple(root.iterdir()):
+            raise SystemExit(4)
+    else:
+        for path, before in observed.items():
+            after = path.lstat()
+            if (after.st_dev, after.st_ino, path.read_bytes()) != before:
+                raise SystemExit(5)
+    raise SystemExit(0)
+raise SystemExit(6)
+"""
+        completed = tm.ok(
+            u.Cli.run_raw((sys.executable, "-c", script, str(tmp_path), phase))
+        )
+        tm.that(
+            u.Cli.process_succeeded(completed.outcome), eq=True, msg=completed.stderr
+        )
 
     def test_unwritable_parent_fails(self) -> None:
         """Expose an invalid destination through the public result contract."""

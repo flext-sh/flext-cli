@@ -128,6 +128,3 @@ class TestsFlextCliPipeline:
         pipeline = result.value
         tm.that(pipeline.success, eq=True)
         tm.that(pipeline.stages[0].status, eq=c.Cli.PipelineStageStatus.SKIPPED)
-
-
-__all__: list[str] = ["TestsFlextCliPipeline"]

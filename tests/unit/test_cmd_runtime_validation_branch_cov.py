@@ -116,6 +116,3 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
 
         tm.fail(result)
         tm.that((result.error or ""), has="myfield")
-
-
-__all__: list[str] = ["TestsFlextCliCmdRuntimeValidationBranchCov"]

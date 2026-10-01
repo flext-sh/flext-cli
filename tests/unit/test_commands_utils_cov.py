@@ -178,6 +178,3 @@ class TestsFlextCliCommands:
         tm.that(out, has="missing_config")
         tm.that(out, has="FileNotFoundError")
         tm.that(out, has="Traceback (most recent call last)")
-
-
-__all__: list[str] = ["TestsFlextCliCommands"]

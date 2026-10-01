@@ -68,6 +68,3 @@ class TestsFlextCliExamplesSmoke:
         app.data_file = broken_parent / "workflow.json"
         workflow_failure = app.run_workflow()
         tm.fail(workflow_failure)
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

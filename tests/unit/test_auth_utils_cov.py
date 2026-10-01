@@ -151,6 +151,3 @@ class TestsFlextCliAuthUtilsCov:
         length = u.Cli.auth_extract_token(payload).map(len)
         tm.ok(length)
         tm.that(length.unwrap(), eq=3)
-
-
-__all__: list[str] = ["TestsFlextCliAuthUtilsCov"]

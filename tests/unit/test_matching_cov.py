@@ -158,6 +158,3 @@ class TestsFlextCliMatchingCov:
         tm.that(u.Cli.cli_usage_error("no such file or directory"), eq=False)
         tm.that(u.Cli.cli_usage_error("missing option '--project'"), eq=True)
         tm.that(u.Cli.file_not_found_error("missing option '--project'"), eq=False)
-
-
-__all__: list[str] = ["TestsFlextCliMatchingCov"]

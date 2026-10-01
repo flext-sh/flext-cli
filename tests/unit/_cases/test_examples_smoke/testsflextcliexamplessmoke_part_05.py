@@ -87,6 +87,3 @@ class TestsFlextCliExamplesSmoke:
         )
         connection_result = perform_connection_test(failing_connection)
         tm.fail(connection_result)
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

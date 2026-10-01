@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import errno
 import os
+import stat
 from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -20,18 +21,31 @@ type DirectoryChainInspection = tuple[
 
 @dataclass(frozen=True, slots=True)
 class PhysicalDirectory:
-    """One descriptor and the exact ancestry used to reach it."""
+    """One descriptor, the exact ancestry used to reach it, and its held lineage.
+
+    ``lineage`` holds one open descriptor per proper ancestor, root first,
+    aligned with ``ancestry[:-1]``; it stays open for the context's lifetime so
+    the pathname can be re-authenticated relative to each held ancestor.
+    """
 
     descriptor: int
     state: os.stat_result
     ancestry: t.VariadicTuple[t.Pair[int, int]]
+    lineage: t.VariadicTuple[int]
 
 
 @contextmanager
 def physical_directory(path: Path) -> Generator[PhysicalDirectory]:
-    """Open an absolute directory one non-aliased component at a time."""
+    """Open an absolute directory one non-aliased component at a time.
+
+    The descriptor walk is the only traversal: each component is stat'ed
+    without following links relative to its already-authenticated parent
+    descriptor, opened with ``O_NOFOLLOW``, and its descriptor identity must
+    equal that stat. A missing or aliased component fails with the same
+    verdict and component path a separate lexical pre-pass would report.
+    """
     require_traversal_capabilities(path)
-    file_path.validate_parent_path(path)
+    file_path.validate_directory_path(path)
     descriptors: list[int] = []
     try:
         descriptor, state, ancestry, _consumed = _open_components(
@@ -40,19 +54,52 @@ def physical_directory(path: Path) -> Generator[PhysicalDirectory]:
     except BaseException as operation_error:
         _close_after_failure(descriptors, path, operation_error)
         raise
-    descriptors.pop()
-    try:
-        _close_descriptors(descriptors, path)
-    except BaseException as operation_error:
-        _close_after_failure([descriptor], path, operation_error)
-        raise
-    opened = PhysicalDirectory(descriptor, state, ancestry)
+    opened = PhysicalDirectory(descriptor, state, ancestry, tuple(descriptors[:-1]))
     try:
         yield opened
     except BaseException as operation_error:
-        _close_after_failure([descriptor], path, operation_error)
+        _close_after_failure(descriptors, path, operation_error)
         raise
-    os.close(descriptor)
+    _close_descriptors(descriptors, path)
+
+
+def verify_lineage(
+    path: Path,
+    lineage: t.VariadicTuple[int],
+    ancestry: t.VariadicTuple[t.Pair[int, int]],
+) -> None:
+    """Prove ``path`` still resolves, component by component, to ``ancestry``.
+
+    Each component is stat'ed without following links relative to its held
+    ancestor descriptor, which is exactly what a fresh walk from the root
+    observes at that instant: a missing, aliased, replaced or renamed ancestor
+    fails with the same verdict a re-walk reports, without reopening the chain.
+    """
+    parts = path.parts
+    if len(parts) != len(ancestry) or len(lineage) != len(ancestry) - 1:
+        message = f"atomic parent lineage does not match its pathname: {path}"
+        raise OSError(errno.EINVAL, message, path)
+    root = Path(path.anchor)
+    root_state = root.lstat()
+    file_path.validate_directory_state(root, root_state)
+    if file_path.identity(root_state) != ancestry[0]:
+        message = f"atomic file parent ancestry changed: {path}"
+        raise OSError(errno.ESTALE, message, path)
+    for index, holder in enumerate(lineage):
+        component = parts[index + 1]
+        try:
+            state = os.stat(component, dir_fd=holder, follow_symlinks=False)
+        except FileNotFoundError as missing:
+            absent = root.joinpath(*parts[1 : index + 2])
+            message = f"atomic destination parent is missing: {absent}"
+            raise FileNotFoundError(errno.ENOENT, message, absent) from missing
+        if not stat.S_ISDIR(state.st_mode) or file_path.is_reparse_point(state):
+            file_path.validate_directory_state(
+                root.joinpath(*parts[1 : index + 2]), state
+            )
+        if file_path.identity(state) != ancestry[index + 1]:
+            message = f"atomic file parent ancestry changed: {path}"
+            raise OSError(errno.ESTALE, message, path)
 
 
 def inspect_directory_chain(path: Path) -> DirectoryChainInspection:
@@ -122,11 +169,18 @@ def _open_components(
             relative_state = os.stat(
                 component, dir_fd=descriptor, follow_symlinks=False
             )
-        except FileNotFoundError:
+        except FileNotFoundError as missing:
             if stop_at_missing:
                 return descriptor, state, tuple(ancestry), index
-            raise
-        file_path.validate_directory_state(path, relative_state)
+            absent = root.joinpath(*parts[: index + 1])
+            message = f"atomic destination parent is missing: {absent}"
+            raise FileNotFoundError(errno.ENOENT, message, absent) from missing
+        if not stat.S_ISDIR(relative_state.st_mode) or file_path.is_reparse_point(
+            relative_state
+        ):
+            file_path.validate_directory_state(
+                root.joinpath(*parts[: index + 1]), relative_state
+            )
         next_descriptor = os.open(component, flags, dir_fd=descriptor)
         descriptors.append(next_descriptor)
         descriptor_state = os.fstat(next_descriptor)
@@ -186,4 +240,5 @@ __all__: list[str] = [
     "inspect_directory_chain",
     "physical_directory",
     "require_traversal_capabilities",
+    "verify_lineage",
 ]

@@ -100,6 +100,3 @@ class TestsFlextCliFormattersCov:
         for row in rows:
             for cell in row:
                 tm.that(out, has=cell)
-
-
-__all__: list[str] = ["TestsFlextCliFormattersCov"]

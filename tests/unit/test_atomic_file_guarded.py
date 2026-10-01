@@ -139,6 +139,45 @@ class TestsAtomicFileGuarded:
         tm.fail(result)
         tm.that((owner / "atomic.txt").read_text(encoding="utf-8"), eq="before")
 
+    def test_symlinked_ancestor_is_rejected(self, tmp_path: Path) -> None:
+        """An ancestor above the parent that became an alias blocks publication."""
+        ancestor = tmp_path / "ancestor"
+        target = ancestor / "nested" / "atomic.txt"
+        target.parent.mkdir(parents=True)
+        target.write_text("before", encoding="utf-8")
+        before = self._snapshot(target, required=True)
+        owner = tmp_path / "owner"
+        ancestor.rename(owner)
+        ancestor.symlink_to(owner, target_is_directory=True)
+
+        result = u.Cli.atomic_write_text_file_guarded(before, "after")
+
+        tm.fail(result, has="not a real directory")
+        tm.that(
+            (owner / "nested" / "atomic.txt").read_text(encoding="utf-8"), eq="before"
+        )
+
+    def test_replaced_ancestor_is_rejected(self, tmp_path: Path) -> None:
+        """A same-named ancestor recreated above the parent blocks publication."""
+        ancestor = tmp_path / "ancestor"
+        target = ancestor / "nested" / "atomic.txt"
+        target.parent.mkdir(parents=True)
+        target.write_text("before", encoding="utf-8")
+        before = self._snapshot(target, required=True)
+        original = tmp_path / "original"
+        ancestor.rename(original)
+        target.parent.mkdir(parents=True)
+        target.write_text("before", encoding="utf-8")
+
+        result = u.Cli.atomic_write_text_file_guarded(before, "after")
+
+        tm.fail(result)
+        tm.that(target.read_text(encoding="utf-8"), eq="before")
+        tm.that(
+            (original / "nested" / "atomic.txt").read_text(encoding="utf-8"),
+            eq="before",
+        )
+
     @staticmethod
     def _snapshot(path: Path, *, required: bool = False) -> m.Cli.AtomicFileState:
         result = u.Cli.atomic_read_binary_file_state(path, required=required)

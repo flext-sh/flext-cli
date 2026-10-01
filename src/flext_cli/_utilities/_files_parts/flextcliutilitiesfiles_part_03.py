@@ -155,14 +155,34 @@ class FlextCliUtilitiesFiles:
         return r[bool].ok(True)
 
     @staticmethod
-    def _remove_symlink_target(target_path: Path) -> None:
-        """Remove an existing file, directory, or symlink at ``target_path``."""
+    def read_symlink_target(target: t.Cli.TextPath) -> p.Result[t.Cli.TextPath]:
+        """Return the resolved destination of the symlink at ``target``.
+
+        Bounded read primitive for canonical WIP capture: a path that is not a
+        symlink fails with a typed error instead of silently returning itself.
+        """
+        target_path = Path(target)
+        if not target_path.is_symlink():
+            return r[t.Cli.TextPath].fail(
+                c.Cli.ERR_READ_SYMLINK_FAILED.format(target_path=target_path)
+            )
+        return r[t.Cli.TextPath].ok(target_path.resolve().as_posix())
+
+    @staticmethod
+    def remove_symlink_target(target: t.Cli.TextPath) -> p.Result[bool]:
+        """Remove an existing file, directory, or symlink at ``target``.
+
+        Bounded delete primitive for canonical WIP capture; removing an absent
+        target is a successful no-op so callers need no pre-check race.
+        """
+        target_path = Path(target)
         if not target_path.exists() and not target_path.is_symlink():
-            return
+            return r[bool].ok(True)
         if target_path.is_dir() and not target_path.is_symlink():
             shutil.rmtree(target_path)
         else:
             target_path.unlink()
+        return r[bool].ok(True)
 
     @staticmethod
     def sha256_content(content: str) -> str:

@@ -99,6 +99,3 @@ class TestsFlextCliRuntimeProcessDescendants:
         tm.that(active_count.success, eq=True)
         tm.that(active_count.value, eq=0)
         tm.that(_ObservedWindowsCli.active_counts, empty=True)
-
-
-__all__: list[str] = ["TestsFlextCliRuntimeProcessDescendants"]

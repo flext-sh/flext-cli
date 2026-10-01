@@ -19,6 +19,3 @@ class TestsFlextCliPublicContractsCoverage(
     TestsFlextCliPublicContractsCoveragePart03,
 ):
     """Public facade for TestsFlextCliPublicContractsCoverage."""
-
-
-__all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]
