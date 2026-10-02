@@ -27,7 +27,19 @@ class FlextCliCli(FlextCliCliPart01):
         field_names: t.StrSequence | None = None,
         stop_at_positional: bool = False,
     ) -> p.Cli.ParsedOptionTokens:
-        """Parse route options from the same declarations used to build Typer."""
+        """Parse route options from the same declarations used to build Typer.
+
+        Returns:
+            The resulting ``p.Cli.ParsedOptionTokens``.
+
+        Raises:
+            TypeError: If ``field.is_required()``; or if CLI repeated option has an
+                invalid value.
+            ValueError: If CLI option is not declared for this route; or if CLI option
+                is duplicated; or if CLI flag cannot take a value; or if CLI option
+                requires a value.
+
+        """
         selected = field_names if field_names is not None else tuple(model_cls.model_fields)
         options: dict[str, tuple[str, bool, bool, bool]] = {}
         for field_name in selected:
@@ -35,7 +47,7 @@ class FlextCliCli(FlextCliCliPart01):
             if field.exclude is True:
                 if field.is_required():
                     msg = c.Cli.ERR_REQUIRED_EXCLUDED_FIELD_FMT.format(
-                        model=model_cls.__name__, field_name=field_name
+                        model=model_cls.__name__, field_name=field_name,
                     )
                     raise TypeError(msg)
                 continue
@@ -60,7 +72,7 @@ class FlextCliCli(FlextCliCliPart01):
                 )
             if token == "--help":
                 return m.Cli.ParsedOptionTokens(
-                    values=values, remaining=(), help_requested=True
+                    values=values, remaining=(), help_requested=True,
                 )
             if stop_at_positional and not token.startswith("-"):
                 return m.Cli.ParsedOptionTokens(
@@ -105,7 +117,7 @@ class FlextCliCli(FlextCliCliPart01):
                     values[field_name] = inline
             index += 1
         return m.Cli.ParsedOptionTokens(
-            values=values, remaining=(), help_requested=False
+            values=values, remaining=(), help_requested=False,
         )
 
     def _apply_common_params_to_config(self, *, params: m.Cli.CliParamsConfig) -> None:
