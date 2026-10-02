@@ -255,6 +255,3 @@ class TestsFlextCliFilesCov:
     ) -> None:
         """Removing an absent target succeeds so callers need no pre-check race."""
         tm.ok(u.Cli.remove_symlink_target(tmp_path / "absent"))
-
-
-__all__: list[str] = ["TestsFlextCliFilesCov"]

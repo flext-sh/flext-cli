@@ -110,7 +110,7 @@ class TestsFlextCliTypings:
     def test_scalar_types_superset_primitive_types(self) -> None:
         """SCALAR_TYPES includes every primitive plus richer scalar types."""
         primitives = set(c.PRIMITIVES_TYPES)
-        scalars = set(t.SCALAR_TYPES)
+        scalars = set(c.SCALAR_TYPES)
         tm.that(primitives.issubset(scalars), eq=True)
         tm.that(len(scalars) > len(primitives), eq=True)
 
