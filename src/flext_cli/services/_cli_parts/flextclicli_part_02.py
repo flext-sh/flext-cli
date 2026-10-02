@@ -40,14 +40,17 @@ class FlextCliCli(FlextCliCliPart01):
                 requires a value.
 
         """
-        selected = field_names if field_names is not None else tuple(model_cls.model_fields)
+        selected = (
+            field_names if field_names is not None else tuple(model_cls.model_fields)
+        )
         options: dict[str, tuple[str, bool, bool, bool]] = {}
         for field_name in selected:
             field = model_cls.model_fields[field_name]
             if field.exclude is True:
                 if field.is_required():
                     msg = c.Cli.ERR_REQUIRED_EXCLUDED_FIELD_FMT.format(
-                        model=model_cls.__name__, field_name=field_name,
+                        model=model_cls.__name__,
+                        field_name=field_name,
                     )
                     raise TypeError(msg)
                 continue
@@ -72,7 +75,9 @@ class FlextCliCli(FlextCliCliPart01):
                 )
             if token == "--help":
                 return m.Cli.ParsedOptionTokens(
-                    values=values, remaining=(), help_requested=True,
+                    values=values,
+                    remaining=(),
+                    help_requested=True,
                 )
             if stop_at_positional and not token.startswith("-"):
                 return m.Cli.ParsedOptionTokens(
@@ -117,7 +122,9 @@ class FlextCliCli(FlextCliCliPart01):
                     values[field_name] = inline
             index += 1
         return m.Cli.ParsedOptionTokens(
-            values=values, remaining=(), help_requested=False,
+            values=values,
+            remaining=(),
+            help_requested=False,
         )
 
     def _apply_common_params_to_config(self, *, params: m.Cli.CliParamsConfig) -> None:

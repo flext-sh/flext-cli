@@ -179,9 +179,11 @@ class TestsFlextCliOutputCov:
     ) -> None:
         """Verify that error with detail emits both lines."""
         u.Cli.error("fail msg", detail="extra detail")
-        out = capsys.readouterr().out
+        captured = capsys.readouterr()
+        out = captured.err
         tm.that(out, has="fail msg")
         tm.that(out, has="extra detail")
+        tm.that(captured.out, eq="")
 
     def test_error_without_detail_omits_detail_indent(
         self,
@@ -189,9 +191,11 @@ class TestsFlextCliOutputCov:
     ) -> None:
         """Verify that error without detail omits detail indent."""
         u.Cli.error("just error")
-        out = capsys.readouterr().out
+        captured = capsys.readouterr()
+        out = captured.err
         tm.that(out, has="just error")
         tm.that(out.endswith("  \n"), eq=False)
+        tm.that(captured.out, eq="")
 
     def test_warning_emits_message_with_warning_level(
         self,

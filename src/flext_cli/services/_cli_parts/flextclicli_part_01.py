@@ -146,7 +146,10 @@ class FlextCliCli:
 
     @classmethod
     def _build_model_parameter(
-        cls, field_name: str, field_info: m.FieldInfo, settings: t.Cli.ModelLike | None,
+        cls,
+        field_name: str,
+        field_info: m.FieldInfo,
+        settings: t.Cli.ModelLike | None,
     ) -> t.Pair[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from its public specification.
 

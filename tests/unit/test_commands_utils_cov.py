@@ -141,10 +141,12 @@ class TestsFlextCliCommands:
         u.Cli.commands_emit_result_error(r[str].fail("boom"))
 
         # Assert
-        out = capsys.readouterr().out
+        captured = capsys.readouterr()
+        out = captured.err
         tm.that(out, has="boom")
         tm.that(out, ne="boom\n")
         tm.that(out.endswith("\n"), eq=True)
+        tm.that(captured.out, eq="")
 
     def test_error_message_surfaces_code_without_traceback_in_normal_mode(
         self,
@@ -160,11 +162,13 @@ class TestsFlextCliCommands:
         u.Cli.commands_emit_result_error(result, verbose=False)
 
         # Assert
-        out = capsys.readouterr().out
+        captured = capsys.readouterr()
+        out = captured.err
         tm.that(out, has="proposal config ausente: /x.yaml")
         tm.that(out, has="missing_config")
         tm.that("Traceback" not in out, eq=True)
         tm.that("FileNotFoundError" not in out, eq=True)
+        tm.that(captured.out, eq="")
 
     def test_error_message_adds_traceback_in_verbose_mode(
         self,
@@ -198,7 +202,9 @@ class TestsFlextCliCommands:
         u.Cli.commands_emit_result_error(result, verbose=True)
 
         # Assert
-        out = capsys.readouterr().out
+        captured = capsys.readouterr()
+        out = captured.err
         tm.that(out, has="missing_config")
         tm.that(out, has="FileNotFoundError")
         tm.that(out, has="Traceback (most recent call last)")
+        tm.that(captured.out, eq="")

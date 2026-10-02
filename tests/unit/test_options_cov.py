@@ -42,17 +42,24 @@ class TestsFlextCliOptionsUtilsCov:
         )
         for model_cls, field_name, expected in cases:
             spec, _ = cli.model_option_spec(
-                field_name, model_cls.model_fields[field_name], None,
+                field_name,
+                model_cls.model_fields[field_name],
+                None,
             )
             assert {
-                option for declaration in spec.declarations for option in declaration.split("/")
+                option
+                for declaration in spec.declarations
+                for option in declaration.split("/")
             } == expected
-        assert set(c.Cli.CLI_GLOBAL_PARAM_FIELDS) <= set(m.Cli.CliParamsConfig.model_fields)
+        assert set(c.Cli.CLI_GLOBAL_PARAM_FIELDS) <= set(
+            m.Cli.CliParamsConfig.model_fields,
+        )
 
     def test_parse_only_route_distinguishes_help_from_option_values(self) -> None:
         """A pre-execution router reads the model contract without invoking it."""
         parsed = cli.parse_model_options(
-            self.CustomDeclModel, ("--projects", "--help"),
+            self.CustomDeclModel,
+            ("--projects", "--help"),
         )
         assert parsed.values["custom_name"] == "--help"
         assert parsed.help_requested is False
@@ -85,7 +92,10 @@ class TestsFlextCliOptionsUtilsCov:
 
     @pytest.mark.parametrize(("option", "expected"), [("--off", True), ("--on", False)])
     def test_parse_only_bool_polarity_matches_registered_command(
-        self, option: str, *, expected: bool,
+        self,
+        option: str,
+        *,
+        expected: bool,
     ) -> None:
         """Test parse only bool polarity matches registered command."""
         parsed = cli.parse_model_options(self.ReverseToggleModel, (option,))
@@ -162,7 +172,8 @@ class TestsFlextCliOptionsUtilsCov:
         """Custom Boolean names derive polarity from declaration order."""
 
         enabled: bool = m.Field(
-            False, json_schema_extra={"typer_param_decls": ["--off/--on"]},
+            False,
+            json_schema_extra={"typer_param_decls": ["--off/--on"]},
         )
 
     class GreetModel(m.BaseModel):
