@@ -20,7 +20,7 @@ classifiers = [
 dependencies = [
   "annotated-types>=0.8.0",
   "beartype>=0.22.9",
-  "click>=8.3.3,<8.6",
+  "click>=8.3.3,<8.4",
   "defusedxml>=0.7.1",
   "dependency-injector>=4.49.1",
   "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
@@ -29,7 +29,7 @@ dependencies = [
   "openpyxl>=3.1.5",
   "packaging>=26.3",
   "pydantic>=2.13.5",
-  "pydantic-settings>=2.14.2,<2.16",
+  "pydantic-settings>=2.15.0,<2.16",
   "python-docx>=1.2.0",
   "python-pptx>=1.0.2",
   "pyyaml>=6.0.3",
@@ -163,10 +163,13 @@ scan_dirs = ["src"]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/flext_cli"]
+include = ["/src/flext_cli/**"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src/flext_cli" = "flext_cli"
 
 [tool.hatch.build.targets.sdist]
-only-include = ["src/flext_cli"]
+include = ["/src/flext_cli/**"]
 
 [tool.mypy]
 disable_error_code = [
@@ -332,8 +335,6 @@ exclude = [
   "**/node_modules",
   "**/site-packages",
   "**/site-packages/**",
-  "**/tests/fixtures",
-  "**/tests/fixtures/**",
   "**/venv",
   "**/venv/**",
   ".git",
@@ -401,7 +402,7 @@ reportAttributeAccessIssue = "none"
 reportGeneralTypeIssues = "none"
 reportInvalidTypeForm = "none"
 reportPrivateImportUsage = "none"
-reportPrivateUsage = "none"
+reportPrivateUsage = "error"
 reportReturnType = "none"
 reportUnknownArgumentType = "none"
 reportUnknownLambdaType = "none"
@@ -552,6 +553,9 @@ msg = "Use flext_cli.cli application, registration, execution, and invocation me
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api.rich]
 msg = "Use cli.print / cli.display_message / cli.render_panel / cli.render_table."
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api.tabulate]
+msg = "Use cli.render_table from flext_cli."
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api.typer]
 msg = "Use cli.create_app_with_common_params / cli.register_command from flext_cli."
