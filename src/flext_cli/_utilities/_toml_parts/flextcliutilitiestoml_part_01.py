@@ -87,7 +87,7 @@ class FlextCliUtilitiesToml:
         array = tomlkit.array()
         for item in items:
             array.add_line(item)
-        return array.multiline(True)
+        return array.multiline(multiline=True)
 
     @staticmethod
     def toml_document() -> TOMLDocument:

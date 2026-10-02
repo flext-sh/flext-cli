@@ -184,7 +184,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             )
             with path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as fh:
                 fh.write(serialized)
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         except (OSError, u.Yaml.YAMLError, ValueError, TypeError) as exc:
             return r[bool].fail(f"YAML write error: {exc}", exception=exc)
 

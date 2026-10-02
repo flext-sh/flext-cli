@@ -24,7 +24,7 @@ class FlextCliUtilitiesXlsxProtection:
         plan: m.Cli.XlsxSheetProtectionPlan | None,
     ) -> p.Result[bool]:
         if plan is None:
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         try:
             return cls._apply_protection_unchecked(worksheet, plan)
         except (TypeError, ValueError) as exc:
@@ -72,7 +72,7 @@ class FlextCliUtilitiesXlsxProtection:
                 protection.set_password(plan.credential.value, already_hashed=True)
             else:
                 protection.set_password(plan.credential.value)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxProtection",)

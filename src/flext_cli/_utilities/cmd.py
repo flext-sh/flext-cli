@@ -62,7 +62,7 @@ class FlextCliUtilitiesCmd:
             c.Cli.LOG_MSG_SETTINGS_DISPLAYED,
             settings=info_result.value.model_dump_json(),
         )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def cmd_validate_settings(logger: p.Logger) -> p.Result[bool]:
@@ -77,7 +77,7 @@ class FlextCliUtilitiesCmd:
             logger.info(
                 c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results),
             )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCmd"]

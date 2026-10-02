@@ -41,7 +41,7 @@ class FlextCliUtilitiesValidation:
                 return r[bool].fail(
                     c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(field_name=name),
                 )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def validate_format(format_type: str) -> p.Result[str]:

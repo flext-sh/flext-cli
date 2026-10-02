@@ -39,7 +39,7 @@ class FlextCliUtilitiesAuth:
             return r[bool].fail("Username cannot be empty")
         if not password.strip():
             return r[bool].fail("Password cannot be empty")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def auth_extract_token(payload: t.JsonValue) -> p.Result[str]:

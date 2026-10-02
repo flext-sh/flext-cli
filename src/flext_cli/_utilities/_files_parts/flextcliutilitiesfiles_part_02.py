@@ -38,7 +38,7 @@ class FlextCliUtilitiesFiles:
             write_atomic_bytes(path, data)
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def atomic_write_text_file(
@@ -67,7 +67,7 @@ class FlextCliUtilitiesFiles:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
             )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def atomic_write_text_file_guarded(
@@ -95,7 +95,7 @@ class FlextCliUtilitiesFiles:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
             )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def atomic_write_binary_file_guarded(
@@ -124,7 +124,7 @@ class FlextCliUtilitiesFiles:
             )
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def atomic_delete_binary_file_guarded(
@@ -144,7 +144,7 @@ class FlextCliUtilitiesFiles:
             remove_guarded_file(state)
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_FILE_DELETION_FAILED.format(error=exc))
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def files_copy(

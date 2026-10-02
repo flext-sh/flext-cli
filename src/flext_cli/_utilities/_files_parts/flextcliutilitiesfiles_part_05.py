@@ -145,7 +145,7 @@ class FlextCliUtilitiesFiles:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_DIRECTORY_DELETE_FAILED.format(error=exc),
             )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def atomic_publish_staged_empty_directory_guarded(
@@ -220,7 +220,7 @@ class FlextCliUtilitiesFiles:
                 c.Cli.ERR_ATOMIC_PHYSICAL_TREE_CLEANUP_FAILED.format(error=exc),
                 exception=exc,
             )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: list[str] = ["FlextCliUtilitiesFiles"]

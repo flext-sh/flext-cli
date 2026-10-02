@@ -51,7 +51,7 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
                     f"{c.Cli.XlsxError.DUPLICATE_DEFINED_NAME}: {item.name}",
                 )
             defined_names = defined_names.union((item.name,))
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @classmethod
     def _workbook_for_request(

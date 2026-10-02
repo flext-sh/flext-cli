@@ -95,7 +95,7 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
                 DefinedName(name=plan.name, attr_text=expression),
             )
             names = names.union((plan.name,))
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxTables",)

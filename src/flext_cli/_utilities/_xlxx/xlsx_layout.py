@@ -97,7 +97,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
             worksheet.sheet_properties.tabColor = plan.view.tab_color
         for item in plan.merges:
             worksheet.merge_cells(cls._range_ref(item.area))
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxLayout",)

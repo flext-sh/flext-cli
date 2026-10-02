@@ -128,7 +128,7 @@ class FlextCliUtilitiesFiles:
                 return r[bool].from_failure(current)
             if current.value != expected:
                 return r[bool].fail(f"atomic source changed: {expected.path}")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def files_matching(

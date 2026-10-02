@@ -112,7 +112,7 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
         """
         token_file = u.Cli.auth_token_file_path(settings.cli_token_file)
         if not token_file.exists():
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         return u.Cli.files_delete(token_file)
 
 
