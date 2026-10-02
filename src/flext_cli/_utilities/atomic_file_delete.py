@@ -9,8 +9,7 @@ from __future__ import annotations
 import errno
 
 from flext_cli import m
-
-from . import (
+from flext_cli._utilities import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_durability as file_durability,
     atomic_file_mode as file_mode,

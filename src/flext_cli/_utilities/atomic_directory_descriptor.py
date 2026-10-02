@@ -11,8 +11,7 @@ import os
 from pathlib import Path
 
 from flext_cli import t
-
-from . import (
+from flext_cli._utilities import (
     atomic_directory_noreplace as directory_noreplace,
     atomic_file_descriptor as file_descriptor,
     atomic_parent_descriptor as parent_descriptor,
@@ -69,14 +68,14 @@ def require_publish_capabilities(source: Path, destination: Path) -> None:
         raise OSError(errno.ENOTSUP, message, destination)
 
 
-def create_entry(parent: file_descriptor.ParentDescriptor, path: Path) -> None:
+def create_entry(parent: file_descriptor.FlextCliParentDescriptor, path: Path) -> None:
     """Create one secure empty child through an authenticated parent descriptor."""
     file_descriptor.require_entry(parent, path)
     file_descriptor.assert_parent_unchanged(parent)
     os.mkdir(path.name, _SECURE_CREATE_MODE, dir_fd=parent.descriptor)
 
 
-def remove_entry(parent: file_descriptor.ParentDescriptor, path: Path) -> None:
+def remove_entry(parent: file_descriptor.FlextCliParentDescriptor, path: Path) -> None:
     """Remove one empty child through an authenticated parent descriptor."""
     file_descriptor.require_entry(parent, path)
     file_descriptor.assert_parent_unchanged(parent)
@@ -84,9 +83,9 @@ def remove_entry(parent: file_descriptor.ParentDescriptor, path: Path) -> None:
 
 
 def rename_entry_noreplace(
-    source_parent: file_descriptor.ParentDescriptor,
+    source_parent: file_descriptor.FlextCliParentDescriptor,
     source: Path,
-    destination_parent: file_descriptor.ParentDescriptor,
+    destination_parent: file_descriptor.FlextCliParentDescriptor,
     destination: Path,
 ) -> None:
     """Move one child without clobbering any destination entry."""

@@ -46,7 +46,8 @@ class TestsFlextCliRulesCov:
 
     # ------------------------------------------------------------------ scope
 
-    def test_resolve_scope_keeps_only_allowed_keys_with_values(self) -> None:
+    @staticmethod
+    def test_resolve_scope_keeps_only_allowed_keys_with_values() -> None:
         """Verify that resolve scope keeps only allowed keys with values."""
         result = u.Cli.rules_resolve_scope(
             {"lint": {"rule_a": True, "rule_b": False}},
@@ -75,7 +76,8 @@ class TestsFlextCliRulesCov:
         tm.that(len(result), eq=expected_len)
         tm.that(all(key in allowed_keys for key in result), eq=True)
 
-    def test_load_scoped_config_returns_normalized_scope(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_load_scoped_config_returns_normalized_scope(tmp_path: Path) -> None:
         """Verify that load scoped config returns normalized scope."""
         config_path = tmp_path / "config.yml"
         config_path.write_text("lint:\n  rule_a: true\n  rule_b: false\n")
@@ -104,7 +106,8 @@ class TestsFlextCliRulesCov:
         tm.ok(result)
         tm.that(result.value, eq={"rules": [{"id": "rule-a", "kind": "lint"}]})
 
-    def test_load_registry_falls_back_to_package_dir(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_load_registry_falls_back_to_package_dir(tmp_path: Path) -> None:
         """Verify that load registry falls back to package dir."""
         pkg_rules_dir = tmp_path / "pkg_rules"
         pkg_rules_dir.mkdir()
@@ -138,8 +141,8 @@ class TestsFlextCliRulesCov:
         tm.ok(result)
         tm.that(result.value, eq={"rules": [{"id": "rule-a", "kind": "lint"}]})
 
+    @staticmethod
     def test_load_registry_missing_file_fails_with_message(
-        self,
         tmp_path: Path,
     ) -> None:
         """Verify that load registry missing file fails with message."""
@@ -157,7 +160,8 @@ class TestsFlextCliRulesCov:
 
     # ------------------------------------------------- local rule definitions
 
-    def test_load_local_definitions_missing_dir_fails(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_load_local_definitions_missing_dir_fails(tmp_path: Path) -> None:
         """Verify that load local definitions missing dir fails."""
         config_path = tmp_path / "config.yml"
         config_path.write_text("project: test\n")
@@ -328,7 +332,8 @@ class TestsFlextCliRulesCov:
 
     # ----------------------------------------------------------------- filters
 
-    def test_matches_filters_empty_filter_matches_any(self) -> None:
+    @staticmethod
+    def test_matches_filters_empty_filter_matches_any() -> None:
         """Verify that matches filters empty filter matches any."""
         tm.that(u.Cli.rules_matches_filters("rule-a", ()), eq=True)
 
@@ -348,7 +353,8 @@ class TestsFlextCliRulesCov:
 
     # ------------------------------------------------------- directory resolve
 
-    def test_resolve_directory_prefers_local_rules_dir(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_resolve_directory_prefers_local_rules_dir(tmp_path: Path) -> None:
         """Verify that resolve directory prefers local rules dir."""
         rules_dir = tmp_path / "rules"
         rules_dir.mkdir()
@@ -361,7 +367,8 @@ class TestsFlextCliRulesCov:
         )
         tm.that(result, eq=rules_dir)
 
-    def test_resolve_directory_falls_back_to_package(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_resolve_directory_falls_back_to_package(tmp_path: Path) -> None:
         """Verify that resolve directory falls back to package."""
         pkg_rules = tmp_path / "pkg_rules"
         pkg_rules.mkdir()
@@ -376,7 +383,8 @@ class TestsFlextCliRulesCov:
 
     # ------------------------------------------------------------- catalog lookup
 
-    def test_match_catalog_entry_by_action(self) -> None:
+    @staticmethod
+    def test_match_catalog_entry_by_action() -> None:
         """Verify that match catalog entry by action."""
         result = u.Cli.rules_match_catalog_entry(
             "check",
@@ -386,7 +394,8 @@ class TestsFlextCliRulesCov:
         result = tm.not_none(result)
         tm.that(result[0], eq="lint")
 
-    def test_match_catalog_entry_by_check(self) -> None:
+    @staticmethod
+    def test_match_catalog_entry_by_check() -> None:
         """Verify that match catalog entry by check."""
         result = u.Cli.rules_match_catalog_entry(
             "",
@@ -396,7 +405,8 @@ class TestsFlextCliRulesCov:
         result = tm.not_none(result)
         tm.that(result[0], eq="lint")
 
-    def test_match_catalog_entry_no_match_returns_none(self) -> None:
+    @staticmethod
+    def test_match_catalog_entry_no_match_returns_none() -> None:
         """Verify that match catalog entry no match returns none."""
         result = u.Cli.rules_match_catalog_entry(
             "unknown",
@@ -407,7 +417,8 @@ class TestsFlextCliRulesCov:
 
     # ------------------------------------------------------- matcher validation
 
-    def test_validate_matcher_valid_returns_none(self) -> None:
+    @staticmethod
+    def test_validate_matcher_valid_returns_none() -> None:
         """Verify that validate matcher valid returns none."""
         rule_def: t.JsonMapping = {"id": "rule-a", "actions": ["check"]}
         result = u.Cli.rules_validate_matcher(
@@ -417,7 +428,8 @@ class TestsFlextCliRulesCov:
         )
         tm.that(result, none=True)
 
-    def test_validate_matcher_reports_non_mapping_field(self) -> None:
+    @staticmethod
+    def test_validate_matcher_reports_non_mapping_field() -> None:
         """Verify that validate matcher reports non mapping field."""
         rule_def: t.JsonMapping = {"id": "rule-a", "config": "not-a-mapping"}
         result = u.Cli.rules_validate_matcher(
@@ -428,7 +440,8 @@ class TestsFlextCliRulesCov:
         result = tm.not_none(result)
         tm.that(result, has="config must be a mapping")
 
-    def test_validate_matcher_reports_empty_required_list(self) -> None:
+    @staticmethod
+    def test_validate_matcher_reports_empty_required_list() -> None:
         """Verify that validate matcher reports empty required list."""
         rule_def: t.JsonMapping = {"id": "rule-a", "actions": []}
         result = u.Cli.rules_validate_matcher(

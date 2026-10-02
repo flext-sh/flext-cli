@@ -14,10 +14,9 @@ from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
+from flext_cli._constants.enums import FlextCliConstantsEnums as ce
+from flext_cli._typings.base import FlextCliTypesBase as tb
 from flext_core import p, t
-
-from .._constants.enums import FlextCliConstantsEnums as ce
-from .base import FlextCliTypesBase as tb
 
 
 class FlextCliTypesDomain:

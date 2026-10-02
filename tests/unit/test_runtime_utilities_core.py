@@ -56,8 +56,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """
         return u.Cli()
 
+    @staticmethod
     def test_run_raw_remove_env_keys_strips_inherited_values(
-        self,
         runner: u.Cli,
     ) -> None:
         """Verify that run raw remove env keys strips inherited values."""
@@ -170,7 +170,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
             return
         tm.fail(result, has=case.error_has)
 
-    def test_run_bytes_accepts_text_and_binary_stdin(self, runner: u.Cli) -> None:
+    @staticmethod
+    def test_run_bytes_accepts_text_and_binary_stdin(runner: u.Cli) -> None:
         """Verify run_bytes accepts str or bytes stdin and echoes byte-exact."""
         text_out = m.Cli.CommandBytesOutput.model_validate(
             tm.ok(runner.run_bytes(("cat",), input_data="text-payload")),
@@ -181,7 +182,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         )
         tm.that(binary_out.stdout, eq=b"\x00\xff\x01")
 
-    def test_run_checked_rejects_a_real_timeout(self, runner: u.Cli) -> None:
+    @staticmethod
+    def test_run_checked_rejects_a_real_timeout(runner: u.Cli) -> None:
         """A terminated child cannot become a successful boolean receipt."""
         result = runner.run_checked(
             [sys.executable, "-c", "import time; time.sleep(10)"],
@@ -189,7 +191,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         )
         tm.fail(result, has="timed_out=True")
 
-    def test_run_capture_false_empties_captured_output(self, runner: u.Cli) -> None:
+    @staticmethod
+    def test_run_capture_false_empties_captured_output(runner: u.Cli) -> None:
         """Verify run(capture=False) streams live: captured stdout is empty, exit ok."""
         result = runner.run(("sh", "-c", "echo streamed-line"), capture=False)
         output = m.Cli.CommandOutput.model_validate(tm.ok(result))
@@ -197,13 +200,15 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(output.stdout, eq="")
         tm.that(output.stderr, eq="")
 
-    def test_run_capture_true_default_still_captures(self, runner: u.Cli) -> None:
+    @staticmethod
+    def test_run_capture_true_default_still_captures(runner: u.Cli) -> None:
         """Verify run() default capture=True still captures stdout."""
         result = runner.run(("echo", "captured-line"))
         output = m.Cli.CommandOutput.model_validate(tm.ok(result))
         tm.that(output.stdout, has="captured-line")
 
-    def test_run_live_alias_streams_and_exit_checks(self, runner: u.Cli) -> None:
+    @staticmethod
+    def test_run_live_alias_streams_and_exit_checks(runner: u.Cli) -> None:
         """Verify run_live streams (empty captured) and fails closed on non-zero exit."""
         ok_result = runner.run_live(("sh", "-c", "echo live-ok"))
         ok_output = m.Cli.CommandOutput.model_validate(tm.ok(ok_result))
@@ -211,7 +216,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(u.Cli.process_succeeded(ok_output.outcome), eq=True)
         tm.fail(runner.run_live(("sh", "-c", "exit 7")), has="failed")
 
-    def test_process_start_wait_captures_stdout(self, runner: u.Cli) -> None:
+    @staticmethod
+    def test_process_start_wait_captures_stdout(runner: u.Cli) -> None:
         """Verify that process start wait captures stdout."""
         result = runner.process_start([sys.executable, "-c", "print('managed-ok')"])
         tm.ok(result)
@@ -226,7 +232,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.stdout.strip(), eq="managed-ok")
         tm.that(process.stderr, eq="")
 
-    def test_process_start_inherits_streams(self, runner: u.Cli) -> None:
+    @staticmethod
+    def test_process_start_inherits_streams(runner: u.Cli) -> None:
         """A supervised child consumes inherited input and forwards both outputs."""
         script = (
             "import sys; from flext_cli import u; "
@@ -267,8 +274,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(session, eq=child.pid if start_new_session else os.getsid(0))
         tm.that(group, eq=child.pid if start_new_session else os.getpgrp())
 
+    @staticmethod
     def test_process_start_passes_only_the_declared_descriptors(
-        self,
         runner: u.Cli,
     ) -> None:
         """A child inherits exactly the descriptors the caller declares."""
@@ -294,8 +301,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         finally:
             parent_end.close()
 
+    @staticmethod
     def test_process_start_honors_cwd_env_and_stderr(
-        self,
         runner: u.Cli,
         tmp_path: Path,
     ) -> None:
@@ -325,8 +332,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(stdout_lines[1], eq="env-ok")
         tm.that(process.stderr.strip(), eq="err-marker")
 
+    @staticmethod
     def test_process_start_forwards_passed_file_descriptors(
-        self,
         runner: u.Cli,
     ) -> None:
         """Verify the public process owner forwards one inherited descriptor."""
@@ -347,8 +354,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
             if write_fd >= 0:
                 os.close(write_fd)
 
+    @staticmethod
     def test_process_start_supports_binary_interactive_exchange(
-        self,
         runner: u.Cli,
     ) -> None:
         """Exchange exact framed bytes without closing stdin between messages."""
@@ -376,7 +383,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(process.stdout, eq="")
         tm.that(process.stderr, eq="")
 
-    def test_process_start_timeout_then_terminate(self, runner: u.Cli) -> None:
+    @staticmethod
+    def test_process_start_timeout_then_terminate(runner: u.Cli) -> None:
         """Verify that process start timeout then terminate."""
         result = runner.process_start([
             sys.executable,
@@ -394,7 +402,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.ok(wait_result)
         tm.that(process.returncode is not None, eq=True)
 
-    def test_process_start_kill_lifecycle(self, runner: u.Cli) -> None:
+    @staticmethod
+    def test_process_start_kill_lifecycle(runner: u.Cli) -> None:
         """Verify that process start kill lifecycle."""
         result = runner.process_start([
             sys.executable,
@@ -409,8 +418,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.ok(wait_result)
         tm.that(process.returncode is not None, eq=True)
 
+    @staticmethod
     def test_process_start_terminate_reaches_leader_exited_descendants(
-        self,
         runner: u.Cli,
         tmp_path: Path,
     ) -> None:
@@ -441,8 +450,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(sentinel.exists(), eq=True)
         tm.ok(process.kill())
 
+    @staticmethod
     def test_process_start_kill_stops_leader_exited_descendants(
-        self,
         runner: u.Cli,
         tmp_path: Path,
     ) -> None:
@@ -477,8 +486,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
             time.sleep(0.05)
         tm.that(gone, eq=True)
 
+    @staticmethod
     def test_process_start_terminate_without_session_leaves_descendants(
-        self,
         runner: u.Cli,
         tmp_path: Path,
     ) -> None:

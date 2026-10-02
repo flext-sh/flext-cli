@@ -25,7 +25,8 @@ if TYPE_CHECKING:
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
-    def test_model_command_accepts_repeatable_list_options(self) -> None:
+    @staticmethod
+    def test_model_command_accepts_repeatable_list_options() -> None:
         """Accept repeated model-derived options through the public invocation facade."""
         captured: MutableSequence[m.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
@@ -63,7 +64,8 @@ class TestsFlextCliService:
         tm.that(len(captured), eq=1)
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
-    def test_model_command_returns_handler_value(self) -> None:
+    @staticmethod
+    def test_model_command_returns_handler_value() -> None:
         """Return the observable value produced by a model command handler."""
 
         def handle(params: m.Tests.SampleInput) -> t.JsonValue:
@@ -90,7 +92,8 @@ class TestsFlextCliService:
         }
         tm.that(result, eq=expected)
 
-    def test_model_command_uses_custom_param_decls_from_field_extra(self) -> None:
+    @staticmethod
+    def test_model_command_uses_custom_param_decls_from_field_extra() -> None:
         """Expose custom option declarations from validated field metadata."""
 
         class CustomDeclModel(m.BaseModel):

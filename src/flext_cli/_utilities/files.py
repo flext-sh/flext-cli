@@ -6,25 +6,25 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from ._files_parts.flextcliutilitiesfiles_part_01 import (
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_01 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart01,
 )
-from ._files_parts.flextcliutilitiesfiles_part_02 import (
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
-from ._files_parts.flextcliutilitiesfiles_part_03 import (
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart03,
 )
-from ._files_parts.flextcliutilitiesfiles_part_04 import (
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart04,
 )
-from ._files_parts.flextcliutilitiesfiles_part_05 import (
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_05 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart05,
 )
-from ._files_parts.flextcliutilitiesfiles_part_06 import (
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_06 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart06,
 )
-from .symlink import FlextCliUtilitiesSymlink
+from flext_cli._utilities.symlink import FlextCliUtilitiesSymlink
 
 
 class FlextCliUtilitiesFiles(

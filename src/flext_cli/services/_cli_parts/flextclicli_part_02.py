@@ -10,9 +10,10 @@ from inspect import Parameter
 from typing import get_origin
 
 from flext_cli import c, m, p, r, settings, t, u
+from flext_cli.services._cli_parts.flextclicli_part_01 import (
+    FlextCliCli as FlextCliCliPart01,
+)
 from flext_cli.services.cli_params import FlextCliCommonParams
-
-from .flextclicli_part_01 import FlextCliCli as FlextCliCliPart01
 
 
 class FlextCliCli(FlextCliCliPart01):
@@ -66,29 +67,29 @@ class FlextCliCli(FlextCliCliPart01):
         values: dict[str, t.JsonValue] = {}
         index = 0
         while index < len(arguments):
-            token = arguments[index]
-            if token == "--" and stop_at_positional:
+            argument = arguments[index]
+            if argument == "--" and stop_at_positional:
                 return m.Cli.ParsedOptionTokens(
                     values=values,
                     remaining=tuple(arguments[index + 1 :]),
                     help_requested=False,
                 )
-            if token == "--help":
+            if argument == "--help":
                 return m.Cli.ParsedOptionTokens(
                     values=values,
                     remaining=(),
                     help_requested=True,
                 )
-            if stop_at_positional and not token.startswith("-"):
+            if stop_at_positional and not argument.startswith("-"):
                 return m.Cli.ParsedOptionTokens(
                     values=values,
                     remaining=tuple(arguments[index:]),
                     help_requested=False,
                 )
-            option, separator, inline = token.partition("=")
+            option, separator, inline = argument.partition("=")
             route = options.get(option)
             if route is None:
-                msg = f"CLI option is not declared for this route: {token}"
+                msg = f"CLI option is not declared for this route: {argument}"
                 raise ValueError(msg)
             field_name, is_flag, flag_value, is_repeated = route
             if field_name in values and not is_repeated:

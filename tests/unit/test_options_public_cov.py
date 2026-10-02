@@ -83,14 +83,14 @@ class TestsFlextCliOptions:
             ((1, 2), False),
         ],
     )
-    def test_is_string_sequence_recognizes_only_str_sequences(
+    def test_string_sequence_recognizes_only_str_sequences(
         self,
         value: t.Cli.CliDefaultSource,
         *,
         expected: bool,
     ) -> None:
-        """Verify that is string sequence recognizes only str sequences."""
-        tm.that(u.Cli.is_string_sequence(value) is expected, eq=True)
+        """Verify that string sequence recognizes only str sequences."""
+        tm.that(u.Cli.string_sequence(value) is expected, eq=True)
 
     def test_field_default_prefers_settings_scalar_over_field_metadata(self) -> None:
         """Verify that field default prefers settings scalar over field metadata."""
@@ -133,7 +133,8 @@ class TestsFlextCliOptions:
             eq=True,
         )
 
-    def test_build_option_registers_aliases_and_short_flag_from_spec(self) -> None:
+    @staticmethod
+    def test_build_option_registers_aliases_and_short_flag_from_spec() -> None:
         """Verify that build option registers aliases and short flag from spec."""
         option = u.Cli.build_option("project", {"project": {"short": "p"}})
 
@@ -143,7 +144,8 @@ class TestsFlextCliOptions:
         tm.that(declarations, has="--projects")
         tm.that(declarations, has="-p")
 
-    def test_build_option_reads_canonical_registry_contract(self) -> None:
+    @staticmethod
+    def test_build_option_reads_canonical_registry_contract() -> None:
         """Verify that build option reads canonical registry contract."""
         option = u.Cli.build_option("debug", c.Cli.CLI_PARAM_REGISTRY)
 
@@ -151,7 +153,8 @@ class TestsFlextCliOptions:
         declarations = tm.not_none(declarations)
         tm.that(declarations, has="--debug")
 
-    def test_reorder_prefixed_options_moves_shared_flags_after_subcommand(self) -> None:
+    @staticmethod
+    def test_reorder_prefixed_options_moves_shared_flags_after_subcommand() -> None:
         """Verify that reorder prefixed options moves shared flags after subcommand."""
         reordered = u.Cli.reorder_prefixed_options(
             ["--debug", "--log-level", "DEBUG", "check", "--all"],
@@ -161,7 +164,8 @@ class TestsFlextCliOptions:
 
         tm.that(reordered, eq=["check", "--debug", "--log-level", "DEBUG", "--all"])
 
-    def test_reorder_prefixed_options_handles_equals_joined_value_option(self) -> None:
+    @staticmethod
+    def test_reorder_prefixed_options_handles_equals_joined_value_option() -> None:
         """Verify that reorder prefixed options handles equals joined value option."""
         reordered = u.Cli.reorder_prefixed_options(
             ["--log-level=DEBUG", "check", "--all"],
@@ -187,7 +191,8 @@ class TestsFlextCliOptions:
             eq=True,
         )
 
-    def test_reorder_prefixed_options_is_idempotent(self) -> None:
+    @staticmethod
+    def test_reorder_prefixed_options_is_idempotent() -> None:
         """Verify that reorder prefixed options is idempotent."""
         once = u.Cli.reorder_prefixed_options(
             ["--debug", "check", "--all"],

@@ -27,7 +27,8 @@ if TYPE_CHECKING:
 class TestsFlextCliUtilitiesEnvExpand:
     """Interpolate ${VAR} / ${VAR:-default} templates through ``u.Cli``."""
 
-    def test_env_expand_substitutes_braced_variable(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_env_expand_substitutes_braced_variable(tmp_path: Path) -> None:
         """A ``${VAR}`` token is replaced by the injected value."""
         home = str(tmp_path / "home")
         result = u.Cli.env_expand(
@@ -37,7 +38,8 @@ class TestsFlextCliUtilitiesEnvExpand:
 
         tm.that(tm.ok(result), eq=f"{home}/.claude")
 
-    def test_env_expand_substitutes_bare_variable(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_env_expand_substitutes_bare_variable(tmp_path: Path) -> None:
         """A bare ``$VAR`` token is replaced by the injected value."""
         base = str(tmp_path / "base")
         result = u.Cli.env_expand(
@@ -47,19 +49,22 @@ class TestsFlextCliUtilitiesEnvExpand:
 
         tm.that(tm.ok(result), eq=f"{base}/bin")
 
-    def test_env_expand_uses_default_when_unset(self) -> None:
+    @staticmethod
+    def test_env_expand_uses_default_when_unset() -> None:
         """``${VAR:-default}`` falls back to the default when the var is unset."""
         result = u.Cli.env_expand("${FLEXT_CLI_EXPAND_MISSING:-20000}", {})
 
         tm.that(tm.ok(result), eq="20000")
 
-    def test_env_expand_unset_without_default_is_empty(self) -> None:
+    @staticmethod
+    def test_env_expand_unset_without_default_is_empty() -> None:
         """An unset variable without a default resolves to an empty segment."""
         result = u.Cli.env_expand("prefix-${FLEXT_CLI_EXPAND_NONE}-suffix", {})
 
         tm.that(tm.ok(result), eq="prefix--suffix")
 
-    def test_env_expand_template_is_data(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_env_expand_template_is_data(tmp_path: Path) -> None:
         """The template is a plain argument, so callers pass paths as data."""
         home = str(tmp_path / "home")
         environment = {"FLEXT_CLI_EXPAND_H": home}

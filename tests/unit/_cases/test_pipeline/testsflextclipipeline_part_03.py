@@ -25,7 +25,8 @@ if TYPE_CHECKING:
 class TestsFlextCliPipeline:
     """Implementation part for TestsFlextCliPipeline."""
 
-    def test_diamond_dependency(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_diamond_dependency(tmp_path: Path) -> None:
         """Diamond DAG: A -> B, A -> C, B -> D, C -> D."""
         order: list[str] = []
 
@@ -51,7 +52,8 @@ class TestsFlextCliPipeline:
         tm.that(order[-1], eq="d")
         tm.that(set(order[1:3]), eq={"b", "c"})
 
-    def test_independent_stages_run_concurrently(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_independent_stages_run_concurrently(tmp_path: Path) -> None:
         """Run stages that share no dependency edge at the same time."""
         # Independent gates are the dominant cost of `check`; running them one
         # after another makes the wall clock the SUM of every gate instead of
@@ -79,8 +81,8 @@ class TestsFlextCliPipeline:
         tm.ok(result)
         tm.that(len(result.unwrap().stages), eq=width)
 
+    @staticmethod
     def test_independent_stages_never_exceed_the_worker_bound(
-        self,
         tmp_path: Path,
     ) -> None:
         """A wave wider than the configured bound runs at most that many stages."""
@@ -114,8 +116,8 @@ class TestsFlextCliPipeline:
         tm.that(len(result.unwrap().stages), eq=bound * 2)
         tm.that(peak, lte=bound)
 
+    @staticmethod
     def test_results_follow_declared_order_not_completion_order(
-        self,
         tmp_path: Path,
     ) -> None:
         """Report stages as declared even when they finish out of order."""

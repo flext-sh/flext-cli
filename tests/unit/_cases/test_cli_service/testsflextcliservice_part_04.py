@@ -22,7 +22,8 @@ if TYPE_CHECKING:
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
-    def test_execute_app_handles_nonzero_int_result(self) -> None:
+    @staticmethod
+    def test_execute_app_handles_nonzero_int_result() -> None:
         """Convert a nonzero integer command result into a failed Result."""
         app = cli.create_app_with_common_params(name="int-app", help_text="Int app")
         cli.register_command(
@@ -37,7 +38,8 @@ class TestsFlextCliService:
         tm.fail(result)
         tm.that(result.error, has="CLI exited with code 2")
 
-    def test_execute_app_handles_typer_exit_zero_branch(self) -> None:
+    @staticmethod
+    def test_execute_app_handles_typer_exit_zero_branch() -> None:
         """Normalize a real zero Typer exit into successful execution."""
         app = cli.create_app_with_common_params(name="zero-app", help_text="Zero app")
         cli.register_command(
@@ -51,7 +53,8 @@ class TestsFlextCliService:
 
         tm.ok(result)
 
-    def test_execute_app_handles_typer_exit_nonzero_branch_real(self) -> None:
+    @staticmethod
+    def test_execute_app_handles_typer_exit_nonzero_branch_real() -> None:
         """Normalize a real nonzero Typer exit into a failed Result."""
         app = cli.create_app_with_common_params(
             name="nonzero-app",
@@ -69,7 +72,8 @@ class TestsFlextCliService:
         tm.fail(result)
         tm.that(result.error, has="CLI exited with code 1")
 
-    def test_execute_app_prefers_real_failure_message(self) -> None:
+    @staticmethod
+    def test_execute_app_prefers_real_failure_message() -> None:
         """Preserve the real framework failure message at the public boundary."""
         app = cli.create_app_with_common_params(
             name="sample",
@@ -97,7 +101,8 @@ class TestsFlextCliService:
         tm.fail(result)
         tm.that(result.error, has="CLI exited with code 1")
 
-    def test_execute_app_preserves_click_usage_errors(self) -> None:
+    @staticmethod
+    def test_execute_app_preserves_click_usage_errors() -> None:
         """Preserve Click usage details when a command name is invalid."""
         app = cli.create_app_with_common_params(
             name="sample",
@@ -122,7 +127,8 @@ class TestsFlextCliService:
         tm.fail(result)
         tm.that(result.error, has="No such command 'missing-command'")
 
-    def test_execute_external_command_accepts_public_sequence(self) -> None:
+    @staticmethod
+    def test_execute_external_command_accepts_public_sequence() -> None:
         """External commands receive a list at the private framework boundary."""
         app = cli.create_app_with_common_params(
             name="external-app",

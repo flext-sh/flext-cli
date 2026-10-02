@@ -9,9 +9,8 @@ from __future__ import annotations
 from typing import Annotated, Literal
 
 from flext_cli import t
+from flext_cli._models._xlsx.xlsx_cells import FlextCliModelsXlsxCells
 from flext_core import m
-
-from .xlsx_cells import FlextCliModelsXlsxCells
 
 
 class FlextCliModelsXlsxLayout:

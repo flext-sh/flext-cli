@@ -13,11 +13,12 @@ from openpyxl.styles.numbers import NumberFormat, builtin_format_id
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-
-from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
-from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
-from .xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
-from .xlsx_validations import FlextCliUtilitiesXlsxValidations
+from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from flext_cli._utilities._xlxx.xlsx_formula_codec import (
+    FlextCliUtilitiesXlsxFormulaCodec,
+)
+from flext_cli._utilities._xlxx.xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
+from flext_cli._utilities._xlxx.xlsx_validations import FlextCliUtilitiesXlsxValidations
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
 

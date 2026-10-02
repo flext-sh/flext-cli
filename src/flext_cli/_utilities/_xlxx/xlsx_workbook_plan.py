@@ -11,9 +11,8 @@ from openpyxl.workbook.properties import CalcProperties
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-
-from .xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
-from .xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
+from flext_cli._utilities._xlxx.xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
+from flext_cli._utilities._xlxx.xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
 

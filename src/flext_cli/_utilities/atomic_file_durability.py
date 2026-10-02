@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import os
 
-from . import atomic_file_descriptor as file_descriptor, atomic_file_path as file_path
+from flext_cli._utilities import (
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_path as file_path,
+)
 
 
-def sync_parent(parent: file_descriptor.ParentDescriptor) -> None:
+def sync_parent(parent: file_descriptor.FlextCliParentDescriptor) -> None:
     """Sync one authenticated directory after its namespace was mutated."""
     file_descriptor.assert_parent_unchanged(parent)
     os.fsync(parent.descriptor)
@@ -19,8 +22,8 @@ def sync_parent(parent: file_descriptor.ParentDescriptor) -> None:
 
 
 def sync_replacement(
-    source: file_descriptor.ParentDescriptor,
-    destination: file_descriptor.ParentDescriptor,
+    source: file_descriptor.FlextCliParentDescriptor,
+    destination: file_descriptor.FlextCliParentDescriptor,
 ) -> None:
     """Sync every physical directory changed by one completed replacement."""
     sync_parent(source)

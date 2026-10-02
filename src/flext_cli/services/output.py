@@ -45,7 +45,9 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
         """
         payload, style = u.Cli.output_message_payload(message, message_type)
         FlextCliFormatters.print(
-            payload, style=style, error=message_type == c.Cli.MessageTypes.ERROR,
+            payload,
+            style=style,
+            error=message_type == c.Cli.MessageTypes.ERROR,
         )
 
     @staticmethod

@@ -28,8 +28,7 @@ import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap
 
 from flext_cli import c, p, r, t
-
-from ._convert import FlextCliUtilitiesYamlConvertMixin
+from flext_cli._utilities._yaml._convert import FlextCliUtilitiesYamlConvertMixin
 
 if TYPE_CHECKING:
     from pathlib import Path

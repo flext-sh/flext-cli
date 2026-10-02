@@ -8,9 +8,11 @@ from __future__ import annotations
 
 from flext_tests import c
 
-from .tests_core import TestsFlextCliConstantsCore
-from .tests_rules_options import TestsFlextCliConstantsRulesOptions
-from .tests_yaml_output import TestsFlextCliConstantsYamlOutput
+from tests._constants_parts.tests_core import TestsFlextCliConstantsCore
+from tests._constants_parts.tests_rules_options import (
+    TestsFlextCliConstantsRulesOptions,
+)
+from tests._constants_parts.tests_yaml_output import TestsFlextCliConstantsYamlOutput
 
 
 class TestsFlextCliConstants:

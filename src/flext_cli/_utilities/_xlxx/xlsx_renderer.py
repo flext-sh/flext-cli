@@ -9,12 +9,13 @@ from __future__ import annotations
 from openpyxl import Workbook
 
 from flext_cli import c, m, p, r, t
-
-from .xlsx_cells import FlextCliUtilitiesXlsxCells
-from .xlsx_layout import FlextCliUtilitiesXlsxLayout
-from .xlsx_rules import FlextCliUtilitiesXlsxRules
-from .xlsx_tables import FlextCliUtilitiesXlsxTables
-from .xlsx_workbook_plan import FlextCliUtilitiesXlsxWorkbookPlan
+from flext_cli._utilities._xlxx.xlsx_cells import FlextCliUtilitiesXlsxCells
+from flext_cli._utilities._xlxx.xlsx_layout import FlextCliUtilitiesXlsxLayout
+from flext_cli._utilities._xlxx.xlsx_rules import FlextCliUtilitiesXlsxRules
+from flext_cli._utilities._xlxx.xlsx_tables import FlextCliUtilitiesXlsxTables
+from flext_cli._utilities._xlxx.xlsx_workbook_plan import (
+    FlextCliUtilitiesXlsxWorkbookPlan,
+)
 
 
 class FlextCliUtilitiesXlsxRenderer(

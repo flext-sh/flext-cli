@@ -10,11 +10,10 @@ from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
 from flext_cli import c, m, p, r, t
-from flext_core import u
-
-from ._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
+from flext_cli._utilities._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
     FlextCliUtilitiesTablesRenderer,
 )
+from flext_core import u
 
 
 class FlextCliUtilitiesTables:

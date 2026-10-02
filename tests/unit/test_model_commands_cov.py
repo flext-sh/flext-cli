@@ -25,7 +25,8 @@ from tests import m
 class TestsFlextCliModelCommandsCov:
     """Behavioral contract of the public model-command helpers."""
 
-    def test_model_command_rejects_invalid_data_with_validation_error(self) -> None:
+    @staticmethod
+    def test_model_command_rejects_invalid_data_with_validation_error() -> None:
         """A plain model command raises the ValidationError of rejected input."""
         command = cli.model_command(
             m.Tests.ModelCommandSample,
@@ -37,7 +38,8 @@ class TestsFlextCliModelCommandsCov:
 
     # ---- model_command --------------------------------------------------
 
-    def test_model_command_dispatches_to_handler_with_bound_model(self) -> None:
+    @staticmethod
+    def test_model_command_dispatches_to_handler_with_bound_model() -> None:
         """Verify that model command dispatches to handler with bound model."""
 
         def handler(model: m.Tests.ModelCommandSample) -> str:
@@ -47,7 +49,8 @@ class TestsFlextCliModelCommandsCov:
 
         tm.that(cmd(name="x", value=3), eq="x-3")
 
-    def test_model_command_applies_field_default_for_omitted_optional(self) -> None:
+    @staticmethod
+    def test_model_command_applies_field_default_for_omitted_optional() -> None:
         """Verify that model command applies field default for omitted optional."""
 
         def handler(model: m.Tests.ModelCommandSample) -> int:
@@ -57,7 +60,8 @@ class TestsFlextCliModelCommandsCov:
 
         tm.that(cmd(name="y"), eq=42)
 
-    def test_model_command_resolves_values_without_mutating_settings(self) -> None:
+    @staticmethod
+    def test_model_command_resolves_values_without_mutating_settings() -> None:
         # Invocation no longer writes parsed values back into the settings
         # model (commit f5f83dee): settings seeds option defaults only, and
         # resolved values reach the handler through the validated model.
@@ -74,7 +78,8 @@ class TestsFlextCliModelCommandsCov:
         tm.that(settings.name, eq="from_settings")
         tm.that(settings.value, eq=0)
 
-    def test_model_command_raises_validation_error_for_missing_required(self) -> None:
+    @staticmethod
+    def test_model_command_raises_validation_error_for_missing_required() -> None:
         """Verify that model command raises validation error for missing required."""
 
         def handler(model: m.Tests.ModelCommandRequired) -> str:
@@ -85,7 +90,8 @@ class TestsFlextCliModelCommandsCov:
         with pytest.raises(m.ValidationError):
             cmd()
 
-    def test_model_command_binds_all_required_fields_to_model(self) -> None:
+    @staticmethod
+    def test_model_command_binds_all_required_fields_to_model() -> None:
         """Verify that model command binds all required fields to model."""
 
         def handler(model: m.Tests.ModelCommandRequired) -> str:

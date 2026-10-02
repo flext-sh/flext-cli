@@ -22,7 +22,8 @@ from tests import c
 class TestsFlextCliUtilitiesEnv:
     """Read a single environment variable by name through ``u.Cli``."""
 
-    def test_env_read_returns_value_when_set(self) -> None:
+    @staticmethod
+    def test_env_read_returns_value_when_set() -> None:
         """A set environment variable is returned by name."""
         result = u.Cli.env_read(
             c.Tests.ENV_READ_PROBE_NAME,
@@ -31,13 +32,15 @@ class TestsFlextCliUtilitiesEnv:
 
         tm.that(tm.ok(result), eq=c.Tests.ENV_READ_PROBE_VALUE)
 
-    def test_env_read_returns_empty_when_unset(self) -> None:
+    @staticmethod
+    def test_env_read_returns_empty_when_unset() -> None:
         """An unset environment variable resolves to an empty string, not a failure."""
         result = u.Cli.env_read(c.Tests.ENV_READ_ABSENT_NAME, {})
 
         tm.that(tm.ok(result), eq="")
 
-    def test_env_read_name_is_data(self) -> None:
+    @staticmethod
+    def test_env_read_name_is_data() -> None:
         """The variable name is a plain argument, so callers pass it as data."""
         for name, expected in c.Tests.ENV_READ_CASES.items():
             tm.that(tm.ok(u.Cli.env_read(name, c.Tests.ENV_READ_CASES)), eq=expected)

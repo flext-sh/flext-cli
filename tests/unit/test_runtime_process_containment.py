@@ -123,7 +123,8 @@ class _InterruptingCommand(UserList[str]):
 class TestsFlextCliRuntimeProcessContainment:
     """Prove pre-spawn signals, deadline escalation, and empty boundaries."""
 
-    def test_run_raw_timeout_leaves_no_descendant(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_run_raw_timeout_leaves_no_descendant(tmp_path: Path) -> None:
         """Return only after the captured text runner empties its owned boundary."""
         _assert_timeout_empties_descendants(
             tmp_path,
@@ -131,7 +132,8 @@ class TestsFlextCliRuntimeProcessContainment:
             _timed_out_outcome,
         )
 
-    def test_run_timeout_leaves_no_descendant(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_run_timeout_leaves_no_descendant(tmp_path: Path) -> None:
         """Fail on timeout only after the checked runner empties its owned boundary."""
         _assert_timeout_empties_descendants(
             tmp_path,
@@ -139,7 +141,8 @@ class TestsFlextCliRuntimeProcessContainment:
             _timed_out_failure,
         )
 
-    def test_run_bytes_timeout_leaves_no_descendant(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_run_bytes_timeout_leaves_no_descendant(tmp_path: Path) -> None:
         """Return only after the byte runner empties its owned boundary."""
         _assert_timeout_empties_descendants(
             tmp_path,
@@ -147,7 +150,8 @@ class TestsFlextCliRuntimeProcessContainment:
             _timed_out_outcome,
         )
 
-    def test_return_proves_owned_process_boundary_empty(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_return_proves_owned_process_boundary_empty(tmp_path: Path) -> None:
         """Test return proves owned process boundary empty."""
         process_info = tmp_path / "boundary-process-info"
         survivor_probe = tmp_path / "boundary-survivor-probe"
@@ -228,8 +232,8 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(signaler.is_alive(), eq=False)
         tm.that(time.monotonic() - signal_started, lt=6.0)
 
+    @staticmethod
     def test_pre_spawn_signal_is_captured_before_command_materialization(
-        self,
         tmp_path: Path,
     ) -> None:
         """Test pre spawn signal is captured before command materialization."""
@@ -248,8 +252,8 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(result.value.raw_return_code, eq=-signal.SIGTERM)
         tm.that(marker.exists(), eq=False)
 
+    @staticmethod
     def test_deadline_forwards_interrupt_before_forced_cleanup(
-        self,
         tmp_path: Path,
     ) -> None:
         """Test deadline forwards interrupt before forced cleanup."""
@@ -276,7 +280,8 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(output_file.read_bytes(), has=b"interrupted")
         tm.that(time.monotonic() - started, lt=1.2)
 
-    def test_deadline_kills_recursive_process_tree(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_deadline_kills_recursive_process_tree(tmp_path: Path) -> None:
         """Test deadline kills recursive process tree."""
         output_file = tmp_path / "tree.log"
         process_info = tmp_path / "process-info"

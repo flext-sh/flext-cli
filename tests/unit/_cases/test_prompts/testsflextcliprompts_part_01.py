@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 class TestsFlextCliPrompts:
     """Implementation part for TestsFlextCliPrompts."""
 
+    @staticmethod
     def test_execute_success(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that execute success."""
@@ -33,8 +33,8 @@ class TestsFlextCliPrompts:
         tm.that(result.value.status, eq=c.Cli.ServiceStatus.OPERATIONAL)
         tm.that(result.value.service, eq=c.Cli.FLEXT_CLI)
 
+    @staticmethod
     def test_prompt_returns_default_in_quiet_and_non_interactive_modes(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that prompt returns default in quiet and non interactive modes."""
@@ -49,8 +49,8 @@ class TestsFlextCliPrompts:
             eq="fallback",
         )
 
+    @staticmethod
     def test_prompt_reads_input_and_uses_default_for_empty_text(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that prompt reads input and uses default for empty text."""
@@ -62,8 +62,8 @@ class TestsFlextCliPrompts:
         tm.ok(default_result)
         tm.that(default_result.value, eq="default")
 
+    @staticmethod
     def test_confirm_returns_defaults_when_not_interactive(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that confirm returns defaults when not interactive."""
@@ -75,8 +75,8 @@ class TestsFlextCliPrompts:
             eq=False,
         )
 
+    @staticmethod
     def test_confirm_accepts_yes_no_default_and_invalid_retry(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that confirm accepts yes no default and invalid retry."""
@@ -106,8 +106,8 @@ class TestsFlextCliPrompts:
         result = prompts.confirm("Continue?", default=False)
         tm.fail(result, has=expected)
 
+    @staticmethod
     def test_prompt_password_paths(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
         scripted_password_pair: Callable[[], tuple[str, str]],
     ) -> None:

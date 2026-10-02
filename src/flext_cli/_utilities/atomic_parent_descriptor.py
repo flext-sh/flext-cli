@@ -15,8 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from flext_cli import t
-
-from . import atomic_file_path as file_path
+from flext_cli._utilities import atomic_file_path as file_path
 
 type DirectoryChainInspection = tuple[
     Path,
@@ -27,7 +26,7 @@ type DirectoryChainInspection = tuple[
 
 
 @dataclass(frozen=True, slots=True)
-class PhysicalDirectory:
+class FlextCliPhysicalDirectory:
     """One descriptor, the exact ancestry used to reach it, and its held lineage.
 
     ``lineage`` holds one open descriptor per proper ancestor, root first,
@@ -42,7 +41,7 @@ class PhysicalDirectory:
 
 
 @contextmanager
-def physical_directory(path: Path) -> Generator[PhysicalDirectory]:
+def physical_directory(path: Path) -> Generator[FlextCliPhysicalDirectory]:
     """Open an absolute directory one non-aliased component at a time.
 
     The descriptor walk is the only traversal: each component is stat'ed
@@ -52,7 +51,7 @@ def physical_directory(path: Path) -> Generator[PhysicalDirectory]:
     verdict and component path a separate lexical pre-pass would report.
 
     Yields:
-        Each ``PhysicalDirectory``.
+        Each ``FlextCliPhysicalDirectory``.
 
     """
     require_traversal_capabilities(path)
@@ -67,7 +66,12 @@ def physical_directory(path: Path) -> Generator[PhysicalDirectory]:
     except BaseException as operation_error:
         _close_after_failure(descriptors, path, operation_error)
         raise
-    opened = PhysicalDirectory(descriptor, state, ancestry, tuple(descriptors[:-1]))
+    opened = FlextCliPhysicalDirectory(
+        descriptor,
+        state,
+        ancestry,
+        tuple(descriptors[:-1]),
+    )
     try:
         yield opened
     except BaseException as operation_error:
@@ -282,7 +286,7 @@ def _close_after_failure(
 
 __all__: list[str] = [
     "DirectoryChainInspection",
-    "PhysicalDirectory",
+    "FlextCliPhysicalDirectory",
     "inspect_directory_chain",
     "physical_directory",
     "require_traversal_capabilities",
