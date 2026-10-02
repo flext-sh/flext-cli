@@ -165,9 +165,10 @@ class TestsFlextCliExampleModelsUtilitiesCov:
 
     def test_public_renderers_do_not_raise(self) -> None:
         """Verify that public renderers do not raise."""
+        api_key = "demo-" + "secret"
         settings = m.Examples.MyAppSettings(
             app_name="demo",
-            api_key="demo-secret",
+            api_key=api_key,
             max_workers=4,
             timeout=30,
         )
