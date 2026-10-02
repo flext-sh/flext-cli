@@ -22,8 +22,9 @@ if TYPE_CHECKING:
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
+    @staticmethod
     @pytest.fixture
-    def restore_token_file(self) -> Iterator[None]:
+    def restore_token_file() -> Iterator[None]:
         """Restore the canonical token file setting after an example mutates it."""
         original_token_file = settings.cli_token_file
         try:
@@ -31,9 +32,9 @@ class TestsFlextCliExamplesSmoke:
         finally:
             settings.cli_token_file = original_token_file
 
+    @staticmethod
     @pytest.mark.usefixtures("restore_token_file")
     def test_authentication_example_surfaces_missing_invalid_and_failed_login(
-        self,
         tmp_path: Path,
     ) -> None:
         """Authentication example must handle no-session, invalid-token, and bad-login cases."""
@@ -63,9 +64,9 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(directory_logout)
         tm.that(broken_token_path.exists(), eq=True)
 
+    @staticmethod
     @pytest.mark.usefixtures("restore_token_file")
     def test_authentication_example_surfaces_logout_unlink_failure(
-        self,
         tmp_path: Path,
     ) -> None:
         """Authentication example must keep going when token removal raises an OS error."""

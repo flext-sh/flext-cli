@@ -27,6 +27,7 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_message ───────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("message_type", "expected_marker"),
         [
@@ -39,7 +40,6 @@ class TestsFlextCliServicesOutputCov:
         ],
     )
     def test_display_message_prefixes_type_marker_and_keeps_text(
-        self,
         capsys: Capture,
         message_type: c.Cli.MessageTypes | None,
         expected_marker: str,
@@ -58,12 +58,12 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_text ──────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         "message_type",
         [c.Cli.MessageTypes.ERROR, c.Cli.MessageTypes.INFO],
     )
     def test_display_message_plain_routes_error_to_stderr(
-        self,
         capsys: Capture,
         message_type: c.Cli.MessageTypes,
     ) -> None:
@@ -79,9 +79,9 @@ class TestsFlextCliServicesOutputCov:
         tm.that(selected, has="payload text")
         tm.that(other, eq="")
 
+    @staticmethod
     @pytest.mark.parametrize("style", ["bold red", "dim", None])
     def test_display_text_emits_text_regardless_of_style(
-        self,
         capsys: Capture,
         style: str | None,
     ) -> None:
@@ -103,9 +103,9 @@ class TestsFlextCliServicesOutputCov:
 
     # ── print_message ─────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize("style", ["bold red", None])
     def test_print_message_emits_message_with_or_without_style(
-        self,
         capsys: Capture,
         style: str | None,
     ) -> None:
@@ -116,9 +116,9 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_header ────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize("label", ["Setup", "Results", "Done"])
     def test_display_header_renders_label_in_rule(
-        self,
         capsys: Capture,
         label: str,
     ) -> None:
@@ -129,12 +129,12 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_progress ──────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("current", "total", "expected_counter"),
         [(3, 10, "[03/10]"), (5, 5, "[5/5]"), (1, 100, "[001/100]"), (0, 8, "[0/8]")],
     )
     def test_display_progress_zero_pads_counter_to_total_width(
-        self,
         capsys: Capture,
         current: int,
         total: int,
@@ -166,12 +166,12 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_status ────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("success", "expected_symbol"),
         [(True, "✓"), (False, "✗")],
     )
     def test_display_status_symbol_reflects_outcome(
-        self,
         capsys: Capture,
         *,
         success: bool,
@@ -185,12 +185,12 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has="lint")
         tm.that(out, has="clean")
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("elapsed", "expected_timing"),
         [(1.23, "(1.23s)"), (0.5, "(0.50s)")],
     )
     def test_display_status_formats_elapsed_to_two_decimals(
-        self,
         capsys: Capture,
         elapsed: float,
         expected_timing: str,

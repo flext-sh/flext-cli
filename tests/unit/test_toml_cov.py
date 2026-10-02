@@ -151,12 +151,12 @@ class TestsFlextCliTomlCov:
 
     # ── toml_as_string_list ───────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("items", "expected"),
         [(["x", "y"], ["x", "y"]), ([], []), (["solo"], ["solo"])],
     )
     def test_as_string_list_preserves_array_contents(
-        self,
         items: t.SequenceOf[str],
         expected: t.SequenceOf[str],
     ) -> None:
@@ -171,6 +171,7 @@ class TestsFlextCliTomlCov:
 
     # ── toml_dot_path ─────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("parts", "expected"),
         [
@@ -181,7 +182,6 @@ class TestsFlextCliTomlCov:
         ],
     )
     def test_dot_path_joins_non_empty_segments(
-        self,
         parts: t.VariadicTuple[str],
         expected: str,
     ) -> None:

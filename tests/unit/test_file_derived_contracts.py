@@ -34,12 +34,12 @@ class TestsFileDerivedContracts:
 
         tm.that(u.Cli.sha256_file(path), eq=u.Cli.sha256_content("hello"))
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("filename", "payload"),
         [("data.json", '{"a": 1}'), ("data.yaml", "a: 1\n")],
     )
     def test_load_file_auto_dict_reads_supported_mappings(
-        self,
         tmp_path: Path,
         filename: str,
         payload: str,

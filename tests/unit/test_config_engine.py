@@ -50,9 +50,9 @@ class TestsFlextCliConfigEngine:
         other = u.Cli.template_environment(tmp_path / "nested")
         tm.that(first is other, eq=False)
 
+    @staticmethod
     @pytest.mark.parametrize("included", [False, True])
     def test_template_render_observes_source_edits(
-        self,
         tmp_path: Path,
         *,
         included: bool,

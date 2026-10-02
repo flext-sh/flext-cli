@@ -52,6 +52,7 @@ class TestsFlextCliTables:
         tm.that(table, has=["row-1", "Alpha"])
         tm.that("identifier" in table, eq=False)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "table_format",
         [
@@ -63,7 +64,6 @@ class TestsFlextCliTables:
         ],
     )
     def test_format_table_renders_row_values_across_formats(
-        self,
         table_format: c.Cli.TabularFormat,
     ) -> None:
         """Every supported tabular format renders the underlying row values."""
@@ -90,9 +90,9 @@ class TestsFlextCliTables:
             eq=True,
         )
 
+    @staticmethod
     @pytest.mark.parametrize("empty_data", [[], {}])
     def test_format_table_returns_empty_string_for_empty_data(
-        self,
         empty_data: t.Cli.TableDataSource,
     ) -> None:
         """Empty input is a success carrying an empty rendered table."""

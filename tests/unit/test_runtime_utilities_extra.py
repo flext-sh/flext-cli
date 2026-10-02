@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 class TestsFlextCliRuntimeUtilitiesExtra:
     """Public-contract behavior for ``u.Cli`` runtime helpers and output model."""
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("stdout", "stderr", "exit_code"),
         [
@@ -35,7 +36,6 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         ],
     )
     def test_command_output_exposes_constructor_values_via_public_state(
-        self,
         stdout: str,
         stderr: str,
         exit_code: int,
@@ -71,8 +71,9 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.ok(result)
         tm.that(result.value, eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize("exit_code", [1, 2, 42])
-    def test_run_checked_fails_with_error_naming_failure(self, exit_code: int) -> None:
+    def test_run_checked_fails_with_error_naming_failure(exit_code: int) -> None:
         # Arrange / Act
         """Verify that run checked fails with error naming failure."""
         result = u.Cli().run_checked(["sh", "-c", f"exit {exit_code}"])

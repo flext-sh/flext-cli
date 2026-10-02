@@ -21,12 +21,12 @@ if TYPE_CHECKING:
 class TestsFlextCliConversion:
     """Behavioral contract of ``u.Cli`` conversion helpers."""
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("kind", "default", "expected"),
         c.Tests.CONVERSION_STR_CASES,
     )
     def test_default_for_type_kind_str(
-        self,
         kind: t.Cli.TypeKind,
         default: t.JsonValue | None,
         expected: t.JsonValue,
@@ -35,12 +35,12 @@ class TestsFlextCliConversion:
         result = u.Cli.default_for_type_kind(kind, default)
         tm.that(result, eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("kind", "default", "expected"),
         c.Tests.CONVERSION_BOOL_CASES,
     )
     def test_default_for_type_kind_bool(
-        self,
         kind: t.Cli.TypeKind,
         default: t.JsonValue | None,
         expected: t.JsonValue,
@@ -49,12 +49,12 @@ class TestsFlextCliConversion:
         result = u.Cli.default_for_type_kind(kind, default)
         tm.that(result, eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("kind", "default", "expected"),
         c.Tests.CONVERSION_DICT_CASES,
     )
     def test_default_for_type_kind_dict(
-        self,
         kind: t.Cli.TypeKind,
         default: t.JsonValue | None,
         expected: t.JsonValue,

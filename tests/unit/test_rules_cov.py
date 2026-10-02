@@ -56,12 +56,12 @@ class TestsFlextCliRulesCov:
         )
         tm.that(result, eq={"rule_a": True, "rule_b": False})
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("settings", "scope_key", "allowed_keys", "expected_len"),
         c.Tests.RULES_SCOPE_CASES,
     )
     def test_resolve_scope_filters_to_allowed_key_count(
-        self,
         settings: t.JsonValue,
         scope_key: str,
         allowed_keys: t.StrSequence,
@@ -337,12 +337,12 @@ class TestsFlextCliRulesCov:
         """Verify that matches filters empty filter matches any."""
         tm.that(u.Cli.rules_matches_filters("rule-a", ()), eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("rule_id", "rule_filters", "expected"),
         c.Tests.RULES_MATCH_FILTER_CASES,
     )
     def test_matches_filters_glob_and_substring(
-        self,
         rule_id: str,
         rule_filters: t.StrSequence,
         *,

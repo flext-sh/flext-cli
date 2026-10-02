@@ -20,8 +20,9 @@ from tests import c, p, t, u
 class TestsFlextCliCliParams:
     """Behavioral tests for FlextCliCommonParams public contract."""
 
+    @staticmethod
     @pytest.fixture
-    def settings(self) -> p.Cli.Settings:
+    def settings() -> p.Cli.Settings:
         """Fresh CLI settings instance built through the public factory.
 
         Returns:
@@ -34,9 +35,9 @@ class TestsFlextCliCliParams:
 
     # ── create_option ────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize("field_name", ["verbose", "quiet", "debug"])
     def test_create_option_returns_option_spec_for_registered_field(
-        self,
         field_name: str,
     ) -> None:
         """create_option yields a public CliOptionSpec for each registered field."""
@@ -121,6 +122,7 @@ class TestsFlextCliCliParams:
         tm.that((result.error or ""), has="not_a_param")
         tm.that(result.exception, is_=c.ValidationError)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("field_name", "expected_fragments"),
         [
@@ -130,7 +132,6 @@ class TestsFlextCliCliParams:
         ],
     )
     def test_apply_to_config_rejects_invalid_enum_value(
-        self,
         settings: p.Cli.Settings,
         field_name: str,
         expected_fragments: t.Pair[str, str],
@@ -151,8 +152,9 @@ class TestsFlextCliCliParams:
 
     # ── decorator wiring: observable CLI behavior ────────────────────
 
+    @staticmethod
     @pytest.fixture
-    def app(self) -> p.Cli.Application:
+    def app() -> p.Cli.Application:
         """Build an app carrying the common-params decorated command.
 
         Returns:

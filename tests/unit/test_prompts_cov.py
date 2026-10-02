@@ -27,6 +27,7 @@ if TYPE_CHECKING:
 class TestsFlextCliPromptsCov:
     """Behavior contract for the prompt service public surface."""
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("raw_input", "default", "expected"),
         [
@@ -37,7 +38,6 @@ class TestsFlextCliPromptsCov:
         ],
     )
     def test_prompt_normalizes_input_and_falls_back_to_default(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
         raw_input: str,
         default: str,
@@ -49,9 +49,9 @@ class TestsFlextCliPromptsCov:
         tm.ok(result)
         tm.that(result.value, eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize("quiet", [True, False])
     def test_prompt_returns_default_when_non_interactive(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
         *,
         quiet: bool,
@@ -71,6 +71,7 @@ class TestsFlextCliPromptsCov:
         with pytest.raises(ValueError, match="boom"):
             prompts.prompt("message", default="default")
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("answer", "default", "expected"),
         [
@@ -83,7 +84,6 @@ class TestsFlextCliPromptsCov:
         ],
     )
     def test_confirm_parses_yes_no_and_default(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
         answer: str,
         *,
@@ -106,9 +106,9 @@ class TestsFlextCliPromptsCov:
         tm.ok(result)
         tm.that(result.value, eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize("default", [True, False])
     def test_confirm_returns_default_when_non_interactive(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
         *,
         default: bool,
@@ -119,6 +119,7 @@ class TestsFlextCliPromptsCov:
         tm.ok(result)
         tm.that(result.value, eq=default)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("error", "expected"),
         [
@@ -127,7 +128,6 @@ class TestsFlextCliPromptsCov:
         ],
     )
     def test_confirm_fails_on_cancellation_carrying_its_cause(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
         error: BaseException,
         expected: str,

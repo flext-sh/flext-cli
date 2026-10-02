@@ -32,9 +32,9 @@ class TestsFlextCliYamlCov:
 
     # ── yaml_parse ──────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(("text", "expect_ok"), c.Tests.YAML_PARSE_CASES)
     def test_yaml_parse_reports_outcome_per_input(
-        self,
         text: str,
         *,
         expect_ok: bool,
@@ -182,9 +182,9 @@ class TestsFlextCliYamlCov:
 
     # ── yaml_load_list ───────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(("content", "expect_list"), c.Tests.YAML_LIST_CASES)
     def test_yaml_load_list_returns_list_only_for_sequences(
-        self,
         tmp_path: Path,
         content: str,
         *,
@@ -220,12 +220,12 @@ class TestsFlextCliYamlCov:
 
     # ── yaml_dump ────────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("data", "sort_keys", "expect_ok"),
         c.Tests.YAML_DUMP_CASES,
     )
     def test_yaml_dump_writes_roundtrippable_file(
-        self,
         tmp_path: Path,
         data: t.JsonMapping,
         *,

@@ -34,8 +34,9 @@ if TYPE_CHECKING:
 class TestsFlextCliTomlSyncCoverage:
     """Public-contract behavior of the ``u.Cli.toml_*`` synchronizers."""
 
+    @staticmethod
     @pytest.fixture
-    def project_table(self) -> Table:
+    def project_table() -> Table:
         """Fresh ``[project]`` table inside an empty document.
 
         Returns:
@@ -237,8 +238,9 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- plain-mapping helpers ------------------------------------------
 
+    @staticmethod
     @pytest.fixture
-    def payload(self) -> dict[str, t.JsonValue]:
+    def payload() -> dict[str, t.JsonValue]:
         """Fresh plain pyproject-style mapping.
 
         Returns:

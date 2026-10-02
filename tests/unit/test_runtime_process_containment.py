@@ -190,9 +190,9 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(result.value.raw_return_code, eq=0)
         _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
 
+    @staticmethod
     @pytest.mark.parametrize("signal_number", [signal.SIGINT, signal.SIGTERM])
     def test_manual_signal_is_forwarded_without_exit_normalization(
-        self,
         tmp_path: Path,
         signal_number: signal.Signals,
     ) -> None:

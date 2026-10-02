@@ -114,9 +114,9 @@ class TestsAtomicSymlink:
         tm.fail(u.Cli.atomic_delete_symlink_guarded(before))
         tm.that(tuple(tmp_path.iterdir()), eq=())
 
+    @staticmethod
     @pytest.mark.parametrize("target", ["line one\nline two\n", " \tname\t ", "\n"])
     def test_newline_target_round_trips_without_normalization(
-        self,
         tmp_path: Path,
         target: str,
     ) -> None:

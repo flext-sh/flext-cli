@@ -70,13 +70,13 @@ class TestsFlextCliRuntimeUtilitiesCore:
         output = m.Cli.CommandOutput.model_validate(tm.ok(result))
         tm.that(output.stdout, eq="missing")
 
+    @staticmethod
     @pytest.mark.parametrize(
         "case",
         m.Tests.RuntimeCommandCase.run_raw_cases(),
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_run_raw_cases(
-        self,
         runner: u.Cli,
         tmp_path: Path,
         case: m.Tests.RuntimeCommandCase,
@@ -111,13 +111,13 @@ class TestsFlextCliRuntimeUtilitiesCore:
             return
         tm.fail(result, has=case.error_has)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "case",
         m.Tests.RuntimeCommandCase.output_cases(),
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_run_cases(
-        self,
         runner: u.Cli,
         tmp_path: Path,
         case: m.Tests.RuntimeCommandCase,
@@ -141,13 +141,13 @@ class TestsFlextCliRuntimeUtilitiesCore:
             return
         tm.fail(result, has=case.error_has)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "case",
         m.Tests.RuntimeCommandCase.output_cases(),
         ids=m.Tests.RuntimeCommandCase.id_for,
     )
     def test_capture_cases(
-        self,
         runner: u.Cli,
         tmp_path: Path,
         case: m.Tests.RuntimeCommandCase,
@@ -255,9 +255,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(output.stdout.splitlines(), eq=["inherited-input", "'' ''"])
         tm.that(output.stderr.strip(), eq="inherited-error")
 
+    @staticmethod
     @pytest.mark.parametrize("start_new_session", [False, True])
     def test_process_start_session_ownership(
-        self,
         runner: u.Cli,
         *,
         start_new_session: bool,

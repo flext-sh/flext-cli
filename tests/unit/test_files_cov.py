@@ -29,12 +29,12 @@ if TYPE_CHECKING:
 class TestsFlextCliFilesCov:
     """Public file-IO contract of ``cli`` file helpers and ``u.Cli``."""
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("filename", "expected_format"),
         c.Tests.FILES_DETECT_FORMAT_CASES,
     )
     def test_detect_file_format_returns_known_format(
-        self,
         filename: str,
         expected_format: c.Cli.OutputFormats,
     ) -> None:
@@ -43,9 +43,9 @@ class TestsFlextCliFilesCov:
         tm.ok(result)
         tm.that(result.value, eq=expected_format)
 
+    @staticmethod
     @pytest.mark.parametrize("filename", c.Tests.FILES_DETECT_FORMAT_FAIL_CASES)
     def test_detect_file_format_fails_for_unknown_extension(
-        self,
         filename: str,
     ) -> None:
         """Verify that detect file format fails for unknown extension."""
@@ -211,9 +211,9 @@ class TestsFlextCliFilesCov:
         tm.fail(u.Cli.ensure_symlink(target, source))
         tm.that(target.read_text(encoding="utf-8"), eq="old")
 
+    @staticmethod
     @pytest.mark.parametrize("inside_git", [True, False], ids=["git", "plain"])
     def test_files_matching_selects_visible_files_by_pattern(
-        self,
         tmp_path: Path,
         *,
         inside_git: bool,

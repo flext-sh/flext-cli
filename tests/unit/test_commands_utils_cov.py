@@ -46,6 +46,7 @@ class TestsFlextCliCommands:
         # Assert
         tm.that(resolved, eq="14")
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("result_value", "expected"),
         [
@@ -72,7 +73,6 @@ class TestsFlextCliCommands:
         ],
     )
     def test_resolve_without_formatter_follows_value_then_fallback_order(
-        self,
         result_value: t.Cli.ResultValue,
         expected: str,
     ) -> None:
@@ -100,6 +100,7 @@ class TestsFlextCliCommands:
         # Assert
         tm.that(resolved, none=True)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "payload",
         [
@@ -109,7 +110,6 @@ class TestsFlextCliCommands:
         ],
     )
     def test_structured_payload_is_emitted_verbatim_with_newline(
-        self,
         payload: str,
         capsys: pytest.CaptureFixture[str],
     ) -> None:

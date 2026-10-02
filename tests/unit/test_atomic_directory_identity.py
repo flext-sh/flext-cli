@@ -116,9 +116,9 @@ class TestsAtomicDirectoryIdentity:
         tm.that(target.is_dir(), eq=True)
         tm.that(old.is_dir(), eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize("entry_kind", ["file", "directory"])
     def test_late_content_prevents_delete(
-        self,
         tmp_path: Path,
         entry_kind: str,
     ) -> None:

@@ -28,12 +28,12 @@ class TestsFlextCliMatchingCov:
 
     # ── matches: case-table contract ─────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("msg", "patterns", "expected"),
         c.Tests.MATCH_SIMPLE_CASES,
     )
     def test_matches_returns_expected_for_case_table(
-        self,
         msg: str,
         patterns: t.StrSequence,
         *,
@@ -134,9 +134,9 @@ class TestsFlextCliMatchingCov:
 
     # ── file_not_found_error: classifier contract ────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(("msg", "expected"), c.Tests.FILE_NOT_FOUND_MATCH_CASES)
     def test_file_not_found_error_classifies_case_table(
-        self,
         msg: str,
         *,
         expected: bool,
@@ -157,9 +157,9 @@ class TestsFlextCliMatchingCov:
 
     # ── cli_usage_error: classifier contract ─────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(("msg", "expected"), c.Tests.CLI_USAGE_ERROR_MATCH_CASES)
     def test_cli_usage_error_classifies_case_table(
-        self,
         msg: str,
         *,
         expected: bool,

@@ -88,6 +88,7 @@ class TestsFlextCliPrompts:
         tm.ok(retry_result)
         tm.that(retry_result.value, eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("error", "expected"),
         [
@@ -96,7 +97,6 @@ class TestsFlextCliPrompts:
         ],
     )
     def test_confirm_handles_failures(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
         error: Exception,
         expected: str,

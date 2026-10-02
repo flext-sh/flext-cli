@@ -94,8 +94,9 @@ class TestsFlextCliParams:
 
     # -- params_set_log_level ----------------------------------------------
 
+    @staticmethod
     @pytest.mark.parametrize("level", ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
-    def test_set_log_level_applies_valid_level(self, level: str) -> None:
+    def test_set_log_level_applies_valid_level(level: str) -> None:
         """Verify that set log level applies valid level."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(log_level=level)
@@ -127,8 +128,9 @@ class TestsFlextCliParams:
 
     # -- params_set_format --------------------------------------------------
 
+    @staticmethod
     @pytest.mark.parametrize("log_format", ["compact", "detailed", "full"])
-    def test_set_format_applies_valid_log_format(self, log_format: str) -> None:
+    def test_set_format_applies_valid_log_format(log_format: str) -> None:
         """Verify that set format applies valid log format."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(log_format=log_format)
@@ -136,11 +138,12 @@ class TestsFlextCliParams:
         tm.ok(result)
         tm.that(result.value.cli_log_verbosity, eq=log_format)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "output_format",
         ["json", "yaml", "csv", "table", "plain", "xml", "text"],
     )
-    def test_set_format_applies_valid_output_format(self, output_format: str) -> None:
+    def test_set_format_applies_valid_output_format(output_format: str) -> None:
         """Verify that set format applies valid output format."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(output_format=output_format)
