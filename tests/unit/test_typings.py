@@ -125,7 +125,11 @@ class TestsFlextCliTypings:
 
     def test_optional_str_sequence_alias_accepts_value_and_none(self) -> None:
         """A ``StrSequence | None`` alias accepts both a sequence and None."""
+<<<<<<< HEAD
         adapter: m.TypeAdapter[t.StrSequence | None] = u.type_adapter(
+=======
+        adapter: m.TypeAdapter[t.StrSequence | None] = m.TypeAdapter(
+>>>>>>> origin/fix/cli-contract-cure-20261001
             t.StrSequence | None,
         )
         tm.that(adapter.validate_python(["alpha", "beta"]), eq=["alpha", "beta"])
@@ -133,7 +137,11 @@ class TestsFlextCliTypings:
 
     def test_mapping_alias_validates_sequence_of_typed_mappings(self) -> None:
         """MappingKV composes into a validatable sequence-of-mappings alias."""
+<<<<<<< HEAD
         adapter: m.TypeAdapter[Sequence[t.MappingKV[str, str | int]]] = u.type_adapter(
+=======
+        adapter: m.TypeAdapter[Sequence[t.MappingKV[str, str | int]]] = m.TypeAdapter(
+>>>>>>> origin/fix/cli-contract-cure-20261001
             Sequence[t.MappingKV[str, str | int]],
         )
         validated = adapter.validate_python([{"name": "entry", "count": 1}])

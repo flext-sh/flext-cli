@@ -72,11 +72,16 @@ class FlextCliCli:
         u.Cli.framework_exit(c.Cli.EXIT_CODE_FAILURE)
 
     @classmethod
+<<<<<<< HEAD
     def model_option_spec(
+=======
+    def _build_model_parameter(
+>>>>>>> origin/fix/cli-contract-cure-20261001
         cls,
         field_name: str,
         field_info: m.FieldInfo,
         settings: t.Cli.ModelLike | None,
+<<<<<<< HEAD
     ) -> t.Pair[m.Cli.OptionSpec, type | GenericAlias]:
         """Build a keyword-only Typer option from a Pydantic field.
 
@@ -84,6 +89,10 @@ class FlextCliCli:
             The resulting ``t.Pair[m.Cli.OptionSpec, type | GenericAlias]``.
 
         """
+=======
+    ) -> t.Pair[Parameter, type | GenericAlias]:
+        """Build a keyword-only Typer option from a Pydantic field."""
+>>>>>>> origin/fix/cli-contract-cure-20261001
         alias = getattr(field_info, "alias", None)
         cli_name = alias or field_name
         option_name = f"--{cli_name.replace('_', '-')}"
