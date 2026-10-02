@@ -47,12 +47,12 @@ class TestsFlextCliJsonCov:
         tm.ok(result)
         tm.that(result.value, eq={"key": "value"})
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("content", "reason"),
         [("not json!!", "malformed json"), ("[1, 2, 3]", "non-object root")],
     )
     def test_json_read_rejects_invalid_content(
-        self,
         tmp_path: Path,
         content: str,
         reason: str,
@@ -188,36 +188,36 @@ class TestsFlextCliJsonCov:
 
     # ----- coercion helpers: mapping / sequence ----------------------------
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("value", "expected"),
         [(None, {}), ({"a": 1}, {"a": 1}), ([1, 2, 3], {})],
     )
     def test_json_as_mapping_coerces_to_mapping_or_empty(
-        self,
         value: t.JsonValue | None,
         expected: t.JsonMapping,
     ) -> None:
         """Verify that json as mapping coerces to mapping or empty."""
         tm.that(u.Cli.json_as_mapping(value), eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("value", "expected"),
         [(None, []), ([1, 2, 3], [1, 2, 3]), ({"a": 1}, [])],
     )
     def test_json_as_sequence_coerces_to_list_or_empty(
-        self,
         value: t.JsonValue | None,
         expected: t.SequenceOf[t.JsonValue],
     ) -> None:
         """Verify that json as sequence coerces to list or empty."""
         tm.that(list(u.Cli.json_as_sequence(value)), eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("value", "expected_len"),
         [([{"a": 1}, {"b": 2}], 2), (None, 0), ("string", 0)],
     )
     def test_json_as_mapping_list_filters_to_mappings(
-        self,
         value: t.JsonValue | None,
         expected_len: int,
     ) -> None:
@@ -232,12 +232,12 @@ class TestsFlextCliJsonCov:
         data = u.Cli.json_as_mapping(u.Cli.json_loads('{"a": {"b": {"c": 42}}}').value)
         tm.that(u.Cli.json_walk_path(data, ("a", "b", "c")), eq=42)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("keys", "raw"),
         [(("a", "missing", "c"), '{"a": {}}'), ((), '{"a": 1}')],
     )
     def test_json_walk_path_returns_none_when_unreachable(
-        self,
         keys: t.VariadicTuple[str],
         raw: str,
     ) -> None:
@@ -277,12 +277,12 @@ class TestsFlextCliJsonCov:
         tm.that(u.Cli.json_pick_str({}, "k", default="default"), eq="default")
         tm.that(u.Cli.json_pick_str({"k": None}, "k", default="fb"), eq="fb")
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("key", "expected"),
         [("n", 5), ("s", 7), ("f", 3), ("b", 1), ("none", 0), ("bad", 0)],
     )
     def test_json_pick_int_coerces_scalar_variants(
-        self,
         key: str,
         expected: int,
     ) -> None:
@@ -294,6 +294,7 @@ class TestsFlextCliJsonCov:
         )
         tm.that(u.Cli.json_pick_int(data, key), eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("key", "expected"),
         [
@@ -312,7 +313,6 @@ class TestsFlextCliJsonCov:
         ],
     )
     def test_json_pick_bool_coerces_truthy_variants(
-        self,
         key: str,
         *,
         expected: bool,

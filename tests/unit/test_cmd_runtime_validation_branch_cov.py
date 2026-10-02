@@ -79,9 +79,9 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
         tm.that(pruned, eq=baseline)
 
     # ---------------------------------------------------------- validation
+    @staticmethod
     @pytest.mark.parametrize("output_format", tuple(c.Cli.OUTPUT_FORMATS))
     def test_validate_format_accepts_every_supported_format(
-        self,
         output_format: str,
     ) -> None:
         """Verify that validate format accepts every supported format."""
@@ -108,9 +108,9 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
         tm.fail(result)
         tm.that((result.error or ""), has="BAD")
 
+    @staticmethod
     @pytest.mark.parametrize("value", ["ok", "  padded  ", 0, 1])
     def test_validate_not_empty_accepts_meaningful_values(
-        self,
         value: t.Cli.CliValue,
     ) -> None:
         """Verify that validate not empty accepts meaningful values."""
@@ -119,9 +119,9 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
         tm.ok(result)
         tm.that(result.unwrap(), eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize("value", [None, "", "   "])
     def test_validate_not_empty_rejects_empty_and_names_the_field(
-        self,
         value: t.Cli.CliValue | None,
     ) -> None:
         """Verify that validate not empty rejects empty and names the field."""

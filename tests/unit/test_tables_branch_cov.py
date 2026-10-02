@@ -15,8 +15,9 @@ from tests import c, m, t, u
 class TestsFlextCliTablesBranchCov:
     """Assert the observable contract of the ``u.Cli`` table helpers."""
 
+    @staticmethod
     @pytest.fixture
-    def two_column_config(self) -> m.Cli.TableConfig:
+    def two_column_config() -> m.Cli.TableConfig:
         """Return a minimal two-column table configuration.
 
         Returns:
@@ -63,9 +64,9 @@ class TestsFlextCliTablesBranchCov:
         tm.ok(result)
         tm.that(result.unwrap(), eq=[])
 
+    @staticmethod
     @pytest.mark.parametrize("bad_data", [["abc"], ["x", "y"], [["ok", 1], "bad-row"]])
     def test_normalize_rejects_string_rows_as_data_invalid(
-        self,
         bad_data: t.Cli.TableDataSource,
     ) -> None:
         """Verify that normalize rejects string rows as data invalid."""

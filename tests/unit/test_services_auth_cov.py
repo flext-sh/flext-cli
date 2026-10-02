@@ -31,8 +31,9 @@ if TYPE_CHECKING:
 class TestsFlextCliServicesAuthCov:
     """Behavioral tests for the FlextCliAuth authentication service."""
 
+    @staticmethod
     @pytest.fixture
-    def token_file(self, tmp_path: Path) -> Iterator[Path]:
+    def token_file(tmp_path: Path) -> Iterator[Path]:
         """Isolate the auth token file inside the test's tmp dir.
 
         Yields:
@@ -51,8 +52,9 @@ class TestsFlextCliServicesAuthCov:
         finally:
             settings.cli_token_file = original_token_file
 
+    @staticmethod
     @pytest.fixture
-    def auth(self, token_file: Path) -> p.Cli.AuthService:
+    def auth(token_file: Path) -> p.Cli.AuthService:
         """Fresh auth service bound to the isolated token file.
 
         Returns:
@@ -64,12 +66,12 @@ class TestsFlextCliServicesAuthCov:
 
     # ── validate_credentials ──────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("username", "password", "expect_ok"),
         c.Tests.AUTH_CRED_CASES,
     )
     def test_validate_credentials_reports_success_per_case(
-        self,
         auth: p.Cli.AuthService,
         username: str,
         password: str,
@@ -85,6 +87,7 @@ class TestsFlextCliServicesAuthCov:
         else:
             tm.that(result.error, empty=False)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("username", "password", "message_fragment"),
         [
@@ -95,7 +98,6 @@ class TestsFlextCliServicesAuthCov:
         ],
     )
     def test_validate_credentials_failure_names_the_missing_field(
-        self,
         auth: p.Cli.AuthService,
         username: str,
         password: str,
@@ -131,9 +133,9 @@ class TestsFlextCliServicesAuthCov:
 
         tm.that(auth.fetch_auth_token().value, eq="second-token")
 
+    @staticmethod
     @pytest.mark.parametrize("token", ["", "   ", "\t\n"])
     def test_save_auth_token_rejects_blank_token(
-        self,
         auth: p.Cli.AuthService,
         token: str,
     ) -> None:
@@ -200,6 +202,7 @@ class TestsFlextCliServicesAuthCov:
         # The generated token is the one persisted and later fetchable.
         tm.that(auth.fetch_auth_token().value, eq=generated)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "credentials",
         [
@@ -210,7 +213,6 @@ class TestsFlextCliServicesAuthCov:
         ],
     )
     def test_authenticate_rejects_incomplete_credentials(
-        self,
         auth: p.Cli.AuthService,
         credentials: t.MappingKV[str, str],
     ) -> None:

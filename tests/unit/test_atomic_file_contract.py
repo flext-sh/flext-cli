@@ -44,9 +44,9 @@ class TestsAtomicFileContract:
 
         tm.that(stat.S_IMODE(path.stat().st_mode), eq=expected_mode)
 
+    @staticmethod
     @pytest.mark.parametrize("requested_mode", [0o640, 0o750])
     def test_text_write_preserves_host_permission_mode(
-        self,
         tmp_path: Path,
         requested_mode: int,
     ) -> None:
@@ -253,9 +253,9 @@ raise SystemExit(2)
         )
         tm.that(len(tuple(tmp_path.iterdir())), eq=int(completed.value.stdout.strip()))
 
+    @staticmethod
     @pytest.mark.parametrize("phase", ["before-registration", "authenticated"])
     def test_interrupt_cleanup_requires_captured_inode_identity(
-        self,
         tmp_path: Path,
         phase: str,
     ) -> None:

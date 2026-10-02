@@ -30,26 +30,27 @@ class TestsFlextCliOptions:
         tags: t.StrSequence = ("lint", "typecheck")
         flags: dict[str, bool] = m.Field(default_factory=lambda: {"debug": True})
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("annotation", "expected"),
         [(str | None, str), (str | int, str), (dict[str, int], str), (int, int)],
     )
     def test_resolve_typer_annotation_maps_scalars_unions_and_collections(
-        self,
         annotation: t.Cli.RuntimeAnnotation,
         expected: type,
     ) -> None:
         """Verify that resolve typer annotation maps scalars unions and collections."""
         tm.that(u.Cli.resolve_typer_annotation(annotation) is expected, eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize("annotation", [t.StrSequence, set[str], frozenset[str]])
     def test_resolve_typer_annotation_maps_string_collections_to_list_of_str(
-        self,
         annotation: t.Cli.RuntimeAnnotation,
     ) -> None:
         """String sequences and sets become repeated options typed ``list[str]``."""
         tm.that(u.Cli.resolve_typer_annotation(annotation), eq=list[str])
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("value", "expected"),
         [
@@ -64,13 +65,13 @@ class TestsFlextCliOptions:
         ],
     )
     def test_normalize_cli_atom_returns_typer_ready_value_or_none(
-        self,
         value: t.Cli.CliDefaultSource,
         expected: t.Cli.DefaultAtom | None,
     ) -> None:
         """Verify that normalize cli atom returns typer ready value or none."""
         tm.that(u.Cli.normalize_cli_atom(value), eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("value", "expected"),
         [
@@ -84,7 +85,6 @@ class TestsFlextCliOptions:
         ],
     )
     def test_string_sequence_recognizes_only_str_sequences(
-        self,
         value: t.Cli.CliDefaultSource,
         *,
         expected: bool,
@@ -175,9 +175,9 @@ class TestsFlextCliOptions:
 
         tm.that(reordered, eq=["check", "--log-level=DEBUG", "--all"])
 
+    @staticmethod
     @pytest.mark.parametrize("args", [["check", "--all"], []])
     def test_reorder_prefixed_options_is_identity_without_leading_prefixes(
-        self,
         args: t.SequenceOf[str],
     ) -> None:
         """Verify that reorder prefixed options is identity without leading prefixes."""

@@ -68,9 +68,9 @@ class TestsFlextCliPrompts:
         tm.ok(prompts.print_error("simple"))
         tm.ok(prompts.print_warning("simple"))
 
+    @staticmethod
     @pytest.mark.parametrize("message", c.Tests.PROMPT_EDGE_MESSAGES)
     def test_prompt_accepts_edge_case_messages(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
         message: str,
     ) -> None:

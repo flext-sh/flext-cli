@@ -41,7 +41,8 @@ class DataManagerCLI:
         """Initialize data manager CLI with temporary data file."""
         self.data_file = Path(tempfile.gettempdir()) / "app_data.json"
 
-    def add_entry(self) -> p.Result[t.JsonMapping]:
+    @staticmethod
+    def add_entry() -> p.Result[t.JsonMapping]:
         """Create one entry through the public prompt surface.
 
         Returns:

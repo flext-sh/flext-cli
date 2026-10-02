@@ -47,12 +47,12 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_value(section, "key"), eq="value")
         tm.that(u.Cli.toml_value(section, "number"), eq=42)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("filename", "contents"),
         [("missing.toml", None), ("invalid.toml", "[invalid\nkey = value")],
     )
     def test_read_returns_none_for_missing_or_invalid_file(
-        self,
         tmp_path: Path,
         filename: str,
         contents: str | None,
@@ -272,12 +272,12 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_as_mapping(mapping), eq=mapping)
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("key", "expected"),
         [("a", 1), ("b", [1, 2]), ("missing", None)],
     )
     def test_value_lookup_returns_stored_values_or_none(
-        self,
         key: str,
         expected: t.JsonValue | None,
     ) -> None:

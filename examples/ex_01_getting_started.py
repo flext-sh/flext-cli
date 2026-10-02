@@ -18,7 +18,8 @@ from flext_cli import cli, settings
 class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
     """Minimal guided tour of flext-cli through public aliases and facades."""
 
-    def build_example_settings(self) -> p.Result[m.Examples.MyAppSettings]:
+    @staticmethod
+    def build_example_settings() -> p.Result[m.Examples.MyAppSettings]:
         """Build a validated application settings model through the examples facade.
 
         Returns:

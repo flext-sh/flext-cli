@@ -76,16 +76,17 @@ class TestsFlextCliUtilitiesCov:
         tm.ok(result)
         tm.that(list(result.unwrap()), eq=[10, 2])
 
+    @staticmethod
     @pytest.mark.parametrize("value", [None, "", "   "])
-    def test_validate_not_empty_fails_for_empty_inputs(self, value: str | None) -> None:
+    def test_validate_not_empty_fails_for_empty_inputs(value: str | None) -> None:
         """Verify that validate not empty fails for empty inputs."""
         result = u.Cli.validate_not_empty(value, name="project")
         tm.fail(result)
         tm.that(result.error or "", has="project")
 
+    @staticmethod
     @pytest.mark.parametrize("value", ["name", " padded ", 0, 42])
     def test_validate_not_empty_succeeds_for_present_values(
-        self,
         value: t.Cli.CliValue,
     ) -> None:
         """Verify that validate not empty succeeds for present values."""

@@ -28,6 +28,7 @@ class TestsFlextCliOutputCov:
             eq=True,
         )
 
+    @staticmethod
     @pytest.mark.parametrize(
         "msg_type",
         [
@@ -38,7 +39,6 @@ class TestsFlextCliOutputCov:
         ],
     )
     def test_resolve_message_type_preserves_explicit_value(
-        self,
         msg_type: c.Cli.MessageTypes,
     ) -> None:
         """Verify that resolve message type preserves explicit value."""
@@ -56,6 +56,7 @@ class TestsFlextCliOutputCov:
 
     # ---- message payload ------------------------------------------------
 
+    @staticmethod
     @pytest.mark.parametrize(
         "msg_type",
         [
@@ -67,7 +68,6 @@ class TestsFlextCliOutputCov:
         ],
     )
     def test_message_payload_carries_message_and_canonical_style(
-        self,
         msg_type: c.Cli.MessageTypes | None,
     ) -> None:
         """Verify that message payload carries message and canonical style."""
@@ -250,12 +250,12 @@ class TestsFlextCliOutputCov:
         tm.that(out, has="my-proj")
         tm.that(out, has="build")
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("result", "symbol"),
         [(True, c.Cli.OUTPUT_STATUS_OK), (False, c.Cli.OUTPUT_STATUS_FAIL)],
     )
     def test_status_emits_project_and_result_symbol(
-        self,
         capsys: pytest.CaptureFixture[str],
         *,
         result: bool,

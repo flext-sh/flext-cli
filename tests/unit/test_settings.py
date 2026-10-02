@@ -44,6 +44,7 @@ class TestsFlextCliSettingsUnit:
             eq=True,
         )
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("field_name", "expected"),
         [
@@ -60,7 +61,6 @@ class TestsFlextCliSettingsUnit:
         ],
     )
     def test_flat_default_field_state(
-        self,
         field_name: str,
         expected: t.Scalar | None,
     ) -> None:
@@ -73,6 +73,7 @@ class TestsFlextCliSettingsUnit:
         """The inherited top-level debug flag defaults to disabled."""
         tm.that(FlextCliSettings.model_validate({}).debug, eq=False)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("pytest_current_test", "shell_command", "ci", "expected"),
         [
@@ -86,7 +87,6 @@ class TestsFlextCliSettingsUnit:
         ],
     )
     def test_cli_test_env_truth_table(
-        self,
         pytest_current_test: str | None,
         shell_command: str | None,
         *,
@@ -101,15 +101,16 @@ class TestsFlextCliSettingsUnit:
         })
         tm.that(u.Cli.cli_test_env(built), eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize("level", list(c.LogLevel))
-    def test_cli_log_level_preserves_each_level(self, level: c.LogLevel) -> None:
+    def test_cli_log_level_preserves_each_level(level: c.LogLevel) -> None:
         """Every log level round-trips through the cli_log_level field."""
         built = FlextCliSettings.model_validate({"cli_log_level": level.value})
         tm.that(built.cli_log_level, eq=level.value)
 
+    @staticmethod
     @pytest.mark.parametrize("verbosity", list(c.Cli.LogVerbosity))
     def test_log_verbosity_preserves_each_mode(
-        self,
         verbosity: c.Cli.LogVerbosity,
     ) -> None:
         """Every declared log verbosity mode is retained as public state."""

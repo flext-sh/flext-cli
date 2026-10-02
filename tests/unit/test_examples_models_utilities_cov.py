@@ -104,6 +104,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     # Field validation raises from the model boundary
     # ------------------------------------------------------------------
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("kwargs", "match"),
         [
@@ -113,7 +114,6 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ],
     )
     def test_advanced_settings_rejects_invalid_field(
-        self,
         kwargs: t.JsonMapping,
         match: str,
     ) -> None:
@@ -121,8 +121,9 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         with pytest.raises(ValueError, match=match):
             m.Examples.AppSettingsAdvanced.model_validate(kwargs)
 
+    @staticmethod
     @pytest.mark.parametrize("host", ["127.0.0.1", "localhost", "db.example.com"])
-    def test_database_config_accepts_valid_host(self, host: str) -> None:
+    def test_database_config_accepts_valid_host(host: str) -> None:
         """Verify that database config accepts valid host."""
         config = m.Examples.AdvancedDatabaseConfig(
             host=host,
@@ -148,6 +149,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     # Utilities: to_json_dict normalization + void renderers
     # ------------------------------------------------------------------
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("payload", "key", "expected"),
         [
@@ -157,7 +159,6 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ],
     )
     def test_to_json_dict_preserves_values(
-        self,
         payload: t.JsonMapping,
         key: str,
         expected: t.JsonValue,

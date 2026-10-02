@@ -171,6 +171,7 @@ class TestsFlextCliTables:
         tm.ok(result)
         tm.that(result.unwrap(), is_=str)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "table_format",
         [
@@ -180,7 +181,6 @@ class TestsFlextCliTables:
         ],
     )
     def test_render_succeeds_across_formats(
-        self,
         table_format: c.Cli.TabularFormat,
     ) -> None:
         """Verify that render succeeds across formats."""

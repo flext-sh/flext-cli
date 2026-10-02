@@ -22,8 +22,9 @@ class TestsFlextCliServicesTablesCov:
 
     # ── fixtures ──────────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.fixture
-    def single_record(self) -> t.Cli.TableDataSource:
+    def single_record() -> t.Cli.TableDataSource:
         """One mapping rendered as a Key/Value table.
 
         Returns:
@@ -32,8 +33,9 @@ class TestsFlextCliServicesTablesCov:
         """
         return {"name": "Alice", "age": 30}
 
+    @staticmethod
     @pytest.fixture
-    def record_rows(self) -> t.Cli.TableDataSource:
+    def record_rows() -> t.Cli.TableDataSource:
         """Return a list of homogeneous mappings rendered as a column table.
 
         Returns:
@@ -85,12 +87,12 @@ class TestsFlextCliServicesTablesCov:
 
     # ── format_table: edge cases / invariants ─────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         "empty_source",
         [pytest.param({}, id="empty-dict"), pytest.param([], id="empty-list")],
     )
     def test_format_table_empty_source_yields_empty_string(
-        self,
         empty_source: t.Cli.TableDataSource,
     ) -> None:
         # Act
@@ -129,6 +131,7 @@ class TestsFlextCliServicesTablesCov:
         # Assert — format_table returns the table body only, without the title
         tm.that(rendered, lacks="My Report")
 
+    @staticmethod
     @pytest.mark.parametrize(
         "table_format",
         [
@@ -138,7 +141,6 @@ class TestsFlextCliServicesTablesCov:
         ],
     )
     def test_format_table_format_changes_rendered_output(
-        self,
         single_record: t.Cli.TableDataSource,
         table_format: c.Cli.TabularFormat,
     ) -> None:

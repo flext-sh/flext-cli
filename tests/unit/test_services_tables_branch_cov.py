@@ -25,8 +25,9 @@ if TYPE_CHECKING:
 class TestsFlextCliServicesTablesBranchCov:
     """Public-contract behavior of format_table / show_table."""
 
+    @staticmethod
     @pytest.fixture
-    def mapping_payload(self) -> t.Cli.TableDataSource:
+    def mapping_payload() -> t.Cli.TableDataSource:
         """Return a key/value mapping table payload.
 
         Returns:
@@ -35,8 +36,9 @@ class TestsFlextCliServicesTablesBranchCov:
         """
         return {"a": 1, "b": 2}
 
+    @staticmethod
     @pytest.fixture
-    def rows_payload(self) -> t.Cli.TableDataSource:
+    def rows_payload() -> t.Cli.TableDataSource:
         """Return a header-plus-rows list payload.
 
         Returns:
@@ -75,12 +77,12 @@ class TestsFlextCliServicesTablesBranchCov:
         tm.that(rendered, has="a")
         tm.that(rendered, has="b")
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("table_format", "expected_marker"),
         [(c.Cli.TabularFormat.GRID, "+"), (c.Cli.TabularFormat.PIPE, "|")],
     )
     def test_format_table_honors_requested_format_via_settings(
-        self,
         mapping_payload: t.Cli.TableDataSource,
         table_format: c.Cli.TabularFormat,
         expected_marker: str,
@@ -107,9 +109,9 @@ class TestsFlextCliServicesTablesBranchCov:
 
     # ---- format_table: failure contract ----
 
+    @staticmethod
     @pytest.mark.parametrize("bad_format", ["invalid", "not-a-format", ""])
     def test_format_table_rejects_invalid_format_string(
-        self,
         mapping_payload: t.Cli.TableDataSource,
         bad_format: str,
     ) -> None:

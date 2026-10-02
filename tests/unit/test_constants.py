@@ -26,6 +26,7 @@ from tests import c, u
 class TestsFlextCliConstants:
     """Public-contract behavior of the flext-cli constants facade."""
 
+    @staticmethod
     @pytest.mark.parametrize(
         "enum_cls",
         [
@@ -36,7 +37,7 @@ class TestsFlextCliConstants:
             c.Cli.CommandStatus,
         ],
     )
-    def test_enum_values_matches_member_values(self, enum_cls: type[StrEnum]) -> None:
+    def test_enum_values_matches_member_values(enum_cls: type[StrEnum]) -> None:
         """u.enum_values returns exactly the frozenset of member .value strings."""
         values = u.enum_values(enum_cls)
         tm.that(
@@ -55,12 +56,12 @@ class TestsFlextCliConstants:
             tm.that(description, is_=str)
             tm.that(description, empty=False)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "message_map",
         [c.Cli.MESSAGE_STYLE_MAP, c.Cli.MESSAGE_EMOJI_MAP],
     )
     def test_message_maps_cover_every_message_type(
-        self,
         message_map: Mapping[c.Cli.MessageTypes, object],
     ) -> None:
         """Style/emoji maps expose an entry for every MessageTypes member."""
@@ -92,6 +93,7 @@ class TestsFlextCliConstants:
         tm.that(c.Cli.SYMBOL_SUCCESS_MARK, empty=False)
         tm.that(c.Cli.SYMBOL_SUCCESS_MARK != c.Cli.SYMBOL_FAILURE_MARK, eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("message", "expected"),
         [
@@ -103,10 +105,11 @@ class TestsFlextCliConstants:
             ("permission denied", False),
         ],
     )
-    def test_file_not_found_classifier(self, message: str, *, expected: bool) -> None:
+    def test_file_not_found_classifier(message: str, *, expected: bool) -> None:
         """u.Cli.file_not_found_error flags file-absence diagnostics only."""
         tm.that(u.Cli.file_not_found_error(message), eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("message", "expected"),
         [
@@ -118,6 +121,6 @@ class TestsFlextCliConstants:
             ("No such file or directory", False),
         ],
     )
-    def test_cli_usage_error_classifier(self, message: str, *, expected: bool) -> None:
+    def test_cli_usage_error_classifier(message: str, *, expected: bool) -> None:
         """u.Cli.cli_usage_error flags CLI-usage diagnostics only."""
         tm.that(u.Cli.cli_usage_error(message), eq=expected)

@@ -69,7 +69,8 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
         self.state = state
         return self
 
-    def _is_test_env(self) -> bool:
+    @staticmethod
+    def _is_test_env() -> bool:
         """Whether prompt logging must use test-safe behavior.
 
         Delegates to the canonical ``u.Cli.cli_test_env`` utility — settings
