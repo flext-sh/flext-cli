@@ -20,13 +20,8 @@ from ._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
 class FlextCliUtilitiesTables:
     """Table helpers exposed through ``u.Cli.tables_*``."""
 
-<<<<<<< HEAD
     TABLE_DATA_ADAPTER: ClassVar[t.ValueAdapter[t.Cli.TableDataSource]] = (
         u.type_adapter(t.Cli.TableDataSource)
-=======
-    TABLE_DATA_ADAPTER: ClassVar[t.ValueAdapter[t.Cli.TableDataSource]] = TypeAdapter(
-        t.Cli.TableDataSource,
->>>>>>> origin/fix/cli-contract-cure-20261001
     )
 
     @staticmethod
