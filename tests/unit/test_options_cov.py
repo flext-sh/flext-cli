@@ -23,12 +23,72 @@ from typing import Annotated, ClassVar
 import pytest
 from flext_tests import tm
 
-from flext_cli import cli, m
+from flext_cli import c, cli, m
 from tests import t, u
 
 
 class TestsFlextCliOptionsUtilsCov:
     """Behavioral coverage for ``cli.model_command`` public behavior."""
+
+    def test_public_option_specs_match_registered_cli_forms(self) -> None:
+        """Credential routers read the same declarations users can invoke."""
+        cases = (
+            (self.AliasOptionsModel, "project_name", {"--project"}),
+            (self.CustomDeclModel, "custom_name", {"--custom-name", "--projects"}),
+            (self.BoolToggleModel, "debug", {"--debug", "--no-debug"}),
+        )
+        for model_cls, field_name, expected in cases:
+            spec, _ = cli.model_option_spec(
+                field_name, model_cls.model_fields[field_name], None
+            )
+            assert {
+                option for declaration in spec.declarations for option in declaration.split("/")
+            } == expected
+        assert set(c.Cli.CLI_GLOBAL_PARAM_FIELDS) <= set(m.Cli.CliParamsConfig.model_fields)
+
+    def test_parse_only_route_distinguishes_help_from_option_values(self) -> None:
+        """A pre-execution router reads the model contract without invoking it."""
+        parsed = cli.parse_model_options(
+            self.CustomDeclModel, ("--projects", "--help")
+        )
+        assert parsed.values["custom_name"] == "--help"
+        assert parsed.help_requested is False
+        help_route = cli.parse_model_options(self.CustomDeclModel, ("--help",))
+        assert help_route.help_requested is True
+        with pytest.raises(ValueError, match="duplicated"):
+            cli.parse_model_options(
+                self.CustomDeclModel,
+                ("--projects", "one", "--custom-name", "two"),
+            )
+
+    def test_parse_only_global_prefix_uses_registered_fields(self) -> None:
+        """Global options leave the protected command token unconsumed."""
+        parsed = cli.parse_model_options(
+            m.Cli.CliParamsConfig,
+            ("--debug", "--log-level", "INFO", "wip", "start"),
+            field_names=c.Cli.CLI_GLOBAL_PARAM_FIELDS,
+            stop_at_positional=True,
+        )
+        assert parsed.values == {"debug": True, "log_level": "INFO"}
+        assert parsed.remaining == ("wip", "start")
+
+    def test_parse_only_repeated_options_match_registered_command(self) -> None:
+        """Sequence options retain every token accepted by the real CLI."""
+        arguments = ("--value", "first", "--value", "second")
+        parsed = cli.parse_model_options(self.ListAnnotationModel, arguments)
+        invocation, received = self._run(self.ListAnnotationModel, arguments)
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        assert parsed.values["value"] == received[0].value
+
+    @pytest.mark.parametrize(("option", "expected"), [("--off", True), ("--on", False)])
+    def test_parse_only_bool_polarity_matches_registered_command(
+        self, option: str, *, expected: bool
+    ) -> None:
+        parsed = cli.parse_model_options(self.ReverseToggleModel, (option,))
+        invocation, received = self._run(self.ReverseToggleModel, [option])
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        assert parsed.values["enabled"] is expected
+        assert received[0].enabled is expected
 
     class StringAnnotationModel(m.BaseModel):
         """Group the StringAnnotationModel test behavior."""
@@ -93,6 +153,13 @@ class TestsFlextCliOptionsUtilsCov:
         """Group the BoolToggleModel test behavior."""
 
         debug: bool = False
+
+    class ReverseToggleModel(m.BaseModel):
+        """Custom Boolean names derive polarity from declaration order."""
+
+        enabled: bool = m.Field(
+            False, json_schema_extra={"typer_param_decls": ["--off/--on"]}
+        )
 
     class GreetModel(m.BaseModel):
         """Simple request model used to exercise command invocation."""
