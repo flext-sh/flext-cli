@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-import signal
 import sys
 import threading
 import time
