@@ -69,7 +69,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         """
         try:
             node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
-        except c.Cli.YamlRoundtripError as exc:
+        except ruamel.yaml.YAMLError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
         except TypeError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
@@ -87,7 +87,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         """
         try:
             loaded = _roundtrip_yaml().load(source)
-        except c.Cli.YamlRoundtripError as exc:
+        except ruamel.yaml.YAMLError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
         except TypeError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
@@ -167,7 +167,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         """
         try:
             _roundtrip_yaml().dump(data, stream)
-        except (OSError, c.Cli.YamlRoundtripError, TypeError, ValueError) as exc:
+        except (OSError, ruamel.yaml.YAMLError, TypeError, ValueError) as exc:
             return r[bool].fail(f"YAML dump error: {exc}", exception=exc)
         return r[bool].ok(True)
 

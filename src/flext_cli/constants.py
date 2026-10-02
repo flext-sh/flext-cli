@@ -13,7 +13,6 @@ from ._constants.config import FlextCliConstantsConfig
 from ._constants.docx import FlextCliConstantsDocx
 from ._constants.enums import FlextCliConstantsEnums
 from ._constants.errors import FlextCliConstantsErrors
-from ._constants.exceptions import FlextCliConstantsExceptions
 from ._constants.files import FlextCliConstantsFiles
 from ._constants.output import FlextCliConstantsOutput
 from ._constants.pptx import FlextCliConstantsPptx
@@ -32,7 +31,6 @@ class FlextCliConstants(FlextConstants):
         FlextCliConstantsErrors,
         FlextCliConstantsDocx,
         FlextCliConstantsPptx,
-        FlextCliConstantsExceptions,
         FlextCliConstantsFiles,
         FlextCliConstantsOutput,
         FlextCliConstantsSettings,

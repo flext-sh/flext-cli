@@ -145,7 +145,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             return _EMPTY_JSON_SEQUENCE
         return u.try_(
             lambda: FlextCliUtilitiesYaml._yaml_parse_list(path),
-            catch=(OSError, c.Cli.YamlParseError, TypeError, c.ValidationError),
+            catch=(OSError, u.Yaml.YAMLError, TypeError, c.ValidationError),
             op_name="yaml_load_list",
         ).unwrap_or(_EMPTY_JSON_SEQUENCE)
 
@@ -186,7 +186,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             with path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as fh:
                 fh.write(serialized)
             return r[bool].ok(True)
-        except (OSError, c.Cli.YamlParseError, ValueError, TypeError) as exc:
+        except (OSError, u.Yaml.YAMLError, ValueError, TypeError) as exc:
             return r[bool].fail(f"YAML write error: {exc}", exception=exc)
 
     @staticmethod
@@ -217,7 +217,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
                 allow_unicode=True,
                 indent=indent,
             )
-        except (c.Cli.YamlParseError, ValueError, TypeError) as exc:
+        except (u.Yaml.YAMLError, ValueError, TypeError) as exc:
             u.fetch_logger(__name__).warning(
                 "YAML serialization failed",
                 error=r[str].fail(str(exc), exception=exc).error or str(exc),
