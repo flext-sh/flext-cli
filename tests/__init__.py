@@ -17,21 +17,12 @@ if TYPE_CHECKING:
 
     from flext_core import d, e, h, r, x
     from tests import fixtures, unit
-<<<<<<< HEAD
     from tests.base import TestsFlextCliServiceBase, s
     from tests.constants import TestsFlextCliConstants, c
     from tests.models import TestsFlextCliModels, m
     from tests.protocols import TestsFlextCliProtocols, p
     from tests.settings import TestsFlextCliSettings
     from tests.typings import TestsFlextCliTypes, t
-=======
-    from tests.base import TestsFlextCliServiceBase, TestsFlextCliServiceBase as s
-    from tests.constants import TestsFlextCliConstants, TestsFlextCliConstants as c
-    from tests.models import TestsFlextCliModels, m
-    from tests.protocols import TestsFlextCliProtocols, TestsFlextCliProtocols as p
-    from tests.settings import TestsFlextCliSettings
-    from tests.typings import TestsFlextCliTypes, TestsFlextCliTypes as t
->>>>>>> origin/fix/cli-contract-cure-20261001
     from tests.utilities import TestsFlextCliUtilities, u
 
 

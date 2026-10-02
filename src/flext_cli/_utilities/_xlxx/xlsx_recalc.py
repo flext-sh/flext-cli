@@ -118,12 +118,8 @@ class FlextCliUtilitiesXlsxRecalc(
             )
         value_snapshot = cls.xlsx_snapshot(
             m.Cli.XlsxSnapshotRequest(
-<<<<<<< HEAD
                 source=recalculated.value.content,
                 data_only=True,
-=======
-                source=recalculated.value.content, data_only=True
->>>>>>> origin/fix/cli-contract-cure-20261001
             ),
         )
         if value_snapshot.failure:

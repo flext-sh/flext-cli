@@ -6,11 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-<<<<<<< HEAD
 from functools import cache
-=======
-from pydantic import TypeAdapter
->>>>>>> origin/fix/cli-contract-cure-20261001
 
 from flext_cli import c, t
 from flext_cli.models import m
@@ -94,11 +90,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
                 c.Cli.ENCODING_DEFAULT,
             )
         normalized_atom = cls.normalize_cli_atom(
-<<<<<<< HEAD
             cls.cli_default_source_adapter().validate_python(source_value),
-=======
-            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value),
->>>>>>> origin/fix/cli-contract-cure-20261001
         )
         if normalized_atom is None:
             raise TypeError(

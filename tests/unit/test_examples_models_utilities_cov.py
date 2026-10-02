@@ -168,11 +168,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         api_key = "demo-" + "secret"
         settings = m.Examples.MyAppSettings(
             app_name="demo",
-<<<<<<< HEAD
             api_key=api_key,
-=======
-            api_key="demo-secret",
->>>>>>> origin/fix/cli-contract-cure-20261001
             max_workers=4,
             timeout=30,
         )
