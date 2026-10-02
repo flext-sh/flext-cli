@@ -207,7 +207,7 @@ class FlextCliUtilitiesFiles:
         """
         path = Path(directory_path)
         if not path.exists() and not path.is_symlink():
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         if not path.is_dir() or path.is_symlink():
             return r[bool].fail(f"remove_directory: not a directory: {path}")
 

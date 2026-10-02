@@ -112,7 +112,7 @@ class FlextCliUtilitiesProcesses:
                     force=force,
                 )
             if self.poll() is not None:
-                return r[bool].ok(True)
+                return r[bool].ok(value=True)
             try:
                 if force:
                     self._process.kill()
@@ -123,7 +123,7 @@ class FlextCliUtilitiesProcesses:
                     f"process {'kill' if force else 'terminate'} error: {exc}",
                     exception=exc,
                 )
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         def wait(self, timeout: float | None = None) -> p.Result[int]:
             if self._communicated:
@@ -169,7 +169,7 @@ class FlextCliUtilitiesProcesses:
                 stream.flush()
             except c.EXC_OS_VALUE as exc:
                 return r[bool].fail(f"process stdin write error: {exc}", exception=exc)
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
         def stdout_read_until(
             self,
@@ -238,7 +238,7 @@ class FlextCliUtilitiesProcesses:
             if not content:
                 return r[bool].fail(f"process stdout closed: pid {self.pid}")
             self._stdout_buffer.extend(content)
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
 
     @staticmethod
     def process_start(

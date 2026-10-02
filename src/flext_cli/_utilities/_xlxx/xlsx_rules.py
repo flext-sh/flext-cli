@@ -41,7 +41,7 @@ class FlextCliUtilitiesXlsxRules(
         protection = cls._apply_protection(worksheet, plan.protection)
         if protection.failure:
             return r[bool].from_failure(protection)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxRules",)

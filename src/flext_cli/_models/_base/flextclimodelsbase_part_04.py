@@ -99,7 +99,7 @@ class FlextCliModelsBase:
 
         # Number parsing
         disable_numparse: t.Cli.TableDisableNumparse = m.Field(
-            False,
+            default=False,
             validate_default=True,
             description="Disable number parsing (bool or list of column indices)",
         )

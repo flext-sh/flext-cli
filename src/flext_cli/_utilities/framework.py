@@ -180,7 +180,7 @@ class FlextCliUtilitiesFramework:
 
         """
         if exit_code == c.Cli.EXIT_CODE_SUCCESS:
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         return e.fail_operation(
             c.Cli.OP_EXECUTE_APPLICATION,
             c.Cli.ERR_EXIT_WITH_CODE.format(exit_code=exit_code),
@@ -329,7 +329,7 @@ class FlextCliUtilitiesFramework:
             if (failure := cls._active_failure.get()) is not None:
                 return r[bool].from_failure(failure)
             if exc.exit_code == c.Cli.EXIT_CODE_SUCCESS:
-                return r[bool].ok(True)
+                return r[bool].ok(value=True)
             raise
         except SystemExit:
             if (failure := cls._active_failure.get()) is not None:
@@ -348,7 +348,7 @@ class FlextCliUtilitiesFramework:
             and exit_result != c.Cli.EXIT_CODE_SUCCESS
         ):
             return cls._exit_code_result(exit_result)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @classmethod
     def framework_execute_external(
@@ -388,7 +388,7 @@ class FlextCliUtilitiesFramework:
             and exit_result != c.Cli.EXIT_CODE_SUCCESS
         ):
             return cls._exit_code_result(exit_result)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @classmethod
     def framework_external_command(

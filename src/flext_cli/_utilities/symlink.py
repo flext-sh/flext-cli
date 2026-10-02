@@ -59,7 +59,7 @@ class FlextCliUtilitiesSymlink:
             write_guarded_symlink(before, target)
         except (OSError, ValueError) as exc:
             return r[bool].fail(str(exc), exception=exc)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def atomic_delete_symlink_guarded(
@@ -75,7 +75,7 @@ class FlextCliUtilitiesSymlink:
             delete_guarded_symlink(before)
         except OSError as exc:
             return r[bool].fail(str(exc), exception=exc)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: list[str] = ["FlextCliUtilitiesSymlink"]

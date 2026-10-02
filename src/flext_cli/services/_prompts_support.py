@@ -102,7 +102,7 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
     ) -> p.Result[bool]:
         # Fail loud: a logger failure propagates with its cause.
         self._log(log_level, message_format.format(message=message))
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     def _read_confirmation_input(
         self,

@@ -127,7 +127,7 @@ class FlextCliUtilitiesXlsxConditional(
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[bool].fail(f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxConditional",)

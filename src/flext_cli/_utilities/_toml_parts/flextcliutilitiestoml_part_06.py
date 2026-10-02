@@ -116,7 +116,7 @@ class FlextCliUtilitiesToml:
 
         """
         if path.name != "pyproject.toml":
-            return r[bool].ok(False)
+            return r[bool].ok(value=False)
         command = ["taplo", "format"]
         config_path = FlextCliUtilitiesToml._resolve_taplo_config(path)
         if config_path is not None:
@@ -128,7 +128,7 @@ class FlextCliUtilitiesToml:
             .map_error(lambda err: err or f"taplo format failed: {path}")
             .flat_map(
                 lambda output: (
-                    r[bool].ok(True)
+                    r[bool].ok(value=True)
                     if ur.process_succeeded(output.outcome)
                     else r[bool].fail(
                         (output.stderr or output.stdout).strip()

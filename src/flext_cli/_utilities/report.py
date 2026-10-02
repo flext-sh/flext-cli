@@ -49,14 +49,14 @@ class FlextCliUtilitiesReport:
         """
         if json_output:
             FlextCliUtilitiesOutput.emit_raw(request.model_dump_json(indent=2) + "\n")
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         rendered = FlextCliUtilitiesReport.report_render(request)
         if rendered.failure:
             return r[bool].from_failure(rendered)
         FlextCliUtilitiesOutput.emit_raw(f"{rendered.value}\n")
         if request.message:
             FlextCliUtilitiesOutput.emit_raw(f"{request.message}\n")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: list[str] = ["FlextCliUtilitiesReport"]
