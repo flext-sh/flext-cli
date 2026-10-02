@@ -12,8 +12,7 @@ import uuid
 from typing import TYPE_CHECKING
 
 from flext_cli import m
-
-from . import (
+from flext_cli._utilities import (
     atomic_directory_noreplace as noreplace,
     atomic_file_descriptor as descriptor,
     atomic_file_durability as durability,
@@ -23,7 +22,7 @@ from . import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from .atomic_file_descriptor import ParentDescriptor
+    from flext_cli._utilities.atomic_file_descriptor import ParentDescriptor
 
 
 def _validated_target(path: Path, target: str) -> None:

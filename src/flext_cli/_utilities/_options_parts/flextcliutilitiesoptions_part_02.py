@@ -9,13 +9,14 @@ from __future__ import annotations
 from functools import cache
 
 from flext_cli import c, t
-from flext_cli.models import m
-from flext_core import u
-
-from .flextcliutilitiesoptionbuilder_part_01 import FlextCliUtilitiesOptionBuilder
-from .flextcliutilitiesoptions_part_01 import (
+from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
+    FlextCliUtilitiesOptionBuilder,
+)
+from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_01 import (
     FlextCliUtilitiesOptions as FlextCliUtilitiesOptionsPart01,
 )
+from flext_cli.models import m
+from flext_core import u
 
 
 class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):

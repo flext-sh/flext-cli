@@ -12,9 +12,10 @@ from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-
-from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
-from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
+from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from flext_cli._utilities._xlxx.xlsx_formula_codec import (
+    FlextCliUtilitiesXlsxFormulaCodec,
+)
 
 
 class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):

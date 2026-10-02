@@ -10,8 +10,7 @@ import errno
 from pathlib import Path
 
 from flext_cli import m, t
-
-from . import (
+from flext_cli._utilities import (
     atomic_directory_create as directory_create,
     atomic_directory_delete as directory_delete,
     atomic_directory_descriptor as directory_descriptor,

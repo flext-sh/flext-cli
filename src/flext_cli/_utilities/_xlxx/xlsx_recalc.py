@@ -10,10 +10,11 @@ import tempfile
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-
-from ..processes import FlextCliUtilitiesProcesses
-from .xlsx_recalc_evidence import FlextCliUtilitiesXlsxRecalcEvidence
-from .xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
+from flext_cli._utilities._xlxx.xlsx_recalc_evidence import (
+    FlextCliUtilitiesXlsxRecalcEvidence,
+)
+from flext_cli._utilities._xlxx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
+from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
 
 
 class FlextCliUtilitiesXlsxRecalc(

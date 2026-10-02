@@ -8,9 +8,10 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar, Self
 
+from flext_cli._models._base.flextclimodelsbase_part_02 import (
+    FlextCliModelsBase as FlextCliModelsBasePart02,
+)
 from flext_core import m, u
-
-from .flextclimodelsbase_part_02 import FlextCliModelsBase as FlextCliModelsBasePart02
 
 
 class FlextCliModelsBase:

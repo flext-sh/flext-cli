@@ -6,10 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from ._cases.test_prompts.testsflextcliprompts_part_01 import (
+from tests.unit._cases.test_prompts.testsflextcliprompts_part_01 import (
     TestsFlextCliPrompts as TestsFlextCliPromptsPart01,
 )
-from ._cases.test_prompts.testsflextcliprompts_part_02 import (
+from tests.unit._cases.test_prompts.testsflextcliprompts_part_02 import (
     TestsFlextCliPrompts as TestsFlextCliPromptsPart02,
 )
 

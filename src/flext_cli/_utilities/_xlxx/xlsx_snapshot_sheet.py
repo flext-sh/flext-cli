@@ -11,9 +11,12 @@ from typing import Literal
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import m, p, r, t
-
-from .xlsx_snapshot_structure import FlextCliUtilitiesXlsxSnapshotStructure
-from .xlsx_snapshot_values import FlextCliUtilitiesXlsxSnapshotValues
+from flext_cli._utilities._xlxx.xlsx_snapshot_structure import (
+    FlextCliUtilitiesXlsxSnapshotStructure,
+)
+from flext_cli._utilities._xlxx.xlsx_snapshot_values import (
+    FlextCliUtilitiesXlsxSnapshotValues,
+)
 
 
 class FlextCliUtilitiesXlsxSnapshotSheet(

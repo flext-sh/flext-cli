@@ -15,9 +15,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from flext_cli._utilities._json._core import FlextCliUtilitiesJsonCoreMixin
 from flext_core import u
-
-from ._core import FlextCliUtilitiesJsonCoreMixin
 
 if TYPE_CHECKING:
     from flext_cli import t

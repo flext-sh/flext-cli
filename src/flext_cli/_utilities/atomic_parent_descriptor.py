@@ -15,8 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from flext_cli import t
-
-from . import atomic_file_path as file_path
+from flext_cli._utilities import atomic_file_path as file_path
 
 type DirectoryChainInspection = tuple[
     Path,

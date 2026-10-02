@@ -23,9 +23,8 @@ from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.tokens import CommentToken as RuamelCommentToken
 
 from flext_cli import p, t
+from flext_cli._utilities._yaml._engine import FlextCliUtilitiesYamlEngineMixin
 from flext_core import u
-
-from ._engine import FlextCliUtilitiesYamlEngineMixin
 
 
 class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):

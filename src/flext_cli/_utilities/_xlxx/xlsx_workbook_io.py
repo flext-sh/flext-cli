@@ -13,8 +13,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
 from flext_cli import c, m, p, r, t
-
-from .xlsx_archive import FlextCliUtilitiesXlsxArchive
+from flext_cli._utilities._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
 
 
 class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):

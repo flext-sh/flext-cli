@@ -13,8 +13,7 @@ from pathlib import Path
 from typing import Literal, Never
 
 from flext_cli import m, t
-
-from . import (
+from flext_cli._utilities import (
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_state as directory_state,
     atomic_file_descriptor as file_descriptor,

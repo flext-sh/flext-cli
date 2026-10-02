@@ -11,8 +11,7 @@ import os
 from pathlib import Path
 
 from flext_cli import t
-
-from . import (
+from flext_cli._utilities import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_mode as file_mode,
     atomic_file_state as file_state,

@@ -12,8 +12,7 @@ from pathlib import Path
 from typing import Never
 
 from flext_cli import m
-
-from . import (
+from flext_cli._utilities import (
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_model as directory_model,
     atomic_directory_state as directory_state,

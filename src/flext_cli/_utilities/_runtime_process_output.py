@@ -11,8 +11,9 @@ import threading
 from typing import IO, BinaryIO
 
 from flext_cli import p, t
-
-from ._runtime_process_threads import FlextCliUtilitiesRuntimeProcessThreadsMixin
+from flext_cli._utilities._runtime_process_threads import (
+    FlextCliUtilitiesRuntimeProcessThreadsMixin,
+)
 
 
 class FlextCliUtilitiesRuntimeProcessOutputMixin(

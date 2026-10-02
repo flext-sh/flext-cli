@@ -11,8 +11,7 @@ import os
 from pathlib import Path
 
 from flext_cli import t
-
-from . import (
+from flext_cli._utilities import (
     atomic_directory_noreplace as directory_noreplace,
     atomic_file_descriptor as file_descriptor,
     atomic_parent_descriptor as parent_descriptor,

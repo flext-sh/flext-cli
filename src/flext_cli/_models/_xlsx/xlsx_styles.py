@@ -9,10 +9,11 @@ from __future__ import annotations
 from typing import Annotated, Literal
 
 from flext_cli import t
+from flext_cli._models._xlsx.xlsx_style_fills import FlextCliModelsXlsxStyleFills
+from flext_cli._models._xlsx.xlsx_style_primitives import (
+    FlextCliModelsXlsxStylePrimitives,
+)
 from flext_core import m
-
-from .xlsx_style_fills import FlextCliModelsXlsxStyleFills
-from .xlsx_style_primitives import FlextCliModelsXlsxStylePrimitives
 
 
 class FlextCliModelsXlsxStyles(

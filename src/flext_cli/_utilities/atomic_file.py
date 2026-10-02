@@ -12,8 +12,7 @@ import signal
 from pathlib import Path
 
 from flext_cli import m, t
-
-from . import (
+from flext_cli._utilities import (
     atomic_file_cleanup as file_cleanup,
     atomic_file_descriptor as file_descriptor,
     atomic_file_durability as file_durability,
