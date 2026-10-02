@@ -20,7 +20,8 @@ if TYPE_CHECKING:
 class TestsFlextCliPublicContractsCoverage:
     """Implementation part for TestsFlextCliPublicContractsCoverage."""
 
-    def test_public_pipeline_model_contracts(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_public_pipeline_model_contracts(tmp_path: Path) -> None:
         """Verify that public pipeline model contracts."""
         context = cli.stage_context(tmp_path, settings={"mode": "test"})
 

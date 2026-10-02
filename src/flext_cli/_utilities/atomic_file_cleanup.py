@@ -19,7 +19,7 @@ from flext_cli._utilities import (
 
 
 def remove_failed_temporary(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     temporary: Path,
     identity: t.Pair[int, int] | None,
     descriptor: int | None,

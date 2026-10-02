@@ -22,7 +22,7 @@ from flext_cli._utilities import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from flext_cli._utilities.atomic_file_descriptor import ParentDescriptor
+    from flext_cli._utilities.atomic_file_descriptor import FlextCliParentDescriptor
 
 
 def _validated_target(path: Path, target: str) -> None:
@@ -46,7 +46,7 @@ def _validated_target(path: Path, target: str) -> None:
 def _stage_verified_link(
     before: m.Cli.AtomicSymlinkState,
     target: str,
-    parent: ParentDescriptor,
+    parent: FlextCliParentDescriptor,
 ) -> tuple[Path, m.Cli.AtomicSymlinkState]:
     """Create the staged link and prove it still names the target.
 
@@ -70,7 +70,7 @@ def _stage_verified_link(
 def _discard_staged(
     staged: m.Cli.AtomicSymlinkState,
     staged_path: Path,
-    parent: ParentDescriptor,
+    parent: FlextCliParentDescriptor,
 ) -> None:
     """Remove one staged link that never published, authenticated first."""
     snapshot.require_symlink_state(staged, parent)
@@ -80,7 +80,7 @@ def _discard_staged(
 
 def _swap_staged_link(
     before: m.Cli.AtomicSymlinkState,
-    parent: ParentDescriptor,
+    parent: FlextCliParentDescriptor,
     staged_path: Path,
 ) -> None:
     """Swap the staged link into place under the caller-held lease."""
@@ -100,7 +100,7 @@ def _swap_staged_link(
 
 def _verify_published(
     path: Path,
-    parent: ParentDescriptor,
+    parent: FlextCliParentDescriptor,
     target: str,
     staged: m.Cli.AtomicSymlinkState,
 ) -> None:

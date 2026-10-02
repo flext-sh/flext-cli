@@ -86,8 +86,8 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(logout_result)
         tm.that(token_path.exists(), eq=True)
 
+    @staticmethod
     def test_settings_example_surfaces_profile_and_override_branches(
-        self,
         tmp_path: Path,
     ) -> None:
         """Settings example must cover alternate profiles and environment override failures."""

@@ -20,7 +20,7 @@ from flext_cli._utilities import (
 _SECURE_CREATE_MODE = 0o600
 
 
-def temporary_path(parent: file_descriptor.ParentDescriptor) -> Path:
+def temporary_path(parent: file_descriptor.FlextCliParentDescriptor) -> Path:
     """Return one unpredictable sibling name without probing or retrying.
 
     Returns:
@@ -42,7 +42,10 @@ def require_mode_capability(path: Path, permission_mode: int | None) -> None:
         raise OSError(errno.ENOTSUP, message, path)
 
 
-def create_descriptor(parent: file_descriptor.ParentDescriptor, temporary: Path) -> int:
+def create_descriptor(
+    parent: file_descriptor.FlextCliParentDescriptor,
+    temporary: Path,
+) -> int:
     """Create one exclusive, securely permissioned sibling through ``dir_fd``.
 
     Returns:

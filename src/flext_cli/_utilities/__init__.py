@@ -207,7 +207,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities.atomic_file_cleanup import remove_failed_temporary
     from flext_cli._utilities.atomic_file_delete import remove_guarded_file
     from flext_cli._utilities.atomic_file_descriptor import (
-        ParentDescriptor,
+        FlextCliParentDescriptor,
         assert_parent_unchanged,
         close_after_failure,
         entry_descriptor,
@@ -263,7 +263,7 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities.atomic_parent_descriptor import (
         DirectoryChainInspection,
-        PhysicalDirectory,
+        FlextCliPhysicalDirectory,
         inspect_directory_chain,
         physical_directory,
         require_traversal_capabilities,
@@ -330,6 +330,8 @@ __all__: tuple[str, ...] = (
     "DirectoryChainInspection",
     "DirectoryPhysicalState",
     "FlextCliAtomicTreeDarwin",
+    "FlextCliParentDescriptor",
+    "FlextCliPhysicalDirectory",
     "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
@@ -419,8 +421,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlEditingMixin",
     "FlextCliUtilitiesYamlEngineMixin",
     "FlextCliUtilitiesYamlModel",
-    "ParentDescriptor",
-    "PhysicalDirectory",
     "PhysicalState",
     "_docx",
     "_file_test_helper_parts",
@@ -662,7 +662,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".atomic_file_cleanup": ("remove_failed_temporary",),
             ".atomic_file_delete": ("remove_guarded_file",),
             ".atomic_file_descriptor": (
-                "ParentDescriptor",
+                "FlextCliParentDescriptor",
                 "assert_parent_unchanged",
                 "close_after_failure",
                 "entry_descriptor",
@@ -715,7 +715,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ),
             ".atomic_parent_descriptor": (
                 "DirectoryChainInspection",
-                "PhysicalDirectory",
+                "FlextCliPhysicalDirectory",
                 "inspect_directory_chain",
                 "physical_directory",
                 "require_traversal_capabilities",

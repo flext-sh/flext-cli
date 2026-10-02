@@ -76,10 +76,10 @@ def require_distinct_inode(
 
 def validate_devices(
     destination: Path,
-    destination_parent: file_descriptor.ParentDescriptor,
+    destination_parent: file_descriptor.FlextCliParentDescriptor,
     destination_state: os.stat_result | None,
     staged: Path,
-    staged_parent: file_descriptor.ParentDescriptor,
+    staged_parent: file_descriptor.FlextCliParentDescriptor,
     staged_state: os.stat_result,
 ) -> None:
     """Require both entries and parents to occupy one filesystem.
@@ -101,9 +101,9 @@ def validate_devices(
 
 
 def validate_publication(
-    destination_parent: file_descriptor.ParentDescriptor,
+    destination_parent: file_descriptor.FlextCliParentDescriptor,
     destination: Path,
-    staged_parent: file_descriptor.ParentDescriptor,
+    staged_parent: file_descriptor.FlextCliParentDescriptor,
     staged: Path,
     staged_bytes: bytes,
     staged_mode: int,

@@ -21,7 +21,7 @@ from flext_cli._utilities import (
 
 
 def remove_created_directory(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     identity: t.Pair[int, int] | None,
     operation_error: BaseException,
@@ -37,7 +37,7 @@ def remove_created_directory(
 
 
 def _remove_created_directory(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     identity: t.Pair[int, int] | None,
 ) -> None:

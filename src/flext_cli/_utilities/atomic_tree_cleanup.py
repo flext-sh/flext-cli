@@ -65,7 +65,7 @@ def _require_cleanup_capabilities(manifest: m.Cli.AtomicPhysicalTreeManifest) ->
             mount_id = tree_descriptor.mount_id(opened.descriptor, path)
             if (opened.state.st_dev, opened.state.st_ino, mount_id) != expected:
                 _raise_changed(path)
-            authenticated = file_descriptor.ParentDescriptor(
+            authenticated = file_descriptor.FlextCliParentDescriptor(
                 path,
                 opened.descriptor,
                 opened.state,

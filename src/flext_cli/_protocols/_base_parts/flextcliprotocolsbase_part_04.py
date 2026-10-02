@@ -41,6 +41,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             """Whether a standalone help option was parsed."""
             ...
 
+    @runtime_checkable
     class ModelOptionParser(Protocol):
         """Parse model-backed option tokens without running a CLI command."""
 

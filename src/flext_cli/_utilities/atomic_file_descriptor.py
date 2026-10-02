@@ -22,7 +22,7 @@ from flext_cli._utilities import (
 
 
 @dataclass(frozen=True, slots=True)
-class ParentDescriptor:
+class FlextCliParentDescriptor:
     """One open physical parent directory bound to its lexical pathname."""
 
     path: Path
@@ -38,7 +38,7 @@ def parent_descriptor(
     *,
     replace: bool = False,
     unlink: bool = False,
-) -> Generator[ParentDescriptor]:
+) -> Generator[FlextCliParentDescriptor]:
     """Yield one authenticated parent descriptor with required OS capabilities.
 
     The descriptor walk that opens the parent is itself the entry
@@ -46,13 +46,13 @@ def parent_descriptor(
     re-walked where time has passed (before a namespace mutation, and on exit).
 
     Yields:
-        Each ``ParentDescriptor``.
+        Each ``FlextCliParentDescriptor``.
 
     """
     validated = file_path.validate_atomic_path(path)
     _require_capabilities(validated, replace=replace, unlink=unlink)
     with parent_path.physical_directory(validated.parent) as opened:
-        handle = ParentDescriptor(
+        handle = FlextCliParentDescriptor(
             validated.parent,
             opened.descriptor,
             opened.state,
@@ -71,7 +71,7 @@ def parent_descriptor(
         assert_parent_unchanged(handle)
 
 
-def assert_parent_unchanged(parent: ParentDescriptor) -> None:
+def assert_parent_unchanged(parent: FlextCliParentDescriptor) -> None:
     """Require descriptor and pathname to retain the opened directory identity.
 
     Raises:
@@ -91,7 +91,7 @@ def assert_parent_unchanged(parent: ParentDescriptor) -> None:
     parent_path.verify_lineage(parent.path, parent.lineage, parent.ancestry)
 
 
-def entry_stat(parent: ParentDescriptor, path: Path) -> os.stat_result:
+def entry_stat(parent: FlextCliParentDescriptor, path: Path) -> os.stat_result:
     """Read one final entry relative to its authenticated parent descriptor.
 
     Returns:
@@ -103,7 +103,7 @@ def entry_stat(parent: ParentDescriptor, path: Path) -> os.stat_result:
 
 
 def open_entry(
-    parent: ParentDescriptor,
+    parent: FlextCliParentDescriptor,
     path: Path,
     flags: int,
     *,
@@ -125,7 +125,7 @@ def open_entry(
 
 @contextmanager
 def entry_descriptor(
-    parent: ParentDescriptor,
+    parent: FlextCliParentDescriptor,
     path: Path,
     flags: int,
 ) -> Generator[int]:
@@ -144,7 +144,7 @@ def entry_descriptor(
     os.close(descriptor)
 
 
-def unlink_entry(parent: ParentDescriptor, path: Path) -> None:
+def unlink_entry(parent: FlextCliParentDescriptor, path: Path) -> None:
     """Unlink one entry from the still-authorized physical parent."""
     require_entry(parent, path)
     assert_parent_unchanged(parent)
@@ -152,9 +152,9 @@ def unlink_entry(parent: ParentDescriptor, path: Path) -> None:
 
 
 def replace_entry(
-    source_parent: ParentDescriptor,
+    source_parent: FlextCliParentDescriptor,
     source: Path,
-    destination_parent: ParentDescriptor,
+    destination_parent: FlextCliParentDescriptor,
     destination: Path,
 ) -> None:
     """Replace one entry using only authenticated directory descriptors."""
@@ -189,7 +189,7 @@ def _require_capabilities(path: Path, *, replace: bool, unlink: bool) -> None:
         raise OSError(errno.ENOTSUP, message)
 
 
-def require_entry(parent: ParentDescriptor, path: Path) -> None:
+def require_entry(parent: FlextCliParentDescriptor, path: Path) -> None:
     """Require one validated path to name a child of the opened parent.
 
     Raises:
@@ -233,7 +233,7 @@ def close_after_failure(
 
 
 __all__: list[str] = [
-    "ParentDescriptor",
+    "FlextCliParentDescriptor",
     "assert_parent_unchanged",
     "close_after_failure",
     "entry_descriptor",

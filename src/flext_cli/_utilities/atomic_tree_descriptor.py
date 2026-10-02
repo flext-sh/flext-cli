@@ -31,7 +31,7 @@ _FILE_FLAGS = (
 
 
 def measure_authenticated_file(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     expected: os.stat_result,
     *,
@@ -138,7 +138,7 @@ def require_directory_state(
 
 
 def require_entry_state(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     expected: os.stat_result,
 ) -> None:

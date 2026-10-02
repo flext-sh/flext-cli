@@ -24,7 +24,7 @@ _MAX_EMPTY_DIRECTORY_LINK_COUNT = 2
 def destination_state(
     path: Path,
     *,
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
 ) -> os.stat_result | None:
     """Read one final directory entry without following it or crossing devices.
 
@@ -50,7 +50,7 @@ def destination_state(
 
 
 def read_empty_state(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     expected: os.stat_result,
 ) -> os.stat_result:
@@ -74,7 +74,7 @@ def read_empty_state(
 
 
 def initialize_empty_state(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     expected: os.stat_result,
     permission_mode: int,
@@ -143,7 +143,7 @@ def _require_empty(descriptor: int, path: Path) -> None:
 
 
 def _require_path_state(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     expected: os.stat_result,
 ) -> os.stat_result:

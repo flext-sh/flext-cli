@@ -17,7 +17,7 @@ from flext_cli._utilities import atomic_file_descriptor as descriptor
 
 def read_symlink_state(
     path: Path,
-    parent: descriptor.ParentDescriptor,
+    parent: descriptor.FlextCliParentDescriptor,
     *,
     required: bool = False,
 ) -> m.Cli.AtomicSymlinkState:
@@ -87,7 +87,7 @@ def symlink_identity(observed: os.stat_result) -> m.Cli.AtomicSymlinkIdentity:
 
 def require_symlink_state(
     before: m.Cli.AtomicSymlinkState,
-    parent: descriptor.ParentDescriptor,
+    parent: descriptor.FlextCliParentDescriptor,
 ) -> None:
     """Reject any parent, leaf identity or link-text drift before mutation.
 

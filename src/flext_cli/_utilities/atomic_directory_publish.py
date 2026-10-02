@@ -87,7 +87,7 @@ def publish_guarded_staged_empty_directory(
 
 def _require_destination_absent(
     planned: m.Cli.AtomicDirectoryState,
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
 ) -> None:
     observed = directory_state.destination_state(path, parent=parent)
@@ -97,7 +97,7 @@ def _require_destination_absent(
 
 def _authenticated_staged(
     planned: m.Cli.AtomicDirectoryState,
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
 ) -> os.stat_result:
     observed = directory_state.destination_state(path, parent=parent)
@@ -112,8 +112,8 @@ def _authenticated_staged(
 
 def _require_same_filesystem(
     destination: Path,
-    destination_parent: file_descriptor.ParentDescriptor,
-    staged_parent: file_descriptor.ParentDescriptor,
+    destination_parent: file_descriptor.FlextCliParentDescriptor,
+    staged_parent: file_descriptor.FlextCliParentDescriptor,
     staged: os.stat_result,
 ) -> None:
     device = destination_parent.state.st_dev
@@ -123,9 +123,9 @@ def _require_same_filesystem(
 
 
 def _published_state(
-    destination_parent: file_descriptor.ParentDescriptor,
+    destination_parent: file_descriptor.FlextCliParentDescriptor,
     destination: Path,
-    staged_parent: file_descriptor.ParentDescriptor,
+    staged_parent: file_descriptor.FlextCliParentDescriptor,
     staged_path: Path,
     staged: m.Cli.AtomicDirectoryState,
 ) -> m.Cli.AtomicDirectoryState:

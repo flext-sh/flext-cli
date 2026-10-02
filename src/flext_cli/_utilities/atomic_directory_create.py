@@ -69,7 +69,7 @@ def create_guarded_empty_directory(
 
 
 def _require_created_state(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
 ) -> os.stat_result:
     initial = directory_state.destination_state(path, parent=parent)
@@ -80,7 +80,7 @@ def _require_created_state(
 
 
 def _initialize_created(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     initial: os.stat_result,
     identity: t.Pair[int, int],

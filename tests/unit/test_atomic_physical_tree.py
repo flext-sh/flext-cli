@@ -40,8 +40,8 @@ class TestsAtomicPhysicalTree:
         tm.ok(u.Cli.atomic_cleanup_physical_tree_guarded(second))
         tm.that(root.exists(), eq=False)
 
+    @staticmethod
     def test_inventory_records_ordered_parent_bound_physical_state(
-        self,
         tmp_path: Path,
     ) -> None:
         """Expose exact root, directory, and regular-file identities and digest."""
@@ -140,8 +140,8 @@ class TestsAtomicPhysicalTree:
         tm.that((root / "payload.txt").read_text(encoding="utf-8"), eq="payload")
         tm.that((original / "payload.txt").read_text(encoding="utf-8"), eq="payload")
 
+    @staticmethod
     def test_inventory_and_cleanup_treat_symlink_as_authenticated_leaf(
-        self,
         tmp_path: Path,
     ) -> None:
         """Record and unlink an alias without traversing or touching its target."""
@@ -161,7 +161,8 @@ class TestsAtomicPhysicalTree:
         tm.that(root.exists(), eq=False)
         tm.that((target / "owned.txt").read_text(encoding="utf-8"), eq="owned")
 
-    def test_inventory_rejects_hardlinked_file(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_inventory_rejects_hardlinked_file(tmp_path: Path) -> None:
         """Refuse cleanup authority over a file with another physical name."""
         root = tmp_path / "tree"
         root.mkdir()
@@ -176,7 +177,8 @@ class TestsAtomicPhysicalTree:
         tm.that(payload.read_text(encoding="utf-8"), eq="payload")
         tm.that(alias.read_text(encoding="utf-8"), eq="payload")
 
-    def test_inventory_rejects_special_node_causally(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_inventory_rejects_special_node_causally(tmp_path: Path) -> None:
         """Reject a FIFO without opening, reading, or removing it."""
         root = tmp_path / "tree"
         root.mkdir()

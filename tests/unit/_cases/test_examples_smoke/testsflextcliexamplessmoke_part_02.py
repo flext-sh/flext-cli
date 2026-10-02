@@ -39,8 +39,8 @@ class TestsFlextCliExamplesSmoke:
         finally:
             settings.cli_token_file = original_token_file
 
+    @staticmethod
     def test_file_operation_examples_surface_failure_paths(
-        self,
         tmp_path: Path,
     ) -> None:
         """File examples must report invalid filesystem and payload failures."""

@@ -15,7 +15,7 @@ from flext_cli._utilities import atomic_file_descriptor as file_descriptor
 
 
 def read_descriptor_bytes(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     expected: os.stat_result,
 ) -> bytes:

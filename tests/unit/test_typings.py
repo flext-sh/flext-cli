@@ -103,11 +103,13 @@ class TestsFlextCliTypings:
 
     # --- Published type-tuple ClassVars ---------------------------------
 
-    def test_primitive_types_expose_scalar_primitives(self) -> None:
+    @staticmethod
+    def test_primitive_types_expose_scalar_primitives() -> None:
         """The primitives tuple publishes the four JSON scalar primitive types."""
         tm.that(set(c.PRIMITIVES_TYPES), eq={str, int, float, bool})
 
-    def test_scalar_types_superset_primitive_types(self) -> None:
+    @staticmethod
+    def test_scalar_types_superset_primitive_types() -> None:
         """SCALAR_TYPES includes every primitive plus richer scalar types."""
         primitives = set(c.PRIMITIVES_TYPES)
         scalars = set(c.SCALAR_TYPES)
@@ -116,14 +118,16 @@ class TestsFlextCliTypings:
 
     # --- Published alias round-trips via TypeAdapter --------------------
 
-    def test_scalar_alias_validates_each_primitive(self) -> None:
+    @staticmethod
+    def test_scalar_alias_validates_each_primitive() -> None:
         """The Scalar alias round-trips every primitive value."""
         adapter: m.TypeAdapter[t.Scalar] = u.type_adapter(t.Scalar)
         tm.that(adapter.validate_python("value"), eq="value")
         tm.that(adapter.validate_python(True), eq=True)
         tm.that(adapter.validate_python(3), eq=3)
 
-    def test_optional_str_sequence_alias_accepts_value_and_none(self) -> None:
+    @staticmethod
+    def test_optional_str_sequence_alias_accepts_value_and_none() -> None:
         """A ``StrSequence | None`` alias accepts both a sequence and None."""
         adapter: m.TypeAdapter[t.StrSequence | None] = u.type_adapter(
             t.StrSequence | None,
@@ -131,7 +135,8 @@ class TestsFlextCliTypings:
         tm.that(adapter.validate_python(["alpha", "beta"]), eq=["alpha", "beta"])
         tm.that(adapter.validate_python(None), none=True)
 
-    def test_mapping_alias_validates_sequence_of_typed_mappings(self) -> None:
+    @staticmethod
+    def test_mapping_alias_validates_sequence_of_typed_mappings() -> None:
         """MappingKV composes into a validatable sequence-of-mappings alias."""
         adapter: m.TypeAdapter[Sequence[t.MappingKV[str, str | int]]] = u.type_adapter(
             Sequence[t.MappingKV[str, str | int]],

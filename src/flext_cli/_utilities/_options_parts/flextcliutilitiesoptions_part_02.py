@@ -83,7 +83,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
         )
         if source_value is None:
             return None
-        if cls.is_json_option(cls.field_annotation(field_name, field_info)):
+        if cls.json_option(cls.field_annotation(field_name, field_info)):
             # A JSON option's default is the JSON text its parser validates.
             adapter = u.type_adapter(field_info.rebuild_annotation())
             validated = adapter.validate_python(source_value)
@@ -113,7 +113,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             The resulting ``m.Cli.OptionSpec``.
 
         """
-        return FlextCliUtilitiesOptionBuilder(field_name, registry).build()
+        return FlextCliUtilitiesOptionBuilder.build(field_name, registry)
 
     @staticmethod
     def reorder_prefixed_options(

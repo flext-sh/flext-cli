@@ -19,8 +19,8 @@ from tests import u
 class TestsAtomicDirectoryIdentity:
     """Prove directory effects consume exact parent and leaf identities."""
 
+    @staticmethod
     def test_snapshot_distinguishes_absence_from_empty_directory(
-        self,
         tmp_path: Path,
     ) -> None:
         """Return parent identity for absence and complete identity for presence."""
@@ -40,7 +40,8 @@ class TestsAtomicDirectoryIdentity:
         tm.that(present.inode, eq=host_state.st_ino)
         tm.that(present.link_count, eq=host_state.st_nlink)
 
-    def test_required_snapshot_rejects_absence(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_required_snapshot_rejects_absence(tmp_path: Path) -> None:
         """Fail rather than manufacturing an existing directory identity."""
         result = u.Cli.atomic_read_empty_directory_state(
             tmp_path / "missing",
@@ -49,8 +50,8 @@ class TestsAtomicDirectoryIdentity:
 
         tm.fail(result)
 
+    @staticmethod
     def test_create_materializes_exact_mode_and_returns_inode(
-        self,
         tmp_path: Path,
     ) -> None:
         """Create from exact absence and report the materialized physical state."""
@@ -68,7 +69,8 @@ class TestsAtomicDirectoryIdentity:
         tm.that(result.value.inode, eq=host_state.st_ino)
         tm.that(tuple(target.iterdir()), eq=())
 
-    def test_create_rejects_replaced_parent(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_create_rejects_replaced_parent(tmp_path: Path) -> None:
         """Never apply an absent snapshot to a new directory at the same path."""
         parent = tmp_path / "parent"
         parent.mkdir()
@@ -87,8 +89,8 @@ class TestsAtomicDirectoryIdentity:
         tm.that(target.exists(), eq=False)
         tm.that((original_parent / target.name).exists(), eq=False)
 
+    @staticmethod
     def test_delete_rejects_replacement_inode_with_same_mode(
-        self,
         tmp_path: Path,
     ) -> None:
         """Do not remove a new empty inode that merely matches visible mode.
@@ -136,7 +138,8 @@ class TestsAtomicDirectoryIdentity:
         tm.that(target.is_dir(), eq=True)
         tm.that(child.exists(), eq=True)
 
-    def test_leaf_symlink_is_never_a_directory_state(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_leaf_symlink_is_never_a_directory_state(tmp_path: Path) -> None:
         """Reject a final-entry alias without touching its physical target."""
         physical = tmp_path / "physical"
         physical.mkdir()
@@ -149,7 +152,8 @@ class TestsAtomicDirectoryIdentity:
         tm.that(physical.is_dir(), eq=True)
         tm.that(alias.is_symlink(), eq=True)
 
-    def test_ancestor_symlink_is_never_traversed(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_ancestor_symlink_is_never_traversed(tmp_path: Path) -> None:
         """Reject aliases in every ancestor, not only the final parent entry."""
         physical = tmp_path / "physical"
         physical.mkdir()
@@ -162,7 +166,8 @@ class TestsAtomicDirectoryIdentity:
         tm.fail(result)
         tm.that((physical / "empty").is_dir(), eq=True)
 
-    def test_state_model_rejects_reparse_identity(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_state_model_rejects_reparse_identity(tmp_path: Path) -> None:
         """Keep a nonzero host reparse tag outside the public CAS contract."""
         parent_state = tmp_path.lstat()
         with pytest.raises(m.ValidationError):

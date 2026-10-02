@@ -15,7 +15,8 @@ from tests import c, p, u
 class TestsFlextCliPublicContractsCoverage:
     """Implementation part for TestsFlextCliPublicContractsCoverage."""
 
-    def test_public_facade_and_settings_contract(self) -> None:
+    @staticmethod
+    def test_public_facade_and_settings_contract() -> None:
         # NOTE (multi-agent): flat cli_* settings (§2.6) — fresh instances come
         # from ``settings.clone()`` and test-runtime detection lives in
         # ``u.Cli.cli_test_env`` (behavior moved off the settings model).
