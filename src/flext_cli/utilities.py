@@ -12,7 +12,7 @@ from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
 from flext_core import m, u
 
 
-class FlextCliUtilities(u):
+class FlextCliUtilities(FlextCliUtilitiesMetadata):
     """CLI utility facade composed from internal utility mixins."""
 
     # Why (multi-agent): the pydantic metaclass strips class-typed attributes
@@ -22,6 +22,7 @@ class FlextCliUtilities(u):
 
     # NOTE (multi-agent): mro-wkii.17.17 publishes the canonical class directly.
     Cli: ClassVar[type[FlextCliUtilitiesCli]] = FlextCliUtilitiesCli
+    Metadata: ClassVar[type[FlextCliUtilitiesMetadata]] = FlextCliUtilitiesMetadata
 
 
 u = FlextCliUtilities
