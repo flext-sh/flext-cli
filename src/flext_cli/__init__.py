@@ -11,6 +11,7 @@ from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from flext_cli.__version__ import (
+<<<<<<< HEAD
     __author__,
     __author_email__,
     __description__,
@@ -19,6 +20,16 @@ from flext_cli.__version__ import (
     __url__,
     __version__,
     __version_info__,
+=======
+    __author__ as __author__,
+    __author_email__ as __author_email__,
+    __description__ as __description__,
+    __license__ as __license__,
+    __title__ as __title__,
+    __url__ as __url__,
+    __version__ as __version__,
+    __version_info__ as __version_info__,
+>>>>>>> origin/fix/cli-contract-cure-20261001
 )
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
@@ -29,9 +40,15 @@ if TYPE_CHECKING:
     from flext_cli.base import FlextCliServiceBase, s
     from flext_cli.cli import main
     from flext_cli.config import FlextCliConfig, config
+<<<<<<< HEAD
     from flext_cli.constants import FlextCliConstants, c
     from flext_cli.models import FlextCliModels, m
     from flext_cli.protocols import FlextCliProtocols, p
+=======
+    from flext_cli.constants import FlextCliConstants, FlextCliConstants as c
+    from flext_cli.models import FlextCliModels, FlextCliModels as m
+    from flext_cli.protocols import FlextCliProtocols, FlextCliProtocols as p
+>>>>>>> origin/fix/cli-contract-cure-20261001
     from flext_cli.services.auth import FlextCliAuth
     from flext_cli.services.cli import FlextCliCli
     from flext_cli.services.cli_params import FlextCliCommonParams
@@ -48,7 +65,11 @@ if TYPE_CHECKING:
     from flext_cli.services.tables import FlextCliTables
     from flext_cli.services.xlsx import FlextCliXlsx
     from flext_cli.services.yaml_model import FlextCliYamlModel
+<<<<<<< HEAD
     from flext_cli.typings import FlextCliTypes, t
+=======
+    from flext_cli.typings import FlextCliTypes, FlextCliTypes as t
+>>>>>>> origin/fix/cli-contract-cure-20261001
     from flext_cli.utilities import FlextCliUtilities, u
     from flext_core import d, e, h, r, x
 
