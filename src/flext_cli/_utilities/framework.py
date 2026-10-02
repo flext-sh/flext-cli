@@ -15,7 +15,6 @@ from typing import TYPE_CHECKING, Never
 
 import click
 import typer
-from pydantic import TypeAdapter
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
