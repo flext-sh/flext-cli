@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
+from flext_core import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
@@ -25,7 +25,7 @@ _LAZY_IMPORTS = MappingProxyType(
         MappingProxyType({
             ".flextcliutilitiestablesrenderer_part_01": (
                 "FlextCliUtilitiesTablesRenderer",
-            ),
+            )
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
