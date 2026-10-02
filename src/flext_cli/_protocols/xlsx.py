@@ -8,12 +8,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from flext_cli._protocols.xlsx_archive import FlextCliProtocolsXlsxArchive
+from flext_cli._protocols.xlsx_rules import FlextCliProtocolsXlsxRules
+from flext_cli._protocols.xlsx_snapshot import FlextCliProtocolsXlsxSnapshot
+from flext_cli._protocols.xlsx_workbook import FlextCliProtocolsXlsxWorkbook
 from flext_core import p
-
-from .xlsx_archive import FlextCliProtocolsXlsxArchive
-from .xlsx_rules import FlextCliProtocolsXlsxRules
-from .xlsx_snapshot import FlextCliProtocolsXlsxSnapshot
-from .xlsx_workbook import FlextCliProtocolsXlsxWorkbook
 
 if TYPE_CHECKING:
     # mro-j47u (codex): p -> m stays type-only through the canonical facade.

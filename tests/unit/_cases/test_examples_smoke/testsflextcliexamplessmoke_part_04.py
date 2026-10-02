@@ -18,8 +18,8 @@ if TYPE_CHECKING:
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
+    @staticmethod
     def test_complete_integration_example_persists_validated_workflow_data(
-        self,
         tmp_path: Path,
     ) -> None:
         """Complete integration example must persist and reload real workflow data."""
@@ -34,8 +34,8 @@ class TestsFlextCliExamplesSmoke:
         tm.ok(load_result)
         tm.that(load_result.value["sample_key"], eq="sample_value")
 
+    @staticmethod
     def test_complete_integration_example_surfaces_load_and_save_failures(
-        self,
         tmp_path: Path,
     ) -> None:
         """Complete integration example must fail honestly for missing, invalid, and unwritable data files."""
@@ -57,8 +57,8 @@ class TestsFlextCliExamplesSmoke:
         save_result = app.save_data({"key": "value"})
         tm.fail(save_result)
 
+    @staticmethod
     def test_complete_integration_example_surfaces_runtime_failures(
-        self,
         tmp_path: Path,
     ) -> None:
         """Complete integration surfaces invalid JSON and publication failures."""

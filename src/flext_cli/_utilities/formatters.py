@@ -9,9 +9,8 @@ from __future__ import annotations
 from typing import Final
 
 from flext_cli import c, m
-
-from .output import FlextCliUtilitiesOutput
-from .tables import FlextCliUtilitiesTables
+from flext_cli._utilities.output import FlextCliUtilitiesOutput
+from flext_cli._utilities.tables import FlextCliUtilitiesTables
 
 _RESET: Final[str] = "\x1b[0m"
 _ANSI_BY_STYLE: Final[dict[str, str]] = {
@@ -42,11 +41,16 @@ class FlextCliUtilitiesFormatters:
 
     @classmethod
     def formatters_print(
-        cls, message: str, style: str | None = None, *, error: bool = False,
+        cls,
+        message: str,
+        style: str | None = None,
+        *,
+        error: bool = False,
     ) -> None:
         """Print one message with the optional canonical style."""
         FlextCliUtilitiesOutput.emit_raw(
-            f"{cls._styled(message, style)}\n", error=error,
+            f"{cls._styled(message, style)}\n",
+            error=error,
         )
 
     @classmethod

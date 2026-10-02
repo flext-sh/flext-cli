@@ -22,7 +22,8 @@ class TestsFlextCliParams:
 
     # -- params_resolve -----------------------------------------------------
 
-    def test_resolve_merges_model_with_kwargs(self) -> None:
+    @staticmethod
+    def test_resolve_merges_model_with_kwargs() -> None:
         """Verify that resolve merges model with kwargs."""
         params = m.Cli.CliParamsConfig(debug=True)
         resolved = u.Cli.params_resolve(params, {"verbose": True})
@@ -30,19 +31,22 @@ class TestsFlextCliParams:
         tm.that(resolved.debug, eq=True)
         tm.that(resolved.verbose, eq=True)
 
-    def test_resolve_with_none_params_uses_kwargs_only(self) -> None:
+    @staticmethod
+    def test_resolve_with_none_params_uses_kwargs_only() -> None:
         """Verify that resolve with none params uses kwargs only."""
         resolved = u.Cli.params_resolve(None, {"quiet": True})
         tm.that(resolved, is_=m.Cli.CliParamsConfig)
         tm.that(resolved.quiet, eq=True)
 
-    def test_resolve_kwargs_override_model_values(self) -> None:
+    @staticmethod
+    def test_resolve_kwargs_override_model_values() -> None:
         """Verify that resolve kwargs override model values."""
         params = m.Cli.CliParamsConfig(debug=True)
         resolved = u.Cli.params_resolve(params, {"debug": False})
         tm.that(resolved.debug, eq=False)
 
-    def test_resolve_is_idempotent_for_same_inputs(self) -> None:
+    @staticmethod
+    def test_resolve_is_idempotent_for_same_inputs() -> None:
         """Verify that resolve is idempotent for same inputs."""
         params = m.Cli.CliParamsConfig(debug=True, verbose=True)
         first = u.Cli.params_resolve(params, {})
@@ -51,7 +55,8 @@ class TestsFlextCliParams:
 
     # -- params_set_bool ----------------------------------------------------
 
-    def test_set_bool_applies_root_and_cli_flags(self) -> None:
+    @staticmethod
+    def test_set_bool_applies_root_and_cli_flags() -> None:
         """Verify that set bool applies root and cli flags."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(
@@ -69,7 +74,8 @@ class TestsFlextCliParams:
         tm.that(updated.cli_quiet, eq=True)
         tm.that(updated.cli_no_color, eq=True)
 
-    def test_set_bool_trace_without_debug_fails(self) -> None:
+    @staticmethod
+    def test_set_bool_trace_without_debug_fails() -> None:
         """Verify that set bool trace without debug fails."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(trace=True)
@@ -77,7 +83,8 @@ class TestsFlextCliParams:
         tm.fail(result)
         tm.that(result.error, eq=tc.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG)
 
-    def test_set_bool_no_flags_returns_settings_unchanged(self) -> None:
+    @staticmethod
+    def test_set_bool_no_flags_returns_settings_unchanged() -> None:
         """Verify that set bool no flags returns settings unchanged."""
         settings = cli_settings.clone()
         result = u.Cli.params_set_bool(settings, m.Cli.CliParamsConfig())
@@ -96,14 +103,16 @@ class TestsFlextCliParams:
         tm.ok(result)
         tm.that(result.value.cli_log_level, eq=level)
 
-    def test_set_log_level_none_returns_settings_unchanged(self) -> None:
+    @staticmethod
+    def test_set_log_level_none_returns_settings_unchanged() -> None:
         """Verify that set log level none returns settings unchanged."""
         settings = cli_settings.clone()
         result = u.Cli.params_set_log_level(settings, m.Cli.CliParamsConfig())
         tm.ok(result)
         tm.that(result.value.cli_log_level, eq=settings.cli_log_level)
 
-    def test_set_log_level_invalid_fails_with_options_message(self) -> None:
+    @staticmethod
+    def test_set_log_level_invalid_fails_with_options_message() -> None:
         """Verify that set log level invalid fails with options message."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(log_level="BOGUS")
@@ -139,7 +148,8 @@ class TestsFlextCliParams:
         tm.ok(result)
         tm.that(result.value.cli_output_format, eq=output_format)
 
-    def test_set_format_none_returns_settings_unchanged(self) -> None:
+    @staticmethod
+    def test_set_format_none_returns_settings_unchanged() -> None:
         """Verify that set format none returns settings unchanged."""
         settings = cli_settings.clone()
         result = u.Cli.params_set_format(settings, m.Cli.CliParamsConfig())
@@ -147,7 +157,8 @@ class TestsFlextCliParams:
         tm.that(result.value.cli_log_verbosity, eq=settings.cli_log_verbosity)
         tm.that(result.value.cli_output_format, eq=settings.cli_output_format)
 
-    def test_set_format_invalid_log_format_fails(self) -> None:
+    @staticmethod
+    def test_set_format_invalid_log_format_fails() -> None:
         """Verify that set format invalid log format fails."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(log_format="BAD")
@@ -160,7 +171,8 @@ class TestsFlextCliParams:
         )
         tm.that(result.error, eq=expected)
 
-    def test_set_format_invalid_output_format_fails(self) -> None:
+    @staticmethod
+    def test_set_format_invalid_output_format_fails() -> None:
         """Verify that set format invalid output format fails."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(output_format="BAD")
@@ -175,7 +187,8 @@ class TestsFlextCliParams:
 
     # -- params_apply -------------------------------------------------------
 
-    def test_apply_chains_all_stages_on_valid_params(self) -> None:
+    @staticmethod
+    def test_apply_chains_all_stages_on_valid_params() -> None:
         """Verify that apply chains all stages on valid params."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(
@@ -192,7 +205,8 @@ class TestsFlextCliParams:
         tm.that(updated.cli_output_format, eq="yaml")
         tm.that(updated.cli_log_verbosity, eq="detailed")
 
-    def test_apply_short_circuits_on_first_stage_failure(self) -> None:
+    @staticmethod
+    def test_apply_short_circuits_on_first_stage_failure() -> None:
         """Verify that apply short circuits on first stage failure."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(trace=True)
@@ -200,7 +214,8 @@ class TestsFlextCliParams:
         tm.fail(result)
         tm.that(result.error, eq=tc.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG)
 
-    def test_apply_returns_result_type(self) -> None:
+    @staticmethod
+    def test_apply_returns_result_type() -> None:
         """Verify that apply returns result type."""
         settings = cli_settings.clone()
         result = u.Cli.params_apply(settings, m.Cli.CliParamsConfig())

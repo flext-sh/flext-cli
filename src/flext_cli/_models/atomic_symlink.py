@@ -9,9 +9,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
+from flext_cli._models import atomic_state
 from flext_core import m, t, u
-
-from . import atomic_state
 
 
 class FlextCliModelsAtomicSymlink:

@@ -46,8 +46,8 @@ class TestsFlextCliFormattersCov:
         out = capsys.readouterr().out
         tm.that(out, has=msg)
 
+    @staticmethod
     def test_public_cli_print_renders_message_to_stdout(
-        self,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify the canonical public cli.print endpoint."""

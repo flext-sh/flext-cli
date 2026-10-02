@@ -18,8 +18,8 @@ from tests import u
 class TestsAtomicFileIdentity:
     """Prove callers cannot authorize effects with only matching content."""
 
+    @staticmethod
     def test_publication_unchanged_requires_equal_bytes_and_mode(
-        self,
         tmp_path: Path,
     ) -> None:
         """Treat matching bytes with different permissions as a real change."""
@@ -53,8 +53,8 @@ class TestsAtomicFileIdentity:
             eq=True,
         )
 
+    @staticmethod
     def test_exclusive_create_returns_exact_published_state(
-        self,
         tmp_path: Path,
     ) -> None:
         """Create one absent binary file with its requested bytes and mode."""
@@ -71,8 +71,8 @@ class TestsAtomicFileIdentity:
         tm.that(result.value.mode, eq=0o600)
         tm.that(destination.read_bytes(), eq=b"content")
 
+    @staticmethod
     def test_exclusive_create_rejects_existing_destination(
-        self,
         tmp_path: Path,
     ) -> None:
         """Preserve an existing file rather than treating create as overwrite."""
@@ -88,8 +88,8 @@ class TestsAtomicFileIdentity:
         tm.fail(result)
         tm.that(destination.read_bytes(), eq=b"before")
 
+    @staticmethod
     def test_publication_applies_authenticated_staged_replacement(
-        self,
         tmp_path: Path,
     ) -> None:
         """Replace one exact live state with one exact staged state."""
@@ -118,7 +118,8 @@ class TestsAtomicFileIdentity:
         tm.that(destination.read_bytes(), eq=b"after")
         tm.that(staged.exists(), eq=False)
 
-    def test_publication_applies_authenticated_tombstone(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_publication_applies_authenticated_tombstone(tmp_path: Path) -> None:
         """Delete one exact live state when its replacement is absent."""
         destination = tmp_path / "deleted.bin"
         destination.write_bytes(b"content")
@@ -138,7 +139,8 @@ class TestsAtomicFileIdentity:
         tm.that(result.value.content, is_=None)
         tm.that(destination.exists(), eq=False)
 
-    def test_relative_write_fails_before_parent_creation(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_relative_write_fails_before_parent_creation(tmp_path: Path) -> None:
         """Reject a relative identity without creating its directory tree."""
         destination = Path("relative") / "atomic.txt"
         script = (
@@ -156,7 +158,8 @@ class TestsAtomicFileIdentity:
         tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
         tm.that((tmp_path / destination.parent).exists(), eq=False)
 
-    def test_delete_consumes_complete_snapshot(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_delete_consumes_complete_snapshot(tmp_path: Path) -> None:
         """Delete the same physical version returned by the snapshot owner."""
         destination = tmp_path / "atomic.bin"
         destination.write_bytes(b"content")
@@ -182,8 +185,8 @@ class TestsAtomicFileIdentity:
         tm.ok(result)
         tm.that(destination.exists(), eq=False)
 
+    @staticmethod
     def test_delete_rejects_replacement_with_same_bytes_and_mode(
-        self,
         tmp_path: Path,
     ) -> None:
         """Treat a new inode as stale even when bytes and mode are unchanged.
@@ -213,8 +216,8 @@ class TestsAtomicFileIdentity:
         tm.fail(result)
         tm.that(destination.read_bytes(), eq=b"content")
 
+    @staticmethod
     def test_delete_rejects_link_count_changed_after_snapshot(
-        self,
         tmp_path: Path,
     ) -> None:
         """Reject a hard link added after the caller observed unique ownership."""
@@ -234,8 +237,8 @@ class TestsAtomicFileIdentity:
         tm.that(destination.read_bytes(), eq=b"content")
         tm.that(alias.read_bytes(), eq=b"content")
 
+    @staticmethod
     def test_guarded_write_rejects_link_count_changed_after_snapshot(
-        self,
         tmp_path: Path,
     ) -> None:
         """Require unique ownership from plan through binary publication.
@@ -268,8 +271,8 @@ class TestsAtomicFileIdentity:
         tm.that(destination.read_bytes(), eq=b"before")
         tm.that(alias.read_bytes(), eq=b"before")
 
+    @staticmethod
     def test_staged_publish_preserves_complete_physical_state(
-        self,
         tmp_path: Path,
     ) -> None:
         """Move the authenticated staged inode and every available host field."""
@@ -294,7 +297,8 @@ class TestsAtomicFileIdentity:
         tm.that(destination.read_bytes(), eq=b"content")
         tm.that(staged.exists(), eq=False)
 
-    def test_staged_publish_rejects_new_hard_link(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_staged_publish_rejects_new_hard_link(tmp_path: Path) -> None:
         """Reject staging whose unique-link invariant changed after snapshot."""
         destination = tmp_path / "published.bin"
         staged = tmp_path / "staged.bin"

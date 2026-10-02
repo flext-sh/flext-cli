@@ -21,7 +21,8 @@ from tests import t, u
 class TestsAtomicFileContract:
     """Observable atomic-write behavior shared by text and binary APIs."""
 
-    def test_text_write_persists_content(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_text_write_persists_content(tmp_path: Path) -> None:
         """Keep the unconditional text facade on the strict atomic owner."""
         path = tmp_path / "atomic.txt"
 
@@ -29,7 +30,8 @@ class TestsAtomicFileContract:
 
         tm.that(path.read_text(encoding="utf-8"), eq="hello atomic")
 
-    def test_new_file_matches_host_secure_temporary_mode(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_new_file_matches_host_secure_temporary_mode(tmp_path: Path) -> None:
         """Use the host's canonical secure temporary-file permission mode."""
         descriptor, reference_name = tempfile.mkstemp(dir=tmp_path)
         os.close(descriptor)
@@ -59,7 +61,8 @@ class TestsAtomicFileContract:
         tm.that(path.read_text(encoding="utf-8"), eq="after")
         tm.that(stat.S_IMODE(path.stat().st_mode), eq=expected_mode)
 
-    def test_binary_write_preserves_host_permission_mode(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_binary_write_preserves_host_permission_mode(tmp_path: Path) -> None:
         """Apply the same permission-mode contract through the binary API."""
         path = tmp_path / "atomic.bin"
         path.write_bytes(b"before")
@@ -144,8 +147,8 @@ class TestsAtomicFileContract:
         tm.that(owner.lstat().st_ino, eq=owner_inode)
         tm.that(destination.lstat().st_ino != owner_inode)
 
+    @staticmethod
     def test_write_failure_after_staging_leaves_no_partial_file(
-        self,
         tmp_path: Path,
     ) -> None:
         """Expose a real host write failure without publishing partial state."""
@@ -187,8 +190,8 @@ raise SystemExit(0 if result.failure else 2)
         tm.that(path.exists(), eq=False)
         tm.that(tuple(tmp_path.iterdir()), eq=())
 
+    @staticmethod
     def test_timer_interrupt_preserves_cause_and_removes_authenticated_stage(
-        self,
         tmp_path: Path,
     ) -> None:
         """Preserve timer failure and never delete unauthenticated staging."""
@@ -327,7 +330,8 @@ raise SystemExit(6)
             msg=completed.stderr,
         )
 
-    def test_unwritable_parent_fails(self) -> None:
+    @staticmethod
+    def test_unwritable_parent_fails() -> None:
         """Expose an invalid destination through the public result contract."""
         result = u.Cli.atomic_write_text_file(
             "/nonexistent_root_dir/x/y/z/file.txt",

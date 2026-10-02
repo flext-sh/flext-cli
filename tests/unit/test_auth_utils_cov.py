@@ -63,7 +63,8 @@ class TestsFlextCliAuthUtilsCov:
         # Assert — a non-blank path is returned verbatim as a Path
         tm.that(path, eq=Path(token_file))
 
-    def test_token_file_path_is_deterministic(self) -> None:
+    @staticmethod
+    def test_token_file_path_is_deterministic() -> None:
         # Invariant: same input always maps to the same path
         """Verify that token file path is deterministic."""
         first = u.Cli.auth_token_file_path(None)
@@ -93,14 +94,16 @@ class TestsFlextCliAuthUtilsCov:
         if expect_ok:
             tm.that(result.unwrap(), eq=True)
 
-    def test_validate_credentials_reports_empty_username(self) -> None:
+    @staticmethod
+    def test_validate_credentials_reports_empty_username() -> None:
         """Verify that validate credentials reports empty username."""
         result = u.Cli.auth_validate_credentials("", "secret123")
         tm.fail(result)
         tm.that(result.error, none=False)
         tm.that(result.error, has="Username")
 
-    def test_validate_credentials_reports_empty_password(self) -> None:
+    @staticmethod
+    def test_validate_credentials_reports_empty_password() -> None:
         """Verify that validate credentials reports empty password."""
         result = u.Cli.auth_validate_credentials("admin", "   ")
         tm.fail(result)
@@ -109,7 +112,8 @@ class TestsFlextCliAuthUtilsCov:
 
     # ── auth_extract_token ────────────────────────────────────────────
 
-    def test_extract_token_returns_token_from_mapping(self) -> None:
+    @staticmethod
+    def test_extract_token_returns_token_from_mapping() -> None:
         # Arrange
         """Verify that extract token returns token from mapping."""
         token = "t" + "1" * 12
@@ -153,7 +157,8 @@ class TestsFlextCliAuthUtilsCov:
         tm.that(result.error, none=False)
         tm.that(tm.not_none(result.error).lower(), has="mapping")
 
-    def test_extract_token_success_chains_through_map(self) -> None:
+    @staticmethod
+    def test_extract_token_success_chains_through_map() -> None:
         # Behavioral: a successful result composes with r[T] combinators
         """Verify that extract token success chains through map."""
         payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_AUTH_TOKEN: "abc"}

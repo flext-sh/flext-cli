@@ -16,7 +16,11 @@ class FlextCliFormatters(s[m.Cli.RuntimeStatus]):
 
     @classmethod
     def print(
-        cls, message: str, style: str | None = None, *, error: bool = False,
+        cls,
+        message: str,
+        style: str | None = None,
+        *,
+        error: bool = False,
     ) -> None:
         """Print one message with the optional style."""
         u.Cli.formatters_print(message, style=style, error=error)

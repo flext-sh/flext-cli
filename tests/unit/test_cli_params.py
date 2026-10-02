@@ -43,7 +43,8 @@ class TestsFlextCliCliParams:
         option = cli.create_option(field_name)
         tm.that(option, is_=p.Cli.CliOptionSpec)
 
-    def test_create_option_raises_valueerror_for_unknown_field(self) -> None:
+    @staticmethod
+    def test_create_option_raises_valueerror_for_unknown_field() -> None:
         """create_option rejects an unregistered field with a descriptive ValueError."""
         with pytest.raises(ValueError, match="not found") as exc_info:
             cli.create_option("nonexistent_field")
@@ -51,8 +52,8 @@ class TestsFlextCliCliParams:
 
     # ── apply_to_config: success paths ───────────────────────────────
 
+    @staticmethod
     def test_apply_to_config_applies_flags_and_log_level(
-        self,
         settings: p.Cli.Settings,
     ) -> None:
         """apply_to_config returns updated settings reflecting each applied value."""
@@ -69,8 +70,8 @@ class TestsFlextCliCliParams:
         tm.that(updated.debug is True, eq=True)
         tm.that(updated.cli_log_level, eq=c.LogLevel.DEBUG)
 
+    @staticmethod
     def test_apply_to_config_trace_with_debug_enables_trace(
-        self,
         settings: p.Cli.Settings,
     ) -> None:
         """Trace is accepted and applied when debug is also enabled."""
@@ -81,8 +82,8 @@ class TestsFlextCliCliParams:
         tm.that(updated.debug is True, eq=True)
         tm.that(updated.trace is True, eq=True)
 
+    @staticmethod
     def test_apply_to_config_is_idempotent_for_same_values(
-        self,
         settings: p.Cli.Settings,
     ) -> None:
         """Applying the same values twice yields the same observable state."""
@@ -99,8 +100,8 @@ class TestsFlextCliCliParams:
 
     # ── apply_to_config: failure paths ───────────────────────────────
 
+    @staticmethod
     def test_apply_to_config_trace_without_debug_fails(
-        self,
         settings: p.Cli.Settings,
     ) -> None:
         """Trace without debug fails with a message explaining the dependency."""
@@ -109,8 +110,8 @@ class TestsFlextCliCliParams:
         tm.fail(result)
         tm.that((result.error or "").lower(), has="trace mode requires debug mode")
 
+    @staticmethod
     def test_apply_to_config_unknown_parameter_fails_carrying_validation_error(
-        self,
         settings: p.Cli.Settings,
     ) -> None:
         """A parameter the params model rejects fails and keeps its cause."""
@@ -164,7 +165,8 @@ class TestsFlextCliCliParams:
         tm.ok(u.Tests.create_decorated_command(app, "test"))
         return app
 
-    def test_help_exposes_common_options(self, app: p.Cli.Application) -> None:
+    @staticmethod
+    def test_help_exposes_common_options(app: p.Cli.Application) -> None:
         """--help lists every common parameter the decorator promises to add."""
         result = cli.invoke_app(app, args=["test", "--help"])
 
@@ -173,8 +175,8 @@ class TestsFlextCliCliParams:
         for flag in ("--verbose", "--debug", "--log-level", "--output-format"):
             tm.that(result.value.stdout, has=flag)
 
+    @staticmethod
     def test_boolean_flags_toggle_command_behavior(
-        self,
         app: p.Cli.Application,
     ) -> None:
         """Passing --verbose/--debug flips the command's observable output."""
@@ -185,7 +187,8 @@ class TestsFlextCliCliParams:
         tm.that(result.value.stdout, has="Verbose: enabled")
         tm.that(result.value.stdout, has="Debug: enabled")
 
-    def test_value_parameters_flow_to_command(self, app: p.Cli.Application) -> None:
+    @staticmethod
+    def test_value_parameters_flow_to_command(app: p.Cli.Application) -> None:
         """Choice-valued options are parsed and surfaced in command output."""
         result = cli.invoke_app(
             app,

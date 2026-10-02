@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ._config import FlextCliConfig, config
+from flext_cli._config import FlextCliConfig, config
 
 if TYPE_CHECKING:
     from flext_core import t

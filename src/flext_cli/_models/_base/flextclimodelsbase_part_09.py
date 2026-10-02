@@ -10,9 +10,8 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Literal, Self
 
 from flext_cli import t
+from flext_cli._models import atomic_state
 from flext_core import m, u
-
-from .. import atomic_state
 
 
 class FlextCliModelsBase:

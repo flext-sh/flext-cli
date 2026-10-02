@@ -12,8 +12,7 @@ import signal
 from pathlib import Path
 
 from flext_cli import m, t
-
-from . import (
+from flext_cli._utilities import (
     atomic_file_cleanup as file_cleanup,
     atomic_file_descriptor as file_descriptor,
     atomic_file_durability as file_durability,
@@ -61,7 +60,7 @@ def write_atomic_bytes(
         if planned is None:
             guarded = False
             expected_content = None
-            expected_mode: int | file_mode.NoModePrecondition | None = (
+            expected_mode: int | file_mode.FlextCliNoModePrecondition | None = (
                 file_mode.NO_MODE_PRECONDITION
             )
         else:
@@ -104,7 +103,7 @@ def _parse_precondition(
 
 
 def _stage_and_publish(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     destination: Path,
     content: bytes,
     expected: os.stat_result | None,
@@ -124,7 +123,7 @@ def _stage_and_publish(
 class _AtomicStage:
     """Own live staging state before any signal can cross a method boundary."""
 
-    def __init__(self, parent: file_descriptor.ParentDescriptor) -> None:
+    def __init__(self, parent: file_descriptor.FlextCliParentDescriptor) -> None:
         self.parent = parent
         self.temporary = file_temporary.temporary_path(parent)
         self.descriptor: int | None = None
@@ -233,7 +232,7 @@ class _AtomicStage:
 
 
 def _validate_replacement(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     destination: Path,
     expected: os.stat_result | None,
     temporary: Path,
@@ -262,7 +261,7 @@ def _validate_replacement(
 
 
 def _validate_staged(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     temporary: Path,
     content: bytes,
     mode: int,

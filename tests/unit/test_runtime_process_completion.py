@@ -24,7 +24,8 @@ if TYPE_CHECKING:
 class TestsRuntimeProcessCompletion:
     """A completed child must not wait for its execution deadline."""
 
-    def test_completion_before_wake_clear_ends_monitoring(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_completion_before_wake_clear_ends_monitoring(tmp_path: Path) -> None:
         """Schedule a real waiter at the exact lost-notification boundary.
 
         The trace holds the monitor at its first ``wake.clear()`` until the

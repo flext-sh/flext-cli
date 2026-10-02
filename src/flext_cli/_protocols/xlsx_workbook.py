@@ -11,8 +11,7 @@ from io import BytesIO
 from typing import Protocol, runtime_checkable
 
 from flext_cli import t
-
-from .xlsx_rules import FlextCliProtocolsXlsxRules
+from flext_cli._protocols.xlsx_rules import FlextCliProtocolsXlsxRules
 
 
 class FlextCliProtocolsXlsxWorkbook:

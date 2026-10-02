@@ -22,7 +22,8 @@ if TYPE_CHECKING:
 class TestsFlextCliPublicContractsCoverage:
     """Implementation part for TestsFlextCliPublicContractsCoverage."""
 
-    def test_public_model_contracts_cover_cli_shapes(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_public_model_contracts_cover_cli_shapes(tmp_path: Path) -> None:
         """Verify that public model contracts cover cli shapes."""
         output = m.Cli.CommandOutput(
             stdout="out",

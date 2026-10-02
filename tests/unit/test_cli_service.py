@@ -15,19 +15,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from ._cases.test_cli_service.testsflextcliservice_part_01 import (
+from tests.unit._cases.test_cli_service.testsflextcliservice_part_01 import (
     TestsFlextCliService as _CliServicePart01,
 )
-from ._cases.test_cli_service.testsflextcliservice_part_02 import (
+from tests.unit._cases.test_cli_service.testsflextcliservice_part_02 import (
     TestsFlextCliService as _CliServicePart02,
 )
-from ._cases.test_cli_service.testsflextcliservice_part_03 import (
+from tests.unit._cases.test_cli_service.testsflextcliservice_part_03 import (
     TestsFlextCliService as _CliServicePart03,
 )
-from ._cases.test_cli_service.testsflextcliservice_part_04 import (
+from tests.unit._cases.test_cli_service.testsflextcliservice_part_04 import (
     TestsFlextCliService as _CliServicePart04,
 )
-from ._cases.test_cli_service.testsflextcliservice_part_05 import (
+from tests.unit._cases.test_cli_service.testsflextcliservice_part_05 import (
     TestsFlextCliService as _CliServicePart05,
 )
 

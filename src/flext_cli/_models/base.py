@@ -6,37 +6,37 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from ._base.flextclimodelsbase_part_01 import (
+from flext_cli._models._base.flextclimodelsbase_part_01 import (
     FlextCliModelsBase as FlextCliModelsBasePart01,
 )
-from ._base.flextclimodelsbase_part_02 import (
+from flext_cli._models._base.flextclimodelsbase_part_02 import (
     FlextCliModelsBase as FlextCliModelsBasePart02,
 )
-from ._base.flextclimodelsbase_part_03 import (
+from flext_cli._models._base.flextclimodelsbase_part_03 import (
     FlextCliModelsBase as FlextCliModelsBasePart03,
 )
-from ._base.flextclimodelsbase_part_04 import (
+from flext_cli._models._base.flextclimodelsbase_part_04 import (
     FlextCliModelsBase as FlextCliModelsBasePart04,
 )
-from ._base.flextclimodelsbase_part_05 import (
+from flext_cli._models._base.flextclimodelsbase_part_05 import (
     FlextCliModelsBase as FlextCliModelsBasePart05,
 )
-from ._base.flextclimodelsbase_part_06 import (
+from flext_cli._models._base.flextclimodelsbase_part_06 import (
     FlextCliModelsBase as FlextCliModelsBasePart06,
 )
-from ._base.flextclimodelsbase_part_07 import (
+from flext_cli._models._base.flextclimodelsbase_part_07 import (
     FlextCliModelsBase as FlextCliModelsBasePart07,
 )
-from ._base.flextclimodelsbase_part_08 import (
+from flext_cli._models._base.flextclimodelsbase_part_08 import (
     FlextCliModelsBase as FlextCliModelsBasePart08,
 )
-from ._base.flextclimodelsbase_part_09 import (
+from flext_cli._models._base.flextclimodelsbase_part_09 import (
     FlextCliModelsBase as FlextCliModelsBasePart09,
 )
-from ._base.flextclimodelsbase_part_10 import (
+from flext_cli._models._base.flextclimodelsbase_part_10 import (
     FlextCliModelsBase as FlextCliModelsBasePart10,
 )
-from .atomic_symlink import FlextCliModelsAtomicSymlink
+from flext_cli._models.atomic_symlink import FlextCliModelsAtomicSymlink
 
 
 class FlextCliModelsBase(

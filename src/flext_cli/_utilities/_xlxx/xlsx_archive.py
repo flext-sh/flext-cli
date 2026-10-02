@@ -10,8 +10,9 @@ from io import BytesIO
 from zipfile import BadZipFile, LargeZipFile, ZipFile
 
 from flext_cli import c, m, p, r, t
-
-from .xlsx_archive_checks import FlextCliUtilitiesXlsxArchiveChecks
+from flext_cli._utilities._xlxx.xlsx_archive_checks import (
+    FlextCliUtilitiesXlsxArchiveChecks,
+)
 
 
 class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
