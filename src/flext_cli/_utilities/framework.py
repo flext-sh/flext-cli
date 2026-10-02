@@ -14,9 +14,8 @@ import typer
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
-from pydantic import TypeAdapter
-
 from flext_cli import c, e, r, t
+from flext_core import u
 
 # mro-j47u (codex): consume every public facade through the package root.
 
@@ -194,7 +193,7 @@ class FlextCliUtilitiesFramework:
         )
 
         def json_option(raw: str) -> t.JsonPayload:
-            adapter: t.ValueAdapter[t.JsonPayload] = TypeAdapter(json_annotation)
+            adapter: t.ValueAdapter[t.JsonPayload] = u.type_adapter(json_annotation)
             try:
                 return adapter.validate_json(raw)
             except ValueError as exc:

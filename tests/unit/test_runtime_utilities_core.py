@@ -133,7 +133,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             input_data=case.input_data,
         )
         if case.expect_success:
-            output = m.TypeAdapter(str).validate_python(tm.ok(result))
+            output = u.type_adapter(str).validate_python(tm.ok(result))
             if case.use_tmp_path:
                 tm.that(output, eq=str(tmp_path))
                 return

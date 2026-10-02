@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from flext_cli import c, t
-from pydantic import TypeAdapter
+from functools import cache
 
+from flext_cli import c, t
 from flext_cli.models import m
+from flext_core import u
 
 from .flextcliutilitiesoptionbuilder_part_01 import FlextCliUtilitiesOptionBuilder
 from .flextcliutilitiesoptions_part_01 import (
@@ -15,6 +16,12 @@ from .flextcliutilitiesoptions_part_01 import (
 
 class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
     """Implementation part for FlextCliUtilitiesOptions."""
+
+    @classmethod
+    @cache
+    def cli_default_source_adapter(cls) -> t.ValueAdapter[t.Cli.CliDefaultSource]:
+        """Build the CLI default adapter once at the utility boundary."""
+        return u.type_adapter(t.Cli.CliDefaultSource)
 
     @staticmethod
     def field_annotation(
@@ -49,13 +56,13 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             return None
         if cls.is_json_option(cls.field_annotation(field_name, field_info)):
             # A JSON option's default is the JSON text its parser validates.
-            adapter = TypeAdapter(field_info.rebuild_annotation())
+            adapter = u.type_adapter(field_info.rebuild_annotation())
             validated = adapter.validate_python(source_value)
             return adapter.dump_json(validated, warnings="error").decode(
                 c.Cli.ENCODING_DEFAULT
             )
         normalized_atom = cls.normalize_cli_atom(
-            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value)
+            cls.cli_default_source_adapter().validate_python(source_value)
         )
         if normalized_atom is None:
             raise TypeError(
