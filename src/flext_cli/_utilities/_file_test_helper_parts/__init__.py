@@ -25,7 +25,7 @@ _LAZY_IMPORTS = MappingProxyType(
         MappingProxyType({
             ".flextcliutilitiesfiletesthelpersmixin_part_04": (
                 "FlextCliUtilitiesFileTestHelpersMixin",
-            ),
+            )
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
