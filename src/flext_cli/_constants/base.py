@@ -20,6 +20,13 @@ class FlextCliConstantsBase:
     """Base CLI constants for metadata, paths, symbols, and static values."""
 
     ENCODING_DEFAULT: ClassVar[str] = "utf-8"
+    CLI_GLOBAL_PARAM_FIELDS: ClassVar[tuple[str, ...]] = (
+        "debug",
+        "trace",
+        "verbose",
+        "quiet",
+        "log_level",
+    )
 
     # Anchor for the config SSOT loader: the installed package's config dir,
     # independent of the caller's CWD (library code must not depend on CWD).

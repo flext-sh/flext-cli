@@ -106,6 +106,19 @@ app = cli.create_app_with_common_params(name="greeting", help_text="Greeting com
 cli.register_command(app, name="greet", help_text="Build a greeting", command=command)
 ```
 
+Pre-execution routers can obtain the same option declarations as the registered
+command through `cli.model_option_spec(field_name, model_field, settings)`. The
+returned `p.Cli.CliOptionSpec` exposes aliases, Boolean toggles, and explicit
+`typer_param_decls` without constructing a second naming rule. The global callback
+registers exactly the fields in `c.Cli.CLI_GLOBAL_PARAM_FIELDS`; routers should use
+that public tuple when identifying global options before a protected command.
+`cli.parse_model_options(model_cls, arguments, field_names=..., stop_at_positional=...)`
+consumes those declarations without executing the command callback. Its typed result
+keeps raw option values, remaining command tokens, and standalone help distinct;
+an option value that happens to equal `--help` remains a value. Repeated sequence
+options retain every value in order. The values are token-level routing facts, not
+the validated model that the real CLI later builds.
+
 **Common mistakes to avoid:**
 
 - `FlextCliCli.build_model_command(...)` does not exist; use
