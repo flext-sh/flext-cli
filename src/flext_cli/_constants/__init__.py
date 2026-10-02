@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
+from flext_core import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._constants.base import FlextCliConstantsBase
@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from flext_cli._constants.docx import FlextCliConstantsDocx
     from flext_cli._constants.enums import FlextCliConstantsEnums
     from flext_cli._constants.errors import FlextCliConstantsErrors
-    from flext_cli._constants.exceptions import FlextCliConstantsExceptions
     from flext_cli._constants.files import FlextCliConstantsFiles
     from flext_cli._constants.output import FlextCliConstantsOutput
     from flext_cli._constants.pptx import FlextCliConstantsPptx
@@ -35,7 +34,6 @@ __all__: tuple[str, ...] = (
     "FlextCliConstantsDocx",
     "FlextCliConstantsEnums",
     "FlextCliConstantsErrors",
-    "FlextCliConstantsExceptions",
     "FlextCliConstantsFiles",
     "FlextCliConstantsOutput",
     "FlextCliConstantsPptx",
@@ -52,7 +50,6 @@ _LAZY_IMPORTS = MappingProxyType(
             ".docx": ("FlextCliConstantsDocx",),
             ".enums": ("FlextCliConstantsEnums",),
             ".errors": ("FlextCliConstantsErrors",),
-            ".exceptions": ("FlextCliConstantsExceptions",),
             ".files": ("FlextCliConstantsFiles",),
             ".output": ("FlextCliConstantsOutput",),
             ".pptx": ("FlextCliConstantsPptx",),
