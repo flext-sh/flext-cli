@@ -1,4 +1,8 @@
-"""Headless recalculation and cache parity contract tests."""
+"""Headless recalculation and cache parity contract tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -59,7 +63,7 @@ def _render_workbook() -> bytes:
         defined_names=(),
     )
     result: p.Result[m.Cli.XlsxRenderResult] = cli.xlsx_render(
-        m.Cli.XlsxRenderRequest(template=None, plan=plan)
+        m.Cli.XlsxRenderRequest(template=None, plan=plan),
     )
     tm.that(result.success, eq=True, msg=result.error)
     content: bytes = result.value.content
@@ -67,10 +71,12 @@ def _render_workbook() -> bytes:
 
 
 def _numeric_cell_value(
-    source: bytes, sheet_name: str, coordinate: str
+    source: bytes,
+    sheet_name: str,
+    coordinate: str,
 ) -> m.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
     snapshot = cli.xlsx_snapshot(
-        m.Cli.XlsxSnapshotRequest(source=source, data_only=True)
+        m.Cli.XlsxSnapshotRequest(source=source, data_only=True),
     )
     tm.that(snapshot.success, eq=True, msg=snapshot.error)
     for sheet in snapshot.value.sheets:
@@ -102,7 +108,7 @@ def test_xlsx_recalc_parity_returns_validated_recalculated_content() -> None:
     """Public parity content carries the caches described by its evidence."""
     source = _render_workbook()
     report = cli.xlsx_recalc_parity(
-        m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=2)
+        m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=2),
     )
     tm.that(report.success, eq=True, msg=report.error)
     evidence = report.value
@@ -121,7 +127,7 @@ def test_xlsx_recalc_parity_detects_count_mismatch() -> None:
     """A wrong expected formula count flips the stored verdict."""
     source = _render_workbook()
     report = cli.xlsx_recalc_parity(
-        m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=9)
+        m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=9),
     )
     tm.that(report.success, eq=True, msg=report.error)
     tm.that(report.value.formula_count, eq=2)

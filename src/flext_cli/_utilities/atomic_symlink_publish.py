@@ -1,4 +1,8 @@
-"""Guarded symbolic-link publication under a caller-held exclusive lease."""
+"""Guarded symbolic-link publication under a caller-held exclusive lease.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -23,7 +27,14 @@ if TYPE_CHECKING:
 
 
 def _validated_target(path: Path, target: str) -> None:
-    """Reject empty, NUL-containing, or non-UTF-8 publication targets."""
+    """Reject empty, NUL-containing, or non-UTF-8 publication targets.
+
+    Raises:
+        OSError: If ``os.symlink not in os.supports_dir_fd or os.readlink not in
+            os.supports_dir_fd``.
+        ValueError: If atomic symlink target must be nonempty and contain no NUL.
+
+    """
     if not target or "\0" in target:
         msg = "atomic symlink target must be nonempty and contain no NUL"
         raise ValueError(msg)
@@ -38,7 +49,15 @@ def _stage_verified_link(
     target: str,
     parent: ParentDescriptor,
 ) -> tuple[Path, m.Cli.AtomicSymlinkState]:
-    """Create the staged link and prove it still names the target."""
+    """Create the staged link and prove it still names the target.
+
+    Returns:
+        The resulting ``tuple[Path, m.Cli.AtomicSymlinkState]``.
+
+    Raises:
+        OSError: If ``observed.target != target``.
+
+    """
     path = before.path
     staged_path = path.with_name(f".flext-symlink-{uuid.uuid4().hex}")
     os.symlink(target, staged_path.name, dir_fd=parent.descriptor)
@@ -86,7 +105,14 @@ def _verify_published(
     target: str,
     staged: m.Cli.AtomicSymlinkState,
 ) -> None:
-    """Prove the published link kept its target and its staged identity."""
+    """Prove the published link kept its target and its staged identity.
+
+    Raises:
+        OSError: If ``after.target != target or after.identity is None or
+            staged.identity is None``; or if ``(after.identity.device,
+            after.identity.inode) != (staged.identity.device, staged.identity.inode)``.
+
+    """
     after = snapshot.read_symlink_state(path, parent, required=True)
     if after.target != target or after.identity is None or staged.identity is None:
         msg = f"atomic symlink publication did not retain its target: {path}"
@@ -104,6 +130,10 @@ def write_guarded_symlink(before: m.Cli.AtomicSymlinkState, target: str) -> None
 
     All cooperative writers must hold the same lease from snapshot to effect.
     This is not compare-and-swap against actors that ignore that lease.
+
+    Raises:
+        BaseExceptionGroup: If symlink publication and staged cleanup failed.
+
     """
     path = before.path
     _validated_target(path, target)
@@ -128,13 +158,21 @@ def write_guarded_symlink(before: m.Cli.AtomicSymlinkState, target: str) -> None
             except BaseException as cleanup_error:
                 msg = "symlink publication and staged cleanup failed"
                 raise BaseExceptionGroup(
-                    msg, [primary, cleanup_error]
+                    msg,
+                    [primary, cleanup_error],
                 ) from cleanup_error
             raise
 
 
 def delete_guarded_symlink(before: m.Cli.AtomicSymlinkState) -> None:
-    """Delete exactly one authenticated link, never its target."""
+    """Delete exactly one authenticated link, never its target.
+
+    Raises:
+        FileNotFoundError: If ``before.target is None``.
+        OSError: If ``snapshot.read_symlink_state(before.path, parent).target is not
+            None``.
+
+    """
     if before.target is None:
         msg = f"cannot delete an absent symbolic link: {before.path}"
         raise FileNotFoundError(errno.ENOENT, msg, before.path)

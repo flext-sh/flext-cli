@@ -52,6 +52,10 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         Example::
 
             data = u.Cli.yaml_safe_load(path).unwrap_or({})
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
         """
         if not path.is_file():
             return r[t.JsonMapping].fail(f"YAML file not found: {path}")
@@ -66,13 +70,18 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         """Parse a YAML string → ``r[JsonMapping]``.
 
         Returns a validated mapping or failure.
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
         """
         # NOTE (multi-agent): the canonical ruamel engine rejects duplicate keys;
         # PyYAML safe_load was last-wins and could conceal contradictory config.
         loaded = FlextCliUtilitiesYaml.yaml_roundtrip_load_map_text(text)
         if loaded.failure:
             return r[t.JsonMapping].fail(
-                loaded.error or "YAML parse error", exception=loaded.exception
+                loaded.error or "YAML parse error",
+                exception=loaded.exception,
             )
         parsed = FlextCliUtilitiesYaml.yaml_to_plain(loaded.value)
         try:
@@ -83,26 +92,40 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
     @staticmethod
     def yaml_load_mapping(
-        path: Path, *, default: t.JsonMapping | None = None
+        path: Path,
+        *,
+        default: t.JsonMapping | None = None,
     ) -> t.JsonMapping:
         """Load YAML file returning a mapping, or *default* (empty dict) on any error.
 
         Ergonomic shorthand — use ``yaml_safe_load`` when you need ``r[T]`` semantics.
+
+        Returns:
+            The resulting ``t.JsonMapping``.
+
         """
         return FlextCliUtilitiesYaml.yaml_safe_load(path).unwrap_or(
-            default if default is not None else _EMPTY_JSON_MAPPING
+            default if default is not None else _EMPTY_JSON_MAPPING,
         )
 
     @staticmethod
     def _yaml_parse_list(path: Path) -> t.SequenceOf[t.JsonValue]:
-        """Parse *path* as a top-level YAML list; raises on any failure."""
+        """Parse *path* as a top-level YAML list; raises on any failure.
+
+        Returns:
+            The resulting ``t.SequenceOf[t.JsonValue]``.
+
+        Raises:
+            TypeError: If YAML content is not a list.
+
+        """
         raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
         parsed = u.Yaml.safe_load(raw)
         if not isinstance(parsed, list):
             msg = f"YAML content is not a list: {type(parsed).__name__}"
             raise TypeError(msg)
         validated: t.SequenceOf[t.JsonValue] = t.Cli.YAML_SEQ_ADAPTER.validate_python(
-            parsed
+            parsed,
         )
         return validated
 
@@ -113,6 +136,10 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         Returns an empty list on missing file, parse error, non-list content,
         or validation failure — the failure itself is propagated through
         ``u.try_`` at the boundary rather than swallowed inline.
+
+        Returns:
+            The resulting ``t.SequenceOf[t.JsonValue]``.
+
         """
         if not path.is_file():
             return _EMPTY_JSON_SEQUENCE
@@ -141,6 +168,10 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         Example::
 
             u.Cli.yaml_dump(path, {"key": "val"})
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
         """
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -160,7 +191,10 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
     @staticmethod
     def yaml_dump_str(
-        data: t.JsonValue | t.JsonPayload, *, sort_keys: bool = False, indent: int = 2
+        data: t.JsonValue | t.JsonPayload,
+        *,
+        sort_keys: bool = False,
+        indent: int = 2,
     ) -> str:
         """Serialize *data* to a YAML string.
 
@@ -169,6 +203,10 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         Example::
 
             text = u.Cli.yaml_dump_str(payload)
+
+        Returns:
+            The resulting ``str``.
+
         """
         try:
             validated = FlextCliUtilitiesJson.normalize_json_value(data)

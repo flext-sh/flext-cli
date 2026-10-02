@@ -1,4 +1,8 @@
-"""Structural contracts for typed XLSX semantic snapshots."""
+"""Structural contracts for typed XLSX semantic snapshots.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -165,11 +169,13 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
     @runtime_checkable
     class XlsxSnapshotService(Protocol):
         def xlsx_snapshot(
-            self, request: FlextCliProtocolsXlsxSnapshot.XlsxSnapshotRequest
+            self,
+            request: FlextCliProtocolsXlsxSnapshot.XlsxSnapshotRequest,
         ) -> p.Result[m.Cli.XlsxWorkbookSnapshot]: ...
 
         def xlsx_defined_name_values(
-            self, request: m.Cli.XlsxDefinedNameValuesRequest
+            self,
+            request: m.Cli.XlsxDefinedNameValuesRequest,
         ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]: ...
 
 

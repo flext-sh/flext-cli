@@ -1,4 +1,8 @@
-"""Generic TOML helpers shared through ``u.Cli.toml_*``."""
+"""Generic TOML helpers shared through ``u.Cli.toml_*``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,7 +22,15 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_item_from_json_value(value: t.JsonValue) -> Item | t.JsonValue:
-        """Convert one JSON-compatible value into one TOML runtime value."""
+        """Convert one JSON-compatible value into one TOML runtime value.
+
+        Returns:
+            The resulting ``Item | t.JsonValue``.
+
+        Raises:
+            TypeError: If TOML does not support null values.
+
+        """
         if value is None:
             msg = "TOML does not support null values"
             raise TypeError(msg)
@@ -30,12 +42,22 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_is_document(value: t.Cli.TomlRuntimeSource) -> TypeIs[TOMLDocument]:
-        """Return True when the value is a TOML document."""
+        """Return True when the value is a TOML document.
+
+        Returns:
+            True when the value is a TOML document.
+
+        """
         return isinstance(value, TOMLDocument)
 
     @staticmethod
     def toml_is_table(value: t.Cli.TomlRuntimeSource) -> TypeIs[Table]:
-        """Return True when the value is an explicit TOML table."""
+        """Return True when the value is an explicit TOML table.
+
+        Returns:
+            True when the value is an explicit TOML table.
+
+        """
         return isinstance(value, Table)
 
     @staticmethod
@@ -46,6 +68,10 @@ class FlextCliUtilitiesToml:
         table is valid TOML; tomlkit exposes it as an ``OutOfOrderTableProxy``.
         Copying its entries into a single ``Table`` gives callers a normal,
         fully readable table without altering the source document.
+
+        Returns:
+            The resulting ``Table``.
+
         """
         table = tomlkit.table()
         for entry_key in list(proxy):
@@ -54,12 +80,22 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_is_item(value: t.Cli.TomlRuntimeSource) -> TypeIs[Item]:
-        """Return True when the value is a TOML item."""
+        """Return True when the value is a TOML item.
+
+        Returns:
+            True when the value is a TOML item.
+
+        """
         return isinstance(value, Item)
 
     @staticmethod
     def toml_is_aot(value: t.Cli.TomlRuntimeSource) -> TypeIs[AoT]:
-        """Return True when the value is a TOML array-of-tables."""
+        """Return True when the value is a TOML array-of-tables.
+
+        Returns:
+            True when the value is a TOML array-of-tables.
+
+        """
         return isinstance(value, AoT)
 
     @staticmethod
@@ -69,6 +105,10 @@ class FlextCliUtilitiesToml:
         A fragmented (out-of-order) child is consolidated into one explicit
         table so callers always receive a normal ``Table``, regardless of the
         physical section order in the source document.
+
+        Returns:
+            A table child from a TOML container.
+
         """
         if key not in container:
             return None
@@ -79,7 +119,12 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_item_child(container: TOMLDocument | Table, key: str) -> Item | None:
-        """Return a raw TOML item from a container."""
+        """Return a raw TOML item from a container.
+
+        Returns:
+            A raw TOML item from a container.
+
+        """
         if key not in container:
             return None
         value = container[key]
@@ -87,7 +132,12 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_ensure_table(parent: TOMLDocument | Table, key: str) -> Table:
-        """Return an explicit table child, promoting implicit super-tables when needed."""
+        """Return an explicit table child, promoting implicit super-tables when needed.
+
+        Returns:
+            An explicit table child, promoting implicit super-tables when needed.
+
+        """
         existing: t.Cli.TomlRuntimeSource | None = None
         if key in parent:
             existing = parent[key]
@@ -118,7 +168,15 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_ensure_path(parent: TOMLDocument | Table, path: t.StrSequence) -> Table:
-        """Return a nested table path, creating intermediate tables as needed."""
+        """Return a nested table path, creating intermediate tables as needed.
+
+        Returns:
+            A nested table path, creating intermediate tables as needed.
+
+        Raises:
+            TypeError: If toml_ensure_path must return a TOML table.
+
+        """
         current: TOMLDocument | Table = parent
         for segment in path:
             current = FlextCliUtilitiesToml.toml_ensure_table(current, segment)

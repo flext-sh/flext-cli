@@ -1,4 +1,8 @@
-"""CLI option helpers shared through ``u.Cli``."""
+"""CLI option helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,7 +22,12 @@ class FlextCliUtilitiesOptions:
     def unwrap_annotation(
         annotation: t.Cli.RuntimeAnnotation,
     ) -> t.Cli.RuntimeAnnotation:
-        """Strip type aliases and ``Annotated`` metadata down to the carried type."""
+        """Strip type aliases and ``Annotated`` metadata down to the carried type.
+
+        Returns:
+            The resulting ``t.Cli.RuntimeAnnotation``.
+
+        """
         annotated_origin = get_origin(Annotated[str, "meta"])
         resolved = annotation
         while (
@@ -39,6 +48,10 @@ class FlextCliUtilitiesOptions:
         Mappings, nested models, and the collections or unions that carry them
         are exposed as one JSON option that Pydantic validates into the
         field's declared type.
+
+        Returns:
+            True when a field has no native CLI form and travels as JSON.
+
         """
         resolved = cls.unwrap_annotation(annotation)
         if isinstance(resolved, UnionType):
@@ -57,12 +70,17 @@ class FlextCliUtilitiesOptions:
 
     @classmethod
     def resolve_typer_annotation(
-        cls, annotation: t.Cli.RuntimeAnnotation
+        cls,
+        annotation: t.Cli.RuntimeAnnotation,
     ) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer.
 
         A field without a native CLI form (see ``is_json_option``) resolves to
         ``str``: its option carries JSON that Pydantic validates on parse.
+
+        Returns:
+            The resulting ``type | GenericAlias``.
+
         """
         if cls.is_json_option(annotation):
             return str
@@ -82,7 +100,7 @@ class FlextCliUtilitiesOptions:
                     get_origin(set[str]),
                     get_origin(frozenset[str]),
                 ],
-            )
+            ),
         )
         resolved_annotation_input = cls.unwrap_annotation(annotation)
         origin = get_origin(resolved_annotation_input)
@@ -114,7 +132,12 @@ class FlextCliUtilitiesOptions:
 
     @staticmethod
     def is_string_sequence(value: t.Cli.CliDefaultSource) -> bool:
-        """Return True for concrete string sequences accepted by repeated CLI options."""
+        """Return True for concrete string sequences accepted by repeated CLI options.
+
+        Returns:
+            True for concrete string sequences accepted by repeated CLI options.
+
+        """
         if isinstance(value, Path) or not isinstance(value, Sequence):
             return False
         if isinstance(value, str | bytes):
@@ -123,9 +146,15 @@ class FlextCliUtilitiesOptions:
 
     @classmethod
     def normalize_cli_atom(
-        cls, value: t.Cli.CliDefaultSource
+        cls,
+        value: t.Cli.CliDefaultSource,
     ) -> t.Cli.DefaultAtom | None:
-        """Normalize one runtime value into an allowed Typer scalar or string sequence."""
+        """Normalize one runtime value into an allowed Typer scalar or string sequence.
+
+        Returns:
+            The resulting ``t.Cli.DefaultAtom | None``.
+
+        """
         if isinstance(value, c.Cli.CLI_SCALAR_TYPES_TUPLE):
             return value
         if isinstance(value, Path):

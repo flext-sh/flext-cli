@@ -1,4 +1,8 @@
-"""Raw cached-value evidence for recalculated XLSX workbooks."""
+"""Raw cached-value evidence for recalculated XLSX workbooks.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,7 +22,9 @@ class FlextCliUtilitiesXlsxRecalcEvidence(FlextCliUtilitiesXlsxArchiveChecks):
     # only faithful evidence and stays behind this private adapter.
     @classmethod
     def _require_xml(
-        cls, archive: p.Cli.XlsxArchiveReader, member: str
+        cls,
+        archive: p.Cli.XlsxArchiveReader,
+        member: str,
     ) -> p.Cli.XlsxXmlElement:
         result = cls._xml_root(archive, member)
         if result.failure:
@@ -28,7 +34,9 @@ class FlextCliUtilitiesXlsxRecalcEvidence(FlextCliUtilitiesXlsxArchiveChecks):
 
     @classmethod
     def _worksheet_targets(
-        cls, workbook_root: p.Cli.XlsxXmlElement, rels_root: p.Cli.XlsxXmlElement
+        cls,
+        workbook_root: p.Cli.XlsxXmlElement,
+        rels_root: p.Cli.XlsxXmlElement,
     ) -> t.VariadicTuple[t.Pair[str, str]]:
         relationships: t.VariadicTuple[t.Pair[str, str]] = ()
         for relationship in rels_root.iter():
@@ -65,21 +73,29 @@ class FlextCliUtilitiesXlsxRecalcEvidence(FlextCliUtilitiesXlsxArchiveChecks):
 
     @classmethod
     def _formula_cache_evidence(
-        cls, source: bytes
+        cls,
+        source: bytes,
     ) -> p.Result[t.Pair[t.VariadicTuple[str], t.VariadicTuple[str]]]:
-        """Classify formula cells as uncached or empty-string cached."""
+        """Classify formula cells as uncached or empty-string cached.
+
+        Returns:
+            The resulting ``p.Result[t.Pair[t.VariadicTuple[str],
+                t.VariadicTuple[str]]]``.
+
+        """
         try:
             evidence = cls._formula_cache_evidence_unchecked(source)
         except (BadZipFile, LargeZipFile, OSError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[tuple[t.VariadicTuple[str], t.VariadicTuple[str]]].fail(
-                f"{c.Cli.XlsxError.PARITY_FAILED}: {detail}"
+                f"{c.Cli.XlsxError.PARITY_FAILED}: {detail}",
             )
         return r[tuple[t.VariadicTuple[str], t.VariadicTuple[str]]].ok(evidence)
 
     @classmethod
     def _formula_cache_evidence_unchecked(
-        cls, source: bytes
+        cls,
+        source: bytes,
     ) -> t.Pair[t.VariadicTuple[str], t.VariadicTuple[str]]:
         with ZipFile(BytesIO(source)) as archive:
             workbook_root = cls._require_xml(archive, c.Cli.XLSX_WORKBOOK_MEMBER)

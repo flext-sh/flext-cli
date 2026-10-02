@@ -4,6 +4,9 @@ One owner for every CLI domain that needs to present homogeneous tabular data:
 the caller builds a typed ``m.Cli.DataReportRequest`` and this facade renders it
 with the canonical table engine or emits it as JSON. No domain re-implements
 column building, formatting or emission.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -19,7 +22,12 @@ class FlextCliUtilitiesReport:
 
     @staticmethod
     def report_render(request: m.Cli.DataReportRequest) -> p.Result[str]:
-        """Render one data report as a deterministic plain-text table."""
+        """Render one data report as a deterministic plain-text table.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         config = m.Cli.TableConfig(
             headers=tuple(request.columns),
             title=request.title or None,
@@ -30,9 +38,16 @@ class FlextCliUtilitiesReport:
 
     @staticmethod
     def report_emit(
-        request: m.Cli.DataReportRequest, *, json_output: bool
+        request: m.Cli.DataReportRequest,
+        *,
+        json_output: bool,
     ) -> p.Result[bool]:
-        """Emit one data report as canonical JSON or as a rendered table."""
+        """Emit one data report as canonical JSON or as a rendered table.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         if json_output:
             FlextCliUtilitiesOutput.emit_raw(request.model_dump_json(indent=2) + "\n")
             return r[bool].ok(True)

@@ -7,6 +7,9 @@ NOTE (multi-agent): mro-i6nq.13 — merged the removed numbered
 ``_json_parts`` serialization (part_03) and file-I/O (part_01) halves into one
 cohesive core module. Navigation/extraction helpers live in
 ``_json/_navigate.py``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -31,15 +34,24 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def json_dumps(
-        value: t.JsonValue, *, sort_keys: bool = False, indent: int | None = None
+        value: t.JsonValue,
+        *,
+        sort_keys: bool = False,
+        indent: int | None = None,
     ) -> p.Result[str]:
-        """Serialize a JSON-compatible value to a string via canonical adapters."""
+        """Serialize a JSON-compatible value to a string via canonical adapters.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         normalized = (
             FlextCliUtilitiesJsonCoreMixin.json_sort_keys(value) if sort_keys else value
         )
         return u.try_(
             lambda: t.Cli.JSON_VALUE_ADAPTER.dump_json(
-                normalized, indent=indent
+                normalized,
+                indent=indent,
             ).decode(c.Cli.ENCODING_DEFAULT),
             catch=(c.ValidationError, ValueError, TypeError),
             op_name="json_dumps",
@@ -47,12 +59,18 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def json_loads(
-        raw: str | bytes, *, reject_duplicate_keys: bool = False
+        raw: str | bytes,
+        *,
+        reject_duplicate_keys: bool = False,
     ) -> p.Result[t.JsonValue]:
         """Parse a JSON-encoded string/bytes into a JSON-compatible value.
 
         With ``reject_duplicate_keys``, a key repeated inside the same JSON
         object fails the parse; the error cites the key and its path.
+
+        Returns:
+            The resulting ``p.Result[t.JsonValue]``.
+
         """
 
         def _parse() -> t.JsonValue:
@@ -61,7 +79,9 @@ class FlextCliUtilitiesJsonCoreMixin:
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return u.try_(
-            _parse, catch=(c.ValidationError, ValueError), op_name="json_loads"
+            _parse,
+            catch=(c.ValidationError, ValueError),
+            op_name="json_loads",
         )
 
     @staticmethod
@@ -70,6 +90,10 @@ class FlextCliUtilitiesJsonCoreMixin:
 
         stdlib ``json`` serves only as the duplicate detector; the parsed
         value is discarded and canonical validation stays with the adapter.
+
+        Raises:
+            ValueError: If duplicate JSON key.
+
         """
         violations: list[tuple[int, str]] = []
 
@@ -104,12 +128,17 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def json_sort_keys(data: t.JsonValue) -> t.JsonValue:
-        """Recursively sort dictionary keys in a JSON structure."""
+        """Recursively sort dictionary keys in a JSON structure.
+
+        Returns:
+            The resulting ``t.JsonValue``.
+
+        """
         if isinstance(data, Mapping):
             validated = t.Cli.JSON_MAPPING_ADAPTER.validate_python(data)
             return {
                 key: FlextCliUtilitiesJsonCoreMixin.json_sort_keys(
-                    t.Cli.JSON_VALUE_ADAPTER.validate_python(value)
+                    t.Cli.JSON_VALUE_ADAPTER.validate_python(value),
                 )
                 for key, value in sorted(validated.items())
             }
@@ -117,7 +146,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             items = t.Cli.JSON_LIST_ADAPTER.validate_python(data)
             return [
                 FlextCliUtilitiesJsonCoreMixin.json_sort_keys(
-                    t.Cli.JSON_VALUE_ADAPTER.validate_python(item)
+                    t.Cli.JSON_VALUE_ADAPTER.validate_python(item),
                 )
                 for item in items
             ]
@@ -125,14 +154,25 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def normalize_json_value(item: t.JsonValue | t.JsonPayload) -> t.JsonValue:
-        """Normalize any runtime value to JSON-compatible output (Pydantic-native)."""
+        """Normalize any runtime value to JSON-compatible output (Pydantic-native).
+
+        Returns:
+            The resulting ``t.JsonValue``.
+
+        """
         return u.normalize_to_json_value(item)
 
     @staticmethod
     def _json_write_content(
-        payload: t.JsonValue | t.JsonPayload, options: m.Cli.JsonWriteOptions
+        payload: t.JsonValue | t.JsonPayload,
+        options: m.Cli.JsonWriteOptions,
     ) -> str:
-        """Serialize a JSON payload using canonical write options."""
+        """Serialize a JSON payload using canonical write options.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         validated = FlextCliUtilitiesJsonCoreMixin.normalize_json_value(payload)
         normalized = (
             FlextCliUtilitiesJsonCoreMixin.json_sort_keys(validated)
@@ -140,7 +180,9 @@ class FlextCliUtilitiesJsonCoreMixin:
             else validated
         )
         payload_bytes: bytes = t.Cli.JSON_VALUE_ADAPTER.dump_json(
-            normalized, indent=options.indent, ensure_ascii=options.ensure_ascii
+            normalized,
+            indent=options.indent,
+            ensure_ascii=options.ensure_ascii,
         )
         return payload_bytes.decode(c.Cli.ENCODING_DEFAULT) + "\n"
 
@@ -149,12 +191,16 @@ class FlextCliUtilitiesJsonCoreMixin:
         """Read and parse a JSON file.
 
         Missing files fail loud; callers decide whether absence is valid.
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
         """
         if not path.exists():
             return r[t.JsonMapping].fail(f"json_read: file not found: {path}")
         loaded = u.try_(
             lambda: t.Cli.JSON_VALUE_ADAPTER.validate_json(
-                path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
+                path.read_text(encoding=c.Cli.ENCODING_DEFAULT),
             ),
             catch=(c.ValidationError, OSError),
             op_name="json_read",
@@ -164,7 +210,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         if not isinstance(loaded.value, Mapping):
             return r[t.JsonMapping].fail("json_read: root must be an object")
         return r[t.JsonMapping].ok(
-            t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded.value)
+            t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded.value),
         )
 
     @staticmethod
@@ -173,7 +219,12 @@ class FlextCliUtilitiesJsonCoreMixin:
         payload: t.JsonValue | t.JsonPayload,
         options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
-        """Write any Pydantic-serializable payload to a JSON file."""
+        """Write any Pydantic-serializable payload to a JSON file.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         opts = options or m.Cli.JsonWriteOptions()
 
         def _write() -> bool:
@@ -185,18 +236,26 @@ class FlextCliUtilitiesJsonCoreMixin:
         written = u.try_(_write, catch=c.EXC_OS_VALIDATION, op_name="json_write")
         if written.failure:
             FlextCliUtilitiesJsonCoreMixin._module_logger.debug(
-                "json_write failed", error=written.error, exc_info=False
+                "json_write failed",
+                error=written.error,
+                exc_info=False,
             )
         return written
 
     @staticmethod
     def json_parse(
-        text: str, *, reject_duplicate_keys: bool = False
+        text: str,
+        *,
+        reject_duplicate_keys: bool = False,
     ) -> p.Result[t.JsonValue]:
         """Parse a JSON string into a validated JsonValue.
 
         With ``reject_duplicate_keys``, a key repeated inside the same JSON
         object fails the parse; the error cites the key and its path.
+
+        Returns:
+            The resulting ``p.Result[t.JsonValue]``.
+
         """
 
         def _parse() -> t.JsonValue:
@@ -208,7 +267,12 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def json_as_mapping(value: t.JsonValue | t.JsonPayload | None) -> t.JsonMapping:
-        """Normalize any JSON-compatible value into a mapping."""
+        """Normalize any JSON-compatible value into a mapping.
+
+        Returns:
+            The resulting ``t.JsonMapping``.
+
+        """
         if value is None:
             return _EMPTY_JSON_MAPPING
         normalized: t.JsonValue = u.normalize_to_json_value(value)
@@ -220,7 +284,12 @@ class FlextCliUtilitiesJsonCoreMixin:
     def json_as_sequence(
         value: t.JsonValue | t.JsonPayload | None,
     ) -> t.SequenceOf[t.JsonValue]:
-        """Normalize any JSON-compatible value into a JSON sequence."""
+        """Normalize any JSON-compatible value into a JSON sequence.
+
+        Returns:
+            The resulting ``t.SequenceOf[t.JsonValue]``.
+
+        """
         if value is None:
             return _EMPTY_JSON_SEQUENCE
         normalized: t.JsonValue = u.normalize_to_json_value(value)

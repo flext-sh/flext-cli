@@ -1,4 +1,8 @@
-"""Guarded no-clobber publication of caller-owned staged directories."""
+"""Guarded no-clobber publication of caller-owned staged directories.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,7 +24,8 @@ from . import (
 
 
 def publish_guarded_staged_empty_directory(
-    destination_before: m.Cli.AtomicDirectoryState, staged: m.Cli.AtomicDirectoryState
+    destination_before: m.Cli.AtomicDirectoryState,
+    staged: m.Cli.AtomicDirectoryState,
 ) -> m.Cli.AtomicDirectoryState:
     """Move one exact empty directory into an exact absent destination.
 
@@ -29,6 +34,13 @@ def publish_guarded_staged_empty_directory(
     ``os.rename`` is available with its documented no-replace behavior. Other
     platforms fail before effects. Source identity still requires every writer
     to honor the caller's exclusive cooperative lock.
+
+    Returns:
+        The resulting ``m.Cli.AtomicDirectoryState``.
+
+    Raises:
+        OSError: If ``destination == staged_path``.
+
     """
     destination = file_path.validate_atomic_path(destination_before.path)
     staged_path = file_path.validate_atomic_path(staged.path)
@@ -47,18 +59,28 @@ def publish_guarded_staged_empty_directory(
         _require_destination_absent(destination_before, destination_parent, destination)
         authenticated = _authenticated_staged(staged, staged_parent, staged_path)
         _require_same_filesystem(
-            destination, destination_parent, staged_parent, authenticated
+            destination,
+            destination_parent,
+            staged_parent,
+            authenticated,
         )
         file_durability.sync_replacement(staged_parent, destination_parent)
         _require_destination_absent(destination_before, destination_parent, destination)
         authenticated = _authenticated_staged(staged, staged_parent, staged_path)
         directory_descriptor.rename_entry_noreplace(
-            staged_parent, staged_path, destination_parent, destination
+            staged_parent,
+            staged_path,
+            destination_parent,
+            destination,
         )
         try:
             file_durability.sync_replacement(staged_parent, destination_parent)
             return _published_state(
-                destination_parent, destination, staged_parent, staged_path, staged
+                destination_parent,
+                destination,
+                staged_parent,
+                staged_path,
+                staged,
             )
         except OSError as post_error:
             _raise_post_publication_failure(destination, post_error)
@@ -116,11 +138,15 @@ def _published_state(
         message = f"published directory is missing: {destination}"
         raise OSError(errno.ESTALE, message, destination)
     authenticated = directory_state.read_empty_state(
-        destination_parent, destination, observed
+        destination_parent,
+        destination,
+        observed,
     )
     directory_model.require_observed(staged, authenticated)
     return directory_model.from_observed(
-        destination, destination_parent.state, authenticated
+        destination,
+        destination_parent.state,
+        authenticated,
     )
 
 

@@ -8,6 +8,9 @@ Exercises only the observable public surface:
 * ``cli.execute()`` runtime status payload that publishes the version.
 
 No private attributes, no internal-collaborator spying, no monkeypatching.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations

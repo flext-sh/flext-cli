@@ -27,7 +27,12 @@ class TestsFlextCliBase:
 
     @pytest.fixture
     def facade(self) -> FlextCli:
-        """Return a fresh instance of the public CLI facade type."""
+        """Return a fresh instance of the public CLI facade type.
+
+        Returns:
+            A fresh instance of the public CLI facade type.
+
+        """
         return type(cli)()
 
     def test_canonical_settings_satisfies_cli_protocol(self) -> None:
@@ -36,7 +41,8 @@ class TestsFlextCliBase:
         tm.that(resolved_settings, is_=p.Cli.Settings)
 
     def test_settings_property_is_stable_within_instance(
-        self, facade: FlextCli
+        self,
+        facade: FlextCli,
     ) -> None:
         """Repeated `settings` reads return the same singleton (idempotent access)."""
         first = facade.settings

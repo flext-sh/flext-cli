@@ -13,6 +13,9 @@ Every assertion targets an observable contract of the public API:
   back into it), and the handler return value flows back to the caller.
 
 No signature introspection, private attribute access, or patching is used.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -235,7 +238,12 @@ class TestsFlextCliOptionsUtilsCov:
         *,
         settings: t.Cli.ModelLike | None = None,
     ) -> tuple[m.Cli.InvocationResult, list[M]]:
-        """Invoke the generated command through a real app; return what it received."""
+        """Invoke the generated command through a real app; return what it received.
+
+        Returns:
+            The resulting ``tuple[m.Cli.InvocationResult, list[M]]``.
+
+        """
         received: list[M] = []
 
         def _capture(params: M) -> bool:
@@ -243,7 +251,8 @@ class TestsFlextCliOptionsUtilsCov:
             return True
 
         app = cli.create_app_with_common_params(
-            name="options-app", help_text="Options app"
+            name="options-app",
+            help_text="Options app",
         )
         cli.register_command(
             app,
@@ -269,21 +278,24 @@ class TestsFlextCliOptionsUtilsCov:
         """The same generated option parses an explicit payload normally."""
         payload = '{"selected":["third"]}'
         outcome, received = self._run(
-            self.ImmutableMappingDefaultModel, ("--bindings", payload)
+            self.ImmutableMappingDefaultModel,
+            ("--bindings", payload),
         )
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
         expected = self.ImmutableMappingDefaultModel.model_validate_json(
-            '{"bindings":' + payload + "}"
+            '{"bindings":' + payload + "}",
         )
         tm.that(received[0].bindings, eq=expected.bindings)
 
     def test_mapping_settings_default_uses_the_same_field_contract(self) -> None:
         """Validated settings override metadata without changing serialization."""
         settings = self.ImmutableMappingDefaultModel(
-            bindings=MappingProxyType({"configured": ("settings",)})
+            bindings=MappingProxyType({"configured": ("settings",)}),
         )
         outcome, received = self._run(
-            self.ImmutableMappingDefaultModel, (), settings=settings
+            self.ImmutableMappingDefaultModel,
+            (),
+            settings=settings,
         )
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
         tm.that(received[0].bindings, eq=settings.bindings)
@@ -307,10 +319,14 @@ class TestsFlextCliOptionsUtilsCov:
         tm.that(received[0].custom_name, eq="v")
 
     @pytest.mark.parametrize(
-        ("option", "expected"), [("--debug", True), ("--no-debug", False)]
+        ("option", "expected"),
+        [("--debug", True), ("--no-debug", False)],
     )
     def test_model_command_renders_bool_field_as_toggle_flag(
-        self, option: str, *, expected: bool
+        self,
+        option: str,
+        *,
+        expected: bool,
     ) -> None:
         """A bool field is driven by an on/off toggle pair."""
         invocation, received = self._run(self.BoolToggleModel, [option])
@@ -319,7 +335,9 @@ class TestsFlextCliOptionsUtilsCov:
 
     @pytest.mark.parametrize(("args", "expected"), _INVOCATION_CASES)
     def test_model_command_parses_values_for_each_annotation(
-        self, args: t.StrSequence, expected: t.Cli.ModelLike
+        self,
+        args: t.StrSequence,
+        expected: t.Cli.ModelLike,
     ) -> None:
         """Command-line values build the same model as direct construction."""
         invocation, received = self._run(type(expected), args)
@@ -342,14 +360,18 @@ class TestsFlextCliOptionsUtilsCov:
         settings = self.NestedListSettings()
         with pytest.raises(m.ValidationError):
             cli.model_command(
-                self.StrSequenceDefaultModel, self._noop_handler, settings=settings
+                self.StrSequenceDefaultModel,
+                self._noop_handler,
+                settings=settings,
             )
 
     def test_field_default_prefers_settings_value_over_model_default(self) -> None:
         """An omitted option takes the value of the supplied settings model."""
         settings = self.OptionsDefaultsModel(name="override-name")
         invocation, received = self._run(
-            self.OptionsDefaultsModel, [], settings=settings
+            self.OptionsDefaultsModel,
+            [],
+            settings=settings,
         )
         tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
         tm.that(received[0].name, eq="override-name")
@@ -412,7 +434,9 @@ class TestsFlextCliOptionsUtilsCov:
             return params.name
 
         command = cli.model_command(
-            self.OptionsDefaultsModel, _capture, settings=settings
+            self.OptionsDefaultsModel,
+            _capture,
+            settings=settings,
         )
 
         result = command(name="parsed-name")

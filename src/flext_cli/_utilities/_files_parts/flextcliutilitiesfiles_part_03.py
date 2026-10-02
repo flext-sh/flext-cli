@@ -1,4 +1,8 @@
-"""Generic filesystem helpers shared through ``u.Cli``."""
+"""Generic filesystem helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -25,28 +29,43 @@ class FlextCliUtilitiesFiles:
     def files_read_csv_with_headers(
         file_path: t.Cli.TextPath,
     ) -> p.Result[t.SequenceOf[t.StrMapping]]:
-        """Read one CSV file into mapping rows using header row."""
+        """Read one CSV file into mapping rows using header row.
+
+        Returns:
+            The resulting ``p.Result[t.SequenceOf[t.StrMapping]]``.
+
+        """
 
         def _load() -> t.SequenceOf[t.StrMapping]:
             with Path(file_path).open(
-                encoding=c.Cli.ENCODING_DEFAULT, newline=""
+                encoding=c.Cli.ENCODING_DEFAULT,
+                newline="",
             ) as handle:
                 return [dict(row) for row in csv.DictReader(handle)]
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _load, c.Cli.ERR_CSV_READ_FAILED
+            _load,
+            c.Cli.ERR_CSV_READ_FAILED,
         )
 
     @staticmethod
     def files_read_binary(file_path: t.Cli.TextPath) -> p.Result[bytes]:
-        """Read one binary file."""
+        """Read one binary file.
+
+        Returns:
+            The resulting ``p.Result[bytes]``.
+
+        """
         return FlextCliUtilitiesFilesPart02.files_execute(
-            lambda: Path(file_path).read_bytes(), c.Cli.ERR_BINARY_READ_FAILED
+            lambda: Path(file_path).read_bytes(),
+            c.Cli.ERR_BINARY_READ_FAILED,
         )
 
     @staticmethod
     def atomic_read_binary_file_state(
-        file_path: t.Cli.TextPath, *, required: bool = False
+        file_path: t.Cli.TextPath,
+        *,
+        required: bool = False,
     ) -> p.Result[m.Cli.AtomicFileState]:
         """Read exact bytes plus leaf and immediate-parent physical identities.
 
@@ -55,13 +74,17 @@ class FlextCliUtilitiesFiles:
         absence: the returned state carries no leaf and no parent identity.
         Publication still requires an authenticated parent, so materialize the
         planned directory chain and read again before publishing into it.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicFileState]``.
+
         """
         path = Path(file_path)
         try:
             parent, state, content = read_authenticated_state(path, required=required)
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(
-                c.Cli.ERR_BINARY_READ_FAILED.format(error=exc)
+                c.Cli.ERR_BINARY_READ_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicFileState].ok(
             m.Cli.AtomicFileState(
@@ -81,19 +104,25 @@ class FlextCliUtilitiesFiles:
                 reparse_tag=(
                     None if state is None else getattr(state, "st_reparse_tag", None)
                 ),
-            )
+            ),
         )
 
     @staticmethod
     def atomic_publish_staged_binary_file_guarded(
-        destination_before: m.Cli.AtomicFileState, staged: m.Cli.AtomicFileState
+        destination_before: m.Cli.AtomicFileState,
+        staged: m.Cli.AtomicFileState,
     ) -> p.Result[m.Cli.AtomicFileState]:
-        """Consume one authenticated staged file under the caller's lock."""
+        """Consume one authenticated staged file under the caller's lock.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicFileState]``.
+
+        """
         try:
             published = publish_guarded_staged_file(destination_before, staged)
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(
-                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc)
+                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicFileState].ok(
             m.Cli.AtomicFileState(
@@ -107,14 +136,19 @@ class FlextCliUtilitiesFiles:
                 link_count=published.st_nlink,
                 file_attributes=getattr(published, "st_file_attributes", None),
                 reparse_tag=getattr(published, "st_reparse_tag", None),
-            )
+            ),
         )
 
     @staticmethod
     def files_list_directory_names(
         file_path: t.Cli.TextPath,
     ) -> p.Result[t.SequenceOf[str]]:
-        """Return sorted child directory names for one path."""
+        """Return sorted child directory names for one path.
+
+        Returns:
+            Sorted child directory names for one path.
+
+        """
         path = Path(file_path)
         if not path.exists():
             return r[t.SequenceOf[str]].ok(())
@@ -124,14 +158,21 @@ class FlextCliUtilitiesFiles:
             return tuple(names)
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _list, c.Cli.ERR_TEXT_READ_FAILED
+            _list,
+            c.Cli.ERR_TEXT_READ_FAILED,
         )
 
     @staticmethod
     def ensure_symlink(
-        target: t.Cli.TextPath, source: t.Cli.TextPath
+        target: t.Cli.TextPath,
+        source: t.Cli.TextPath,
     ) -> p.Result[bool]:
-        """Ensure target points to source via directory symlink."""
+        """Ensure target points to source via directory symlink.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         target_path = Path(target)
         source_path = Path(source).resolve()
         ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(target_path.parent)
@@ -141,7 +182,7 @@ class FlextCliUtilitiesFiles:
             return r[bool].ok(True)
         if target_path.exists() or target_path.is_symlink():
             return r[bool].fail(
-                f"symlink destination already exists with a different identity: {target_path}"
+                f"symlink destination already exists with a different identity: {target_path}",
             )
         relative_source = os.path.relpath(source_path, target_path.parent.resolve())
         try:
@@ -149,8 +190,9 @@ class FlextCliUtilitiesFiles:
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ENSURE_SYMLINK_FAILED.format(
-                    target_path=target_path, error=exc
-                )
+                    target_path=target_path,
+                    error=exc,
+                ),
             )
         return r[bool].ok(True)
 
@@ -160,11 +202,15 @@ class FlextCliUtilitiesFiles:
 
         Bounded read primitive for canonical WIP capture: a path that is not a
         symlink fails with a typed error instead of silently returning itself.
+
+        Returns:
+            The resolved destination of the symlink at ``target``.
+
         """
         target_path = Path(target)
         if not target_path.is_symlink():
             return r[t.Cli.TextPath].fail(
-                c.Cli.ERR_READ_SYMLINK_FAILED.format(target_path=target_path)
+                c.Cli.ERR_READ_SYMLINK_FAILED.format(target_path=target_path),
             )
         return r[t.Cli.TextPath].ok(target_path.resolve().as_posix())
 
@@ -174,6 +220,10 @@ class FlextCliUtilitiesFiles:
 
         Bounded delete primitive for canonical WIP capture; removing an absent
         target is a successful no-op so callers need no pre-check race.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
         """
         target_path = Path(target)
         if not target_path.exists() and not target_path.is_symlink():
@@ -186,17 +236,32 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def sha256_content(content: str) -> str:
-        """Return the SHA-256 hex digest for text content."""
+        """Return the SHA-256 hex digest for text content.
+
+        Returns:
+            The SHA-256 hex digest for text content.
+
+        """
         return hashlib.sha256(content.encode(c.Cli.ENCODING_DEFAULT)).hexdigest()
 
     @staticmethod
     def sha256_bytes(content: bytes) -> str:
-        """Return the SHA-256 hex digest for exact binary content."""
+        """Return the SHA-256 hex digest for exact binary content.
+
+        Returns:
+            The SHA-256 hex digest for exact binary content.
+
+        """
         return hashlib.sha256(content).hexdigest()
 
     @staticmethod
     def sha256_file(file_path: t.Cli.TextPath) -> str:
-        """Return the SHA-256 hex digest for a file on disk."""
+        """Return the SHA-256 hex digest for a file on disk.
+
+        Returns:
+            The SHA-256 hex digest for a file on disk.
+
+        """
         path = Path(file_path)
         hasher = hashlib.sha256()
         with path.open("rb") as handle:

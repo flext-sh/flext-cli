@@ -1,4 +1,8 @@
-"""Generic TOML helpers shared through ``u.Cli.toml_*``."""
+"""Generic TOML helpers shared through ``u.Cli.toml_*``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -22,7 +26,12 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_write_mapping(path: Path, mapping: t.JsonMapping) -> p.Result[bool]:
-        """Write one validated plain mapping as TOML through the canonical writer."""
+        """Write one validated plain mapping as TOML through the canonical writer.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         try:
             document = FlextCliUtilitiesTomlPart01.toml_document_from_mapping(mapping)
         except c.EXC_TYPE_VALIDATION as exc:

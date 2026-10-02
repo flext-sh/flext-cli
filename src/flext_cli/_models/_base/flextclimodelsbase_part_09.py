@@ -1,4 +1,8 @@
-"""Typed descriptor-authenticated physical tree manifest models."""
+"""Typed descriptor-authenticated physical tree manifest models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,7 +22,9 @@ class FlextCliModelsBase:
         """One exact regular file, symlink leaf, or physical directory."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", frozen=True, arbitrary_types_allowed=True
+            extra="forbid",
+            frozen=True,
+            arbitrary_types_allowed=True,
         )
         path: Annotated[Path, m.Field(description="Absolute entry path")]
         kind: Annotated[
@@ -26,51 +32,65 @@ class FlextCliModelsBase:
             m.Field(description="Physical entry kind"),
         ]
         parent_device: Annotated[
-            int, m.Field(ge=0, strict=True, description="Physical parent device")
+            int,
+            m.Field(ge=0, strict=True, description="Physical parent device"),
         ]
         parent_inode: Annotated[
-            int, m.Field(ge=0, strict=True, description="Physical parent inode")
+            int,
+            m.Field(ge=0, strict=True, description="Physical parent inode"),
         ]
         parent_mount_id: Annotated[
-            int, m.Field(ge=1, strict=True, description="Physical parent mount ID")
+            int,
+            m.Field(ge=1, strict=True, description="Physical parent mount ID"),
         ]
         mode: Annotated[
-            int, m.Field(ge=0, le=0o7777, strict=True, description="Permission bits")
+            int,
+            m.Field(ge=0, le=0o7777, strict=True, description="Permission bits"),
         ]
         device: Annotated[
-            int, m.Field(ge=0, strict=True, description="Physical device")
+            int,
+            m.Field(ge=0, strict=True, description="Physical device"),
         ]
         inode: Annotated[int, m.Field(ge=0, strict=True, description="Physical inode")]
         mount_id: Annotated[
-            int, m.Field(ge=1, strict=True, description="Physical mount ID")
+            int,
+            m.Field(ge=1, strict=True, description="Physical mount ID"),
         ]
         link_count: Annotated[
-            int, m.Field(ge=1, strict=True, description="Exact link count")
+            int,
+            m.Field(ge=1, strict=True, description="Exact link count"),
         ]
         uid: Annotated[int, m.Field(ge=0, strict=True, description="Owner user ID")]
         gid: Annotated[int, m.Field(ge=0, strict=True, description="Owner group ID")]
         mtime_ns: Annotated[
-            int, m.Field(strict=True, description="Modification timestamp in ns")
+            int,
+            m.Field(strict=True, description="Modification timestamp in ns"),
         ]
         ctime_ns: Annotated[
-            int, m.Field(strict=True, description="Metadata-change timestamp in ns")
+            int,
+            m.Field(strict=True, description="Metadata-change timestamp in ns"),
         ]
         file_attributes: Annotated[
-            int | None, m.Field(ge=0, strict=True, description="Host attributes")
+            int | None,
+            m.Field(ge=0, strict=True, description="Host attributes"),
         ] = None
         link_target: Annotated[
-            str | None, m.Field(min_length=1, description="Exact symlink target text")
+            str | None,
+            m.Field(min_length=1, description="Exact symlink target text"),
         ] = None
         reparse_tag: Annotated[
-            int | None, m.Field(ge=0, strict=True, description="Host reparse tag")
+            int | None,
+            m.Field(ge=0, strict=True, description="Host reparse tag"),
         ] = None
         size: Annotated[
-            int | None, m.Field(ge=0, strict=True, description="Regular-file size")
+            int | None,
+            m.Field(ge=0, strict=True, description="Regular-file size"),
         ] = None
         sha256: Annotated[
             str | None,
             m.Field(
-                pattern=r"^[0-9a-f]{64}$", description="Regular-file SHA-256 digest"
+                pattern=r"^[0-9a-f]{64}$",
+                description="Regular-file SHA-256 digest",
             ),
         ] = None
 
@@ -78,7 +98,8 @@ class FlextCliModelsBase:
         @classmethod
         def _validate_path(cls, value: Path) -> Path:
             return atomic_state.validate_atomic_state_path(
-                value, label="atomic physical-tree entry"
+                value,
+                label="atomic physical-tree entry",
             )
 
         @u.model_validator(mode="after")
@@ -127,7 +148,9 @@ class FlextCliModelsBase:
         """Exact root identity plus its ordered descriptor-authenticated entries."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", frozen=True, arbitrary_types_allowed=True
+            extra="forbid",
+            frozen=True,
+            arbitrary_types_allowed=True,
         )
         root: Annotated[
             FlextCliModelsBase.AtomicPhysicalTreeEntry,

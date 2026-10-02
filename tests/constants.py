@@ -23,7 +23,9 @@ from ._constants_parts.testsflextcliconstants_part_01 import (
 
 
 class TestsFlextCliConstants(
-    TestsFlextCliConstantsPart01, FlextTestsConstants, FlextCliConstants
+    TestsFlextCliConstantsPart01,
+    FlextTestsConstants,
+    FlextCliConstants,
 ):
     """Public facade for TestsFlextCliConstants."""
 

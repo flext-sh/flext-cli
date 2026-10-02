@@ -1,4 +1,8 @@
-"""CLI type facade."""
+"""CLI type facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -14,7 +18,10 @@ class FlextCliTypes(FlextTypes):
     """CLI type definitions extending flext-core FlextTypes via inheritance."""
 
     class Cli(
-        FlextCliTypesPipeline, FlextCliTypesDomain, FlextCliTypesBase, FlextCliTypesXlsx
+        FlextCliTypesPipeline,
+        FlextCliTypesDomain,
+        FlextCliTypesBase,
+        FlextCliTypesXlsx,
     ):
         """CLI types namespace for cross-project access."""
 

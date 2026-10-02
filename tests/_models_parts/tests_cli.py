@@ -1,4 +1,8 @@
-"""Split test model namespace."""
+"""Split test model namespace.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -19,7 +23,8 @@ class TestsFlextCliModelsCli:
         count: Annotated[int, m.Field(description="How many times")] = 1
         dry_run: Annotated[bool, m.Field(description="Dry-run mode")] = False
         output_format: Annotated[
-            c.Cli.OutputFormats, m.Field(description="Output format")
+            c.Cli.OutputFormats,
+            m.Field(description="Output format"),
         ] = c.Cli.OutputFormats.TABLE
 
     class SampleOutput(m.BaseModel):
@@ -31,7 +36,8 @@ class TestsFlextCliModelsCli:
         """Exercise repeatable CLI options derived from list-typed fields."""
 
         make_arg: Annotated[
-            list[str], m.Field(description="Repeatable make-style arg")
+            list[str],
+            m.Field(description="Repeatable make-style arg"),
         ] = m.Field(default_factory=list, validate_default=True)
 
     class ReportRow(m.BaseModel):
@@ -79,7 +85,8 @@ class TestsFlextCliModelsCli:
         log_path: Annotated[Path, m.Field(description="Project log path")]
         max_show: Annotated[int, m.Field(description="Maximum errors rendered")]
         errors: Annotated[
-            tuple[str, ...], m.Field(description="Rendered error excerpt lines")
+            tuple[str, ...],
+            m.Field(description="Rendered error excerpt lines"),
         ]
 
 

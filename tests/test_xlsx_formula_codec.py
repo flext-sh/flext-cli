@@ -1,4 +1,8 @@
-"""OOXML future-function storage encoding contract tests."""
+"""OOXML future-function storage encoding contract tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

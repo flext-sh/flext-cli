@@ -1,4 +1,8 @@
-"""Model-driven XLSX rendering contract tests."""
+"""Model-driven XLSX rendering contract tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -29,10 +33,11 @@ def _defined_name_workbook() -> bytes:
 
 
 def test_xlsx_defined_name_values_resolves_cached_scalar() -> None:
+    """Test xlsx defined name values resolves cached scalar."""
     source = _defined_name_workbook()
 
     result = cli.xlsx_defined_name_values(
-        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="ScalarValue")
+        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="ScalarValue"),
     )
 
     tm.that(result.success, eq=True, msg=result.error)
@@ -48,10 +53,11 @@ def test_xlsx_defined_name_values_resolves_cached_scalar() -> None:
 
 
 def test_xlsx_defined_name_values_resolves_cached_range() -> None:
+    """Test xlsx defined name values resolves cached range."""
     source = _defined_name_workbook()
 
     result = cli.xlsx_defined_name_values(
-        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="RangeValues")
+        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="RangeValues"),
     )
 
     tm.that(result.success, eq=True, msg=result.error)
@@ -62,10 +68,11 @@ def test_xlsx_defined_name_values_resolves_cached_range() -> None:
 
 
 def test_xlsx_defined_name_values_fails_when_name_is_missing() -> None:
+    """Test xlsx defined name values fails when name is missing."""
     source = _defined_name_workbook()
 
     result = cli.xlsx_defined_name_values(
-        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MissingValue")
+        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MissingValue"),
     )
 
     tm.that(result.success, eq=False)
@@ -73,10 +80,11 @@ def test_xlsx_defined_name_values_fails_when_name_is_missing() -> None:
 
 
 def test_xlsx_defined_name_values_fails_for_non_range_name() -> None:
+    """Test xlsx defined name values fails for non range name."""
     source = _defined_name_workbook()
 
     result = cli.xlsx_defined_name_values(
-        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MalformedValue")
+        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MalformedValue"),
     )
 
     tm.that(result.success, eq=False)
@@ -99,8 +107,9 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
     source_workbook.save(source)
     template_result = cli.xlsx_style_template(
         m.Cli.XlsxStyleTemplateRequest(
-            source=source.getvalue(), style_name_prefix="runtime"
-        )
+            source=source.getvalue(),
+            style_name_prefix="runtime",
+        ),
     )
     tm.that(template_result.success, eq=True)
     style_name = template_result.value.style_map[0].style_name
@@ -140,13 +149,15 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
                 ),
                 tables=(
                     m.Cli.XlsxTablePlan(
-                        name="DataTable", area=data_area, style="TableStyleMedium2"
+                        name="DataTable",
+                        area=data_area,
+                        style="TableStyleMedium2",
                     ),
                 ),
                 layout=m.Cli.XlsxSheetLayoutPlan(
                     freeze_pane=m.Cli.XlsxFreezePanePlan(
-                        at=m.Cli.XlsxCellAddress(row=2, column=1)
-                    )
+                        at=m.Cli.XlsxCellAddress(row=2, column=1),
+                    ),
                 ),
                 rules=m.Cli.XlsxSheetRulesPlan(
                     validations=(
@@ -158,17 +169,21 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
                     ),
                     conditional_formats=(
                         m.Cli.XlsxFormulaFormatPlan(
-                            area=value_area, expressions=("B2>1",), style=style_name
+                            area=value_area,
+                            expressions=("B2>1",),
+                            style=style_name,
                         ),
                     ),
                     protection=m.Cli.XlsxSheetProtectionPlan(
                         credential=m.Cli.XlsxPlainProtectionCredential(value="secret"),
                         permissions=m.Cli.XlsxProtectionPermissions(
-                            allow_select_unlocked=True
+                            allow_select_unlocked=True,
                         ),
                         cells=(
                             m.Cli.XlsxCellProtectionPlan(
-                                area=value_area, locked=True, hidden=True
+                                area=value_area,
+                                locked=True,
+                                hidden=True,
                             ),
                         ),
                     ),
@@ -184,13 +199,15 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
         ),
         defined_names=(
             m.Cli.XlsxRangeDefinedNamePlan(
-                name="DataRange", sheet="Data", area=data_area
+                name="DataRange",
+                sheet="Data",
+                area=data_area,
             ),
         ),
     )
 
     result = cli.xlsx_render(
-        m.Cli.XlsxRenderRequest(template=template_result.value.content, plan=plan)
+        m.Cli.XlsxRenderRequest(template=template_result.value.content, plan=plan),
     )
 
     tm.that(result.success, eq=True)
@@ -210,10 +227,10 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
     tm.that(rendered.calculation.fullCalcOnLoad, eq=True)
 
     snapshot = cli.xlsx_snapshot(
-        m.Cli.XlsxSnapshotRequest(source=result.value.content, data_only=False)
+        m.Cli.XlsxSnapshotRequest(source=result.value.content, data_only=False),
     )
     cached = cli.xlsx_snapshot(
-        m.Cli.XlsxSnapshotRequest(source=result.value.content, data_only=True)
+        m.Cli.XlsxSnapshotRequest(source=result.value.content, data_only=True),
     )
 
     tm.that(snapshot.success, eq=True, msg=snapshot.error)

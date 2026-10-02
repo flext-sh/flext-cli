@@ -1,4 +1,8 @@
-"""Structural contracts for external XLSX rules and style components."""
+"""Structural contracts for external XLSX rules and style components.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,7 +24,9 @@ class FlextCliProtocolsXlsxRules:
     @runtime_checkable
     class XlsxConditionalFormatting(Protocol):
         def add(
-            self, cell_range: str, rule: FlextCliProtocolsXlsxRules.XlsxRule
+            self,
+            cell_range: str,
+            rule: FlextCliProtocolsXlsxRules.XlsxRule,
         ) -> None: ...
 
     @runtime_checkable

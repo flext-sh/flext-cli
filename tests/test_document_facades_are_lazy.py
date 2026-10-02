@@ -10,6 +10,9 @@ These probes run in a fresh interpreter because `sys.modules` is global: once
 any earlier test in the session has imported a document module, an in-process
 assertion would silently pass. The child is launched through the project's own
 `process_start` primitive rather than `subprocess` directly.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -23,7 +26,12 @@ from tests import c
 
 
 def _loaded_heavy_modules(import_statement: str) -> frozenset[str]:
-    """Report which document stacks a fresh interpreter loads for one import."""
+    """Report which document stacks a fresh interpreter loads for one import.
+
+    Returns:
+        The resulting ``frozenset[str]``.
+
+    """
     code = (
         "import sys\n"
         f"{import_statement}\n"
@@ -34,7 +42,7 @@ def _loaded_heavy_modules(import_statement: str) -> frozenset[str]:
         u.Cli.capture(
             [sys.executable, "-c", code],
             timeout=int(c.Cli.CLI_PROCESS_HEARTBEAT_SECONDS),
-        )
+        ),
     )
     return frozenset(reported.split(",")) if reported else frozenset()
 
@@ -44,7 +52,7 @@ class TestsDocumentFacadesAreLazy:
 
     def test_utilities_facade_import_does_not_load_document_stacks(self) -> None:
         loaded = _loaded_heavy_modules(
-            "from flext_cli.utilities import FlextCliUtilities as u\n_ = u.Cli"
+            "from flext_cli.utilities import FlextCliUtilities as u\n_ = u.Cli",
         )
         tm.that(loaded, eq=frozenset())
 
@@ -55,19 +63,19 @@ class TestsDocumentFacadesAreLazy:
     def test_xlsx_operation_still_resolves_through_the_utility_facade(self) -> None:
         loaded = _loaded_heavy_modules(
             "from flext_cli import m, u\n"
-            "u.Cli.xlsx_parse_range(m.Cli.XlsxParseRangeRequest(reference='A1'))"
+            "u.Cli.xlsx_parse_range(m.Cli.XlsxParseRangeRequest(reference='A1'))",
         )
         tm.that("openpyxl" in loaded, eq=True)
 
     def test_docx_operation_still_resolves_through_the_utility_facade(self) -> None:
         loaded = _loaded_heavy_modules(
-            "from flext_cli import u\nu.Cli.docx_read(b'not-a-document')"
+            "from flext_cli import u\nu.Cli.docx_read(b'not-a-document')",
         )
         tm.that("docx" in loaded, eq=True)
 
     def test_pptx_operation_still_resolves_through_the_public_api(self) -> None:
         loaded = _loaded_heavy_modules(
-            "from flext_cli import cli\ncli.pptx_read(b'not-a-presentation')"
+            "from flext_cli import cli\ncli.pptx_read(b'not-a-presentation')",
         )
         tm.that("pptx" in loaded, eq=True)
 

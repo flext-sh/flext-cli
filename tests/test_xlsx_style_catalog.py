@@ -1,4 +1,8 @@
-"""Format-only XLSX template contract tests."""
+"""Format-only XLSX template contract tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -28,8 +32,9 @@ def test_xlsx_style_template_deduplicates_visuals_and_discards_content() -> None
 
     result = cli.xlsx_style_template(
         m.Cli.XlsxStyleTemplateRequest(
-            source=source.getvalue(), style_name_prefix="visual"
-        )
+            source=source.getvalue(),
+            style_name_prefix="visual",
+        ),
     )
 
     tm.that(result.success, eq=True)
@@ -53,7 +58,7 @@ def test_xlsx_style_template_deduplicates_visuals_and_discards_content() -> None
                 reject_defined_names=True,
                 reject_style_protection=True,
             ),
-        )
+        ),
     )
     tm.that(inspection.success, eq=True)
     tm.that(inspection.value.clean, eq=True)

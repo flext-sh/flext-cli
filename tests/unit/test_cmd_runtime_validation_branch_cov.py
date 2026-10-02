@@ -4,6 +4,9 @@ Exercises only the public surface exposed through ``u.Cli``: the ``r[T]``
 outcome of fallible operations, the public model state they produce, and the
 observable contract of environment resolution. No private attributes, no
 internal-collaborator spying, no line-coverage pokes.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -73,7 +76,8 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
     # ---------------------------------------------------------- validation
     @pytest.mark.parametrize("output_format", tuple(c.Cli.OUTPUT_FORMATS))
     def test_validate_format_accepts_every_supported_format(
-        self, output_format: str
+        self,
+        output_format: str,
     ) -> None:
         """Verify that validate format accepts every supported format."""
         result = u.Cli.validate_format(output_format)
@@ -99,7 +103,8 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
 
     @pytest.mark.parametrize("value", ["ok", "  padded  ", 0, 1])
     def test_validate_not_empty_accepts_meaningful_values(
-        self, value: t.Cli.CliValue
+        self,
+        value: t.Cli.CliValue,
     ) -> None:
         """Verify that validate not empty accepts meaningful values."""
         result = u.Cli.validate_not_empty(value, name="field")
@@ -109,7 +114,8 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
 
     @pytest.mark.parametrize("value", [None, "", "   "])
     def test_validate_not_empty_rejects_empty_and_names_the_field(
-        self, value: t.Cli.CliValue | None
+        self,
+        value: t.Cli.CliValue | None,
     ) -> None:
         """Verify that validate not empty rejects empty and names the field."""
         result = u.Cli.validate_not_empty(value, name="myfield")

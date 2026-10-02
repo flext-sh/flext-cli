@@ -23,13 +23,20 @@ _EXAMPLE_REQUIRED_DATA_FIELDS: t.VariadicTuple[str] = ("id", "name", "value")
 
 
 def save_user_preferences(
-    preferences: t.MappingKV[str, t.JsonPayloadCollectionValue], config_dir: Path
+    preferences: t.MappingKV[str, t.JsonPayloadCollectionValue],
+    config_dir: Path,
 ) -> p.Result[bool]:
-    """Save user preferences to JSON in YOUR app. Returns r[bool]; no bare bool sentinel."""
+    """Save user preferences to JSON in YOUR app. Returns r[bool]; no bare bool sentinel.
+
+    Returns:
+        The resulting ``p.Result[bool]``.
+
+    """
     config_file = config_dir / "preferences.json"
 
     write_result = cli.write_json_file(
-        config_file, u.normalize_to_json_value(preferences)
+        config_file,
+        u.normalize_to_json_value(preferences),
     )
 
     if write_result.failure:
@@ -40,20 +47,27 @@ def save_user_preferences(
         return r[bool].from_failure(write_result)
 
     cli.print(
-        f"✅ Saved preferences to {config_file.name}", style=c.Cli.MessageStyles.GREEN
+        f"✅ Saved preferences to {config_file.name}",
+        style=c.Cli.MessageStyles.GREEN,
     )
     return r[bool].ok(True)
 
 
 def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
-    """Load user preferences from JSON in YOUR app. Returns r[LoadedConfig]; no None."""
+    """Load user preferences from JSON in YOUR app. Returns r[LoadedConfig]; no None.
+
+    Returns:
+        The resulting ``p.Result[m.Cli.LoadedConfig]``.
+
+    """
     config_file = config_dir / "preferences.json"
 
     read_result = cli.read_json_file(config_file)
 
     if read_result.failure:
         cli.print(
-            f"⚠️  Could not load: {read_result.error}", style=c.Cli.MessageStyles.YELLOW
+            f"⚠️  Could not load: {read_result.error}",
+            style=c.Cli.MessageStyles.YELLOW,
         )
         return r[m.Cli.LoadedConfig].from_failure(read_result)
     if not isinstance(read_result.value, Mapping):
@@ -72,9 +86,15 @@ def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def save_deployment_config(
-    settings: t.MappingKV[str, t.JsonPayloadCollectionValue], config_file: Path
+    settings: t.MappingKV[str, t.JsonPayloadCollectionValue],
+    config_file: Path,
 ) -> p.Result[bool]:
-    """Save deployment settings to YAML in YOUR tool. Returns r[bool]; no bare bool sentinel."""
+    """Save deployment settings to YAML in YOUR tool. Returns r[bool]; no bare bool sentinel.
+
+    Returns:
+        The resulting ``p.Result[bool]``.
+
+    """
     # Normalize the mapping into the CLI JSON contract before writing YAML.
     write_result = cli.write_yaml_file(config_file, u.normalize_to_json_value(settings))
 
@@ -90,7 +110,12 @@ def save_deployment_config(
 
 
 def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
-    """Load deployment settings from YAML in YOUR tool. Returns r[LoadedConfig]; no None."""
+    """Load deployment settings from YAML in YOUR tool. Returns r[LoadedConfig]; no None.
+
+    Returns:
+        The resulting ``p.Result[m.Cli.LoadedConfig]``.
+
+    """
     load_result = cli.load_file_auto_dict(config_file)
 
     if load_result.failure:
@@ -105,12 +130,18 @@ def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
 
 
 def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
-    """Validate and import data in YOUR ETL pipeline. Returns r[LoadedConfig]; no None."""
+    """Validate and import data in YOUR ETL pipeline. Returns r[LoadedConfig]; no None.
+
+    Returns:
+        The resulting ``p.Result[m.Cli.LoadedConfig]``.
+
+    """
     read_result = cli.read_json_file(input_file)
 
     if read_result.failure:
         cli.print(
-            f"❌ Read failed: {read_result.error}", style=c.Cli.MessageStyles.BOLD_RED
+            f"❌ Read failed: {read_result.error}",
+            style=c.Cli.MessageStyles.BOLD_RED,
         )
         return r[m.Cli.LoadedConfig].from_failure(read_result)
 

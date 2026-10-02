@@ -55,7 +55,9 @@ class TestsFlextCliServicesOutputCov:
 
     @pytest.mark.parametrize("style", ["bold red", "dim", None])
     def test_display_text_emits_text_regardless_of_style(
-        self, capsys: Capture, style: str | None
+        self,
+        capsys: Capture,
+        style: str | None,
     ) -> None:
         """Verify that display text emits text regardless of style."""
         if style is not None:
@@ -76,7 +78,9 @@ class TestsFlextCliServicesOutputCov:
 
     @pytest.mark.parametrize("style", ["bold red", None])
     def test_print_message_emits_message_with_or_without_style(
-        self, capsys: Capture, style: str | None
+        self,
+        capsys: Capture,
+        style: str | None,
     ) -> None:
         """Verify that print message emits message with or without style."""
         cli.print_message("raw message", style)
@@ -87,7 +91,9 @@ class TestsFlextCliServicesOutputCov:
 
     @pytest.mark.parametrize("label", ["Setup", "Results", "Done"])
     def test_display_header_renders_label_in_rule(
-        self, capsys: Capture, label: str
+        self,
+        capsys: Capture,
+        label: str,
     ) -> None:
         """Verify that display header renders label in rule."""
         cli.display_header(label)
@@ -101,7 +107,11 @@ class TestsFlextCliServicesOutputCov:
         [(3, 10, "[03/10]"), (5, 5, "[5/5]"), (1, 100, "[001/100]"), (0, 8, "[0/8]")],
     )
     def test_display_progress_zero_pads_counter_to_total_width(
-        self, capsys: Capture, current: int, total: int, expected_counter: str
+        self,
+        capsys: Capture,
+        current: int,
+        total: int,
+        expected_counter: str,
     ) -> None:
         """Verify that display progress zero pads counter to total width."""
         cli.display_progress(current, total, "Processing")
@@ -111,7 +121,8 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has="Processing")
 
     def test_display_progress_appends_detail_when_present(
-        self, capsys: Capture
+        self,
+        capsys: Capture,
     ) -> None:
         """Verify that display progress appends detail when present."""
         cli.display_progress(3, 10, "Steps", detail="loading")
@@ -128,10 +139,15 @@ class TestsFlextCliServicesOutputCov:
     # ── display_status ────────────────────────────────────────────────
 
     @pytest.mark.parametrize(
-        ("success", "expected_symbol"), [(True, "✓"), (False, "✗")]
+        ("success", "expected_symbol"),
+        [(True, "✓"), (False, "✗")],
     )
     def test_display_status_symbol_reflects_outcome(
-        self, capsys: Capture, *, success: bool, expected_symbol: str
+        self,
+        capsys: Capture,
+        *,
+        success: bool,
+        expected_symbol: str,
     ) -> None:
         """Verify that display status symbol reflects outcome."""
         cli.display_status("lint", "clean", success=success)
@@ -142,10 +158,14 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has="clean")
 
     @pytest.mark.parametrize(
-        ("elapsed", "expected_timing"), [(1.23, "(1.23s)"), (0.5, "(0.50s)")]
+        ("elapsed", "expected_timing"),
+        [(1.23, "(1.23s)"), (0.5, "(0.50s)")],
     )
     def test_display_status_formats_elapsed_to_two_decimals(
-        self, capsys: Capture, elapsed: float, expected_timing: str
+        self,
+        capsys: Capture,
+        elapsed: float,
+        expected_timing: str,
     ) -> None:
         """Verify that display status formats elapsed to two decimals."""
         cli.display_status("build", "ok", success=True, elapsed=elapsed)
@@ -153,7 +173,8 @@ class TestsFlextCliServicesOutputCov:
         tm.that(capsys.readouterr().out, has=expected_timing)
 
     def test_display_status_omits_timing_when_elapsed_absent(
-        self, capsys: Capture
+        self,
+        capsys: Capture,
     ) -> None:
         """Verify that display status omits timing when elapsed absent."""
         cli.display_status("build", "ok", success=True)
@@ -182,7 +203,8 @@ class TestsFlextCliServicesOutputCov:
     # ── display_gate ──────────────────────────────────────────────────
 
     def test_display_gate_passed_shows_success_symbol_and_name(
-        self, capsys: Capture
+        self,
+        capsys: Capture,
     ) -> None:
         """Verify that display gate passed shows success symbol and name."""
         cli.display_gate("ruff", passed=True)
@@ -192,7 +214,8 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has="ruff")
 
     def test_display_gate_failed_shows_failure_symbol_name_and_message(
-        self, capsys: Capture
+        self,
+        capsys: Capture,
     ) -> None:
         """Verify that display gate failed shows failure symbol name and message."""
         cli.display_gate("pyrefly", passed=False, message="2 errors")
@@ -228,7 +251,8 @@ class TestsFlextCliServicesOutputCov:
         tm.that(capsys.readouterr().out, eq="")
 
     def test_display_debug_emits_labelled_line_when_verbose(
-        self, capsys: Capture
+        self,
+        capsys: Capture,
     ) -> None:
         """Verify that display debug emits labelled line when verbose."""
         cli.display_debug("visible", verbose=True)

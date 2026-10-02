@@ -1,4 +1,8 @@
-"""Causal failure preservation for authenticated parent descriptors."""
+"""Causal failure preservation for authenticated parent descriptors.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -8,9 +12,17 @@ from pathlib import Path
 
 
 def preserve_recheck_failure(
-    path: Path, operation_error: BaseException, recheck: Callable[[], None]
+    path: Path,
+    operation_error: BaseException,
+    recheck: Callable[[], None],
 ) -> None:
-    """Attach a failed parent recheck to the active operation failure."""
+    """Attach a failed parent recheck to the active operation failure.
+
+    Raises:
+        BaseExceptionGroup: If atomic operation and parent recheck failed.
+        OSError: If ``isinstance(operation_error, Exception)``.
+
+    """
     try:
         recheck()
     except OSError as recheck_error:
@@ -26,7 +38,8 @@ def preserve_recheck_failure(
             raise OSError(errno.ESTALE, message, path) from causes
         group_message = "atomic operation and parent recheck failed"
         raise BaseExceptionGroup(
-            group_message, [operation_error, recheck_error]
+            group_message,
+            [operation_error, recheck_error],
         ) from recheck_error
 
 

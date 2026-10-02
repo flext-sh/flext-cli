@@ -1,4 +1,8 @@
-"""Generic filesystem helpers shared through ``u.Cli``."""
+"""Generic filesystem helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,7 +24,12 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_delete(file_path: t.Cli.TextPath) -> p.Result[bool]:
-        """Delete one file-system path using canonical error handling."""
+        """Delete one file-system path using canonical error handling.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         path = Path(file_path)
 
         def _delete() -> bool:
@@ -33,12 +42,18 @@ class FlextCliUtilitiesFiles:
             return True
 
         return FlextCliUtilitiesFilesPart02.files_execute_bool(
-            _delete, c.Cli.ERR_FILE_DELETION_FAILED
+            _delete,
+            c.Cli.ERR_FILE_DELETION_FAILED,
         )
 
     @staticmethod
     def files_read_text(file_path: t.Cli.TextPath) -> p.Result[str]:
-        """Read one UTF-8 text file."""
+        """Read one UTF-8 text file.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         return FlextCliUtilitiesFilesPart02.files_execute(
             lambda: Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT),
             c.Cli.ERR_TEXT_READ_FAILED,
@@ -46,33 +61,51 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_write_text(file_path: t.Cli.TextPath, content: str) -> p.Result[bool]:
-        """Write one UTF-8 text file."""
+        """Write one UTF-8 text file.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
 
         def _write() -> bool:
             Path(file_path).write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
             return True
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _write, c.Cli.ERR_TEXT_WRITE_FAILED
+            _write,
+            c.Cli.ERR_TEXT_WRITE_FAILED,
         )
 
     @staticmethod
     def files_read_json(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
-        """Read one JSON file and validate to canonical JSON value."""
+        """Read one JSON file and validate to canonical JSON value.
+
+        Returns:
+            The resulting ``p.Result[t.JsonValue]``.
+
+        """
 
         def _load() -> t.JsonValue:
             raw = Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT)
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _load, c.Cli.ERR_JSON_LOAD_FAILED
+            _load,
+            c.Cli.ERR_JSON_LOAD_FAILED,
         )
 
     @staticmethod
     def files_read_json_model[M: t.Cli.ModelLike](
-        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+        file_path: t.Cli.TextPath,
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
-        """Read one JSON file directly into one Pydantic model."""
+        """Read one JSON file directly into one Pydantic model.
+
+        Returns:
+            The resulting ``p.Result[M]``.
+
+        """
         # NOTE (multi-agent): Model classes use the canonical t.ModelClass alias.
 
         def _load() -> M:
@@ -81,28 +114,46 @@ class FlextCliUtilitiesFiles:
             return loaded
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _load, c.Cli.ERR_JSON_LOAD_FAILED
+            _load,
+            c.Cli.ERR_JSON_LOAD_FAILED,
         )
 
     @staticmethod
     def files_read_yaml(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
-        """Read one YAML file and validate to canonical JSON value."""
+        """Read one YAML file and validate to canonical JSON value.
+
+        Returns:
+            The resulting ``p.Result[t.JsonValue]``.
+
+        """
         return u.Yaml.yaml_safe_load(Path(file_path)).map(
-            t.Cli.JSON_VALUE_ADAPTER.validate_python
+            t.Cli.JSON_VALUE_ADAPTER.validate_python,
         )
 
     @staticmethod
     def files_read_yaml_model[M: t.Cli.ModelLike](
-        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+        file_path: t.Cli.TextPath,
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
-        """Read YAML directly into one caller-supplied validated model."""
+        """Read YAML directly into one caller-supplied validated model.
+
+        Returns:
+            The resulting ``p.Result[M]``.
+
+        """
         return u.Yaml.yaml_safe_load(Path(file_path)).map(model_type.model_validate)
 
     @staticmethod
     def files_read_yaml_model_chain[M: t.Cli.ModelLike](
-        file_paths: t.SequenceOf[t.Cli.TextPath], model_type: t.ModelClass[M]
+        file_paths: t.SequenceOf[t.Cli.TextPath],
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
-        """Merge ordered YAML sources and validate the final payload once."""
+        """Merge ordered YAML sources and validate the final payload once.
+
+        Returns:
+            The resulting ``p.Result[M]``.
+
+        """
         sources = tuple(Path(file_path) for file_path in file_paths)
         if not sources:
             return r[M].fail(c.Cli.ERR_FILE_PATH_EMPTY)
@@ -119,13 +170,21 @@ class FlextCliUtilitiesFiles:
 
     @staticmethod
     def files_write_csv(
-        file_path: t.Cli.TextPath, rows: t.SequenceOf[t.StrSequence]
+        file_path: t.Cli.TextPath,
+        rows: t.SequenceOf[t.StrSequence],
     ) -> p.Result[bool]:
-        """Write one CSV file from row sequence."""
+        """Write one CSV file from row sequence.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
 
         def _write() -> bool:
             with Path(file_path).open(
-                mode="w", encoding=c.Cli.ENCODING_DEFAULT, newline=""
+                mode="w",
+                encoding=c.Cli.ENCODING_DEFAULT,
+                newline="",
             ) as handle:
                 writer = csv.writer(handle)
                 for row in rows:
@@ -133,7 +192,8 @@ class FlextCliUtilitiesFiles:
             return True
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _write, c.Cli.ERR_CSV_WRITE_FAILED
+            _write,
+            c.Cli.ERR_CSV_WRITE_FAILED,
         )
 
 

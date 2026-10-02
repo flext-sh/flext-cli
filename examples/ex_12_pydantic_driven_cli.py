@@ -45,7 +45,12 @@ _MAX_LOCALHOST_CONNECTION_POOL = 50
 
 
 def _report_step_success[T](value: T, message: str) -> T:
-    """Emit a success message while preserving the pipeline value."""
+    """Emit a success message while preserving the pipeline value.
+
+    Returns:
+        The resulting ``T``.
+
+    """
     cli.print(message, style=c.Cli.MessageStyles.GREEN)
     return value
 
@@ -53,13 +58,23 @@ def _report_step_success[T](value: T, message: str) -> T:
 def _finish_database_config(
     settings: m.Examples.AdvancedDatabaseConfig,
 ) -> m.Examples.AdvancedDatabaseConfig:
-    """Emit the final success summary and preserve the validated settings."""
+    """Emit the final success summary and preserve the validated settings.
+
+    Returns:
+        The resulting ``m.Examples.AdvancedDatabaseConfig``.
+
+    """
     u.display_success_summary("Database configuration")
     return settings
 
 
 def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseConfig]:
-    """Create validated DatabaseConfig using Railway Pattern with Pydantic."""
+    """Create validated DatabaseConfig using Railway Pattern with Pydantic.
+
+    Returns:
+        The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+
+    """
     cli.print(
         "\n🗄️  Database Configuration with Railway Pattern:",
         style=c.Cli.MessageStyles.BOLD_CYAN,
@@ -78,23 +93,29 @@ def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseCon
         .ok(cli_args)
         .map(
             lambda settings: _report_step_success(
-                settings, "✅ Required fields validated"
-            )
+                settings,
+                "✅ Required fields validated",
+            ),
         )
         .map(
             lambda settings: _report_step_success(
-                settings, "✅ Pydantic validation passed"
-            )
+                settings,
+                "✅ Pydantic validation passed",
+            ),
         )
         .flat_map(validate_business_rules)
         .map(
             lambda settings: _report_step_success(
-                settings, "✅ Business rules validated"
-            )
+                settings,
+                "✅ Business rules validated",
+            ),
         )
         .flat_map(perform_connection_test)
         .map(
-            lambda settings: _report_step_success(settings, "✅ Connection test passed")
+            lambda settings: _report_step_success(
+                settings,
+                "✅ Connection test passed",
+            ),
         )
         .map(_finish_database_config)
     )
@@ -103,13 +124,18 @@ def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseCon
 def validate_required_fields(
     data: t.MappingKV[str, t.JsonPayloadCollectionValue],
 ) -> p.Result[t.JsonMapping]:
-    """Validate that all required fields are present."""
+    """Validate that all required fields are present.
+
+    Returns:
+        The resulting ``p.Result[t.JsonMapping]``.
+
+    """
     required = list(c.EXAMPLE_DATABASE_REQUIRED_FIELDS)
     missing = [field for field in required if field not in data or not data[field]]
     if missing:
         return r[t.JsonMapping].fail(f"Missing required fields: {missing}")
     normalized_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-        u.normalize_to_json_value(data)
+        u.normalize_to_json_value(data),
     )
     return r[t.JsonMapping].ok(normalized_data)
 
@@ -117,21 +143,32 @@ def validate_required_fields(
 def convert_and_validate_with_pydantic(
     data: t.JsonMapping,
 ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
-    """Convert raw data to validated Pydantic model."""
+    """Convert raw data to validated Pydantic model.
+
+    Returns:
+        The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+
+    """
     try:
         return r[m.Examples.AdvancedDatabaseConfig].ok(
-            m.Examples.AdvancedDatabaseConfig.model_validate(data)
+            m.Examples.AdvancedDatabaseConfig.model_validate(data),
         )
     except c.ValidationError as error:
         return r[m.Examples.AdvancedDatabaseConfig].fail(
-            f"Pydantic validation failed: {error}", exception=error
+            f"Pydantic validation failed: {error}",
+            exception=error,
         )
 
 
 def validate_business_rules(
     settings: m.Examples.AdvancedDatabaseConfig,
 ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
-    """Apply custom business rules to validated database configuration."""
+    """Apply custom business rules to validated database configuration.
+
+    Returns:
+        The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+
+    """
     if settings.ssl_enabled and settings.port == _DEFAULT_POSTGRES_PORT:
         settings = settings.model_copy(update={"port": _SSL_POSTGRES_PORT})
     if (
@@ -139,7 +176,7 @@ def validate_business_rules(
         and settings.host == "localhost"
     ):
         return r[m.Examples.AdvancedDatabaseConfig].fail(
-            "Localhost cannot handle large connection pools"
+            "Localhost cannot handle large connection pools",
         )
     return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
 
@@ -147,7 +184,12 @@ def validate_business_rules(
 def perform_connection_test(
     settings: m.Examples.AdvancedDatabaseConfig,
 ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
-    """Simulate database connection test."""
+    """Simulate database connection test.
+
+    Returns:
+        The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+
+    """
     if "fail" in settings.host:
         return r[m.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
     return r[m.Examples.AdvancedDatabaseConfig].ok(settings)

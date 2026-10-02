@@ -1,4 +1,8 @@
-"""Typed recalculation declarations for generic XLSX workbooks."""
+"""Typed recalculation declarations for generic XLSX workbooks.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -15,21 +19,25 @@ class FlextCliModelsXlsxRecalc:
     # producers store the verdict instead of recomputing it from properties.
     class XlsxRecalcRequest(m.FrozenModel):
         source: Annotated[
-            bytes, m.Field(min_length=1, description="Source workbook bytes.")
+            bytes,
+            m.Field(min_length=1, description="Source workbook bytes."),
         ]
 
     class XlsxRecalcResult(m.FrozenModel):
         content: Annotated[
-            bytes, m.Field(min_length=1, description="Recalculated workbook bytes.")
+            bytes,
+            m.Field(min_length=1, description="Recalculated workbook bytes."),
         ]
 
     class XlsxRecalcParityRequest(m.FrozenModel):
         source: Annotated[
-            bytes, m.Field(min_length=1, description="Source workbook bytes.")
+            bytes,
+            m.Field(min_length=1, description="Source workbook bytes."),
         ]
         expected_formula_count: (
             Annotated[
-                int, m.Field(ge=0, description="Expected source formula cell count.")
+                int,
+                m.Field(ge=0, description="Expected source formula cell count."),
             ]
             | None
         ) = None
@@ -43,10 +51,11 @@ class FlextCliModelsXlsxRecalc:
             ),
         ]
         recalculated: bool = m.Field(
-            description="Whether the engine produced recalculated bytes."
+            description="Whether the engine produced recalculated bytes.",
         )
         formula_count: Annotated[
-            int, m.Field(ge=0, description="Source workbook formula cell count.")
+            int,
+            m.Field(ge=0, description="Source workbook formula cell count."),
         ]
         error_cells: t.VariadicTuple[str] = m.Field(
             default=(),
@@ -64,7 +73,7 @@ class FlextCliModelsXlsxRecalc:
             description="Formula cells cached as an empty string result.",
         )
         ok: bool = m.Field(
-            description="Producer-stored verdict: caches complete, no errors, count matches."
+            description="Producer-stored verdict: caches complete, no errors, count matches.",
         )
 
 

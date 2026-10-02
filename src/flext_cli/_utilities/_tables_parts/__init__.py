@@ -25,7 +25,7 @@ _LAZY_IMPORTS = MappingProxyType(
         MappingProxyType({
             ".flextcliutilitiestablesrenderer_part_01": (
                 "FlextCliUtilitiesTablesRenderer",
-            )
+            ),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

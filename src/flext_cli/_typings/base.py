@@ -1,4 +1,8 @@
-"""CLI base type aliases and adapters."""
+"""CLI base type aliases and adapters.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

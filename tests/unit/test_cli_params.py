@@ -22,7 +22,12 @@ class TestsFlextCliCliParams:
 
     @pytest.fixture
     def settings(self) -> p.Cli.Settings:
-        """Fresh CLI settings instance built through the public factory."""
+        """Fresh CLI settings instance built through the public factory.
+
+        Returns:
+            The resulting ``p.Cli.Settings``.
+
+        """
         result = u.Tests.create_test_settings()
         tm.ok(result)
         return result.value
@@ -31,7 +36,8 @@ class TestsFlextCliCliParams:
 
     @pytest.mark.parametrize("field_name", ["verbose", "quiet", "debug"])
     def test_create_option_returns_option_spec_for_registered_field(
-        self, field_name: str
+        self,
+        field_name: str,
     ) -> None:
         """create_option yields a public CliOptionSpec for each registered field."""
         option = cli.create_option(field_name)
@@ -46,11 +52,15 @@ class TestsFlextCliCliParams:
     # ── apply_to_config: success paths ───────────────────────────────
 
     def test_apply_to_config_applies_flags_and_log_level(
-        self, settings: p.Cli.Settings
+        self,
+        settings: p.Cli.Settings,
     ) -> None:
         """apply_to_config returns updated settings reflecting each applied value."""
         result = cli.apply_to_config(
-            settings, verbose=True, debug=True, log_level=c.LogLevel.DEBUG
+            settings,
+            verbose=True,
+            debug=True,
+            log_level=c.LogLevel.DEBUG,
         )
 
         tm.ok(result)
@@ -60,7 +70,8 @@ class TestsFlextCliCliParams:
         tm.that(updated.cli_log_level, eq=c.LogLevel.DEBUG)
 
     def test_apply_to_config_trace_with_debug_enables_trace(
-        self, settings: p.Cli.Settings
+        self,
+        settings: p.Cli.Settings,
     ) -> None:
         """Trace is accepted and applied when debug is also enabled."""
         result = cli.apply_to_config(settings, debug=True, trace=True)
@@ -71,13 +82,16 @@ class TestsFlextCliCliParams:
         tm.that(updated.trace is True, eq=True)
 
     def test_apply_to_config_is_idempotent_for_same_values(
-        self, settings: p.Cli.Settings
+        self,
+        settings: p.Cli.Settings,
     ) -> None:
         """Applying the same values twice yields the same observable state."""
         first = cli.apply_to_config(settings, verbose=True, log_level=c.LogLevel.DEBUG)
         tm.ok(first)
         second = cli.apply_to_config(
-            first.value, verbose=True, log_level=c.LogLevel.DEBUG
+            first.value,
+            verbose=True,
+            log_level=c.LogLevel.DEBUG,
         )
         tm.ok(second)
         tm.that(second.value.cli_verbose is True, eq=True)
@@ -86,7 +100,8 @@ class TestsFlextCliCliParams:
     # ── apply_to_config: failure paths ───────────────────────────────
 
     def test_apply_to_config_trace_without_debug_fails(
-        self, settings: p.Cli.Settings
+        self,
+        settings: p.Cli.Settings,
     ) -> None:
         """Trace without debug fails with a message explaining the dependency."""
         result = cli.apply_to_config(settings, trace=True)
@@ -95,7 +110,8 @@ class TestsFlextCliCliParams:
         tm.that((result.error or "").lower(), has="trace mode requires debug mode")
 
     def test_apply_to_config_unknown_parameter_fails_carrying_validation_error(
-        self, settings: p.Cli.Settings
+        self,
+        settings: p.Cli.Settings,
     ) -> None:
         """A parameter the params model rejects fails and keeps its cause."""
         result = cli.apply_to_config(settings, not_a_param=True)
@@ -136,7 +152,12 @@ class TestsFlextCliCliParams:
 
     @pytest.fixture
     def app(self) -> p.Cli.Application:
-        """Build an app carrying the common-params decorated command."""
+        """Build an app carrying the common-params decorated command.
+
+        Returns:
+            The resulting ``p.Cli.Application``.
+
+        """
         app_result = u.Tests.create_cli_app()
         tm.ok(app_result)
         app = app_result.value
@@ -153,7 +174,8 @@ class TestsFlextCliCliParams:
             tm.that(result.value.stdout, has=flag)
 
     def test_boolean_flags_toggle_command_behavior(
-        self, app: p.Cli.Application
+        self,
+        app: p.Cli.Application,
     ) -> None:
         """Passing --verbose/--debug flips the command's observable output."""
         result = cli.invoke_app(app, args=["test", "--verbose", "--debug"])

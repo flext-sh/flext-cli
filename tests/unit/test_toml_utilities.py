@@ -4,6 +4,9 @@ Every test exercises only the public helper contract: return values, ``r[T]``
 success/failure outcomes and the observable state of the produced TOML
 documents/mappings. No private attributes, internal collaborators or
 implementation structures are inspected.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -31,7 +34,8 @@ class TestsFlextCliTomlUtilities:
         """Verify that read returns parsed document for valid file."""
         toml_file = tmp_path / "test.toml"
         toml_file.write_text(
-            '[section]\nkey = "value"\nnumber = 42\n', encoding="utf-8"
+            '[section]\nkey = "value"\nnumber = 42\n',
+            encoding="utf-8",
         )
 
         doc = u.Cli.toml_read(toml_file)
@@ -47,7 +51,10 @@ class TestsFlextCliTomlUtilities:
         [("missing.toml", None), ("invalid.toml", "[invalid\nkey = value")],
     )
     def test_read_returns_none_for_missing_or_invalid_file(
-        self, tmp_path: Path, filename: str, contents: str | None
+        self,
+        tmp_path: Path,
+        filename: str,
+        contents: str | None,
     ) -> None:
         """Verify that read returns none for missing or invalid file."""
         toml_file = tmp_path / filename
@@ -69,7 +76,8 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_value(section, "key"), eq="value")
 
     def test_read_document_fails_with_not_found_for_missing_file(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that read document fails with not found for missing file."""
         tm.fail(u.Cli.toml_read_document(tmp_path / "missing.toml"), has="not found")
@@ -103,7 +111,8 @@ class TestsFlextCliTomlUtilities:
         tm.that(toml_file.exists(), eq=True)
 
     def test_write_document_creates_missing_parent_directories(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that write document creates missing parent directories."""
         toml_file = tmp_path / "nested" / "deep" / "file.toml"
@@ -114,7 +123,8 @@ class TestsFlextCliTomlUtilities:
         tm.that(toml_file.exists(), eq=True)
 
     def test_write_pyproject_runs_the_required_real_formatter(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Format a real pyproject through the public TOML facade."""
         pyproject = tmp_path / "pyproject.toml"
@@ -129,7 +139,8 @@ class TestsFlextCliTomlUtilities:
         tm.that(rendered["project"], eq={"name": "demo"})
 
     def test_write_document_fails_when_target_is_not_writable(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that write document fails when target is not writable."""
         readonly_dir = tmp_path / "readonly"
@@ -218,7 +229,8 @@ class TestsFlextCliTomlUtilities:
         )
         tm.that(
             u.Cli.toml_value(
-                u.Cli.toml_navigate_path(doc, ["pytest", "ini_options"]), "addopts"
+                u.Cli.toml_navigate_path(doc, ["pytest", "ini_options"]),
+                "addopts",
             ),
             eq="-q",
         )
@@ -250,10 +262,13 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
 
     @pytest.mark.parametrize(
-        ("key", "expected"), [("a", 1), ("b", [1, 2]), ("missing", None)]
+        ("key", "expected"),
+        [("a", 1), ("b", [1, 2]), ("missing", None)],
     )
     def test_value_lookup_returns_stored_values_or_none(
-        self, key: str, expected: t.JsonValue | None
+        self,
+        key: str,
+        expected: t.JsonValue | None,
     ) -> None:
         """Verify that value lookup returns stored values or none."""
         doc = u.Cli.toml_document()
@@ -292,13 +307,16 @@ class TestsFlextCliTomlUtilities:
     def test_mapping_sync_helpers_report_and_apply_changes(self) -> None:
         """Verify that mapping sync helpers report and apply changes."""
         payload: dict[str, t.JsonValue] = {
-            "tool": {"uv": {"sources": {"stale": {"workspace": True}}}}
+            "tool": {"uv": {"sources": {"stale": {"workspace": True}}}},
         }
         changes: list[str] = []
 
         sources = u.Cli.toml_mapping_ensure_path(payload, ("tool", "uv", "sources"))
         if u.Cli.toml_mapping_sync_mapping_table(
-            sources, "flext-core", {"workspace": True}, sort_keys=True
+            sources,
+            "flext-core",
+            {"workspace": True},
+            sort_keys=True,
         ):
             changes.append("synced flext-core")
         if u.Cli.toml_mapping_sync_string_list(

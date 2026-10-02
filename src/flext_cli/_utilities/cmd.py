@@ -1,4 +1,8 @@
-"""CLI command-service helpers shared through ``u.Cli``."""
+"""CLI command-service helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -13,7 +17,12 @@ class FlextCliUtilitiesCmd:
 
     @staticmethod
     def cmd_status() -> m.Cli.RuntimeStatus:
-        """Return the canonical public CLI runtime status model."""
+        """Return the canonical public CLI runtime status model.
+
+        Returns:
+            The canonical public CLI runtime status model.
+
+        """
         return m.Cli.RuntimeStatus(
             status=c.Cli.ServiceStatus.OPERATIONAL,
             service=c.Cli.FLEXT_CLI,
@@ -29,16 +38,26 @@ class FlextCliUtilitiesCmd:
 
     @staticmethod
     def cmd_settings_snapshot() -> p.Result[m.Cli.SettingsSnapshot]:
-        """Return the canonical settings snapshot without normalizing failures."""
+        """Return the canonical settings snapshot without normalizing failures.
+
+        Returns:
+            The canonical settings snapshot without normalizing failures.
+
+        """
         return r[m.Cli.SettingsSnapshot].ok(us.settings_snapshot_model())
 
     @staticmethod
     def cmd_show_settings(logger: p.Logger) -> p.Result[bool]:
-        """Resolve and log current settings snapshot."""
+        """Resolve and log current settings snapshot.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         info_result = FlextCliUtilitiesCmd.cmd_settings_snapshot()
         if info_result.failure:
             return r[bool].fail(
-                c.Cli.ERR_SHOW_SETTINGS_FAILED.format(error=info_result.error)
+                c.Cli.ERR_SHOW_SETTINGS_FAILED.format(error=info_result.error),
             )
         logger.info(
             c.Cli.LOG_MSG_SETTINGS_DISPLAYED,
@@ -48,11 +67,16 @@ class FlextCliUtilitiesCmd:
 
     @staticmethod
     def cmd_validate_settings(logger: p.Logger) -> p.Result[bool]:
-        """Validate canonical settings structure and log normalized results."""
+        """Validate canonical settings structure and log normalized results.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         results = us.validate_settings_structure()
         if results:
             logger.info(
-                c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results)
+                c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results),
             )
         return r[bool].ok(True)
 

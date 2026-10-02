@@ -122,6 +122,6 @@ class TestsFlextCliCmd:
                     ),
                 ],
                 env={c.Cli.ENV_VAR_HOME: str(home)},
-            )
+            ),
         )
         return m.Cli.SettingsSnapshot.model_validate_json(output)

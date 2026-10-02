@@ -1,4 +1,8 @@
-"""Observe real staged-link ownership when its physical parent moves."""
+"""Observe real staged-link ownership when its physical parent moves.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -17,8 +21,10 @@ class TestsAtomicSymlinkStaging:
     """An unverified staged inode must stay discoverable through its failure."""
 
     def test_snapshot_failure_retains_original_cause_and_unverified_stage(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
+        """Test snapshot failure retains original cause and unverified stage."""
         script = tmp_path / "consumer.py"
         script.write_text(
             "import errno\n"
@@ -66,7 +72,7 @@ class TestsAtomicSymlinkStaging:
             encoding="utf-8",
         )
         outcome = tm.ok(
-            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path)))
+            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path))),
         )
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
         tm.that(outcome.stderr, eq="")

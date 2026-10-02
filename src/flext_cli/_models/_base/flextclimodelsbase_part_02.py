@@ -1,4 +1,8 @@
-"""CLI Pydantic domain models."""
+"""CLI Pydantic domain models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -19,7 +23,9 @@ class FlextCliModelsBase:
         """Exact content and physical identity for one regular file version."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", frozen=True, arbitrary_types_allowed=True
+            extra="forbid",
+            frozen=True,
+            arbitrary_types_allowed=True,
         )
         path: Annotated[Path, m.Field(description="Absolute file path")]
         parent_device: Annotated[
@@ -54,13 +60,17 @@ class FlextCliModelsBase:
         device: Annotated[
             int | None,
             m.Field(
-                ge=0, strict=True, description="Physical device, or None when absent"
+                ge=0,
+                strict=True,
+                description="Physical device, or None when absent",
             ),
         ] = None
         inode: Annotated[
             int | None,
             m.Field(
-                ge=0, strict=True, description="Physical inode, or None when absent"
+                ge=0,
+                strict=True,
+                description="Physical inode, or None when absent",
             ),
         ] = None
         link_count: Annotated[
@@ -74,7 +84,9 @@ class FlextCliModelsBase:
         file_attributes: Annotated[
             int | None,
             m.Field(
-                ge=0, strict=True, description="Host file attributes when available"
+                ge=0,
+                strict=True,
+                description="Host file attributes when available",
             ),
         ] = None
         reparse_tag: Annotated[
@@ -85,14 +97,30 @@ class FlextCliModelsBase:
         @u.field_validator("path")
         @classmethod
         def _validate_absolute_path(cls, value: Path) -> Path:
-            """Reject ambiguous relative identities instead of normalizing them."""
+            """Reject ambiguous relative identities instead of normalizing them.
+
+            Returns:
+                The resulting ``Path``.
+
+            """
             return atomic_state.validate_atomic_state_path(
-                value, label="atomic file state"
+                value,
+                label="atomic file state",
             )
 
         @u.model_validator(mode="after")
         def _validate_presence_tuple(self) -> Self:
-            """Require one complete, uniquely owned, non-reparse state."""
+            """Require one complete, uniquely owned, non-reparse state.
+
+            Returns:
+                The resulting ``Self``.
+
+            Raises:
+                ValueError: If atomic file state must contain bytes, mode, device,
+                    inode, and link count, or none of them; or if absent atomic file
+                    state cannot contain host metadata.
+
+            """
             presence = tuple(
                 value is not None
                 for value in (
@@ -121,7 +149,9 @@ class FlextCliModelsBase:
                 label="atomic file state",
             )
             atomic_state.validate_non_reparse_state(
-                self.file_attributes, self.reparse_tag, label="atomic file state"
+                self.file_attributes,
+                self.reparse_tag,
+                label="atomic file state",
             )
             return self
 
@@ -129,34 +159,41 @@ class FlextCliModelsBase:
         """Centralized runtime state for CLI prompt behavior."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True
+            extra="forbid",
+            validate_assignment=True,
         )
 
         interactive: Annotated[
-            bool, m.Field(True, description="Whether prompt interaction is enabled")
+            bool,
+            m.Field(True, description="Whether prompt interaction is enabled"),
         ] = True
         quiet: Annotated[
-            bool, m.Field(False, description="Whether prompt output is suppressed")
+            bool,
+            m.Field(False, description="Whether prompt output is suppressed"),
         ] = False
         default_timeout: Annotated[
-            int, m.Field(description="Default prompt timeout in seconds")
+            int,
+            m.Field(description="Default prompt timeout in seconds"),
         ] = c.Cli.PROMPT_DEFAULT_TIMEOUT
 
     class AuthCredentialsPayload(m.BaseModel):
         """Validated auth payload for token or username/password flows."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True
+            extra="forbid",
+            validate_assignment=True,
         )
         token: Annotated[
             str | None,
             m.Field(None, description="Direct authentication token", strict=True),
         ] = None
         username: Annotated[
-            str, m.Field("", description="Authentication username", strict=True)
+            str,
+            m.Field("", description="Authentication username", strict=True),
         ] = ""
         password: Annotated[
-            str, m.Field("", description="Authentication password", strict=True)
+            str,
+            m.Field("", description="Authentication password", strict=True),
         ] = ""
 
     class ProcessEnvironmentSpec(m.BaseModel):
@@ -192,7 +229,12 @@ class FlextCliModelsBase:
             return self.resolve()
 
         def resolve(self) -> dict[str, str]:
-            """Type-safe accessor for the computed environment mapping."""
+            """Type-safe accessor for the computed environment mapping.
+
+            Returns:
+                The resulting ``dict[str, str]``.
+
+            """
             remove_keys = frozenset(self.remove_keys)
             resolved = {
                 key: value

@@ -125,14 +125,16 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
         """Protocol for dynamically-created CLI command wrapper functions."""
 
         def __call__(
-            self, *args: t.JsonPayload, **kwargs: t.JsonPayload
+            self,
+            *args: t.JsonPayload,
+            **kwargs: t.JsonPayload,
         ) -> t.JsonPayload:
             """Execute the wrapper."""
             ...
 
     @runtime_checkable
     class ResultCommandHandler[TParams: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
-        Protocol
+        Protocol,
     ):
         """Protocol for model-driven CLI handlers returning `r[...]`."""
 

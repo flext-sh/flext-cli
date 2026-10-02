@@ -1,4 +1,8 @@
-"""Pipeline protocol contracts for DAG-based stage execution."""
+"""Pipeline protocol contracts for DAG-based stage execution.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -40,7 +44,9 @@ class FlextCliProtocolsPipeline:
         """Contract for a callable pipeline stage handler."""
 
         def __call__(
-            self, ctx: FlextCliProtocolsPipeline.PipelineStageContext, /
+            self,
+            ctx: FlextCliProtocolsPipeline.PipelineStageContext,
+            /,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             """Execute stage and return typed result."""
             ...
@@ -50,7 +56,9 @@ class FlextCliProtocolsPipeline:
         """Contract for deciding whether one stage is skipped."""
 
         def __call__(
-            self, ctx: FlextCliProtocolsPipeline.PipelineStageContext, /
+            self,
+            ctx: FlextCliProtocolsPipeline.PipelineStageContext,
+            /,
         ) -> bool:
             """Return whether the stage must be skipped."""
             ...
@@ -118,7 +126,8 @@ class FlextCliProtocolsPipeline:
             handlers: t.MappingKV[str, FlextCliProtocolsPipeline.PipelineStage],
             *,
             skip_by_stage: t.MappingKV[
-                str, FlextCliProtocolsPipeline.PipelineSkipPredicate
+                str,
+                FlextCliProtocolsPipeline.PipelineSkipPredicate,
             ]
             | None = None,
         ) -> t.SequenceOf[m.Cli.PipelineStageSpec]:

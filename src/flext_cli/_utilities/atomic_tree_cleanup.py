@@ -1,4 +1,8 @@
-"""Guarded exact-manifest cleanup for one physical filesystem tree."""
+"""Guarded exact-manifest cleanup for one physical filesystem tree.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -63,7 +67,11 @@ def _require_cleanup_capabilities(manifest: m.Cli.AtomicPhysicalTreeManifest) ->
             if (opened.state.st_dev, opened.state.st_ino, mount_id) != expected:
                 _raise_changed(path)
             authenticated = file_descriptor.ParentDescriptor(
-                path, opened.descriptor, opened.state, opened.ancestry, opened.lineage
+                path,
+                opened.descriptor,
+                opened.state,
+                opened.ancestry,
+                opened.lineage,
             )
             file_durability.sync_parent(authenticated)
 
@@ -79,7 +87,10 @@ def _delete_file(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
             _raise_changed(entry.path)
         _require_file_state(entry, observed)
         size, digest = tree_descriptor.measure_authenticated_file(
-            parent, entry.path, observed, required_mount_id=entry.mount_id
+            parent,
+            entry.path,
+            observed,
+            required_mount_id=entry.mount_id,
         )
         if (size, digest) != (entry.size, entry.sha256):
             _raise_changed(entry.path)
@@ -141,7 +152,8 @@ def _delete_symlink(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
 
 def _delete_directory(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
     current = directory_snapshot.read_authenticated_empty_directory(
-        entry.path, required=True
+        entry.path,
+        required=True,
     )
     if (
         not current.exists
@@ -169,7 +181,8 @@ def _delete_directory(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
 
 
 def _require_file_state(
-    entry: m.Cli.AtomicPhysicalTreeEntry, observed: os.stat_result
+    entry: m.Cli.AtomicPhysicalTreeEntry,
+    observed: os.stat_result,
 ) -> None:
     if (
         stat.S_IMODE(observed.st_mode),
@@ -200,7 +213,9 @@ def _require_file_state(
 
 
 def _require_parent(
-    entry: m.Cli.AtomicPhysicalTreeEntry, device: int | None, inode: int | None
+    entry: m.Cli.AtomicPhysicalTreeEntry,
+    device: int | None,
+    inode: int | None,
 ) -> None:
     if (entry.parent_device, entry.parent_inode) != (device, inode):
         _raise_changed(entry.path.parent)
@@ -211,7 +226,12 @@ def _deletion_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> t.Pair[int, str]:
 
 
 def _binding_path_key(item: t.Pair[Path, t.Triple[int, int, int]]) -> str:
-    """Return the lexical key for one authenticated parent binding."""
+    """Return the lexical key for one authenticated parent binding.
+
+    Returns:
+        The lexical key for one authenticated parent binding.
+
+    """
     return item[0].as_posix()
 
 

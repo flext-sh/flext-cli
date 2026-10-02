@@ -1,4 +1,8 @@
-"""Public complete-state precondition contract for atomic text publication."""
+"""Public complete-state precondition contract for atomic text publication.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -154,7 +158,8 @@ class TestsAtomicFileGuarded:
 
         tm.fail(result, has="not a real directory")
         tm.that(
-            (owner / "nested" / "atomic.txt").read_text(encoding="utf-8"), eq="before"
+            (owner / "nested" / "atomic.txt").read_text(encoding="utf-8"),
+            eq="before",
         )
 
     def test_replaced_ancestor_is_rejected(self, tmp_path: Path) -> None:

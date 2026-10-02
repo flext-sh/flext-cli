@@ -1,4 +1,8 @@
-"""Public snapshot owner for descriptor-authenticated empty directories."""
+"""Public snapshot owner for descriptor-authenticated empty directories.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -17,7 +21,9 @@ from . import (
 
 
 def read_authenticated_empty_directory(
-    path: Path, *, required: bool
+    path: Path,
+    *,
+    required: bool,
 ) -> m.Cli.AtomicDirectoryState:
     """Return exact absence or one stable, physical, empty directory state.
 
@@ -25,6 +31,13 @@ def read_authenticated_empty_directory(
     absence, not failure: no parent exists to authenticate, so the parent
     identity is absent too. A required read, and every write owner, still demand
     one physical, non-aliased parent directory.
+
+    Returns:
+        Exact absence or one stable, physical, empty directory state.
+
+    Raises:
+        FileNotFoundError: If ``required``.
+
     """
     path = file_path.validate_atomic_path(path)
     directory_descriptor.require_read_capabilities(path)

@@ -1,4 +1,8 @@
-"""Canonical cell and range reference helpers for XLSX plans."""
+"""Canonical cell and range reference helpers for XLSX plans.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -66,17 +70,24 @@ class FlextCliUtilitiesXlsxAddresses:
 
     @classmethod
     def xlsx_parse_range(
-        cls, request: m.Cli.XlsxParseRangeRequest
+        cls,
+        request: m.Cli.XlsxParseRangeRequest,
     ) -> p.Result[m.Cli.XlsxCellRange]:
-        """Parse one concrete A1 cell/range through the XLSX adapter."""
+        """Parse one concrete A1 cell/range through the XLSX adapter.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.XlsxCellRange]``.
+
+        """
         try:
             first_column, first_row, last_column, last_row = range_boundaries(
-                request.reference
+                request.reference,
             )
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or request.reference
             return r[m.Cli.XlsxCellRange].fail(
-                f"{c.Cli.XlsxError.RANGE_INVALID}: {detail}", exception=exc
+                f"{c.Cli.XlsxError.RANGE_INVALID}: {detail}",
+                exception=exc,
             )
         if (
             first_column is None
@@ -91,21 +102,27 @@ class FlextCliUtilitiesXlsxAddresses:
             m.Cli.XlsxCellRange(
                 first=m.Cli.XlsxCellAddress(row=first_row, column=first_column),
                 last=m.Cli.XlsxCellAddress(row=last_row, column=last_column),
-            )
+            ),
         )
 
     # mro-j2yt.1 (xlsx_reference_api): keep vendor formatting behind cli.
     @classmethod
     def xlsx_format_reference(
-        cls, request: m.Cli.XlsxFormatReferenceRequest
+        cls,
+        request: m.Cli.XlsxFormatReferenceRequest,
     ) -> p.Result[m.Cli.XlsxReference]:
-        """Format one validated range as a canonical Excel reference."""
+        """Format one validated range as a canonical Excel reference.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.XlsxReference]``.
+
+        """
         try:
             reference = cls._format_reference(request)
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxReference].fail(
-                f"{c.Cli.XlsxError.RANGE_INVALID}: {detail}"
+                f"{c.Cli.XlsxError.RANGE_INVALID}: {detail}",
             )
         return r[m.Cli.XlsxReference].ok(m.Cli.XlsxReference(reference=reference))
 

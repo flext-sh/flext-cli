@@ -1,4 +1,8 @@
-"""Stable constants for the generic PPTX boundary."""
+"""Stable constants for the generic PPTX boundary.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

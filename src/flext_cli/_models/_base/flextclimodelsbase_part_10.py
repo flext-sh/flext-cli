@@ -1,4 +1,8 @@
-"""Typed descriptor-authenticated atomic publication models."""
+"""Typed descriptor-authenticated atomic publication models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -16,7 +20,9 @@ class FlextCliModelsBase:
         """One guarded live state and its caller-owned staged replacement."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", frozen=True, arbitrary_types_allowed=True
+            extra="forbid",
+            frozen=True,
+            arbitrary_types_allowed=True,
         )
         before: Annotated[
             FlextCliModelsBasePart02.AtomicFileState,
@@ -29,7 +35,15 @@ class FlextCliModelsBase:
 
         @u.model_validator(mode="after")
         def _validate_replacement_state(self) -> Self:
-            """Require one complete staged file state or one absent tombstone."""
+            """Require one complete staged file state or one absent tombstone.
+
+            Returns:
+                The resulting ``Self``.
+
+            Raises:
+                ValueError: If atomic publication replacement state is incomplete.
+
+            """
             if (self.replacement.content is None) is not (
                 self.replacement.mode is None
             ):

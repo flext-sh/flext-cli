@@ -1,4 +1,8 @@
-"""Stable descriptor-authenticated state for physical empty directories."""
+"""Stable descriptor-authenticated state for physical empty directories.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -19,9 +23,19 @@ _MAX_EMPTY_DIRECTORY_LINK_COUNT = 2
 
 
 def destination_state(
-    path: Path, *, parent: file_descriptor.ParentDescriptor
+    path: Path,
+    *,
+    parent: file_descriptor.ParentDescriptor,
 ) -> os.stat_result | None:
-    """Read one final directory entry without following it or crossing devices."""
+    """Read one final directory entry without following it or crossing devices.
+
+    Returns:
+        The resulting ``os.stat_result | None``.
+
+    Raises:
+        OSError: If ``state.st_dev != parent.state.st_dev``.
+
+    """
     state: os.stat_result | None
     try:
         state = file_descriptor.entry_stat(parent, path)
@@ -37,9 +51,16 @@ def destination_state(
 
 
 def read_empty_state(
-    parent: file_descriptor.ParentDescriptor, path: Path, expected: os.stat_result
+    parent: file_descriptor.ParentDescriptor,
+    path: Path,
+    expected: os.stat_result,
 ) -> os.stat_result:
-    """Prove one exact directory version remains empty through an FD read."""
+    """Prove one exact directory version remains empty through an FD read.
+
+    Returns:
+        The resulting ``os.stat_result``.
+
+    """
     flags = (
         os.O_RDONLY
         | getattr(os, "O_DIRECTORY", 0)
@@ -59,7 +80,12 @@ def initialize_empty_state(
     expected: os.stat_result,
     permission_mode: int,
 ) -> os.stat_result:
-    """Set and sync exact mode on a newly-created, still-empty directory inode."""
+    """Set and sync exact mode on a newly-created, still-empty directory inode.
+
+    Returns:
+        The resulting ``os.stat_result``.
+
+    """
     flags = (
         os.O_RDONLY
         | getattr(os, "O_DIRECTORY", 0)
@@ -79,16 +105,25 @@ def initialize_empty_state(
 
 
 def require_identity(
-    path: Path, state: os.stat_result, expected: t.Pair[int, int]
+    path: Path,
+    state: os.stat_result,
+    expected: t.Pair[int, int],
 ) -> None:
-    """Require one directory entry to retain a caller-owned inode."""
+    """Require one directory entry to retain a caller-owned inode.
+
+    Raises:
+        OSError: If ``file_path.identity(state) != expected``.
+
+    """
     if file_path.identity(state) != expected:
         message = f"atomic directory identity changed: {path}"
         raise OSError(errno.ESTALE, message, path)
 
 
 def _require_descriptor_state(
-    descriptor: int, path: Path, expected: os.stat_result
+    descriptor: int,
+    path: Path,
+    expected: os.stat_result,
 ) -> None:
     observed = os.fstat(descriptor)
     file_path.validate_directory_state(path, observed)
@@ -109,7 +144,9 @@ def _require_empty(descriptor: int, path: Path) -> None:
 
 
 def _require_path_state(
-    parent: file_descriptor.ParentDescriptor, path: Path, expected: os.stat_result
+    parent: file_descriptor.ParentDescriptor,
+    path: Path,
+    expected: os.stat_result,
 ) -> os.stat_result:
     current = destination_state(path, parent=parent)
     if current is None or file_read.state_key(current) != file_read.state_key(expected):

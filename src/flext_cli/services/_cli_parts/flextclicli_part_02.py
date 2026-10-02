@@ -121,7 +121,9 @@ class FlextCliCli(FlextCliCliPart01):
         if applied.failure:
             self._exit_failure(r[bool].from_failure(applied))
         self._apply_updated_settings(applied.value)
-        if any(flag is not None for flag in (params.log_level, params.debug, params.trace)):
+        if any(
+            flag is not None for flag in (params.log_level, params.debug, params.trace)
+        ):
             # Explicit operator flags win over the application settings the
             # process entry applied before options were parsed.
             u.apply_log_level(
@@ -160,11 +162,22 @@ class FlextCliCli(FlextCliCliPart01):
             settings.update_global(**overrides)
 
     def create_app_with_common_params(
-        self, *, name: str, help_text: str, add_completion: bool = True
+        self,
+        *,
+        name: str,
+        help_text: str,
+        add_completion: bool = True,
     ) -> p.Cli.Application:
-        """Create a Typer app with the shared global FLEXT CLI parameters."""
+        """Create a Typer app with the shared global FLEXT CLI parameters.
+
+        Returns:
+            The resulting ``p.Cli.Application``.
+
+        """
         app = u.Cli.framework_create_app(
-            name=name, help_text=help_text, add_completion=add_completion
+            name=name,
+            help_text=help_text,
+            add_completion=add_completion,
         )
 
         def apply_common_params(params: m.Cli.CliParamsConfig) -> bool:
@@ -175,7 +188,9 @@ class FlextCliCli(FlextCliCliPart01):
         annotations: t.Cli.CliAnnotations = {"return": bool}
         for field_name in c.Cli.CLI_GLOBAL_PARAM_FIELDS:
             parameter, annotation = self._build_model_parameter(
-                field_name, m.Cli.CliParamsConfig.model_fields[field_name], None
+                field_name,
+                m.Cli.CliParamsConfig.model_fields[field_name],
+                None,
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
@@ -193,16 +208,26 @@ class FlextCliCli(FlextCliCliPart01):
 
     @staticmethod
     def add_group(
-        app: p.Cli.Application, *, name: str, group: p.Cli.Application
+        app: p.Cli.Application,
+        *,
+        name: str,
+        group: p.Cli.Application,
     ) -> None:
         """Attach a subcommand group to an application."""
         u.Cli.framework_add_group(app, name=name, group=group)
 
     @staticmethod
     def create_group(*, help_text: str, name: str | None = None) -> p.Cli.Application:
-        """Create a Typer command group without re-registering global params."""
+        """Create a Typer command group without re-registering global params.
+
+        Returns:
+            The resulting ``p.Cli.Application``.
+
+        """
         return u.Cli.framework_create_app(
-            name=name, help_text=help_text, add_completion=True
+            name=name,
+            help_text=help_text,
+            add_completion=True,
         )
 
 

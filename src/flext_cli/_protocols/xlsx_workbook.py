@@ -1,4 +1,8 @@
-"""Structural contracts for external workbook objects."""
+"""Structural contracts for external workbook objects.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -44,21 +48,35 @@ class FlextCliProtocolsXlsxWorkbook:
     @runtime_checkable
     class XlsxRowDimensions(Protocol):
         def __getitem__(
-            self, index: int, /
+            self,
+            index: int,
+            /,
         ) -> FlextCliProtocolsXlsxWorkbook.XlsxDimension: ...
 
         def group(
-            self, start: int, end: int, *, outline_level: int, hidden: bool
+            self,
+            start: int,
+            end: int,
+            *,
+            outline_level: int,
+            hidden: bool,
         ) -> None: ...
 
     @runtime_checkable
     class XlsxColumnDimensions(Protocol):
         def __getitem__(
-            self, index: str, /
+            self,
+            index: str,
+            /,
         ) -> FlextCliProtocolsXlsxWorkbook.XlsxDimension: ...
 
         def group(
-            self, start: str, end: str, *, outline_level: int, hidden: bool
+            self,
+            start: str,
+            end: str,
+            *,
+            outline_level: int,
+            hidden: bool,
         ) -> None: ...
 
     @runtime_checkable
@@ -68,7 +86,9 @@ class FlextCliProtocolsXlsxWorkbook:
     @runtime_checkable
     class XlsxDefinedNames(Protocol):
         def add(
-            self, value: FlextCliProtocolsXlsxWorkbook.XlsxDefinedName, /
+            self,
+            value: FlextCliProtocolsXlsxWorkbook.XlsxDefinedName,
+            /,
         ) -> None: ...
 
         def values(self) -> Iterable[FlextCliProtocolsXlsxWorkbook.XlsxDefinedName]: ...
@@ -87,7 +107,9 @@ class FlextCliProtocolsXlsxWorkbook:
         column_dimensions: FlextCliProtocolsXlsxWorkbook.XlsxColumnDimensions
 
         def cell(
-            self, row: int, column: int
+            self,
+            row: int,
+            column: int,
         ) -> FlextCliProtocolsXlsxWorkbook.XlsxCell: ...
 
         def merge_cells(self, range_string: str) -> None: ...
@@ -95,7 +117,8 @@ class FlextCliProtocolsXlsxWorkbook:
         def add_table(self, table: FlextCliProtocolsXlsxWorkbook.XlsxTable) -> None: ...
 
         def add_data_validation(
-            self, validation: FlextCliProtocolsXlsxRules.XlsxDataValidation
+            self,
+            validation: FlextCliProtocolsXlsxRules.XlsxDataValidation,
         ) -> None: ...
 
         def iter_rows(
@@ -111,19 +134,24 @@ class FlextCliProtocolsXlsxWorkbook:
         worksheets: Sequence[FlextCliProtocolsXlsxWorkbook.XlsxWorksheet]
 
         def __getitem__(
-            self, name: str, /
+            self,
+            name: str,
+            /,
         ) -> FlextCliProtocolsXlsxWorkbook.XlsxWorksheet: ...
 
         def create_sheet(
-            self, title: str
+            self,
+            title: str,
         ) -> FlextCliProtocolsXlsxWorkbook.XlsxWorksheet: ...
 
         def remove(
-            self, worksheet: FlextCliProtocolsXlsxWorkbook.XlsxWorksheet
+            self,
+            worksheet: FlextCliProtocolsXlsxWorkbook.XlsxWorksheet,
         ) -> None: ...
 
         def add_named_style(
-            self, style: FlextCliProtocolsXlsxRules.XlsxNamedStyle
+            self,
+            style: FlextCliProtocolsXlsxRules.XlsxNamedStyle,
         ) -> None: ...
 
         def save(self, filename: BytesIO) -> None: ...
