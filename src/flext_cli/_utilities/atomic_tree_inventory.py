@@ -13,8 +13,7 @@ from pathlib import Path
 from typing import Literal, Never
 
 from flext_cli import m, t
-
-from . import (
+from flext_cli._utilities import (
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_state as directory_state,
     atomic_file_descriptor as file_descriptor,
@@ -69,7 +68,7 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
                 parent_mount_id=parent_mount_id,
                 mount_id=root_mount_id,
             )
-            root_parent = file_descriptor.ParentDescriptor(
+            root_parent = file_descriptor.FlextCliParentDescriptor(
                 root_path,
                 descriptor,
                 root_state,
@@ -92,7 +91,7 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
 
 
 def _inventory_directory(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     parent_mount_id: int,
     entries: list[m.Cli.AtomicPhysicalTreeEntry],
     directory_identities: set[t.Pair[int, int]],
@@ -132,7 +131,7 @@ def _inventory_directory(
                         mount_id=mount_id,
                     ),
                 )
-                child_parent = file_descriptor.ParentDescriptor(
+                child_parent = file_descriptor.FlextCliParentDescriptor(
                     path,
                     descriptor,
                     observed,

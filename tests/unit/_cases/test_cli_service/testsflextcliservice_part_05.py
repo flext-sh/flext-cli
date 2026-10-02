@@ -22,7 +22,8 @@ if TYPE_CHECKING:
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
-    def test_register_result_command_renders_success_and_failure(self) -> None:
+    @staticmethod
+    def test_register_result_command_renders_success_and_failure() -> None:
         """Verify that register result command renders success and failure."""
         app = cli.create_app_with_common_params(
             name="result-app",
@@ -74,7 +75,8 @@ class TestsFlextCliService:
         tm.that(fail_result.stderr, has="Username cannot be empty")
         tm.that(fail_result.stdout, eq="")
 
-    def test_register_result_routes_propagates_real_failure(self) -> None:
+    @staticmethod
+    def test_register_result_routes_propagates_real_failure() -> None:
         """Verify that register result routes propagates real failure."""
         app = cli.create_app_with_common_params(
             name="result-app",

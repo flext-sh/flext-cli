@@ -9,23 +9,22 @@ from __future__ import annotations
 from typing import override
 
 from flext_cli import m, p, r, t, u
-
-from .services.auth import FlextCliAuth
-from .services.cli import FlextCliCli
-from .services.cli_params import FlextCliCommonParams
-from .services.cmd import FlextCliCmd
-from .services.docx import FlextCliDocx
-from .services.file_tools import FlextCliFileTools
-from .services.formatters import FlextCliFormatters
-from .services.output import FlextCliOutput
-from .services.pipeline import FlextCliPipeline
-from .services.pptx import FlextCliPptx
-from .services.prompts import FlextCliPrompts
-from .services.rules import FlextCliRules
-from .services.runtime import FlextCliRuntime
-from .services.tables import FlextCliTables
-from .services.xlsx import FlextCliXlsx
-from .services.yaml_model import FlextCliYamlModel
+from flext_cli.services.auth import FlextCliAuth
+from flext_cli.services.cli import FlextCliCli
+from flext_cli.services.cli_params import FlextCliCommonParams
+from flext_cli.services.cmd import FlextCliCmd
+from flext_cli.services.docx import FlextCliDocx
+from flext_cli.services.file_tools import FlextCliFileTools
+from flext_cli.services.formatters import FlextCliFormatters
+from flext_cli.services.output import FlextCliOutput
+from flext_cli.services.pipeline import FlextCliPipeline
+from flext_cli.services.pptx import FlextCliPptx
+from flext_cli.services.prompts import FlextCliPrompts
+from flext_cli.services.rules import FlextCliRules
+from flext_cli.services.runtime import FlextCliRuntime
+from flext_cli.services.tables import FlextCliTables
+from flext_cli.services.xlsx import FlextCliXlsx
+from flext_cli.services.yaml_model import FlextCliYamlModel
 
 
 class FlextCli(

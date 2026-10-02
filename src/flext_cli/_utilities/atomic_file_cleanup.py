@@ -11,8 +11,7 @@ import os
 from pathlib import Path
 
 from flext_cli import t
-
-from . import (
+from flext_cli._utilities import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_durability as file_durability,
     atomic_file_state as file_state,
@@ -20,7 +19,7 @@ from . import (
 
 
 def remove_failed_temporary(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     temporary: Path,
     identity: t.Pair[int, int] | None,
     descriptor: int | None,

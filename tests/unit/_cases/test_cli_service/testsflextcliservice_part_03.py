@@ -19,7 +19,8 @@ from tests.utilities import u
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
-    def test_model_command_skips_excluded_fields(self) -> None:
+    @staticmethod
+    def test_model_command_skips_excluded_fields() -> None:
         """Exclude model fields marked private from the generated CLI surface."""
 
         class ExcludedFieldModel(m.BaseModel):
@@ -43,7 +44,8 @@ class TestsFlextCliService:
         tm.that(help_result.value.stdout, has="--visible")
         tm.that("--hidden" in help_result.value.stdout, eq=False)
 
-    def test_create_app_with_common_params_rejects_trace_without_debug(self) -> None:
+    @staticmethod
+    def test_create_app_with_common_params_rejects_trace_without_debug() -> None:
         """Fail the invocation when shared flags cannot apply to the settings."""
         app = cli.create_app_with_common_params(name="warn-app", help_text="Warn app")
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
@@ -53,10 +55,11 @@ class TestsFlextCliService:
 
         tm.ok(invoke_result)
         tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=False)
-        tm.that(invoke_result.value.stdout, has="debug")
+        tm.that(invoke_result.value.stderr, has="debug")
         tm.that(settings.trace, eq=trace_before)
 
-    def test_create_app_with_common_params_no_flags_keeps_settings(self) -> None:
+    @staticmethod
+    def test_create_app_with_common_params_no_flags_keeps_settings() -> None:
         """Preserve settings when the invocation supplies no shared flags."""
         app = cli.create_app_with_common_params(
             name="identity-app",
@@ -72,7 +75,8 @@ class TestsFlextCliService:
         tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=True)
         tm.that(settings.model_dump(include=shared_flags), eq=flags_before)
 
-    def test_execute_app_propagates_unexpected_exception(self) -> None:
+    @staticmethod
+    def test_execute_app_propagates_unexpected_exception() -> None:
         """Propagate unexpected command defects with their original cause."""
         app = cli.create_app_with_common_params(name="error-app", help_text="Error app")
         cli.register_command(

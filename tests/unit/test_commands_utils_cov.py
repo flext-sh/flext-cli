@@ -28,7 +28,8 @@ from tests import c, t, u
 class TestsFlextCliCommands:
     """Behavioral contract for the ``u.Cli`` command messaging helpers."""
 
-    def test_formatter_result_wins_over_all_fallbacks(self) -> None:
+    @staticmethod
+    def test_formatter_result_wins_over_all_fallbacks() -> None:
         # Arrange
         """Verify that formatter result wins over all fallbacks."""
 
@@ -86,7 +87,8 @@ class TestsFlextCliCommands:
         # Assert
         tm.that(resolved, eq=expected)
 
-    def test_resolve_returns_none_fallback_when_message_is_none(self) -> None:
+    @staticmethod
+    def test_resolve_returns_none_fallback_when_message_is_none() -> None:
         # Act
         """Verify that resolve returns none fallback when message is none."""
         resolved = u.Cli.commands_resolve_success_message(
@@ -118,8 +120,8 @@ class TestsFlextCliCommands:
         # Assert
         tm.that(capsys.readouterr().out, eq=f"{payload}\n")
 
+    @staticmethod
     def test_plain_success_text_is_styled_and_newline_terminated(
-        self,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
@@ -132,8 +134,8 @@ class TestsFlextCliCommands:
         tm.that(out, ne="all good\n")
         tm.that(out.endswith("\n"), eq=True)
 
+    @staticmethod
     def test_error_message_is_styled_and_newline_terminated(
-        self,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
@@ -148,8 +150,8 @@ class TestsFlextCliCommands:
         tm.that(out.endswith("\n"), eq=True)
         tm.that(captured.out, eq="")
 
+    @staticmethod
     def test_error_message_surfaces_code_without_traceback_in_normal_mode(
-        self,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
@@ -170,8 +172,8 @@ class TestsFlextCliCommands:
         tm.that("FileNotFoundError" not in out, eq=True)
         tm.that(captured.out, eq="")
 
+    @staticmethod
     def test_error_message_adds_traceback_in_verbose_mode(
-        self,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Arrange

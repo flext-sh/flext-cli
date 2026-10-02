@@ -44,7 +44,8 @@ class TestsFlextCliConstants:
             eq=frozenset(member.value for member in enum_cls.__members__.values()),
         )
 
-    def test_table_formats_is_mapping_keyed_by_tabular_format(self) -> None:
+    @staticmethod
+    def test_table_formats_is_mapping_keyed_by_tabular_format() -> None:
         """TABLE_FORMATS maps a subset of TabularFormat members to descriptions."""
         table_formats = c.Cli.TABLE_FORMATS
         tm.that(table_formats, is_=Mapping)
@@ -65,12 +66,14 @@ class TestsFlextCliConstants:
         """Style/emoji maps expose an entry for every MessageTypes member."""
         tm.that(set(message_map), eq=set(c.Cli.MessageTypes))
 
-    def test_format_error_template_interpolates_placeholder(self) -> None:
+    @staticmethod
+    def test_format_error_template_interpolates_placeholder() -> None:
         """A templated error message interpolates its named placeholder."""
         rendered = c.Cli.ERR_INVALID_OUTPUT_FORMAT.format(format="qzz")
         tm.that(rendered, contains="qzz")
 
-    def test_status_emojis_are_distinct(self) -> None:
+    @staticmethod
+    def test_status_emojis_are_distinct() -> None:
         """Each status emoji is a distinct non-empty glyph."""
         emojis = (
             c.Cli.EMOJI_SUCCESS,
@@ -83,7 +86,8 @@ class TestsFlextCliConstants:
             tm.that(emoji, empty=False)
         tm.that(len(set(emojis)), eq=len(emojis))
 
-    def test_success_and_failure_symbols_differ(self) -> None:
+    @staticmethod
+    def test_success_and_failure_symbols_differ() -> None:
         """Success and failure marks are different observable symbols."""
         tm.that(c.Cli.SYMBOL_SUCCESS_MARK, empty=False)
         tm.that(c.Cli.SYMBOL_SUCCESS_MARK != c.Cli.SYMBOL_FAILURE_MARK, eq=True)

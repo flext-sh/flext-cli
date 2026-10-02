@@ -201,8 +201,8 @@ class TestsFlextCliServicesAuth:
         tm.that(result.error, has="token")
         tm.that(result.error, has="empty")
 
+    @staticmethod
     def test_validate_credentials_rejects_empty_password(
-        self,
         service: FlextCli,
     ) -> None:
         # Act

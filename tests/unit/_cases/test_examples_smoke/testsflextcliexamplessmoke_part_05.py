@@ -22,8 +22,8 @@ from flext_tests import tm
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
+    @staticmethod
     def test_settings_and_pydantic_examples_validate_production_flow(
-        self,
         tmp_path: Path,
     ) -> None:
         """Settings examples consume injected models and typed workflow rules."""
@@ -48,9 +48,10 @@ class TestsFlextCliExamplesSmoke:
         tm.that(database_result.value.ssl_enabled, eq=True)
         tm.that(database_result.value.connection_pool, eq=20)
 
-    def test_pydantic_driven_example_surfaces_validation_and_connection_failures(
-        self,
-    ) -> None:
+    @staticmethod
+    def test_pydantic_driven_example_surfaces_validation_and_connection_failures() -> (
+        None
+    ):
         """Pydantic-driven example must fail through its public railway steps when input is invalid."""
         missing_fields = validate_required_fields({"host": "db.example.com"})
         tm.fail(missing_fields)

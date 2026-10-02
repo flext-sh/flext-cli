@@ -17,10 +17,9 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities._rules._matchers import FlextCliUtilitiesRulesMatchersMixin
+from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
 from flext_core import u
-
-from ..json import FlextCliUtilitiesJson as uj
-from ._matchers import FlextCliUtilitiesRulesMatchersMixin
 
 if TYPE_CHECKING:
     from pathlib import Path

@@ -76,7 +76,8 @@ class TestsFlextCliPipeline:
         tm.that(pipeline.stages[0].stage_id, eq="alpha")
         tm.that(pipeline.stages[0].status, eq=c.Cli.PipelineStageStatus.OK)
 
-    def test_dependency_order(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_dependency_order(tmp_path: Path) -> None:
         """Stages execute in topological order — B depends on A."""
         execution_order: list[str] = []
 
@@ -98,7 +99,8 @@ class TestsFlextCliPipeline:
         tm.ok(result)
         tm.that(execution_order, eq=["a", "b"])
 
-    def test_shared_state_propagation(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_shared_state_propagation(tmp_path: Path) -> None:
         """Stage B can read what stage A wrote to shared."""
         received: dict[str, t.JsonValue | None] = {}
 

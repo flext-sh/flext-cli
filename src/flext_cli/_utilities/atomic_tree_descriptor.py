@@ -14,8 +14,7 @@ from pathlib import Path
 from typing import Never
 
 from flext_cli import t
-
-from . import (
+from flext_cli._utilities import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_path as file_path,
     atomic_file_read as file_read,
@@ -32,7 +31,7 @@ _FILE_FLAGS = (
 
 
 def measure_authenticated_file(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     expected: os.stat_result,
     *,
@@ -139,7 +138,7 @@ def require_directory_state(
 
 
 def require_entry_state(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     expected: os.stat_result,
 ) -> None:

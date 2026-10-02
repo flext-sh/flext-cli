@@ -25,7 +25,8 @@ if TYPE_CHECKING:
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
-    def test_model_command_updates_runtime_settings_fields(self) -> None:
+    @staticmethod
+    def test_model_command_updates_runtime_settings_fields() -> None:
         """Apply model command values to the validated runtime settings model."""
 
         class RuntimeSettings(m.BaseModel):
@@ -41,7 +42,8 @@ class TestsFlextCliService:
 
         tm.that(result, eq=True)
 
-    def test_create_app_with_common_params_applies_settings(self) -> None:
+    @staticmethod
+    def test_create_app_with_common_params_applies_settings() -> None:
         """Apply the shared debug option through the public invocation facade."""
         app = cli.create_app_with_common_params(
             name="sample",
@@ -59,7 +61,8 @@ class TestsFlextCliService:
         tm.ok(result)
         tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
 
-    def test_create_app_with_common_params_applies_log_level(self) -> None:
+    @staticmethod
+    def test_create_app_with_common_params_applies_log_level() -> None:
         """Apply the shared log-level option through the public invocation facade."""
         app = cli.create_app_with_common_params(
             name="sample",
@@ -77,7 +80,8 @@ class TestsFlextCliService:
         tm.ok(result)
         tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
 
-    def test_model_command_generates_real_typer_options(self) -> None:
+    @staticmethod
+    def test_model_command_generates_real_typer_options() -> None:
         """Generate and execute real options from a canonical request model."""
         captured: MutableSequence[m.Tests.SampleInput] = []
         app = cli.create_app_with_common_params(

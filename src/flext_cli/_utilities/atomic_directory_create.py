@@ -11,8 +11,7 @@ import os
 from pathlib import Path
 
 from flext_cli import m, t
-
-from . import (
+from flext_cli._utilities import (
     atomic_directory_cleanup as directory_cleanup,
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_model as directory_model,
@@ -70,7 +69,7 @@ def create_guarded_empty_directory(
 
 
 def _require_created_state(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
 ) -> os.stat_result:
     initial = directory_state.destination_state(path, parent=parent)
@@ -81,7 +80,7 @@ def _require_created_state(
 
 
 def _initialize_created(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     initial: os.stat_result,
     identity: t.Pair[int, int],

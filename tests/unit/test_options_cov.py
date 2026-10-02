@@ -71,7 +71,8 @@ class TestsFlextCliOptionsUtilsCov:
                 ("--projects", "one", "--custom-name", "two"),
             )
 
-    def test_parse_only_global_prefix_uses_registered_fields(self) -> None:
+    @staticmethod
+    def test_parse_only_global_prefix_uses_registered_fields() -> None:
         """Global options leave the protected command token unconsumed."""
         parsed = cli.parse_model_options(
             m.Cli.CliParamsConfig,

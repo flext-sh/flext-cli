@@ -10,14 +10,13 @@ import fnmatch
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-
-from ..runtime import FlextCliUtilitiesRuntime
-from .flextcliutilitiesfiles_part_02 import (
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
-from .flextcliutilitiesfiles_part_03 import (
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart03,
 )
+from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
 
 class FlextCliUtilitiesFiles:

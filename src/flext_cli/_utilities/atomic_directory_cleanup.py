@@ -11,8 +11,7 @@ import os
 from pathlib import Path
 
 from flext_cli import t
-
-from . import (
+from flext_cli._utilities import (
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_state as directory_state,
     atomic_file_descriptor as file_descriptor,
@@ -22,7 +21,7 @@ from . import (
 
 
 def remove_created_directory(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     identity: t.Pair[int, int] | None,
     operation_error: BaseException,
@@ -38,7 +37,7 @@ def remove_created_directory(
 
 
 def _remove_created_directory(
-    parent: file_descriptor.ParentDescriptor,
+    parent: file_descriptor.FlextCliParentDescriptor,
     path: Path,
     identity: t.Pair[int, int] | None,
 ) -> None:

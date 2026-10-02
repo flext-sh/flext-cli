@@ -17,7 +17,8 @@ from flext_core import t
 class TestsFlextCliOptions:
     """Observable contracts for Typer-compatible public annotations."""
 
-    def test_tuple_field_becomes_repeated_typer_input(self) -> None:
+    @staticmethod
+    def test_tuple_field_becomes_repeated_typer_input() -> None:
         """Canonical tuple fields accept repeated CLI values through a list."""
         resolved = u.Cli.resolve_typer_annotation(t.VariadicTuple[Path])
 

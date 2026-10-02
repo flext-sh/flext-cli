@@ -29,11 +29,13 @@ from tests import c, p, t, u
 class TestsFlextCliCmd:
     """Public behavioral contract of the CLI command service facade."""
 
-    def test_cli_satisfies_cmd_service_contract(self) -> None:
+    @staticmethod
+    def test_cli_satisfies_cmd_service_contract() -> None:
         """The public facade must satisfy the CmdService protocol."""
         tm.that(cli, none=False, is_=p.Cli.CmdService)
 
-    def test_execute_reports_operational_runtime_payload(self) -> None:
+    @staticmethod
+    def test_execute_reports_operational_runtime_payload() -> None:
         """execute() must succeed and expose the canonical status payload."""
         data = m.Cli.RuntimeStatus.model_validate(tm.ok(cli.execute()))
 
@@ -43,7 +45,8 @@ class TestsFlextCliCmd:
         tm.that(data.timestamp, is_=str)
         tm.that(data.components, is_=m.Cli.RuntimeComponents)
 
-    def test_execute_is_deterministic_across_calls(self) -> None:
+    @staticmethod
+    def test_execute_is_deterministic_across_calls() -> None:
         """Repeated execute() calls must report identical stable identity fields."""
         first: m.Cli.RuntimeStatus = tm.ok(cli.execute())
         second: m.Cli.RuntimeStatus = tm.ok(cli.execute())
@@ -78,14 +81,16 @@ class TestsFlextCliCmd:
         }
         tm.that(info, attr_eq=expected)
 
-    def test_settings_snapshot_timestamp_is_iso8601(self) -> None:
+    @staticmethod
+    def test_settings_snapshot_timestamp_is_iso8601() -> None:
         """The snapshot timestamp must be a parseable ISO-8601 instant."""
         info: m.Cli.SettingsSnapshot = tm.ok(cli.settings_snapshot())
         parsed = datetime.fromisoformat(info.timestamp)
 
         tm.that(parsed, is_=datetime)
 
-    def test_settings_snapshot_is_a_settings_snapshot_model(self) -> None:
+    @staticmethod
+    def test_settings_snapshot_is_a_settings_snapshot_model() -> None:
         """The snapshot value must be the public SettingsSnapshot model."""
         result = cli.settings_snapshot()
         tm.ok(result, is_=m.Cli.SettingsSnapshot)
@@ -101,11 +106,13 @@ class TestsFlextCliCmd:
             ),
         )
 
-    def test_show_settings_succeeds_for_current_home_state(self) -> None:
+    @staticmethod
+    def test_show_settings_succeeds_for_current_home_state() -> None:
         """show_settings() must expose the current settings-dir state."""
         tm.that(tm.ok(cli.show_settings()), eq=True)
 
-    def test_validate_settings_succeeds_for_current_home_state(self) -> None:
+    @staticmethod
+    def test_validate_settings_succeeds_for_current_home_state() -> None:
         """validate_settings() must report the real current structure."""
         tm.that(tm.ok(cli.validate_settings()), eq=True)
 

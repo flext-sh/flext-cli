@@ -32,7 +32,8 @@ if TYPE_CHECKING:
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
-    def test_getting_started_and_output_examples(self) -> None:
+    @staticmethod
+    def test_getting_started_and_output_examples() -> None:
         """Examples must round-trip settings data and format tables via cli."""
         example = ExamplesFlextCliGettingStarted()
         settings_result = example.build_example_settings()
@@ -60,7 +61,8 @@ class TestsFlextCliExamplesSmoke:
         tm.that(report_result.value, has="Alice")
         tm.that(report_result.value, has="Bob")
 
-    def test_file_operation_examples(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_file_operation_examples(tmp_path: Path) -> None:
         """File-oriented examples must use cli file APIs successfully."""
         config_dir = tmp_path / "settings"
         config_dir.mkdir()
