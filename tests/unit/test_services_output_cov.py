@@ -47,11 +47,34 @@ class TestsFlextCliServicesOutputCov:
         """Verify that display message prefixes type marker and keeps text."""
         cli.display_message("payload text", message_type)
 
-        out = capsys.readouterr().out
+        captured = capsys.readouterr()
+        out = captured.err if message_type == c.Cli.MessageTypes.ERROR else captured.out
         tm.that(out, has="payload text")
         tm.that(out, has=expected_marker)
+        tm.that(
+            captured.out if message_type == c.Cli.MessageTypes.ERROR else captured.err,
+            eq="",
+        )
 
     # ── display_text ──────────────────────────────────────────────────
+
+    @pytest.mark.parametrize(
+        "message_type", [c.Cli.MessageTypes.ERROR, c.Cli.MessageTypes.INFO],
+    )
+    def test_display_message_plain_routes_error_to_stderr(
+        self, capsys: Capture, message_type: c.Cli.MessageTypes,
+    ) -> None:
+        """Keep plain error output separate from regular messages."""
+        cli.display_message_plain("payload text", message_type)
+        captured = capsys.readouterr()
+        selected = (
+            captured.err if message_type == c.Cli.MessageTypes.ERROR else captured.out
+        )
+        other = (
+            captured.out if message_type == c.Cli.MessageTypes.ERROR else captured.err
+        )
+        tm.that(selected, has="payload text")
+        tm.that(other, eq="")
 
     @pytest.mark.parametrize("style", ["bold red", "dim", None])
     def test_display_text_emits_text_regardless_of_style(

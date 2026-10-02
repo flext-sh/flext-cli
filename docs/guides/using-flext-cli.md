@@ -46,6 +46,10 @@ Import the aliases used by each example from the public `flext_cli` package root
 - Let `FlextCliCli` convert model fields into Typer options.
 - Keep output formatting, prompts, and runtime consistent across FLEXT CLI tools.
 
+Result-command failures and `MessageTypes.ERROR` messages are written to stderr;
+successful output and other message types are written to stdout. A failed route
+retains its original `Result` error and error code while the CLI exits nonzero.
+
 ## Settings
 
 Import the existing settings class; do not redefine it:

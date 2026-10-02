@@ -71,7 +71,8 @@ class TestsFlextCliService:
         tm.that(ok_result.exit_code, eq=0)
         tm.that(ok_result.stdout, has="processed alice")
         tm.that(fail_result.exit_code, eq=1)
-        tm.that(fail_result.stdout, has="Username cannot be empty")
+        tm.that(fail_result.stderr, has="Username cannot be empty")
+        tm.that(fail_result.stdout, eq="")
 
     def test_register_result_routes_propagates_real_failure(self) -> None:
         """Verify that register result routes propagates real failure."""

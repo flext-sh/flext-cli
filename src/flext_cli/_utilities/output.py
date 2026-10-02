@@ -168,11 +168,12 @@ class FlextCliUtilitiesOutput:
         return f"    {symbol} {name:<10}{suffix}", style
 
     @staticmethod
-    def emit_raw(text: str) -> None:
-        """Write raw text to stdout as one atomic block."""
+    def emit_raw(text: str, *, error: bool = False) -> None:
+        """Write raw text atomically to the selected process stream."""
         with FlextCliUtilitiesOutput._EMIT_LOCK:
-            _ = sys.stdout.write(text)
-            _ = sys.stdout.flush()
+            stream = sys.stderr if error else sys.stdout
+            _ = stream.write(text)
+            _ = stream.flush()
 
     @classmethod
     def info(cls, msg: str) -> None:
@@ -182,9 +183,9 @@ class FlextCliUtilitiesOutput:
     @classmethod
     def error(cls, msg: str, detail: str | None = None) -> None:
         """Emit one canonical error line with optional detail."""
-        cls.emit_raw(f"{c.Cli.OUTPUT_LOG_LEVEL_ERROR}: {msg}\n")
+        cls.emit_raw(f"{c.Cli.OUTPUT_LOG_LEVEL_ERROR}: {msg}\n", error=True)
         if detail:
-            cls.emit_raw(f"  {detail}\n")
+            cls.emit_raw(f"  {detail}\n", error=True)
 
     @classmethod
     def warning(cls, msg: str) -> None:

@@ -123,13 +123,16 @@ class FlextCliModelsBase:
         """Validated parse-only route used before a command is executed."""
 
         values: Annotated[
-            t.JsonMapping, m.Field(description="Parsed canonical option fields"),
+            t.JsonMapping,
+            m.Field(description="Parsed canonical option fields"),
         ]
         remaining: Annotated[
-            t.StrSequence, m.Field(description="Unconsumed positional tokens"),
+            t.StrSequence,
+            m.Field(description="Unconsumed positional tokens"),
         ]
         help_requested: Annotated[
-            bool, m.Field(description="Standalone help option was requested"),
+            bool,
+            m.Field(description="Standalone help option was requested"),
         ]
 
     class InvocationResult(m.Value):

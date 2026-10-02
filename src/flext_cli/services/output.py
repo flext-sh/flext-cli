@@ -44,7 +44,9 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
 
         """
         payload, style = u.Cli.output_message_payload(message, message_type)
-        FlextCliOutput.print_message(payload, style=style)
+        FlextCliFormatters.print(
+            payload, style=style, error=message_type == c.Cli.MessageTypes.ERROR,
+        )
 
     @staticmethod
     def display_text(text: str, *, style: str | None = None) -> None:
@@ -72,7 +74,10 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
             prefix = "[OK] "
         elif message_type == c.Cli.MessageTypes.INFO:
             prefix = "[INFO] "
-        FlextCliOutput.emit_stdout(f"{prefix}{message}")
+        u.Cli.emit_raw(
+            f"{prefix}{message}\n",
+            error=message_type == c.Cli.MessageTypes.ERROR,
+        )
 
     @staticmethod
     def print_message(message: str, style: str | None = None) -> None:
