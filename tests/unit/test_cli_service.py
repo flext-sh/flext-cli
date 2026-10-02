@@ -8,6 +8,9 @@ No private attribute access, no mocking of internal collaborators.
 The cases are split into MRO mixin parts under ``_cases`` purely for the
 200-LOC module cap. They are aliased to non-``Test`` names here so pytest
 collects them exactly once, through the single ``TestsFlextCliService`` facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -37,6 +40,3 @@ class TestsFlextCliService(
     _CliServicePart05,
 ):
     """Public behavioral suite for the flext-cli CLI facade."""
-
-
-__all__: list[str] = ["TestsFlextCliService"]

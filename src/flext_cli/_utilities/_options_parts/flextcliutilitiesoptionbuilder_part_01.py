@@ -1,4 +1,8 @@
-"""CLI option helpers shared through ``u.Cli``."""
+"""CLI option helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -16,7 +20,15 @@ class FlextCliUtilitiesOptionBuilder:
         self.registry = registry
 
     def build(self) -> m.Cli.OptionSpec:
-        """Build one CLI option spec from field metadata."""
+        """Build one CLI option spec from field metadata.
+
+        Returns:
+            The resulting ``m.Cli.OptionSpec``.
+
+        Raises:
+            TypeError: If Option registry metadata must support key lookup.
+
+        """
         field_meta_raw = self.registry.get(self.field_name, {})
         if not field_meta_raw:
             msg = "Option registry metadata must support key lookup"
@@ -33,7 +45,7 @@ class FlextCliUtilitiesOptionBuilder:
         )
 
         option_args: t.MutableSequenceOf[str] = [
-            f"--{cli_param_name.replace('_', '-')}"
+            f"--{cli_param_name.replace('_', '-')}",
         ]
         if cli_param_name == "project":
             option_args.append("--projects")

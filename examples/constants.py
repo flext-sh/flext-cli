@@ -1,4 +1,8 @@
-"""FLEXT CLI example constants."""
+"""FLEXT CLI example constants.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -63,7 +67,7 @@ class ExamplesFlextCliConstants(FlextCliConstants):
     EXAMPLE_TABLE_HEADERS_SETTING_VALUE: Final[t.Pair[str, str]] = ("Setting", "Value")
 
     EXAMPLE_REGEX_EMAIL: Final[t.RegexPattern] = re.compile(
-        r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+        r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
     )
     EXAMPLE_REGEX_DOT: Final[t.RegexPattern] = re.compile(r"\.")
 

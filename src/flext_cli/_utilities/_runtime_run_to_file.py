@@ -1,4 +1,8 @@
-"""Canonical streamed process runner exposed through ``u.Cli``."""
+"""Canonical streamed process runner exposed through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -11,7 +15,7 @@ from ._runtime_process_execution import FlextCliUtilitiesRuntimeProcessExecution
 
 
 class FlextCliUtilitiesRuntimeRunToFileMixin(
-    FlextCliUtilitiesRuntimeProcessExecutionMixin
+    FlextCliUtilitiesRuntimeProcessExecutionMixin,
 ):
     """Validate and dispatch one portable streamed process lifecycle."""
 
@@ -19,7 +23,8 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
 
         @staticmethod
         def _resolved_env(
-            env: t.StrMapping | None, remove_env_keys: t.StrSequence = ()
+            env: t.StrMapping | None,
+            remove_env_keys: t.StrSequence = (),
         ) -> dict[str, str] | None: ...
 
     @classmethod
@@ -45,6 +50,10 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         child execution, termination, reaping, stream drain, and durable flush.
         An outer caller wall remains responsible for an OS syscall that becomes
         uninterruptible.
+
+        Returns:
+            The resulting ``p.Result[p.Cli.ProcessOutcome]``.
+
         """
         return cls._execute_streamed_process(
             cmd,

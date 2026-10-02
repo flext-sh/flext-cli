@@ -1,4 +1,8 @@
-"""FLEXT CLI Test Configuration."""
+"""FLEXT CLI Test Configuration.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -11,7 +15,8 @@ if TYPE_CHECKING:
 
 
 def pytest_collection_modifyitems(
-    config: pytest.Config, items: t.SequenceOf[pytest.Item]
+    config: pytest.Config,
+    items: t.SequenceOf[pytest.Item],
 ) -> None:
     """Modify test collection to add markers based on test names."""
     _ = config

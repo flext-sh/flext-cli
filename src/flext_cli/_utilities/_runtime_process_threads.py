@@ -1,4 +1,8 @@
-"""Thread ownership for streamed process wait and output work."""
+"""Thread ownership for streamed process wait and output work.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -12,7 +16,8 @@ from ._runtime_process_wait import FlextCliUtilitiesRuntimeProcessWaitMixin
 
 
 class FlextCliUtilitiesRuntimeProcessThreadsMixin(
-    FlextCliUtilitiesRuntimeProcessStreamMixin, FlextCliUtilitiesRuntimeProcessWaitMixin
+    FlextCliUtilitiesRuntimeProcessStreamMixin,
+    FlextCliUtilitiesRuntimeProcessWaitMixin,
 ):
     """Start bounded lifecycle threads at their canonical owner."""
 
@@ -24,7 +29,12 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
         failures: t.SequenceOf[str],
         wake: threading.Event,
     ) -> threading.Thread:
-        """Start the sole non-daemon writer for one anonymous stdin pipe."""
+        """Start the sole non-daemon writer for one anonymous stdin pipe.
+
+        Returns:
+            The resulting ``threading.Thread``.
+
+        """
         pump = threading.Thread(
             target=cls._pump_process_input,
             args=(sink, payload, failures, wake),

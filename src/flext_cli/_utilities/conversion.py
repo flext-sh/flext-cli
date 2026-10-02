@@ -1,4 +1,8 @@
-"""CLI conversion helpers shared through ``u.Cli``."""
+"""CLI conversion helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -13,28 +17,46 @@ class FlextCliUtilitiesConversion:
 
     @staticmethod
     def default_for_type_kind(
-        type_kind: t.Cli.TypeKind, default: t.JsonValue | None
+        type_kind: t.Cli.TypeKind,
+        default: t.JsonValue | None,
     ) -> t.Cli.TypedExtractValue:
-        """Return a canonical default for one type kind."""
+        """Return a canonical default for one type kind.
+
+        Returns:
+            A canonical default for one type kind.
+
+        """
         return m.Cli.TypedExtract(type_kind=type_kind, default=default).resolved
 
     @staticmethod
     def cli_args_to_model[M: t.Cli.ModelLike](
-        model_class: t.ModelClass[M], cli_args: t.JsonMapping
+        model_class: t.ModelClass[M],
+        cli_args: t.JsonMapping,
     ) -> p.Result[M]:
-        """Convert a CLI args mapping into a validated Pydantic model."""
+        """Convert a CLI args mapping into a validated Pydantic model.
+
+        Returns:
+            The resulting ``p.Result[M]``.
+
+        """
         # NOTE (multi-agent): Keep one model-class protocol across CLI utilities.
         try:
             instance: M = model_class.model_validate(cli_args)
             return r[M].ok(instance)
         except c.ValidationError as exc:
             return r[M].fail(
-                f"Validation error for {model_class.__name__}: {exc}", exception=exc
+                f"Validation error for {model_class.__name__}: {exc}",
+                exception=exc,
             )
 
     @staticmethod
     def resolve_optional_path(value: t.Cli.TextPath | None, *, default: Path) -> Path:
-        """Resolve an optional text/path value while preserving a default path."""
+        """Resolve an optional text/path value while preserving a default path.
+
+        Returns:
+            The resulting ``Path``.
+
+        """
         if isinstance(value, Path):
             return value
         normalized = FlextCliUtilitiesConversion.normalize_optional_text(value)
@@ -44,7 +66,12 @@ class FlextCliUtilitiesConversion:
 
     @staticmethod
     def normalize_optional_text(value: t.JsonValue | Path) -> str | None:
-        """Normalize optional text-like values, preserving ``None`` for empties."""
+        """Normalize optional text-like values, preserving ``None`` for empties.
+
+        Returns:
+            The resulting ``str | None``.
+
+        """
         if isinstance(value, Path):
             return str(value)
         normalized = u.norm_str(value, default="").strip()
@@ -54,7 +81,12 @@ class FlextCliUtilitiesConversion:
 
     @staticmethod
     def normalize_required_text(value: t.JsonValue | Path, *, default: str) -> str:
-        """Normalize required text-like values, falling back to ``default``."""
+        """Normalize required text-like values, falling back to ``default``.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         normalized = FlextCliUtilitiesConversion.normalize_optional_text(value)
         return normalized if normalized is not None else default
 

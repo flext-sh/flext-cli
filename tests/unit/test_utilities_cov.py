@@ -6,6 +6,9 @@ Exercises only the observable contract of the utility helpers:
 - ``u.Cli.validate_not_empty`` — emptiness validation returning ``r[bool]``.
 - ``u.Cli.project_names_from_values`` / ``project_numbers_from_values`` —
   CLI selector normalization.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -17,7 +20,15 @@ from tests import t, u
 
 
 def _raise_on_zero(value: int) -> int:
-    """Processor that divides 10 by ``value`` and raises on zero."""
+    """Processor that divides 10 by ``value`` and raises on zero.
+
+    Returns:
+        The resulting ``int``.
+
+    Raises:
+        ValueError: If div zero.
+
+    """
     if value == 0:
         msg = "div zero"
         raise ValueError(msg)
@@ -70,7 +81,8 @@ class TestsFlextCliUtilitiesCov:
 
     @pytest.mark.parametrize("value", ["name", " padded ", 0, 42])
     def test_validate_not_empty_succeeds_for_present_values(
-        self, value: t.Cli.CliValue
+        self,
+        value: t.Cli.CliValue,
     ) -> None:
         """Verify that validate not empty succeeds for present values."""
         result = u.Cli.validate_not_empty(value, name="project")
@@ -100,6 +112,3 @@ class TestsFlextCliUtilitiesCov:
     def test_project_numbers_returns_none_without_selectors_or_default(self) -> None:
         """Verify that project numbers returns none without selectors or default."""
         tm.that(u.Cli.project_numbers_from_values(None), eq=None)
-
-
-__all__: list[str] = ["TestsFlextCliUtilitiesCov"]

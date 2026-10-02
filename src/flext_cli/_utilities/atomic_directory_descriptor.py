@@ -1,4 +1,8 @@
-"""Descriptor-only namespace effects for physical empty directories."""
+"""Descriptor-only namespace effects for physical empty directories.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,14 +22,24 @@ _SECURE_CREATE_MODE = 0o700
 
 
 def require_read_capabilities(path: Path) -> None:
-    """Fail before access when descriptor-bound directory reads are unavailable."""
+    """Fail before access when descriptor-bound directory reads are unavailable.
+
+    Raises:
+        OSError: If ``os.listdir not in os.supports_fd``.
+
+    """
     if os.listdir not in os.supports_fd:
         message = "descriptor-bound directory listing is unsupported"
         raise OSError(errno.ENOTSUP, message, path)
 
 
 def require_create_capabilities(path: Path) -> None:
-    """Fail before mkdir unless creation, cleanup, and chmod are descriptor-bound."""
+    """Fail before mkdir unless creation, cleanup, and chmod are descriptor-bound.
+
+    Raises:
+        OSError: If ``not hasattr(os, 'fchmod')``.
+
+    """
     require_read_capabilities(path)
     _require_dir_fd(path, (("mkdir", os.mkdir), ("rmdir", os.rmdir)))
     if not hasattr(os, "fchmod"):
@@ -40,7 +54,12 @@ def require_delete_capabilities(path: Path) -> None:
 
 
 def require_publish_capabilities(source: Path, destination: Path) -> None:
-    """Fail before publication unless no-clobber rename and durability exist."""
+    """Fail before publication unless no-clobber rename and durability exist.
+
+    Raises:
+        OSError: If ``not hasattr(os, 'fsync')``.
+
+    """
     require_read_capabilities(source)
     parent_descriptor.require_traversal_capabilities(source)
     parent_descriptor.require_traversal_capabilities(destination)
@@ -85,7 +104,8 @@ def rename_entry_noreplace(
 
 
 def _require_dir_fd(
-    path: Path, operations: t.VariadicTuple[t.Pair[str, t.Cli.DirFdOperation]]
+    path: Path,
+    operations: t.VariadicTuple[t.Pair[str, t.Cli.DirFdOperation]],
 ) -> None:
     missing = [
         name for name, operation in operations if operation not in os.supports_dir_fd

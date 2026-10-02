@@ -1,4 +1,8 @@
-"""Pytest configuration and fixtures for unit tests."""
+"""Pytest configuration and fixtures for unit tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -17,9 +21,15 @@ if TYPE_CHECKING:
 
 
 def _scripted_reader(
-    values: t.StrSequence, error: Exception | None
+    values: t.StrSequence,
+    error: Exception | None,
 ) -> Callable[[str], str]:
-    """Build an input port that replays ``values`` or raises ``error``."""
+    """Build an input port that replays ``values`` or raises ``error``.
+
+    Returns:
+        The resulting ``Callable[[str], str]``.
+
+    """
     values_iter = iter(values)
 
     def _read(_prompt: str) -> str:
@@ -36,6 +46,10 @@ def make_prompts() -> Callable[..., p.Tests.Prompts]:
 
     ``inputs`` feeds the text port, ``password`` the secret port, and ``error``
     makes whichever port the operation reads raise.
+
+    Returns:
+        The resulting ``Callable[..., p.Tests.Prompts]``.
+
     """
 
     def _make(
@@ -51,7 +65,7 @@ def make_prompts() -> Callable[..., p.Tests.Prompts]:
             password_reader=_scripted_reader((password,), error),
         )
         return prompts.configure(
-            m.Cli.PromptRuntimeState(interactive=interactive_mode, quiet=quiet)
+            m.Cli.PromptRuntimeState(interactive=interactive_mode, quiet=quiet),
         )
 
     return _make
@@ -59,7 +73,12 @@ def make_prompts() -> Callable[..., p.Tests.Prompts]:
 
 @pytest.fixture
 def scripted_password_pair() -> Callable[[], tuple[str, str]]:
-    """Provide a callable sourcing the synthetic prompt secret pair per call."""
+    """Provide a callable sourcing the synthetic prompt secret pair per call.
+
+    Returns:
+        The resulting ``Callable[[], tuple[str, str]]``.
+
+    """
     return lambda: (
         os.environ.get(c.Tests.PROMPT_SHORT_ENV_NAME, "short"),
         os.environ.get(c.Tests.PROMPT_VALID_ENV_NAME, "v" + "0" * 15),
@@ -76,6 +95,3 @@ def pytest_runtest_teardown(item: pytest.Item, nextitem: pytest.Item | None) -> 
     """Reset CLI settings after each test item."""
     _ = item, nextitem
     FlextCliSettings.reset_for_testing()
-
-
-__all__: list[str] = ["make_prompts", "scripted_password_pair"]

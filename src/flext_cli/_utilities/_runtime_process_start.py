@@ -1,4 +1,8 @@
-"""Portable suspended-start and containment handoff."""
+"""Portable suspended-start and containment handoff.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -80,7 +84,9 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
 
     @classmethod
     def _discard_uncontained_process(
-        cls, process: p.Cli.ProcessHandle, job_handle: int
+        cls,
+        process: p.Cli.ProcessHandle,
+        job_handle: int,
     ) -> None:
         _ = cls._signal_process_tree(process, signal.SIGKILL, job_handle, force=True)
         process.wait()

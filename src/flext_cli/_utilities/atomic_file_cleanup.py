@@ -1,4 +1,8 @@
-"""Public authenticated temporary cleanup after an atomic write failure."""
+"""Public authenticated temporary cleanup after an atomic write failure.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -24,23 +28,19 @@ def remove_failed_temporary(
 ) -> None:
     """Close and unlink only caller-owned staging while retaining every cause."""
     cleanup_errors: list[OSError] = []
+    if identity is None and descriptor is not None:
+        try:
+            identity = file_state.identity(os.fstat(descriptor))
+        except OSError as cleanup_error:
+            cleanup_errors.append(cleanup_error)
     if descriptor is not None:
         try:
             os.close(descriptor)
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
-    if identity is None:
-        try:
-            state = file_state.destination_state(temporary, parent=parent)
-        except OSError as cleanup_error:
-            cleanup_errors.append(cleanup_error)
-        else:
-            if state is not None:
-                message = (
-                    f"refusing to remove unauthenticated atomic temporary: {temporary}"
-                )
-                cleanup_errors.append(OSError(errno.ESTALE, message, temporary))
-    else:
+    # No captured identity grants no authority over the directory entry.
+    # Leave unknown artifacts untouched; the original operation still raises.
+    if identity is not None:
         try:
             file_state.assert_temporary_owned(temporary, identity, parent=parent)
             file_descriptor.unlink_entry(parent, temporary)
@@ -52,7 +52,9 @@ def remove_failed_temporary(
 
 
 def _raise_cleanup_failure(
-    temporary: Path, operation_error: BaseException, cleanup_errors: list[OSError]
+    temporary: Path,
+    operation_error: BaseException,
+    cleanup_errors: list[OSError],
 ) -> None:
     cleanup_summary = "; ".join(str(error) for error in cleanup_errors)
     message = (
@@ -64,7 +66,8 @@ def _raise_cleanup_failure(
         causes = ExceptionGroup(group_message, [operation_error, *cleanup_errors])
         raise OSError(errno.EIO, message, temporary) from causes
     raise BaseExceptionGroup(
-        group_message, [operation_error, *cleanup_errors]
+        group_message,
+        [operation_error, *cleanup_errors],
     ) from cleanup_errors[-1]
 
 

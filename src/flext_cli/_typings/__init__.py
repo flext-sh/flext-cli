@@ -1,5 +1,9 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Typings package."""
+"""Flext Cli. Typings package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -9,10 +13,10 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from .base import FlextCliTypesBase
-    from .domain import FlextCliTypesDomain
-    from .pipeline import FlextCliTypesPipeline
-    from .xlsx import FlextCliTypesXlsx
+    from flext_cli._typings.base import FlextCliTypesBase
+    from flext_cli._typings.domain import FlextCliTypesDomain
+    from flext_cli._typings.pipeline import FlextCliTypesPipeline
+    from flext_cli._typings.xlsx import FlextCliTypesXlsx
 
 
 __all__: tuple[str, ...] = (
@@ -32,7 +36,7 @@ _LAZY_IMPORTS = MappingProxyType(
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
-    )
+    ),
 )
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

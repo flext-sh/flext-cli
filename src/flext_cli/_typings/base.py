@@ -1,4 +1,8 @@
-"""CLI base type aliases and adapters."""
+"""CLI base type aliases and adapters.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -8,6 +12,7 @@ from types import GenericAlias, UnionType
 from typing import ClassVar, TypeAliasType
 
 from jinja2.sandbox import SandboxedEnvironment
+from pydantic import TypeAdapter
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
@@ -59,7 +64,7 @@ class FlextCliTypesBase:
     )
     YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
     CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
-        t.TypeAdapter(CliDefaultSource)
+        TypeAdapter(CliValue | t.SequenceOf[str | int] | Path)
     )
 
 

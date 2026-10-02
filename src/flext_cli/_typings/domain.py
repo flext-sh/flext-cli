@@ -1,4 +1,8 @@
-"""CLI protocol-backed composite aliases."""
+"""CLI protocol-backed composite aliases.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -27,7 +31,10 @@ class FlextCliTypesDomain:
     type ResultValue = t.JsonPayload
     type RuleDefinitions = t.SequenceOf[t.JsonMapping]
     type RuleMatcher = tuple[
-        frozenset[str], frozenset[str], frozenset[str], frozenset[str]
+        frozenset[str],
+        frozenset[str],
+        frozenset[str],
+        frozenset[str],
     ]
     type RuleMatchers = t.SequenceOf[RuleMatcher]
     type RuleCatalog[TKind] = t.MappingKV[
@@ -65,7 +72,8 @@ class FlextCliTypesDomain:
     # mro-j47u (codex): one generic alias owns formatter data and call contracts.
     type JsonCommandFn = Callable[..., p.Result[t.JsonPayload]]
     type SuccessMessageFormatter[TResult: ResultValue = ResultValue] = Callable[
-        [TResult], str
+        [TResult],
+        str,
     ]
     type TomlMappingSource = (
         t.JsonPayload | t.JsonMapping | t.ScalarMapping | Item | TOMLDocument

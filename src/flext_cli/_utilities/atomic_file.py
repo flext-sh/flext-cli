@@ -1,9 +1,14 @@
-"""Atomic-file publication primitive for ``u.Cli`` file helpers."""
+"""Atomic-file publication primitive for ``u.Cli`` file helpers.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 import errno
 import os
+import signal
 from pathlib import Path
 
 from flext_cli import m, t
@@ -41,6 +46,10 @@ def write_atomic_bytes(
     holds the same exclusive cooperative lock from planning through publication.
     The descriptor-bound replace is not compare-and-swap against actors that
     ignore that lock. Both the staged inode and containing directory are synced.
+
+    Raises:
+        OSError: If ``not isinstance(content, bytes)``.
+
     """
     path = file_path.validate_atomic_path(path)
     if not isinstance(content, bytes):
@@ -62,7 +71,11 @@ def write_atomic_bytes(
             file_model.require_parent(planned, parent.state)
             file_model.require_observed(planned, expected)
         file_state.validate_precondition(
-            path, expected, expected_content, enabled=guarded, parent=parent
+            path,
+            expected,
+            expected_content,
+            enabled=guarded,
+            parent=parent,
         )
         file_mode.validate_mode_precondition(path, expected, expected_mode)
         target_mode = file_mode.publication_mode(expected, permission_mode)
@@ -71,7 +84,8 @@ def write_atomic_bytes(
 
 
 def _parse_precondition(
-    path: Path, expected_state: m.Cli.AtomicFileState | _NoPrecondition
+    path: Path,
+    expected_state: m.Cli.AtomicFileState | _NoPrecondition,
 ) -> m.Cli.AtomicFileState | None:
     if expected_state is _NO_PRECONDITION:
         return None
@@ -82,7 +96,9 @@ def _parse_precondition(
         message = "expected_state path differs from atomic destination"
         raise OSError(errno.EINVAL, message, path)
     file_mode.validate_guarded_mode_tuple(
-        path, expected_state.content, expected_state.mode
+        path,
+        expected_state.content,
+        expected_state.mode,
     )
     return expected_state
 
@@ -94,66 +110,126 @@ def _stage_and_publish(
     expected: os.stat_result | None,
     target_mode: int | None,
 ) -> None:
-    temporary = file_temporary.temporary_path(parent)
-    descriptor: int | None = None
-    staged_identity: t.Pair[int, int] | None = None
+    """Retain the staging owner through acquisition, publication and cleanup."""
+    stage = _AtomicStage(parent)
     try:
-        with file_temporary.authenticated_descriptor(parent, temporary) as staged:
-            descriptor, staged_identity = staged
-        staged_mode = _write_staged(
-            parent, temporary, descriptor, staged_identity, content, target_mode
-        )
-        descriptor = None
+        stage.acquire()
+        stage.write(content, target_mode)
+        stage.publish(destination, expected, content)
     except BaseException as operation_error:
-        file_cleanup.remove_failed_temporary(
-            parent, temporary, staged_identity, descriptor, operation_error
-        )
+        stage.cleanup(operation_error)
         raise
-    replacement_completed = False
-    try:
+
+
+class _AtomicStage:
+    """Own live staging state before any signal can cross a method boundary."""
+
+    def __init__(self, parent: file_descriptor.ParentDescriptor) -> None:
+        self.parent = parent
+        self.temporary = file_temporary.temporary_path(parent)
+        self.descriptor: int | None = None
+        self.identity: t.Pair[int, int] | None = None
+        self.mode: int | None = None
+        self.replacement_completed = False
+
+    def acquire(self) -> None:
+        """Authenticate the descriptor before restoring pending timer delivery."""
+        timer_signals = {
+            candidate
+            for name in ("SIGALRM", "SIGVTALRM", "SIGPROF")
+            if (candidate := getattr(signal, name, None)) is not None
+        }
+        previous_mask = (
+            signal.pthread_sigmask(signal.SIG_BLOCK, timer_signals)
+            if timer_signals and hasattr(signal, "pthread_sigmask")
+            else None
+        )
+        try:
+            self.descriptor = file_temporary.create_descriptor(
+                self.parent,
+                self.temporary,
+            )
+            self.identity = file_state.identity(os.fstat(self.descriptor))
+        finally:
+            if previous_mask is not None:
+                signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
+
+    def write(self, content: bytes, target_mode: int | None) -> None:
+        """Write only the authenticated inode and release its descriptor.
+
+        Raises:
+            RuntimeError: If atomic staging must be acquired before writing.
+
+        """
+        if self.descriptor is None or self.identity is None:
+            message = "atomic staging must be acquired before writing"
+            raise RuntimeError(message)
+        file_state.assert_temporary_owned(
+            self.temporary,
+            self.identity,
+            parent=self.parent,
+        )
+        self.mode = file_temporary.write_and_sync(
+            self.descriptor,
+            self.temporary,
+            content,
+            target_mode,
+        )
+        os.close(self.descriptor)
+        self.descriptor = None
+
+    def publish(
+        self,
+        destination: Path,
+        expected: os.stat_result | None,
+        content: bytes,
+    ) -> None:
+        """Publish the authenticated bytes and retain completion before proof.
+
+        Raises:
+            RuntimeError: If atomic staging must be written before publication.
+
+        """
+        if self.identity is None or self.mode is None:
+            message = "atomic staging must be written before publication"
+            raise RuntimeError(message)
         _validate_replacement(
-            parent,
+            self.parent,
             destination,
             expected,
-            temporary,
+            self.temporary,
             content,
-            staged_mode,
-            staged_identity,
+            self.mode,
+            self.identity,
         )
-        file_descriptor.replace_entry(parent, temporary, parent, destination)
-        replacement_completed = True
-        file_durability.sync_replacement(parent, parent)
-        checks.validate_publication(
-            parent,
+        file_descriptor.replace_entry(
+            self.parent,
+            self.temporary,
+            self.parent,
             destination,
-            parent,
-            temporary,
-            content,
-            staged_mode,
-            staged_identity,
         )
-    except BaseException as operation_error:
-        if not replacement_completed:
+        self.replacement_completed = True
+        file_durability.sync_replacement(self.parent, self.parent)
+        checks.validate_publication(
+            self.parent,
+            destination,
+            self.parent,
+            self.temporary,
+            content,
+            self.mode,
+            self.identity,
+        )
+
+    def cleanup(self, operation_error: BaseException) -> None:
+        """Remove only authenticated staging while preserving the first cause."""
+        if not self.replacement_completed:
             file_cleanup.remove_failed_temporary(
-                parent, temporary, staged_identity, descriptor, operation_error
+                self.parent,
+                self.temporary,
+                self.identity,
+                self.descriptor,
+                operation_error,
             )
-        raise
-
-
-def _write_staged(
-    parent: file_descriptor.ParentDescriptor,
-    temporary: Path,
-    descriptor: int,
-    identity: t.Pair[int, int],
-    content: bytes,
-    target_mode: int | None,
-) -> int:
-    file_state.assert_temporary_owned(temporary, identity, parent=parent)
-    staged_mode = file_temporary.write_and_sync(
-        descriptor, temporary, content, target_mode
-    )
-    os.close(descriptor)
-    return staged_mode
 
 
 def _validate_replacement(
@@ -166,11 +242,20 @@ def _validate_replacement(
     staged_identity: t.Pair[int, int],
 ) -> None:
     staged_state = _validate_staged(
-        parent, temporary, content, staged_mode, staged_identity
+        parent,
+        temporary,
+        content,
+        staged_mode,
+        staged_identity,
     )
     checks.require_distinct_inode(destination, expected, staged_identity)
     checks.validate_devices(
-        destination, parent, expected, temporary, parent, staged_state
+        destination,
+        parent,
+        expected,
+        temporary,
+        parent,
+        staged_state,
     )
     file_state.assert_destination_unchanged(destination, expected, parent=parent)
     file_state.assert_temporary_owned(temporary, staged_identity, parent=parent)
@@ -189,7 +274,11 @@ def _validate_staged(
         raise FileNotFoundError(errno.ENOENT, message, temporary)
     checks.require_identity(temporary, state, identity)
     file_state.validate_precondition(
-        temporary, state, content, enabled=True, parent=parent
+        temporary,
+        state,
+        content,
+        enabled=True,
+        parent=parent,
     )
     file_mode.validate_mode_precondition(temporary, state, mode)
     return state

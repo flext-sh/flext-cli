@@ -1,4 +1,8 @@
-"""Planning and guarded materialization for missing directory chains."""
+"""Planning and guarded materialization for missing directory chains.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,7 +22,12 @@ from . import (
 
 
 def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPlan:
-    """Snapshot one physical anchor and every descendant observed absent."""
+    """Snapshot one physical anchor and every descendant observed absent.
+
+    Returns:
+        The resulting ``m.Cli.AtomicDirectoryChainPlan``.
+
+    """
     path = Path(target)
     anchor, state, ancestry, missing = parent_descriptor.inspect_directory_chain(path)
     return m.Cli.AtomicDirectoryChainPlan(
@@ -32,9 +41,19 @@ def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPl
 
 
 def create_guarded_directory_chain(
-    plan: m.Cli.AtomicDirectoryChainPlan, *, permission_mode: int
+    plan: m.Cli.AtomicDirectoryChainPlan,
+    *,
+    permission_mode: int,
 ) -> t.SequenceOf[m.Cli.AtomicDirectoryState]:
-    """Create every planned level, rolling back successful levels on failure."""
+    """Create every planned level, rolling back successful levels on failure.
+
+    Returns:
+        The resulting ``t.SequenceOf[m.Cli.AtomicDirectoryState]``.
+
+    Raises:
+        OSError: If ``mode is None``.
+
+    """
     mode = file_mode.validate_mode(permission_mode, label="permission_mode")
     if mode is None:
         message = "permission_mode is required for directory-chain creation"
@@ -46,11 +65,13 @@ def create_guarded_directory_chain(
     try:
         for directory in plan.directories:
             before = directory_snapshot.read_authenticated_empty_directory(
-                directory, required=False
+                directory,
+                required=False,
             )
             _require_planned_parent(directory, before, expected_parent)
             state = directory_create.create_guarded_empty_directory(
-                before, permission_mode=mode
+                before,
+                permission_mode=mode,
             )
             created.append(state)
             expected_parent = _require_created_identity(state)
@@ -71,7 +92,9 @@ def _require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
 
 
 def _require_planned_parent(
-    path: Path, state: m.Cli.AtomicDirectoryState, expected: t.Pair[int, int]
+    path: Path,
+    state: m.Cli.AtomicDirectoryState,
+    expected: t.Pair[int, int],
 ) -> None:
     if (state.parent_device, state.parent_inode) != expected:
         message = f"atomic directory-chain parent changed: {path}"
@@ -86,7 +109,8 @@ def _require_created_identity(state: m.Cli.AtomicDirectoryState) -> t.Pair[int, 
 
 
 def _rollback_created(
-    created: list[m.Cli.AtomicDirectoryState], operation_error: BaseException
+    created: list[m.Cli.AtomicDirectoryState],
+    operation_error: BaseException,
 ) -> None:
     for state in reversed(created):
         try:
@@ -104,7 +128,8 @@ def _rollback_created(
                 raise OSError(errno.EIO, message, state.path) from causes
             group_message = "directory-chain creation and rollback failed"
             raise BaseExceptionGroup(
-                group_message, [operation_error, cleanup_error]
+                group_message,
+                [operation_error, cleanup_error],
             ) from cleanup_error
 
 

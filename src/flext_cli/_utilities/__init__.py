@@ -1,5 +1,9 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Utilities package."""
+"""Flext Cli. Utilities package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -9,7 +13,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import (
+    from flext_cli._utilities import (
         _docx,
         _file_test_helper_parts,
         _files_parts,
@@ -22,84 +26,150 @@ if TYPE_CHECKING:
         _xlxx,
         _yaml,
     )
-    from ._cli_namespace import FlextCliUtilitiesCli
-    from ._docx._reader import FlextCliUtilitiesDocxReader
-    from ._docx._renderer import FlextCliUtilitiesDocxRenderer
-    from ._json._core import FlextCliUtilitiesJsonCoreMixin
-    from ._json._navigate import FlextCliUtilitiesJsonNavigateMixin
-    from ._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
+    from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
+    from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
+    from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
+    from flext_cli._utilities._json._core import FlextCliUtilitiesJsonCoreMixin
+    from flext_cli._utilities._json._navigate import FlextCliUtilitiesJsonNavigateMixin
+    from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
         FlextCliUtilitiesOptionBuilder,
     )
-    from ._options_parts.flextcliutilitiesoptions_part_02 import (
+    from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
         FlextCliUtilitiesOptions,
     )
-    from ._pptx._reader import FlextCliUtilitiesPptxReader
-    from ._pptx._renderer import FlextCliUtilitiesPptxRenderer
-    from ._pptx._serializer import FlextCliUtilitiesPptxSerializer
-    from ._rules._loaders import FlextCliUtilitiesRulesLoadersMixin
-    from ._rules._matchers import FlextCliUtilitiesRulesMatchersMixin
-    from ._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
-    from ._runtime_darwin_process_group import (
+    from flext_cli._utilities._pptx._reader import FlextCliUtilitiesPptxReader
+    from flext_cli._utilities._pptx._renderer import FlextCliUtilitiesPptxRenderer
+    from flext_cli._utilities._pptx._serializer import FlextCliUtilitiesPptxSerializer
+    from flext_cli._utilities._rules._loaders import FlextCliUtilitiesRulesLoadersMixin
+    from flext_cli._utilities._rules._matchers import (
+        FlextCliUtilitiesRulesMatchersMixin,
+    )
+    from flext_cli._utilities._runtime_commands import (
+        FlextCliUtilitiesRuntimeCommandsMixin,
+    )
+    from flext_cli._utilities._runtime_darwin_process_group import (
         FlextCliUtilitiesRuntimeDarwinProcessGroupMixin,
     )
-    from ._runtime_process_cleanup import FlextCliUtilitiesRuntimeProcessCleanupMixin
-    from ._runtime_process_execution import (
+    from flext_cli._utilities._runtime_process_cleanup import (
+        FlextCliUtilitiesRuntimeProcessCleanupMixin,
+    )
+    from flext_cli._utilities._runtime_process_execution import (
         FlextCliUtilitiesRuntimeProcessExecutionMixin,
     )
-    from ._runtime_process_group import FlextCliUtilitiesRuntimeProcessGroupMixin
-    from ._runtime_process_monitor import FlextCliUtilitiesRuntimeProcessMonitorMixin
-    from ._runtime_process_outcome import FlextCliUtilitiesRuntimeProcessOutcomeMixin
-    from ._runtime_process_output import FlextCliUtilitiesRuntimeProcessOutputMixin
-    from ._runtime_process_resources import (
+    from flext_cli._utilities._runtime_process_group import (
+        FlextCliUtilitiesRuntimeProcessGroupMixin,
+    )
+    from flext_cli._utilities._runtime_process_monitor import (
+        FlextCliUtilitiesRuntimeProcessMonitorMixin,
+    )
+    from flext_cli._utilities._runtime_process_outcome import (
+        FlextCliUtilitiesRuntimeProcessOutcomeMixin,
+    )
+    from flext_cli._utilities._runtime_process_output import (
+        FlextCliUtilitiesRuntimeProcessOutputMixin,
+    )
+    from flext_cli._utilities._runtime_process_resources import (
         FlextCliUtilitiesRuntimeProcessResourcesMixin,
     )
-    from ._runtime_process_start import FlextCliUtilitiesRuntimeProcessStartMixin
-    from ._runtime_process_stream import FlextCliUtilitiesRuntimeProcessStreamMixin
-    from ._runtime_process_threads import FlextCliUtilitiesRuntimeProcessThreadsMixin
-    from ._runtime_process_timing import FlextCliUtilitiesRuntimeProcessTimingMixin
-    from ._runtime_process_wait import FlextCliUtilitiesRuntimeProcessWaitMixin
-    from ._runtime_run_to_file import FlextCliUtilitiesRuntimeRunToFileMixin
-    from ._runtime_windows_job_start import FlextCliUtilitiesRuntimeWindowsJobStartMixin
-    from ._runtime_windows_job_state import FlextCliUtilitiesRuntimeWindowsJobStateMixin
-    from ._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
+    from flext_cli._utilities._runtime_process_start import (
+        FlextCliUtilitiesRuntimeProcessStartMixin,
+    )
+    from flext_cli._utilities._runtime_process_stream import (
+        FlextCliUtilitiesRuntimeProcessStreamMixin,
+    )
+    from flext_cli._utilities._runtime_process_threads import (
+        FlextCliUtilitiesRuntimeProcessThreadsMixin,
+    )
+    from flext_cli._utilities._runtime_process_timing import (
+        FlextCliUtilitiesRuntimeProcessTimingMixin,
+    )
+    from flext_cli._utilities._runtime_process_wait import (
+        FlextCliUtilitiesRuntimeProcessWaitMixin,
+    )
+    from flext_cli._utilities._runtime_run_to_file import (
+        FlextCliUtilitiesRuntimeRunToFileMixin,
+    )
+    from flext_cli._utilities._runtime_windows_job_start import (
+        FlextCliUtilitiesRuntimeWindowsJobStartMixin,
+    )
+    from flext_cli._utilities._runtime_windows_job_state import (
+        FlextCliUtilitiesRuntimeWindowsJobStateMixin,
+    )
+    from flext_cli._utilities._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
         FlextCliUtilitiesTablesRenderer,
     )
-    from ._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
-    from ._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
-    from ._xlxx.xlsx_archive_checks import FlextCliUtilitiesXlsxArchiveChecks
-    from ._xlxx.xlsx_cells import FlextCliUtilitiesXlsxCells
-    from ._xlxx.xlsx_conditional import FlextCliUtilitiesXlsxConditional
-    from ._xlxx.xlsx_defined_name_values import FlextCliUtilitiesXlsxDefinedNameValues
-    from ._xlxx.xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
-    from ._xlxx.xlsx_layout import FlextCliUtilitiesXlsxLayout
-    from ._xlxx.xlsx_protection import FlextCliUtilitiesXlsxProtection
-    from ._xlxx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
-    from ._xlxx.xlsx_recalc_evidence import FlextCliUtilitiesXlsxRecalcEvidence
-    from ._xlxx.xlsx_renderer import FlextCliUtilitiesXlsxRenderer
-    from ._xlxx.xlsx_rules import FlextCliUtilitiesXlsxRules
-    from ._xlxx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
-    from ._xlxx.xlsx_snapshot_sheet import FlextCliUtilitiesXlsxSnapshotSheet
-    from ._xlxx.xlsx_snapshot_structure import FlextCliUtilitiesXlsxSnapshotStructure
-    from ._xlxx.xlsx_snapshot_values import FlextCliUtilitiesXlsxSnapshotValues
-    from ._xlxx.xlsx_style_builders import FlextCliUtilitiesXlsxStyleBuilders
-    from ._xlxx.xlsx_style_catalog import FlextCliUtilitiesXlsxStyleCatalog
-    from ._xlxx.xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
-    from ._xlxx.xlsx_style_readers import FlextCliUtilitiesXlsxStyleReaders
-    from ._xlxx.xlsx_tables import FlextCliUtilitiesXlsxTables
-    from ._xlxx.xlsx_validations import FlextCliUtilitiesXlsxValidations
-    from ._xlxx.xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
-    from ._xlxx.xlsx_workbook_plan import FlextCliUtilitiesXlsxWorkbookPlan
-    from ._yaml._convert import FlextCliUtilitiesYamlConvertMixin
-    from ._yaml._editing import FlextCliUtilitiesYamlEditingMixin
-    from ._yaml._engine import FlextCliUtilitiesYamlEngineMixin
-    from .atomic_directory_chain import (
+    from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+    from flext_cli._utilities._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
+    from flext_cli._utilities._xlxx.xlsx_archive_checks import (
+        FlextCliUtilitiesXlsxArchiveChecks,
+    )
+    from flext_cli._utilities._xlxx.xlsx_cells import FlextCliUtilitiesXlsxCells
+    from flext_cli._utilities._xlxx.xlsx_conditional import (
+        FlextCliUtilitiesXlsxConditional,
+    )
+    from flext_cli._utilities._xlxx.xlsx_defined_name_values import (
+        FlextCliUtilitiesXlsxDefinedNameValues,
+    )
+    from flext_cli._utilities._xlxx.xlsx_formula_codec import (
+        FlextCliUtilitiesXlsxFormulaCodec,
+    )
+    from flext_cli._utilities._xlxx.xlsx_layout import FlextCliUtilitiesXlsxLayout
+    from flext_cli._utilities._xlxx.xlsx_protection import (
+        FlextCliUtilitiesXlsxProtection,
+    )
+    from flext_cli._utilities._xlxx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
+    from flext_cli._utilities._xlxx.xlsx_recalc_evidence import (
+        FlextCliUtilitiesXlsxRecalcEvidence,
+    )
+    from flext_cli._utilities._xlxx.xlsx_renderer import FlextCliUtilitiesXlsxRenderer
+    from flext_cli._utilities._xlxx.xlsx_rules import FlextCliUtilitiesXlsxRules
+    from flext_cli._utilities._xlxx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
+    from flext_cli._utilities._xlxx.xlsx_snapshot_sheet import (
+        FlextCliUtilitiesXlsxSnapshotSheet,
+    )
+    from flext_cli._utilities._xlxx.xlsx_snapshot_structure import (
+        FlextCliUtilitiesXlsxSnapshotStructure,
+    )
+    from flext_cli._utilities._xlxx.xlsx_snapshot_values import (
+        FlextCliUtilitiesXlsxSnapshotValues,
+    )
+    from flext_cli._utilities._xlxx.xlsx_style_builders import (
+        FlextCliUtilitiesXlsxStyleBuilders,
+    )
+    from flext_cli._utilities._xlxx.xlsx_style_catalog import (
+        FlextCliUtilitiesXlsxStyleCatalog,
+    )
+    from flext_cli._utilities._xlxx.xlsx_style_codec import (
+        FlextCliUtilitiesXlsxStyleCodec,
+    )
+    from flext_cli._utilities._xlxx.xlsx_style_readers import (
+        FlextCliUtilitiesXlsxStyleReaders,
+    )
+    from flext_cli._utilities._xlxx.xlsx_tables import FlextCliUtilitiesXlsxTables
+    from flext_cli._utilities._xlxx.xlsx_validations import (
+        FlextCliUtilitiesXlsxValidations,
+    )
+    from flext_cli._utilities._xlxx.xlsx_workbook_io import (
+        FlextCliUtilitiesXlsxWorkbookIo,
+    )
+    from flext_cli._utilities._xlxx.xlsx_workbook_plan import (
+        FlextCliUtilitiesXlsxWorkbookPlan,
+    )
+    from flext_cli._utilities._yaml._convert import FlextCliUtilitiesYamlConvertMixin
+    from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
+    from flext_cli._utilities._yaml._engine import FlextCliUtilitiesYamlEngineMixin
+    from flext_cli._utilities.atomic_directory_chain import (
         create_guarded_directory_chain,
         plan_directory_chain,
     )
-    from .atomic_directory_cleanup import remove_created_directory
-    from .atomic_directory_create import create_guarded_empty_directory
-    from .atomic_directory_delete import remove_guarded_empty_directory
-    from .atomic_directory_descriptor import (
+    from flext_cli._utilities.atomic_directory_cleanup import remove_created_directory
+    from flext_cli._utilities.atomic_directory_create import (
+        create_guarded_empty_directory,
+    )
+    from flext_cli._utilities.atomic_directory_delete import (
+        remove_guarded_empty_directory,
+    )
+    from flext_cli._utilities.atomic_directory_descriptor import (
         create_entry,
         remove_entry,
         rename_entry_noreplace,
@@ -108,7 +178,7 @@ if TYPE_CHECKING:
         require_publish_capabilities,
         require_read_capabilities,
     )
-    from .atomic_directory_model import (
+    from flext_cli._utilities.atomic_directory_model import (
         DirectoryPhysicalState,
         from_observed,
         physical_state,
@@ -117,22 +187,26 @@ if TYPE_CHECKING:
         require_observed,
         require_parent,
     )
-    from .atomic_directory_noreplace import (
+    from flext_cli._utilities.atomic_directory_noreplace import (
         rename_noreplace,
         require_noreplace_capability,
     )
-    from .atomic_directory_publish import publish_guarded_staged_empty_directory
-    from .atomic_directory_snapshot import read_authenticated_empty_directory
-    from .atomic_directory_state import (
+    from flext_cli._utilities.atomic_directory_publish import (
+        publish_guarded_staged_empty_directory,
+    )
+    from flext_cli._utilities.atomic_directory_snapshot import (
+        read_authenticated_empty_directory,
+    )
+    from flext_cli._utilities.atomic_directory_state import (
         destination_state,
         initialize_empty_state,
         read_empty_state,
         require_identity,
     )
-    from .atomic_file import write_atomic_bytes
-    from .atomic_file_cleanup import remove_failed_temporary
-    from .atomic_file_delete import remove_guarded_file
-    from .atomic_file_descriptor import (
+    from flext_cli._utilities.atomic_file import write_atomic_bytes
+    from flext_cli._utilities.atomic_file_cleanup import remove_failed_temporary
+    from flext_cli._utilities.atomic_file_delete import remove_guarded_file
+    from flext_cli._utilities.atomic_file_descriptor import (
         ParentDescriptor,
         assert_parent_unchanged,
         close_after_failure,
@@ -144,8 +218,11 @@ if TYPE_CHECKING:
         require_entry,
         unlink_entry,
     )
-    from .atomic_file_durability import sync_parent, sync_replacement
-    from .atomic_file_mode import (
+    from flext_cli._utilities.atomic_file_durability import (
+        sync_parent,
+        sync_replacement,
+    )
+    from flext_cli._utilities.atomic_file_mode import (
         NO_MODE_PRECONDITION,
         assert_observed_mode,
         publication_mode,
@@ -153,8 +230,8 @@ if TYPE_CHECKING:
         validate_mode,
         validate_mode_precondition,
     )
-    from .atomic_file_model import PhysicalState
-    from .atomic_file_path import (
+    from flext_cli._utilities.atomic_file_model import PhysicalState
+    from flext_cli._utilities.atomic_file_path import (
         identity,
         is_reparse_point,
         resolve_parent_path,
@@ -163,29 +240,28 @@ if TYPE_CHECKING:
         validate_directory_state,
         validate_parent_path,
     )
-    from .atomic_file_publish import publish_guarded_staged_file
-    from .atomic_file_publish_checks import (
+    from flext_cli._utilities.atomic_file_publish import publish_guarded_staged_file
+    from flext_cli._utilities.atomic_file_publish_checks import (
         require_distinct_inode,
         validate_devices,
         validate_identity,
         validate_publication,
     )
-    from .atomic_file_read import read_descriptor_bytes, state_key
-    from .atomic_file_snapshot import read_authenticated_state
-    from .atomic_file_state import (
+    from flext_cli._utilities.atomic_file_read import read_descriptor_bytes, state_key
+    from flext_cli._utilities.atomic_file_snapshot import read_authenticated_state
+    from flext_cli._utilities.atomic_file_state import (
         assert_destination_unchanged,
         assert_temporary_owned,
         read_authenticated_bytes,
         validate_precondition,
     )
-    from .atomic_file_temporary import (
-        authenticated_descriptor,
+    from flext_cli._utilities.atomic_file_temporary import (
         create_descriptor,
         require_mode_capability,
         temporary_path,
         write_and_sync,
     )
-    from .atomic_parent_descriptor import (
+    from flext_cli._utilities.atomic_parent_descriptor import (
         DirectoryChainInspection,
         PhysicalDirectory,
         inspect_directory_chain,
@@ -193,10 +269,19 @@ if TYPE_CHECKING:
         require_traversal_capabilities,
         verify_lineage,
     )
-    from .atomic_parent_failure import preserve_recheck_failure
-    from .atomic_tree_cleanup import cleanup_physical_tree_guarded
-    from .atomic_tree_darwin import FlextCliAtomicTreeDarwin
-    from .atomic_tree_descriptor import (
+    from flext_cli._utilities.atomic_parent_failure import preserve_recheck_failure
+    from flext_cli._utilities.atomic_symlink_publish import (
+        delete_guarded_symlink,
+        write_guarded_symlink,
+    )
+    from flext_cli._utilities.atomic_symlink_state import (
+        read_symlink_state,
+        require_symlink_state,
+        symlink_identity,
+    )
+    from flext_cli._utilities.atomic_tree_cleanup import cleanup_physical_tree_guarded
+    from flext_cli._utilities.atomic_tree_darwin import FlextCliAtomicTreeDarwin
+    from flext_cli._utilities.atomic_tree_descriptor import (
         measure_authenticated_file,
         mount_id,
         require_directory_state,
@@ -204,37 +289,40 @@ if TYPE_CHECKING:
         require_mount,
         require_same_device,
     )
-    from .atomic_tree_inventory import inventory_physical_tree
-    from .auth import FlextCliUtilitiesAuth
-    from .cmd import FlextCliUtilitiesCmd
-    from .commands import FlextCliUtilitiesCommands
-    from .config import FlextCliUtilitiesConfig
-    from .conversion import FlextCliUtilitiesConversion
-    from .docx import FlextCliUtilitiesDocx
-    from .env import FlextCliUtilitiesEnv
-    from .file_test_helpers import FlextCliUtilitiesFileTestHelpersMixin
-    from .files import FlextCliUtilitiesFiles
-    from .formatters import FlextCliUtilitiesFormatters
-    from .framework import FlextCliUtilitiesFramework
-    from .json import FlextCliUtilitiesJson
-    from .matching import FlextCliUtilitiesMatching
-    from .output import FlextCliUtilitiesOutput
-    from .params import FlextCliUtilitiesParams
-    from .pipeline import FlextCliUtilitiesPipeline
-    from .pptx import FlextCliUtilitiesPptx
-    from .processes import FlextCliUtilitiesProcesses
-    from .prompts import FlextCliUtilitiesPrompts
-    from .report import FlextCliUtilitiesReport
-    from .rules import FlextCliUtilitiesRules
-    from .runtime import FlextCliUtilitiesRuntime
-    from .settings import FlextCliUtilitiesSettings
-    from .tables import FlextCliUtilitiesTables
-    from .template import FlextCliUtilitiesTemplate
-    from .toml import FlextCliUtilitiesToml
-    from .validation import FlextCliUtilitiesValidation
-    from .xlsx import FlextCliUtilitiesXlsx
-    from .yaml import FlextCliUtilitiesYaml
-    from .yaml_model import FlextCliUtilitiesYamlModel
+    from flext_cli._utilities.atomic_tree_inventory import inventory_physical_tree
+    from flext_cli._utilities.auth import FlextCliUtilitiesAuth
+    from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
+    from flext_cli._utilities.commands import FlextCliUtilitiesCommands
+    from flext_cli._utilities.config import FlextCliUtilitiesConfig
+    from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
+    from flext_cli._utilities.docx import FlextCliUtilitiesDocx
+    from flext_cli._utilities.env import FlextCliUtilitiesEnv
+    from flext_cli._utilities.file_test_helpers import (
+        FlextCliUtilitiesFileTestHelpersMixin,
+    )
+    from flext_cli._utilities.files import FlextCliUtilitiesFiles
+    from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
+    from flext_cli._utilities.framework import FlextCliUtilitiesFramework
+    from flext_cli._utilities.json import FlextCliUtilitiesJson
+    from flext_cli._utilities.matching import FlextCliUtilitiesMatching
+    from flext_cli._utilities.output import FlextCliUtilitiesOutput
+    from flext_cli._utilities.params import FlextCliUtilitiesParams
+    from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
+    from flext_cli._utilities.pptx import FlextCliUtilitiesPptx
+    from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
+    from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
+    from flext_cli._utilities.report import FlextCliUtilitiesReport
+    from flext_cli._utilities.rules import FlextCliUtilitiesRules
+    from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
+    from flext_cli._utilities.settings import FlextCliUtilitiesSettings
+    from flext_cli._utilities.symlink import FlextCliUtilitiesSymlink
+    from flext_cli._utilities.tables import FlextCliUtilitiesTables
+    from flext_cli._utilities.template import FlextCliUtilitiesTemplate
+    from flext_cli._utilities.toml import FlextCliUtilitiesToml
+    from flext_cli._utilities.validation import FlextCliUtilitiesValidation
+    from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx
+    from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
+    from flext_cli._utilities.yaml_model import FlextCliUtilitiesYamlModel
 
 
 __all__: tuple[str, ...] = (
@@ -294,6 +382,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesRuntimeWindowsJobStartMixin",
     "FlextCliUtilitiesRuntimeWindowsJobStateMixin",
     "FlextCliUtilitiesSettings",
+    "FlextCliUtilitiesSymlink",
     "FlextCliUtilitiesTables",
     "FlextCliUtilitiesTablesRenderer",
     "FlextCliUtilitiesTemplate",
@@ -348,13 +437,13 @@ __all__: tuple[str, ...] = (
     "assert_observed_mode",
     "assert_parent_unchanged",
     "assert_temporary_owned",
-    "authenticated_descriptor",
     "cleanup_physical_tree_guarded",
     "close_after_failure",
     "create_descriptor",
     "create_entry",
     "create_guarded_directory_chain",
     "create_guarded_empty_directory",
+    "delete_guarded_symlink",
     "destination_state",
     "entry_descriptor",
     "entry_stat",
@@ -380,6 +469,7 @@ __all__: tuple[str, ...] = (
     "read_authenticated_state",
     "read_descriptor_bytes",
     "read_empty_state",
+    "read_symlink_state",
     "remove_created_directory",
     "remove_entry",
     "remove_failed_temporary",
@@ -405,9 +495,11 @@ __all__: tuple[str, ...] = (
     "require_publish_capabilities",
     "require_read_capabilities",
     "require_same_device",
+    "require_symlink_state",
     "require_traversal_capabilities",
     "resolve_parent_path",
     "state_key",
+    "symlink_identity",
     "sync_parent",
     "sync_replacement",
     "temporary_path",
@@ -426,6 +518,7 @@ __all__: tuple[str, ...] = (
     "verify_lineage",
     "write_and_sync",
     "write_atomic_bytes",
+    "write_guarded_symlink",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
@@ -615,7 +708,6 @@ _LAZY_IMPORTS = MappingProxyType(
                 "validate_precondition",
             ),
             ".atomic_file_temporary": (
-                "authenticated_descriptor",
                 "create_descriptor",
                 "require_mode_capability",
                 "temporary_path",
@@ -630,6 +722,15 @@ _LAZY_IMPORTS = MappingProxyType(
                 "verify_lineage",
             ),
             ".atomic_parent_failure": ("preserve_recheck_failure",),
+            ".atomic_symlink_publish": (
+                "delete_guarded_symlink",
+                "write_guarded_symlink",
+            ),
+            ".atomic_symlink_state": (
+                "read_symlink_state",
+                "require_symlink_state",
+                "symlink_identity",
+            ),
             ".atomic_tree_cleanup": ("cleanup_physical_tree_guarded",),
             ".atomic_tree_darwin": ("FlextCliAtomicTreeDarwin",),
             ".atomic_tree_descriptor": (
@@ -664,6 +765,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".rules": ("FlextCliUtilitiesRules",),
             ".runtime": ("FlextCliUtilitiesRuntime",),
             ".settings": ("FlextCliUtilitiesSettings",),
+            ".symlink": ("FlextCliUtilitiesSymlink",),
             ".tables": ("FlextCliUtilitiesTables",),
             ".template": ("FlextCliUtilitiesTemplate",),
             ".toml": ("FlextCliUtilitiesToml",),
@@ -674,7 +776,7 @@ _LAZY_IMPORTS = MappingProxyType(
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,
-    )
+    ),
 )
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

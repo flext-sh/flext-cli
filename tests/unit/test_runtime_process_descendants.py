@@ -1,4 +1,8 @@
-"""Normal-exit descendant containment contract."""
+"""Normal-exit descendant containment contract.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -64,7 +68,8 @@ class TestsFlextCliRuntimeProcessDescendants:
         )
 
         result = u.Cli().run_to_file(
-            [sys.executable, "-I", "-S", "-c", parent, str(process_info)], output_file
+            [sys.executable, "-I", "-S", "-c", parent, str(process_info)],
+            output_file,
         )
 
         tm.ok(result)
@@ -78,6 +83,7 @@ class TestsFlextCliRuntimeProcessDescendants:
                 os.killpg(process_group, 0)
 
     def test_windows_job_reports_zero_active_processes(self, tmp_path: Path) -> None:
+        """Test windows job reports zero active processes."""
         _ObservedWindowsCli.active_counts.clear()
         result = _ObservedWindowsCli.run_to_file(
             [sys.executable, "-c", "import time;time.sleep(30)"],
@@ -99,6 +105,3 @@ class TestsFlextCliRuntimeProcessDescendants:
         tm.that(active_count.success, eq=True)
         tm.that(active_count.value, eq=0)
         tm.that(_ObservedWindowsCli.active_counts, empty=True)
-
-
-__all__: list[str] = ["TestsFlextCliRuntimeProcessDescendants"]

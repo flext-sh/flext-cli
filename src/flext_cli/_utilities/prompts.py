@@ -1,4 +1,8 @@
-"""Prompt helpers shared through ``u.Cli``."""
+"""Prompt helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -10,7 +14,12 @@ class FlextCliUtilitiesPrompts:
 
     @staticmethod
     def prompts_confirmation_text(message: str, *, default: bool) -> str:
-        """Build one standardized confirmation prompt message."""
+        """Build one standardized confirmation prompt message.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         return (
             f"{message}{c.Cli.PROMPT_CONFIRM_YES}"
             if default
@@ -19,20 +28,35 @@ class FlextCliUtilitiesPrompts:
 
     @staticmethod
     def prompts_display_message(message: str, default: str) -> str:
-        """Build prompt display message with optional default marker."""
+        """Build prompt display message with optional default marker.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         if default:
             return f"{message}{c.Cli.PROMPT_DEFAULT_FMT.format(default=default)}"
         return message
 
     @staticmethod
     def prompts_effective_text(raw_input: str, default: str) -> str:
-        """Normalize one raw input text to one effective prompt value."""
+        """Normalize one raw input text to one effective prompt value.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         trimmed = raw_input.strip()
         return trimmed or default
 
     @staticmethod
     def prompts_parse_confirmation(text: str, *, default: bool) -> bool | None:
-        """Parse one confirmation input text into yes/no/default/invalid."""
+        """Parse one confirmation input text into yes/no/default/invalid.
+
+        Returns:
+            The resulting ``bool | None``.
+
+        """
         normalized = text.strip().lower()
         if not normalized:
             return default
@@ -44,9 +68,17 @@ class FlextCliUtilitiesPrompts:
 
     @staticmethod
     def prompts_choice_result(
-        *, interactive: bool, choices: t.StrSequence, default: str | None
+        *,
+        interactive: bool,
+        choices: t.StrSequence,
+        default: str | None,
     ) -> p.Result[str]:
-        """Validate one choice prompt contract and return one canonical result."""
+        """Validate one choice prompt contract and return one canonical result.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         result: p.Result[str]
         if not choices:
             result = r[str].fail(c.Cli.ERR_NO_CHOICES)
@@ -57,7 +89,7 @@ class FlextCliUtilitiesPrompts:
                 result = r[str].fail(c.Cli.ERR_INTERACTIVE_CHOICE_DISABLED)
         elif default is None:
             result = r[str].fail(
-                c.Cli.ERR_CHOICE_REQUIRED_FMT.format(choices=", ".join(choices))
+                c.Cli.ERR_CHOICE_REQUIRED_FMT.format(choices=", ".join(choices)),
             )
         elif default not in choices:
             result = r[str].fail(c.Cli.ERR_INVALID_CHOICE_FMT.format(choice=default))
@@ -67,10 +99,15 @@ class FlextCliUtilitiesPrompts:
 
     @staticmethod
     def prompts_password_result(password: str, *, min_length: int) -> p.Result[str]:
-        """Validate one password length contract."""
+        """Validate one password length contract.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         if len(password) < min_length:
             return r[str].fail(
-                c.Cli.ERR_PASSWORD_TOO_SHORT_FMT.format(min_length=min_length)
+                c.Cli.ERR_PASSWORD_TOO_SHORT_FMT.format(min_length=min_length),
             )
         return r[str].ok(password)
 

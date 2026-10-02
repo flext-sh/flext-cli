@@ -1,4 +1,8 @@
-"""CLI Pydantic domain models."""
+"""CLI Pydantic domain models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -22,28 +26,36 @@ class FlextCliModelsBase:
         """
 
         verbose: Annotated[
-            bool | None, m.Field(description="Enable verbose output")
+            bool | None,
+            m.Field(description="Enable verbose output"),
         ] = None
         quiet: Annotated[
-            bool | None, m.Field(description="Suppress non-essential output")
+            bool | None,
+            m.Field(description="Suppress non-essential output"),
         ] = None
         debug: Annotated[
-            bool | None, m.Field(None, description="Enable debug mode")
+            bool | None,
+            m.Field(None, description="Enable debug mode"),
         ] = None
         trace: Annotated[
-            bool | None, m.Field(description="Enable trace logging (requires debug)")
+            bool | None,
+            m.Field(description="Enable trace logging (requires debug)"),
         ] = None
         log_level: Annotated[
-            str | None, m.Field(description="Log level (DEBUG, INFO, WARNING, ERROR)")
+            str | None,
+            m.Field(description="Log level (DEBUG, INFO, WARNING, ERROR)"),
         ] = None
         log_format: Annotated[
-            str | None, m.Field(description="Log format (compact, detailed, full)")
+            str | None,
+            m.Field(description="Log format (compact, detailed, full)"),
         ] = None
         output_format: Annotated[
-            str | None, m.Field(description="Output format (table, json, yaml, csv)")
+            str | None,
+            m.Field(description="Output format (table, json, yaml, csv)"),
         ] = None
         no_color: Annotated[
-            bool | None, m.Field(description="Disable colored output")
+            bool | None,
+            m.Field(description="Disable colored output"),
         ] = None
 
         @property
@@ -66,7 +78,8 @@ class FlextCliModelsBase:
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="ignore", frozen=True)
 
         help: Annotated[
-            str, m.Field("", description="Option help text", strict=True)
+            str,
+            m.Field("", description="Option help text", strict=True),
         ] = ""
         short: Annotated[
             str,
@@ -83,7 +96,9 @@ class FlextCliModelsBase:
         field_name_override: Annotated[
             str | None,
             m.Field(
-                None, description="Override for the CLI-facing option name", strict=True
+                None,
+                description="Override for the CLI-facing option name",
+                strict=True,
             ),
         ] = None
 
@@ -100,8 +115,25 @@ class FlextCliModelsBase:
             m.Field(None, description="Validated optional default value"),
         ] = None
         required: Annotated[
-            bool, m.Field(False, description="Require an explicit option value")
+            bool,
+            m.Field(False, description="Require an explicit option value"),
         ] = False
+
+    class ParsedOptionTokens(m.Value):
+        """Validated parse-only route used before a command is executed."""
+
+        values: Annotated[
+            t.JsonMapping,
+            m.Field(description="Parsed canonical option fields"),
+        ]
+        remaining: Annotated[
+            t.StrSequence,
+            m.Field(description="Unconsumed positional tokens"),
+        ]
+        help_requested: Annotated[
+            bool,
+            m.Field(description="Standalone help option was requested"),
+        ]
 
     class InvocationResult(m.Value):
         """Framework-neutral result of one real CLI invocation."""

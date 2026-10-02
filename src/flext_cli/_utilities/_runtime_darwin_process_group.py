@@ -1,4 +1,8 @@
-"""Darwin process-group membership, including members awaiting reaping."""
+"""Darwin process-group membership, including members awaiting reaping.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -22,7 +26,8 @@ class FlextCliUtilitiesRuntimeDarwinProcessGroupMixin:
         if capacity <= 0:
             error = ctypes.get_errno()
             raise OSError(
-                error, f"proc_listpgrppids sizing failed: {os.strerror(error)}"
+                error,
+                f"proc_listpgrppids sizing failed: {os.strerror(error)}",
             )
         while True:
             buffer = (ctypes.c_int * capacity)()
@@ -37,7 +42,15 @@ class FlextCliUtilitiesRuntimeDarwinProcessGroupMixin:
 
     @classmethod
     def _darwin_process_group_exited(cls, process_group_id: int) -> bool:
-        """Prove EPERM came from an empty/zombie group, never deny a live member."""
+        """Prove EPERM came from an empty/zombie group, never deny a live member.
+
+        Returns:
+            The resulting ``bool``.
+
+        Raises:
+            OSError: If ``size != ctypes.sizeof(info)``.
+
+        """
 
         class _BsdShortInfo(ctypes.Structure):
             _fields_ = [
@@ -71,7 +84,7 @@ class FlextCliUtilitiesRuntimeDarwinProcessGroupMixin:
             info = _BsdShortInfo()
             ctypes.set_errno(0)
             size = int(
-                pid_info(process_id, 13, 0, ctypes.byref(info), ctypes.sizeof(info))
+                pid_info(process_id, 13, 0, ctypes.byref(info), ctypes.sizeof(info)),
             )
             error = ctypes.get_errno()
             if size == 0 and error == errno.ESRCH:

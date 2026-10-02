@@ -1,4 +1,8 @@
-"""Real Typer integration tests for the public flext-cli CLI facade."""
+"""Real Typer integration tests for the public flext-cli CLI facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -22,7 +26,10 @@ class TestsFlextCliService:
         """Convert a nonzero integer command result into a failed Result."""
         app = cli.create_app_with_common_params(name="int-app", help_text="Int app")
         cli.register_command(
-            app, name="return-two", help_text="Return int", command=lambda: 2
+            app,
+            name="return-two",
+            help_text="Return int",
+            command=lambda: 2,
         )
 
         result = cli.execute_app(app, prog_name="int-app", args=["return-two"])
@@ -47,10 +54,14 @@ class TestsFlextCliService:
     def test_execute_app_handles_typer_exit_nonzero_branch_real(self) -> None:
         """Normalize a real nonzero Typer exit into a failed Result."""
         app = cli.create_app_with_common_params(
-            name="nonzero-app", help_text="Non-zero app"
+            name="nonzero-app",
+            help_text="Non-zero app",
         )
         cli.register_command(
-            app, name="exit-one", help_text="Exit one", command=lambda: cli.exit(code=1)
+            app,
+            name="exit-one",
+            help_text="Exit one",
+            command=lambda: cli.exit(code=1),
         )
 
         result = cli.execute_app(app, prog_name="nonzero-app", args=["exit-one"])
@@ -61,7 +72,8 @@ class TestsFlextCliService:
     def test_execute_app_prefers_real_failure_message(self) -> None:
         """Preserve the real framework failure message at the public boundary."""
         app = cli.create_app_with_common_params(
-            name="sample", help_text="Failure group"
+            name="sample",
+            help_text="Failure group",
         )
         group = cli.create_group(help_text="Grouped failure commands", name="group")
 
@@ -77,7 +89,9 @@ class TestsFlextCliService:
         )
         cli.add_group(app, name="group", group=group)
         result = cli.execute_app(
-            app, prog_name="sample", args=["group", "fail", "--name", "alice"]
+            app,
+            prog_name="sample",
+            args=["group", "fail", "--name", "alice"],
         )
 
         tm.fail(result)
@@ -86,17 +100,23 @@ class TestsFlextCliService:
     def test_execute_app_preserves_click_usage_errors(self) -> None:
         """Preserve Click usage details when a command name is invalid."""
         app = cli.create_app_with_common_params(
-            name="sample", help_text="Failure group"
+            name="sample",
+            help_text="Failure group",
         )
         group = cli.create_group(help_text="Grouped failure commands", name="group")
 
         cli.register_command(
-            group, name="ok", help_text="Successful command", command=lambda: True
+            group,
+            name="ok",
+            help_text="Successful command",
+            command=lambda: True,
         )
         cli.add_group(app, name="group", group=group)
 
         result = cli.execute_app(
-            app, prog_name="sample", args=["group", "missing-command"]
+            app,
+            prog_name="sample",
+            args=["group", "missing-command"],
         )
 
         tm.fail(result)
@@ -105,7 +125,8 @@ class TestsFlextCliService:
     def test_execute_external_command_accepts_public_sequence(self) -> None:
         """External commands receive a list at the private framework boundary."""
         app = cli.create_app_with_common_params(
-            name="external-app", help_text="External command application"
+            name="external-app",
+            help_text="External command application",
         )
         cli.register_command(
             app,
@@ -115,10 +136,9 @@ class TestsFlextCliService:
         )
 
         result = cli.execute_external_command(
-            cli.external_command(app), prog_name="external-app", args=("ok",)
+            cli.external_command(app),
+            prog_name="external-app",
+            args=("ok",),
         )
 
         tm.ok(result)
-
-
-__all__: list[str] = ["TestsFlextCliService"]

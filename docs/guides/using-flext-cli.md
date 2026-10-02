@@ -46,6 +46,10 @@ Import the aliases used by each example from the public `flext_cli` package root
 - Let `FlextCliCli` convert model fields into Typer options.
 - Keep output formatting, prompts, and runtime consistent across FLEXT CLI tools.
 
+Result-command failures and `MessageTypes.ERROR` messages are written to stderr;
+successful output and other message types are written to stdout. A failed route
+retains its original `Result` error and error code while the CLI exits nonzero.
+
 ## Settings
 
 Import the existing settings class; do not redefine it:
@@ -69,6 +73,14 @@ class FlextApiSettings(FlextSettings):
 ```
 
 ## Model-driven command
+
+Structured option defaults are validated against the field annotation, including its
+metadata constraints, before being serialized as JSON. This supports immutable mapping
+defaults without converting the model's declared mapping contract into a mutable one.
+Settings values use the same field contract. Invalid defaults raise the original
+Pydantic validation error during command construction; serialization warnings are
+errors. The implementation uses Pydantic's
+[TypeAdapter validation and serialization](https://docs.pydantic.dev/latest/api/type_adapter/).
 
 ```python
 from __future__ import annotations
@@ -97,6 +109,19 @@ cli = FlextCliCli()
 app = cli.create_app_with_common_params(name="greeting", help_text="Greeting commands")
 cli.register_command(app, name="greet", help_text="Build a greeting", command=command)
 ```
+
+Pre-execution routers can obtain the same option declarations as the registered
+command through `cli.model_option_spec(field_name, model_field, settings)`. The
+returned `p.Cli.CliOptionSpec` exposes aliases, Boolean toggles, and explicit
+`typer_param_decls` without constructing a second naming rule. The global callback
+registers exactly the fields in `c.Cli.CLI_GLOBAL_PARAM_FIELDS`; routers should use
+that public tuple when identifying global options before a protected command.
+`cli.parse_model_options(model_cls, arguments, field_names=..., stop_at_positional=...)`
+consumes those declarations without executing the command callback. Its typed result
+keeps raw option values, remaining command tokens, and standalone help distinct;
+an option value that happens to equal `--help` remains a value. Repeated sequence
+options retain every value in order. The values are token-level routing facts, not
+the validated model that the real CLI later builds.
 
 **Common mistakes to avoid:**
 
@@ -164,17 +189,6 @@ def greet_handler(model: GreetInput) -> str:
 
 assert greet_handler(GreetInput(name="Ada")) == "Hello, Ada!"
 ```
-
-## Managed child processes
-
-Use `u.Cli.process_start` for a child that needs an explicit lifecycle handle. Its
-default `capture=True` keeps binary interactive pipes; `capture=False` inherits stdin,
-stdout, and stderr, leaving the handle's captured strings empty. On POSIX,
-`start_new_session=True` creates a child-owned session and process group, and the
-returned handle owns that group: `terminate()` and `kill()` signal every member,
-including descendants that outlive the leader, while the caller still reaps the leader
-with `wait().unwrap()`. Existing calls retain captured streams and the parent's session
-by default.
 
 ## Related
 

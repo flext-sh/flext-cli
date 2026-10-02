@@ -1,4 +1,8 @@
-"""Public contract coverage tests for the flext-cli facade and models."""
+"""Public contract coverage tests for the flext-cli facade and models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -28,7 +32,7 @@ class TestsFlextCliPublicContractsCoverage:
                     "stage_id": "build",
                     "status": c.Cli.PipelineStageStatus.OK,
                     "output": {"workspace": str(ctx.repository_root)},
-                })
+                }),
             )
 
         spec = cli.stage("build", handler=stage_handler, depends_on=("fetch",))
@@ -36,7 +40,9 @@ class TestsFlextCliPublicContractsCoverage:
             stages=[
                 cli.stage_result("ok", status=c.Cli.PipelineStageStatus.OK),
                 cli.stage_result(
-                    "fail", status=c.Cli.PipelineStageStatus.FAILED, error="boom"
+                    "fail",
+                    status=c.Cli.PipelineStageStatus.FAILED,
+                    error="boom",
                 ),
                 cli.stage_result("skip", status=c.Cli.PipelineStageStatus.SKIPPED),
             ],
@@ -44,7 +50,8 @@ class TestsFlextCliPublicContractsCoverage:
         )
         stage_result = spec.handler(context)
         pipeline_run = cli.pipeline(
-            (spec,), context=cli.stage_context(tmp_path, settings={"mode": "test"})
+            (spec,),
+            context=cli.stage_context(tmp_path, settings={"mode": "test"}),
         )
 
         tm.that(cli, is_=p.Cli.PipelineService)
@@ -56,6 +63,3 @@ class TestsFlextCliPublicContractsCoverage:
         tm.that(stage_result.value.output, eq={"workspace": str(tmp_path)})
         tm.ok(pipeline_run)
         tm.that(pipeline_run.value.success, eq=True)
-
-
-__all__: list[str] = ["TestsFlextCliPublicContractsCoverage"]

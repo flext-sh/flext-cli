@@ -1,4 +1,8 @@
-"""Physical identity contract for guarded empty-directory operations."""
+"""Physical identity contract for guarded empty-directory operations.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -16,7 +20,8 @@ class TestsAtomicDirectoryIdentity:
     """Prove directory effects consume exact parent and leaf identities."""
 
     def test_snapshot_distinguishes_absence_from_empty_directory(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Return parent identity for absence and complete identity for presence."""
         target = tmp_path / "state"
@@ -38,20 +43,23 @@ class TestsAtomicDirectoryIdentity:
     def test_required_snapshot_rejects_absence(self, tmp_path: Path) -> None:
         """Fail rather than manufacturing an existing directory identity."""
         result = u.Cli.atomic_read_empty_directory_state(
-            tmp_path / "missing", required=True
+            tmp_path / "missing",
+            required=True,
         )
 
         tm.fail(result)
 
     def test_create_materializes_exact_mode_and_returns_inode(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Create from exact absence and report the materialized physical state."""
         target = tmp_path / "created"
         before = u.atomic_directory_snapshot(target)
 
         result = u.Cli.atomic_create_empty_directory_guarded(
-            before, permission_mode=0o750
+            before,
+            permission_mode=0o750,
         )
 
         tm.ok(result)
@@ -71,7 +79,8 @@ class TestsAtomicDirectoryIdentity:
         parent.mkdir()
 
         result = u.Cli.atomic_create_empty_directory_guarded(
-            before, permission_mode=0o700
+            before,
+            permission_mode=0o700,
         )
 
         tm.fail(result)
@@ -79,9 +88,15 @@ class TestsAtomicDirectoryIdentity:
         tm.that((original_parent / target.name).exists(), eq=False)
 
     def test_delete_rejects_replacement_inode_with_same_mode(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
-        """Do not remove a new empty inode that merely matches visible mode."""
+        """Do not remove a new empty inode that merely matches visible mode.
+
+        Raises:
+            AssertionError: If required directory snapshot unexpectedly absent.
+
+        """
         target = tmp_path / "empty"
         target.mkdir(mode=0o750)
         before = u.atomic_directory_snapshot(target, required=True)
@@ -101,7 +116,9 @@ class TestsAtomicDirectoryIdentity:
 
     @pytest.mark.parametrize("entry_kind", ["file", "directory"])
     def test_late_content_prevents_delete(
-        self, tmp_path: Path, entry_kind: str
+        self,
+        tmp_path: Path,
+        entry_kind: str,
     ) -> None:
         """Preserve regular or directory content added after the empty snapshot."""
         target = tmp_path / f"empty-{entry_kind}"
@@ -160,6 +177,3 @@ class TestsAtomicDirectoryIdentity:
                 link_count=1,
                 reparse_tag=1,
             )
-
-
-__all__: list[str] = ["TestsAtomicDirectoryIdentity"]

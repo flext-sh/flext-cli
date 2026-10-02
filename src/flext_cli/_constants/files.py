@@ -2,6 +2,9 @@
 
 Owns file-format detection, extension mapping, and generic file metadata
 constants reused across CLI and test infrastructure.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations

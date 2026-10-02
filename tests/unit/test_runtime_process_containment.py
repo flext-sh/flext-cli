@@ -1,4 +1,8 @@
-"""Signal, deadline, and descendant containment contracts."""
+"""Signal, deadline, and descendant containment contracts.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -24,12 +28,18 @@ if TYPE_CHECKING:
 
 def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
     return m.Cli.ProcessDeadline(
-        expires_at_monotonic=time.monotonic() + seconds, termination_grace_seconds=grace
+        expires_at_monotonic=time.monotonic() + seconds,
+        termination_grace_seconds=grace,
     )
 
 
 def _survivor_acknowledged(probe: Path, acknowledgement: Path) -> bool:
-    """Ask an owned descendant to prove it is still able to execute."""
+    """Ask an owned descendant to prove it is still able to execute.
+
+    Returns:
+        The resulting ``bool``.
+
+    """
     probe.touch()
     acknowledgement_deadline = time.monotonic() + 0.5
     while not acknowledgement.exists() and time.monotonic() < acknowledgement_deadline:
@@ -38,7 +48,9 @@ def _survivor_acknowledged(probe: Path, acknowledgement: Path) -> bool:
 
 
 def _assert_owned_descendant_stopped(
-    process_info: Path, probe: Path, acknowledgement: Path
+    process_info: Path,
+    probe: Path,
+    acknowledgement: Path,
 ) -> None:
     """Prove no owned descendant can execute and clean an observed failure."""
     child_survived = _survivor_acknowledged(probe, acknowledgement)
@@ -48,7 +60,7 @@ def _assert_owned_descendant_stopped(
 
 
 def _assert_timeout_empties_descendants[
-    Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput)
+    Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput),
 ](
     tmp_path: Path,
     execute: Callable[[t.VariadicTuple[str]], p.Result[Output]],
@@ -136,6 +148,7 @@ class TestsFlextCliRuntimeProcessContainment:
         )
 
     def test_return_proves_owned_process_boundary_empty(self, tmp_path: Path) -> None:
+        """Test return proves owned process boundary empty."""
         process_info = tmp_path / "boundary-process-info"
         survivor_probe = tmp_path / "boundary-survivor-probe"
         survivor_ack = tmp_path / "boundary-survivor-ack"
@@ -175,8 +188,11 @@ class TestsFlextCliRuntimeProcessContainment:
 
     @pytest.mark.parametrize("signal_number", [signal.SIGINT, signal.SIGTERM])
     def test_manual_signal_is_forwarded_without_exit_normalization(
-        self, tmp_path: Path, signal_number: signal.Signals
+        self,
+        tmp_path: Path,
+        signal_number: signal.Signals,
     ) -> None:
+        """Test manual signal is forwarded without exit normalization."""
         ready = tmp_path / f"child-ready-{signal_number}"
         output_file = tmp_path / f"manual-{signal_number}.log"
         child = (
@@ -213,8 +229,10 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(time.monotonic() - signal_started, lt=6.0)
 
     def test_pre_spawn_signal_is_captured_before_command_materialization(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
+        """Test pre spawn signal is captured before command materialization."""
         marker = tmp_path / "must-not-spawn"
         result = u.Cli().run_to_file(
             _InterruptingCommand([
@@ -231,8 +249,10 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(marker.exists(), eq=False)
 
     def test_deadline_forwards_interrupt_before_forced_cleanup(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
+        """Test deadline forwards interrupt before forced cleanup."""
         output_file = tmp_path / "interrupt.log"
         script = (
             "import os,signal,time;"
@@ -257,6 +277,7 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(time.monotonic() - started, lt=1.2)
 
     def test_deadline_kills_recursive_process_tree(self, tmp_path: Path) -> None:
+        """Test deadline kills recursive process tree."""
         output_file = tmp_path / "tree.log"
         process_info = tmp_path / "process-info"
         survivor_probe = tmp_path / "survivor-probe"
@@ -298,6 +319,3 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(process_info.exists(), eq=True)
         _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
         tm.that(time.monotonic() - started, lt=2.0)
-
-
-__all__: list[str] = ["TestsFlextCliRuntimeProcessContainment"]

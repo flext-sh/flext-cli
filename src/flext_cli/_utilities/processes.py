@@ -1,4 +1,8 @@
-"""Managed process primitives shared through ``u.Cli``."""
+"""Managed process primitives shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -75,18 +79,36 @@ class FlextCliUtilitiesProcesses:
             return self._process.poll()
 
         def terminate(self) -> p.Result[bool]:
-            """Signal the owned session group, or the child, to finish."""
+            """Signal the owned session group, or the child, to finish.
+
+            Returns:
+                The resulting ``p.Result[bool]``.
+
+            """
             return self._signal_owned(signal.SIGTERM, force=False)
 
         def kill(self) -> p.Result[bool]:
-            """Force the owned session group, or the child, to stop."""
+            """Force the owned session group, or the child, to stop.
+
+            Returns:
+                The resulting ``p.Result[bool]``.
+
+            """
             return self._signal_owned(signal.SIGTERM, force=True)
 
         def _signal_owned(self, signal_number: int, *, force: bool) -> p.Result[bool]:
-            """Tear down the process group this handle owns, or the single child."""
+            """Tear down the process group this handle owns, or the single child.
+
+            Returns:
+                The resulting ``p.Result[bool]``.
+
+            """
             if self._session_leader:
                 return self._signal_process_tree(
-                    self._process, signal_number, 0, force=force
+                    self._process,
+                    signal_number,
+                    0,
+                    force=force,
                 )
             if self.poll() is not None:
                 return r[bool].ok(True)
@@ -113,21 +135,29 @@ class FlextCliUtilitiesProcesses:
                 return r[int].fail(f"process wait error: {exc}", exception=exc)
             try:
                 self._stdout = (bytes(self._stdout_buffer) + (stdout or b"")).decode(
-                    c.Cli.ENCODING_DEFAULT, errors="strict"
+                    c.Cli.ENCODING_DEFAULT,
+                    errors="strict",
                 )
                 self._stderr = (stderr or b"").decode(
-                    c.Cli.ENCODING_DEFAULT, errors="strict"
+                    c.Cli.ENCODING_DEFAULT,
+                    errors="strict",
                 )
             except UnicodeDecodeError as exc:
                 return r[int].fail(
-                    f"process output is not valid UTF-8: {exc}", exception=exc
+                    f"process output is not valid UTF-8: {exc}",
+                    exception=exc,
                 )
             self._stdout_buffer.clear()
             self._communicated = True
             return r[int].ok(self._process.returncode or 0)
 
         def stdin_write(self, content: bytes) -> p.Result[bool]:
-            """Write and flush exact bytes to the managed child stdin."""
+            """Write and flush exact bytes to the managed child stdin.
+
+            Returns:
+                The resulting ``p.Result[bool]``.
+
+            """
             if self.poll() is not None:
                 return r[bool].fail(f"process already exited: pid {self.pid}")
             stream = self._process.stdin
@@ -141,9 +171,17 @@ class FlextCliUtilitiesProcesses:
             return r[bool].ok(True)
 
         def stdout_read_until(
-            self, delimiter: bytes, *, timeout: float
+            self,
+            delimiter: bytes,
+            *,
+            timeout: float,
         ) -> p.Result[bytes]:
-            """Read through one exact delimiter within the supplied deadline."""
+            """Read through one exact delimiter within the supplied deadline.
+
+            Returns:
+                The resulting ``p.Result[bytes]``.
+
+            """
             if not delimiter:
                 return r[bytes].fail("stdout delimiter must not be empty")
             deadline = time.monotonic() + timeout
@@ -159,7 +197,12 @@ class FlextCliUtilitiesProcesses:
                     return r[bytes].from_failure(read)
 
         def stdout_read_exact(self, size: int, *, timeout: float) -> p.Result[bytes]:
-            """Read exactly ``size`` bytes within the supplied deadline."""
+            """Read exactly ``size`` bytes within the supplied deadline.
+
+            Returns:
+                The resulting ``p.Result[bytes]``.
+
+            """
             if size < 0:
                 return r[bytes].fail("stdout byte count must be non-negative")
             deadline = time.monotonic() + timeout
@@ -172,7 +215,12 @@ class FlextCliUtilitiesProcesses:
             return r[bytes].ok(content)
 
         def _read_stdout(self, deadline: float) -> p.Result[bool]:
-            """Append one available binary stdout chunk before ``deadline``."""
+            """Append one available binary stdout chunk before ``deadline``.
+
+            Returns:
+                The resulting ``p.Result[bool]``.
+
+            """
             stream = self._process.stdout
             if stream is None:
                 return r[bool].fail(f"process stdout is unavailable: pid {self.pid}")
@@ -210,6 +258,10 @@ class FlextCliUtilitiesProcesses:
         process group: ``terminate`` and ``kill`` signal every descendant,
         including ones that outlive the leader; the caller stays responsible
         for reaping.
+
+        Returns:
+            The resulting ``p.Result[FlextCliUtilitiesProcesses.ManagedProcess]``.
+
         """
         forwarded_fds = tuple(pass_fds)
         if any(
@@ -217,16 +269,17 @@ class FlextCliUtilitiesProcesses:
             for file_descriptor in forwarded_fds
         ):
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
-                "process pass_fds must contain non-negative file descriptors"
+                "process pass_fds must contain non-negative file descriptors",
             )
         if os.name == "nt" and forwarded_fds:
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
-                "process pass_fds is unsupported on Windows"
+                "process pass_fds is unsupported on Windows",
             )
         resolved_env = None
         if env is not None or remove_env_keys:
             resolved_env = FlextCliUtilitiesRuntime.process_env(
-                overrides=env, remove_keys=remove_env_keys
+                overrides=env,
+                remove_keys=remove_env_keys,
             )
         try:
             process = subprocess.Popen(  # nosec B603 - internal process execution, inputs from typed config
@@ -243,12 +296,16 @@ class FlextCliUtilitiesProcesses:
             )
         except c.EXC_OS_VALUE as exc:
             return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
-                f"execution error: {shlex.join(list(cmd))}: {exc}", exception=exc
+                f"execution error: {shlex.join(list(cmd))}: {exc}",
+                exception=exc,
             )
         return r[FlextCliUtilitiesProcesses.ManagedProcess].ok(
             FlextCliUtilitiesProcesses.ManagedProcess(
-                process, cwd=cwd, env=resolved_env, session_leader=start_new_session
-            )
+                process,
+                cwd=cwd,
+                env=resolved_env,
+                session_leader=start_new_session,
+            ),
         )
 
 

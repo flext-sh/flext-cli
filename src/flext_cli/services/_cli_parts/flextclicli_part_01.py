@@ -57,8 +57,10 @@ class FlextCliCli:
                     raise
                 FlextCliCli._exit_failure(
                     e.fail_validation(
-                        self._model_cls.__name__, error=exc, result_type=r[bool]
-                    )
+                        self._model_cls.__name__,
+                        error=exc,
+                        result_type=r[bool],
+                    ),
                 )
             return self._handler(model)
 
@@ -70,10 +72,18 @@ class FlextCliCli:
         u.Cli.framework_exit(c.Cli.EXIT_CODE_FAILURE)
 
     @classmethod
-    def _build_model_parameter(
-        cls, field_name: str, field_info: m.FieldInfo, settings: t.Cli.ModelLike | None
-    ) -> t.Pair[Parameter, type | GenericAlias]:
-        """Build a keyword-only Typer option from a Pydantic field."""
+    def model_option_spec(
+        cls,
+        field_name: str,
+        field_info: m.FieldInfo,
+        settings: t.Cli.ModelLike | None,
+    ) -> t.Pair[m.Cli.OptionSpec, type | GenericAlias]:
+        """Build a keyword-only Typer option from a Pydantic field.
+
+        Returns:
+            The resulting ``t.Pair[m.Cli.OptionSpec, type | GenericAlias]``.
+
+        """
         alias = getattr(field_info, "alias", None)
         cli_name = alias or field_name
         option_name = f"--{cli_name.replace('_', '-')}"
@@ -123,9 +133,32 @@ class FlextCliCli:
             default=default_value,
             required=is_required,
         )
+        return spec, annotation
+
+    @classmethod
+    def _build_model_parameter(
+        cls,
+        field_name: str,
+        field_info: m.FieldInfo,
+        settings: t.Cli.ModelLike | None,
+    ) -> t.Pair[Parameter, type | GenericAlias]:
+        """Build a keyword-only Typer option from its public specification.
+
+        Returns:
+            The resulting ``t.Pair[Parameter, type | GenericAlias]``.
+
+        """
+        spec, annotation = cls.model_option_spec(field_name, field_info, settings)
+        field_annotation = u.Cli.field_annotation(field_name, field_info)
+        json_annotation = (
+            field_annotation if u.Cli.is_json_option(field_annotation) else None
+        )
         return (
             u.Cli.framework_build_parameter(
-                field_name, annotation, spec, json_annotation=json_annotation
+                field_name,
+                annotation,
+                spec,
+                json_annotation=json_annotation,
             ),
             annotation,
         )

@@ -1,4 +1,8 @@
-"""Unit tests for the DAG pipeline engine."""
+"""Unit tests for the DAG pipeline engine.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,21 +24,33 @@ class TestsFlextCliPipeline:
 
     @staticmethod
     def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:
-        """Build a handler that succeeds and writes to shared."""
+        """Build a handler that succeeds and writes to shared.
+
+        Returns:
+            The resulting ``p.Cli.PipelineStage``.
+
+        """
 
         def handler(
             ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
-                stage_id, output={output_key: stage_id}, duration_ms=1.0
+                stage_id,
+                output={output_key: stage_id},
+                duration_ms=1.0,
             )
 
         return handler
 
     @staticmethod
     def _fail_handler(stage_id: str) -> p.Cli.PipelineStage:
-        """Build a handler that fails."""
+        """Build a handler that fails.
+
+        Returns:
+            The resulting ``p.Cli.PipelineStage``.
+
+        """
 
         def handler(
             ctx: p.Cli.PipelineStageContext,
@@ -75,7 +91,8 @@ class TestsFlextCliPipeline:
             return handler
 
         stages = cli.linear_pipeline(
-            ("a", "b"), {"a": tracking_handler("a"), "b": tracking_handler("b")}
+            ("a", "b"),
+            {"a": tracking_handler("a"), "b": tracking_handler("b")},
         )
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
@@ -121,13 +138,10 @@ class TestsFlextCliPipeline:
                 "skippable",
                 handler=self._ok_handler("skippable"),
                 skip_if=self._skip_always,
-            )
+            ),
         ]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
         pipeline = result.value
         tm.that(pipeline.success, eq=True)
         tm.that(pipeline.stages[0].status, eq=c.Cli.PipelineStageStatus.SKIPPED)
-
-
-__all__: list[str] = ["TestsFlextCliPipeline"]

@@ -3,6 +3,9 @@
 Owns every fixed compiled ``re.Pattern`` for the CLI domain. Consumer modules
 import the pre-compiled ``*_REGEXES`` constants directly; runtime-supplied
 regex construction must not live on this constants surface.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -20,6 +23,13 @@ class FlextCliConstantsBase:
     """Base CLI constants for metadata, paths, symbols, and static values."""
 
     ENCODING_DEFAULT: ClassVar[str] = "utf-8"
+    CLI_GLOBAL_PARAM_FIELDS: ClassVar[tuple[str, ...]] = (
+        "debug",
+        "trace",
+        "verbose",
+        "quiet",
+        "log_level",
+    )
 
     # Anchor for the config SSOT loader: the installed package's config dir,
     # independent of the caller's CWD (library code must not depend on CWD).

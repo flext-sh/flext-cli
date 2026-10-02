@@ -1,4 +1,8 @@
-"""Guarded planning and materialization of missing directory ancestors."""
+"""Guarded planning and materialization of missing directory ancestors.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -37,7 +41,8 @@ class TestsAtomicDirectoryChain:
         tm.ok(plan_result)
 
         created = u.Cli.atomic_create_directory_chain_guarded(
-            plan_result.value, permission_mode=0o750
+            plan_result.value,
+            permission_mode=0o750,
         )
 
         tm.ok(created)
@@ -69,7 +74,8 @@ class TestsAtomicDirectoryChain:
         anchor.mkdir()
 
         result = u.Cli.atomic_create_directory_chain_guarded(
-            plan_result.value, permission_mode=0o700
+            plan_result.value,
+            permission_mode=0o700,
         )
 
         tm.fail(result)
@@ -86,7 +92,8 @@ class TestsAtomicDirectoryChain:
         tm.that(plan_result.value.directories, eq=())
 
         result = u.Cli.atomic_create_directory_chain_guarded(
-            plan_result.value, permission_mode=0o700
+            plan_result.value,
+            permission_mode=0o700,
         )
 
         tm.ok(result)
@@ -104,6 +111,3 @@ class TestsAtomicDirectoryChain:
 
         tm.fail(result)
         tm.that(tuple(physical.iterdir()), eq=())
-
-
-__all__: list[str] = ["TestsAtomicDirectoryChain"]

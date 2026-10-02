@@ -26,9 +26,16 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
 
     @staticmethod
     def atomic_directory_snapshot(
-        path: Path, *, required: bool = False
+        path: Path,
+        *,
+        required: bool = False,
     ) -> m.Cli.AtomicDirectoryState:
-        """Read one authenticated empty-directory state through the facade."""
+        """Read one authenticated empty-directory state through the facade.
+
+        Returns:
+            The resulting ``m.Cli.AtomicDirectoryState``.
+
+        """
         result = u.Cli.atomic_read_empty_directory_state(path, required=required)
         tm.ok(result)
         return result.value
@@ -38,35 +45,54 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
 
         @staticmethod
         def create_test_settings() -> p.Result[p.Cli.Settings]:
-            """Create test settings via Railway pattern."""
+            """Create test settings via Railway pattern.
+
+            Returns:
+                The resulting ``p.Result[p.Cli.Settings]``.
+
+            """
             settings: p.Cli.Settings = TestsFlextCliSettings()
             return r[p.Cli.Settings].ok(settings)
 
         @staticmethod
         def create_cli_app() -> p.Result[p.Cli.Application]:
-            """Create CLI app via Railway pattern."""
+            """Create CLI app via Railway pattern.
+
+            Returns:
+                The resulting ``p.Result[p.Cli.Application]``.
+
+            """
             # NOTE (multi-agent, mro-wkii.19.4): the CLI owns global settings.
             return r[p.Cli.Application].ok(
                 cli.create_app_with_common_params(
-                    name="tests-cli", help_text="Test CLI app"
-                )
+                    name="tests-cli",
+                    help_text="Test CLI app",
+                ),
             )
 
         @staticmethod
         def create_decorated_command(
-            app: p.Cli.Application, command_name: str = "test"
+            app: p.Cli.Application,
+            command_name: str = "test",
         ) -> p.Result[Callable[..., None]]:
-            """Register a real flag-driven command on ``app`` for tests."""
+            """Register a real flag-driven command on ``app`` for tests.
+
+            Returns:
+                The resulting ``p.Result[Callable[..., None]]``.
+
+            """
 
             def command(
                 *,
                 verbose: Annotated[bool, cli.create_option("verbose")] = False,
                 debug: Annotated[bool, cli.create_option("debug")] = False,
                 log_level: Annotated[
-                    str, cli.create_option("cli_log_level")
+                    str,
+                    cli.create_option("cli_log_level"),
                 ] = c.LogLevel.INFO,
                 output_format: Annotated[
-                    str, cli.create_option("output_format")
+                    str,
+                    cli.create_option("output_format"),
                 ] = c.Cli.OutputFormats.TABLE,
             ) -> None:
                 cli.print(f"Command: {command_name}")
@@ -78,7 +104,10 @@ class TestsFlextCliUtilities(FlextTestsUtilities, u):
                 cli.print(f"Output format: {output_format}")
 
             cli.register_command(
-                app, name=command_name, help_text=f"Run {command_name}", command=command
+                app,
+                name=command_name,
+                help_text=f"Run {command_name}",
+                command=command,
             )
             return r[Callable[..., None]].ok(command)
 

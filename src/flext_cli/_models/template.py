@@ -28,7 +28,7 @@ class FlextCliModelsTemplate:
         relpath_template: Annotated[
             Path,
             m.Field(
-                description="Template path relative to templates_root (ends with .j2)"
+                description="Template path relative to templates_root (ends with .j2)",
             ),
         ]
         output_relpath: Annotated[
@@ -38,7 +38,7 @@ class FlextCliModelsTemplate:
                     "Output path relative to output_root; a trailing template "
                     "suffix is stripped by the engine. Path tokens are resolved by "
                     "the caller before invocation."
-                )
+                ),
             ),
         ]
         when: Annotated[
@@ -48,7 +48,8 @@ class FlextCliModelsTemplate:
         overwrite: Annotated[
             bool,
             m.Field(
-                default=False, description="Overwrite an existing destination file"
+                default=False,
+                description="Overwrite an existing destination file",
             ),
         ] = False
 
@@ -80,7 +81,8 @@ class FlextCliModelsTemplate:
         """Rendered text plus every physical template state Jinja consumed."""
 
         rendered: Annotated[
-            str, m.Field(description="Text rendered from authenticated template bytes")
+            str,
+            m.Field(description="Text rendered from authenticated template bytes"),
         ]
         source_states: Annotated[
             t.VariadicTuple[FlextCliModelsBase.AtomicFileState],

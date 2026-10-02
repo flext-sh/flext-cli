@@ -1,4 +1,8 @@
-"""Public typed defined-name value resolution for XLSX bytes."""
+"""Public typed defined-name value resolution for XLSX bytes.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -16,7 +20,8 @@ from .xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
 
 
 class FlextCliUtilitiesXlsxDefinedNameValues(
-    FlextCliUtilitiesXlsxSnapshotValues, FlextCliUtilitiesXlsxWorkbookIo
+    FlextCliUtilitiesXlsxSnapshotValues,
+    FlextCliUtilitiesXlsxWorkbookIo,
 ):
     """Resolve one workbook defined name to typed cached cell values."""
 
@@ -25,28 +30,35 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
     # no consumer re-implements openpyxl range resolution.
     @classmethod
     def xlsx_defined_name_values(
-        cls, request: m.Cli.XlsxDefinedNameValuesRequest
+        cls,
+        request: m.Cli.XlsxDefinedNameValuesRequest,
     ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]:
-        """Read cached values for a defined name from data-only workbook bytes."""
+        """Read cached values for a defined name from data-only workbook bytes.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.XlsxDefinedNameValuesResult]``.
+
+        """
         try:
             return cls._defined_name_values_unchecked(request)
         except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.XlsxDefinedNameValuesResult].fail(
-                f"{c.Cli.XlsxError.DEFINED_NAME_INVALID}: {detail}"
+                f"{c.Cli.XlsxError.DEFINED_NAME_INVALID}: {detail}",
             )
 
     @classmethod
     def _defined_name_values_unchecked(
-        cls, request: m.Cli.XlsxDefinedNameValuesRequest
+        cls,
+        request: m.Cli.XlsxDefinedNameValuesRequest,
     ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]:
         workbook = cls._require_success(
-            cls._load_workbook(request.source, data_only=True)
+            cls._load_workbook(request.source, data_only=True),
         )
         defined_name = workbook.defined_names.get(request.name)
         if not isinstance(defined_name, DefinedName):
             return r[m.Cli.XlsxDefinedNameValuesResult].fail(
-                f"{c.Cli.XlsxError.DEFINED_NAME_MISSING}: {request.name}"
+                f"{c.Cli.XlsxError.DEFINED_NAME_MISSING}: {request.name}",
             )
         cells: t.VariadicTuple[m.Cli.XlsxDefinedNameCell] = ()
         for sheet_title, coordinate in defined_name.destinations:
@@ -57,34 +69,39 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
         if not cells:
             return r[m.Cli.XlsxDefinedNameValuesResult].fail(
                 f"{c.Cli.XlsxError.DEFINED_NAME_INVALID}: "
-                f"{request.name} resolves to no worksheet cells"
+                f"{request.name} resolves to no worksheet cells",
             )
         return r[m.Cli.XlsxDefinedNameValuesResult].ok(
-            m.Cli.XlsxDefinedNameValuesResult(name=request.name, cells=cells)
+            m.Cli.XlsxDefinedNameValuesResult(name=request.name, cells=cells),
         )
 
     @classmethod
     def _destination_cells(
-        cls, worksheet: Worksheet, coordinate: str
+        cls,
+        worksheet: Worksheet,
+        coordinate: str,
     ) -> p.Result[t.VariadicTuple[m.Cli.XlsxDefinedNameCell]]:
         cells: t.VariadicTuple[m.Cli.XlsxDefinedNameCell] = ()
         selection = worksheet[coordinate]
         for cell in cls._flatten_cells(selection):
             cell_value = cell.value
             if cell_value is not None and not isinstance(
-                cell_value, (str, int, float, bool, Decimal, date, datetime)
+                cell_value,
+                (str, int, float, bool, Decimal, date, datetime),
             ):
                 return r[tuple[m.Cli.XlsxDefinedNameCell, ...]].fail(
                     f"{c.Cli.XlsxError.DEFINED_NAME_INVALID}: "
-                    f"{cell_value.__class__.__name__} at {cell.coordinate}"
+                    f"{cell_value.__class__.__name__} at {cell.coordinate}",
                 )
             value = cls._require_success(
-                cls._snapshot_value(cell_value, formula_view=False)
+                cls._snapshot_value(cell_value, formula_view=False),
             )
             cells = (
                 *cells,
                 m.Cli.XlsxDefinedNameCell(
-                    sheet=worksheet.title, coordinate=cell.coordinate, value=value
+                    sheet=worksheet.title,
+                    coordinate=cell.coordinate,
+                    value=value,
                 ),
             )
         return r[tuple[m.Cli.XlsxDefinedNameCell, ...]].ok(cells)

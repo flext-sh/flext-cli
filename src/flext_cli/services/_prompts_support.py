@@ -2,6 +2,9 @@
 
 Input-port failures are not caught here: the reader's exception escapes the
 prompt method with its cause. Only declared prompt outcomes return ``r``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -57,7 +60,12 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
     ] = m.Field(default_factory=_PromptPasswordReaderDefault, validate_default=True)
 
     def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
-        """Replace prompt runtime state using the canonical CLI model."""
+        """Replace prompt runtime state using the canonical CLI model.
+
+        Returns:
+            The resulting ``Self``.
+
+        """
         self.state = state
         return self
 
@@ -67,6 +75,10 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
         Delegates to the canonical ``u.Cli.cli_test_env`` utility — settings
         stay pure flat data (§2.6), detection logic lives in the utilities
         layer, never reimplemented here.
+
+        Returns:
+            The resulting ``bool``.
+
         """
         return u.Cli.cli_test_env(settings)
 
@@ -82,14 +94,21 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
                 self.logger.info(message, **context)
 
     def _print_message(
-        self, message: str, log_level: str, message_format: str
+        self,
+        message: str,
+        log_level: str,
+        message_format: str,
     ) -> p.Result[bool]:
         # Fail loud: a logger failure propagates with its cause.
         self._log(log_level, message_format.format(message=message))
         return r[bool].ok(True)
 
     def _read_confirmation_input(
-        self, message: str, prompt_text: str, *, default: bool
+        self,
+        message: str,
+        prompt_text: str,
+        *,
+        default: bool,
     ) -> p.Result[bool]:
         while True:
             input_text = self.input_reader(prompt_text)

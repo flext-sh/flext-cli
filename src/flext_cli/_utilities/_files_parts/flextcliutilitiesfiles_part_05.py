@@ -1,4 +1,8 @@
-"""Strict physical empty-directory helpers shared through ``u.Cli``."""
+"""Strict physical empty-directory helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -29,66 +33,92 @@ class FlextCliUtilitiesFiles:
 
         Planning has no filesystem effect and records no future inode. The caller
         must retain one exclusive cooperative lock through later materialization.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicDirectoryChainPlan]``.
+
         """
         try:
             plan = plan_directory_chain(Path(directory_path))
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryChainPlan].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_PLAN_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_PLAN_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicDirectoryChainPlan].ok(plan)
 
     @staticmethod
     def atomic_create_directory_chain_guarded(
-        plan: m.Cli.AtomicDirectoryChainPlan, *, permission_mode: int
+        plan: m.Cli.AtomicDirectoryChainPlan,
+        *,
+        permission_mode: int,
     ) -> p.Result[t.SequenceOf[m.Cli.AtomicDirectoryState]]:
         """Materialize a planned chain under the caller's exclusive lock.
 
         Each level uses the nonrecursive guarded primitive and successful levels
         roll back in reverse after failure. This is not CAS against actors that
         ignore the lock. Snapshot any destination file only after this succeeds.
+
+        Returns:
+            The resulting ``p.Result[t.SequenceOf[m.Cli.AtomicDirectoryState]]``.
+
         """
         try:
             created = create_guarded_directory_chain(
-                plan, permission_mode=permission_mode
+                plan,
+                permission_mode=permission_mode,
             )
         except OSError as exc:
             return r[t.SequenceOf[m.Cli.AtomicDirectoryState]].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED.format(error=exc),
             )
         return r[t.SequenceOf[m.Cli.AtomicDirectoryState]].ok(created)
 
     @staticmethod
     def atomic_read_empty_directory_state(
-        directory_path: t.Cli.TextPath, *, required: bool = False
+        directory_path: t.Cli.TextPath,
+        *,
+        required: bool = False,
     ) -> p.Result[m.Cli.AtomicDirectoryState]:
-        """Read exact absence or one stable physical empty-directory identity."""
+        """Read exact absence or one stable physical empty-directory identity.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicDirectoryState]``.
+
+        """
         try:
             state = read_authenticated_empty_directory(
-                Path(directory_path), required=required
+                Path(directory_path),
+                required=required,
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_READ_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_READ_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicDirectoryState].ok(state)
 
     @staticmethod
     def atomic_create_empty_directory_guarded(
-        before: m.Cli.AtomicDirectoryState, *, permission_mode: int
+        before: m.Cli.AtomicDirectoryState,
+        *,
+        permission_mode: int,
     ) -> p.Result[m.Cli.AtomicDirectoryState]:
         """Create one exact empty directory under the caller's exclusive lock.
 
         The immediate parent identity is part of ``before`` and must still match.
         This nonrecursive operation is not CAS against actors ignoring the lock.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicDirectoryState]``.
+
         """
         try:
             state = create_guarded_empty_directory(
-                before, permission_mode=permission_mode
+                before,
+                permission_mode=permission_mode,
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_CREATE_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_CREATE_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicDirectoryState].ok(state)
 
@@ -101,12 +131,16 @@ class FlextCliUtilitiesFiles:
         The final descriptor-bound recheck precedes ``rmdir`` and the parent is
         synced afterward. POSIX has no expected-inode rmdir, so actors ignoring
         the cooperative lock remain outside this CAS contract.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
         """
         try:
             remove_guarded_empty_directory(state)
         except OSError as exc:
             return r[bool].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_DELETE_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_DELETE_FAILED.format(error=exc),
             )
         return r[bool].ok(True)
 
@@ -119,14 +153,19 @@ class FlextCliUtilitiesFiles:
 
         The destination must be an authenticated absent state. Linux uses
         ``renameat2(RENAME_NOREPLACE)``; unsupported hosts fail before effects.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicDirectoryState]``.
+
         """
         try:
             published = publish_guarded_staged_empty_directory(
-                destination_before, staged
+                destination_before,
+                staged,
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_PUBLISH_FAILED.format(error=exc)
+                c.Cli.ERR_ATOMIC_DIRECTORY_PUBLISH_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicDirectoryState].ok(published)
 
@@ -141,6 +180,10 @@ class FlextCliUtilitiesFiles:
         contents are read; unsupported hosts fail closed. Hardlinks, special nodes,
         and device or mount transitions also fail. The caller retains one exclusive
         cooperative lock through inventory and cleanup.
+
+        Returns:
+            An exact descriptor-authenticated tree manifest.
+
         """
         try:
             manifest = inventory_physical_tree(Path(root_path))
@@ -162,6 +205,10 @@ class FlextCliUtilitiesFiles:
         directories are removed without recursion. A later storage failure can
         leave an authenticated deletion prefix, so the caller must retain recovery
         state. Writers that ignore the caller's lock are outside this contract.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
         """
         try:
             cleanup_physical_tree_guarded(manifest)

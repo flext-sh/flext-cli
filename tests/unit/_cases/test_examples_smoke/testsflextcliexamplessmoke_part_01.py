@@ -1,4 +1,8 @@
-"""Smoke tests for flext-cli examples using the public cli facade."""
+"""Smoke tests for flext-cli examples using the public cli facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -50,7 +54,7 @@ class TestsFlextCliExamplesSmoke:
             m.Tests.ReportRow(id=2, name="Bob", status="inactive"),
         )
         report_result = export_report(
-            tuple(row.model_dump(mode="json") for row in report_rows)
+            tuple(row.model_dump(mode="json") for row in report_rows),
         )
         tm.ok(report_result)
         tm.that(report_result.value, has="Alice")
@@ -63,7 +67,8 @@ class TestsFlextCliExamplesSmoke:
         preferences = m.Tests.UserPreferences(theme="dark", notifications=True)
 
         save_preferences_result = save_user_preferences(
-            preferences.model_dump(mode="json"), config_dir
+            preferences.model_dump(mode="json"),
+            config_dir,
         )
         tm.ok(save_preferences_result)
         tm.that(save_preferences_result.value, eq=True)
@@ -71,14 +76,15 @@ class TestsFlextCliExamplesSmoke:
         preferences_result = load_user_preferences(config_dir)
         tm.ok(preferences_result)
         loaded_preferences = m.Tests.UserPreferences.model_validate(
-            preferences_result.value.content
+            preferences_result.value.content,
         )
         tm.that(loaded_preferences, eq=preferences)
 
         deployment_file = tmp_path / "deployment.yaml"
         deployment_config = m.Tests.DeploymentConfig(environment="dev", replicas=2)
         save_deployment_result = save_deployment_config(
-            deployment_config.model_dump(mode="json"), deployment_file
+            deployment_config.model_dump(mode="json"),
+            deployment_file,
         )
         tm.ok(save_deployment_result)
         tm.that(save_deployment_result.value, eq=True)
@@ -86,7 +92,7 @@ class TestsFlextCliExamplesSmoke:
         deployment_result = load_deployment_config(deployment_file)
         tm.ok(deployment_result)
         loaded_deployment = m.Tests.DeploymentConfig.model_validate(
-            deployment_result.value.content
+            deployment_result.value.content,
         )
         tm.that(loaded_deployment, eq=deployment_config)
 
@@ -97,9 +103,6 @@ class TestsFlextCliExamplesSmoke:
         validation_result = validate_and_import_data(import_file)
         tm.ok(validation_result)
         loaded_record = m.Tests.ImportRecord.model_validate(
-            validation_result.value.content
+            validation_result.value.content,
         )
         tm.that(loaded_record, eq=record)
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

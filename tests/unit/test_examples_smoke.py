@@ -1,4 +1,8 @@
-"""Smoke tests for flext-cli examples using the public cli facade."""
+"""Smoke tests for flext-cli examples using the public cli facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -27,6 +31,3 @@ class TestsFlextCliExamplesSmoke(
     TestsFlextCliExamplesSmokePart05,
 ):
     """Public facade for TestsFlextCliExamplesSmoke."""
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

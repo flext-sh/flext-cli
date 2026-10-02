@@ -1,4 +1,8 @@
-"""Public hashing, auto-loading, and directory lifecycle contracts."""
+"""Public hashing, auto-loading, and directory lifecycle contracts.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -29,10 +33,14 @@ class TestsFileDerivedContracts:
         tm.that(u.Cli.sha256_file(path), eq=u.Cli.sha256_content("hello"))
 
     @pytest.mark.parametrize(
-        ("filename", "payload"), [("data.json", '{"a": 1}'), ("data.yaml", "a: 1\n")]
+        ("filename", "payload"),
+        [("data.json", '{"a": 1}'), ("data.yaml", "a: 1\n")],
     )
     def test_load_file_auto_dict_reads_supported_mappings(
-        self, tmp_path: Path, filename: str, payload: str
+        self,
+        tmp_path: Path,
+        filename: str,
+        payload: str,
     ) -> None:
         """Load supported serialized mappings through the service facade."""
         path = tmp_path / filename
@@ -44,7 +52,8 @@ class TestsFileDerivedContracts:
         tm.that(result.value, eq={"a": 1})
 
     def test_load_file_auto_dict_rejects_unsupported_extension(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Reject auto-loading when the serialization owner is unknown."""
         path = tmp_path / "data.xml"
@@ -53,7 +62,8 @@ class TestsFileDerivedContracts:
         tm.fail(cli.load_file_auto_dict(path))
 
     def test_load_file_auto_dict_rejects_non_mapping_payload(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Reject a supported document whose root is not a mapping."""
         path = tmp_path / "list.json"
@@ -64,7 +74,8 @@ class TestsFileDerivedContracts:
     def test_create_and_remove_temporary_directory(self, tmp_path: Path) -> None:
         """Round-trip a temporary directory through public lifecycle helpers."""
         result = u.Cli.files_create_temporary_directory(
-            prefix="flext-cli-test-", parent_path=tmp_path
+            prefix="flext-cli-test-",
+            parent_path=tmp_path,
         )
 
         tm.ok(result)

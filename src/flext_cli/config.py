@@ -1,4 +1,8 @@
-"""Public configuration facade for Flext CLI."""
+"""Public configuration facade for Flext CLI.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

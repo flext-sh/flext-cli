@@ -29,10 +29,15 @@ class TestsFlextCliMatchingCov:
     # ── matches: case-table contract ─────────────────────────────────
 
     @pytest.mark.parametrize(
-        ("msg", "patterns", "expected"), c.Tests.MATCH_SIMPLE_CASES
+        ("msg", "patterns", "expected"),
+        c.Tests.MATCH_SIMPLE_CASES,
     )
     def test_matches_returns_expected_for_case_table(
-        self, msg: str, patterns: t.StrSequence, *, expected: bool
+        self,
+        msg: str,
+        patterns: t.StrSequence,
+        *,
+        expected: bool,
     ) -> None:
         """Verify that matches returns expected for case table."""
         tm.that(u.Cli.matches(msg, *patterns) is expected, eq=True)
@@ -120,7 +125,10 @@ class TestsFlextCliMatchingCov:
 
     @pytest.mark.parametrize(("msg", "expected"), c.Tests.FILE_NOT_FOUND_MATCH_CASES)
     def test_file_not_found_error_classifies_case_table(
-        self, msg: str, *, expected: bool
+        self,
+        msg: str,
+        *,
+        expected: bool,
     ) -> None:
         """Verify that file not found error classifies case table."""
         tm.that(u.Cli.file_not_found_error(msg) is expected, eq=True)
@@ -138,7 +146,10 @@ class TestsFlextCliMatchingCov:
 
     @pytest.mark.parametrize(("msg", "expected"), c.Tests.CLI_USAGE_ERROR_MATCH_CASES)
     def test_cli_usage_error_classifies_case_table(
-        self, msg: str, *, expected: bool
+        self,
+        msg: str,
+        *,
+        expected: bool,
     ) -> None:
         """Verify that cli usage error classifies case table."""
         tm.that(u.Cli.cli_usage_error(msg) is expected, eq=True)
@@ -158,6 +169,3 @@ class TestsFlextCliMatchingCov:
         tm.that(u.Cli.cli_usage_error("no such file or directory"), eq=False)
         tm.that(u.Cli.cli_usage_error("missing option '--project'"), eq=True)
         tm.that(u.Cli.file_not_found_error("missing option '--project'"), eq=False)
-
-
-__all__: list[str] = ["TestsFlextCliMatchingCov"]

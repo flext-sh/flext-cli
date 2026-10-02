@@ -1,4 +1,8 @@
-"""Unit tests for the DAG pipeline engine."""
+"""Unit tests for the DAG pipeline engine.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -76,7 +80,8 @@ class TestsFlextCliPipeline:
         tm.that(len(result.unwrap().stages), eq=width)
 
     def test_independent_stages_never_exceed_the_worker_bound(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """A wave wider than the configured bound runs at most that many stages."""
         bound = settings.cli_pipeline_max_workers
@@ -110,7 +115,8 @@ class TestsFlextCliPipeline:
         tm.that(peak, lte=bound)
 
     def test_results_follow_declared_order_not_completion_order(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Report stages as declared even when they finish out of order."""
 
@@ -133,8 +139,6 @@ class TestsFlextCliPipeline:
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
         tm.that(
-            [stage.stage_id for stage in result.unwrap().stages], eq=["slow", "fast"]
+            [stage.stage_id for stage in result.unwrap().stages],
+            eq=["slow", "fast"],
         )
-
-
-__all__: list[str] = ["TestsFlextCliPipeline"]

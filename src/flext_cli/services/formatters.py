@@ -1,6 +1,9 @@
 """FLEXT CLI Formatters - plain-text rendering facade.
 
 Provides minimal CLI formatting abstraction for the command surface.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -12,9 +15,11 @@ class FlextCliFormatters(s[m.Cli.RuntimeStatus]):
     """Plain-text formatters facade for the CLI command surface."""
 
     @classmethod
-    def print(cls, message: str, style: str | None = None) -> None:
+    def print(
+        cls, message: str, style: str | None = None, *, error: bool = False,
+    ) -> None:
         """Print one message with the optional style."""
-        u.Cli.formatters_print(message, style=style)
+        u.Cli.formatters_print(message, style=style, error=error)
 
     @classmethod
     def render_rule(cls, text: str) -> None:
@@ -36,7 +41,7 @@ class FlextCliFormatters(s[m.Cli.RuntimeStatus]):
     ) -> None:
         """Render a table with columns and rows."""
         u.Cli.formatters_render_table(
-            m.Cli.TableRenderRequest(columns=columns, rows=rows, title=title)
+            m.Cli.TableRenderRequest(columns=columns, rows=rows, title=title),
         )
 
 

@@ -1,4 +1,8 @@
-"""Windows Job Object creation and suspended-process startup."""
+"""Windows Job Object creation and suspended-process startup.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -14,7 +18,12 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
 
     @classmethod
     def _windows_job_create(cls, process_id: int) -> p.Result[int]:
-        """Assign a suspended Windows process to a kill-on-close Job Object."""
+        """Assign a suspended Windows process to a kill-on-close Job Object.
+
+        Returns:
+            The resulting ``p.Result[int]``.
+
+        """
         if os.name != "nt":
             return r[int].ok(0)
         try:
@@ -59,7 +68,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             ]
 
         kernel32 = getattr(ctypes, "WinDLL", ctypes.CDLL)(
-            "kernel32", use_last_error=True
+            "kernel32",
+            use_last_error=True,
         )
         create_job = kernel32.CreateJobObjectW
         create_job.argtypes = (wintypes.LPVOID, wintypes.LPCWSTR)
@@ -106,14 +116,20 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
 
     @classmethod
     def _windows_process_resume(cls, process_id: int) -> str | None:
-        """Resume the initial thread only after Job assignment succeeds."""
+        """Resume the initial thread only after Job assignment succeeds.
+
+        Returns:
+            The resulting ``str | None``.
+
+        """
         if os.name != "nt":
             return None
         try:
             return cls._windows_process_resume_native(process_id)
         except (OSError, TypeError, ValueError) as exc:
             return r[str].fail(
-                f"Windows process resume error: {exc}", exception=exc
+                f"Windows process resume error: {exc}",
+                exception=exc,
             ).error or str(exc)
 
     @staticmethod
@@ -131,7 +147,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             ]
 
         kernel32 = getattr(ctypes, "WinDLL", ctypes.CDLL)(
-            "kernel32", use_last_error=True
+            "kernel32",
+            use_last_error=True,
         )
         create_snapshot = kernel32.CreateToolhelp32Snapshot
         create_snapshot.argtypes = (wintypes.DWORD, wintypes.DWORD)

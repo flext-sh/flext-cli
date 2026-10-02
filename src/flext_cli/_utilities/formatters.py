@@ -1,4 +1,8 @@
-"""CLI formatter helpers shared through ``u.Cli``."""
+"""CLI formatter helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -37,9 +41,13 @@ class FlextCliUtilitiesFormatters:
         return f"{code}{message}{_RESET}" if code else message
 
     @classmethod
-    def formatters_print(cls, message: str, style: str | None = None) -> None:
+    def formatters_print(
+        cls, message: str, style: str | None = None, *, error: bool = False,
+    ) -> None:
         """Print one message with the optional canonical style."""
-        FlextCliUtilitiesOutput.emit_raw(f"{cls._styled(message, style)}\n")
+        FlextCliUtilitiesOutput.emit_raw(
+            f"{cls._styled(message, style)}\n", error=error,
+        )
 
     @classmethod
     def formatters_render_rule(cls, text: str) -> None:
@@ -54,7 +62,7 @@ class FlextCliUtilitiesFormatters:
         border = _PANEL_GLYPH * 4
         if title:
             FlextCliUtilitiesOutput.emit_raw(
-                f"{cls._styled(f'{border} {title} {border}', c.Cli.MessageStyles.BOLD)}\n"
+                f"{cls._styled(f'{border} {title} {border}', c.Cli.MessageStyles.BOLD)}\n",
             )
         else:
             FlextCliUtilitiesOutput.emit_raw(f"{border}\n")
@@ -67,7 +75,8 @@ class FlextCliUtilitiesFormatters:
         rendered = FlextCliUtilitiesTables.tables_render(
             request.rows,
             m.Cli.TableConfig(
-                headers=tuple(request.columns), title=request.title or None
+                headers=tuple(request.columns),
+                title=request.title or None,
             ),
         )
         FlextCliUtilitiesOutput.emit_raw(f"{rendered.unwrap()}\n")

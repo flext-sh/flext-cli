@@ -1,4 +1,8 @@
-"""Portable public-contract tests for streamed process execution."""
+"""Portable public-contract tests for streamed process execution.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -19,9 +23,15 @@ if TYPE_CHECKING:
 
 
 def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
-    """Build an absolute deadline with a bounded cleanup reserve."""
+    """Build an absolute deadline with a bounded cleanup reserve.
+
+    Returns:
+        The resulting ``m.Cli.ProcessDeadline``.
+
+    """
     return m.Cli.ProcessDeadline(
-        expires_at_monotonic=time.monotonic() + seconds, termination_grace_seconds=grace
+        expires_at_monotonic=time.monotonic() + seconds,
+        termination_grace_seconds=grace,
     )
 
 
@@ -30,11 +40,18 @@ class TestsFlextCliRuntimeStreamedProcess:
 
     @staticmethod
     def _live_threads() -> frozenset[threading.Thread]:
-        """Snapshot live threads so a run can be proven to leak none."""
+        """Snapshot live threads so a run can be proven to leak none.
+
+        Returns:
+            The resulting ``frozenset[threading.Thread]``.
+
+        """
         return frozenset(threading.enumerate())
 
     def test_combined_output_is_byte_exact_and_live(
-        self, tmp_path: Path, capfd: pytest.CaptureFixture[str]
+        self,
+        tmp_path: Path,
+        capfd: pytest.CaptureFixture[str],
     ) -> None:
         """Copy one combined byte stream to the terminal and durable log."""
         output_file = tmp_path / "combined.log"
@@ -42,7 +59,9 @@ class TestsFlextCliRuntimeStreamedProcess:
         stdout_was_blocking = os.get_blocking(sys.stdout.fileno())
 
         result = u.Cli().run_to_file(
-            [sys.executable, "-c", script], output_file, live=True
+            [sys.executable, "-c", script],
+            output_file,
+            live=True,
         )
 
         captured = capfd.readouterr()
@@ -66,7 +85,9 @@ class TestsFlextCliRuntimeStreamedProcess:
         )
 
     def test_silent_live_process_emits_progress_only_to_stderr(
-        self, tmp_path: Path, capfd: pytest.CaptureFixture[str]
+        self,
+        tmp_path: Path,
+        capfd: pytest.CaptureFixture[str],
     ) -> None:
         """Keep silent children observable without contaminating durable bytes."""
         output_file = tmp_path / "silent.log"
@@ -88,7 +109,8 @@ class TestsFlextCliRuntimeStreamedProcess:
     def test_completed_nonzero_exit_is_returned_exactly(self, tmp_path: Path) -> None:
         """Keep a completed nonzero status in the success channel."""
         result = u.Cli().run_to_file(
-            [sys.executable, "-c", "raise SystemExit(37)"], tmp_path / "exit.log"
+            [sys.executable, "-c", "raise SystemExit(37)"],
+            tmp_path / "exit.log",
         )
 
         tm.ok(result)
@@ -121,7 +143,9 @@ class TestsFlextCliRuntimeStreamedProcess:
         ],
     )
     def test_input_larger_than_pipe_capacity_is_streamed_without_deadlock(
-        self, tmp_path: Path, payload: str | bytes
+        self,
+        tmp_path: Path,
+        payload: str | bytes,
     ) -> None:
         """Stream binary and text payloads instead of pre-filling the pipe."""
         output_file = tmp_path / "large-stdin.log"
@@ -179,7 +203,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(self._live_threads() - threads_before, empty=True)
 
     def test_nonreading_child_timeout_unblocks_the_input_writer(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Killing the child removes the last reader and releases a full writer."""
         threads_before = self._live_threads()
@@ -243,7 +268,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(marker.exists(), eq=False)
 
     def test_broken_live_sink_fails_after_complete_durable_log(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Surface a broken live sink after preserving the durable child bytes."""
         output_file = tmp_path / "broken-live.log"
@@ -259,7 +285,9 @@ class TestsFlextCliRuntimeStreamedProcess:
             os.dup2(write_fd, 1)
             os.close(write_fd)
             result = u.Cli().run_to_file(
-                [sys.executable, "-c", child], output_file, live=True
+                [sys.executable, "-c", child],
+                output_file,
+                live=True,
             )
         finally:
             os.dup2(saved_stdout, 1)
@@ -270,6 +298,3 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.fail(result)
         tm.that(tm.not_none(result.error), has="live output")
         tm.that(output_file.read_bytes(), eq=b"durable-before-live\n")
-
-
-__all__: list[str] = ["TestsFlextCliRuntimeStreamedProcess"]

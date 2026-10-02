@@ -1,4 +1,8 @@
-"""Behavioral tests for public CLI option annotation resolution."""
+"""Behavioral tests for public CLI option annotation resolution.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,6 +22,3 @@ class TestsFlextCliOptions:
         resolved = u.Cli.resolve_typer_annotation(t.VariadicTuple[Path])
 
         tm.that(resolved, eq=list[Path])
-
-
-__all__: list[str] = ["TestsFlextCliOptions"]

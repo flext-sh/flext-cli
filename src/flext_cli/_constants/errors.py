@@ -1,4 +1,8 @@
-"""FLEXT CLI error string authorities."""
+"""FLEXT CLI error string authorities.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

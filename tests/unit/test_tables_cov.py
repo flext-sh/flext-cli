@@ -81,7 +81,8 @@ class TestsFlextCliTables:
         """Verify that resolve config merges model with kwargs."""
         base = m.Cli.TableConfig(title="orig")
         result = u.Cli.tables_resolve_config(
-            base, table_format=c.Cli.TabularFormat.PLAIN
+            base,
+            table_format=c.Cli.TabularFormat.PLAIN,
         )
         resolved = result.unwrap()
         tm.that(resolved.title, eq="orig")
@@ -162,7 +163,8 @@ class TestsFlextCliTables:
         ],
     )
     def test_render_succeeds_across_formats(
-        self, table_format: c.Cli.TabularFormat
+        self,
+        table_format: c.Cli.TabularFormat,
     ) -> None:
         """Verify that render succeeds across formats."""
         config = m.Cli.TableConfig(table_format=table_format)
@@ -170,6 +172,3 @@ class TestsFlextCliTables:
         result = u.Cli.tables_render(rows, config)
         tm.ok(result)
         tm.that(result.unwrap(), is_=str)
-
-
-__all__: list[str] = ["TestsFlextCliTables"]

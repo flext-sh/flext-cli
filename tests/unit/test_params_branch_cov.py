@@ -3,6 +3,9 @@
 Asserts observable public behavior only: returned models, ``r[T]`` success/
 failure outcomes and error messages, and settings state read through the public
 API. No private attributes, no internal-collaborator spying, no patching.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -52,7 +55,11 @@ class TestsFlextCliParams:
         """Verify that set bool applies root and cli flags."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(
-            debug=True, trace=True, verbose=True, quiet=True, no_color=True
+            debug=True,
+            trace=True,
+            verbose=True,
+            quiet=True,
+            no_color=True,
         )
         result = u.Cli.params_set_bool(settings, params)
         tm.ok(result)
@@ -121,7 +128,8 @@ class TestsFlextCliParams:
         tm.that(result.value.cli_log_verbosity, eq=log_format)
 
     @pytest.mark.parametrize(
-        "output_format", ["json", "yaml", "csv", "table", "plain", "xml", "text"]
+        "output_format",
+        ["json", "yaml", "csv", "table", "plain", "xml", "text"],
     )
     def test_set_format_applies_valid_output_format(self, output_format: str) -> None:
         """Verify that set format applies valid output format."""
@@ -171,7 +179,10 @@ class TestsFlextCliParams:
         """Verify that apply chains all stages on valid params."""
         settings = cli_settings.clone()
         params = m.Cli.CliParamsConfig(
-            debug=True, log_level="INFO", output_format="yaml", log_format="detailed"
+            debug=True,
+            log_level="INFO",
+            output_format="yaml",
+            log_format="detailed",
         )
         result = u.Cli.params_apply(settings, params)
         tm.ok(result)
@@ -195,6 +206,3 @@ class TestsFlextCliParams:
         result = u.Cli.params_apply(settings, m.Cli.CliParamsConfig())
         tm.that(result, is_=p.Result)
         tm.ok(result)
-
-
-__all__: list[str] = ["TestsFlextCliParams"]

@@ -1,4 +1,8 @@
-"""CLI Pydantic domain models."""
+"""CLI Pydantic domain models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,15 +24,18 @@ class FlextCliModelsBase:
         )
 
         settings_exists: Annotated[
-            bool, m.Field(description="Whether settings directory exists")
+            bool,
+            m.Field(description="Whether settings directory exists"),
         ] = False
 
         settings_readable: Annotated[
-            bool, m.Field(description="Whether settings directory is readable")
+            bool,
+            m.Field(description="Whether settings directory is readable"),
         ] = False
 
         settings_writable: Annotated[
-            bool, m.Field(description="Whether settings directory is writable")
+            bool,
+            m.Field(description="Whether settings directory is writable"),
         ] = False
 
         timestamp: Annotated[str, m.Field(description="Timestamp of snapshot")] = ""

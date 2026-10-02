@@ -30,8 +30,8 @@ class TestsFlextCliTomlCov:
     _INVALID_TOML = c.Tests.TOML_INVALID_CONTENT
     _EXPECTED_MAPPING: ClassVar[t.MappingKV[str, t.MappingKV[str, t.StrMapping]]] = {
         "tool": {
-            "flext": {"project": "my-project", "version": c.Tests.VERSION_VALID_SEMVER}
-        }
+            "flext": {"project": "my-project", "version": c.Tests.VERSION_VALID_SEMVER},
+        },
     }
 
     # ── toml_parse_text ───────────────────────────────────────────────
@@ -57,7 +57,8 @@ class TestsFlextCliTomlCov:
     def test_mapping_from_text_yields_nested_plain_mapping(self) -> None:
         """Verify that mapping from text yields nested plain mapping."""
         tm.that(
-            u.Cli.toml_mapping_from_text(self._VALID_TOML), eq=self._EXPECTED_MAPPING
+            u.Cli.toml_mapping_from_text(self._VALID_TOML),
+            eq=self._EXPECTED_MAPPING,
         )
 
     def test_mapping_from_text_returns_none_on_invalid_content(self) -> None:
@@ -148,7 +149,9 @@ class TestsFlextCliTomlCov:
         [(["x", "y"], ["x", "y"]), ([], []), (["solo"], ["solo"])],
     )
     def test_as_string_list_preserves_array_contents(
-        self, items: t.SequenceOf[str], expected: t.SequenceOf[str]
+        self,
+        items: t.SequenceOf[str],
+        expected: t.SequenceOf[str],
     ) -> None:
         """Verify that as string list preserves array contents."""
         arr = u.Cli.toml_array(items)
@@ -170,7 +173,9 @@ class TestsFlextCliTomlCov:
         ],
     )
     def test_dot_path_joins_non_empty_segments(
-        self, parts: t.VariadicTuple[str], expected: str
+        self,
+        parts: t.VariadicTuple[str],
+        expected: str,
     ) -> None:
         """Verify that dot path joins non empty segments."""
         tm.that(u.Cli.toml_dot_path(*parts), eq=expected)
@@ -190,7 +195,8 @@ class TestsFlextCliTomlCov:
         tm.that(u.Cli.toml_as_mapping(doc), eq=self._EXPECTED_MAPPING)
 
     def test_read_document_success_carries_parsed_document(
-        self, tmp_path: Path
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify that read document success carries parsed document."""
         path = tmp_path / "test.toml"
@@ -281,6 +287,6 @@ class TestsFlextCliTomlCov:
                     "version": c.Tests.VERSION_VALID_SEMVER,
                 },
                 "created": {"nested": {"leaf": "wired"}},
-            }
+            },
         }
         tm.that(u.Cli.toml_as_mapping(doc), eq=expected)

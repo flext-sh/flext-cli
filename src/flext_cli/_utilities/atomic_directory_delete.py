@@ -1,4 +1,8 @@
-"""Guarded nonrecursive deletion owner for one physical empty directory."""
+"""Guarded nonrecursive deletion owner for one physical empty directory.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -18,7 +22,14 @@ from . import (
 
 
 def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:
-    """Remove the exact empty-directory version authorized by the caller."""
+    """Remove the exact empty-directory version authorized by the caller.
+
+    Raises:
+        OSError: If ``observed is None``; or if ``current is None or
+            file_read.state_key(current) != file_read.state_key(authenticated)``; or if
+            ``directory_state.destination_state(path, parent=parent) is not None``.
+
+    """
     path = file_path.validate_atomic_path(state.path)
     directory_model.require_existing(state, purpose="deleted")
     directory_descriptor.require_delete_capabilities(path)
@@ -34,7 +45,7 @@ def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:
         current = directory_state.destination_state(path, parent=parent)
         directory_model.require_observed(state, current)
         if current is None or file_read.state_key(current) != file_read.state_key(
-            authenticated
+            authenticated,
         ):
             message = f"atomic directory changed immediately before rmdir: {path}"
             raise OSError(errno.ESTALE, message, path)

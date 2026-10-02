@@ -1,4 +1,8 @@
-"""Translate openpyxl visual styles into typed immutable models."""
+"""Translate openpyxl visual styles into typed immutable models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -87,7 +91,8 @@ class FlextCliUtilitiesXlsxStyleReaders:
         if side is None:
             return None
         return m.Cli.XlsxBorderSideSpec(
-            style=side.style, color=cls._color_spec(side.color)
+            style=side.style,
+            color=cls._color_spec(side.color),
         )
 
     @classmethod
@@ -123,7 +128,8 @@ class FlextCliUtilitiesXlsxStyleReaders:
 
     @classmethod
     def _visual_from_styleable(
-        cls, value: StyleableObject
+        cls,
+        value: StyleableObject,
     ) -> p.Result[m.Cli.XlsxVisualStyleSpec]:
         try:
             visual = cls._visual_from_styleable_unchecked(value)
@@ -134,7 +140,8 @@ class FlextCliUtilitiesXlsxStyleReaders:
 
     @classmethod
     def _visual_from_styleable_unchecked(
-        cls, value: StyleableObject
+        cls,
+        value: StyleableObject,
     ) -> m.Cli.XlsxVisualStyleSpec:
         font = copy(value.font)
         fill = copy(value.fill)

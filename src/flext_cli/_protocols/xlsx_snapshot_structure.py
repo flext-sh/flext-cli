@@ -1,4 +1,8 @@
-"""Structural protocols for XLSX sheet snapshot evidence."""
+"""Structural protocols for XLSX sheet snapshot evidence.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

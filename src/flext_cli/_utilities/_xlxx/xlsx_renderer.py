@@ -1,4 +1,8 @@
-"""Generic model-driven XLSX renderer."""
+"""Generic model-driven XLSX renderer.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -28,16 +32,21 @@ class FlextCliUtilitiesXlsxRenderer(
     # later stages never run after an earlier mutation reports failure.
     @classmethod
     def _render_sheet(
-        cls, workbook: Workbook, plan: m.Cli.XlsxSheetPlan, table_names: frozenset[str]
+        cls,
+        workbook: Workbook,
+        plan: m.Cli.XlsxSheetPlan,
+        table_names: frozenset[str],
     ) -> p.Result[frozenset[str]]:
         if plan.name not in workbook.sheetnames:
             return r[frozenset[str]].fail(
-                f"{c.Cli.XlsxError.SHEET_MISSING}: {plan.name}"
+                f"{c.Cli.XlsxError.SHEET_MISSING}: {plan.name}",
             )
         # mro-j47u (codex): workbook planning creates only Worksheet instances.
         worksheet = workbook[plan.name]
         cells = cls._apply_cells(
-            worksheet, plan.cells, frozenset(workbook.named_styles)
+            worksheet,
+            plan.cells,
+            frozenset(workbook.named_styles),
         )
         if cells.failure:
             return r[frozenset[str]].from_failure(cells)
@@ -54,9 +63,15 @@ class FlextCliUtilitiesXlsxRenderer(
 
     @classmethod
     def xlsx_render(
-        cls, request: m.Cli.XlsxRenderRequest
+        cls,
+        request: m.Cli.XlsxRenderRequest,
     ) -> p.Result[m.Cli.XlsxRenderResult]:
-        """Render typed sheets, names, styles, and rules into workbook bytes."""
+        """Render typed sheets, names, styles, and rules into workbook bytes.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.XlsxRenderResult]``.
+
+        """
         workbook_result = cls._workbook_for_request(request)
         if workbook_result.failure:
             return r[m.Cli.XlsxRenderResult].from_failure(workbook_result)
@@ -74,7 +89,7 @@ class FlextCliUtilitiesXlsxRenderer(
         if content.failure:
             return r[m.Cli.XlsxRenderResult].from_failure(content)
         return r[m.Cli.XlsxRenderResult].ok(
-            m.Cli.XlsxRenderResult(content=content.value, plan=request.plan)
+            m.Cli.XlsxRenderResult(content=content.value, plan=request.plan),
         )
 
 

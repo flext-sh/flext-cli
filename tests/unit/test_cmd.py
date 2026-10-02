@@ -7,7 +7,7 @@ reachable through the public API — never logging format, private attributes, o
 internal collaborators.
 
 Module tested: flext_cli.services.cmd.FlextCliCmd (surfaced on flext_cli.cli)
-Data I/O: reads isolated child ``$HOME/.flext`` states through the public
+Data I/O: reads isolated child ``${HOME}/.flext`` states through the public
 process facade and exercises the current process state without rewriting it.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -122,6 +122,6 @@ class TestsFlextCliCmd:
                     ),
                 ],
                 env={c.Cli.ENV_VAR_HOME: str(home)},
-            )
+            ),
         )
         return m.Cli.SettingsSnapshot.model_validate_json(output)

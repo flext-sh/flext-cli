@@ -40,6 +40,10 @@ def _roundtrip_yaml() -> ruamel.yaml.YAML:
 
     A new instance per call keeps load/dump operations thread-safe: ruamel
     stores mutable parser state on the instance while parsing.
+
+    Returns:
+        The resulting ``ruamel.yaml.YAML``.
+
     """
     yaml = ruamel.yaml.YAML()
     yaml.preserve_quotes = True
@@ -56,41 +60,73 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
     """
 
     @staticmethod
+    def _parse_loaded(loaded: object) -> p.Result[t.Cli.YamlNode]:
+        """Coerce a ruamel parse result into a typed ``r[YamlNode]``.
+
+        Returns:
+            The resulting ``p.Result[t.Cli.YamlNode]``.
+
+        """
+        try:
+            node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
+        except ruamel.yaml.YAMLError as exc:
+            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
+        except TypeError as exc:
+            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
+        if node is None:
+            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
+        return r[t.Cli.YamlNode].ok(node)
+
+    @staticmethod
+    def _load_roundtrip(source: TextIO | str) -> p.Result[t.Cli.YamlNode]:
+        """Load YAML from a stream or text preserving comments/quoting.
+
+        Returns:
+            The resulting ``p.Result[t.Cli.YamlNode]``.
+
+        """
+        try:
+            loaded = _roundtrip_yaml().load(source)
+        except ruamel.yaml.YAMLError as exc:
+            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
+        except TypeError as exc:
+            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
+        return FlextCliUtilitiesYamlEngineMixin._parse_loaded(loaded)
+
+    @staticmethod
     def yaml_roundtrip_load(path: Path) -> p.Result[t.Cli.YamlNode]:
-        """Load a YAML file preserving comments/quoting -> ``r[YamlNode]``."""
+        """Load a YAML file preserving comments/quoting -> ``r[YamlNode]``.
+
+        Returns:
+            The resulting ``p.Result[t.Cli.YamlNode]``.
+
+        """
         if not path.is_file():
             return r[t.Cli.YamlNode].fail(f"YAML file not found: {path}")
         try:
             with path.open("r", encoding=c.Cli.ENCODING_DEFAULT) as fh:
-                loaded = _roundtrip_yaml().load(fh)
-            node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
+                return FlextCliUtilitiesYamlEngineMixin._load_roundtrip(fh)
         except OSError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML read error: {exc}", exception=exc)
-        except c.Cli.YamlRoundtripError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
-        except TypeError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
-        if node is None:
-            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
-        return r[t.Cli.YamlNode].ok(node)
 
     @staticmethod
     def yaml_roundtrip_load_text(text: str) -> p.Result[t.Cli.YamlNode]:
-        """Parse YAML text preserving comments/quoting -> ``r[YamlNode]``."""
-        try:
-            loaded = _roundtrip_yaml().load(text)
-            node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
-        except c.Cli.YamlRoundtripError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
-        except TypeError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
-        if node is None:
-            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
-        return r[t.Cli.YamlNode].ok(node)
+        """Parse YAML text preserving comments/quoting -> ``r[YamlNode]``.
+
+        Returns:
+            The resulting ``p.Result[t.Cli.YamlNode]``.
+
+        """
+        return FlextCliUtilitiesYamlEngineMixin._load_roundtrip(text)
 
     @staticmethod
     def yaml_roundtrip_load_map(path: Path) -> p.Result[CommentedMap]:
-        """Load a YAML file and require a mapping root -> ``r[CommentedMap]``."""
+        """Load a YAML file and require a mapping root -> ``r[CommentedMap]``.
+
+        Returns:
+            The resulting ``p.Result[CommentedMap]``.
+
+        """
         loaded = FlextCliUtilitiesYamlEngineMixin.yaml_roundtrip_load(path)
         if not loaded.success:
             message = (
@@ -104,7 +140,12 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
 
     @staticmethod
     def yaml_roundtrip_load_map_text(text: str) -> p.Result[CommentedMap]:
-        """Parse YAML text and require a mapping root -> ``r[CommentedMap]``."""
+        """Parse YAML text and require a mapping root -> ``r[CommentedMap]``.
+
+        Returns:
+            The resulting ``p.Result[CommentedMap]``.
+
+        """
         loaded = FlextCliUtilitiesYamlEngineMixin.yaml_roundtrip_load_text(text)
         if not loaded.success:
             message = (
@@ -118,16 +159,26 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
 
     @staticmethod
     def yaml_roundtrip_dump(data: t.Cli.YamlNode, stream: TextIO) -> p.Result[bool]:
-        """Serialize a YAML tree to *stream* -> ``r[bool]``."""
+        """Serialize a YAML tree to *stream* -> ``r[bool]``.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         try:
             _roundtrip_yaml().dump(data, stream)
-        except (OSError, c.Cli.YamlRoundtripError, TypeError, ValueError) as exc:
+        except (OSError, ruamel.yaml.YAMLError, TypeError, ValueError) as exc:
             return r[bool].fail(f"YAML dump error: {exc}", exception=exc)
         return r[bool].ok(True)
 
     @staticmethod
     def yaml_roundtrip_dump_text(data: t.Cli.YamlNode) -> p.Result[str]:
-        """Serialize a YAML tree to text -> ``r[str]``."""
+        """Serialize a YAML tree to text -> ``r[str]``.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         buffer = io.StringIO()
         dumped = FlextCliUtilitiesYamlEngineMixin.yaml_roundtrip_dump(data, buffer)
         if not dumped.success:

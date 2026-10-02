@@ -1,6 +1,12 @@
-"""CLI option helpers shared through ``u.Cli``."""
+"""CLI option helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
+
+from functools import cache
 
 from flext_cli import c, t
 from flext_cli.models import m
@@ -15,21 +21,44 @@ from .flextcliutilitiesoptions_part_01 import (
 class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
     """Implementation part for FlextCliUtilitiesOptions."""
 
+    @classmethod
+    @cache
+    def cli_default_source_adapter(cls) -> t.ValueAdapter[t.Cli.CliDefaultSource]:
+        """Build the CLI default adapter once at the utility boundary.
+
+        Returns:
+            The resulting ``t.ValueAdapter[t.Cli.CliDefaultSource]``.
+
+        """
+        return u.type_adapter(t.Cli.CliDefaultSource)
+
     @staticmethod
     def field_annotation(
-        field_name: str, field_info: m.FieldInfo
+        field_name: str,
+        field_info: m.FieldInfo,
     ) -> t.Cli.RuntimeAnnotation:
-        """Return the declared annotation of a CLI field or fail naming the field."""
+        """Return the declared annotation of a CLI field or fail naming the field.
+
+        Returns:
+            The declared annotation of a CLI field or fail naming the field.
+
+        Raises:
+            TypeError: If ``annotation is None``.
+
+        """
         annotation = field_info.annotation
         if annotation is None:
             raise TypeError(
-                c.Cli.ERR_FIELD_WITHOUT_ANNOTATION_FMT.format(field_name=field_name)
+                c.Cli.ERR_FIELD_WITHOUT_ANNOTATION_FMT.format(field_name=field_name),
             )
         return annotation
 
     @classmethod
     def field_default(
-        cls, field_name: str, field_info: m.FieldInfo, settings: t.Cli.ModelLike | None
+        cls,
+        field_name: str,
+        field_info: m.FieldInfo,
+        settings: t.Cli.ModelLike | None,
     ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata.
 
@@ -38,6 +67,13 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
         validation error escapes unchanged, and a validated default that no
         Typer option carries raises ``TypeError``. Structured defaults travel
         through the JSON-option path.
+
+        Returns:
+            The resulting ``t.Cli.CliValue | None``.
+
+        Raises:
+            TypeError: If ``normalized_atom is None``.
+
         """
         source_value = (
             getattr(settings, field_name)
@@ -48,23 +84,34 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             return None
         if cls.is_json_option(cls.field_annotation(field_name, field_info)):
             # A JSON option's default is the JSON text its parser validates.
-            return u.to_json(source_value).decode()
+            adapter = u.type_adapter(field_info.rebuild_annotation())
+            validated = adapter.validate_python(source_value)
+            return adapter.dump_json(validated, warnings="error").decode(
+                c.Cli.ENCODING_DEFAULT,
+            )
         normalized_atom = cls.normalize_cli_atom(
-            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value)
+            cls.cli_default_source_adapter().validate_python(source_value),
         )
         if normalized_atom is None:
             raise TypeError(
                 c.Cli.ERR_FIELD_DEFAULT_NOT_CLI_VALUE_FMT.format(
-                    field_name=field_name, value=source_value
-                )
+                    field_name=field_name,
+                    value=source_value,
+                ),
             )
         return normalized_atom
 
     @staticmethod
     def build_option(
-        field_name: str, registry: t.Cli.OptionRegistry
+        field_name: str,
+        registry: t.Cli.OptionRegistry,
     ) -> m.Cli.OptionSpec:
-        """Build one CLI option spec from the canonical registry."""
+        """Build one CLI option spec from the canonical registry.
+
+        Returns:
+            The resulting ``m.Cli.OptionSpec``.
+
+        """
         return FlextCliUtilitiesOptionBuilder(field_name, registry).build()
 
     @staticmethod
@@ -74,7 +121,12 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
         bool_options: t.StrSequence,
         value_options: t.StrSequence,
     ) -> list[str]:
-        """Move shared options before subcommand to right after the subcommand."""
+        """Move shared options before subcommand to right after the subcommand.
+
+        Returns:
+            The resulting ``list[str]``.
+
+        """
         if not args:
             return []
         bool_set = set(bool_options)

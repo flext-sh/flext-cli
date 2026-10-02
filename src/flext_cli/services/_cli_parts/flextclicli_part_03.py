@@ -37,6 +37,13 @@ class FlextCliCli(FlextCliCliPart02):
         default: a required excluded field raises ``TypeError`` at build time.
         ``result_border`` turns rejected input into ``e.fail_validation`` with a
         non-zero exit instead of raising the ``ValidationError``.
+
+        Returns:
+            The resulting ``t.Cli.CliCommand``.
+
+        Raises:
+            TypeError: If ``field_info.is_required()``.
+
         """
         parameters: t.MutableSequenceOf[Parameter] = []
         annotations: t.Cli.CliAnnotations = {"return": type(None)}
@@ -46,12 +53,15 @@ class FlextCliCli(FlextCliCliPart02):
                 if field_info.is_required():
                     raise TypeError(
                         c.Cli.ERR_REQUIRED_EXCLUDED_FIELD_FMT.format(
-                            model=model_cls.__name__, field_name=field_name
-                        )
+                            model=model_cls.__name__,
+                            field_name=field_name,
+                        ),
                     )
                 continue
             parameter, annotation = cls._build_model_parameter(
-                field_name, field_info, settings
+                field_name,
+                field_info,
+                settings,
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
@@ -76,9 +86,13 @@ class FlextCliCli(FlextCliCliPart02):
 
         A foreign application or an invalid runner argument is a caller defect
         and raises; the command outcome travels in the invocation result.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.InvocationResult]``.
+
         """
         return r[m.Cli.InvocationResult].ok(
-            u.Cli.framework_invoke(app, args=args, charset=charset, env=env)
+            u.Cli.framework_invoke(app, args=args, charset=charset, env=env),
         )
 
 
