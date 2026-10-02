@@ -133,6 +133,18 @@ class FlextCliCli:
             default=default_value,
             required=is_required,
         )
+        return spec, annotation
+
+    @classmethod
+    def _build_model_parameter(
+        cls, field_name: str, field_info: m.FieldInfo, settings: t.Cli.ModelLike | None
+    ) -> t.Pair[Parameter, type | GenericAlias]:
+        """Build a keyword-only Typer option from its public specification."""
+        spec, annotation = cls.model_option_spec(field_name, field_info, settings)
+        field_annotation = u.Cli.field_annotation(field_name, field_info)
+        json_annotation = (
+            field_annotation if u.Cli.is_json_option(field_annotation) else None
+        )
         return (
             u.Cli.framework_build_parameter(
                 field_name,

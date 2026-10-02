@@ -242,7 +242,7 @@ class FlextCliUtilitiesFramework:
     def framework_build_parameter(
         field_name: str,
         annotation: type | GenericAlias,
-        spec: m.Cli.OptionSpec,
+        spec: p.Cli.CliOptionSpec,
         *,
         json_annotation: t.Cli.RuntimeAnnotation | None = None,
     ) -> Parameter:
