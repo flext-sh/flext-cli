@@ -20,9 +20,9 @@ rem delete something it never created.
 set "download_path="
 set "sums="
 
-set "pinned_version=2026.9.18"
-set "sum_x64=18a35dddfc8be4af44ff983333eee94fa482e53586536dcf625f0d66fedf0026"
-set "sum_arm64=8c0281d26494bc8aaa2804ccd51cfb8315438d1b0b61575d8f02751828708c14"
+set "pinned_version=2026.9.15"
+set "sum_x64=b8c602bc8c53915f2d1b73696db271c0a1054e0d5ef69f4bf9f2bcbfb0037e02"
+set "sum_arm64=4c673cab8532bc873cd0f8ca9f255addef3fcb29161f4f4331b44acba2c64b69"
 
 rem MISE_VERSION itself is never written to. Everything here runs inside `setlocal`, so assigning
 rem a fallback to it would hand the launched mise an env var the bash branch does not set.
@@ -88,7 +88,7 @@ if /i not "%actual%"=="%expected%" (
 
 rem The parent of MISE_INSTALL_PATH, not install_dir: a caller-supplied MISE_INSTALL_PATH can
 rem name a file anywhere, and creating install_dir instead would leave the move below with no
-rem destination directory. install.sh does the same -- `mkdir -p "$(dirname "$install_path")"` --
+rem destination directory. install.sh does the same -- `mkdir -p "$(dirname "${install_path}")"` --
 rem and the default path lives under install_dir, so this covers that case too.
 for %%i in ("%MISE_INSTALL_PATH%") do set "install_parent=%%~dpi"
 if not exist "%install_parent%" mkdir "%install_parent%"
