@@ -511,7 +511,7 @@ requires-dist = [
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "packaging", specifier = ">=26.3" },
     { name = "pydantic", specifier = ">=2.13.5" },
-    { name = "pydantic-settings", specifier = ">=2.15.0" },
+    { name = "pydantic-settings", specifier = ">=2.14.2,<2.16" },
     { name = "python-docx", specifier = ">=1.2.0" },
     { name = "python-pptx", specifier = ">=1.0.2" },
     { name = "pyyaml", specifier = ">=6.0.3" },
@@ -588,7 +588,7 @@ dev = [
 [[package]]
 name = "flext-core"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-core.git?rev=0.12.0-dev#676fde67307ad7f25b796a82c9703eb9c2ee3482" }
+source = { git = "https://github.com/flext-sh/flext-core.git?rev=0.12.0-dev#97313d7fc34a6c09a678ed0d5fdbaff1cf57ac2d" }
 dependencies = [
     { name = "annotated-types" },
     { name = "beartype" },
@@ -604,7 +604,7 @@ dependencies = [
 [[package]]
 name = "flext-infra"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#e4b8fa01753006eb9190c603009a2a74bff1d866" }
+source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#c713cb779042a6da0e4f025067102273933cde68" }
 dependencies = [
     { name = "annotated-types" },
     { name = "beartype" },
@@ -630,7 +630,7 @@ dependencies = [
 [[package]]
 name = "flext-tests"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-tests.git?rev=0.12.0-dev#572a9afc5a6239364ffc90a64c03fc602f5b339c" }
+source = { git = "https://github.com/flext-sh/flext-tests.git?rev=0.12.0-dev#26a25d258a086abad2719a48b7bed11e613d56a8" }
 dependencies = [
     { name = "annotated-types" },
     { name = "beartype" },
