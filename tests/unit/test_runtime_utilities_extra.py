@@ -24,6 +24,7 @@ if TYPE_CHECKING:
 class TestsFlextCliRuntimeUtilitiesExtra:
     """Public-contract behavior for ``u.Cli`` runtime helpers and output model."""
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("stdout", "stderr", "exit_code"),
         [
@@ -35,7 +36,6 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         ],
     )
     def test_command_output_exposes_constructor_values_via_public_state(
-        self,
         stdout: str,
         stderr: str,
         exit_code: int,
@@ -61,7 +61,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.that(dumped["stderr"], eq=stderr)
         tm.that(dumped["outcome"]["raw_return_code"], eq=exit_code)
 
-    def test_run_checked_returns_true_on_zero_exit(self) -> None:
+    @staticmethod
+    def test_run_checked_returns_true_on_zero_exit() -> None:
         # Arrange / Act
         """Verify that run checked returns true on zero exit."""
         result = u.Cli().run_checked(["echo", "test"])
@@ -70,8 +71,9 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.ok(result)
         tm.that(result.value, eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize("exit_code", [1, 2, 42])
-    def test_run_checked_fails_with_error_naming_failure(self, exit_code: int) -> None:
+    def test_run_checked_fails_with_error_naming_failure(exit_code: int) -> None:
         # Arrange / Act
         """Verify that run checked fails with error naming failure."""
         result = u.Cli().run_checked(["sh", "-c", f"exit {exit_code}"])
@@ -81,7 +83,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.that(result.error, is_=str)
         tm.that(tm.not_none(result.error).lower(), has="failed")
 
-    def test_run_to_file_writes_stdout_and_returns_zero(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_run_to_file_writes_stdout_and_returns_zero(tmp_path: Path) -> None:
         # Arrange
         """Verify that run to file writes stdout and returns zero."""
         output_file = tmp_path / "output.txt"
@@ -95,8 +98,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.that(output_file.exists(), eq=True)
         tm.that(output_file.read_text(), has="hello")
 
+    @staticmethod
     def test_run_to_file_returns_nonzero_returncode_as_success(
-        self,
         tmp_path: Path,
     ) -> None:
         # Arrange
@@ -111,8 +114,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.that(result.value.raw_return_code, eq=7)
         tm.that(output_file.exists(), eq=True)
 
+    @staticmethod
     def test_run_to_file_creates_missing_parent_directories(
-        self,
         tmp_path: Path,
     ) -> None:
         # Arrange — nested path whose parents do not yet exist
@@ -127,8 +130,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.that(output_file.exists(), eq=True)
         tm.that(output_file.read_text(), has="nested")
 
+    @staticmethod
     def test_run_to_file_fails_with_timeout_error_on_slow_command(
-        self,
         tmp_path: Path,
     ) -> None:
         # Arrange
@@ -142,8 +145,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         tm.ok(result)
         tm.that(result.value.timed_out, eq=True)
 
+    @staticmethod
     def test_run_to_file_fails_with_execution_error_on_unwritable_target(
-        self,
         tmp_path: Path,
     ) -> None:
         # Arrange — read-only directory makes opening the output file fail
@@ -163,8 +166,8 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         finally:
             readonly_dir.chmod(0o755)
 
+    @staticmethod
     def test_run_to_file_fails_with_execution_error_on_invalid_env(
-        self,
         tmp_path: Path,
     ) -> None:
         # Arrange — NUL byte in an env value raises ValueError inside subprocess

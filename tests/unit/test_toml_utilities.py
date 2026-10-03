@@ -30,7 +30,8 @@ class TestsFlextCliTomlUtilities:
 
     # ------------------------------------------------------------------ read
 
-    def test_read_returns_parsed_document_for_valid_file(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_read_returns_parsed_document_for_valid_file(tmp_path: Path) -> None:
         """Verify that read returns parsed document for valid file."""
         toml_file = tmp_path / "test.toml"
         toml_file.write_text(
@@ -46,12 +47,12 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_value(section, "key"), eq="value")
         tm.that(u.Cli.toml_value(section, "number"), eq=42)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("filename", "contents"),
         [("missing.toml", None), ("invalid.toml", "[invalid\nkey = value")],
     )
     def test_read_returns_none_for_missing_or_invalid_file(
-        self,
         tmp_path: Path,
         filename: str,
         contents: str | None,
@@ -63,7 +64,8 @@ class TestsFlextCliTomlUtilities:
 
         tm.that(u.Cli.toml_read(toml_file), none=True)
 
-    def test_read_document_succeeds_and_preserves_values(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_read_document_succeeds_and_preserves_values(tmp_path: Path) -> None:
         """Verify that read document succeeds and preserves values."""
         toml_file = tmp_path / "test.toml"
         toml_file.write_text('[section]\nkey = "value"  # comment\n', encoding="utf-8")
@@ -75,14 +77,15 @@ class TestsFlextCliTomlUtilities:
         section = tm.not_none(section)
         tm.that(u.Cli.toml_value(section, "key"), eq="value")
 
+    @staticmethod
     def test_read_document_fails_with_not_found_for_missing_file(
-        self,
         tmp_path: Path,
     ) -> None:
         """Verify that read document fails with not found for missing file."""
         tm.fail(u.Cli.toml_read_document(tmp_path / "missing.toml"), has="not found")
 
-    def test_read_json_round_trips_document_to_mapping(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_read_json_round_trips_document_to_mapping(tmp_path: Path) -> None:
         """Verify that read json round trips document to mapping."""
         toml_file = tmp_path / "pyproject.toml"
         toml_file.write_text(
@@ -99,7 +102,8 @@ class TestsFlextCliTomlUtilities:
 
     # ----------------------------------------------------------------- write
 
-    def test_write_document_persists_file(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_write_document_persists_file(tmp_path: Path) -> None:
         """Verify that write document persists file."""
         toml_file = tmp_path / "doc.toml"
         doc = u.Cli.toml_document()
@@ -110,8 +114,8 @@ class TestsFlextCliTomlUtilities:
         tm.ok(result)
         tm.that(toml_file.exists(), eq=True)
 
+    @staticmethod
     def test_write_document_creates_missing_parent_directories(
-        self,
         tmp_path: Path,
     ) -> None:
         """Verify that write document creates missing parent directories."""
@@ -122,8 +126,8 @@ class TestsFlextCliTomlUtilities:
         tm.ok(u.Cli.toml_write_document(toml_file, doc))
         tm.that(toml_file.exists(), eq=True)
 
+    @staticmethod
     def test_write_pyproject_runs_the_required_real_formatter(
-        self,
         tmp_path: Path,
     ) -> None:
         """Format a real pyproject through the public TOML facade."""
@@ -138,8 +142,8 @@ class TestsFlextCliTomlUtilities:
         rendered = tomllib.loads(pyproject.read_text(encoding="utf-8"))
         tm.that(rendered["project"], eq={"name": "demo"})
 
+    @staticmethod
     def test_write_document_fails_when_target_is_not_writable(
-        self,
         tmp_path: Path,
     ) -> None:
         """Verify that write document fails when target is not writable."""
@@ -157,7 +161,8 @@ class TestsFlextCliTomlUtilities:
         finally:
             readonly_dir.chmod(stat.S_IRWXU)
 
-    def test_write_mapping_renders_nested_tables_to_disk(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_write_mapping_renders_nested_tables_to_disk(tmp_path: Path) -> None:
         """Verify that write mapping renders nested tables to disk."""
         toml_file = tmp_path / "pyproject.toml"
         payload: dict[str, t.JsonValue] = {
@@ -179,7 +184,8 @@ class TestsFlextCliTomlUtilities:
 
     # -------------------------------------------------------------- builders
 
-    def test_array_serializes_all_elements(self) -> None:
+    @staticmethod
+    def test_array_serializes_all_elements() -> None:
         """Verify that array serializes all elements."""
         arr = u.Cli.toml_array(["a", "b", "c"])
 
@@ -189,7 +195,8 @@ class TestsFlextCliTomlUtilities:
         tm.that(arr_text, has='"b"')
         tm.that(arr_text, has='"c"')
 
-    def test_ensure_table_reuses_existing_child(self) -> None:
+    @staticmethod
+    def test_ensure_table_reuses_existing_child() -> None:
         """Verify that ensure table reuses existing child."""
         parent = u.Cli.toml_table()
         existing = u.Cli.toml_table()
@@ -202,7 +209,8 @@ class TestsFlextCliTomlUtilities:
 
     # ------------------------------------------------------------ navigation
 
-    def test_path_helpers_create_and_resolve_nested_tables(self) -> None:
+    @staticmethod
+    def test_path_helpers_create_and_resolve_nested_tables() -> None:
         """Verify that path helpers create and resolve nested tables."""
         doc = u.Cli.toml_document()
 
@@ -217,7 +225,8 @@ class TestsFlextCliTomlUtilities:
         )
         tm.that(u.Cli.toml_table_path(doc, ("tool", "mypy")), none=True)
 
-    def test_navigate_path_and_dot_path_keep_tool_prefix_stable(self) -> None:
+    @staticmethod
+    def test_navigate_path_and_dot_path_keep_tool_prefix_stable() -> None:
         """Verify that navigate path and dot path keep tool prefix stable."""
         doc = u.Cli.toml_document()
         table = u.Cli.toml_navigate_path(doc, ["tool", "pytest", "ini_options"])
@@ -235,7 +244,8 @@ class TestsFlextCliTomlUtilities:
             eq="-q",
         )
 
-    def test_mapping_path_normalizes_document_children(self) -> None:
+    @staticmethod
+    def test_mapping_path_normalizes_document_children() -> None:
         """Verify that mapping path normalizes document children."""
         doc = u.Cli.toml_document()
         project = u.Cli.toml_table()
@@ -254,19 +264,20 @@ class TestsFlextCliTomlUtilities:
 
     # -------------------------------------------------------------- mappings
 
-    def test_as_mapping_accepts_mappings_and_rejects_scalars(self) -> None:
+    @staticmethod
+    def test_as_mapping_accepts_mappings_and_rejects_scalars() -> None:
         """Verify that as mapping accepts mappings and rejects scalars."""
         mapping: t.MappingKV[str, t.Scalar] = {"key": "value"}
 
         tm.that(u.Cli.toml_as_mapping(mapping), eq=mapping)
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("key", "expected"),
         [("a", 1), ("b", [1, 2]), ("missing", None)],
     )
     def test_value_lookup_returns_stored_values_or_none(
-        self,
         key: str,
         expected: t.JsonValue | None,
     ) -> None:
@@ -277,7 +288,8 @@ class TestsFlextCliTomlUtilities:
 
         tm.that(u.Cli.toml_value(doc, key), eq=expected)
 
-    def test_mapping_from_text_and_document_builder_round_trip(self) -> None:
+    @staticmethod
+    def test_mapping_from_text_and_document_builder_round_trip() -> None:
         """Verify that mapping from text and document builder round trip."""
         text = (
             "[project]\n"
@@ -300,11 +312,13 @@ class TestsFlextCliTomlUtilities:
             eq=["httpx>=0.27"],
         )
 
-    def test_mapping_from_text_rejects_invalid_toml(self) -> None:
+    @staticmethod
+    def test_mapping_from_text_rejects_invalid_toml() -> None:
         """Verify that mapping from text rejects invalid toml."""
         tm.that(u.Cli.toml_mapping_from_text("[project"), none=True)
 
-    def test_mapping_sync_helpers_report_and_apply_changes(self) -> None:
+    @staticmethod
+    def test_mapping_sync_helpers_report_and_apply_changes() -> None:
         """Verify that mapping sync helpers report and apply changes."""
         payload: dict[str, t.JsonValue] = {
             "tool": {"uv": {"sources": {"stale": {"workspace": True}}}},

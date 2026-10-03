@@ -30,8 +30,9 @@ if TYPE_CHECKING:
 class TestsFlextCliServicesAuth:
     """Public authentication behavior of the FlextCli facade."""
 
+    @staticmethod
     @pytest.fixture
-    def service(self) -> Iterator[FlextCli]:
+    def service() -> Iterator[FlextCli]:
         """Fresh facade whose global token_file is restored after each test.
 
         Yields:
@@ -201,8 +202,8 @@ class TestsFlextCliServicesAuth:
         tm.that(result.error, has="token")
         tm.that(result.error, has="empty")
 
+    @staticmethod
     def test_validate_credentials_rejects_empty_password(
-        self,
         service: FlextCli,
     ) -> None:
         # Act

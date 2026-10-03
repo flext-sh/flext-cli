@@ -53,7 +53,8 @@ class TestsFlextCliPipeline:
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.fail(result)
 
-    def test_failure_result_runs_stage_once(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_failure_result_runs_stage_once(tmp_path: Path) -> None:
         """A failed stage result stops after its first execution."""
         call_count = 0
 
@@ -70,7 +71,8 @@ class TestsFlextCliPipeline:
         tm.fail(result)
         tm.that(call_count, eq=1)
 
-    def test_stage_exception_escapes_first_execution(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_stage_exception_escapes_first_execution(tmp_path: Path) -> None:
         """The first stage exception escapes without normalization or retry."""
         call_count = 0
         error_message = "boom"
@@ -90,7 +92,8 @@ class TestsFlextCliPipeline:
             )
         tm.that(call_count, eq=1)
 
-    def test_empty_pipeline(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_empty_pipeline(tmp_path: Path) -> None:
         """Empty pipeline returns ok with no stages."""
         result = cli.pipeline([], context=cli.stage_context(tmp_path))
         tm.ok(result)
@@ -104,8 +107,8 @@ class TestsFlextCliPipeline:
         tm.ok(result)
         tm.that(result.value.total_duration_ms, gte=0.0)
 
+    @staticmethod
     def test_stage_raise_escapes_without_result_normalization(
-        self,
         tmp_path: Path,
     ) -> None:
         """A stage handler exception escapes; exceptions are never normalized."""

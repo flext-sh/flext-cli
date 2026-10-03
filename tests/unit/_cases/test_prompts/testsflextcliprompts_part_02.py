@@ -23,8 +23,8 @@ if TYPE_CHECKING:
 class TestsFlextCliPrompts:
     """Implementation part for TestsFlextCliPrompts."""
 
+    @staticmethod
     def test_prompt_choice_paths(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that prompt choice paths."""
@@ -58,8 +58,8 @@ class TestsFlextCliPrompts:
         tm.ok(selected)
         tm.that(selected.value, eq="simple")
 
+    @staticmethod
     def test_print_helpers_paths(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that print helpers paths."""
@@ -68,9 +68,9 @@ class TestsFlextCliPrompts:
         tm.ok(prompts.print_error("simple"))
         tm.ok(prompts.print_warning("simple"))
 
+    @staticmethod
     @pytest.mark.parametrize("message", c.Tests.PROMPT_EDGE_MESSAGES)
     def test_prompt_accepts_edge_case_messages(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
         message: str,
     ) -> None:
@@ -80,8 +80,8 @@ class TestsFlextCliPrompts:
         tm.ok(result)
         tm.that(result.value, eq="text")
 
+    @staticmethod
     def test_repeated_prompt_operations_remain_fast(
-        self,
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that repeated prompt operations remain fast."""

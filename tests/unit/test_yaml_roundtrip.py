@@ -28,8 +28,8 @@ if TYPE_CHECKING:
 class TestsFlextCliYamlRoundtripLoad:
     """Load/dump round-trip contract of ``u.Cli.yaml_roundtrip_*``."""
 
+    @staticmethod
     def test_round_trip_preserves_comments_quotes_and_order(
-        self,
         tmp_path: Path,
     ) -> None:
         """Verify that round trip preserves comments quotes and order."""
@@ -52,7 +52,8 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.that(dumped, has="# inline comment")
         tm.that(dumped.index("global:") < dumped.index("services:"), eq=True)
 
-    def test_load_missing_file_fails(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_load_missing_file_fails(tmp_path: Path) -> None:
         """Verify that load missing file fails."""
         result = u.Cli.yaml_roundtrip_load(tmp_path / "absent.yaml")
 
@@ -60,7 +61,8 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.that(result.error, none=False)
         tm.that(result.error, has="not found")
 
-    def test_load_map_rejects_scalar_root(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_load_map_rejects_scalar_root(tmp_path: Path) -> None:
         """Verify that load map rejects scalar root."""
         path = tmp_path / "scalar.yaml"
         path.write_text("just-a-string\n", encoding="utf-8")
@@ -71,7 +73,8 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.that(result.error, none=False)
         tm.that(result.error, has="must be a mapping")
 
-    def test_load_map_text_rejects_sequence_root(self) -> None:
+    @staticmethod
+    def test_load_map_text_rejects_sequence_root() -> None:
         """Verify that load map text rejects sequence root."""
         result = u.Cli.yaml_roundtrip_load_map_text("- a\n- b\n")
 
@@ -79,14 +82,16 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.that(result.error, none=False)
         tm.that(result.error, has="must be a mapping")
 
-    def test_invalid_yaml_fails_loud(self) -> None:
+    @staticmethod
+    def test_invalid_yaml_fails_loud() -> None:
         """Verify that invalid yaml fails loud."""
         result = u.Cli.yaml_roundtrip_load_text("a: [unclosed\n")
 
         tm.fail(result)
         tm.that(result.error, none=False)
 
-    def test_load_text_empty_document_fails_without_exception(self) -> None:
+    @staticmethod
+    def test_load_text_empty_document_fails_without_exception() -> None:
         """Verify that load text empty document fails without exception."""
         for text in ("", "# only a comment\n", "---\n", "~\n"):
             result = u.Cli.yaml_roundtrip_load_text(text)
@@ -95,7 +100,8 @@ class TestsFlextCliYamlRoundtripLoad:
             tm.that(result.error, none=False)
             tm.that(result.error, has="empty")
 
-    def test_load_empty_document_fails_without_exception(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_load_empty_document_fails_without_exception(tmp_path: Path) -> None:
         """Verify that load empty document fails without exception."""
         path = tmp_path / "comments.yaml"
         path.write_text("# header comment\n# another\n", encoding="utf-8")
@@ -106,22 +112,25 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.that(result.error, none=False)
         tm.that(result.error, has="empty")
 
-    def test_load_map_text_empty_document_fails_without_exception(self) -> None:
+    @staticmethod
+    def test_load_map_text_empty_document_fails_without_exception() -> None:
         """Verify that load map text empty document fails without exception."""
         result = u.Cli.yaml_roundtrip_load_map_text("# comment only\n")
 
         tm.fail(result)
         tm.that(result.error, none=False)
 
-    def test_yaml_parse_empty_document_fails_without_exception(self) -> None:
+    @staticmethod
+    def test_yaml_parse_empty_document_fails_without_exception() -> None:
         """Verify that yaml parse empty document fails without exception."""
         result = u.Cli.yaml_parse("# comment only\n")
 
         tm.fail(result)
         tm.that(result.error, none=False)
 
+    @staticmethod
     @pytest.mark.slow
-    def test_roundtrip_load_text_is_thread_safe(self) -> None:
+    def test_roundtrip_load_text_is_thread_safe() -> None:
         """Verify that roundtrip load text is thread safe."""
         documents = [
             (
@@ -158,7 +167,8 @@ class TestsFlextCliYamlRoundtripLoad:
 class TestsFlextCliYamlRoundtripConvert:
     """Plain<->commented conversion contract of ``u.Cli``."""
 
-    def test_to_plain_unwraps_commented_tree(self) -> None:
+    @staticmethod
+    def test_to_plain_unwraps_commented_tree() -> None:
         """Verify that to plain unwraps commented tree."""
         node = u.Cli.yaml_roundtrip_load_map_text("a:\n  b: 1\n").unwrap()
 
@@ -167,7 +177,8 @@ class TestsFlextCliYamlRoundtripConvert:
         tm.that(plain, eq={"a": {"b": 1}})
         tm.that(type(plain) is dict, eq=True)
 
-    def test_deep_to_commented_wraps_plain_mapping(self) -> None:
+    @staticmethod
+    def test_deep_to_commented_wraps_plain_mapping() -> None:
         """Verify that deep to commented wraps plain mapping."""
         data: t.Cli.YamlValue = {"a": [1, "x"], "b": {"c": True}}
 
@@ -179,7 +190,8 @@ class TestsFlextCliYamlRoundtripConvert:
         expected: t.JsonMapping = {"a": [1, "x"], "b": {"c": True}}
         tm.that(u.Cli.yaml_to_plain(node), eq=expected)
 
-    def test_deep_to_commented_quotes_yaml_11_tokens(self) -> None:
+    @staticmethod
+    def test_deep_to_commented_quotes_yaml_11_tokens() -> None:
         """Verify that deep to commented quotes yaml 11 tokens."""
         node = u.Cli.yaml_deep_to_commented({"flag": "yes", "name": "web"})
 
@@ -188,7 +200,8 @@ class TestsFlextCliYamlRoundtripConvert:
         tm.that(dumped, has='flag: "yes"')
         tm.that(dumped, has="name: web")
 
-    def test_deep_to_commented_multiline_uses_literal_style(self) -> None:
+    @staticmethod
+    def test_deep_to_commented_multiline_uses_literal_style() -> None:
         """Verify that deep to commented multiline uses literal style."""
         node = u.Cli.yaml_deep_to_commented({"script": "line1\nline2\n"})
 
@@ -198,7 +211,8 @@ class TestsFlextCliYamlRoundtripConvert:
         tm.that(dumped, has="line1")
         tm.that(dumped, has="line2")
 
-    def test_is_sequence_keeps_strings_scalar(self) -> None:
+    @staticmethod
+    def test_is_sequence_keeps_strings_scalar() -> None:
         """Verify that is sequence keeps strings scalar."""
         seq = u.Cli.yaml_roundtrip_load_text("- 1\n").unwrap()
         scalar = u.Cli.yaml_roundtrip_load_text("abc\n").unwrap()
@@ -212,7 +226,8 @@ class TestsFlextCliYamlRoundtripConvert:
 class TestsFlextCliYamlScalars:
     """Scalar normalization contract (ruamel subclasses -> builtins)."""
 
-    def test_plain_str_unwraps_ruamel_subclass(self) -> None:
+    @staticmethod
+    def test_plain_str_unwraps_ruamel_subclass() -> None:
         """Verify that plain str unwraps ruamel subclass."""
         node = u.Cli.yaml_roundtrip_load_map_text('k: "quoted"\n').unwrap()
         value = node["k"]
@@ -224,7 +239,8 @@ class TestsFlextCliYamlScalars:
         tm.that(plain, eq="quoted")
         tm.that(type(plain) is str, eq=True)
 
-    def test_plain_int_float_bool_unwrap_subclasses(self) -> None:
+    @staticmethod
+    def test_plain_int_float_bool_unwrap_subclasses() -> None:
         """Verify that plain int float bool unwrap subclasses."""
         node = u.Cli.yaml_roundtrip_load_map_text("i: 3\nf: 1.5\nb: true\n").unwrap()
 
@@ -237,7 +253,8 @@ class TestsFlextCliYamlScalars:
         tm.that(plain_float == pytest.approx(1.5), eq=True)
         tm.that(plain_bool, eq=True)
 
-    def test_normalize_scalar_keeps_containers_untouched(self) -> None:
+    @staticmethod
+    def test_normalize_scalar_keeps_containers_untouched() -> None:
         """Verify that normalize scalar keeps containers untouched."""
         node = u.Cli.yaml_roundtrip_load_map_text("a: 1\n").unwrap()
 
@@ -248,7 +265,8 @@ class TestsFlextCliYamlScalars:
 class TestsFlextCliYamlAnchors:
     """Anchor handling contract of ``u.Cli.yaml_clear_anchors``."""
 
-    def test_clear_anchors_strips_anchor_definitions(self) -> None:
+    @staticmethod
+    def test_clear_anchors_strips_anchor_definitions() -> None:
         """Verify that clear anchors strips anchor definitions."""
         node = u.Cli.yaml_roundtrip_load_map_text(
             "base: &base\n  a: 1\nuse: *base\n",
@@ -265,7 +283,8 @@ class TestsFlextCliYamlAnchors:
 class TestsFlextCliYamlComments:
     """Comment transfer and pre-key comment contract."""
 
-    def test_add_pre_key_comment_is_idempotent(self) -> None:
+    @staticmethod
+    def test_add_pre_key_comment_is_idempotent() -> None:
         """Verify that add pre key comment is idempotent."""
         node = u.Cli.yaml_roundtrip_load_map_text("a: 1\n").unwrap()
 
@@ -275,7 +294,8 @@ class TestsFlextCliYamlComments:
 
         tm.that(dumped.count("origin: subchart"), eq=1)
 
-    def test_has_key_comment_matches_inserted_text(self) -> None:
+    @staticmethod
+    def test_has_key_comment_matches_inserted_text() -> None:
         """Verify that has key comment matches inserted text."""
         node = u.Cli.yaml_roundtrip_load_map_text("a: 1\n").unwrap()
 
@@ -285,7 +305,8 @@ class TestsFlextCliYamlComments:
         tm.that(u.Cli.yaml_has_key_comment(node, "a", "# hello\n"), eq=True)
         tm.that(u.Cli.yaml_has_key_comment(node, "a", "# other"), eq=False)
 
-    def test_copy_key_comment_moves_comment(self) -> None:
+    @staticmethod
+    def test_copy_key_comment_moves_comment() -> None:
         """Verify that copy key comment moves comment."""
         src = u.Cli.yaml_roundtrip_load_map_text("a: 1\nb: 2\n").unwrap()
         u.Cli.yaml_add_pre_key_comment(src, "b", "# keep me")
@@ -296,7 +317,8 @@ class TestsFlextCliYamlComments:
 
         tm.that(dumped, has="keep me")
 
-    def test_force_block_style_renders_block(self) -> None:
+    @staticmethod
+    def test_force_block_style_renders_block() -> None:
         """Verify that force block style renders block."""
         node = u.Cli.yaml_deep_to_commented({"a": {"b": 1}})
 
@@ -307,7 +329,8 @@ class TestsFlextCliYamlComments:
         tm.that(dumped, has="  b: 1")
         tm.that(dumped, lacks="{b:")
 
-    def test_deep_copy_comments_between_trees(self) -> None:
+    @staticmethod
+    def test_deep_copy_comments_between_trees() -> None:
         """Verify that deep copy comments between trees."""
         src = u.Cli.yaml_roundtrip_load_map_text("# doc\na: 1\n").unwrap()
         dst = u.Cli.yaml_deep_to_commented({"a": 2})
@@ -321,7 +344,8 @@ class TestsFlextCliYamlComments:
 class TestsFlextCliYamlEdit:
     """In-place edit and overlay contract."""
 
-    def test_overlay_preserving_order_keeps_base_order(self) -> None:
+    @staticmethod
+    def test_overlay_preserving_order_keeps_base_order() -> None:
         """Verify that overlay preserving order keeps base order."""
         base = u.Cli.yaml_roundtrip_load_map_text("a: 1\nb: 2\n").unwrap()
 
@@ -331,7 +355,8 @@ class TestsFlextCliYamlEdit:
         tm.that(base["b"], eq=20)
         tm.that(base["c"], eq=30)
 
-    def test_update_value_inplace_preserves_comments(self) -> None:
+    @staticmethod
+    def test_update_value_inplace_preserves_comments() -> None:
         """Verify that update value inplace preserves comments."""
         node = u.Cli.yaml_roundtrip_load_map_text("# note\na: 1\n").unwrap()
 

@@ -46,9 +46,18 @@ class FlextCliUtilitiesFormatters:
         )
 
     @classmethod
-    def formatters_print(cls, message: str, style: str | None = None) -> None:
+    def formatters_print(
+        cls,
+        message: str,
+        style: str | None = None,
+        *,
+        error: bool = False,
+    ) -> None:
         """Print one message with the optional canonical style."""
-        FlextCliUtilitiesOutput.emit_raw(f"{cls._styled(message, style)}\n")
+        FlextCliUtilitiesOutput.emit_raw(
+            f"{cls._styled(message, style)}\n",
+            error=error,
+        )
 
     @classmethod
     def formatters_render_rule(cls, text: str) -> None:

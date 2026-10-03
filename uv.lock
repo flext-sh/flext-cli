@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.13.*"
 resolution-markers = [
     "sys_platform == 'linux'",
@@ -588,7 +588,7 @@ dev = [
 [[package]]
 name = "flext-core"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-core.git?rev=0.12.0-dev#2468257fd60ef0601401b9170b43c85e19760d75" }
+source = { git = "https://github.com/flext-sh/flext-core.git?rev=0.12.0-dev#e18ff6b49638652d67d9045135125d38db8104b0" }
 dependencies = [
     { name = "annotated-types" },
     { name = "beartype" },
@@ -604,7 +604,7 @@ dependencies = [
 [[package]]
 name = "flext-infra"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#93204137c4ba559f52885cd3eb83d85f83b58e87" }
+source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#51a3689e74d0809f17b9abf0bf00925a950064e4" }
 dependencies = [
     { name = "annotated-types" },
     { name = "beartype" },
@@ -630,7 +630,7 @@ dependencies = [
 [[package]]
 name = "flext-tests"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-tests.git?rev=0.12.0-dev#3db58abf6bbf14462fb969dd42a0b35399d975bb" }
+source = { git = "https://github.com/flext-sh/flext-tests.git?rev=0.12.0-dev#57bd198f5f9784c9658f6552b89f46bc6847dde0" }
 dependencies = [
     { name = "annotated-types" },
     { name = "beartype" },
@@ -1743,7 +1743,7 @@ wheels = [
 [[package]]
 name = "rope"
 version = "1.14.0+dc.3"
-source = { git = "https://github.com/marlon-costa-dc/rope.git?rev=1.14.0%2Bdc.3#64134bf54db1c02ca19602f320d26e1a570e7786" }
+source = { git = "https://github.com/marlon-costa-dc/rope.git?rev=datacosmos#64134bf54db1c02ca19602f320d26e1a570e7786" }
 dependencies = [
     { name = "pytoolconfig", extra = ["global"] },
 ]
