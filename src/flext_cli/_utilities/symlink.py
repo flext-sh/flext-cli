@@ -9,15 +9,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import m, p, r, t
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
+from flext_cli._utilities import atomic_file_descriptor
 from flext_cli._utilities.atomic_symlink_publish import (
     FlextCliUtilitiesAtomicSymlinkPublish,
 )
-from flext_cli._utilities.atomic_symlink_state import (
-    FlextCliUtilitiesAtomicSymlinkState,
-)
+from flext_cli._utilities import atomic_symlink_state
 
 
 class FlextCliUtilitiesSymlink:
@@ -39,10 +35,10 @@ class FlextCliUtilitiesSymlink:
         """
         try:
             location = Path(path)
-            with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+            with atomic_file_descriptor.parent_descriptor(
                 location,
             ) as parent:
-                state = FlextCliUtilitiesAtomicSymlinkState.read_symlink_state(
+                state = atomic_symlink_state.read_symlink_state(
                     location, parent, required=required,
                 )
         except OSError as exc:

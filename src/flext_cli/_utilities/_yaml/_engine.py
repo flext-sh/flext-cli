@@ -152,7 +152,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             _roundtrip_yaml().dump(data, stream)
         except (OSError, c.Cli.YamlRoundtripError, TypeError, ValueError) as exc:
             return r[bool].fail(f"YAML dump error: {exc}", exception=exc)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def yaml_roundtrip_dump_text(data: t.Cli.YamlNode) -> p.Result[str]:

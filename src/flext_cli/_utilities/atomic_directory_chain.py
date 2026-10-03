@@ -10,9 +10,7 @@ import errno
 from pathlib import Path
 
 from flext_cli import m, t
-from flext_cli._utilities.atomic_directory_create import (
-    FlextCliUtilitiesAtomicDirectoryCreate,
-)
+from flext_cli._utilities import atomic_directory_create
 from flext_cli._utilities.atomic_directory_delete import (
     FlextCliUtilitiesAtomicDirectoryDelete,
 )
@@ -22,10 +20,8 @@ from flext_cli._utilities.atomic_directory_descriptor import (
 from flext_cli._utilities.atomic_directory_snapshot import (
     FlextCliUtilitiesAtomicDirectorySnapshot,
 )
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-from flext_cli._utilities.atomic_parent_descriptor import (
-    FlextCliUtilitiesAtomicParentDescriptor,
-)
+from flext_cli._utilities import atomic_file_mode
+from flext_cli._utilities import atomic_parent_descriptor
 
 
 class FlextCliUtilitiesAtomicDirectoryChain:
@@ -41,7 +37,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         """
         path = Path(target)
         anchor, state, ancestry, missing = (
-            FlextCliUtilitiesAtomicParentDescriptor.inspect_directory_chain(path)
+            atomic_parent_descriptor.inspect_directory_chain(path)
         )
         return m.Cli.AtomicDirectoryChainPlan(
             target=path,
@@ -67,7 +63,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
             OSError: If ``mode is None``.
 
         """
-        mode = FlextCliUtilitiesAtomicFileMode.validate_mode(
+        mode = atomic_file_mode.validate_mode(
             permission_mode,
             label="permission_mode",
         )
@@ -94,12 +90,9 @@ class FlextCliUtilitiesAtomicDirectoryChain:
                     before,
                     expected_parent,
                 )
-                state = (
-                    FlextCliUtilitiesAtomicDirectoryCreate
-                    .create_guarded_empty_directory(
-                        before,
-                        permission_mode=mode,
-                    )
+                state = atomic_directory_create.create_guarded_empty_directory(
+                    before,
+                    permission_mode=mode,
                 )
                 created.append(state)
                 expected_parent = (
@@ -117,7 +110,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def _require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
-        with FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
+        with atomic_parent_descriptor.physical_directory(
             plan.anchor_path,
         ) as current:
             if (current.state.st_dev, current.state.st_ino) != (

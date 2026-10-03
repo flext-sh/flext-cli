@@ -12,7 +12,7 @@ from pathlib import Path
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities.atomic_file import FlextCliUtilitiesAtomicFile
 from flext_cli._utilities.atomic_file_delete import FlextCliUtilitiesAtomicFileDelete
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import atomic_file_path
 
 
 class FlextCliUtilitiesFiles:
@@ -28,7 +28,7 @@ class FlextCliUtilitiesFiles:
         """
         path = Path(file_path)
         try:
-            FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
+            atomic_file_path.validate_atomic_path(path)
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
@@ -53,7 +53,7 @@ class FlextCliUtilitiesFiles:
         """
         path = Path(file_path)
         try:
-            FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
+            atomic_file_path.validate_atomic_path(path)
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),

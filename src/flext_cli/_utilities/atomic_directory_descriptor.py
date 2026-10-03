@@ -11,15 +11,9 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
-from flext_cli._utilities.atomic_directory_noreplace import (
-    FlextCliUtilitiesAtomicDirectoryNoreplace,
-)
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_parent_descriptor import (
-    FlextCliUtilitiesAtomicParentDescriptor,
-)
+from flext_cli._utilities import atomic_directory_noreplace
+from flext_cli._utilities import atomic_file_descriptor
+from flext_cli._utilities import atomic_parent_descriptor
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -77,11 +71,11 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
 
         """
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(source)
-        FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(source)
-        FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(
+        atomic_parent_descriptor.require_traversal_capabilities(source)
+        atomic_parent_descriptor.require_traversal_capabilities(
             destination,
         )
-        FlextCliUtilitiesAtomicDirectoryNoreplace.require_noreplace_capability(
+        atomic_directory_noreplace.require_noreplace_capability(
             destination,
         )
         if not hasattr(os, "fsync"):
@@ -90,12 +84,12 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
 
     @staticmethod
     def create_entry(
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         path: Path,
     ) -> None:
         """Create one secure empty child through an authenticated parent descriptor."""
-        FlextCliUtilitiesAtomicFileDescriptor.require_entry(parent, path)
-        FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
+        atomic_file_descriptor.require_entry(parent, path)
+        atomic_file_descriptor.assert_parent_unchanged(parent)
         os.mkdir(
             path.name,
             FlextCliUtilitiesAtomicDirectoryDescriptor._SECURE_CREATE_MODE,
@@ -104,34 +98,34 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
 
     @staticmethod
     def remove_entry(
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         path: Path,
     ) -> None:
         """Remove one empty child through an authenticated parent descriptor."""
-        FlextCliUtilitiesAtomicFileDescriptor.require_entry(parent, path)
-        FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
+        atomic_file_descriptor.require_entry(parent, path)
+        atomic_file_descriptor.assert_parent_unchanged(parent)
         os.rmdir(path.name, dir_fd=parent.descriptor)
 
     @staticmethod
     def rename_entry_noreplace(
-        source_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        source_parent: atomic_file_descriptor.ParentDescriptor,
         source: Path,
         destination_parent: (
-            FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+            atomic_file_descriptor.ParentDescriptor
         ),
         destination: Path,
     ) -> None:
         """Move one child without clobbering any destination entry."""
-        FlextCliUtilitiesAtomicFileDescriptor.require_entry(source_parent, source)
-        FlextCliUtilitiesAtomicFileDescriptor.require_entry(
+        atomic_file_descriptor.require_entry(source_parent, source)
+        atomic_file_descriptor.require_entry(
             destination_parent,
             destination,
         )
-        FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(source_parent)
-        FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(
+        atomic_file_descriptor.assert_parent_unchanged(source_parent)
+        atomic_file_descriptor.assert_parent_unchanged(
             destination_parent,
         )
-        FlextCliUtilitiesAtomicDirectoryNoreplace.rename_noreplace(
+        atomic_directory_noreplace.rename_noreplace(
             source_parent.descriptor,
             source.name,
             destination_parent.descriptor,

@@ -14,19 +14,13 @@ from typing import TYPE_CHECKING, Never
 from flext_cli._utilities.atomic_directory_descriptor import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
 )
-from flext_cli._utilities.atomic_directory_model import (
-    FlextCliUtilitiesAtomicDirectoryModel,
-)
-from flext_cli._utilities.atomic_directory_state import (
-    FlextCliUtilitiesAtomicDirectoryState,
-)
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
+from flext_cli._utilities import atomic_directory_model
+from flext_cli._utilities import atomic_directory_state
+from flext_cli._utilities import atomic_file_descriptor
 from flext_cli._utilities.atomic_file_durability import (
     FlextCliUtilitiesAtomicFileDurability,
 )
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import atomic_file_path
 
 if TYPE_CHECKING:
     from flext_cli import m
@@ -55,35 +49,35 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
             OSError: If ``destination == staged_path``.
 
         """
-        destination = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(
+        destination = atomic_file_path.validate_atomic_path(
             destination_before.path,
         )
-        staged_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(staged.path)
+        staged_path = atomic_file_path.validate_atomic_path(staged.path)
         if destination == staged_path:
             message = "staged directory and destination must differ"
             raise OSError(errno.EINVAL, message, destination)
-        FlextCliUtilitiesAtomicDirectoryModel.require_absent(
+        atomic_directory_model.require_absent(
             destination_before,
             purpose="published",
         )
-        FlextCliUtilitiesAtomicDirectoryModel.require_existing(staged, purpose="staged")
+        atomic_directory_model.require_existing(staged, purpose="staged")
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_publish_capabilities(
             staged_path,
             destination,
         )
         with (
-            FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+            atomic_file_descriptor.parent_descriptor(
                 destination,
             ) as destination_parent,
-            FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+            atomic_file_descriptor.parent_descriptor(
                 staged_path,
             ) as staged_parent,
         ):
-            FlextCliUtilitiesAtomicDirectoryModel.require_parent(
+            atomic_directory_model.require_parent(
                 destination_before,
                 destination_parent.state,
             )
-            FlextCliUtilitiesAtomicDirectoryModel.require_parent(
+            atomic_directory_model.require_parent(
                 staged,
                 staged_parent.state,
             )
@@ -148,45 +142,45 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
     @staticmethod
     def _require_destination_absent(
         planned: m.Cli.AtomicDirectoryState,
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         path: Path,
     ) -> None:
-        observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        observed = atomic_directory_state.destination_state(
             path,
             parent=parent,
         )
-        FlextCliUtilitiesAtomicDirectoryModel.require_observed(planned, observed)
-        FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
+        atomic_directory_model.require_observed(planned, observed)
+        atomic_file_descriptor.assert_parent_unchanged(parent)
 
     @staticmethod
     def _authenticated_staged(
         planned: m.Cli.AtomicDirectoryState,
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         path: Path,
     ) -> os.stat_result:
-        observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        observed = atomic_directory_state.destination_state(
             path,
             parent=parent,
         )
-        FlextCliUtilitiesAtomicDirectoryModel.require_observed(planned, observed)
+        atomic_directory_model.require_observed(planned, observed)
         if observed is None:
             message = f"atomic staged directory disappeared: {path}"
             raise OSError(errno.ESTALE, message, path)
-        authenticated = FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
+        authenticated = atomic_directory_state.read_empty_state(
             parent,
             path,
             observed,
         )
-        FlextCliUtilitiesAtomicDirectoryModel.require_observed(planned, authenticated)
+        atomic_directory_model.require_observed(planned, authenticated)
         return authenticated
 
     @staticmethod
     def _require_same_filesystem(
         destination: Path,
         destination_parent: (
-            FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+            atomic_file_descriptor.ParentDescriptor
         ),
-        staged_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        staged_parent: atomic_file_descriptor.ParentDescriptor,
         staged: os.stat_result,
     ) -> None:
         device = destination_parent.state.st_dev
@@ -197,15 +191,15 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
     @staticmethod
     def _published_state(
         destination_parent: (
-            FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+            atomic_file_descriptor.ParentDescriptor
         ),
         destination: Path,
-        staged_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        staged_parent: atomic_file_descriptor.ParentDescriptor,
         staged_path: Path,
         staged: m.Cli.AtomicDirectoryState,
     ) -> m.Cli.AtomicDirectoryState:
         if (
-            FlextCliUtilitiesAtomicDirectoryState.destination_state(
+            atomic_directory_state.destination_state(
                 staged_path,
                 parent=staged_parent,
             )
@@ -213,20 +207,20 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         ):
             message = f"staged directory name exists after publication: {staged_path}"
             raise OSError(errno.ESTALE, message, staged_path)
-        observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        observed = atomic_directory_state.destination_state(
             destination,
             parent=destination_parent,
         )
         if observed is None:
             message = f"published directory is missing: {destination}"
             raise OSError(errno.ESTALE, message, destination)
-        authenticated = FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
+        authenticated = atomic_directory_state.read_empty_state(
             destination_parent,
             destination,
             observed,
         )
-        FlextCliUtilitiesAtomicDirectoryModel.require_observed(staged, authenticated)
-        return FlextCliUtilitiesAtomicDirectoryModel.from_observed(
+        atomic_directory_model.require_observed(staged, authenticated)
+        return atomic_directory_model.from_observed(
             destination,
             destination_parent.state,
             authenticated,

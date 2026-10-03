@@ -13,16 +13,10 @@ from typing import TYPE_CHECKING
 from flext_cli._utilities.atomic_directory_descriptor import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
 )
-from flext_cli._utilities.atomic_directory_model import (
-    FlextCliUtilitiesAtomicDirectoryModel,
-)
-from flext_cli._utilities.atomic_directory_state import (
-    FlextCliUtilitiesAtomicDirectoryState,
-)
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import atomic_directory_model
+from flext_cli._utilities import atomic_directory_state
+from flext_cli._utilities import atomic_file_descriptor
+from flext_cli._utilities import atomic_file_path
 
 if TYPE_CHECKING:
     from flext_cli import m
@@ -51,30 +45,30 @@ class FlextCliUtilitiesAtomicDirectorySnapshot:
             FileNotFoundError: If ``required``.
 
         """
-        path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
+        path = atomic_file_path.validate_atomic_path(path)
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(path)
         if (
             not required
-            and FlextCliUtilitiesAtomicFilePath.resolve_parent_path(path.parent)[0]
+            and atomic_file_path.resolve_parent_path(path.parent)[0]
             is None
         ):
-            return FlextCliUtilitiesAtomicDirectoryModel.from_observed(path, None, None)
-        with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+            return atomic_directory_model.from_observed(path, None, None)
+        with atomic_file_descriptor.parent_descriptor(path) as parent:
+            observed = atomic_directory_state.destination_state(
                 path, parent=parent,
             )
             if observed is None:
                 if required:
                     message = f"required atomic directory is missing: {path}"
                     raise FileNotFoundError(errno.ENOENT, message, path)
-                FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
-                return FlextCliUtilitiesAtomicDirectoryModel.from_observed(
+                atomic_file_descriptor.assert_parent_unchanged(parent)
+                return atomic_directory_model.from_observed(
                     path, parent.state, None,
                 )
-            authenticated = FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
+            authenticated = atomic_directory_state.read_empty_state(
                 parent, path, observed,
             )
-            return FlextCliUtilitiesAtomicDirectoryModel.from_observed(
+            return atomic_directory_model.from_observed(
                 path, parent.state, authenticated,
             )
 

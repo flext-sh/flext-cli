@@ -11,26 +11,17 @@ import os
 import uuid
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities.atomic_directory_noreplace import (
-    FlextCliUtilitiesAtomicDirectoryNoreplace,
-)
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
+from flext_cli._utilities import atomic_directory_noreplace
+from flext_cli._utilities import atomic_file_descriptor
 from flext_cli._utilities.atomic_file_durability import (
     FlextCliUtilitiesAtomicFileDurability,
 )
-from flext_cli._utilities.atomic_symlink_state import (
-    FlextCliUtilitiesAtomicSymlinkState,
-)
+from flext_cli._utilities import atomic_symlink_state
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from flext_cli import m
-    from flext_cli._utilities.atomic_file_descriptor import (
-        FlextCliUtilitiesAtomicFileDescriptor,
-    )
 
 
 class FlextCliUtilitiesAtomicSymlinkPublish:
@@ -61,7 +52,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
     def _stage_verified_link(
         before: m.Cli.AtomicSymlinkState,
         target: str,
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
     ) -> tuple[Path, m.Cli.AtomicSymlinkState]:
         """Create the staged link and prove it still names the target.
 
@@ -75,7 +66,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
         path = before.path
         staged_path = path.with_name(f".flext-symlink-{uuid.uuid4().hex}")
         os.symlink(target, staged_path.name, dir_fd=parent.descriptor)
-        observed = FlextCliUtilitiesAtomicSymlinkState.read_symlink_state(
+        observed = atomic_symlink_state.read_symlink_state(
             staged_path, parent, required=True,
         )
         if observed.target != target:
@@ -87,23 +78,23 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
     def _discard_staged(
         staged: m.Cli.AtomicSymlinkState,
         staged_path: Path,
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
     ) -> None:
         """Remove one staged link that never published, authenticated first."""
-        FlextCliUtilitiesAtomicSymlinkState.require_symlink_state(staged, parent)
-        FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, staged_path)
+        atomic_symlink_state.require_symlink_state(staged, parent)
+        atomic_file_descriptor.unlink_entry(parent, staged_path)
         FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
 
     @staticmethod
     def _swap_staged_link(
         before: m.Cli.AtomicSymlinkState,
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         staged_path: Path,
     ) -> None:
         """Swap the staged link into place under the caller-held lease."""
         if before.target is None:
-            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
-            FlextCliUtilitiesAtomicDirectoryNoreplace.rename_noreplace(
+            atomic_file_descriptor.assert_parent_unchanged(parent)
+            atomic_directory_noreplace.rename_noreplace(
                 parent.descriptor,
                 staged_path.name,
                 parent.descriptor,
@@ -111,7 +102,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
                 path=before.path,
             )
         else:
-            FlextCliUtilitiesAtomicFileDescriptor.replace_entry(
+            atomic_file_descriptor.replace_entry(
                 parent, staged_path, parent, before.path,
             )
         FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
@@ -119,7 +110,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
     @staticmethod
     def _verify_published(
         path: Path,
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         target: str,
         staged: m.Cli.AtomicSymlinkState,
     ) -> None:
@@ -131,7 +122,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
             after.identity.inode) != (staged.identity.device, staged.identity.inode)``.
 
         """
-        after = FlextCliUtilitiesAtomicSymlinkState.read_symlink_state(
+        after = atomic_symlink_state.read_symlink_state(
             path, parent, required=True,
         )
         if after.target != target or after.identity is None or staged.identity is None:
@@ -158,11 +149,11 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
         path = before.path
         FlextCliUtilitiesAtomicSymlinkPublish._validated_target(path, target)
         if before.target is None:
-            FlextCliUtilitiesAtomicDirectoryNoreplace.require_noreplace_capability(path)
-        with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+            atomic_directory_noreplace.require_noreplace_capability(path)
+        with atomic_file_descriptor.parent_descriptor(
             path, replace=True, unlink=True,
         ) as parent:
-            FlextCliUtilitiesAtomicSymlinkState.require_symlink_state(before, parent)
+            atomic_symlink_state.require_symlink_state(before, parent)
             if before.target == target:
                 return
             staged_path, staged = (
@@ -172,10 +163,10 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
             )
             swapped = False
             try:
-                FlextCliUtilitiesAtomicSymlinkState.require_symlink_state(
+                atomic_symlink_state.require_symlink_state(
                     before, parent,
                 )
-                FlextCliUtilitiesAtomicSymlinkState.require_symlink_state(
+                atomic_symlink_state.require_symlink_state(
                     staged, parent,
                 )
                 FlextCliUtilitiesAtomicSymlinkPublish._swap_staged_link(
@@ -212,14 +203,14 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
         if before.target is None:
             msg = f"cannot delete an absent symbolic link: {before.path}"
             raise FileNotFoundError(errno.ENOENT, msg, before.path)
-        with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+        with atomic_file_descriptor.parent_descriptor(
             before.path, unlink=True,
         ) as parent:
-            FlextCliUtilitiesAtomicSymlinkState.require_symlink_state(before, parent)
-            FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, before.path)
+            atomic_symlink_state.require_symlink_state(before, parent)
+            atomic_file_descriptor.unlink_entry(parent, before.path)
             FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             if (
-                FlextCliUtilitiesAtomicSymlinkState.read_symlink_state(
+                atomic_symlink_state.read_symlink_state(
                     before.path, parent,
                 ).target
                 is not None

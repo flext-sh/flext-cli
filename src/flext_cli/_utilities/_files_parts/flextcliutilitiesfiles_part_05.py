@@ -12,9 +12,7 @@ from flext_cli import c, m, p, r, t
 from flext_cli._utilities.atomic_directory_chain import (
     FlextCliUtilitiesAtomicDirectoryChain,
 )
-from flext_cli._utilities.atomic_directory_create import (
-    FlextCliUtilitiesAtomicDirectoryCreate,
-)
+from flext_cli._utilities import atomic_directory_create
 from flext_cli._utilities.atomic_directory_delete import (
     FlextCliUtilitiesAtomicDirectoryDelete,
 )
@@ -24,7 +22,7 @@ from flext_cli._utilities.atomic_directory_publish import (
 from flext_cli._utilities.atomic_directory_snapshot import (
     FlextCliUtilitiesAtomicDirectorySnapshot,
 )
-from flext_cli._utilities.atomic_tree_cleanup import FlextCliUtilitiesAtomicTreeCleanup
+from flext_cli._utilities import atomic_tree_cleanup
 from flext_cli._utilities.atomic_tree_inventory import (
     FlextCliUtilitiesAtomicTreeInventory,
 )
@@ -128,7 +126,7 @@ class FlextCliUtilitiesFiles:
         """
         try:
             state = (
-                FlextCliUtilitiesAtomicDirectoryCreate.create_guarded_empty_directory(
+                atomic_directory_create.create_guarded_empty_directory(
                     before,
                     permission_mode=permission_mode,
                 )
@@ -233,7 +231,7 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            FlextCliUtilitiesAtomicTreeCleanup.cleanup_physical_tree_guarded(manifest)
+            atomic_tree_cleanup.cleanup_physical_tree_guarded(manifest)
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_PHYSICAL_TREE_CLEANUP_FAILED.format(error=exc),

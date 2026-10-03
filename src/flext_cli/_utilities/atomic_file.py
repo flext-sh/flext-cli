@@ -13,22 +13,18 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli._utilities.atomic_file_cleanup import FlextCliUtilitiesAtomicFileCleanup
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
+from flext_cli._utilities import atomic_file_descriptor
 from flext_cli._utilities.atomic_file_durability import (
     FlextCliUtilitiesAtomicFileDurability,
 )
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
+from flext_cli._utilities import atomic_file_mode
 from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileModel
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import atomic_file_path
 from flext_cli._utilities.atomic_file_publish_checks import (
     FlextCliUtilitiesAtomicFilePublishChecks,
 )
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
-from flext_cli._utilities.atomic_file_temporary import (
-    FlextCliUtilitiesAtomicFileTemporary,
-)
+from flext_cli._utilities import atomic_file_state
+from flext_cli._utilities import atomic_file_temporary
 
 if TYPE_CHECKING:
     from flext_cli import m, t
@@ -61,17 +57,17 @@ class FlextCliUtilitiesAtomicFile:
             OSError: If ``not isinstance(content, bytes)``.
 
         """
-        path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
+        path = atomic_file_path.validate_atomic_path(path)
         if not isinstance(content, bytes):
             message = "atomic file content must be bytes"
             raise OSError(errno.EINVAL, message, path)
         planned = FlextCliUtilitiesAtomicFile._parse_precondition(path, expected_state)
-        with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+        with atomic_file_descriptor.parent_descriptor(
             path,
             replace=True,
             unlink=True,
         ) as parent:
-            expected = FlextCliUtilitiesAtomicFileState.destination_state(
+            expected = atomic_file_state.destination_state(
                 path,
                 parent=parent,
             )
@@ -80,32 +76,32 @@ class FlextCliUtilitiesAtomicFile:
                 expected_content = None
                 expected_mode: (
                     int
-                    | FlextCliUtilitiesAtomicFileMode.FlextCliNoModePrecondition
+                    | atomic_file_mode.NoModePrecondition
                     | None
-                ) = FlextCliUtilitiesAtomicFileMode.NO_MODE_PRECONDITION
+                ) = atomic_file_mode.NO_MODE_PRECONDITION
             else:
                 guarded = True
                 expected_content = planned.content
                 expected_mode = planned.mode
                 FlextCliUtilitiesAtomicFileModel.require_parent(planned, parent.state)
                 FlextCliUtilitiesAtomicFileModel.require_observed(planned, expected)
-            FlextCliUtilitiesAtomicFileState.validate_precondition(
+            atomic_file_state.validate_precondition(
                 path,
                 expected,
                 expected_content,
                 enabled=guarded,
                 parent=parent,
             )
-            FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
+            atomic_file_mode.validate_mode_precondition(
                 path,
                 expected,
                 expected_mode,
             )
-            target_mode = FlextCliUtilitiesAtomicFileMode.publication_mode(
+            target_mode = atomic_file_mode.publication_mode(
                 expected,
                 permission_mode,
             )
-            FlextCliUtilitiesAtomicFileTemporary.require_mode_capability(
+            atomic_file_temporary.require_mode_capability(
                 path,
                 target_mode,
             )
@@ -130,7 +126,7 @@ class FlextCliUtilitiesAtomicFile:
         if expected_state.path != path:
             message = "expected_state path differs from atomic destination"
             raise OSError(errno.EINVAL, message, path)
-        FlextCliUtilitiesAtomicFileMode.validate_guarded_mode_tuple(
+        atomic_file_mode.validate_guarded_mode_tuple(
             path,
             expected_state.content,
             expected_state.mode,
@@ -139,7 +135,7 @@ class FlextCliUtilitiesAtomicFile:
 
     @staticmethod
     def _stage_and_publish(
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         destination: Path,
         content: bytes,
         expected: os.stat_result | None,
@@ -160,10 +156,10 @@ class FlextCliUtilitiesAtomicFile:
 
         def __init__(
             self,
-            parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+            parent: atomic_file_descriptor.ParentDescriptor,
         ) -> None:
             self.parent = parent
-            self.temporary = FlextCliUtilitiesAtomicFileTemporary.temporary_path(parent)
+            self.temporary = atomic_file_temporary.temporary_path(parent)
             self.descriptor: int | None = None
             self.identity: t.Pair[int, int] | None = None
             self.mode: int | None = None
@@ -183,12 +179,12 @@ class FlextCliUtilitiesAtomicFile:
             )
             try:
                 self.descriptor = (
-                    FlextCliUtilitiesAtomicFileTemporary.create_descriptor(
+                    atomic_file_temporary.create_descriptor(
                         self.parent,
                         self.temporary,
                     )
                 )
-                self.identity = FlextCliUtilitiesAtomicFileState.identity(
+                self.identity = atomic_file_state.identity(
                     os.fstat(self.descriptor),
                 )
             finally:
@@ -205,12 +201,12 @@ class FlextCliUtilitiesAtomicFile:
             if self.descriptor is None or self.identity is None:
                 message = "atomic staging must be acquired before writing"
                 raise RuntimeError(message)
-            FlextCliUtilitiesAtomicFileState.assert_temporary_owned(
+            atomic_file_state.assert_temporary_owned(
                 self.temporary,
                 self.identity,
                 parent=self.parent,
             )
-            self.mode = FlextCliUtilitiesAtomicFileTemporary.write_and_sync(
+            self.mode = atomic_file_temporary.write_and_sync(
                 self.descriptor,
                 self.temporary,
                 content,
@@ -243,7 +239,7 @@ class FlextCliUtilitiesAtomicFile:
                 self.mode,
                 self.identity,
             )
-            FlextCliUtilitiesAtomicFileDescriptor.replace_entry(
+            atomic_file_descriptor.replace_entry(
                 self.parent,
                 self.temporary,
                 self.parent,
@@ -277,7 +273,7 @@ class FlextCliUtilitiesAtomicFile:
 
     @staticmethod
     def _validate_replacement(
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         destination: Path,
         expected: os.stat_result | None,
         temporary: Path,
@@ -305,12 +301,12 @@ class FlextCliUtilitiesAtomicFile:
             parent,
             staged_state,
         )
-        FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
+        atomic_file_state.assert_destination_unchanged(
             destination,
             expected,
             parent=parent,
         )
-        FlextCliUtilitiesAtomicFileState.assert_temporary_owned(
+        atomic_file_state.assert_temporary_owned(
             temporary,
             staged_identity,
             parent=parent,
@@ -318,13 +314,13 @@ class FlextCliUtilitiesAtomicFile:
 
     @staticmethod
     def _validate_staged(
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         temporary: Path,
         content: bytes,
         mode: int,
         identity: t.Pair[int, int],
     ) -> os.stat_result:
-        state = FlextCliUtilitiesAtomicFileState.destination_state(
+        state = atomic_file_state.destination_state(
             temporary,
             parent=parent,
         )
@@ -336,14 +332,14 @@ class FlextCliUtilitiesAtomicFile:
             state,
             identity,
         )
-        FlextCliUtilitiesAtomicFileState.validate_precondition(
+        atomic_file_state.validate_precondition(
             temporary,
             state,
             content,
             enabled=True,
             parent=parent,
         )
-        FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
+        atomic_file_mode.validate_mode_precondition(
             temporary,
             state,
             mode,

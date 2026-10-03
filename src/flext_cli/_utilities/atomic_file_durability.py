@@ -8,10 +8,8 @@ from __future__ import annotations
 
 import os
 
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import atomic_file_descriptor
+from flext_cli._utilities import atomic_file_path
 
 
 class FlextCliUtilitiesAtomicFileDurability:
@@ -19,23 +17,23 @@ class FlextCliUtilitiesAtomicFileDurability:
 
     @staticmethod
     def sync_parent(
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
     ) -> None:
         """Sync one authenticated directory after its namespace was mutated."""
-        FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
+        atomic_file_descriptor.assert_parent_unchanged(parent)
         os.fsync(parent.descriptor)
-        FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
+        atomic_file_descriptor.assert_parent_unchanged(parent)
 
     @staticmethod
     def sync_replacement(
-        source: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
-        destination: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        source: atomic_file_descriptor.ParentDescriptor,
+        destination: atomic_file_descriptor.ParentDescriptor,
     ) -> None:
         """Sync every physical directory changed by one completed replacement."""
         FlextCliUtilitiesAtomicFileDurability.sync_parent(source)
-        if FlextCliUtilitiesAtomicFilePath.identity(
+        if atomic_file_path.identity(
             source.state,
-        ) != FlextCliUtilitiesAtomicFilePath.identity(destination.state):
+        ) != atomic_file_path.identity(destination.state):
             FlextCliUtilitiesAtomicFileDurability.sync_parent(destination)
 
 

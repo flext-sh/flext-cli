@@ -11,11 +11,9 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+from flext_cli._utilities import atomic_file_descriptor
+from flext_cli._utilities import atomic_file_path
+from flext_cli._utilities import atomic_file_state
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -45,26 +43,26 @@ class FlextCliUtilitiesAtomicFileSnapshot:
             FileNotFoundError: If ``required``.
 
         """
-        validated = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
+        validated = atomic_file_path.validate_atomic_path(path)
         if (
             not required
-            and FlextCliUtilitiesAtomicFilePath.resolve_parent_path(validated.parent)[0]
+            and atomic_file_path.resolve_parent_path(validated.parent)[0]
             is None
         ):
             return None, None, None
-        with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+        with atomic_file_descriptor.parent_descriptor(
             validated,
         ) as parent:
-            state = FlextCliUtilitiesAtomicFileState.destination_state(
+            state = atomic_file_state.destination_state(
                 validated, parent=parent,
             )
             if state is None:
                 if required:
                     message = f"required atomic file is missing: {validated}"
                     raise FileNotFoundError(errno.ENOENT, message, validated)
-                FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
+                atomic_file_descriptor.assert_parent_unchanged(parent)
                 return parent.state, None, None
-            content = FlextCliUtilitiesAtomicFileState.read_authenticated_bytes(
+            content = atomic_file_state.read_authenticated_bytes(
                 validated, state, parent=parent,
             )
             return parent.state, state, content
