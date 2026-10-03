@@ -11,14 +11,11 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+from flext_cli._utilities import atomic_file_mode
+from flext_cli._utilities import atomic_file_state
 
 if TYPE_CHECKING:
     from flext_cli import t
-    from flext_cli._utilities.atomic_file_descriptor import (
-        FlextCliUtilitiesAtomicFileDescriptor,
-    )
 
 
 class FlextCliUtilitiesAtomicFilePublishChecks:
@@ -58,7 +55,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
 
         """
         observed = (
-            None if state is None else FlextCliUtilitiesAtomicFileState.identity(state)
+            None if state is None else atomic_file_state.identity(state)
         )
         if observed != expected:
             message = f"atomic file physical identity changed: {path}"
@@ -79,7 +76,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         """
         if (
             destination_state is not None
-            and FlextCliUtilitiesAtomicFileState.identity(destination_state)
+            and atomic_file_state.identity(destination_state)
             == staged_identity
         ):
             message = "staged file and atomic destination share one inode"
@@ -89,11 +86,11 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     def validate_devices(
         destination: Path,
         destination_parent: (
-            FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+            atomic_file_descriptor.ParentDescriptor
         ),
         destination_state: os.stat_result | None,
         staged: Path,
-        staged_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        staged_parent: atomic_file_descriptor.ParentDescriptor,
         staged_state: os.stat_result,
     ) -> None:
         """Require both entries and parents to occupy one filesystem.
@@ -118,10 +115,10 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     @staticmethod
     def validate_publication(
         destination_parent: (
-            FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+            atomic_file_descriptor.ParentDescriptor
         ),
         destination: Path,
-        staged_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        staged_parent: atomic_file_descriptor.ParentDescriptor,
         staged: Path,
         staged_bytes: bytes,
         staged_mode: int,
@@ -140,7 +137,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
 
         """
         if (
-            FlextCliUtilitiesAtomicFileState.destination_state(
+            atomic_file_state.destination_state(
                 staged,
                 parent=staged_parent,
             )
@@ -148,18 +145,18 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         ):
             message = f"atomic staged file still exists after publication: {staged}"
             raise OSError(errno.ESTALE, message, staged)
-        published = FlextCliUtilitiesAtomicFileState.destination_state(
+        published = atomic_file_state.destination_state(
             destination,
             parent=destination_parent,
         )
         if (
             published is None
-            or FlextCliUtilitiesAtomicFileState.identity(published) != staged_identity
+            or atomic_file_state.identity(published) != staged_identity
         ):
             message = f"published atomic file has another identity: {destination}"
             raise OSError(errno.ESTALE, message, destination)
         if (
-            FlextCliUtilitiesAtomicFileState.read_authenticated_bytes(
+            atomic_file_state.read_authenticated_bytes(
                 destination,
                 published,
                 parent=destination_parent,
@@ -168,7 +165,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         ):
             message = f"published atomic file bytes differ: {destination}"
             raise OSError(errno.ESTALE, message, destination)
-        FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
+        atomic_file_mode.validate_mode_precondition(
             destination,
             published,
             staged_mode,

@@ -11,13 +11,11 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
+from flext_cli._utilities import atomic_file_descriptor
 from flext_cli._utilities.atomic_file_durability import (
     FlextCliUtilitiesAtomicFileDurability,
 )
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+from flext_cli._utilities import atomic_file_state
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -28,7 +26,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
 
     @staticmethod
     def remove_failed_temporary(
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         temporary: Path,
         identity: t.Pair[int, int] | None,
         descriptor: int | None,
@@ -38,7 +36,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
         cleanup_errors: list[OSError] = []
         if identity is None and descriptor is not None:
             try:
-                identity = FlextCliUtilitiesAtomicFileState.identity(
+                identity = atomic_file_state.identity(
                     os.fstat(descriptor),
                 )
             except OSError as cleanup_error:
@@ -52,10 +50,10 @@ class FlextCliUtilitiesAtomicFileCleanup:
         # Leave unknown artifacts untouched; the original operation still raises.
         if identity is not None:
             try:
-                FlextCliUtilitiesAtomicFileState.assert_temporary_owned(
+                atomic_file_state.assert_temporary_owned(
                     temporary, identity, parent=parent,
                 )
-                FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, temporary)
+                atomic_file_descriptor.unlink_entry(parent, temporary)
                 FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             except OSError as cleanup_error:
                 cleanup_errors.append(cleanup_error)

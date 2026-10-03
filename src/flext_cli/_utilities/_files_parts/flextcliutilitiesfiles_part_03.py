@@ -179,7 +179,7 @@ class FlextCliUtilitiesFiles:
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
         if target_path.is_symlink() and target_path.resolve() == source_path:
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         if target_path.exists() or target_path.is_symlink():
             return r[bool].fail(
                 f"symlink destination already exists with a different identity: {target_path}",
@@ -194,7 +194,7 @@ class FlextCliUtilitiesFiles:
                     error=exc,
                 ),
             )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def read_symlink_target(target: t.Cli.TextPath) -> p.Result[t.Cli.TextPath]:
@@ -227,12 +227,12 @@ class FlextCliUtilitiesFiles:
         """
         target_path = Path(target)
         if not target_path.exists() and not target_path.is_symlink():
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         if target_path.is_dir() and not target_path.is_symlink():
             shutil.rmtree(target_path)
         else:
             target_path.unlink()
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def sha256_content(content: str) -> str:

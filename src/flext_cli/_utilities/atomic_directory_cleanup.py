@@ -14,19 +14,14 @@ from typing import TYPE_CHECKING
 from flext_cli._utilities.atomic_directory_descriptor import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
 )
-from flext_cli._utilities.atomic_directory_state import (
-    FlextCliUtilitiesAtomicDirectoryState,
-)
+from flext_cli._utilities import atomic_directory_state
 from flext_cli._utilities.atomic_file_durability import (
     FlextCliUtilitiesAtomicFileDurability,
 )
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
+from flext_cli._utilities import atomic_file_read
 
 if TYPE_CHECKING:
     from flext_cli import t
-    from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
 
 
 class FlextCliUtilitiesAtomicDirectoryCleanup:
@@ -34,7 +29,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
 
     @staticmethod
     def remove_created_directory(
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         path: Path,
         identity: t.Pair[int, int] | None,
         operation_error: BaseException,
@@ -54,11 +49,11 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
 
     @staticmethod
     def _remove_created_directory(
-        parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        parent: atomic_file_descriptor.ParentDescriptor,
         path: Path,
         identity: t.Pair[int, int] | None,
     ) -> None:
-        state = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        state = atomic_directory_state.destination_state(
             path, parent=parent,
         )
         if state is None:
@@ -69,13 +64,13 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
                 path, state, identity,
             )
         )
-        authenticated = FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
+        authenticated = atomic_directory_state.read_empty_state(
             parent, path, state,
         )
-        FlextCliUtilitiesAtomicDirectoryState.require_identity(
+        atomic_directory_state.require_identity(
             path, authenticated, owned_identity,
         )
-        current = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        current = atomic_directory_state.destination_state(
             path, parent=parent,
         )
         FlextCliUtilitiesAtomicDirectoryCleanup._require_unchanged_cleanup_state(
@@ -93,7 +88,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         if identity is None:
             message = f"refusing unauthenticated directory cleanup: {path}"
             raise OSError(errno.ESTALE, message, path)
-        FlextCliUtilitiesAtomicDirectoryState.require_identity(path, state, identity)
+        atomic_directory_state.require_identity(path, state, identity)
         return identity
 
     @staticmethod
@@ -105,9 +100,9 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         if current is None:
             message = f"atomic directory changed before cleanup: {path}"
             raise OSError(errno.ESTALE, message, path)
-        if FlextCliUtilitiesAtomicFileRead.state_key(
+        if atomic_file_read.state_key(
             current,
-        ) != FlextCliUtilitiesAtomicFileRead.state_key(authenticated):
+        ) != atomic_file_read.state_key(authenticated):
             message = f"atomic directory changed before cleanup: {path}"
             raise OSError(errno.ESTALE, message, path)
 

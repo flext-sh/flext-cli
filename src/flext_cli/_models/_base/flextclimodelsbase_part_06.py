@@ -116,7 +116,7 @@ class FlextCliModelsBase:
         ] = None
         required: Annotated[
             bool,
-            m.Field(False, description="Require an explicit option value"),
+            m.Field(default=False, description="Require an explicit option value"),
         ] = False
 
     class InvocationResult(m.Value):

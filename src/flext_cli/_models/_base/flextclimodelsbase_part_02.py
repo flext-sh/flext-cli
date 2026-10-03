@@ -165,11 +165,11 @@ class FlextCliModelsBase:
 
         interactive: Annotated[
             bool,
-            m.Field(True, description="Whether prompt interaction is enabled"),
+            m.Field(default=True, description="Whether prompt interaction is enabled"),
         ] = True
         quiet: Annotated[
             bool,
-            m.Field(False, description="Whether prompt output is suppressed"),
+            m.Field(default=False, description="Whether prompt output is suppressed"),
         ] = False
         default_timeout: Annotated[
             int,
