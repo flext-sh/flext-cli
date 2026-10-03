@@ -22,8 +22,7 @@ from tests import c, m, u
 class TestsFlextCliConfigEngine:
     """Group the TestsFlextCliConfigEngine test behavior."""
 
-    @staticmethod
-    def test_template_render_ok(tmp_path: Path) -> None:
+    def test_template_render_ok(self, tmp_path: Path) -> None:
         """Verify that template render ok."""
         tpl = tmp_path / "greeting.j2"
         tpl.write_text("port={{ server.port }}\n", encoding="utf-8")
@@ -33,8 +32,8 @@ class TestsFlextCliConfigEngine:
         tm.ok(result)
         tm.that(result.unwrap(), eq="port=8080\n")
 
-    @staticmethod
     def test_template_render_reuses_one_environment_per_directory(
+        self,
         tmp_path: Path,
     ) -> None:
         """Render the same directory repeatedly through a single Jinja engine."""
@@ -50,9 +49,9 @@ class TestsFlextCliConfigEngine:
         other = u.Cli.template_environment(tmp_path / "nested")
         tm.that(first is other, eq=False)
 
-    @staticmethod
     @pytest.mark.parametrize("included", [False, True])
     def test_template_render_observes_source_edits(
+        self,
         tmp_path: Path,
         *,
         included: bool,
@@ -72,8 +71,8 @@ class TestsFlextCliConfigEngine:
         tm.that(source.stat().st_mtime_ns, eq=initial.st_mtime_ns)
         tm.that(u.Cli.template_render(tpl, context).unwrap(), eq="PORT=42\n")
 
-    @staticmethod
     def test_authenticated_template_render_snapshots_imported_bytes(
+        self,
         tmp_path: Path,
     ) -> None:
         """Render a template and its import only from authenticated snapshots."""
@@ -103,23 +102,20 @@ class TestsFlextCliConfigEngine:
             eq=(template.read_bytes(), macro.read_bytes()),
         )
 
-    @staticmethod
-    def test_template_render_strict_undefined_fails(tmp_path: Path) -> None:
+    def test_template_render_strict_undefined_fails(self, tmp_path: Path) -> None:
         """Verify that template render strict undefined fails."""
         tpl = tmp_path / "greeting.j2"
         tpl.write_text("{{ missing_var }}\n", encoding="utf-8")
         result = u.Cli.template_render(tpl, m.Tests.TemplateEmpty())
         tm.fail(result)
 
-    @staticmethod
-    def test_template_render_missing_source_fails(tmp_path: Path) -> None:
+    def test_template_render_missing_source_fails(self, tmp_path: Path) -> None:
         """Verify that template render missing source fails."""
         result = u.Cli.template_render(tmp_path / "absent.j2", m.Tests.TemplateEmpty())
         tm.fail(result)
         tm.that((result.error or ""), has=c.Cli.ERR_TEMPLATE_NOT_FOUND)
 
-    @staticmethod
-    def test_template_render_to_writes(tmp_path: Path) -> None:
+    def test_template_render_to_writes(self, tmp_path: Path) -> None:
         """Verify that template render to writes."""
         tpl = tmp_path / "t.j2"
         tpl.write_text("value={{ value }}", encoding="utf-8")
@@ -128,8 +124,7 @@ class TestsFlextCliConfigEngine:
         tm.ok(result)
         tm.that(dest.read_text(encoding="utf-8"), eq="value=42")
 
-    @staticmethod
-    def test_config_load_yaml_expands_env(tmp_path: Path) -> None:
+    def test_config_load_yaml_expands_env(self, tmp_path: Path) -> None:
         """Verify that config load yaml expands env."""
         source = tmp_path / "app.yaml"
         source.write_text("path: ${CFG_ENGINE_HOME}/data\n", encoding="utf-8")
@@ -144,8 +139,7 @@ class TestsFlextCliConfigEngine:
         tm.that(doc.data["path"], eq="/eng/data")
         tm.that(doc.source_path, eq=str(source))
 
-    @staticmethod
-    def test_config_load_json_and_toml(tmp_path: Path) -> None:
+    def test_config_load_json_and_toml(self, tmp_path: Path) -> None:
         """Verify that config load json and toml."""
         j = tmp_path / "a.json"
         j.write_text('{"k": 1}', encoding="utf-8")
@@ -154,8 +148,7 @@ class TestsFlextCliConfigEngine:
         tm.that(u.Cli.config_load(j).unwrap().data["k"], eq=1)
         tm.that(u.Cli.config_load(t_src).unwrap().data["k"], eq=2)
 
-    @staticmethod
-    def test_config_load_unsupported_format_fails(tmp_path: Path) -> None:
+    def test_config_load_unsupported_format_fails(self, tmp_path: Path) -> None:
         """Verify that config load unsupported format fails."""
         bad = tmp_path / "a.ini"
         bad.write_text("k=1", encoding="utf-8")
@@ -163,8 +156,7 @@ class TestsFlextCliConfigEngine:
         tm.fail(result)
         tm.that((result.error or ""), has=c.Cli.ERR_CONFIG_UNSUPPORTED_FORMAT)
 
-    @staticmethod
-    def test_schema_validate_valid_and_invalid(tmp_path: Path) -> None:
+    def test_schema_validate_valid_and_invalid(self, tmp_path: Path) -> None:
         """Verify that schema validate valid and invalid."""
         schema = tmp_path / "s.schema.json"
         schema.write_text(
@@ -175,8 +167,7 @@ class TestsFlextCliConfigEngine:
         tm.ok(u.Cli.schema_validate({"port": 8080}, schema))
         tm.fail(u.Cli.schema_validate({"port": "x"}, schema))
 
-    @staticmethod
-    def test_config_load_with_schema_pairs(tmp_path: Path) -> None:
+    def test_config_load_with_schema_pairs(self, tmp_path: Path) -> None:
         """Verify that config load with schema pairs."""
         source = tmp_path / "app.yaml"
         source.write_text("port: 9000\n", encoding="utf-8")
@@ -186,8 +177,7 @@ class TestsFlextCliConfigEngine:
         tm.ok(ok)
         tm.that(ok.unwrap().schema_ref, eq=str(schema))
 
-    @staticmethod
-    def test_config_load_dir_auto_pairs_schemas(tmp_path: Path) -> None:
+    def test_config_load_dir_auto_pairs_schemas(self, tmp_path: Path) -> None:
         """Verify that config load dir auto pairs schemas."""
         cfg = tmp_path / "config"
         cfg.mkdir()
@@ -210,8 +200,7 @@ class TestsFlextCliConfigEngine:
 class TestsFlextCliTemplateRenderDir:
     """Behavior contract for the generic folder engine ``template_render_dir``."""
 
-    @staticmethod
-    def test_render_dir_ok_and_strips_suffix(tmp_path: Path) -> None:
+    def test_render_dir_ok_and_strips_suffix(self, tmp_path: Path) -> None:
         """Verify that render dir ok and strips suffix."""
         root = tmp_path / "tpl"
         (root / "sub").mkdir(parents=True)
@@ -241,8 +230,7 @@ class TestsFlextCliTemplateRenderDir:
         tm.that((out / "a.txt").read_text(encoding="utf-8"), eq="A=1\n")
         tm.that((out / "sub" / "b.txt").read_text(encoding="utf-8"), eq="B=1\n")
 
-    @staticmethod
-    def test_render_dir_when_false_skips(tmp_path: Path) -> None:
+    def test_render_dir_when_false_skips(self, tmp_path: Path) -> None:
         """Verify that render dir when false skips."""
         root = tmp_path / "tpl"
         root.mkdir()
@@ -265,8 +253,7 @@ class TestsFlextCliTemplateRenderDir:
         tm.that(report.created, empty=True)
         tm.that((out / "a").exists(), eq=False)
 
-    @staticmethod
-    def test_render_dir_overwrite_policy(tmp_path: Path) -> None:
+    def test_render_dir_overwrite_policy(self, tmp_path: Path) -> None:
         """Verify that render dir overwrite policy."""
         root = tmp_path / "tpl"
         root.mkdir()
@@ -304,8 +291,7 @@ class TestsFlextCliTemplateRenderDir:
         tm.that(len(created.created), eq=1)
         tm.that((out / "a").read_text(encoding="utf-8"), eq="new=2")
 
-    @staticmethod
-    def test_render_dir_blocks_escape(tmp_path: Path) -> None:
+    def test_render_dir_blocks_escape(self, tmp_path: Path) -> None:
         """Verify that render dir blocks escape."""
         root = tmp_path / "tpl"
         root.mkdir()
@@ -327,8 +313,7 @@ class TestsFlextCliTemplateRenderDir:
         tm.that(report.failed[0][1], has=c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE)
         tm.that((tmp_path / "escape").exists(), eq=False)
 
-    @staticmethod
-    def test_render_dir_missing_root_fails(tmp_path: Path) -> None:
+    def test_render_dir_missing_root_fails(self, tmp_path: Path) -> None:
         """Verify that render dir missing root fails."""
         result = u.Cli.template_render_dir(
             tmp_path / "nope",
@@ -338,8 +323,7 @@ class TestsFlextCliTemplateRenderDir:
         )
         tm.fail(result)
 
-    @staticmethod
-    def test_render_dir_collects_render_failures(tmp_path: Path) -> None:
+    def test_render_dir_collects_render_failures(self, tmp_path: Path) -> None:
         """Verify that render dir collects render failures."""
         root = tmp_path / "tpl"
         root.mkdir()

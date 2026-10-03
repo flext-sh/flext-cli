@@ -26,7 +26,6 @@ from tests import c, u
 class TestsFlextCliConstants:
     """Public-contract behavior of the flext-cli constants facade."""
 
-    @staticmethod
     @pytest.mark.parametrize(
         "enum_cls",
         [
@@ -37,7 +36,7 @@ class TestsFlextCliConstants:
             c.Cli.CommandStatus,
         ],
     )
-    def test_enum_values_matches_member_values(enum_cls: type[StrEnum]) -> None:
+    def test_enum_values_matches_member_values(self, enum_cls: type[StrEnum]) -> None:
         """u.enum_values returns exactly the frozenset of member .value strings."""
         values = u.enum_values(enum_cls)
         tm.that(
@@ -45,8 +44,7 @@ class TestsFlextCliConstants:
             eq=frozenset(member.value for member in enum_cls.__members__.values()),
         )
 
-    @staticmethod
-    def test_table_formats_is_mapping_keyed_by_tabular_format() -> None:
+    def test_table_formats_is_mapping_keyed_by_tabular_format(self) -> None:
         """TABLE_FORMATS maps a subset of TabularFormat members to descriptions."""
         table_formats = c.Cli.TABLE_FORMATS
         tm.that(table_formats, is_=Mapping)
@@ -56,25 +54,23 @@ class TestsFlextCliConstants:
             tm.that(description, is_=str)
             tm.that(description, empty=False)
 
-    @staticmethod
     @pytest.mark.parametrize(
         "message_map",
         [c.Cli.MESSAGE_STYLE_MAP, c.Cli.MESSAGE_EMOJI_MAP],
     )
     def test_message_maps_cover_every_message_type(
+        self,
         message_map: Mapping[c.Cli.MessageTypes, object],
     ) -> None:
         """Style/emoji maps expose an entry for every MessageTypes member."""
         tm.that(set(message_map), eq=set(c.Cli.MessageTypes))
 
-    @staticmethod
-    def test_format_error_template_interpolates_placeholder() -> None:
+    def test_format_error_template_interpolates_placeholder(self) -> None:
         """A templated error message interpolates its named placeholder."""
         rendered = c.Cli.ERR_INVALID_OUTPUT_FORMAT.format(format="qzz")
         tm.that(rendered, contains="qzz")
 
-    @staticmethod
-    def test_status_emojis_are_distinct() -> None:
+    def test_status_emojis_are_distinct(self) -> None:
         """Each status emoji is a distinct non-empty glyph."""
         emojis = (
             c.Cli.EMOJI_SUCCESS,
@@ -87,13 +83,11 @@ class TestsFlextCliConstants:
             tm.that(emoji, empty=False)
         tm.that(len(set(emojis)), eq=len(emojis))
 
-    @staticmethod
-    def test_success_and_failure_symbols_differ() -> None:
+    def test_success_and_failure_symbols_differ(self) -> None:
         """Success and failure marks are different observable symbols."""
         tm.that(c.Cli.SYMBOL_SUCCESS_MARK, empty=False)
         tm.that(c.Cli.SYMBOL_SUCCESS_MARK != c.Cli.SYMBOL_FAILURE_MARK, eq=True)
 
-    @staticmethod
     @pytest.mark.parametrize(
         ("message", "expected"),
         [
@@ -105,11 +99,10 @@ class TestsFlextCliConstants:
             ("permission denied", False),
         ],
     )
-    def test_file_not_found_classifier(message: str, *, expected: bool) -> None:
+    def test_file_not_found_classifier(self, message: str, *, expected: bool) -> None:
         """u.Cli.file_not_found_error flags file-absence diagnostics only."""
         tm.that(u.Cli.file_not_found_error(message), eq=expected)
 
-    @staticmethod
     @pytest.mark.parametrize(
         ("message", "expected"),
         [
@@ -121,6 +114,6 @@ class TestsFlextCliConstants:
             ("No such file or directory", False),
         ],
     )
-    def test_cli_usage_error_classifier(message: str, *, expected: bool) -> None:
+    def test_cli_usage_error_classifier(self, message: str, *, expected: bool) -> None:
         """u.Cli.cli_usage_error flags CLI-usage diagnostics only."""
         tm.that(u.Cli.cli_usage_error(message), eq=expected)

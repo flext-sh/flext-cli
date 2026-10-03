@@ -16,8 +16,7 @@ from tests import u
 class TestsAtomicDirectoryPublish:
     """Prove staged directory publication preserves identities and names."""
 
-    @staticmethod
-    def test_publish_preserves_late_empty_destination(tmp_path: Path) -> None:
+    def test_publish_preserves_late_empty_destination(self, tmp_path: Path) -> None:
         """Never replace an empty directory created after the absent snapshot."""
         staged_path = tmp_path / "staged"
         destination_path = tmp_path / "destination"
@@ -37,8 +36,8 @@ class TestsAtomicDirectoryPublish:
         tm.that(destination_path.stat().st_ino, eq=destination_inode)
         tm.that(staged_path.stat().st_ino, eq=staged_inode)
 
-    @staticmethod
     def test_publish_moves_exact_empty_inode_across_parents(
+        self,
         tmp_path: Path,
     ) -> None:
         """Return destination identity while preserving every staged leaf field."""
@@ -75,8 +74,7 @@ class TestsAtomicDirectoryPublish:
         tm.that(destination_path.is_dir(), eq=True)
         tm.that(staged_path.exists(), eq=False)
 
-    @staticmethod
-    def test_publish_rejects_staged_replacement_inode(tmp_path: Path) -> None:
+    def test_publish_rejects_staged_replacement_inode(self, tmp_path: Path) -> None:
         """Never move another empty inode that reuses the staged pathname.
 
         Raises:
@@ -106,8 +104,7 @@ class TestsAtomicDirectoryPublish:
         tm.that(staged_path.is_dir(), eq=True)
         tm.that(original_path.is_dir(), eq=True)
 
-    @staticmethod
-    def test_publish_rejects_late_staged_content(tmp_path: Path) -> None:
+    def test_publish_rejects_late_staged_content(self, tmp_path: Path) -> None:
         """Preserve staging and destination absence when staging stops being empty."""
         staged_path = tmp_path / "staged"
         destination_path = tmp_path / "destination"

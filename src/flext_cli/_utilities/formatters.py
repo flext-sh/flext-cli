@@ -9,8 +9,9 @@ from __future__ import annotations
 from typing import Final
 
 from flext_cli import c, m
-from flext_cli._utilities.output import FlextCliUtilitiesOutput
-from flext_cli._utilities.tables import FlextCliUtilitiesTables
+
+from .output import FlextCliUtilitiesOutput
+from .tables import FlextCliUtilitiesTables
 
 
 class FlextCliUtilitiesFormatters:
@@ -45,18 +46,9 @@ class FlextCliUtilitiesFormatters:
         )
 
     @classmethod
-    def formatters_print(
-        cls,
-        message: str,
-        style: str | None = None,
-        *,
-        error: bool = False,
-    ) -> None:
+    def formatters_print(cls, message: str, style: str | None = None) -> None:
         """Print one message with the optional canonical style."""
-        FlextCliUtilitiesOutput.emit_raw(
-            f"{cls._styled(message, style)}\n",
-            error=error,
-        )
+        FlextCliUtilitiesOutput.emit_raw(f"{cls._styled(message, style)}\n")
 
     @classmethod
     def formatters_render_rule(cls, text: str) -> None:
@@ -73,9 +65,8 @@ class FlextCliUtilitiesFormatters:
         """Render one bordered panel with an optional title line."""
         border = FlextCliUtilitiesFormatters._PANEL_GLYPH * 4
         if title:
-            header = f"{border} {title} {border}"
             FlextCliUtilitiesOutput.emit_raw(
-                f"{cls._styled(header, c.Cli.MessageStyles.BOLD)}\n",
+                f"{cls._styled(f'{border} {title} {border}', c.Cli.MessageStyles.BOLD)}\n",
             )
         else:
             FlextCliUtilitiesOutput.emit_raw(f"{border}\n")

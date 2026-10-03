@@ -20,8 +20,7 @@ if TYPE_CHECKING:
 class TestsFlextCliYamlModelLoading:
     """Observable contracts for model-first YAML file ingress."""
 
-    @staticmethod
-    def test_single_source_returns_requested_model(tmp_path: Path) -> None:
+    def test_single_source_returns_requested_model(self, tmp_path: Path) -> None:
         """A successful public result contains only the requested model."""
         source = tmp_path / "consumer.yaml"
         written = u.Cli.atomic_write_text_file(
@@ -39,8 +38,8 @@ class TestsFlextCliYamlModelLoading:
         tm.that(result.value.service.port, eq=8443)
         tm.that(result.value.features.enabled, eq=True)
 
-    @staticmethod
     def test_chain_deep_merges_before_one_final_validation(
+        self,
         tmp_path: Path,
     ) -> None:
         """Individually incomplete layers become one valid final model."""
@@ -74,8 +73,7 @@ class TestsFlextCliYamlModelLoading:
         tm.that(result.value.service.port, eq=443)
         tm.that(result.value.features.enabled, eq=True)
 
-    @staticmethod
-    def test_missing_file_fails_loud(tmp_path: Path) -> None:
+    def test_missing_file_fails_loud(self, tmp_path: Path) -> None:
         """A missing external source returns a failed public result."""
         result = cli.read_yaml_model(
             tmp_path / "missing.yaml",
@@ -84,8 +82,7 @@ class TestsFlextCliYamlModelLoading:
 
         tm.that(result.failure, eq=True)
 
-    @staticmethod
-    def test_malformed_chain_source_fails_loud(tmp_path: Path) -> None:
+    def test_malformed_chain_source_fails_loud(self, tmp_path: Path) -> None:
         """Malformed YAML in any ordered layer returns a failed result."""
         base_source = tmp_path / "base.yaml"
         malformed_source = tmp_path / "malformed.yaml"
@@ -108,8 +105,7 @@ class TestsFlextCliYamlModelLoading:
 
         tm.that(result.failure, eq=True)
 
-    @staticmethod
-    def test_strict_model_rejects_quoted_integer(tmp_path: Path) -> None:
+    def test_strict_model_rejects_quoted_integer(self, tmp_path: Path) -> None:
         """External scalar coercion cannot weaken the requested model."""
         source = tmp_path / "wrong-scalar.yaml"
         written = u.Cli.atomic_write_text_file(

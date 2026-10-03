@@ -34,9 +34,8 @@ if TYPE_CHECKING:
 class TestsFlextCliTomlSyncCoverage:
     """Public-contract behavior of the ``u.Cli.toml_*`` synchronizers."""
 
-    @staticmethod
     @pytest.fixture
-    def project_table() -> Table:
+    def project_table(self) -> Table:
         """Fresh ``[project]`` table inside an empty document.
 
         Returns:
@@ -48,8 +47,8 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- scalar sync -----------------------------------------------------
 
-    @staticmethod
     def test_sync_value_writes_expected_and_reports_mutation(
+        self,
         project_table: Table,
     ) -> None:
         # Arrange
@@ -63,8 +62,8 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(changed, eq=True)
         tm.that(u.Cli.toml_value(project_table, "name"), eq="flext-demo")
 
-    @staticmethod
     def test_sync_value_is_idempotent_when_already_in_sync(
+        self,
         project_table: Table,
     ) -> None:
         # Arrange
@@ -78,8 +77,7 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(second, eq=False)
         tm.that(u.Cli.toml_value(project_table, "name"), eq="flext-demo")
 
-    @staticmethod
-    def test_sync_value_creates_missing_key(project_table: Table) -> None:
+    def test_sync_value_creates_missing_key(self, project_table: Table) -> None:
         # Act
         """Verify that sync value creates missing key."""
         changed = u.Cli.toml_sync_value(project_table, "version", "1.2.3")
@@ -90,8 +88,7 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- string-list sync ------------------------------------------------
 
-    @staticmethod
-    def test_sync_string_list_stores_sorted_values(project_table: Table) -> None:
+    def test_sync_string_list_stores_sorted_values(self, project_table: Table) -> None:
         # Act
         """Verify that sync string list stores sorted values."""
         changed = u.Cli.toml_sync_string_list(
@@ -108,8 +105,8 @@ class TestsFlextCliTomlSyncCoverage:
             eq=["anna", "zoe"],
         )
 
-    @staticmethod
     def test_sync_string_list_sorted_ignores_input_order(
+        self,
         project_table: Table,
     ) -> None:
         # Arrange
@@ -132,8 +129,7 @@ class TestsFlextCliTomlSyncCoverage:
         # Assert
         tm.that(changed, eq=False)
 
-    @staticmethod
-    def test_merge_string_list_unions_and_sorts(project_table: Table) -> None:
+    def test_merge_string_list_unions_and_sorts(self, project_table: Table) -> None:
         # Arrange
         """Verify that merge string list unions and sorts."""
         u.Cli.toml_sync_string_list(project_table, "authors", ("anna", "zoe"))
@@ -148,8 +144,8 @@ class TestsFlextCliTomlSyncCoverage:
             eq=["anna", "marlon", "zoe"],
         )
 
-    @staticmethod
     def test_merge_string_list_noop_when_subset_present(
+        self,
         project_table: Table,
     ) -> None:
         # Arrange -- already the sorted union
@@ -172,8 +168,7 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- mapping-table sync ---------------------------------------------
 
-    @staticmethod
-    def test_sync_mapping_table_writes_expected_mapping() -> None:
+    def test_sync_mapping_table_writes_expected_mapping(self) -> None:
         # Arrange
         """Verify that sync mapping table writes expected mapping."""
         doc = u.Cli.toml_document()
@@ -187,8 +182,7 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(changed, eq=True)
         tm.that(u.Cli.toml_as_mapping(tool["lint"]), eq=dict(expected))
 
-    @staticmethod
-    def test_sync_mapping_table_idempotent() -> None:
+    def test_sync_mapping_table_idempotent(self) -> None:
         # Arrange
         """Verify that sync mapping table idempotent."""
         doc = u.Cli.toml_document()
@@ -202,8 +196,7 @@ class TestsFlextCliTomlSyncCoverage:
         # Assert
         tm.that(second, eq=False)
 
-    @staticmethod
-    def test_sync_mapping_table_drops_stale_keys() -> None:
+    def test_sync_mapping_table_drops_stale_keys(self) -> None:
         # Arrange -- seed a table carrying a key not in the new expected mapping
         """Verify that sync mapping table drops stale keys."""
         doc = u.Cli.toml_document()
@@ -219,8 +212,8 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- key removal -----------------------------------------------------
 
-    @staticmethod
     def test_remove_key_if_present_reports_and_deletes(
+        self,
         project_table: Table,
     ) -> None:
         # Arrange
@@ -238,9 +231,8 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- plain-mapping helpers ------------------------------------------
 
-    @staticmethod
     @pytest.fixture
-    def payload() -> dict[str, t.JsonValue]:
+    def payload(self) -> dict[str, t.JsonValue]:
         """Fresh plain pyproject-style mapping.
 
         Returns:
@@ -249,8 +241,8 @@ class TestsFlextCliTomlSyncCoverage:
         """
         return {"project": {"name": "demo"}, "obsolete": True}
 
-    @staticmethod
     def test_mapping_remove_key_if_present_reports_and_deletes(
+        self,
         payload: t.MutableJsonMapping,
     ) -> None:
         # Act
@@ -263,8 +255,8 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(again, eq=False)
         tm.that(payload, lacks="obsolete")
 
-    @staticmethod
     def test_mapping_sync_value_writes_expected(
+        self,
         payload: t.MutableJsonMapping,
     ) -> None:
         # Arrange
@@ -278,8 +270,7 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(changed, eq=True)
         tm.that(payload["build-system"], eq=build)
 
-    @staticmethod
-    def test_mapping_sync_value_idempotent(payload: t.MutableJsonMapping) -> None:
+    def test_mapping_sync_value_idempotent(self, payload: t.MutableJsonMapping) -> None:
         # Arrange
         """Verify that mapping sync value idempotent."""
         build: t.JsonValue = {"requires": ["setuptools>=70"]}
@@ -291,8 +282,8 @@ class TestsFlextCliTomlSyncCoverage:
         # Assert
         tm.that(second, eq=False)
 
-    @staticmethod
     def test_mapping_merge_then_sorted_sync_is_noop(
+        self,
         payload: t.MutableJsonMapping,
     ) -> None:
         # Arrange
@@ -316,8 +307,8 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(second, eq=False)
         tm.that(payload["plugins"], eq=["pytest", "ruff"])
 
-    @staticmethod
     def test_mapping_sync_mapping_table_writes_and_is_idempotent(
+        self,
         payload: t.MutableJsonMapping,
     ) -> None:
         # Arrange

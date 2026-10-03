@@ -48,8 +48,8 @@ class TestsFlextCliServiceRoutes:
                 TestsFlextCliServiceRoutes.Status(ready=1),
             )
 
-        @staticmethod
         def greet_all(
+            self,
             request: TestsFlextCliServiceRoutes.Greeting,
         ) -> p.Result[str]:
             """Greet someone by name.
@@ -60,8 +60,7 @@ class TestsFlextCliServiceRoutes:
             """
             return r[str].ok(" ".join([f"hello {request.name}"] * request.times))
 
-        @staticmethod
-        def report() -> p.Result[TestsFlextCliServiceRoutes.Status]:
+        def report(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
             """Report the service status.
 
             Returns:
@@ -139,8 +138,7 @@ class TestsFlextCliServiceRoutes:
         with pytest.raises(RuntimeError, match="not configured"):
             cli.execute_app(app, prog_name="greeter", args=["report"])
 
-    @staticmethod
-    def test_required_excluded_request_field_fails_at_build() -> None:
+    def test_required_excluded_request_field_fails_at_build(self) -> None:
         """A required field that no option can supply is a build-time defect."""
 
         class Hidden(m.BaseModel):

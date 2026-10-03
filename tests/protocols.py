@@ -25,49 +25,43 @@ class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
         class Prompts(Protocol):
             """Public prompt service surface exercised by the prompt tests."""
 
-            @staticmethod
-            def execute() -> p.Result[m.Cli.RuntimeStatus]:
+            def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
                 """Define the execute test contract."""
                 ...
 
-            @staticmethod
-            def prompt(message: str, default: str = "") -> p.Result[str]:
+            def prompt(self, message: str, default: str = "") -> p.Result[str]:
                 """Define the prompt test contract."""
                 ...
 
-            @staticmethod
-            def confirm(message: str, *, default: bool = False) -> p.Result[bool]:
+            def confirm(self, message: str, *, default: bool = False) -> p.Result[bool]:
                 """Define the confirm test contract."""
                 ...
 
-            @staticmethod
             def prompt_choice(
+                self,
                 choices: t.StrSequence,
                 default: str | None = None,
             ) -> p.Result[str]:
                 """Define the prompt choice test contract."""
                 ...
 
-            @staticmethod
             def prompt_password(
+                self,
                 message: str,
                 min_length: int = 8,
             ) -> p.Result[str]:
                 """Define the prompt password test contract."""
                 ...
 
-            @staticmethod
-            def print_success(message: str) -> p.Result[bool]:
+            def print_success(self, message: str) -> p.Result[bool]:
                 """Define the print success test contract."""
                 ...
 
-            @staticmethod
-            def print_error(message: str) -> p.Result[bool]:
+            def print_error(self, message: str) -> p.Result[bool]:
                 """Define the print error test contract."""
                 ...
 
-            @staticmethod
-            def print_warning(message: str) -> p.Result[bool]:
+            def print_warning(self, message: str) -> p.Result[bool]:
                 """Define the print warning test contract."""
                 ...
 

@@ -9,10 +9,9 @@ from __future__ import annotations
 from typing import Annotated, ClassVar
 
 from flext_cli import t
-from flext_cli._models._base.flextclimodelsbase_part_01 import (
-    FlextCliModelsBase as FlextCliModelsBasePart01,
-)
 from flext_core import m
+
+from .flextclimodelsbase_part_01 import FlextCliModelsBase as FlextCliModelsBasePart01
 
 
 class FlextCliModelsBase:
@@ -117,24 +116,8 @@ class FlextCliModelsBase:
         ] = None
         required: Annotated[
             bool,
-            m.Field(default=False, description="Require an explicit option value"),
+            m.Field(False, description="Require an explicit option value"),
         ] = False
-
-    class ParsedOptionTokens(m.Value):
-        """Validated parse-only route used before a command is executed."""
-
-        values: Annotated[
-            t.JsonMapping,
-            m.Field(description="Parsed canonical option fields"),
-        ]
-        remaining: Annotated[
-            t.StrSequence,
-            m.Field(description="Unconsumed positional tokens"),
-        ]
-        help_requested: Annotated[
-            bool,
-            m.Field(description="Standalone help option was requested"),
-        ]
 
     class InvocationResult(m.Value):
         """Framework-neutral result of one real CLI invocation."""

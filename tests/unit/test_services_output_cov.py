@@ -27,7 +27,6 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_message ───────────────────────────────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize(
         ("message_type", "expected_marker"),
         [
@@ -40,6 +39,7 @@ class TestsFlextCliServicesOutputCov:
         ],
     )
     def test_display_message_prefixes_type_marker_and_keeps_text(
+        self,
         capsys: Capture,
         message_type: c.Cli.MessageTypes | None,
         expected_marker: str,
@@ -47,41 +47,15 @@ class TestsFlextCliServicesOutputCov:
         """Verify that display message prefixes type marker and keeps text."""
         cli.display_message("payload text", message_type)
 
-        captured = capsys.readouterr()
-        out = captured.err if message_type == c.Cli.MessageTypes.ERROR else captured.out
+        out = capsys.readouterr().out
         tm.that(out, has="payload text")
         tm.that(out, has=expected_marker)
-        tm.that(
-            captured.out if message_type == c.Cli.MessageTypes.ERROR else captured.err,
-            eq="",
-        )
 
     # ── display_text ──────────────────────────────────────────────────
 
-    @staticmethod
-    @pytest.mark.parametrize(
-        "message_type",
-        [c.Cli.MessageTypes.ERROR, c.Cli.MessageTypes.INFO],
-    )
-    def test_display_message_plain_routes_error_to_stderr(
-        capsys: Capture,
-        message_type: c.Cli.MessageTypes,
-    ) -> None:
-        """Keep plain error output separate from regular messages."""
-        cli.display_message_plain("payload text", message_type)
-        captured = capsys.readouterr()
-        selected = (
-            captured.err if message_type == c.Cli.MessageTypes.ERROR else captured.out
-        )
-        other = (
-            captured.out if message_type == c.Cli.MessageTypes.ERROR else captured.err
-        )
-        tm.that(selected, has="payload text")
-        tm.that(other, eq="")
-
-    @staticmethod
     @pytest.mark.parametrize("style", ["bold red", "dim", None])
     def test_display_text_emits_text_regardless_of_style(
+        self,
         capsys: Capture,
         style: str | None,
     ) -> None:
@@ -93,8 +67,7 @@ class TestsFlextCliServicesOutputCov:
 
         tm.that(capsys.readouterr().out, has="visible words")
 
-    @staticmethod
-    def test_display_text_is_repeatable(capsys: Capture) -> None:
+    def test_display_text_is_repeatable(self, capsys: Capture) -> None:
         """Verify that display text is repeatable."""
         cli.display_text("echo")
         cli.display_text("echo")
@@ -103,9 +76,9 @@ class TestsFlextCliServicesOutputCov:
 
     # ── print_message ─────────────────────────────────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize("style", ["bold red", None])
     def test_print_message_emits_message_with_or_without_style(
+        self,
         capsys: Capture,
         style: str | None,
     ) -> None:
@@ -116,9 +89,9 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_header ────────────────────────────────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize("label", ["Setup", "Results", "Done"])
     def test_display_header_renders_label_in_rule(
+        self,
         capsys: Capture,
         label: str,
     ) -> None:
@@ -129,12 +102,12 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_progress ──────────────────────────────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize(
         ("current", "total", "expected_counter"),
         [(3, 10, "[03/10]"), (5, 5, "[5/5]"), (1, 100, "[001/100]"), (0, 8, "[0/8]")],
     )
     def test_display_progress_zero_pads_counter_to_total_width(
+        self,
         capsys: Capture,
         current: int,
         total: int,
@@ -147,8 +120,8 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has=expected_counter)
         tm.that(out, has="Processing")
 
-    @staticmethod
     def test_display_progress_appends_detail_when_present(
+        self,
         capsys: Capture,
     ) -> None:
         """Verify that display progress appends detail when present."""
@@ -156,8 +129,7 @@ class TestsFlextCliServicesOutputCov:
 
         tm.that(capsys.readouterr().out, has="loading")
 
-    @staticmethod
-    def test_display_progress_omits_detail_when_empty(capsys: Capture) -> None:
+    def test_display_progress_omits_detail_when_empty(self, capsys: Capture) -> None:
         """Verify that display progress omits detail when empty."""
         cli.display_progress(3, 10, "Steps")
 
@@ -166,12 +138,12 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_status ────────────────────────────────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize(
         ("success", "expected_symbol"),
         [(True, "✓"), (False, "✗")],
     )
     def test_display_status_symbol_reflects_outcome(
+        self,
         capsys: Capture,
         *,
         success: bool,
@@ -185,12 +157,12 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has="lint")
         tm.that(out, has="clean")
 
-    @staticmethod
     @pytest.mark.parametrize(
         ("elapsed", "expected_timing"),
         [(1.23, "(1.23s)"), (0.5, "(0.50s)")],
     )
     def test_display_status_formats_elapsed_to_two_decimals(
+        self,
         capsys: Capture,
         elapsed: float,
         expected_timing: str,
@@ -200,8 +172,8 @@ class TestsFlextCliServicesOutputCov:
 
         tm.that(capsys.readouterr().out, has=expected_timing)
 
-    @staticmethod
     def test_display_status_omits_timing_when_elapsed_absent(
+        self,
         capsys: Capture,
     ) -> None:
         """Verify that display status omits timing when elapsed absent."""
@@ -211,8 +183,7 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_summary ───────────────────────────────────────────────
 
-    @staticmethod
-    def test_display_summary_reports_all_counters(capsys: Capture) -> None:
+    def test_display_summary_reports_all_counters(self, capsys: Capture) -> None:
         """Verify that display summary reports all counters."""
         cli.display_summary("Run Summary", total=10, success=8, failed=2)
 
@@ -223,8 +194,7 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has="Failed: 2")
         tm.that(out, has="Skipped: 0")
 
-    @staticmethod
-    def test_display_summary_reflects_explicit_skipped(capsys: Capture) -> None:
+    def test_display_summary_reflects_explicit_skipped(self, capsys: Capture) -> None:
         """Verify that display summary reflects explicit skipped."""
         cli.display_summary("Summary", total=10, success=7, failed=1, skipped=2)
 
@@ -232,8 +202,8 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_gate ──────────────────────────────────────────────────
 
-    @staticmethod
     def test_display_gate_passed_shows_success_symbol_and_name(
+        self,
         capsys: Capture,
     ) -> None:
         """Verify that display gate passed shows success symbol and name."""
@@ -243,8 +213,8 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has="✓")
         tm.that(out, has="ruff")
 
-    @staticmethod
     def test_display_gate_failed_shows_failure_symbol_name_and_message(
+        self,
         capsys: Capture,
     ) -> None:
         """Verify that display gate failed shows failure symbol name and message."""
@@ -257,8 +227,7 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_metrics ───────────────────────────────────────────────
 
-    @staticmethod
-    def test_display_metrics_emits_each_key_value_pair(capsys: Capture) -> None:
+    def test_display_metrics_emits_each_key_value_pair(self, capsys: Capture) -> None:
         """Verify that display metrics emits each key value pair."""
         cli.display_metrics({"total": 100, "passed": 95, "failed": 5})
 
@@ -267,8 +236,7 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has="passed=95")
         tm.that(out, has="failed=5")
 
-    @staticmethod
-    def test_display_metrics_empty_mapping_emits_nothing(capsys: Capture) -> None:
+    def test_display_metrics_empty_mapping_emits_nothing(self, capsys: Capture) -> None:
         """Verify that display metrics empty mapping emits nothing."""
         cli.display_metrics({})
 
@@ -276,15 +244,14 @@ class TestsFlextCliServicesOutputCov:
 
     # ── display_debug ─────────────────────────────────────────────────
 
-    @staticmethod
-    def test_display_debug_is_noop_when_not_verbose(capsys: Capture) -> None:
+    def test_display_debug_is_noop_when_not_verbose(self, capsys: Capture) -> None:
         """Verify that display debug is noop when not verbose."""
         cli.display_debug("hidden", verbose=False)
 
         tm.that(capsys.readouterr().out, eq="")
 
-    @staticmethod
     def test_display_debug_emits_labelled_line_when_verbose(
+        self,
         capsys: Capture,
     ) -> None:
         """Verify that display debug emits labelled line when verbose."""
