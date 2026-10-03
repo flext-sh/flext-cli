@@ -11,7 +11,7 @@ from collections.abc import Callable
 from contextvars import ContextVar
 from inspect import Parameter
 from types import EllipsisType, GenericAlias
-from typing import TYPE_CHECKING, Never
+from typing import TYPE_CHECKING, ClassVar, Never
 
 import click
 import typer
@@ -28,15 +28,16 @@ if TYPE_CHECKING:
 
     # typer ships a vendored click, so the exceptions it raises are NOT instances
     # of the top-level `click` package's classes. `typer.BadParameter` is exported
-# from that vendored module, so walking to its ClickException ancestor names
-# the base class through typer's PUBLIC surface -- no private module access.
-_TYPER_CLICK_EXCEPTION: type[Exception] = next(
-    base for base in typer.BadParameter.__mro__ if base.__name__ == "ClickException"
-)
 
 
 class FlextCliUtilitiesFramework:
     """Single adapter owning all Click/Typer runtime interaction."""
+
+    # from that vendored module, so walking to its ClickException ancestor names
+    # the base class through typer's PUBLIC surface -- no private module access.
+    _TYPER_CLICK_EXCEPTION: ClassVar[type[Exception]] = next(
+        base for base in typer.BadParameter.__mro__ if base.__name__ == "ClickException"
+    )
 
     class TyperApplication:
         """Private application implementation hidden behind ``p.Cli.Application``."""
@@ -321,7 +322,10 @@ class FlextCliUtilitiesFramework:
         # command is typer._click.exceptions.UsageError -- a DIFFERENT class from
         # the click.ClickException imported here. Catching only the latter let an
         # unknown command escape every handler and propagate out of the facade.
-        except (click.ClickException, _TYPER_CLICK_EXCEPTION) as exc:
+        except (
+            click.ClickException,
+            FlextCliUtilitiesFramework._TYPER_CLICK_EXCEPTION,
+        ) as exc:
             return e.fail_validation(error=exc, result_type=r[bool])
         except typer.Abort:
             raise

@@ -159,137 +159,92 @@ if TYPE_CHECKING:
     from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
     from flext_cli._utilities._yaml._engine import FlextCliUtilitiesYamlEngineMixin
     from flext_cli._utilities.atomic_directory_chain import (
-        create_guarded_directory_chain,
-        plan_directory_chain,
+        FlextCliUtilitiesAtomicDirectoryChain,
     )
-    from flext_cli._utilities.atomic_directory_cleanup import remove_created_directory
+    from flext_cli._utilities.atomic_directory_cleanup import (
+        FlextCliUtilitiesAtomicDirectoryCleanup,
+    )
     from flext_cli._utilities.atomic_directory_create import (
-        create_guarded_empty_directory,
+        FlextCliUtilitiesAtomicDirectoryCreate,
     )
     from flext_cli._utilities.atomic_directory_delete import (
-        remove_guarded_empty_directory,
+        FlextCliUtilitiesAtomicDirectoryDelete,
     )
     from flext_cli._utilities.atomic_directory_descriptor import (
-        create_entry,
-        remove_entry,
-        rename_entry_noreplace,
-        require_create_capabilities,
-        require_delete_capabilities,
-        require_publish_capabilities,
-        require_read_capabilities,
+        FlextCliUtilitiesAtomicDirectoryDescriptor,
     )
     from flext_cli._utilities.atomic_directory_model import (
         DirectoryPhysicalState,
-        from_observed,
-        physical_state,
-        require_absent,
-        require_existing,
-        require_observed,
-        require_parent,
+        FlextCliUtilitiesAtomicDirectoryModel,
     )
     from flext_cli._utilities.atomic_directory_noreplace import (
-        rename_noreplace,
-        require_noreplace_capability,
+        FlextCliUtilitiesAtomicDirectoryNoreplace,
     )
     from flext_cli._utilities.atomic_directory_publish import (
-        publish_guarded_staged_empty_directory,
+        FlextCliUtilitiesAtomicDirectoryPublish,
     )
     from flext_cli._utilities.atomic_directory_snapshot import (
-        read_authenticated_empty_directory,
+        FlextCliUtilitiesAtomicDirectorySnapshot,
     )
     from flext_cli._utilities.atomic_directory_state import (
-        destination_state,
-        initialize_empty_state,
-        read_empty_state,
-        require_identity,
+        FlextCliUtilitiesAtomicDirectoryState,
     )
-    from flext_cli._utilities.atomic_file import write_atomic_bytes
-    from flext_cli._utilities.atomic_file_cleanup import remove_failed_temporary
-    from flext_cli._utilities.atomic_file_delete import remove_guarded_file
+    from flext_cli._utilities.atomic_file import FlextCliUtilitiesAtomicFile
+    from flext_cli._utilities.atomic_file_cleanup import (
+        FlextCliUtilitiesAtomicFileCleanup,
+    )
+    from flext_cli._utilities.atomic_file_delete import (
+        FlextCliUtilitiesAtomicFileDelete,
+    )
     from flext_cli._utilities.atomic_file_descriptor import (
-        FlextCliParentDescriptor,
-        assert_parent_unchanged,
-        close_after_failure,
-        entry_descriptor,
-        entry_stat,
-        open_entry,
-        parent_descriptor,
-        replace_entry,
-        require_entry,
-        unlink_entry,
+        FlextCliUtilitiesAtomicFileDescriptor,
     )
     from flext_cli._utilities.atomic_file_durability import (
-        sync_parent,
-        sync_replacement,
+        FlextCliUtilitiesAtomicFileDurability,
     )
-    from flext_cli._utilities.atomic_file_mode import (
-        NO_MODE_PRECONDITION,
-        assert_observed_mode,
-        publication_mode,
-        validate_guarded_mode_tuple,
-        validate_mode,
-        validate_mode_precondition,
+    from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
+    from flext_cli._utilities.atomic_file_model import (
+        FlextCliUtilitiesAtomicFileModel,
+        PhysicalState,
     )
-    from flext_cli._utilities.atomic_file_model import PhysicalState
-    from flext_cli._utilities.atomic_file_path import (
-        identity,
-        is_reparse_point,
-        resolve_parent_path,
-        validate_atomic_path,
-        validate_directory_path,
-        validate_directory_state,
-        validate_parent_path,
+    from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+    from flext_cli._utilities.atomic_file_publish import (
+        FlextCliUtilitiesAtomicFilePublish,
     )
-    from flext_cli._utilities.atomic_file_publish import publish_guarded_staged_file
     from flext_cli._utilities.atomic_file_publish_checks import (
-        require_distinct_inode,
-        validate_devices,
-        validate_identity,
-        validate_publication,
+        FlextCliUtilitiesAtomicFilePublishChecks,
     )
-    from flext_cli._utilities.atomic_file_read import read_descriptor_bytes, state_key
-    from flext_cli._utilities.atomic_file_snapshot import read_authenticated_state
-    from flext_cli._utilities.atomic_file_state import (
-        assert_destination_unchanged,
-        assert_temporary_owned,
-        read_authenticated_bytes,
-        validate_precondition,
+    from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
+    from flext_cli._utilities.atomic_file_snapshot import (
+        FlextCliUtilitiesAtomicFileSnapshot,
     )
+    from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
     from flext_cli._utilities.atomic_file_temporary import (
-        create_descriptor,
-        require_mode_capability,
-        temporary_path,
-        write_and_sync,
+        FlextCliUtilitiesAtomicFileTemporary,
     )
     from flext_cli._utilities.atomic_parent_descriptor import (
         DirectoryChainInspection,
-        FlextCliPhysicalDirectory,
-        inspect_directory_chain,
-        physical_directory,
-        require_traversal_capabilities,
-        verify_lineage,
+        FlextCliUtilitiesAtomicParentDescriptor,
     )
-    from flext_cli._utilities.atomic_parent_failure import preserve_recheck_failure
+    from flext_cli._utilities.atomic_parent_failure import (
+        FlextCliUtilitiesAtomicParentFailure,
+    )
     from flext_cli._utilities.atomic_symlink_publish import (
-        delete_guarded_symlink,
-        write_guarded_symlink,
+        FlextCliUtilitiesAtomicSymlinkPublish,
     )
     from flext_cli._utilities.atomic_symlink_state import (
-        read_symlink_state,
-        require_symlink_state,
-        symlink_identity,
+        FlextCliUtilitiesAtomicSymlinkState,
     )
-    from flext_cli._utilities.atomic_tree_cleanup import cleanup_physical_tree_guarded
+    from flext_cli._utilities.atomic_tree_cleanup import (
+        FlextCliUtilitiesAtomicTreeCleanup,
+    )
     from flext_cli._utilities.atomic_tree_darwin import FlextCliAtomicTreeDarwin
     from flext_cli._utilities.atomic_tree_descriptor import (
-        measure_authenticated_file,
-        mount_id,
-        require_directory_state,
-        require_entry_state,
-        require_mount,
-        require_same_device,
+        FlextCliUtilitiesAtomicTreeDescriptor,
     )
-    from flext_cli._utilities.atomic_tree_inventory import inventory_physical_tree
+    from flext_cli._utilities.atomic_tree_inventory import (
+        FlextCliUtilitiesAtomicTreeInventory,
+    )
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
     from flext_cli._utilities.commands import FlextCliUtilitiesCommands
@@ -326,12 +281,40 @@ if TYPE_CHECKING:
 
 
 __all__: tuple[str, ...] = (
-    "NO_MODE_PRECONDITION",
     "DirectoryChainInspection",
     "DirectoryPhysicalState",
     "FlextCliAtomicTreeDarwin",
-    "FlextCliParentDescriptor",
-    "FlextCliPhysicalDirectory",
+    "FlextCliUtilitiesAtomicDirectoryChain",
+    "FlextCliUtilitiesAtomicDirectoryCleanup",
+    "FlextCliUtilitiesAtomicDirectoryCreate",
+    "FlextCliUtilitiesAtomicDirectoryDelete",
+    "FlextCliUtilitiesAtomicDirectoryDescriptor",
+    "FlextCliUtilitiesAtomicDirectoryModel",
+    "FlextCliUtilitiesAtomicDirectoryNoreplace",
+    "FlextCliUtilitiesAtomicDirectoryPublish",
+    "FlextCliUtilitiesAtomicDirectorySnapshot",
+    "FlextCliUtilitiesAtomicDirectoryState",
+    "FlextCliUtilitiesAtomicFile",
+    "FlextCliUtilitiesAtomicFileCleanup",
+    "FlextCliUtilitiesAtomicFileDelete",
+    "FlextCliUtilitiesAtomicFileDescriptor",
+    "FlextCliUtilitiesAtomicFileDurability",
+    "FlextCliUtilitiesAtomicFileMode",
+    "FlextCliUtilitiesAtomicFileModel",
+    "FlextCliUtilitiesAtomicFilePath",
+    "FlextCliUtilitiesAtomicFilePublish",
+    "FlextCliUtilitiesAtomicFilePublishChecks",
+    "FlextCliUtilitiesAtomicFileRead",
+    "FlextCliUtilitiesAtomicFileSnapshot",
+    "FlextCliUtilitiesAtomicFileState",
+    "FlextCliUtilitiesAtomicFileTemporary",
+    "FlextCliUtilitiesAtomicParentDescriptor",
+    "FlextCliUtilitiesAtomicParentFailure",
+    "FlextCliUtilitiesAtomicSymlinkPublish",
+    "FlextCliUtilitiesAtomicSymlinkState",
+    "FlextCliUtilitiesAtomicTreeCleanup",
+    "FlextCliUtilitiesAtomicTreeDescriptor",
+    "FlextCliUtilitiesAtomicTreeInventory",
     "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
@@ -433,92 +416,6 @@ __all__: tuple[str, ...] = (
     "_toml_parts",
     "_xlxx",
     "_yaml",
-    "assert_destination_unchanged",
-    "assert_observed_mode",
-    "assert_parent_unchanged",
-    "assert_temporary_owned",
-    "cleanup_physical_tree_guarded",
-    "close_after_failure",
-    "create_descriptor",
-    "create_entry",
-    "create_guarded_directory_chain",
-    "create_guarded_empty_directory",
-    "delete_guarded_symlink",
-    "destination_state",
-    "entry_descriptor",
-    "entry_stat",
-    "from_observed",
-    "identity",
-    "initialize_empty_state",
-    "inspect_directory_chain",
-    "inventory_physical_tree",
-    "is_reparse_point",
-    "measure_authenticated_file",
-    "mount_id",
-    "open_entry",
-    "parent_descriptor",
-    "physical_directory",
-    "physical_state",
-    "plan_directory_chain",
-    "preserve_recheck_failure",
-    "publication_mode",
-    "publish_guarded_staged_empty_directory",
-    "publish_guarded_staged_file",
-    "read_authenticated_bytes",
-    "read_authenticated_empty_directory",
-    "read_authenticated_state",
-    "read_descriptor_bytes",
-    "read_empty_state",
-    "read_symlink_state",
-    "remove_created_directory",
-    "remove_entry",
-    "remove_failed_temporary",
-    "remove_guarded_empty_directory",
-    "remove_guarded_file",
-    "rename_entry_noreplace",
-    "rename_noreplace",
-    "replace_entry",
-    "require_absent",
-    "require_create_capabilities",
-    "require_delete_capabilities",
-    "require_directory_state",
-    "require_distinct_inode",
-    "require_entry",
-    "require_entry_state",
-    "require_existing",
-    "require_identity",
-    "require_mode_capability",
-    "require_mount",
-    "require_noreplace_capability",
-    "require_observed",
-    "require_parent",
-    "require_publish_capabilities",
-    "require_read_capabilities",
-    "require_same_device",
-    "require_symlink_state",
-    "require_traversal_capabilities",
-    "resolve_parent_path",
-    "state_key",
-    "symlink_identity",
-    "sync_parent",
-    "sync_replacement",
-    "temporary_path",
-    "unlink_entry",
-    "validate_atomic_path",
-    "validate_devices",
-    "validate_directory_path",
-    "validate_directory_state",
-    "validate_guarded_mode_tuple",
-    "validate_identity",
-    "validate_mode",
-    "validate_mode_precondition",
-    "validate_parent_path",
-    "validate_precondition",
-    "validate_publication",
-    "verify_lineage",
-    "write_and_sync",
-    "write_atomic_bytes",
-    "write_guarded_symlink",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
@@ -621,127 +518,50 @@ _LAZY_IMPORTS = MappingProxyType(
             "._yaml._convert": ("FlextCliUtilitiesYamlConvertMixin",),
             "._yaml._editing": ("FlextCliUtilitiesYamlEditingMixin",),
             "._yaml._engine": ("FlextCliUtilitiesYamlEngineMixin",),
-            ".atomic_directory_chain": (
-                "create_guarded_directory_chain",
-                "plan_directory_chain",
-            ),
-            ".atomic_directory_cleanup": ("remove_created_directory",),
-            ".atomic_directory_create": ("create_guarded_empty_directory",),
-            ".atomic_directory_delete": ("remove_guarded_empty_directory",),
+            ".atomic_directory_chain": ("FlextCliUtilitiesAtomicDirectoryChain",),
+            ".atomic_directory_cleanup": ("FlextCliUtilitiesAtomicDirectoryCleanup",),
+            ".atomic_directory_create": ("FlextCliUtilitiesAtomicDirectoryCreate",),
+            ".atomic_directory_delete": ("FlextCliUtilitiesAtomicDirectoryDelete",),
             ".atomic_directory_descriptor": (
-                "create_entry",
-                "remove_entry",
-                "rename_entry_noreplace",
-                "require_create_capabilities",
-                "require_delete_capabilities",
-                "require_publish_capabilities",
-                "require_read_capabilities",
+                "FlextCliUtilitiesAtomicDirectoryDescriptor",
             ),
             ".atomic_directory_model": (
                 "DirectoryPhysicalState",
-                "from_observed",
-                "physical_state",
-                "require_absent",
-                "require_existing",
-                "require_observed",
-                "require_parent",
+                "FlextCliUtilitiesAtomicDirectoryModel",
             ),
             ".atomic_directory_noreplace": (
-                "rename_noreplace",
-                "require_noreplace_capability",
+                "FlextCliUtilitiesAtomicDirectoryNoreplace",
             ),
-            ".atomic_directory_publish": ("publish_guarded_staged_empty_directory",),
-            ".atomic_directory_snapshot": ("read_authenticated_empty_directory",),
-            ".atomic_directory_state": (
-                "destination_state",
-                "initialize_empty_state",
-                "read_empty_state",
-                "require_identity",
-            ),
-            ".atomic_file": ("write_atomic_bytes",),
-            ".atomic_file_cleanup": ("remove_failed_temporary",),
-            ".atomic_file_delete": ("remove_guarded_file",),
-            ".atomic_file_descriptor": (
-                "FlextCliParentDescriptor",
-                "assert_parent_unchanged",
-                "close_after_failure",
-                "entry_descriptor",
-                "entry_stat",
-                "open_entry",
-                "parent_descriptor",
-                "replace_entry",
-                "require_entry",
-                "unlink_entry",
-            ),
-            ".atomic_file_durability": ("sync_parent", "sync_replacement"),
-            ".atomic_file_mode": (
-                "NO_MODE_PRECONDITION",
-                "assert_observed_mode",
-                "publication_mode",
-                "validate_guarded_mode_tuple",
-                "validate_mode",
-                "validate_mode_precondition",
-            ),
-            ".atomic_file_model": ("PhysicalState",),
-            ".atomic_file_path": (
-                "identity",
-                "is_reparse_point",
-                "resolve_parent_path",
-                "validate_atomic_path",
-                "validate_directory_path",
-                "validate_directory_state",
-                "validate_parent_path",
-            ),
-            ".atomic_file_publish": ("publish_guarded_staged_file",),
+            ".atomic_directory_publish": ("FlextCliUtilitiesAtomicDirectoryPublish",),
+            ".atomic_directory_snapshot": ("FlextCliUtilitiesAtomicDirectorySnapshot",),
+            ".atomic_directory_state": ("FlextCliUtilitiesAtomicDirectoryState",),
+            ".atomic_file": ("FlextCliUtilitiesAtomicFile",),
+            ".atomic_file_cleanup": ("FlextCliUtilitiesAtomicFileCleanup",),
+            ".atomic_file_delete": ("FlextCliUtilitiesAtomicFileDelete",),
+            ".atomic_file_descriptor": ("FlextCliUtilitiesAtomicFileDescriptor",),
+            ".atomic_file_durability": ("FlextCliUtilitiesAtomicFileDurability",),
+            ".atomic_file_mode": ("FlextCliUtilitiesAtomicFileMode",),
+            ".atomic_file_model": ("FlextCliUtilitiesAtomicFileModel", "PhysicalState"),
+            ".atomic_file_path": ("FlextCliUtilitiesAtomicFilePath",),
+            ".atomic_file_publish": ("FlextCliUtilitiesAtomicFilePublish",),
             ".atomic_file_publish_checks": (
-                "require_distinct_inode",
-                "validate_devices",
-                "validate_identity",
-                "validate_publication",
+                "FlextCliUtilitiesAtomicFilePublishChecks",
             ),
-            ".atomic_file_read": ("read_descriptor_bytes", "state_key"),
-            ".atomic_file_snapshot": ("read_authenticated_state",),
-            ".atomic_file_state": (
-                "assert_destination_unchanged",
-                "assert_temporary_owned",
-                "read_authenticated_bytes",
-                "validate_precondition",
-            ),
-            ".atomic_file_temporary": (
-                "create_descriptor",
-                "require_mode_capability",
-                "temporary_path",
-                "write_and_sync",
-            ),
+            ".atomic_file_read": ("FlextCliUtilitiesAtomicFileRead",),
+            ".atomic_file_snapshot": ("FlextCliUtilitiesAtomicFileSnapshot",),
+            ".atomic_file_state": ("FlextCliUtilitiesAtomicFileState",),
+            ".atomic_file_temporary": ("FlextCliUtilitiesAtomicFileTemporary",),
             ".atomic_parent_descriptor": (
                 "DirectoryChainInspection",
-                "FlextCliPhysicalDirectory",
-                "inspect_directory_chain",
-                "physical_directory",
-                "require_traversal_capabilities",
-                "verify_lineage",
+                "FlextCliUtilitiesAtomicParentDescriptor",
             ),
-            ".atomic_parent_failure": ("preserve_recheck_failure",),
-            ".atomic_symlink_publish": (
-                "delete_guarded_symlink",
-                "write_guarded_symlink",
-            ),
-            ".atomic_symlink_state": (
-                "read_symlink_state",
-                "require_symlink_state",
-                "symlink_identity",
-            ),
-            ".atomic_tree_cleanup": ("cleanup_physical_tree_guarded",),
+            ".atomic_parent_failure": ("FlextCliUtilitiesAtomicParentFailure",),
+            ".atomic_symlink_publish": ("FlextCliUtilitiesAtomicSymlinkPublish",),
+            ".atomic_symlink_state": ("FlextCliUtilitiesAtomicSymlinkState",),
+            ".atomic_tree_cleanup": ("FlextCliUtilitiesAtomicTreeCleanup",),
             ".atomic_tree_darwin": ("FlextCliAtomicTreeDarwin",),
-            ".atomic_tree_descriptor": (
-                "measure_authenticated_file",
-                "mount_id",
-                "require_directory_state",
-                "require_entry_state",
-                "require_mount",
-                "require_same_device",
-            ),
-            ".atomic_tree_inventory": ("inventory_physical_tree",),
+            ".atomic_tree_descriptor": ("FlextCliUtilitiesAtomicTreeDescriptor",),
+            ".atomic_tree_inventory": ("FlextCliUtilitiesAtomicTreeInventory",),
             ".auth": ("FlextCliUtilitiesAuth",),
             ".cmd": ("FlextCliUtilitiesCmd",),
             ".commands": ("FlextCliUtilitiesCommands",),

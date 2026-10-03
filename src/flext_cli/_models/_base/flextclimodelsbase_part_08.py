@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import t
-from flext_cli._models import atomic_state
+from flext_cli._models.atomic_state import FlextCliModelsAtomicState
 from flext_core import m, u
 
 
@@ -50,7 +50,7 @@ class FlextCliModelsBase:
         @u.field_validator("target", "anchor_path")
         @classmethod
         def _validate_paths(cls, value: Path) -> Path:
-            return atomic_state.validate_atomic_state_path(
+            return FlextCliModelsAtomicState.validate_atomic_state_path(
                 value,
                 label="atomic directory-chain",
                 allow_root=True,
@@ -63,7 +63,7 @@ class FlextCliModelsBase:
             value: t.VariadicTuple[Path],
         ) -> t.VariadicTuple[Path]:
             return tuple(
-                atomic_state.validate_atomic_state_path(
+                FlextCliModelsAtomicState.validate_atomic_state_path(
                     path,
                     label="atomic directory-chain entry",
                 )

@@ -18,9 +18,6 @@ from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixi
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_core import u
 
-_EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
-_EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()
-
 
 class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
     """Generic YAML read, parse, dump, and validation helpers.
@@ -34,6 +31,10 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
     helpers in this class body stay for plain read/write. Do not add a
     second ruamel engine in this class or in any leaf module.
     """
+
+    _EMPTY_JSON_MAPPING: ClassVar[t.JsonMapping] = MappingProxyType({})
+
+    _EMPTY_JSON_SEQUENCE: ClassVar[t.SequenceOf[t.JsonValue]] = ()
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
@@ -104,7 +105,9 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
         """
         return FlextCliUtilitiesYaml.yaml_safe_load(path).unwrap_or(
-            default if default is not None else _EMPTY_JSON_MAPPING,
+            default
+            if default is not None
+            else FlextCliUtilitiesYaml._EMPTY_JSON_MAPPING,
         )
 
     @staticmethod
@@ -141,12 +144,12 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
         """
         if not path.is_file():
-            return _EMPTY_JSON_SEQUENCE
+            return FlextCliUtilitiesYaml._EMPTY_JSON_SEQUENCE
         return u.try_(
             lambda: FlextCliUtilitiesYaml._yaml_parse_list(path),
             catch=(OSError, u.Yaml.YAMLError, TypeError, c.ValidationError),
             op_name="yaml_load_list",
-        ).unwrap_or(_EMPTY_JSON_SEQUENCE)
+        ).unwrap_or(FlextCliUtilitiesYaml._EMPTY_JSON_SEQUENCE)
 
     # ------------------------------------------------------------------
     # Writing
