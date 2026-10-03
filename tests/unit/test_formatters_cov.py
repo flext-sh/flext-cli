@@ -30,9 +30,9 @@ class TestsFlextCliFormattersCov:
 
     # ── print: message rendered to stdout ────────────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize(("msg", "style"), c.Tests.FORMATTERS_PRINT_CASES)
     def test_print_renders_message_to_stdout(
+        self,
         capsys: pytest.CaptureFixture[str],
         msg: str,
         style: str | None,
@@ -46,8 +46,8 @@ class TestsFlextCliFormattersCov:
         out = capsys.readouterr().out
         tm.that(out, has=msg)
 
-    @staticmethod
     def test_public_cli_print_renders_message_to_stdout(
+        self,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify the canonical public cli.print endpoint."""
@@ -57,9 +57,9 @@ class TestsFlextCliFormattersCov:
 
     # ── render_rule: label rendered to stdout ────────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize("label", c.Tests.FORMATTER_RULE_LABELS)
     def test_render_rule_renders_label_to_stdout(
+        self,
         capsys: pytest.CaptureFixture[str],
         label: str,
     ) -> None:
@@ -73,9 +73,9 @@ class TestsFlextCliFormattersCov:
 
     # ── render_panel: content rendered to stdout ─────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize(("content", "title"), c.Tests.FORMATTER_PANEL_CASES)
     def test_render_panel_renders_content_to_stdout(
+        self,
         capsys: pytest.CaptureFixture[str],
         content: str,
         title: str,
@@ -88,12 +88,12 @@ class TestsFlextCliFormattersCov:
 
     # ── render_table: columns and cells rendered to stdout ───────────
 
-    @staticmethod
     @pytest.mark.parametrize(
         ("columns", "rows", "title"),
         c.Tests.FORMATTER_TABLE_CASES,
     )
     def test_render_table_renders_columns_and_cells(
+        self,
         capsys: pytest.CaptureFixture[str],
         columns: t.StrSequence,
         rows: t.VariadicTuple[t.StrSequence],

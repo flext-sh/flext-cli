@@ -13,17 +13,14 @@ from flext_cli.models import m
 class FlextCliUtilitiesOptionBuilder:
     """Implementation part for FlextCliUtilitiesOptionBuilder."""
 
-    @classmethod
-    def build(
-        cls,
-        field_name: str,
-        registry: t.Cli.OptionRegistry,
-    ) -> m.Cli.OptionSpec:
-        """Build one CLI option spec from field metadata.
+    def __init__(self, field_name: str, registry: t.Cli.OptionRegistry) -> None:
+        """Initialize the option builder."""
+        super().__init__()
+        self.field_name = field_name
+        self.registry = registry
 
-        Args:
-            field_name: The canonical field name the option exposes.
-            registry: The option registry metadata for the model.
+    def build(self) -> m.Cli.OptionSpec:
+        """Build one CLI option spec from field metadata.
 
         Returns:
             The resulting ``m.Cli.OptionSpec``.
@@ -32,7 +29,7 @@ class FlextCliUtilitiesOptionBuilder:
             TypeError: If Option registry metadata must support key lookup.
 
         """
-        field_meta_raw = registry.get(field_name, {})
+        field_meta_raw = self.registry.get(self.field_name, {})
         if not field_meta_raw:
             msg = "Option registry metadata must support key lookup"
             raise TypeError(msg)
@@ -44,7 +41,7 @@ class FlextCliUtilitiesOptionBuilder:
         cli_param_name: str = (
             field_meta.field_name_override
             if field_meta.field_name_override is not None
-            else field_name
+            else self.field_name
         )
 
         option_args: t.MutableSequenceOf[str] = [

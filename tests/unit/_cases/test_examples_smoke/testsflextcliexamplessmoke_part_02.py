@@ -30,9 +30,8 @@ if TYPE_CHECKING:
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
-    @staticmethod
     @pytest.fixture
-    def restore_token_file() -> Iterator[None]:
+    def restore_token_file(self) -> Iterator[None]:
         """Restore the canonical token file setting after an example mutates it."""
         original_token_file = settings.cli_token_file
         try:
@@ -40,8 +39,8 @@ class TestsFlextCliExamplesSmoke:
         finally:
             settings.cli_token_file = original_token_file
 
-    @staticmethod
     def test_file_operation_examples_surface_failure_paths(
+        self,
         tmp_path: Path,
     ) -> None:
         """File examples must report invalid filesystem and payload failures."""
@@ -77,9 +76,8 @@ class TestsFlextCliExamplesSmoke:
         incomplete_import = validate_and_import_data(incomplete_import_file)
         tm.fail(incomplete_import)
 
-    @staticmethod
     @pytest.mark.usefixtures("restore_token_file")
-    def test_authentication_and_settings_examples(tmp_path: Path) -> None:
+    def test_authentication_and_settings_examples(self, tmp_path: Path) -> None:
         """Auth and settings examples must work through settings and cli auth APIs."""
         settings.cli_token_file = str(tmp_path / "auth_token.json")
 

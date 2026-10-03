@@ -25,8 +25,7 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
     Container and logger are provided by x via MRO.
     """
 
-    @staticmethod
-    def validate_credentials(username: str, password: str) -> p.Result[bool]:
+    def validate_credentials(self, username: str, password: str) -> p.Result[bool]:
         """Validate direct username/password credentials.
 
         Returns:
@@ -35,8 +34,7 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
         """
         return u.Cli.auth_validate_credentials(username, password)
 
-    @staticmethod
-    def save_auth_token(token: str) -> p.Result[bool]:
+    def save_auth_token(self, token: str) -> p.Result[bool]:
         """Persist an authentication token using the public file facade.
 
         Returns:
@@ -53,8 +51,7 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
             {c.Cli.DICT_KEY_AUTH_TOKEN: token},
         )
 
-    @staticmethod
-    def fetch_auth_token() -> p.Result[str]:
+    def fetch_auth_token(self) -> p.Result[str]:
         """Load the persisted authentication token from the configured token file.
 
         Returns:
@@ -102,8 +99,7 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
             .map(lambda _ok: token)
         )
 
-    @staticmethod
-    def clear_auth_tokens() -> p.Result[bool]:
+    def clear_auth_tokens(self) -> p.Result[bool]:
         """Delete the configured authentication token file if present.
 
         Returns:
@@ -112,7 +108,7 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
         """
         token_file = u.Cli.auth_token_file_path(settings.cli_token_file)
         if not token_file.exists():
-            return r[bool].ok(value=True)
+            return r[bool].ok(True)
         return u.Cli.files_delete(token_file)
 
 

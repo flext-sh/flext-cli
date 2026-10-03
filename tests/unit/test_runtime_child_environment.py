@@ -48,8 +48,7 @@ class TestsFlextCliRuntimeChildEnvironment:
             ),
         )
 
-    @staticmethod
-    def test_override_reaches_the_child() -> None:
+    def test_override_reaches_the_child(self) -> None:
         """Test override reaches the child."""
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
             _MARKER,
@@ -58,8 +57,7 @@ class TestsFlextCliRuntimeChildEnvironment:
 
         tm.that(probe, eq="overridden")
 
-    @staticmethod
-    def test_override_does_not_discard_the_inherited_environment() -> None:
+    def test_override_does_not_discard_the_inherited_environment(self) -> None:
         """An overlay adds one key; PATH and the rest of the parent survive."""
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
             "PATH",
@@ -68,8 +66,7 @@ class TestsFlextCliRuntimeChildEnvironment:
 
         tm.that(probe, eq=os.environ["PATH"])
 
-    @staticmethod
-    def test_remove_env_keys_unsets_the_variable_in_the_child() -> None:
+    def test_remove_env_keys_unsets_the_variable_in_the_child(self) -> None:
         """Test remove env keys unsets the variable in the child."""
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
             _MARKER,
@@ -79,8 +76,7 @@ class TestsFlextCliRuntimeChildEnvironment:
 
         tm.that(probe, eq="<unset>")
 
-    @staticmethod
-    def test_an_omitted_key_in_env_is_not_a_removal() -> None:
+    def test_an_omitted_key_in_env_is_not_a_removal(self) -> None:
         """``env`` is an overlay: omitting a key never unsets it.
 
         Removal is expressed exclusively through ``remove_env_keys``; relying on
@@ -94,8 +90,7 @@ class TestsFlextCliRuntimeChildEnvironment:
 
         tm.that(probe, eq="inherited")
 
-    @staticmethod
-    def test_removal_wins_over_an_inherited_value_with_overrides_present() -> None:
+    def test_removal_wins_over_an_inherited_value_with_overrides_present(self) -> None:
         """Test removal wins over an inherited value with overrides present."""
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
             _MARKER,

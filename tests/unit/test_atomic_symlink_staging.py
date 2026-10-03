@@ -20,8 +20,8 @@ if TYPE_CHECKING:
 class TestsAtomicSymlinkStaging:
     """An unverified staged inode must stay discoverable through its failure."""
 
-    @staticmethod
     def test_snapshot_failure_retains_original_cause_and_unverified_stage(
+        self,
         tmp_path: Path,
     ) -> None:
         """Test snapshot failure retains original cause and unverified stage."""

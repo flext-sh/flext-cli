@@ -47,7 +47,6 @@ class TestsFlextCliAuthUtilsCov:
         # Assert — blank/absent input yields the documented default location
         tm.that(path, eq=self._canonical_default())
 
-    @staticmethod
     @pytest.mark.parametrize(
         "token_file",
         [
@@ -56,7 +55,7 @@ class TestsFlextCliAuthUtilsCov:
             "/var/lib/flext/t.json",
         ],
     )
-    def test_token_file_path_honours_explicit_path(token_file: str) -> None:
+    def test_token_file_path_honours_explicit_path(self, token_file: str) -> None:
         # Act
         """Verify that token file path honours explicit path."""
         path = u.Cli.auth_token_file_path(token_file)
@@ -64,8 +63,7 @@ class TestsFlextCliAuthUtilsCov:
         # Assert — a non-blank path is returned verbatim as a Path
         tm.that(path, eq=Path(token_file))
 
-    @staticmethod
-    def test_token_file_path_is_deterministic() -> None:
+    def test_token_file_path_is_deterministic(self) -> None:
         # Invariant: same input always maps to the same path
         """Verify that token file path is deterministic."""
         first = u.Cli.auth_token_file_path(None)
@@ -74,12 +72,12 @@ class TestsFlextCliAuthUtilsCov:
 
     # ── auth_validate_credentials ─────────────────────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize(
         ("username", "password", "expect_ok"),
         c.Tests.AUTH_CRED_CASES,
     )
     def test_validate_credentials_success_reflects_non_blank_fields(
+        self,
         username: str,
         password: str,
         *,
@@ -95,16 +93,14 @@ class TestsFlextCliAuthUtilsCov:
         if expect_ok:
             tm.that(result.unwrap(), eq=True)
 
-    @staticmethod
-    def test_validate_credentials_reports_empty_username() -> None:
+    def test_validate_credentials_reports_empty_username(self) -> None:
         """Verify that validate credentials reports empty username."""
         result = u.Cli.auth_validate_credentials("", "secret123")
         tm.fail(result)
         tm.that(result.error, none=False)
         tm.that(result.error, has="Username")
 
-    @staticmethod
-    def test_validate_credentials_reports_empty_password() -> None:
+    def test_validate_credentials_reports_empty_password(self) -> None:
         """Verify that validate credentials reports empty password."""
         result = u.Cli.auth_validate_credentials("admin", "   ")
         tm.fail(result)
@@ -113,8 +109,7 @@ class TestsFlextCliAuthUtilsCov:
 
     # ── auth_extract_token ────────────────────────────────────────────
 
-    @staticmethod
-    def test_extract_token_returns_token_from_mapping() -> None:
+    def test_extract_token_returns_token_from_mapping(self) -> None:
         # Arrange
         """Verify that extract token returns token from mapping."""
         token = "t" + "1" * 12
@@ -127,12 +122,12 @@ class TestsFlextCliAuthUtilsCov:
         tm.ok(result)
         tm.that(result.unwrap(), eq=token)
 
-    @staticmethod
     @pytest.mark.parametrize(
         "payload",
         [{"user": "admin"}, {c.Cli.DICT_KEY_AUTH_TOKEN: ""}],
     )
     def test_extract_token_fails_when_no_usable_token(
+        self,
         payload: t.JsonValue,
     ) -> None:
         # Act
@@ -144,9 +139,9 @@ class TestsFlextCliAuthUtilsCov:
         tm.that(result.error, none=False)
         tm.that(tm.not_none(result.error).lower(), has="token")
 
-    @staticmethod
     @pytest.mark.parametrize("payload", ["not-a-mapping", ["token", "value"], 42, None])
     def test_extract_token_rejects_non_mapping_payload(
+        self,
         payload: t.JsonValue,
     ) -> None:
         # Act
@@ -158,8 +153,7 @@ class TestsFlextCliAuthUtilsCov:
         tm.that(result.error, none=False)
         tm.that(tm.not_none(result.error).lower(), has="mapping")
 
-    @staticmethod
-    def test_extract_token_success_chains_through_map() -> None:
+    def test_extract_token_success_chains_through_map(self) -> None:
         # Behavioral: a successful result composes with r[T] combinators
         """Verify that extract token success chains through map."""
         payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_AUTH_TOKEN: "abc"}

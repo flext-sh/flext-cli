@@ -46,8 +46,7 @@ class TestsFlextCliTomlCov:
         """Verify that parse text returns none on invalid content."""
         tm.that(u.Cli.toml_parse_text(self._INVALID_TOML), none=True)
 
-    @staticmethod
-    def test_parse_text_treats_empty_as_valid_empty_document() -> None:
+    def test_parse_text_treats_empty_as_valid_empty_document(self) -> None:
         """Verify that parse text treats empty as valid empty document."""
         doc = u.Cli.toml_parse_text("")
         doc = tm.not_none(doc)
@@ -68,40 +67,34 @@ class TestsFlextCliTomlCov:
 
     # ── constructors + runtime predicates ─────────────────────────────
 
-    @staticmethod
-    def test_document_constructor_produces_document() -> None:
+    def test_document_constructor_produces_document(self) -> None:
         """Verify that document constructor produces document."""
         doc = u.Cli.toml_document()
         tm.that(u.Cli.toml_is_document(doc), eq=True)
         tm.that(u.Cli.toml_dumps(doc), eq="")
 
-    @staticmethod
-    def test_table_constructor_is_recognized_as_table() -> None:
+    def test_table_constructor_is_recognized_as_table(self) -> None:
         """Verify that table constructor is recognized as table."""
         tm.that(u.Cli.toml_is_table(u.Cli.toml_table()), eq=True)
 
-    @staticmethod
-    def test_aot_constructor_is_recognized_as_aot() -> None:
+    def test_aot_constructor_is_recognized_as_aot(self) -> None:
         """Verify that aot constructor is recognized as aot."""
         tm.that(u.Cli.toml_is_aot(u.Cli.toml_aot()), eq=True)
 
-    @staticmethod
-    def test_array_constructor_round_trips_to_string_list() -> None:
+    def test_array_constructor_round_trips_to_string_list(self) -> None:
         """Verify that array constructor round trips to string list."""
         arr = u.Cli.toml_array(["a", "b", "c"])
         tm.that(u.Cli.toml_is_item(arr), eq=True)
         tm.that(list(u.Cli.toml_as_string_list(arr)), eq=["a", "b", "c"])
 
-    @staticmethod
-    def test_predicates_reject_non_toml_values() -> None:
+    def test_predicates_reject_non_toml_values(self) -> None:
         """Verify that predicates reject non toml values."""
         tm.that(u.Cli.toml_is_document("not a toml value"), eq=False)
         tm.that(u.Cli.toml_is_table("not a toml value"), eq=False)
         tm.that(u.Cli.toml_is_aot("not a toml value"), eq=False)
         tm.that(u.Cli.toml_is_item("not a toml value"), eq=False)
 
-    @staticmethod
-    def test_table_child_reads_out_of_order_fragmented_table() -> None:
+    def test_table_child_reads_out_of_order_fragmented_table(self) -> None:
         """Consolidate a fragmented (out-of-order) table child on read."""
         # A [project] table split by an intervening top-level table is valid
         # TOML; tomlkit represents it as an OutOfOrderTableProxy. toml_table_child
@@ -117,8 +110,9 @@ class TestsFlextCliTomlCov:
         extras = tm.not_none(u.Cli.toml_table_child(project, "optional-dependencies"))
         tm.that(list(u.Cli.toml_as_string_list(extras["extra"])), eq=["pkg"])
 
-    @staticmethod
-    def test_ensure_table_consolidates_out_of_order_table_without_data_loss() -> None:
+    def test_ensure_table_consolidates_out_of_order_table_without_data_loss(
+        self,
+    ) -> None:
         """Consolidate a fragmented table instead of overwriting it empty."""
         # toml_ensure_table targets a section for mutation. When that section is
         # fragmented (out-of-order), it must keep every existing entry rather
@@ -144,19 +138,18 @@ class TestsFlextCliTomlCov:
         doc = tm.not_none(doc)
         tm.that(u.Cli.toml_as_mapping(doc), eq=self._EXPECTED_MAPPING)
 
-    @staticmethod
-    def test_as_mapping_returns_none_for_missing_source() -> None:
+    def test_as_mapping_returns_none_for_missing_source(self) -> None:
         """Verify that as mapping returns none for missing source."""
         tm.that(u.Cli.toml_as_mapping(None), none=True)
 
     # ── toml_as_string_list ───────────────────────────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize(
         ("items", "expected"),
         [(["x", "y"], ["x", "y"]), ([], []), (["solo"], ["solo"])],
     )
     def test_as_string_list_preserves_array_contents(
+        self,
         items: t.SequenceOf[str],
         expected: t.SequenceOf[str],
     ) -> None:
@@ -164,14 +157,12 @@ class TestsFlextCliTomlCov:
         arr = u.Cli.toml_array(items)
         tm.that(list(u.Cli.toml_as_string_list(arr)), eq=expected)
 
-    @staticmethod
-    def test_as_string_list_returns_empty_for_none() -> None:
+    def test_as_string_list_returns_empty_for_none(self) -> None:
         """Verify that as string list returns empty for none."""
         tm.that(list(u.Cli.toml_as_string_list(None)), eq=[])
 
     # ── toml_dot_path ─────────────────────────────────────────────────
 
-    @staticmethod
     @pytest.mark.parametrize(
         ("parts", "expected"),
         [
@@ -182,6 +173,7 @@ class TestsFlextCliTomlCov:
         ],
     )
     def test_dot_path_joins_non_empty_segments(
+        self,
         parts: t.VariadicTuple[str],
         expected: str,
     ) -> None:
@@ -190,8 +182,7 @@ class TestsFlextCliTomlCov:
 
     # ── toml_read / toml_read_document / toml_read_json ───────────────
 
-    @staticmethod
-    def test_read_returns_none_for_missing_file(tmp_path: Path) -> None:
+    def test_read_returns_none_for_missing_file(self, tmp_path: Path) -> None:
         """Verify that read returns none for missing file."""
         tm.that(u.Cli.toml_read(tmp_path / "nonexistent.toml"), none=True)
 
@@ -214,8 +205,7 @@ class TestsFlextCliTomlCov:
         tm.ok(result)
         tm.that(u.Cli.toml_as_mapping(result.value), eq=self._EXPECTED_MAPPING)
 
-    @staticmethod
-    def test_read_document_fails_for_missing_file(tmp_path: Path) -> None:
+    def test_read_document_fails_for_missing_file(self, tmp_path: Path) -> None:
         """Verify that read document fails for missing file."""
         result = u.Cli.toml_read_document(tmp_path / "missing.toml")
         tm.fail(result)
@@ -229,8 +219,7 @@ class TestsFlextCliTomlCov:
         tm.ok(result)
         tm.that(result.value, eq=self._EXPECTED_MAPPING)
 
-    @staticmethod
-    def test_read_json_fails_for_missing_file(tmp_path: Path) -> None:
+    def test_read_json_fails_for_missing_file(self, tmp_path: Path) -> None:
         """Verify that read json fails for missing file."""
         result = u.Cli.toml_read_json(tmp_path / "missing.toml")
         tm.fail(result)
@@ -249,8 +238,7 @@ class TestsFlextCliTomlCov:
         tm.ok(result)
         tm.that(u.Cli.toml_read_json(path).value, eq=self._EXPECTED_MAPPING)
 
-    @staticmethod
-    def test_write_mapping_round_trips_through_read(tmp_path: Path) -> None:
+    def test_write_mapping_round_trips_through_read(self, tmp_path: Path) -> None:
         """Verify that write mapping round trips through read."""
         payload: t.JsonMapping = {"key": "value", "count": 7}
         path = tmp_path / "out.toml"
@@ -262,8 +250,7 @@ class TestsFlextCliTomlCov:
 
     # ── toml_document_from_mapping ────────────────────────────────────
 
-    @staticmethod
-    def test_document_from_mapping_preserves_data_on_round_trip() -> None:
+    def test_document_from_mapping_preserves_data_on_round_trip(self) -> None:
         """Verify that document from mapping preserves data on round trip."""
         payload = {"name": "flext", "version": c.Tests.VERSION_COMPATIBLE}
         doc = u.Cli.toml_document_from_mapping(payload)

@@ -72,16 +72,16 @@ class FlextCliCli:
         u.Cli.framework_exit(c.Cli.EXIT_CODE_FAILURE)
 
     @classmethod
-    def model_option_spec(
+    def _build_model_parameter(
         cls,
         field_name: str,
         field_info: m.FieldInfo,
         settings: t.Cli.ModelLike | None,
-    ) -> t.Pair[m.Cli.OptionSpec, type | GenericAlias]:
+    ) -> t.Pair[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from a Pydantic field.
 
         Returns:
-            The resulting ``t.Pair[m.Cli.OptionSpec, type | GenericAlias]``.
+            The resulting ``t.Pair[Parameter, type | GenericAlias]``.
 
         """
         alias = getattr(field_info, "alias", None)
@@ -104,7 +104,7 @@ class FlextCliCli:
         field_annotation = u.Cli.field_annotation(field_name, field_info)
         annotation = u.Cli.resolve_typer_annotation(field_annotation)
         json_annotation = (
-            field_annotation if u.Cli.json_option(field_annotation) else None
+            field_annotation if u.Cli.is_json_option(field_annotation) else None
         )
         help_text = getattr(field_info, "description", None) or ""
         if json_annotation is not None:
@@ -132,26 +132,6 @@ class FlextCliCli:
             help_text=help_text,
             default=default_value,
             required=is_required,
-        )
-        return spec, annotation
-
-    @classmethod
-    def _build_model_parameter(
-        cls,
-        field_name: str,
-        field_info: m.FieldInfo,
-        settings: t.Cli.ModelLike | None,
-    ) -> t.Pair[Parameter, type | GenericAlias]:
-        """Build a keyword-only Typer option from its public specification.
-
-        Returns:
-            The resulting ``t.Pair[Parameter, type | GenericAlias]``.
-
-        """
-        spec, annotation = cls.model_option_spec(field_name, field_info, settings)
-        field_annotation = u.Cli.field_annotation(field_name, field_info)
-        json_annotation = (
-            field_annotation if u.Cli.json_option(field_annotation) else None
         )
         return (
             u.Cli.framework_build_parameter(

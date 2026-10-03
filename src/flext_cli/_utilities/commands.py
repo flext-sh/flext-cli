@@ -11,8 +11,9 @@ from typing import TYPE_CHECKING
 
 # mro-j47u (codex): formatter contracts are owned once by the t facade.
 from flext_cli import c, r, t
-from flext_cli._utilities.output import FlextCliUtilitiesOutput as uo
 from flext_core import u
+
+from .output import FlextCliUtilitiesOutput as uo
 
 if TYPE_CHECKING:
     from flext_cli import p
@@ -85,10 +86,9 @@ class FlextCliUtilitiesCommands:
             )
         uo.emit_raw(
             f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
-            error=True,
         )
         if result.error_code:
-            uo.emit_raw(f"   [{result.error_code}]\n", error=True)
+            uo.emit_raw(f"   [{result.error_code}]\n")
         if verbose and result.exception is not None:
             detail = "".join(
                 traceback.format_exception(
@@ -97,7 +97,7 @@ class FlextCliUtilitiesCommands:
                     result.exception.__traceback__,
                 ),
             )
-            uo.emit_raw(detail if detail.endswith("\n") else f"{detail}\n", error=True)
+            uo.emit_raw(detail if detail.endswith("\n") else f"{detail}\n")
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]

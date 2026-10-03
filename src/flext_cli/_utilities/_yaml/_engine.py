@@ -28,7 +28,8 @@ import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities._yaml._convert import FlextCliUtilitiesYamlConvertMixin
+
+from ._convert import FlextCliUtilitiesYamlConvertMixin
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -59,40 +60,6 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
     """
 
     @staticmethod
-    def _parse_loaded(loaded: object) -> p.Result[t.Cli.YamlNode]:
-        """Coerce a ruamel parse result into a typed ``r[YamlNode]``.
-
-        Returns:
-            The resulting ``p.Result[t.Cli.YamlNode]``.
-
-        """
-        try:
-            node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
-        except ruamel.yaml.YAMLError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
-        except TypeError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
-        if node is None:
-            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
-        return r[t.Cli.YamlNode].ok(node)
-
-    @staticmethod
-    def _load_roundtrip(source: TextIO | str) -> p.Result[t.Cli.YamlNode]:
-        """Load YAML from a stream or text preserving comments/quoting.
-
-        Returns:
-            The resulting ``p.Result[t.Cli.YamlNode]``.
-
-        """
-        try:
-            loaded = _roundtrip_yaml().load(source)
-        except ruamel.yaml.YAMLError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
-        except TypeError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
-        return FlextCliUtilitiesYamlEngineMixin._parse_loaded(loaded)
-
-    @staticmethod
     def yaml_roundtrip_load(path: Path) -> p.Result[t.Cli.YamlNode]:
         """Load a YAML file preserving comments/quoting -> ``r[YamlNode]``.
 
@@ -104,9 +71,17 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             return r[t.Cli.YamlNode].fail(f"YAML file not found: {path}")
         try:
             with path.open("r", encoding=c.Cli.ENCODING_DEFAULT) as fh:
-                return FlextCliUtilitiesYamlEngineMixin._load_roundtrip(fh)
+                loaded = _roundtrip_yaml().load(fh)
+            node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
         except OSError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML read error: {exc}", exception=exc)
+        except c.Cli.YamlRoundtripError as exc:
+            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
+        except TypeError as exc:
+            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
+        if node is None:
+            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
+        return r[t.Cli.YamlNode].ok(node)
 
     @staticmethod
     def yaml_roundtrip_load_text(text: str) -> p.Result[t.Cli.YamlNode]:
@@ -116,7 +91,16 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             The resulting ``p.Result[t.Cli.YamlNode]``.
 
         """
-        return FlextCliUtilitiesYamlEngineMixin._load_roundtrip(text)
+        try:
+            loaded = _roundtrip_yaml().load(text)
+            node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
+        except c.Cli.YamlRoundtripError as exc:
+            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
+        except TypeError as exc:
+            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
+        if node is None:
+            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
+        return r[t.Cli.YamlNode].ok(node)
 
     @staticmethod
     def yaml_roundtrip_load_map(path: Path) -> p.Result[CommentedMap]:
@@ -166,9 +150,9 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         """
         try:
             _roundtrip_yaml().dump(data, stream)
-        except (OSError, ruamel.yaml.YAMLError, TypeError, ValueError) as exc:
+        except (OSError, c.Cli.YamlRoundtripError, TypeError, ValueError) as exc:
             return r[bool].fail(f"YAML dump error: {exc}", exception=exc)
-        return r[bool].ok(value=True)
+        return r[bool].ok(True)
 
     @staticmethod
     def yaml_roundtrip_dump_text(data: t.Cli.YamlNode) -> p.Result[str]:

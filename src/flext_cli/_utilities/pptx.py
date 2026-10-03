@@ -6,10 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from flext_cli import m, p, t
+from flext_cli import m, p, t
 
 
 class FlextCliUtilitiesPptx:
@@ -23,7 +20,7 @@ class FlextCliUtilitiesPptx:
             The resulting ``p.Result[m.Cli.PptxPresentationPlan]``.
 
         """
-        from flext_cli._utilities._pptx._reader import FlextCliUtilitiesPptxReader
+        from ._pptx._reader import FlextCliUtilitiesPptxReader
 
         return FlextCliUtilitiesPptxReader.pptx_read(source)
 
@@ -37,7 +34,7 @@ class FlextCliUtilitiesPptx:
             The resulting ``p.Result[m.Cli.PptxRenderResult]``.
 
         """
-        from flext_cli._utilities._pptx._renderer import FlextCliUtilitiesPptxRenderer
+        from ._pptx._renderer import FlextCliUtilitiesPptxRenderer
 
         return FlextCliUtilitiesPptxRenderer.pptx_render(request)
 
