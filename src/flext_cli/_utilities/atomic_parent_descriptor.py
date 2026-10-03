@@ -15,7 +15,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from flext_cli import t
-from flext_cli._utilities import atomic_file_path as file_path
+
+from . import atomic_file_path as file_path
 
 type DirectoryChainInspection = tuple[
     Path,
@@ -26,7 +27,7 @@ type DirectoryChainInspection = tuple[
 
 
 @dataclass(frozen=True, slots=True)
-class FlextCliPhysicalDirectory:
+class PhysicalDirectory:
     """One descriptor, the exact ancestry used to reach it, and its held lineage.
 
     ``lineage`` holds one open descriptor per proper ancestor, root first,
@@ -41,7 +42,7 @@ class FlextCliPhysicalDirectory:
 
 
 @contextmanager
-def physical_directory(path: Path) -> Generator[FlextCliPhysicalDirectory]:
+def physical_directory(path: Path) -> Generator[PhysicalDirectory]:
     """Open an absolute directory one non-aliased component at a time.
 
     The descriptor walk is the only traversal: each component is stat'ed
@@ -51,7 +52,7 @@ def physical_directory(path: Path) -> Generator[FlextCliPhysicalDirectory]:
     verdict and component path a separate lexical pre-pass would report.
 
     Yields:
-        Each ``FlextCliPhysicalDirectory``.
+        Each ``PhysicalDirectory``.
 
     """
     require_traversal_capabilities(path)
@@ -66,12 +67,7 @@ def physical_directory(path: Path) -> Generator[FlextCliPhysicalDirectory]:
     except BaseException as operation_error:
         _close_after_failure(descriptors, path, operation_error)
         raise
-    opened = FlextCliPhysicalDirectory(
-        descriptor,
-        state,
-        ancestry,
-        tuple(descriptors[:-1]),
-    )
+    opened = PhysicalDirectory(descriptor, state, ancestry, tuple(descriptors[:-1]))
     try:
         yield opened
     except BaseException as operation_error:
@@ -286,7 +282,7 @@ def _close_after_failure(
 
 __all__: list[str] = [
     "DirectoryChainInspection",
-    "FlextCliPhysicalDirectory",
+    "PhysicalDirectory",
     "inspect_directory_chain",
     "physical_directory",
     "require_traversal_capabilities",

@@ -138,12 +138,12 @@ class FlextCliModelsBase:
             validate_default=True,
         )
         sort_keys: bool = u.Field(
-            default=False,
+            False,
             description="Sort JSON keys",
             validate_default=True,
         )
         ensure_ascii: bool = u.Field(
-            default=False,
+            False,
             description="Escape non-ASCII chars",
             validate_default=True,
         )

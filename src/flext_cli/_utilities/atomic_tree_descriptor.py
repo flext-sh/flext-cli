@@ -11,18 +11,17 @@ import hashlib
 import os
 import sys
 from pathlib import Path
-from typing import Never, TYPE_CHECKING
+from typing import Never
 
-from flext_cli._utilities import (
+from flext_cli import t
+
+from . import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_path as file_path,
     atomic_file_read as file_read,
     atomic_file_state as file_state,
     atomic_tree_darwin as tree_darwin,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 _FILE_FLAGS = (
     os.O_RDONLY
@@ -33,7 +32,7 @@ _FILE_FLAGS = (
 
 
 def measure_authenticated_file(
-    parent: file_descriptor.FlextCliParentDescriptor,
+    parent: file_descriptor.ParentDescriptor,
     path: Path,
     expected: os.stat_result,
     *,
@@ -140,7 +139,7 @@ def require_directory_state(
 
 
 def require_entry_state(
-    parent: file_descriptor.FlextCliParentDescriptor,
+    parent: file_descriptor.ParentDescriptor,
     path: Path,
     expected: os.stat_result,
 ) -> None:

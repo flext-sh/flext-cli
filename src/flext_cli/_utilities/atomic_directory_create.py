@@ -10,7 +10,9 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli._utilities import (
+from flext_cli import m, t
+
+from . import (
     atomic_directory_cleanup as directory_cleanup,
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_model as directory_model,
@@ -20,10 +22,6 @@ from flext_cli._utilities import (
     atomic_file_mode as file_mode,
     atomic_file_path as file_path,
 )
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from flext_cli import m, t
 
 
 def create_guarded_empty_directory(
@@ -72,7 +70,7 @@ def create_guarded_empty_directory(
 
 
 def _require_created_state(
-    parent: file_descriptor.FlextCliParentDescriptor,
+    parent: file_descriptor.ParentDescriptor,
     path: Path,
 ) -> os.stat_result:
     initial = directory_state.destination_state(path, parent=parent)
@@ -83,7 +81,7 @@ def _require_created_state(
 
 
 def _initialize_created(
-    parent: file_descriptor.FlextCliParentDescriptor,
+    parent: file_descriptor.ParentDescriptor,
     path: Path,
     initial: os.stat_result,
     identity: t.Pair[int, int],

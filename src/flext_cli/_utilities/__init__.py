@@ -31,8 +31,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
     from flext_cli._utilities._json._core import FlextCliUtilitiesJsonCoreMixin
     from flext_cli._utilities._json._navigate import FlextCliUtilitiesJsonNavigateMixin
-    from flext_cli._utilities._options_parts \
-        .flextcliutilitiesoptionbuilder_part_01 import (
+    from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
         FlextCliUtilitiesOptionBuilder,
     )
     from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
@@ -96,8 +95,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities._runtime_windows_job_state import (
         FlextCliUtilitiesRuntimeWindowsJobStateMixin,
     )
-    from flext_cli._utilities._tables_parts \
-        .flextcliutilitiestablesrenderer_part_01 import (
+    from flext_cli._utilities._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
         FlextCliUtilitiesTablesRenderer,
     )
     from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
@@ -209,7 +207,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities.atomic_file_cleanup import remove_failed_temporary
     from flext_cli._utilities.atomic_file_delete import remove_guarded_file
     from flext_cli._utilities.atomic_file_descriptor import (
-        FlextCliParentDescriptor,
+        ParentDescriptor,
         assert_parent_unchanged,
         close_after_failure,
         entry_descriptor,
@@ -265,7 +263,7 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities.atomic_parent_descriptor import (
         DirectoryChainInspection,
-        FlextCliPhysicalDirectory,
+        PhysicalDirectory,
         inspect_directory_chain,
         physical_directory,
         require_traversal_capabilities,
@@ -332,8 +330,6 @@ __all__: tuple[str, ...] = (
     "DirectoryChainInspection",
     "DirectoryPhysicalState",
     "FlextCliAtomicTreeDarwin",
-    "FlextCliParentDescriptor",
-    "FlextCliPhysicalDirectory",
     "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
@@ -423,6 +419,8 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlEditingMixin",
     "FlextCliUtilitiesYamlEngineMixin",
     "FlextCliUtilitiesYamlModel",
+    "ParentDescriptor",
+    "PhysicalDirectory",
     "PhysicalState",
     "_docx",
     "_file_test_helper_parts",
@@ -664,7 +662,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ".atomic_file_cleanup": ("remove_failed_temporary",),
             ".atomic_file_delete": ("remove_guarded_file",),
             ".atomic_file_descriptor": (
-                "FlextCliParentDescriptor",
+                "ParentDescriptor",
                 "assert_parent_unchanged",
                 "close_after_failure",
                 "entry_descriptor",
@@ -717,7 +715,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ),
             ".atomic_parent_descriptor": (
                 "DirectoryChainInspection",
-                "FlextCliPhysicalDirectory",
+                "PhysicalDirectory",
                 "inspect_directory_chain",
                 "physical_directory",
                 "require_traversal_capabilities",

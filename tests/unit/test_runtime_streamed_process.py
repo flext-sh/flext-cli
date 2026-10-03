@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+import signal
 import sys
 import threading
 import time
@@ -47,8 +48,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         """
         return frozenset(threading.enumerate())
 
-    @staticmethod
     def test_combined_output_is_byte_exact_and_live(
+        self,
         tmp_path: Path,
         capfd: pytest.CaptureFixture[str],
     ) -> None:
@@ -83,8 +84,8 @@ class TestsFlextCliRuntimeStreamedProcess:
             eq=False,
         )
 
-    @staticmethod
     def test_silent_live_process_emits_progress_only_to_stderr(
+        self,
         tmp_path: Path,
         capfd: pytest.CaptureFixture[str],
     ) -> None:
@@ -105,8 +106,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(captured.out, eq="")
         tm.that(captured.err, has=c.Cli.CLI_PROCESS_HEARTBEAT_MESSAGE)
 
-    @staticmethod
-    def test_completed_nonzero_exit_is_returned_exactly(tmp_path: Path) -> None:
+    def test_completed_nonzero_exit_is_returned_exactly(self, tmp_path: Path) -> None:
         """Keep a completed nonzero status in the success channel."""
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "raise SystemExit(37)"],
@@ -116,8 +116,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=37)
 
-    @staticmethod
-    def test_existing_input_data_contract_is_preserved(tmp_path: Path) -> None:
+    def test_existing_input_data_contract_is_preserved(self, tmp_path: Path) -> None:
         """Feed binary stdin through the same canonical run-to-file path."""
         output_file = tmp_path / "stdin.log"
         payload = b"stdin-\x00-bytes\n"
@@ -220,8 +219,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(result.value.timed_out, eq=True)
         tm.that(self._live_threads() - threads_before, empty=True)
 
-    @staticmethod
-    def test_deadline_timeout_reports_causal_outcome(tmp_path: Path) -> None:
+    def test_deadline_timeout_reports_causal_outcome(self, tmp_path: Path) -> None:
         """Deadline expiry reports its causal outcome instead of failing."""
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "import time;time.sleep(30)"],
@@ -232,8 +230,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.ok(result)
         tm.that(result.value.timed_out, eq=True)
 
-    @staticmethod
-    def test_conflicting_deadlines_fail_before_spawn(tmp_path: Path) -> None:
+    def test_conflicting_deadlines_fail_before_spawn(self, tmp_path: Path) -> None:
         """Reject two timeout owners without starting the command."""
         marker = tmp_path / "must-not-exist"
         result = u.Cli().run_to_file(
@@ -251,8 +248,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.fail(result)
         tm.that(marker.exists(), eq=False)
 
-    @staticmethod
-    def test_invalid_durable_sink_fails_before_spawn(tmp_path: Path) -> None:
+    def test_invalid_durable_sink_fails_before_spawn(self, tmp_path: Path) -> None:
         """Validate the durable sink before child code can execute."""
         sink_directory = tmp_path / "sink-directory"
         sink_directory.mkdir()
@@ -271,59 +267,34 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.fail(result)
         tm.that(marker.exists(), eq=False)
 
-    @staticmethod
     def test_broken_live_sink_fails_after_complete_durable_log(
+        self,
         tmp_path: Path,
     ) -> None:
         """Surface a broken live sink after preserving the durable child bytes."""
         output_file = tmp_path / "broken-live.log"
-        # The broken-sink reproduction must stay inside a disposable child
-        # process: replacing this process's fd 1 leaks the breakage into the
-        # pytest capture harness and randomizes unrelated tests' streams.
-        script = """
-import os
-import signal
-import sys
-from pathlib import Path
+        child = "import os;os.write(1,b'durable-before-live\\n')"
+        sigpipe = getattr(signal, "SIGPIPE", None)
+        previous_sigpipe = signal.getsignal(sigpipe) if sigpipe is not None else None
+        read_fd, write_fd = os.pipe()
+        os.close(read_fd)
+        saved_stdout = os.dup(1)
+        if sigpipe is not None:
+            signal.signal(sigpipe, signal.SIG_IGN)
+        try:
+            os.dup2(write_fd, 1)
+            os.close(write_fd)
+            result = u.Cli().run_to_file(
+                [sys.executable, "-c", child],
+                output_file,
+                live=True,
+            )
+        finally:
+            os.dup2(saved_stdout, 1)
+            os.close(saved_stdout)
+            if sigpipe is not None and previous_sigpipe is not None:
+                signal.signal(sigpipe, previous_sigpipe)
 
-from flext_cli import u
-
-output_file = Path(sys.argv[1])
-child = "import os;os.write(1,b'durable-before-live\\\\n')"
-sigpipe = getattr(signal, "SIGPIPE", None)
-previous_sigpipe = signal.getsignal(sigpipe) if sigpipe is not None else None
-read_fd, write_fd = os.pipe()
-os.close(read_fd)
-saved_stdout = os.dup(1)
-if sigpipe is not None:
-    signal.signal(sigpipe, signal.SIG_IGN)
-try:
-    os.dup2(write_fd, 1)
-    os.close(write_fd)
-    result = u.Cli().run_to_file(
-        [sys.executable, "-c", child],
-        output_file,
-        live=True,
-    )
-finally:
-    os.dup2(saved_stdout, 1)
-    os.close(saved_stdout)
-    if sigpipe is not None and previous_sigpipe is not None:
-        signal.signal(sigpipe, previous_sigpipe)
-if result.failure and result.error is not None and "live output" in str(
-    result.error,
-):
-    raise SystemExit(0)
-raise SystemExit(3)
-"""
-        completed = u.Cli.run_raw(
-            (sys.executable, "-c", script, str(output_file)),
-            timeout=30,
-        )
-        tm.ok(completed)
-        tm.that(
-            u.Cli.process_succeeded(completed.value.outcome),
-            eq=True,
-            msg=completed.value.stderr,
-        )
+        tm.fail(result)
+        tm.that(tm.not_none(result.error), has="live output")
         tm.that(output_file.read_bytes(), eq=b"durable-before-live\n")

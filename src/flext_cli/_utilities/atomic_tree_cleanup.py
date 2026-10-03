@@ -10,9 +10,11 @@ import errno
 import os
 import stat
 from pathlib import Path
-from typing import Never, TYPE_CHECKING
+from typing import Never
 
-from flext_cli._utilities import (
+from flext_cli import m, t
+
+from . import (
     atomic_directory_delete as directory_delete,
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_snapshot as directory_snapshot,
@@ -23,9 +25,6 @@ from flext_cli._utilities import (
     atomic_tree_descriptor as tree_descriptor,
     atomic_tree_inventory as tree_inventory,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import m, t
 
 
 def cleanup_physical_tree_guarded(manifest: m.Cli.AtomicPhysicalTreeManifest) -> None:
@@ -67,7 +66,7 @@ def _require_cleanup_capabilities(manifest: m.Cli.AtomicPhysicalTreeManifest) ->
             mount_id = tree_descriptor.mount_id(opened.descriptor, path)
             if (opened.state.st_dev, opened.state.st_ino, mount_id) != expected:
                 _raise_changed(path)
-            authenticated = file_descriptor.FlextCliParentDescriptor(
+            authenticated = file_descriptor.ParentDescriptor(
                 path,
                 opened.descriptor,
                 opened.state,

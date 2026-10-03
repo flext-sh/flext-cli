@@ -10,9 +10,10 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, t
-from flext_cli._models import atomic_state
-from flext_cli._models._defaults import EMPTY_STR_MAPPING
 from flext_core import m, u
+
+from .. import atomic_state
+from .._defaults import EMPTY_STR_MAPPING
 
 
 class FlextCliModelsBase:
@@ -164,11 +165,11 @@ class FlextCliModelsBase:
 
         interactive: Annotated[
             bool,
-            m.Field(default=True, description="Whether prompt interaction is enabled"),
+            m.Field(True, description="Whether prompt interaction is enabled"),
         ] = True
         quiet: Annotated[
             bool,
-            m.Field(default=False, description="Whether prompt output is suppressed"),
+            m.Field(False, description="Whether prompt output is suppressed"),
         ] = False
         default_timeout: Annotated[
             int,

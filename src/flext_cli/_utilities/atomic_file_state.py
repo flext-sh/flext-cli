@@ -11,21 +11,19 @@ import os
 import stat
 from pathlib import Path
 
-from flext_cli._utilities import (
+from flext_cli import t
+
+from . import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_path as file_path,
     atomic_file_read as file_read,
 )
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 def destination_state(
     path: Path,
     *,
-    parent: file_descriptor.FlextCliParentDescriptor | None = None,
+    parent: file_descriptor.ParentDescriptor | None = None,
 ) -> os.stat_result | None:
     """Return an authorized destination snapshot without following links.
 
@@ -54,7 +52,7 @@ def validate_precondition(
     expected_bytes: bytes | None,
     *,
     enabled: bool,
-    parent: file_descriptor.FlextCliParentDescriptor | None = None,
+    parent: file_descriptor.ParentDescriptor | None = None,
 ) -> None:
     """Authenticate an explicit raw-byte version before staging.
 
@@ -84,7 +82,7 @@ def assert_temporary_owned(
     temporary: Path,
     expected_identity: t.Pair[int, int],
     *,
-    parent: file_descriptor.FlextCliParentDescriptor | None = None,
+    parent: file_descriptor.ParentDescriptor | None = None,
 ) -> None:
     """Require the staged pathname to retain its uniquely owned inode.
 
@@ -114,7 +112,7 @@ def assert_destination_unchanged(
     path: Path,
     expected: os.stat_result | None,
     *,
-    parent: file_descriptor.FlextCliParentDescriptor | None = None,
+    parent: file_descriptor.ParentDescriptor | None = None,
 ) -> None:
     """Fail before publication when destination identity or state changed.
 
@@ -155,7 +153,7 @@ def read_authenticated_bytes(
     path: Path,
     expected: os.stat_result,
     *,
-    parent: file_descriptor.FlextCliParentDescriptor | None = None,
+    parent: file_descriptor.ParentDescriptor | None = None,
 ) -> bytes:
     """Read exact bytes and prove the descriptor remains bound to its pathname.
 

@@ -12,11 +12,11 @@ import stat
 from pathlib import Path
 
 
-class FlextCliNoModePrecondition:
+class NoModePrecondition:
     """Marker for callers that do not guard the destination mode."""
 
 
-NO_MODE_PRECONDITION = FlextCliNoModePrecondition()
+NO_MODE_PRECONDITION = NoModePrecondition()
 
 
 def validate_mode(mode: int | None, *, label: str) -> int | None:
@@ -44,18 +44,18 @@ def validate_mode(mode: int | None, *, label: str) -> int | None:
 def validate_mode_precondition(
     path: Path,
     state: os.stat_result | None,
-    expected_mode: int | FlextCliNoModePrecondition | None,
+    expected_mode: int | NoModePrecondition | None,
 ) -> None:
     """Require the observed mode to match one explicit planned version.
 
     Raises:
-        OSError: If ``expected_mode`` is ``FlextCliNoModePrecondition``; or if
-            ``observed != planned``.
+        OSError: If ``isinstance(expected_mode, NoModePrecondition)``; or if ``observed
+            != planned``.
 
     """
     if expected_mode is NO_MODE_PRECONDITION:
         return
-    if isinstance(expected_mode, FlextCliNoModePrecondition):
+    if isinstance(expected_mode, NoModePrecondition):
         msg = "expected_mode sentinel must be the canonical singleton"
         raise OSError(errno.EINVAL, msg, path)
     planned = validate_mode(expected_mode, label="expected_mode")
@@ -68,18 +68,18 @@ def validate_mode_precondition(
 def validate_guarded_mode_tuple(
     path: Path,
     expected_bytes: bytes | None,
-    expected_mode: int | FlextCliNoModePrecondition | None,
+    expected_mode: int | NoModePrecondition | None,
 ) -> None:
     """Require absence or one complete existing byte-and-mode version.
 
     Raises:
-        OSError: If ``isinstance(expected_mode, FlextCliNoModePrecondition)``; or if
+        OSError: If ``isinstance(expected_mode, NoModePrecondition)``; or if
             ``expected_bytes is None``; or if ``expected_mode is None``.
 
     """
     if expected_mode is NO_MODE_PRECONDITION:
         return
-    if isinstance(expected_mode, FlextCliNoModePrecondition):
+    if isinstance(expected_mode, NoModePrecondition):
         msg = "expected_mode sentinel must be the canonical singleton"
         raise OSError(errno.EINVAL, msg, path)
     if expected_bytes is None:

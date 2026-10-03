@@ -10,15 +10,13 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli._utilities import atomic_file_descriptor as file_descriptor
-from typing import TYPE_CHECKING
+from flext_cli import t
 
-if TYPE_CHECKING:
-    from flext_cli import t
+from . import atomic_file_descriptor as file_descriptor
 
 
 def read_descriptor_bytes(
-    parent: file_descriptor.FlextCliParentDescriptor,
+    parent: file_descriptor.ParentDescriptor,
     path: Path,
     expected: os.stat_result,
 ) -> bytes:

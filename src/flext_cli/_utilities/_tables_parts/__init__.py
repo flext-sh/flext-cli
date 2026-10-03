@@ -13,8 +13,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._utilities._tables_parts \
-        .flextcliutilitiestablesrenderer_part_01 import (
+    from flext_cli._utilities._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
         FlextCliUtilitiesTablesRenderer,
     )
 
@@ -26,7 +25,7 @@ _LAZY_IMPORTS = MappingProxyType(
         MappingProxyType({
             ".flextcliutilitiestablesrenderer_part_01": (
                 "FlextCliUtilitiesTablesRenderer",
-            )
+            ),
         }),
         alias_groups=MappingProxyType({}),
         sort_keys=False,

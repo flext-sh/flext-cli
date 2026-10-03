@@ -6,10 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from flext_cli import m, p, t
+from flext_cli import m, p, t
 
 
 class FlextCliUtilitiesDocx:
@@ -23,7 +20,7 @@ class FlextCliUtilitiesDocx:
             The resulting ``p.Result[m.Cli.DocxDocumentPlan]``.
 
         """
-        from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
+        from ._docx._reader import FlextCliUtilitiesDocxReader
 
         return FlextCliUtilitiesDocxReader.docx_read(source)
 
@@ -37,7 +34,7 @@ class FlextCliUtilitiesDocx:
             The resulting ``p.Result[m.Cli.DocxRenderResult]``.
 
         """
-        from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
+        from ._docx._renderer import FlextCliUtilitiesDocxRenderer
 
         return FlextCliUtilitiesDocxRenderer.docx_render(request)
 

@@ -10,16 +10,14 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli._utilities import (
+from flext_cli import t
+
+from . import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_mode as file_mode,
     atomic_file_path as file_path,
     atomic_file_read as file_read,
 )
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 _MAX_EMPTY_DIRECTORY_LINK_COUNT = 2
 
@@ -27,7 +25,7 @@ _MAX_EMPTY_DIRECTORY_LINK_COUNT = 2
 def destination_state(
     path: Path,
     *,
-    parent: file_descriptor.FlextCliParentDescriptor,
+    parent: file_descriptor.ParentDescriptor,
 ) -> os.stat_result | None:
     """Read one final directory entry without following it or crossing devices.
 
@@ -53,7 +51,7 @@ def destination_state(
 
 
 def read_empty_state(
-    parent: file_descriptor.FlextCliParentDescriptor,
+    parent: file_descriptor.ParentDescriptor,
     path: Path,
     expected: os.stat_result,
 ) -> os.stat_result:
@@ -77,7 +75,7 @@ def read_empty_state(
 
 
 def initialize_empty_state(
-    parent: file_descriptor.FlextCliParentDescriptor,
+    parent: file_descriptor.ParentDescriptor,
     path: Path,
     expected: os.stat_result,
     permission_mode: int,
@@ -146,7 +144,7 @@ def _require_empty(descriptor: int, path: Path) -> None:
 
 
 def _require_path_state(
-    parent: file_descriptor.FlextCliParentDescriptor,
+    parent: file_descriptor.ParentDescriptor,
     path: Path,
     expected: os.stat_result,
 ) -> os.stat_result:

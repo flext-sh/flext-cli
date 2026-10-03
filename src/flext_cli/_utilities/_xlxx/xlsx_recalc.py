@@ -10,11 +10,10 @@ import tempfile
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._xlxx.xlsx_recalc_evidence import (
-    FlextCliUtilitiesXlsxRecalcEvidence,
-)
-from flext_cli._utilities._xlxx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
-from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
+
+from ..processes import FlextCliUtilitiesProcesses
+from .xlsx_recalc_evidence import FlextCliUtilitiesXlsxRecalcEvidence
+from .xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
 
 
 class FlextCliUtilitiesXlsxRecalc(
@@ -89,8 +88,7 @@ class FlextCliUtilitiesXlsxRecalc(
             if completed.value != 0:
                 detail = process.stderr.strip() or process.stdout.strip()
                 return r[m.Cli.XlsxRecalcResult].fail(
-                    f"{c.Cli.XlsxError.RECALC_FAILED}: "
-                    f"exit={completed.value}: {detail}",
+                    f"{c.Cli.XlsxError.RECALC_FAILED}: exit={completed.value}: {detail}",
                 )
             content = (output_dir / c.Cli.XLSX_RECALC_SOURCE_NAME).read_bytes()
         return r[m.Cli.XlsxRecalcResult].ok(m.Cli.XlsxRecalcResult(content=content))
@@ -120,8 +118,7 @@ class FlextCliUtilitiesXlsxRecalc(
             )
         value_snapshot = cls.xlsx_snapshot(
             m.Cli.XlsxSnapshotRequest(
-                source=recalculated.value.content,
-                data_only=True,
+                source=recalculated.value.content, data_only=True,
             ),
         )
         if value_snapshot.failure:

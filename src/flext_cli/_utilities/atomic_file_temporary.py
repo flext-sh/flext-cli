@@ -12,15 +12,12 @@ import secrets
 import stat
 from pathlib import Path
 
-from flext_cli._utilities import (
-    atomic_file_descriptor as file_descriptor,
-    atomic_file_mode as file_mode,
-)
+from . import atomic_file_descriptor as file_descriptor, atomic_file_mode as file_mode
 
 _SECURE_CREATE_MODE = 0o600
 
 
-def temporary_path(parent: file_descriptor.FlextCliParentDescriptor) -> Path:
+def temporary_path(parent: file_descriptor.ParentDescriptor) -> Path:
     """Return one unpredictable sibling name without probing or retrying.
 
     Returns:
@@ -42,10 +39,7 @@ def require_mode_capability(path: Path, permission_mode: int | None) -> None:
         raise OSError(errno.ENOTSUP, message, path)
 
 
-def create_descriptor(
-    parent: file_descriptor.FlextCliParentDescriptor,
-    temporary: Path,
-) -> int:
+def create_descriptor(parent: file_descriptor.ParentDescriptor, temporary: Path) -> int:
     """Create one exclusive, securely permissioned sibling through ``dir_fd``.
 
     Returns:
