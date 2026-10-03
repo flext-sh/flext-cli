@@ -9,10 +9,9 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
-from flext_cli._utilities import atomic_file_mode
-from flext_cli._utilities import atomic_file_state
+from flext_cli._utilities import atomic_file_mode, atomic_file_state
 
 if TYPE_CHECKING:
     from flext_cli import t

@@ -13,13 +13,14 @@ from pathlib import Path
 from typing import Literal, Never
 
 from flext_cli import m, t
-from flext_cli._utilities import atomic_directory_descriptor
-from flext_cli._utilities import atomic_directory_state
-from flext_cli._utilities import atomic_file_descriptor
-from flext_cli._utilities import atomic_file_path
-from flext_cli._utilities import atomic_file_state
-from flext_cli._utilities import atomic_tree_descriptor
-
+from flext_cli._utilities import (
+    atomic_directory_descriptor,
+    atomic_directory_state,
+    atomic_file_descriptor,
+    atomic_file_path,
+    atomic_file_state,
+    atomic_tree_descriptor,
+)
 
 _DIRECTORY_FLAGS = (
     os.O_RDONLY
