@@ -11,7 +11,6 @@ import os
 import uuid
 from typing import TYPE_CHECKING
 
-from flext_cli import m
 from flext_cli._utilities import (
     atomic_directory_noreplace as noreplace,
     atomic_file_descriptor as descriptor,
@@ -20,6 +19,7 @@ from flext_cli._utilities import (
 )
 
 if TYPE_CHECKING:
+    from flext_cli import m
     from pathlib import Path
 
     from flext_cli._utilities.atomic_file_descriptor import FlextCliParentDescriptor

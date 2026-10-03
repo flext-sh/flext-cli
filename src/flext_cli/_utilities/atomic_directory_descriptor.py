@@ -10,12 +10,15 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import t
 from flext_cli._utilities import (
     atomic_directory_noreplace as directory_noreplace,
     atomic_file_descriptor as file_descriptor,
     atomic_parent_descriptor as parent_descriptor,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 _SECURE_CREATE_MODE = 0o700
 

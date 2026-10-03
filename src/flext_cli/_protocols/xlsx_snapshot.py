@@ -11,10 +11,10 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 from flext_cli._protocols.xlsx_snapshot_structure import (
     FlextCliProtocolsXlsxSnapshotStructure,
 )
-from flext_core import p
 
 if TYPE_CHECKING:
     # mro-j47u (codex): p -> m stays type-only through the canonical facade.
+    from flext_core import p
     from flext_cli import m
     from flext_core import t
 

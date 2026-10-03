@@ -10,13 +10,16 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import t
 from flext_cli._utilities import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_mode as file_mode,
     atomic_file_path as file_path,
     atomic_file_read as file_read,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 _MAX_EMPTY_DIRECTORY_LINK_COUNT = 2
 

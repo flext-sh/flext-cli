@@ -12,9 +12,11 @@ import os
 import sys
 from collections.abc import Callable
 from pathlib import Path
-from typing import cast
+from typing import cast, TYPE_CHECKING
 
-from flext_cli import t
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 type RenameAt2 = Callable[[int, bytes, int, bytes, int], int]
 

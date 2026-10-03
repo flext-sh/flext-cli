@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import errno
 
-from flext_cli import m
 from flext_cli._utilities import (
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_model as directory_model,
@@ -18,6 +17,10 @@ from flext_cli._utilities import (
     atomic_file_path as file_path,
     atomic_file_read as file_read,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import m
 
 
 def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:

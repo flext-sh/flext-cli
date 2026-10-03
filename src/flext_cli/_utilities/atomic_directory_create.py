@@ -10,7 +10,6 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import m, t
 from flext_cli._utilities import (
     atomic_directory_cleanup as directory_cleanup,
     atomic_directory_descriptor as directory_descriptor,
@@ -21,6 +20,10 @@ from flext_cli._utilities import (
     atomic_file_mode as file_mode,
     atomic_file_path as file_path,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import m, t
 
 
 def create_guarded_empty_directory(

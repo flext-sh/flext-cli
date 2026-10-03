@@ -8,10 +8,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 from io import BytesIO
-from typing import Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable, TYPE_CHECKING
 
-from flext_cli import t
-from flext_cli._protocols.xlsx_rules import FlextCliProtocolsXlsxRules
+
+if TYPE_CHECKING:
+    from flext_cli import t
+    from flext_cli._protocols.xlsx_rules import FlextCliProtocolsXlsxRules
 
 
 class FlextCliProtocolsXlsxWorkbook:

@@ -11,7 +11,10 @@ import os
 import stat
 from pathlib import Path
 
-from flext_cli import t
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 def validate_atomic_path(path: Path) -> Path:

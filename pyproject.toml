@@ -472,6 +472,12 @@ split-on-trailing-comma = false
   "typing-only-first-party-import",
   "unused-import",
 ]
+# Why: pydantic models resolve field annotations at class-creation time —
+# first-party imports used in fields must stay at runtime; moving them into
+# TYPE_CHECKING leaves the models "not fully defined" (PydanticUserError).
+"src/flext_cli/_models/**" = [
+  "typing-only-first-party-import",
+]
 "scripts/**" = [
   "any-type",
   "avoidable-escaped-quote",
