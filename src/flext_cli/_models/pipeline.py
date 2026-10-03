@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar
 
 from flext_cli import c, p, t
-from flext_cli._models._defaults import FlextCliModelsDefaults
+from flext_cli._models._defaults import EMPTY_JSON_MAPPING, EMPTY_STR_MAPPING
 from flext_core import m, u
 
 
@@ -42,7 +42,7 @@ class FlextCliModelsPipeline:
         settings: Annotated[
             t.JsonMapping,
             m.Field(
-                default_factory=lambda: FlextCliModelsDefaults.EMPTY_JSON_MAPPING,
+                default_factory=lambda: EMPTY_JSON_MAPPING,
                 description="Immutable pipeline configuration",
             ),
         ]
@@ -98,7 +98,7 @@ class FlextCliModelsPipeline:
         output: Annotated[
             t.JsonMapping,
             m.Field(
-                default_factory=lambda: FlextCliModelsDefaults.EMPTY_JSON_MAPPING,
+                default_factory=lambda: EMPTY_JSON_MAPPING,
                 description="Stage output payload",
             ),
         ]
