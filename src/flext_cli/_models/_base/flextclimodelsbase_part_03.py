@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, p, t
-from flext_cli._models import atomic_state
+from flext_cli._models.atomic_state import FlextCliModelsAtomicState
 from flext_core import m, u
 
 
@@ -74,7 +74,7 @@ class FlextCliModelsBase:
         @u.field_validator("path")
         @classmethod
         def _validate_absolute_path(cls, value: Path) -> Path:
-            return atomic_state.validate_atomic_state_path(
+            return FlextCliModelsAtomicState.validate_atomic_state_path(
                 value,
                 label="atomic directory state",
             )
@@ -95,13 +95,13 @@ class FlextCliModelsBase:
             ):
                 msg = "absent atomic directory state cannot contain host metadata"
                 raise ValueError(msg)
-            atomic_state.validate_parent_identity(
+            FlextCliModelsAtomicState.validate_parent_identity(
                 self.parent_device,
                 self.parent_inode,
                 present=self.exists,
                 label="atomic directory state",
             )
-            atomic_state.validate_non_reparse_state(
+            FlextCliModelsAtomicState.validate_non_reparse_state(
                 self.file_attributes,
                 self.reparse_tag,
                 label="atomic directory state",

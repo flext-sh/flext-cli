@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     # mro-j47u (codex): p -> m stays type-only through the canonical facade.
     from flext_core import p
     from flext_cli import m
-    from flext_core import t
+    from flext_core import p, t
 
 
 class FlextCliProtocolsXlsx(

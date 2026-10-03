@@ -6,10 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Annotated, ClassVar, Self
+from typing import TYPE_CHECKING, Annotated, ClassVar, Self
 
 from flext_cli import m
-from tests import t
+
+if TYPE_CHECKING:
+    from tests import t
 
 
 class TestsFlextCliModelsRuntime:
