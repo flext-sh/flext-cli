@@ -17,8 +17,10 @@ from flext_cli import c, m, p, r, t
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
 )
-from flext_cli._utilities.atomic_file_publish import publish_guarded_staged_file
-from flext_cli._utilities.atomic_file_snapshot import read_authenticated_state
+from flext_cli._utilities.atomic_file_publish import FlextCliUtilitiesAtomicFilePublish
+from flext_cli._utilities.atomic_file_snapshot import (
+    FlextCliUtilitiesAtomicFileSnapshot,
+)
 
 
 class FlextCliUtilitiesFiles:
@@ -80,7 +82,11 @@ class FlextCliUtilitiesFiles:
         """
         path = Path(file_path)
         try:
-            parent, state, content = read_authenticated_state(path, required=required)
+            parent, state, content = (
+                FlextCliUtilitiesAtomicFileSnapshot.read_authenticated_state(
+                    path, required=required
+                )
+            )
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(
                 c.Cli.ERR_BINARY_READ_FAILED.format(error=exc),
@@ -118,7 +124,9 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            published = publish_guarded_staged_file(destination_before, staged)
+            published = FlextCliUtilitiesAtomicFilePublish.publish_guarded_staged_file(
+                destination_before, staged
+            )
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(
                 c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc),
