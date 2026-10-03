@@ -69,3 +69,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicFileSnapshot"]
+
+def read_authenticated_state(*args, **kwargs):
+    """Module-level delegate to :class:`FlextCliUtilitiesAtomicFileSnapshot` (the facade contract)."""
+    return FlextCliUtilitiesAtomicFileSnapshot.read_authenticated_state(*args, **kwargs)
