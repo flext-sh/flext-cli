@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar
 
 from flext_cli import c, p, t
-from flext_cli._models._defaults import EMPTY_JSON_MAPPING, EMPTY_STR_MAPPING
+from flext_cli._models._defaults import EMPTY_JSON_MAPPING
 from flext_core import m, u
 
 

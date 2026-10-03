@@ -9,11 +9,13 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
-from flext_cli._utilities import atomic_directory_noreplace
-from flext_cli._utilities import atomic_file_descriptor
-from flext_cli._utilities import atomic_parent_descriptor
+from flext_cli._utilities import (
+    atomic_directory_noreplace,
+    atomic_file_descriptor,
+    atomic_parent_descriptor,
+)
 
 if TYPE_CHECKING:
     from flext_cli import t

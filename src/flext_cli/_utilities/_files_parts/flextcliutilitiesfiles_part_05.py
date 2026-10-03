@@ -9,13 +9,15 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import atomic_directory_chain
-from flext_cli._utilities import atomic_directory_create
-from flext_cli._utilities import atomic_directory_delete
-from flext_cli._utilities import atomic_directory_publish
-from flext_cli._utilities import atomic_directory_snapshot
-from flext_cli._utilities import atomic_tree_cleanup
-from flext_cli._utilities import atomic_tree_inventory
+from flext_cli._utilities import (
+    atomic_directory_chain,
+    atomic_directory_create,
+    atomic_directory_delete,
+    atomic_directory_publish,
+    atomic_directory_snapshot,
+    atomic_tree_cleanup,
+    atomic_tree_inventory,
+)
 
 
 class FlextCliUtilitiesFiles:

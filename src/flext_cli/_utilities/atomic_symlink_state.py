@@ -12,8 +12,7 @@ import stat
 from pathlib import Path
 
 from flext_cli import m
-
-from . import atomic_file_descriptor as descriptor
+from flext_cli._utilities import atomic_file_descriptor as descriptor
 
 
 def read_symlink_state(

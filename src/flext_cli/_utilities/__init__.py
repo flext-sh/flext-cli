@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
+from flext_core import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities import (
@@ -230,7 +230,10 @@ if TYPE_CHECKING:
         validate_mode,
         validate_mode_precondition,
     )
-    from flext_cli._utilities.atomic_file_model import PhysicalState
+    from flext_cli._utilities.atomic_file_model import (
+        FlextCliUtilitiesAtomicFileModel,
+        PhysicalState,
+    )
     from flext_cli._utilities.atomic_file_path import (
         identity,
         is_reparse_point,
@@ -242,6 +245,7 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities.atomic_file_publish import publish_guarded_staged_file
     from flext_cli._utilities.atomic_file_publish_checks import (
+        IDENTITY_COMPONENT_COUNT,
         require_distinct_inode,
         validate_devices,
         validate_identity,
@@ -326,10 +330,12 @@ if TYPE_CHECKING:
 
 
 __all__: tuple[str, ...] = (
+    "IDENTITY_COMPONENT_COUNT",
     "NO_MODE_PRECONDITION",
     "DirectoryChainInspection",
     "DirectoryPhysicalState",
     "FlextCliAtomicTreeDarwin",
+    "FlextCliUtilitiesAtomicFileModel",
     "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
@@ -682,7 +688,7 @@ _LAZY_IMPORTS = MappingProxyType(
                 "validate_mode",
                 "validate_mode_precondition",
             ),
-            ".atomic_file_model": ("PhysicalState",),
+            ".atomic_file_model": ("FlextCliUtilitiesAtomicFileModel", "PhysicalState"),
             ".atomic_file_path": (
                 "identity",
                 "is_reparse_point",
@@ -694,6 +700,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ),
             ".atomic_file_publish": ("publish_guarded_staged_file",),
             ".atomic_file_publish_checks": (
+                "IDENTITY_COMPONENT_COUNT",
                 "require_distinct_inode",
                 "validate_devices",
                 "validate_identity",
