@@ -1,4 +1,8 @@
-"""Worksheet assembly for typed XLSX semantic snapshots."""
+"""Worksheet assembly for typed XLSX semantic snapshots.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -6,14 +10,18 @@ from typing import Literal
 
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import m, r
-
-from .xlsx_snapshot_structure import FlextCliUtilitiesXlsxSnapshotStructure
-from .xlsx_snapshot_values import FlextCliUtilitiesXlsxSnapshotValues
+from flext_cli import m, p, r, t
+from flext_cli._utilities._xlxx.xlsx_snapshot_structure import (
+    FlextCliUtilitiesXlsxSnapshotStructure,
+)
+from flext_cli._utilities._xlxx.xlsx_snapshot_values import (
+    FlextCliUtilitiesXlsxSnapshotValues,
+)
 
 
 class FlextCliUtilitiesXlsxSnapshotSheet(
-    FlextCliUtilitiesXlsxSnapshotValues, FlextCliUtilitiesXlsxSnapshotStructure
+    FlextCliUtilitiesXlsxSnapshotValues,
+    FlextCliUtilitiesXlsxSnapshotStructure,
 ):
     """Build one immutable worksheet snapshot from formula and value views."""
 
@@ -22,7 +30,7 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
     @staticmethod
     def _snapshot_state(
         worksheet: Worksheet,
-    ) -> r[Literal["visible", "hidden", "veryHidden"]]:
+    ) -> p.Result[Literal["visible", "hidden", "veryHidden"]]:
         sheet_state: str = worksheet.sheet_state
         if sheet_state == "visible":
             return r[Literal["visible", "hidden", "veryHidden"]].ok("visible")
@@ -31,26 +39,37 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
         if sheet_state == "veryHidden":
             return r[Literal["visible", "hidden", "veryHidden"]].ok("veryHidden")
         return r[Literal["visible", "hidden", "veryHidden"]].fail(
-            f"Unsupported worksheet state: {sheet_state}"
+            f"Unsupported worksheet state: {sheet_state}",
         )
 
     @classmethod
     def _snapshot_sheet(
-        cls, formula_sheet: Worksheet, value_sheet: Worksheet, *, position: int
-    ) -> r[m.Cli.XlsxSheetSnapshot]:
+        cls,
+        formula_sheet: Worksheet,
+        value_sheet: Worksheet,
+        *,
+        position: int,
+    ) -> p.Result[m.Cli.XlsxSheetSnapshot]:
         try:
             snapshot = cls._snapshot_sheet_unchecked(
-                formula_sheet, value_sheet, position=position
+                formula_sheet,
+                value_sheet,
+                position=position,
             )
         except (TypeError, m.ValidationError, ValueError) as exc:
             return r[m.Cli.XlsxSheetSnapshot].fail(
-                f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}"
+                f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}",
+                exception=exc,
             )
         return r[m.Cli.XlsxSheetSnapshot].ok(snapshot)
 
     @classmethod
     def _snapshot_sheet_unchecked(
-        cls, formula_sheet: Worksheet, value_sheet: Worksheet, *, position: int
+        cls,
+        formula_sheet: Worksheet,
+        value_sheet: Worksheet,
+        *,
+        position: int,
     ) -> m.Cli.XlsxSheetSnapshot:
         if formula_sheet.title != value_sheet.title:
             msg = (
@@ -60,18 +79,21 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
         state = cls._require_success(cls._snapshot_state(formula_sheet))
         cells = cls._require_success(
             cls._snapshot_cells(
-                formula_sheet, value_sheet, data_only=formula_sheet is not value_sheet
-            )
+                formula_sheet,
+                value_sheet,
+                data_only=formula_sheet is not value_sheet,
+            ),
         )
         tables = cls._require_success(cls._snapshot_tables(formula_sheet))
         rows = cls._require_success(cls._snapshot_rows(formula_sheet))
         columns = cls._require_success(cls._snapshot_columns(formula_sheet))
         merged_ranges = tuple(
-            sorted(str(item) for item in formula_sheet.merged_cells.ranges)
+            sorted(str(item) for item in formula_sheet.merged_cells.ranges),
         )
         legacy_password_hash = formula_sheet.protection.password
         if legacy_password_hash is not None and not isinstance(
-            legacy_password_hash, str
+            legacy_password_hash,
+            str,
         ):
             msg = "Worksheet legacy protection hash is not textual"
             raise TypeError(msg)
@@ -107,4 +129,4 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
         )
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxSnapshotSheet",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxSnapshotSheet",)

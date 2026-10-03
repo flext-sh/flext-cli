@@ -1,11 +1,16 @@
-"""Unit tests for the DAG pipeline engine."""
+"""Unit tests for the DAG pipeline engine.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, r
 from flext_tests import tm
+
+from flext_cli import cli, r
 from tests import c, m
 
 if TYPE_CHECKING:
@@ -18,32 +23,46 @@ class TestsFlextCliPipeline:
     """Implementation part for TestsFlextCliPipeline."""
 
     @staticmethod
-    def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
-        """Build a handler that succeeds and writes to shared."""
+    def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:
+        """Build a handler that succeeds and writes to shared.
+
+        Returns:
+            The resulting ``p.Cli.PipelineStage``.
+
+        """
 
         def handler(
             ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
-                stage_id, output={output_key: stage_id}, duration_ms=1.0
+                stage_id,
+                output={output_key: stage_id},
+                duration_ms=1.0,
             )
 
         return handler
 
     @staticmethod
-    def _fail_handler(stage_id: str) -> t.Cli.PipelineHandler:
-        """Build a handler that fails."""
+    def _fail_handler(stage_id: str) -> p.Cli.PipelineStage:
+        """Build a handler that fails.
+
+        Returns:
+            The resulting ``p.Cli.PipelineStage``.
+
+        """
 
         def handler(
-            _ctx: p.Cli.PipelineStageContext,
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
+            _ = ctx
             return r[m.Cli.PipelineStageResult].fail(f"{stage_id} failed")
 
         return handler
 
     @staticmethod
-    def _skip_always(_ctx: p.Cli.PipelineStageContext) -> bool:
+    def _skip_always(ctx: p.Cli.PipelineStageContext) -> bool:
+        _ = ctx
         return True
 
     def test_single_stage_ok(self, tmp_path: Path) -> None:
@@ -57,11 +76,12 @@ class TestsFlextCliPipeline:
         tm.that(pipeline.stages[0].stage_id, eq="alpha")
         tm.that(pipeline.stages[0].status, eq=c.Cli.PipelineStageStatus.OK)
 
-    def test_dependency_order(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_dependency_order(tmp_path: Path) -> None:
         """Stages execute in topological order — B depends on A."""
         execution_order: list[str] = []
 
-        def tracking_handler(stage_id: str) -> t.Cli.PipelineHandler:
+        def tracking_handler(stage_id: str) -> p.Cli.PipelineStage:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
             ) -> p.Result[m.Cli.PipelineStageResult]:
@@ -72,13 +92,15 @@ class TestsFlextCliPipeline:
             return handler
 
         stages = cli.linear_pipeline(
-            ("a", "b"), {"a": tracking_handler("a"), "b": tracking_handler("b")}
+            ("a", "b"),
+            {"a": tracking_handler("a"), "b": tracking_handler("b")},
         )
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
         tm.that(execution_order, eq=["a", "b"])
 
-    def test_shared_state_propagation(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_shared_state_propagation(tmp_path: Path) -> None:
         """Stage B can read what stage A wrote to shared."""
         received: dict[str, t.JsonValue | None] = {}
 
@@ -102,15 +124,13 @@ class TestsFlextCliPipeline:
         tm.ok(result)
         tm.that(received["from_a"], eq="hello")
 
-    def test_fail_fast_stops_on_failure(self, tmp_path: Path) -> None:
-        """With fail_fast=True, pipeline stops after first failure."""
+    def test_pipeline_stops_on_failure(self, tmp_path: Path) -> None:
+        """Pipeline always stops after its first failed stage."""
         stages = [
             cli.stage("a", handler=self._fail_handler("a")),
             cli.stage("b", depends_on=frozenset({"a"}), handler=self._ok_handler("b")),
         ]
-        result = cli.pipeline(
-            stages, context=cli.stage_context(tmp_path), fail_fast=True
-        )
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.fail(result)
 
     def test_skip_predicate(self, tmp_path: Path) -> None:
@@ -120,13 +140,10 @@ class TestsFlextCliPipeline:
                 "skippable",
                 handler=self._ok_handler("skippable"),
                 skip_if=self._skip_always,
-            )
+            ),
         ]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.ok(result)
         pipeline = result.value
         tm.that(pipeline.success, eq=True)
         tm.that(pipeline.stages[0].status, eq=c.Cli.PipelineStageStatus.SKIPPED)
-
-
-__all__: list[str] = ["TestsFlextCliPipeline"]

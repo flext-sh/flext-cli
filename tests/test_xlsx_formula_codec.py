@@ -1,12 +1,17 @@
-"""OOXML future-function storage encoding contract tests."""
+"""OOXML future-function storage encoding contract tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 import zipfile
 from io import BytesIO
 
-from flext_cli import cli, m
 from flext_tests import tm
+
+from flext_cli import cli, m
 
 
 def _render_formula(formula: str) -> str:

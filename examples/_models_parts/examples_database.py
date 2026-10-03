@@ -1,4 +1,8 @@
-"""Split example model database namespace."""
+"""Split example model database namespace.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -16,7 +20,8 @@ class ExamplesFlextCliModelsExamplesDatabase:
         """Database configuration with advanced validation."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True
+            extra="forbid",
+            validate_assignment=True,
         )
         host: str = m.Field(..., description="Database host", validate_default=True)
         port: int = m.Field(
@@ -27,10 +32,16 @@ class ExamplesFlextCliModelsExamplesDatabase:
             validate_default=True,
         )
         name: str = m.Field(
-            ..., description="Database name", min_length=1, validate_default=True
+            ...,
+            description="Database name",
+            min_length=1,
+            validate_default=True,
         )
         username: str = m.Field(
-            ..., description="Database username", min_length=1, validate_default=True
+            ...,
+            description="Database username",
+            min_length=1,
+            validate_default=True,
         )
         password: str = m.Field(
             ...,
@@ -39,7 +50,9 @@ class ExamplesFlextCliModelsExamplesDatabase:
             validate_default=True,
         )
         ssl_enabled: bool = m.Field(
-            True, description="Enable SSL", validate_default=True
+            True,
+            description="Enable SSL",
+            validate_default=True,
         )
         connection_pool: int = m.Field(
             c.EXAMPLE_DEFAULT_CONNECTION_POOL,
@@ -52,7 +65,16 @@ class ExamplesFlextCliModelsExamplesDatabase:
         @u.field_validator("host")
         @classmethod
         def validate_host(cls, v: str) -> str:
-            """Ensure host looks like a hostname or IP."""
+            """Ensure host looks like a hostname or IP.
+
+            Returns:
+                The resulting ``str``.
+
+            Raises:
+                ValueError: If ``not host``; or if ``not
+                    c.EXAMPLE_REGEX_DOT.search(host)``.
+
+            """
             host = v.strip()
             if not host:
                 msg = c.EXAMPLE_ERR_INVALID_HOST
@@ -61,12 +83,11 @@ class ExamplesFlextCliModelsExamplesDatabase:
                 return host
             try:
                 _ = ip_address(host)
-                return host
             except ValueError:
                 if not c.EXAMPLE_REGEX_DOT.search(host):
                     msg = c.EXAMPLE_ERR_INVALID_HOST
                     raise ValueError(msg) from None
-                return host
+            return host
 
 
 __all__: list[str] = ["ExamplesFlextCliModelsExamplesDatabase"]

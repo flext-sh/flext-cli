@@ -1,60 +1,39 @@
-# @generated AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli.services package."""
+# AUTO-GENERATED FILE — Regenerate with: make gen
+"""Flext Cli.services package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
+from flext_core import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from . import _cli_parts as _cli_parts
-    from .auth import FlextCliAuth as FlextCliAuth
-    from .cli import FlextCliCli as FlextCliCli
-    from .cli_params import FlextCliCommonParams as FlextCliCommonParams
-    from .cmd import FlextCliCmd as FlextCliCmd
-    from .docx import FlextCliDocx as FlextCliDocx
-    from .file_tools import FlextCliFileTools as FlextCliFileTools
-    from .formatters import FlextCliFormatters as FlextCliFormatters
-    from .output import FlextCliOutput as FlextCliOutput
-    from .pipeline import FlextCliPipeline as FlextCliPipeline
-    from .pptx import FlextCliPptx as FlextCliPptx
-    from .prompts import FlextCliPrompts as FlextCliPrompts
-    from .rules import FlextCliRules as FlextCliRules
-    from .runtime import FlextCliRuntime as FlextCliRuntime
-    from .tables import FlextCliTables as FlextCliTables
-    from .xlsx import FlextCliXlsx as FlextCliXlsx
-    from .yaml_model import FlextCliYamlModel as FlextCliYamlModel
-
-_LAZY_MODULES: dict[str, tuple[str, ...]] = {
-    "._cli_parts": ("_cli_parts",),
-    ".auth": ("FlextCliAuth",),
-    ".cli": ("FlextCliCli",),
-    ".cli_params": ("FlextCliCommonParams",),
-    ".cmd": ("FlextCliCmd",),
-    ".docx": ("FlextCliDocx",),
-    ".file_tools": ("FlextCliFileTools",),
-    ".formatters": ("FlextCliFormatters",),
-    ".output": ("FlextCliOutput",),
-    ".pipeline": ("FlextCliPipeline",),
-    ".pptx": ("FlextCliPptx",),
-    ".prompts": ("FlextCliPrompts",),
-    ".rules": ("FlextCliRules",),
-    ".runtime": ("FlextCliRuntime",),
-    ".tables": ("FlextCliTables",),
-    ".xlsx": ("FlextCliXlsx",),
-    ".yaml_model": ("FlextCliYamlModel",),
-}
+    from flext_cli.services import _cli_parts
+    from flext_cli.services._prompts_support import FlextCliPromptsSupport
+    from flext_cli.services.auth import FlextCliAuth
+    from flext_cli.services.cli import FlextCliCli
+    from flext_cli.services.cli_params import FlextCliCommonParams
+    from flext_cli.services.cmd import FlextCliCmd
+    from flext_cli.services.docx import FlextCliDocx
+    from flext_cli.services.file_tools import FlextCliFileTools
+    from flext_cli.services.formatters import FlextCliFormatters
+    from flext_cli.services.output import FlextCliOutput
+    from flext_cli.services.pipeline import FlextCliPipeline
+    from flext_cli.services.pptx import FlextCliPptx
+    from flext_cli.services.prompts import FlextCliPrompts
+    from flext_cli.services.rules import FlextCliRules
+    from flext_cli.services.runtime import FlextCliRuntime
+    from flext_cli.services.tables import FlextCliTables
+    from flext_cli.services.xlsx import FlextCliXlsx
+    from flext_cli.services.yaml_model import FlextCliYamlModel
 
 
-_LAZY_ALIAS_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {}
-
-
-_LAZY_IMPORTS = build_lazy_import_map(
-    _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
-)
-
-_PUBLIC_EXPORTS: tuple[str, ...] = (
+__all__: tuple[str, ...] = (
     "FlextCliAuth",
     "FlextCliCli",
     "FlextCliCmd",
@@ -66,6 +45,7 @@ _PUBLIC_EXPORTS: tuple[str, ...] = (
     "FlextCliPipeline",
     "FlextCliPptx",
     "FlextCliPrompts",
+    "FlextCliPromptsSupport",
     "FlextCliRules",
     "FlextCliRuntime",
     "FlextCliTables",
@@ -74,6 +54,31 @@ _PUBLIC_EXPORTS: tuple[str, ...] = (
     "_cli_parts",
 )
 
-__all__: tuple[str, ...] = tuple(_PUBLIC_EXPORTS)
+_LAZY_IMPORTS = MappingProxyType(
+    build_lazy_import_map(
+        MappingProxyType({
+            "._cli_parts": ("_cli_parts",),
+            "._prompts_support": ("FlextCliPromptsSupport",),
+            ".auth": ("FlextCliAuth",),
+            ".cli": ("FlextCliCli",),
+            ".cli_params": ("FlextCliCommonParams",),
+            ".cmd": ("FlextCliCmd",),
+            ".docx": ("FlextCliDocx",),
+            ".file_tools": ("FlextCliFileTools",),
+            ".formatters": ("FlextCliFormatters",),
+            ".output": ("FlextCliOutput",),
+            ".pipeline": ("FlextCliPipeline",),
+            ".pptx": ("FlextCliPptx",),
+            ".prompts": ("FlextCliPrompts",),
+            ".rules": ("FlextCliRules",),
+            ".runtime": ("FlextCliRuntime",),
+            ".tables": ("FlextCliTables",),
+            ".xlsx": ("FlextCliXlsx",),
+            ".yaml_model": ("FlextCliYamlModel",),
+        }),
+        alias_groups=MappingProxyType({}),
+        sort_keys=False,
+    ),
+)
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

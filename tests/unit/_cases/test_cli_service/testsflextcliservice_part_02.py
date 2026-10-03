@@ -1,12 +1,18 @@
-"""Real Typer integration tests for the public flext-cli CLI facade."""
+"""Real Typer integration tests for the public flext-cli CLI facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli
 from flext_tests import tm
+
+from flext_cli import cli
 from tests import c, m
+from tests.utilities import u
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
@@ -19,11 +25,13 @@ if TYPE_CHECKING:
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
-    def test_model_command_accepts_repeatable_list_options(self) -> None:
+    @staticmethod
+    def test_model_command_accepts_repeatable_list_options() -> None:
         """Accept repeated model-derived options through the public invocation facade."""
         captured: MutableSequence[m.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
-            name="root", help_text="Root application"
+            name="root",
+            help_text="Root application",
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
@@ -52,11 +60,12 @@ class TestsFlextCliService:
         )
 
         tm.ok(exec_result)
-        tm.that(exec_result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(exec_result.value.outcome), eq=True)
         tm.that(len(captured), eq=1)
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
-    def test_model_command_returns_handler_value(self) -> None:
+    @staticmethod
+    def test_model_command_returns_handler_value() -> None:
         """Return the observable value produced by a model command handler."""
 
         def handle(params: m.Tests.SampleInput) -> t.JsonValue:
@@ -69,7 +78,10 @@ class TestsFlextCliService:
 
         command = cli.model_command(m.Tests.SampleInput, handle)
         result = command(
-            name="alice", count=3, dry_run=True, output_format=c.Cli.OutputFormats.JSON
+            name="alice",
+            count=3,
+            dry_run=True,
+            output_format=c.Cli.OutputFormats.JSON,
         )
 
         expected: t.JsonMapping = {
@@ -80,7 +92,8 @@ class TestsFlextCliService:
         }
         tm.that(result, eq=expected)
 
-    def test_model_command_uses_custom_param_decls_from_field_extra(self) -> None:
+    @staticmethod
+    def test_model_command_uses_custom_param_decls_from_field_extra() -> None:
         """Expose custom option declarations from validated field metadata."""
 
         class CustomDeclModel(m.BaseModel):
@@ -101,8 +114,5 @@ class TestsFlextCliService:
         help_result = cli.invoke_app(app, args=["run", "--help"])
 
         tm.ok(help_result)
-        tm.that(help_result.value.exit_code, eq=0)
+        tm.that(u.Cli.process_succeeded(help_result.value.outcome), eq=True)
         tm.that(help_result.value.stdout, has="--flaggy")
-
-
-__all__: list[str] = ["TestsFlextCliService"]

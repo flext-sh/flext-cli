@@ -1,14 +1,21 @@
-"""Model-only YAML egress contract tests."""
+"""Model-only YAML egress contract tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, m
 from flext_tests import tm
+
+from flext_cli import cli, m
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    from tests import t
 
 
 def test_write_yaml_model_round_trips_the_same_model_contract(tmp_path: Path) -> None:
@@ -24,6 +31,6 @@ def test_write_yaml_model_round_trips_the_same_model_contract(tmp_path: Path) ->
     tm.that(loaded.value, eq=source)
 
 
-__all__: tuple[str, ...] = (
+__all__: t.VariadicTuple[str] = (
     "test_write_yaml_model_round_trips_the_same_model_contract",
 )

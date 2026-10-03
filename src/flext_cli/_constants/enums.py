@@ -1,4 +1,8 @@
-"""FLEXT CLI enums and enum-backed settings constants."""
+"""FLEXT CLI enums and enum-backed settings constants.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -75,7 +79,7 @@ class FlextCliConstantsEnums:
 
     @unique
     class TabularFormat(StrEnum):
-        """Tabulate library format string authority — for table rendering."""
+        """Tabular format string authority — for table rendering."""
 
         PLAIN = "plain"
         SIMPLE = "simple"

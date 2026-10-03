@@ -1,12 +1,15 @@
-"""DSL service for external process runtime helpers."""
+"""DSL service for external process runtime helpers.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from flext_cli import s, t
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
+from flext_cli import m, s, t
 
 
-class FlextCliRuntime(s, FlextCliUtilitiesRuntime):
+class FlextCliRuntime(s[m.Cli.RuntimeStatus]):
     """Expose process execution helpers through ``cli`` and ``FlextCli``."""
 
 

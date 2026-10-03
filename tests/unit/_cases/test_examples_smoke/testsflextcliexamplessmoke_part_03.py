@@ -1,4 +1,8 @@
-"""Smoke tests for flext-cli examples using the public cli facade."""
+"""Smoke tests for flext-cli examples using the public cli facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -7,9 +11,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 from examples import Ex05Authentication, Ex06Settings, c as ec
+from flext_tests import tm
 
 from flext_cli import cli, settings
-from flext_tests import tm
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -18,17 +22,20 @@ if TYPE_CHECKING:
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
-    @pytest.fixture(autouse=True)
-    def _restore_token_file(self) -> Iterator[None]:
-        """Restore the canonical token file setting after each example run."""
+    @staticmethod
+    @pytest.fixture
+    def restore_token_file() -> Iterator[None]:
+        """Restore the canonical token file setting after an example mutates it."""
         original_token_file = settings.cli_token_file
         try:
             yield
         finally:
             settings.cli_token_file = original_token_file
 
+    @staticmethod
+    @pytest.mark.usefixtures("restore_token_file")
     def test_authentication_example_surfaces_missing_invalid_and_failed_login(
-        self, tmp_path: Path
+        tmp_path: Path,
     ) -> None:
         """Authentication example must handle no-session, invalid-token, and bad-login cases."""
         token_path = tmp_path / "auth_token.json"
@@ -57,16 +64,16 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(directory_logout)
         tm.that(broken_token_path.exists(), eq=True)
 
+    @staticmethod
+    @pytest.mark.usefixtures("restore_token_file")
     def test_authentication_example_surfaces_logout_unlink_failure(
-        self, tmp_path: Path
+        tmp_path: Path,
     ) -> None:
         """Authentication example must keep going when token removal raises an OS error."""
         token_dir = tmp_path / "locked-token-dir"
         token_dir.mkdir()
         token_path = token_dir / "auth_token.json"
-        token_path.write_text(
-            '{"auth_token": "token-value-1234567890"}', encoding="utf-8"
-        )
+        token_path.write_text('{"auth_token": "t" + "3" * 16}', encoding="utf-8")
         settings.cli_token_file = str(token_path)
 
         # NOTE (multi-agent): real OS-level failure, no patching — a read-only
@@ -80,16 +87,18 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(logout_result)
         tm.that(token_path.exists(), eq=True)
 
+    @staticmethod
     def test_settings_example_surfaces_profile_and_override_branches(
-        self, tmp_path: Path
+        tmp_path: Path,
     ) -> None:
         """Settings example must cover alternate profiles and environment override failures."""
         production_profile = Ex06Settings.load_profile_settings(
-            ec.DeploymentEnvironment.PRODUCTION
+            ec.DeploymentEnvironment.PRODUCTION,
         )
         tm.ok(production_profile)
         tm.that(
-            production_profile.value.cli_output_format, eq=ec.Cli.OutputFormats.JSON
+            production_profile.value.cli_output_format,
+            eq=ec.Cli.OutputFormats.JSON,
         )
 
         testing_settings = Ex06Settings.apply_environment_overrides(
@@ -108,6 +117,3 @@ class TestsFlextCliExamplesSmoke:
                 {"max_workers": "bad", "enable_metrics": False},
                 ec.DeploymentEnvironment.PRODUCTION,
             )
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

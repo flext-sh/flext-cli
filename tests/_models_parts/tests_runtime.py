@@ -1,4 +1,8 @@
-"""Split test model namespace."""
+"""Split test model namespace.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,14 +24,8 @@ class TestsFlextCliModelsRuntime:
         message: Annotated[str, m.Field(description="Message")]
         error: Annotated[str | None, m.Field(description="Error")] = None
 
-    class ModelCommandSource(m.BaseModel):
-        """Partial override source for the model-command DSL (all optional)."""
-
-        name: Annotated[str | None, m.Field(description="Command name")] = None
-        value: Annotated[int | None, m.Field(description="Command value")] = None
-
     class ModelCommandSample(m.BaseModel):
-        """Target model for derive_model/model_command tests."""
+        """Target model for model_command tests."""
 
         name: Annotated[str, m.Field(description="Required command name")]
         value: Annotated[int, m.Field(description="Command value with default")] = 42
@@ -52,21 +50,24 @@ class TestsFlextCliModelsRuntime:
         case_id: Annotated[str, m.Field(description="Pytest case id")]
         command: Annotated[t.StrSequence, m.Field(description="Command argv")]
         timeout: Annotated[
-            int | None, m.Field(description="Optional timeout in seconds")
+            int | None,
+            m.Field(description="Optional timeout in seconds"),
         ] = None
         env: Annotated[
             t.StrMapping | None,
             m.Field(description="Optional child environment overrides"),
         ] = None
         use_tmp_path: Annotated[
-            bool, m.Field(description="Use pytest tmp_path as cwd")
+            bool,
+            m.Field(description="Use pytest tmp_path as cwd"),
         ] = False
         input_data: Annotated[
             str | bytes | None,
             m.Field(description="Optional stdin payload (text or binary)"),
         ] = None
         expect_success: Annotated[
-            bool, m.Field(description="Whether command should succeed")
+            bool,
+            m.Field(description="Whether command should succeed"),
         ] = True
         stdout_has: Annotated[str, m.Field(description="Expected stdout substring")] = (
             ""
@@ -75,19 +76,34 @@ class TestsFlextCliModelsRuntime:
             ""
         )
         exit_code: Annotated[
-            int | None, m.Field(description="Expected exit code when applicable")
+            int | None,
+            m.Field(description="Expected exit code when applicable"),
         ] = None
         expected: Annotated[str, m.Field(description="Expected captured output")] = ""
         error_has: Annotated[str, m.Field(description="Expected error substring")] = ""
+        timed_out: Annotated[
+            bool,
+            m.Field(description="Whether the run must end owned-timeout"),
+        ] = False
 
         @staticmethod
         def id_for(case: TestsFlextCliModelsRuntime.RuntimeCommandCase) -> str:
-            """Return pytest id for one case."""
+            """Return pytest id for one case.
+
+            Returns:
+                Pytest id for one case.
+
+            """
             return case.case_id
 
         @classmethod
-        def run_raw_cases(cls) -> tuple[Self, ...]:
-            """Cases for raw command execution."""
+        def run_raw_cases(cls) -> t.VariadicTuple[Self]:
+            """Cases for raw command execution.
+
+            Returns:
+                The resulting ``t.VariadicTuple[Self]``.
+
+            """
             return (
                 cls.model_validate({
                     "case_id": "echo",
@@ -135,15 +151,15 @@ class TestsFlextCliModelsRuntime:
                 }),
                 cls.model_validate({
                     "case_id": "non-utf8-output",
-                    "command": ("sh", "-c", "printf '\\xff\\xfe'"),
+                    "command": ("sh", "-c", "printf '\\377\\376'"),
                     "error_has": "non-UTF-8",
                     "expect_success": False,
                 }),
                 cls.model_validate({
                     "case_id": "timeout",
                     "command": ("sleep", "10"),
-                    "error_has": "timeout",
-                    "expect_success": False,
+                    "expect_success": True,
+                    "timed_out": True,
                     "timeout": 1,
                 }),
                 cls.model_validate({
@@ -155,8 +171,13 @@ class TestsFlextCliModelsRuntime:
             )
 
         @classmethod
-        def output_cases(cls) -> tuple[Self, ...]:
-            """Cases shared by run and capture."""
+        def output_cases(cls) -> t.VariadicTuple[Self]:
+            """Cases shared by run and capture.
+
+            Returns:
+                The resulting ``t.VariadicTuple[Self]``.
+
+            """
             return (
                 cls.model_validate({
                     "case_id": "success",
@@ -192,8 +213,9 @@ class TestsFlextCliModelsRuntime:
                 cls.model_validate({
                     "case_id": "timeout",
                     "command": ("sleep", "10"),
-                    "error_has": "timeout",
                     "expect_success": False,
+                    "error_has": "timed_out=True",
+                    "timed_out": True,
                     "timeout": 1,
                 }),
             )

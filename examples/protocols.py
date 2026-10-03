@@ -1,16 +1,20 @@
-"""FLEXT CLI example protocols."""
+"""FLEXT CLI example protocols.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli import p
+from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-class ExamplesFlextCliProtocols(p):
+class ExamplesFlextCliProtocols(FlextCliProtocols):
     """Public examples protocol facade extending flext-cli protocols."""
 
     @runtime_checkable
@@ -29,13 +33,17 @@ class ExamplesFlextCliProtocols(p):
         """
 
         def command(
-            self, *args: str, **kwargs: str
+            self,
+            *args: str,
+            **kwargs: str,
         ) -> Callable[[Callable[..., None]], Callable[..., None]]:
             """Create a command decorator."""
             ...
 
         def group(
-            self, *args: str, **kwargs: str
+            self,
+            *args: str,
+            **kwargs: str,
         ) -> Callable[[Callable[..., None]], Callable[..., None]]:
             """Create a command group decorator."""
             ...
@@ -56,7 +64,9 @@ class ExamplesFlextCliProtocols(p):
         """
 
         def command(
-            self, *args: str, **kwargs: str
+            self,
+            *args: str,
+            **kwargs: str,
         ) -> Callable[[Callable[..., None]], Callable[..., None]]:
             """Create a command decorator."""
             ...

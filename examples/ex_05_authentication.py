@@ -25,7 +25,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import c, cli, settings, u
-from flext_core import p, r
+from flext_cli.protocols import p
+from flext_core import r
 
 # mro-p68a.9.3 (agent: claude): named threshold keeps the example Ruff-clean
 # (no magic value) and documents the minimum valid token length.
@@ -37,40 +38,56 @@ class Ex05Authentication:
 
     @staticmethod
     def login_to_service(username: str, password: str) -> p.Result[bool]:
-        """Login and save token in YOUR CLI application."""
+        """Login and save token in YOUR CLI application.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         auth_result = cli.authenticate({"username": username, "password": password})
         if auth_result.failure:
             cli.print(
                 f"❌ Login failed: {auth_result.error}",
                 style=c.Cli.MessageStyles.BOLD_RED,
             )
-            return r[bool].fail(auth_result.error or "Login failed")
+            return r[bool].from_failure(auth_result)
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         cli.print("✅ Login successful!", style=c.Cli.MessageStyles.GREEN)
         cli.print(
-            f"   Token saved to: {token_file_path}", style=c.Cli.MessageStyles.CYAN
+            f"   Token saved to: {token_file_path}",
+            style=c.Cli.MessageStyles.CYAN,
         )
         return r[bool].ok(True)
 
     @staticmethod
     def fetch_saved_token() -> p.Result[str]:
-        """Retrieve saved auth token in YOUR CLI."""
+        """Retrieve saved auth token in YOUR CLI.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         token_result = cli.fetch_auth_token()
         if token_result.failure:
             cli.print(
                 f"⚠️  Not authenticated: {token_result.error}",
                 style=c.Cli.MessageStyles.YELLOW,
             )
-            return r[str].fail(token_result.error or "Not authenticated")
+            return r[str].from_failure(token_result)
         return r[str].ok(token_result.value)
 
     @staticmethod
     def validate_current_token() -> p.Result[bool]:
-        """Validate the saved token and return the explicit outcome."""
+        """Validate the saved token and return the explicit outcome.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         token_result = cli.fetch_auth_token()
         if token_result.failure:
             cli.print("⚠️  No token found", style=c.Cli.MessageStyles.YELLOW)
-            return r[bool].fail(token_result.error or "No token found")
+            return r[bool].from_failure(token_result)
         token = token_result.value
         if len(token) < _MIN_VALID_TOKEN_LENGTH:
             cli.print("❌ Invalid token format", style=c.Cli.MessageStyles.BOLD_RED)
@@ -83,7 +100,12 @@ class Ex05Authentication:
 
     @staticmethod
     def logout() -> p.Result[bool]:
-        """Logout and clear the saved token if a session exists."""
+        """Logout and clear the saved token if a session exists.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         if not token_file_path.exists():
             cli.print("⚠️  No active session", style=c.Cli.MessageStyles.YELLOW)
@@ -92,9 +114,13 @@ class Ex05Authentication:
             token_file_path.unlink()
         except OSError as exc:
             cli.print(f"❌ Logout failed: {exc}", style=c.Cli.MessageStyles.BOLD_RED)
-            return r[bool].fail(str(exc))
+            return r[bool].fail(str(exc), exception=exc)
         cli.print("✅ Logged out successfully", style=c.Cli.MessageStyles.GREEN)
         cli.print(
-            f"   Token removed from: {token_file_path}", style=c.Cli.MessageStyles.CYAN
+            f"   Token removed from: {token_file_path}",
+            style=c.Cli.MessageStyles.CYAN,
         )
         return r[bool].ok(True)
+
+
+__all__: list[str] = ["Ex05Authentication"]

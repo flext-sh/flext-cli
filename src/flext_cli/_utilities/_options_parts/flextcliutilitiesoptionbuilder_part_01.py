@@ -1,22 +1,38 @@
-"""CLI option helpers shared through ``u.Cli``."""
+"""CLI option helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from flext_cli import c, m, t
+from flext_cli import c, t
+from flext_cli.models import m
 
 
 class FlextCliUtilitiesOptionBuilder:
     """Implementation part for FlextCliUtilitiesOptionBuilder."""
 
-    def __init__(self, field_name: str, registry: t.Cli.OptionRegistry) -> None:
-        """Initialize the option builder."""
-        super().__init__()
-        self.field_name = field_name
-        self.registry = registry
+    @classmethod
+    def build(
+        cls,
+        field_name: str,
+        registry: t.Cli.OptionRegistry,
+    ) -> m.Cli.OptionSpec:
+        """Build one CLI option spec from field metadata.
 
-    def build(self) -> m.Cli.OptionSpec:
-        """Build one CLI option spec from field metadata."""
-        field_meta_raw = self.registry.get(self.field_name, {})
+        Args:
+            field_name: The canonical field name the option exposes.
+            registry: The option registry metadata for the model.
+
+        Returns:
+            The resulting ``m.Cli.OptionSpec``.
+
+        Raises:
+            TypeError: If Option registry metadata must support key lookup.
+
+        """
+        field_meta_raw = registry.get(field_name, {})
         if not field_meta_raw:
             msg = "Option registry metadata must support key lookup"
             raise TypeError(msg)
@@ -28,11 +44,11 @@ class FlextCliUtilitiesOptionBuilder:
         cli_param_name: str = (
             field_meta.field_name_override
             if field_meta.field_name_override is not None
-            else self.field_name
+            else field_name
         )
 
         option_args: t.MutableSequenceOf[str] = [
-            f"--{cli_param_name.replace('_', '-')}"
+            f"--{cli_param_name.replace('_', '-')}",
         ]
         if cli_param_name == "project":
             option_args.append("--projects")

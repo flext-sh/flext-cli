@@ -1,16 +1,45 @@
-"""Private MRO composition for the generic DOCX byte boundary."""
+"""Lightweight public utility boundary for generic DOCX bytes.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from ._docx._reader import FlextCliUtilitiesDocxReader
-from ._docx._renderer import FlextCliUtilitiesDocxRenderer
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import m, p, t
 
 
-class FlextCliUtilitiesDocx(FlextCliUtilitiesDocxReader, FlextCliUtilitiesDocxRenderer):
-    """Compose reading and rendering operations for generic DOCX bytes."""
+class FlextCliUtilitiesDocx:
+    """Load the DOCX adapter only when a document operation executes."""
 
-    # NOTE (multi-agent, mro-j2yt.1): one MRO path exposes every generic DOCX
-    # byte operation; consumers exchange only validated plans and bytes.
+    @staticmethod
+    def docx_read(source: bytes) -> p.Result[m.Cli.DocxDocumentPlan]:
+        """Read document bytes through the causal DOCX adapter boundary.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.DocxDocumentPlan]``.
+
+        """
+        from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
+
+        return FlextCliUtilitiesDocxReader.docx_read(source)
+
+    @staticmethod
+    def docx_render(
+        request: m.Cli.DocxRenderRequest,
+    ) -> p.Result[m.Cli.DocxRenderResult]:
+        """Render a typed document through the causal DOCX adapter boundary.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.DocxRenderResult]``.
+
+        """
+        from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
+
+        return FlextCliUtilitiesDocxRenderer.docx_render(request)
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesDocx",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesDocx",)

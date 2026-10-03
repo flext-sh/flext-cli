@@ -1,6 +1,7 @@
 # Migration Guide: v0.9.0 → v0.10.0
 
 <!-- TOC START -->
+
 - [Table of Contents](#table-of-contents)
 - [Overview](#overview)
   - [What Changed](#what-changed)
@@ -43,13 +44,15 @@
   - [Migration Assistance](#migration-assistance)
   - [Reporting Problems](#reporting-problems)
 - [Summary](#summary)
+
 <!-- TOC END -->
 
 **Estimated Migration Time**: 30-60 minutes for typical projects
 
-> **📘 Quick Summary**: the supported output endpoint is `cli.print()`. Internal utility and formatter-service routes are not consumer APIs.
+> **📘 Quick Summary**: the supported output endpoint is `cli.print()`. Internal utility
+> and formatter-service routes are not consumer APIs.
 
-______________________________________________________________________
+---
 
 ## Table of Contents
 
@@ -60,7 +63,7 @@ ______________________________________________________________________
 1. [FAQ](#faq)
 1. [Getting Help](#getting-help)
 
-______________________________________________________________________
+---
 
 ## Overview
 
@@ -68,18 +71,19 @@ ______________________________________________________________________
 
 v0.10.0 simplifies FLEXT-CLI by:
 
-- ✅ **Public Facade Pattern**: Call the MRO-composed public endpoint (for example, `cli.print()`)
+- ✅ **Public Facade Pattern**: Call the MRO-composed public endpoint (for example,
+  `cli.print()`)
 - ✅ **Removed Wrappers**: No more thin wrapper methods in cli
 - ✅ **Simplified Services**: Only 3-4 service classes (down from 18)
-- ✅ **FlextCliContext removed**: Use `m.Cli.CliContext` for simple context data or pass args directly
+- ✅ **FlextCliContext removed**: Use `m.Cli.CliContext` for simple context data or pass
+  args directly
 - ✅ **Removed Complexity**: No unused async/threading/plugin code
 
 ### Why These Changes
 
-**Clarity**: It's now obvious which service handles what
-**Simplicity**: One way to do things, not multiple
-**Maintainability**: 30-40% less code to maintain
-**Performance**: Less indirection, faster execution
+**Clarity**: It's now obvious which service handles what **Simplicity**: One way to do
+things, not multiple **Maintainability**: 30-40% less code to maintain **Performance**:
+Less indirection, faster execution
 
 ### Compatibility
 
@@ -88,7 +92,7 @@ v0.10.0 simplifies FLEXT-CLI by:
 - ✅ **Railway Pattern**: p.Result[T] still used throughout
 - ✅ **Type Safety**: Still 100% type-safe
 
-______________________________________________________________________
+---
 
 ## Breaking Changes
 
@@ -163,7 +167,8 @@ table_str = cli.output.format_data(data, format_type="table")
 
 ### 2. FlextCliContext Removed
 
-`FlextCliContext` was removed. Remove any imports and usages. For simple context data (cwd, env, args, output_format) use `m.Cli.CliContext` from `flext_cli.models`.
+`FlextCliContext` was removed. Remove any imports and usages. For simple context data
+(cwd, env, args, output_format) use `m.Cli.CliContext` from `flext_cli.models`.
 
 ### 3. Service Class Instantiation
 
@@ -206,7 +211,7 @@ from flext_cli import FlextCliAuthService
 result = cli.authenticate({"token": "abc123"})
 ```
 
-______________________________________________________________________
+---
 
 ## Step-by-Step Migration
 
@@ -236,12 +241,18 @@ Use your IDE or command-line tools:
 # Replace removed nested/private output calls with cli.print(...).
 
 # File operations
-find . -name "*.py" -exec sed -i 's/cli\.read_json_file(/cli.file_tools.read_json_file(/g' {} +
-find . -name "*.py" -exec sed -i 's/cli\.write_json_file(/cli.file_tools.write_json_file(/g' {} +
-find . -name "*.py" -exec sed -i 's/cli\.read_yaml_file(/cli.file_tools.read_yaml_file(/g' {} +
-find . -name "*.py" -exec sed -i 's/cli\.write_yaml_file(/cli.file_tools.write_yaml_file(/g' {} +
-find . -name "*.py" -exec sed -i 's/cli\.read_csv_file(/cli.file_tools.read_csv_file(/g' {} +
-find . -name "*.py" -exec sed -i 's/cli\.write_csv_file(/cli.file_tools.write_csv_file(/g' {} +
+find . -name "*.py" -exec sed -i \
+  's/cli\.read_json_file(/cli.file_tools.read_json_file(/g' {} +
+find . -name "*.py" -exec sed -i \
+  's/cli\.write_json_file(/cli.file_tools.write_json_file(/g' {} +
+find . -name "*.py" -exec sed -i \
+  's/cli\.read_yaml_file(/cli.file_tools.read_yaml_file(/g' {} +
+find . -name "*.py" -exec sed -i \
+  's/cli\.write_yaml_file(/cli.file_tools.write_yaml_file(/g' {} +
+find . -name "*.py" -exec sed -i \
+  's/cli\.read_csv_file(/cli.file_tools.read_csv_file(/g' {} +
+find . -name "*.py" -exec sed -i \
+  's/cli\.write_csv_file(/cli.file_tools.write_csv_file(/g' {} +
 
 # Prompts
 find . -name "*.py" -exec sed -i 's/cli\.prompt_user(/cli.prompts.prompt(/g' {} +
@@ -272,7 +283,8 @@ grep -r "context\.activate()" .
 grep -r "context\.deactivate()" .
 ```
 
-**Fix**: Remove these calls. `FlextCliContext` was removed; use `m.Cli.CliContext` or pass command/arguments directly.
+**Fix**: Remove these calls. `FlextCliContext` was removed; use `m.Cli.CliContext` or
+pass command/arguments directly.
 
 ```text
 # ✅ Use simple context data if needed
@@ -310,53 +322,55 @@ def process_cli(cli: cli) -> None:
 
 Type hints for cli don't change - only method calls do.
 
-______________________________________________________________________
+---
 
 ## Quick Reference
 
 ### Complete Method Mapping
 
-| v0.9.0 (OLD)                      | v0.10.0 (NEW)                                       |
-| --------------------------------- | --------------------------------------------------- |
-| removed nested/private print route | `cli.print(msg)`                                  |
-| `cli.create_table(data)`          | `cli.output.format_data(data, format_type="table")` |
-| `cli.print_table(table)`          | `cli.print(table)`                                  |
-| `cli.create_tree(label)`          | current public formatter API                       |
-| `cli.format_output(data, fmt)`    | `cli.output.format_data(data, format_type=fmt)`     |
-| `cli.read_json_file(path)`        | `cli.file_tools.read_json_file(path)`               |
-| `cli.write_json_file(path, data)` | `cli.file_tools.write_json_file(path, data)`        |
-| `cli.read_yaml_file(path)`        | `cli.file_tools.read_yaml_file(path)`               |
-| `cli.write_yaml_file(path, data)` | `cli.file_tools.write_yaml_file(path, data)`        |
-| `cli.read_csv_file(path)`         | `cli.file_tools.read_csv_file(path)`                |
-| `cli.write_csv_file(path, data)`  | `cli.file_tools.write_csv_file(path, data)`         |
-| `cli.prompt_user(msg)`            | `cli.prompts.prompt(msg)`                           |
-| `cli.confirm(msg)`                | `cli.prompts.confirm(msg)`                          |
-| `cli.select(msg, choices)`        | `cli.prompts.select(msg, choices)`                  |
+| v0.9.0 (OLD)                       | v0.10.0 (NEW)                                       |
+| ---------------------------------- | --------------------------------------------------- |
+| removed nested/private print route | `cli.print(msg)`                                    |
+| `cli.create_table(data)`           | `cli.output.format_data(data, format_type="table")` |
+| `cli.print_table(table)`           | `cli.print(table)`                                  |
+| `cli.create_tree(label)`           | current public formatter API                        |
+| `cli.format_output(data, fmt)`     | `cli.output.format_data(data, format_type=fmt)`     |
+| `cli.read_json_file(path)`         | `cli.file_tools.read_json_file(path)`               |
+| `cli.write_json_file(path, data)`  | `cli.file_tools.write_json_file(path, data)`        |
+| `cli.read_yaml_file(path)`         | `cli.file_tools.read_yaml_file(path)`               |
+| `cli.write_yaml_file(path, data)`  | `cli.file_tools.write_yaml_file(path, data)`        |
+| `cli.read_csv_file(path)`          | `cli.file_tools.read_csv_file(path)`                |
+| `cli.write_csv_file(path, data)`   | `cli.file_tools.write_csv_file(path, data)`         |
+| `cli.prompt_user(msg)`             | `cli.prompts.prompt(msg)`                           |
+| `cli.confirm(msg)`                 | `cli.prompts.confirm(msg)`                          |
+| `cli.select(msg, choices)`         | `cli.prompts.select(msg, choices)`                  |
 
 ### Services Reference
 
 Access these through cli instance:
 
-| Service          | Methods                                       | Purpose                  |
-| ---------------- | --------------------------------------------- | ------------------------ |
+| Service           | Methods                                       | Purpose                  |
+| ----------------- | --------------------------------------------- | ------------------------ |
 | public CLI facade | `print()`, `render_panel()`, `render_table()` | Rich terminal formatting |
-| `cli.output`     | `format_data()`, etc.                         | Output management        |
-| `cli.file_tools` | `read_json_file()`, `write_yaml_file()`, etc. | File I/O                 |
-| `cli.prompts`    | `prompt()`, `confirm()`, `select()`           | User input               |
-| `cli.core`       | `execute_command()`, etc.                     | Command management       |
-| `cli.cmd`        | `execute()`                                   | Command execution        |
+| `cli.output`      | `format_data()`, etc.                         | Output management        |
+| `cli.file_tools`  | `read_json_file()`, `write_yaml_file()`, etc. | File I/O                 |
+| `cli.prompts`     | `prompt()`, `confirm()`, `select()`           | User input               |
+| `cli.core`        | `execute_command()`, etc.                     | Command management       |
+| `cli.cmd`         | `execute()`                                   | Command execution        |
 
-______________________________________________________________________
+---
 
 ## FAQ
 
 ### Q: Why remove wrapper methods
 
-**A**: Wrapper methods added no value and made the API confusing. Now there's one clear way to do each operation.
+**A**: Wrapper methods added no value and made the API confusing. Now there's one clear
+way to do each operation.
 
 ### Q: Will this break my code
 
-**A**: Yes, if you use wrapper methods. But the migration is straightforward - mostly find-and-replace.
+**A**: Yes, if you use wrapper methods. But the migration is straightforward - mostly
+find-and-replace.
 
 ### Q: Can I use both old and new patterns
 
@@ -368,7 +382,8 @@ ______________________________________________________________________
 
 ### Q: Is the migration tool available
 
-**A**: Not yet, but the find-and-replace commands above work well. We may add a tool in the future.
+**A**: Not yet, but the find-and-replace commands above work well. We may add a tool in
+the future.
 
 ### Q: What if I have a large codebase
 
@@ -380,15 +395,18 @@ ______________________________________________________________________
 
 ### Q: Will there be more breaking changes
 
-**A**: We aim for stability. v0.10.0 is a major cleanup. Future versions should be backwards compatible.
+**A**: We aim for stability. v0.10.0 is a major cleanup. Future versions should be
+backwards compatible.
 
 ### Q: Can I stay on v0.9.0
 
-**A**: Yes, but v0.10.0 has improvements and will receive ongoing support. v0.9.0 is now in maintenance mode.
+**A**: Yes, but v0.10.0 has improvements and will receive ongoing support. v0.9.0 is now
+in maintenance mode.
 
 ### Q: What about performance
 
-**A**: v0.10.0 is **faster** due to less indirection. You may notice 10-20% speed improvements.
+**A**: v0.10.0 is **faster** due to less indirection. You may notice 10-20% speed
+improvements.
 
 ### Q: Are there new features
 
@@ -396,9 +414,11 @@ ______________________________________________________________________
 
 ### Q: Where's the full changelog
 
-**A**: See [CHANGELOG.md](https://github.com/flext-sh/flext-cli/blob/main/CHANGELOG.md) for complete details.
+**A**: See
+[CHANGELOG.md](https://github.com/flext-sh/flext-cli/blob/0.12.0-dev/CHANGELOG.md) for
+complete details.
 
-______________________________________________________________________
+---
 
 ## Examples
 
@@ -445,7 +465,7 @@ from flext_cli import cli
 
 
 def process_data():
-    
+
     # Read input
     data = cli.read_csv_file("input.csv").unwrap()
     cli.print(f"Loaded {len(data)} records")
@@ -467,7 +487,7 @@ from flext_cli import cli
 
 
 def process_data():
-    
+
     # Read input
     data = cli.file_tools.read_csv_file("input.csv").unwrap()
         cli.print(f"Loaded {len(data)} records")
@@ -488,9 +508,10 @@ def process_data():
 
 ### Example 3: Context Usage
 
-`FlextCliContext` was removed. Use `m.Cli.CliContext` (cwd, env, args, output_format) from `flext_cli.models` for context data, or pass command/arguments directly.
+`FlextCliContext` was removed. Use `m.Cli.CliContext` (cwd, env, args, output_format)
+from `flext_cli.models` for context data, or pass command/arguments directly.
 
-______________________________________________________________________
+---
 
 ## Getting Help
 
@@ -526,17 +547,15 @@ Found a bug after migrating?
    - v0.10.0 code (after)
    - Error message and stack trace
 
-______________________________________________________________________
+---
 
 ## Summary
 
 v0.10.0 brings significant improvements through simplification:
 
-✅ **Direct Access Pattern** - Clear ownership
-✅ **Removed Wrappers** - One way to do things
-✅ **Simpler Architecture** - Less complexity
-✅ **Better Performance** - Less indirection
-✅ **Easier Maintenance** - 30-40% less code
+✅ **Direct Access Pattern** - Clear ownership ✅ **Removed Wrappers** - One way to do
+things ✅ **Simpler Architecture** - Less complexity ✅ **Better Performance** - Less
+indirection ✅ **Easier Maintenance** - 30-40% less code
 
 **Migration is straightforward** - mostly find-and-replace.
 
@@ -544,8 +563,7 @@ v0.10.0 brings significant improvements through simplification:
 
 We're confident you'll appreciate the simpler, cleaner API once migrated!
 
-______________________________________________________________________
+---
 
-**Document Version**: 1.0
-**Last Updated**: 2025-01-24
-**Questions?**: [Open an issue](https://github.com/flext-sh/flext-cli/issues)
+**Document Version**: 1.0 **Last Updated**: 2025-01-24 **Questions?**:
+[Open an issue](https://github.com/flext-sh/flext-cli/issues)

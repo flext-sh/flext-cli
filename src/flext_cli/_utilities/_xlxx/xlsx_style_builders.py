@@ -1,4 +1,8 @@
-"""Translate typed visual style models into openpyxl objects."""
+"""Translate typed visual style models into openpyxl objects.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -6,7 +10,10 @@ from openpyxl.styles import Alignment, Border, Color, Font, GradientFill, NamedS
 from openpyxl.styles.borders import Side
 from openpyxl.styles.fills import PatternFill, Stop
 
-from flext_cli import m
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import m, t
 
 
 class FlextCliUtilitiesXlsxStyleBuilders:
@@ -120,4 +127,4 @@ class FlextCliUtilitiesXlsxStyleBuilders:
         )
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxStyleBuilders",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxStyleBuilders",)

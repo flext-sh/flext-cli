@@ -1,4 +1,8 @@
-"""Typed table and defined-name application for XLSX workbooks."""
+"""Typed table and defined-name application for XLSX workbooks.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -7,10 +11,11 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r
-
-from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
-from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from flext_cli._utilities._xlxx.xlsx_formula_codec import (
+    FlextCliUtilitiesXlsxFormulaCodec,
+)
 
 
 class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
@@ -22,7 +27,7 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
     def _apply_tables(
         cls,
         worksheet: Worksheet,
-        plans: tuple[m.Cli.XlsxTablePlan, ...],
+        plans: t.VariadicTuple[m.Cli.XlsxTablePlan],
         used_names: frozenset[str],
     ) -> p.Result[frozenset[str]]:
         try:
@@ -35,20 +40,20 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
     def _apply_tables_unchecked(
         cls,
         worksheet: Worksheet,
-        plans: tuple[m.Cli.XlsxTablePlan, ...],
+        plans: t.VariadicTuple[m.Cli.XlsxTablePlan],
         used_names: frozenset[str],
     ) -> p.Result[frozenset[str]]:
         names = used_names
         for plan in plans:
             if plan.name in names:
                 return r[frozenset[str]].fail(
-                    f"{c.Cli.XlsxError.DUPLICATE_TABLE}: {plan.name}"
+                    f"{c.Cli.XlsxError.DUPLICATE_TABLE}: {plan.name}",
                 )
             for column in range(plan.area.first.column, plan.area.last.column + 1):
                 header = worksheet.cell(plan.area.first.row, column).value
                 if not isinstance(header, str) or not header:
                     return r[frozenset[str]].fail(
-                        f"Invalid table header: {plan.name} column {column}"
+                        f"Invalid table header: {plan.name} column {column}",
                     )
             table = Table(displayName=plan.name, ref=cls._range_ref(plan.area))
             table.tableStyleInfo = TableStyleInfo(
@@ -64,31 +69,33 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
 
     @classmethod
     def _apply_defined_names(
-        cls, workbook: Workbook, plans: tuple[m.Cli.XlsxDefinedNamePlan, ...]
+        cls,
+        workbook: Workbook,
+        plans: t.VariadicTuple[m.Cli.XlsxDefinedNamePlan],
     ) -> p.Result[bool]:
         names: frozenset[str] = frozenset()
         for plan in plans:
             if plan.name in names or plan.name in workbook.defined_names:
                 return r[bool].fail(
-                    f"{c.Cli.XlsxError.DUPLICATE_DEFINED_NAME}: {plan.name}"
+                    f"{c.Cli.XlsxError.DUPLICATE_DEFINED_NAME}: {plan.name}",
                 )
             if plan.kind == "range":
                 if plan.sheet not in workbook.sheetnames:
                     return r[bool].fail(
-                        f"{c.Cli.XlsxError.SHEET_MISSING}: {plan.sheet}"
+                        f"{c.Cli.XlsxError.SHEET_MISSING}: {plan.sheet}",
                     )
                 expression = (
                     f"{cls._sheet_ref(plan.sheet)}!{cls._absolute_range_ref(plan.area)}"
                 )
             else:
                 expression = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                    plan.expression
+                    plan.expression,
                 )
             workbook.defined_names.add(
-                DefinedName(name=plan.name, attr_text=expression)
+                DefinedName(name=plan.name, attr_text=expression),
             )
             names = names.union((plan.name,))
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxTables",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxTables",)

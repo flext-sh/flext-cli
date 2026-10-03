@@ -1,9 +1,15 @@
-"""Public typed A1 range parsing contract tests."""
+"""Public typed A1 range parsing contract tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from flext_cli import cli, m
 from flext_tests import tm
+
+from flext_cli import cli, m
+from tests import t
 
 
 def test_xlsx_parse_range_returns_typed_concrete_bounds() -> None:
@@ -36,10 +42,15 @@ def test_xlsx_format_reference_exposes_every_typed_rendering_mode() -> None:
         last=m.Cli.XlsxCellAddress(row=4, column=4),
     )
     relative_request = m.Cli.XlsxFormatReferenceRequest(
-        area=area, absolute=False, collapse_single_cell=True
+        area=area,
+        absolute=False,
+        collapse_single_cell=True,
     )
     absolute_request = m.Cli.XlsxFormatReferenceRequest(
-        area=area, sheet="Sales Q1", absolute=True, collapse_single_cell=False
+        area=area,
+        sheet="Sales Q1",
+        absolute=True,
+        collapse_single_cell=False,
     )
 
     relative = cli.xlsx_format_reference(relative_request)
@@ -64,18 +75,25 @@ def test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion() ->
 
     collapsed = cli.xlsx_format_reference(
         m.Cli.XlsxFormatReferenceRequest(
-            area=single, sheet="O'Brien", absolute=True, collapse_single_cell=True
-        )
+            area=single,
+            sheet="O'Brien",
+            absolute=True,
+            collapse_single_cell=True,
+        ),
     )
     expanded = cli.xlsx_format_reference(
         m.Cli.XlsxFormatReferenceRequest(
-            area=single, absolute=False, collapse_single_cell=False
-        )
+            area=single,
+            absolute=False,
+            collapse_single_cell=False,
+        ),
     )
     invalid = cli.xlsx_format_reference(
         m.Cli.XlsxFormatReferenceRequest(
-            area=inverted, absolute=False, collapse_single_cell=False
-        )
+            area=inverted,
+            absolute=False,
+            collapse_single_cell=False,
+        ),
     )
 
     tm.that(collapsed.value.reference, eq="'O''Brien'!$A$1")
@@ -84,7 +102,7 @@ def test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion() ->
     tm.that("xlsx_range_invalid" in (invalid.error or ""), eq=True)
 
 
-__all__: tuple[str, ...] = (
+__all__: t.VariadicTuple[str] = (
     "test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion",
     "test_xlsx_format_reference_exposes_every_typed_rendering_mode",
     "test_xlsx_parse_range_fails_loud_for_non_concrete_or_inverted_input",

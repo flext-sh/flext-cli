@@ -1,4 +1,8 @@
-"""CLI Pydantic domain models."""
+"""CLI Pydantic domain models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,12 +24,14 @@ class FlextCliModelsBase:
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         raw: Annotated[
-            str | None, m.Field(None, description="Raw log level input string")
+            str | None,
+            m.Field(None, description="Raw log level input string"),
         ]
         default: Annotated[
             str,
             m.Field(
-                c.LogLevel.INFO, description="Default log level when raw is absent"
+                c.LogLevel.INFO,
+                description="Default log level when raw is absent",
             ),
         ]
 
@@ -36,9 +42,14 @@ class FlextCliModelsBase:
             return self.resolve()
 
         def resolve(self) -> str:
-            """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
-            s = (self.raw or self.default).strip().upper()
-            return s or self.default
+            """Type-safe accessor (bypasses pyrefly computed_field limitation).
+
+            Returns:
+                The resulting ``str``.
+
+            """
+            normalized = (self.raw or self.default).strip().upper()
+            return normalized or self.default
 
     class TypedExtract(m.BaseModel):
         """Single contract for typed value extraction (str | bool | dict)."""
@@ -46,7 +57,8 @@ class FlextCliModelsBase:
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         type_kind: Annotated[t.Cli.TypeKind, m.Field(description="Requested type")]
         value: Annotated[
-            t.JsonValue | None, m.Field(None, description="Value to extract and coerce")
+            t.JsonValue | None,
+            m.Field(None, description="Value to extract and coerce"),
         ]
         default: Annotated[
             t.JsonValue | None,
@@ -60,7 +72,12 @@ class FlextCliModelsBase:
             return self.resolve()
 
         def resolve(self) -> t.Cli.TypedExtractValue:
-            """Type-safe accessor (bypasses pyrefly computed_field limitation)."""
+            """Type-safe accessor (bypasses pyrefly computed_field limitation).
+
+            Returns:
+                The resulting ``t.Cli.TypedExtractValue``.
+
+            """
             default_value = self._default_for_kind()
             if self.value is None:
                 return default_value
@@ -89,10 +106,17 @@ class FlextCliModelsBase:
                         if source_mapping is not None
                         else _EMPTY_JSON_MAPPING
                     )
+                case _:
+                    pass
             return resolved_value
 
         def _default_for_kind(self) -> t.Cli.TypedExtractValue:
-            """Return default typed value for the requested kind."""
+            """Return default typed value for the requested kind.
+
+            Returns:
+                Default typed value for the requested kind.
+
+            """
             if self.type_kind == c.Cli.TypeKind.STR:
                 return self.default if isinstance(self.default, str) else ""
             if self.type_kind == c.Cli.TypeKind.BOOL:
@@ -109,25 +133,58 @@ class FlextCliModelsBase:
         """Options for JSON file write operations."""
 
         indent: int = u.Field(
-            2, description="JSON indentation level", validate_default=True
+            2,
+            description="JSON indentation level",
+            validate_default=True,
         )
         sort_keys: bool = u.Field(
-            False, description="Sort JSON keys", validate_default=True
+            default=False,
+            description="Sort JSON keys",
+            validate_default=True,
         )
         ensure_ascii: bool = u.Field(
-            False, description="Escape non-ASCII chars", validate_default=True
+            default=False,
+            description="Escape non-ASCII chars",
+            validate_default=True,
         )
 
     class TableRenderRequest(m.Value):
-        """Validated table-rendering request for the Rich boundary."""
+        """Validated table-rendering request for the formatter boundary."""
 
         columns: Annotated[
-            t.StrSequence, m.Field(description="Ordered table column labels")
+            t.StrSequence,
+            m.Field(description="Ordered table column labels"),
         ]
         rows: Annotated[
-            t.SequenceOf[t.StrSequence], m.Field(description="Ordered table row values")
+            t.SequenceOf[t.StrSequence],
+            m.Field(description="Ordered table row values"),
         ]
         title: Annotated[str, m.Field(description="Optional table title")] = ""
+
+    class DataReportRequest(m.Value):
+        """Validated generic data-report payload shared by every CLI domain."""
+
+        columns: Annotated[
+            t.StrSequence,
+            m.Field(description="Ordered report column labels"),
+        ]
+        rows: Annotated[
+            t.SequenceOf[t.StrSequence],
+            m.Field(description="Ordered report row values"),
+        ]
+        title: Annotated[str, m.Field(description="Optional report title")] = ""
+        message: Annotated[
+            str,
+            m.Field(description="Trailing verdict line emitted after the table"),
+        ] = ""
+        table_format: Annotated[
+            c.Cli.TabularFormat,
+            m.Field(description="Table rendering format for the data report"),
+        ] = c.Cli.TabularFormat.SIMPLE
+        show_header: Annotated[
+            bool,
+            m.Field(description="Whether to render the header row"),
+        ] = True
 
 
 __all__: list[str] = ["FlextCliModelsBase"]

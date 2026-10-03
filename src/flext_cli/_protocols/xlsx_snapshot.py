@@ -1,16 +1,22 @@
-"""Structural contracts for typed XLSX semantic snapshots."""
+"""Structural contracts for typed XLSX semantic snapshots.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
-
-from .xlsx_snapshot_structure import FlextCliProtocolsXlsxSnapshotStructure
+from flext_cli._protocols.xlsx_snapshot_structure import (
+    FlextCliProtocolsXlsxSnapshotStructure,
+)
 
 if TYPE_CHECKING:
     # mro-j47u (codex): p -> m stays type-only through the canonical facade.
+    from flext_core import p
     from flext_cli import m
+    from flext_core import t
 
 
 class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
@@ -115,7 +121,7 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
         ) -> tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]: ...
 
         @property
-        def merged_ranges(self) -> tuple[str, ...]: ...
+        def merged_ranges(self) -> t.VariadicTuple[str]: ...
 
         @property
         def freeze_pane(self) -> str | None: ...
@@ -153,7 +159,7 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
         def defined_names(self) -> tuple[m.Cli.XlsxDefinedNameSnapshot, ...]: ...
 
         @property
-        def named_styles(self) -> tuple[str, ...]: ...
+        def named_styles(self) -> t.VariadicTuple[str]: ...
 
         @property
         def formula_count(self) -> int: ...
@@ -164,12 +170,14 @@ class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):
     @runtime_checkable
     class XlsxSnapshotService(Protocol):
         def xlsx_snapshot(
-            self, request: FlextCliProtocolsXlsxSnapshot.XlsxSnapshotRequest
+            self,
+            request: FlextCliProtocolsXlsxSnapshot.XlsxSnapshotRequest,
         ) -> p.Result[m.Cli.XlsxWorkbookSnapshot]: ...
 
         def xlsx_defined_name_values(
-            self, request: m.Cli.XlsxDefinedNameValuesRequest
+            self,
+            request: m.Cli.XlsxDefinedNameValuesRequest,
         ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]: ...
 
 
-__all__: tuple[str, ...] = ("FlextCliProtocolsXlsxSnapshot",)
+__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsxSnapshot",)

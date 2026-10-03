@@ -1,4 +1,8 @@
-"""FLEXT CLI file operations utilities."""
+"""FLEXT CLI file operations utilities.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -8,41 +12,50 @@ from pathlib import Path
 from flext_cli import c, m, p, r, s, t, u
 
 
-class FlextCliFileTools(s):
+class FlextCliFileTools(s[m.Cli.RuntimeStatus]):
     """File operations with r."""
 
     @staticmethod
-    def ensure_dir(file_path: t.Cli.TextPath) -> p.Result[Path]:
-        """Create a directory tree when missing and return the path."""
-        return u.Cli.ensure_dir(Path(file_path))
-
-    @staticmethod
-    def atomic_write_text_file(
-        file_path: t.Cli.TextPath, content: str
-    ) -> p.Result[bool]:
-        """Write text file atomically via the canonical ``u.Cli`` utility surface."""
-        return u.Cli.atomic_write_text_file(file_path, content)
-
-    @staticmethod
     def read_json_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
-        """Read one JSON file into a validated JSON-compatible value."""
+        """Read one JSON file into a validated JSON-compatible value.
+
+        Returns:
+            The resulting ``p.Result[t.JsonValue]``.
+
+        """
         return u.Cli.files_read_json(Path(file_path))
 
     @staticmethod
     def read_text_file(file_path: t.Cli.TextPath) -> p.Result[str]:
-        """Read a UTF-8 text file via the public CLI file surface."""
+        """Read a UTF-8 text file via the public CLI file surface.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         return u.Cli.files_read_text(Path(file_path))
 
     @staticmethod
     def read_json_model[M: t.Cli.ModelLike](
-        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+        file_path: t.Cli.TextPath,
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
-        """Read JSON into the canonical structural model-class contract."""
+        """Read JSON into the canonical structural model-class contract.
+
+        Returns:
+            The resulting ``p.Result[M]``.
+
+        """
         return u.Cli.files_read_json_model(Path(file_path), model_type)
 
     @staticmethod
     def read_yaml_file(file_path: t.Cli.TextPath) -> p.Result[t.JsonValue]:
-        """Read one YAML file into a validated JSON-compatible value."""
+        """Read one YAML file into a validated JSON-compatible value.
+
+        Returns:
+            The resulting ``p.Result[t.JsonValue]``.
+
+        """
         normalized_path = u.Cli.normalize_optional_text(file_path)
         if normalized_path is None:
             return r[t.JsonValue].fail(c.Cli.ERR_FILE_PATH_EMPTY)
@@ -50,16 +63,28 @@ class FlextCliFileTools(s):
 
     @staticmethod
     def read_yaml_model[M: t.Cli.ModelLike](
-        file_path: t.Cli.TextPath, model_type: t.ModelClass[M]
+        file_path: t.Cli.TextPath,
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
-        """Read YAML and validate it once into the requested model type."""
+        """Read YAML and validate it once into the requested model type.
+
+        Returns:
+            The resulting ``p.Result[M]``.
+
+        """
         return u.Cli.files_read_yaml_model(Path(file_path), model_type)
 
     @staticmethod
     def read_yaml_model_chain[M: t.Cli.ModelLike](
-        file_paths: Sequence[t.Cli.TextPath], model_type: t.ModelClass[M]
+        file_paths: Sequence[t.Cli.TextPath],
+        model_type: t.ModelClass[M],
     ) -> p.Result[M]:
-        """Merge ordered YAML sources and validate the final payload once."""
+        """Merge ordered YAML sources and validate the final payload once.
+
+        Returns:
+            The resulting ``p.Result[M]``.
+
+        """
         return u.Cli.files_read_yaml_model_chain(file_paths, model_type)
 
     @staticmethod
@@ -68,65 +93,123 @@ class FlextCliFileTools(s):
         data: t.Cli.JsonWriteData,
         options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
-        """Write JSON data using the canonical serialization options."""
+        """Write JSON data using the canonical serialization options.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         return u.Cli.json_write(Path(file_path), data, options=options)
 
     @staticmethod
     def write_yaml_file(
-        file_path: t.Cli.TextPath, data: t.Cli.JsonWriteData
+        file_path: t.Cli.TextPath,
+        data: t.Cli.JsonWriteData,
     ) -> p.Result[bool]:
-        """Write JSON-compatible data as YAML."""
+        """Write JSON-compatible data as YAML.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         return u.Cli.yaml_dump(Path(file_path), data)
 
     @staticmethod
     def write_csv_file(
-        file_path: t.Cli.TextPath, rows: t.SequenceOf[t.StrSequence]
+        file_path: t.Cli.TextPath,
+        rows: t.SequenceOf[t.StrSequence],
     ) -> p.Result[bool]:
-        """Write rows to a CSV file."""
+        """Write rows to a CSV file.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         return u.Cli.files_write_csv(Path(file_path), rows)
 
     @staticmethod
     def read_csv_file_with_headers(
         file_path: t.Cli.TextPath,
     ) -> p.Result[t.SequenceOf[t.StrMapping]]:
-        """Read CSV rows as string mappings keyed by the header row."""
+        """Read CSV rows as string mappings keyed by the header row.
+
+        Returns:
+            The resulting ``p.Result[t.SequenceOf[t.StrMapping]]``.
+
+        """
         return u.Cli.files_read_csv_with_headers(Path(file_path))
 
     @staticmethod
     def read_binary_file(file_path: t.Cli.TextPath) -> p.Result[bytes]:
-        """Read a file as bytes."""
+        """Read a file as bytes.
+
+        Returns:
+            The resulting ``p.Result[bytes]``.
+
+        """
         return u.Cli.files_read_binary(Path(file_path))
 
     @staticmethod
     def write_binary_file(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
-        """Write bytes to a file."""
+        """Write bytes to a file.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         return u.Cli.files_write_binary(Path(file_path), data)
 
     @staticmethod
     def copy_file(
-        source_path: t.Cli.TextPath, destination_path: t.Cli.TextPath
+        source_path: t.Cli.TextPath,
+        destination_path: t.Cli.TextPath,
     ) -> p.Result[bool]:
-        """Copy one file to another path."""
+        """Copy one file to another path.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         return u.Cli.files_copy(Path(source_path), Path(destination_path))
 
     @staticmethod
     def detect_file_format(file_path: t.Cli.TextPath) -> p.Result[str]:
-        """Detect the supported serialization format for a file."""
+        """Detect the supported serialization format for a file.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         return u.Cli.files_detect_format(Path(file_path))
 
     @staticmethod
     def delete_path(file_path: t.Cli.TextPath) -> p.Result[bool]:
-        """Delete a file or directory via the public CLI file surface."""
+        """Delete a file or directory via the public CLI file surface.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         return u.Cli.files_delete(Path(file_path))
 
     @staticmethod
     def list_directory_names(file_path: t.Cli.TextPath) -> p.Result[Sequence[str]]:
-        """Return sorted child directory names for one path."""
+        """Return sorted child directory names for one path.
+
+        Returns:
+            Sorted child directory names for one path.
+
+        """
         return u.Cli.files_list_directory_names(Path(file_path))
 
     @staticmethod
     def load_file_auto_dict(file_path: t.Cli.TextPath) -> p.Result[t.JsonMapping]:
-        """Load a supported file format as a JSON-compatible mapping."""
+        """Load a supported file format as a JSON-compatible mapping.
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
+        """
         return u.Cli.files_load_auto_mapping(Path(file_path))
 
 

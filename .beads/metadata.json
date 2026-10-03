@@ -1,6 +1,6 @@
 {
-  "database": "dolt",
   "backend": "dolt",
-  "dolt_mode": "server",
-  "dolt_database": "mro"
+  "database": "dolt",
+  "dolt_database": "flext",
+  "dolt_mode": "server"
 }

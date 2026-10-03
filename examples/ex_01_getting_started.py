@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import override
@@ -17,35 +18,52 @@ from flext_cli import cli, settings
 class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
     """Minimal guided tour of flext-cli through public aliases and facades."""
 
-    def build_example_settings(self) -> p.Result[m.Examples.MyAppSettings]:
-        """Build a validated application settings model through the examples facade."""
+    @staticmethod
+    def build_example_settings() -> p.Result[m.Examples.MyAppSettings]:
+        """Build a validated application settings model through the examples facade.
+
+        Returns:
+            The resulting ``p.Result[m.Examples.MyAppSettings]``.
+
+        """
         settings_payload: t.JsonMapping = {
             "app_name": c.EXAMPLE_DEFAULT_TOOL_NAME,
-            "api_key": "example-api-key",
+            "api_key": os.environ.get("FLEXT_EXAMPLE_API_KEY", "<demo>"),
             "max_workers": c.EXAMPLE_DEFAULT_MAX_WORKERS,
             "timeout": c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS,
         }
         return r[m.Examples.MyAppSettings].ok(
-            m.Examples.MyAppSettings.model_validate(settings_payload)
+            m.Examples.MyAppSettings.model_validate(settings_payload),
         )
 
     @staticmethod
     def persist_example_settings(
         settings: m.Examples.MyAppSettings,
     ) -> p.Result[m.Cli.LoadedConfig]:
-        """Round-trip settings through the public JSON file facade."""
+        """Round-trip settings through the public JSON file facade.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.LoadedConfig]``.
+
+        """
         wrapped_config = m.Cli.LoadedConfig(content=settings.model_dump(mode="json"))
         with TemporaryDirectory(prefix=f"{c.EXAMPLE_DEFAULT_TEMP_SUBDIR}-") as temp_dir:
             config_path = Path(temp_dir) / "settings.json"
             return cli.write_json_file(
-                str(config_path), wrapped_config.model_dump(mode="json")
+                str(config_path),
+                wrapped_config.model_dump(mode="json"),
             ).flat_map(
-                lambda _: cli.read_json_model(str(config_path), m.Cli.LoadedConfig)
+                lambda _: cli.read_json_model(str(config_path), m.Cli.LoadedConfig),
             )
 
     @override
     def execute(self) -> p.Result[t.JsonMapping]:
-        """Run the public getting-started flow through typed examples aliases."""
+        """Run the public getting-started flow through typed examples aliases.
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
+        """
         cli.print("FLEXT CLI - Getting Started", style=c.Cli.MessageStyles.BOLD_BLUE)
         cli.print("===========================", style=c.Cli.MessageStyles.BOLD_BLUE)
 
@@ -63,24 +81,22 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
 
         settings_result = self.build_example_settings()
         if settings_result.failure:
-            return r[t.JsonMapping].fail(
-                settings_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
-            )
+            return r[t.JsonMapping].from_failure(settings_result)
 
         cli.print(
-            "\n2. Pydantic 2 models via m.Examples", style=c.Cli.MessageStyles.BOLD_CYAN
+            "\n2. Pydantic 2 models via m.Examples",
+            style=c.Cli.MessageStyles.BOLD_CYAN,
         )
         app_settings = settings_result.value
         app_settings.display(cli)
 
         loaded_result = self.persist_example_settings(app_settings)
         if loaded_result.failure:
-            return r[t.JsonMapping].fail(
-                loaded_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
-            )
+            return r[t.JsonMapping].from_failure(loaded_result)
 
         cli.print(
-            "\n3. Public cli facade round-trip", style=c.Cli.MessageStyles.BOLD_CYAN
+            "\n3. Public cli facade round-trip",
+            style=c.Cli.MessageStyles.BOLD_CYAN,
         )
         loaded_config = loaded_result.value
         roundtrip_summary = m.Cli.DisplayData(
@@ -89,10 +105,11 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
                 "api_key_present": str(bool(loaded_config.content.get("api_key"))),
                 "max_workers": str(loaded_config.content.get("max_workers")),
                 "timeout": str(loaded_config.content.get("timeout")),
-            }
+            },
         )
         u.display_config_table(
-            roundtrip_summary, headers=c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE
+            roundtrip_summary,
+            headers=c.EXAMPLE_TABLE_HEADERS_SETTING_VALUE,
         )
 
         cli.print("\n4. Railway result ergonomics", style=c.Cli.MessageStyles.BOLD_CYAN)
@@ -123,3 +140,6 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
             ),
         )
         return r[t.JsonMapping].ok(summary)
+
+
+__all__: list[str] = ["ExamplesFlextCliGettingStarted"]

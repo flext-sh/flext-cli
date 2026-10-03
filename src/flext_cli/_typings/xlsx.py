@@ -1,4 +1,8 @@
-"""Strict scalar aliases for the generic XLSX boundary."""
+"""Strict scalar aliases for the generic XLSX boundary.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -6,6 +10,8 @@ import datetime as dt
 from decimal import Decimal
 from io import BytesIO
 from typing import Literal
+
+from flext_core import t
 
 
 class FlextCliTypesXlsx:
@@ -17,7 +23,8 @@ class FlextCliTypesXlsx:
         str | int | float | bool | Decimal | dt.date | dt.datetime | None
     )
     type XlsxBinaryStream = BytesIO
-    type XlsxMemberNames = tuple[str, ...]
+    type XlsxMemberNames = t.VariadicTuple[str]
+    type XlsxCalcMode = Literal["auto", "autoNoTable", "manual", "none"]
     type XlsxXmlTokens = frozenset[str | None]
     type XlsxComparisonOperator = Literal[
         "between",
@@ -30,7 +37,13 @@ class FlextCliTypesXlsx:
         "notEqual",
     ]
     type XlsxValidationType = Literal[
-        "custom", "date", "decimal", "list", "textLength", "time", "whole"
+        "custom",
+        "date",
+        "decimal",
+        "list",
+        "textLength",
+        "time",
+        "whole",
     ]
     type XlsxArchiveViolationKind = Literal[
         "defined_name",
@@ -47,4 +60,4 @@ class FlextCliTypesXlsx:
     ]
 
 
-__all__: tuple[str, ...] = ("FlextCliTypesXlsx",)
+__all__: t.VariadicTuple[str] = ("FlextCliTypesXlsx",)

@@ -1,8 +1,15 @@
-"""Structural contracts for external XLSX rules and style components."""
+"""Structural contracts for external XLSX rules and style components.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliProtocolsXlsxRules:
@@ -17,7 +24,9 @@ class FlextCliProtocolsXlsxRules:
     @runtime_checkable
     class XlsxConditionalFormatting(Protocol):
         def add(
-            self, cell_range: str, rule: FlextCliProtocolsXlsxRules.XlsxRule
+            self,
+            cell_range: str,
+            rule: FlextCliProtocolsXlsxRules.XlsxRule,
         ) -> None: ...
 
     @runtime_checkable
@@ -33,13 +42,17 @@ class FlextCliProtocolsXlsxRules:
         alignment: FlextCliProtocolsXlsxRules.XlsxAlignment
         number_format: str
 
+    @runtime_checkable
     class XlsxFont(Protocol): ...
 
+    @runtime_checkable
     class XlsxFill(Protocol): ...
 
+    @runtime_checkable
     class XlsxBorder(Protocol): ...
 
+    @runtime_checkable
     class XlsxAlignment(Protocol): ...
 
 
-__all__: tuple[str, ...] = ("FlextCliProtocolsXlsxRules",)
+__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsxRules",)

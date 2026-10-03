@@ -1,4 +1,8 @@
-"""Generic TOML helpers shared through ``u.Cli.toml_*``."""
+"""Generic TOML helpers shared through ``u.Cli.toml_*``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 

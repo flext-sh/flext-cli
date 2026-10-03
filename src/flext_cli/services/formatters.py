@@ -1,11 +1,9 @@
-"""FLEXT CLI Formatters - Thin wrapper over Rich library.
+"""FLEXT CLI Formatters - plain-text rendering facade.
 
-Provides minimal CLI formatting abstraction. Uses Rich directly for all operations.
-Following zero-tolerance principle: Use libraries, don't reimplement.
+Provides minimal CLI formatting abstraction for the command surface.
 
-Copyright (c) 2025 FLEXT Team. All rights reserved.
+Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
-
 """
 
 from __future__ import annotations
@@ -13,22 +11,28 @@ from __future__ import annotations
 from flext_cli import m, s, t, u
 
 
-class FlextCliFormatters(s):
-    """Thin Rich formatters facade - delegates to Rich library directly."""
+class FlextCliFormatters(s[m.Cli.RuntimeStatus]):
+    """Plain-text formatters facade for the CLI command surface."""
 
     @classmethod
-    def print(cls, message: str, style: str | None = None) -> None:
-        """Print formatted message using Rich."""
-        u.Cli.formatters_print(message, style=style)
+    def print(
+        cls,
+        message: str,
+        style: str | None = None,
+        *,
+        error: bool = False,
+    ) -> None:
+        """Print one message with the optional style."""
+        u.Cli.formatters_print(message, style=style, error=error)
 
     @classmethod
     def render_rule(cls, text: str) -> None:
-        """Render a horizontal rule with centered text via Rich."""
+        """Render a horizontal rule with centered text."""
         u.Cli.formatters_render_rule(text)
 
     @classmethod
     def render_panel(cls, content: str, *, title: str = "") -> None:
-        """Render a Rich Panel with optional title."""
+        """Render a bordered panel with an optional title."""
         u.Cli.formatters_render_panel(content, title=title)
 
     @classmethod
@@ -39,9 +43,9 @@ class FlextCliFormatters(s):
         *,
         title: str = "",
     ) -> None:
-        """Render a Rich Table with columns and rows."""
+        """Render a table with columns and rows."""
         u.Cli.formatters_render_table(
-            m.Cli.TableRenderRequest(columns=columns, rows=rows, title=title)
+            m.Cli.TableRenderRequest(columns=columns, rows=rows, title=title),
         )
 
 

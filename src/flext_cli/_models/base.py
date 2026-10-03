@@ -1,4 +1,8 @@
-"""CLI Pydantic domain models."""
+"""CLI Pydantic domain models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -23,9 +27,20 @@ from flext_cli._models._base.flextclimodelsbase_part_06 import (
 from flext_cli._models._base.flextclimodelsbase_part_07 import (
     FlextCliModelsBase as FlextCliModelsBasePart07,
 )
+from flext_cli._models._base.flextclimodelsbase_part_08 import (
+    FlextCliModelsBase as FlextCliModelsBasePart08,
+)
+from flext_cli._models._base.flextclimodelsbase_part_09 import (
+    FlextCliModelsBase as FlextCliModelsBasePart09,
+)
+from flext_cli._models._base.flextclimodelsbase_part_10 import (
+    FlextCliModelsBase as FlextCliModelsBasePart10,
+)
+from flext_cli._models.atomic_symlink import FlextCliModelsAtomicSymlink
 
 
 class FlextCliModelsBase(
+    FlextCliModelsAtomicSymlink,
     FlextCliModelsBasePart01,
     FlextCliModelsBasePart02,
     FlextCliModelsBasePart03,
@@ -33,6 +48,9 @@ class FlextCliModelsBase(
     FlextCliModelsBasePart05,
     FlextCliModelsBasePart06,
     FlextCliModelsBasePart07,
+    FlextCliModelsBasePart08,
+    FlextCliModelsBasePart09,
+    FlextCliModelsBasePart10,
 ):
     """Public facade for FlextCliModelsBase."""
 

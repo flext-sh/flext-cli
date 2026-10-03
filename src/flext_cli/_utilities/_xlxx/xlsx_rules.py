@@ -1,14 +1,17 @@
-"""Compose worksheet validation, conditional-format, and protection rules."""
+"""Compose worksheet validation, conditional-format, and protection rules.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import m, p, r
-
-from .xlsx_conditional import FlextCliUtilitiesXlsxConditional
-from .xlsx_protection import FlextCliUtilitiesXlsxProtection
-from .xlsx_validations import FlextCliUtilitiesXlsxValidations
+from flext_cli import m, p, r, t
+from flext_cli._utilities._xlxx.xlsx_conditional import FlextCliUtilitiesXlsxConditional
+from flext_cli._utilities._xlxx.xlsx_protection import FlextCliUtilitiesXlsxProtection
+from flext_cli._utilities._xlxx.xlsx_validations import FlextCliUtilitiesXlsxValidations
 
 
 class FlextCliUtilitiesXlsxRules(
@@ -22,20 +25,23 @@ class FlextCliUtilitiesXlsxRules(
     # no dump, revalidation, or rule-specific transport is introduced.
     @classmethod
     def _apply_rules(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetRulesPlan
+        cls,
+        worksheet: Worksheet,
+        plan: m.Cli.XlsxSheetRulesPlan,
     ) -> p.Result[bool]:
         validations = cls._apply_validations(worksheet, plan.validations)
         if validations.failure:
-            return r[bool].fail(validations.error or "Data validation failed")
+            return r[bool].from_failure(validations)
         conditional = cls._apply_conditional_formats(
-            worksheet, plan.conditional_formats
+            worksheet,
+            plan.conditional_formats,
         )
         if conditional.failure:
-            return r[bool].fail(conditional.error or "Conditional formatting failed")
+            return r[bool].from_failure(conditional)
         protection = cls._apply_protection(worksheet, plan.protection)
         if protection.failure:
-            return r[bool].fail(protection.error or "Worksheet protection failed")
-        return r[bool].ok(True)
+            return r[bool].from_failure(protection)
+        return r[bool].ok(value=True)
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxRules",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxRules",)

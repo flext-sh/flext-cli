@@ -1,11 +1,16 @@
-"""Declarative consumer models for flext-cli public contract tests."""
+"""Declarative consumer models for flext-cli public contract tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from typing import Annotated
 
-from flext_cli import FlextCliModels, m
 from flext_tests import FlextTestsModels
+
+from flext_cli import FlextCliModels, m
 from tests._models_parts.testsflextclimodels_part_01 import (
     TestsFlextCliModels as TestsFlextCliModelsPart01,
 )

@@ -1,16 +1,21 @@
-"""Generic model-driven XLSX renderer."""
+"""Generic model-driven XLSX renderer.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from openpyxl import Workbook
 
-from flext_cli import c, m, p, r
-
-from .xlsx_cells import FlextCliUtilitiesXlsxCells
-from .xlsx_layout import FlextCliUtilitiesXlsxLayout
-from .xlsx_rules import FlextCliUtilitiesXlsxRules
-from .xlsx_tables import FlextCliUtilitiesXlsxTables
-from .xlsx_workbook_plan import FlextCliUtilitiesXlsxWorkbookPlan
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities._xlxx.xlsx_cells import FlextCliUtilitiesXlsxCells
+from flext_cli._utilities._xlxx.xlsx_layout import FlextCliUtilitiesXlsxLayout
+from flext_cli._utilities._xlxx.xlsx_rules import FlextCliUtilitiesXlsxRules
+from flext_cli._utilities._xlxx.xlsx_tables import FlextCliUtilitiesXlsxTables
+from flext_cli._utilities._xlxx.xlsx_workbook_plan import (
+    FlextCliUtilitiesXlsxWorkbookPlan,
+)
 
 
 class FlextCliUtilitiesXlsxRenderer(
@@ -28,62 +33,65 @@ class FlextCliUtilitiesXlsxRenderer(
     # later stages never run after an earlier mutation reports failure.
     @classmethod
     def _render_sheet(
-        cls, workbook: Workbook, plan: m.Cli.XlsxSheetPlan, table_names: frozenset[str]
+        cls,
+        workbook: Workbook,
+        plan: m.Cli.XlsxSheetPlan,
+        table_names: frozenset[str],
     ) -> p.Result[frozenset[str]]:
         if plan.name not in workbook.sheetnames:
             return r[frozenset[str]].fail(
-                f"{c.Cli.XlsxError.SHEET_MISSING}: {plan.name}"
+                f"{c.Cli.XlsxError.SHEET_MISSING}: {plan.name}",
             )
         # mro-j47u (codex): workbook planning creates only Worksheet instances.
         worksheet = workbook[plan.name]
         cells = cls._apply_cells(
-            worksheet, plan.cells, frozenset(workbook.named_styles)
+            worksheet,
+            plan.cells,
+            frozenset(workbook.named_styles),
         )
         if cells.failure:
-            return r[frozenset[str]].fail(cells.error or "Cell rendering failed")
+            return r[frozenset[str]].from_failure(cells)
         tables = cls._apply_tables(worksheet, plan.tables, table_names)
         if tables.failure:
-            return r[frozenset[str]].fail(tables.error or "Table rendering failed")
+            return r[frozenset[str]].from_failure(tables)
         layout = cls._apply_layout(worksheet, plan.layout)
         if layout.failure:
-            return r[frozenset[str]].fail(layout.error or "Layout rendering failed")
+            return r[frozenset[str]].from_failure(layout)
         rules = cls._apply_rules(worksheet, plan.rules)
         if rules.failure:
-            return r[frozenset[str]].fail(rules.error or "Rule rendering failed")
+            return r[frozenset[str]].from_failure(rules)
         return r[frozenset[str]].ok(tables.value)
 
     @classmethod
     def xlsx_render(
-        cls, request: m.Cli.XlsxRenderRequest
+        cls,
+        request: m.Cli.XlsxRenderRequest,
     ) -> p.Result[m.Cli.XlsxRenderResult]:
-        """Render typed sheets, names, styles, and rules into workbook bytes."""
+        """Render typed sheets, names, styles, and rules into workbook bytes.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.XlsxRenderResult]``.
+
+        """
         workbook_result = cls._workbook_for_request(request)
         if workbook_result.failure:
-            return r[m.Cli.XlsxRenderResult].fail(
-                workbook_result.error or str(c.Cli.XlsxError.RENDER_FAILED)
-            )
+            return r[m.Cli.XlsxRenderResult].from_failure(workbook_result)
         workbook = workbook_result.value
         table_names: frozenset[str] = frozenset()
         for sheet in request.plan.sheets:
             rendered = cls._render_sheet(workbook, sheet, table_names)
             if rendered.failure:
-                return r[m.Cli.XlsxRenderResult].fail(
-                    rendered.error or str(c.Cli.XlsxError.RENDER_FAILED)
-                )
+                return r[m.Cli.XlsxRenderResult].from_failure(rendered)
             table_names = rendered.value
         names = cls._apply_defined_names(workbook, request.plan.defined_names)
         if names.failure:
-            return r[m.Cli.XlsxRenderResult].fail(
-                names.error or "Defined-name rendering failed"
-            )
+            return r[m.Cli.XlsxRenderResult].from_failure(names)
         content = cls._serialize_workbook(workbook)
         if content.failure:
-            return r[m.Cli.XlsxRenderResult].fail(
-                content.error or str(c.Cli.XlsxError.SERIALIZE_FAILED)
-            )
+            return r[m.Cli.XlsxRenderResult].from_failure(content)
         return r[m.Cli.XlsxRenderResult].ok(
-            m.Cli.XlsxRenderResult(content=content.value, plan=request.plan)
+            m.Cli.XlsxRenderResult(content=content.value, plan=request.plan),
         )
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxRenderer",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxRenderer",)

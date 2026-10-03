@@ -1,11 +1,14 @@
-"""Thread ownership for streamed process wait and output work."""
+"""Thread ownership for streamed process wait and output work.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 import threading
-from typing import IO, BinaryIO
+from typing import IO, BinaryIO, TYPE_CHECKING
 
-from flext_cli import p
 from flext_cli._utilities._runtime_process_stream import (
     FlextCliUtilitiesRuntimeProcessStreamMixin,
 )
@@ -13,18 +16,45 @@ from flext_cli._utilities._runtime_process_wait import (
     FlextCliUtilitiesRuntimeProcessWaitMixin,
 )
 
+if TYPE_CHECKING:
+    from flext_cli import p, t
+
 
 class FlextCliUtilitiesRuntimeProcessThreadsMixin(
-    FlextCliUtilitiesRuntimeProcessStreamMixin, FlextCliUtilitiesRuntimeProcessWaitMixin
+    FlextCliUtilitiesRuntimeProcessStreamMixin,
+    FlextCliUtilitiesRuntimeProcessWaitMixin,
 ):
-    """Start the two bounded lifecycle threads at their canonical owner."""
+    """Start bounded lifecycle threads at their canonical owner."""
+
+    @classmethod
+    def _start_input_pump(
+        cls,
+        sink: BinaryIO,
+        payload: bytes,
+        failures: t.SequenceOf[str],
+        wake: threading.Event,
+    ) -> threading.Thread:
+        """Start the sole non-daemon writer for one anonymous stdin pipe.
+
+        Returns:
+            The resulting ``threading.Thread``.
+
+        """
+        pump = threading.Thread(
+            target=cls._pump_process_input,
+            args=(sink, payload, failures, wake),
+            name="flext-cli-process-input",
+            daemon=False,
+        )
+        pump.start()
+        return pump
 
     @classmethod
     def _start_root_waiter(
         cls,
         process: p.Cli.ProcessHandle,
-        return_codes: list[int],
-        failures: list[str],
+        return_codes: t.SequenceOf[int],
+        failures: t.SequenceOf[str],
         process_done: threading.Event,
         wake: threading.Event,
     ) -> threading.Thread:
@@ -41,17 +71,19 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     def _start_output_pump(
         cls,
         source: IO[bytes],
-        durable_log: BinaryIO,
+        durable_log: BinaryIO | None,
+        captured_output: bytearray | None,
         live_fd: int | None,
-        failures: list[str],
-        live_diagnostics: list[str],
+        failures: t.SequenceOf[str],
         stop: threading.Event,
         wake: threading.Event,
+        *,
+        thread_name: str,
     ) -> threading.Thread:
         pump = threading.Thread(
             target=cls._pump_process_output,
-            args=(source, durable_log, live_fd, failures, live_diagnostics, stop, wake),
-            name="flext-cli-process-output",
+            args=(source, durable_log, captured_output, live_fd, failures, stop, wake),
+            name=thread_name,
             daemon=False,
         )
         pump.start()

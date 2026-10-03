@@ -6,15 +6,17 @@ through the base class.
 
 NOTE (multi-agent): mro-i6nq.13 — extracted from the removed numbered
 ``_json_parts`` navigation half (part_02).
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from flext_cli._utilities._json._core import FlextCliUtilitiesJsonCoreMixin
 from flext_core import u
-
-from ._core import FlextCliUtilitiesJsonCoreMixin
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -27,7 +29,12 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
     def json_as_mapping_list(
         value: t.JsonPayload | None,
     ) -> t.SequenceOf[t.JsonMapping]:
-        """Normalize any JSON-compatible value into a list of mappings."""
+        """Normalize any JSON-compatible value into a list of mappings.
+
+        Returns:
+            The resulting ``t.SequenceOf[t.JsonMapping]``.
+
+        """
         return [
             mapping
             for item in FlextCliUtilitiesJsonNavigateMixin.json_as_sequence(value)
@@ -36,7 +43,12 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
 
     @staticmethod
     def json_walk_path(data: t.JsonMapping, keys: t.StrSequence) -> t.JsonValue | None:
-        """Walk a path over nested mappings and return the leaf value."""
+        """Walk a path over nested mappings and return the leaf value.
+
+        Returns:
+            The resulting ``t.JsonValue | None``.
+
+        """
         current: t.JsonMapping = data
         for key in keys[:-1]:
             raw = current.get(key, None)
@@ -55,7 +67,12 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
 
     @staticmethod
     def json_deep_mapping(data: t.JsonMapping, *keys: str) -> t.JsonMapping:
-        """Navigate nested mappings and normalize the final node as mapping."""
+        """Navigate nested mappings and normalize the final node as mapping.
+
+        Returns:
+            The resulting ``t.JsonMapping``.
+
+        """
         if not keys:
             return FlextCliUtilitiesJsonNavigateMixin.json_as_mapping(data)
         raw = FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys)
@@ -63,33 +80,62 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
 
     @staticmethod
     def json_deep_mapping_list(
-        data: t.JsonMapping, *keys: str
+        data: t.JsonMapping,
+        *keys: str,
     ) -> t.SequenceOf[t.JsonMapping]:
-        """Navigate nested mappings and normalize the final node as mapping list."""
+        """Navigate nested mappings and normalize the final node as mapping list.
+
+        Returns:
+            The resulting ``t.SequenceOf[t.JsonMapping]``.
+
+        """
         raw = FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys)
         return FlextCliUtilitiesJsonNavigateMixin.json_as_mapping_list(raw)
 
     @staticmethod
     def json_pick_str(data: t.JsonMapping, key: str, default: str = "") -> str:
-        """Extract a string value from mapping with safe coercion."""
+        """Extract a string value from mapping with safe coercion.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         return u.norm_str(data.get(key, default), default=default).strip()
 
     @staticmethod
     def json_pick_int(data: t.JsonMapping, key: str, default: int = 0) -> int:
-        """Extract an integer value from mapping with safe coercion."""
+        """Extract an integer value from mapping with safe coercion.
+
+        Returns:
+            The resulting ``int``.
+
+        """
         parsed = u.parse(data.get(key, default), int, default=default).unwrap_or(
-            default
+            default,
         )
         return int(parsed) if isinstance(parsed, bool) else parsed
 
     @staticmethod
     def json_pick_bool(data: t.JsonMapping, key: str, *, default: bool = False) -> bool:
-        """Extract a boolean value from mapping with string/int coercion."""
-        return u.parse(data.get(key, None), bool, default=default).unwrap_or(default)
+        """Extract a boolean value from mapping with string/int coercion.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
+        parsed: bool = u.parse(data.get(key, None), bool, default=default).unwrap_or(
+            default,
+        )
+        return parsed
 
     @staticmethod
     def json_nested_int(data: t.JsonMapping, *keys: str, default: int = 0) -> int:
-        """Extract an integer from a nested mapping path."""
+        """Extract an integer from a nested mapping path.
+
+        Returns:
+            The resulting ``int``.
+
+        """
         parsed = u.parse(
             FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys),
             int,
@@ -99,9 +145,18 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
 
     @staticmethod
     def json_get_str_key(
-        mapping: t.JsonMapping, key: str, *, default: str = "", case: str | None = None
+        mapping: t.JsonMapping,
+        key: str,
+        *,
+        default: str = "",
+        case: str | None = None,
     ) -> str:
-        """Extract and normalize a string key from a mapping."""
+        """Extract and normalize a string key from a mapping.
+
+        Returns:
+            The resulting ``str``.
+
+        """
         raw = FlextCliUtilitiesJsonNavigateMixin.json_pick_str(mapping, key, default)
         return u.normalize(raw, case=case)
 

@@ -13,6 +13,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated
 
+from flext_cli import t
+from flext_cli._models.base import FlextCliModelsBase
 from flext_core import m
 
 
@@ -25,7 +27,7 @@ class FlextCliModelsTemplate:
         relpath_template: Annotated[
             Path,
             m.Field(
-                description="Template path relative to templates_root (ends with .j2)"
+                description="Template path relative to templates_root (ends with .j2)",
             ),
         ]
         output_relpath: Annotated[
@@ -35,7 +37,7 @@ class FlextCliModelsTemplate:
                     "Output path relative to output_root; a trailing template "
                     "suffix is stripped by the engine. Path tokens are resolved by "
                     "the caller before invocation."
-                )
+                ),
             ),
         ]
         when: Annotated[
@@ -45,7 +47,8 @@ class FlextCliModelsTemplate:
         overwrite: Annotated[
             bool,
             m.Field(
-                default=False, description="Overwrite an existing destination file"
+                default=False,
+                description="Overwrite an existing destination file",
             ),
         ] = False
 
@@ -55,21 +58,36 @@ class FlextCliModelsTemplate:
         # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): callers
         # consume the declared failure field directly; models remain behavior-free.
         created: Annotated[
-            tuple[Path, ...],
+            t.VariadicTuple[Path],
             m.Field(default_factory=tuple, description="Destination paths written"),
         ]
         skipped: Annotated[
-            tuple[Path, ...],
+            t.VariadicTuple[Path],
             m.Field(
                 default_factory=tuple,
                 description="Destinations skipped (exists or disabled)",
             ),
         ]
         failed: Annotated[
-            tuple[tuple[Path, str], ...],
+            t.VariadicTuple[t.Pair[Path, str]],
             m.Field(
                 default_factory=tuple,
                 description="(destination, error) pairs that failed to render",
+            ),
+        ]
+
+    class AuthenticatedTemplateRender(m.ArbitraryTypesModel):
+        """Rendered text plus every physical template state Jinja consumed."""
+
+        rendered: Annotated[
+            str,
+            m.Field(description="Text rendered from authenticated template bytes"),
+        ]
+        source_states: Annotated[
+            t.VariadicTuple[FlextCliModelsBase.AtomicFileState],
+            m.Field(
+                min_length=1,
+                description="Ordered physical states of the template and its imports",
             ),
         ]
 

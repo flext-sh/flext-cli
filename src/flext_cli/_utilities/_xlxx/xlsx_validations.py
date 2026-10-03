@@ -1,4 +1,8 @@
-"""Apply typed data-validation plans through openpyxl."""
+"""Apply typed data-validation plans through openpyxl.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -6,9 +10,10 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-
-from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
-from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
+from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from flext_cli._utilities._xlxx.xlsx_formula_codec import (
+    FlextCliUtilitiesXlsxFormulaCodec,
+)
 
 
 class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
@@ -49,7 +54,7 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
                 raise ValueError(msg)
 
     @staticmethod
-    def _inline_formula(values: tuple[str, ...]) -> str:
+    def _inline_formula(values: t.VariadicTuple[str]) -> str:
         if any("," in value or "\n" in value or "\r" in value for value in values):
             msg = "Inline validation values cannot contain commas or newlines"
             raise ValueError(msg)
@@ -71,26 +76,26 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
                 cls._inline_formula(plan.source.values)
                 if plan.source.kind == "values"
                 else FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                    plan.source.expression
+                    plan.source.expression,
                 )
             )
         elif plan.kind == "custom":
             formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                plan.expression
+                plan.expression,
             )
         else:
             comparison = plan.comparison
             operator = cls._comparison_operator(comparison.mode)
             if isinstance(comparison, m.Cli.XlsxRangeComparison):
                 formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                    comparison.minimum
+                    comparison.minimum,
                 )
                 formula2 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                    comparison.maximum
+                    comparison.maximum,
                 )
             else:
                 formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
-                    comparison.expression
+                    comparison.expression,
                 )
         return DataValidation(
             type=cls._validation_type(plan.kind),
@@ -110,7 +115,9 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
 
     @classmethod
     def _apply_validations(
-        cls, worksheet: Worksheet, plans: tuple[m.Cli.XlsxDataValidationPlan, ...]
+        cls,
+        worksheet: Worksheet,
+        plans: t.VariadicTuple[m.Cli.XlsxDataValidationPlan],
     ) -> p.Result[bool]:
         try:
             for plan in plans:
@@ -120,7 +127,7 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[bool].fail(f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxValidations",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxValidations",)

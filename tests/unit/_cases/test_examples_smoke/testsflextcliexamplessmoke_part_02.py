@@ -1,4 +1,8 @@
-"""Smoke tests for flext-cli examples using the public cli facade."""
+"""Smoke tests for flext-cli examples using the public cli facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -13,9 +17,9 @@ from examples.ex_04_file_operations import (
     save_user_preferences,
     validate_and_import_data,
 )
+from flext_tests import tm
 
 from flext_cli import cli, settings
-from flext_tests import tm
 from tests import c
 
 if TYPE_CHECKING:
@@ -26,22 +30,24 @@ if TYPE_CHECKING:
 class TestsFlextCliExamplesSmoke:
     """Implementation part for TestsFlextCliExamplesSmoke."""
 
-    @pytest.fixture(autouse=True)
-    def _restore_token_file(self) -> Iterator[None]:
-        """Restore the canonical token file setting after each example run."""
+    @staticmethod
+    @pytest.fixture
+    def restore_token_file() -> Iterator[None]:
+        """Restore the canonical token file setting after an example mutates it."""
         original_token_file = settings.cli_token_file
         try:
             yield
         finally:
             settings.cli_token_file = original_token_file
 
+    @staticmethod
     def test_file_operation_examples_surface_failure_paths(
-        self, tmp_path: Path
+        tmp_path: Path,
     ) -> None:
         """File examples must report invalid filesystem and payload failures."""
         broken_config_root = tmp_path / "broken-config-root"
         broken_config_root.write_text("not-a-directory", encoding="utf-8")
-        tm.that(save_user_preferences({"theme": "dark"}, broken_config_root), eq=False)
+        tm.fail(save_user_preferences({"theme": "dark"}, broken_config_root))
 
         missing_preferences = load_user_preferences(tmp_path / "missing-config")
         tm.fail(missing_preferences)
@@ -49,7 +55,8 @@ class TestsFlextCliExamplesSmoke:
         invalid_preferences_dir = tmp_path / "invalid-preferences"
         invalid_preferences_dir.mkdir()
         (invalid_preferences_dir / "preferences.json").write_text(
-            '["a", "b"]', encoding="utf-8"
+            '["a", "b"]',
+            encoding="utf-8",
         )
         invalid_preferences = load_user_preferences(invalid_preferences_dir)
         tm.fail(invalid_preferences)
@@ -64,12 +71,15 @@ class TestsFlextCliExamplesSmoke:
 
         incomplete_import_file = tmp_path / "incomplete-record.json"
         incomplete_import_file.write_text(
-            '{"id": 1, "name": "Alice"}', encoding="utf-8"
+            '{"id": 1, "name": "Alice"}',
+            encoding="utf-8",
         )
         incomplete_import = validate_and_import_data(incomplete_import_file)
         tm.fail(incomplete_import)
 
-    def test_authentication_and_settings_examples(self, tmp_path: Path) -> None:
+    @staticmethod
+    @pytest.mark.usefixtures("restore_token_file")
+    def test_authentication_and_settings_examples(tmp_path: Path) -> None:
         """Auth and settings examples must work through settings and cli auth APIs."""
         settings.cli_token_file = str(tmp_path / "auth_token.json")
 
@@ -91,7 +101,7 @@ class TestsFlextCliExamplesSmoke:
         tm.that(locations.data["Token Exists"], eq="Yes")
 
         profile_result = Ex06Settings.load_profile_settings(
-            ec.DeploymentEnvironment.DEVELOPMENT
+            ec.DeploymentEnvironment.DEVELOPMENT,
         )
         tm.ok(profile_result)
         tm.that(profile_result.value.debug, eq=True)
@@ -101,6 +111,3 @@ class TestsFlextCliExamplesSmoke:
         tm.ok(logout_result)
         cleared_result = cli.fetch_auth_token()
         tm.fail(cleared_result)
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

@@ -37,24 +37,36 @@ class Ex06Settings:
 
     @staticmethod
     def show_cli_settings() -> p.Cli.Settings:
-        """Access flext-cli settings in YOUR application."""
+        """Access flext-cli settings in YOUR application.
+
+        Returns:
+            The resulting ``p.Cli.Settings``.
+
+        """
         cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
         cli.print(f"   Debug Mode: {settings.debug}", style=c.Cli.MessageStyles.CYAN)
         cli.print(
-            f"   Log Level: {settings.cli_log_level}", style=c.Cli.MessageStyles.CYAN
+            f"   Log Level: {settings.cli_log_level}",
+            style=c.Cli.MessageStyles.CYAN,
         )
         cli.print(
             f"   Output Format: {settings.cli_output_format}",
             style=c.Cli.MessageStyles.CYAN,
         )
         cli.print(
-            f"   App Name: {settings.cli_app_name}", style=c.Cli.MessageStyles.CYAN
+            f"   App Name: {settings.cli_app_name}",
+            style=c.Cli.MessageStyles.CYAN,
         )
         return settings
 
     @staticmethod
     def show_settings_locations() -> m.Cli.DisplayData:
-        """Display settings file locations for YOUR application."""
+        """Display settings file locations for YOUR application.
+
+        Returns:
+            The resulting ``m.Cli.DisplayData``.
+
+        """
         home_dir = Path.home()
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         display_payload = u.to_json_dict({
@@ -64,7 +76,8 @@ class Ex06Settings:
             "Token Exists": "Yes" if token_file_path.exists() else "No",
         })
         u.display_config_table(
-            config_data=display_payload, headers=("Location", "Path")
+            config_data=display_payload,
+            headers=("Location", "Path"),
         )
         return display_payload
 
@@ -72,7 +85,12 @@ class Ex06Settings:
     def load_profile_settings(
         profile_name: c.DeploymentEnvironment = c.EXAMPLE_DEFAULT_ENVIRONMENT,
     ) -> p.Result[p.Cli.Settings]:
-        """Load profile-specific settings in YOUR tool."""
+        """Load profile-specific settings in YOUR tool.
+
+        Returns:
+            The resulting ``p.Result[p.Cli.Settings]``.
+
+        """
         cli.print(
             f"📋 Loading profile: {profile_name.value}",
             style=c.Cli.MessageStyles.BOLD_CYAN,
@@ -98,30 +116,37 @@ class Ex06Settings:
                 "Debug": str(profile_config.debug),
                 "Output": profile_config.cli_output_format,
                 "App Name": profile_config.cli_app_name,
-            })
+            }),
         )
         return r[p.Cli.Settings].ok(profile_config)
 
     @classmethod
-    def load_application_settings(cls) -> p.Result[t.MappingKV[str, t.JsonValue]]:
-        """Load, validate, and derive application settings from the canonical model."""
+    def load_application_settings(
+        cls,
+        settings_obj: m.Examples.AppSettingsAdvanced,
+    ) -> p.Result[t.MappingKV[str, t.JsonValue]]:
+        """Load, validate, and derive application settings from the canonical model.
+
+        Returns:
+            The resulting ``p.Result[t.MappingKV[str, t.JsonValue]]``.
+
+        """
         cli.print(
-            "\n⚙️  Loading Application Settings:", style=c.Cli.MessageStyles.BOLD_CYAN
+            "\n⚙️  Loading Application Settings:",
+            style=c.Cli.MessageStyles.BOLD_CYAN,
         )
-        settings_obj = m.Examples.AppSettingsAdvanced()
         cli.print("✅ Settings model created", style=c.Cli.MessageStyles.GREEN)
         validate_result = settings_obj.validate_to_mapping()
         if validate_result.failure:
-            return r[t.MappingKV[str, t.JsonValue]].fail(
-                validate_result.error or c.EXAMPLE_ERR_FAILED_LOAD_CONFIG
-            )
+            return r[t.MappingKV[str, t.JsonValue]].from_failure(validate_result)
         cli.print("✅ Settings validated", style=c.Cli.MessageStyles.GREEN)
         try:
             overridden_data = cls.apply_environment_overrides(
-                validate_result.value, settings_obj.environment
+                validate_result.value,
+                settings_obj.environment,
             )
         except (TypeError, ValueError) as exc:
-            return r[t.MappingKV[str, t.JsonValue]].fail(str(exc))
+            return r[t.MappingKV[str, t.JsonValue]].fail(str(exc), exception=exc)
         cli.print("✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN)
         final_data = cls.initialize_services(overridden_data)
         cli.print("✅ Services initialized", style=c.Cli.MessageStyles.GREEN)
@@ -133,21 +158,34 @@ class Ex06Settings:
 
     @staticmethod
     def apply_environment_overrides(
-        settings: t.MappingKV[str, t.JsonValue], environment: c.DeploymentEnvironment
+        settings: t.MappingKV[str, t.JsonValue],
+        environment: c.DeploymentEnvironment,
     ) -> t.MappingKV[str, t.JsonValue]:
-        """Apply environment-specific settings overrides."""
+        """Apply environment-specific settings overrides.
+
+        Returns:
+            The resulting ``t.MappingKV[str, t.JsonValue]``.
+
+        Raises:
+            TypeError: If ``isinstance(max_workers_value, bool) or not
+                isinstance(max_workers_value, int)``.
+
+        """
         result = dict(settings)
         match environment:
             case c.DeploymentEnvironment.PRODUCTION:
                 max_workers_value = result.get(
-                    "max_workers", c.EXAMPLE_DEFAULT_MAX_WORKERS
+                    "max_workers",
+                    c.EXAMPLE_DEFAULT_MAX_WORKERS,
                 )
                 if isinstance(max_workers_value, bool) or not isinstance(
-                    max_workers_value, int
+                    max_workers_value,
+                    int,
                 ):
                     raise TypeError(c.EXAMPLE_ERR_MAX_WORKERS_MUST_BE_INTEGER)
                 result["max_workers"] = min(
-                    max_workers_value, c.EXAMPLE_PRODUCTION_MAX_WORKERS_CAP
+                    max_workers_value,
+                    c.EXAMPLE_PRODUCTION_MAX_WORKERS_CAP,
                 )
                 result["enable_metrics"] = True
             case c.DeploymentEnvironment.TESTING:
@@ -161,8 +199,16 @@ class Ex06Settings:
     def initialize_services(
         settings: t.MappingKV[str, t.JsonValue],
     ) -> t.MappingKV[str, t.JsonValue]:
-        """Initialize services based on validated settings."""
+        """Initialize services based on validated settings.
+
+        Returns:
+            The resulting ``t.MappingKV[str, t.JsonValue]``.
+
+        """
         result = dict(settings)
         result["services_initialized"] = True
         result["initialized_at"] = c.EXAMPLE_DEFAULT_INITIALIZED_AT
         return result
+
+
+__all__: list[str] = ["Ex06Settings"]

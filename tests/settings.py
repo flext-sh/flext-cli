@@ -1,9 +1,14 @@
-"""Runtime settings for flext-cli tests."""
+"""Runtime settings for flext-cli tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from flext_cli import FlextCliSettings
 from flext_tests import FlextTestsSettings
+
+from flext_cli import FlextCliSettings
 
 
 class TestsFlextCliSettings(FlextCliSettings, FlextTestsSettings):

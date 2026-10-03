@@ -1,4 +1,8 @@
-"""Generic filesystem helpers shared through ``u.Cli``."""
+"""Generic filesystem helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -14,13 +18,23 @@ from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04 import (
     FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart04,
 )
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_05 import (
+    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart05,
+)
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_06 import (
+    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart06,
+)
+from flext_cli._utilities.symlink import FlextCliUtilitiesSymlink
 
 
 class FlextCliUtilitiesFiles(
+    FlextCliUtilitiesSymlink,
     FlextCliUtilitiesFilesPart01,
     FlextCliUtilitiesFilesPart02,
     FlextCliUtilitiesFilesPart03,
     FlextCliUtilitiesFilesPart04,
+    FlextCliUtilitiesFilesPart05,
+    FlextCliUtilitiesFilesPart06,
 ):
     """Public facade for FlextCliUtilitiesFiles."""
 

@@ -1,9 +1,16 @@
-"""Stable constants for the generic DOCX boundary."""
+"""Stable constants for the generic DOCX boundary.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from enum import StrEnum, unique
-from typing import Final
+from typing import TYPE_CHECKING, ClassVar
+
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliConstantsDocx:
@@ -12,12 +19,12 @@ class FlextCliConstantsDocx:
     # NOTE (multi-agent, mro-j2yt.1): keep Word protocol facts out of
     # consumer packages so every external DOCX dependency has one owner.
 
-    DOCX_DOCUMENT_MEMBER: Final[str] = "word/document.xml"
-    DOCX_STYLES_MEMBER: Final[str] = "word/styles.xml"
-    DOCX_RELATIONSHIPS_MEMBER: Final[str] = "word/_rels/document.xml.rels"
-    DOCX_CORE_PROPERTIES_MEMBER: Final[str] = "docProps/core.xml"
-    DOCX_CONTENT_TYPES_MEMBER: Final[str] = "[Content_Types].xml"
-    DOCX_XMLNS_W: Final[str] = (
+    DOCX_DOCUMENT_MEMBER: ClassVar[str] = "word/document.xml"
+    DOCX_STYLES_MEMBER: ClassVar[str] = "word/styles.xml"
+    DOCX_RELATIONSHIPS_MEMBER: ClassVar[str] = "word/_rels/document.xml.rels"
+    DOCX_CORE_PROPERTIES_MEMBER: ClassVar[str] = "docProps/core.xml"
+    DOCX_CONTENT_TYPES_MEMBER: ClassVar[str] = "[Content_Types].xml"
+    DOCX_XMLNS_W: ClassVar[str] = (
         "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
     )
 
@@ -33,4 +40,4 @@ class FlextCliConstantsDocx:
         STYLE_MISSING = "docx_style_missing"
 
 
-__all__: tuple[str, ...] = ("FlextCliConstantsDocx",)
+__all__: t.VariadicTuple[str] = ("FlextCliConstantsDocx",)

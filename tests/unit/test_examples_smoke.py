@@ -1,20 +1,24 @@
-"""Smoke tests for flext-cli examples using the public cli facade."""
+"""Smoke tests for flext-cli examples using the public cli facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from ._cases.test_examples_smoke.testsflextcliexamplessmoke_part_01 import (
+from tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_01 import (
     TestsFlextCliExamplesSmoke as TestsFlextCliExamplesSmokePart01,
 )
-from ._cases.test_examples_smoke.testsflextcliexamplessmoke_part_02 import (
+from tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_02 import (
     TestsFlextCliExamplesSmoke as TestsFlextCliExamplesSmokePart02,
 )
-from ._cases.test_examples_smoke.testsflextcliexamplessmoke_part_03 import (
+from tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_03 import (
     TestsFlextCliExamplesSmoke as TestsFlextCliExamplesSmokePart03,
 )
-from ._cases.test_examples_smoke.testsflextcliexamplessmoke_part_04 import (
+from tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_04 import (
     TestsFlextCliExamplesSmoke as TestsFlextCliExamplesSmokePart04,
 )
-from ._cases.test_examples_smoke.testsflextcliexamplessmoke_part_05 import (
+from tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_05 import (
     TestsFlextCliExamplesSmoke as TestsFlextCliExamplesSmokePart05,
 )
 
@@ -27,6 +31,3 @@ class TestsFlextCliExamplesSmoke(
     TestsFlextCliExamplesSmokePart05,
 ):
     """Public facade for TestsFlextCliExamplesSmoke."""
-
-
-__all__: list[str] = ["TestsFlextCliExamplesSmoke"]

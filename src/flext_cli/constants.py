@@ -1,4 +1,8 @@
-"""Flext CLI constants — flat MRO facade."""
+"""Flext CLI constants — flat MRO facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -7,31 +11,27 @@ from flext_cli._constants.config import FlextCliConstantsConfig
 from flext_cli._constants.docx import FlextCliConstantsDocx
 from flext_cli._constants.enums import FlextCliConstantsEnums
 from flext_cli._constants.errors import FlextCliConstantsErrors
-from flext_cli._constants.exceptions import FlextCliConstantsExceptions
 from flext_cli._constants.files import FlextCliConstantsFiles
 from flext_cli._constants.output import FlextCliConstantsOutput
-from flext_cli._constants.pipeline import FlextCliConstantsPipeline
 from flext_cli._constants.pptx import FlextCliConstantsPptx
 from flext_cli._constants.settings import FlextCliConstantsSettings
 from flext_cli._constants.xlsx import FlextCliConstantsXlsx
 from flext_cli._constants.xlsx_future_functions import (
     FlextCliConstantsXlsxFutureFunctions,
 )
-from flext_core import c, t
+from flext_core import FlextConstants, t
 
 
-class FlextCliConstants(c):
+class FlextCliConstants(FlextConstants):
     """Constants for Flext CLI."""
 
     class Cli(
-        FlextCliConstantsPipeline,
         FlextCliConstantsBase,
         FlextCliConstantsConfig,
         FlextCliConstantsEnums,
         FlextCliConstantsErrors,
         FlextCliConstantsDocx,
         FlextCliConstantsPptx,
-        FlextCliConstantsExceptions,
         FlextCliConstantsFiles,
         FlextCliConstantsOutput,
         FlextCliConstantsSettings,

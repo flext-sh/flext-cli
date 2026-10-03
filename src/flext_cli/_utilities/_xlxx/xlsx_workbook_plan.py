@@ -1,4 +1,8 @@
-"""Prepare an exact workbook surface from one validated XLSX plan."""
+"""Prepare an exact workbook surface from one validated XLSX plan.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -6,15 +10,16 @@ from openpyxl import Workbook
 from openpyxl.workbook.properties import CalcProperties
 from openpyxl.worksheet.worksheet import Worksheet
 
-# mro-j47u (kimi): utilities consume local facades only, never private modules.
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities._xlxx.xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
+from flext_cli._utilities._xlxx.xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
 
-from .xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
-from .xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
+# mro-j47u (kimi): utilities consume local facades only, never private modules.
 
 
 class FlextCliUtilitiesXlsxWorkbookPlan(
-    FlextCliUtilitiesXlsxStyleCodec, FlextCliUtilitiesXlsxWorkbookIo
+    FlextCliUtilitiesXlsxStyleCodec,
+    FlextCliUtilitiesXlsxWorkbookIo,
 ):
     """Load visual resources and recreate the exact planned sheet graph."""
 
@@ -33,7 +38,7 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
             for table in sheet.tables:
                 if table.name in table_names:
                     return r[bool].fail(
-                        f"{c.Cli.XlsxError.DUPLICATE_TABLE}: {table.name}"
+                        f"{c.Cli.XlsxError.DUPLICATE_TABLE}: {table.name}",
                     )
                 table_names = table_names.union((table.name,))
         for style in plan.named_styles:
@@ -43,28 +48,25 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
         for item in plan.defined_names:
             if item.name in defined_names:
                 return r[bool].fail(
-                    f"{c.Cli.XlsxError.DUPLICATE_DEFINED_NAME}: {item.name}"
+                    f"{c.Cli.XlsxError.DUPLICATE_DEFINED_NAME}: {item.name}",
                 )
             defined_names = defined_names.union((item.name,))
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @classmethod
     def _workbook_for_request(
-        cls, request: m.Cli.XlsxRenderRequest
+        cls,
+        request: m.Cli.XlsxRenderRequest,
     ) -> p.Result[Workbook]:
         validation = cls._validate_plan(request.plan)
         if validation.failure:
-            return r[Workbook].fail(
-                validation.error or str(c.Cli.XlsxError.PLAN_INVALID)
-            )
+            return r[Workbook].from_failure(validation)
         if request.template is None:
             workbook = cls._new_workbook()
         else:
             loaded = cls._load_workbook(request.template)
             if loaded.failure:
-                return r[Workbook].fail(
-                    loaded.error or str(c.Cli.XlsxError.WORKBOOK_LOAD_FAILED)
-                )
+                return r[Workbook].from_failure(loaded)
             workbook = loaded.value
         try:
             return cls._prepare_workbook(workbook, request.plan)
@@ -74,7 +76,9 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
 
     @classmethod
     def _prepare_workbook(
-        cls, workbook: Workbook, plan: m.Cli.XlsxWorkbookPlan
+        cls,
+        workbook: Workbook,
+        plan: m.Cli.XlsxWorkbookPlan,
     ) -> p.Result[Workbook]:
         for worksheet in tuple(workbook.worksheets):
             workbook.remove(worksheet)
@@ -98,4 +102,4 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
         return r[Workbook].ok(workbook)
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxWorkbookPlan",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxWorkbookPlan",)

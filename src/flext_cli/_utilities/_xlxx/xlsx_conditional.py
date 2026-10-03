@@ -1,4 +1,8 @@
-"""Apply typed conditional-format plans through openpyxl."""
+"""Apply typed conditional-format plans through openpyxl.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -8,13 +12,15 @@ from openpyxl.styles.differential import DifferentialStyle
 from openpyxl.styles.numbers import NumberFormat, builtin_format_id
 from openpyxl.worksheet.worksheet import Worksheet
 
-# mro-j47u (kimi): utilities consume local facades only, never private modules.
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from flext_cli._utilities._xlxx.xlsx_formula_codec import (
+    FlextCliUtilitiesXlsxFormulaCodec,
+)
+from flext_cli._utilities._xlxx.xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
+from flext_cli._utilities._xlxx.xlsx_validations import FlextCliUtilitiesXlsxValidations
 
-from .xlsx_addresses import FlextCliUtilitiesXlsxAddresses
-from .xlsx_formula_codec import FlextCliUtilitiesXlsxFormulaCodec
-from .xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
-from .xlsx_validations import FlextCliUtilitiesXlsxValidations
+# mro-j47u (kimi): utilities consume local facades only, never private modules.
 
 
 class FlextCliUtilitiesXlsxConditional(
@@ -28,22 +34,22 @@ class FlextCliUtilitiesXlsxConditional(
     # typed plans and top-left addresses; no worksheet-specific formulas live here.
     @classmethod
     def _registered_style(
-        cls, worksheet: Worksheet, name: str
+        cls,
+        worksheet: Worksheet,
+        name: str,
     ) -> p.Result[m.Cli.XlsxNamedStyleSpec]:
         try:
             probe = Cell(worksheet, row=1, column=1)
             probe.style = name
         except (KeyError, ValueError):
             return r[m.Cli.XlsxNamedStyleSpec].fail(
-                f"{c.Cli.XlsxError.NAMED_STYLE_MISSING}: {name}"
+                f"{c.Cli.XlsxError.NAMED_STYLE_MISSING}: {name}",
             )
         visual = cls._visual_from_styleable(probe)
         if visual.failure:
-            return r[m.Cli.XlsxNamedStyleSpec].fail(
-                visual.error or f"Failed to read registered style: {name}"
-            )
+            return r[m.Cli.XlsxNamedStyleSpec].from_failure(visual)
         return r[m.Cli.XlsxNamedStyleSpec].ok(
-            m.Cli.XlsxNamedStyleSpec(name=name, visual=visual.value)
+            m.Cli.XlsxNamedStyleSpec(name=name, visual=visual.value),
         )
 
     @classmethod
@@ -56,13 +62,16 @@ class FlextCliUtilitiesXlsxConditional(
             border=cls._border(visual.border),
             alignment=cls._alignment(visual.alignment),
             numFmt=NumberFormat(
-                numFmtId=number_format_id, formatCode=visual.number_format
+                numFmtId=number_format_id,
+                formatCode=visual.number_format,
             ),
         )
 
     @classmethod
     def _rule(
-        cls, plan: m.Cli.XlsxConditionalFormatPlan, style: m.Cli.XlsxNamedStyleSpec
+        cls,
+        plan: m.Cli.XlsxConditionalFormatPlan,
+        style: m.Cli.XlsxNamedStyleSpec,
     ) -> Rule:
         differential = cls._differential_style(style)
         if plan.kind == "contains_text":
@@ -102,20 +111,23 @@ class FlextCliUtilitiesXlsxConditional(
 
     @classmethod
     def _apply_conditional_formats(
-        cls, worksheet: Worksheet, plans: tuple[m.Cli.XlsxConditionalFormatPlan, ...]
+        cls,
+        worksheet: Worksheet,
+        plans: t.VariadicTuple[m.Cli.XlsxConditionalFormatPlan],
     ) -> p.Result[bool]:
         try:
             for plan in plans:
                 style = cls._registered_style(worksheet, plan.style)
                 if style.failure:
-                    return r[bool].fail(style.error or "Named style resolution failed")
+                    return r[bool].from_failure(style)
                 worksheet.conditional_formatting.add(
-                    cls._range_ref(plan.area), cls._rule(plan, style.value)
+                    cls._range_ref(plan.area),
+                    cls._rule(plan, style.value),
                 )
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[bool].fail(f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxConditional",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxConditional",)

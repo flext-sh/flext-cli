@@ -1,8 +1,13 @@
-"""Constants for flext-cli tests."""
+"""Constants for flext-cli tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from flext_tests import c
+
 from tests._constants_parts.tests_core import TestsFlextCliConstantsCore
 from tests._constants_parts.tests_rules_options import (
     TestsFlextCliConstantsRulesOptions,

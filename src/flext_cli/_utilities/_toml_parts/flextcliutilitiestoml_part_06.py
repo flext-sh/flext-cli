@@ -1,4 +1,8 @@
-"""Generic TOML helpers shared through ``u.Cli.toml_*``."""
+"""Generic TOML helpers shared through ``u.Cli.toml_*``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -23,11 +27,17 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_read(path: Path) -> TOMLDocument | None:
-        """Read a TOML document, returning ``None`` on missing or invalid files."""
+        """Read a TOML document, returning ``None`` on missing or invalid files.
+
+        Returns:
+            The resulting ``TOMLDocument | None``.
+
+        """
         if not path.exists():
             return None
+        parsed: TOMLDocument | None
         try:
-            return tomlkit.parse(path.read_text(encoding=c.Cli.ENCODING_DEFAULT))
+            parsed = tomlkit.parse(path.read_text(encoding=c.Cli.ENCODING_DEFAULT))
         except c.EXC_OS_VALUE as exc:
             u.fetch_logger(__name__).warning(
                 "Failed to read or parse TOML document",
@@ -35,26 +45,40 @@ class FlextCliUtilitiesToml:
                 error=str(exc),
                 error_type=type(exc).__name__,
             )
-            return None
+            parsed = None
+        return parsed
 
     @staticmethod
     def toml_read_document(path: Path) -> p.Result[TOMLDocument]:
-        """Read a TOML document with ``r`` semantics."""
+        """Read a TOML document with ``r`` semantics.
+
+        Returns:
+            The resulting ``p.Result[TOMLDocument]``.
+
+        """
         if not path.exists():
             return e.fail_not_found("TOML file", str(path), result_type=r[TOMLDocument])
         doc = FlextCliUtilitiesToml.toml_read(path)
         if doc is None:
             return e.fail_validation(
-                f"TOML parse failed for: {path}", result_type=r[TOMLDocument]
+                f"TOML parse failed for: {path}",
+                result_type=r[TOMLDocument],
             )
         return r[TOMLDocument].ok(doc)
 
     @staticmethod
     def toml_read_json(path: Path) -> p.Result[t.JsonMapping]:
-        """Read TOML and return the unwrapped root table as ``JsonMapping``."""
+        """Read TOML and return the unwrapped root table as ``JsonMapping``.
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
+        """
         if not path.exists():
             return e.fail_not_found(
-                "TOML file", str(path), result_type=r[t.JsonMapping]
+                "TOML file",
+                str(path),
+                result_type=r[t.JsonMapping],
             )
         try:
             original_rendered = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
@@ -63,13 +87,19 @@ class FlextCliUtilitiesToml:
         mapping = FlextCliUtilitiesTomlPart01.toml_mapping_from_text(original_rendered)
         if mapping is None:
             return e.fail_validation(
-                f"TOML parse failed for: {path}", result_type=r[t.JsonMapping]
+                f"TOML parse failed for: {path}",
+                result_type=r[t.JsonMapping],
             )
         return r[t.JsonMapping].ok(mapping)
 
     @staticmethod
     def _resolve_taplo_config(path: Path) -> Path | None:
-        """Resolve the nearest ``.taplo.toml`` for a pyproject file."""
+        """Resolve the nearest ``.taplo.toml`` for a pyproject file.
+
+        Returns:
+            The resulting ``Path | None``.
+
+        """
         resolved = path.resolve()
         for candidate in (resolved.parent, *resolved.parents):
             config_path = candidate / ".taplo.toml"
@@ -79,9 +109,14 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def _format_pyproject(path: Path) -> p.Result[bool]:
-        """Format managed ``pyproject.toml`` files with taplo when available."""
+        """Format managed ``pyproject.toml`` files with taplo when available.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         if path.name != "pyproject.toml":
-            return r[bool].ok(False)
+            return r[bool].ok(value=False)
         command = ["taplo", "format"]
         config_path = FlextCliUtilitiesToml._resolve_taplo_config(path)
         if config_path is not None:
@@ -93,19 +128,24 @@ class FlextCliUtilitiesToml:
             .map_error(lambda err: err or f"taplo format failed: {path}")
             .flat_map(
                 lambda output: (
-                    r[bool].ok(True)
-                    if output.exit_code == 0
+                    r[bool].ok(value=True)
+                    if ur.process_succeeded(output.outcome)
                     else r[bool].fail(
                         (output.stderr or output.stdout).strip()
-                        or f"taplo format failed: {path}"
+                        or f"taplo format failed: {path}",
                     )
-                )
+                ),
             )
         )
 
     @staticmethod
     def toml_write_document(path: Path, doc: TOMLDocument) -> p.Result[bool]:
-        """Write a TOML document and format managed pyproject files."""
+        """Write a TOML document and format managed pyproject files.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             u.write_file(path, doc.as_string(), encoding=c.Cli.ENCODING_DEFAULT)

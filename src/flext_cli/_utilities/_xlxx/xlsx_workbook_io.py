@@ -1,4 +1,8 @@
-"""Safe byte IO for the private openpyxl adapter."""
+"""Safe byte IO for the private openpyxl adapter.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -8,9 +12,8 @@ from zipfile import BadZipFile
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
-from flext_cli import c, m, p, r
-
-from .xlsx_archive import FlextCliUtilitiesXlsxArchive
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
 
 
 class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
@@ -19,15 +22,19 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
     # NOTE (multi-agent, mro-j2yt.1): source bytes pass the safe OOXML
     # inventory before openpyxl receives them; workbook objects stay private.
     @classmethod
-    def _load_workbook(cls, source: bytes, *, data_only: bool = False) -> r[Workbook]:
+    def _load_workbook(
+        cls,
+        source: bytes,
+        *,
+        data_only: bool = False,
+    ) -> p.Result[Workbook]:
         inspection_request = m.Cli.XlsxArchiveInspectionRequest(
-            source=source, policy=m.Cli.XlsxArchivePolicy()
+            source=source,
+            policy=m.Cli.XlsxArchivePolicy(),
         )
         inspection_result = cls.xlsx_inspect(inspection_request)
         if inspection_result.failure:
-            return r[Workbook].fail(
-                inspection_result.error or str(c.Cli.XlsxError.ARCHIVE_INVALID)
-            )
+            return r[Workbook].from_failure(inspection_result)
         inspection = inspection_result.value
         if not inspection.clean:
             detail = "; ".join(
@@ -35,7 +42,7 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
                 for item in inspection.violations
             )
             return r[Workbook].fail(
-                f"{c.Cli.XlsxError.ARCHIVE_POLICY_VIOLATION}: {detail}"
+                f"{c.Cli.XlsxError.ARCHIVE_POLICY_VIOLATION}: {detail}",
             )
         try:
             workbook = load_workbook(
@@ -52,12 +59,22 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
 
     @staticmethod
     def _new_workbook() -> Workbook:
-        """Create one editable workbook with the implementation default sheet."""
+        """Create one editable workbook with the implementation default sheet.
+
+        Returns:
+            The resulting ``Workbook``.
+
+        """
         return Workbook(write_only=False, iso_dates=False)
 
     @staticmethod
     def _serialize_workbook(workbook: Workbook) -> p.Result[bytes]:
-        """Serialize one private workbook to immutable bytes."""
+        """Serialize one private workbook to immutable bytes.
+
+        Returns:
+            The resulting ``p.Result[bytes]``.
+
+        """
         target = BytesIO()
         try:
             workbook.save(target)
@@ -70,4 +87,4 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
         return r[bytes].ok(content)
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxWorkbookIo",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxWorkbookIo",)

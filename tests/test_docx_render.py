@@ -1,18 +1,23 @@
-"""Model-driven DOCX rendering and reading contract tests."""
+"""Model-driven DOCX rendering and reading contract tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from io import BytesIO
 
 from docx import Document
+from flext_tests import tm
 
 from flext_cli import cli, m
-from flext_tests import tm
 
 
 def test_docx_render_is_reproducible_for_explicit_source_date_epoch() -> None:
+    """Test docx render is reproducible for explicit source date epoch."""
     plan = m.Cli.DocxDocumentPlan(
-        paragraphs=(m.Cli.DocxParagraphPlan(runs=(m.Cli.DocxRunPlan(text="Stable"),)),)
+        paragraphs=(m.Cli.DocxParagraphPlan(runs=(m.Cli.DocxRunPlan(text="Stable"),)),),
     )
     request = m.Cli.DocxRenderRequest(plan=plan, source_date_epoch=0)
 
@@ -40,7 +45,7 @@ def test_docx_render_paragraphs() -> None:
         paragraphs=(
             m.Cli.DocxParagraphPlan(runs=(m.Cli.DocxRunPlan(text="Hello"),)),
             m.Cli.DocxParagraphPlan(runs=(m.Cli.DocxRunPlan(text="World"),)),
-        )
+        ),
     )
     result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
     tm.that(result.success, eq=True, msg=result.error)
@@ -61,13 +66,13 @@ def test_docx_render_with_styles() -> None:
                                 bold=True,
                                 italic=True,
                                 color=m.Cli.DocxRgbColor(value="FF0000"),
-                            )
+                            ),
                         ),
                     ),
                 ),
                 alignment="center",
             ),
-        )
+        ),
     )
     result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
     tm.that(result.success, eq=True, msg=result.error)
@@ -91,40 +96,40 @@ def test_docx_render_with_table() -> None:
                             m.Cli.DocxTableCellPlan(
                                 paragraphs=(
                                     m.Cli.DocxParagraphPlan(
-                                        runs=(m.Cli.DocxRunPlan(text="A"),)
+                                        runs=(m.Cli.DocxRunPlan(text="A"),),
                                     ),
-                                )
+                                ),
                             ),
                             m.Cli.DocxTableCellPlan(
                                 paragraphs=(
                                     m.Cli.DocxParagraphPlan(
-                                        runs=(m.Cli.DocxRunPlan(text="B"),)
+                                        runs=(m.Cli.DocxRunPlan(text="B"),),
                                     ),
-                                )
+                                ),
                             ),
-                        )
+                        ),
                     ),
                     m.Cli.DocxTableRowPlan(
                         cells=(
                             m.Cli.DocxTableCellPlan(
                                 paragraphs=(
                                     m.Cli.DocxParagraphPlan(
-                                        runs=(m.Cli.DocxRunPlan(text="C"),)
+                                        runs=(m.Cli.DocxRunPlan(text="C"),),
                                     ),
-                                )
+                                ),
                             ),
                             m.Cli.DocxTableCellPlan(
                                 paragraphs=(
                                     m.Cli.DocxParagraphPlan(
-                                        runs=(m.Cli.DocxRunPlan(text="D"),)
+                                        runs=(m.Cli.DocxRunPlan(text="D"),),
                                     ),
-                                )
+                                ),
                             ),
-                        )
+                        ),
                     ),
-                )
+                ),
             ),
-        )
+        ),
     )
     result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
     tm.that(result.success, eq=True, msg=result.error)
@@ -159,12 +164,12 @@ def test_docx_render_accounting_underline() -> None:
                     m.Cli.DocxRunPlan(
                         text="Underlined",
                         style=m.Cli.DocxRunStyleSpec(
-                            font=m.Cli.DocxFontSpec(underline="singleAccounting")
+                            font=m.Cli.DocxFontSpec(underline="singleAccounting"),
                         ),
                     ),
-                )
+                ),
             ),
-        )
+        ),
     )
     result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
     tm.that(result.success, eq=True, msg=result.error)
@@ -181,9 +186,10 @@ def test_docx_read_round_trip() -> None:
         paragraphs=(
             m.Cli.DocxParagraphPlan(runs=(m.Cli.DocxRunPlan(text="Hello"),)),
             m.Cli.DocxParagraphPlan(
-                runs=(m.Cli.DocxRunPlan(text="World"),), alignment="right"
+                runs=(m.Cli.DocxRunPlan(text="World"),),
+                alignment="right",
             ),
-        )
+        ),
     )
     render_result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
     tm.that(render_result.success, eq=True, msg=render_result.error)

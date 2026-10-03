@@ -1,4 +1,8 @@
-"""Normal-exit descendant containment contract."""
+"""Normal-exit descendant containment contract.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -8,8 +12,8 @@ import time
 from typing import TYPE_CHECKING, ClassVar, override
 
 import pytest
-
 from flext_tests import tm
+
 from tests import m, p, u
 
 if TYPE_CHECKING:
@@ -29,57 +33,59 @@ class _ObservedWindowsCli(u.Cli):
 
 
 def _process_exists(process_id: int) -> bool:
+    exists = True
     try:
         os.kill(process_id, 0)
     except OSError:
-        return False
-    return True
+        exists = False
+    return exists
 
 
 class TestsFlextCliRuntimeProcessDescendants:
     """Prove root completion is not mistaken for boundary completion."""
 
-    def test_normal_root_exit_leaves_no_descendant(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_normal_root_exit_leaves_no_descendant(tmp_path: Path) -> None:
+        """A descendant alive when the root exits is gone when the run returns.
+
+        The descendant announces its identity over a pipe and then blocks
+        forever; the root reads that line (a blocking read, no polling),
+        records it, and exits. Only containment can end the descendant, so
+        its absence from the process table after ``run_to_file`` returns is
+        the observable proof.
+        """
         output_file = tmp_path / "normal-exit.log"
-        heartbeat = tmp_path / "normal-heartbeat"
         process_info = tmp_path / "normal-process-info"
         child = (
-            "import os,pathlib,sys,time;"
-            "path=pathlib.Path(sys.argv[1]);"
-            "group=getattr(os,'getpgrp',lambda:0)();"
-            "pathlib.Path(sys.argv[2]).write_text(f'{os.getpid()} {group}');"
-            "\nwhile True:\n path.write_text(str(time.monotonic()));time.sleep(.02)"
+            "import os,threading;"
+            "print(os.getpid(),getattr(os,'getpgrp',lambda:0)(),flush=True);"
+            "threading.Event().wait()"
         )
         parent = (
-            "import pathlib,subprocess,sys,time;"
-            f"subprocess.Popen([sys.executable,'-c',{child!r},"
-            "sys.argv[1],sys.argv[2]]);"
-            "heartbeat=pathlib.Path(sys.argv[1]);"
-            "info=pathlib.Path(sys.argv[2]);"
-            "\nwhile not heartbeat.exists() or not info.exists():\n time.sleep(.01)"
+            "import pathlib,subprocess,sys;"
+            f"child=subprocess.Popen([sys.executable,'-I','-S','-c',{child!r}],"
+            "stdout=subprocess.PIPE);"
+            "pathlib.Path(sys.argv[1]).write_bytes(child.stdout.readline())"
         )
-        started = time.monotonic()
 
         result = u.Cli().run_to_file(
-            [sys.executable, "-c", parent, str(heartbeat), str(process_info)],
+            [sys.executable, "-I", "-S", "-c", parent, str(process_info)],
             output_file,
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=0)
+        tm.that(result.value.raw_return_code, eq=0)
         child_pid, process_group = (
             int(value) for value in process_info.read_text().split()
         )
-        stopped_value = heartbeat.stat().st_mtime_ns
-        time.sleep(0.15)
-        tm.that(heartbeat.stat().st_mtime_ns, eq=stopped_value)
         tm.that(_process_exists(child_pid), eq=False)
         if os.name != "nt":
             with pytest.raises(ProcessLookupError):
                 os.killpg(process_group, 0)
-        tm.that(time.monotonic() - started, lt=5.0)
 
-    def test_windows_job_reports_zero_active_processes(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_windows_job_reports_zero_active_processes(tmp_path: Path) -> None:
+        """Test windows job reports zero active processes."""
         _ObservedWindowsCli.active_counts.clear()
         result = _ObservedWindowsCli.run_to_file(
             [sys.executable, "-c", "import time;time.sleep(30)"],
@@ -87,12 +93,12 @@ class TestsFlextCliRuntimeProcessDescendants:
             deadline=m.Cli.ProcessDeadline(
                 expires_at_monotonic=time.monotonic() + 1.2,
                 termination_grace_seconds=0.6,
-                timeout_exit_code=96,
             ),
         )
 
         tm.ok(result)
-        tm.that(result.value, eq=96)
+        tm.that(result.value.timed_out, eq=True)
+        tm.that(result.value.raw_return_code, lt=0)
         if os.name == "nt":
             tm.that(_ObservedWindowsCli.active_counts, empty=False)
             tm.that(_ObservedWindowsCli.active_counts[-1], eq=0)
@@ -101,6 +107,3 @@ class TestsFlextCliRuntimeProcessDescendants:
         tm.that(active_count.success, eq=True)
         tm.that(active_count.value, eq=0)
         tm.that(_ObservedWindowsCli.active_counts, empty=True)
-
-
-__all__: list[str] = ["TestsFlextCliRuntimeProcessDescendants"]

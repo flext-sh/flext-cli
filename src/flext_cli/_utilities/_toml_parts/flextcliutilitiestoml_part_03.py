@@ -1,4 +1,8 @@
-"""Generic TOML helpers shared through ``u.Cli.toml_*``."""
+"""Generic TOML helpers shared through ``u.Cli.toml_*``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -22,9 +26,15 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_table_path(
-        parent: TOMLDocument | Table, path: t.StrSequence
+        parent: TOMLDocument | Table,
+        path: t.StrSequence,
     ) -> Table | None:
-        """Return a nested table path without creating missing tables."""
+        """Return a nested table path without creating missing tables.
+
+        Returns:
+            A nested table path without creating missing tables.
+
+        """
         current: TOMLDocument | Table = parent
         for segment in path:
             table = FlextCliUtilitiesTomlPart02.toml_table_child(current, segment)
@@ -35,12 +45,22 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_ensure_tool_table(doc: TOMLDocument) -> Table:
-        """Return the top-level ``[tool]`` table."""
+        """Return the top-level ``[tool]`` table.
+
+        Returns:
+            The top-level ``[tool]`` table.
+
+        """
         return FlextCliUtilitiesTomlPart02.toml_ensure_table(doc, "tool")
 
     @staticmethod
     def toml_value(container: TOMLDocument | Table, key: str) -> t.JsonValue | None:
-        """Return a normalized TOML value from a container."""
+        """Return a normalized TOML value from a container.
+
+        Returns:
+            A normalized TOML value from a container.
+
+        """
         if key not in container:
             return None
         raw_value = FlextCliUtilitiesTomlPart01.toml_unwrap_item(container[key])
@@ -50,7 +70,12 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_child(container: t.JsonMapping, key: str) -> t.JsonMapping | None:
-        """Return a plain mapping child from one normalized TOML mapping."""
+        """Return a plain mapping child from one normalized TOML mapping.
+
+        Returns:
+            A plain mapping child from one normalized TOML mapping.
+
+        """
         value = container.get(key, None)
         if not u.mapping(value):
             return None
@@ -58,7 +83,12 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_ensure_table(parent: t.MutableJsonMapping, key: str) -> t.JsonDict:
-        """Return one mutable plain mapping child, creating it when missing."""
+        """Return one mutable plain mapping child, creating it when missing.
+
+        Returns:
+            One mutable plain mapping child, creating it when missing.
+
+        """
         existing = parent.get(key, None)
         if isinstance(existing, dict):
             return existing
@@ -74,9 +104,15 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_ensure_path(
-        parent: t.MutableJsonMapping, path: t.StrSequence
+        parent: t.MutableJsonMapping,
+        path: t.StrSequence,
     ) -> t.MutableJsonMapping:
-        """Return one nested mutable mapping path, creating tables as needed."""
+        """Return one nested mutable mapping path, creating tables as needed.
+
+        Returns:
+            One nested mutable mapping path, creating tables as needed.
+
+        """
         current = parent
         for segment in path:
             current = FlextCliUtilitiesToml.toml_mapping_ensure_table(current, segment)
@@ -84,9 +120,15 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_mapping_path(
-        parent: t.JsonMapping, path: t.StrSequence
+        parent: t.JsonMapping,
+        path: t.StrSequence,
     ) -> t.MutableJsonMapping | None:
-        """Return one nested mutable mapping path without creating missing tables."""
+        """Return one nested mutable mapping path without creating missing tables.
+
+        Returns:
+            One nested mutable mapping path without creating missing tables.
+
+        """
         if not isinstance(parent, MutableMapping):
             return None
         current: t.MutableJsonMapping = parent
@@ -99,7 +141,12 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_remove_key_if_present(container: TOMLDocument | Table, key: str) -> bool:
-        """Remove a TOML key when it exists; return True if removed."""
+        """Remove a TOML key when it exists; return True if removed.
+
+        Returns:
+            The resulting ``bool``.
+
+        """
         if key not in container:
             return False
         del container[key]

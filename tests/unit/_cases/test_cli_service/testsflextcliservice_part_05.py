@@ -1,11 +1,16 @@
-"""Real Typer integration tests for the public flext-cli CLI facade."""
+"""Real Typer integration tests for the public flext-cli CLI facade.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, r, t
 from flext_tests import tm
+
+from flext_cli import cli, r, t
 from tests import c, m
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
@@ -17,23 +22,25 @@ if TYPE_CHECKING:
 class TestsFlextCliService:
     """Implementation part for TestsFlextCliService."""
 
-    def test_register_result_command_renders_success_and_failure(self) -> None:
+    @staticmethod
+    def test_register_result_command_renders_success_and_failure() -> None:
         """Verify that register result command renders success and failure."""
         app = cli.create_app_with_common_params(
-            name="result-app", help_text="Result application"
+            name="result-app",
+            help_text="Result application",
         )
         group = cli.create_group(help_text="Grouped commands", name="group")
 
         def ok_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return cli.execute().map(
                 lambda _payload: m.Tests.SampleOutput(
-                    message=f"processed {params.name}"
-                )
+                    message=f"processed {params.name}",
+                ),
             )
 
         def fail_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return cli.validate_credentials("", "password").map(
-                lambda _value: m.Tests.SampleOutput(message=params.name)
+                lambda _value: m.Tests.SampleOutput(message=params.name),
             )
 
         def build_ok_route() -> m.Cli.ResultCommandRoute:
@@ -65,12 +72,15 @@ class TestsFlextCliService:
         tm.that(ok_result.exit_code, eq=0)
         tm.that(ok_result.stdout, has="processed alice")
         tm.that(fail_result.exit_code, eq=1)
-        tm.that(fail_result.stdout, has="Username cannot be empty")
+        tm.that(fail_result.stderr, has="Username cannot be empty")
+        tm.that(fail_result.stdout, eq="")
 
-    def test_register_result_routes_propagates_real_failure(self) -> None:
+    @staticmethod
+    def test_register_result_routes_propagates_real_failure() -> None:
         """Verify that register result routes propagates real failure."""
         app = cli.create_app_with_common_params(
-            name="result-app", help_text="Result application"
+            name="result-app",
+            help_text="Result application",
         )
 
         def fail_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
@@ -89,11 +99,13 @@ class TestsFlextCliService:
                     help_text="Failing command",
                     model_cls=m.Tests.SampleInput,
                     handler=fail_handler,
-                )
+                ),
             ],
         )
         fail_result = cli.execute_app(
-            app, prog_name="result-app", args=["fail", "--name", "alice"]
+            app,
+            prog_name="result-app",
+            args=["fail", "--name", "alice"],
         )
 
         tm.fail(fail_result)
@@ -104,6 +116,3 @@ class TestsFlextCliService:
         tm.that(fail_result.exception, is_=ValueError)
         tm.that(cli.finalize_result(fail_result), eq=c.Cli.EXIT_CODE_FAILURE)
         tm.that(cli.finalize_result(fail_result, failure_exit_code=2), eq=2)
-
-
-__all__: list[str] = ["TestsFlextCliService"]

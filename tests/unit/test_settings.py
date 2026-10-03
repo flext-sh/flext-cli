@@ -16,9 +16,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import FlextCliSettings, settings, t, u
-from flext_tests import tm
 from tests import c, p
 
 
@@ -30,17 +30,21 @@ class TestsFlextCliSettingsUnit:
     and this name is registered in the (read-only) tests export registries.
     """
 
-    def test_settings_singleton_satisfies_contract(self) -> None:
+    @staticmethod
+    def test_settings_singleton_satisfies_contract() -> None:
         """The canonical settings singleton satisfies the Settings protocol."""
         resolved_settings = tm.not_none(settings)
         tm.that(resolved_settings, is_=p.Cli.Settings)
 
-    def test_fetch_global_returns_shared_singleton(self) -> None:
+    @staticmethod
+    def test_fetch_global_returns_shared_singleton() -> None:
         """fetch_global returns the same process-wide instance each call."""
         tm.that(
-            FlextCliSettings.fetch_global() is FlextCliSettings.fetch_global(), eq=True
+            FlextCliSettings.fetch_global() is FlextCliSettings.fetch_global(),
+            eq=True,
         )
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("field_name", "expected"),
         [
@@ -57,16 +61,19 @@ class TestsFlextCliSettingsUnit:
         ],
     )
     def test_flat_default_field_state(
-        self, field_name: str, expected: t.Scalar | None
+        field_name: str,
+        expected: t.Scalar | None,
     ) -> None:
         """A freshly validated settings object exposes documented defaults."""
         built = FlextCliSettings.model_validate({})
         tm.that(getattr(built, field_name), eq=expected)
 
-    def test_top_level_debug_default_is_false(self) -> None:
+    @staticmethod
+    def test_top_level_debug_default_is_false() -> None:
         """The inherited top-level debug flag defaults to disabled."""
         tm.that(FlextCliSettings.model_validate({}).debug, eq=False)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("pytest_current_test", "shell_command", "ci", "expected"),
         [
@@ -80,7 +87,6 @@ class TestsFlextCliSettingsUnit:
         ],
     )
     def test_cli_test_env_truth_table(
-        self,
         pytest_current_test: str | None,
         shell_command: str | None,
         *,
@@ -95,21 +101,24 @@ class TestsFlextCliSettingsUnit:
         })
         tm.that(u.Cli.cli_test_env(built), eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize("level", list(c.LogLevel))
-    def test_cli_log_level_preserves_each_level(self, level: c.LogLevel) -> None:
+    def test_cli_log_level_preserves_each_level(level: c.LogLevel) -> None:
         """Every log level round-trips through the cli_log_level field."""
         built = FlextCliSettings.model_validate({"cli_log_level": level.value})
         tm.that(built.cli_log_level, eq=level.value)
 
+    @staticmethod
     @pytest.mark.parametrize("verbosity", list(c.Cli.LogVerbosity))
     def test_log_verbosity_preserves_each_mode(
-        self, verbosity: c.Cli.LogVerbosity
+        verbosity: c.Cli.LogVerbosity,
     ) -> None:
         """Every declared log verbosity mode is retained as public state."""
         built = FlextCliSettings.model_validate({"cli_log_verbosity": verbosity.value})
         tm.that(built.cli_log_verbosity, eq=verbosity.value)
 
-    def test_model_validate_applies_flat_overrides(self) -> None:
+    @staticmethod
+    def test_model_validate_applies_flat_overrides() -> None:
         """Partial model_validate applies flat overrides onto defaults."""
         built: p.Cli.Settings = FlextCliSettings.model_validate({
             "cli_verbose": True,
@@ -119,13 +128,15 @@ class TestsFlextCliSettingsUnit:
         tm.that(built.cli_ci, eq=True)
         tm.that(u.Cli.cli_test_env(built), eq=True)
 
-    def test_model_validate_ignores_unknown_fields(self) -> None:
+    @staticmethod
+    def test_model_validate_ignores_unknown_fields() -> None:
         """Unknown keys are ignored (extra=ignore) and defaults survive."""
         built = FlextCliSettings.model_validate({"cli_unknown_field": "x"})
         tm.that(built.cli_app_name, eq=c.Cli.FLEXT_CLI)
         tm.that(hasattr(built, "cli_unknown_field"), eq=False)
 
-    def test_model_dump_exposes_flat_scalar_fields(self) -> None:
+    @staticmethod
+    def test_model_dump_exposes_flat_scalar_fields() -> None:
         """model_dump surfaces the flat cli_* fields without a nested branch."""
         dumped = FlextCliSettings.model_validate({}).model_dump()
         tm.that(dumped, is_=dict)
@@ -134,14 +145,16 @@ class TestsFlextCliSettingsUnit:
         tm.that(dumped, has="cli_output_format")
         tm.that("Cli" in dumped, eq=False)
 
-    def test_clone_yields_distinct_equal_instance(self) -> None:
+    @staticmethod
+    def test_clone_yields_distinct_equal_instance() -> None:
         """Clone produces an independent object equal to its source."""
         source = FlextCliSettings.model_validate({})
         cloned = source.clone()
         tm.that(cloned == source, eq=True)
         tm.that(cloned is not source, eq=True)
 
-    def test_reset_for_testing_restores_usable_defaults(self) -> None:
+    @staticmethod
+    def test_reset_for_testing_restores_usable_defaults() -> None:
         """After reset, fetch_global rebuilds a settings object with defaults."""
         FlextCliSettings.reset_for_testing()
         rebuilt = FlextCliSettings.fetch_global()

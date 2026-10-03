@@ -28,11 +28,10 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_cli import c, cli, m, t
-from flext_core import p, r
-
-_EXAMPLE_ERR_NO_DATA_FILE_FOUND = "No data file found"
-_EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING = "Data file must contain a mapping"
+from examples import c
+from flext_cli import cli, m, t
+from flext_cli.protocols import p
+from flext_core import r
 
 
 class DataManagerCLI:
@@ -42,8 +41,14 @@ class DataManagerCLI:
         """Initialize data manager CLI with temporary data file."""
         self.data_file = Path(tempfile.gettempdir()) / "app_data.json"
 
-    def add_entry(self) -> p.Result[t.JsonMapping]:
-        """Create one entry through the public prompt surface."""
+    @staticmethod
+    def add_entry() -> p.Result[t.JsonMapping]:
+        """Create one entry through the public prompt surface.
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
+        """
         cli.configure(m.Cli.PromptRuntimeState(interactive=False))
         key_result = cli.prompt("Enter key:", default="sample_key")
         if key_result.failure:
@@ -55,41 +60,59 @@ class DataManagerCLI:
         value = value_result.value
         cli.print(f"✅ Created entry: {key} = {value}", style=c.Cli.MessageStyles.GREEN)
         return r[t.JsonMapping].ok(
-            t.Cli.JSON_MAPPING_ADAPTER.validate_python({key: value})
+            t.Cli.JSON_MAPPING_ADAPTER.validate_python({key: value}),
         )
 
     def load_data(self) -> p.Result[t.JsonMapping]:
-        """Load previously saved data through the public file surface."""
+        """Load previously saved data through the public file surface.
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
+        """
         if not self.data_file.exists():
-            return r[t.JsonMapping].fail(_EXAMPLE_ERR_NO_DATA_FILE_FOUND)
+            return r[t.JsonMapping].fail(c.EXAMPLE_ERR_NO_DATA_FILE_FOUND)
         read_result = cli.read_json_file(str(self.data_file))
         if read_result.failure:
             error_msg = read_result.error or "Unknown error"
             cli.print(
-                f"❌ Load failed: {error_msg}", style=c.Cli.MessageStyles.BOLD_RED
+                f"❌ Load failed: {error_msg}",
+                style=c.Cli.MessageStyles.BOLD_RED,
             )
             return r[t.JsonMapping].fail(error_msg)
         if not isinstance(read_result.value, Mapping):
-            return r[t.JsonMapping].fail(_EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING)
+            return r[t.JsonMapping].fail(c.EXAMPLE_ERR_DATA_FILE_MUST_BE_MAPPING)
         cli.print("✅ Data loaded successfully", style=c.Cli.MessageStyles.GREEN)
         return r[t.JsonMapping].ok(read_result.value)
 
     def save_data(self, data: t.JsonMapping) -> p.Result[bool]:
-        """Persist the current dataset through the public file surface."""
+        """Persist the current dataset through the public file surface.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         write_result = cli.write_json_file(self.data_file, data)
         if write_result.failure:
             error_msg = write_result.error or "Unknown error"
             cli.print(
-                f"❌ Save failed: {error_msg}", style=c.Cli.MessageStyles.BOLD_RED
+                f"❌ Save failed: {error_msg}",
+                style=c.Cli.MessageStyles.BOLD_RED,
             )
             return r[bool].fail(error_msg)
         cli.print(
-            f"✅ Data saved to {self.data_file.name}", style=c.Cli.MessageStyles.GREEN
+            f"✅ Data saved to {self.data_file.name}",
+            style=c.Cli.MessageStyles.GREEN,
         )
         return r[bool].ok(value=True)
 
     def run_workflow(self) -> p.Result[bool]:
-        """Run the minimal public workflow exercised by the smoke test."""
+        """Run the minimal public workflow exercised by the smoke test.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         load_result = self.load_data()
         current_data: t.MutableJsonMapping = (
             dict(load_result.value) if load_result.success else {}
@@ -109,3 +132,6 @@ class DataManagerCLI:
             title="📋 Current Data",
         )
         return r[bool].ok(value=True)
+
+
+__all__: list[str] = ["DataManagerCLI"]

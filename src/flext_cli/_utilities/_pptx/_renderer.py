@@ -1,4 +1,8 @@
-"""Generic model-driven PPTX renderer."""
+"""Generic model-driven PPTX renderer.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -19,34 +23,37 @@ class FlextCliUtilitiesPptxRenderer:
 
     @classmethod
     def pptx_render(
-        cls, request: m.Cli.PptxRenderRequest
+        cls,
+        request: m.Cli.PptxRenderRequest,
     ) -> p.Result[m.Cli.PptxRenderResult]:
-        """Render typed slides into presentation bytes."""
+        """Render typed slides into presentation bytes.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.PptxRenderResult]``.
+
+        """
         presentation_result = cls._presentation_for_request(request)
         if presentation_result.failure:
-            return r[m.Cli.PptxRenderResult].fail(
-                presentation_result.error or str(c.Cli.PptxError.RENDER_FAILED)
-            )
+            return r[m.Cli.PptxRenderResult].from_failure(presentation_result)
         presentation = presentation_result.value
         try:
             cls._apply_presentation(presentation, request.plan)
         except (KeyError, TypeError, ValueError, AttributeError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.PptxRenderResult].fail(
-                f"{c.Cli.PptxError.RENDER_FAILED}: {detail}"
+                f"{c.Cli.PptxError.RENDER_FAILED}: {detail}",
             )
         content = FlextCliUtilitiesPptxSerializer.pptx_save(presentation)
         if content.failure:
-            return r[m.Cli.PptxRenderResult].fail(
-                content.error or str(c.Cli.PptxError.SERIALIZE_FAILED)
-            )
+            return r[m.Cli.PptxRenderResult].from_failure(content)
         return r[m.Cli.PptxRenderResult].ok(
-            m.Cli.PptxRenderResult(content=content.value, plan=request.plan)
+            m.Cli.PptxRenderResult(content=content.value, plan=request.plan),
         )
 
     @classmethod
     def _presentation_for_request(
-        cls, request: m.Cli.PptxRenderRequest
+        cls,
+        request: m.Cli.PptxRenderRequest,
     ) -> p.Result[PresentationType]:
         if request.template is None:
             return r[PresentationType].ok(Presentation())
@@ -55,13 +62,15 @@ class FlextCliUtilitiesPptxRenderer:
         except (OSError, ValueError, KeyError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[PresentationType].fail(
-                f"{c.Cli.PptxError.PRESENTATION_LOAD_FAILED}: {detail}"
+                f"{c.Cli.PptxError.PRESENTATION_LOAD_FAILED}: {detail}",
             )
         return r[PresentationType].ok(presentation)
 
     @classmethod
     def _apply_presentation(
-        cls, presentation: PresentationType, plan: m.Cli.PptxPresentationPlan
+        cls,
+        presentation: PresentationType,
+        plan: m.Cli.PptxPresentationPlan,
     ) -> None:
         cls._apply_pptx_core_properties(presentation, plan.core_properties)
         for slide in plan.slides:
@@ -69,7 +78,9 @@ class FlextCliUtilitiesPptxRenderer:
 
     @classmethod
     def _apply_pptx_core_properties(
-        cls, presentation: PresentationType, properties: t.JsonMapping
+        cls,
+        presentation: PresentationType,
+        properties: t.JsonMapping,
     ) -> None:
         core_props = presentation.core_properties
         for key, value in properties.items():
@@ -78,7 +89,9 @@ class FlextCliUtilitiesPptxRenderer:
 
     @classmethod
     def _apply_slide(
-        cls, presentation: PresentationType, plan: m.Cli.PptxSlidePlan
+        cls,
+        presentation: PresentationType,
+        plan: m.Cli.PptxSlidePlan,
     ) -> None:
         layout = presentation.slide_layouts[0]
         new_slide = presentation.slides.add_slide(layout)
@@ -86,4 +99,4 @@ class FlextCliUtilitiesPptxRenderer:
             new_slide.shapes.title.text = plan.title
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesPptxRenderer",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesPptxRenderer",)

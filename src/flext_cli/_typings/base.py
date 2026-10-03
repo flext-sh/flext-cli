@@ -1,4 +1,8 @@
-"""CLI base type aliases and adapters."""
+"""CLI base type aliases and adapters.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -12,7 +16,7 @@ from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_core import t
+from flext_core import t, u
 
 
 class FlextCliTypesBase:
@@ -46,11 +50,6 @@ class FlextCliTypesBase:
     type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType
     type TemplateEnvironmentCache = MutableMapping[str, SandboxedEnvironment]
 
-    PRIMITIVE_TYPES: ClassVar[tuple[type[str], type[int], type[float], type[bool]]] = (
-        t.PRIMITIVES_TYPES
-    )
-    SCALAR_TYPES: ClassVar[tuple[type, ...]] = t.SCALAR_TYPES
-
     STR_SEQUENCE_ADAPTER: ClassVar[t.ValueAdapter[t.StrSequence]] = (
         t.str_sequence_adapter()
     )
@@ -64,7 +63,7 @@ class FlextCliTypesBase:
     )
     YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
     CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
-        t.TypeAdapter(CliDefaultSource)
+        u.type_adapter(CliValue | t.SequenceOf[str | int] | Path)
     )
 
 

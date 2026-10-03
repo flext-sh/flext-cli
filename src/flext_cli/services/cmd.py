@@ -13,7 +13,7 @@ from __future__ import annotations
 from flext_cli import m, p, s, t, u
 
 
-class FlextCliCmd(s):
+class FlextCliCmd(s[m.Cli.RuntimeStatus]):
     """Execute registered CLI commands and expose execution metadata.
 
     Extends s for consistent logging and container access.
@@ -23,7 +23,12 @@ class FlextCliCmd(s):
 
     @staticmethod
     def settings_snapshot() -> p.Result[m.Cli.SettingsSnapshot]:
-        """Return the current settings snapshot using ``u.Cli``."""
+        """Return the current settings snapshot using ``u.Cli``.
+
+        Returns:
+            The current settings snapshot using ``u.Cli``.
+
+        """
         return u.Cli.cmd_settings_snapshot()
 
     def show_settings(self) -> p.Result[bool]:

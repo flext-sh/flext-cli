@@ -1,4 +1,8 @@
-"""CLI params helpers shared through ``u.Cli``."""
+"""CLI params helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -12,9 +16,15 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_resolve(
-        params: p.Cli.CliParamsConfig | None, kwargs: t.Cli.CliParamKwargs
+        params: p.Cli.CliParamsConfig | None,
+        kwargs: t.Cli.CliParamKwargs,
     ) -> m.Cli.CliParamsConfig:
-        """Resolve explicit params and kwargs into one validated model."""
+        """Resolve explicit params and kwargs into one validated model.
+
+        Returns:
+            The resulting ``m.Cli.CliParamsConfig``.
+
+        """
         kwargs_model = m.Cli.CliParamsConfig.model_validate(kwargs)
         if params is None:
             return kwargs_model
@@ -24,9 +34,15 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_set_bool(
-        settings: p.Cli.Settings, params: p.Cli.CliParamsConfig
+        settings: p.Cli.Settings,
+        params: p.Cli.CliParamsConfig,
     ) -> p.Result[p.Cli.Settings]:
-        """Set boolean parameters through validated model_copy updates."""
+        """Set boolean parameters through validated model_copy updates.
+
+        Returns:
+            The resulting ``p.Result[p.Cli.Settings]``.
+
+        """
         if params.trace is not None and params.trace:
             will_be_debug = params.debug if params.debug is not None else settings.debug
             if not will_be_debug:
@@ -49,14 +65,21 @@ class FlextCliUtilitiesParams:
 
     @staticmethod
     def params_set_log_level(
-        settings: p.Cli.Settings, params: p.Cli.CliParamsConfig
+        settings: p.Cli.Settings,
+        params: p.Cli.CliParamsConfig,
     ) -> p.Result[p.Cli.Settings]:
-        """Set CLI log level with enum conversion/validation."""
+        """Set CLI log level with enum conversion/validation.
+
+        Returns:
+            The resulting ``p.Result[p.Cli.Settings]``.
+
+        """
         if params.log_level is None:
             return r[p.Cli.Settings].ok(settings)
         try:
             resolved_level = m.Cli.LogLevelResolved(
-                raw=params.log_level, default=c.LogLevel.INFO
+                raw=params.log_level,
+                default=c.LogLevel.INFO,
             ).resolved
             next_level = type(c.LogLevel.INFO)(resolved_level)
             return r[p.Cli.Settings].ok(settings.clone(cli_log_level=str(next_level)))
@@ -67,14 +90,20 @@ class FlextCliUtilitiesParams:
                     field_label="log level",
                     field_value=params.log_level,
                     valid_values=valid,
-                )
+                ),
             )
 
     @staticmethod
     def params_set_format(
-        settings: p.Cli.Settings, params: p.Cli.CliParamsConfig
+        settings: p.Cli.Settings,
+        params: p.Cli.CliParamsConfig,
     ) -> p.Result[p.Cli.Settings]:
-        """Set output/log format values with canonical validation helpers."""
+        """Set output/log format values with canonical validation helpers.
+
+        Returns:
+            The resulting ``p.Result[p.Cli.Settings]``.
+
+        """
         next_config = settings
         if params.log_format is not None:
             try:
@@ -86,7 +115,7 @@ class FlextCliUtilitiesParams:
                         field_label="log format",
                         field_value=params.log_format,
                         valid_values=valid,
-                    )
+                    ),
                 )
             next_config = next_config.clone(cli_log_verbosity=str(log_verbosity))
         if params.output_format is not None:
@@ -98,29 +127,37 @@ class FlextCliUtilitiesParams:
                         field_label="output format",
                         field_value=params.output_format,
                         valid_values=valid,
-                    )
+                    ),
                 )
             next_config = next_config.clone(cli_output_format=validated_result.value)
         return r[p.Cli.Settings].ok(next_config)
 
     @staticmethod
     def params_apply(
-        settings: p.Cli.Settings, params: p.Cli.CliParamsConfig
+        settings: p.Cli.Settings,
+        params: p.Cli.CliParamsConfig,
     ) -> p.Result[p.Cli.Settings]:
-        """Apply all parameter-setting stages to one settings model."""
+        """Apply all parameter-setting stages to one settings model.
+
+        Returns:
+            The resulting ``p.Result[p.Cli.Settings]``.
+
+        """
         return (
             FlextCliUtilitiesParams
             .params_set_bool(settings, params)
             .map_error(lambda error: error or "Boolean parameter setting failed")
             .flat_map(
                 lambda updated_config: FlextCliUtilitiesParams.params_set_log_level(
-                    updated_config, params
-                )
+                    updated_config,
+                    params,
+                ),
             )
             .flat_map(
                 lambda updated_config: FlextCliUtilitiesParams.params_set_format(
-                    updated_config, params
-                )
+                    updated_config,
+                    params,
+                ),
             )
         )
 

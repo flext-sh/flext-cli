@@ -17,8 +17,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-
 from flext_tests import tm
+
 from tests import c, m, u
 
 if TYPE_CHECKING:
@@ -32,9 +32,12 @@ class TestsFlextCliYamlCov:
 
     # ── yaml_parse ──────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(("text", "expect_ok"), c.Tests.YAML_PARSE_CASES)
     def test_yaml_parse_reports_outcome_per_input(
-        self, text: str, *, expect_ok: bool
+        text: str,
+        *,
+        expect_ok: bool,
     ) -> None:
         """Verify that yaml parse reports outcome per input."""
         result = u.Cli.yaml_parse(text)
@@ -46,7 +49,8 @@ class TestsFlextCliYamlCov:
             tm.fail(result)
             tm.that(result.error, none=False)
 
-    def test_yaml_parse_preserves_nested_mapping_values(self) -> None:
+    @staticmethod
+    def test_yaml_parse_preserves_nested_mapping_values() -> None:
         """Verify that yaml parse preserves nested mapping values."""
         result = u.Cli.yaml_parse(c.Tests.YAML_VALID_CONTENT)
 
@@ -54,7 +58,8 @@ class TestsFlextCliYamlCov:
         expected: t.JsonMapping = {"key": "value", "nested": {"foo": "bar"}}
         tm.that(result.unwrap(), eq=expected)
 
-    def test_yaml_parse_top_level_list_is_rejected_as_non_mapping(self) -> None:
+    @staticmethod
+    def test_yaml_parse_top_level_list_is_rejected_as_non_mapping() -> None:
         """Verify that yaml parse top level list is rejected as non mapping."""
         result = u.Cli.yaml_parse(c.Tests.YAML_NON_MAPPING_CONTENT)
 
@@ -62,7 +67,8 @@ class TestsFlextCliYamlCov:
         tm.that(result.error, none=False)
         tm.that(result.error, has="must be a mapping")
 
-    def test_yaml_parse_malformed_yaml_fails_with_parse_error(self) -> None:
+    @staticmethod
+    def test_yaml_parse_malformed_yaml_fails_with_parse_error() -> None:
         """Verify that yaml parse malformed yaml fails with parse error."""
         result = u.Cli.yaml_parse(c.Tests.YAML_INVALID_CONTENT)
 
@@ -72,7 +78,8 @@ class TestsFlextCliYamlCov:
 
     # ── yaml_safe_load ───────────────────────────────────────────────
 
-    def test_yaml_safe_load_returns_parsed_mapping(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_yaml_safe_load_returns_parsed_mapping(tmp_path: Path) -> None:
         """Verify that yaml safe load returns parsed mapping."""
         yaml_file = tmp_path / "valid.yml"
         yaml_file.write_text(c.Tests.YAML_VALID_CONTENT, encoding="utf-8")
@@ -83,8 +90,9 @@ class TestsFlextCliYamlCov:
         expected: t.JsonMapping = {"key": "value", "nested": {"foo": "bar"}}
         tm.that(result.unwrap(), eq=expected)
 
+    @staticmethod
     def test_yaml_safe_load_missing_file_reports_not_found(
-        self, tmp_path: Path
+        tmp_path: Path,
     ) -> None:
         """Verify that yaml safe load missing file reports not found."""
         missing = tmp_path / "nonexistent.yml"
@@ -96,7 +104,8 @@ class TestsFlextCliYamlCov:
         tm.that(result.error, has="not found")
         tm.that(result.error, has=str(missing))
 
-    def test_yaml_safe_load_invalid_yaml_fails(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_yaml_safe_load_invalid_yaml_fails(tmp_path: Path) -> None:
         """Verify that yaml safe load invalid yaml fails."""
         bad_file = tmp_path / "bad.yml"
         bad_file.write_text(c.Tests.YAML_INVALID_CONTENT, encoding="utf-8")
@@ -107,7 +116,8 @@ class TestsFlextCliYamlCov:
         tm.that(result.error, none=False)
         tm.that(result.error, has="parse error")
 
-    def test_yaml_safe_load_non_mapping_file_fails(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_yaml_safe_load_non_mapping_file_fails(tmp_path: Path) -> None:
         """Verify that yaml safe load non mapping file fails."""
         list_file = tmp_path / "list.yml"
         list_file.write_text(c.Tests.YAML_NON_MAPPING_CONTENT, encoding="utf-8")
@@ -118,7 +128,8 @@ class TestsFlextCliYamlCov:
         tm.that(result.error, none=False)
         tm.that(result.error, has="must be a mapping")
 
-    def test_yaml_safe_load_empty_file_fails_loudly(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_yaml_safe_load_empty_file_fails_loudly(tmp_path: Path) -> None:
         """Verify that yaml safe load empty file fails loudly."""
         empty_file = tmp_path / "empty.yml"
         empty_file.write_text("", encoding="utf-8")
@@ -130,7 +141,8 @@ class TestsFlextCliYamlCov:
 
     # ── yaml_load_mapping ────────────────────────────────────────────
 
-    def test_yaml_load_mapping_returns_full_mapping(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_yaml_load_mapping_returns_full_mapping(tmp_path: Path) -> None:
         """Verify that yaml load mapping returns full mapping."""
         yaml_file = tmp_path / "m.yml"
         yaml_file.write_text(c.Tests.YAML_VALID_CONTENT, encoding="utf-8")
@@ -140,14 +152,16 @@ class TestsFlextCliYamlCov:
         expected: t.JsonMapping = {"key": "value", "nested": {"foo": "bar"}}
         tm.that(result, eq=expected)
 
-    def test_yaml_load_mapping_missing_defaults_to_empty(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_yaml_load_mapping_missing_defaults_to_empty(tmp_path: Path) -> None:
         """Verify that yaml load mapping missing defaults to empty."""
         result = u.Cli.yaml_load_mapping(tmp_path / "missing.yml")
 
         tm.that(result, eq={})
 
+    @staticmethod
     def test_yaml_load_mapping_missing_uses_provided_default(
-        self, tmp_path: Path
+        tmp_path: Path,
     ) -> None:
         """Verify that yaml load mapping missing uses provided default."""
         default: t.JsonMapping = {"fallback": True}
@@ -156,7 +170,8 @@ class TestsFlextCliYamlCov:
 
         tm.that(result, eq=default)
 
-    def test_yaml_load_mapping_invalid_yaml_uses_default(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_yaml_load_mapping_invalid_yaml_uses_default(tmp_path: Path) -> None:
         """Verify that yaml load mapping invalid yaml uses default."""
         bad_file = tmp_path / "bad.yml"
         bad_file.write_text(c.Tests.YAML_INVALID_CONTENT, encoding="utf-8")
@@ -167,9 +182,13 @@ class TestsFlextCliYamlCov:
 
     # ── yaml_load_list ───────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(("content", "expect_list"), c.Tests.YAML_LIST_CASES)
     def test_yaml_load_list_returns_list_only_for_sequences(
-        self, tmp_path: Path, content: str, *, expect_list: bool
+        tmp_path: Path,
+        content: str,
+        *,
+        expect_list: bool,
     ) -> None:
         """Verify that yaml load list returns list only for sequences."""
         data_file = tmp_path / "data.yml"
@@ -182,13 +201,15 @@ class TestsFlextCliYamlCov:
         else:
             tm.that(list(result), eq=[])
 
-    def test_yaml_load_list_missing_file_returns_empty(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_yaml_load_list_missing_file_returns_empty(tmp_path: Path) -> None:
         """Verify that yaml load list missing file returns empty."""
         result = u.Cli.yaml_load_list(tmp_path / "nope.yml")
 
         tm.that(list(result), eq=[])
 
-    def test_yaml_load_list_invalid_yaml_returns_empty(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_yaml_load_list_invalid_yaml_returns_empty(tmp_path: Path) -> None:
         """Verify that yaml load list invalid yaml returns empty."""
         bad_file = tmp_path / "bad.yml"
         bad_file.write_text(c.Tests.YAML_INVALID_CONTENT, encoding="utf-8")
@@ -199,11 +220,17 @@ class TestsFlextCliYamlCov:
 
     # ── yaml_dump ────────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
-        ("data", "sort_keys", "expect_ok"), c.Tests.YAML_DUMP_CASES
+        ("data", "sort_keys", "expect_ok"),
+        c.Tests.YAML_DUMP_CASES,
     )
     def test_yaml_dump_writes_roundtrippable_file(
-        self, tmp_path: Path, data: t.JsonMapping, *, sort_keys: bool, expect_ok: bool
+        tmp_path: Path,
+        data: t.JsonMapping,
+        *,
+        sort_keys: bool,
+        expect_ok: bool,
     ) -> None:
         """Verify that yaml dump writes roundtrippable file."""
         outfile = tmp_path / "out.yml"
@@ -215,7 +242,8 @@ class TestsFlextCliYamlCov:
         # The written file re-parses to exactly the original mapping.
         tm.that(u.Cli.yaml_safe_load(outfile).unwrap(), eq=data)
 
-    def test_yaml_dump_creates_missing_parent_directories(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_yaml_dump_creates_missing_parent_directories(tmp_path: Path) -> None:
         """Verify that yaml dump creates missing parent directories."""
         deep = tmp_path / "a" / "b" / "c" / "out.yml"
 
@@ -226,7 +254,8 @@ class TestsFlextCliYamlCov:
 
     # ── yaml_dump_str ────────────────────────────────────────────────
 
-    def test_yaml_dump_str_roundtrips_through_parse(self) -> None:
+    @staticmethod
+    def test_yaml_dump_str_roundtrips_through_parse() -> None:
         """Verify that yaml dump str roundtrips through parse."""
         payload: t.JsonMapping = {"hello": "world", "count": 3}
 
@@ -234,25 +263,25 @@ class TestsFlextCliYamlCov:
 
         tm.that(u.Cli.yaml_parse(text).unwrap(), eq=payload)
 
-    def test_yaml_dump_str_sort_keys_orders_output(self) -> None:
+    @staticmethod
+    def test_yaml_dump_str_sort_keys_orders_output() -> None:
         """Verify that yaml dump str sort keys orders output."""
         text = u.Cli.yaml_dump_str({"b": 2, "a": 1}, sort_keys=True)
 
         tm.that(text.index("a:") < text.index("b:"), eq=True)
 
-    def test_yaml_dump_str_empty_mapping_parses_back_to_empty(self) -> None:
+    @staticmethod
+    def test_yaml_dump_str_empty_mapping_parses_back_to_empty() -> None:
         """Verify that yaml dump str empty mapping parses back to empty."""
         text = u.Cli.yaml_dump_str({})
 
         tm.that(u.Cli.yaml_parse(text).unwrap(), eq={})
 
-    def test_yaml_dump_str_serializes_pydantic_model_fields(self) -> None:
+    @staticmethod
+    def test_yaml_dump_str_serializes_pydantic_model_fields() -> None:
         """Verify that yaml dump str serializes pydantic model fields."""
         model = m.Cli.TableConfig()
 
         text = u.Cli.yaml_dump_str(model)
 
         tm.that(u.Cli.yaml_parse(text).unwrap(), eq=model.model_dump())
-
-
-__all__: list[str] = ["TestsFlextCliYamlCov"]

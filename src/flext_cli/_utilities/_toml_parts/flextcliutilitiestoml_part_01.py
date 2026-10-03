@@ -1,4 +1,8 @@
-"""Generic TOML helpers shared through ``u.Cli.toml_*``."""
+"""Generic TOML helpers shared through ``u.Cli.toml_*``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -24,7 +28,12 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_as_mapping(value: t.Cli.TomlMappingSource | None) -> t.JsonMapping | None:
-        """Normalize a TOML mapping into a typed plain mapping."""
+        """Normalize a TOML mapping into a typed plain mapping.
+
+        Returns:
+            The resulting ``t.JsonMapping | None``.
+
+        """
         normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
         if normalized is None or not u.mapping(normalized):
             return None
@@ -34,7 +43,12 @@ class FlextCliUtilitiesToml:
     def toml_unwrap_item(
         value: t.Cli.TomlMappingSource | t.JsonValue | None,
     ) -> t.JsonValue | None:
-        """Unwrap TOML items and documents to plain Python values."""
+        """Unwrap TOML items and documents to plain Python values.
+
+        Returns:
+            The resulting ``t.JsonValue | None``.
+
+        """
         if value is None:
             return None
         if isinstance(value, Mapping) and not isinstance(value, TOMLDocument | Item):
@@ -46,7 +60,12 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_as_string_list(value: t.Cli.TomlStringListSource | None) -> t.StrSequence:
-        """Normalize a TOML array into a string sequence."""
+        """Normalize a TOML array into a string sequence.
+
+        Returns:
+            The resulting ``t.StrSequence``.
+
+        """
         normalized: t.Cli.TomlStringListSource | None = (
             value.unwrap() if isinstance(value, TOMLDocument | Item) else value
         )
@@ -59,55 +78,97 @@ class FlextCliUtilitiesToml:
 
     @staticmethod
     def toml_array(items: t.StrSequence) -> Array:
-        """Create a multiline TOML array."""
+        """Create a multiline TOML array.
+
+        Returns:
+            The resulting ``Array``.
+
+        """
         array = tomlkit.array()
         for item in items:
             array.add_line(item)
-        return array.multiline(True)
+        return array.multiline(multiline=True)
 
     @staticmethod
     def toml_document() -> TOMLDocument:
-        """Create a new TOML document."""
+        """Create a new TOML document.
+
+        Returns:
+            The resulting ``TOMLDocument``.
+
+        """
         return tomlkit.document()
 
     @staticmethod
     def toml_table(*, super_table: bool = False) -> Table:
-        """Create a new TOML table (``super_table`` for a dotted parent table)."""
+        """Create a new TOML table (``super_table`` for a dotted parent table).
+
+        Returns:
+            The resulting ``Table``.
+
+        """
         return tomlkit.table(is_super_table=True) if super_table else tomlkit.table()
 
     @staticmethod
     def toml_aot() -> AoT:
-        """Create a new TOML array-of-tables."""
+        """Create a new TOML array-of-tables.
+
+        Returns:
+            The resulting ``AoT``.
+
+        """
         return tomlkit.aot()
 
     @staticmethod
     def toml_parse_text(text: str) -> TOMLDocument | None:
-        """Parse TOML text, returning ``None`` on invalid input."""
+        """Parse TOML text, returning ``None`` on invalid input.
+
+        Returns:
+            The resulting ``TOMLDocument | None``.
+
+        """
+        parsed: TOMLDocument | None
         try:
-            return tomlkit.parse(text)
+            parsed = tomlkit.parse(text)
         except c.EXC_TYPE_VALIDATION:
-            return None
+            parsed = None
+        return parsed
 
     @staticmethod
     def toml_dumps(doc: TOMLDocument) -> str:
-        """Serialize a TOML document to text (round-trip preserving)."""
+        """Serialize a TOML document to text (round-trip preserving).
+
+        Returns:
+            The resulting ``str``.
+
+        """
         return tomlkit.dumps(doc)
 
     @staticmethod
     def toml_mapping_from_text(text: str) -> t.JsonMapping | None:
-        """Parse TOML text into one validated plain mapping."""
+        """Parse TOML text into one validated plain mapping.
+
+        Returns:
+            The resulting ``t.JsonMapping | None``.
+
+        """
+        loaded: t.JsonMapping | None
         try:
             loaded = tomllib.loads(text)
         except tomllib.TOMLDecodeError:
+            loaded = None
+        if loaded is None:
             return None
-        try:
-            return t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded)
-        except c.ValidationError:
-            return None
+        return t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded)
 
     @staticmethod
     def toml_document_from_mapping(mapping: t.JsonMapping) -> TOMLDocument:
-        """Build one TOML document from a validated plain mapping."""
+        """Build one TOML document from a validated plain mapping.
+
+        Returns:
+            The resulting ``TOMLDocument``.
+
+        """
         document = FlextCliUtilitiesToml.toml_document()
         for key, value in mapping.items():
             document[key] = FlextCliUtilitiesTomlPart02.toml_item_from_json_value(value)

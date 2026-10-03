@@ -1,27 +1,29 @@
-# @generated AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli.services. Cli Parts package."""
+# AUTO-GENERATED FILE — Regenerate with: make gen
+"""Flext Cli.services. Cli Parts package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
+from flext_core import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from .flextclicli_part_05 import FlextCliCli as FlextCliCli
-
-_LAZY_MODULES: dict[str, tuple[str, ...]] = {".flextclicli_part_05": ("FlextCliCli",)}
+    from flext_cli.services._cli_parts.flextclicli_part_06 import FlextCliCli
 
 
-_LAZY_ALIAS_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {}
+__all__: tuple[str, ...] = ("FlextCliCli",)
 
-
-_LAZY_IMPORTS = build_lazy_import_map(
-    _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
+_LAZY_IMPORTS = MappingProxyType(
+    build_lazy_import_map(
+        MappingProxyType({".flextclicli_part_06": ("FlextCliCli",)}),
+        alias_groups=MappingProxyType({}),
+        sort_keys=False,
+    ),
 )
-
-_PUBLIC_EXPORTS: tuple[str, ...] = ("FlextCliCli",)
-
-__all__: tuple[str, ...] = tuple(_PUBLIC_EXPORTS)
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

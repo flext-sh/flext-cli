@@ -1,4 +1,8 @@
-"""CLI auth helpers shared through ``u.Cli``."""
+"""CLI auth helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -13,23 +17,38 @@ class FlextCliUtilitiesAuth:
 
     @staticmethod
     def auth_token_file_path(token_file: str | None) -> Path:
-        """Resolve configured token file path with canonical default."""
+        """Resolve configured token file path with canonical default.
+
+        Returns:
+            The resulting ``Path``.
+
+        """
         if isinstance(token_file, str) and token_file.strip():
             return Path(token_file)
         return Path.home() / ".flext" / "auth_token.json"
 
     @staticmethod
     def auth_validate_credentials(username: str, password: str) -> p.Result[bool]:
-        """Validate direct username/password credentials."""
+        """Validate direct username/password credentials.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         if not username.strip():
             return r[bool].fail("Username cannot be empty")
         if not password.strip():
             return r[bool].fail("Password cannot be empty")
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def auth_extract_token(payload: t.JsonValue) -> p.Result[str]:
-        """Extract auth token from JSON payload mapping."""
+        """Extract auth token from JSON payload mapping.
+
+        Returns:
+            The resulting ``p.Result[str]``.
+
+        """
         if not isinstance(payload, Mapping):
             return r[str].fail("Token file must contain a mapping")
         try:

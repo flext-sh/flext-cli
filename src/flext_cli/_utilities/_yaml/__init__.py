@@ -1,43 +1,39 @@
-# @generated AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Utilities. Yaml package."""
+# AUTO-GENERATED FILE — Regenerate with: make gen
+"""Flext Cli. Utilities. Yaml package.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import build_lazy_import_map, install_lazy_exports
+from flext_core import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
-    from ._convert import (
-        FlextCliUtilitiesYamlConvertMixin as FlextCliUtilitiesYamlConvertMixin,
-    )
-    from ._editing import (
-        FlextCliUtilitiesYamlEditingMixin as FlextCliUtilitiesYamlEditingMixin,
-    )
-    from ._engine import (
-        FlextCliUtilitiesYamlEngineMixin as FlextCliUtilitiesYamlEngineMixin,
-    )
-
-_LAZY_MODULES: dict[str, tuple[str, ...]] = {
-    "._convert": ("FlextCliUtilitiesYamlConvertMixin",),
-    "._editing": ("FlextCliUtilitiesYamlEditingMixin",),
-    "._engine": ("FlextCliUtilitiesYamlEngineMixin",),
-}
+    from flext_cli._utilities._yaml._convert import FlextCliUtilitiesYamlConvertMixin
+    from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
+    from flext_cli._utilities._yaml._engine import FlextCliUtilitiesYamlEngineMixin
 
 
-_LAZY_ALIAS_GROUPS: dict[str, tuple[tuple[str, str], ...]] = {}
-
-
-_LAZY_IMPORTS = build_lazy_import_map(
-    _LAZY_MODULES, alias_groups=_LAZY_ALIAS_GROUPS, sort_keys=False
-)
-
-_PUBLIC_EXPORTS: tuple[str, ...] = (
+__all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlConvertMixin",
     "FlextCliUtilitiesYamlEditingMixin",
     "FlextCliUtilitiesYamlEngineMixin",
 )
 
-__all__: tuple[str, ...] = tuple(_PUBLIC_EXPORTS)
+_LAZY_IMPORTS = MappingProxyType(
+    build_lazy_import_map(
+        MappingProxyType({
+            "._convert": ("FlextCliUtilitiesYamlConvertMixin",),
+            "._editing": ("FlextCliUtilitiesYamlEditingMixin",),
+            "._engine": ("FlextCliUtilitiesYamlEngineMixin",),
+        }),
+        alias_groups=MappingProxyType({}),
+        sort_keys=False,
+    ),
+)
 
 install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

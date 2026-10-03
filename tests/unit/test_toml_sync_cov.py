@@ -11,6 +11,9 @@ Assertions here exercise that observable contract through the public read
 helpers (``toml_value``, ``toml_as_string_list``, ``toml_as_mapping``) rather
 than poking internals. No filesystem or network I/O -- purely in-memory
 tomlkit documents and plain mappings.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
@@ -18,8 +21,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-
 from flext_tests import tm
+
 from tests import u
 
 if TYPE_CHECKING:
@@ -31,16 +34,23 @@ if TYPE_CHECKING:
 class TestsFlextCliTomlSyncCoverage:
     """Public-contract behavior of the ``u.Cli.toml_*`` synchronizers."""
 
+    @staticmethod
     @pytest.fixture
-    def project_table(self) -> Table:
-        """Fresh ``[project]`` table inside an empty document."""
+    def project_table() -> Table:
+        """Fresh ``[project]`` table inside an empty document.
+
+        Returns:
+            The resulting ``Table``.
+
+        """
         table: Table = u.Cli.toml_ensure_table(u.Cli.toml_document(), "project")
         return table
 
     # -- scalar sync -----------------------------------------------------
 
+    @staticmethod
     def test_sync_value_writes_expected_and_reports_mutation(
-        self, project_table: Table
+        project_table: Table,
     ) -> None:
         # Arrange
         """Verify that sync value writes expected and reports mutation."""
@@ -53,8 +63,9 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(changed, eq=True)
         tm.that(u.Cli.toml_value(project_table, "name"), eq="flext-demo")
 
+    @staticmethod
     def test_sync_value_is_idempotent_when_already_in_sync(
-        self, project_table: Table
+        project_table: Table,
     ) -> None:
         # Arrange
         """Verify that sync value is idempotent when already in sync."""
@@ -67,7 +78,8 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(second, eq=False)
         tm.that(u.Cli.toml_value(project_table, "name"), eq="flext-demo")
 
-    def test_sync_value_creates_missing_key(self, project_table: Table) -> None:
+    @staticmethod
+    def test_sync_value_creates_missing_key(project_table: Table) -> None:
         # Act
         """Verify that sync value creates missing key."""
         changed = u.Cli.toml_sync_value(project_table, "version", "1.2.3")
@@ -78,11 +90,15 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- string-list sync ------------------------------------------------
 
-    def test_sync_string_list_stores_sorted_values(self, project_table: Table) -> None:
+    @staticmethod
+    def test_sync_string_list_stores_sorted_values(project_table: Table) -> None:
         # Act
         """Verify that sync string list stores sorted values."""
         changed = u.Cli.toml_sync_string_list(
-            project_table, "authors", ("zoe", "anna"), sort_values=True
+            project_table,
+            "authors",
+            ("zoe", "anna"),
+            sort_values=True,
         )
 
         # Assert
@@ -92,24 +108,32 @@ class TestsFlextCliTomlSyncCoverage:
             eq=["anna", "zoe"],
         )
 
+    @staticmethod
     def test_sync_string_list_sorted_ignores_input_order(
-        self, project_table: Table
+        project_table: Table,
     ) -> None:
         # Arrange
         """Verify that sync string list sorted ignores input order."""
         u.Cli.toml_sync_string_list(
-            project_table, "authors", ("zoe", "anna"), sort_values=True
+            project_table,
+            "authors",
+            ("zoe", "anna"),
+            sort_values=True,
         )
 
         # Act -- same set, different order, sorted comparison -> no mutation
         changed = u.Cli.toml_sync_string_list(
-            project_table, "authors", ("anna", "zoe"), sort_values=True
+            project_table,
+            "authors",
+            ("anna", "zoe"),
+            sort_values=True,
         )
 
         # Assert
         tm.that(changed, eq=False)
 
-    def test_merge_string_list_unions_and_sorts(self, project_table: Table) -> None:
+    @staticmethod
+    def test_merge_string_list_unions_and_sorts(project_table: Table) -> None:
         # Arrange
         """Verify that merge string list unions and sorts."""
         u.Cli.toml_sync_string_list(project_table, "authors", ("anna", "zoe"))
@@ -124,18 +148,23 @@ class TestsFlextCliTomlSyncCoverage:
             eq=["anna", "marlon", "zoe"],
         )
 
+    @staticmethod
     def test_merge_string_list_noop_when_subset_present(
-        self, project_table: Table
+        project_table: Table,
     ) -> None:
         # Arrange -- already the sorted union
         """Verify that merge string list noop when subset present."""
         u.Cli.toml_merge_string_list(
-            project_table, "authors", ("anna", "marlon", "zoe")
+            project_table,
+            "authors",
+            ("anna", "marlon", "zoe"),
         )
 
         # Act
         changed = u.Cli.toml_merge_string_list(
-            project_table, "authors", ("anna", "marlon", "zoe")
+            project_table,
+            "authors",
+            ("anna", "marlon", "zoe"),
         )
 
         # Assert
@@ -143,7 +172,8 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- mapping-table sync ---------------------------------------------
 
-    def test_sync_mapping_table_writes_expected_mapping(self) -> None:
+    @staticmethod
+    def test_sync_mapping_table_writes_expected_mapping() -> None:
         # Arrange
         """Verify that sync mapping table writes expected mapping."""
         doc = u.Cli.toml_document()
@@ -157,7 +187,8 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(changed, eq=True)
         tm.that(u.Cli.toml_as_mapping(tool["lint"]), eq=dict(expected))
 
-    def test_sync_mapping_table_idempotent(self) -> None:
+    @staticmethod
+    def test_sync_mapping_table_idempotent() -> None:
         # Arrange
         """Verify that sync mapping table idempotent."""
         doc = u.Cli.toml_document()
@@ -171,7 +202,8 @@ class TestsFlextCliTomlSyncCoverage:
         # Assert
         tm.that(second, eq=False)
 
-    def test_sync_mapping_table_drops_stale_keys(self) -> None:
+    @staticmethod
+    def test_sync_mapping_table_drops_stale_keys() -> None:
         # Arrange -- seed a table carrying a key not in the new expected mapping
         """Verify that sync mapping table drops stale keys."""
         doc = u.Cli.toml_document()
@@ -187,8 +219,9 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- key removal -----------------------------------------------------
 
+    @staticmethod
     def test_remove_key_if_present_reports_and_deletes(
-        self, project_table: Table
+        project_table: Table,
     ) -> None:
         # Arrange
         """Verify that remove key if present reports and deletes."""
@@ -205,13 +238,20 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- plain-mapping helpers ------------------------------------------
 
+    @staticmethod
     @pytest.fixture
-    def payload(self) -> dict[str, t.JsonValue]:
-        """Fresh plain pyproject-style mapping."""
+    def payload() -> dict[str, t.JsonValue]:
+        """Fresh plain pyproject-style mapping.
+
+        Returns:
+            The resulting ``dict[str, t.JsonValue]``.
+
+        """
         return {"project": {"name": "demo"}, "obsolete": True}
 
+    @staticmethod
     def test_mapping_remove_key_if_present_reports_and_deletes(
-        self, payload: dict[str, t.JsonValue]
+        payload: t.MutableJsonMapping,
     ) -> None:
         # Act
         """Verify that mapping remove key if present reports and deletes."""
@@ -223,8 +263,9 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(again, eq=False)
         tm.that(payload, lacks="obsolete")
 
+    @staticmethod
     def test_mapping_sync_value_writes_expected(
-        self, payload: dict[str, t.JsonValue]
+        payload: t.MutableJsonMapping,
     ) -> None:
         # Arrange
         """Verify that mapping sync value writes expected."""
@@ -237,9 +278,8 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(changed, eq=True)
         tm.that(payload["build-system"], eq=build)
 
-    def test_mapping_sync_value_idempotent(
-        self, payload: dict[str, t.JsonValue]
-    ) -> None:
+    @staticmethod
+    def test_mapping_sync_value_idempotent(payload: t.MutableJsonMapping) -> None:
         # Arrange
         """Verify that mapping sync value idempotent."""
         build: t.JsonValue = {"requires": ["setuptools>=70"]}
@@ -251,18 +291,24 @@ class TestsFlextCliTomlSyncCoverage:
         # Assert
         tm.that(second, eq=False)
 
+    @staticmethod
     def test_mapping_merge_then_sorted_sync_is_noop(
-        self, payload: dict[str, t.JsonValue]
+        payload: t.MutableJsonMapping,
     ) -> None:
         # Arrange
         """Verify that mapping merge then sorted sync is noop."""
         changed = u.Cli.toml_mapping_merge_string_list(
-            payload, "plugins", ("pytest", "ruff")
+            payload,
+            "plugins",
+            ("pytest", "ruff"),
         )
 
         # Act -- same set in another order under sorted comparison
         second = u.Cli.toml_mapping_sync_string_list(
-            payload, "plugins", ("ruff", "pytest"), sort_values=True
+            payload,
+            "plugins",
+            ("ruff", "pytest"),
+            sort_values=True,
         )
 
         # Assert
@@ -270,8 +316,9 @@ class TestsFlextCliTomlSyncCoverage:
         tm.that(second, eq=False)
         tm.that(payload["plugins"], eq=["pytest", "ruff"])
 
+    @staticmethod
     def test_mapping_sync_mapping_table_writes_and_is_idempotent(
-        self, payload: dict[str, t.JsonValue]
+        payload: t.MutableJsonMapping,
     ) -> None:
         # Arrange
         """Verify that mapping sync mapping table writes and is idempotent."""
@@ -279,10 +326,16 @@ class TestsFlextCliTomlSyncCoverage:
 
         # Act
         changed = u.Cli.toml_mapping_sync_mapping_table(
-            payload, "tool", expected, sort_keys=True
+            payload,
+            "tool",
+            expected,
+            sort_keys=True,
         )
         second = u.Cli.toml_mapping_sync_mapping_table(
-            payload, "tool", expected, sort_keys=True
+            payload,
+            "tool",
+            expected,
+            sort_keys=True,
         )
 
         # Assert

@@ -9,12 +9,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, p, t
+# Concrete-module imports: this module resolves during the package root's
+# lazy ``s`` export, when the root namespace is still initializing.
+from flext_cli.models import m
+from flext_cli.protocols import p
+from flext_cli.utilities import u
 from flext_core import s
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli.typings import t
 
 
 class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
-    s[TDomainResult]
+    s[TDomainResult],
+    u.Cli,
 ):
     """Base class for flext-cli services with typed configuration access.
 

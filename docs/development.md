@@ -1,6 +1,7 @@
 # Development Guide - flext-cli
 
 <!-- TOC START -->
+
 - [📌 Quick Navigation](#quick-navigation)
 - [v0.12.0-dev Development Guidelines (Current)](#v0120-dev-development-guidelines-current)
   - [Overview](#overview)
@@ -40,32 +41,37 @@
   - [Adding New Commands](#adding-new-commands)
   - [Custom Formatters](#custom-formatters)
 - [Debug and Troubleshooting](#debug-and-troubleshooting)
+  - [Atomic directory publication on macOS](#atomic-directory-publication-on-macos)
   - [Common Issues](#common-issues)
   - [Debug Commands](#debug-commands)
+
 <!-- TOC END -->
 
 **Contributing guidelines and development workflow for flext-cli.**
 
-**Last Updated**: 2025-01-24 | **Version**: 0.10.0
+**Last Updated**: 2026-09-17 | **Version**: 0.12.0
 
-______________________________________________________________________
+---
 
 ## 📌 Quick Navigation
 
-- [v0.12.0-dev Development Guidelines (Current)](#v0120-dev-development-guidelines-current) ← **Start Here**
+- [v0.12.0-dev Development Guidelines (Current)](#v0120-dev-development-guidelines-current)
+  ← **Start Here**
 - [v0.9.0 Development Guidelines (Historical Reference)](#v090-development-guidelines-historical-reference)
 
-______________________________________________________________________
+---
 
 ## v0.12.0-dev Development Guidelines (Current)
 
-**Status**: 📝 Planned | **Release**: Q1 2025 | **Breaking Changes**: Yes
+**Status**: 🔄 Active Development | **Release**: 0.12.0 | **Breaking Changes**: Yes
 
 ### Overview
 
-FLEXT-CLI v0.12.0-dev follows a simplified architecture with clear guidelines for when to use services vs simple classes. This guide helps you make the right architectural decisions.
+FLEXT-CLI v0.12.0-dev follows a simplified architecture with clear guidelines for when
+to use services vs simple classes. This guide helps you make the right architectural
+decisions.
 
-______________________________________________________________________
+---
 
 ## When to Use Each Pattern
 
@@ -78,12 +84,12 @@ ______________________________________________________________________
 - ✅ Class needs **lifecycle management** (startup, shutdown, cleanup)
 - ✅ Class has **complex initialization** with external dependencies
 
-**Example - FlextCliCore (Stateful Service)**:
+**Example - FlextCliCmd (Stateful Service)**:
 
 ```text
 from flext_core import s
 
-class FlextCliCore(s[CliDataDict]):
+class FlextCliCmd(s[CliDataDict]):
     """Core service managing commands and sessions."""
 
     def __init__(self):
@@ -161,14 +167,14 @@ class FlextCliFileTools:
 - ✅ Just data **validation and structure**
 - ✅ Configuration or context data
 
-______________________________________________________________________
+---
 
 ## Architecture Decision Flowchart
 
 ```
 Does the class manage mutable state?
 ├─ YES → Use s
-│        Examples: FlextCliCore, cli
+│        Examples: FlextCliCmd, cli
 │
 └─ NO → Does it have behavior (business logic)?
     ├─ YES → Is it stateless utility functions?
@@ -181,7 +187,7 @@ Does the class manage mutable state?
                  Examples: FlextCliModels.*
 ```
 
-______________________________________________________________________
+---
 
 ## Code Organization Guidelines
 
@@ -191,22 +197,37 @@ Follow the v0.12.0-dev module organization:
 
 ```
 src/flext_cli/
-├── Services (3-4 only)
-│   ├── core.py              # FlextCliCore - stateful
-│   ├── api.py               # cli - facade
-│   └── cmd.py               # FlextCliCmd - command execution
-│
-├── Simple Classes (utilities)
-│   ├── file_tools.py        # File I/O
-│   ├── formatters.py        # Rich formatting
-│   ├── tables.py            # Table generation
-│   ├── output.py            # Output management
-│   ├── prompts.py           # User input
-│   └── debug.py             # Debug utilities
-│
-└── Data Models (value objects)
-    ├── models.py            # All Pydantic models
-    └── _settings.py           # FlextCliSettings
+├── api.py                # FlextCli facade (MRO composition) + singleton `cli`
+├── base.py               # FlextCliServiceBase
+├── services/             # 16 services composed via MRO
+│   ├── cli.py            # FlextCliCli — Typer/Click boundary
+│   ├── cmd.py            # FlextCliCmd — stateful command/config management
+│   ├── auth.py           # FlextCliAuth — keyring auth
+│   ├── file_tools.py     # FlextCliFileTools — file I/O
+│   ├── formatters.py     # FlextCliFormatters — Rich/text rendering
+│   ├── output.py         # FlextCliOutput — JSON/YAML/CSV output
+│   ├── prompts.py        # FlextCliPrompts — user interaction
+│   ├── tables.py         # FlextCliTables — ASCII table generation
+│   ├── pipeline.py       # FlextCliPipeline — workflow orchestration
+│   ├── rules.py          # FlextCliRules — business rule validation
+│   ├── runtime.py        # FlextCliRuntime — runtime status
+│   ├── docx.py           # FlextCliDocx — Word document operations
+│   ├── pptx.py           # FlextCliPptx — PowerPoint operations
+│   ├── xlsx.py           # FlextCliXlsx — Excel operations
+│   ├── yaml_model.py     # FlextCliYamlModel — YAML schema validation
+│   └── cli_params.py     # FlextCliCommonParams — shared CLI params
+├── _utilities/           # Domain engines (toml/yaml/template/…)
+├── _constants/           # Validated constants (c.Cli.*)
+├── _models/              # Pydantic models (m.Cli.*)
+├── _config.py            # Config singleton
+├── _settings.py          # Settings singleton
+├── config.py             # Config validation (ADR-005)
+├── constants.py          # Constant facade (c.Cli.*)
+├── typings.py            # Typing aliases (t.Cli.*)
+├── protocols.py          # Structural protocols (p.Cli.*)
+├── models.py             # Model facade (m.Cli.*)
+├── utilities.py          # Utility facade (u.Cli.*)
+└── __init__.py           # Exports api.py, enforces isolation
 ```
 
 ### Direct Access Pattern
@@ -214,17 +235,17 @@ src/flext_cli/
 **Always use direct access** (no wrapper methods):
 
 ```text
-# ✅ CORRECT - Public facade
+# ✅ CORRECT - Public facade (methods are MRO-injected via FlextCli)
 cli.print("Hello", style="green")
-cli.file_tools.read_json_file("settings.json")
-cli.prompts.confirm("Continue?")
+cli.read_json_file("settings.json")
+cli.confirm("Continue?")
 
 # ❌ WRONG - Internal utility/service chains are not public APIs.
-# cli.read_json_file("settings.json")  # REMOVED
-# cli.confirm("Continue?")           # REMOVED
+# cli.file_tools.read_json_file("settings.json")  # NO sub-facade
+# cli.prompts.confirm("Continue?")           # NO sub-facade
 ```
 
-______________________________________________________________________
+---
 
 ## Testing Guidelines (v0.12.0-dev)
 
@@ -276,7 +297,7 @@ def test_read_json_file():
 # No initialization needed - static methods
 ```
 
-______________________________________________________________________
+---
 
 ## Contributing to v0.12.0-dev
 
@@ -307,12 +328,11 @@ Key phases:
 
    - No wrapper methods
    - Clear ownership
+   1. **Quality Gates (MANDATORY)**:
 
-1. **Quality Gates (MANDATORY)**:
-
-   ```bash
-   make val  # Must pass 100%
-   ```
+      ```bash
+      make check # Must pass 100%
+      ```
 
 1. **Test Organization**:
 
@@ -320,18 +340,18 @@ Key phases:
    - No file > 30K lines
    - Feature-based organization
 
-______________________________________________________________________
+---
 
 ## v0.9.0 Development Guidelines (Historical Reference)
 
-**Note**: The following documentation describes v0.9.0 patterns. This is kept for historical reference during the migration period.
+**Note**: The following documentation describes v0.9.0 patterns. This is kept for
+historical reference during the migration period.
 
 ## Development Setup
 
 ### Prerequisites
 
 - Python 3.13+
-- Poetry for dependency management
 - Make for build automation
 - Git for version control
 
@@ -344,25 +364,20 @@ cd flext-cli
 
 # Complete development setup
 make setup
-
-# Install pre-commit hooks
-poetry run pre-commit install
 ```
 
-______________________________________________________________________
+---
 
 ## Development Workflow
 
 ### Essential Commands
 
 ```bash
-make setup          # Complete development environment setup
-make val       # All quality checks (lint + type + test)
-make test          # Run test suite
-make lint          # Code linting with Ruff
-make type-check    # MyPy type checking
-make format        # Auto-format code
-make clean         # Clean build artifacts
+make setup # Complete development environment setup
+make check # All quality checks (lint + type + test)
+make test  # Run test suite
+make fmt   # Auto-format code
+make clean # Clean build artifacts
 ```
 
 ### Code Quality Standards
@@ -372,7 +387,7 @@ make clean         # Clean build artifacts
 - **Testing**: Comprehensive test coverage
 - **Documentation**: All public APIs documented
 
-______________________________________________________________________
+---
 
 ## Architecture Guidelines
 
@@ -412,7 +427,7 @@ class ProjectCliService:
 # import rich   # Use FlextCliOutput instead
 ```
 
-______________________________________________________________________
+---
 
 ## Testing Guidelines
 
@@ -469,7 +484,7 @@ pytest tests/ --cov=src --cov-report=term-missing
 pytest tests/unit/test_api.py -v
 ```
 
-______________________________________________________________________
+---
 
 ## Contributing Guidelines
 
@@ -484,7 +499,7 @@ ______________________________________________________________________
 
 1. Create feature branch from main
 1. Implement changes with tests
-1. Run `make val` to ensure quality
+1. Run `make check` to ensure quality
 1. Submit pull request with description
 1. Address review feedback
 1. Merge after approval
@@ -500,7 +515,7 @@ docs: update API documentation
 test: add integration tests for settings module
 ```
 
-______________________________________________________________________
+---
 
 ## Extension Development
 
@@ -559,34 +574,52 @@ class ProjectFormatters(FlextCliOutput):
         return r[str].ok("formatted_output")
 ```
 
-______________________________________________________________________
+---
 
 ## Debug and Troubleshooting
+
+### Atomic directory publication on macOS
+
+Physical-tree authentication reads the complete two-word filesystem identifier from
+`fstatfs` on the open descriptor. It deliberately does not use `os.fstatvfs().f_fsid`,
+which CPython truncates to the first word on macOS. The binding follows Darwin's
+64-bit-inode `statfs` layout: `fstatfs` on arm64 and `fstatfs$INODE64` on x86_64.
+Unsupported architectures and unavailable identities fail closed. These identities are
+local mount measurements, not persistent identifiers across reboots.
+
+Directory publication uses descriptor-relative `renameatx_np` with `RENAME_EXCL`. An
+existing destination is rejected; syscall failures propagate without a check-then-rename
+fallback. Linux retains `/proc/self/fdinfo` mount IDs and `renameat2(RENAME_NOREPLACE)`;
+the Windows rename branch is unchanged.
+
+External contracts:
+[Darwin statfs ABI](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/mount.h),
+[Darwin symbol selection](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/cdefs.h),
+[exclusive rename](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/man/man2/rename.2),
+and
+[CPython statvfs conversion](https://github.com/python/cpython/blob/main/Modules/posixmodule.c).
 
 ### Common Issues
 
 1. **Import Errors**: Ensure proper module structure
-1. **Type Errors**: Run `make type-check` for detailed analysis
+1. **Type Errors**: Run `make check` for detailed analysis
 1. **Test Failures**: Use `pytest -v` for verbose output
-1. **Dependency Issues**: Try `poetry install --sync`
+1. **Dependency Issues**: Try `make setup`
 
 ### Debug Commands
 
 ```bash
-# Verbose test output
-pytest tests/ -v -s
+# Run tests
+make test PROJECT=flext-cli
 
-# Type checking with details
-poetry run mypy src/ --show-error-codes
+# Type checking and linting
+make check PROJECT=flext-cli
 
-# Dependency tree analysis
-poetry show --tree
-
-# Development environment info
-flext debug info
+# Dependency versions (pinned in flext-infra/config/tooling.yaml)
+# Run from workspace root: make deps
 ```
 
-______________________________________________________________________
+---
 
-For architectural details, see [architecture.md](architecture.md).
-For API usage, see [API Reference](api-reference/README.md).
+For architectural details, see [architecture.md](architecture.md). For API usage, see
+[API Reference](api-reference/README.md).

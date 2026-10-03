@@ -40,7 +40,13 @@ class FlextCliCli(FlextCliCliPart04):
             success_type=success_type,
         )
         cls.register_callback(
-            app, command=cls.model_command(model_cls, execute, settings=settings)
+            app,
+            command=cls.model_command(
+                model_cls,
+                execute,
+                settings=settings,
+                result_border=True,
+            ),
         )
 
     @classmethod
@@ -69,7 +75,12 @@ class FlextCliCli(FlextCliCliPart04):
             app,
             name=name,
             help_text=help_text,
-            command=cls.model_command(model_cls, execute, settings=settings),
+            command=cls.model_command(
+                model_cls,
+                execute,
+                settings=settings,
+                result_border=True,
+            ),
         )
 
     @classmethod
@@ -81,18 +92,17 @@ class FlextCliCli(FlextCliCliPart04):
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
     ) -> p.Cli.ModelCommandHandler[M]:
-        """Build the shared executor used by single and batched route registration."""
+        """Build the shared executor used by single and batched route registration.
 
-        def _exit_with_failure(result: p.Result[TResult]) -> None:
-            # NOTE (multi-agent): programmatic execution propagates the original
-            # Result; direct framework execution finalizes it at this boundary.
-            if not u.Cli.framework_exit_result(result):
-                cls.exit(code=cls.finalize_result(result))
+        Returns:
+            The resulting ``p.Cli.ModelCommandHandler[M]``.
+
+        """
 
         def execute(params: M) -> t.JsonValue:
             result: p.Result[TResult] = handler(params)
             if result.failure:
-                _exit_with_failure(result)
+                cls._exit_failure(result)
             result_value: TResult = result.value
             message = u.Cli.commands_resolve_success_message(
                 result_value=result_value,
@@ -107,7 +117,10 @@ class FlextCliCli(FlextCliCliPart04):
 
     @classmethod
     def register_result_route(
-        cls, app: p.Cli.Application, *, route: p.Cli.ResultCommandRoute
+        cls,
+        app: p.Cli.Application,
+        *,
+        route: p.Cli.ResultCommandRoute,
     ) -> None:
         """Register a declarative result route on a Typer app."""
 
@@ -130,7 +143,9 @@ class FlextCliCli(FlextCliCliPart04):
 
     @classmethod
     def register_result_routes(
-        cls, app: p.Cli.Application, routes: t.SequenceOf[p.Cli.ResultCommandRoute]
+        cls,
+        app: p.Cli.Application,
+        routes: t.SequenceOf[p.Cli.ResultCommandRoute],
     ) -> None:
         """Register multiple heterogeneous result routes in one call."""
         for route in routes:
@@ -138,9 +153,16 @@ class FlextCliCli(FlextCliCliPart04):
 
     @staticmethod
     def finalize_result[TResult: t.Cli.ResultValue](
-        result: p.Result[TResult], *, failure_exit_code: int = c.Cli.EXIT_CODE_FAILURE
+        result: p.Result[TResult],
+        *,
+        failure_exit_code: int = c.Cli.EXIT_CODE_FAILURE,
     ) -> int:
-        """Finalize one public CLI Result into output/logging and an exit code."""
+        """Finalize one public CLI Result into output/logging and an exit code.
+
+        Returns:
+            The resulting ``int``.
+
+        """
         if result.success:
             return c.Cli.EXIT_CODE_SUCCESS
         u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)

@@ -1,8 +1,14 @@
-"""Windows Job Object creation and suspended-process startup."""
+"""Windows Job Object creation and suspended-process startup.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
+import ctypes
 import os
+from ctypes import wintypes
 
 from flext_cli import p, r
 
@@ -12,18 +18,21 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
 
     @classmethod
     def _windows_job_create(cls, process_id: int) -> p.Result[int]:
-        """Assign a suspended Windows process to a kill-on-close Job Object."""
+        """Assign a suspended Windows process to a kill-on-close Job Object.
+
+        Returns:
+            The resulting ``p.Result[int]``.
+
+        """
         if os.name != "nt":
             return r[int].ok(0)
         try:
             return cls._windows_job_create_native(process_id)
         except (OSError, TypeError, ValueError) as exc:
-            return r[int].fail(f"Windows Job Object error: {exc}")
+            return r[int].fail(f"Windows Job Object error: {exc}", exception=exc)
 
     @staticmethod
     def _windows_job_create_native(process_id: int) -> p.Result[int]:
-        import ctypes
-        from ctypes import wintypes
 
         class _IoCounters(ctypes.Structure):
             _fields_ = [
@@ -59,7 +68,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             ]
 
         kernel32 = getattr(ctypes, "WinDLL", ctypes.CDLL)(
-            "kernel32", use_last_error=True
+            "kernel32",
+            use_last_error=True,
         )
         create_job = kernel32.CreateJobObjectW
         create_job.argtypes = (wintypes.LPVOID, wintypes.LPCWSTR)
@@ -91,7 +101,9 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             error = int(getattr(ctypes, "get_last_error", ctypes.get_errno)())
             close_handle(job_handle)
             return r[int].fail(f"SetInformationJobObject failed: {error}")
-        process_handle = open_process(0x0001 | 0x0100, False, process_id)
+        process_handle = open_process(
+            0x0001 | 0x0100, bInheritHandle=False, dwProcessId=process_id
+        )
         if not process_handle:
             error = int(getattr(ctypes, "get_last_error", ctypes.get_errno)())
             close_handle(job_handle)
@@ -106,18 +118,24 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
 
     @classmethod
     def _windows_process_resume(cls, process_id: int) -> str | None:
-        """Resume the initial thread only after Job assignment succeeds."""
+        """Resume the initial thread only after Job assignment succeeds.
+
+        Returns:
+            The resulting ``str | None``.
+
+        """
         if os.name != "nt":
             return None
         try:
             return cls._windows_process_resume_native(process_id)
         except (OSError, TypeError, ValueError) as exc:
-            return f"Windows process resume error: {exc}"
+            return r[str].fail(
+                f"Windows process resume error: {exc}",
+                exception=exc,
+            ).error or str(exc)
 
     @staticmethod
     def _windows_process_resume_native(process_id: int) -> str | None:
-        import ctypes
-        from ctypes import wintypes
 
         class _ThreadEntry32(ctypes.Structure):
             _fields_ = [
@@ -131,7 +149,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             ]
 
         kernel32 = getattr(ctypes, "WinDLL", ctypes.CDLL)(
-            "kernel32", use_last_error=True
+            "kernel32",
+            use_last_error=True,
         )
         create_snapshot = kernel32.CreateToolhelp32Snapshot
         create_snapshot.argtypes = (wintypes.DWORD, wintypes.DWORD)
@@ -169,7 +188,7 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             close_handle(snapshot)
         if thread_id == 0:
             return f"suspended process {process_id} has no initial thread"
-        thread_handle = open_thread(0x0002, False, thread_id)
+        thread_handle = open_thread(0x0002, bInheritHandle=False, dwThreadId=thread_id)
         if not thread_handle:
             error = int(getattr(ctypes, "get_last_error", ctypes.get_errno)())
             return f"OpenThread failed: {error}"

@@ -1,32 +1,45 @@
-"""Unit tests for the DAG pipeline engine."""
+"""Unit tests for the DAG pipeline engine.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, r
+import pytest
 from flext_tests import tm
-from tests import c, m
+
+from flext_cli import cli, r
+from tests import m
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import p, t
+    from tests import p
 
 
 class TestsFlextCliPipeline:
     """Implementation part for TestsFlextCliPipeline."""
 
     @staticmethod
-    def _ok_handler(stage_id: str, output_key: str = "done") -> t.Cli.PipelineHandler:
-        """Build a handler that succeeds and writes to shared."""
+    def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:
+        """Build a handler that succeeds and writes to shared.
+
+        Returns:
+            The resulting ``p.Cli.PipelineStage``.
+
+        """
 
         def handler(
             ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
-                stage_id, output={output_key: stage_id}, duration_ms=1.0
+                stage_id,
+                output={output_key: stage_id},
+                duration_ms=1.0,
             )
 
         return handler
@@ -40,29 +53,27 @@ class TestsFlextCliPipeline:
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
         tm.fail(result)
 
-    def test_retry_on_failure(self, tmp_path: Path) -> None:
-        """Stage retries up to retry count before succeeding."""
+    @staticmethod
+    def test_failure_result_runs_stage_once(tmp_path: Path) -> None:
+        """A failed stage result stops after its first execution."""
         call_count = 0
 
-        def flaky(
-            _ctx: p.Cli.PipelineStageContext,
+        def failing(
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
             nonlocal call_count
+            _ = ctx
             call_count += 1
-            if call_count < c.Tests.PIPELINE_SUCCESS_ATTEMPT:
-                return r[m.Cli.PipelineStageResult].fail("transient")
-            return r[m.Cli.PipelineStageResult].ok(
-                cli.stage_result("flaky", status=c.Cli.PipelineStageStatus.OK)
-            )
+            return r[m.Cli.PipelineStageResult].fail("stage failed")
 
-        stages = [cli.stage("flaky", handler=flaky, retry=3)]
+        stages = [cli.stage("failure", handler=failing)]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
-        tm.ok(result)
-        tm.that(result.value.success, eq=True)
-        tm.that(call_count, eq=c.Tests.PIPELINE_SUCCESS_ATTEMPT)
+        tm.fail(result)
+        tm.that(call_count, eq=1)
 
-    def test_retry_on_safe_exception_marks_stage_failed(self, tmp_path: Path) -> None:
-        """Safe stage exceptions are retried and end as failed stage results."""
+    @staticmethod
+    def test_stage_exception_escapes_first_execution(tmp_path: Path) -> None:
+        """The first stage exception escapes without normalization or retry."""
         call_count = 0
         error_message = "boom"
 
@@ -74,15 +85,15 @@ class TestsFlextCliPipeline:
             call_count += 1
             raise ValueError(error_message)
 
-        result = cli.pipeline(
-            [cli.stage("boom", handler=exploding, retry=1)],
-            context=cli.stage_context(tmp_path),
-        )
+        with pytest.raises(ValueError, match=error_message):
+            cli.pipeline(
+                [cli.stage("boom", handler=exploding)],
+                context=cli.stage_context(tmp_path),
+            )
+        tm.that(call_count, eq=1)
 
-        tm.fail(result)
-        tm.that(call_count, eq=2)
-
-    def test_empty_pipeline(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_empty_pipeline(tmp_path: Path) -> None:
         """Empty pipeline returns ok with no stages."""
         result = cli.pipeline([], context=cli.stage_context(tmp_path))
         tm.ok(result)
@@ -96,22 +107,21 @@ class TestsFlextCliPipeline:
         tm.ok(result)
         tm.that(result.value.total_duration_ms, gte=0.0)
 
-    def test_stage_raise_marks_pipeline_result_failed(self, tmp_path: Path) -> None:
-        """A stage handler that raises produces a failed overall pipeline result."""
+    @staticmethod
+    def test_stage_raise_escapes_without_result_normalization(
+        tmp_path: Path,
+    ) -> None:
+        """A stage handler exception escapes; exceptions are never normalized."""
         error_message = "intentional explosion"
 
         def exploding(
-            _ctx: p.Cli.PipelineStageContext,
+            ctx: p.Cli.PipelineStageContext,
         ) -> p.Result[m.Cli.PipelineStageResult]:
+            _ = ctx
             raise ValueError(error_message)
 
-        result = cli.pipeline(
-            [cli.stage("boom", handler=exploding)], context=cli.stage_context(tmp_path)
-        )
-
-        tm.fail(result)
-        tm.that(result.failure, eq=True)
-        tm.that(bool(result), eq=False)
-
-
-__all__: list[str] = ["TestsFlextCliPipeline"]
+        with pytest.raises(ValueError, match=error_message):
+            cli.pipeline(
+                [cli.stage("boom", handler=exploding)],
+                context=cli.stage_context(tmp_path),
+            )

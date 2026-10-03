@@ -1,4 +1,8 @@
-"""Split example model advanced namespace."""
+"""Split example model advanced namespace.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -6,7 +10,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, ClassVar
 
 from examples import c, p, r, t
-from examples._models_parts.examples_common import ExamplesFlextCliModelsExamplesCommon
 from flext_cli import m, u
 
 if TYPE_CHECKING:
@@ -20,7 +23,8 @@ class ExamplesFlextCliModelsExamplesAdvanced:
         """Advanced application settings — Pydantic v2 only."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid", validate_assignment=True
+            extra="forbid",
+            validate_assignment=True,
         )
         database_url: Annotated[str, m.Field(description="Database URL")] = (
             c.EXAMPLE_DEFAULT_DB_URL
@@ -30,7 +34,8 @@ class ExamplesFlextCliModelsExamplesAdvanced:
         )
         api_key: Annotated[str, m.Field(description="API key")] = ""
         environment: Annotated[
-            c.DeploymentEnvironment, m.Field(description="Deployment environment")
+            c.DeploymentEnvironment,
+            m.Field(description="Deployment environment"),
         ] = c.EXAMPLE_DEFAULT_ENVIRONMENT
         max_workers: Annotated[
             int,
@@ -45,18 +50,6 @@ class ExamplesFlextCliModelsExamplesAdvanced:
             description="Temp directory",
             validate_default=True,
         )
-
-        @u.model_validator(mode="before")
-        @classmethod
-        def _inject_env(cls, data: t.ExampleModelInput) -> t.ExampleModelInput:
-            return ExamplesFlextCliModelsExamplesCommon.merge_env_overrides(
-                data,
-                c.EXAMPLE_ENV_MAP_ADVANCED_APP,
-                {
-                    field_name: field_info.annotation or str
-                    for field_name, field_info in cls.model_fields.items()
-                },
-            )
 
         @u.field_validator("database_url")
         @classmethod
@@ -84,7 +77,12 @@ class ExamplesFlextCliModelsExamplesAdvanced:
             return v.upper()
 
         def validate_to_mapping(self) -> p.Result[t.MappingKV[str, t.JsonValue]]:
-            """Validate configuration and return as mapping or failure."""
+            """Validate configuration and return as mapping or failure.
+
+            Returns:
+                The resulting ``p.Result[t.MappingKV[str, t.JsonValue]]``.
+
+            """
             errors: MutableSequence[str] = []
             if (
                 not self.api_key

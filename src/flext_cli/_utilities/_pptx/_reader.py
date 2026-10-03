@@ -1,4 +1,8 @@
-"""Generic model-driven PPTX reader."""
+"""Generic model-driven PPTX reader.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -10,7 +14,7 @@ from pptx import Presentation
 from pptx.exc import PackageNotFoundError
 from pptx.presentation import Presentation as PresentationType
 
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesPptxReader:
@@ -21,30 +25,36 @@ class FlextCliUtilitiesPptxReader:
 
     @classmethod
     def pptx_read(cls, source: bytes) -> p.Result[m.Cli.PptxPresentationPlan]:
-        """Read presentation bytes into a validated plan."""
+        """Read presentation bytes into a validated plan.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.PptxPresentationPlan]``.
+
+        """
         try:
             presentation = Presentation(BytesIO(source))
         except (OSError, ValueError, KeyError, BadZipFile, PackageNotFoundError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.PptxPresentationPlan].fail(
-                f"{c.Cli.PptxError.PRESENTATION_LOAD_FAILED}: {detail}"
+                f"{c.Cli.PptxError.PRESENTATION_LOAD_FAILED}: {detail}",
             )
         try:
             plan = cls._snapshot_presentation(presentation)
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.PptxPresentationPlan].fail(
-                f"{c.Cli.PptxError.RENDER_FAILED}: {detail}"
+                f"{c.Cli.PptxError.RENDER_FAILED}: {detail}",
             )
         return r[m.Cli.PptxPresentationPlan].ok(plan)
 
     @classmethod
     def _snapshot_presentation(
-        cls, presentation: PresentationType
+        cls,
+        presentation: PresentationType,
     ) -> m.Cli.PptxPresentationPlan:
         slides = tuple(
             m.Cli.PptxSlidePlan(
-                title=slide.shapes.title.text if slide.shapes.title else ""
+                title=slide.shapes.title.text if slide.shapes.title else "",
             )
             for slide in presentation.slides
         )
@@ -55,8 +65,9 @@ class FlextCliUtilitiesPptxReader:
             if value:
                 properties[key] = str(value)
         return m.Cli.PptxPresentationPlan(
-            slides=slides, core_properties=MappingProxyType(properties)
+            slides=slides,
+            core_properties=MappingProxyType(properties),
         )
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesPptxReader",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesPptxReader",)

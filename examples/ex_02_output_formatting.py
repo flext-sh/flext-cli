@@ -25,5 +25,10 @@ def export_report(
     data: t.SequenceOf[t.Cli.TableMappingRow],
     format_type: c.Cli.TabularFormat = c.Cli.TabularFormat.TABLE,
 ) -> p.Result[str]:
-    """Create ASCII tables for logs/reports in your app."""
+    """Create ASCII tables for logs/reports in your app.
+
+    Returns:
+        The resulting ``p.Result[str]``.
+
+    """
     return cli.format_table(list(data) if data else [], table_format=format_type)

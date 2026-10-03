@@ -1,11 +1,15 @@
-"""Apply positive typed protection permissions at the openpyxl edge."""
+"""Apply positive typed protection permissions at the openpyxl edge.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from openpyxl.styles import Protection
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesXlsxProtection:
@@ -15,10 +19,12 @@ class FlextCliUtilitiesXlsxProtection:
     # actions, so positive allow_* model flags are inverted exactly once here.
     @classmethod
     def _apply_protection(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetProtectionPlan | None
+        cls,
+        worksheet: Worksheet,
+        plan: m.Cli.XlsxSheetProtectionPlan | None,
     ) -> p.Result[bool]:
         if plan is None:
-            return r[bool].ok(True)
+            return r[bool].ok(value=True)
         try:
             return cls._apply_protection_unchecked(worksheet, plan)
         except (TypeError, ValueError) as exc:
@@ -27,7 +33,9 @@ class FlextCliUtilitiesXlsxProtection:
 
     @classmethod
     def _apply_protection_unchecked(
-        cls, worksheet: Worksheet, plan: m.Cli.XlsxSheetProtectionPlan
+        cls,
+        worksheet: Worksheet,
+        plan: m.Cli.XlsxSheetProtectionPlan,
     ) -> p.Result[bool]:
         for item in plan.cells:
             if (
@@ -38,7 +46,8 @@ class FlextCliUtilitiesXlsxProtection:
             for row in range(item.area.first.row, item.area.last.row + 1):
                 for column in range(item.area.first.column, item.area.last.column + 1):
                     worksheet.cell(row, column).protection = Protection(
-                        locked=item.locked, hidden=item.hidden
+                        locked=item.locked,
+                        hidden=item.hidden,
                     )
         permissions = plan.permissions
         protection = worksheet.protection
@@ -63,7 +72,7 @@ class FlextCliUtilitiesXlsxProtection:
                 protection.set_password(plan.credential.value, already_hashed=True)
             else:
                 protection.set_password(plan.credential.value)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxProtection",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxProtection",)

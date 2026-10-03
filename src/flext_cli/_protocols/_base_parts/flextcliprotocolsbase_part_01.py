@@ -51,6 +51,11 @@ class FlextCliProtocolsBase:
             ...
 
         @property
+        def cli_process_heartbeat_seconds(self) -> float:
+            """Live child-process heartbeat interval in seconds."""
+            ...
+
+        @property
         def cli_quiet(self) -> bool:
             """Whether quiet mode is enabled."""
             ...

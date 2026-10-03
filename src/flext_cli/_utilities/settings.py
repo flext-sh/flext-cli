@@ -1,4 +1,8 @@
-"""CLI settings helpers shared through ``u.Cli``."""
+"""CLI settings helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -11,7 +15,15 @@ from flext_core import u
 
 
 class FlextCliUtilitiesSettings:
-    """Settings and selector methods exposed directly on ``u.Cli``."""
+    """Settings and selector methods exposed directly on ``u.Cli``.
+
+    A plain namespace holder, never instantiated — class-attribute access
+    resolves via the MRO. It does not inherit ``FlextSettings``: the settings
+    *fields* (``debug``, ``trace``, …) would then leak into the ``u.Cli`` MRO
+    and shadow the ``u.Cli.debug()`` emitter, which is what consumers call.
+    ``FlextSettings`` stays the settings owner; this class only carries the
+    utility methods, exactly like flext-core's ``FlextUtilitiesSettings``.
+    """
 
     @staticmethod
     def cli_test_env(cli_settings: p.Cli.CliSettings) -> bool:
@@ -20,6 +32,10 @@ class FlextCliUtilitiesSettings:
         NOTE (multi-agent): replaces the removed ``settings.Cli.test_env``
         computed field — behavior lives in the utilities layer, settings stay
         pure flat data (§2.6).
+
+        Returns:
+            The resulting ``bool``.
+
         """
         normalized_shell = (cli_settings.cli_shell_command or "").strip().lower()
         return (
@@ -32,7 +48,12 @@ class FlextCliUtilitiesSettings:
     def project_names_from_values(
         *values: t.Cli.ProjectNamesValue | None,
     ) -> t.MutableSequenceOf[str] | None:
-        """Normalize repeated or comma-separated CLI selector values."""
+        """Normalize repeated or comma-separated CLI selector values.
+
+        Returns:
+            The resulting ``t.MutableSequenceOf[str] | None``.
+
+        """
         names: t.MutableSequenceOf[str] = []
         for value in values:
             if value is None:
@@ -48,13 +69,15 @@ class FlextCliUtilitiesSettings:
     @overload
     @staticmethod
     def project_numbers_from_values(
-        *values: t.Cli.ProjectNamesValue | None, default: t.SequenceOf[int]
+        *values: t.Cli.ProjectNamesValue | None,
+        default: t.SequenceOf[int],
     ) -> t.MutableSequenceOf[int]: ...
 
     @overload
     @staticmethod
     def project_numbers_from_values(
-        *values: t.Cli.ProjectNamesValue | None, default: None = None
+        *values: t.Cli.ProjectNamesValue | None,
+        default: None = None,
     ) -> t.MutableSequenceOf[int] | None: ...
 
     @staticmethod
@@ -62,15 +85,25 @@ class FlextCliUtilitiesSettings:
         *values: t.Cli.ProjectNamesValue | None,
         default: t.SequenceOf[int] | None = None,
     ) -> t.MutableSequenceOf[int] | None:
-        """Normalize selector values into integers with optional default fallback."""
+        """Normalize selector values into integers with optional default fallback.
+
+        Returns:
+            The resulting ``t.MutableSequenceOf[int] | None``.
+
+        """
         names = FlextCliUtilitiesSettings.project_names_from_values(*values)
         if names is None:
             return list(default) if default is not None else None
         return [int(name) for name in names]
 
     @staticmethod
-    def settings_snapshot() -> m.Cli.SettingsSnapshot:
-        """Return the canonical CLI settings snapshot."""
+    def settings_snapshot_model() -> m.Cli.SettingsSnapshot:
+        """Return the canonical CLI settings snapshot.
+
+        Returns:
+            The canonical CLI settings snapshot.
+
+        """
         path = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
         exists = path.exists()
         return m.Cli.SettingsSnapshot(
@@ -83,21 +116,26 @@ class FlextCliUtilitiesSettings:
 
     @staticmethod
     def validate_settings_structure() -> t.StrSequence:
-        """Validate the canonical CLI settings directory structure."""
+        """Validate the canonical CLI settings directory structure.
+
+        Returns:
+            The resulting ``t.StrSequence``.
+
+        """
         base = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
         ok = c.Cli.SYMBOL_SUCCESS_MARK
         fail = c.Cli.SYMBOL_FAILURE_MARK
         lines = [
             f"{ok} Settings directory exists"
             if base.exists()
-            else f"{fail} Settings directory missing"
+            else f"{fail} Settings directory missing",
         ]
         for subdir in c.Cli.STANDARD_SUBDIRS:
             path = base / subdir
             lines.append(
                 c.Cli.MSG_SUBDIR_EXISTS.format(symbol=ok, subdir=subdir)
                 if path.exists()
-                else c.Cli.MSG_SUBDIR_MISSING.format(symbol=fail, subdir=subdir)
+                else c.Cli.MSG_SUBDIR_MISSING.format(symbol=fail, subdir=subdir),
             )
         return lines
 

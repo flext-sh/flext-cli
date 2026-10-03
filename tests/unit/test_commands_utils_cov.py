@@ -11,21 +11,25 @@ Public contract under test (``flext_cli._utilities.commands`` via ``u.Cli``):
   and a trailing newline.
 
 Assertions target observable return values and emitted stdout only.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
 """
 
 from __future__ import annotations
 
 import pytest
+from flext_tests import tm
 
 from flext_cli import r
-from flext_tests import tm
 from tests import c, t, u
 
 
 class TestsFlextCliCommands:
     """Behavioral contract for the ``u.Cli`` command messaging helpers."""
 
-    def test_formatter_result_wins_over_all_fallbacks(self) -> None:
+    @staticmethod
+    def test_formatter_result_wins_over_all_fallbacks() -> None:
         # Arrange
         """Verify that formatter result wins over all fallbacks."""
 
@@ -34,18 +38,23 @@ class TestsFlextCliCommands:
 
         # Act
         resolved = u.Cli.commands_resolve_success_message(
-            result_value=7, success_message="fallback", success_formatter=formatter
+            result_value=7,
+            success_message="fallback",
+            success_formatter=formatter,
         )
 
         # Assert
         tm.that(resolved, eq="14")
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("result_value", "expected"),
         [
             pytest.param("direct", "direct", id="string-value-returned"),
             pytest.param(
-                {c.Cli.DICT_KEY_MESSAGE: "mapped"}, "mapped", id="mapping-message-key"
+                {c.Cli.DICT_KEY_MESSAGE: "mapped"},
+                "mapped",
+                id="mapping-message-key",
             ),
             pytest.param(False, "fallback", id="bool-falls-back"),
             pytest.param("", "fallback", id="empty-string-falls-back"),
@@ -55,14 +64,17 @@ class TestsFlextCliCommands:
                 id="empty-mapping-message-falls-back",
             ),
             pytest.param(
-                {"other": "x"}, "fallback", id="mapping-without-message-key-falls-back"
+                {"other": "x"},
+                "fallback",
+                id="mapping-without-message-key-falls-back",
             ),
             pytest.param([1, 2, 3], "fallback", id="list-falls-back"),
             pytest.param(0, "fallback", id="zero-falls-back"),
         ],
     )
     def test_resolve_without_formatter_follows_value_then_fallback_order(
-        self, result_value: t.Cli.ResultValue, expected: str
+        result_value: t.Cli.ResultValue,
+        expected: str,
     ) -> None:
         # Act
         """Verify that resolve without formatter follows value then fallback order."""
@@ -75,16 +87,20 @@ class TestsFlextCliCommands:
         # Assert
         tm.that(resolved, eq=expected)
 
-    def test_resolve_returns_none_fallback_when_message_is_none(self) -> None:
+    @staticmethod
+    def test_resolve_returns_none_fallback_when_message_is_none() -> None:
         # Act
         """Verify that resolve returns none fallback when message is none."""
         resolved = u.Cli.commands_resolve_success_message(
-            result_value=0, success_message=None, success_formatter=None
+            result_value=0,
+            success_message=None,
+            success_formatter=None,
         )
 
         # Assert
         tm.that(resolved, none=True)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "payload",
         [
@@ -94,7 +110,8 @@ class TestsFlextCliCommands:
         ],
     )
     def test_structured_payload_is_emitted_verbatim_with_newline(
-        self, payload: str, capsys: pytest.CaptureFixture[str]
+        payload: str,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that structured payload is emitted verbatim with newline."""
@@ -103,8 +120,9 @@ class TestsFlextCliCommands:
         # Assert
         tm.that(capsys.readouterr().out, eq=f"{payload}\n")
 
+    @staticmethod
     def test_plain_success_text_is_styled_and_newline_terminated(
-        self, capsys: pytest.CaptureFixture[str]
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that plain success text is styled and newline terminated."""
@@ -116,25 +134,29 @@ class TestsFlextCliCommands:
         tm.that(out, ne="all good\n")
         tm.that(out.endswith("\n"), eq=True)
 
+    @staticmethod
     def test_error_message_is_styled_and_newline_terminated(
-        self, capsys: pytest.CaptureFixture[str]
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that error message is styled and newline terminated."""
         u.Cli.commands_emit_result_error(r[str].fail("boom"))
 
         # Assert
-        out = capsys.readouterr().out
+        captured = capsys.readouterr()
+        out = captured.err
         tm.that(out, has="boom")
         tm.that(out, ne="boom\n")
         tm.that(out.endswith("\n"), eq=True)
+        tm.that(captured.out, eq="")
 
+    @staticmethod
     def test_error_message_surfaces_code_without_traceback_in_normal_mode(
-        self, capsys: pytest.CaptureFixture[str]
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that error message surfaces code without traceback in normal mode."""
-        result: r[str] = r[str].fail(
+        result = r[str].fail(
             "proposal config ausente: /x.yaml",
             error_code="missing_config",
             exception=FileNotFoundError("nope"),
@@ -142,20 +164,28 @@ class TestsFlextCliCommands:
         u.Cli.commands_emit_result_error(result, verbose=False)
 
         # Assert
-        out = capsys.readouterr().out
+        captured = capsys.readouterr()
+        out = captured.err
         tm.that(out, has="proposal config ausente: /x.yaml")
         tm.that(out, has="missing_config")
         tm.that("Traceback" not in out, eq=True)
         tm.that("FileNotFoundError" not in out, eq=True)
+        tm.that(captured.out, eq="")
 
+    @staticmethod
     def test_error_message_adds_traceback_in_verbose_mode(
-        self, capsys: pytest.CaptureFixture[str]
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         # Arrange
         """Verify that error message adds traceback in verbose mode."""
 
         def _raise_missing_config() -> None:
-            """Raise the error this test needs a real traceback for."""
+            """Raise the error this test needs a real traceback for.
+
+            Raises:
+                FileNotFoundError: If nope.
+
+            """
             error_message = "nope"
             raise FileNotFoundError(error_message)
 
@@ -166,7 +196,7 @@ class TestsFlextCliCommands:
             captured_exception = exc
 
         # Act
-        result: r[str] = r[str].fail(
+        result = r[str].fail(
             "proposal config ausente: /x.yaml",
             error_code="missing_config",
             exception=captured_exception,
@@ -174,10 +204,9 @@ class TestsFlextCliCommands:
         u.Cli.commands_emit_result_error(result, verbose=True)
 
         # Assert
-        out = capsys.readouterr().out
+        captured = capsys.readouterr()
+        out = captured.err
         tm.that(out, has="missing_config")
         tm.that(out, has="FileNotFoundError")
         tm.that(out, has="Traceback (most recent call last)")
-
-
-__all__: list[str] = ["TestsFlextCliCommands"]
+        tm.that(captured.out, eq="")

@@ -1,4 +1,8 @@
-"""Portable suspended-start and containment handoff."""
+"""Portable suspended-start and containment handoff.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -17,9 +21,11 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
         def _spawn_streamed_process(
             cmd: t.StrSequence,
             cwd: t.Cli.TextPath | None,
-            env: dict[str, str] | None,
+            env: t.MappingKV[str, str] | None,
             stdin_handle: BinaryIO | None,
             *,
+            capture_output: bool,
+            combine_output: bool,
             creation_flags: int,
         ) -> p.Cli.ProcessHandle: ...
 
@@ -34,7 +40,7 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
             job_handle: int,
             *,
             force: bool,
-        ) -> str | None: ...
+        ) -> p.Result[bool]: ...
 
         @classmethod
         def _windows_job_close(cls, job_handle: int) -> str | None: ...
@@ -50,18 +56,25 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
         cls,
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None,
-        env: dict[str, str] | None,
+        env: t.MappingKV[str, str] | None,
         stdin_handle: BinaryIO | None,
-    ) -> p.Result[tuple[p.Cli.ProcessHandle, int]]:
+        *,
+        capture_output: bool,
+        combine_output: bool,
+    ) -> p.Result[t.Pair[p.Cli.ProcessHandle, int]]:
         process = cls._spawn_streamed_process(
-            cmd, cwd, env, stdin_handle, creation_flags=cls._streamed_creation_flags()
+            cmd,
+            cwd,
+            env,
+            stdin_handle,
+            capture_output=capture_output,
+            combine_output=combine_output,
+            creation_flags=cls._streamed_creation_flags(),
         )
         job_result = cls._windows_job_create(process.pid)
         if job_result.failure:
             cls._discard_uncontained_process(process, 0)
-            return r[tuple[p.Cli.ProcessHandle, int]].fail(
-                job_result.error or "Windows Job Object assignment failed"
-            )
+            return r[tuple[p.Cli.ProcessHandle, int]].from_failure(job_result)
         job_handle = job_result.value
         resume_error = cls._windows_process_resume(process.pid)
         if resume_error is not None:
@@ -71,7 +84,9 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
 
     @classmethod
     def _discard_uncontained_process(
-        cls, process: p.Cli.ProcessHandle, job_handle: int
+        cls,
+        process: p.Cli.ProcessHandle,
+        job_handle: int,
     ) -> None:
         _ = cls._signal_process_tree(process, signal.SIGKILL, job_handle, force=True)
         process.wait()

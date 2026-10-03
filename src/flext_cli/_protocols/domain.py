@@ -1,7 +1,12 @@
-"""Higher-level CLI structural contracts."""
+"""Higher-level CLI structural contracts.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
@@ -12,6 +17,8 @@ from flext_cli._protocols.base import FlextCliProtocolsBase
 class FlextCliProtocolsDomain:
     """CLI domain protocols layered on top of base callable contracts."""
 
+    type ResultRouteHandler = Callable[..., FlextCliProtocolsBase.ErasedCommandResult]
+
     @runtime_checkable
     class JsonValueProcessor(Protocol):
         """Protocol for JSON-compatible value processors."""
@@ -20,6 +27,7 @@ class FlextCliProtocolsDomain:
             """Transform one JSON-compatible value."""
             ...
 
+    @runtime_checkable
     class YamlAnchorNode(Protocol):
         """ruamel.yaml node surface that can carry YAML anchors.
 
@@ -69,7 +77,7 @@ class FlextCliProtocolsDomain:
             ...
 
         @property
-        def handler(self) -> t.Cli.ResultRouteHandler:
+        def handler(self) -> FlextCliProtocolsDomain.ResultRouteHandler:
             """The type-erased result handler."""
             ...
 

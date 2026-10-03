@@ -1,9 +1,14 @@
-"""Typed XLSX colors and font declarations."""
+"""Typed XLSX colors and font declarations.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from typing import Annotated, Literal
 
+from flext_cli import t
 from flext_core import m
 
 
@@ -51,7 +56,8 @@ class FlextCliModelsXlsxStylePrimitives:
         outline: bool | None = m.Field(default=None, description="Outline font state.")
         shadow: bool | None = m.Field(default=None, description="Shadow font state.")
         condense: bool | None = m.Field(
-            default=None, description="Condensed font state."
+            default=None,
+            description="Condensed font state.",
         )
         extend: bool | None = m.Field(default=None, description="Extended font state.")
         underline: (
@@ -61,7 +67,8 @@ class FlextCliModelsXlsxStylePrimitives:
             m.Field(default=None, description="Vertical font alignment.")
         )
         color: FlextCliModelsXlsxStylePrimitives.XlsxColor | None = m.Field(
-            default=None, description="Optional font color."
+            default=None,
+            description="Optional font color.",
         )
         charset: Annotated[int, m.Field(ge=0, description="Font charset.")] | None = (
             None
@@ -70,8 +77,9 @@ class FlextCliModelsXlsxStylePrimitives:
             Annotated[float, m.Field(ge=0, description="Font family class.")] | None
         ) = None
         scheme: Literal["major", "minor"] | None = m.Field(
-            default=None, description="Theme font scheme."
+            default=None,
+            description="Theme font scheme.",
         )
 
 
-__all__: tuple[str, ...] = ("FlextCliModelsXlsxStylePrimitives",)
+__all__: t.VariadicTuple[str] = ("FlextCliModelsXlsxStylePrimitives",)

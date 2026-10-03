@@ -10,11 +10,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import t
 from flext_tests import FlextTestsTypes
 
+from flext_cli import FlextCliTypes
 
-class TestsFlextCliTypes(FlextTestsTypes, t):
+
+class TestsFlextCliTypes(FlextTestsTypes, FlextCliTypes):
     """MRO facade exposing both flext-tests and flext-cli type namespaces."""
 
     class Tests(FlextTestsTypes.Tests):

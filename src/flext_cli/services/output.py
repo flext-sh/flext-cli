@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import sys
 
-from flext_cli import c, s, t, u
+from flext_cli import c, m, s, t, u
 from flext_cli.services.formatters import FlextCliFormatters
 
 
-class FlextCliOutput(s):
+class FlextCliOutput(s[m.Cli.RuntimeStatus]):
     """CLI output tools for the flext ecosystem.
 
     Provides a unified output API while delegating to specialized
@@ -33,7 +33,8 @@ class FlextCliOutput(s):
 
     @staticmethod
     def display_message(
-        message: str, message_type: c.Cli.MessageTypes | None = None
+        message: str,
+        message_type: c.Cli.MessageTypes | None = None,
     ) -> None:
         """Display message with specified type and styling.
 
@@ -43,7 +44,11 @@ class FlextCliOutput(s):
 
         """
         payload, style = u.Cli.output_message_payload(message, message_type)
-        FlextCliOutput.print_message(payload, style=style)
+        FlextCliFormatters.print(
+            payload,
+            style=style,
+            error=message_type == c.Cli.MessageTypes.ERROR,
+        )
 
     @staticmethod
     def display_text(text: str, *, style: str | None = None) -> None:
@@ -52,7 +57,8 @@ class FlextCliOutput(s):
 
     @staticmethod
     def display_message_plain(
-        message: str, message_type: c.Cli.MessageTypes | None = None
+        message: str,
+        message_type: c.Cli.MessageTypes | None = None,
     ) -> None:
         """Display message bypassing Rich styling for large machine-readable text.
 
@@ -70,7 +76,10 @@ class FlextCliOutput(s):
             prefix = "[OK] "
         elif message_type == c.Cli.MessageTypes.INFO:
             prefix = "[INFO] "
-        FlextCliOutput.emit_stdout(f"{prefix}{message}")
+        u.Cli.emit_raw(
+            f"{prefix}{message}\n",
+            error=message_type == c.Cli.MessageTypes.ERROR,
+        )
 
     @staticmethod
     def print_message(message: str, style: str | None = None) -> None:
@@ -85,30 +94,49 @@ class FlextCliOutput(s):
 
     @staticmethod
     def display_progress(
-        current: int, total: int, label: str, *, detail: str = ""
+        current: int,
+        total: int,
+        label: str,
+        *,
+        detail: str = "",
     ) -> None:
         """Display progress indicator [current/total] label detail."""
         FlextCliFormatters.print(
-            u.Cli.output_progress_line(current, total, label, detail=detail)
+            u.Cli.output_progress_line(current, total, label, detail=detail),
         )
 
     @staticmethod
     def display_status(
-        label: str, detail: str, *, success: bool, elapsed: float | None = None
+        label: str,
+        detail: str,
+        *,
+        success: bool,
+        elapsed: float | None = None,
     ) -> None:
         """Display a pass/fail status line."""
         line, style = u.Cli.output_status_line(
-            label, detail, success=success, elapsed=elapsed
+            label,
+            detail,
+            success=success,
+            elapsed=elapsed,
         )
         FlextCliFormatters.print(line, style=style)
 
     @staticmethod
     def display_summary(
-        title: str, *, total: int, success: int, failed: int, skipped: int = 0
+        title: str,
+        *,
+        total: int,
+        success: int,
+        failed: int,
+        skipped: int = 0,
     ) -> None:
         """Display a summary panel."""
         content = u.Cli.output_summary_content(
-            total=total, success=success, failed=failed, skipped=skipped
+            total=total,
+            success=success,
+            failed=failed,
+            skipped=skipped,
         )
         FlextCliFormatters.render_panel(content, title=title)
 

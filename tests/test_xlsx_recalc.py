@@ -1,13 +1,23 @@
-"""Headless recalculation and cache parity contract tests."""
+"""Headless recalculation and cache parity contract tests.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
+import shutil
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-
-from flext_cli import cli, m, p
 from flext_tests import tm
+
+from flext_cli import c, cli, m, p
+
+pytestmark = pytest.mark.skipif(
+    shutil.which(c.Cli.XLSX_RECALC_COMMAND[0]) is None,
+    reason="LibreOffice (soffice) is not installed or available on PATH",
+)
 
 
 def _render_workbook() -> bytes:
@@ -53,7 +63,7 @@ def _render_workbook() -> bytes:
         defined_names=(),
     )
     result: p.Result[m.Cli.XlsxRenderResult] = cli.xlsx_render(
-        m.Cli.XlsxRenderRequest(template=None, plan=plan)
+        m.Cli.XlsxRenderRequest(template=None, plan=plan),
     )
     tm.that(result.success, eq=True, msg=result.error)
     content: bytes = result.value.content
@@ -61,10 +71,12 @@ def _render_workbook() -> bytes:
 
 
 def _numeric_cell_value(
-    source: bytes, sheet_name: str, coordinate: str
+    source: bytes,
+    sheet_name: str,
+    coordinate: str,
 ) -> m.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
     snapshot = cli.xlsx_snapshot(
-        m.Cli.XlsxSnapshotRequest(source=source, data_only=True)
+        m.Cli.XlsxSnapshotRequest(source=source, data_only=True),
     )
     tm.that(snapshot.success, eq=True, msg=snapshot.error)
     for sheet in snapshot.value.sheets:
@@ -81,6 +93,7 @@ def _numeric_cell_value(
     raise AssertionError(msg)
 
 
+@pytest.mark.slow
 def test_xlsx_recalc_refreshes_formula_cache() -> None:
     """Recalculated bytes carry engine-computed cached values."""
     source = _render_workbook()
@@ -90,11 +103,12 @@ def test_xlsx_recalc_refreshes_formula_cache() -> None:
     tm.that(value.value, eq=5)
 
 
+@pytest.mark.slow
 def test_xlsx_recalc_parity_returns_validated_recalculated_content() -> None:
     """Public parity content carries the caches described by its evidence."""
     source = _render_workbook()
     report = cli.xlsx_recalc_parity(
-        m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=2)
+        m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=2),
     )
     tm.that(report.success, eq=True, msg=report.error)
     evidence = report.value
@@ -108,11 +122,12 @@ def test_xlsx_recalc_parity_returns_validated_recalculated_content() -> None:
     tm.that(cached_value.value, eq=5)
 
 
+@pytest.mark.slow
 def test_xlsx_recalc_parity_detects_count_mismatch() -> None:
     """A wrong expected formula count flips the stored verdict."""
     source = _render_workbook()
     report = cli.xlsx_recalc_parity(
-        m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=9)
+        m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=9),
     )
     tm.that(report.success, eq=True, msg=report.error)
     tm.that(report.value.formula_count, eq=2)
@@ -124,8 +139,12 @@ def test_xlsx_recalc_supports_concurrent_public_calls() -> None:
     """Concurrent callers receive independently recalculated workbooks."""
     source = _render_workbook()
     request = m.Cli.XlsxRecalcRequest(source=source)
+
+    def recalculate(_index: int) -> p.Result[m.Cli.XlsxRecalcResult]:
+        return cli.xlsx_recalc(request)
+
     with ThreadPoolExecutor(max_workers=3) as executor:
-        results = tuple(executor.map(lambda _index: cli.xlsx_recalc(request), range(3)))
+        results = tuple(executor.map(recalculate, range(3)))
     for result in results:
         tm.that(result.success, eq=True, msg=result.error)
         value = _numeric_cell_value(result.value.content, "Report", "A1")

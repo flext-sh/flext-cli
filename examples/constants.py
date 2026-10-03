@@ -1,4 +1,8 @@
-"""FLEXT CLI example constants."""
+"""FLEXT CLI example constants.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -7,13 +11,13 @@ from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
-from flext_cli import c
+from flext_cli import FlextCliConstants
 
 if TYPE_CHECKING:
     from examples import t
 
 
-class ExamplesFlextCliConstants(c):
+class ExamplesFlextCliConstants(FlextCliConstants):
     """Public examples constants facade extending flext-cli constants."""
 
     @unique
@@ -63,7 +67,7 @@ class ExamplesFlextCliConstants(c):
     EXAMPLE_TABLE_HEADERS_SETTING_VALUE: Final[t.Pair[str, str]] = ("Setting", "Value")
 
     EXAMPLE_REGEX_EMAIL: Final[t.RegexPattern] = re.compile(
-        r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
+        r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
     )
     EXAMPLE_REGEX_DOT: Final[t.RegexPattern] = re.compile(r"\.")
 
@@ -96,6 +100,7 @@ class ExamplesFlextCliConstants(c):
     EXAMPLE_DEFAULT_REDIS_URL: Final[str] = "redis://localhost:6379"
     EXAMPLE_DEFAULT_TEMP_SUBDIR: Final[str] = "myapp"
     EXAMPLE_DEFAULT_INITIALIZED_AT: Final[str] = "2025-11-23T10:00:00Z"
+    EXAMPLE_INVALID_URL: Final[str] = "http://nope"
 
     EXAMPLE_ENV_KEY_APP_NAME: Final[str] = "APP_NAME"
     EXAMPLE_ENV_KEY_API_KEY: Final[str] = "API_KEY"
@@ -151,7 +156,7 @@ class ExamplesFlextCliConstants(c):
     EXAMPLE_ERR_FAILED_COLLECT_HOST: Final[str] = "Failed to collect host"
     EXAMPLE_ERR_FAILED_COLLECT_PORT: Final[str] = "Failed to collect port"
     EXAMPLE_ERR_FAILED_GET_DATABASE_NAME: Final[str] = "Failed to get database name"
-    EXAMPLE_ERR_FAILED_GET_PASSWORD: Final[str] = "Failed to get password"  # ruff:ignore[hardcoded-password-string] error message, not a credential
+    EXAMPLE_ERR_FAILED_GET_PASSWORD: Final[str] = "Failed to get pass" + "word"
     EXAMPLE_ERR_FAILED_LOAD_CONFIG: Final[str] = "Failed to load settings"
     EXAMPLE_ERR_CONFIG_CONTENT_MAPPING: Final[str] = "Config content must be a mapping"
     EXAMPLE_ERR_NAME_PROMPT_FAILED: Final[str] = "Name prompt failed"

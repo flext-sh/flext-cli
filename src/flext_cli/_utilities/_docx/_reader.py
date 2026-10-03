@@ -1,4 +1,8 @@
-"""Generic model-driven DOCX reader."""
+"""Generic model-driven DOCX reader.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -20,7 +24,10 @@ if TYPE_CHECKING:
 
 
 _DOCX_UNDERLINE_VALUE = Literal[
-    "single", "double", "singleAccounting", "doubleAccounting"
+    "single",
+    "double",
+    "singleAccounting",
+    "doubleAccounting",
 ]
 
 
@@ -32,20 +39,25 @@ class FlextCliUtilitiesDocxReader:
 
     @classmethod
     def docx_read(cls, source: bytes) -> p.Result[m.Cli.DocxDocumentPlan]:
-        """Read document bytes into a validated plan."""
+        """Read document bytes into a validated plan.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.DocxDocumentPlan]``.
+
+        """
         try:
             document = Document(BytesIO(source))
         except (OSError, ValueError, KeyError, BadZipFile) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.DocxDocumentPlan].fail(
-                f"{c.Cli.DocxError.DOCUMENT_LOAD_FAILED}: {detail}"
+                f"{c.Cli.DocxError.DOCUMENT_LOAD_FAILED}: {detail}",
             )
         try:
             plan = cls._snapshot_document(document)
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[m.Cli.DocxDocumentPlan].fail(
-                f"{c.Cli.DocxError.RENDER_FAILED}: {detail}"
+                f"{c.Cli.DocxError.RENDER_FAILED}: {detail}",
             )
         return r[m.Cli.DocxDocumentPlan].ok(plan)
 
@@ -85,19 +97,19 @@ class FlextCliUtilitiesDocxReader:
                 underline=cls._snapshot_underline(underline=font.underline),
                 strike=font.strike,
                 color=color,
-            )
+            ),
         )
         return m.Cli.DocxRunPlan(text=run.text, style=style)
 
     @classmethod
     def _snapshot_table(cls, table: Table) -> m.Cli.DocxTablePlan:
-        rows: tuple[m.Cli.DocxTableRowPlan, ...] = ()
+        rows: t.VariadicTuple[m.Cli.DocxTableRowPlan] = ()
         for row in table.rows:
             cells = tuple(
                 m.Cli.DocxTableCellPlan(
                     paragraphs=tuple(
                         cls._snapshot_paragraph(p) for p in cell.paragraphs
-                    )
+                    ),
                 )
                 for cell in row.cells
             )
@@ -129,7 +141,8 @@ class FlextCliUtilitiesDocxReader:
 
     @staticmethod
     def _snapshot_underline(
-        *, underline: WD_UNDERLINE | int | bool | None
+        *,
+        underline: WD_UNDERLINE | int | bool | None,
     ) -> _DOCX_UNDERLINE_VALUE | None:
         if underline is None or underline is False:
             return None
@@ -142,4 +155,4 @@ class FlextCliUtilitiesDocxReader:
         return mapping.get(underline)
 
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesDocxReader",)
+__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesDocxReader",)

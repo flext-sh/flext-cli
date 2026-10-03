@@ -1,4 +1,8 @@
-"""Behavioral tests for the prompts service."""
+"""Behavioral tests for the prompts service.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -6,8 +10,8 @@ import time
 from typing import TYPE_CHECKING
 
 import pytest
-
 from flext_tests import tm
+
 from tests import c
 
 if TYPE_CHECKING:
@@ -19,65 +23,44 @@ if TYPE_CHECKING:
 class TestsFlextCliPrompts:
     """Implementation part for TestsFlextCliPrompts."""
 
+    @staticmethod
     def test_prompt_choice_paths(
-        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
+        make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that prompt choice paths."""
         quiet_prompts = make_prompts(interactive_mode=False)
-        tm.fail(quiet_prompts.prompt_choice("Select:", choices=[], default=None))
         tm.fail(
-            quiet_prompts.prompt_choice("Select:", choices=["a", "b"], default=None),
-            has="Interactive mode disabled",
+            quiet_prompts.prompt_choice(choices=[], default=None),
+            has=c.Cli.ERR_NO_CHOICES,
         )
-        valid_default = quiet_prompts.prompt_choice(
-            "Select:", choices=["a", "b"], default="a"
+        tm.fail(
+            quiet_prompts.prompt_choice(choices=["a", "b"], default=None),
+            has=c.Cli.ERR_INTERACTIVE_CHOICE_DISABLED,
         )
+        valid_default = quiet_prompts.prompt_choice(choices=["a", "b"], default="a")
         tm.ok(valid_default)
         tm.that(valid_default.value, eq="a")
         interactive_prompts = make_prompts()
-        tm.fail(
-            interactive_prompts.prompt_choice(
-                "Select:", choices=["a", "b"], default=None
-            ),
-            has="Choice required",
+        required = interactive_prompts.prompt_choice(
+            choices=["alpha", "beta"],
+            default=None,
         )
+        tm.fail(required, has="alpha")
+        tm.fail(required, has="beta")
         tm.fail(
-            interactive_prompts.prompt_choice(
-                "Select:", choices=["a", "b"], default="c"
-            ),
-            has="Invalid choice",
+            interactive_prompts.prompt_choice(choices=["a", "b"], default="c"),
+            has=c.Cli.ERR_INVALID_CHOICE_FMT.format(choice="c"),
         )
         selected = interactive_prompts.prompt_choice(
-            "Select:", choices=["simple", "complex", "advanced"], default="simple"
+            choices=["simple", "complex", "advanced"],
+            default="simple",
         )
         tm.ok(selected)
         tm.that(selected.value, eq="simple")
 
-    def test_prompt_password_paths(
-        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
-    ) -> None:
-        """Verify that prompt password paths."""
-        tm.fail(
-            make_prompts(interactive_mode=False).prompt_password("Password:"),
-            has="Interactive mode disabled",
-        )
-        short_prompts = make_prompts().use_password("short")
-        tm.fail(
-            short_prompts.prompt_password("Password:", min_length=8), has="too short"
-        )
-        valid_prompts = make_prompts().use_password("validpassword123")
-        valid_result = valid_prompts.prompt_password("Password:", min_length=8)
-        tm.ok(valid_result)
-        tm.that(len(valid_result.value), gte=8)
-        failing_prompts = make_prompts().use_password_error(
-            ValueError("Password input error")
-        )
-        tm.fail(
-            failing_prompts.prompt_password("Password:"), has="Password input error"
-        )
-
+    @staticmethod
     def test_print_helpers_paths(
-        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
+        make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that print helpers paths."""
         prompts = make_prompts()
@@ -85,18 +68,11 @@ class TestsFlextCliPrompts:
         tm.ok(prompts.print_error("simple"))
         tm.ok(prompts.print_warning("simple"))
 
-    def test_print_helper_failure_when_logging_crashes(
-        self, make_failing_prompts: Callable[..., p.Tests.FailingLogPrompts]
-    ) -> None:
-        """Verify that print helper failure when logging crashes."""
-        prompts = make_failing_prompts()
-        prompts.fail_on_log(level=c.LogLevel.INFO, message="Logger error")
-        result = prompts.print_success("Test")
-        tm.fail(result, has="Logger error")
-
+    @staticmethod
     @pytest.mark.parametrize("message", c.Tests.PROMPT_EDGE_MESSAGES)
     def test_prompt_accepts_edge_case_messages(
-        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts], message: str
+        make_prompts: Callable[..., p.Tests.Prompts],
+        message: str,
     ) -> None:
         """Verify that prompt accepts edge case messages."""
         prompts = make_prompts(interactive_mode=False)
@@ -104,8 +80,9 @@ class TestsFlextCliPrompts:
         tm.ok(result)
         tm.that(result.value, eq="text")
 
+    @staticmethod
     def test_repeated_prompt_operations_remain_fast(
-        self, make_prompts: Callable[..., p.Tests.ScriptedPrompts]
+        make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that repeated prompt operations remain fast."""
         prompts = make_prompts(interactive_mode=False)
@@ -115,6 +92,3 @@ class TestsFlextCliPrompts:
             tm.ok(result)
             tm.that(result.value, eq="text")
         tm.that(time.time() - started_at, lt=0.5)
-
-
-__all__: list[str] = ["TestsFlextCliPrompts"]

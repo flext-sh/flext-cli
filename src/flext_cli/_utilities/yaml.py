@@ -13,8 +13,6 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
 
-from yaml import safe_dump, safe_load
-
 from flext_cli import c, p, r, t
 from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
 from flext_cli._utilities.json import FlextCliUtilitiesJson
@@ -53,13 +51,17 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         Example::
 
             data = u.Cli.yaml_safe_load(path).unwrap_or({})
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
         """
         if not path.is_file():
             return r[t.JsonMapping].fail(f"YAML file not found: {path}")
         try:
             raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
         except OSError as exc:
-            return r[t.JsonMapping].fail(f"YAML read error: {exc}")
+            return r[t.JsonMapping].fail(f"YAML read error: {exc}", exception=exc)
         return FlextCliUtilitiesYaml.yaml_parse(raw)
 
     @staticmethod
@@ -67,43 +69,62 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         """Parse a YAML string → ``r[JsonMapping]``.
 
         Returns a validated mapping or failure.
+
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
+
         """
         # NOTE (multi-agent): the canonical ruamel engine rejects duplicate keys;
         # PyYAML safe_load was last-wins and could conceal contradictory config.
         loaded = FlextCliUtilitiesYaml.yaml_roundtrip_load_map_text(text)
         if loaded.failure:
             return r[t.JsonMapping].fail(
-                loaded.error or "YAML parse error", exception=loaded.exception
+                loaded.error or "YAML parse error",
+                exception=loaded.exception,
             )
         parsed = FlextCliUtilitiesYaml.yaml_to_plain(loaded.value)
         try:
             validated = t.Cli.YAML_DICT_ADAPTER.validate_python(parsed)
         except c.ValidationError as exc:
-            return r[t.JsonMapping].fail(f"YAML validation error: {exc}")
+            return r[t.JsonMapping].fail(f"YAML validation error: {exc}", exception=exc)
         return r[t.JsonMapping].ok(validated)
 
     @staticmethod
     def yaml_load_mapping(
-        path: Path, *, default: t.JsonMapping | None = None
+        path: Path,
+        *,
+        default: t.JsonMapping | None = None,
     ) -> t.JsonMapping:
         """Load YAML file returning a mapping, or *default* (empty dict) on any error.
 
         Ergonomic shorthand — use ``yaml_safe_load`` when you need ``r[T]`` semantics.
+
+        Returns:
+            The resulting ``t.JsonMapping``.
+
         """
         return FlextCliUtilitiesYaml.yaml_safe_load(path).unwrap_or(
-            default if default is not None else _EMPTY_JSON_MAPPING
+            default if default is not None else _EMPTY_JSON_MAPPING,
         )
 
     @staticmethod
     def _yaml_parse_list(path: Path) -> t.SequenceOf[t.JsonValue]:
-        """Parse *path* as a top-level YAML list; raises on any failure."""
+        """Parse *path* as a top-level YAML list; raises on any failure.
+
+        Returns:
+            The resulting ``t.SequenceOf[t.JsonValue]``.
+
+        Raises:
+            TypeError: If YAML content is not a list.
+
+        """
         raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
-        parsed = safe_load(raw)
+        parsed = u.Yaml.safe_load(raw)
         if not isinstance(parsed, list):
             msg = f"YAML content is not a list: {type(parsed).__name__}"
             raise TypeError(msg)
         validated: t.SequenceOf[t.JsonValue] = t.Cli.YAML_SEQ_ADAPTER.validate_python(
-            parsed
+            parsed,
         )
         return validated
 
@@ -114,12 +135,16 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         Returns an empty list on missing file, parse error, non-list content,
         or validation failure — the failure itself is propagated through
         ``u.try_`` at the boundary rather than swallowed inline.
+
+        Returns:
+            The resulting ``t.SequenceOf[t.JsonValue]``.
+
         """
         if not path.is_file():
             return _EMPTY_JSON_SEQUENCE
         return u.try_(
             lambda: FlextCliUtilitiesYaml._yaml_parse_list(path),
-            catch=(OSError, c.Cli.YamlParseError, TypeError, c.ValidationError),
+            catch=(OSError, u.Yaml.YAMLError, TypeError, c.ValidationError),
             op_name="yaml_load_list",
         ).unwrap_or(_EMPTY_JSON_SEQUENCE)
 
@@ -129,7 +154,11 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
     @staticmethod
     def yaml_dump(
-        path: Path, data: t.JsonPayload, *, sort_keys: bool = False, indent: int = 2
+        path: Path,
+        data: t.JsonValue | t.JsonPayload,
+        *,
+        sort_keys: bool = False,
+        indent: int = 2,
     ) -> p.Result[bool]:
         """Write *data* to a YAML file → ``r[bool]``.
 
@@ -138,26 +167,33 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         Example::
 
             u.Cli.yaml_dump(path, {"key": "val"})
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
         """
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             validated = FlextCliUtilitiesJson.normalize_json_value(data)
+            serialized: str = u.Yaml.safe_dump(
+                validated,
+                default_flow_style=False,
+                sort_keys=sort_keys,
+                allow_unicode=True,
+                indent=indent,
+            )
             with path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as fh:
-                safe_dump(
-                    validated,
-                    fh,
-                    default_flow_style=False,
-                    sort_keys=sort_keys,
-                    allow_unicode=True,
-                    indent=indent,
-                )
-            return r[bool].ok(True)
-        except (OSError, c.Cli.YamlParseError, ValueError, TypeError) as exc:
-            return r[bool].fail(f"YAML write error: {exc}")
+                fh.write(serialized)
+            return r[bool].ok(value=True)
+        except (OSError, u.Yaml.YAMLError, ValueError, TypeError) as exc:
+            return r[bool].fail(f"YAML write error: {exc}", exception=exc)
 
     @staticmethod
     def yaml_dump_str(
-        data: t.JsonPayload, *, sort_keys: bool = False, indent: int = 2
+        data: t.JsonValue | t.JsonPayload,
+        *,
+        sort_keys: bool = False,
+        indent: int = 2,
     ) -> str:
         """Serialize *data* to a YAML string.
 
@@ -166,17 +202,26 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         Example::
 
             text = u.Cli.yaml_dump_str(payload)
+
+        Returns:
+            The resulting ``str``.
+
         """
         try:
             validated = FlextCliUtilitiesJson.normalize_json_value(data)
-            serialized: str = safe_dump(
+            serialized: str = u.Yaml.safe_dump(
                 validated,
                 default_flow_style=False,
                 sort_keys=sort_keys,
                 allow_unicode=True,
                 indent=indent,
             )
-        except (c.Cli.YamlParseError, ValueError, TypeError):
+        except (u.Yaml.YAMLError, ValueError, TypeError) as exc:
+            u.fetch_logger(__name__).warning(
+                "YAML serialization failed",
+                error=r[str].fail(str(exc), exception=exc).error or str(exc),
+                error_type=type(exc).__name__,
+            )
             return ""
         else:
             return serialized

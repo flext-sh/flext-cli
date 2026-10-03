@@ -1,8 +1,15 @@
-"""Structural protocols for XLSX sheet snapshot evidence."""
+"""Structural protocols for XLSX sheet snapshot evidence.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from flext_core import t
 
 
 class FlextCliProtocolsXlsxSnapshotStructure:
@@ -51,4 +58,4 @@ class FlextCliProtocolsXlsxSnapshotStructure:
         def outline_level(self) -> int | None: ...
 
 
-__all__: tuple[str, ...] = ("FlextCliProtocolsXlsxSnapshotStructure",)
+__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsxSnapshotStructure",)

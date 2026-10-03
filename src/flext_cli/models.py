@@ -1,8 +1,11 @@
-"""FlextCli models module - Pydantic domain models."""
+"""FlextCli models module - Pydantic domain models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from flext_cli import t
 from flext_cli._models.base import FlextCliModelsBase
 from flext_cli._models.docx import FlextCliModelsDocx
 from flext_cli._models.pipeline import FlextCliModelsPipeline
@@ -10,10 +13,14 @@ from flext_cli._models.pptx import FlextCliModelsPptx
 from flext_cli._models.rules import FlextCliModelsRules
 from flext_cli._models.template import FlextCliModelsTemplate
 from flext_cli._models.xlsx import FlextCliModelsXlsx
-from flext_core import m
+from flext_core import FlextModels
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
-class FlextCliModels(m):
+class FlextCliModels(FlextModels):
     """FlextCli models extending FlextModels."""
 
     class Cli(

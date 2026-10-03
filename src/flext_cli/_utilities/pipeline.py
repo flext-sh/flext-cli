@@ -1,4 +1,8 @@
-"""DAG pipeline execution engine backed by graphlib.TopologicalSorter."""
+"""DAG pipeline execution engine backed by graphlib.TopologicalSorter.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -7,7 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 from graphlib import CycleError, TopologicalSorter
 from typing import ClassVar
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r, settings, t
 from flext_core import u
 
 
@@ -21,13 +25,16 @@ class FlextCliUtilitiesPipeline:
         stages: t.SequenceOf[m.Cli.PipelineStageSpec],
         context: m.Cli.PipelineStageContext,
         *,
-        fail_fast: bool = c.Cli.PIPELINE_DEFAULT_FAIL_FAST,
         logger: p.Logger | None = None,
     ) -> p.Result[m.Cli.PipelineResult]:
         """Execute pipeline stages in topological order.
 
         Uses graphlib.TopologicalSorter for dependency resolution.
         Stages share state via context.shared mutable mapping.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.PipelineResult]``.
+
         """
         log = logger or FlextCliUtilitiesPipeline._pipeline_logger
         pipeline_start = time.monotonic()
@@ -35,7 +42,7 @@ class FlextCliUtilitiesPipeline:
 
         if not stages:
             return r[m.Cli.PipelineResult].ok(
-                m.Cli.PipelineResult(stages=[], total_duration_ms=0.0)
+                m.Cli.PipelineResult(stages=[], total_duration_ms=0.0),
             )
 
         # Build stage lookup and dependency graph.
@@ -49,7 +56,10 @@ class FlextCliUtilitiesPipeline:
         try:
             sorter.prepare()
         except CycleError as exc:
-            return r[m.Cli.PipelineResult].fail(f"pipeline cycle detected: {exc}")
+            return r[m.Cli.PipelineResult].fail(
+                f"pipeline cycle detected: {exc}",
+                exception=exc,
+            )
 
         # Walk the graph one READY WAVE at a time instead of flattening it to a
         # single serial order. Stages inside a wave share no dependency edge by
@@ -69,23 +79,28 @@ class FlextCliUtilitiesPipeline:
                     # retire it so the graph can advance, exactly as the serial
                     # walk skipped it.
                     sorter.done(stage_id)
-            if failed and fail_fast:
+            if failed:
                 for stage_id in known:
                     completed[stage_id] = m.Cli.PipelineStageResult(
                         stage_id=stage_id,
                         status=c.Cli.PipelineStageStatus.SKIPPED,
-                        error="skipped due to prior failure (fail_fast)",
+                        error="skipped due to prior failure",
                     )
                     sorter.done(stage_id)
                 continue
             if len(known) == 1:
                 stage_id = known[0]
                 completed[stage_id] = FlextCliUtilitiesPipeline._run_stage(
-                    stage_map[stage_id], context, log
+                    stage_map[stage_id],
+                    context,
+                    log,
                 )
                 sorter.done(stage_id)
             elif known:
-                with ThreadPoolExecutor(thread_name_prefix="pipeline_") as executor:
+                with ThreadPoolExecutor(
+                    max_workers=min(settings.cli_pipeline_max_workers, len(known)),
+                    thread_name_prefix="pipeline_",
+                ) as executor:
                     futures = {
                         stage_id: executor.submit(
                             FlextCliUtilitiesPipeline._run_stage,
@@ -113,7 +128,8 @@ class FlextCliUtilitiesPipeline:
 
         total_ms = (time.monotonic() - pipeline_start) * 1000
         pipeline_result = m.Cli.PipelineResult(
-            stages=results, total_duration_ms=total_ms
+            stages=results,
+            total_duration_ms=total_ms,
         )
 
         log.info(
@@ -134,51 +150,34 @@ class FlextCliUtilitiesPipeline:
         context: m.Cli.PipelineStageContext,
         log: p.Logger,
     ) -> m.Cli.PipelineStageResult:
-        """Execute a single stage with skip check and retry logic."""
+        """Execute a single stage and preserve its first failure.
+
+        Returns:
+            The resulting ``m.Cli.PipelineStageResult``.
+
+        """
         if spec.skip_if is not None and spec.skip_if(context):
             log.debug("stage_skipped", stage_id=spec.stage_id, reason="skip_if")
             return m.Cli.PipelineStageResult(
-                stage_id=spec.stage_id, status=c.Cli.PipelineStageStatus.SKIPPED
+                stage_id=spec.stage_id,
+                status=c.Cli.PipelineStageStatus.SKIPPED,
             )
 
-        max_attempts = 1 + min(spec.retry, c.Cli.PIPELINE_MAX_RETRY)
-        last_error: str | None = None
+        stage_start = time.monotonic()
+        result = spec.handler(context)
+        duration_ms = (time.monotonic() - stage_start) * 1000
 
-        for attempt in range(1, max_attempts + 1):
-            stage_start = time.monotonic()
-            try:
-                result = spec.handler(context)
-            except c.Cli.CLI_SAFE_EXCEPTIONS as exc:
-                last_error = f"stage {spec.stage_id} raised: {exc}"
-                log.warning(
-                    "stage_exception",
-                    stage_id=spec.stage_id,
-                    attempt=attempt,
-                    error=str(exc),
-                )
-                continue
+        if result.success:
+            stage_result = result.value
+            return stage_result.model_copy(update={"duration_ms": duration_ms})
 
-            duration_ms = (time.monotonic() - stage_start) * 1000
-
-            if result.success:
-                stage_result = result.value
-                return stage_result.model_copy(update={"duration_ms": duration_ms})
-
-            last_error = result.error or f"stage {spec.stage_id} failed"
-            log.debug(
-                "stage_retry", stage_id=spec.stage_id, attempt=attempt, error=last_error
-            )
-
-        log.warning(
-            "stage_failed",
-            stage_id=spec.stage_id,
-            attempts=max_attempts,
-            error=last_error or "",
-        )
+        error = result.error or f"stage {spec.stage_id} failed"
+        log.error("stage_failed", stage_id=spec.stage_id, error=error)
         return m.Cli.PipelineStageResult(
             stage_id=spec.stage_id,
             status=c.Cli.PipelineStageStatus.FAILED,
-            error=last_error,
+            error=error,
+            duration_ms=duration_ms,
         )
 
 

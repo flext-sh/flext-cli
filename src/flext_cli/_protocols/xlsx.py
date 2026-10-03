@@ -1,19 +1,23 @@
-"""Public-shape protocols for the private XLSX byte boundary."""
+"""Public-shape protocols for the private XLSX byte boundary.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
-
-from .xlsx_archive import FlextCliProtocolsXlsxArchive
-from .xlsx_rules import FlextCliProtocolsXlsxRules
-from .xlsx_snapshot import FlextCliProtocolsXlsxSnapshot
-from .xlsx_workbook import FlextCliProtocolsXlsxWorkbook
+from flext_cli._protocols.xlsx_archive import FlextCliProtocolsXlsxArchive
+from flext_cli._protocols.xlsx_rules import FlextCliProtocolsXlsxRules
+from flext_cli._protocols.xlsx_snapshot import FlextCliProtocolsXlsxSnapshot
+from flext_cli._protocols.xlsx_workbook import FlextCliProtocolsXlsxWorkbook
 
 if TYPE_CHECKING:
     # mro-j47u (codex): p -> m stays type-only through the canonical facade.
+    from flext_core import p
     from flext_cli import m
+    from flext_core import t
 
 
 class FlextCliProtocolsXlsx(
@@ -118,28 +122,44 @@ class FlextCliProtocolsXlsx(
     @runtime_checkable
     class XlsxService(FlextCliProtocolsXlsxSnapshot.XlsxSnapshotService, Protocol):
         def xlsx_parse_range(
-            self, request: FlextCliProtocolsXlsx.XlsxParseRangeRequest
+            self,
+            request: FlextCliProtocolsXlsx.XlsxParseRangeRequest,
         ) -> p.Result[m.Cli.XlsxCellRange]: ...
 
         def xlsx_format_reference(
-            self, request: FlextCliProtocolsXlsx.XlsxFormatReferenceRequest
+            self,
+            request: FlextCliProtocolsXlsx.XlsxFormatReferenceRequest,
         ) -> p.Result[m.Cli.XlsxReference]: ...
 
         def xlsx_render(
-            self, request: FlextCliProtocolsXlsx.XlsxRenderRequest
+            self,
+            request: FlextCliProtocolsXlsx.XlsxRenderRequest,
         ) -> p.Result[m.Cli.XlsxRenderResult]: ...
 
         def xlsx_inspect(
-            self, request: FlextCliProtocolsXlsx.XlsxArchiveInspectionRequest
+            self,
+            request: FlextCliProtocolsXlsx.XlsxArchiveInspectionRequest,
         ) -> p.Result[m.Cli.XlsxArchiveInspection]: ...
 
         def xlsx_style_catalog(
-            self, request: FlextCliProtocolsXlsx.XlsxStyleCatalogRequest
+            self,
+            request: FlextCliProtocolsXlsx.XlsxStyleCatalogRequest,
         ) -> p.Result[m.Cli.XlsxStyleCatalog]: ...
 
         def xlsx_style_template(
-            self, request: FlextCliProtocolsXlsx.XlsxStyleTemplateRequest
+            self,
+            request: FlextCliProtocolsXlsx.XlsxStyleTemplateRequest,
         ) -> p.Result[m.Cli.XlsxStyleTemplateResult]: ...
 
+        def xlsx_recalc(
+            self,
+            request: m.Cli.XlsxRecalcRequest,
+        ) -> p.Result[m.Cli.XlsxRecalcResult]: ...
 
-__all__: tuple[str, ...] = ("FlextCliProtocolsXlsx",)
+        def xlsx_recalc_parity(
+            self,
+            request: m.Cli.XlsxRecalcParityRequest,
+        ) -> p.Result[m.Cli.XlsxRecalcParityReport]: ...
+
+
+__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsx",)

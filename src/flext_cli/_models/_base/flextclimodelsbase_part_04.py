@@ -1,4 +1,8 @@
-"""CLI Pydantic domain models."""
+"""CLI Pydantic domain models.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
@@ -12,9 +16,9 @@ class FlextCliModelsBase:
     """Implementation part for FlextCliModelsBase."""
 
     class TableConfig(m.Value):
-        """Table display configuration for tabulate extending Value via inheritance.
+        """Table display configuration extending Value via inheritance.
 
-        Fields map directly to tabulate() parameters.
+        Fields map directly to the table renderer parameters.
         Inherits frozen=True and extra="forbid" from m.Value.
         """
 
@@ -25,7 +29,7 @@ class FlextCliModelsBase:
                 description=(
                     "Table headers (string like 'keys', 'firstrow' "
                     "or sequence of header names)"
-                )
+                ),
             ),
         ] = "keys"
         title: Annotated[
@@ -33,7 +37,8 @@ class FlextCliModelsBase:
             m.Field(description="Optional title printed before the rendered table"),
         ] = None
         show_header: Annotated[
-            bool, m.Field(description="Whether to show table header")
+            bool,
+            m.Field(description="Whether to show table header"),
         ] = True
 
         # Format configuration
@@ -45,7 +50,7 @@ class FlextCliModelsBase:
         @u.computed_field
         @property
         def table_backend_format(self) -> c.Cli.TabularFormat:
-            """Canonical backend format used by tabulate rendering."""
+            """Canonical backend format used by table rendering."""
             return (
                 c.Cli.TabularFormat.SIMPLE
                 if self.table_format == c.Cli.TabularFormat.TABLE
@@ -55,21 +60,25 @@ class FlextCliModelsBase:
         # Number formatting
         floatfmt: Annotated[str, m.Field(description="Float format string")] = ".4g"
         numalign: Annotated[
-            str, m.Field(description="Number alignment (right, center, left, decimal)")
+            str,
+            m.Field(description="Number alignment (right, center, left, decimal)"),
         ] = "decimal"
 
         # String formatting
         stralign: Annotated[
-            str, m.Field(description="String alignment (left, center, right)")
+            str,
+            m.Field(description="String alignment (left, center, right)"),
         ] = "left"
 
         align: Annotated[
-            str, m.Field(description="General alignment (left, center, right, decimal)")
+            str,
+            m.Field(description="General alignment (left, center, right, decimal)"),
         ] = "left"
 
         # Missing values
         missingval: Annotated[
-            str, m.Field(description="String to use for missing values")
+            str,
+            m.Field(description="String to use for missing values"),
         ] = ""
 
         # Index display
@@ -90,7 +99,7 @@ class FlextCliModelsBase:
 
         # Number parsing
         disable_numparse: t.Cli.TableDisableNumparse = m.Field(
-            False,
+            default=False,
             validate_default=True,
             description="Disable number parsing (bool or list of column indices)",
         )

@@ -23,6 +23,40 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
     """Implementation part for FlextCliProtocolsBase."""
 
     @runtime_checkable
+    class ParsedOptionTokens(Protocol):
+        """A parse-only option route without executing a command callback."""
+
+        @property
+        def values(self) -> t.JsonMapping:
+            """Canonical field names and parsed scalar values."""
+            ...
+
+        @property
+        def remaining(self) -> t.StrSequence:
+            """Unconsumed tokens after the first positional argument."""
+            ...
+
+        @property
+        def help_requested(self) -> bool:
+            """Whether a standalone help option was parsed."""
+            ...
+
+    @runtime_checkable
+    class ModelOptionParser(Protocol):
+        """Parse model-backed option tokens without running a CLI command."""
+
+        def parse_model_options(
+            self,
+            model_cls: t.ModelClass[t.Cli.ModelLike],
+            arguments: t.StrSequence,
+            *,
+            field_names: t.StrSequence | None = None,
+            stop_at_positional: bool = False,
+        ) -> FlextCliProtocolsBase.ParsedOptionTokens:
+            """Read command routing facts from canonical option declarations."""
+            ...
+
+    @runtime_checkable
     class CliOptionSpec(Protocol):
         """Framework-neutral option model contract returned by the CLI DSL."""
 
@@ -91,14 +125,16 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
         """Protocol for dynamically-created CLI command wrapper functions."""
 
         def __call__(
-            self, *args: t.JsonPayload, **kwargs: t.JsonPayload
+            self,
+            *args: t.JsonPayload,
+            **kwargs: t.JsonPayload,
         ) -> t.JsonPayload:
             """Execute the wrapper."""
             ...
 
     @runtime_checkable
     class ResultCommandHandler[TParams: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
-        Protocol
+        Protocol,
     ):
         """Protocol for model-driven CLI handlers returning `r[...]`."""
 
@@ -107,18 +143,8 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             ...
 
     @runtime_checkable
-    class ErasedCommandResult(Protocol):
+    class ErasedCommandResult(p.FailureLike, Protocol):
         """Type-erased result surface consumed by declarative CLI routes."""
-
-        @property
-        def failure(self) -> bool:
-            """Indicate whether the command failed."""
-            ...
-
-        @property
-        def error(self) -> str | None:
-            """Expose the normalized failure message, if any."""
-            ...
 
         @property
         def value(self) -> t.Cli.ResultValue:

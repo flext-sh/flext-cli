@@ -1,11 +1,15 @@
-"""Aggregate plans and byte-boundary results for generic PPTX rendering."""
+"""Aggregate plans and byte-boundary results for generic PPTX rendering.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
 
 from __future__ import annotations
 
-from types import MappingProxyType
 from typing import Annotated
 
 from flext_cli import t
+from flext_cli._models._defaults import EMPTY_JSON_MAPPING
 from flext_core import m
 
 
@@ -19,32 +23,36 @@ class FlextCliModelsPptxPresentation:
         title: str = m.Field(default="", description="Slide title.")
 
     class PptxPresentationPlan(m.FrozenModel):
-        slides: tuple[FlextCliModelsPptxPresentation.PptxSlidePlan, ...] = m.Field(
-            default=(), strict=False, description="Presentation slides."
+        slides: t.VariadicTuple[FlextCliModelsPptxPresentation.PptxSlidePlan] = m.Field(
+            default=(),
+            strict=False,
+            description="Presentation slides.",
         )
         core_properties: t.JsonMapping = m.Field(
-            default_factory=lambda: MappingProxyType({}),
+            default_factory=lambda: EMPTY_JSON_MAPPING,
             description="Core document properties.",
         )
 
     class PptxRenderRequest(m.FrozenModel):
         template: (
             Annotated[
-                bytes, m.Field(min_length=1, description="Formatting template bytes.")
+                bytes,
+                m.Field(min_length=1, description="Formatting template bytes."),
             ]
             | None
         ) = m.Field(default=None, description="Optional source presentation.")
         plan: FlextCliModelsPptxPresentation.PptxPresentationPlan = m.Field(
-            description="Validated presentation plan."
+            description="Validated presentation plan.",
         )
 
     class PptxRenderResult(m.FrozenModel):
         content: Annotated[
-            bytes, m.Field(min_length=1, description="Rendered presentation bytes.")
+            bytes,
+            m.Field(min_length=1, description="Rendered presentation bytes."),
         ]
         plan: FlextCliModelsPptxPresentation.PptxPresentationPlan = m.Field(
-            description="Exact source plan."
+            description="Exact source plan.",
         )
 
 
-__all__: tuple[str, ...] = ("FlextCliModelsPptxPresentation",)
+__all__: t.VariadicTuple[str] = ("FlextCliModelsPptxPresentation",)
