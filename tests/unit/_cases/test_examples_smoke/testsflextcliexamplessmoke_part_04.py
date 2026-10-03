@@ -39,7 +39,7 @@ class TestsFlextCliExamplesSmoke:
         tmp_path: Path,
     ) -> None:
         """Complete integration example must fail honestly for missing, invalid, and
-        
+
         unwritable data files.
         """
         app = DataManagerCLI()

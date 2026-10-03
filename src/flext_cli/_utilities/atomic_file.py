@@ -26,11 +26,12 @@ if TYPE_CHECKING:
     from flext_cli import m, t
 
 
-
 class _NoPrecondition:
     """Marker for callers that do not supply an expected version."""
 
+
 _NO_PRECONDITION = _NoPrecondition()
+
 
 def write_atomic_bytes(
     path: Path,
@@ -67,11 +68,9 @@ def write_atomic_bytes(
         if planned is None:
             guarded = False
             expected_content = None
-            expected_mode: (
-                int
-                | atomic_file_mode.NoModePrecondition
-                | None
-            ) = atomic_file_mode.NO_MODE_PRECONDITION
+            expected_mode: int | atomic_file_mode.NoModePrecondition | None = (
+                atomic_file_mode.NO_MODE_PRECONDITION
+            )
         else:
             guarded = True
             expected_content = planned.content
@@ -106,6 +105,7 @@ def write_atomic_bytes(
             target_mode,
         )
 
+
 def _parse_precondition(
     path: Path,
     expected_state: m.Cli.AtomicFileState | _NoPrecondition,
@@ -125,6 +125,7 @@ def _parse_precondition(
     )
     return expected_state
 
+
 def _stage_and_publish(
     parent: atomic_file_descriptor.ParentDescriptor,
     destination: Path,
@@ -141,6 +142,7 @@ def _stage_and_publish(
     except BaseException as operation_error:
         stage.cleanup(operation_error)
         raise
+
 
 class _AtomicStage:
     """Own live staging state before any signal can cross a method boundary."""
@@ -169,11 +171,9 @@ class _AtomicStage:
             else None
         )
         try:
-            self.descriptor = (
-                atomic_file_temporary.create_descriptor(
-                    self.parent,
-                    self.temporary,
-                )
+            self.descriptor = atomic_file_temporary.create_descriptor(
+                self.parent,
+                self.temporary,
             )
             self.identity = atomic_file_state.identity(
                 os.fstat(self.descriptor),
@@ -262,6 +262,7 @@ class _AtomicStage:
                 operation_error,
             )
 
+
 def _validate_replacement(
     parent: atomic_file_descriptor.ParentDescriptor,
     destination: Path,
@@ -301,6 +302,7 @@ def _validate_replacement(
         staged_identity,
         parent=parent,
     )
+
 
 def _validate_staged(
     parent: atomic_file_descriptor.ParentDescriptor,

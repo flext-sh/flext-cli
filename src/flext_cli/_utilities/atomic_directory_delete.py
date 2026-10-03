@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     from flext_cli import m
 
 
-
 def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:
     """Remove the exact empty-directory version authorized by the caller.
 
@@ -37,18 +36,22 @@ def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:
     with atomic_file_descriptor.parent_descriptor(path) as parent:
         atomic_directory_model.require_parent(state, parent.state)
         observed = atomic_directory_state.destination_state(
-            path, parent=parent,
+            path,
+            parent=parent,
         )
         atomic_directory_model.require_observed(state, observed)
         if observed is None:
             message = f"atomic directory disappeared before delete: {path}"
             raise OSError(errno.ESTALE, message, path)
         authenticated = atomic_directory_state.read_empty_state(
-            parent, path, observed,
+            parent,
+            path,
+            observed,
         )
         atomic_directory_model.require_observed(state, authenticated)
         current = atomic_directory_state.destination_state(
-            path, parent=parent,
+            path,
+            parent=parent,
         )
         atomic_directory_model.require_observed(state, current)
         if current is None or atomic_file_read.state_key(
@@ -62,7 +65,8 @@ def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:
         atomic_file_durability.sync_parent(parent)
         if (
             atomic_directory_state.destination_state(
-                path, parent=parent,
+                path,
+                parent=parent,
             )
             is not None
         ):

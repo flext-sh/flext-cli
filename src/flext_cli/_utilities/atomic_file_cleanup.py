@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-
 def remove_failed_temporary(
     parent: atomic_file_descriptor.ParentDescriptor,
     temporary: Path,
@@ -46,7 +45,9 @@ def remove_failed_temporary(
     if identity is not None:
         try:
             atomic_file_state.assert_temporary_owned(
-                temporary, identity, parent=parent,
+                temporary,
+                identity,
+                parent=parent,
             )
             atomic_file_descriptor.unlink_entry(parent, temporary)
             atomic_file_durability.sync_parent(parent)
@@ -54,8 +55,11 @@ def remove_failed_temporary(
             cleanup_errors.append(cleanup_error)
     if cleanup_errors:
         _raise_cleanup_failure(
-            temporary, operation_error, cleanup_errors,
+            temporary,
+            operation_error,
+            cleanup_errors,
         )
+
 
 def _raise_cleanup_failure(
     temporary: Path,

@@ -118,7 +118,8 @@ class FlextCliUtilitiesXlsxRecalc(
             )
         value_snapshot = cls.xlsx_snapshot(
             m.Cli.XlsxSnapshotRequest(
-                source=recalculated.value.content, data_only=True,
+                source=recalculated.value.content,
+                data_only=True,
             ),
         )
         if value_snapshot.failure:

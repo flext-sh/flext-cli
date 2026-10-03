@@ -19,7 +19,6 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-
 def read_authenticated_state(
     path: Path,
     *,
@@ -43,15 +42,15 @@ def read_authenticated_state(
     validated = atomic_file_path.validate_atomic_path(path)
     if (
         not required
-        and atomic_file_path.resolve_parent_path(validated.parent)[0]
-        is None
+        and atomic_file_path.resolve_parent_path(validated.parent)[0] is None
     ):
         return None, None, None
     with atomic_file_descriptor.parent_descriptor(
         validated,
     ) as parent:
         state = atomic_file_state.destination_state(
-            validated, parent=parent,
+            validated,
+            parent=parent,
         )
         if state is None:
             if required:
@@ -60,12 +59,13 @@ def read_authenticated_state(
             atomic_file_descriptor.assert_parent_unchanged(parent)
             return parent.state, None, None
         content = atomic_file_state.read_authenticated_bytes(
-            validated, state, parent=parent,
+            validated,
+            state,
+            parent=parent,
         )
         return parent.state, state, content
+
 
 __all__: list[str] = [
     "read_authenticated_state",
 ]
-
-

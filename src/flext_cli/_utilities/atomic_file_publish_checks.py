@@ -18,8 +18,8 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-
 IDENTITY_COMPONENT_COUNT: int = 2
+
 
 def validate_identity(path: Path, value: t.Pair[int, int], *, label: str) -> None:
     """Require one strict non-negative device and inode pair.
@@ -31,13 +31,13 @@ def validate_identity(path: Path, value: t.Pair[int, int], *, label: str) -> Non
 
     """
     if (
-        len(value)
-        != IDENTITY_COMPONENT_COUNT
+        len(value) != IDENTITY_COMPONENT_COUNT
         or any(isinstance(item, bool) for item in value)
         or any(item < 0 for item in value)
     ):
         message = f"{label} must be a non-negative device and inode pair"
         raise OSError(errno.EINVAL, message, path)
+
 
 def require_identity(
     path: Path,
@@ -50,12 +50,11 @@ def require_identity(
         OSError: If ``observed != expected``.
 
     """
-    observed = (
-        None if state is None else atomic_file_state.identity(state)
-    )
+    observed = None if state is None else atomic_file_state.identity(state)
     if observed != expected:
         message = f"atomic file physical identity changed: {path}"
         raise OSError(errno.ESTALE, message, path)
+
 
 def require_distinct_inode(
     destination: Path,
@@ -71,17 +70,15 @@ def require_distinct_inode(
     """
     if (
         destination_state is not None
-        and atomic_file_state.identity(destination_state)
-        == staged_identity
+        and atomic_file_state.identity(destination_state) == staged_identity
     ):
         message = "staged file and atomic destination share one inode"
         raise OSError(errno.EINVAL, message, destination)
 
+
 def validate_devices(
     destination: Path,
-    destination_parent: (
-        atomic_file_descriptor.ParentDescriptor
-    ),
+    destination_parent: (atomic_file_descriptor.ParentDescriptor),
     destination_state: os.stat_result | None,
     staged: Path,
     staged_parent: atomic_file_descriptor.ParentDescriptor,
@@ -101,15 +98,12 @@ def validate_devices(
         or staged_state.st_dev != staged_parent.state.st_dev
         or (destination_state is not None and destination_state.st_dev != device)
     ):
-        message = (
-            f"atomic staged and destination entries span filesystems: {staged}"
-        )
+        message = f"atomic staged and destination entries span filesystems: {staged}"
         raise OSError(errno.EXDEV, message, destination)
 
+
 def validate_publication(
-    destination_parent: (
-        atomic_file_descriptor.ParentDescriptor
-    ),
+    destination_parent: (atomic_file_descriptor.ParentDescriptor),
     destination: Path,
     staged_parent: atomic_file_descriptor.ParentDescriptor,
     staged: Path,
@@ -142,10 +136,7 @@ def validate_publication(
         destination,
         parent=destination_parent,
     )
-    if (
-        published is None
-        or atomic_file_state.identity(published) != staged_identity
-    ):
+    if published is None or atomic_file_state.identity(published) != staged_identity:
         message = f"published atomic file has another identity: {destination}"
         raise OSError(errno.ESTALE, message, destination)
     if (

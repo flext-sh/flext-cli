@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from flext_cli import m
 
 
-
 def read_authenticated_empty_directory(
     path: Path,
     *,
@@ -42,15 +41,12 @@ def read_authenticated_empty_directory(
     """
     path = atomic_file_path.validate_atomic_path(path)
     atomic_directory_descriptor.require_read_capabilities(path)
-    if (
-        not required
-        and atomic_file_path.resolve_parent_path(path.parent)[0]
-        is None
-    ):
+    if not required and atomic_file_path.resolve_parent_path(path.parent)[0] is None:
         return atomic_directory_model.from_observed(path, None, None)
     with atomic_file_descriptor.parent_descriptor(path) as parent:
         observed = atomic_directory_state.destination_state(
-            path, parent=parent,
+            path,
+            parent=parent,
         )
         if observed is None:
             if required:
@@ -58,13 +54,19 @@ def read_authenticated_empty_directory(
                 raise FileNotFoundError(errno.ENOENT, message, path)
             atomic_file_descriptor.assert_parent_unchanged(parent)
             return atomic_directory_model.from_observed(
-                path, parent.state, None,
+                path,
+                parent.state,
+                None,
             )
         authenticated = atomic_directory_state.read_empty_state(
-            parent, path, observed,
+            parent,
+            path,
+            observed,
         )
         return atomic_directory_model.from_observed(
-            path, parent.state, authenticated,
+            path,
+            parent.state,
+            authenticated,
         )
 
 

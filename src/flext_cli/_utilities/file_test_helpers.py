@@ -11,20 +11,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli._utilities._file_test_helper_parts \
-    .flextcliutilitiesfiletesthelpersmixin_part_01 import (
+from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_01 import (
     FlextCliUtilitiesFileTestHelpersMixin as FileTestHelpersMixinPart01,
 )
-from flext_cli._utilities._file_test_helper_parts \
-    .flextcliutilitiesfiletesthelpersmixin_part_02 import (
+from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_02 import (
     FlextCliUtilitiesFileTestHelpersMixin as FileTestHelpersMixinPart02,
 )
-from flext_cli._utilities._file_test_helper_parts \
-    .flextcliutilitiesfiletesthelpersmixin_part_03 import (
+from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_03 import (
     FlextCliUtilitiesFileTestHelpersMixin as FileTestHelpersMixinPart03,
 )
-from flext_cli._utilities._file_test_helper_parts \
-    .flextcliutilitiesfiletesthelpersmixin_part_04 import (
+from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
     FlextCliUtilitiesFileTestHelpersMixin as FileTestHelpersMixinPart04,
 )
 

@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     from flext_cli import m
 
 
-
 def publish_guarded_staged_empty_directory(
     destination_before: m.Cli.AtomicDirectoryState,
     staged: m.Cli.AtomicDirectoryState,
@@ -79,12 +78,10 @@ def publish_guarded_staged_empty_directory(
             destination_parent,
             destination,
         )
-        authenticated = (
-            _authenticated_staged(
-                staged,
-                staged_parent,
-                staged_path,
-            )
+        authenticated = _authenticated_staged(
+            staged,
+            staged_parent,
+            staged_path,
         )
         _require_same_filesystem(
             destination,
@@ -101,12 +98,10 @@ def publish_guarded_staged_empty_directory(
             destination_parent,
             destination,
         )
-        authenticated = (
-            _authenticated_staged(
-                staged,
-                staged_parent,
-                staged_path,
-            )
+        authenticated = _authenticated_staged(
+            staged,
+            staged_parent,
+            staged_path,
         )
         atomic_directory_descriptor.rename_entry_noreplace(
             staged_parent,
@@ -132,6 +127,7 @@ def publish_guarded_staged_empty_directory(
                 post_error,
             )
 
+
 def _require_destination_absent(
     planned: m.Cli.AtomicDirectoryState,
     parent: atomic_file_descriptor.ParentDescriptor,
@@ -143,6 +139,7 @@ def _require_destination_absent(
     )
     atomic_directory_model.require_observed(planned, observed)
     atomic_file_descriptor.assert_parent_unchanged(parent)
+
 
 def _authenticated_staged(
     planned: m.Cli.AtomicDirectoryState,
@@ -165,11 +162,10 @@ def _authenticated_staged(
     atomic_directory_model.require_observed(planned, authenticated)
     return authenticated
 
+
 def _require_same_filesystem(
     destination: Path,
-    destination_parent: (
-        atomic_file_descriptor.ParentDescriptor
-    ),
+    destination_parent: (atomic_file_descriptor.ParentDescriptor),
     staged_parent: atomic_file_descriptor.ParentDescriptor,
     staged: os.stat_result,
 ) -> None:
@@ -178,10 +174,9 @@ def _require_same_filesystem(
         message = "staged directory and destination span filesystems"
         raise OSError(errno.EXDEV, message, destination)
 
+
 def _published_state(
-    destination_parent: (
-        atomic_file_descriptor.ParentDescriptor
-    ),
+    destination_parent: (atomic_file_descriptor.ParentDescriptor),
     destination: Path,
     staged_parent: atomic_file_descriptor.ParentDescriptor,
     staged_path: Path,
@@ -214,6 +209,7 @@ def _published_state(
         destination_parent.state,
         authenticated,
     )
+
 
 def _raise_post_publication_failure(destination: Path, error: OSError) -> Never:
     message = (

@@ -37,7 +37,9 @@ class FlextCliUtilitiesSymlink:
                 location,
             ) as parent:
                 state = atomic_symlink_state.read_symlink_state(
-                    location, parent, required=required,
+                    location,
+                    parent,
+                    required=required,
                 )
         except OSError as exc:
             return r[m.Cli.AtomicSymlinkState].fail(str(exc), exception=exc)
