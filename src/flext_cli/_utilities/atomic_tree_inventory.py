@@ -53,14 +53,14 @@ class FlextCliUtilitiesAtomicTreeInventory:
         root_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(root_path)
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(root_path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-            root_path
+            root_path,
         ) as outer_parent:
             parent_mount_id = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
                 outer_parent.descriptor,
                 outer_parent.path,
             )
             root_state = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                root_path, parent=outer_parent
+                root_path, parent=outer_parent,
             )
             if root_state is None:
                 message = f"required atomic physical-tree root is missing: {root_path}"
@@ -72,13 +72,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 FlextCliUtilitiesAtomicTreeInventory._DIRECTORY_FLAGS,
             ) as descriptor:
                 FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
-                    descriptor, root_path, root_state
+                    descriptor, root_path, root_state,
                 )
                 root_mount_id = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
-                    descriptor, root_path
+                    descriptor, root_path,
                 )
                 FlextCliUtilitiesAtomicTreeDescriptor.require_mount(
-                    root_path, parent_mount_id, root_mount_id
+                    root_path, parent_mount_id, root_mount_id,
                 )
                 root = FlextCliUtilitiesAtomicTreeInventory._entry(
                     root_path,
@@ -101,7 +101,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     )
                 )
                 directory_identities = {
-                    FlextCliUtilitiesAtomicFilePath.identity(root_state)
+                    FlextCliUtilitiesAtomicFilePath.identity(root_state),
                 }
                 FlextCliUtilitiesAtomicTreeInventory._inventory_directory(
                     root_parent,
@@ -110,17 +110,17 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     directory_identities,
                 )
                 FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
-                    descriptor, root_path, root_state
+                    descriptor, root_path, root_state,
                 )
             FlextCliUtilitiesAtomicTreeDescriptor.require_entry_state(
-                outer_parent, root_path, root_state
+                outer_parent, root_path, root_state,
             )
         return m.Cli.AtomicPhysicalTreeManifest(
             root=root,
             entries=tuple(
                 sorted(
-                    entries, key=FlextCliUtilitiesAtomicTreeInventory._entry_path_key
-                )
+                    entries, key=FlextCliUtilitiesAtomicTreeInventory._entry_path_key,
+                ),
             ),
         )
 
@@ -143,7 +143,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             if stat.S_ISDIR(observed.st_mode):
                 FlextCliUtilitiesAtomicFilePath.validate_directory_state(path, observed)
                 FlextCliUtilitiesAtomicTreeDescriptor.require_same_device(
-                    path, parent.state, observed
+                    path, parent.state, observed,
                 )
                 identity = FlextCliUtilitiesAtomicFilePath.identity(observed)
                 if identity in directory_identities:
@@ -155,13 +155,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     FlextCliUtilitiesAtomicTreeInventory._DIRECTORY_FLAGS,
                 ) as descriptor:
                     FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
-                        descriptor, path, observed
+                        descriptor, path, observed,
                     )
                     mount_id = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
-                        descriptor, path
+                        descriptor, path,
                     )
                     FlextCliUtilitiesAtomicTreeDescriptor.require_mount(
-                        path, parent_mount_id, mount_id
+                        path, parent_mount_id, mount_id,
                     )
                     directory_identities.add(identity)
                     entries.append(
@@ -193,19 +193,19 @@ class FlextCliUtilitiesAtomicTreeInventory:
                         directory_identities,
                     )
                     FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
-                        descriptor, path, observed
+                        descriptor, path, observed,
                     )
                 FlextCliUtilitiesAtomicTreeDescriptor.require_entry_state(
-                    parent, path, observed
+                    parent, path, observed,
                 )
             elif stat.S_ISREG(observed.st_mode):
                 authenticated = FlextCliUtilitiesAtomicFileState.destination_state(
-                    path, parent=parent
+                    path, parent=parent,
                 )
                 if authenticated is None:
                     FlextCliUtilitiesAtomicTreeInventory._raise_changed(path)
                 FlextCliUtilitiesAtomicTreeDescriptor.require_same_device(
-                    path, parent.state, authenticated
+                    path, parent.state, authenticated,
                 )
                 size, digest = (
                     FlextCliUtilitiesAtomicTreeDescriptor.measure_authenticated_file(
@@ -232,10 +232,10 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 if not target:
                     FlextCliUtilitiesAtomicTreeInventory._raise_changed(path)
                 FlextCliUtilitiesAtomicTreeDescriptor.require_entry_state(
-                    parent, path, observed
+                    parent, path, observed,
                 )
                 FlextCliUtilitiesAtomicTreeDescriptor.require_same_device(
-                    path, parent.state, observed
+                    path, parent.state, observed,
                 )
                 entries.append(
                     FlextCliUtilitiesAtomicTreeInventory._entry(

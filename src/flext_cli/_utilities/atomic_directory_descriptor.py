@@ -9,9 +9,8 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
-from flext_cli import t
 from flext_cli._utilities.atomic_directory_noreplace import (
     FlextCliUtilitiesAtomicDirectoryNoreplace,
 )
@@ -21,6 +20,9 @@ from flext_cli._utilities.atomic_file_descriptor import (
 from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
 )
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicDirectoryDescriptor:
@@ -50,7 +52,8 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
         """
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(path)
         FlextCliUtilitiesAtomicDirectoryDescriptor._require_dir_fd(
-            path, (("mkdir", os.mkdir), ("rmdir", os.rmdir))
+            path,
+            (("mkdir", os.mkdir), ("rmdir", os.rmdir)),
         )
         if not hasattr(os, "fchmod"):
             message = "descriptor-bound directory permission changes are unsupported"
@@ -61,7 +64,8 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
         """Fail before inspection unless guarded rmdir is descriptor-bound."""
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(path)
         FlextCliUtilitiesAtomicDirectoryDescriptor._require_dir_fd(
-            path, (("rmdir", os.rmdir),)
+            path,
+            (("rmdir", os.rmdir),),
         )
 
     @staticmethod
@@ -75,10 +79,10 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(source)
         FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(source)
         FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(
-            destination
+            destination,
         )
         FlextCliUtilitiesAtomicDirectoryNoreplace.require_noreplace_capability(
-            destination
+            destination,
         )
         if not hasattr(os, "fsync"):
             message = "directory durability sync is unsupported"
@@ -112,17 +116,20 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
     def rename_entry_noreplace(
         source_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
         source: Path,
-        destination_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        destination_parent: (
+            FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+        ),
         destination: Path,
     ) -> None:
         """Move one child without clobbering any destination entry."""
         FlextCliUtilitiesAtomicFileDescriptor.require_entry(source_parent, source)
         FlextCliUtilitiesAtomicFileDescriptor.require_entry(
-            destination_parent, destination
+            destination_parent,
+            destination,
         )
         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(source_parent)
         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(
-            destination_parent
+            destination_parent,
         )
         FlextCliUtilitiesAtomicDirectoryNoreplace.rename_noreplace(
             source_parent.descriptor,

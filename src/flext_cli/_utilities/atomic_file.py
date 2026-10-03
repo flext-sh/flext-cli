@@ -10,8 +10,8 @@ import errno
 import os
 import signal
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_cli import m, t
 from flext_cli._utilities.atomic_file_cleanup import FlextCliUtilitiesAtomicFileCleanup
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -29,6 +29,9 @@ from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileSt
 from flext_cli._utilities.atomic_file_temporary import (
     FlextCliUtilitiesAtomicFileTemporary,
 )
+
+if TYPE_CHECKING:
+    from flext_cli import m, t
 
 
 class FlextCliUtilitiesAtomicFile:
@@ -64,10 +67,13 @@ class FlextCliUtilitiesAtomicFile:
             raise OSError(errno.EINVAL, message, path)
         planned = FlextCliUtilitiesAtomicFile._parse_precondition(path, expected_state)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-            path, replace=True, unlink=True
+            path,
+            replace=True,
+            unlink=True,
         ) as parent:
             expected = FlextCliUtilitiesAtomicFileState.destination_state(
-                path, parent=parent
+                path,
+                parent=parent,
             )
             if planned is None:
                 guarded = False
@@ -91,16 +97,24 @@ class FlextCliUtilitiesAtomicFile:
                 parent=parent,
             )
             FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
-                path, expected, expected_mode
+                path,
+                expected,
+                expected_mode,
             )
             target_mode = FlextCliUtilitiesAtomicFileMode.publication_mode(
-                expected, permission_mode
+                expected,
+                permission_mode,
             )
             FlextCliUtilitiesAtomicFileTemporary.require_mode_capability(
-                path, target_mode
+                path,
+                target_mode,
             )
             FlextCliUtilitiesAtomicFile._stage_and_publish(
-                parent, path, content, expected, target_mode
+                parent,
+                path,
+                content,
+                expected,
+                target_mode,
             )
 
     @staticmethod
@@ -145,7 +159,8 @@ class FlextCliUtilitiesAtomicFile:
         """Own live staging state before any signal can cross a method boundary."""
 
         def __init__(
-            self, parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+            self,
+            parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
         ) -> None:
             self.parent = parent
             self.temporary = FlextCliUtilitiesAtomicFileTemporary.temporary_path(parent)
@@ -174,7 +189,7 @@ class FlextCliUtilitiesAtomicFile:
                     )
                 )
                 self.identity = FlextCliUtilitiesAtomicFileState.identity(
-                    os.fstat(self.descriptor)
+                    os.fstat(self.descriptor),
                 )
             finally:
                 if previous_mask is not None:
@@ -236,7 +251,8 @@ class FlextCliUtilitiesAtomicFile:
             )
             self.replacement_completed = True
             FlextCliUtilitiesAtomicFileDurability.sync_replacement(
-                self.parent, self.parent
+                self.parent,
+                self.parent,
             )
             FlextCliUtilitiesAtomicFilePublishChecks.validate_publication(
                 self.parent,
@@ -277,7 +293,9 @@ class FlextCliUtilitiesAtomicFile:
             staged_identity,
         )
         FlextCliUtilitiesAtomicFilePublishChecks.require_distinct_inode(
-            destination, expected, staged_identity
+            destination,
+            expected,
+            staged_identity,
         )
         FlextCliUtilitiesAtomicFilePublishChecks.validate_devices(
             destination,
@@ -288,10 +306,14 @@ class FlextCliUtilitiesAtomicFile:
             staged_state,
         )
         FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
-            destination, expected, parent=parent
+            destination,
+            expected,
+            parent=parent,
         )
         FlextCliUtilitiesAtomicFileState.assert_temporary_owned(
-            temporary, staged_identity, parent=parent
+            temporary,
+            staged_identity,
+            parent=parent,
         )
 
     @staticmethod
@@ -303,13 +325,16 @@ class FlextCliUtilitiesAtomicFile:
         identity: t.Pair[int, int],
     ) -> os.stat_result:
         state = FlextCliUtilitiesAtomicFileState.destination_state(
-            temporary, parent=parent
+            temporary,
+            parent=parent,
         )
         if state is None:
             message = f"atomic temporary disappeared before publication: {temporary}"
             raise FileNotFoundError(errno.ENOENT, message, temporary)
         FlextCliUtilitiesAtomicFilePublishChecks.require_identity(
-            temporary, state, identity
+            temporary,
+            state,
+            identity,
         )
         FlextCliUtilitiesAtomicFileState.validate_precondition(
             temporary,
@@ -319,7 +344,9 @@ class FlextCliUtilitiesAtomicFile:
             parent=parent,
         )
         FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
-            temporary, state, mode
+            temporary,
+            state,
+            mode,
         )
         return state
 

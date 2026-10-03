@@ -11,7 +11,6 @@ import os
 import uuid
 from typing import TYPE_CHECKING
 
-from flext_cli import m
 from flext_cli._utilities.atomic_directory_noreplace import (
     FlextCliUtilitiesAtomicDirectoryNoreplace,
 )
@@ -28,6 +27,7 @@ from flext_cli._utilities.atomic_symlink_state import (
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from flext_cli import m
     from flext_cli._utilities.atomic_file_descriptor import (
         FlextCliUtilitiesAtomicFileDescriptor,
     )
@@ -76,7 +76,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
         staged_path = path.with_name(f".flext-symlink-{uuid.uuid4().hex}")
         os.symlink(target, staged_path.name, dir_fd=parent.descriptor)
         observed = FlextCliUtilitiesAtomicSymlinkState.read_symlink_state(
-            staged_path, parent, required=True
+            staged_path, parent, required=True,
         )
         if observed.target != target:
             msg = f"staged symbolic link changed before publication: {staged_path}"
@@ -112,7 +112,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
             )
         else:
             FlextCliUtilitiesAtomicFileDescriptor.replace_entry(
-                parent, staged_path, parent, before.path
+                parent, staged_path, parent, before.path,
             )
         FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
 
@@ -127,12 +127,12 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
 
         Raises:
             OSError: If ``after.target != target or after.identity is None or
-                staged.identity is None``; or if ``(after.identity.device,
-                after.identity.inode) != (staged.identity.device, staged.identity.inode)``.
+            staged.identity is None``; or if ``(after.identity.device,
+            after.identity.inode) != (staged.identity.device, staged.identity.inode)``.
 
         """
         after = FlextCliUtilitiesAtomicSymlinkState.read_symlink_state(
-            path, parent, required=True
+            path, parent, required=True,
         )
         if after.target != target or after.identity is None or staged.identity is None:
             msg = f"atomic symlink publication did not retain its target: {path}"
@@ -160,36 +160,36 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
         if before.target is None:
             FlextCliUtilitiesAtomicDirectoryNoreplace.require_noreplace_capability(path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-            path, replace=True, unlink=True
+            path, replace=True, unlink=True,
         ) as parent:
             FlextCliUtilitiesAtomicSymlinkState.require_symlink_state(before, parent)
             if before.target == target:
                 return
             staged_path, staged = (
                 FlextCliUtilitiesAtomicSymlinkPublish._stage_verified_link(
-                    before, target, parent
+                    before, target, parent,
                 )
             )
             swapped = False
             try:
                 FlextCliUtilitiesAtomicSymlinkState.require_symlink_state(
-                    before, parent
+                    before, parent,
                 )
                 FlextCliUtilitiesAtomicSymlinkState.require_symlink_state(
-                    staged, parent
+                    staged, parent,
                 )
                 FlextCliUtilitiesAtomicSymlinkPublish._swap_staged_link(
-                    before, parent, staged_path
+                    before, parent, staged_path,
                 )
                 swapped = True
                 FlextCliUtilitiesAtomicSymlinkPublish._verify_published(
-                    path, parent, target, staged
+                    path, parent, target, staged,
                 )
             except BaseException as primary:
                 try:
                     if not swapped:
                         FlextCliUtilitiesAtomicSymlinkPublish._discard_staged(
-                            staged, staged_path, parent
+                            staged, staged_path, parent,
                         )
                 except BaseException as cleanup_error:
                     msg = "symlink publication and staged cleanup failed"
@@ -213,14 +213,14 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
             msg = f"cannot delete an absent symbolic link: {before.path}"
             raise FileNotFoundError(errno.ENOENT, msg, before.path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-            before.path, unlink=True
+            before.path, unlink=True,
         ) as parent:
             FlextCliUtilitiesAtomicSymlinkState.require_symlink_state(before, parent)
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, before.path)
             FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             if (
                 FlextCliUtilitiesAtomicSymlinkState.read_symlink_state(
-                    before.path, parent
+                    before.path, parent,
                 ).target
                 is not None
             ):

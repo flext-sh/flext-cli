@@ -41,7 +41,8 @@ class FlextCliUtilitiesAtomicFileTemporary:
         """Fail before staging if an exact requested mode cannot use its descriptor.
 
         Raises:
-            OSError: If ``permission_mode is not None and os.chmod not in os.supports_fd``.
+            OSError: If ``permission_mode is not None and os.chmod not in
+            os.supports_fd``.
 
         """
         if permission_mode is not None and os.chmod not in os.supports_fd:
@@ -99,7 +100,7 @@ class FlextCliUtilitiesAtomicFileTemporary:
         if permission_mode is not None:
             os.chmod(descriptor, permission_mode)
             FlextCliUtilitiesAtomicFileMode.assert_observed_mode(
-                temporary, os.fstat(descriptor), permission_mode
+                temporary, os.fstat(descriptor), permission_mode,
             )
         os.fsync(descriptor)
         return stat.S_IMODE(os.fstat(descriptor).st_mode)

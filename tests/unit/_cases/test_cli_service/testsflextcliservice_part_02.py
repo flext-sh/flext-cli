@@ -27,7 +27,10 @@ class TestsFlextCliService:
 
     @staticmethod
     def test_model_command_accepts_repeatable_list_options() -> None:
-        """Accept repeated model-derived options through the public invocation facade."""
+        """Accept repeated model-derived options through the public invocation
+        
+        facade.
+        """
         captured: MutableSequence[m.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
             name="root",
@@ -98,7 +101,7 @@ class TestsFlextCliService:
 
         class CustomDeclModel(m.BaseModel):
             flag: bool = m.Field(
-                False,
+                default=False,
                 validate_default=True,
                 description="Custom flag",
                 json_schema_extra={"typer_param_decls": ["-f", "--flaggy"]},

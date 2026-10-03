@@ -70,7 +70,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
             )
         except BaseException as operation_error:
             FlextCliUtilitiesAtomicParentDescriptor._close_after_failure(
-                descriptors, path, operation_error
+                descriptors, path, operation_error,
             )
             raise
         opened = FlextCliUtilitiesAtomicParentDescriptor.FlextCliPhysicalDirectory(
@@ -83,7 +83,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
             yield opened
         except BaseException as operation_error:
             FlextCliUtilitiesAtomicParentDescriptor._close_after_failure(
-                descriptors, path, operation_error
+                descriptors, path, operation_error,
             )
             raise
         FlextCliUtilitiesAtomicParentDescriptor._close_descriptors(descriptors, path)
@@ -127,7 +127,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                 message = f"atomic destination parent is missing: {absent}"
                 raise FileNotFoundError(errno.ENOENT, message, absent) from missing
             if not stat.S_ISDIR(
-                state.st_mode
+                state.st_mode,
             ) or FlextCliUtilitiesAtomicFilePath.is_reparse_point(state):
                 FlextCliUtilitiesAtomicFilePath.validate_directory_state(
                     root.joinpath(*parts[1 : index + 2]),
@@ -145,8 +145,8 @@ class FlextCliUtilitiesAtomicParentDescriptor:
             The resulting ``DirectoryChainInspection``.
 
         Raises:
-            OSError: If ``current.ancestry != ancestry or file_path.identity(current.state)
-                != (state.st_dev, state.st_ino)``.
+            OSError: If ``current.ancestry != ancestry or
+            file_path.identity(current.state) != (state.st_dev, state.st_ino)``.
 
         """
         target = FlextCliUtilitiesAtomicFilePath.validate_directory_path(path)
@@ -163,21 +163,21 @@ class FlextCliUtilitiesAtomicParentDescriptor:
             parts = target.relative_to(Path(target.anchor)).parts
             anchor = Path(target.anchor).joinpath(*parts[:consumed])
             missing = FlextCliUtilitiesAtomicParentDescriptor._missing_paths(
-                anchor, parts[consumed:]
+                anchor, parts[consumed:],
             )
             FlextCliUtilitiesAtomicParentDescriptor._close_descriptors(
-                descriptors, target
+                descriptors, target,
             )
         except BaseException as operation_error:
             FlextCliUtilitiesAtomicParentDescriptor._close_after_failure(
-                descriptors, target, operation_error
+                descriptors, target, operation_error,
             )
             raise
         with FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
-            anchor
+            anchor,
         ) as current:
             if current.ancestry != ancestry or FlextCliUtilitiesAtomicFilePath.identity(
-                current.state
+                current.state,
             ) != (
                 state.st_dev,
                 state.st_ino,
@@ -230,7 +230,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
         state = os.fstat(descriptor)
         FlextCliUtilitiesAtomicFilePath.validate_directory_state(root, state)
         ancestry: list[tuple[int, int]] = [
-            FlextCliUtilitiesAtomicFilePath.identity(state)
+            FlextCliUtilitiesAtomicFilePath.identity(state),
         ]
         parts = path.relative_to(root).parts
         for index, component in enumerate(parts):
@@ -247,7 +247,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                 message = f"atomic destination parent is missing: {absent}"
                 raise FileNotFoundError(errno.ENOENT, message, absent) from missing
             if not stat.S_ISDIR(
-                relative_state.st_mode
+                relative_state.st_mode,
             ) or FlextCliUtilitiesAtomicFilePath.is_reparse_point(
                 relative_state,
             ):
@@ -259,10 +259,10 @@ class FlextCliUtilitiesAtomicParentDescriptor:
             descriptors.append(next_descriptor)
             descriptor_state = os.fstat(next_descriptor)
             FlextCliUtilitiesAtomicFilePath.validate_directory_state(
-                path, descriptor_state
+                path, descriptor_state,
             )
             if FlextCliUtilitiesAtomicFilePath.identity(
-                relative_state
+                relative_state,
             ) != FlextCliUtilitiesAtomicFilePath.identity(descriptor_state):
                 message = f"atomic parent component identity changed: {path}"
                 raise OSError(errno.ESTALE, message, path)
@@ -273,7 +273,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
 
     @staticmethod
     def _missing_paths(
-        anchor: Path, parts: t.VariadicTuple[str]
+        anchor: Path, parts: t.VariadicTuple[str],
     ) -> t.VariadicTuple[Path]:
         missing: list[Path] = []
         current = anchor
@@ -302,7 +302,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
     ) -> None:
         try:
             FlextCliUtilitiesAtomicParentDescriptor._close_descriptors(
-                descriptors, path
+                descriptors, path,
             )
         except OSError as close_error:
             message = f"atomic operation failed ({operation_error}); {close_error}"

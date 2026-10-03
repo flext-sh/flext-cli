@@ -9,14 +9,16 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
-from flext_cli import t
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
 from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
 from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+
+if TYPE_CHECKING:
+    from flext_cli import t
+    from flext_cli._utilities.atomic_file_descriptor import (
+        FlextCliUtilitiesAtomicFileDescriptor,
+    )
 
 
 class FlextCliUtilitiesAtomicFilePublishChecks:
@@ -29,8 +31,9 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         """Require one strict non-negative device and inode pair.
 
         Raises:
-            OSError: If ``len(value) != IDENTITY_COMPONENT_COUNT or any((isinstance(item,
-                bool) for item in value)) or any((item < 0 for item in value))``.
+            OSError: If ``len(value) != IDENTITY_COMPONENT_COUNT or
+            any((isinstance(item, bool) for item in value)) or any((item < 0 for item in
+            value))``.
 
         """
         if (
@@ -85,7 +88,9 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     @staticmethod
     def validate_devices(
         destination: Path,
-        destination_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        destination_parent: (
+            FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+        ),
         destination_state: os.stat_result | None,
         staged: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
@@ -112,7 +117,9 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
 
     @staticmethod
     def validate_publication(
-        destination_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        destination_parent: (
+            FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+        ),
         destination: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
         staged: Path,
@@ -126,22 +133,24 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
             The resulting ``os.stat_result``.
 
         Raises:
-            OSError: If ``file_state.destination_state(staged, parent=staged_parent) is not
-                None``; or if ``published is None or file_state.identity(published) !=
-                staged_identity``; or if ``file_state.read_authenticated_bytes(destination,
-                published, parent=destination_parent) != staged_bytes``.
+            OSError: If ``file_state.destination_state(staged, parent=staged_parent) is
+            not None``; or if ``published is None or file_state.identity(published) !=
+            staged_identity``; or if ``file_state.read_authenticated_bytes(destination,
+            published, parent=destination_parent) != staged_bytes``.
 
         """
         if (
             FlextCliUtilitiesAtomicFileState.destination_state(
-                staged, parent=staged_parent
+                staged,
+                parent=staged_parent,
             )
             is not None
         ):
             message = f"atomic staged file still exists after publication: {staged}"
             raise OSError(errno.ESTALE, message, staged)
         published = FlextCliUtilitiesAtomicFileState.destination_state(
-            destination, parent=destination_parent
+            destination,
+            parent=destination_parent,
         )
         if (
             published is None
@@ -160,7 +169,9 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
             message = f"published atomic file bytes differ: {destination}"
             raise OSError(errno.ESTALE, message, destination)
         FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
-            destination, published, staged_mode
+            destination,
+            published,
+            staged_mode,
         )
         return published
 

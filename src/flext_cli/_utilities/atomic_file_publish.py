@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import errno
 import os
+from typing import TYPE_CHECKING
 
-from flext_cli import m
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
@@ -23,6 +23,9 @@ from flext_cli._utilities.atomic_file_publish_checks import (
     FlextCliUtilitiesAtomicFilePublishChecks,
 )
 from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+
+if TYPE_CHECKING:
+    from flext_cli import m
 
 
 class FlextCliUtilitiesAtomicFilePublish:
@@ -50,7 +53,7 @@ class FlextCliUtilitiesAtomicFilePublish:
 
         """
         destination = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(
-            destination_before.path
+            destination_before.path,
         )
         staged_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(staged.path)
         if destination == staged_path:
@@ -68,7 +71,7 @@ class FlextCliUtilitiesAtomicFilePublish:
             destination_before.mode,
         )
         FlextCliUtilitiesAtomicFilePublishChecks.validate_identity(
-            staged_path, staged_identity, label="staged_identity"
+            staged_path, staged_identity, label="staged_identity",
         )
         with (
             FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
@@ -76,11 +79,11 @@ class FlextCliUtilitiesAtomicFilePublish:
                 replace=True,
             ) as destination_parent,
             FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                staged_path, replace=True
+                staged_path, replace=True,
             ) as staged_parent,
         ):
             FlextCliUtilitiesAtomicFileModel.require_parent(
-                destination_before, destination_parent.state
+                destination_before, destination_parent.state,
             )
             FlextCliUtilitiesAtomicFileModel.require_parent(staged, staged_parent.state)
             destination_state = FlextCliUtilitiesAtomicFileState.destination_state(
@@ -88,7 +91,7 @@ class FlextCliUtilitiesAtomicFilePublish:
                 parent=destination_parent,
             )
             FlextCliUtilitiesAtomicFileModel.require_observed(
-                destination_before, destination_state
+                destination_before, destination_state,
             )
             FlextCliUtilitiesAtomicFileState.validate_precondition(
                 destination,
@@ -103,14 +106,14 @@ class FlextCliUtilitiesAtomicFilePublish:
                 destination_before.mode,
             )
             staged_state = FlextCliUtilitiesAtomicFileState.destination_state(
-                staged_path, parent=staged_parent
+                staged_path, parent=staged_parent,
             )
             if staged_state is None:
                 message = f"atomic staged file is missing: {staged_path}"
                 raise FileNotFoundError(errno.ENOENT, message, staged_path)
             FlextCliUtilitiesAtomicFileModel.require_observed(staged, staged_state)
             FlextCliUtilitiesAtomicFilePublishChecks.require_distinct_inode(
-                destination, destination_state, staged_identity
+                destination, destination_state, staged_identity,
             )
             FlextCliUtilitiesAtomicFilePublishChecks.validate_devices(
                 destination,
@@ -128,7 +131,7 @@ class FlextCliUtilitiesAtomicFilePublish:
                 parent=staged_parent,
             )
             FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
-                staged_path, staged_state, staged_mode
+                staged_path, staged_state, staged_mode,
             )
             FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
                 destination,
@@ -147,7 +150,7 @@ class FlextCliUtilitiesAtomicFilePublish:
                 destination,
             )
             FlextCliUtilitiesAtomicFileDurability.sync_replacement(
-                staged_parent, destination_parent
+                staged_parent, destination_parent,
             )
             published = FlextCliUtilitiesAtomicFilePublishChecks.validate_publication(
                 destination_parent,
@@ -159,7 +162,7 @@ class FlextCliUtilitiesAtomicFilePublish:
                 staged_identity,
             )
             FlextCliUtilitiesAtomicFileModel.require_observed(
-                staged, published, path=destination
+                staged, published, path=destination,
             )
             return published
 

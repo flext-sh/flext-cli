@@ -84,7 +84,8 @@ class FlextCliUtilitiesFiles:
         try:
             parent, state, content = (
                 FlextCliUtilitiesAtomicFileSnapshot.read_authenticated_state(
-                    path, required=required
+                    path,
+                    required=required,
                 )
             )
         except OSError as exc:
@@ -125,7 +126,8 @@ class FlextCliUtilitiesFiles:
         """
         try:
             published = FlextCliUtilitiesAtomicFilePublish.publish_guarded_staged_file(
-                destination_before, staged
+                destination_before,
+                staged,
             )
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(

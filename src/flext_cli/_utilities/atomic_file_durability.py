@@ -34,7 +34,7 @@ class FlextCliUtilitiesAtomicFileDurability:
         """Sync every physical directory changed by one completed replacement."""
         FlextCliUtilitiesAtomicFileDurability.sync_parent(source)
         if FlextCliUtilitiesAtomicFilePath.identity(
-            source.state
+            source.state,
         ) != FlextCliUtilitiesAtomicFilePath.identity(destination.state):
             FlextCliUtilitiesAtomicFileDurability.sync_parent(destination)
 

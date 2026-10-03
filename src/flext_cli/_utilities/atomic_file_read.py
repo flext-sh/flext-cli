@@ -9,11 +9,14 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_cli import t
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicFileRead:
@@ -33,11 +36,11 @@ class FlextCliUtilitiesAtomicFileRead:
         """
         flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
         descriptor = FlextCliUtilitiesAtomicFileDescriptor.open_entry(
-            parent, path, flags
+            parent, path, flags,
         )
         try:
             content = FlextCliUtilitiesAtomicFileRead._read_stable_descriptor(
-                descriptor, path, expected
+                descriptor, path, expected,
             )
         except BaseException as operation_error:
             FlextCliUtilitiesAtomicFileDescriptor.close_after_failure(
@@ -79,14 +82,14 @@ class FlextCliUtilitiesAtomicFileRead:
         expected: os.stat_result,
     ) -> bytes:
         if FlextCliUtilitiesAtomicFileRead.state_key(
-            os.fstat(descriptor)
+            os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             FlextCliUtilitiesAtomicFileRead._raise_changed(path)
         chunks: list[bytes] = []
         while chunk := os.read(descriptor, 1024 * 1024):
             chunks.append(chunk)
         if FlextCliUtilitiesAtomicFileRead.state_key(
-            os.fstat(descriptor)
+            os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             FlextCliUtilitiesAtomicFileRead._raise_changed(path)
         return b"".join(chunks)

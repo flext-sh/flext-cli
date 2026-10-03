@@ -9,8 +9,10 @@ from __future__ import annotations
 import ctypes
 import errno
 import os
+from typing import TYPE_CHECKING
 
-from flext_cli import t
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesRuntimeDarwinProcessGroupMixin:

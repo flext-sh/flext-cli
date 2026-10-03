@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import errno
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_cli import m
 from flext_cli._utilities.atomic_directory_descriptor import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
 )
@@ -23,6 +23,9 @@ from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+
+if TYPE_CHECKING:
+    from flext_cli import m
 
 
 class FlextCliUtilitiesAtomicDirectorySnapshot:
@@ -58,7 +61,7 @@ class FlextCliUtilitiesAtomicDirectorySnapshot:
             return FlextCliUtilitiesAtomicDirectoryModel.from_observed(path, None, None)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
             observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                path, parent=parent
+                path, parent=parent,
             )
             if observed is None:
                 if required:
@@ -66,13 +69,13 @@ class FlextCliUtilitiesAtomicDirectorySnapshot:
                     raise FileNotFoundError(errno.ENOENT, message, path)
                 FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
                 return FlextCliUtilitiesAtomicDirectoryModel.from_observed(
-                    path, parent.state, None
+                    path, parent.state, None,
                 )
             authenticated = FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
-                parent, path, observed
+                parent, path, observed,
             )
             return FlextCliUtilitiesAtomicDirectoryModel.from_observed(
-                path, parent.state, authenticated
+                path, parent.state, authenticated,
             )
 
 

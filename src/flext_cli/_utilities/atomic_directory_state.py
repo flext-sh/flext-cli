@@ -9,15 +9,17 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
-from flext_cli import t
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
 from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicDirectoryState:
@@ -72,17 +74,17 @@ class FlextCliUtilitiesAtomicDirectoryState:
             | getattr(os, "O_BINARY", 0)
         )
         with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
-            parent, path, flags
+            parent, path, flags,
         ) as descriptor:
             FlextCliUtilitiesAtomicDirectoryState._require_descriptor_state(
-                descriptor, path, expected
+                descriptor, path, expected,
             )
             FlextCliUtilitiesAtomicDirectoryState._require_empty(descriptor, path)
             FlextCliUtilitiesAtomicDirectoryState._require_descriptor_state(
-                descriptor, path, expected
+                descriptor, path, expected,
             )
         return FlextCliUtilitiesAtomicDirectoryState._require_path_state(
-            parent, path, expected
+            parent, path, expected,
         )
 
     @staticmethod
@@ -105,24 +107,24 @@ class FlextCliUtilitiesAtomicDirectoryState:
             | getattr(os, "O_BINARY", 0)
         )
         with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
-            parent, path, flags
+            parent, path, flags,
         ) as descriptor:
             FlextCliUtilitiesAtomicDirectoryState._require_descriptor_state(
-                descriptor, path, expected
+                descriptor, path, expected,
             )
             FlextCliUtilitiesAtomicDirectoryState._require_empty(descriptor, path)
             os.fchmod(descriptor, permission_mode)
             FlextCliUtilitiesAtomicFileMode.assert_observed_mode(
-                path, os.fstat(descriptor), permission_mode
+                path, os.fstat(descriptor), permission_mode,
             )
             os.fsync(descriptor)
             final = os.fstat(descriptor)
             FlextCliUtilitiesAtomicDirectoryState._require_empty(descriptor, path)
             FlextCliUtilitiesAtomicDirectoryState._require_descriptor_state(
-                descriptor, path, final
+                descriptor, path, final,
             )
         return FlextCliUtilitiesAtomicDirectoryState._require_path_state(
-            parent, path, final
+            parent, path, final,
         )
 
     @staticmethod
@@ -150,7 +152,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
         observed = os.fstat(descriptor)
         FlextCliUtilitiesAtomicFilePath.validate_directory_state(path, observed)
         if FlextCliUtilitiesAtomicFileRead.state_key(
-            observed
+            observed,
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             message = f"atomic directory changed during descriptor access: {path}"
             raise OSError(errno.ESTALE, message, path)
@@ -176,10 +178,10 @@ class FlextCliUtilitiesAtomicDirectoryState:
         expected: os.stat_result,
     ) -> os.stat_result:
         current = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-            path, parent=parent
+            path, parent=parent,
         )
         if current is None or FlextCliUtilitiesAtomicFileRead.state_key(
-            current
+            current,
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             message = f"atomic directory changed during authenticated read: {path}"
             raise OSError(errno.ESTALE, message, path)

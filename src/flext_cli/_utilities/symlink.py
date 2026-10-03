@@ -40,10 +40,10 @@ class FlextCliUtilitiesSymlink:
         try:
             location = Path(path)
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                location
+                location,
             ) as parent:
                 state = FlextCliUtilitiesAtomicSymlinkState.read_symlink_state(
-                    location, parent, required=required
+                    location, parent, required=required,
                 )
         except OSError as exc:
             return r[m.Cli.AtomicSymlinkState].fail(str(exc), exception=exc)

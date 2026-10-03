@@ -12,8 +12,8 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_cli import t
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
@@ -21,6 +21,9 @@ from flext_cli._utilities.atomic_parent_descriptor import (
 from flext_cli._utilities.atomic_parent_failure import (
     FlextCliUtilitiesAtomicParentFailure,
 )
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicFileDescriptor:
@@ -56,10 +59,12 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         """
         validated = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         FlextCliUtilitiesAtomicFileDescriptor._require_capabilities(
-            validated, replace=replace, unlink=unlink
+            validated,
+            replace=replace,
+            unlink=unlink,
         )
         with FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
-            validated.parent
+            validated.parent,
         ) as opened:
             handle = FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor(
                 validated.parent,
@@ -76,7 +81,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
                     operation_error,
                     lambda: (
                         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(
-                            handle
+                            handle,
                         )
                     ),
                 )
@@ -94,7 +99,8 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         """
         descriptor_state = os.fstat(parent.descriptor)
         FlextCliUtilitiesAtomicFilePath.validate_directory_state(
-            parent.path, descriptor_state
+            parent.path,
+            descriptor_state,
         )
         expected = FlextCliUtilitiesAtomicFilePath.identity(parent.state)
         if FlextCliUtilitiesAtomicFilePath.identity(descriptor_state) != expected:
@@ -104,7 +110,9 @@ class FlextCliUtilitiesAtomicFileDescriptor:
             message = f"atomic file parent ancestry changed: {parent.path}"
             raise OSError(errno.ESTALE, message, parent.path)
         FlextCliUtilitiesAtomicParentDescriptor.verify_lineage(
-            parent.path, parent.lineage, parent.ancestry
+            parent.path,
+            parent.lineage,
+            parent.ancestry,
         )
 
     @staticmethod
@@ -153,13 +161,18 @@ class FlextCliUtilitiesAtomicFileDescriptor:
 
         """
         descriptor = FlextCliUtilitiesAtomicFileDescriptor.open_entry(
-            parent, path, flags
+            parent,
+            path,
+            flags,
         )
         try:
             yield descriptor
         except BaseException as operation_error:
             FlextCliUtilitiesAtomicFileDescriptor.close_after_failure(
-                descriptor, path, operation_error, label="operation"
+                descriptor,
+                path,
+                operation_error,
+                label="operation",
             )
             raise
         os.close(descriptor)
@@ -181,11 +194,12 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         """Replace one entry using only authenticated directory descriptors."""
         FlextCliUtilitiesAtomicFileDescriptor.require_entry(source_parent, source)
         FlextCliUtilitiesAtomicFileDescriptor.require_entry(
-            destination_parent, destination
+            destination_parent,
+            destination,
         )
         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(source_parent)
         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(
-            destination_parent
+            destination_parent,
         )
         os.replace(
             source.name,
@@ -246,7 +260,10 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         try:
             os.close(descriptor)
         except OSError as close_error:
-            message = f"atomic {label} failed ({operation_error}); close failed ({close_error})"
+            message = (
+                f"atomic {label} failed ({operation_error}); "
+                f"close failed ({close_error})"
+            )
             group_message = f"atomic {label} and descriptor close failed"
             if isinstance(operation_error, Exception):
                 causes = ExceptionGroup(group_message, [operation_error, close_error])

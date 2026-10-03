@@ -173,7 +173,7 @@ class TestsFlextCliOptionsUtilsCov:
         """Custom Boolean names derive polarity from declaration order."""
 
         enabled: bool = m.Field(
-            False,
+            default=False,
             json_schema_extra={"typer_param_decls": ["--off/--on"]},
         )
 

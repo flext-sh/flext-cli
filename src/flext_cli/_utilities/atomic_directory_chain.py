@@ -68,39 +68,49 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
         """
         mode = FlextCliUtilitiesAtomicFileMode.validate_mode(
-            permission_mode, label="permission_mode"
+            permission_mode,
+            label="permission_mode",
         )
         if mode is None:
             message = "permission_mode is required for directory-chain creation"
             raise OSError(errno.EINVAL, message, plan.target)
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_create_capabilities(
-            plan.target
+            plan.target,
         )
         FlextCliUtilitiesAtomicDirectoryChain._require_anchor(plan)
         created: list[m.Cli.AtomicDirectoryState] = []
         expected_parent = (plan.anchor_device, plan.anchor_inode)
         try:
             for directory in plan.directories:
-                before = FlextCliUtilitiesAtomicDirectorySnapshot.read_authenticated_empty_directory(
-                    directory,
-                    required=False,
+                before = (
+                    FlextCliUtilitiesAtomicDirectorySnapshot
+                    .read_authenticated_empty_directory(
+                        directory,
+                        required=False,
+                    )
                 )
                 FlextCliUtilitiesAtomicDirectoryChain._require_planned_parent(
-                    directory, before, expected_parent
-                )
-                state = FlextCliUtilitiesAtomicDirectoryCreate.create_guarded_empty_directory(
+                    directory,
                     before,
-                    permission_mode=mode,
+                    expected_parent,
+                )
+                state = (
+                    FlextCliUtilitiesAtomicDirectoryCreate
+                    .create_guarded_empty_directory(
+                        before,
+                        permission_mode=mode,
+                    )
                 )
                 created.append(state)
                 expected_parent = (
                     FlextCliUtilitiesAtomicDirectoryChain._require_created_identity(
-                        state
+                        state,
                     )
                 )
         except BaseException as operation_error:
             FlextCliUtilitiesAtomicDirectoryChain._rollback_created(
-                created, operation_error
+                created,
+                operation_error,
             )
             raise
         return tuple(created)
@@ -108,7 +118,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
     @staticmethod
     def _require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
         with FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
-            plan.anchor_path
+            plan.anchor_path,
         ) as current:
             if (current.state.st_dev, current.state.st_ino) != (
                 plan.anchor_device,
@@ -144,7 +154,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         for state in reversed(created):
             try:
                 FlextCliUtilitiesAtomicDirectoryDelete.remove_guarded_empty_directory(
-                    state
+                    state,
                 )
             except OSError as cleanup_error:
                 message = (

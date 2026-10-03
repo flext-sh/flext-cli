@@ -37,7 +37,10 @@ class TestsFlextCliExamplesSmoke:
     def test_authentication_example_surfaces_missing_invalid_and_failed_login(
         tmp_path: Path,
     ) -> None:
-        """Authentication example must handle no-session, invalid-token, and bad-login cases."""
+        """Authentication example must handle no-session, invalid-token, and bad-login
+        
+        cases.
+        """
         token_path = tmp_path / "auth_token.json"
         settings.cli_token_file = str(token_path)
 
@@ -69,7 +72,10 @@ class TestsFlextCliExamplesSmoke:
     def test_authentication_example_surfaces_logout_unlink_failure(
         tmp_path: Path,
     ) -> None:
-        """Authentication example must keep going when token removal raises an OS error."""
+        """Authentication example tolerates token-removal errors.
+
+        The example must keep going when token removal raises an OS error.
+        """
         token_dir = tmp_path / "locked-token-dir"
         token_dir.mkdir()
         token_path = token_dir / "auth_token.json"
@@ -90,8 +96,13 @@ class TestsFlextCliExamplesSmoke:
     @staticmethod
     def test_settings_example_surfaces_profile_and_override_branches(
         tmp_path: Path,
+        
     ) -> None:
-        """Settings example must cover alternate profiles and environment override failures."""
+        """Settings example covers profile and override failures.
+
+        The example must cover alternate profiles and environment override
+        failures.
+        """
         production_profile = Ex06Settings.load_profile_settings(
             ec.DeploymentEnvironment.PRODUCTION,
         )

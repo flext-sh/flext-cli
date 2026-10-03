@@ -51,19 +51,19 @@ class FlextCliUtilitiesAtomicFileMode:
         """Require the observed mode to match one explicit planned version.
 
         Raises:
-            OSError: If ``isinstance(expected_mode, FlextCliNoModePrecondition)``; or if ``observed
-                != planned``.
+            OSError: If ``isinstance(expected_mode, FlextCliNoModePrecondition)``; or if
+            ``observed != planned``.
 
         """
         if expected_mode is FlextCliUtilitiesAtomicFileMode.NO_MODE_PRECONDITION:
             return
         if isinstance(
-            expected_mode, FlextCliUtilitiesAtomicFileMode.FlextCliNoModePrecondition
+            expected_mode, FlextCliUtilitiesAtomicFileMode.FlextCliNoModePrecondition,
         ):
             msg = "expected_mode sentinel must be the canonical singleton"
             raise OSError(errno.EINVAL, msg, path)
         planned = FlextCliUtilitiesAtomicFileMode.validate_mode(
-            expected_mode, label="expected_mode"
+            expected_mode, label="expected_mode",
         )
         observed = None if state is None else stat.S_IMODE(state.st_mode)
         if observed != planned:
@@ -86,7 +86,7 @@ class FlextCliUtilitiesAtomicFileMode:
         if expected_mode is FlextCliUtilitiesAtomicFileMode.NO_MODE_PRECONDITION:
             return
         if isinstance(
-            expected_mode, FlextCliUtilitiesAtomicFileMode.FlextCliNoModePrecondition
+            expected_mode, FlextCliUtilitiesAtomicFileMode.FlextCliNoModePrecondition,
         ):
             msg = "expected_mode sentinel must be the canonical singleton"
             raise OSError(errno.EINVAL, msg, path)
@@ -99,7 +99,7 @@ class FlextCliUtilitiesAtomicFileMode:
             msg = "expected_mode is required when expected_bytes identifies a file"
             raise OSError(errno.EINVAL, msg, path)
         FlextCliUtilitiesAtomicFileMode.validate_mode(
-            expected_mode, label="expected_mode"
+            expected_mode, label="expected_mode",
         )
 
     @staticmethod
@@ -130,7 +130,7 @@ class FlextCliUtilitiesAtomicFileMode:
 
         """
         requested = FlextCliUtilitiesAtomicFileMode.validate_mode(
-            permission_mode, label="permission_mode"
+            permission_mode, label="permission_mode",
         )
         if requested is not None:
             return requested

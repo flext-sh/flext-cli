@@ -9,9 +9,8 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import Never
+from typing import TYPE_CHECKING, Never
 
-from flext_cli import m
 from flext_cli._utilities.atomic_directory_descriptor import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
 )
@@ -28,6 +27,9 @@ from flext_cli._utilities.atomic_file_durability import (
     FlextCliUtilitiesAtomicFileDurability,
 )
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+
+if TYPE_CHECKING:
+    from flext_cli import m
 
 
 class FlextCliUtilitiesAtomicDirectoryPublish:
@@ -54,39 +56,47 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
 
         """
         destination = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(
-            destination_before.path
+            destination_before.path,
         )
         staged_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(staged.path)
         if destination == staged_path:
             message = "staged directory and destination must differ"
             raise OSError(errno.EINVAL, message, destination)
         FlextCliUtilitiesAtomicDirectoryModel.require_absent(
-            destination_before, purpose="published"
+            destination_before,
+            purpose="published",
         )
         FlextCliUtilitiesAtomicDirectoryModel.require_existing(staged, purpose="staged")
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_publish_capabilities(
-            staged_path, destination
+            staged_path,
+            destination,
         )
         with (
             FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                destination
+                destination,
             ) as destination_parent,
             FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                staged_path
+                staged_path,
             ) as staged_parent,
         ):
             FlextCliUtilitiesAtomicDirectoryModel.require_parent(
-                destination_before, destination_parent.state
+                destination_before,
+                destination_parent.state,
             )
             FlextCliUtilitiesAtomicDirectoryModel.require_parent(
-                staged, staged_parent.state
+                staged,
+                staged_parent.state,
             )
             FlextCliUtilitiesAtomicDirectoryPublish._require_destination_absent(
-                destination_before, destination_parent, destination
+                destination_before,
+                destination_parent,
+                destination,
             )
             authenticated = (
                 FlextCliUtilitiesAtomicDirectoryPublish._authenticated_staged(
-                    staged, staged_parent, staged_path
+                    staged,
+                    staged_parent,
+                    staged_path,
                 )
             )
             FlextCliUtilitiesAtomicDirectoryPublish._require_same_filesystem(
@@ -96,14 +106,19 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
                 authenticated,
             )
             FlextCliUtilitiesAtomicFileDurability.sync_replacement(
-                staged_parent, destination_parent
+                staged_parent,
+                destination_parent,
             )
             FlextCliUtilitiesAtomicDirectoryPublish._require_destination_absent(
-                destination_before, destination_parent, destination
+                destination_before,
+                destination_parent,
+                destination,
             )
             authenticated = (
                 FlextCliUtilitiesAtomicDirectoryPublish._authenticated_staged(
-                    staged, staged_parent, staged_path
+                    staged,
+                    staged_parent,
+                    staged_path,
                 )
             )
             FlextCliUtilitiesAtomicDirectoryDescriptor.rename_entry_noreplace(
@@ -114,7 +129,8 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
             )
             try:
                 FlextCliUtilitiesAtomicFileDurability.sync_replacement(
-                    staged_parent, destination_parent
+                    staged_parent,
+                    destination_parent,
                 )
                 return FlextCliUtilitiesAtomicDirectoryPublish._published_state(
                     destination_parent,
@@ -125,7 +141,8 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
                 )
             except OSError as post_error:
                 FlextCliUtilitiesAtomicDirectoryPublish._raise_post_publication_failure(
-                    destination, post_error
+                    destination,
+                    post_error,
                 )
 
     @staticmethod
@@ -135,7 +152,8 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         path: Path,
     ) -> None:
         observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-            path, parent=parent
+            path,
+            parent=parent,
         )
         FlextCliUtilitiesAtomicDirectoryModel.require_observed(planned, observed)
         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
@@ -147,14 +165,17 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         path: Path,
     ) -> os.stat_result:
         observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-            path, parent=parent
+            path,
+            parent=parent,
         )
         FlextCliUtilitiesAtomicDirectoryModel.require_observed(planned, observed)
         if observed is None:
             message = f"atomic staged directory disappeared: {path}"
             raise OSError(errno.ESTALE, message, path)
         authenticated = FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
-            parent, path, observed
+            parent,
+            path,
+            observed,
         )
         FlextCliUtilitiesAtomicDirectoryModel.require_observed(planned, authenticated)
         return authenticated
@@ -162,7 +183,9 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
     @staticmethod
     def _require_same_filesystem(
         destination: Path,
-        destination_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        destination_parent: (
+            FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+        ),
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
         staged: os.stat_result,
     ) -> None:
@@ -173,7 +196,9 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
 
     @staticmethod
     def _published_state(
-        destination_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
+        destination_parent: (
+            FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor
+        ),
         destination: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.FlextCliParentDescriptor,
         staged_path: Path,
@@ -181,14 +206,16 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
     ) -> m.Cli.AtomicDirectoryState:
         if (
             FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                staged_path, parent=staged_parent
+                staged_path,
+                parent=staged_parent,
             )
             is not None
         ):
             message = f"staged directory name exists after publication: {staged_path}"
             raise OSError(errno.ESTALE, message, staged_path)
         observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-            destination, parent=destination_parent
+            destination,
+            parent=destination_parent,
         )
         if observed is None:
             message = f"published directory is missing: {destination}"
@@ -208,7 +235,8 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
     @staticmethod
     def _raise_post_publication_failure(destination: Path, error: OSError) -> Never:
         message = (
-            "atomic directory rename completed but durability or live-state proof failed: "
+            "atomic directory rename completed but durability "
+            "or live-state proof failed: "
             f"{error}"
         )
         raise OSError(errno.EIO, message, destination) from error

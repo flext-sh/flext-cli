@@ -10,13 +10,16 @@ import errno
 import os
 import stat
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_cli import t
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicFileState:
@@ -37,10 +40,10 @@ class FlextCliUtilitiesAtomicFileState:
         """
         if parent is None:
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                path
+                path,
             ) as opened:
                 state = FlextCliUtilitiesAtomicFileState.destination_state(
-                    path, parent=opened
+                    path, parent=opened,
                 )
                 FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(opened)
                 return state
@@ -84,7 +87,7 @@ class FlextCliUtilitiesAtomicFileState:
             raise FileNotFoundError(errno.ENOENT, message, path)
         if (
             FlextCliUtilitiesAtomicFileState.read_authenticated_bytes(
-                path, state, parent=parent
+                path, state, parent=parent,
             )
             != expected_bytes
         ):
@@ -108,10 +111,10 @@ class FlextCliUtilitiesAtomicFileState:
         """
         if parent is None:
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                temporary
+                temporary,
             ) as opened:
                 FlextCliUtilitiesAtomicFileState.assert_temporary_owned(
-                    temporary, expected_identity, parent=opened
+                    temporary, expected_identity, parent=opened,
                 )
                 return
         try:
@@ -146,21 +149,21 @@ class FlextCliUtilitiesAtomicFileState:
         """
         if parent is None:
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                path
+                path,
             ) as opened:
                 FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
-                    path, expected, parent=opened
+                    path, expected, parent=opened,
                 )
                 return
         current = FlextCliUtilitiesAtomicFileState.destination_state(
-            path, parent=parent
+            path, parent=parent,
         )
         if expected is None:
             if current is not None:
                 message = f"atomic destination appeared during write: {path}"
                 raise FileExistsError(errno.EEXIST, message, path)
         elif current is None or FlextCliUtilitiesAtomicFileRead.state_key(
-            current
+            current,
         ) != FlextCliUtilitiesAtomicFileRead.state_key(
             expected,
         ):
@@ -194,23 +197,23 @@ class FlextCliUtilitiesAtomicFileState:
         """
         if parent is None:
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                path
+                path,
             ) as opened:
                 return FlextCliUtilitiesAtomicFileState.read_authenticated_bytes(
-                    path, expected, parent=opened
+                    path, expected, parent=opened,
                 )
         content = FlextCliUtilitiesAtomicFileRead.read_descriptor_bytes(
-            parent, path, expected
+            parent, path, expected,
         )
         FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
-            path, expected, parent=parent
+            path, expected, parent=parent,
         )
         return content
 
     @staticmethod
     def _validate_regular_state(path: Path, state: os.stat_result) -> None:
         if not stat.S_ISREG(
-            state.st_mode
+            state.st_mode,
         ) or FlextCliUtilitiesAtomicFilePath.is_reparse_point(state):
             message = f"atomic destination is not a regular file: {path}"
             raise OSError(errno.EINVAL, message, path)

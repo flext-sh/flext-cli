@@ -9,8 +9,8 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_cli import t
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
@@ -18,6 +18,9 @@ from flext_cli._utilities.atomic_file_durability import (
     FlextCliUtilitiesAtomicFileDurability,
 )
 from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicFileCleanup:
@@ -36,7 +39,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
         if identity is None and descriptor is not None:
             try:
                 identity = FlextCliUtilitiesAtomicFileState.identity(
-                    os.fstat(descriptor)
+                    os.fstat(descriptor),
                 )
             except OSError as cleanup_error:
                 cleanup_errors.append(cleanup_error)
@@ -50,7 +53,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
         if identity is not None:
             try:
                 FlextCliUtilitiesAtomicFileState.assert_temporary_owned(
-                    temporary, identity, parent=parent
+                    temporary, identity, parent=parent,
                 )
                 FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, temporary)
                 FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
@@ -58,7 +61,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
                 cleanup_errors.append(cleanup_error)
         if cleanup_errors:
             FlextCliUtilitiesAtomicFileCleanup._raise_cleanup_failure(
-                temporary, operation_error, cleanup_errors
+                temporary, operation_error, cleanup_errors,
             )
 
     @staticmethod

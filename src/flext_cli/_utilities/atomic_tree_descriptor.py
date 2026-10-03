@@ -11,9 +11,8 @@ import hashlib
 import os
 import sys
 from pathlib import Path
-from typing import Never
+from typing import TYPE_CHECKING, Never
 
-from flext_cli import t
 from flext_cli._utilities import atomic_tree_darwin as tree_darwin
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -21,6 +20,9 @@ from flext_cli._utilities.atomic_file_descriptor import (
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
 from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicTreeDescriptor:
@@ -50,10 +52,10 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         digest = hashlib.sha256()
         size = 0
         with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
-            parent, path, FlextCliUtilitiesAtomicTreeDescriptor._FILE_FLAGS
+            parent, path, FlextCliUtilitiesAtomicTreeDescriptor._FILE_FLAGS,
         ) as descriptor:
             FlextCliUtilitiesAtomicTreeDescriptor._require_file_state(
-                descriptor, path, expected
+                descriptor, path, expected,
             )
             FlextCliUtilitiesAtomicTreeDescriptor.require_mount(
                 path,
@@ -64,10 +66,10 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
                 size += len(chunk)
                 digest.update(chunk)
             FlextCliUtilitiesAtomicTreeDescriptor._require_file_state(
-                descriptor, path, expected
+                descriptor, path, expected,
             )
         FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
-            path, expected, parent=parent
+            path, expected, parent=parent,
         )
         return size, digest.hexdigest()
 
@@ -150,7 +152,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         observed = os.fstat(descriptor)
         FlextCliUtilitiesAtomicFilePath.validate_directory_state(path, observed)
         if FlextCliUtilitiesAtomicFileRead.state_key(
-            observed
+            observed,
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             FlextCliUtilitiesAtomicTreeDescriptor._raise_changed(path)
 
@@ -163,16 +165,16 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         """Require one parent-relative name to retain the complete observed state."""
         observed = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
         if FlextCliUtilitiesAtomicFileRead.state_key(
-            observed
+            observed,
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             FlextCliUtilitiesAtomicTreeDescriptor._raise_changed(path)
 
     @staticmethod
     def _require_file_state(
-        descriptor: int, path: Path, expected: os.stat_result
+        descriptor: int, path: Path, expected: os.stat_result,
     ) -> None:
         if FlextCliUtilitiesAtomicFileRead.state_key(
-            os.fstat(descriptor)
+            os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             FlextCliUtilitiesAtomicTreeDescriptor._raise_changed(path)
 

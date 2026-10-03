@@ -7,8 +7,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import errno
+from typing import TYPE_CHECKING
 
-from flext_cli import m
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
@@ -20,6 +20,9 @@ from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileMo
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
 
+if TYPE_CHECKING:
+    from flext_cli import m
+
 
 class FlextCliUtilitiesAtomicFileDelete:
     """Canonical namespace owner."""
@@ -29,19 +32,20 @@ class FlextCliUtilitiesAtomicFileDelete:
         """Unlink the complete physical file version authorized by the caller.
 
         Raises:
-            OSError: If ``file_state.destination_state(path, parent=parent) is not None``.
+            OSError: If ``file_state.destination_state(path, parent=parent) is not
+            None``.
 
         """
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(state.path)
         content, mode, _identity = FlextCliUtilitiesAtomicFileModel.require_existing(
-            state, purpose="deleted"
+            state, purpose="deleted",
         )
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-            path, unlink=True
+            path, unlink=True,
         ) as parent:
             FlextCliUtilitiesAtomicFileModel.require_parent(state, parent.state)
             expected = FlextCliUtilitiesAtomicFileState.destination_state(
-                path, parent=parent
+                path, parent=parent,
             )
             FlextCliUtilitiesAtomicFileModel.require_observed(state, expected)
             FlextCliUtilitiesAtomicFileState.validate_precondition(
@@ -52,10 +56,10 @@ class FlextCliUtilitiesAtomicFileDelete:
                 parent=parent,
             )
             FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
-                path, expected, mode
+                path, expected, mode,
             )
             FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
-                path, expected, parent=parent
+                path, expected, parent=parent,
             )
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, path)
             FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)

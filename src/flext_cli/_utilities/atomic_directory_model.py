@@ -97,7 +97,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
             message = f"atomic directory disappeared after snapshot: {planned.path}"
             raise OSError(errno.ESTALE, message, planned.path)
         if FlextCliUtilitiesAtomicDirectoryModel._planned_state(
-            planned
+            planned,
         ) != FlextCliUtilitiesAtomicDirectoryModel.physical_state(observed):
             message = f"atomic directory physical state changed: {planned.path}"
             raise OSError(errno.ESTALE, message, planned.path)
@@ -110,10 +110,9 @@ class FlextCliUtilitiesAtomicDirectoryModel:
         """Require the authenticated parent to equal the snapshot parent identity.
 
         Raises:
-            FileNotFoundError: If ``planned.parent_device is None or planned.parent_inode is
-                None``.
-            OSError: If ``(planned.parent_device, planned.parent_inode) != (observed.st_dev,
-                observed.st_ino)``.
+            FileNotFoundError: If ``planned.parent_device is None or
+            planned.parent_inode is None``. OSError: If ``(planned.parent_device,
+            planned.parent_inode) != (observed.st_dev, observed.st_ino)``.
 
         """
         if planned.parent_device is None or planned.parent_inode is None:

@@ -12,9 +12,11 @@ import os
 import sys
 from collections.abc import Callable
 from pathlib import Path
-from typing import ClassVar, cast
+from typing import TYPE_CHECKING, ClassVar, cast
 
-from flext_cli import t
+if TYPE_CHECKING:
+    from flext_cli import t
+
 
 type RenameAt2 = Callable[[int, bytes, int, bytes, int], int]
 
@@ -64,10 +66,10 @@ class FlextCliUtilitiesAtomicDirectoryNoreplace:
 
         """
         source_bytes = FlextCliUtilitiesAtomicDirectoryNoreplace._encode_name(
-            source_name, path
+            source_name, path,
         )
         destination_bytes = FlextCliUtilitiesAtomicDirectoryNoreplace._encode_name(
-            destination_name, path
+            destination_name, path,
         )
         platform_name, os_name = (
             FlextCliUtilitiesAtomicDirectoryNoreplace._runtime_platform()
@@ -75,12 +77,12 @@ class FlextCliUtilitiesAtomicDirectoryNoreplace:
         if platform_name in {"linux", "darwin"}:
             if platform_name == "linux":
                 operation = FlextCliUtilitiesAtomicDirectoryNoreplace._linux_renameat2(
-                    path
+                    path,
                 )
                 flags = FlextCliUtilitiesAtomicDirectoryNoreplace._RENAME_NOREPLACE
             else:
                 operation = FlextCliUtilitiesAtomicDirectoryNoreplace._darwin_renameatx(
-                    path
+                    path,
                 )
                 flags = FlextCliUtilitiesAtomicDirectoryNoreplace._RENAME_EXCL
             ctypes.set_errno(0)
@@ -122,7 +124,7 @@ class FlextCliUtilitiesAtomicDirectoryNoreplace:
     @staticmethod
     def _linux_renameat2(path: Path) -> RenameAt2:
         return FlextCliUtilitiesAtomicDirectoryNoreplace._load_rename(
-            "renameat2", "Linux", path
+            "renameat2", "Linux", path,
         )
 
     @staticmethod
@@ -134,7 +136,7 @@ class FlextCliUtilitiesAtomicDirectoryNoreplace:
 
         """
         return FlextCliUtilitiesAtomicDirectoryNoreplace._load_rename(
-            "renameatx_np", "Darwin", path
+            "renameatx_np", "Darwin", path,
         )
 
     @staticmethod

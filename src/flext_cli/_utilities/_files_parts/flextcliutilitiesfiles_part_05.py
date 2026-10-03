@@ -48,7 +48,7 @@ class FlextCliUtilitiesFiles:
         """
         try:
             plan = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(
-                Path(directory_path)
+                Path(directory_path),
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryChainPlan].fail(
@@ -98,9 +98,12 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            state = FlextCliUtilitiesAtomicDirectorySnapshot.read_authenticated_empty_directory(
-                Path(directory_path),
-                required=required,
+            state = (
+                FlextCliUtilitiesAtomicDirectorySnapshot
+                .read_authenticated_empty_directory(
+                    Path(directory_path),
+                    required=required,
+                )
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(
@@ -173,9 +176,12 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            published = FlextCliUtilitiesAtomicDirectoryPublish.publish_guarded_staged_empty_directory(
-                destination_before,
-                staged,
+            published = (
+                FlextCliUtilitiesAtomicDirectoryPublish
+                .publish_guarded_staged_empty_directory(
+                    destination_before,
+                    staged,
+                )
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(
@@ -201,7 +207,7 @@ class FlextCliUtilitiesFiles:
         """
         try:
             manifest = FlextCliUtilitiesAtomicTreeInventory.inventory_physical_tree(
-                Path(root_path)
+                Path(root_path),
             )
         except OSError as exc:
             return r[m.Cli.AtomicPhysicalTreeManifest].fail(

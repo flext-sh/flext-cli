@@ -9,8 +9,8 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_cli import m, t
 from flext_cli._utilities.atomic_directory_cleanup import (
     FlextCliUtilitiesAtomicDirectoryCleanup,
 )
@@ -31,6 +31,9 @@ from flext_cli._utilities.atomic_file_durability import (
 )
 from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+
+if TYPE_CHECKING:
+    from flext_cli import m, t
 
 
 class FlextCliUtilitiesAtomicDirectoryCreate:
@@ -54,7 +57,7 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(before.path)
         FlextCliUtilitiesAtomicDirectoryModel.require_absent(before, purpose="created")
         mode = FlextCliUtilitiesAtomicFileMode.validate_mode(
-            permission_mode, label="permission_mode"
+            permission_mode, label="permission_mode",
         )
         if mode is None:
             message = "permission_mode is required for atomic directory creation"
@@ -63,7 +66,7 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
             FlextCliUtilitiesAtomicDirectoryModel.require_parent(before, parent.state)
             observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                path, parent=parent
+                path, parent=parent,
             )
             FlextCliUtilitiesAtomicDirectoryModel.require_observed(before, observed)
             created = False
@@ -72,12 +75,12 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
                 FlextCliUtilitiesAtomicDirectoryDescriptor.create_entry(parent, path)
                 created = True
                 initial = FlextCliUtilitiesAtomicDirectoryCreate._require_created_state(
-                    parent, path
+                    parent, path,
                 )
                 identity = (initial.st_dev, initial.st_ino)
                 authenticated = (
                     FlextCliUtilitiesAtomicDirectoryCreate._initialize_created(
-                        parent, path, initial, identity, mode
+                        parent, path, initial, identity, mode,
                     )
                 )
             except BaseException as operation_error:
@@ -90,7 +93,7 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
                     )
                 raise
             return FlextCliUtilitiesAtomicDirectoryModel.from_observed(
-                path, parent.state, authenticated
+                path, parent.state, authenticated,
             )
 
     @staticmethod
@@ -99,7 +102,7 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         path: Path,
     ) -> os.stat_result:
         initial = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-            path, parent=parent
+            path, parent=parent,
         )
         if initial is None:
             message = f"atomic directory missing immediately after mkdir: {path}"
@@ -115,12 +118,12 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         mode: int,
     ) -> os.stat_result:
         final = FlextCliUtilitiesAtomicDirectoryState.initialize_empty_state(
-            parent, path, initial, mode
+            parent, path, initial, mode,
         )
         FlextCliUtilitiesAtomicDirectoryState.require_identity(path, final, identity)
         FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
         return FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
-            parent, path, final
+            parent, path, final,
         )
 
 

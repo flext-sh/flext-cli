@@ -58,7 +58,7 @@ class FlextCliUtilitiesAtomicSymlinkState:
         target.encode("utf-8", errors="strict")
         after = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
         if FlextCliUtilitiesAtomicSymlinkState.symlink_identity(
-            observed
+            observed,
         ) != FlextCliUtilitiesAtomicSymlinkState.symlink_identity(after):
             msg = f"atomic symlink changed during snapshot: {path}"
             raise OSError(errno.ESTALE, msg, path)

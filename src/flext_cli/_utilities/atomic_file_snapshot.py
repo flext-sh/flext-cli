@@ -9,13 +9,16 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_cli import t
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicFileSnapshot:
@@ -50,10 +53,10 @@ class FlextCliUtilitiesAtomicFileSnapshot:
         ):
             return None, None, None
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-            validated
+            validated,
         ) as parent:
             state = FlextCliUtilitiesAtomicFileState.destination_state(
-                validated, parent=parent
+                validated, parent=parent,
             )
             if state is None:
                 if required:
@@ -62,7 +65,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                 FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
                 return parent.state, None, None
             content = FlextCliUtilitiesAtomicFileState.read_authenticated_bytes(
-                validated, state, parent=parent
+                validated, state, parent=parent,
             )
             return parent.state, state, content
 

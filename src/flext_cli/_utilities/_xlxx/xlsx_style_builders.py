@@ -6,11 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from openpyxl.styles import Alignment, Border, Color, Font, GradientFill, NamedStyle
 from openpyxl.styles.borders import Side
 from openpyxl.styles.fills import PatternFill, Stop
 
-from flext_cli import m, t
+if TYPE_CHECKING:
+    from flext_cli import m, t
 
 
 class FlextCliUtilitiesXlsxStyleBuilders:

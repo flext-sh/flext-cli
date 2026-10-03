@@ -31,8 +31,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
     from flext_cli._utilities._json._core import FlextCliUtilitiesJsonCoreMixin
     from flext_cli._utilities._json._navigate import FlextCliUtilitiesJsonNavigateMixin
-    from flext_cli._utilities._options_parts \
-        .flextcliutilitiesoptionbuilder_part_01 import (
+    from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
         FlextCliUtilitiesOptionBuilder,
     )
     from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
@@ -96,8 +95,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities._runtime_windows_job_state import (
         FlextCliUtilitiesRuntimeWindowsJobStateMixin,
     )
-    from flext_cli._utilities._tables_parts \
-        .flextcliutilitiestablesrenderer_part_01 import (
+    from flext_cli._utilities._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
         FlextCliUtilitiesTablesRenderer,
     )
     from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses

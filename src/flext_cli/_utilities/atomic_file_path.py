@@ -10,8 +10,10 @@ import errno
 import os
 import stat
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_cli import t
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicFilePath:
@@ -102,7 +104,7 @@ class FlextCliUtilitiesAtomicFilePath:
 
         """
         if not stat.S_ISDIR(
-            state.st_mode
+            state.st_mode,
         ) or FlextCliUtilitiesAtomicFilePath.is_reparse_point(state):
             message = f"atomic destination parent is not a real directory: {path}"
             raise NotADirectoryError(errno.ENOTDIR, message, path)

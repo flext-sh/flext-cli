@@ -57,8 +57,8 @@ class FlextCliModelsAtomicState:
         always carries the physical parent that authenticated it.
 
         Raises:
-            ValueError: If ``(device is None) != (inode is None)``; or if ``device is None
-                and present``.
+            ValueError: If ``(device is None) != (inode is None)``; or if ``device is
+            None and present``.
 
         """
         if (device is None) != (inode is None):
