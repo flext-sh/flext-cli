@@ -373,3 +373,4 @@ CLAUDE.local.md
 
 # Project layout exceptions
 settings.json
+.beads.gate.lock
