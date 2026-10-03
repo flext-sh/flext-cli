@@ -21,13 +21,13 @@ from flext_cli._utilities import atomic_file_state
 from flext_cli._utilities import atomic_tree_descriptor
 
 
-
 _DIRECTORY_FLAGS = (
     os.O_RDONLY
     | getattr(os, "O_DIRECTORY", 0)
     | getattr(os, "O_CLOEXEC", 0)
     | getattr(os, "O_BINARY", 0)
 )
+
 
 def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest:
     """Inventory one exact tree through non-aliased directory descriptors.
@@ -49,7 +49,8 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
             outer_parent.path,
         )
         root_state = atomic_directory_state.destination_state(
-            root_path, parent=outer_parent,
+            root_path,
+            parent=outer_parent,
         )
         if root_state is None:
             message = f"required atomic physical-tree root is missing: {root_path}"
@@ -61,13 +62,18 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
             _DIRECTORY_FLAGS,
         ) as descriptor:
             atomic_tree_descriptor.require_directory_state(
-                descriptor, root_path, root_state,
+                descriptor,
+                root_path,
+                root_state,
             )
             root_mount_id = atomic_tree_descriptor.mount_id(
-                descriptor, root_path,
+                descriptor,
+                root_path,
             )
             atomic_tree_descriptor.require_mount(
-                root_path, parent_mount_id, root_mount_id,
+                root_path,
+                parent_mount_id,
+                root_mount_id,
             )
             root = _entry(
                 root_path,
@@ -77,17 +83,15 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
                 parent_mount_id=parent_mount_id,
                 mount_id=root_mount_id,
             )
-            root_parent = (
-                atomic_file_descriptor.ParentDescriptor(
-                    root_path,
-                    descriptor,
-                    root_state,
-                    (
-                        *outer_parent.ancestry,
-                        atomic_file_path.identity(root_state),
-                    ),
-                    (*outer_parent.lineage, outer_parent.descriptor),
-                )
+            root_parent = atomic_file_descriptor.ParentDescriptor(
+                root_path,
+                descriptor,
+                root_state,
+                (
+                    *outer_parent.ancestry,
+                    atomic_file_path.identity(root_state),
+                ),
+                (*outer_parent.lineage, outer_parent.descriptor),
             )
             directory_identities = {
                 atomic_file_path.identity(root_state),
@@ -99,19 +103,25 @@ def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest
                 directory_identities,
             )
             atomic_tree_descriptor.require_directory_state(
-                descriptor, root_path, root_state,
+                descriptor,
+                root_path,
+                root_state,
             )
         atomic_tree_descriptor.require_entry_state(
-            outer_parent, root_path, root_state,
+            outer_parent,
+            root_path,
+            root_state,
         )
     return m.Cli.AtomicPhysicalTreeManifest(
         root=root,
         entries=tuple(
             sorted(
-                entries, key=_entry_path_key,
+                entries,
+                key=_entry_path_key,
             ),
         ),
     )
+
 
 def _inventory_directory(
     parent: atomic_file_descriptor.ParentDescriptor,
@@ -131,7 +141,9 @@ def _inventory_directory(
         if stat.S_ISDIR(observed.st_mode):
             atomic_file_path.validate_directory_state(path, observed)
             atomic_tree_descriptor.require_same_device(
-                path, parent.state, observed,
+                path,
+                parent.state,
+                observed,
             )
             identity = atomic_file_path.identity(observed)
             if identity in directory_identities:
@@ -143,13 +155,18 @@ def _inventory_directory(
                 _DIRECTORY_FLAGS,
             ) as descriptor:
                 atomic_tree_descriptor.require_directory_state(
-                    descriptor, path, observed,
+                    descriptor,
+                    path,
+                    observed,
                 )
                 mount_id = atomic_tree_descriptor.mount_id(
-                    descriptor, path,
+                    descriptor,
+                    path,
                 )
                 atomic_tree_descriptor.require_mount(
-                    path, parent_mount_id, mount_id,
+                    path,
+                    parent_mount_id,
+                    mount_id,
                 )
                 directory_identities.add(identity)
                 entries.append(
@@ -162,17 +179,15 @@ def _inventory_directory(
                         mount_id=mount_id,
                     ),
                 )
-                child_parent = (
-                    atomic_file_descriptor.ParentDescriptor(
-                        path,
-                        descriptor,
-                        observed,
-                        (
-                            *parent.ancestry,
-                            atomic_file_path.identity(observed),
-                        ),
-                        (*parent.lineage, parent.descriptor),
-                    )
+                child_parent = atomic_file_descriptor.ParentDescriptor(
+                    path,
+                    descriptor,
+                    observed,
+                    (
+                        *parent.ancestry,
+                        atomic_file_path.identity(observed),
+                    ),
+                    (*parent.lineage, parent.descriptor),
                 )
                 _inventory_directory(
                     child_parent,
@@ -181,27 +196,32 @@ def _inventory_directory(
                     directory_identities,
                 )
                 atomic_tree_descriptor.require_directory_state(
-                    descriptor, path, observed,
+                    descriptor,
+                    path,
+                    observed,
                 )
             atomic_tree_descriptor.require_entry_state(
-                parent, path, observed,
+                parent,
+                path,
+                observed,
             )
         elif stat.S_ISREG(observed.st_mode):
             authenticated = atomic_file_state.destination_state(
-                path, parent=parent,
+                path,
+                parent=parent,
             )
             if authenticated is None:
                 _raise_changed(path)
             atomic_tree_descriptor.require_same_device(
-                path, parent.state, authenticated,
+                path,
+                parent.state,
+                authenticated,
             )
-            size, digest = (
-                atomic_tree_descriptor.measure_authenticated_file(
-                    parent,
-                    path,
-                    authenticated,
-                    required_mount_id=parent_mount_id,
-                )
+            size, digest = atomic_tree_descriptor.measure_authenticated_file(
+                parent,
+                path,
+                authenticated,
+                required_mount_id=parent_mount_id,
             )
             entries.append(
                 _entry(
@@ -220,10 +240,14 @@ def _inventory_directory(
             if not target:
                 _raise_changed(path)
             atomic_tree_descriptor.require_entry_state(
-                parent, path, observed,
+                parent,
+                path,
+                observed,
             )
             atomic_tree_descriptor.require_same_device(
-                path, parent.state, observed,
+                path,
+                parent.state,
+                observed,
             )
             entries.append(
                 _entry(
@@ -241,16 +265,14 @@ def _inventory_directory(
                 f"atomic physical-tree entry is not regular or a directory: {path}"
             )
             raise OSError(errno.EINVAL, message, path)
-    if (
-        _directory_names(parent.descriptor)
-        != names
-    ):
+    if _directory_names(parent.descriptor) != names:
         _raise_changed(parent.path)
     atomic_tree_descriptor.require_directory_state(
         parent.descriptor,
         parent.path,
         parent.state,
     )
+
 
 def _entry(
     path: Path,
@@ -296,6 +318,7 @@ def _entry(
         link_target=link_target,
     )
 
+
 def _directory_names(descriptor: int) -> t.VariadicTuple[str]:
     """Enumerate names through the authenticated directory descriptor.
 
@@ -306,6 +329,7 @@ def _directory_names(descriptor: int) -> t.VariadicTuple[str]:
     with os.scandir(descriptor) as entries:
         return tuple(sorted(entry.name for entry in entries))
 
+
 def _entry_path_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> str:
     """Return the deterministic lexical manifest key.
 
@@ -314,6 +338,7 @@ def _entry_path_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> str:
 
     """
     return entry.path.as_posix()
+
 
 def _raise_changed(path: Path) -> Never:
     message = f"atomic physical-tree entry changed during inventory: {path}"

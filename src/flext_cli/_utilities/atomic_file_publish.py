@@ -22,7 +22,6 @@ if TYPE_CHECKING:
     from flext_cli import m
 
 
-
 def publish_guarded_staged_file(
     destination_before: m.Cli.AtomicFileState,
     staged: m.Cli.AtomicFileState,
@@ -62,7 +61,9 @@ def publish_guarded_staged_file(
         destination_before.mode,
     )
     atomic_file_publish_checks.validate_identity(
-        staged_path, staged_identity, label="staged_identity",
+        staged_path,
+        staged_identity,
+        label="staged_identity",
     )
     with (
         atomic_file_descriptor.parent_descriptor(
@@ -70,11 +71,13 @@ def publish_guarded_staged_file(
             replace=True,
         ) as destination_parent,
         atomic_file_descriptor.parent_descriptor(
-            staged_path, replace=True,
+            staged_path,
+            replace=True,
         ) as staged_parent,
     ):
         FlextCliUtilitiesAtomicFileModel.require_parent(
-            destination_before, destination_parent.state,
+            destination_before,
+            destination_parent.state,
         )
         FlextCliUtilitiesAtomicFileModel.require_parent(staged, staged_parent.state)
         destination_state = atomic_file_state.destination_state(
@@ -82,7 +85,8 @@ def publish_guarded_staged_file(
             parent=destination_parent,
         )
         FlextCliUtilitiesAtomicFileModel.require_observed(
-            destination_before, destination_state,
+            destination_before,
+            destination_state,
         )
         atomic_file_state.validate_precondition(
             destination,
@@ -97,14 +101,17 @@ def publish_guarded_staged_file(
             destination_before.mode,
         )
         staged_state = atomic_file_state.destination_state(
-            staged_path, parent=staged_parent,
+            staged_path,
+            parent=staged_parent,
         )
         if staged_state is None:
             message = f"atomic staged file is missing: {staged_path}"
             raise FileNotFoundError(errno.ENOENT, message, staged_path)
         FlextCliUtilitiesAtomicFileModel.require_observed(staged, staged_state)
         atomic_file_publish_checks.require_distinct_inode(
-            destination, destination_state, staged_identity,
+            destination,
+            destination_state,
+            staged_identity,
         )
         atomic_file_publish_checks.validate_devices(
             destination,
@@ -122,7 +129,9 @@ def publish_guarded_staged_file(
             parent=staged_parent,
         )
         atomic_file_mode.validate_mode_precondition(
-            staged_path, staged_state, staged_mode,
+            staged_path,
+            staged_state,
+            staged_mode,
         )
         atomic_file_state.assert_destination_unchanged(
             destination,
@@ -141,7 +150,8 @@ def publish_guarded_staged_file(
             destination,
         )
         atomic_file_durability.sync_replacement(
-            staged_parent, destination_parent,
+            staged_parent,
+            destination_parent,
         )
         published = atomic_file_publish_checks.validate_publication(
             destination_parent,
@@ -153,9 +163,12 @@ def publish_guarded_staged_file(
             staged_identity,
         )
         FlextCliUtilitiesAtomicFileModel.require_observed(
-            staged, published, path=destination,
+            staged,
+            published,
+            path=destination,
         )
         return published
+
 
 __all__: list[str] = [
     "publish_guarded_staged_file",

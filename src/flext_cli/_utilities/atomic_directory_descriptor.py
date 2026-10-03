@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-
 _SECURE_CREATE_MODE: int = 0o700
+
 
 def require_read_capabilities(path: Path) -> None:
     """Fail before access when descriptor-bound directory reads are unavailable.
@@ -32,6 +32,7 @@ def require_read_capabilities(path: Path) -> None:
     if os.listdir not in os.supports_fd:
         message = "descriptor-bound directory listing is unsupported"
         raise OSError(errno.ENOTSUP, message, path)
+
 
 def require_create_capabilities(path: Path) -> None:
     """Fail before mkdir unless creation, cleanup, and chmod are descriptor-bound.
@@ -49,6 +50,7 @@ def require_create_capabilities(path: Path) -> None:
         message = "descriptor-bound directory permission changes are unsupported"
         raise OSError(errno.ENOTSUP, message, path)
 
+
 def require_delete_capabilities(path: Path) -> None:
     """Fail before inspection unless guarded rmdir is descriptor-bound."""
     require_read_capabilities(path)
@@ -56,6 +58,7 @@ def require_delete_capabilities(path: Path) -> None:
         path,
         (("rmdir", os.rmdir),),
     )
+
 
 def require_publish_capabilities(source: Path, destination: Path) -> None:
     """Fail before publication unless no-clobber rename and durability exist.
@@ -76,6 +79,7 @@ def require_publish_capabilities(source: Path, destination: Path) -> None:
         message = "directory durability sync is unsupported"
         raise OSError(errno.ENOTSUP, message, destination)
 
+
 def create_entry(
     parent: atomic_file_descriptor.ParentDescriptor,
     path: Path,
@@ -89,6 +93,7 @@ def create_entry(
         dir_fd=parent.descriptor,
     )
 
+
 def remove_entry(
     parent: atomic_file_descriptor.ParentDescriptor,
     path: Path,
@@ -98,12 +103,11 @@ def remove_entry(
     atomic_file_descriptor.assert_parent_unchanged(parent)
     os.rmdir(path.name, dir_fd=parent.descriptor)
 
+
 def rename_entry_noreplace(
     source_parent: atomic_file_descriptor.ParentDescriptor,
     source: Path,
-    destination_parent: (
-        atomic_file_descriptor.ParentDescriptor
-    ),
+    destination_parent: (atomic_file_descriptor.ParentDescriptor),
     destination: Path,
 ) -> None:
     """Move one child without clobbering any destination entry."""
@@ -124,19 +128,16 @@ def rename_entry_noreplace(
         path=destination,
     )
 
+
 def _require_dir_fd(
     path: Path,
     operations: t.VariadicTuple[t.Pair[str, t.Cli.DirFdOperation]],
 ) -> None:
     missing = [
-        name
-        for name, operation in operations
-        if operation not in os.supports_dir_fd
+        name for name, operation in operations if operation not in os.supports_dir_fd
     ]
     if missing:
-        message = (
-            f"descriptor-bound directory operations are unsupported: {missing}"
-        )
+        message = f"descriptor-bound directory operations are unsupported: {missing}"
         raise OSError(errno.ENOTSUP, message, path)
 
 

@@ -61,11 +61,9 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            created = (
-                atomic_directory_chain.create_guarded_directory_chain(
-                    plan,
-                    permission_mode=permission_mode,
-                )
+            created = atomic_directory_chain.create_guarded_directory_chain(
+                plan,
+                permission_mode=permission_mode,
             )
         except OSError as exc:
             return r[t.SequenceOf[m.Cli.AtomicDirectoryState]].fail(
@@ -86,12 +84,9 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            state = (
-                atomic_directory_snapshot
-                .read_authenticated_empty_directory(
-                    Path(directory_path),
-                    required=required,
-                )
+            state = atomic_directory_snapshot.read_authenticated_empty_directory(
+                Path(directory_path),
+                required=required,
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(
@@ -115,11 +110,9 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            state = (
-                atomic_directory_create.create_guarded_empty_directory(
-                    before,
-                    permission_mode=permission_mode,
-                )
+            state = atomic_directory_create.create_guarded_empty_directory(
+                before,
+                permission_mode=permission_mode,
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(
@@ -164,12 +157,9 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            published = (
-                atomic_directory_publish
-                .publish_guarded_staged_empty_directory(
-                    destination_before,
-                    staged,
-                )
+            published = atomic_directory_publish.publish_guarded_staged_empty_directory(
+                destination_before,
+                staged,
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryState].fail(

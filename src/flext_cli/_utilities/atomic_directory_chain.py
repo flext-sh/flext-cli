@@ -18,7 +18,6 @@ from flext_cli._utilities import atomic_file_mode
 from flext_cli._utilities import atomic_parent_descriptor
 
 
-
 def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPlan:
     """Snapshot one physical anchor and every descendant observed absent.
 
@@ -27,8 +26,8 @@ def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPl
 
     """
     path = Path(target)
-    anchor, state, ancestry, missing = (
-        atomic_parent_descriptor.inspect_directory_chain(path)
+    anchor, state, ancestry, missing = atomic_parent_descriptor.inspect_directory_chain(
+        path
     )
     return m.Cli.AtomicDirectoryChainPlan(
         target=path,
@@ -38,6 +37,7 @@ def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPl
         anchor_ancestry=ancestry,
         directories=missing,
     )
+
 
 def create_guarded_directory_chain(
     plan: m.Cli.AtomicDirectoryChainPlan,
@@ -68,12 +68,9 @@ def create_guarded_directory_chain(
     expected_parent = (plan.anchor_device, plan.anchor_inode)
     try:
         for directory in plan.directories:
-            before = (
-                atomic_directory_snapshot
-                .read_authenticated_empty_directory(
-                    directory,
-                    required=False,
-                )
+            before = atomic_directory_snapshot.read_authenticated_empty_directory(
+                directory,
+                required=False,
             )
             _require_planned_parent(
                 directory,
@@ -85,10 +82,8 @@ def create_guarded_directory_chain(
                 permission_mode=mode,
             )
             created.append(state)
-            expected_parent = (
-                _require_created_identity(
-                    state,
-                )
+            expected_parent = _require_created_identity(
+                state,
             )
     except BaseException as operation_error:
         _rollback_created(
@@ -97,6 +92,7 @@ def create_guarded_directory_chain(
         )
         raise
     return tuple(created)
+
 
 def _require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
     with atomic_parent_descriptor.physical_directory(
@@ -109,6 +105,7 @@ def _require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
             message = f"atomic directory-chain anchor changed: {plan.anchor_path}"
             raise OSError(errno.ESTALE, message, plan.anchor_path)
 
+
 def _require_planned_parent(
     path: Path,
     state: m.Cli.AtomicDirectoryState,
@@ -118,6 +115,7 @@ def _require_planned_parent(
         message = f"atomic directory-chain parent changed: {path}"
         raise OSError(errno.ESTALE, message, path)
 
+
 def _require_created_identity(
     state: m.Cli.AtomicDirectoryState,
 ) -> t.Pair[int, int]:
@@ -125,6 +123,7 @@ def _require_created_identity(
         message = f"created directory has no physical identity: {state.path}"
         raise OSError(errno.EINVAL, message, state.path)
     return state.device, state.inode
+
 
 def _rollback_created(
     created: list[m.Cli.AtomicDirectoryState],
@@ -150,7 +149,7 @@ def _rollback_created(
             raise BaseExceptionGroup(
                 group_message,
                 [operation_error, cleanup_error],
-                ) from cleanup_error
+            ) from cleanup_error
 
 
 __all__: list[str] = [

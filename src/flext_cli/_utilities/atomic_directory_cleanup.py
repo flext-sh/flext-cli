@@ -20,7 +20,6 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-
 def remove_created_directory(
     parent: atomic_file_descriptor.ParentDescriptor,
     path: Path,
@@ -31,14 +30,19 @@ def remove_created_directory(
     cleanup_errors: list[OSError] = []
     try:
         _remove_created_directory(
-            parent, path, identity,
+            parent,
+            path,
+            identity,
         )
     except OSError as cleanup_error:
         cleanup_errors.append(cleanup_error)
     if cleanup_errors:
         _raise_cleanup_failure(
-            path, operation_error, cleanup_errors,
+            path,
+            operation_error,
+            cleanup_errors,
         )
+
 
 def _remove_created_directory(
     parent: atomic_file_descriptor.ParentDescriptor,
@@ -46,30 +50,39 @@ def _remove_created_directory(
     identity: t.Pair[int, int] | None,
 ) -> None:
     state = atomic_directory_state.destination_state(
-        path, parent=parent,
+        path,
+        parent=parent,
     )
     if state is None:
         atomic_file_durability.sync_parent(parent)
         return
-    owned_identity = (
-        _require_cleanup_identity(
-            path, state, identity,
-        )
+    owned_identity = _require_cleanup_identity(
+        path,
+        state,
+        identity,
     )
     authenticated = atomic_directory_state.read_empty_state(
-        parent, path, state,
+        parent,
+        path,
+        state,
     )
     atomic_directory_state.require_identity(
-        path, authenticated, owned_identity,
+        path,
+        authenticated,
+        owned_identity,
     )
     current = atomic_directory_state.destination_state(
-        path, parent=parent,
+        path,
+        parent=parent,
     )
     _require_unchanged_cleanup_state(
-        path, current, authenticated,
+        path,
+        current,
+        authenticated,
     )
     atomic_directory_descriptor.remove_entry(parent, path)
     atomic_file_durability.sync_parent(parent)
+
 
 def _require_cleanup_identity(
     path: Path,
@@ -81,6 +94,7 @@ def _require_cleanup_identity(
         raise OSError(errno.ESTALE, message, path)
     atomic_directory_state.require_identity(path, state, identity)
     return identity
+
 
 def _require_unchanged_cleanup_state(
     path: Path,
@@ -95,6 +109,7 @@ def _require_unchanged_cleanup_state(
     ) != atomic_file_read.state_key(authenticated):
         message = f"atomic directory changed before cleanup: {path}"
         raise OSError(errno.ESTALE, message, path)
+
 
 def _raise_cleanup_failure(
     path: Path,
@@ -116,7 +131,7 @@ def _raise_cleanup_failure(
     raise BaseExceptionGroup(
         group_message,
         [operation_error, *cleanup_errors],
-        ) from cleanup_errors[-1]
+    ) from cleanup_errors[-1]
 
 
 __all__: list[str] = [

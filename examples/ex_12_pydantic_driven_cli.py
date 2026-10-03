@@ -113,7 +113,8 @@ def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseCon
         .flat_map(perform_connection_test)
         .map(
             lambda settings: _report_step_success(
-                settings, "✅ Connection test passed",
+                settings,
+                "✅ Connection test passed",
             ),
         )
         .map(_finish_database_config)

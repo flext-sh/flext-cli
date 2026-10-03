@@ -51,7 +51,7 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsAtomicState",
     "FlextCliModelsAtomicSymlink",
     "FlextCliModelsBase",
-        "FlextCliModelsDocx",
+    "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
     "FlextCliModelsDocxStyles",
     "FlextCliModelsPipeline",
@@ -81,7 +81,7 @@ _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
             "._base": ("_base",),
-                        "._xlsx": ("_xlsx",),
+            "._xlsx": ("_xlsx",),
             "._xlsx.xlsx_archive": ("FlextCliModelsXlsxArchive",),
             "._xlsx.xlsx_cells": ("FlextCliModelsXlsxCells",),
             "._xlsx.xlsx_layout": ("FlextCliModelsXlsxLayout",),

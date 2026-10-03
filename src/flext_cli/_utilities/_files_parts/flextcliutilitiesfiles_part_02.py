@@ -63,7 +63,8 @@ class FlextCliUtilitiesFiles:
             return r[bool].from_failure(ensure_result)
         try:
             atomic_file.write_atomic_bytes(
-                path, content.encode(c.Cli.ENCODING_DEFAULT),
+                path,
+                content.encode(c.Cli.ENCODING_DEFAULT),
             )
         except OSError as exc:
             return r[bool].fail(

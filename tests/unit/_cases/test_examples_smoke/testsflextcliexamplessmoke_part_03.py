@@ -37,7 +37,7 @@ class TestsFlextCliExamplesSmoke:
         tmp_path: Path,
     ) -> None:
         """Authentication example must handle no-session, invalid-token, and bad-login
-        
+
         cases.
         """
         token_path = tmp_path / "auth_token.json"
@@ -95,7 +95,6 @@ class TestsFlextCliExamplesSmoke:
     def test_settings_example_surfaces_profile_and_override_branches(
         self,
         tmp_path: Path,
-        
     ) -> None:
         """Settings example covers profile and override failures.
 

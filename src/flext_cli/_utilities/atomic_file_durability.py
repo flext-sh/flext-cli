@@ -12,7 +12,6 @@ from flext_cli._utilities import atomic_file_descriptor
 from flext_cli._utilities import atomic_file_path
 
 
-
 def sync_parent(
     parent: atomic_file_descriptor.ParentDescriptor,
 ) -> None:
@@ -20,6 +19,7 @@ def sync_parent(
     atomic_file_descriptor.assert_parent_unchanged(parent)
     os.fsync(parent.descriptor)
     atomic_file_descriptor.assert_parent_unchanged(parent)
+
 
 def sync_replacement(
     source: atomic_file_descriptor.ParentDescriptor,
