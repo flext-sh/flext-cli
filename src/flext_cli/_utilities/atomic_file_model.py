@@ -10,7 +10,10 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import m, t
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import m, t
 
 type PhysicalState = tuple[int, int, int, int | None, int | None]
 

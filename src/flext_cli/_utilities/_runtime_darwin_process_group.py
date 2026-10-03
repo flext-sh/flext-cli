@@ -10,7 +10,10 @@ import ctypes
 import errno
 import os
 
-from flext_cli import t
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliUtilitiesRuntimeDarwinProcessGroupMixin:

@@ -10,9 +10,8 @@ import errno
 import os
 import stat
 from pathlib import Path
-from typing import Never
+from typing import Never, TYPE_CHECKING
 
-from flext_cli import m, t
 from flext_cli._utilities import (
     atomic_directory_delete as directory_delete,
     atomic_directory_descriptor as directory_descriptor,
@@ -24,6 +23,9 @@ from flext_cli._utilities import (
     atomic_tree_descriptor as tree_descriptor,
     atomic_tree_inventory as tree_inventory,
 )
+
+if TYPE_CHECKING:
+    from flext_cli import m, t
 
 
 def cleanup_physical_tree_guarded(manifest: m.Cli.AtomicPhysicalTreeManifest) -> None:

@@ -10,12 +10,15 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import t
 from flext_cli._utilities import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_path as file_path,
     atomic_file_state as file_state,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 def read_authenticated_state(

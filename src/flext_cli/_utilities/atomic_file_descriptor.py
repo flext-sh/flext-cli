@@ -13,12 +13,15 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from flext_cli import t
 from flext_cli._utilities import (
     atomic_file_path as file_path,
     atomic_parent_descriptor as parent_path,
     atomic_parent_failure as parent_failure,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 @dataclass(frozen=True, slots=True)

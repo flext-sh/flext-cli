@@ -10,7 +10,6 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import t
 from flext_cli._utilities import (
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_state as directory_state,
@@ -18,6 +17,10 @@ from flext_cli._utilities import (
     atomic_file_durability as file_durability,
     atomic_file_read as file_read,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 def remove_created_directory(

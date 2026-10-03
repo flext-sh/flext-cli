@@ -9,7 +9,6 @@ from __future__ import annotations
 import errno
 from pathlib import Path
 
-from flext_cli import m
 from flext_cli._utilities import (
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_model as directory_model,
@@ -17,6 +16,10 @@ from flext_cli._utilities import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_path as file_path,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import m
 
 
 def read_authenticated_empty_directory(

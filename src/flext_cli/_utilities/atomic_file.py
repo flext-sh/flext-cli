@@ -11,7 +11,6 @@ import os
 import signal
 from pathlib import Path
 
-from flext_cli import m, t
 from flext_cli._utilities import (
     atomic_file_cleanup as file_cleanup,
     atomic_file_descriptor as file_descriptor,
@@ -23,6 +22,10 @@ from flext_cli._utilities import (
     atomic_file_state as file_state,
     atomic_file_temporary as file_temporary,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import m, t
 
 
 class _NoPrecondition:

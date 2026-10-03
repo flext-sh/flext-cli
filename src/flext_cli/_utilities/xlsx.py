@@ -6,7 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, p, t
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import m, p, t
 
 
 class FlextCliUtilitiesXlsx:

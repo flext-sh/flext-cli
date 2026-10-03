@@ -11,9 +11,8 @@ import hashlib
 import os
 import sys
 from pathlib import Path
-from typing import Never
+from typing import Never, TYPE_CHECKING
 
-from flext_cli import t
 from flext_cli._utilities import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_path as file_path,
@@ -21,6 +20,9 @@ from flext_cli._utilities import (
     atomic_file_state as file_state,
     atomic_tree_darwin as tree_darwin,
 )
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 _FILE_FLAGS = (
     os.O_RDONLY

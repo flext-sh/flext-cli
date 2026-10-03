@@ -9,7 +9,6 @@ from __future__ import annotations
 import errno
 import os
 
-from flext_cli import m
 from flext_cli._utilities import (
     atomic_file_descriptor as file_descriptor,
     atomic_file_durability as file_durability,
@@ -19,6 +18,10 @@ from flext_cli._utilities import (
     atomic_file_publish_checks as checks,
     atomic_file_state as file_state,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import m
 
 
 def publish_guarded_staged_file(

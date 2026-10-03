@@ -6,7 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import t
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 def main(args: t.StrSequence | None = None) -> int:

@@ -9,9 +9,8 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import Never
+from typing import Never, TYPE_CHECKING
 
-from flext_cli import m
 from flext_cli._utilities import (
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_model as directory_model,
@@ -20,6 +19,9 @@ from flext_cli._utilities import (
     atomic_file_durability as file_durability,
     atomic_file_path as file_path,
 )
+
+if TYPE_CHECKING:
+    from flext_cli import m
 
 
 def publish_guarded_staged_empty_directory(
