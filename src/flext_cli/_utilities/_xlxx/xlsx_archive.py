@@ -109,7 +109,8 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
                 cls._violation(
                     "worksheet_count",
                     "archive",
-                    f"expected={policy.required_worksheet_count}, actual={len(worksheets)}",
+                    f"expected={policy.required_worksheet_count}, "
+                    f"actual={len(worksheets)}",
                 ),
             )
         xml_members = tuple(

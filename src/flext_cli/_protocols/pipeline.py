@@ -22,7 +22,7 @@ class FlextCliProtocolsPipeline:
 
     @runtime_checkable
     class PipelineStageContext(Protocol):
-        """Contract for stage execution context — carries shared state between stages."""
+        """Contract for stage execution context — shared state between stages."""
 
         @property
         def repository_root(self) -> Path:

@@ -65,8 +65,9 @@ class FlextCliUtilitiesFormatters:
         """Render one bordered panel with an optional title line."""
         border = _PANEL_GLYPH * 4
         if title:
+            header = f"{border} {title} {border}"
             FlextCliUtilitiesOutput.emit_raw(
-                f"{cls._styled(f'{border} {title} {border}', c.Cli.MessageStyles.BOLD)}\n",
+                f"{cls._styled(header, c.Cli.MessageStyles.BOLD)}\n",
             )
         else:
             FlextCliUtilitiesOutput.emit_raw(f"{border}\n")

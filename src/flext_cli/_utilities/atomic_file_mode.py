@@ -49,8 +49,8 @@ def validate_mode_precondition(
     """Require the observed mode to match one explicit planned version.
 
     Raises:
-        OSError: If ``isinstance(expected_mode, FlextCliNoModePrecondition)``; or if ``observed
-            != planned``.
+        OSError: If ``expected_mode`` is ``FlextCliNoModePrecondition``; or if
+            ``observed != planned``.
 
     """
     if expected_mode is NO_MODE_PRECONDITION:

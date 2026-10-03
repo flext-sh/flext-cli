@@ -120,7 +120,7 @@ class FlextCliModelsBase:
         ]
 
     class DisplayData(m.BaseModel):
-        """Key-value data for table/display — Pydantic v2 contract. Use m.Cli.DisplayData."""
+        """Key-value display data — Pydantic v2 contract. Use m.Cli.DisplayData."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
@@ -145,7 +145,7 @@ class FlextCliModelsBase:
             return dict(self.data)
 
     class LoadedConfig(m.BaseModel):
-        """Loaded configuration content wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
+        """Loaded config wrapper — Pydantic v2 contract. Use m.Cli.LoadedConfig."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
@@ -173,7 +173,7 @@ class FlextCliModelsBase:
         ]
 
     class NormalizedJsonList(m.BaseModel):
-        """Resolve normalized JSON to a dict with defaults. Use m.Cli.NormalizedJsonList."""
+        """Resolve normalized JSON to dict with defaults — m.Cli.NormalizedJsonList."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
