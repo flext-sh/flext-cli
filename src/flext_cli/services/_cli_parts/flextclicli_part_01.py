@@ -55,13 +55,13 @@ class FlextCliCli:
             except m.ValidationError as exc:
                 if not self._result_border:
                     raise
-                FlextCliCli._exit_failure(
-                    e.fail_validation(
-                        self._model_cls.__name__,
-                        error=exc,
-                        result_type=r[bool],
-                    ),
+                failure = e.fail_validation(
+                    self._model_cls.__name__,
+                    error=exc,
+                    result_type=r[bool],
                 )
+                u.Cli.commands_emit_failure_cause(failure)
+                FlextCliCli._exit_failure(failure)
             return self._handler(model)
 
     @staticmethod
