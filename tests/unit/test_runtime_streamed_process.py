@@ -48,8 +48,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         """
         return frozenset(threading.enumerate())
 
+    @staticmethod
     def test_combined_output_is_byte_exact_and_live(
-        self,
         tmp_path: Path,
         capfd: pytest.CaptureFixture[str],
     ) -> None:
@@ -84,8 +84,8 @@ class TestsFlextCliRuntimeStreamedProcess:
             eq=False,
         )
 
+    @staticmethod
     def test_silent_live_process_emits_progress_only_to_stderr(
-        self,
         tmp_path: Path,
         capfd: pytest.CaptureFixture[str],
     ) -> None:
@@ -106,7 +106,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(captured.out, eq="")
         tm.that(captured.err, has=c.Cli.CLI_PROCESS_HEARTBEAT_MESSAGE)
 
-    def test_completed_nonzero_exit_is_returned_exactly(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_completed_nonzero_exit_is_returned_exactly(tmp_path: Path) -> None:
         """Keep a completed nonzero status in the success channel."""
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "raise SystemExit(37)"],
@@ -116,7 +117,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=37)
 
-    def test_existing_input_data_contract_is_preserved(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_existing_input_data_contract_is_preserved(tmp_path: Path) -> None:
         """Feed binary stdin through the same canonical run-to-file path."""
         output_file = tmp_path / "stdin.log"
         payload = b"stdin-\x00-bytes\n"
@@ -219,7 +221,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(result.value.timed_out, eq=True)
         tm.that(self._live_threads() - threads_before, empty=True)
 
-    def test_deadline_timeout_reports_causal_outcome(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_deadline_timeout_reports_causal_outcome(tmp_path: Path) -> None:
         """Deadline expiry reports its causal outcome instead of failing."""
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "import time;time.sleep(30)"],
@@ -230,7 +233,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.ok(result)
         tm.that(result.value.timed_out, eq=True)
 
-    def test_conflicting_deadlines_fail_before_spawn(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_conflicting_deadlines_fail_before_spawn(tmp_path: Path) -> None:
         """Reject two timeout owners without starting the command."""
         marker = tmp_path / "must-not-exist"
         result = u.Cli().run_to_file(
@@ -248,7 +252,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.fail(result)
         tm.that(marker.exists(), eq=False)
 
-    def test_invalid_durable_sink_fails_before_spawn(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_invalid_durable_sink_fails_before_spawn(tmp_path: Path) -> None:
         """Validate the durable sink before child code can execute."""
         sink_directory = tmp_path / "sink-directory"
         sink_directory.mkdir()
@@ -267,8 +272,8 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.fail(result)
         tm.that(marker.exists(), eq=False)
 
+    @staticmethod
     def test_broken_live_sink_fails_after_complete_durable_log(
-        self,
         tmp_path: Path,
     ) -> None:
         """Surface a broken live sink after preserving the durable child bytes."""

@@ -86,9 +86,10 @@ class FlextCliUtilitiesCommands:
             )
         uo.emit_raw(
             f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
+            error=True,
         )
         if result.error_code:
-            uo.emit_raw(f"   [{result.error_code}]\n")
+            uo.emit_raw(f"   [{result.error_code}]\n", error=True)
         if verbose and result.exception is not None:
             detail = "".join(
                 traceback.format_exception(
@@ -97,7 +98,7 @@ class FlextCliUtilitiesCommands:
                     result.exception.__traceback__,
                 ),
             )
-            uo.emit_raw(detail if detail.endswith("\n") else f"{detail}\n")
+            uo.emit_raw(detail if detail.endswith("\n") else f"{detail}\n", error=True)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]

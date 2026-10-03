@@ -27,12 +27,12 @@ class TestsFlextCliTypings:
 
     # --- Published CLI adapters: accept valid payloads -------------------
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("payload", "expected"),
         [(["alpha", "beta"], ["alpha", "beta"]), ([], []), (("x", "y"), ["x", "y"])],
     )
     def test_str_sequence_adapter_accepts_string_sequences(
-        self,
         payload: Sequence[str],
         expected: t.SequenceOf[str],
     ) -> None:
@@ -40,48 +40,50 @@ class TestsFlextCliTypings:
         result = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
         tm.that(list(result), eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "payload",
         [123, "not-a-sequence-of-str-only", [1, 2, 3], {"k": "v"}],
     )
     def test_str_sequence_adapter_rejects_non_string_sequences(
-        self,
         payload: object,
     ) -> None:
         """STR_SEQUENCE_ADAPTER raises ValidationError on invalid input."""
         with pytest.raises(m.ValidationError):
             t.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "payload",
         [{"id": 1}, {"nested": {"a": [1, 2]}}, {}, {"flag": True, "name": "x"}],
     )
     def test_json_mapping_adapter_accepts_json_objects(
-        self,
         payload: t.MappingKV[str, t.JsonValue],
     ) -> None:
         """JSON_MAPPING_ADAPTER validates JSON object mappings unchanged."""
         result = t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
         tm.that(result == payload, eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize("payload", [["a", "list"], "string", 42, True])
-    def test_json_mapping_adapter_rejects_non_mappings(self, payload: object) -> None:
+    def test_json_mapping_adapter_rejects_non_mappings(payload: object) -> None:
         """JSON_MAPPING_ADAPTER raises ValidationError for non-object input."""
         with pytest.raises(m.ValidationError):
             t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "payload",
         [[1, 2, 3], ["a", "b"], [], [{"k": "v"}, [1, 2]]],
     )
     def test_json_list_adapter_accepts_json_arrays(
-        self,
         payload: t.SequenceOf[t.JsonValue],
     ) -> None:
         """JSON_LIST_ADAPTER validates JSON arrays unchanged."""
         result = t.Cli.JSON_LIST_ADAPTER.validate_python(payload)
         tm.that(result == payload, eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("payload", "expected"),
         [
@@ -93,7 +95,6 @@ class TestsFlextCliTypings:
         ],
     )
     def test_cli_default_source_adapter_accepts_cli_value_kinds(
-        self,
         payload: object,
         expected: object,
     ) -> None:

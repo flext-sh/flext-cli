@@ -22,8 +22,9 @@ class TestsFlextCliServicesTablesCov:
 
     # ── fixtures ──────────────────────────────────────────────────────
 
+    @staticmethod
     @pytest.fixture
-    def single_record(self) -> t.Cli.TableDataSource:
+    def single_record() -> t.Cli.TableDataSource:
         """One mapping rendered as a Key/Value table.
 
         Returns:
@@ -32,8 +33,9 @@ class TestsFlextCliServicesTablesCov:
         """
         return {"name": "Alice", "age": 30}
 
+    @staticmethod
     @pytest.fixture
-    def record_rows(self) -> t.Cli.TableDataSource:
+    def record_rows() -> t.Cli.TableDataSource:
         """Return a list of homogeneous mappings rendered as a column table.
 
         Returns:
@@ -44,8 +46,8 @@ class TestsFlextCliServicesTablesCov:
 
     # ── format_table: return contract ─────────────────────────────────
 
+    @staticmethod
     def test_format_table_returns_successful_result_with_str_value(
-        self,
         single_record: t.Cli.TableDataSource,
     ) -> None:
         # Act
@@ -56,8 +58,8 @@ class TestsFlextCliServicesTablesCov:
         tm.ok(result)
         tm.that(result.unwrap(), is_=str)
 
+    @staticmethod
     def test_format_table_dict_renders_keys_and_values(
-        self,
         single_record: t.Cli.TableDataSource,
     ) -> None:
         # Act
@@ -70,8 +72,8 @@ class TestsFlextCliServicesTablesCov:
         tm.that(rendered, has="age")
         tm.that(rendered, has="30")
 
+    @staticmethod
     def test_format_table_list_of_dicts_renders_every_row(
-        self,
         record_rows: t.Cli.TableDataSource,
     ) -> None:
         # Act
@@ -85,12 +87,12 @@ class TestsFlextCliServicesTablesCov:
 
     # ── format_table: edge cases / invariants ─────────────────────────
 
+    @staticmethod
     @pytest.mark.parametrize(
         "empty_source",
         [pytest.param({}, id="empty-dict"), pytest.param([], id="empty-list")],
     )
     def test_format_table_empty_source_yields_empty_string(
-        self,
         empty_source: t.Cli.TableDataSource,
     ) -> None:
         # Act
@@ -101,8 +103,8 @@ class TestsFlextCliServicesTablesCov:
         tm.ok(result)
         tm.that(result.unwrap(), eq="")
 
+    @staticmethod
     def test_format_table_is_idempotent_for_equal_input(
-        self,
         single_record: t.Cli.TableDataSource,
     ) -> None:
         # Act — same input rendered twice
@@ -115,8 +117,8 @@ class TestsFlextCliServicesTablesCov:
 
     # ── format_table: configuration behavior ──────────────────────────
 
+    @staticmethod
     def test_format_table_title_is_not_embedded_in_returned_string(
-        self,
         single_record: t.Cli.TableDataSource,
     ) -> None:
         # Arrange — title is a display concern, not part of the formatted table
@@ -129,6 +131,7 @@ class TestsFlextCliServicesTablesCov:
         # Assert — format_table returns the table body only, without the title
         tm.that(rendered, lacks="My Report")
 
+    @staticmethod
     @pytest.mark.parametrize(
         "table_format",
         [
@@ -138,7 +141,6 @@ class TestsFlextCliServicesTablesCov:
         ],
     )
     def test_format_table_format_changes_rendered_output(
-        self,
         single_record: t.Cli.TableDataSource,
         table_format: c.Cli.TabularFormat,
     ) -> None:
@@ -155,8 +157,8 @@ class TestsFlextCliServicesTablesCov:
         tm.that(styled_rendered, ne=default_rendered)
         tm.that(styled_rendered, has="Alice")
 
+    @staticmethod
     def test_format_table_accepts_config_via_keyword_argument(
-        self,
         single_record: t.Cli.TableDataSource,
     ) -> None:
         # Act — config field supplied as a kwarg is equivalent to the model
@@ -173,7 +175,8 @@ class TestsFlextCliServicesTablesCov:
         # Assert
         tm.that(via_kwarg, eq=via_model)
 
-    def test_format_table_custom_headers_appear_in_output(self) -> None:
+    @staticmethod
+    def test_format_table_custom_headers_appear_in_output() -> None:
         # Arrange
         """Verify that format table custom headers appear in output."""
         config = m.Cli.TableConfig(headers=["K", "V"])
@@ -187,16 +190,16 @@ class TestsFlextCliServicesTablesCov:
 
     # ── show_table: return + observable output ────────────────────────
 
+    @staticmethod
     def test_show_table_returns_none(
-        self,
         single_record: t.Cli.TableDataSource,
     ) -> None:
         # Act / Assert — display is a side-effecting command returning None
         """Verify that show table returns none."""
         tm.that(cli.show_table(single_record), none=True)
 
+    @staticmethod
     def test_show_table_writes_data_to_stdout(
-        self,
         record_rows: t.Cli.TableDataSource,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
@@ -209,8 +212,8 @@ class TestsFlextCliServicesTablesCov:
         tm.that(out, has="val1")
         tm.that(out, has="val2")
 
+    @staticmethod
     def test_show_table_prints_title_when_configured(
-        self,
         single_record: t.Cli.TableDataSource,
         capsys: pytest.CaptureFixture[str],
     ) -> None:

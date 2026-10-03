@@ -44,7 +44,8 @@ def _process_exists(process_id: int) -> bool:
 class TestsFlextCliRuntimeProcessDescendants:
     """Prove root completion is not mistaken for boundary completion."""
 
-    def test_normal_root_exit_leaves_no_descendant(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_normal_root_exit_leaves_no_descendant(tmp_path: Path) -> None:
         """A descendant alive when the root exits is gone when the run returns.
 
         The descendant announces its identity over a pipe and then blocks
@@ -82,7 +83,8 @@ class TestsFlextCliRuntimeProcessDescendants:
             with pytest.raises(ProcessLookupError):
                 os.killpg(process_group, 0)
 
-    def test_windows_job_reports_zero_active_processes(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_windows_job_reports_zero_active_processes(tmp_path: Path) -> None:
         """Test windows job reports zero active processes."""
         _ObservedWindowsCli.active_counts.clear()
         result = _ObservedWindowsCli.run_to_file(
