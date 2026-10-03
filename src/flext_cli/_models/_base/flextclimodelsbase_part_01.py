@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from typing import Annotated, ClassVar
 
 from flext_cli import t
-from flext_cli._models._defaults import EMPTY_JSON_MAPPING
+from flext_cli._models._defaults import FlextCliModelsDefaults
 from flext_core import m, u
 
 
@@ -129,7 +129,7 @@ class FlextCliModelsBase:
         data: Annotated[
             t.JsonMapping,
             m.Field(
-                default_factory=lambda: EMPTY_JSON_MAPPING,
+                default_factory=lambda: FlextCliModelsDefaults.EMPTY_JSON_MAPPING,
                 description="Field-value pairs for display",
             ),
         ]
@@ -186,7 +186,7 @@ class FlextCliModelsBase:
         default: Annotated[
             t.JsonMapping,
             m.Field(
-                default_factory=lambda: EMPTY_JSON_MAPPING,
+                default_factory=lambda: FlextCliModelsDefaults.EMPTY_JSON_MAPPING,
                 description="Default mapping if value is not a dict",
             ),
         ]

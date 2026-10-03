@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Mapping
-from typing import ClassVar, TypeGuard, TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, TypeGuard
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.tokens import CommentToken as RuamelCommentToken

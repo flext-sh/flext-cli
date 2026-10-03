@@ -10,11 +10,11 @@ import re
 
 from flext_cli import p, r, t
 
-_VAR_PATTERN = re.compile(r"\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)")
-
 
 class FlextCliUtilitiesEnv:
     """Read and interpolate environment variables, exposed on ``u.Cli``."""
+
+    _VAR_PATTERN = re.compile(r"\$\{([^}]+)\}|\$([A-Za-z_][A-Za-z0-9_]*)")
 
     @staticmethod
     def env_read(name: str, environment: t.StrMapping) -> p.Result[str]:
@@ -52,7 +52,7 @@ class FlextCliUtilitiesEnv:
             key, _, default = token.partition(":-")
             return environment.get(key, default)
 
-        return r[str].ok(_VAR_PATTERN.sub(_replace, template))
+        return r[str].ok(FlextCliUtilitiesEnv._VAR_PATTERN.sub(_replace, template))
 
 
 __all__: list[str] = ["FlextCliUtilitiesEnv"]

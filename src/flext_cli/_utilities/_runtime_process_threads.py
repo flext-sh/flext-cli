@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import threading
-from typing import IO, BinaryIO, TYPE_CHECKING
+from typing import IO, TYPE_CHECKING, BinaryIO
 
 from flext_cli._utilities._runtime_process_stream import (
     FlextCliUtilitiesRuntimeProcessStreamMixin,

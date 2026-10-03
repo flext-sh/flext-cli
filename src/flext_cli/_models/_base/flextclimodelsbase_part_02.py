@@ -10,8 +10,8 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, t
-from flext_cli._models import atomic_state
-from flext_cli._models._defaults import EMPTY_STR_MAPPING
+from flext_cli._models._defaults import FlextCliModelsDefaults
+from flext_cli._models.atomic_state import FlextCliModelsAtomicState
 from flext_core import m, u
 
 
@@ -102,7 +102,7 @@ class FlextCliModelsBase:
                 The resulting ``Path``.
 
             """
-            return atomic_state.validate_atomic_state_path(
+            return FlextCliModelsAtomicState.validate_atomic_state_path(
                 value,
                 label="atomic file state",
             )
@@ -141,13 +141,13 @@ class FlextCliModelsBase:
             ):
                 msg = "absent atomic file state cannot contain host metadata"
                 raise ValueError(msg)
-            atomic_state.validate_parent_identity(
+            FlextCliModelsAtomicState.validate_parent_identity(
                 self.parent_device,
                 self.parent_inode,
                 present=self.content is not None,
                 label="atomic file state",
             )
-            atomic_state.validate_non_reparse_state(
+            FlextCliModelsAtomicState.validate_non_reparse_state(
                 self.file_attributes,
                 self.reparse_tag,
                 label="atomic file state",
@@ -202,14 +202,14 @@ class FlextCliModelsBase:
         base_env: Annotated[
             t.StrMapping,
             m.Field(
-                default_factory=lambda: EMPTY_STR_MAPPING,
+                default_factory=lambda: FlextCliModelsDefaults.EMPTY_STR_MAPPING,
                 description="Base environment inherited from the current process",
             ),
         ]
         overrides: Annotated[
             t.StrMapping,
             m.Field(
-                default_factory=lambda: EMPTY_STR_MAPPING,
+                default_factory=lambda: FlextCliModelsDefaults.EMPTY_STR_MAPPING,
                 description="Explicit environment overrides for the child process",
             ),
         ]

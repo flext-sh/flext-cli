@@ -13,12 +13,13 @@ from typing import BinaryIO, Final
 
 from flext_cli import c, p, r, t
 
-_STDOUT_DESCRIPTOR: Final[int] = 1
-_STDERR_DESCRIPTOR: Final[int] = 2
-
 
 class FlextCliUtilitiesRuntimeProcessResourcesMixin:
     """Prepare stdin/live descriptors and finalize durable resources."""
+
+    _STDOUT_DESCRIPTOR: Final[int] = 1
+
+    _STDERR_DESCRIPTOR: Final[int] = 2
 
     @staticmethod
     def _prepare_streamed_stdin(
@@ -92,11 +93,11 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         try:
             live_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
                 stack,
-                _STDOUT_DESCRIPTOR,
+                FlextCliUtilitiesRuntimeProcessResourcesMixin._STDOUT_DESCRIPTOR,
             )
             progress_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
                 stack,
-                _STDERR_DESCRIPTOR,
+                FlextCliUtilitiesRuntimeProcessResourcesMixin._STDERR_DESCRIPTOR,
             )
         except c.EXC_OS_VALUE as exc:
             return r[tuple[int | None, int | None]].fail(

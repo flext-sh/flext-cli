@@ -38,7 +38,10 @@ class TestsFlextCliExamplesSmoke:
     def test_complete_integration_example_surfaces_load_and_save_failures(
         tmp_path: Path,
     ) -> None:
-        """Complete integration example must fail honestly for missing, invalid, and unwritable data files."""
+        """Complete integration example must fail honestly for missing, invalid, and
+        
+        unwritable data files.
+        """
         app = DataManagerCLI()
 
         app.data_file = tmp_path / "missing-app-data.json"
