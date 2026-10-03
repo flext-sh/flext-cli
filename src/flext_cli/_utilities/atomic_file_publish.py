@@ -165,4 +165,12 @@ class FlextCliUtilitiesAtomicFilePublish:
             return published
 
 
-__all__: list[str] = ["FlextCliUtilitiesAtomicFilePublish"]
+def publish_guarded_staged_file(*args, **kwargs):
+    """Module-level delegate to :class:`FlextCliUtilitiesAtomicFilePublish`.
+
+    The facade lazy-init contract imports this name at module level; the
+    implementation lives on the owner class.
+    """
+    return FlextCliUtilitiesAtomicFilePublish.publish_guarded_staged_file(*args, **kwargs)
+
+__all__: list[str] = ["FlextCliUtilitiesAtomicFilePublish", "publish_guarded_staged_file"]
