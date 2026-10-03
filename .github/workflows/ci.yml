@@ -196,8 +196,7 @@ jobs:
           set -eu
           CI=Y make gen
           git status --short
-          candidate_status="$(git status --porcelain --untracked-files=all --ignore-submodules=none)"
-          test -z "$candidate_status"
+          test -z "$(git status --porcelain --untracked-files=all --ignore-submodules=none)"
 
       # Setup installs frozen from the committed uv.lock (`uv sync --locked`)
       # and never rewrites it; the deps audit proves that locked graph.
@@ -222,8 +221,7 @@ jobs:
         run: |
           set -eu
           git status --short
-          candidate_status="$(git status --porcelain --untracked-files=all --ignore-submodules=none)"
-          test -z "$candidate_status"
+          test -z "$(git status --porcelain --untracked-files=all --ignore-submodules=none)"
 
       - name: Dump reports on failure
         if: ${{ failure() }}
