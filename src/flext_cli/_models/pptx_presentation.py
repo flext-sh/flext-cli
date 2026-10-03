@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from flext_cli import t
-from flext_cli._models._defaults import FlextCliModelsDefaults
+from flext_cli._models._defaults import EMPTY_JSON_MAPPING, EMPTY_STR_MAPPING
 from flext_core import m
 
 
@@ -29,7 +29,7 @@ class FlextCliModelsPptxPresentation:
             description="Presentation slides.",
         )
         core_properties: t.JsonMapping = m.Field(
-            default_factory=lambda: FlextCliModelsDefaults.EMPTY_JSON_MAPPING,
+            default_factory=lambda: EMPTY_JSON_MAPPING,
             description="Core document properties.",
         )
 
