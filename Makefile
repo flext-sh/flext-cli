@@ -239,6 +239,13 @@ caller_github_token="$${GITHUB_TOKEN:-}"; \
 caller_mise_http_timeout="$${MISE_HTTP_TIMEOUT:-}"; \
 caller_flext_mypy_profile_output="$${FLEXT_MYPY_PROFILE_OUTPUT:-}"; \
 caller_mise_version="$${MISE_VERSION:-}"; \
+if [ -z "$$caller_github_token" ] && command -v gh >/dev/null 2>&1; then \
+		caller_github_token="$$(gh auth token)" \
+			|| { printf 'ERROR: the selected GitHub credential source failed: %s\n' 'gh auth token' >&2; exit 2; }; \
+		if [ -z "$$caller_github_token" ]; then \
+			printf 'ERROR: the selected GitHub credential source printed nothing: %s\n' 'gh auth token' >&2; exit 2; \
+		fi; \
+	fi; \
 mise_pin_file="$(MISE_VERSION_PIN)"; \
 	mise_pin=; \
 	if [ -f "$$mise_pin_file" ]; then \
@@ -311,7 +318,7 @@ mise_pin_file="$(MISE_VERSION_PIN)"; \
 		esac; \
 	done; \
 	scratch=$$(mktemp -d "$$project_parent/.$${project_root##*/}.mise-bootstrap.XXXXXX"); \
-	trap 'if [ -n "$${lock_stage:-}" ] && [ -d "$$lock_stage" ] && [ ! -f "$$lock_stage/transaction.json" ]; then find "$$lock_stage" -depth -delete; fi; find "$$scratch" -depth -delete' EXIT; \
+	trap 'find "$$scratch" -depth -delete' EXIT; \
 	mkdir -p "$$scratch/home" "$$scratch/home" "$$scratch/appdata" "$$scratch/appdata" "$$scratch/xdg-config" "$$scratch/xdg-data" "$$scratch/xdg-cache" "$$scratch/xdg-state" "$$scratch/config" "$$scratch/tmp" "$$scratch/." "$$scratch/system-config" "$$scratch/system-data" "$$scratch/system-installs" "$$scratch/system-shims" "$$scratch/tmp" "$$scratch/tmp" "$$scratch/tmp"; \
 : > "$$scratch/global-config.toml"; chmod 600 "$$scratch/global-config.toml"; \
 : > "$$scratch/system-config/config.toml"; chmod 600 "$$scratch/system-config/config.toml"; \
@@ -467,6 +474,13 @@ caller_github_token="$${GITHUB_TOKEN:-}"; \
 caller_mise_http_timeout="$${MISE_HTTP_TIMEOUT:-}"; \
 caller_flext_mypy_profile_output="$${FLEXT_MYPY_PROFILE_OUTPUT:-}"; \
 caller_mise_version="$${MISE_VERSION:-}"; \
+if [ -z "$$caller_github_token" ] && command -v gh >/dev/null 2>&1; then \
+		caller_github_token="$$(gh auth token)" \
+			|| { printf 'ERROR: the selected GitHub credential source failed: %s\n' 'gh auth token' >&2; exit 2; }; \
+		if [ -z "$$caller_github_token" ]; then \
+			printf 'ERROR: the selected GitHub credential source printed nothing: %s\n' 'gh auth token' >&2; exit 2; \
+		fi; \
+	fi; \
 mise_pin_file="$(MISE_VERSION_PIN)"; \
 	mise_pin=; \
 	if [ -f "$$mise_pin_file" ]; then \
@@ -539,7 +553,7 @@ mise_pin_file="$(MISE_VERSION_PIN)"; \
 		esac; \
 	done; \
 	scratch=$$(mktemp -d "$$project_parent/.$${project_root##*/}.mise-bootstrap.XXXXXX"); \
-	trap 'if [ -n "$${lock_stage:-}" ] && [ -d "$$lock_stage" ] && [ ! -f "$$lock_stage/transaction.json" ]; then find "$$lock_stage" -depth -delete; fi; find "$$scratch" -depth -delete' EXIT; \
+	trap 'find "$$scratch" -depth -delete' EXIT; \
 	mkdir -p "$$scratch/home" "$$scratch/home" "$$scratch/appdata" "$$scratch/appdata" "$$scratch/xdg-config" "$$scratch/xdg-data" "$$scratch/xdg-cache" "$$scratch/xdg-state" "$$scratch/config" "$$scratch/tmp" "$$scratch/." "$$scratch/system-config" "$$scratch/system-data" "$$scratch/system-installs" "$$scratch/system-shims" "$$scratch/tmp" "$$scratch/tmp" "$$scratch/tmp"; \
 : > "$$scratch/global-config.toml"; chmod 600 "$$scratch/global-config.toml"; \
 : > "$$scratch/system-config/config.toml"; chmod 600 "$$scratch/system-config/config.toml"; \
@@ -682,10 +696,6 @@ mise_checked() { \
 		mise_checked_stdout "$$scratch/resolve.stdout" "$$scratch/resolve.stderr" mise_exec no-config env MISE_CACHE_DIR="$$scratch/resolve-cache" MISE_FETCH_REMOTE_VERSIONS_CACHE=0s "$$pinned_mise" latest github:jdx/mise@2026.9.13; \
 		resolved_release=$$(cat "$$scratch/resolve.stdout"); \
 		if ! printf '%s\n' "$$resolved_release" | grep -Eq '^[0-9]+(\.[0-9]+){2}$$'; then \
-			mise ls-remote github:jdx/mise@2026.9.13 >"$$scratch/lsremote.stdout" 2>"$$scratch/lsremote.stderr" || true; \
-			resolved_release=$$(grep -E '^[0-9]+(\.[0-9]+){2}$$' "$$scratch/lsremote.stdout" | tail -1); \
-		fi; \
-		if ! printf '%s\n' "$$resolved_release" | grep -Eq '^[0-9]+(\.[0-9]+){2}$$'; then \
 			printf 'ERROR: mise latest github:jdx/mise@2026.9.13 returned an invalid release: %s\n' "$$resolved_release" >&2; exit 2; \
 		fi; \
 		caller_mise_version="$$resolved_release"; \
@@ -693,6 +703,16 @@ mise_checked() { \
 		if [ "$$receipt_release" != "$$resolved_release" ]; then \
 			printf 'ERROR: MISE_VERSION=%s launched Mise %s\n' "$$resolved_release" "$$receipt_release" >&2; exit 2; \
 		fi; \
+		mise_checked "$$scratch/install-script.log" mise_exec no-config "$$pinned_mise" generate install-script --version "$$resolved_release" --write "$$project_root/bin/mise" --windows; \
+chmod 755 "$$project_root/bin/mise"; \
+chmod 644 "$$project_root/bin/mise.cmd"; \
+caller_mise_version=; \
+		mise_receipt launcher-version "$$pinned_mise"; \
+		if [ "$$receipt_release" != "$$resolved_release" ]; then \
+			printf 'ERROR: generated %s runs Mise %s, not %s\n' "$$pinned_mise" "$$receipt_release" "$$resolved_release" >&2; exit 2; \
+		fi; \
+		printf '%s\n' '# @flext-generated: upg' '# @flext-owner: flext-infra/src/flext_infra/templates/project/base/tool_bootstrap_recipe.j2 (toolchain.mise_selector and toolchain.mise_version in flext-infra/config/codegen.yaml)' '# @flext-adjust: never hand-edit; bin/mise and bin/mise.cmd are generated by mise for exactly this release' '# @flext-regenerate: make upg' "$$resolved_release" > "$$mise_pin_file"; \
+		chmod 644 "$$mise_pin_file"; \
 		runtime_release="$$resolved_release"; \
 	elif [ "$$runtime_release" != "$$mise_pin" ]; then \
 		printf 'ERROR: launched Mise %s differs from the pinned %s\n' "$$runtime_release" "$$mise_pin" >&2; \
@@ -722,14 +742,8 @@ mise_checked() { \
 		# backup copy exists. \
 		lock_stage="$$(mktemp -d "$$project_parent/.$${project_root##*/}.mise-lock-stage.XXXXXX")"; \
 		cp "$$project_root/.mise.toml" "$$lock_stage/.mise.toml"; \
-		cp "$$project_root/.mise.toml" "$$scratch/locked-manifest.toml"; \
-		# The resolver (TOOL_BOOTSTRAP_RESOLVE, the first half of upg) locks \
-		# from the declared manifest alone; every other lock pass bumps the \
-		# committed lock and its sidecars. \
-		if [ "$(TOOL_BOOTSTRAP_RESOLVE)" != "1" ]; then \
-			if [ -f "$$project_root/mise.lock" ]; then cp "$$project_root/mise.lock" "$$lock_stage/mise.lock"; fi; \
-			if [ -d "$$project_root/.mise/locks" ]; then mkdir -p "$$lock_stage/.mise"; cp -R "$$project_root/.mise/locks" "$$lock_stage/.mise/locks"; fi; \
-		fi; \
+		if [ -f "$$project_root/mise.lock" ]; then cp "$$project_root/mise.lock" "$$lock_stage/mise.lock"; fi; \
+		if [ -d "$$project_root/.mise/locks" ]; then mkdir -p "$$lock_stage/.mise"; cp -R "$$project_root/.mise/locks" "$$lock_stage/.mise/locks"; fi; \
 		mise_trusted_config_paths="$$lock_stage"; \
 		if mise_checked "$$scratch/lock.log" mise_exec project "$$pinned_mise" -C "$$lock_stage" lock --bump; then \
 			:; \
@@ -740,43 +754,38 @@ mise_checked() { \
 			exit 2; \
 		fi; \
 		mise_checked "$$scratch/install.log" mise_exec project "$$pinned_mise" -C "$$lock_stage" install --yes; \
-		mise_checked "$$scratch/staged-python.log" mise_offline project "$$pinned_mise" -C "$$lock_stage" which python; \
+		mise_checked "$$scratch/staged-python.log" mise_exec project "$$pinned_mise" -C "$$lock_stage" which python; \
 		staged_python=$$(cat "$$scratch/staged-python.log"); \
 		if [ ! -x "$$staged_python" ]; then printf 'ERROR: staged Mise Python is not executable: %s\n' "$$staged_python" >&2; exit 2; fi; \
-		printf '%s\n' "$$staged_python" > "$$lock_stage/python-path"; \
-		if [ "$(TOOL_BOOTSTRAP_RESOLVE)" = "1" ]; then \
-			# Prepare and verify the new launchers while the old pin and launchers \
-			# still match the committed lock. No failed stage may strand an older \
-			# Mise release beside a newer lockfile revision. \
-			mkdir -p "$$lock_stage/artifacts/bin"; \
-			mise_checked "$$scratch/install-script.log" mise_exec no-config "$$pinned_mise" generate install-script --version "$$runtime_release" --write "$$lock_stage/artifacts/bin/mise" --windows; \
-chmod 755 "$$lock_stage/artifacts/bin/mise"; \
-chmod 644 "$$lock_stage/artifacts/bin/mise.cmd"; \
-mise_receipt launcher-version "$$lock_stage/artifacts/bin/mise"; \
-			if [ "$$receipt_release" != "$$runtime_release" ]; then \
-				printf 'ERROR: staged Mise launcher runs %s, not %s\n' "$$receipt_release" "$$runtime_release" >&2; exit 2; \
-			fi; \
-			printf '%s\n' '# @flext-generated: upg' '# @flext-owner: flext-infra/src/flext_infra/templates/project/base/tool_bootstrap_recipe.j2 (toolchain.mise_selector and toolchain.mise_version in flext-infra/config/codegen.yaml)' '# @flext-adjust: never hand-edit; bin/mise and bin/mise.cmd are generated by mise for exactly this release' '# @flext-regenerate: make upg' "$$runtime_release" > "$$lock_stage/artifacts/mise.version"; \
-		fi; \
 		mise_checked "$$scratch/publish-lock.log" "$$staged_python" "$$project_root/bin/mise-lock-transaction.py" publish "$$project_root" "$$lock_stage"; \
 		mise_trusted_config_paths="$$project_root"; \
-		if [ "$(TOOL_BOOTSTRAP_RESOLVE)" = "1" ]; then locked_manifest="$$scratch/locked-manifest.toml"; fi; \
 	else \
-		# ``locked`` mode converges every tool on exactly the version the \
-		# committed mise.lock pins. Setup never locks (operator 2026-10-02): \
-		# an offline dry-run proves the lock satisfies the manifest, and a lock \
-		# that does not (mixed-generation merge, interrupted ``upg``, a lock \
-		# written by another Mise release) fails loud; ``make upg`` is its only \
-		# writer. Only ``install --yes`` may reach the network, for a tool \
-		# missing from the persistent cache. \
-		if mise_offline project "$$pinned_mise" -C "$$project_root" install --dry-run >"$$scratch/install-probe.log" 2>&1; then \
+		# ``locked`` mode installs exactly what the committed mise.lock pins. \
+		# A manifest ahead of the lock (a previous upg committed the rendered \
+		# .mise.toml and died before its lock transaction) self-heals here \
+		# through the same staged transaction upg uses: adopt, install, and \
+		# publish by one rename. A manifest that cannot still resolve fails \
+		# loud inside that transaction; every other install failure escapes \
+		# unchanged. \
+		if mise_exec project "$$pinned_mise" -C "$$project_root" install --yes >"$$scratch/install.log" 2>&1; then \
 			:; \
+		elif grep -q "not in the lockfile" "$$scratch/install.log"; then \
+			lock_stage="$$(mktemp -d "$$project_parent/.$${project_root##*/}.mise-lock-stage.XXXXXX")"; \
+			cp "$$project_root/.mise.toml" "$$lock_stage/.mise.toml"; \
+			if [ -f "$$project_root/mise.lock" ]; then cp "$$project_root/mise.lock" "$$lock_stage/mise.lock"; fi; \
+			if [ -d "$$project_root/.mise/locks" ]; then mkdir -p "$$lock_stage/.mise"; cp -R "$$project_root/.mise/locks" "$$lock_stage/.mise/locks"; fi; \
+			mise_trusted_config_paths="$$lock_stage"; \
+			mise_checked "$$scratch/adopt-lock.log" mise_exec project "$$pinned_mise" -C "$$lock_stage" lock --bump; \
+			mise_checked "$$scratch/adopt-install.log" mise_exec project "$$pinned_mise" -C "$$lock_stage" install --yes; \
+			mise_checked "$$scratch/staged-python.log" mise_exec project "$$pinned_mise" -C "$$lock_stage" which python; \
+			staged_python=$$(cat "$$scratch/staged-python.log"); \
+			if [ ! -x "$$staged_python" ]; then printf 'ERROR: staged Mise Python is not executable: %s\n' "$$staged_python" >&2; exit 2; fi; \
+			mise_checked "$$scratch/publish-lock.log" "$$staged_python" "$$project_root/bin/mise-lock-transaction.py" publish "$$project_root" "$$lock_stage"; \
+			mise_trusted_config_paths="$$project_root"; \
 		else \
-			cat "$$scratch/install-probe.log" >&2; \
-			printf 'ERROR: mise.lock does not satisfy .mise.toml under Mise %s; run make upg\n' "$$runtime_release" >&2; \
+			cat "$$scratch/install.log" >&2; \
 			exit 2; \
 		fi; \
-		mise_checked "$$scratch/install.log" mise_exec project "$$pinned_mise" -C "$$project_root" install --yes; \
 	fi; \
 	mise_checked_stdout "$$scratch/ast-grep-version.stdout" "$$scratch/ast-grep-version.stderr" mise_offline project "$$pinned_mise" -C "$$project_root" exec -- ast-grep --version; \
 	if [ -s "$$scratch/ast-grep-version.stderr" ]; then \
@@ -1727,8 +1736,8 @@ case "$$database" in /*) ;; *) printf 'ERROR: persistent testmon database requir
 case "$$database" in "$(PROJECT_ROOT)"/*) printf 'ERROR: persistent testmon database must be outside the checkout: %s\n' "$$database" >&2; exit 2 ;; esac; \
 case "$$database" in "$${TMPDIR:-/tmp}"/*|/tmp/*) printf 'ERROR: persistent testmon database must not live under the temporary directory: %s\n' "$$database" >&2; exit 2 ;; esac; \
 mkdir -p "$$(dirname "$$database")"; \
-TESTMON_DATAFILE="$$database" $(PYTEST_BOUNDED) $(PROJECT_TOOL_EXEC) $(UV_RUN) python -m flext_infra._pytest_entry full; \
-TESTMON_DATAFILE="$$database" $(PYTEST_BOUNDED) $(PROJECT_TOOL_EXEC) $(UV_RUN) python -m flext_infra._pytest_entry full-slow
+TESTMON_DATAFILE="$$database" $(PYTEST_BOUNDED) $(UV_RUN) python -m flext_infra._pytest_entry full; \
+TESTMON_DATAFILE="$$database" $(PYTEST_BOUNDED) $(UV_RUN) python -m flext_infra._pytest_entry full-slow
 
 # fmt is format-only (single-pass verb law): ruff formats Python, the
 # fmt_gates formatters run once through the checker's apply mode, and every
