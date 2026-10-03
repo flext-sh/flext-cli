@@ -10,8 +10,8 @@ import shutil
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.atomic_file import FlextCliUtilitiesAtomicFile
-from flext_cli._utilities.atomic_file_delete import FlextCliUtilitiesAtomicFileDelete
+from flext_cli._utilities import atomic_file
+from flext_cli._utilities import atomic_file_delete
 from flext_cli._utilities import atomic_file_path
 
 
@@ -35,7 +35,7 @@ class FlextCliUtilitiesFiles:
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
         try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(path, data)
+            atomic_file.write_atomic_bytes(path, data)
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
         return r[bool].ok(value=True)
@@ -62,7 +62,7 @@ class FlextCliUtilitiesFiles:
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
         try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+            atomic_file.write_atomic_bytes(
                 path, content.encode(c.Cli.ENCODING_DEFAULT),
             )
         except OSError as exc:
@@ -88,7 +88,7 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+            atomic_file.write_atomic_bytes(
                 before.path,
                 content.encode(c.Cli.ENCODING_DEFAULT),
                 expected_state=before,
@@ -118,7 +118,7 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+            atomic_file.write_atomic_bytes(
                 before.path,
                 data,
                 expected_state=before,
@@ -143,7 +143,7 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            FlextCliUtilitiesAtomicFileDelete.remove_guarded_file(state)
+            atomic_file_delete.remove_guarded_file(state)
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_FILE_DELETION_FAILED.format(error=exc))
         return r[bool].ok(value=True)

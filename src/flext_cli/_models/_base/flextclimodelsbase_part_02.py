@@ -12,7 +12,7 @@ from typing import Annotated, ClassVar, Self
 from flext_cli import c, t
 from flext_core import m, u
 
-from .. import atomic_state
+from ..atomic_state import FlextCliModelsAtomicState
 from .._defaults import EMPTY_STR_MAPPING
 
 
@@ -103,7 +103,7 @@ class FlextCliModelsBase:
                 The resulting ``Path``.
 
             """
-            return atomic_state.validate_atomic_state_path(
+            return FlextCliModelsAtomicState.validate_atomic_state_path(
                 value,
                 label="atomic file state",
             )
@@ -142,13 +142,13 @@ class FlextCliModelsBase:
             ):
                 msg = "absent atomic file state cannot contain host metadata"
                 raise ValueError(msg)
-            atomic_state.validate_parent_identity(
+            FlextCliModelsAtomicState.validate_parent_identity(
                 self.parent_device,
                 self.parent_inode,
                 present=self.content is not None,
                 label="atomic file state",
             )
-            atomic_state.validate_non_reparse_state(
+            FlextCliModelsAtomicState.validate_non_reparse_state(
                 self.file_attributes,
                 self.reparse_tag,
                 label="atomic file state",

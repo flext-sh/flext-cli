@@ -10,9 +10,7 @@ from pathlib import Path
 
 from flext_cli import m, p, r, t
 from flext_cli._utilities import atomic_file_descriptor
-from flext_cli._utilities.atomic_symlink_publish import (
-    FlextCliUtilitiesAtomicSymlinkPublish,
-)
+from flext_cli._utilities import atomic_symlink_publish
 from flext_cli._utilities import atomic_symlink_state
 
 
@@ -59,7 +57,7 @@ class FlextCliUtilitiesSymlink:
 
         """
         try:
-            FlextCliUtilitiesAtomicSymlinkPublish.write_guarded_symlink(before, target)
+            atomic_symlink_publish.write_guarded_symlink(before, target)
         except (OSError, ValueError) as exc:
             return r[bool].fail(str(exc), exception=exc)
         return r[bool].ok(value=True)
@@ -75,7 +73,7 @@ class FlextCliUtilitiesSymlink:
 
         """
         try:
-            FlextCliUtilitiesAtomicSymlinkPublish.delete_guarded_symlink(before)
+            atomic_symlink_publish.delete_guarded_symlink(before)
         except OSError as exc:
             return r[bool].fail(str(exc), exception=exc)
         return r[bool].ok(value=True)
