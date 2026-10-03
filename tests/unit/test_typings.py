@@ -124,7 +124,7 @@ class TestsFlextCliTypings:
         """The Scalar alias round-trips every primitive value."""
         adapter: m.TypeAdapter[t.Scalar] = u.type_adapter(t.Scalar)
         tm.that(adapter.validate_python("value"), eq="value")
-        tm.that(adapter.validate_python(True), eq=True)
+        tm.that(adapter.validate_python(python_object=True), eq=True)
         tm.that(adapter.validate_python(3), eq=3)
 
     @staticmethod

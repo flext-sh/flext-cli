@@ -102,7 +102,7 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             close_handle(job_handle)
             return r[int].fail(f"SetInformationJobObject failed: {error}")
         process_handle = open_process(
-            0x0001 | 0x0100, bInheritHandle=False, dwProcessId=process_id
+            0x0001 | 0x0100, bInheritHandle=False, dwProcessId=process_id,
         )
         if not process_handle:
             error = int(getattr(ctypes, "get_last_error", ctypes.get_errno)())

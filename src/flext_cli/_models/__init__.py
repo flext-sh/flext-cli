@@ -14,6 +14,7 @@ from flext_core import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._models import _base, _xlsx
+    from flext_cli._models._defaults import FlextCliModelsDefaults
     from flext_cli._models._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
     from flext_cli._models._xlsx.xlsx_cells import FlextCliModelsXlsxCells
     from flext_cli._models._xlsx.xlsx_layout import FlextCliModelsXlsxLayout
@@ -31,11 +32,7 @@ if TYPE_CHECKING:
     from flext_cli._models._xlsx.xlsx_tables import FlextCliModelsXlsxTables
     from flext_cli._models._xlsx.xlsx_validation import FlextCliModelsXlsxValidation
     from flext_cli._models._xlsx.xlsx_workbook import FlextCliModelsXlsxWorkbook
-    from flext_cli._models.atomic_state import (
-        validate_atomic_state_path,
-        validate_non_reparse_state,
-        validate_parent_identity,
-    )
+    from flext_cli._models.atomic_state import FlextCliModelsAtomicState
     from flext_cli._models.atomic_symlink import FlextCliModelsAtomicSymlink
     from flext_cli._models.base import FlextCliModelsBase
     from flext_cli._models.config import FlextCliConfigModels
@@ -52,8 +49,10 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     "FlextCliConfigModels",
+    "FlextCliModelsAtomicState",
     "FlextCliModelsAtomicSymlink",
     "FlextCliModelsBase",
+    "FlextCliModelsDefaults",
     "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
     "FlextCliModelsDocxStyles",
@@ -78,15 +77,13 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsXlsxWorkbook",
     "_base",
     "_xlsx",
-    "validate_atomic_state_path",
-    "validate_non_reparse_state",
-    "validate_parent_identity",
 )
 
 _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
             "._base": ("_base",),
+            "._defaults": ("FlextCliModelsDefaults",),
             "._xlsx": ("_xlsx",),
             "._xlsx.xlsx_archive": ("FlextCliModelsXlsxArchive",),
             "._xlsx.xlsx_cells": ("FlextCliModelsXlsxCells",),
@@ -101,11 +98,7 @@ _LAZY_IMPORTS = MappingProxyType(
             "._xlsx.xlsx_tables": ("FlextCliModelsXlsxTables",),
             "._xlsx.xlsx_validation": ("FlextCliModelsXlsxValidation",),
             "._xlsx.xlsx_workbook": ("FlextCliModelsXlsxWorkbook",),
-            ".atomic_state": (
-                "validate_atomic_state_path",
-                "validate_non_reparse_state",
-                "validate_parent_identity",
-            ),
+            ".atomic_state": ("FlextCliModelsAtomicState",),
             ".atomic_symlink": ("FlextCliModelsAtomicSymlink",),
             ".base": ("FlextCliModelsBase",),
             ".config": ("FlextCliConfigModels",),

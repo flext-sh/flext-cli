@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Literal, Self
 
 from flext_cli import t
-from flext_cli._models import atomic_state
+from flext_cli._models.atomic_state import FlextCliModelsAtomicState
 from flext_core import m, u
 
 
@@ -96,14 +96,14 @@ class FlextCliModelsBase:
         @u.field_validator("path")
         @classmethod
         def _validate_path(cls, value: Path) -> Path:
-            return atomic_state.validate_atomic_state_path(
+            return FlextCliModelsAtomicState.validate_atomic_state_path(
                 value,
                 label="atomic physical-tree entry",
             )
 
         @u.model_validator(mode="after")
         def _validate_kind_state(self) -> Self:
-            atomic_state.validate_non_reparse_state(
+            FlextCliModelsAtomicState.validate_non_reparse_state(
                 self.file_attributes,
                 self.reparse_tag,
                 label="atomic physical-tree entry",

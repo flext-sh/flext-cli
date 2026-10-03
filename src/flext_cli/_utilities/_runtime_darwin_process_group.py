@@ -9,7 +9,6 @@ from __future__ import annotations
 import ctypes
 import errno
 import os
-
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

@@ -48,7 +48,7 @@ class TestsFlextCliPublicContractsCoverage:
         )
         entry = m.Cli.CommandEntryModel(
             name="inspect",
-            handler=lambda: r[t.JsonPayload].ok(True),
+            handler=lambda: r[t.JsonPayload].ok(value=True),
         )
 
         def route_handler(_params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:

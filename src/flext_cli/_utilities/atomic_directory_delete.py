@@ -7,55 +7,80 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import errno
-
-from flext_cli._utilities import (
-    atomic_directory_descriptor as directory_descriptor,
-    atomic_directory_model as directory_model,
-    atomic_directory_state as directory_state,
-    atomic_file_descriptor as file_descriptor,
-    atomic_file_durability as file_durability,
-    atomic_file_path as file_path,
-    atomic_file_read as file_read,
-)
 from typing import TYPE_CHECKING
+
+from flext_cli._utilities.atomic_directory_descriptor import (
+    FlextCliUtilitiesAtomicDirectoryDescriptor,
+)
+from flext_cli._utilities.atomic_directory_model import (
+    FlextCliUtilitiesAtomicDirectoryModel,
+)
+from flext_cli._utilities.atomic_directory_state import (
+    FlextCliUtilitiesAtomicDirectoryState,
+)
+from flext_cli._utilities.atomic_file_descriptor import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+)
+from flext_cli._utilities.atomic_file_durability import (
+    FlextCliUtilitiesAtomicFileDurability,
+)
+from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
 
 if TYPE_CHECKING:
     from flext_cli import m
 
 
-def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:
-    """Remove the exact empty-directory version authorized by the caller.
+class FlextCliUtilitiesAtomicDirectoryDelete:
+    """Canonical namespace owner."""
 
-    Raises:
-        OSError: If ``observed is None``; or if ``current is None or
+    @staticmethod
+    def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:
+        """Remove the exact empty-directory version authorized by the caller.
+
+        Raises:
+            OSError: If ``observed is None``; or if ``current is None or
             file_read.state_key(current) != file_read.state_key(authenticated)``; or if
             ``directory_state.destination_state(path, parent=parent) is not None``.
 
-    """
-    path = file_path.validate_atomic_path(state.path)
-    directory_model.require_existing(state, purpose="deleted")
-    directory_descriptor.require_delete_capabilities(path)
-    with file_descriptor.parent_descriptor(path) as parent:
-        directory_model.require_parent(state, parent.state)
-        observed = directory_state.destination_state(path, parent=parent)
-        directory_model.require_observed(state, observed)
-        if observed is None:
-            message = f"atomic directory disappeared before delete: {path}"
-            raise OSError(errno.ESTALE, message, path)
-        authenticated = directory_state.read_empty_state(parent, path, observed)
-        directory_model.require_observed(state, authenticated)
-        current = directory_state.destination_state(path, parent=parent)
-        directory_model.require_observed(state, current)
-        if current is None or file_read.state_key(current) != file_read.state_key(
-            authenticated,
-        ):
-            message = f"atomic directory changed immediately before rmdir: {path}"
-            raise OSError(errno.ESTALE, message, path)
-        directory_descriptor.remove_entry(parent, path)
-        file_durability.sync_parent(parent)
-        if directory_state.destination_state(path, parent=parent) is not None:
-            message = f"atomic directory still exists after rmdir: {path}"
-            raise OSError(errno.ESTALE, message, path)
+        """
+        path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(state.path)
+        FlextCliUtilitiesAtomicDirectoryModel.require_existing(state, purpose="deleted")
+        FlextCliUtilitiesAtomicDirectoryDescriptor.require_delete_capabilities(path)
+        with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
+            FlextCliUtilitiesAtomicDirectoryModel.require_parent(state, parent.state)
+            observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+                path, parent=parent,
+            )
+            FlextCliUtilitiesAtomicDirectoryModel.require_observed(state, observed)
+            if observed is None:
+                message = f"atomic directory disappeared before delete: {path}"
+                raise OSError(errno.ESTALE, message, path)
+            authenticated = FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
+                parent, path, observed,
+            )
+            FlextCliUtilitiesAtomicDirectoryModel.require_observed(state, authenticated)
+            current = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+                path, parent=parent,
+            )
+            FlextCliUtilitiesAtomicDirectoryModel.require_observed(state, current)
+            if current is None or FlextCliUtilitiesAtomicFileRead.state_key(
+                current,
+            ) != FlextCliUtilitiesAtomicFileRead.state_key(
+                authenticated,
+            ):
+                message = f"atomic directory changed immediately before rmdir: {path}"
+                raise OSError(errno.ESTALE, message, path)
+            FlextCliUtilitiesAtomicDirectoryDescriptor.remove_entry(parent, path)
+            FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
+            if (
+                FlextCliUtilitiesAtomicDirectoryState.destination_state(
+                    path, parent=parent,
+                )
+                is not None
+            ):
+                message = f"atomic directory still exists after rmdir: {path}"
+                raise OSError(errno.ESTALE, message, path)
 
 
-__all__: list[str] = ["remove_guarded_empty_directory"]
+__all__: list[str] = ["FlextCliUtilitiesAtomicDirectoryDelete"]

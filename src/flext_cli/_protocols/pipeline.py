@@ -9,12 +9,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-
 if TYPE_CHECKING:
     # mro-j47u (codex): p -> m is a reverse facade edge; keep it type-only.
+    from flext_cli import m, t
     from flext_core import p
-    from flext_cli import t
-    from flext_cli import m
 
 
 class FlextCliProtocolsPipeline:
