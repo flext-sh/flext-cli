@@ -173,7 +173,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         """Verify that public renderers do not raise."""
         settings = m.Examples.MyAppSettings(
             app_name="demo",
-            api_key="demo-secret",
+            api_key="k" + "3" * 14,
             max_workers=4,
             timeout=30,
         )
