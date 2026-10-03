@@ -101,9 +101,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             error = int(getattr(ctypes, "get_last_error", ctypes.get_errno)())
             close_handle(job_handle)
             return r[int].fail(f"SetInformationJobObject failed: {error}")
-        process_handle = open_process(
-            0x0001 | 0x0100, bInheritHandle=False, dwProcessId=process_id,
-        )
+        inherit_handle = False
+        process_handle = open_process(0x0001 | 0x0100, inherit_handle, process_id)
         if not process_handle:
             error = int(getattr(ctypes, "get_last_error", ctypes.get_errno)())
             close_handle(job_handle)
@@ -188,7 +187,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             close_handle(snapshot)
         if thread_id == 0:
             return f"suspended process {process_id} has no initial thread"
-        thread_handle = open_thread(0x0002, bInheritHandle=False, dwThreadId=thread_id)
+        inherit_handle = False
+        thread_handle = open_thread(0x0002, inherit_handle, thread_id)
         if not thread_handle:
             error = int(getattr(ctypes, "get_last_error", ctypes.get_errno)())
             return f"OpenThread failed: {error}"
