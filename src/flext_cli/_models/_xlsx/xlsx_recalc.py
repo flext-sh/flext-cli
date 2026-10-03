@@ -47,7 +47,8 @@ class FlextCliModelsXlsxRecalc:
             bytes,
             m.Field(
                 min_length=1,
-                description="Exact recalculated workbook bytes validated by this report.",
+                description="Exact recalculated workbook bytes "
+                "validated by this report.",
             ),
         ]
         recalculated: bool = m.Field(
@@ -73,7 +74,8 @@ class FlextCliModelsXlsxRecalc:
             description="Formula cells cached as an empty string result.",
         )
         ok: bool = m.Field(
-            description="Producer-stored verdict: caches complete, no errors, count matches.",
+            description="Producer-stored verdict: caches complete, "
+            "no errors, count matches.",
         )
 
 
