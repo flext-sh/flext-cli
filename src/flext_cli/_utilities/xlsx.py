@@ -22,7 +22,9 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxRenderResult]``.
 
         """
-        from ._xlxx.xlsx_renderer import FlextCliUtilitiesXlsxRenderer
+        from flext_cli._utilities._xlxx.xlsx_renderer import (
+            FlextCliUtilitiesXlsxRenderer,
+        )
 
         return FlextCliUtilitiesXlsxRenderer.xlsx_render(request)
 
@@ -36,7 +38,9 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxWorkbookSnapshot]``.
 
         """
-        from ._xlxx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
+        from flext_cli._utilities._xlxx.xlsx_snapshot import (
+            FlextCliUtilitiesXlsxSnapshot,
+        )
 
         return FlextCliUtilitiesXlsxSnapshot.xlsx_snapshot(request)
 
@@ -50,7 +54,7 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxArchiveInspection]``.
 
         """
-        from ._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
+        from flext_cli._utilities._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
 
         return FlextCliUtilitiesXlsxArchive.xlsx_inspect(request)
 
@@ -64,7 +68,7 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxRecalcResult]``.
 
         """
-        from ._xlxx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
+        from flext_cli._utilities._xlxx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
 
         return FlextCliUtilitiesXlsxRecalc.xlsx_recalc(request)
 
@@ -78,7 +82,7 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxRecalcParityReport]``.
 
         """
-        from ._xlxx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
+        from flext_cli._utilities._xlxx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
 
         return FlextCliUtilitiesXlsxRecalc.xlsx_recalc_parity(request)
 
@@ -92,7 +96,7 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxDefinedNameValuesResult]``.
 
         """
-        from ._xlxx.xlsx_defined_name_values import (
+        from flext_cli._utilities._xlxx.xlsx_defined_name_values import (
             FlextCliUtilitiesXlsxDefinedNameValues,
         )
 
@@ -108,7 +112,9 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxStyleCatalog]``.
 
         """
-        from ._xlxx.xlsx_style_catalog import FlextCliUtilitiesXlsxStyleCatalog
+        from flext_cli._utilities._xlxx.xlsx_style_catalog import (
+            FlextCliUtilitiesXlsxStyleCatalog,
+        )
 
         return FlextCliUtilitiesXlsxStyleCatalog.xlsx_style_catalog(request)
 
@@ -122,7 +128,9 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxStyleTemplateResult]``.
 
         """
-        from ._xlxx.xlsx_style_catalog import FlextCliUtilitiesXlsxStyleCatalog
+        from flext_cli._utilities._xlxx.xlsx_style_catalog import (
+            FlextCliUtilitiesXlsxStyleCatalog,
+        )
 
         return FlextCliUtilitiesXlsxStyleCatalog.xlsx_style_template(request)
 
@@ -136,7 +144,9 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxCellRange]``.
 
         """
-        from ._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+        from flext_cli._utilities._xlxx.xlsx_addresses import (
+            FlextCliUtilitiesXlsxAddresses,
+        )
 
         return FlextCliUtilitiesXlsxAddresses.xlsx_parse_range(request)
 
@@ -150,7 +160,9 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxReference]``.
 
         """
-        from ._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+        from flext_cli._utilities._xlxx.xlsx_addresses import (
+            FlextCliUtilitiesXlsxAddresses,
+        )
 
         return FlextCliUtilitiesXlsxAddresses.xlsx_format_reference(request)
 

@@ -589,7 +589,7 @@ dev = [
 [[package]]
 name = "flext-core"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-core.git?rev=0.12.0-dev#62cf1efd8b55cb0e1490b29560c7eb69931f4c39" }
+source = { git = "https://github.com/flext-sh/flext-core.git?rev=0.12.0-dev#82200d25efb719c2f94e015a6a354ede4f659e8f" }
 dependencies = [
     { name = "annotated-types" },
     { name = "beartype" },
@@ -605,7 +605,7 @@ dependencies = [
 [[package]]
 name = "flext-infra"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#f3387dc9f2e358c23a7d05b734cf7a89712e3e84" }
+source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#6a3e38d29f52f1983fe0d10972973894761ffb52" }
 dependencies = [
     { name = "annotated-types" },
     { name = "beartype" },
@@ -1271,11 +1271,11 @@ wheels = [
 
 [[package]]
 name = "platformdirs"
-version = "4.12.2"
+version = "4.12.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/17/c8/721b3855fe457da514fe249247d404b9b39c5d16532278f70ebaa6acf18b/platformdirs-4.12.2.tar.gz", hash = "sha256:eab5f70271a490ef74618bb314fbb86e3c7e82fa3b9c922c2ea0e0a1a155d329", size = 59353, upload-time = "2026-09-29T18:27:56.009Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/42/23/4a86fc741c38c5b69792a4ef954b281afa69bea9f083f881de1b0d23bc07/platformdirs-4.12.3.tar.gz", hash = "sha256:427fc0bb321ae0c5b037fa03238ca74820437be162e78b4848c4d4055b9b766c", size = 59538, upload-time = "2026-10-03T23:40:46.595Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d0/89/446044f33aba0348d35e433f56d12206d010a5281a1df54054d4cfb82388/platformdirs-4.12.2-py3-none-any.whl", hash = "sha256:29dbf06d96c500bc6bdbce75fb0a14d63279c93b1842f97e72a135b33e856983", size = 32457, upload-time = "2026-09-29T18:27:54.43Z" },
+    { url = "https://files.pythonhosted.org/packages/c5/9b/6ce1ead737fe496611bda600c263b9a11ae7bd8f41bb13f9bd7e0a2c37a4/platformdirs-4.12.3-py3-none-any.whl", hash = "sha256:080f3b39423b5abfca9a23d84c4e9795f54d395cd8459867a8ded44084fcd5f8", size = 32493, upload-time = "2026-10-03T23:40:45.104Z" },
 ]
 
 [[package]]

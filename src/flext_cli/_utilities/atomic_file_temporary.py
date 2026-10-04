@@ -12,7 +12,10 @@ import secrets
 import stat
 from pathlib import Path
 
-from . import atomic_file_descriptor as file_descriptor, atomic_file_mode as file_mode
+from flext_cli._utilities import (
+    atomic_file_descriptor as file_descriptor,
+    atomic_file_mode as file_mode,
+)
 
 _SECURE_CREATE_MODE = 0o600
 
