@@ -1,5 +1,11 @@
 # Guarded symbolic links
 
+<!-- TOC START -->
+
+- No sections found
+
+<!-- TOC END -->
+
 The public `u.Cli` filesystem domain provides three operations:
 
 - `atomic_read_symlink_state(path, required=False)` captures the exact link text,
