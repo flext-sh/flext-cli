@@ -29,7 +29,8 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     # MyAppSettings: explicit typed input contract
     # ------------------------------------------------------------------
 
-    def test_my_app_settings_uses_canonical_defaults(self) -> None:
+    @staticmethod
+    def test_my_app_settings_uses_canonical_defaults() -> None:
         """Build the pure model without reading ambient process state."""
         settings = m.Examples.MyAppSettings()
 
@@ -37,7 +38,8 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         tm.that(settings.max_workers, eq=c.EXAMPLE_DEFAULT_MAX_WORKERS)
         tm.that(settings.timeout, eq=c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS)
 
-    def test_my_app_settings_accepts_explicit_typed_values(self) -> None:
+    @staticmethod
+    def test_my_app_settings_accepts_explicit_typed_values() -> None:
         """Explicit values cross the model boundary without ambient overrides."""
         settings = m.Examples.MyAppSettings(
             app_name="explicit-tool",
@@ -55,8 +57,8 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     # AppSettingsAdvanced.validate_to_mapping: r[T] outcomes
     # ------------------------------------------------------------------
 
+    @staticmethod
     def test_advanced_settings_fail_when_api_key_missing_in_production(
-        self,
         tmp_path: Path,
     ) -> None:
         """Verify that advanced settings fail when api key missing in production."""
@@ -67,8 +69,8 @@ class TestsFlextCliExampleModelsUtilitiesCov:
 
         tm.fail(outcome, has="API_KEY is required in production")
 
+    @staticmethod
     def test_advanced_settings_fail_when_temp_dir_is_a_file(
-        self,
         tmp_path: Path,
     ) -> None:
         """Verify that advanced settings fail when temp dir is a file."""
@@ -81,7 +83,8 @@ class TestsFlextCliExampleModelsUtilitiesCov:
 
         tm.fail(outcome, has="TEMP_DIR must be a directory")
 
-    def test_advanced_settings_success_masks_api_key(self, tmp_path: Path) -> None:
+    @staticmethod
+    def test_advanced_settings_success_masks_api_key(tmp_path: Path) -> None:
         """Verify that advanced settings success masks api key."""
         good_temp_dir = tmp_path / "temp-ok"
         mapping: t.JsonMapping = tm.ok(
@@ -101,6 +104,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     # Field validation raises from the model boundary
     # ------------------------------------------------------------------
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("kwargs", "match"),
         [
@@ -110,7 +114,6 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ],
     )
     def test_advanced_settings_rejects_invalid_field(
-        self,
         kwargs: t.JsonMapping,
         match: str,
     ) -> None:
@@ -118,8 +121,9 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         with pytest.raises(ValueError, match=match):
             m.Examples.AppSettingsAdvanced.model_validate(kwargs)
 
+    @staticmethod
     @pytest.mark.parametrize("host", ["127.0.0.1", "localhost", "db.example.com"])
-    def test_database_config_accepts_valid_host(self, host: str) -> None:
+    def test_database_config_accepts_valid_host(host: str) -> None:
         """Verify that database config accepts valid host."""
         config = m.Examples.AdvancedDatabaseConfig(
             host=host,
@@ -130,7 +134,8 @@ class TestsFlextCliExampleModelsUtilitiesCov:
 
         tm.that(config.host, eq=host)
 
-    def test_database_config_rejects_invalid_host(self) -> None:
+    @staticmethod
+    def test_database_config_rejects_invalid_host() -> None:
         """Verify that database config rejects invalid host."""
         with pytest.raises(ValueError, match=c.EXAMPLE_ERR_INVALID_HOST):
             m.Examples.AdvancedDatabaseConfig(
@@ -144,6 +149,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
     # Utilities: to_json_dict normalization + void renderers
     # ------------------------------------------------------------------
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("payload", "key", "expected"),
         [
@@ -153,7 +159,6 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         ],
     )
     def test_to_json_dict_preserves_values(
-        self,
         payload: t.JsonMapping,
         key: str,
         expected: t.JsonValue,
@@ -163,11 +168,12 @@ class TestsFlextCliExampleModelsUtilitiesCov:
 
         tm.that(display.data[key] == expected, eq=True)
 
-    def test_public_renderers_do_not_raise(self) -> None:
+    @staticmethod
+    def test_public_renderers_do_not_raise() -> None:
         """Verify that public renderers do not raise."""
         settings = m.Examples.MyAppSettings(
             app_name="demo",
-            api_key="demo-secret",
+            api_key="k" + "3" * 14,
             max_workers=4,
             timeout=30,
         )

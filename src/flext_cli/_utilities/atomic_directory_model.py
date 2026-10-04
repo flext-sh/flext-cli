@@ -103,7 +103,8 @@ def require_parent(
         FileNotFoundError: If ``planned.parent_device is None or
         planned.parent_inode is None``. OSError: If ``(planned.parent_device,
         planned.parent_inode) != (observed.st_dev, observed.st_ino)``.
-
+        OSError: If ``(planned.parent_device, planned.parent_inode) != (observed.st_dev,
+            observed.st_ino)``.
     """
     if planned.parent_device is None or planned.parent_inode is None:
         message = (

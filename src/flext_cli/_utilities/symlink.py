@@ -9,9 +9,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import m, p, r, t
-from flext_cli._utilities import atomic_file_descriptor
-from flext_cli._utilities import atomic_symlink_publish
-from flext_cli._utilities import atomic_symlink_state
+from flext_cli._utilities import (
+    atomic_file_descriptor,
+    atomic_symlink_publish,
+    atomic_symlink_state,
+)
 
 
 class FlextCliUtilitiesSymlink:

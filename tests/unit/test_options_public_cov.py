@@ -30,26 +30,27 @@ class TestsFlextCliOptions:
         tags: t.StrSequence = ("lint", "typecheck")
         flags: dict[str, bool] = m.Field(default_factory=lambda: {"debug": True})
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("annotation", "expected"),
         [(str | None, str), (str | int, str), (dict[str, int], str), (int, int)],
     )
     def test_resolve_typer_annotation_maps_scalars_unions_and_collections(
-        self,
         annotation: t.Cli.RuntimeAnnotation,
         expected: type,
     ) -> None:
         """Verify that resolve typer annotation maps scalars unions and collections."""
         tm.that(u.Cli.resolve_typer_annotation(annotation) is expected, eq=True)
 
+    @staticmethod
     @pytest.mark.parametrize("annotation", [t.StrSequence, set[str], frozenset[str]])
     def test_resolve_typer_annotation_maps_string_collections_to_list_of_str(
-        self,
         annotation: t.Cli.RuntimeAnnotation,
     ) -> None:
         """String sequences and sets become repeated options typed ``list[str]``."""
         tm.that(u.Cli.resolve_typer_annotation(annotation), eq=list[str])
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("value", "expected"),
         [
@@ -64,13 +65,13 @@ class TestsFlextCliOptions:
         ],
     )
     def test_normalize_cli_atom_returns_typer_ready_value_or_none(
-        self,
         value: t.Cli.CliDefaultSource,
         expected: t.Cli.DefaultAtom | None,
     ) -> None:
         """Verify that normalize cli atom returns typer ready value or none."""
         tm.that(u.Cli.normalize_cli_atom(value), eq=expected)
 
+    @staticmethod
     @pytest.mark.parametrize(
         ("value", "expected"),
         [
@@ -84,7 +85,6 @@ class TestsFlextCliOptions:
         ],
     )
     def test_is_string_sequence_recognizes_only_str_sequences(
-        self,
         value: t.Cli.CliDefaultSource,
         *,
         expected: bool,
@@ -133,7 +133,8 @@ class TestsFlextCliOptions:
             eq=True,
         )
 
-    def test_build_option_registers_aliases_and_short_flag_from_spec(self) -> None:
+    @staticmethod
+    def test_build_option_registers_aliases_and_short_flag_from_spec() -> None:
         """Verify that build option registers aliases and short flag from spec."""
         option = u.Cli.build_option("project", {"project": {"short": "p"}})
 
@@ -143,7 +144,8 @@ class TestsFlextCliOptions:
         tm.that(declarations, has="--projects")
         tm.that(declarations, has="-p")
 
-    def test_build_option_reads_canonical_registry_contract(self) -> None:
+    @staticmethod
+    def test_build_option_reads_canonical_registry_contract() -> None:
         """Verify that build option reads canonical registry contract."""
         option = u.Cli.build_option("debug", c.Cli.CLI_PARAM_REGISTRY)
 
@@ -151,7 +153,8 @@ class TestsFlextCliOptions:
         declarations = tm.not_none(declarations)
         tm.that(declarations, has="--debug")
 
-    def test_reorder_prefixed_options_moves_shared_flags_after_subcommand(self) -> None:
+    @staticmethod
+    def test_reorder_prefixed_options_moves_shared_flags_after_subcommand() -> None:
         """Verify that reorder prefixed options moves shared flags after subcommand."""
         reordered = u.Cli.reorder_prefixed_options(
             ["--debug", "--log-level", "DEBUG", "check", "--all"],
@@ -161,7 +164,8 @@ class TestsFlextCliOptions:
 
         tm.that(reordered, eq=["check", "--debug", "--log-level", "DEBUG", "--all"])
 
-    def test_reorder_prefixed_options_handles_equals_joined_value_option(self) -> None:
+    @staticmethod
+    def test_reorder_prefixed_options_handles_equals_joined_value_option() -> None:
         """Verify that reorder prefixed options handles equals joined value option."""
         reordered = u.Cli.reorder_prefixed_options(
             ["--log-level=DEBUG", "check", "--all"],
@@ -171,9 +175,9 @@ class TestsFlextCliOptions:
 
         tm.that(reordered, eq=["check", "--log-level=DEBUG", "--all"])
 
+    @staticmethod
     @pytest.mark.parametrize("args", [["check", "--all"], []])
     def test_reorder_prefixed_options_is_identity_without_leading_prefixes(
-        self,
         args: t.SequenceOf[str],
     ) -> None:
         """Verify that reorder prefixed options is identity without leading prefixes."""
@@ -187,7 +191,8 @@ class TestsFlextCliOptions:
             eq=True,
         )
 
-    def test_reorder_prefixed_options_is_idempotent(self) -> None:
+    @staticmethod
+    def test_reorder_prefixed_options_is_idempotent() -> None:
         """Verify that reorder prefixed options is idempotent."""
         once = u.Cli.reorder_prefixed_options(
             ["--debug", "check", "--all"],

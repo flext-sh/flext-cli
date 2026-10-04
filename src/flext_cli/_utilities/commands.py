@@ -11,9 +11,8 @@ from typing import TYPE_CHECKING
 
 # mro-j47u (codex): formatter contracts are owned once by the t facade.
 from flext_cli import c, r, t
+from flext_cli._utilities.output import FlextCliUtilitiesOutput as uo
 from flext_core import u
-
-from .output import FlextCliUtilitiesOutput as uo
 
 if TYPE_CHECKING:
     from flext_cli import p
@@ -61,6 +60,23 @@ class FlextCliUtilitiesCommands:
         uo.emit_raw(f"{rendered}\n")
 
     @staticmethod
+    def commands_emit_failure_cause[TResult: t.Cli.ResultValue](
+        result: p.Result[TResult],
+    ) -> None:
+        """Render one rejected input's cause on the command's output surface.
+
+        Result commands render outcomes on stdout: the value when the command
+        succeeds, the validation cause when the input is rejected at the
+        result border. A failed handler execution keeps stdout clean and is
+        finalized by the CLI border's ``commands_emit_result_error``.
+
+        """
+        error = r.require_error(result)
+        uo.emit_raw(
+            f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
+        )
+
+    @staticmethod
     def commands_emit_result_error[TResult: t.Cli.ResultValue](
         result: p.Result[TResult],
         *,
@@ -86,9 +102,10 @@ class FlextCliUtilitiesCommands:
             )
         uo.emit_raw(
             f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
+            error=True,
         )
         if result.error_code:
-            uo.emit_raw(f"   [{result.error_code}]\n")
+            uo.emit_raw(f"   [{result.error_code}]\n", error=True)
         if verbose and result.exception is not None:
             detail = "".join(
                 traceback.format_exception(
@@ -97,7 +114,7 @@ class FlextCliUtilitiesCommands:
                     result.exception.__traceback__,
                 ),
             )
-            uo.emit_raw(detail if detail.endswith("\n") else f"{detail}\n")
+            uo.emit_raw(detail if detail.endswith("\n") else f"{detail}\n", error=True)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]

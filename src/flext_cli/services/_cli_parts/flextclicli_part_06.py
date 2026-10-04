@@ -28,8 +28,8 @@ class FlextCliCli(FlextCliCliPart05):
         operation name, its summary as help, and its request model or the
         shared ``m.Cli.EmptyRequest``. ``provide`` builds the service only when
         a command executes, so ``--help`` constructs no adapter. A successful
-        result value is rendered; rejected input exits non-zero with the
-        ``ValidationError`` as the failure cause.
+        result value is rendered; rejected input renders its cause on stdout
+        and exits non-zero with the ``ValidationError`` as the failure cause.
 
         Returns:
             The resulting ``tuple[m.Cli.ResultCommandRoute, ...]``.

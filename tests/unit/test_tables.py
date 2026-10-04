@@ -26,7 +26,8 @@ if TYPE_CHECKING:
 class TestsFlextCliTables:
     """Regression coverage for the public table helpers."""
 
-    def test_format_table_accepts_single_mapping_and_sequence_kwargs(self) -> None:
+    @staticmethod
+    def test_format_table_accepts_single_mapping_and_sequence_kwargs() -> None:
         """A single mapping plus list-based settings kwargs render successfully."""
         table: str = tm.ok(
             cli.format_table(
@@ -38,7 +39,8 @@ class TestsFlextCliTables:
         )
         tm.that(table, has=["Field", "status", "ok"])
 
-    def test_format_table_supports_headerless_mapping_rows(self) -> None:
+    @staticmethod
+    def test_format_table_supports_headerless_mapping_rows() -> None:
         """Headerless rendering emits values but suppresses the column keys."""
         table: str = tm.ok(
             cli.format_table(
@@ -50,6 +52,7 @@ class TestsFlextCliTables:
         tm.that(table, has=["row-1", "Alpha"])
         tm.that("identifier" in table, eq=False)
 
+    @staticmethod
     @pytest.mark.parametrize(
         "table_format",
         [
@@ -61,7 +64,6 @@ class TestsFlextCliTables:
         ],
     )
     def test_format_table_renders_row_values_across_formats(
-        self,
         table_format: c.Cli.TabularFormat,
     ) -> None:
         """Every supported tabular format renders the underlying row values."""
@@ -73,7 +75,8 @@ class TestsFlextCliTables:
         )
         tm.that(table, has=["Alice", "active"])
 
-    def test_format_table_renders_multiple_rows_in_order(self) -> None:
+    @staticmethod
+    def test_format_table_renders_multiple_rows_in_order() -> None:
         """Multiple rows appear in their input order in the rendered output."""
         table: str = tm.ok(
             cli.format_table(
@@ -87,16 +90,17 @@ class TestsFlextCliTables:
             eq=True,
         )
 
+    @staticmethod
     @pytest.mark.parametrize("empty_data", [[], {}])
     def test_format_table_returns_empty_string_for_empty_data(
-        self,
         empty_data: t.Cli.TableDataSource,
     ) -> None:
         """Empty input is a success carrying an empty rendered table."""
         table: str = tm.ok(cli.format_table(empty_data))
         tm.that(table, eq="")
 
-    def test_format_table_is_idempotent_for_identical_input(self) -> None:
+    @staticmethod
+    def test_format_table_is_idempotent_for_identical_input() -> None:
         """Rendering the same data twice yields byte-identical output."""
         rows = [{"name": "Alice", "status": "active"}]
         first: str = tm.ok(
@@ -107,13 +111,14 @@ class TestsFlextCliTables:
         )
         tm.that(first == second, eq=True)
 
-    def test_format_table_fails_on_unknown_configuration_kwarg(self) -> None:
+    @staticmethod
+    def test_format_table_fails_on_unknown_configuration_kwarg() -> None:
         """An unrecognized config kwarg surfaces a validation failure, not a render."""
         error: str = tm.fail(cli.format_table([{"name": "Alice"}], bogus_kwarg=1))
         tm.that(error, has=["table configuration", "bogus_kwarg"])
 
+    @staticmethod
     def test_show_table_prints_title_before_rendered_table(
-        self,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         """show_table prints the title ahead of the rendered table body."""
@@ -126,8 +131,8 @@ class TestsFlextCliTables:
         tm.that(output, has=["Current State", "service"])
         tm.that(output.index("Current State") < output.index("service"), eq=True)
 
+    @staticmethod
     def test_show_table_reports_configuration_failure_to_console(
-        self,
         capsys: pytest.CaptureFixture[str],
     ) -> None:
         """An invalid configuration is surfaced on the console rather than raising."""

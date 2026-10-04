@@ -1,5 +1,11 @@
 # Atomic file interruption
 
+<!-- TOC START -->
+
+- No sections found
+
+<!-- TOC END -->
+
 The public atomic file operations retain a descriptor and its inode identity through
 staging and publication. An interruption after authentication removes only the matching
 staged inode. The original exception escapes with its original traceback. A real cleanup
