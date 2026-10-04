@@ -11,8 +11,7 @@ import os
 from pathlib import Path
 
 from flext_cli import t
-
-from . import atomic_file_descriptor as file_descriptor
+from flext_cli._utilities import atomic_file_descriptor as file_descriptor
 
 
 def read_descriptor_bytes(

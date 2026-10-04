@@ -20,7 +20,7 @@ class FlextCliUtilitiesPptx:
             The resulting ``p.Result[m.Cli.PptxPresentationPlan]``.
 
         """
-        from ._pptx._reader import FlextCliUtilitiesPptxReader
+        from flext_cli._utilities._pptx._reader import FlextCliUtilitiesPptxReader
 
         return FlextCliUtilitiesPptxReader.pptx_read(source)
 
@@ -34,7 +34,7 @@ class FlextCliUtilitiesPptx:
             The resulting ``p.Result[m.Cli.PptxRenderResult]``.
 
         """
-        from ._pptx._renderer import FlextCliUtilitiesPptxRenderer
+        from flext_cli._utilities._pptx._renderer import FlextCliUtilitiesPptxRenderer
 
         return FlextCliUtilitiesPptxRenderer.pptx_render(request)
 

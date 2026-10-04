@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli._utilities import atomic_file_descriptor
-from flext_cli._utilities import atomic_file_path
+from flext_cli._utilities import atomic_file_descriptor, atomic_file_path
 
 
 def sync_parent(
