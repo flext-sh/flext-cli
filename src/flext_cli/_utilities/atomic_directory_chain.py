@@ -10,12 +10,14 @@ import errno
 from pathlib import Path
 
 from flext_cli import m, t
-from flext_cli._utilities import atomic_directory_create
-from flext_cli._utilities import atomic_directory_delete
-from flext_cli._utilities import atomic_directory_descriptor
-from flext_cli._utilities import atomic_directory_snapshot
-from flext_cli._utilities import atomic_file_mode
-from flext_cli._utilities import atomic_parent_descriptor
+from flext_cli._utilities import (
+    atomic_directory_create,
+    atomic_directory_delete,
+    atomic_directory_descriptor,
+    atomic_directory_snapshot,
+    atomic_file_mode,
+    atomic_parent_descriptor,
+)
 
 
 def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPlan:
@@ -27,7 +29,7 @@ def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPl
     """
     path = Path(target)
     anchor, state, ancestry, missing = atomic_parent_descriptor.inspect_directory_chain(
-        path
+        path,
     )
     return m.Cli.AtomicDirectoryChainPlan(
         target=path,

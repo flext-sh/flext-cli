@@ -48,8 +48,8 @@ class TestsFlextCliServiceRoutes:
                 TestsFlextCliServiceRoutes.Status(ready=1),
             )
 
+        @staticmethod
         def greet_all(
-            self,
             request: TestsFlextCliServiceRoutes.Greeting,
         ) -> p.Result[str]:
             """Greet someone by name.
@@ -60,7 +60,8 @@ class TestsFlextCliServiceRoutes:
             """
             return r[str].ok(" ".join([f"hello {request.name}"] * request.times))
 
-        def report(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
+        @staticmethod
+        def report() -> p.Result[TestsFlextCliServiceRoutes.Status]:
             """Report the service status.
 
             Returns:

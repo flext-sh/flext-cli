@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from flext_cli import t
-from flext_cli._models._defaults import EMPTY_JSON_MAPPING, EMPTY_STR_MAPPING
+from flext_cli._models._defaults import EMPTY_JSON_MAPPING
 from flext_cli._models.docx_styles import FlextCliModelsDocxStyles
 from flext_core import m
 

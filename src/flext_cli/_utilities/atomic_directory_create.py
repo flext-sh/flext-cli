@@ -11,8 +11,7 @@ import os
 from pathlib import Path
 
 from flext_cli import m, t
-
-from . import (
+from flext_cli._utilities import (
     atomic_directory_cleanup as directory_cleanup,
     atomic_directory_descriptor as directory_descriptor,
     atomic_directory_model as directory_model,
