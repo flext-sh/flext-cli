@@ -28,8 +28,7 @@ import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap
 
 from flext_cli import c, p, r, t
-
-from ._convert import FlextCliUtilitiesYamlConvertMixin
+from flext_cli._utilities._yaml._convert import FlextCliUtilitiesYamlConvertMixin
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -75,7 +74,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
         except OSError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML read error: {exc}", exception=exc)
-        except c.Cli.YamlRoundtripError as exc:
+        except ruamel.yaml.YAMLError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
         except TypeError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
@@ -94,7 +93,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         try:
             loaded = _roundtrip_yaml().load(text)
             node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
-        except c.Cli.YamlRoundtripError as exc:
+        except ruamel.yaml.YAMLError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
         except TypeError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
@@ -150,7 +149,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         """
         try:
             _roundtrip_yaml().dump(data, stream)
-        except (OSError, c.Cli.YamlRoundtripError, TypeError, ValueError) as exc:
+        except (OSError, ruamel.yaml.YAMLError, TypeError, ValueError) as exc:
             return r[bool].fail(f"YAML dump error: {exc}", exception=exc)
         return r[bool].ok(value=True)
 
