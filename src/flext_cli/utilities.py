@@ -9,10 +9,10 @@ from __future__ import annotations
 from typing import ClassVar
 
 from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
-from flext_core import m, u
+from flext_core import FlextUtilities, m
 
 
-class FlextCliUtilities(u):
+class FlextCliUtilities(FlextUtilities):
     """CLI utility facade composed from internal utility mixins."""
 
     # Why (multi-agent): the pydantic metaclass strips class-typed attributes

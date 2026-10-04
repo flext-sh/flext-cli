@@ -9,31 +9,48 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 # Concrete-module imports: this module resolves during the package root's
 # lazy ``s`` export, when the root namespace is still initializing.
+from flext_cli._settings import FlextCliSettings
+from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
 from flext_cli.models import m
 from flext_cli.protocols import p
-from flext_cli.utilities import u
-from flext_core import s
-
-if TYPE_CHECKING:
-    from flext_cli.typings import t
+from flext_core import FlextService
 
 if TYPE_CHECKING:
     from flext_cli.typings import t
 
 
 class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
-    s[TDomainResult],
-    u.Cli,
+    FlextService[TDomainResult],
+    FlextCliUtilitiesCli,
 ):
     """Base class for flext-cli services with typed configuration access.
 
     Note: This is an abstract base class. Subclasses must implement the
-    `execute` method from s.
+    `execute` method from FlextService.
     """
+
+    @property
+    @override
+    def settings(self) -> p.Cli.Settings:
+        """The typed CLI settings resolved by the service runtime.
+
+        Raises:
+            TypeError: If runtime settings do not satisfy the CLI settings contract.
+        """
+        resolved = super().settings
+        if not isinstance(resolved, p.Cli.Settings):
+            msg = "Runtime settings do not satisfy the CLI settings contract"
+            raise TypeError(msg)
+        return resolved
+
+    @classmethod
+    def runtime_bootstrap_options(cls) -> m.RuntimeBootstrapOptions:
+        """Return runtime bootstrap options binding the CLI settings class."""
+        return m.RuntimeBootstrapOptions(settings_type=FlextCliSettings)
 
 
 s = FlextCliServiceBase
