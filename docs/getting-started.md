@@ -22,7 +22,6 @@
   - [Testing Your CLI Code](#testing-your-cli-code)
 - [Next Steps](#next-steps)
   - [Learn More](#learn-more)
-  - [Migration from v0.9.0](#migration-from-v090)
 - [Related Documentation](#related-documentation)
   - [Examples](#examples)
 - [v0.9.0 Getting Started (Historical Reference)](#v090-getting-started-historical-reference)
@@ -303,17 +302,6 @@ def test_my_cli_operation():
 - **[Architecture](architecture.md)** - Architecture and design patterns
 - **[Development Guide](development.md)** - Contributing and extending
 
-### Migration from v0.9.0
-
-If you're upgrading from v0.9.0, see:
-
-- **[Migration Guide](refactoring/migration-guide-v0.9-to-v0.10.md)** - Step-by-step
-  migration
-- **[Breaking Changes](refactoring/breaking-changes.md)** - Complete breaking changes
-  list
-- **[Architecture Comparison](refactoring/architecture-comparison.md)** - Before/after
-  comparison
-
 ## Related Documentation
 
 **Within Project**:
@@ -321,8 +309,6 @@ If you're upgrading from v0.9.0, see:
 - [API Reference](api-reference/README.md) - Complete API documentation
 - [Architecture](architecture.md) - Architecture and design patterns
 - [Development Guide](development.md) - Contributing and extending
-- [Migration Guide](refactoring/migration-guide-v0.9-to-v0.10.md) - v0.9.0 to
-  v0.12.0-dev migration
 
 **Across Projects**:
 
