@@ -14,7 +14,6 @@
 - [Testing a command](#testing-a-command)
 - [Good practices](#good-practices)
 - [Bad practices](#bad-practices)
-- [Managed child processes](#managed-child-processes)
 - [Related](#related)
 
 <!-- TOC END -->
@@ -46,19 +45,15 @@ Import the aliases used by each example from the public `flext_cli` package root
 - Let `FlextCliCli` convert model fields into Typer options.
 - Keep output formatting, prompts, and runtime consistent across FLEXT CLI tools.
 
-Result-command failures and `MessageTypes.ERROR` messages are written to stderr;
-successful output and other message types are written to stdout. A failed route
-retains its original `Result` error and error code while the CLI exits nonzero.
-
 ## Settings
 
-Import the existing settings class; do not redefine it:
+Import the existing settings class; without overrides, `fetch_global()` returns
+its shared per-class singleton:
 
 ```python
 from flext_cli import FlextCliSettings
 
 settings = FlextCliSettings.fetch_global()
-assert settings is FlextCliSettings.fetch_global()
 ```
 
 If you need a project-specific subclass, extend `FlextSettings` (or `FlextCliSettings`)
@@ -69,18 +64,12 @@ from flext_core import FlextSettings, m
 
 
 class FlextApiSettings(FlextSettings):
+    """API settings read from ``FLEXT_API_*`` environment variables."""
+
     model_config = m.SettingsConfigDict(env_prefix="FLEXT_API_", extra="ignore")
 ```
 
 ## Model-driven command
-
-Structured option defaults are validated against the field annotation, including its
-metadata constraints, before being serialized as JSON. This supports immutable mapping
-defaults without converting the model's declared mapping contract into a mutable one.
-Settings values use the same field contract. Invalid defaults raise the original
-Pydantic validation error during command construction; serialization warnings are
-errors. The implementation uses Pydantic's
-[TypeAdapter validation and serialization](https://docs.pydantic.dev/latest/api/type_adapter/).
 
 ```python
 from __future__ import annotations
@@ -91,11 +80,19 @@ settings = FlextCliSettings.fetch_global()
 
 
 class GreetInput(m.BaseModel):
+    """Greeting command input."""
+
     name: str
     shout: bool = False
 
 
 def greet_handler(model: GreetInput) -> t.JsonValue:
+    """Build the greeting payload for one input model.
+
+    Returns:
+        A JSON payload carrying the greeting message.
+
+    """
     message = f"Hello, {model.name}!"
     if model.shout:
         message = message.upper()
@@ -103,25 +100,14 @@ def greet_handler(model: GreetInput) -> t.JsonValue:
 
 
 command = FlextCliCli.model_command(
-    model_cls=GreetInput, handler=greet_handler, settings=settings
+    model_cls=GreetInput,
+    handler=greet_handler,
+    settings=settings,
 )
 cli = FlextCliCli()
 app = cli.create_app_with_common_params(name="greeting", help_text="Greeting commands")
 cli.register_command(app, name="greet", help_text="Build a greeting", command=command)
 ```
-
-Pre-execution routers can obtain the same option declarations as the registered
-command through `cli.model_option_spec(field_name, model_field, settings)`. The
-returned `p.Cli.CliOptionSpec` exposes aliases, Boolean toggles, and explicit
-`typer_param_decls` without constructing a second naming rule. The global callback
-registers exactly the fields in `c.Cli.CLI_GLOBAL_PARAM_FIELDS`; routers should use
-that public tuple when identifying global options before a protected command.
-`cli.parse_model_options(model_cls, arguments, field_names=..., stop_at_positional=...)`
-consumes those declarations without executing the command callback. Its typed result
-keeps raw option values, remaining command tokens, and standalone help distinct;
-an option value that happens to equal `--help` remains a value. Repeated sequence
-options retain every value in order. The values are token-level routing facts, not
-the validated model that the real CLI later builds.
 
 **Common mistakes to avoid:**
 
@@ -136,30 +122,40 @@ directly. This independent example constructs and invokes a real model-backed co
 handlers return their value but do not automatically print it.
 
 ```python
-from flext_cli import FlextCliCli, m
+from flext_tests import tm
+
+from flext_cli import FlextCliCli, c, m
 
 
 class GreetInput(m.BaseModel):
+    """Greeting command input."""
+
     name: str
 
 
 def greet_handler(model: GreetInput) -> str:
+    """Return the greeting for one input model."""
     return f"Hello, {model.name}!"
 
 
 def test_greet_command() -> None:
+    """The registered greeting command exits successfully."""
     cli = FlextCliCli()
     app = cli.create_app_with_common_params(
-        name="greeting", help_text="Greeting commands"
+        name="greeting",
+        help_text="Greeting commands",
     )
     command = cli.model_command(model_cls=GreetInput, handler=greet_handler)
     cli.register_command(
-        app, name="greet", help_text="Build a greeting", command=command
+        app,
+        name="greet",
+        help_text="Build a greeting",
+        command=command,
     )
     invocation = cli.invoke_app(app, args=["greet", "--name", "Ada"])
-    assert invocation.success
-    assert invocation.value.exit_code == 0
-    assert greet_handler(GreetInput(name="Ada")) == "Hello, Ada!"
+    tm.that(invocation.success, eq=True)
+    tm.that(invocation.value.exit_code, eq=c.Cli.EXIT_CODE_SUCCESS)
+    tm.that(greet_handler(GreetInput(name="Ada")), eq="Hello, Ada!")
 ```
 
 ## Good practices
@@ -180,14 +176,17 @@ from flext_cli import m
 
 
 class GreetInput(m.BaseModel):
+    """Greeting command input."""
+
     name: str
 
 
 def greet_handler(model: GreetInput) -> str:
+    """Return the greeting for one input model."""
     return f"Hello, {model.name}!"
 
 
-assert greet_handler(GreetInput(name="Ada")) == "Hello, Ada!"
+greeting = greet_handler(GreetInput(name="Ada"))  # "Hello, Ada!"
 ```
 
 ## Related
