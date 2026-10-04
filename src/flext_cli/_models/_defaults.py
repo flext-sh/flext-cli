@@ -7,12 +7,17 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from types import MappingProxyType
+from typing import ClassVar
 
 from flext_cli import t
 
-EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 
-EMPTY_STR_MAPPING: t.StrMapping = MappingProxyType({})
+class FlextCliModelsDefaults:
+    """Canonical namespace owner."""
+
+    EMPTY_JSON_MAPPING: ClassVar[t.JsonMapping] = MappingProxyType({})
+
+    EMPTY_STR_MAPPING: ClassVar[t.StrMapping] = MappingProxyType({})
 
 
-__all__: t.VariadicTuple[str] = ("EMPTY_JSON_MAPPING", "EMPTY_STR_MAPPING")
+__all__: t.VariadicTuple[str] = ("FlextCliModelsDefaults",)

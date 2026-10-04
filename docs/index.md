@@ -12,7 +12,7 @@
 
 <!-- AUTO-GENERATED — DO NOT EDIT MANUALLY -->
 
-- Version: `0.12.0`
+- Version: `0.12.1`
 - Project class: `domain`
 - Package: `flext_cli`
 - Description: FLEXT CLI - Developer Command Line Interface

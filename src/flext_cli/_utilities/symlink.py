@@ -9,10 +9,14 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import m, p, r, t
-from flext_cli._utilities import (
-    atomic_file_descriptor,
-    atomic_symlink_publish,
-    atomic_symlink_state,
+from flext_cli._utilities.atomic_file_descriptor import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+)
+from flext_cli._utilities.atomic_symlink_publish import (
+    FlextCliUtilitiesAtomicSymlinkPublish,
+)
+from flext_cli._utilities.atomic_symlink_state import (
+    FlextCliUtilitiesAtomicSymlinkState,
 )
 
 
@@ -35,10 +39,10 @@ class FlextCliUtilitiesSymlink:
         """
         try:
             location = Path(path)
-            with atomic_file_descriptor.parent_descriptor(
+            with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
                 location,
             ) as parent:
-                state = atomic_symlink_state.read_symlink_state(
+                state = FlextCliUtilitiesAtomicSymlinkState.read_symlink_state(
                     location,
                     parent,
                     required=required,
@@ -61,7 +65,7 @@ class FlextCliUtilitiesSymlink:
 
         """
         try:
-            atomic_symlink_publish.write_guarded_symlink(before, target)
+            FlextCliUtilitiesAtomicSymlinkPublish.write_guarded_symlink(before, target)
         except (OSError, ValueError) as exc:
             return r[bool].fail(str(exc), exception=exc)
         return r[bool].ok(value=True)
@@ -77,7 +81,7 @@ class FlextCliUtilitiesSymlink:
 
         """
         try:
-            atomic_symlink_publish.delete_guarded_symlink(before)
+            FlextCliUtilitiesAtomicSymlinkPublish.delete_guarded_symlink(before)
         except OSError as exc:
             return r[bool].fail(str(exc), exception=exc)
         return r[bool].ok(value=True)

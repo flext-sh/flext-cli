@@ -196,12 +196,7 @@ module = ["rope.*"]
 follow_untyped_imports = true
 
 [[tool.mypy.overrides]]
-module = [
-  "examples.typings",
-  "examples.utilities",
-  "flext_cli.utilities",
-  "tests.utilities",
-]
+module = ["examples.typings", "examples.utilities", "tests.utilities"]
 disable_error_code = ["misc", "no-redef"]
 
 [tool.pydantic-mypy]
