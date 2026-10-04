@@ -295,6 +295,7 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities.atomic_tree_inventory import inventory_physical_tree
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth
+    from flext_cli._utilities.base import FlextCliUtilitiesBase
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
     from flext_cli._utilities.commands import FlextCliUtilitiesCommands
     from flext_cli._utilities.config import FlextCliUtilitiesConfig
@@ -337,6 +338,7 @@ __all__: tuple[str, ...] = (
     "FlextCliAtomicTreeDarwin",
     "FlextCliUtilitiesAtomicFileModel",
     "FlextCliUtilitiesAuth",
+    "FlextCliUtilitiesBase",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
     "FlextCliUtilitiesCommands",
@@ -750,6 +752,7 @@ _LAZY_IMPORTS = MappingProxyType(
             ),
             ".atomic_tree_inventory": ("inventory_physical_tree",),
             ".auth": ("FlextCliUtilitiesAuth",),
+            ".base": ("FlextCliUtilitiesBase",),
             ".cmd": ("FlextCliUtilitiesCmd",),
             ".commands": ("FlextCliUtilitiesCommands",),
             ".config": ("FlextCliUtilitiesConfig",),
