@@ -2,6 +2,8 @@
 
 <!-- TOC START -->
 
+- No sections found
+
 <!-- TOC END -->
 
 The public atomic file operations retain a descriptor and its inode identity through
