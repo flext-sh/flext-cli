@@ -209,7 +209,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
 
     @staticmethod
     def test_run_live_alias_streams_and_exit_checks(runner: u.Cli) -> None:
-        """Verify run_live streams (empty captured) and fails closed on non-zero exit."""
+        """Verify run_live streams output and fails closed on failure."""
         ok_result = runner.run_live(("sh", "-c", "echo live-ok"))
         ok_output = m.Cli.CommandOutput.model_validate(tm.ok(ok_result))
         tm.that(ok_output.stdout, eq="")

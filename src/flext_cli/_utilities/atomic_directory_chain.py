@@ -84,7 +84,8 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         expected_parent = (plan.anchor_device, plan.anchor_inode)
         try:
             for directory in plan.directories:
-                before = FlextCliUtilitiesAtomicDirectorySnapshot.read_authenticated_empty_directory(
+                snapshot = FlextCliUtilitiesAtomicDirectorySnapshot
+                before = snapshot.read_authenticated_empty_directory(
                     directory,
                     required=False,
                 )
@@ -93,7 +94,8 @@ class FlextCliUtilitiesAtomicDirectoryChain:
                     before,
                     expected_parent,
                 )
-                state = FlextCliUtilitiesAtomicDirectoryCreate.create_guarded_empty_directory(
+                create = FlextCliUtilitiesAtomicDirectoryCreate
+                state = create.create_guarded_empty_directory(
                     before,
                     permission_mode=mode,
                 )

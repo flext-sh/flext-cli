@@ -214,7 +214,7 @@ class TestsFlextCliPromptsCov:
         """Verify that prompt password fails when non interactive."""
         prompts = make_prompts(interactive_mode=False)
         result = prompts.prompt_password("Password:")
-        tm.fail(result, has=c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED)
+        tm.fail(result, has=c.Cli.ERR_INTERACTIVE_MODE_DISABLED)
 
     @staticmethod
     def test_prompt_password_propagates_reader_failure(

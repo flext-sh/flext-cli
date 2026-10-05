@@ -107,7 +107,7 @@ class FlextCliUtilitiesPrompts:
         """
         if len(password) < min_length:
             return r[str].fail(
-                c.Cli.ERR_PASSWORD_TOO_SHORT_FMT.format(min_length=min_length),
+                c.Cli.ERR_TOO_SHORT_FMT.format(min_length=min_length),
             )
         return r[str].ok(password)
 

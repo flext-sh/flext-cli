@@ -149,7 +149,8 @@ class FlextCliUtilitiesAtomicParentDescriptor:
             The resulting ``DirectoryChainInspection``.
 
         Raises:
-            OSError: If ``current.ancestry != ancestry or file_path.identity(current.state)
+            OSError: If ``current.ancestry != ancestry or
+                file_path.identity(current.state)
                 != (state.st_dev, state.st_ino)``.
 
         """

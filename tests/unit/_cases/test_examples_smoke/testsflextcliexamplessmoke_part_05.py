@@ -52,7 +52,7 @@ class TestsFlextCliExamplesSmoke:
     def test_pydantic_driven_example_surfaces_validation_and_connection_failures() -> (
         None
     ):
-        """Pydantic-driven example must fail through its public railway steps when input is invalid."""
+        """Fail a Pydantic-driven example through its public railway steps."""
         missing_fields = validate_required_fields({"host": "db.example.com"})
         tm.fail(missing_fields)
 

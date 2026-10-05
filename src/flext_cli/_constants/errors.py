@@ -102,10 +102,10 @@ class FlextCliConstantsErrors:
     )
     ERR_CHOICE_REQUIRED_FMT: ClassVar[str] = "Choice required. Options: {choices}"
     ERR_INVALID_CHOICE_FMT: ClassVar[str] = "Invalid choice: {choice}"
-    ERR_INTERACTIVE_PASSWORD_DISABLED: ClassVar[str] = (
+    ERR_INTERACTIVE_MODE_DISABLED: ClassVar[str] = (
         "Interactive mode disabled for password prompt"
     )
-    ERR_PASSWORD_TOO_SHORT_FMT: ClassVar[str] = (
+    ERR_TOO_SHORT_FMT: ClassVar[str] = (
         "Password too short: minimum {min_length} characters"
     )
 

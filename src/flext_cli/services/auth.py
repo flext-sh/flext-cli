@@ -50,7 +50,7 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         return FlextCliFileTools.write_json_file(
             token_file_path,
-            {c.Cli.DICT_KEY_AUTH_TOKEN: token},
+            {c.Cli.DICT_KEY_TOKEN: token},
         )
 
     @staticmethod

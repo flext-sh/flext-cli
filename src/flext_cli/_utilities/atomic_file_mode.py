@@ -51,7 +51,8 @@ class FlextCliUtilitiesAtomicFileMode:
         """Require the observed mode to match one explicit planned version.
 
         Raises:
-            OSError: If ``isinstance(expected_mode, NoModePrecondition)``; or if ``observed
+            OSError: If ``isinstance(expected_mode, NoModePrecondition)``;
+                or if ``observed
                 != planned``.
 
         """
