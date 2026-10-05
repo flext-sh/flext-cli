@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, t
-from flext_cli._models._defaults import EMPTY_STR_MAPPING
+from flext_cli._models._defaults import FlextCliModelsDefaults
 from flext_cli._models.atomic_state import FlextCliModelsAtomicState
 from flext_core import m, u
 
@@ -202,14 +202,14 @@ class FlextCliModelsBase:
         base_env: Annotated[
             t.StrMapping,
             m.Field(
-                default_factory=lambda: EMPTY_STR_MAPPING,
+                default_factory=lambda: FlextCliModelsDefaults.EMPTY_STR_MAPPING,
                 description="Base environment inherited from the current process",
             ),
         ]
         overrides: Annotated[
             t.StrMapping,
             m.Field(
-                default_factory=lambda: EMPTY_STR_MAPPING,
+                default_factory=lambda: FlextCliModelsDefaults.EMPTY_STR_MAPPING,
                 description="Explicit environment overrides for the child process",
             ),
         ]

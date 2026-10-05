@@ -14,7 +14,7 @@ from flext_core import build_lazy_import_map, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._models import _base, _xlsx
-    from flext_cli._models._defaults import EMPTY_JSON_MAPPING, EMPTY_STR_MAPPING
+    from flext_cli._models._defaults import FlextCliModelsDefaults
     from flext_cli._models._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
     from flext_cli._models._xlsx.xlsx_cells import FlextCliModelsXlsxCells
     from flext_cli._models._xlsx.xlsx_layout import FlextCliModelsXlsxLayout
@@ -48,12 +48,11 @@ if TYPE_CHECKING:
 
 
 __all__: tuple[str, ...] = (
-    "EMPTY_JSON_MAPPING",
-    "EMPTY_STR_MAPPING",
     "FlextCliConfigModels",
     "FlextCliModelsAtomicState",
     "FlextCliModelsAtomicSymlink",
     "FlextCliModelsBase",
+    "FlextCliModelsDefaults",
     "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
     "FlextCliModelsDocxStyles",
@@ -84,7 +83,7 @@ _LAZY_IMPORTS = MappingProxyType(
     build_lazy_import_map(
         MappingProxyType({
             "._base": ("_base",),
-            "._defaults": ("EMPTY_JSON_MAPPING", "EMPTY_STR_MAPPING"),
+            "._defaults": ("FlextCliModelsDefaults",),
             "._xlsx": ("_xlsx",),
             "._xlsx.xlsx_archive": ("FlextCliModelsXlsxArchive",),
             "._xlsx.xlsx_cells": ("FlextCliModelsXlsxCells",),

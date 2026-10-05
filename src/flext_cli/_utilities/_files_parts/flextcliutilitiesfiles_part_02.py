@@ -10,7 +10,9 @@ import shutil
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import atomic_file, atomic_file_delete, atomic_file_path
+from flext_cli._utilities.atomic_file import FlextCliUtilitiesAtomicFile
+from flext_cli._utilities.atomic_file_delete import FlextCliUtilitiesAtomicFileDelete
+from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 
 
 class FlextCliUtilitiesFiles:
@@ -26,14 +28,14 @@ class FlextCliUtilitiesFiles:
         """
         path = Path(file_path)
         try:
-            atomic_file_path.validate_atomic_path(path)
+            FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
         ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
         try:
-            atomic_file.write_atomic_bytes(path, data)
+            FlextCliUtilitiesAtomicFile.write_atomic_bytes(path, data)
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
         return r[bool].ok(value=True)
@@ -51,7 +53,7 @@ class FlextCliUtilitiesFiles:
         """
         path = Path(file_path)
         try:
-            atomic_file_path.validate_atomic_path(path)
+            FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
@@ -60,7 +62,7 @@ class FlextCliUtilitiesFiles:
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
         try:
-            atomic_file.write_atomic_bytes(
+            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
                 path,
                 content.encode(c.Cli.ENCODING_DEFAULT),
             )
@@ -87,7 +89,7 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            atomic_file.write_atomic_bytes(
+            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
                 before.path,
                 content.encode(c.Cli.ENCODING_DEFAULT),
                 expected_state=before,
@@ -117,7 +119,7 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            atomic_file.write_atomic_bytes(
+            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
                 before.path,
                 data,
                 expected_state=before,
@@ -142,7 +144,7 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            atomic_file_delete.remove_guarded_file(state)
+            FlextCliUtilitiesAtomicFileDelete.remove_guarded_file(state)
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_FILE_DELETION_FAILED.format(error=exc))
         return r[bool].ok(value=True)
