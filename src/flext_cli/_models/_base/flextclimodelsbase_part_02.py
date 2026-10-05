@@ -202,14 +202,14 @@ class FlextCliModelsBase:
         base_env: Annotated[
             t.StrMapping,
             m.Field(
-                default_factory=lambda: FlextCliModelsDefaults.EMPTY_STR_MAPPING,
+                default_factory=lambda: c.Cli.EMPTY_STR_MAPPING,
                 description="Base environment inherited from the current process",
             ),
         ]
         overrides: Annotated[
             t.StrMapping,
             m.Field(
-                default_factory=lambda: FlextCliModelsDefaults.EMPTY_STR_MAPPING,
+                default_factory=lambda: c.Cli.EMPTY_STR_MAPPING,
                 description="Explicit environment overrides for the child process",
             ),
         ]
