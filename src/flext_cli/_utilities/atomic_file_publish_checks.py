@@ -11,6 +11,9 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
+from flext_cli._utilities.atomic_file_descriptor import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+)
 from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
 from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
 
@@ -85,10 +88,10 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     @staticmethod
     def validate_devices(
         destination: Path,
-        destination_parent: (atomic_file_descriptor.ParentDescriptor),
+        destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination_state: os.stat_result | None,
         staged: Path,
-        staged_parent: atomic_file_descriptor.ParentDescriptor,
+        staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         staged_state: os.stat_result,
     ) -> None:
         """Require both entries and parents to occupy one filesystem.
@@ -112,9 +115,9 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
 
     @staticmethod
     def validate_publication(
-        destination_parent: (atomic_file_descriptor.ParentDescriptor),
+        destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination: Path,
-        staged_parent: atomic_file_descriptor.ParentDescriptor,
+        staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         staged: Path,
         staged_bytes: bytes,
         staged_mode: int,
