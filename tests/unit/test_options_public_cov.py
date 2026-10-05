@@ -84,13 +84,13 @@ class TestsFlextCliOptions:
             ((1, 2), False),
         ],
     )
-    def test_is_string_sequence_recognizes_only_str_sequences(
+    def test_string_sequence_recognizes_only_str_sequences(
         value: t.Cli.CliDefaultSource,
         *,
         expected: bool,
     ) -> None:
         """Verify that is string sequence recognizes only str sequences."""
-        tm.that(u.Cli.is_string_sequence(value) is expected, eq=True)
+        tm.that(u.Cli.string_sequence(value) is expected, eq=True)
 
     def test_field_default_prefers_settings_scalar_over_field_metadata(self) -> None:
         """Verify that field default prefers settings scalar over field metadata."""

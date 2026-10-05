@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from functools import cache
-from typing import TYPE_CHECKING
 
 from flext_cli import c, t
 from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
@@ -18,9 +17,6 @@ from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_01 import
 )
 from flext_cli.models import m
 from flext_core import u
-
-if TYPE_CHECKING:
-    from flext_cli.models import m
 
 
 class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
@@ -87,7 +83,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
         )
         if source_value is None:
             return None
-        if cls.is_json_option(cls.field_annotation(field_name, field_info)):
+        if cls.json_option(cls.field_annotation(field_name, field_info)):
             # A JSON option's default is the JSON text its parser validates.
             adapter = u.type_adapter(field_info.rebuild_annotation())
             validated = adapter.validate_python(source_value)
@@ -117,7 +113,7 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
             The resulting ``m.Cli.OptionSpec``.
 
         """
-        return FlextCliUtilitiesOptionBuilder(field_name, registry).build()
+        return FlextCliUtilitiesOptionBuilder.build(field_name, registry)
 
     @staticmethod
     def reorder_prefixed_options(

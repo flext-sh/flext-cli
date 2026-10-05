@@ -220,7 +220,7 @@ class FlextCliUtilitiesAtomicFileState:
     def _validate_regular_state(path: Path, state: os.stat_result) -> None:
         if not stat.S_ISREG(
             state.st_mode,
-        ) or FlextCliUtilitiesAtomicFilePath.is_reparse_point(state):
+        ) or FlextCliUtilitiesAtomicFilePath.reparse_point(state):
             message = f"atomic destination is not a regular file: {path}"
             raise OSError(errno.EINVAL, message, path)
 
