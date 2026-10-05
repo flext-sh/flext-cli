@@ -1,9 +1,0 @@
-Infra:
-  codegen:
-    toolchain:
-      # Consumer pins (config-as-data): `latest` re-resolves upstream and
-      # drifts from mise.lock between upg runs. These are exactly the
-      # versions mise.lock resolves today.
-      qlty_version: "0.645.0"
-      jscpd_version: "5.4.0"
-      prettier_version: "3.9.9"
