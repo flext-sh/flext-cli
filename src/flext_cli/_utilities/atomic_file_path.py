@@ -100,12 +100,12 @@ class FlextCliUtilitiesAtomicFilePath:
 
         Raises:
             NotADirectoryError: If ``not stat.S_ISDIR(state.st_mode) or
-                is_reparse_point(state)``.
+                reparse_point(state)``.
 
         """
         if not stat.S_ISDIR(
             state.st_mode,
-        ) or FlextCliUtilitiesAtomicFilePath.is_reparse_point(state):
+        ) or FlextCliUtilitiesAtomicFilePath.reparse_point(state):
             message = f"atomic destination parent is not a real directory: {path}"
             raise NotADirectoryError(errno.ENOTDIR, message, path)
 
@@ -120,7 +120,7 @@ class FlextCliUtilitiesAtomicFilePath:
         return (state.st_dev, state.st_ino)
 
     @staticmethod
-    def is_reparse_point(state: os.stat_result) -> bool:
+    def reparse_point(state: os.stat_result) -> bool:
         """Identify Windows reparse-point aliases without platform branching.
 
         Returns:

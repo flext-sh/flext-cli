@@ -104,7 +104,7 @@ class FlextCliCli:
         field_annotation = u.Cli.field_annotation(field_name, field_info)
         annotation = u.Cli.resolve_typer_annotation(field_annotation)
         json_annotation = (
-            field_annotation if u.Cli.is_json_option(field_annotation) else None
+            field_annotation if u.Cli.json_option(field_annotation) else None
         )
         help_text = getattr(field_info, "description", None) or ""
         if json_annotation is not None:

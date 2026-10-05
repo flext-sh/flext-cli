@@ -15,6 +15,7 @@ from flext_core import build_lazy_import_map, install_lazy_exports
 if TYPE_CHECKING:
     from flext_cli._constants.base import FlextCliConstantsBase
     from flext_cli._constants.config import FlextCliConstantsConfig
+    from flext_cli._constants.defaults import FlextCliConstantsDefaults
     from flext_cli._constants.docx import FlextCliConstantsDocx
     from flext_cli._constants.enums import FlextCliConstantsEnums
     from flext_cli._constants.errors import FlextCliConstantsErrors
@@ -31,6 +32,7 @@ if TYPE_CHECKING:
 __all__: tuple[str, ...] = (
     "FlextCliConstantsBase",
     "FlextCliConstantsConfig",
+    "FlextCliConstantsDefaults",
     "FlextCliConstantsDocx",
     "FlextCliConstantsEnums",
     "FlextCliConstantsErrors",
@@ -47,6 +49,7 @@ _LAZY_IMPORTS = MappingProxyType(
         MappingProxyType({
             ".base": ("FlextCliConstantsBase",),
             ".config": ("FlextCliConstantsConfig",),
+            ".defaults": ("FlextCliConstantsDefaults",),
             ".docx": ("FlextCliConstantsDocx",),
             ".enums": ("FlextCliConstantsEnums",),
             ".errors": ("FlextCliConstantsErrors",),

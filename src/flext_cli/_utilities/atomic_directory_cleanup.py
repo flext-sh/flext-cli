@@ -17,6 +17,9 @@ from flext_cli._utilities.atomic_directory_descriptor import (
 from flext_cli._utilities.atomic_directory_state import (
     FlextCliUtilitiesAtomicDirectoryState,
 )
+from flext_cli._utilities.atomic_file_descriptor import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+)
 from flext_cli._utilities.atomic_file_durability import (
     FlextCliUtilitiesAtomicFileDurability,
 )
@@ -31,7 +34,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
 
     @staticmethod
     def remove_created_directory(
-        parent: atomic_file_descriptor.ParentDescriptor,
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
         identity: t.Pair[int, int] | None,
         operation_error: BaseException,
@@ -55,7 +58,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
 
     @staticmethod
     def _remove_created_directory(
-        parent: atomic_file_descriptor.ParentDescriptor,
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
         identity: t.Pair[int, int] | None,
     ) -> None:

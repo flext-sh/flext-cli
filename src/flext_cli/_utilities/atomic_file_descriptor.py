@@ -257,7 +257,10 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         try:
             os.close(descriptor)
         except OSError as close_error:
-            message = f"atomic {label} failed ({operation_error}); close failed ({close_error})"
+            message = (
+                f"atomic {label} failed ({operation_error});"
+                f" close failed ({close_error})"
+            )
             group_message = f"atomic {label} and descriptor close failed"
             if isinstance(operation_error, Exception):
                 causes = ExceptionGroup(group_message, [operation_error, close_error])

@@ -115,7 +115,7 @@ class TestsFlextCliPrompts:
         short_secret, valid_secret = scripted_password_pair()
         tm.fail(
             make_prompts(interactive_mode=False).prompt_password("Password:"),
-            has=c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED,
+            has=c.Cli.ERR_INTERACTIVE_MODE_DISABLED,
         )
         short_prompts = make_prompts(password=short_secret)
         short_result = short_prompts.prompt_password("Password:", min_length=8)

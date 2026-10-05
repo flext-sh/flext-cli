@@ -98,7 +98,8 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            state = FlextCliUtilitiesAtomicDirectorySnapshot.read_authenticated_empty_directory(
+            snapshot = FlextCliUtilitiesAtomicDirectorySnapshot
+            state = snapshot.read_authenticated_empty_directory(
                 Path(directory_path),
                 required=required,
             )
@@ -173,7 +174,8 @@ class FlextCliUtilitiesFiles:
 
         """
         try:
-            published = FlextCliUtilitiesAtomicDirectoryPublish.publish_guarded_staged_empty_directory(
+            publish = FlextCliUtilitiesAtomicDirectoryPublish
+            published = publish.publish_guarded_staged_empty_directory(
                 destination_before,
                 staged,
             )

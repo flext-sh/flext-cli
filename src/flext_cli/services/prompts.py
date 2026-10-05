@@ -82,7 +82,7 @@ class FlextCliPrompts(FlextCliPromptsSupport):
 
         """
         if not self.state.interactive:
-            return r[str].fail(c.Cli.ERR_INTERACTIVE_PASSWORD_DISABLED)
+            return r[str].fail(c.Cli.ERR_INTERACTIVE_MODE_DISABLED)
         return u.Cli.prompts_password_result(
             self.password_reader(f"{message}{c.Cli.PROMPT_SPACE}"),
             min_length=min_length,
