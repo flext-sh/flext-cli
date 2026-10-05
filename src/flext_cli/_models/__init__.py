@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._models import _base, _xlsx
@@ -77,41 +77,38 @@ __all__: tuple[str, ...] = (
     "_xlsx",
 )
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            "._base": ("_base",),
-            "._xlsx": ("_xlsx",),
-            "._xlsx.xlsx_archive": ("FlextCliModelsXlsxArchive",),
-            "._xlsx.xlsx_cells": ("FlextCliModelsXlsxCells",),
-            "._xlsx.xlsx_layout": ("FlextCliModelsXlsxLayout",),
-            "._xlsx.xlsx_recalc": ("FlextCliModelsXlsxRecalc",),
-            "._xlsx.xlsx_rules": ("FlextCliModelsXlsxRules",),
-            "._xlsx.xlsx_snapshot": ("FlextCliModelsXlsxSnapshot",),
-            "._xlsx.xlsx_style_catalog": ("FlextCliModelsXlsxStyleCatalog",),
-            "._xlsx.xlsx_style_fills": ("FlextCliModelsXlsxStyleFills",),
-            "._xlsx.xlsx_style_primitives": ("FlextCliModelsXlsxStylePrimitives",),
-            "._xlsx.xlsx_styles": ("FlextCliModelsXlsxStyles",),
-            "._xlsx.xlsx_tables": ("FlextCliModelsXlsxTables",),
-            "._xlsx.xlsx_validation": ("FlextCliModelsXlsxValidation",),
-            "._xlsx.xlsx_workbook": ("FlextCliModelsXlsxWorkbook",),
-            ".atomic_state": ("FlextCliModelsAtomicState",),
-            ".atomic_symlink": ("FlextCliModelsAtomicSymlink",),
-            ".base": ("FlextCliModelsBase",),
-            ".config": ("FlextCliConfigModels",),
-            ".docx": ("FlextCliModelsDocx",),
-            ".docx_document": ("FlextCliModelsDocxDocument",),
-            ".docx_styles": ("FlextCliModelsDocxStyles",),
-            ".pipeline": ("FlextCliModelsPipeline",),
-            ".pptx": ("FlextCliModelsPptx",),
-            ".pptx_presentation": ("FlextCliModelsPptxPresentation",),
-            ".rules": ("FlextCliModelsRules",),
-            ".template": ("FlextCliModelsTemplate",),
-            ".xlsx": ("FlextCliModelsXlsx",),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "FlextCliConfigModels": ".config",
+        "FlextCliModelsAtomicState": ".atomic_state",
+        "FlextCliModelsAtomicSymlink": ".atomic_symlink",
+        "FlextCliModelsBase": ".base",
+        "FlextCliModelsDocx": ".docx",
+        "FlextCliModelsDocxDocument": ".docx_document",
+        "FlextCliModelsDocxStyles": ".docx_styles",
+        "FlextCliModelsPipeline": ".pipeline",
+        "FlextCliModelsPptx": ".pptx",
+        "FlextCliModelsPptxPresentation": ".pptx_presentation",
+        "FlextCliModelsRules": ".rules",
+        "FlextCliModelsTemplate": ".template",
+        "FlextCliModelsXlsx": ".xlsx",
+        "FlextCliModelsXlsxArchive": "._xlsx.xlsx_archive",
+        "FlextCliModelsXlsxCells": "._xlsx.xlsx_cells",
+        "FlextCliModelsXlsxLayout": "._xlsx.xlsx_layout",
+        "FlextCliModelsXlsxRecalc": "._xlsx.xlsx_recalc",
+        "FlextCliModelsXlsxRules": "._xlsx.xlsx_rules",
+        "FlextCliModelsXlsxSnapshot": "._xlsx.xlsx_snapshot",
+        "FlextCliModelsXlsxStyleCatalog": "._xlsx.xlsx_style_catalog",
+        "FlextCliModelsXlsxStyleFills": "._xlsx.xlsx_style_fills",
+        "FlextCliModelsXlsxStylePrimitives": "._xlsx.xlsx_style_primitives",
+        "FlextCliModelsXlsxStyles": "._xlsx.xlsx_styles",
+        "FlextCliModelsXlsxTables": "._xlsx.xlsx_tables",
+        "FlextCliModelsXlsxValidation": "._xlsx.xlsx_validation",
+        "FlextCliModelsXlsxWorkbook": "._xlsx.xlsx_workbook",
+        "_base": "._base",
+        "_xlsx": "._xlsx",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)
