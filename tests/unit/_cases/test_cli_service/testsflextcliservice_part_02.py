@@ -27,7 +27,7 @@ class TestsFlextCliService:
 
     @staticmethod
     def test_model_command_accepts_repeatable_list_options() -> None:
-        """Accept repeated model-derived options through the public invocation path.
+        """Accept repeated model-derived options through the public invocation.
 
         facade.
         """

@@ -37,7 +37,7 @@ class TestsFlextCliExamplesSmoke:
     def test_authentication_example_surfaces_missing_invalid_and_failed_login(
         tmp_path: Path,
     ) -> None:
-        """Authentication example handles no-session, invalid-token and bad-login.
+        """Authentication example must handle no-session, invalid-token, and bad-login.
 
         cases.
         """
