@@ -152,11 +152,12 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
                 u.Yaml.safe_load_file(rule_file),
             )
             typed_rules = FlextCliUtilitiesJson.json_as_mapping_list(
-                rule_config.get(options.rules_key)
+                rule_config.get(options.rules_key),
             )
             for typed_rule_def in typed_rules:
                 rule_id = FlextCliUtilitiesJson.json_get_str_key(
-                    typed_rule_def, options.rule_id_key
+                    typed_rule_def,
+                    options.rule_id_key,
                 )
                 if not rule_id:
                     continue

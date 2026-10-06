@@ -166,7 +166,8 @@ class FlextCliUtilitiesFilesPart02:
             return True
 
         return FlextCliUtilitiesFilesPart02.files_execute(
-            _copy, c.Cli.ERR_FILE_COPY_FAILED
+            _copy,
+            c.Cli.ERR_FILE_COPY_FAILED,
         )
 
     @staticmethod

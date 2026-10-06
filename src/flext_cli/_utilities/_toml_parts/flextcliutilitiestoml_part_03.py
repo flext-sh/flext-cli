@@ -116,7 +116,8 @@ class FlextCliUtilitiesTomlPart03:
         current = parent
         for segment in path:
             current = FlextCliUtilitiesTomlPart03.toml_mapping_ensure_table(
-                current, segment
+                current,
+                segment,
             )
         return current
 

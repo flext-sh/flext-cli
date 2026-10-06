@@ -18,9 +18,9 @@ import pytest
 from examples import c, m, u
 from flext_tests import tm
 
+import tests
 from flext_cli import cli
 from tests import t
-import tests
 
 
 class TestsFlextCliExampleModelsUtilitiesCov:

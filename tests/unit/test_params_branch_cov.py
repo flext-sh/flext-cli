@@ -13,8 +13,8 @@ from __future__ import annotations
 import pytest
 from flext_tests import tm
 
-from flext_cli import c, m, p, settings, u
 import tests
+from flext_cli import c, m, p, settings, u
 
 
 class TestsFlextCliParams:

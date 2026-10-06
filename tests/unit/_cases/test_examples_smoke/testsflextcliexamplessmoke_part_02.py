@@ -9,9 +9,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
+import examples
 import pytest
 from examples import Ex05Authentication, Ex06Settings, p
-import examples
 from examples.ex_04_file_operations import (
     load_deployment_config,
     load_user_preferences,
@@ -106,7 +106,10 @@ class TestsFlextCliExamplesSmokePart02:
         )
         tm.ok(profile_result)
         tm.that(profile_result.value.debug, eq=True)
-        tm.that(profile_result.value.cli_output_format, eq=examples.c.Cli.OutputFormats.TABLE)
+        tm.that(
+            profile_result.value.cli_output_format,
+            eq=examples.c.Cli.OutputFormats.TABLE,
+        )
 
         logout_result = Ex05Authentication.logout()
         tm.ok(logout_result)

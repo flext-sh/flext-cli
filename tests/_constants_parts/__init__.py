@@ -21,13 +21,13 @@ if TYPE_CHECKING:
         TestsFlextCliConstantsYamlOutput,
     )
     from tests._constants_parts.testsflextcliconstants_part_01 import (
-    TestsFlextCliConstantsPart01,
-)
+        TestsFlextCliConstantsPart01,
+    )
 
 
 __all__: tuple[str, ...] = (
-    "TestsFlextCliConstants",
     "TestsFlextCliConstantsCore",
+    "TestsFlextCliConstantsPart01",
     "TestsFlextCliConstantsRulesOptions",
     "TestsFlextCliConstantsYamlOutput",
 )
@@ -36,8 +36,8 @@ install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "TestsFlextCliConstants": ".testsflextcliconstants_part_01",
         "TestsFlextCliConstantsCore": ".tests_core",
+        "TestsFlextCliConstantsPart01": ".testsflextcliconstants_part_01",
         "TestsFlextCliConstantsRulesOptions": ".tests_rules_options",
         "TestsFlextCliConstantsYamlOutput": ".tests_yaml_output",
     }),

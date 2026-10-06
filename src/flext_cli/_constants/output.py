@@ -105,7 +105,8 @@ class FlextCliConstantsOutput:
 
     MESSAGE_STYLE_MAP: ClassVar[
         t.MappingKV[
-            FlextCliConstantsEnums.MessageTypes, FlextCliConstantsEnums.MessageStyles
+            FlextCliConstantsEnums.MessageTypes,
+            FlextCliConstantsEnums.MessageStyles,
         ]
     ] = MappingProxyType({
         FlextCliConstantsEnums.MessageTypes.INFO: FlextCliConstantsEnums.MessageStyles.BLUE,

@@ -95,7 +95,8 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         platform_name = FlextCliUtilitiesAtomicTreeDescriptor._runtime_platform()
         if platform_name == "darwin":
             return atomic_tree_darwin.FlextCliAtomicTreeDarwin.mount_id(
-                descriptor, path
+                descriptor,
+                path,
             )
         if platform_name != "linux":
             message = "descriptor-bound mount identity is unsupported"

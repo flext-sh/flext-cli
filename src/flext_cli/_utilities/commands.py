@@ -117,7 +117,8 @@ class FlextCliUtilitiesCommands:
                 ),
             )
             FlextCliUtilitiesOutput.emit_raw(
-                detail if detail.endswith("\n") else f"{detail}\n", error=True
+                detail if detail.endswith("\n") else f"{detail}\n",
+                error=True,
             )
 
 

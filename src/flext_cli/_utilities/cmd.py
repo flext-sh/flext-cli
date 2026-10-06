@@ -44,7 +44,7 @@ class FlextCliUtilitiesCmd:
 
         """
         return r[m.Cli.SettingsSnapshot].ok(
-            FlextCliUtilitiesSettings.settings_snapshot_model()
+            FlextCliUtilitiesSettings.settings_snapshot_model(),
         )
 
     @staticmethod
