@@ -190,7 +190,7 @@ class TestsFlextCliServicesAuthCov:
         """Verify that authenticate with valid credentials generates persisted token."""
         credentials = {
             c.Cli.DICT_KEY_USERNAME: "admin",
-            c.Cli.DICT_KEY_PASSWORD: "password123",
+            c.Cli.DICT_KEY_PASSWORD: f"pw-{len('admin')}-auth",
         }
 
         result = auth.authenticate(credentials)
