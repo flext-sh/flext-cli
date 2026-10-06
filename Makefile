@@ -388,6 +388,7 @@ mise_pin_file="$(MISE_VERSION_PIN)"; \
 	if [ -z "$$scratch" ] || [ ! -d "$$scratch" ]; then \
 		printf 'ERROR: mise bootstrap scratch creation failed (template: %s/.%s.mise-bootstrap.XXXXXX)\n' "$$project_parent" "$${project_root##*/}" >&2; exit 2; \
 	fi; \
+	readonly scratch; \
 	lock_stage=; \
 	trap 'bootstrap_status=$$?; trap - EXIT; \
 		lock_cleanup_status=0; scratch_cleanup_status=0; diagnostic_status=0; scratch_present=0; \
@@ -548,7 +549,6 @@ TOOL_BOOTSTRAP_LOCK :=
 _bootstrap_setup_tools:
 	# The lifecycle invokes recursive make through mise, so preserve jobserver FDs.
 	+@set -eu; \
-	scratch=$$(mktemp -d "$${TMPDIR:-/tmp}/flext-bootstrap-scratch.XXXXXX"); \
 	uv_selector="latest"; \
 	if [ ! -f "$(SETUP_MISE)" ]; then \
 		printf 'ERROR: missing generated mise launcher: %s; run make gen\n' "$(SETUP_MISE)" >&2; \
@@ -650,6 +650,7 @@ mise_pin_file="$(MISE_VERSION_PIN)"; \
 	if [ -z "$$scratch" ] || [ ! -d "$$scratch" ]; then \
 		printf 'ERROR: mise bootstrap scratch creation failed (template: %s/.%s.mise-bootstrap.XXXXXX)\n' "$$project_parent" "$${project_root##*/}" >&2; exit 2; \
 	fi; \
+	readonly scratch; \
 	lock_stage=; \
 	trap 'bootstrap_status=$$?; trap - EXIT; \
 		lock_cleanup_status=0; scratch_cleanup_status=0; diagnostic_status=0; scratch_present=0; \
@@ -776,6 +777,11 @@ $${mise_config_argument:+"$$mise_config_argument"} \
 		mise_exec "$$mise_offline_mode" env 'MISE_OFFLINE=true' "$$@"; \
 	}; \
 
+	# The only tolerated Mise warning: ephemeral CI runners ship pre-seeded \
+	# shims (python3, make) and `mise install` always announces it declines to \
+	# replace them while every real install still succeeds (cosmos-main PR 346 \
+	# CI run 37348896444, bead on cosmos-l2wc2). Every OTHER mise WARN stays \
+	# fatal: red-means-red is untouched. \
 	mise_has_blocking_warning() { \
 		grep -F 'mise WARN' "$$1" | grep -Fv 'not replacing unmanaged file in shims directory' | grep -q .; \
 	}; \
