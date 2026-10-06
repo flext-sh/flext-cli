@@ -174,7 +174,6 @@ if TYPE_CHECKING:
         FlextCliUtilitiesAtomicDirectoryDescriptor,
     )
     from flext_cli._utilities.atomic_directory_model import (
-        DirectoryPhysicalState,
         FlextCliUtilitiesAtomicDirectoryModel,
     )
     from flext_cli._utilities.atomic_directory_noreplace import (
@@ -203,10 +202,7 @@ if TYPE_CHECKING:
         FlextCliUtilitiesAtomicFileDurability,
     )
     from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-    from flext_cli._utilities.atomic_file_model import (
-        FlextCliUtilitiesAtomicFileModel,
-        PhysicalState,
-    )
+    from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileModel
     from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
     from flext_cli._utilities.atomic_file_publish import (
         FlextCliUtilitiesAtomicFilePublish,
@@ -283,7 +279,6 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     "DirectoryChainInspection",
-    "DirectoryPhysicalState",
     "FlextCliAtomicTreeDarwin",
     "FlextCliUtilitiesAtomicDirectoryChain",
     "FlextCliUtilitiesAtomicDirectoryCleanup",
@@ -406,7 +401,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlEditingMixin",
     "FlextCliUtilitiesYamlEngineMixin",
     "FlextCliUtilitiesYamlModel",
-    "PhysicalState",
     "_docx",
     "_file_test_helper_parts",
     "_files_parts",
@@ -425,7 +419,6 @@ install_lazy_exports(
     globals(),
     MappingProxyType({
         "DirectoryChainInspection": ".atomic_parent_descriptor",
-        "DirectoryPhysicalState": ".atomic_directory_model",
         "FlextCliAtomicTreeDarwin": ".atomic_tree_darwin",
         "FlextCliUtilitiesAtomicDirectoryChain": ".atomic_directory_chain",
         "FlextCliUtilitiesAtomicDirectoryCleanup": ".atomic_directory_cleanup",
@@ -459,6 +452,7 @@ install_lazy_exports(
         "FlextCliUtilitiesAtomicTreeDescriptor": ".atomic_tree_descriptor",
         "FlextCliUtilitiesAtomicTreeInventory": ".atomic_tree_inventory",
         "FlextCliUtilitiesAuth": ".auth",
+        "FlextCliUtilitiesBase": ".base",
         "FlextCliUtilitiesCli": "._cli_namespace",
         "FlextCliUtilitiesCmd": ".cmd",
         "FlextCliUtilitiesCommands": ".commands",
@@ -553,7 +547,6 @@ install_lazy_exports(
         "FlextCliUtilitiesYamlEditingMixin": "._yaml._editing",
         "FlextCliUtilitiesYamlEngineMixin": "._yaml._engine",
         "FlextCliUtilitiesYamlModel": ".yaml_model",
-        "PhysicalState": ".atomic_file_model",
         "_docx": "._docx",
         "_file_test_helper_parts": "._file_test_helper_parts",
         "_files_parts": "._files_parts",

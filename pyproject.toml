@@ -483,7 +483,6 @@ runtime-evaluated-base-classes = [
   "flext_core.m.RootModel",
   "flext_core.m.StrictModel",
   "flext_core.m.Value",
-  "flext_core.s",
   "flext_tests.FlextTestsServiceBase",
   "flext_tests.FlextTestsSettings",
   "flext_tests.FlextTestsUtilities.Tests",
