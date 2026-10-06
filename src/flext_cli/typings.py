@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import TypeVar
 
 from flext_cli._typings.base import FlextCliTypesBase
@@ -29,10 +30,14 @@ class FlextCliTypes(FlextTypes):
 
 t = FlextCliTypes
 
-__all__: list[str] = ["FlextCliTypes", "t"]
 
 type PhysicalState = tuple[int, int, int, int | None, int | None]
 
 type DirectoryPhysicalState = tuple[int, int, int, int, int | None, int | None]
 
 T = TypeVar("T")
+
+
+type RenameAt2 = Callable[[int, bytes, int, bytes, int], int]
+
+__all__: list[str] = ["FlextCliTypes", "t"]

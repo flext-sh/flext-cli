@@ -14,6 +14,7 @@ from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._models import _base, _xlsx
+    from flext_cli._models._defaults import FlextCliModelsDefaults
     from flext_cli._models._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
     from flext_cli._models._xlsx.xlsx_cells import FlextCliModelsXlsxCells
     from flext_cli._models._xlsx.xlsx_layout import FlextCliModelsXlsxLayout
@@ -51,6 +52,7 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsAtomicState",
     "FlextCliModelsAtomicSymlink",
     "FlextCliModelsBase",
+    "FlextCliModelsDefaults",
     "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
     "FlextCliModelsDocxStyles",
@@ -85,6 +87,7 @@ install_lazy_exports(
         "FlextCliModelsAtomicState": ".atomic_state",
         "FlextCliModelsAtomicSymlink": ".atomic_symlink",
         "FlextCliModelsBase": ".base",
+        "FlextCliModelsDefaults": "._defaults",
         "FlextCliModelsDocx": ".docx",
         "FlextCliModelsDocxDocument": ".docx_document",
         "FlextCliModelsDocxStyles": ".docx_styles",

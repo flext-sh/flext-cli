@@ -133,7 +133,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             ...
 
     @runtime_checkable
-    class ResultCommandHandler[TParams: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
+    class ResultCommandHandler[TParams: t.Cli.ModelLike, TResult](
         Protocol,
     ):
         """Protocol for model-driven CLI handlers returning `r[...]`."""

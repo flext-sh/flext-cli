@@ -65,7 +65,7 @@ class FlextCliCli:
             return self._handler(model)
 
     @staticmethod
-    def _exit_failure[TResult: t.Cli.ResultValue](result: p.Result[TResult]) -> Never:
+    def _exit_failure[TResult](result: p.Result[TResult]) -> Never:
         """Expose a failed Result once at the CLI border and exit non-zero."""
         u.Cli.framework_exit_result(result)
         u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)

@@ -21,7 +21,7 @@ class FlextCliCli(FlextCliCliPart04):
     """Implementation part for FlextCliCli."""
 
     @classmethod
-    def register_result_callback[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
+    def register_result_callback[M: t.Cli.ModelLike, TResult](
         cls,
         app: p.Cli.Application,
         *,
@@ -50,7 +50,7 @@ class FlextCliCli(FlextCliCliPart04):
         )
 
     @classmethod
-    def register_result_command[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
+    def register_result_command[M: t.Cli.ModelLike, TResult](
         cls,
         app: p.Cli.Application,
         *,
@@ -84,7 +84,7 @@ class FlextCliCli(FlextCliCliPart04):
         )
 
     @classmethod
-    def _build_result_executor[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
+    def _build_result_executor[M: t.Cli.ModelLike, TResult](
         cls,
         *,
         handler: p.Cli.ResultCommandHandler[M, TResult],
@@ -152,7 +152,7 @@ class FlextCliCli(FlextCliCliPart04):
             cls.register_result_route(app, route=route)
 
     @staticmethod
-    def finalize_result[TResult: t.Cli.ResultValue](
+    def finalize_result[TResult](
         result: p.Result[TResult],
         *,
         failure_exit_code: int = c.Cli.EXIT_CODE_FAILURE,

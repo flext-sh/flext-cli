@@ -22,7 +22,7 @@ class FlextCliUtilitiesCommands:
     """Helpers for result-command messaging in the public Typer DSL."""
 
     @staticmethod
-    def commands_resolve_success_message[TResult: t.Cli.ResultValue](
+    def commands_resolve_success_message[TResult](
         *,
         result_value: TResult,
         success_message: str | None,
@@ -60,7 +60,7 @@ class FlextCliUtilitiesCommands:
         uo.emit_raw(f"{rendered}\n")
 
     @staticmethod
-    def commands_emit_failure_cause[TResult: t.Cli.ResultValue](
+    def commands_emit_failure_cause[TResult](
         result: p.Result[TResult],
     ) -> None:
         """Render one rejected input's cause on the command's output surface.
@@ -77,7 +77,7 @@ class FlextCliUtilitiesCommands:
         )
 
     @staticmethod
-    def commands_emit_result_error[TResult: t.Cli.ResultValue](
+    def commands_emit_result_error[TResult](
         result: p.Result[TResult],
         *,
         verbose: bool = False,
