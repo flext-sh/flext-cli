@@ -3,8 +3,11 @@ Infra:
     toolchain:
       # Consumer pins (config-as-data): `latest` re-resolves upstream and
       # drifts from mise.lock between upg runs. These are exactly the
-      # versions mise.lock resolves today.
+      # versions the canonical root mise.lock resolves today (jscpd/qlty
+      # publish no SLSA attestations, so provenance verification degraded to
+      # best-effort and the fleet re-pinned on the measured 2026-10-06
+      # lock-time verification failures).
       tool_version_pins:
         qlty: "0.645.0"
-        jscpd: "5.4.0"
-        prettier: "3.9.9"
+        jscpd: "5.3.2"
+        prettier: "3.5.3"
