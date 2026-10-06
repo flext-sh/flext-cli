@@ -47,8 +47,8 @@ endif
 # Capture the selected approval mode before any project-owned include.
 ifeq ($(strip $(CI)),Y)
 override APPROVAL_CONTEXT := Y
-ifneq ($(filter upg _upg% dep propagate gen _gen%,$(MAKECMDGOALS)),)
-$(error Resolution, generation and member propagation are forbidden in CI)
+ifneq ($(filter upg _upg% dep propagate,$(MAKECMDGOALS)),)
+$(error Resolution and member propagation are forbidden in CI)
 endif
 endif
 
@@ -76,6 +76,7 @@ ifeq ($(strip $(CI)),N)
 GITHUB_TOKEN := $(shell command -v gh >/dev/null 2>&1 && gh auth token 2>/dev/null)
 else ifeq ($(strip $(CI)),)
 GITHUB_TOKEN := $(shell command -v gh >/dev/null 2>&1 && gh auth token 2>/dev/null)
+endif
 endif
 endif
 ifneq ($(GITHUB_TOKEN),)
@@ -190,13 +191,47 @@ CUSTOM_DECLARED_TARGETS := $(shell awk '/^[a-z_][a-z0-9_-]*:/ { target=$$1; sub(
 ifneq ($(.SHELLSTATUS),0)
 $(error Failed to inspect custom Make targets in $(CUSTOM_MAKEFILE))
 endif
-ifneq ($(filter pre-commit _custom-pre-commit,$(CUSTOM_DECLARED_TARGETS)),)
+ifneq ($(filter pre-commit,$(CUSTOM_DECLARED_TARGETS)),)
 $(error Mandatory approval cannot be replaced by custom targets)
 endif
 ifeq ($(APPROVAL_CONTEXT),Y)
-ifneq ($(filter setup audit check test _custom-setup _custom-audit _custom-check _custom-test,$(CUSTOM_DECLARED_TARGETS)),)
+ifneq ($(filter setup audit check test,$(CUSTOM_DECLARED_TARGETS)),)
 $(error Approval stages cannot be replaced by custom targets)
 endif
+# Wrapper parity: a custom approval-stage hook is legitimate only while it
+# chains the canonical builtin inside its recipe (the host-service harness
+# pattern). A declared hook without the builtin reference is a replacement
+# and stays forbidden.
+ifneq ($(filter _custom-pre-commit,$(CUSTOM_DECLARED_TARGETS)),)
+ifeq ($(shell grep -c "_builtin-pre-commit" $(CUSTOM_MAKEFILE) || true),0)
+$(error Approval stage _custom-pre-commit must chain _builtin-pre-commit (wrapper parity; replacements are forbidden))
+endif
+endif
+
+ifneq ($(filter _custom-setup,$(CUSTOM_DECLARED_TARGETS)),)
+ifeq ($(shell grep -c "_builtin-setup" $(CUSTOM_MAKEFILE) || true),0)
+$(error Approval stage _custom-setup must chain _builtin-setup (wrapper parity; replacements are forbidden))
+endif
+endif
+
+ifneq ($(filter _custom-audit,$(CUSTOM_DECLARED_TARGETS)),)
+ifeq ($(shell grep -c "_builtin-audit" $(CUSTOM_MAKEFILE) || true),0)
+$(error Approval stage _custom-audit must chain _builtin-audit (wrapper parity; replacements are forbidden))
+endif
+endif
+
+ifneq ($(filter _custom-check,$(CUSTOM_DECLARED_TARGETS)),)
+ifeq ($(shell grep -c "_builtin-check" $(CUSTOM_MAKEFILE) || true),0)
+$(error Approval stage _custom-check must chain _builtin-check (wrapper parity; replacements are forbidden))
+endif
+endif
+
+ifneq ($(filter _custom-test,$(CUSTOM_DECLARED_TARGETS)),)
+ifeq ($(shell grep -c "_builtin-test" $(CUSTOM_MAKEFILE) || true),0)
+$(error Approval stage _custom-test must chain _builtin-test (wrapper parity; replacements are forbidden))
+endif
+endif
+
 endif
 endif
 DOCS_ACTIONS := generate fix fmt validate audit
@@ -388,7 +423,6 @@ mise_pin_file="$(MISE_VERSION_PIN)"; \
 	if [ -z "$$scratch" ] || [ ! -d "$$scratch" ]; then \
 		printf 'ERROR: mise bootstrap scratch creation failed (template: %s/.%s.mise-bootstrap.XXXXXX)\n' "$$project_parent" "$${project_root##*/}" >&2; exit 2; \
 	fi; \
-	readonly scratch; \
 	lock_stage=; \
 	trap 'bootstrap_status=$$?; trap - EXIT; \
 		lock_cleanup_status=0; scratch_cleanup_status=0; diagnostic_status=0; scratch_present=0; \
@@ -650,7 +684,6 @@ mise_pin_file="$(MISE_VERSION_PIN)"; \
 	if [ -z "$$scratch" ] || [ ! -d "$$scratch" ]; then \
 		printf 'ERROR: mise bootstrap scratch creation failed (template: %s/.%s.mise-bootstrap.XXXXXX)\n' "$$project_parent" "$${project_root##*/}" >&2; exit 2; \
 	fi; \
-	readonly scratch; \
 	lock_stage=; \
 	trap 'bootstrap_status=$$?; trap - EXIT; \
 		lock_cleanup_status=0; scratch_cleanup_status=0; diagnostic_status=0; scratch_present=0; \
@@ -776,17 +809,12 @@ $${mise_config_argument:+"$$mise_config_argument"} \
 		mise_offline_mode="$$1"; shift; \
 		mise_exec "$$mise_offline_mode" env 'MISE_OFFLINE=true' "$$@"; \
 	}; \
-
-	# The only tolerated Mise warning: ephemeral CI runners ship pre-seeded \
-	# shims (python3, make) and `mise install` always announces it declines to \
-	# replace them while every real install still succeeds (cosmos-main PR 346 \
-	# CI run 37348896444, bead on cosmos-l2wc2). Every OTHER mise WARN stays \
-	# fatal: red-means-red is untouched. \
-	mise_has_blocking_warning() { \
+mise_has_blocking_warning() { \
 		grep -F 'mise WARN' "$$1" | grep -Fv 'not replacing unmanaged file in shims directory' | grep -q .; \
 	}; \
 	mise_checked() { \
 		mise_log="$$1"; shift; \
+		case "$$mise_log" in ""|*/*) ;; *) mise_log="$${TMPDIR:-/tmp}/$$mise_log" ;; esac; \
 		printf 'setup probe: begin stage=%s log=%s\n' "$${mise_log##*/}" "$$mise_log" >&2; \
 		if "$$@" >"$$mise_log" 2>&1; then :; \
 		else mise_status=$$?; cat "$$mise_log"; printf 'setup probe: failed stage=%s exit=%s\n' "$${mise_log##*/}" "$$mise_status" >&2; return "$$mise_status"; fi; \
@@ -798,6 +826,8 @@ $${mise_config_argument:+"$$mise_config_argument"} \
 	}; \
 	mise_checked_stdout() { \
 		mise_stdout_log="$$1"; mise_stderr_log="$$2"; shift 2; \
+		case "$$mise_stdout_log" in ""|*/*) ;; *) mise_stdout_log="$${TMPDIR:-/tmp}/$$mise_stdout_log" ;; esac; \
+		case "$$mise_stderr_log" in ""|*/*) ;; *) mise_stderr_log="$${TMPDIR:-/tmp}/$$mise_stderr_log" ;; esac; \
 		if "$$@" >"$$mise_stdout_log" 2>"$$mise_stderr_log"; then :; \
 		else mise_status=$$?; cat "$$mise_stderr_log" >&2; cat "$$mise_stdout_log"; return "$$mise_status"; fi; \
 		cat "$$mise_stderr_log" >&2; cat "$$mise_stdout_log"; \
@@ -806,7 +836,13 @@ $${mise_config_argument:+"$$mise_config_argument"} \
 		fi; \
 	}; \
 	mise_receipt() { \
-		mise_receipt_log="$$scratch/$$1"; shift; \
+		probe_log_dir="$$scratch"; \
+		case "$$probe_log_dir" in ""|"/") \
+			probe_log_dir=$$(mktemp -d "$${TMPDIR:-/tmp}/flext-setup-probe.XXXXXX"); \
+			trap 'rm -rf "$$probe_log_dir"' EXIT; \
+		 ;; \
+		esac; \
+		mise_receipt_log="$$probe_log_dir/$$1"; shift; \
 		mise_checked_stdout "$$mise_receipt_log.stdout" "$$mise_receipt_log.stderr" mise_offline no-config "$$1" --version; \
 		receipt_output=$$(cat "$$mise_receipt_log.stdout"); \
 		receipt_release=$$(printf '%s\n' "$$receipt_output" | grep -E '^(mise )?[0-9]+\.[0-9]+\.[0-9]+$$' | tail -1 | sed 's/^mise //'); \
@@ -814,7 +850,10 @@ $${mise_config_argument:+"$$mise_config_argument"} \
 			receipt_release=$${receipt_output%% *}; \
 		fi; \
 		if ! printf '%s\n' "$$receipt_release" | grep -Eq '^[0-9]+(\.[0-9]+){2}$$'; then \
-			printf 'ERROR: Mise receipt returned invalid version: %s\n' "$$receipt_output" >&2; return 2; \
+			printf 'ERROR: Mise receipt returned invalid version: %s\n' "$$receipt_output" >&2; \
+			printf 'ERROR: Mise receipt stderr: ' >&2; cat "$$mise_receipt_log.stderr" >&2 || true; \
+			printf 'ERROR: Mise receipt executable: %s; scratch: %s\n' "$$1" "$$scratch" >&2; \
+			return 2; \
 		fi; \
 	}; \
 	pinned_mise="$$mise"; \
@@ -842,6 +881,12 @@ $${mise_config_argument:+"$$mise_config_argument"} \
 	fi; \
 	caller_mise_version="$$runtime_release"; \
 	printf 'mise setup receipt=%s storage=%s\n' "$$runtime_release" "$$mise_storage_root"; \
+	project_parent=$${project_root%/*}; \
+	if [ -z "$$project_parent" ]; then project_parent=/; fi; \
+	scratch=$$(mktemp -d "$$project_parent/.$${project_root##*/}.mise-bootstrap.XXXXXX"); \
+	if [ -z "$$scratch" ] || [ ! -d "$$scratch" ]; then \
+		printf 'ERROR: mise bootstrap scratch creation failed (template: %s/.%s.mise-bootstrap.XXXXXX)\n' "$$project_parent" "$${project_root##*/}" >&2; exit 2; \
+	fi; \
 	# Only ``upg`` locks, once per manifest it provisions from. Lock every \
 	# configured tool in one pass so removed selectors cannot survive beside \
 	# their replacement in mise.lock. The relock half of ``upg`` (lock without \
@@ -863,6 +908,7 @@ $${mise_config_argument:+"$$mise_config_argument"} \
 		# both succeed. A failed or killed run leaves mise.lock untouched; no \
 		# backup copy exists. \
 		lock_stage="$$(mktemp -d "$$project_parent/.$${project_root##*/}.mise-lock-stage.XXXXXX")"; \
+		printf '%s\n' "$$$$" > "$$lock_stage/owner.pid"; \
 		cp "$$project_root/.mise.toml" "$$lock_stage/.mise.toml"; \
 		cp "$$project_root/.mise.toml" "$$scratch/locked-manifest.toml"; \
 		# The resolver (TOOL_BOOTSTRAP_RESOLVE, the first half of upg) locks \
@@ -980,6 +1026,7 @@ fi; \
 		"SETUP_DIRENV=$$direnv_executable" \
 		"SETUP_PYTHON=$$python_executable" \
 		"SETUP_DIRENV_XDG_DATA_HOME=$$caller_xdg_data_home" \
+		"HOME=$$caller_home" \
 		"CI=$(CI)" $(SELF_MAKE) $(TOOL_BOOTSTRAP_LIFECYCLE); then lifecycle_status=0; \
 	else lifecycle_status=$$?; fi; \
 	scratch_present=0; if [ -d "$$scratch" ]; then scratch_present=1; fi; \
@@ -1520,30 +1567,20 @@ setup: _bootstrap_setup_tools
 pre-commit: _builtin_require_workspace
 	+@set -eu; \
 		trap 'if [ -n "$${FLEXT_SETUP_CREDENTIAL_STORE:-}" ]; then rm -f "$$FLEXT_SETUP_CREDENTIAL_STORE"; fi' EXIT; \
-
 		printf 'approval: setup START\n'; \
 		$(SELF_MAKE) MAKEOVERRIDES= MAKEFLAGS= MFLAGS= CI=Y setup; \
-
 		if [ -n "$${FLEXT_SETUP_CREDENTIAL_STORE:-}" ]; then rm -f "$$FLEXT_SETUP_CREDENTIAL_STORE"; fi; \
 		unset FLEXT_SETUP_CREDENTIAL_STORE GITHUB_TOKEN GH_TOKEN MISE_GITHUB_TOKEN GIT_CONFIG_COUNT; \
-
 		printf 'approval: setup COMPLETE\n'; \
-
 		printf 'approval: audit START\n'; \
 		$(SELF_MAKE) MAKEOVERRIDES= MAKEFLAGS= MFLAGS= CI=Y audit; \
-
 		printf 'approval: audit COMPLETE\n'; \
-
 		printf 'approval: check START\n'; \
 		$(SELF_MAKE) MAKEOVERRIDES= MAKEFLAGS= MFLAGS= CI=Y check; \
-
 		printf 'approval: check COMPLETE\n'; \
-
 		printf 'approval: test START\n'; \
 		$(SELF_MAKE) MAKEOVERRIDES= MAKEFLAGS= MFLAGS= CI=Y test; \
-
 		printf 'approval: test COMPLETE\n'; \
-
 		printf 'approval: COMPLETE\n'
 
 _builtin-pre-commit:
@@ -2054,6 +2091,13 @@ _builtin_recover_mise:
 	for prior in "$$project_parent/.$${project_root##*/}.mise-lock-stage."*; do \
 		if [ ! -d "$$prior" ]; then continue; fi; \
 		if [ ! -f "$$prior/transaction.json" ]; then \
+			if [ -f "$$prior/owner.pid" ]; then \
+				IFS= read -r stage_owner < "$$prior/owner.pid"; \
+				if [ -n "$$stage_owner" ] && kill -0 "$$stage_owner" 2>/dev/null; then \
+					printf 'INFO: keeping the live Mise stage (owner pid %s is running): %s\n' "$$stage_owner" "$$prior" >&2; \
+					continue; \
+				fi; \
+			fi; \
 			printf 'INFO: removing the dead Mise stage (crashed before its lock commit point; nothing was published): %s\n' "$$prior" >&2; \
 			find "$$prior" -depth -delete; \
 			continue; \
@@ -2205,15 +2249,15 @@ _builtin_build_artifacts:
 # An absent CI token runs every active default gate.
 _builtin_check_all: _builtin_require_environment
 	@set -eu; \
-		gates="lint,security,markdown,markdown-format,duplication,pyrefly,mypy,pyright,loc-cap,runtime-census,fresh-import,index-declarations,codemod,layout,direnv"; \
+		gates="lint,security,markdown,markdown-format,markdown-code,duplication,pyrefly,mypy,pyright,loc-cap,runtime-census,fresh-import,index-declarations,codemod,layout,direnv"; \
 		if [ "$(strip $(CI))" = "Y" ]; then \
-			gates="lint,security,markdown,markdown-format,duplication,loc-cap,runtime-census,fresh-import,index-declarations,layout,direnv"; \
-			printf 'INFO: CI=Y runs check gates: lint security markdown markdown-format duplication loc-cap runtime-census fresh-import index-declarations layout direnv\n'; \
+			gates="lint,security,markdown,markdown-format,markdown-code,duplication,loc-cap,runtime-census,fresh-import,index-declarations,layout,direnv"; \
+			printf 'INFO: CI=Y runs check gates: lint security markdown markdown-format markdown-code duplication loc-cap runtime-census fresh-import index-declarations layout direnv\n'; \
 		elif [ "$(strip $(CI))" = "N" ]; then \
 			gates="pyrefly,mypy,pyright,codemod"; \
 			printf 'INFO: CI=N runs check gates: pyrefly mypy pyright codemod\n'; \
 		else \
-			printf 'INFO: default context runs check gates: lint security markdown markdown-format duplication pyrefly mypy pyright loc-cap runtime-census fresh-import index-declarations codemod layout direnv\n'; \
+			printf 'INFO: default context runs check gates: lint security markdown markdown-format markdown-code duplication pyrefly mypy pyright loc-cap runtime-census fresh-import index-declarations codemod layout direnv\n'; \
 		fi; \
 		if [ -z "$$gates" ]; then \
 			printf 'ERROR: no active check gates remain in the selected context\n' >&2; \

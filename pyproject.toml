@@ -28,7 +28,7 @@ dependencies = [
   "jsonschema>=4.26.0",
   "openpyxl>=3.1.5",
   "packaging>=26.3",
-  "pydantic>=2.13.5",
+  "pydantic>=2.13.5,<3",
   "pydantic-settings>=2.15.0",
   "python-docx>=1.2.0",
   "python-pptx>=1.0.2",
@@ -174,7 +174,7 @@ include = ["/src/flext_cli/**"]
 [tool.mypy]
 mypy_path = ["src"]
 plugins = ["pydantic.mypy"]
-disable_error_code = ["prop-decorator", "call-arg", "attr-defined"]
+disable_error_code = ["prop-decorator", "call-arg"]
 python_version = "3.13"
 allow_redefinition = true
 check_untyped_defs = true
@@ -335,7 +335,7 @@ include = ["src", "tests"]
 extraPaths = ["src", "."]
 pythonPlatform = "Linux"
 pythonVersion = "3.13"
-reportCallIssue = "none"
+reportCallIssue = "error"
 reportConstantRedefinition = "error"
 reportIncompatibleMethodOverride = "error"
 reportInconsistentConstructor = "error"
@@ -483,7 +483,6 @@ runtime-evaluated-base-classes = [
   "flext_core.m.RootModel",
   "flext_core.m.StrictModel",
   "flext_core.m.Value",
-  "flext_core.s",
   "flext_tests.FlextTestsServiceBase",
   "flext_tests.FlextTestsSettings",
   "flext_tests.FlextTestsUtilities.Tests",

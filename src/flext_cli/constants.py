@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_cli import t
 from flext_cli._constants.base import FlextCliConstantsBase
 from flext_cli._constants.config import FlextCliConstantsConfig
 from flext_cli._constants.defaults import FlextCliConstantsDefaults
@@ -20,7 +21,7 @@ from flext_cli._constants.xlsx import FlextCliConstantsXlsx
 from flext_cli._constants.xlsx_future_functions import (
     FlextCliConstantsXlsxFutureFunctions,
 )
-from flext_core import FlextConstants, t
+from flext_core import FlextConstants
 
 
 class FlextCliConstants(FlextConstants):

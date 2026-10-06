@@ -11,11 +11,10 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from flext_cli.typings import PhysicalState
+
 if TYPE_CHECKING:
     from flext_cli import m, t
-
-
-type PhysicalState = tuple[int, int, int, int | None, int | None]
 
 
 class FlextCliUtilitiesAtomicFileModel:
@@ -130,4 +129,4 @@ class FlextCliUtilitiesAtomicFileModel:
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesAtomicFileModel", "PhysicalState"]
+__all__: list[str] = ["FlextCliUtilitiesAtomicFileModel"]

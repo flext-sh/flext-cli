@@ -133,7 +133,7 @@ class FlextCliUtilitiesFramework:
     )
 
     @classmethod
-    def framework_exit_result[TResult: t.Cli.ResultValue](
+    def framework_exit_result[TResult](
         cls,
         result: p.Result[TResult],
     ) -> bool:

@@ -48,7 +48,7 @@ gitleaks = "latest"
 kubeconform = "latest"
 node = "latest"
 bun = "latest"
-"npm:prettier" = "3.5.3"
+"npm:prettier" = "3.9.9"
 go = "latest"
 make = "latest"
 [tools."github:qltysh/qlty"]
