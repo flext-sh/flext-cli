@@ -293,6 +293,20 @@ class MiseLockConverge:
             raise ValueError(message)
         return manifest
 
+    @staticmethod
+    def staged_manifest(stage: Path) -> Path:
+        """Resolve the staged manifest, refusing a path that escapes the stage.
+
+        The stage directory arrives from the command line, so the manifest
+        write is guarded: a symlinked or otherwise relocated ``.mise.toml``
+        that resolves outside the declared stage stops converge loud instead
+        of rewriting an unrelated file.
+        """
+        manifest = (stage / ".mise.toml").resolve()
+        if not manifest.is_relative_to(stage.resolve()):
+            raise ValueError(f"staged manifest escapes the stage: {manifest}")
+        return manifest
+
     @classmethod
     def _hold(
         cls,
