@@ -16,13 +16,7 @@ from pathlib import Path
 
 from flext_cli import t
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-
-type DirectoryChainInspection = tuple[
-    Path,
-    os.stat_result,
-    tuple[tuple[int, int], ...],
-    t.VariadicTuple[Path],
-]
+from flext_cli.typings import DirectoryChainInspection
 
 
 class FlextCliUtilitiesAtomicParentDescriptor:
@@ -331,7 +325,4 @@ class FlextCliUtilitiesAtomicParentDescriptor:
             ) from close_error
 
 
-__all__: list[str] = [
-    "DirectoryChainInspection",
-    "FlextCliUtilitiesAtomicParentDescriptor",
-]
+__all__: list[str] = ["FlextCliUtilitiesAtomicParentDescriptor"]

@@ -219,7 +219,6 @@ if TYPE_CHECKING:
         FlextCliUtilitiesAtomicFileTemporary,
     )
     from flext_cli._utilities.atomic_parent_descriptor import (
-        DirectoryChainInspection,
         FlextCliUtilitiesAtomicParentDescriptor,
     )
     from flext_cli._utilities.atomic_parent_failure import (
@@ -278,7 +277,6 @@ if TYPE_CHECKING:
 
 
 __all__: tuple[str, ...] = (
-    "DirectoryChainInspection",
     "FlextCliAtomicTreeDarwin",
     "FlextCliUtilitiesAtomicDirectoryChain",
     "FlextCliUtilitiesAtomicDirectoryCleanup",
@@ -418,7 +416,6 @@ install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "DirectoryChainInspection": ".atomic_parent_descriptor",
         "FlextCliAtomicTreeDarwin": ".atomic_tree_darwin",
         "FlextCliUtilitiesAtomicDirectoryChain": ".atomic_directory_chain",
         "FlextCliUtilitiesAtomicDirectoryCleanup": ".atomic_directory_cleanup",

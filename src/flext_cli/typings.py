@@ -6,7 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
 from collections.abc import Callable
+from pathlib import Path
 from typing import TypeVar
 
 from flext_cli._typings.base import FlextCliTypesBase
@@ -39,5 +41,13 @@ T = TypeVar("T")
 
 
 type RenameAt2 = Callable[[int, bytes, int, bytes, int], int]
+
+
+type DirectoryChainInspection = tuple[
+    Path,
+    os.stat_result,
+    tuple[tuple[int, int], ...],
+    t.VariadicTuple[Path],
+]
 
 __all__: list[str] = ["FlextCliTypes", "t"]

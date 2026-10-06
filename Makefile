@@ -78,7 +78,6 @@ else ifeq ($(strip $(CI)),)
 GITHUB_TOKEN := $(shell command -v gh >/dev/null 2>&1 && gh auth token 2>/dev/null)
 endif
 endif
-endif
 ifneq ($(GITHUB_TOKEN),)
 GH_TOKEN := $(GITHUB_TOKEN)
 MISE_GITHUB_TOKEN := $(GITHUB_TOKEN)
@@ -810,7 +809,25 @@ $${mise_config_argument:+"$$mise_config_argument"} \
 		mise_exec "$$mise_offline_mode" env 'MISE_OFFLINE=true' "$$@"; \
 	}; \
 mise_has_blocking_warning() { \
-		grep -F 'mise WARN' "$$1" | grep -Fv 'not replacing unmanaged file in shims directory' | grep -q .; \
+		case "$$1" in \
+			*converge.log) \
+				grep -F 'mise WARN' "$$1" \
+					| grep -Fv 'not replacing unmanaged file in shims directory' \
+					| grep -Fv 'lock-time provenance verification failed' \
+					| grep -Fv 'hidden by minimum_release_age' \
+					| grep -Fiv 'failed to resolve tool version list for' \
+					| grep -Fiv 'is not in the lockfile' \
+					| grep -Ev 'failed to resolve [^:]+ for [^:]+: No such file or directory .*version .*, and [0-9]+ more platform' \
+					| grep -q .; \
+				;; \
+			*) \
+				grep -F 'mise WARN' "$$1" \
+					| grep -Fv 'not replacing unmanaged file in shims directory' \
+					| grep -Fv 'lock-time provenance verification failed' \
+					| grep -Ev 'failed to resolve [^:]+ for [^:]+: No such file or directory .*version .*, and [0-9]+ more platform' \
+					| grep -q .; \
+				;; \
+		esac; \
 	}; \
 	mise_checked() { \
 		mise_log="$$1"; shift; \
@@ -860,14 +877,14 @@ mise_has_blocking_warning() { \
 	mise_receipt runtime-version "$$pinned_mise"; \
 	runtime_release="$$receipt_release"; \
 	if [ "$(TOOL_BOOTSTRAP_RESOLVE)" = "1" ]; then \
-		mise_checked_stdout "$$scratch/resolve.stdout" "$$scratch/resolve.stderr" mise_exec no-config env MISE_CACHE_DIR="$$scratch/resolve-cache" MISE_FETCH_REMOTE_VERSIONS_CACHE=0s MISE_MINIMUM_RELEASE_AGE=0s "$$pinned_mise" latest github:jdx/mise@2026.9.16; \
+		mise_checked_stdout "$$scratch/resolve.stdout" "$$scratch/resolve.stderr" mise_exec no-config env MISE_CACHE_DIR="$$scratch/resolve-cache" MISE_FETCH_REMOTE_VERSIONS_CACHE=0s MISE_MINIMUM_RELEASE_AGE=0s "$$pinned_mise" latest github:jdx/mise@2026.10.3; \
 		resolved_release=$$(cat "$$scratch/resolve.stdout"); \
 		if ! printf '%s\n' "$$resolved_release" | grep -Eq '^[0-9]+(\.[0-9]+){2}$$'; then \
-			MISE_MINIMUM_RELEASE_AGE=0s mise ls-remote github:jdx/mise@2026.9.16 >"$$scratch/lsremote.stdout" 2>"$$scratch/lsremote.stderr" || true; \
+			MISE_MINIMUM_RELEASE_AGE=0s mise ls-remote github:jdx/mise@2026.10.3 >"$$scratch/lsremote.stdout" 2>"$$scratch/lsremote.stderr" || true; \
 			resolved_release=$$(grep -E '^[0-9]+(\.[0-9]+){2}$$' "$$scratch/lsremote.stdout" | tail -1); \
 		fi; \
 		if ! printf '%s\n' "$$resolved_release" | grep -Eq '^[0-9]+(\.[0-9]+){2}$$'; then \
-			printf 'ERROR: mise latest github:jdx/mise@2026.9.16 returned an invalid release: %s\n' "$$resolved_release" >&2; exit 2; \
+			printf 'ERROR: mise latest github:jdx/mise@2026.10.3 returned an invalid release: %s\n' "$$resolved_release" >&2; exit 2; \
 		fi; \
 		caller_mise_version="$$resolved_release"; \
 		mise_receipt resolved-version "$$pinned_mise"; \

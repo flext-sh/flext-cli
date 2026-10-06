@@ -52,12 +52,6 @@ class TestsFlextCliServiceRoutes:
         def greet_all(
             request: TestsFlextCliServiceRoutes.Greeting,
         ) -> p.Result[str]:
-            """Provide ``greet_all``.
-
-            Returns:
-                The resulting ``p.Result[str]``.
-            """
-            _ = self
             """Greet someone by name.
 
             Returns:

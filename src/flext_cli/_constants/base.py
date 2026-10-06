@@ -69,6 +69,8 @@ class FlextCliConstantsBase:
     DICT_KEY_COMMANDS: ClassVar[str] = "commands"
     DICT_KEY_NAME: ClassVar[str] = "name"
     DICT_KEY_SERVICE: ClassVar[str] = "service"
+    # DICT_KEY_* are serialized dictionary KEY NAMES, not credentials: the
+    # literal equals the key it names (S105 false positive, documented).
     DICT_KEY_LOGIN_FIELD: ClassVar[str] = "token"
     DICT_KEY_USERNAME: ClassVar[str] = "username"
     DICT_KEY_LOGIN_VALUE: ClassVar[str] = "password"
