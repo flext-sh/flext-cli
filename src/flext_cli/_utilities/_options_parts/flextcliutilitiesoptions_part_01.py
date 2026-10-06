@@ -42,7 +42,7 @@ class FlextCliUtilitiesOptions:
         return resolved
 
     @classmethod
-    def is_json_option(cls, annotation: t.Cli.RuntimeAnnotation) -> bool:
+    def json_option(cls, annotation: t.Cli.RuntimeAnnotation) -> bool:
         """Return True when a field has no native CLI form and travels as JSON.
 
         Mappings, nested models, and the collections or unions that carry them
@@ -55,7 +55,7 @@ class FlextCliUtilitiesOptions:
         """
         resolved = cls.unwrap_annotation(annotation)
         if isinstance(resolved, UnionType):
-            return any(cls.is_json_option(arg) for arg in get_args(resolved))
+            return any(cls.json_option(arg) for arg in get_args(resolved))
         origin = get_origin(resolved)
         while isinstance(origin, TypeAliasType):
             origin = get_origin(origin.__value__)
@@ -65,7 +65,7 @@ class FlextCliUtilitiesOptions:
         ):
             return True
         return origin is not None and any(
-            cls.is_json_option(arg) for arg in get_args(resolved)
+            cls.json_option(arg) for arg in get_args(resolved)
         )
 
     @classmethod
@@ -75,14 +75,14 @@ class FlextCliUtilitiesOptions:
     ) -> type | GenericAlias:
         """Resolve runtime annotations to concrete types accepted by Typer.
 
-        A field without a native CLI form (see ``is_json_option``) resolves to
+        A field without a native CLI form (see ``json_option``) resolves to
         ``str``: its option carries JSON that Pydantic validates on parse.
 
         Returns:
             The resulting ``type | GenericAlias``.
 
         """
-        if cls.is_json_option(annotation):
+        if cls.json_option(annotation):
             return str
         sequence_origins: frozenset[object] = frozenset(
             filter(
@@ -131,7 +131,7 @@ class FlextCliUtilitiesOptions:
         )
 
     @staticmethod
-    def is_string_sequence(value: t.Cli.CliDefaultSource) -> bool:
+    def string_sequence(value: t.Cli.CliDefaultSource) -> bool:
         """Return True for concrete string sequences accepted by repeated CLI options.
 
         Returns:
@@ -159,7 +159,7 @@ class FlextCliUtilitiesOptions:
             return value
         if isinstance(value, Path):
             return str(value)
-        if cls.is_string_sequence(value):
+        if cls.string_sequence(value):
             normalized_sequence = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(value)
             return tuple(normalized_sequence)
         return None

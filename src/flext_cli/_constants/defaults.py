@@ -1,4 +1,4 @@
-"""Immutable default values shared by CLI declaration models.
+"""Flext Cli immutable declaration-default constants.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -7,17 +7,18 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
-from flext_cli import t
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
-class FlextCliModelsDefaults:
-    """Canonical namespace owner."""
+class FlextCliConstantsDefaults:
+    """Immutable default values shared by CLI declaration models."""
 
     EMPTY_JSON_MAPPING: ClassVar[t.JsonMapping] = MappingProxyType({})
 
     EMPTY_STR_MAPPING: ClassVar[t.StrMapping] = MappingProxyType({})
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsDefaults",)
+__all__: list[str] = ["FlextCliConstantsDefaults"]

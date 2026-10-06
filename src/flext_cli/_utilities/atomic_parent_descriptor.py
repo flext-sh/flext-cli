@@ -132,7 +132,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                 raise FileNotFoundError(errno.ENOENT, message, absent) from missing
             if not stat.S_ISDIR(
                 state.st_mode,
-            ) or FlextCliUtilitiesAtomicFilePath.is_reparse_point(state):
+            ) or FlextCliUtilitiesAtomicFilePath.reparse_point(state):
                 FlextCliUtilitiesAtomicFilePath.validate_directory_state(
                     root.joinpath(*parts[1 : index + 2]),
                     state,
@@ -149,7 +149,8 @@ class FlextCliUtilitiesAtomicParentDescriptor:
             The resulting ``DirectoryChainInspection``.
 
         Raises:
-            OSError: If ``current.ancestry != ancestry or file_path.identity(current.state)
+            OSError: If ``current.ancestry != ancestry or
+                file_path.identity(current.state)
                 != (state.st_dev, state.st_ino)``.
 
         """
@@ -256,7 +257,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                 raise FileNotFoundError(errno.ENOENT, message, absent) from missing
             if not stat.S_ISDIR(
                 relative_state.st_mode,
-            ) or FlextCliUtilitiesAtomicFilePath.is_reparse_point(
+            ) or FlextCliUtilitiesAtomicFilePath.reparse_point(
                 relative_state,
             ):
                 FlextCliUtilitiesAtomicFilePath.validate_directory_state(

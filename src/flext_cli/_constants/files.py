@@ -20,6 +20,9 @@ if TYPE_CHECKING:
 class FlextCliConstantsFiles:
     """File format and filesystem metadata constants for CLI consumers."""
 
+    IDENTITY_COMPONENT_COUNT: ClassVar[int] = 2
+    "A strict file identity is one non-negative device and inode pair."
+
     @unique
     class FileFormat(StrEnum):
         """Canonical file format labels."""

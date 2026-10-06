@@ -26,7 +26,9 @@ def save_user_preferences(
     preferences: t.MappingKV[str, t.JsonPayloadCollectionValue],
     config_dir: Path,
 ) -> p.Result[bool]:
-    """Save user preferences to JSON in YOUR app. Returns r[bool]; no bare bool sentinel.
+    """Save user preferences to JSON in YOUR app.
+
+    Returns r[bool]; no bare bool sentinel.
 
     Returns:
         The resulting ``p.Result[bool]``.
@@ -89,7 +91,9 @@ def save_deployment_config(
     settings: t.MappingKV[str, t.JsonPayloadCollectionValue],
     config_file: Path,
 ) -> p.Result[bool]:
-    """Save deployment settings to YAML in YOUR tool. Returns r[bool]; no bare bool sentinel.
+    """Save deployment settings to YAML in YOUR tool.
+
+    Returns r[bool]; no bare bool sentinel.
 
     Returns:
         The resulting ``p.Result[bool]``.
@@ -110,7 +114,9 @@ def save_deployment_config(
 
 
 def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
-    """Load deployment settings from YAML in YOUR tool. Returns r[LoadedConfig]; no None.
+    """Load deployment settings from YAML in YOUR tool.
+
+    Returns r[LoadedConfig]; no None.
 
     Returns:
         The resulting ``p.Result[m.Cli.LoadedConfig]``.

@@ -9,8 +9,9 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
+from flext_cli import c
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
@@ -24,21 +25,18 @@ if TYPE_CHECKING:
 class FlextCliUtilitiesAtomicFilePublishChecks:
     """Canonical namespace owner."""
 
-    IDENTITY_COMPONENT_COUNT: ClassVar[int] = 2
-
     @staticmethod
     def validate_identity(path: Path, value: t.Pair[int, int], *, label: str) -> None:
         """Require one strict non-negative device and inode pair.
 
         Raises:
-            OSError: If ``len(value) != IDENTITY_COMPONENT_COUNT or
+            OSError: If ``len(value) != c.Cli.IDENTITY_COMPONENT_COUNT or
             any((isinstance(item, bool) for item in value)) or any((item < 0 for item in
             value))``.
 
         """
         if (
-            len(value)
-            != FlextCliUtilitiesAtomicFilePublishChecks.IDENTITY_COMPONENT_COUNT
+            len(value) != c.Cli.IDENTITY_COMPONENT_COUNT
             or any(isinstance(item, bool) for item in value)
             or any(item < 0 for item in value)
         ):

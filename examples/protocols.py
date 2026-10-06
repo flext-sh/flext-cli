@@ -29,7 +29,8 @@ class ExamplesFlextCliProtocols(FlextCliProtocols):
         Audit Implications:
         ───────────────────
         - Plugins must check hasattr() before calling group()/command()
-        - Runtime protocol checks keep the plugin contract independent from Typer internals
+        - Runtime protocol checks keep the plugin contract independent
+          from Typer internals
         """
 
         def command(

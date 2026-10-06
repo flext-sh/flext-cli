@@ -25,7 +25,7 @@ class ExamplesFlextCliUtilities(u):
 
     @classmethod
     def to_json_dict(cls, data: t.JsonMapping) -> m.Cli.DisplayData:
-        """Normalize settings/mapping to DisplayData for create_table/display_config_table.
+        """Normalize settings/mapping to DisplayData for the table renderers.
 
         Returns:
             The resulting ``m.Cli.DisplayData``.

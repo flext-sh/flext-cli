@@ -191,7 +191,8 @@ class FlextCliUtilitiesFiles:
             return r[bool].ok(value=True)
         if target_path.exists() or target_path.is_symlink():
             return r[bool].fail(
-                f"symlink destination already exists with a different identity: {target_path}",
+                f"symlink destination already exists with a different"
+                f" identity: {target_path}",
             )
         relative_source = os.path.relpath(source_path, target_path.parent.resolve())
         try:

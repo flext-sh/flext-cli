@@ -8,8 +8,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from flext_cli import t
-from flext_cli._models._defaults import FlextCliModelsDefaults
+from flext_cli import c, t
 from flext_cli._models.docx_styles import FlextCliModelsDocxStyles
 from flext_core import m
 
@@ -114,7 +113,7 @@ class FlextCliModelsDocxDocument:
             description="Document sections.",
         )
         core_properties: t.JsonMapping = m.Field(
-            default_factory=lambda: FlextCliModelsDefaults.EMPTY_JSON_MAPPING,
+            default_factory=lambda: c.Cli.EMPTY_JSON_MAPPING,
             description="Core document properties.",
         )
 
