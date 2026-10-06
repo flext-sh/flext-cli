@@ -52,7 +52,7 @@ def save_user_preferences(
         f"✅ Saved preferences to {config_file.name}",
         style=c.Cli.MessageStyles.GREEN,
     )
-    return r[bool].ok(True)
+    return r[bool].ok(value=True)
 
 
 def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
@@ -110,7 +110,7 @@ def save_deployment_config(
         return r[bool].from_failure(write_result)
 
     cli.print("✅ Saved deployment settings", style=c.Cli.MessageStyles.GREEN)
-    return r[bool].ok(True)
+    return r[bool].ok(value=True)
 
 
 def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:

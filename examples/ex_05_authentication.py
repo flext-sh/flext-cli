@@ -57,7 +57,7 @@ class Ex05Authentication:
             f"   Token saved to: {token_file_path}",
             style=c.Cli.MessageStyles.CYAN,
         )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def fetch_saved_token() -> p.Result[str]:
@@ -96,7 +96,7 @@ class Ex05Authentication:
         cli.print("✅ Token is valid", style=c.Cli.MessageStyles.GREEN)
         cli.print(f"   Token: {token[:30]}...", style=c.Cli.MessageStyles.CYAN)
         cli.print(f"   Token file: {token_file_path}", style=c.Cli.MessageStyles.CYAN)
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
     @staticmethod
     def logout() -> p.Result[bool]:
@@ -120,7 +120,7 @@ class Ex05Authentication:
             f"   Token removed from: {token_file_path}",
             style=c.Cli.MessageStyles.CYAN,
         )
-        return r[bool].ok(True)
+        return r[bool].ok(value=True)
 
 
 __all__: list[str] = ["Ex05Authentication"]
