@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import fnmatch
+import os
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
@@ -150,11 +151,15 @@ class FlextCliUtilitiesFiles:
         if not root.is_dir():
             return result.fail(f"file selection root is not a directory: {root}")
         scope = root.resolve()
+        # Extend, never replace: the caller's git controls (ceiling
+        # directories, global config, credential helpers) must survive the
+        # probe — replacing the environment silently re-scopes worktree
+        # discovery into whatever directory tree hosts the process.
         probe = FlextCliUtilitiesRuntime.run_bytes(
             ["git", "rev-parse", "--is-inside-work-tree"],
             cwd=scope,
             timeout=c.DEFAULT_TIMEOUT_SECONDS,
-            env={"LC_ALL": "C"},
+            env={**os.environ, "LC_ALL": "C"},
         )
         if probe.failure:
             return result.from_failure(probe)

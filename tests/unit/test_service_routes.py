@@ -10,8 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import override
-
 import pytest
 from flext_tests import tm
 
@@ -36,8 +34,8 @@ class TestsFlextCliServiceRoutes:
     class Greeter(s[Status]):
         """Service whose public operations are the CLI."""
 
-        @override
-        def execute(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
+        @staticmethod
+        def greet_default() -> p.Result[TestsFlextCliServiceRoutes.Status]:
             """Run the default service action.
 
             Returns:
