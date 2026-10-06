@@ -215,10 +215,15 @@ class TestsFlextCliFilesCov:
     @pytest.mark.parametrize("inside_git", [True, False], ids=["git", "plain"])
     def test_files_matching_selects_visible_files_by_pattern(
         tmp_path: Path,
+        monkeypatch: pytest.MonkeyPatch,
         *,
         inside_git: bool,
     ) -> None:
         """Git-ignored files are never selected; patterns filter the rest."""
+        # The redirected make-test TMPDIR can sit inside the superproject
+        # worktree; ceiling the discovery at the case root so the plain case
+        # exercises the documented outside-a-worktree path.
+        monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
         if inside_git:
             tm.ok(u.Cli.run_bytes(["git", "init", "--quiet"], cwd=tmp_path))
         for relative in ("pkg/mod.py", "pkg/notes.txt", "build/gen.py", "tests/t.py"):
