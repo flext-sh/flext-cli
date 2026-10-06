@@ -814,6 +814,7 @@ mise_has_blocking_warning() { \
 				grep -F 'mise WARN' "$$1" \
 					| grep -Fv 'not replacing unmanaged file in shims directory' \
 					| grep -Fv 'lock-time provenance verification failed' \
+					| grep -Fv 'hidden by minimum_release_age' \
 					| grep -Fiv 'failed to resolve tool version list for' \
 					| grep -Fiv 'is not in the lockfile' \
 					| grep -Ev 'failed to resolve [^:]+ for [^:]+: No such file or directory .*version .*, and [0-9]+ more platform' \
