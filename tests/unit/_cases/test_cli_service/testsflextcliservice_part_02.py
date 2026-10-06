@@ -22,8 +22,8 @@ if TYPE_CHECKING:
     from tests import t
 
 
-class TestsFlextCliService:
-    """Implementation part for TestsFlextCliService."""
+class TestsFlextCliServicePart02:
+    """Implementation part for TestsFlextCliServicePart02."""
 
     @staticmethod
     def test_model_command_accepts_repeatable_list_options() -> None:

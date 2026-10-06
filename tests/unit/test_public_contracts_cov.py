@@ -7,13 +7,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from tests.unit._cases.test_public_contracts_cov.testsflextclipubliccontractscoverage_part_01 import (
-    TestsFlextCliPublicContractsCoverage as TestsFlextCliPublicContractsCoveragePart01,
+    TestsFlextCliPublicContractsCoveragePart01,
 )
 from tests.unit._cases.test_public_contracts_cov.testsflextclipubliccontractscoverage_part_02 import (
-    TestsFlextCliPublicContractsCoverage as TestsFlextCliPublicContractsCoveragePart02,
+    TestsFlextCliPublicContractsCoveragePart02,
 )
 from tests.unit._cases.test_public_contracts_cov.testsflextclipubliccontractscoverage_part_03 import (
-    TestsFlextCliPublicContractsCoverage as TestsFlextCliPublicContractsCoveragePart03,
+    TestsFlextCliPublicContractsCoveragePart03,
 )
 
 

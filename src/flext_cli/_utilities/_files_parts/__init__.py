@@ -14,8 +14,8 @@ from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_06 import (
-        FlextCliUtilitiesFiles,
-    )
+    FlextCliUtilitiesFilesPart06,
+)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesFiles",)

@@ -29,8 +29,8 @@ if TYPE_CHECKING:
 # validated models, serialized once at egress and validated once at ingress.
 
 
-class TestsFlextCliExamplesSmoke:
-    """Implementation part for TestsFlextCliExamplesSmoke."""
+class TestsFlextCliExamplesSmokePart01:
+    """Implementation part for TestsFlextCliExamplesSmokePart01."""
 
     @staticmethod
     def test_getting_started_and_output_examples() -> None:

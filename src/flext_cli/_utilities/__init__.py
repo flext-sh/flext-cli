@@ -35,8 +35,8 @@ if TYPE_CHECKING:
         FlextCliUtilitiesOptionBuilder,
     )
     from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
-        FlextCliUtilitiesOptions,
-    )
+    FlextCliUtilitiesOptionsPart02,
+)
     from flext_cli._utilities._pptx._reader import FlextCliUtilitiesPptxReader
     from flext_cli._utilities._pptx._renderer import FlextCliUtilitiesPptxRenderer
     from flext_cli._utilities._pptx._serializer import FlextCliUtilitiesPptxSerializer

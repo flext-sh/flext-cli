@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class TestsFlextCliExamplesSmoke:
-    """Implementation part for TestsFlextCliExamplesSmoke."""
+class TestsFlextCliExamplesSmokePart04:
+    """Implementation part for TestsFlextCliExamplesSmokePart04."""
 
     @staticmethod
     def test_complete_integration_example_persists_validated_workflow_data(

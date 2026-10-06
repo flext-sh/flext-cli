@@ -20,12 +20,12 @@ from typing import cast
 
 from flext_cli import c, p, r, t
 from flext_cli._utilities.files import FlextCliUtilitiesFiles
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
+from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_core import u
 
 
-class FlextCliUtilitiesFileTestHelpersMixin:
-    """Implementation part for FlextCliUtilitiesFileTestHelpersMixin."""
+class FlextCliUtilitiesFileTestHelpersMixinPart01:
+    """Implementation part for FlextCliUtilitiesFileTestHelpersMixinPart01."""
 
     @classmethod
     @contextmanager
@@ -103,10 +103,10 @@ class FlextCliUtilitiesFileTestHelpersMixin:
         if fmt == c.Cli.FILE_FORMAT_YAML:
             dumped = u.Yaml.safe_dump(validated)
             return FlextCliUtilitiesFiles.files_write_text(path, dumped)
-        dumped_result = uj.json_dumps(validated)
+        dumped_result = FlextCliUtilitiesJson.json_dumps(validated)
         if dumped_result.failure:
             return r[bool].from_failure(dumped_result)
         return FlextCliUtilitiesFiles.files_write_text(path, dumped_result.unwrap())
 
 
-__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixin"]
+__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixinPart01"]

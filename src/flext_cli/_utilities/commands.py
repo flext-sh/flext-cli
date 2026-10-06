@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 # mro-j47u (codex): formatter contracts are owned once by the t facade.
 from flext_cli import c, r, t
-from flext_cli._utilities.output import FlextCliUtilitiesOutput as uo
+from flext_cli._utilities.output import FlextCliUtilitiesOutput
 from flext_core import u
 
 if TYPE_CHECKING:
@@ -55,9 +55,9 @@ class FlextCliUtilitiesCommands:
         rendered = (
             message
             if message.lstrip().startswith(("{", "["))
-            else uo.output_message_payload(message, success_type)[0]
+            else FlextCliUtilitiesOutput.output_message_payload(message, success_type)[0]
         )
-        uo.emit_raw(f"{rendered}\n")
+        FlextCliUtilitiesOutput.emit_raw(f"{rendered}\n")
 
     @staticmethod
     def commands_emit_failure_cause[TResult](
@@ -72,8 +72,8 @@ class FlextCliUtilitiesCommands:
 
         """
         error = r.require_error(result)
-        uo.emit_raw(
-            f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
+        FlextCliUtilitiesOutput.emit_raw(
+            f"{FlextCliUtilitiesOutput.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
         )
 
     @staticmethod
@@ -100,12 +100,12 @@ class FlextCliUtilitiesCommands:
                 error_code=result.error_code,
                 error_data=result.error_data,
             )
-        uo.emit_raw(
-            f"{uo.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
+        FlextCliUtilitiesOutput.emit_raw(
+            f"{FlextCliUtilitiesOutput.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
             error=True,
         )
         if result.error_code:
-            uo.emit_raw(f"   [{result.error_code}]\n", error=True)
+            FlextCliUtilitiesOutput.emit_raw(f"   [{result.error_code}]\n", error=True)
         if verbose and result.exception is not None:
             detail = "".join(
                 traceback.format_exception(
@@ -114,7 +114,7 @@ class FlextCliUtilitiesCommands:
                     result.exception.__traceback__,
                 ),
             )
-            uo.emit_raw(detail if detail.endswith("\n") else f"{detail}\n", error=True)
+            FlextCliUtilitiesOutput.emit_raw(detail if detail.endswith("\n") else f"{detail}\n", error=True)
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]

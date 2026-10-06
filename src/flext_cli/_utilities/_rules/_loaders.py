@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._rules._matchers import FlextCliUtilitiesRulesMatchersMixin
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
+from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_core import u
 
 if TYPE_CHECKING:
@@ -41,9 +41,9 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
             The resulting ``t.JsonMapping``.
 
         """
-        normalized = uj.json_as_mapping(settings)
+        normalized = FlextCliUtilitiesJson.json_as_mapping(settings)
         scope_raw = normalized.get(scope_key)
-        scope_map = uj.json_as_mapping(scope_raw)
+        scope_map = FlextCliUtilitiesJson.json_as_mapping(scope_raw)
         return t.Cli.JSON_MAPPING_ADAPTER.validate_python({
             key: value for key, value in scope_map.items() if key in allowed_keys
         })
@@ -151,21 +151,21 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
             rule_config = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
                 u.Yaml.safe_load_file(rule_file),
             )
-            typed_rules = uj.json_as_mapping_list(rule_config.get(options.rules_key))
+            typed_rules = FlextCliUtilitiesJson.json_as_mapping_list(rule_config.get(options.rules_key))
             for typed_rule_def in typed_rules:
-                rule_id = uj.json_get_str_key(typed_rule_def, options.rule_id_key)
+                rule_id = FlextCliUtilitiesJson.json_get_str_key(typed_rule_def, options.rule_id_key)
                 if not rule_id:
                     continue
                 if not typed_rule_def.get(options.enabled_key, True):
                     continue
                 if not cls.rules_matches_filters(rule_id, options.rule_filters):
                     continue
-                action_name = uj.json_get_str_key(
+                action_name = FlextCliUtilitiesJson.json_get_str_key(
                     typed_rule_def,
                     options.action_key,
                     case="lower",
                 )
-                check_name = uj.json_get_str_key(
+                check_name = FlextCliUtilitiesJson.json_get_str_key(
                     typed_rule_def,
                     options.check_key,
                     case="lower",

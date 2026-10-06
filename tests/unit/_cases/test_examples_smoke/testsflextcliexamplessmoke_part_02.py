@@ -10,7 +10,8 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
 import pytest
-from examples import Ex05Authentication, Ex06Settings, c as ec, p as ep
+from examples import Ex05Authentication, Ex06Settings, p
+import examples
 from examples.ex_04_file_operations import (
     load_deployment_config,
     load_user_preferences,
@@ -27,8 +28,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class TestsFlextCliExamplesSmoke:
-    """Implementation part for TestsFlextCliExamplesSmoke."""
+class TestsFlextCliExamplesSmokePart02:
+    """Implementation part for TestsFlextCliExamplesSmokePart02."""
 
     @staticmethod
     @pytest.fixture
@@ -84,7 +85,7 @@ class TestsFlextCliExamplesSmoke:
         settings.cli_token_file = str(tmp_path / "auth_token.json")
 
         shown_settings = Ex06Settings.show_cli_settings()
-        tm.that(shown_settings, is_=ep.Cli.Settings)
+        tm.that(shown_settings, is_=p.Cli.Settings)
         tm.that(shown_settings.cli_token_file, eq=settings.cli_token_file)
 
         login_result = Ex05Authentication.login_to_service("demo", "secret")
@@ -101,11 +102,11 @@ class TestsFlextCliExamplesSmoke:
         tm.that(locations.data["Token Exists"], eq="Yes")
 
         profile_result = Ex06Settings.load_profile_settings(
-            ec.DeploymentEnvironment.DEVELOPMENT,
+            examples.c.DeploymentEnvironment.DEVELOPMENT,
         )
         tm.ok(profile_result)
         tm.that(profile_result.value.debug, eq=True)
-        tm.that(profile_result.value.cli_output_format, eq=ec.Cli.OutputFormats.TABLE)
+        tm.that(profile_result.value.cli_output_format, eq=examples.c.Cli.OutputFormats.TABLE)
 
         logout_result = Ex05Authentication.logout()
         tm.ok(logout_result)

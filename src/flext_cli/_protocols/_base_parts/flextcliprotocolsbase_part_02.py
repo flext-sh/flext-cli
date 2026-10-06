@@ -9,13 +9,13 @@ from __future__ import annotations
 from typing import IO, Protocol, runtime_checkable
 
 from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_01 import (
-    FlextCliProtocolsBase as FlextCliProtocolsBasePart01,
+    FlextCliProtocolsBasePart01,
 )
 from flext_core import p
 
 
-class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
-    """Implementation part for FlextCliProtocolsBase."""
+class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
+    """Implementation part for FlextCliProtocolsBasePart02."""
 
     @runtime_checkable
     class Settings(p.Settings, FlextCliProtocolsBasePart01.CliSettings, Protocol):
@@ -76,7 +76,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
             ...
 
         @property
-        def outcome(self) -> FlextCliProtocolsBase.ProcessOutcome:
+        def outcome(self) -> FlextCliProtocolsBasePart02.ProcessOutcome:
             """Causal process completion state."""
             ...
 
@@ -106,7 +106,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
             ...
 
         @property
-        def outcome(self) -> FlextCliProtocolsBase.ProcessOutcome:
+        def outcome(self) -> FlextCliProtocolsBasePart02.ProcessOutcome:
             """Causal process completion state."""
             ...
 
@@ -170,4 +170,4 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart01):
             ...
 
 
-__all__: list[str] = ["FlextCliProtocolsBase"]
+__all__: list[str] = ["FlextCliProtocolsBasePart02"]

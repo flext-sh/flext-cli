@@ -18,8 +18,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class FlextCliUtilitiesFileTestHelpersMixin:
-    """Implementation part for FlextCliUtilitiesFileTestHelpersMixin."""
+class FlextCliUtilitiesFileTestHelpersMixinPart02:
+    """Implementation part for FlextCliUtilitiesFileTestHelpersMixinPart02."""
 
     @staticmethod
     def files_assert_exists(
@@ -76,4 +76,4 @@ class FlextCliUtilitiesFileTestHelpersMixin:
         return path
 
 
-__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixin"]
+__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixinPart02"]

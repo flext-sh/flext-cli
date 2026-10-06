@@ -9,14 +9,12 @@ from __future__ import annotations
 from typing import Annotated, ClassVar
 
 from flext_cli import t
-from flext_cli._models._base.flextclimodelsbase_part_01 import (
-    FlextCliModelsBase as FlextCliModelsBasePart01,
-)
+from flext_cli._models._base.flextclimodelsbase_part_01 import FlextCliModelsBasePart01
 from flext_core import m
 
 
-class FlextCliModelsBase:
-    """Implementation part for FlextCliModelsBase."""
+class FlextCliModelsBasePart06:
+    """Implementation part for FlextCliModelsBasePart06."""
 
     class CliParamsConfig(m.Value):
         """CLI parameters configuration for command-line parsing.
@@ -148,4 +146,4 @@ class FlextCliModelsBase:
         ]
 
 
-__all__: list[str] = ["FlextCliModelsBase"]
+__all__: list[str] = ["FlextCliModelsBasePart06"]

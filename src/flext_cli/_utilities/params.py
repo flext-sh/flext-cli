@@ -8,7 +8,7 @@ from __future__ import annotations
 
 # mro-j47u (kimi): utilities consume local facades only, never flext_core p/r.
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.validation import FlextCliUtilitiesValidation as uv
+from flext_cli._utilities.validation import FlextCliUtilitiesValidation
 
 
 class FlextCliUtilitiesParams:
@@ -119,7 +119,7 @@ class FlextCliUtilitiesParams:
                 )
             next_config = next_config.clone(cli_log_verbosity=str(log_verbosity))
         if params.output_format is not None:
-            validated_result = uv.validate_format(params.output_format)
+            validated_result = FlextCliUtilitiesValidation.validate_format(params.output_format)
             if validated_result.failure:
                 valid = ", ".join(c.Cli.OUTPUT_FORMATS)
                 return r[p.Cli.Settings].fail(

@@ -17,8 +17,8 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-class FlextCliUtilitiesToml:
-    """Implementation part for FlextCliUtilitiesToml."""
+class FlextCliUtilitiesTomlPart02:
+    """Implementation part for FlextCliUtilitiesTomlPart02."""
 
     @staticmethod
     def toml_item_from_json_value(value: t.JsonValue) -> Item | t.JsonValue:
@@ -114,7 +114,7 @@ class FlextCliUtilitiesToml:
             return None
         value = container[key]
         if isinstance(value, OutOfOrderTableProxy):
-            return FlextCliUtilitiesToml._toml_consolidate_proxy(value)
+            return FlextCliUtilitiesTomlPart02._toml_consolidate_proxy(value)
         return value if isinstance(value, Table) else None
 
     @staticmethod
@@ -128,7 +128,7 @@ class FlextCliUtilitiesToml:
         if key not in container:
             return None
         value = container[key]
-        return value if FlextCliUtilitiesToml.toml_is_item(value) else None
+        return value if FlextCliUtilitiesTomlPart02.toml_is_item(value) else None
 
     @staticmethod
     def toml_ensure_table(parent: TOMLDocument | Table, key: str) -> Table:
@@ -179,11 +179,11 @@ class FlextCliUtilitiesToml:
         """
         current: TOMLDocument | Table = parent
         for segment in path:
-            current = FlextCliUtilitiesToml.toml_ensure_table(current, segment)
-        if FlextCliUtilitiesToml.toml_is_table(current):
+            current = FlextCliUtilitiesTomlPart02.toml_ensure_table(current, segment)
+        if FlextCliUtilitiesTomlPart02.toml_is_table(current):
             return current
         msg = "toml_ensure_path must return a TOML table"
         raise TypeError(msg)
 
 
-__all__: list[str] = ["FlextCliUtilitiesToml"]
+__all__: list[str] = ["FlextCliUtilitiesTomlPart02"]

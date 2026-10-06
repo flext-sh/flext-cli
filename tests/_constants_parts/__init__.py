@@ -21,8 +21,8 @@ if TYPE_CHECKING:
         TestsFlextCliConstantsYamlOutput,
     )
     from tests._constants_parts.testsflextcliconstants_part_01 import (
-        TestsFlextCliConstants,
-    )
+    TestsFlextCliConstantsPart01,
+)
 
 
 __all__: tuple[str, ...] = (

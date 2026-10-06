@@ -17,8 +17,8 @@ if TYPE_CHECKING:
         FlextCliUtilitiesOptionBuilder,
     )
     from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
-        FlextCliUtilitiesOptions,
-    )
+    FlextCliUtilitiesOptionsPart02,
+)
 
 
 __all__: tuple[str, ...] = (

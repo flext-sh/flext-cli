@@ -23,8 +23,8 @@ if TYPE_CHECKING:
         ExamplesFlextCliModelsExamplesDatabase,
     )
     from examples._models_parts.examplesflextclimodels_part_01 import (
-        ExamplesFlextCliModels,
-    )
+    ExamplesFlextCliModelsPart01,
+)
 
 
 __all__: tuple[str, ...] = (

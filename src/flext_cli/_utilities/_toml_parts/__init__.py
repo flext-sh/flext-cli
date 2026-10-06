@@ -14,8 +14,8 @@ from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_07 import (
-        FlextCliUtilitiesToml,
-    )
+    FlextCliUtilitiesTomlPart07,
+)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesToml",)

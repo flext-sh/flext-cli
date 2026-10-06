@@ -14,8 +14,8 @@ from flext_cli._models.atomic_state import FlextCliModelsAtomicState
 from flext_core import m, u
 
 
-class FlextCliModelsBase:
-    """Implementation part for FlextCliModelsBase."""
+class FlextCliModelsBasePart08:
+    """Implementation part for FlextCliModelsBasePart08."""
 
     class AtomicDirectoryChainPlan(m.BaseModel):
         """Exact existing anchor plus contiguous directories observed absent."""
@@ -94,4 +94,4 @@ class FlextCliModelsBase:
             return self
 
 
-__all__: list[str] = ["FlextCliModelsBase"]
+__all__: list[str] = ["FlextCliModelsBasePart08"]

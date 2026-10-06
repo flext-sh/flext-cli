@@ -13,16 +13,16 @@ from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import t
 from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
+    FlextCliUtilitiesTomlPart01,
 )
 from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_02 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart02,
+    FlextCliUtilitiesTomlPart02,
 )
 from flext_core import u
 
 
-class FlextCliUtilitiesToml:
-    """Implementation part for FlextCliUtilitiesToml."""
+class FlextCliUtilitiesTomlPart03:
+    """Implementation part for FlextCliUtilitiesTomlPart03."""
 
     @staticmethod
     def toml_table_path(
@@ -115,7 +115,7 @@ class FlextCliUtilitiesToml:
         """
         current = parent
         for segment in path:
-            current = FlextCliUtilitiesToml.toml_mapping_ensure_table(current, segment)
+            current = FlextCliUtilitiesTomlPart03.toml_mapping_ensure_table(current, segment)
         return current
 
     @staticmethod
@@ -153,4 +153,4 @@ class FlextCliUtilitiesToml:
         return True
 
 
-__all__: list[str] = ["FlextCliUtilitiesToml"]
+__all__: list[str] = ["FlextCliUtilitiesTomlPart03"]

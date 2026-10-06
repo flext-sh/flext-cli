@@ -12,16 +12,16 @@ from pathlib import Path
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
-    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
+    FlextCliUtilitiesFilesPart02,
 )
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
-    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart03,
+    FlextCliUtilitiesFilesPart03,
 )
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
 
-class FlextCliUtilitiesFiles:
-    """Implementation part for FlextCliUtilitiesFiles."""
+class FlextCliUtilitiesFilesPart06:
+    """Implementation part for FlextCliUtilitiesFilesPart06."""
 
     @staticmethod
     def atomic_file_publication_is_unchanged(
@@ -214,4 +214,4 @@ class FlextCliUtilitiesFiles:
         return result.ok(sorted(path for path in candidates if selected(path)))
 
 
-__all__: list[str] = ["FlextCliUtilitiesFiles"]
+__all__: list[str] = ["FlextCliUtilitiesFilesPart06"]

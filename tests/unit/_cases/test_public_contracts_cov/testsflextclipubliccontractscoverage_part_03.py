@@ -17,8 +17,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class TestsFlextCliPublicContractsCoverage:
-    """Implementation part for TestsFlextCliPublicContractsCoverage."""
+class TestsFlextCliPublicContractsCoveragePart03:
+    """Implementation part for TestsFlextCliPublicContractsCoveragePart03."""
 
     @staticmethod
     def test_public_pipeline_model_contracts(tmp_path: Path) -> None:

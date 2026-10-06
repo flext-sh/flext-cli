@@ -14,8 +14,8 @@ from flext_cli._models.atomic_state import FlextCliModelsAtomicState
 from flext_core import m, u
 
 
-class FlextCliModelsBase:
-    """Implementation part for FlextCliModelsBase."""
+class FlextCliModelsBasePart09:
+    """Implementation part for FlextCliModelsBasePart09."""
 
     class AtomicPhysicalTreeEntry(m.BaseModel):
         """One exact regular file, symlink leaf, or physical directory."""
@@ -152,11 +152,11 @@ class FlextCliModelsBase:
             arbitrary_types_allowed=True,
         )
         root: Annotated[
-            FlextCliModelsBase.AtomicPhysicalTreeEntry,
+            FlextCliModelsBasePart09.AtomicPhysicalTreeEntry,
             m.Field(description="Physical tree root"),
         ]
         entries: Annotated[
-            t.VariadicTuple[FlextCliModelsBase.AtomicPhysicalTreeEntry],
+            t.VariadicTuple[FlextCliModelsBasePart09.AtomicPhysicalTreeEntry],
             m.Field(description="Lexically ordered descendants"),
         ] = ()
 
@@ -209,4 +209,4 @@ class FlextCliModelsBase:
             return self
 
 
-__all__: list[str] = ["FlextCliModelsBase"]
+__all__: list[str] = ["FlextCliModelsBasePart09"]

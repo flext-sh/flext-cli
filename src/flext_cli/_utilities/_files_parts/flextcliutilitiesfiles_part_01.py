@@ -13,13 +13,13 @@ from pathlib import Path
 import flext_core
 from flext_cli import c, p, r, t
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
-    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
+    FlextCliUtilitiesFilesPart02,
 )
 from flext_core import u
 
 
-class FlextCliUtilitiesFiles:
-    """Implementation part for FlextCliUtilitiesFiles."""
+class FlextCliUtilitiesFilesPart01:
+    """Implementation part for FlextCliUtilitiesFilesPart01."""
 
     @staticmethod
     def files_delete(file_path: t.Cli.TextPath) -> p.Result[bool]:
@@ -196,4 +196,4 @@ class FlextCliUtilitiesFiles:
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesFiles"]
+__all__: list[str] = ["FlextCliUtilitiesFilesPart01"]

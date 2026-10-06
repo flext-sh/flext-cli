@@ -30,7 +30,7 @@ from flext_cli._utilities.atomic_tree_inventory import (
 )
 
 
-class FlextCliUtilitiesFiles:
+class FlextCliUtilitiesFilesPart05:
     """Implementation part for strict physical empty-directory effects."""
 
     @staticmethod
@@ -238,4 +238,4 @@ class FlextCliUtilitiesFiles:
         return r[bool].ok(value=True)
 
 
-__all__: list[str] = ["FlextCliUtilitiesFiles"]
+__all__: list[str] = ["FlextCliUtilitiesFilesPart05"]

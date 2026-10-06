@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING
 from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._models._base.flextclimodelsbase_part_10 import FlextCliModelsBase
+    from flext_cli._models._base.flextclimodelsbase_part_10 import FlextCliModelsBasePart10
 
 
 __all__: tuple[str, ...] = ("FlextCliModelsBase",)

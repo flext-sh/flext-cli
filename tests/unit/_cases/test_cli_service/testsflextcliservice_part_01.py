@@ -22,8 +22,8 @@ if TYPE_CHECKING:
     from tests import t
 
 
-class TestsFlextCliService:
-    """Implementation part for TestsFlextCliService."""
+class TestsFlextCliServicePart01:
+    """Implementation part for TestsFlextCliServicePart01."""
 
     @staticmethod
     def test_model_command_updates_runtime_settings_fields() -> None:

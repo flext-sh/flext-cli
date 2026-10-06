@@ -9,8 +9,8 @@ from __future__ import annotations
 from typing import Protocol, runtime_checkable
 
 
-class FlextCliProtocolsBase:
-    """Implementation part for FlextCliProtocolsBase."""
+class FlextCliProtocolsBasePart01:
+    """Implementation part for FlextCliProtocolsBasePart01."""
 
     @runtime_checkable
     class CliSettings(Protocol):
@@ -81,4 +81,4 @@ class FlextCliProtocolsBase:
         """Current shell command propagated by the runtime environment."""
 
 
-__all__: list[str] = ["FlextCliProtocolsBase"]
+__all__: list[str] = ["FlextCliProtocolsBasePart01"]

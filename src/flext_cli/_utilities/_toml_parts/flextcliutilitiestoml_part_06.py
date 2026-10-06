@@ -13,17 +13,17 @@ from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c, e, p, r, t
 from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
+    FlextCliUtilitiesTomlPart01,
 )
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime as ur
+from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 from flext_core import u
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-class FlextCliUtilitiesToml:
-    """Implementation part for FlextCliUtilitiesToml."""
+class FlextCliUtilitiesTomlPart06:
+    """Implementation part for FlextCliUtilitiesTomlPart06."""
 
     @staticmethod
     def toml_read(path: Path) -> TOMLDocument | None:
@@ -58,7 +58,7 @@ class FlextCliUtilitiesToml:
         """
         if not path.exists():
             return e.fail_not_found("TOML file", str(path), result_type=r[TOMLDocument])
-        doc = FlextCliUtilitiesToml.toml_read(path)
+        doc = FlextCliUtilitiesTomlPart06.toml_read(path)
         if doc is None:
             return e.fail_validation(
                 f"TOML parse failed for: {path}",
@@ -118,7 +118,7 @@ class FlextCliUtilitiesToml:
         if path.name != "pyproject.toml":
             return r[bool].ok(value=False)
         command = ["taplo", "format"]
-        config_path = FlextCliUtilitiesToml._resolve_taplo_config(path)
+        config_path = FlextCliUtilitiesTomlPart06._resolve_taplo_config(path)
         if config_path is not None:
             command.extend(["--config", str(config_path)])
         command.append(str(path))
@@ -129,7 +129,7 @@ class FlextCliUtilitiesToml:
             .flat_map(
                 lambda output: (
                     r[bool].ok(value=True)
-                    if ur.process_succeeded(output.outcome)
+                    if FlextCliUtilitiesRuntime.process_succeeded(output.outcome)
                     else r[bool].fail(
                         (output.stderr or output.stdout).strip()
                         or f"taplo format failed: {path}",
@@ -152,11 +152,11 @@ class FlextCliUtilitiesToml:
         except OSError as exc:
             return e.fail_operation("TOML write", exc, result_type=r[bool])
         return (
-            FlextCliUtilitiesToml
+            FlextCliUtilitiesTomlPart06
             ._format_pyproject(path)
             .map_error(lambda err: err or f"taplo format failed: {path}")
             .map(lambda _ok: True)
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesToml"]
+__all__: list[str] = ["FlextCliUtilitiesTomlPart06"]

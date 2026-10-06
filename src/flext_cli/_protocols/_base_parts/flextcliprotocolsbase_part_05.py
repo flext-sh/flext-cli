@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_04 import (
-    FlextCliProtocolsBase as FlextCliProtocolsBasePart04,
+    FlextCliProtocolsBasePart04,
 )
 
 if TYPE_CHECKING:
@@ -18,8 +18,8 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-class FlextCliProtocolsBase(FlextCliProtocolsBasePart04):
-    """Implementation part for FlextCliProtocolsBase."""
+class FlextCliProtocolsBasePart05(FlextCliProtocolsBasePart04):
+    """Implementation part for FlextCliProtocolsBasePart05."""
 
     @runtime_checkable
     class YamlModule(Protocol):
@@ -30,4 +30,4 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart04):
             ...
 
 
-__all__: list[str] = ["FlextCliProtocolsBase"]
+__all__: list[str] = ["FlextCliProtocolsBasePart05"]

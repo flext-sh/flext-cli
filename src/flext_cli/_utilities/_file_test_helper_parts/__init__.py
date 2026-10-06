@@ -14,8 +14,8 @@ from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
-        FlextCliUtilitiesFileTestHelpersMixin,
-    )
+    FlextCliUtilitiesFileTestHelpersMixinPart04,
+)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesFileTestHelpersMixin",)

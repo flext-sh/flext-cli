@@ -15,8 +15,8 @@ from tests._constants_parts.tests_rules_options import (
 from tests._constants_parts.tests_yaml_output import TestsFlextCliConstantsYamlOutput
 
 
-class TestsFlextCliConstants:
-    """Implementation part for TestsFlextCliConstants."""
+class TestsFlextCliConstantsPart01:
+    """Implementation part for TestsFlextCliConstantsPart01."""
 
     class Tests(
         TestsFlextCliConstantsCore,
@@ -27,4 +27,4 @@ class TestsFlextCliConstants:
         """Test-specific constant values for flext-cli."""
 
 
-__all__: list[str] = ["TestsFlextCliConstants"]
+__all__: list[str] = ["TestsFlextCliConstantsPart01"]

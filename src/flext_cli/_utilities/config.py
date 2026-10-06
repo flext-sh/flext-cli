@@ -20,7 +20,7 @@ from jsonschema.exceptions import SchemaError, ValidationError
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06 import (
-    FlextCliUtilitiesToml as _TomlRead,
+    FlextCliUtilitiesTomlPart06,
 )
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_core import u
@@ -43,7 +43,7 @@ class FlextCliUtilitiesConfig:
         if suffix == c.CONFIG_JSON_SUFFIX:
             return FlextCliUtilitiesJson.json_read(path)
         if suffix == c.CONFIG_TOML_SUFFIX:
-            return _TomlRead.toml_read_json(path)
+            return FlextCliUtilitiesTomlPart06.toml_read_json(path)
         return r[t.JsonMapping].fail(f"{c.Cli.ERR_CONFIG_UNSUPPORTED_FORMAT}: {path}")
 
     @staticmethod

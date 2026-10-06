@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from examples import Ex06Settings, c, m, t as et
+from examples import Ex06Settings, c, m, t
 from examples.ex_12_pydantic_driven_cli import (
     convert_and_validate_with_pydantic,
     create_database_config_from_cli,
@@ -19,8 +19,8 @@ from examples.ex_12_pydantic_driven_cli import (
 from flext_tests import tm
 
 
-class TestsFlextCliExamplesSmoke:
-    """Implementation part for TestsFlextCliExamplesSmoke."""
+class TestsFlextCliExamplesSmokePart05:
+    """Implementation part for TestsFlextCliExamplesSmokePart05."""
 
     @staticmethod
     def test_settings_and_pydantic_examples_validate_production_flow(
@@ -57,7 +57,7 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(missing_fields)
 
         invalid_model = convert_and_validate_with_pydantic(
-            et.Cli.JSON_MAPPING_ADAPTER.validate_python({
+            t.Cli.JSON_MAPPING_ADAPTER.validate_python({
                 "host": "db.example.com",
                 "port": "bad-port",
                 "name": "prod",
@@ -70,7 +70,7 @@ class TestsFlextCliExamplesSmoke:
         tm.fail(invalid_model)
 
         base_config = convert_and_validate_with_pydantic(
-            et.Cli.JSON_MAPPING_ADAPTER.validate_python({
+            t.Cli.JSON_MAPPING_ADAPTER.validate_python({
                 "host": "db.example.com",
                 "port": 5432,
                 "name": "prod",

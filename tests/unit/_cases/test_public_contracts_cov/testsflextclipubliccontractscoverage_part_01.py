@@ -12,8 +12,8 @@ from flext_cli import FlextCliSettings, cli, settings
 from tests import c, p, u
 
 
-class TestsFlextCliPublicContractsCoverage:
-    """Implementation part for TestsFlextCliPublicContractsCoverage."""
+class TestsFlextCliPublicContractsCoveragePart01:
+    """Implementation part for TestsFlextCliPublicContractsCoveragePart01."""
 
     @staticmethod
     def test_public_facade_and_settings_contract() -> None:

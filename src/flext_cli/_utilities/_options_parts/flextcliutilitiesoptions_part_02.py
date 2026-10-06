@@ -13,14 +13,14 @@ from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 
     FlextCliUtilitiesOptionBuilder,
 )
 from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_01 import (
-    FlextCliUtilitiesOptions as FlextCliUtilitiesOptionsPart01,
+    FlextCliUtilitiesOptionsPart01,
 )
 from flext_cli.models import m
 from flext_core import u
 
 
-class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
-    """Implementation part for FlextCliUtilitiesOptions."""
+class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
+    """Implementation part for FlextCliUtilitiesOptionsPart02."""
 
     @classmethod
     @cache
@@ -157,4 +157,4 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
         return list(args)
 
 
-__all__: list[str] = ["FlextCliUtilitiesOptions"]
+__all__: list[str] = ["FlextCliUtilitiesOptionsPart02"]

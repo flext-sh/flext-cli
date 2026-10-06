@@ -14,8 +14,8 @@ from typing import Never
 from flext_cli import c, e, m, p, r, settings, t, u
 
 
-class FlextCliCli:
-    """Implementation part for FlextCliCli."""
+class FlextCliCliPart01:
+    """Implementation part for FlextCliCliPart01."""
 
     class _ModelCommand[M: t.Cli.ModelLike]:
         """Callable wrapper with explicit signature for Typer introspection.
@@ -61,7 +61,7 @@ class FlextCliCli:
                     result_type=r[bool],
                 )
                 u.Cli.commands_emit_failure_cause(failure)
-                FlextCliCli._exit_failure(failure)
+                FlextCliCliPart01._exit_failure(failure)
             return self._handler(model)
 
     @staticmethod
@@ -164,4 +164,4 @@ class FlextCliCli:
         )
 
 
-__all__: list[str] = ["FlextCliCli"]
+__all__: list[str] = ["FlextCliCliPart01"]
