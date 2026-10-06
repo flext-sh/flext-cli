@@ -87,8 +87,10 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     def validate_devices(
         destination: Path,
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
+        destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination_state: os.stat_result | None,
         staged: Path,
+        staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         staged_state: os.stat_result,
     ) -> None:
@@ -114,7 +116,9 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     @staticmethod
     def validate_publication(
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
+        destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination: Path,
+        staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         staged: Path,
         staged_bytes: bytes,

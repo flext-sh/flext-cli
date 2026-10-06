@@ -10,15 +10,13 @@ import ctypes
 import errno
 import os
 import sys
-from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, cast
 
+from flext_cli.typings import RenameAt2
+
 if TYPE_CHECKING:
     from flext_cli import t
-
-
-type RenameAt2 = Callable[[int, bytes, int, bytes, int], int]
 
 
 class FlextCliUtilitiesAtomicDirectoryNoreplace:

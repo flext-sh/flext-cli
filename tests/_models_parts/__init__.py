@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from tests._models_parts.tests_cli import TestsFlextCliModelsCli
@@ -24,16 +24,13 @@ __all__: tuple[str, ...] = (
     "TestsFlextCliModelsRuntime",
 )
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            ".tests_cli": ("TestsFlextCliModelsCli",),
-            ".tests_runtime": ("TestsFlextCliModelsRuntime",),
-            ".testsflextclimodels_part_01": ("TestsFlextCliModels",),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "TestsFlextCliModels": ".testsflextclimodels_part_01",
+        "TestsFlextCliModelsCli": ".tests_cli",
+        "TestsFlextCliModelsRuntime": ".tests_runtime",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

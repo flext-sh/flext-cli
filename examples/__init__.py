@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from examples import _models_parts
@@ -51,25 +51,31 @@ __all__: tuple[str, ...] = (
     "x",
 )
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            "._models_parts": ("_models_parts",),
-            ".constants": ("ExamplesFlextCliConstants", "c"),
-            ".ex_01_getting_started": ("ExamplesFlextCliGettingStarted",),
-            ".ex_05_authentication": ("Ex05Authentication",),
-            ".ex_06_settings": ("Ex06Settings",),
-            ".ex_11_complete_integration": ("DataManagerCLI",),
-            ".models": ("ExamplesFlextCliModels", "m"),
-            ".protocols": ("ExamplesFlextCliProtocols", "p"),
-            ".typings": ("ExamplesFlextCliTypes", "t"),
-            ".utilities": ("ExamplesFlextCliUtilities", "u"),
-            "flext_cli": ("s",),
-            "flext_core": ("d", "e", "h", "r", "x"),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "DataManagerCLI": ".ex_11_complete_integration",
+        "Ex05Authentication": ".ex_05_authentication",
+        "Ex06Settings": ".ex_06_settings",
+        "ExamplesFlextCliConstants": ".constants",
+        "ExamplesFlextCliGettingStarted": ".ex_01_getting_started",
+        "ExamplesFlextCliModels": ".models",
+        "ExamplesFlextCliProtocols": ".protocols",
+        "ExamplesFlextCliTypes": ".typings",
+        "ExamplesFlextCliUtilities": ".utilities",
+        "_models_parts": "._models_parts",
+        "c": ".constants",
+        "d": "flext_core",
+        "e": "flext_core",
+        "h": "flext_core",
+        "m": ".models",
+        "p": ".protocols",
+        "r": "flext_core",
+        "s": "flext_cli",
+        "t": ".typings",
+        "u": ".utilities",
+        "x": "flext_core",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

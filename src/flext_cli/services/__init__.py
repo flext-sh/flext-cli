@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli.services import _cli_parts
@@ -54,31 +54,28 @@ __all__: tuple[str, ...] = (
     "_cli_parts",
 )
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            "._cli_parts": ("_cli_parts",),
-            "._prompts_support": ("FlextCliPromptsSupport",),
-            ".auth": ("FlextCliAuth",),
-            ".cli": ("FlextCliCli",),
-            ".cli_params": ("FlextCliCommonParams",),
-            ".cmd": ("FlextCliCmd",),
-            ".docx": ("FlextCliDocx",),
-            ".file_tools": ("FlextCliFileTools",),
-            ".formatters": ("FlextCliFormatters",),
-            ".output": ("FlextCliOutput",),
-            ".pipeline": ("FlextCliPipeline",),
-            ".pptx": ("FlextCliPptx",),
-            ".prompts": ("FlextCliPrompts",),
-            ".rules": ("FlextCliRules",),
-            ".runtime": ("FlextCliRuntime",),
-            ".tables": ("FlextCliTables",),
-            ".xlsx": ("FlextCliXlsx",),
-            ".yaml_model": ("FlextCliYamlModel",),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "FlextCliAuth": ".auth",
+        "FlextCliCli": ".cli",
+        "FlextCliCmd": ".cmd",
+        "FlextCliCommonParams": ".cli_params",
+        "FlextCliDocx": ".docx",
+        "FlextCliFileTools": ".file_tools",
+        "FlextCliFormatters": ".formatters",
+        "FlextCliOutput": ".output",
+        "FlextCliPipeline": ".pipeline",
+        "FlextCliPptx": ".pptx",
+        "FlextCliPrompts": ".prompts",
+        "FlextCliPromptsSupport": "._prompts_support",
+        "FlextCliRules": ".rules",
+        "FlextCliRuntime": ".runtime",
+        "FlextCliTables": ".tables",
+        "FlextCliXlsx": ".xlsx",
+        "FlextCliYamlModel": ".yaml_model",
+        "_cli_parts": "._cli_parts",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

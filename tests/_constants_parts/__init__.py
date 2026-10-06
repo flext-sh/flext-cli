@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from tests._constants_parts.tests_core import TestsFlextCliConstantsCore
@@ -32,17 +32,14 @@ __all__: tuple[str, ...] = (
     "TestsFlextCliConstantsYamlOutput",
 )
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            ".tests_core": ("TestsFlextCliConstantsCore",),
-            ".tests_rules_options": ("TestsFlextCliConstantsRulesOptions",),
-            ".tests_yaml_output": ("TestsFlextCliConstantsYamlOutput",),
-            ".testsflextcliconstants_part_01": ("TestsFlextCliConstants",),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "TestsFlextCliConstants": ".testsflextcliconstants_part_01",
+        "TestsFlextCliConstantsCore": ".tests_core",
+        "TestsFlextCliConstantsRulesOptions": ".tests_rules_options",
+        "TestsFlextCliConstantsYamlOutput": ".tests_yaml_output",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)
