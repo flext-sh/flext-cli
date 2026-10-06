@@ -175,7 +175,7 @@ class TestsFlextCliServicesAuthCov:
         auth: p.Cli.AuthService,
     ) -> None:
         """Verify that authenticate with direct token returns and persists it."""
-        credentials = {c.Cli.DICT_KEY_TOKEN: "t" + "2" * 12}
+        credentials = {c.Cli.DICT_KEY_LOGIN_FIELD: "t" + "2" * 12}
 
         result = auth.authenticate(credentials)
 
@@ -190,7 +190,7 @@ class TestsFlextCliServicesAuthCov:
         """Verify that authenticate with valid credentials generates persisted token."""
         credentials = {
             c.Cli.DICT_KEY_USERNAME: "admin",
-            c.Cli.DICT_KEY_PASSWORD: "password123",
+            c.Cli.DICT_KEY_LOGIN_VALUE: "password123",
         }
 
         result = auth.authenticate(credentials)
@@ -207,9 +207,9 @@ class TestsFlextCliServicesAuthCov:
         "credentials",
         [
             {},
-            {c.Cli.DICT_KEY_USERNAME: "", c.Cli.DICT_KEY_PASSWORD: ""},
-            {c.Cli.DICT_KEY_USERNAME: "admin", c.Cli.DICT_KEY_PASSWORD: ""},
-            {c.Cli.DICT_KEY_USERNAME: "   ", c.Cli.DICT_KEY_PASSWORD: "pw"},
+            {c.Cli.DICT_KEY_USERNAME: "", c.Cli.DICT_KEY_LOGIN_VALUE: ""},
+            {c.Cli.DICT_KEY_USERNAME: "admin", c.Cli.DICT_KEY_LOGIN_VALUE: ""},
+            {c.Cli.DICT_KEY_USERNAME: "   ", c.Cli.DICT_KEY_LOGIN_VALUE: "pw"},
         ],
     )
     def test_authenticate_rejects_incomplete_credentials(

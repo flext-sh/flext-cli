@@ -50,7 +50,7 @@ class ExamplesFlextCliModelsExamplesDatabase:
             validate_default=True,
         )
         ssl_enabled: bool = m.Field(
-            True,
+            default=True,
             description="Enable SSL",
             validate_default=True,
         )

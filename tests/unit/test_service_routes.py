@@ -52,6 +52,12 @@ class TestsFlextCliServiceRoutes:
             self,
             request: TestsFlextCliServiceRoutes.Greeting,
         ) -> p.Result[str]:
+            """Provide ``greet_all``.
+
+            Returns:
+                The resulting ``p.Result[str]``.
+            """
+            _ = self
             """Greet someone by name.
 
             Returns:
@@ -61,6 +67,12 @@ class TestsFlextCliServiceRoutes:
             return r[str].ok(" ".join([f"hello {request.name}"] * request.times))
 
         def report(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
+            """Provide ``report``.
+
+            Returns:
+                The resulting ``p.Result[TestsFlextCliServiceRoutes.Status]``.
+            """
+            _ = self
             """Report the service status.
 
             Returns:

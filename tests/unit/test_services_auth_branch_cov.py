@@ -63,7 +63,7 @@ class TestsFlextCliServicesAuth:
         self._point_token_file(tmp_path / "token.json")
 
         # Act
-        authenticated = service.authenticate({c.Cli.DICT_KEY_TOKEN: "t" + "0" * 9})
+        authenticated = service.authenticate({c.Cli.DICT_KEY_LOGIN_FIELD: "t" + "0" * 9})
 
         # Assert: the supplied token is returned and reloadable verbatim.
         tm.that(tm.ok(authenticated), eq="t" + "0" * 9)
@@ -81,7 +81,7 @@ class TestsFlextCliServicesAuth:
         # Act
         authenticated = service.authenticate({
             c.Cli.DICT_KEY_USERNAME: "user",
-            c.Cli.DICT_KEY_PASSWORD: "s" + "0" * 9,
+            c.Cli.DICT_KEY_LOGIN_VALUE: "s" + "0" * 9,
         })
 
         # Assert: a non-empty token is generated and persisted for reload.
@@ -95,7 +95,7 @@ class TestsFlextCliServicesAuth:
         [
             pytest.param({"unrelated": "value"}, id="unknown-keys"),
             pytest.param(
-                {c.Cli.DICT_KEY_TOKEN: "tok", "extra": "x"},
+                {c.Cli.DICT_KEY_LOGIN_FIELD: "tok", "extra": "x"},
                 id="token-plus-unknown-key",
             ),
         ],
@@ -128,7 +128,7 @@ class TestsFlextCliServicesAuth:
                 id="username-only",
             ),
             pytest.param(
-                {c.Cli.DICT_KEY_PASSWORD: "s" + "0" * 9},
+                {c.Cli.DICT_KEY_LOGIN_VALUE: "s" + "0" * 9},
                 "username",
                 id="secret-only",
             ),
@@ -156,11 +156,11 @@ class TestsFlextCliServicesAuth:
     @pytest.mark.parametrize(
         "credentials",
         [
-            pytest.param({c.Cli.DICT_KEY_TOKEN: "t" + "0" * 9}, id="token"),
+            pytest.param({c.Cli.DICT_KEY_LOGIN_FIELD: "t" + "0" * 9}, id="token"),
             pytest.param(
                 {
                     c.Cli.DICT_KEY_USERNAME: "user",
-                    c.Cli.DICT_KEY_PASSWORD: "s" + "0" * 9,
+                    c.Cli.DICT_KEY_LOGIN_VALUE: "s" + "0" * 9,
                 },
                 id="username-password",
             ),
@@ -272,7 +272,7 @@ class TestsFlextCliServicesAuth:
         # Arrange: persist a token first.
         """Verify that clear auth tokens removes persisted token and is idempotent."""
         self._point_token_file(tmp_path / "token.json")
-        tm.ok(service.authenticate({c.Cli.DICT_KEY_TOKEN: "t" + "0" * 9}))
+        tm.ok(service.authenticate({c.Cli.DICT_KEY_LOGIN_FIELD: "t" + "0" * 9}))
 
         # Act: clearing removes the token so it can no longer be fetched.
         first_clear = service.clear_auth_tokens()
