@@ -165,7 +165,9 @@ class FlextCliUtilitiesFilesPart02:
             shutil.copy2(source_path, destination_path)
             return True
 
-        return FlextCliUtilitiesFilesPart02.files_execute(_copy, c.Cli.ERR_FILE_COPY_FAILED)
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            _copy, c.Cli.ERR_FILE_COPY_FAILED
+        )
 
     @staticmethod
     def files_execute[T](

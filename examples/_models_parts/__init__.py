@@ -23,25 +23,25 @@ if TYPE_CHECKING:
         ExamplesFlextCliModelsExamplesDatabase,
     )
     from examples._models_parts.examplesflextclimodels_part_01 import (
-    ExamplesFlextCliModelsPart01,
-)
+        ExamplesFlextCliModelsPart01,
+    )
 
 
 __all__: tuple[str, ...] = (
-    "ExamplesFlextCliModels",
     "ExamplesFlextCliModelsExamplesAdvanced",
     "ExamplesFlextCliModelsExamplesCommon",
     "ExamplesFlextCliModelsExamplesDatabase",
+    "ExamplesFlextCliModelsPart01",
 )
 
 install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "ExamplesFlextCliModels": ".examplesflextclimodels_part_01",
         "ExamplesFlextCliModelsExamplesAdvanced": ".examples_advanced",
         "ExamplesFlextCliModelsExamplesCommon": ".examples_common",
         "ExamplesFlextCliModelsExamplesDatabase": ".examples_database",
+        "ExamplesFlextCliModelsPart01": ".examplesflextclimodels_part_01",
     }),
     public_exports=__all__,
 )

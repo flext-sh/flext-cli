@@ -43,7 +43,9 @@ class FlextCliUtilitiesCmd:
             The canonical settings snapshot without normalizing failures.
 
         """
-        return r[m.Cli.SettingsSnapshot].ok(FlextCliUtilitiesSettings.settings_snapshot_model())
+        return r[m.Cli.SettingsSnapshot].ok(
+            FlextCliUtilitiesSettings.settings_snapshot_model()
+        )
 
     @staticmethod
     def cmd_show_settings(logger: p.Logger) -> p.Result[bool]:

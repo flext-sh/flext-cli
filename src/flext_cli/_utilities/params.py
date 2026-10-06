@@ -119,7 +119,9 @@ class FlextCliUtilitiesParams:
                 )
             next_config = next_config.clone(cli_log_verbosity=str(log_verbosity))
         if params.output_format is not None:
-            validated_result = FlextCliUtilitiesValidation.validate_format(params.output_format)
+            validated_result = FlextCliUtilitiesValidation.validate_format(
+                params.output_format
+            )
             if validated_result.failure:
                 valid = ", ".join(c.Cli.OUTPUT_FORMATS)
                 return r[p.Cli.Settings].fail(

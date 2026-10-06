@@ -121,9 +121,11 @@ class FlextCliUtilitiesFileTestHelpersMixinPart03:
         if compute_hash:
             info["hash"] = FlextCliUtilitiesFiles.sha256_file(path)
         if parse_content and path.is_file():
-            parsed_result = FlextCliUtilitiesFileTestHelpersMixinPart04.files_parse_content(
-                path,
-                str(info["format"]),
+            parsed_result = (
+                FlextCliUtilitiesFileTestHelpersMixinPart04.files_parse_content(
+                    path,
+                    str(info["format"]),
+                )
             )
             info["parsed"] = parsed_result
         return r[Mapping[str, object]].ok(info)

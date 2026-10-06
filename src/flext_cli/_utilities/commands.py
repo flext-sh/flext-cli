@@ -55,7 +55,9 @@ class FlextCliUtilitiesCommands:
         rendered = (
             message
             if message.lstrip().startswith(("{", "["))
-            else FlextCliUtilitiesOutput.output_message_payload(message, success_type)[0]
+            else FlextCliUtilitiesOutput.output_message_payload(message, success_type)[
+                0
+            ]
         )
         FlextCliUtilitiesOutput.emit_raw(f"{rendered}\n")
 
@@ -114,7 +116,9 @@ class FlextCliUtilitiesCommands:
                     result.exception.__traceback__,
                 ),
             )
-            FlextCliUtilitiesOutput.emit_raw(detail if detail.endswith("\n") else f"{detail}\n", error=True)
+            FlextCliUtilitiesOutput.emit_raw(
+                detail if detail.endswith("\n") else f"{detail}\n", error=True
+            )
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]

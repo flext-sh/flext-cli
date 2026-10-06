@@ -48,8 +48,12 @@ class FlextCliConstantsOutput:
     PROMPT_NO_VALUES: ClassVar[frozenset[str]] = frozenset({"n", "no"})
 
     OUTPUT_EMPTY_STYLE: ClassVar[str] = ""
-    OUTPUT_DEFAULT_MESSAGE_TYPE: ClassVar[FlextCliConstantsEnums.MessageTypes] = FlextCliConstantsEnums.MessageTypes.INFO
-    OUTPUT_DEFAULT_FORMAT_TYPE: ClassVar[FlextCliConstantsEnums.OutputFormats] = FlextCliConstantsEnums.OutputFormats.TABLE
+    OUTPUT_DEFAULT_MESSAGE_TYPE: ClassVar[FlextCliConstantsEnums.MessageTypes] = (
+        FlextCliConstantsEnums.MessageTypes.INFO
+    )
+    OUTPUT_DEFAULT_FORMAT_TYPE: ClassVar[FlextCliConstantsEnums.OutputFormats] = (
+        FlextCliConstantsEnums.OutputFormats.TABLE
+    )
     OUTPUT_HEADER_RULE_WIDTH: ClassVar[int] = 60
     OUTPUT_PLAIN_MESSAGE_THRESHOLD: ClassVar[int] = 10000
     OUTPUT_LOG_LEVEL_DEBUG: ClassVar[str] = "DEBUG"
@@ -99,17 +103,21 @@ class FlextCliConstantsOutput:
         FlextCliConstantsEnums.TabularFormat.TSV: "Tab-separated values",
     })
 
-    MESSAGE_STYLE_MAP: ClassVar[t.MappingKV[FlextCliConstantsEnums.MessageTypes, FlextCliConstantsEnums.MessageStyles]] = (
-        MappingProxyType({
-            FlextCliConstantsEnums.MessageTypes.INFO: FlextCliConstantsEnums.MessageStyles.BLUE,
-            FlextCliConstantsEnums.MessageTypes.SUCCESS: FlextCliConstantsEnums.MessageStyles.BOLD_GREEN,
-            FlextCliConstantsEnums.MessageTypes.ERROR: FlextCliConstantsEnums.MessageStyles.BOLD_RED,
-            FlextCliConstantsEnums.MessageTypes.WARNING: FlextCliConstantsEnums.MessageStyles.BOLD_YELLOW,
-            FlextCliConstantsEnums.MessageTypes.DEBUG: FlextCliConstantsEnums.MessageStyles.DIM,
-        })
-    )
+    MESSAGE_STYLE_MAP: ClassVar[
+        t.MappingKV[
+            FlextCliConstantsEnums.MessageTypes, FlextCliConstantsEnums.MessageStyles
+        ]
+    ] = MappingProxyType({
+        FlextCliConstantsEnums.MessageTypes.INFO: FlextCliConstantsEnums.MessageStyles.BLUE,
+        FlextCliConstantsEnums.MessageTypes.SUCCESS: FlextCliConstantsEnums.MessageStyles.BOLD_GREEN,
+        FlextCliConstantsEnums.MessageTypes.ERROR: FlextCliConstantsEnums.MessageStyles.BOLD_RED,
+        FlextCliConstantsEnums.MessageTypes.WARNING: FlextCliConstantsEnums.MessageStyles.BOLD_YELLOW,
+        FlextCliConstantsEnums.MessageTypes.DEBUG: FlextCliConstantsEnums.MessageStyles.DIM,
+    })
 
-    MESSAGE_EMOJI_MAP: ClassVar[t.MappingKV[FlextCliConstantsEnums.MessageTypes, str]] = MappingProxyType({
+    MESSAGE_EMOJI_MAP: ClassVar[
+        t.MappingKV[FlextCliConstantsEnums.MessageTypes, str]
+    ] = MappingProxyType({
         FlextCliConstantsEnums.MessageTypes.INFO: EMOJI_INFO,
         FlextCliConstantsEnums.MessageTypes.SUCCESS: EMOJI_SUCCESS,
         FlextCliConstantsEnums.MessageTypes.ERROR: EMOJI_ERROR,

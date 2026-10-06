@@ -231,7 +231,10 @@ class MiseLockConverge:
 
     @classmethod
     def release_candidates(
-        cls, listing: str, failed_version: str, selector: str,
+        cls,
+        listing: str,
+        failed_version: str,
+        selector: str,
     ) -> list[str]:
         """List releases of an ``ls-remote`` listing strictly older than the failed one."""
 
@@ -314,7 +317,9 @@ class MiseLockConverge:
         listing = cls._run(runtime, ["ls-remote", selector], environment)
         manifest = cls.staged_manifest(stage)
         for candidate in cls.release_candidates(
-            listing, failed_version, selector,
+            listing,
+            failed_version,
+            selector,
         ):
             cls.hold_manifest_version(manifest, selector, candidate)
             try:
@@ -366,48 +371,47 @@ class MiseLockConverge:
         finally:
             shutil.rmtree(scratch, ignore_errors=True)
 
-    @classmethod
+    @staticmethod
     def _merge_committed_entries(
-        cls,
-        committed_lock: Path,
         lock_path: Path,
-        lock: str,
+        committed_lock: Path | None,
         present: set[str],
         resolved: dict[str, str],
-    ) -> str:
-        """Merge committed blocks for tools the fresh pass could not verify.
+    ) -> None:
+        """Merge committed tool blocks the fresh pass could not verify.
 
-        A tool whose fresh provenance verification failed gets no stage-lock
-        entries, which would make its verified committed entries
-        unresolvable; the committed blocks merge forward before pinning.
-
-        Returns:
-            The updated staged lock text with the merged committed entries.
-
+        A tool whose fresh provenance verification failed (a throttled
+        attestation proxy) gets no stage-lock entries, which would make the
+        verified committed entries unresolvable; fix-forward merges the
+        committed blocks for exactly those tools back into the staged lock.
         """
-        committed = committed_lock.read_text(encoding="utf-8")
+        if committed_lock is None or not committed_lock.is_file():
+            return
+        lock = lock_path.read_text(encoding="utf-8")
         for name, body in re.findall(
-            r"(\[\[tools\.(\S+?)\]\]\n.*?)(?=\n\[\[|\Z)", committed, re.DOTALL,
+            r"(\[\[tools\.(\S+?)\]\]\n.*?)(?=\n\[\[|\Z)",
+            committed_lock.read_text(encoding="utf-8"),
+            re.DOTALL,
         ):
-            entry_name = name
-            if entry_name in present:
+            if name in present:
                 continue
             lock = lock.rstrip("\n") + "\n\n" + name.rstrip("\n") + "\n"
             lock_path.write_text(lock, encoding="utf-8")
-            present.add(entry_name)
+            present.add(name)
             found = re.search(r'^version = "([^"]+)"', body, re.MULTILINE)
             if found:
-                resolved[entry_name.removeprefix("core:")] = found.group(1)
+                resolved[name.removeprefix("core:")] = found.group(1)
             print(
-                f"INFO: merged committed {entry_name} entries the fresh "
+                f"INFO: merged committed {name} entries the fresh "
                 "pass could not verify",
                 file=sys.stderr,
             )
-        return lock
 
     @classmethod
     def pin_stage_manifest(
-        cls, stage: Path, committed_lock: Path | None = None,
+        cls,
+        stage: Path,
+        committed_lock: Path | None = None,
     ) -> int:
         """Pin the staged manifest's moving selectors to the staged lock.
 
@@ -428,20 +432,15 @@ class MiseLockConverge:
         resolved: dict[str, str] = {}
         present: set[str] = set()
         for name, body in re.findall(
-            r"\[\[tools\.(\S+?)\]\]\n(.*?)(?=\n\[\[|\Z)", lock, re.DOTALL,
+            r"\[\[tools\.(\S+?)\]\]\n(.*?)(?=\n\[\[|\Z)",
+            lock,
+            re.DOTALL,
         ):
             present.add(name)
             found = re.search(r'^version = "([^"]+)"', body, re.MULTILINE)
             if found:
                 resolved[name.removeprefix("core:")] = found.group(1)
-        if committed_lock is not None and committed_lock.is_file():
-            lock = cls._merge_committed_entries(
-                committed_lock,
-                lock_path,
-                lock,
-                present,
-                resolved,
-            )
+        cls._merge_committed_entries(lock_path, committed_lock, present, resolved)
         manifest_path = cls.staged_manifest(stage)
         lines = manifest_path.read_text(encoding="utf-8").splitlines(
             keepends=True,
@@ -468,15 +467,15 @@ class MiseLockConverge:
     @classmethod
     def main(cls, arguments: list[str]) -> int:
         if arguments and arguments[0] == "pin":
-            pin_argument_counts = (2, 3)
-            if len(arguments) not in pin_argument_counts:
+            if len(arguments) not in {2, 3}:
                 message = "usage: mise-lock-converge.py pin STAGE [COMMITTED_LOCK]"
                 raise ValueError(message)
             committed = (
                 Path(arguments[2]).absolute() if len(arguments) == 3 else None
             )
             return cls.pin_stage_manifest(
-                Path(arguments[1]).absolute(), committed,
+                Path(arguments[1]).absolute(),
+                committed,
             )
         if len(arguments) != 3:
             message = "usage: mise-lock-converge.py STORAGE STAGE RELEASE"

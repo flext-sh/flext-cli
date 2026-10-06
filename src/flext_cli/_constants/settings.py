@@ -35,9 +35,13 @@ class FlextCliConstantsSettings:
     # NOTE (multi-agent): canonical scalar defaults consumed by _settings.py —
     # the settings foundation imports this PURE private module directly
     # (no facade cycle) so defaults stay SSOT with the enums (§1.8/§2.5).
-    CLI_DEFAULT_LOG_VERBOSITY: ClassVar[str] = FlextCliConstantsEnums.LogVerbosity.COMPACT.value
+    CLI_DEFAULT_LOG_VERBOSITY: ClassVar[str] = (
+        FlextCliConstantsEnums.LogVerbosity.COMPACT.value
+    )
     CLI_DEFAULT_LOG_LEVEL: ClassVar[str] = c.LogLevel.INFO.value
-    CLI_DEFAULT_OUTPUT_FORMAT: ClassVar[str] = FlextCliConstantsEnums.OutputFormats.TABLE.value
+    CLI_DEFAULT_OUTPUT_FORMAT: ClassVar[str] = (
+        FlextCliConstantsEnums.OutputFormats.TABLE.value
+    )
     CLI_PROCESS_HEARTBEAT_SECONDS: ClassVar[float] = 30.0
     CLI_PROCESS_HEARTBEAT_MAX_SECONDS: ClassVar[float] = 60.0
     CLI_PROCESS_HEARTBEAT_MESSAGE: ClassVar[str] = "flext-cli: process still running"
