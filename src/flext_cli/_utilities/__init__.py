@@ -246,6 +246,7 @@ if TYPE_CHECKING:
         FlextCliUtilitiesAtomicTreeInventory,
     )
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth
+    from flext_cli._utilities.base import FlextCliUtilitiesBase
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
     from flext_cli._utilities.commands import FlextCliUtilitiesCommands
     from flext_cli._utilities.config import FlextCliUtilitiesConfig
@@ -316,6 +317,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesAtomicTreeDescriptor",
     "FlextCliUtilitiesAtomicTreeInventory",
     "FlextCliUtilitiesAuth",
+    "FlextCliUtilitiesBase",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
     "FlextCliUtilitiesCommands",
