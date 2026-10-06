@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._yaml._convert import FlextCliUtilitiesYamlConvertMixin
@@ -24,16 +24,13 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlEngineMixin",
 )
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            "._convert": ("FlextCliUtilitiesYamlConvertMixin",),
-            "._editing": ("FlextCliUtilitiesYamlEditingMixin",),
-            "._engine": ("FlextCliUtilitiesYamlEngineMixin",),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "FlextCliUtilitiesYamlConvertMixin": "._convert",
+        "FlextCliUtilitiesYamlEditingMixin": "._editing",
+        "FlextCliUtilitiesYamlEngineMixin": "._engine",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

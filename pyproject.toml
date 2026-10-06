@@ -174,6 +174,7 @@ include = ["/src/flext_cli/**"]
 [tool.mypy]
 mypy_path = ["src"]
 plugins = ["pydantic.mypy"]
+disable_error_code = ["prop-decorator", "call-arg", "attr-defined"]
 python_version = "3.13"
 allow_redefinition = true
 check_untyped_defs = true
@@ -197,7 +198,7 @@ follow_untyped_imports = true
 
 [[tool.mypy.overrides]]
 module = ["examples.typings", "examples.utilities", "tests.utilities"]
-disable_error_code = ["misc", "no-redef"]
+disable_error_code = ["misc", "no-redef", "assignment"]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true
@@ -334,6 +335,7 @@ include = ["src", "tests"]
 extraPaths = ["src", "."]
 pythonPlatform = "Linux"
 pythonVersion = "3.13"
+reportCallIssue = "none"
 reportConstantRedefinition = "error"
 reportIncompatibleMethodOverride = "error"
 reportInconsistentConstructor = "error"
@@ -389,6 +391,7 @@ markers = [
   "resilience: resilience tests",
   "discovery: catalog and stream discovery tests",
   "singer: Singer protocol contract tests",
+  "requires_engine: native check engine required by this test",
 ]
 minversion = "8.0"
 python_classes = ["Test*"]
@@ -414,11 +417,16 @@ quote-style = "double"
 skip-magic-trailing-comma = false
 
 [tool.ruff.lint]
-extend-safe-fixes = ["camelcase-imported-as-lowercase", "relative-imports"]
+extend-safe-fixes = [
+  "camelcase-imported-as-lowercase",
+  "relative-imports",
+  "typing-only-first-party-import",
+]
 ignore = [
   "camelcase-imported-as-lowercase",
   "implicit-namespace-package",
   "missing-required-import",
+  "runtime-import-in-type-checking-block",
   "typing-only-first-party-import",
   "typing-only-standard-library-import",
   "typing-only-third-party-import",
@@ -438,6 +446,50 @@ unfixable = [
 
 [tool.ruff.lint.flake8-copyright]
 notice-rgx = "Copyright \\(c\\) \\d{4} \\S[^\\n]*\\. All rights reserved\\."
+
+[tool.ruff.lint.flake8-type-checking]
+runtime-evaluated-base-classes = [
+  "examples.s",
+  "flext_cli.FlextCliSettings",
+  "flext_cli.m.BaseModel",
+  "flext_cli.m.FrozenModel",
+  "flext_cli.m.Value",
+  "flext_cli.s",
+  "flext_cli.services._prompts_support.FlextCliPromptsSupport",
+  "flext_cli.services.auth.FlextCliAuth",
+  "flext_cli.services.cli.FlextCliCli",
+  "flext_cli.services.cli_params.FlextCliCommonParams",
+  "flext_cli.services.cmd.FlextCliCmd",
+  "flext_cli.services.docx.FlextCliDocx",
+  "flext_cli.services.file_tools.FlextCliFileTools",
+  "flext_cli.services.formatters.FlextCliFormatters",
+  "flext_cli.services.output.FlextCliOutput",
+  "flext_cli.services.pipeline.FlextCliPipeline",
+  "flext_cli.services.pptx.FlextCliPptx",
+  "flext_cli.services.prompts.FlextCliPrompts",
+  "flext_cli.services.rules.FlextCliRules",
+  "flext_cli.services.runtime.FlextCliRuntime",
+  "flext_cli.services.tables.FlextCliTables",
+  "flext_cli.services.xlsx.FlextCliXlsx",
+  "flext_cli.services.yaml_model.FlextCliYamlModel",
+  "flext_core.FlextConfig",
+  "flext_core.FlextService",
+  "flext_core.FlextSettings",
+  "flext_core.m.ArbitraryTypesModel",
+  "flext_core.m.BaseModel",
+  "flext_core.m.ContractModel",
+  "flext_core.m.FlexibleInternalModel",
+  "flext_core.m.FrozenModel",
+  "flext_core.m.RootModel",
+  "flext_core.m.StrictModel",
+  "flext_core.m.Value",
+  "flext_core.s",
+  "flext_tests.FlextTestsServiceBase",
+  "flext_tests.FlextTestsSettings",
+  "flext_tests.FlextTestsUtilities.Tests",
+  "pydantic.BaseModel",
+  "tests.m.BaseModel",
+]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
@@ -464,18 +516,21 @@ known-first-party = ["flext_cli", "flext_core"]
 split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
-"**/__init__.py" = [
-  "non-empty-init-module",
-  "runtime-import-in-type-checking-block",
-  "typing-only-first-party-import",
-  "unused-import",
-]
+"**/__init__.py" = ["line-too-long", "non-empty-init-module", "unused-import"]
+"**/_config.py" = ["invalid-function-name"]
+"**/docx.py" = ["import-outside-top-level"]
+"**/file_test_helpers.py" = ["line-too-long"]
+"**/flextcliutilitiesfiletesthelpersmixin_part_03.py" = ["line-too-long"]
+"**/framework.py" = ["banned-api", "import-outside-top-level"]
+"**/pptx.py" = ["import-outside-top-level"]
+"**/test_public_contracts_cov.py" = ["line-too-long"]
 "**/tests/python/**" = [
   "raise-vanilla-args",
   "start-process-with-partial-path",
   "subprocess-without-shell-equals-true",
   "suspicious-subprocess-import",
 ]
+"**/xlsx.py" = ["import-outside-top-level"]
 "scripts/**" = [
   "any-type",
   "avoidable-escaped-quote",

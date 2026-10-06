@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._protocols import _base_parts
@@ -44,25 +44,22 @@ __all__: tuple[str, ...] = (
     "_base_parts",
 )
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            "._base_parts": ("_base_parts",),
-            ".base": ("FlextCliProtocolsBase",),
-            ".config": ("FlextCliProtocolsConfig",),
-            ".domain": ("FlextCliProtocolsDomain",),
-            ".framework": ("FlextCliProtocolsFramework",),
-            ".pipeline": ("FlextCliProtocolsPipeline",),
-            ".xlsx": ("FlextCliProtocolsXlsx",),
-            ".xlsx_archive": ("FlextCliProtocolsXlsxArchive",),
-            ".xlsx_rules": ("FlextCliProtocolsXlsxRules",),
-            ".xlsx_snapshot": ("FlextCliProtocolsXlsxSnapshot",),
-            ".xlsx_snapshot_structure": ("FlextCliProtocolsXlsxSnapshotStructure",),
-            ".xlsx_workbook": ("FlextCliProtocolsXlsxWorkbook",),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "FlextCliProtocolsBase": ".base",
+        "FlextCliProtocolsConfig": ".config",
+        "FlextCliProtocolsDomain": ".domain",
+        "FlextCliProtocolsFramework": ".framework",
+        "FlextCliProtocolsPipeline": ".pipeline",
+        "FlextCliProtocolsXlsx": ".xlsx",
+        "FlextCliProtocolsXlsxArchive": ".xlsx_archive",
+        "FlextCliProtocolsXlsxRules": ".xlsx_rules",
+        "FlextCliProtocolsXlsxSnapshot": ".xlsx_snapshot",
+        "FlextCliProtocolsXlsxSnapshotStructure": ".xlsx_snapshot_structure",
+        "FlextCliProtocolsXlsxWorkbook": ".xlsx_workbook",
+        "_base_parts": "._base_parts",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

@@ -8,14 +8,12 @@ from __future__ import annotations
 
 import datetime as dt
 from decimal import Decimal, InvalidOperation
-from typing import TypeVar
 
 from openpyxl.cell.cell import Cell, MergedCell
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-
-T = TypeVar("T")
+from flext_cli.typings import T
 
 
 class FlextCliUtilitiesXlsxSnapshotValues:

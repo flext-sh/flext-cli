@@ -14,9 +14,9 @@ from __future__ import annotations
 
 import secrets
 
-from flext_cli import c, m, p, settings, t, u
+from flext_cli import c, m, p, s, settings, t, u
 from flext_cli.services.file_tools import FlextCliFileTools
-from flext_core import r, s
+from flext_core import r
 
 
 class FlextCliAuth(s[m.Cli.RuntimeStatus]):

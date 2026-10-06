@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
@@ -100,38 +100,35 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesXlsxWorkbookPlan",
 )
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            ".xlsx_addresses": ("FlextCliUtilitiesXlsxAddresses",),
-            ".xlsx_archive": ("FlextCliUtilitiesXlsxArchive",),
-            ".xlsx_archive_checks": ("FlextCliUtilitiesXlsxArchiveChecks",),
-            ".xlsx_cells": ("FlextCliUtilitiesXlsxCells",),
-            ".xlsx_conditional": ("FlextCliUtilitiesXlsxConditional",),
-            ".xlsx_defined_name_values": ("FlextCliUtilitiesXlsxDefinedNameValues",),
-            ".xlsx_formula_codec": ("FlextCliUtilitiesXlsxFormulaCodec",),
-            ".xlsx_layout": ("FlextCliUtilitiesXlsxLayout",),
-            ".xlsx_protection": ("FlextCliUtilitiesXlsxProtection",),
-            ".xlsx_recalc": ("FlextCliUtilitiesXlsxRecalc",),
-            ".xlsx_recalc_evidence": ("FlextCliUtilitiesXlsxRecalcEvidence",),
-            ".xlsx_renderer": ("FlextCliUtilitiesXlsxRenderer",),
-            ".xlsx_rules": ("FlextCliUtilitiesXlsxRules",),
-            ".xlsx_snapshot": ("FlextCliUtilitiesXlsxSnapshot",),
-            ".xlsx_snapshot_sheet": ("FlextCliUtilitiesXlsxSnapshotSheet",),
-            ".xlsx_snapshot_structure": ("FlextCliUtilitiesXlsxSnapshotStructure",),
-            ".xlsx_snapshot_values": ("FlextCliUtilitiesXlsxSnapshotValues",),
-            ".xlsx_style_builders": ("FlextCliUtilitiesXlsxStyleBuilders",),
-            ".xlsx_style_catalog": ("FlextCliUtilitiesXlsxStyleCatalog",),
-            ".xlsx_style_codec": ("FlextCliUtilitiesXlsxStyleCodec",),
-            ".xlsx_style_readers": ("FlextCliUtilitiesXlsxStyleReaders",),
-            ".xlsx_tables": ("FlextCliUtilitiesXlsxTables",),
-            ".xlsx_validations": ("FlextCliUtilitiesXlsxValidations",),
-            ".xlsx_workbook_io": ("FlextCliUtilitiesXlsxWorkbookIo",),
-            ".xlsx_workbook_plan": ("FlextCliUtilitiesXlsxWorkbookPlan",),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "FlextCliUtilitiesXlsxAddresses": ".xlsx_addresses",
+        "FlextCliUtilitiesXlsxArchive": ".xlsx_archive",
+        "FlextCliUtilitiesXlsxArchiveChecks": ".xlsx_archive_checks",
+        "FlextCliUtilitiesXlsxCells": ".xlsx_cells",
+        "FlextCliUtilitiesXlsxConditional": ".xlsx_conditional",
+        "FlextCliUtilitiesXlsxDefinedNameValues": ".xlsx_defined_name_values",
+        "FlextCliUtilitiesXlsxFormulaCodec": ".xlsx_formula_codec",
+        "FlextCliUtilitiesXlsxLayout": ".xlsx_layout",
+        "FlextCliUtilitiesXlsxProtection": ".xlsx_protection",
+        "FlextCliUtilitiesXlsxRecalc": ".xlsx_recalc",
+        "FlextCliUtilitiesXlsxRecalcEvidence": ".xlsx_recalc_evidence",
+        "FlextCliUtilitiesXlsxRenderer": ".xlsx_renderer",
+        "FlextCliUtilitiesXlsxRules": ".xlsx_rules",
+        "FlextCliUtilitiesXlsxSnapshot": ".xlsx_snapshot",
+        "FlextCliUtilitiesXlsxSnapshotSheet": ".xlsx_snapshot_sheet",
+        "FlextCliUtilitiesXlsxSnapshotStructure": ".xlsx_snapshot_structure",
+        "FlextCliUtilitiesXlsxSnapshotValues": ".xlsx_snapshot_values",
+        "FlextCliUtilitiesXlsxStyleBuilders": ".xlsx_style_builders",
+        "FlextCliUtilitiesXlsxStyleCatalog": ".xlsx_style_catalog",
+        "FlextCliUtilitiesXlsxStyleCodec": ".xlsx_style_codec",
+        "FlextCliUtilitiesXlsxStyleReaders": ".xlsx_style_readers",
+        "FlextCliUtilitiesXlsxTables": ".xlsx_tables",
+        "FlextCliUtilitiesXlsxValidations": ".xlsx_validations",
+        "FlextCliUtilitiesXlsxWorkbookIo": ".xlsx_workbook_io",
+        "FlextCliUtilitiesXlsxWorkbookPlan": ".xlsx_workbook_plan",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

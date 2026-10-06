@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TypeVar
+
 from flext_cli._typings.base import FlextCliTypesBase
 from flext_cli._typings.domain import FlextCliTypesDomain
 from flext_cli._typings.pipeline import FlextCliTypesPipeline
@@ -28,3 +30,9 @@ class FlextCliTypes(FlextTypes):
 t = FlextCliTypes
 
 __all__: list[str] = ["FlextCliTypes", "t"]
+
+type PhysicalState = tuple[int, int, int, int | None, int | None]
+
+type DirectoryPhysicalState = tuple[int, int, int, int, int | None, int | None]
+
+T = TypeVar("T")

@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import build_lazy_import_map, install_lazy_exports
+from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._models._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
@@ -48,26 +48,23 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsXlsxWorkbook",
 )
 
-_LAZY_IMPORTS = MappingProxyType(
-    build_lazy_import_map(
-        MappingProxyType({
-            ".xlsx_archive": ("FlextCliModelsXlsxArchive",),
-            ".xlsx_cells": ("FlextCliModelsXlsxCells",),
-            ".xlsx_layout": ("FlextCliModelsXlsxLayout",),
-            ".xlsx_recalc": ("FlextCliModelsXlsxRecalc",),
-            ".xlsx_rules": ("FlextCliModelsXlsxRules",),
-            ".xlsx_snapshot": ("FlextCliModelsXlsxSnapshot",),
-            ".xlsx_style_catalog": ("FlextCliModelsXlsxStyleCatalog",),
-            ".xlsx_style_fills": ("FlextCliModelsXlsxStyleFills",),
-            ".xlsx_style_primitives": ("FlextCliModelsXlsxStylePrimitives",),
-            ".xlsx_styles": ("FlextCliModelsXlsxStyles",),
-            ".xlsx_tables": ("FlextCliModelsXlsxTables",),
-            ".xlsx_validation": ("FlextCliModelsXlsxValidation",),
-            ".xlsx_workbook": ("FlextCliModelsXlsxWorkbook",),
-        }),
-        alias_groups=MappingProxyType({}),
-        sort_keys=False,
-    ),
+install_lazy_exports(
+    __name__,
+    globals(),
+    MappingProxyType({
+        "FlextCliModelsXlsxArchive": ".xlsx_archive",
+        "FlextCliModelsXlsxCells": ".xlsx_cells",
+        "FlextCliModelsXlsxLayout": ".xlsx_layout",
+        "FlextCliModelsXlsxRecalc": ".xlsx_recalc",
+        "FlextCliModelsXlsxRules": ".xlsx_rules",
+        "FlextCliModelsXlsxSnapshot": ".xlsx_snapshot",
+        "FlextCliModelsXlsxStyleCatalog": ".xlsx_style_catalog",
+        "FlextCliModelsXlsxStyleFills": ".xlsx_style_fills",
+        "FlextCliModelsXlsxStylePrimitives": ".xlsx_style_primitives",
+        "FlextCliModelsXlsxStyles": ".xlsx_styles",
+        "FlextCliModelsXlsxTables": ".xlsx_tables",
+        "FlextCliModelsXlsxValidation": ".xlsx_validation",
+        "FlextCliModelsXlsxWorkbook": ".xlsx_workbook",
+    }),
+    public_exports=__all__,
 )
-
-install_lazy_exports(__name__, globals(), _LAZY_IMPORTS, public_exports=__all__)

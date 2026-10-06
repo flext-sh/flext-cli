@@ -12,8 +12,7 @@ import stat
 from pathlib import Path
 
 from flext_cli import m
-
-type DirectoryPhysicalState = tuple[int, int, int, int, int | None, int | None]
+from flext_cli.typings import DirectoryPhysicalState
 
 
 class FlextCliUtilitiesAtomicDirectoryModel:
@@ -165,4 +164,4 @@ class FlextCliUtilitiesAtomicDirectoryModel:
         )
 
 
-__all__: list[str] = ["DirectoryPhysicalState", "FlextCliUtilitiesAtomicDirectoryModel"]
+__all__: list[str] = ["FlextCliUtilitiesAtomicDirectoryModel"]
