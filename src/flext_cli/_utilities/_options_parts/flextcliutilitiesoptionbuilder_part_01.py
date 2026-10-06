@@ -36,7 +36,7 @@ class FlextCliUtilitiesOptionBuilder:
         cli_param_name: str = (
             field_meta.field_name_override
             if field_meta.field_name_override is not None
-            else self.field_name
+            else field_name
         )
 
         option_args: t.MutableSequenceOf[str] = [

@@ -78,6 +78,7 @@ else ifeq ($(strip $(CI)),)
 GITHUB_TOKEN := $(shell command -v gh >/dev/null 2>&1 && gh auth token 2>/dev/null)
 endif
 endif
+endif
 ifneq ($(GITHUB_TOKEN),)
 GH_TOKEN := $(GITHUB_TOKEN)
 MISE_GITHUB_TOKEN := $(GITHUB_TOKEN)

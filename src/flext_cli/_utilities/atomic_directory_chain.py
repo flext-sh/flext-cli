@@ -83,28 +83,12 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         created: list[m.Cli.AtomicDirectoryState] = []
         expected_parent = (plan.anchor_device, plan.anchor_inode)
         try:
-            for directory in plan.directories:
-                snapshot = FlextCliUtilitiesAtomicDirectorySnapshot
-                before = snapshot.read_authenticated_empty_directory(
-                    directory,
-                    required=False,
-                )
-                FlextCliUtilitiesAtomicDirectoryChain._require_planned_parent(
-                    directory,
-                    before,
-                    expected_parent,
-                )
-                create = FlextCliUtilitiesAtomicDirectoryCreate
-                state = create.create_guarded_empty_directory(
-                    before,
-                    permission_mode=mode,
-                )
-                created.append(state)
-                expected_parent = (
-                    FlextCliUtilitiesAtomicDirectoryChain._require_created_identity(
-                        state,
-                    )
-                )
+            created = FlextCliUtilitiesAtomicDirectoryChain._create_chained_directories(
+                plan,
+                mode,
+                created,
+                expected_parent,
+            )
         except BaseException as operation_error:
             FlextCliUtilitiesAtomicDirectoryChain._rollback_created(
                 created,
@@ -112,6 +96,42 @@ class FlextCliUtilitiesAtomicDirectoryChain:
             )
             raise
         return tuple(created)
+
+    @staticmethod
+    def _create_chained_directories(
+        plan: m.Cli.AtomicDirectoryChainPlan,
+        mode: int | None,
+        created: list[m.Cli.AtomicDirectoryState],
+        expected_parent: tuple[int, int],
+    ) -> list[m.Cli.AtomicDirectoryState]:
+        """Create each planned directory, advancing the expected identity.
+
+        Returns:
+            The resulting ``list[m.Cli.AtomicDirectoryState]``.
+        """
+        for directory in plan.directories:
+            snapshot = FlextCliUtilitiesAtomicDirectorySnapshot
+            before = snapshot.read_authenticated_empty_directory(
+                directory,
+                required=False,
+            )
+            FlextCliUtilitiesAtomicDirectoryChain._require_planned_parent(
+                directory,
+                before,
+                expected_parent,
+            )
+            create = FlextCliUtilitiesAtomicDirectoryCreate
+            state = create.create_guarded_empty_directory(
+                before,
+                permission_mode=mode,
+            )
+            created.append(state)
+            expected_parent = (
+                FlextCliUtilitiesAtomicDirectoryChain._require_created_identity(
+                    state,
+                )
+            )
+        return created
 
     @staticmethod
     def _require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:

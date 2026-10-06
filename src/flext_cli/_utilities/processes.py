@@ -10,7 +10,7 @@ import os
 import select
 import shlex
 import signal
-import subprocess  # nosec B404 - canonical process execution owner for CLI verbs
+import subprocess  # nosec
 import time
 from collections.abc import Mapping
 from pathlib import Path
@@ -283,7 +283,7 @@ class FlextCliUtilitiesProcesses:
                 remove_keys=remove_env_keys,
             )
         try:
-            process = subprocess.Popen(  # nosec B603 - internal process execution, inputs from typed config
+            process = subprocess.Popen(  # nosec S603 B603 - internal process execution, inputs from typed config
                 list(cmd),
                 cwd=cwd,
                 stdin=subprocess.PIPE if capture else None,
