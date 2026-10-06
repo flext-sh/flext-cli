@@ -63,7 +63,8 @@ class TestsFlextCliServicesAuth:
         self._point_token_file(tmp_path / "token.json")
 
         # Act
-        authenticated = service.authenticate({c.Cli.DICT_KEY_LOGIN_FIELD: "t" + "0" * 9})
+        credentials = {c.Cli.DICT_KEY_LOGIN_FIELD: "t" + "0" * 9}
+        authenticated = service.authenticate(credentials)
 
         # Assert: the supplied token is returned and reloadable verbatim.
         tm.that(tm.ok(authenticated), eq="t" + "0" * 9)
