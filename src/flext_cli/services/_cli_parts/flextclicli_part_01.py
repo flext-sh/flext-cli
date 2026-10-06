@@ -151,7 +151,7 @@ class FlextCliCli:
         spec, annotation = cls.model_option_spec(field_name, field_info, settings)
         field_annotation = u.Cli.field_annotation(field_name, field_info)
         json_annotation = (
-            field_annotation if u.Cli.is_json_option(field_annotation) else None
+            field_annotation if u.Cli.json_option(field_annotation) else None
         )
         return (
             u.Cli.framework_build_parameter(
