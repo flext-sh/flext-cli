@@ -75,7 +75,12 @@ class FlextCliUtilitiesCommands:
         """
         error = r.require_error(result)
         FlextCliUtilitiesOutput.emit_raw(
-            f"{FlextCliUtilitiesOutput.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
+            "{}\n".format(
+                FlextCliUtilitiesOutput.output_message_payload(
+                    error,
+                    c.Cli.MessageTypes.ERROR,
+                )[0],
+            ),
         )
 
     @staticmethod
@@ -103,8 +108,12 @@ class FlextCliUtilitiesCommands:
                 error_data=result.error_data,
             )
         FlextCliUtilitiesOutput.emit_raw(
-            f"{FlextCliUtilitiesOutput.output_message_payload(error, c.Cli.MessageTypes.ERROR)[0]}\n",
-            error=True,
+            "{}\n".format(
+                FlextCliUtilitiesOutput.output_message_payload(
+                    error,
+                    c.Cli.MessageTypes.ERROR,
+                )[0],
+            ),
         )
         if result.error_code:
             FlextCliUtilitiesOutput.emit_raw(f"   [{result.error_code}]\n", error=True)

@@ -109,11 +109,21 @@ class FlextCliConstantsOutput:
             FlextCliConstantsEnums.MessageStyles,
         ]
     ] = MappingProxyType({
-        FlextCliConstantsEnums.MessageTypes.INFO: FlextCliConstantsEnums.MessageStyles.BLUE,
-        FlextCliConstantsEnums.MessageTypes.SUCCESS: FlextCliConstantsEnums.MessageStyles.BOLD_GREEN,
-        FlextCliConstantsEnums.MessageTypes.ERROR: FlextCliConstantsEnums.MessageStyles.BOLD_RED,
-        FlextCliConstantsEnums.MessageTypes.WARNING: FlextCliConstantsEnums.MessageStyles.BOLD_YELLOW,
-        FlextCliConstantsEnums.MessageTypes.DEBUG: FlextCliConstantsEnums.MessageStyles.DIM,
+        (
+            FlextCliConstantsEnums.MessageTypes.INFO
+        ): FlextCliConstantsEnums.MessageStyles.BLUE,
+        (
+            FlextCliConstantsEnums.MessageTypes.SUCCESS
+        ): FlextCliConstantsEnums.MessageStyles.BOLD_GREEN,
+        (
+            FlextCliConstantsEnums.MessageTypes.ERROR
+        ): FlextCliConstantsEnums.MessageStyles.BOLD_RED,
+        (
+            FlextCliConstantsEnums.MessageTypes.WARNING
+        ): FlextCliConstantsEnums.MessageStyles.BOLD_YELLOW,
+        (
+            FlextCliConstantsEnums.MessageTypes.DEBUG
+        ): FlextCliConstantsEnums.MessageStyles.DIM,
     })
 
     MESSAGE_EMOJI_MAP: ClassVar[

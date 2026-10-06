@@ -123,7 +123,7 @@ class FlextCliUtilitiesTomlPart06:
             command.extend(["--config", str(config_path)])
         command.append(str(path))
         return (
-            ur
+            u.Cli
             .run_raw(command, cwd=path.parent)
             .map_error(lambda err: err or f"taplo format failed: {path}")
             .flat_map(
