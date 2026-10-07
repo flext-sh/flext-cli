@@ -408,15 +408,6 @@ extend-exclude = [
   "**/.cursor/aihub-hooks/**",
   "**/.gemini/aihub-hooks/**",
 ]
-extend-exclude = [
-  "**/.archive/**",
-  "**/protos/**",
-  "**/.agents/aihub-hooks/**",
-  "**/.claude/aihub-hooks/**",
-  "**/.codex/aihub-hooks/**",
-  "**/.cursor/aihub-hooks/**",
-  "**/.gemini/aihub-hooks/**",
-]
 fix = false
 line-length = 88
 namespace-packages = ["tests", "examples", "scripts"]
@@ -667,3 +658,7 @@ dependencies = ["flext-cli"]
 [tool.uv.exclude-dependencies.package]
 name = "flext-tests"
 
+[tool.uv.sources]
+flext-core = { workspace = true }
+flext-infra = { workspace = true }
+flext-tests = { workspace = true }
