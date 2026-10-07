@@ -658,7 +658,3 @@ dependencies = ["flext-cli"]
 [tool.uv.exclude-dependencies.package]
 name = "flext-tests"
 
-[tool.uv.sources]
-flext-core = { workspace = true }
-flext-infra = { workspace = true }
-flext-tests = { workspace = true }
