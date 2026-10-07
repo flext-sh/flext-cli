@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import tomlkit
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c, e, p, r, t, u
+from flext_cli import c, e, p, r, t
 from flext_cli._utilities import FlextCliUtilitiesRuntime, FlextCliUtilitiesTomlPart01
 from flext_core import u
 
@@ -120,7 +120,7 @@ class FlextCliUtilitiesTomlPart06:
             command.extend(["--config", str(config_path)])
         command.append(str(path))
         return (
-            u.Cli
+            FlextCliUtilitiesRuntime
             .run_raw(command, cwd=path.parent)
             .map_error(lambda err: err or f"taplo format failed: {path}")
             .flat_map(
