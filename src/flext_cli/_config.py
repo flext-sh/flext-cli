@@ -16,6 +16,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING
 
 from flext_cli._constants import FlextCliConstantsBase
+from flext_cli._models import FlextCliConfigModels
 from flext_core import FlextConfig
 
 if TYPE_CHECKING:
@@ -36,7 +37,6 @@ class FlextCliConfig(FlextConfig):
     @cached_property
     def Cli(self) -> FlextCliProtocolsConfig.Cli:
         """Validated ``Cli`` config domain (name/version identity metadata)."""
-        from flext_cli._models import FlextCliConfigModels
         root = FlextCliConfigModels.Root.model_validate(dict(self.model_extra or {}))
         return root.Cli
 

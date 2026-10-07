@@ -14,6 +14,8 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesFilesPart02, FlextCliUtilitiesJson
+from flext_core import u
 
 
 class FlextCliUtilitiesFilesPart04:
@@ -96,8 +98,6 @@ class FlextCliUtilitiesFilesPart04:
             The resulting ``p.Result[t.JsonMapping]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesJson
-        from flext_core import u
         path = Path(file_path)
         if path.suffix.lower() == ".json":
             read_result = FlextCliUtilitiesJson.json_read(path)
@@ -156,7 +156,6 @@ class FlextCliUtilitiesFilesPart04:
             The resulting ``p.Result[Path]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         destination = Path(dest_path)
 
         def _copy() -> Path:
@@ -187,7 +186,6 @@ class FlextCliUtilitiesFilesPart04:
 
         """
 
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         def _create() -> Path:
             return Path(tempfile.mkdtemp(prefix=prefix, suffix=suffix, dir=parent_path))
 
@@ -204,7 +202,6 @@ class FlextCliUtilitiesFilesPart04:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         path = Path(directory_path)
         if not path.exists() and not path.is_symlink():
             return r[bool].ok(value=True)

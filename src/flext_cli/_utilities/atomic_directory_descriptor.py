@@ -11,7 +11,11 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicDirectoryNoreplace,
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicParentDescriptor,
+)
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -68,7 +72,6 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
             OSError: If ``not hasattr(os, 'fsync')``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryNoreplace, FlextCliUtilitiesAtomicParentDescriptor
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(source)
         FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(source)
         FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(
@@ -113,7 +116,6 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
         destination: Path,
     ) -> None:
         """Move one child without clobbering any destination entry."""
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryNoreplace
         FlextCliUtilitiesAtomicFileDescriptor.require_entry(source_parent, source)
         FlextCliUtilitiesAtomicFileDescriptor.require_entry(
             destination_parent,

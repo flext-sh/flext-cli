@@ -12,8 +12,10 @@ import subprocess  # nosec S404 - canonical process execution owner for CLI verb
 from typing import BinaryIO, ClassVar, override
 
 from flext_cli import m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesRuntimeCommandsMixin
-from flext_cli._utilities import FlextCliUtilitiesRuntimeRunToFileMixin
+from flext_cli._utilities import (
+    FlextCliUtilitiesRuntimeCommandsMixin,
+    FlextCliUtilitiesRuntimeRunToFileMixin,
+)
 from flext_core import u as core_u
 
 

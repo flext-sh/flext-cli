@@ -6,20 +6,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import t
-from flext_cli._constants import FlextCliConstantsBase
-from flext_cli._constants import FlextCliConstantsConfig
-from flext_cli._constants import FlextCliConstantsDefaults
-from flext_cli._constants import FlextCliConstantsDocx
-from flext_cli._constants import FlextCliConstantsEnums
-from flext_cli._constants import FlextCliConstantsErrors
-from flext_cli._constants import FlextCliConstantsFiles
-from flext_cli._constants import FlextCliConstantsOutput
-from flext_cli._constants import FlextCliConstantsPptx
-from flext_cli._constants import FlextCliConstantsSettings
-from flext_cli._constants import FlextCliConstantsXlsx
-from flext_cli._constants import FlextCliConstantsXlsxFutureFunctions
-from flext_core import FlextConstants
+from flext_cli._constants import (
+    FlextCliConstantsBase,
+    FlextCliConstantsConfig,
+    FlextCliConstantsDefaults,
+    FlextCliConstantsDocx,
+    FlextCliConstantsEnums,
+    FlextCliConstantsErrors,
+    FlextCliConstantsFiles,
+    FlextCliConstantsOutput,
+    FlextCliConstantsPptx,
+    FlextCliConstantsSettings,
+    FlextCliConstantsXlsx,
+    FlextCliConstantsXlsxFutureFunctions,
+)
+from flext_core import FlextConstants, t
 
 
 class FlextCliConstants(FlextConstants):

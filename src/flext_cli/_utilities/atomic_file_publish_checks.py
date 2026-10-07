@@ -12,7 +12,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli import c
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFileState,
+)
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -51,7 +55,6 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
             OSError: If ``observed != expected``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileState
         observed = (
             None if state is None else FlextCliUtilitiesAtomicFileState.identity(state)
         )
@@ -72,7 +75,6 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
                 file_state.identity(destination_state) == staged_identity``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileState
         if (
             destination_state is not None
             and FlextCliUtilitiesAtomicFileState.identity(destination_state)
@@ -131,7 +133,6 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
             published, parent=destination_parent) != staged_bytes``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileMode, FlextCliUtilitiesAtomicFileState
         if (
             FlextCliUtilitiesAtomicFileState.destination_state(
                 staged,

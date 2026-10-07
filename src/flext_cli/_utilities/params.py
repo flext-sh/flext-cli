@@ -8,6 +8,7 @@ from __future__ import annotations
 
 # mro-j47u (kimi): utilities consume local facades only, never flext_core p/r.
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesValidation
 
 
 class FlextCliUtilitiesParams:
@@ -103,7 +104,6 @@ class FlextCliUtilitiesParams:
             The resulting ``p.Result[p.Cli.Settings]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesValidation
         next_config = settings
         if params.log_format is not None:
             try:

@@ -10,6 +10,11 @@ import shutil
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFile,
+    FlextCliUtilitiesAtomicFileDelete,
+    FlextCliUtilitiesAtomicFilePath,
+)
 
 
 class FlextCliUtilitiesFilesPart02:
@@ -23,7 +28,6 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFile, FlextCliUtilitiesAtomicFilePath
         path = Path(file_path)
         try:
             FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
@@ -49,7 +53,6 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFile, FlextCliUtilitiesAtomicFilePath
         path = Path(file_path)
         try:
             FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
@@ -87,7 +90,6 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFile
         try:
             FlextCliUtilitiesAtomicFile.write_atomic_bytes(
                 before.path,
@@ -118,7 +120,6 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFile
         try:
             FlextCliUtilitiesAtomicFile.write_atomic_bytes(
                 before.path,
@@ -144,7 +145,6 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileDelete
         try:
             FlextCliUtilitiesAtomicFileDelete.remove_guarded_file(state)
         except OSError as exc:

@@ -14,8 +14,13 @@ from pathlib import Path
 from typing import Never
 
 from flext_cli import t
-from flext_cli._utilities import atomic_tree_darwin
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileRead,
+    FlextCliUtilitiesAtomicFileState,
+    atomic_tree_darwin,
+)
 
 
 class FlextCliUtilitiesAtomicTreeDescriptor:
@@ -42,7 +47,6 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
             The resulting ``t.Pair[int, str]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileState
         digest = hashlib.sha256()
         size = 0
         with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
@@ -154,7 +158,6 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         expected: os.stat_result,
     ) -> None:
         """Require one directory FD to retain the complete observed state."""
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath, FlextCliUtilitiesAtomicFileRead
         observed = os.fstat(descriptor)
         FlextCliUtilitiesAtomicFilePath.validate_directory_state(path, observed)
         if FlextCliUtilitiesAtomicFileRead.state_key(
@@ -169,7 +172,6 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         expected: os.stat_result,
     ) -> None:
         """Require one parent-relative name to retain the complete observed state."""
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileRead
         observed = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
         if FlextCliUtilitiesAtomicFileRead.state_key(
             observed,
@@ -182,7 +184,6 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         path: Path,
         expected: os.stat_result,
     ) -> None:
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileRead
         if FlextCliUtilitiesAtomicFileRead.state_key(
             os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):

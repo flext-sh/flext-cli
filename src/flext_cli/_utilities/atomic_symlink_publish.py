@@ -11,7 +11,12 @@ import os
 import uuid
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicDirectoryNoreplace,
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicSymlinkState,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -58,7 +63,6 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
             OSError: If ``observed.target != target``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicSymlinkState
         path = before.path
         staged_path = path.with_name(f".flext-symlink-{uuid.uuid4().hex}")
         os.symlink(target, staged_path.name, dir_fd=parent.descriptor)
@@ -79,7 +83,6 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
     ) -> None:
         """Remove one staged link that never published, authenticated first."""
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileDurability, FlextCliUtilitiesAtomicSymlinkState
         FlextCliUtilitiesAtomicSymlinkState.require_symlink_state(staged, parent)
         FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, staged_path)
         FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
@@ -91,7 +94,6 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
         staged_path: Path,
     ) -> None:
         """Swap the staged link into place under the caller-held lease."""
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryNoreplace, FlextCliUtilitiesAtomicFileDurability
         if before.target is None:
             FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
             FlextCliUtilitiesAtomicDirectoryNoreplace.rename_noreplace(
@@ -125,7 +127,6 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
             after.identity.inode) != (staged.identity.device, staged.identity.inode)``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicSymlinkState
         after = FlextCliUtilitiesAtomicSymlinkState.read_symlink_state(
             path,
             parent,
@@ -152,7 +153,6 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
             BaseExceptionGroup: If symlink publication and staged cleanup failed.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryNoreplace, FlextCliUtilitiesAtomicSymlinkState
         path = before.path
         FlextCliUtilitiesAtomicSymlinkPublish._validated_target(path, target)
         if before.target is None:
@@ -220,7 +220,6 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
                 None``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileDurability, FlextCliUtilitiesAtomicSymlinkState
         if before.target is None:
             msg = f"cannot delete an absent symbolic link: {before.path}"
             raise FileNotFoundError(errno.ENOENT, msg, before.path)

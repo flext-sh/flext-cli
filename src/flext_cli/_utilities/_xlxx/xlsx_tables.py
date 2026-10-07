@@ -12,7 +12,10 @@ from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesXlsxAddresses
+from flext_cli._utilities import (
+    FlextCliUtilitiesXlsxAddresses,
+    FlextCliUtilitiesXlsxFormulaCodec,
+)
 
 
 class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
@@ -70,7 +73,6 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
         workbook: Workbook,
         plans: t.VariadicTuple[m.Cli.XlsxDefinedNamePlan],
     ) -> p.Result[bool]:
-        from flext_cli._utilities import FlextCliUtilitiesXlsxFormulaCodec
         names: frozenset[str] = frozenset()
         for plan in plans:
             if plan.name in names or plan.name in workbook.defined_names:

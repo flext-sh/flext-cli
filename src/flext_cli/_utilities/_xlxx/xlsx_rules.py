@@ -9,9 +9,11 @@ from __future__ import annotations
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesXlsxConditional
-from flext_cli._utilities import FlextCliUtilitiesXlsxProtection
-from flext_cli._utilities import FlextCliUtilitiesXlsxValidations
+from flext_cli._utilities import (
+    FlextCliUtilitiesXlsxConditional,
+    FlextCliUtilitiesXlsxProtection,
+    FlextCliUtilitiesXlsxValidations,
+)
 
 
 class FlextCliUtilitiesXlsxRules(

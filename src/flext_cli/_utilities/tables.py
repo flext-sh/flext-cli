@@ -10,6 +10,7 @@ from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesTablesRenderer
 from flext_core import u
 
 
@@ -154,7 +155,6 @@ class FlextCliUtilitiesTables:
             The resulting ``p.Result[str]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTablesRenderer
         headers: str | t.StrSequence
         if not settings.show_header:
             # NOTE (multi-agent): Empty headers use the immutable sequence contract.

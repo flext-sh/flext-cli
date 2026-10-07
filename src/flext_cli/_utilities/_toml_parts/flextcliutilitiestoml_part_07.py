@@ -9,6 +9,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_cli import c, e, p, r, t
+from flext_cli._utilities import (
+    FlextCliUtilitiesTomlPart01,
+    FlextCliUtilitiesTomlPart06,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -25,7 +29,6 @@ class FlextCliUtilitiesTomlPart07:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTomlPart01, FlextCliUtilitiesTomlPart06
         try:
             document = FlextCliUtilitiesTomlPart01.toml_document_from_mapping(mapping)
         except c.EXC_TYPE_VALIDATION as exc:

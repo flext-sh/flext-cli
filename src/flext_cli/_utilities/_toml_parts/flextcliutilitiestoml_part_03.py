@@ -12,6 +12,11 @@ from tomlkit.items import Table
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import t
+from flext_cli._utilities import (
+    FlextCliUtilitiesTomlPart01,
+    FlextCliUtilitiesTomlPart02,
+)
+from flext_core import u
 
 
 class FlextCliUtilitiesTomlPart03:
@@ -28,7 +33,6 @@ class FlextCliUtilitiesTomlPart03:
             A nested table path without creating missing tables.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTomlPart02
         current: TOMLDocument | Table = parent
         for segment in path:
             table = FlextCliUtilitiesTomlPart02.toml_table_child(current, segment)
@@ -45,7 +49,6 @@ class FlextCliUtilitiesTomlPart03:
             The top-level ``[tool]`` table.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTomlPart02
         return FlextCliUtilitiesTomlPart02.toml_ensure_table(doc, "tool")
 
     @staticmethod
@@ -56,7 +59,6 @@ class FlextCliUtilitiesTomlPart03:
             A normalized TOML value from a container.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTomlPart01
         if key not in container:
             return None
         raw_value = FlextCliUtilitiesTomlPart01.toml_unwrap_item(container[key])
@@ -72,7 +74,6 @@ class FlextCliUtilitiesTomlPart03:
             A plain mapping child from one normalized TOML mapping.
 
         """
-        from flext_core import u
         value = container.get(key, None)
         if not u.mapping(value):
             return None
@@ -86,7 +87,6 @@ class FlextCliUtilitiesTomlPart03:
             One mutable plain mapping child, creating it when missing.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTomlPart01
         existing = parent.get(key, None)
         if isinstance(existing, dict):
             return existing

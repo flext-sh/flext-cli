@@ -12,6 +12,8 @@ from pathlib import Path
 
 import flext_core
 from flext_cli import c, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesFilesPart02
+from flext_core import u
 
 
 class FlextCliUtilitiesFilesPart01:
@@ -25,7 +27,6 @@ class FlextCliUtilitiesFilesPart01:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         path = Path(file_path)
 
         def _delete() -> bool:
@@ -50,7 +51,6 @@ class FlextCliUtilitiesFilesPart01:
             The resulting ``p.Result[str]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         return FlextCliUtilitiesFilesPart02.files_execute(
             lambda: Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT),
             c.Cli.ERR_TEXT_READ_FAILED,
@@ -65,7 +65,6 @@ class FlextCliUtilitiesFilesPart01:
 
         """
 
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         def _write() -> bool:
             Path(file_path).write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
             return True
@@ -84,7 +83,6 @@ class FlextCliUtilitiesFilesPart01:
 
         """
 
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         def _load() -> t.JsonValue:
             raw = Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT)
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
@@ -107,7 +105,6 @@ class FlextCliUtilitiesFilesPart01:
         """
         # NOTE (multi-agent): Model classes use the canonical t.ModelClass alias.
 
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         def _load() -> M:
             raw = Path(file_path).read_bytes()
             loaded: M = model_type.model_validate_json(raw, strict=False)
@@ -126,7 +123,6 @@ class FlextCliUtilitiesFilesPart01:
             The resulting ``p.Result[t.JsonValue]``.
 
         """
-        from flext_core import u
         return u.Yaml.yaml_safe_load(Path(file_path)).map(
             t.Cli.JSON_VALUE_ADAPTER.validate_python,
         )
@@ -142,7 +138,6 @@ class FlextCliUtilitiesFilesPart01:
             The resulting ``p.Result[M]``.
 
         """
-        from flext_core import u
         return u.Yaml.yaml_safe_load(Path(file_path)).map(model_type.model_validate)
 
     @staticmethod
@@ -156,7 +151,6 @@ class FlextCliUtilitiesFilesPart01:
             The resulting ``p.Result[M]``.
 
         """
-        from flext_core import u
         sources = tuple(Path(file_path) for file_path in file_paths)
         if not sources:
             return r[M].fail(c.Cli.ERR_FILE_PATH_EMPTY)
@@ -183,7 +177,6 @@ class FlextCliUtilitiesFilesPart01:
 
         """
 
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         def _write() -> bool:
             with Path(file_path).open(
                 mode="w",

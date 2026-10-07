@@ -6,12 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli._protocols import FlextCliProtocolsBase
-from flext_cli._protocols import FlextCliProtocolsConfig
-from flext_cli._protocols import FlextCliProtocolsDomain
-from flext_cli._protocols import FlextCliProtocolsFramework
-from flext_cli._protocols import FlextCliProtocolsPipeline
-from flext_cli._protocols import FlextCliProtocolsXlsx
+from flext_cli._protocols import (
+    FlextCliProtocolsBase,
+    FlextCliProtocolsConfig,
+    FlextCliProtocolsDomain,
+    FlextCliProtocolsFramework,
+    FlextCliProtocolsPipeline,
+    FlextCliProtocolsXlsx,
+)
 from flext_core import FlextProtocols
 
 

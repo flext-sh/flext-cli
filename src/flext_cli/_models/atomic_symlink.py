@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
+from flext_cli._models import FlextCliModelsAtomicState
 from flext_core import m, t, u
 
 
@@ -72,7 +73,6 @@ class FlextCliModelsAtomicSymlink:
                 The resulting ``Path``.
 
             """
-            from flext_cli._models import FlextCliModelsAtomicState
             return FlextCliModelsAtomicState.validate_atomic_state_path(
                 value,
                 label="atomic symlink state",

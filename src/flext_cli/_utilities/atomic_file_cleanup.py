@@ -11,7 +11,11 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFileState,
+)
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -29,7 +33,6 @@ class FlextCliUtilitiesAtomicFileCleanup:
         operation_error: BaseException,
     ) -> None:
         """Close and unlink only caller-owned staging while retaining every cause."""
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileDurability, FlextCliUtilitiesAtomicFileState
         cleanup_errors: list[OSError] = []
         if identity is None and descriptor is not None:
             try:

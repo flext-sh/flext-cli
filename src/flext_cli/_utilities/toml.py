@@ -6,13 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli._utilities import FlextCliUtilitiesTomlPart01
-from flext_cli._utilities import FlextCliUtilitiesTomlPart02
-from flext_cli._utilities import FlextCliUtilitiesTomlPart03
-from flext_cli._utilities import FlextCliUtilitiesTomlPart04
-from flext_cli._utilities import FlextCliUtilitiesTomlPart05
-from flext_cli._utilities import FlextCliUtilitiesTomlPart06
-from flext_cli._utilities import FlextCliUtilitiesTomlPart07
+from flext_cli._utilities import (
+    FlextCliUtilitiesTomlPart01,
+    FlextCliUtilitiesTomlPart02,
+    FlextCliUtilitiesTomlPart03,
+    FlextCliUtilitiesTomlPart04,
+    FlextCliUtilitiesTomlPart05,
+    FlextCliUtilitiesTomlPart06,
+    FlextCliUtilitiesTomlPart07,
+)
 
 
 class FlextCliUtilitiesToml(

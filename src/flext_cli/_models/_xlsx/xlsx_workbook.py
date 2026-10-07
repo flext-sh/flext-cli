@@ -9,11 +9,13 @@ from __future__ import annotations
 from typing import Annotated
 
 from flext_cli import t
-from flext_cli._models import FlextCliModelsXlsxCells
-from flext_cli._models import FlextCliModelsXlsxLayout
-from flext_cli._models import FlextCliModelsXlsxRules
-from flext_cli._models import FlextCliModelsXlsxStyles
-from flext_cli._models import FlextCliModelsXlsxTables
+from flext_cli._models import (
+    FlextCliModelsXlsxCells,
+    FlextCliModelsXlsxLayout,
+    FlextCliModelsXlsxRules,
+    FlextCliModelsXlsxStyles,
+    FlextCliModelsXlsxTables,
+)
 from flext_core import m
 
 

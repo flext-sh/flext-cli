@@ -11,10 +11,12 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TypeVar
 
-from flext_cli._typings import FlextCliTypesBase
-from flext_cli._typings import FlextCliTypesDomain
-from flext_cli._typings import FlextCliTypesPipeline
-from flext_cli._typings import FlextCliTypesXlsx
+from flext_cli._typings import (
+    FlextCliTypesBase,
+    FlextCliTypesDomain,
+    FlextCliTypesPipeline,
+    FlextCliTypesXlsx,
+)
 from flext_core import FlextTypes
 
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 import sys
 
 from flext_cli import c, m, s, t, u
+from flext_cli.services.formatters import FlextCliFormatters
 
 
 class FlextCliOutput(s[m.Cli.RuntimeStatus]):
@@ -42,7 +43,6 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
             message_type: Type of message (info, success, error, warning)
 
         """
-        from flext_cli.services.formatters import FlextCliFormatters
         payload, style = u.Cli.output_message_payload(message, message_type)
         FlextCliFormatters.print(
             payload,
@@ -84,14 +84,12 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
     @staticmethod
     def print_message(message: str, style: str | None = None) -> None:
         """Print a message using FlextCliFormatters."""
-        from flext_cli.services.formatters import FlextCliFormatters
         validated_style = u.Cli.output_resolve_style(style)
         FlextCliFormatters.print(message, style=validated_style)
 
     @staticmethod
     def display_header(text: str) -> None:
         """Display a section header via Rich rule."""
-        from flext_cli.services.formatters import FlextCliFormatters
         FlextCliFormatters.render_rule(text)
 
     @staticmethod
@@ -103,7 +101,6 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
         detail: str = "",
     ) -> None:
         """Display progress indicator [current/total] label detail."""
-        from flext_cli.services.formatters import FlextCliFormatters
         FlextCliFormatters.print(
             u.Cli.output_progress_line(current, total, label, detail=detail),
         )
@@ -117,7 +114,6 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
         elapsed: float | None = None,
     ) -> None:
         """Display a pass/fail status line."""
-        from flext_cli.services.formatters import FlextCliFormatters
         line, style = u.Cli.output_status_line(
             label,
             detail,
@@ -136,7 +132,6 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
         skipped: int = 0,
     ) -> None:
         """Display a summary panel."""
-        from flext_cli.services.formatters import FlextCliFormatters
         content = u.Cli.output_summary_content(
             total=total,
             success=success,
@@ -148,21 +143,18 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
     @staticmethod
     def display_gate(name: str, *, passed: bool, message: str = "") -> None:
         """Display a quality gate result."""
-        from flext_cli.services.formatters import FlextCliFormatters
         line, style = u.Cli.output_gate_line(name, passed=passed, message=message)
         FlextCliFormatters.print(line, style=style)
 
     @staticmethod
     def display_metrics(metrics: t.ConfigValueMapping) -> None:
         """Display key=value metric pairs."""
-        from flext_cli.services.formatters import FlextCliFormatters
         for key, value in metrics.items():
             FlextCliFormatters.print(f"{key}={value}")
 
     @staticmethod
     def display_debug(message: str, *, verbose: bool = False) -> None:
         """Display debug message (no-op unless verbose)."""
-        from flext_cli.services.formatters import FlextCliFormatters
         if not verbose:
             return
         line, style = u.Cli.output_debug_line(message)

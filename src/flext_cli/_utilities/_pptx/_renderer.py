@@ -12,6 +12,7 @@ from pptx import Presentation
 from pptx.presentation import Presentation as PresentationType
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesPptxSerializer
 
 
 class FlextCliUtilitiesPptxRenderer:
@@ -31,7 +32,6 @@ class FlextCliUtilitiesPptxRenderer:
             The resulting ``p.Result[m.Cli.PptxRenderResult]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesPptxSerializer
         presentation_result = cls._presentation_for_request(request)
         if presentation_result.failure:
             return r[m.Cli.PptxRenderResult].from_failure(presentation_result)

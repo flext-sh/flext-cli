@@ -14,7 +14,10 @@ from types import MappingProxyType
 from typing import ClassVar
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesYamlEditingMixin
+from flext_cli._utilities import (
+    FlextCliUtilitiesJson,
+    FlextCliUtilitiesYamlEditingMixin,
+)
 from flext_core import u
 
 
@@ -174,7 +177,6 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesJson
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             validated = FlextCliUtilitiesJson.normalize_json_value(data)
@@ -210,7 +212,6 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             The resulting ``str``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesJson
         try:
             validated = FlextCliUtilitiesJson.normalize_json_value(data)
             serialized: str = u.Yaml.safe_dump(

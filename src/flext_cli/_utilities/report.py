@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import c, m, p, r
+from flext_cli._utilities import FlextCliUtilitiesOutput, FlextCliUtilitiesTables
 
 
 class FlextCliUtilitiesReport:
@@ -25,7 +26,6 @@ class FlextCliUtilitiesReport:
             The resulting ``p.Result[str]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTables
         config = m.Cli.TableConfig(
             headers=tuple(request.columns),
             title=request.title or None,
@@ -46,7 +46,6 @@ class FlextCliUtilitiesReport:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesOutput
         if json_output:
             FlextCliUtilitiesOutput.emit_raw(request.model_dump_json(indent=2) + "\n")
             return r[bool].ok(value=True)

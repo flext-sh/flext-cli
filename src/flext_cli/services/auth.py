@@ -15,6 +15,7 @@ from __future__ import annotations
 import secrets
 
 from flext_cli import c, m, p, s, settings, t, u
+from flext_cli.services.file_tools import FlextCliFileTools
 from flext_core import r
 
 
@@ -42,7 +43,6 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli.services.file_tools import FlextCliFileTools
         if not token.strip():
             return r[bool].fail(
                 c.Cli.VALIDATION_MSG_FIELD_CANNOT_BE_EMPTY.format(field_name="token"),
@@ -61,7 +61,6 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
             The resulting ``p.Result[str]``.
 
         """
-        from flext_cli.services.file_tools import FlextCliFileTools
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)
         return FlextCliFileTools.read_json_file(token_file_path).flat_map(
             u.Cli.auth_extract_token,

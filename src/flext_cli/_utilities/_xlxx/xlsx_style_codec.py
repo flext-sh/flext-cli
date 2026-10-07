@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import FlextCliUtilitiesXlsxStyleBuilders
-from flext_cli._utilities import FlextCliUtilitiesXlsxStyleReaders
+from flext_cli._utilities import (
+    FlextCliUtilitiesXlsxStyleBuilders,
+    FlextCliUtilitiesXlsxStyleReaders,
+)
 
 if TYPE_CHECKING:
     from flext_cli import t

@@ -8,6 +8,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from flext_cli._utilities import (
+    FlextCliUtilitiesTomlPart01,
+    FlextCliUtilitiesTomlPart03,
+)
+from flext_core import u
 
 if TYPE_CHECKING:
     from tomlkit.items import Table
@@ -31,7 +36,6 @@ class FlextCliUtilitiesTomlPart04:
             The resulting ``bool``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTomlPart03
         current = FlextCliUtilitiesTomlPart03.toml_value(container, key)
         if current == expected:
             return False
@@ -52,7 +56,6 @@ class FlextCliUtilitiesTomlPart04:
             The resulting ``bool``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTomlPart01, FlextCliUtilitiesTomlPart03
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
             FlextCliUtilitiesTomlPart03.toml_value(container, key),
         )
@@ -75,7 +78,6 @@ class FlextCliUtilitiesTomlPart04:
             The resulting ``bool``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTomlPart01, FlextCliUtilitiesTomlPart03
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
             FlextCliUtilitiesTomlPart03.toml_value(container, key),
         )
@@ -113,7 +115,6 @@ class FlextCliUtilitiesTomlPart04:
             The resulting ``bool``.
 
         """
-        from flext_core import u
         current: t.JsonValue = u.normalize_to_json_value(container.get(key, None))
         normalized_expected: t.JsonValue = u.normalize_to_json_value(expected)
         if current == normalized_expected:
@@ -133,7 +134,6 @@ class FlextCliUtilitiesTomlPart04:
             The resulting ``bool``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesTomlPart01
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
             container.get(key, None),
         )

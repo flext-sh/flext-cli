@@ -8,7 +8,10 @@ from __future__ import annotations
 
 import os
 
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
+)
 
 
 class FlextCliUtilitiesAtomicFileDurability:
@@ -29,7 +32,6 @@ class FlextCliUtilitiesAtomicFileDurability:
         destination: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
     ) -> None:
         """Sync every physical directory changed by one completed replacement."""
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
         FlextCliUtilitiesAtomicFileDurability.sync_parent(source)
         if FlextCliUtilitiesAtomicFilePath.identity(
             source.state,

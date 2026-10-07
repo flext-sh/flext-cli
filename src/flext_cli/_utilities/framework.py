@@ -145,7 +145,6 @@ class FlextCliUtilitiesFramework:
         # NOTE (multi-agent): this outer framework boundary is the single point
         # that exposes a failed Result to the user before the process exits;
         # every service layer keeps the canonical Result intact up to here.
-        from flext_core import u
         if not cls._active_execution.get():
             return False
         from flext_cli import settings, u
@@ -259,6 +258,7 @@ class FlextCliUtilitiesFramework:
 
         """
         from flext_core import u
+
         option_default: t.Cli.CliValue | EllipsisType | None = (
             ... if spec.required else spec.default
         )

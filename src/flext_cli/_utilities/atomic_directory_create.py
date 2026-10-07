@@ -11,7 +11,16 @@ import os
 from pathlib import Path
 
 from flext_cli import m, t
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicDirectoryCleanup,
+    FlextCliUtilitiesAtomicDirectoryDescriptor,
+    FlextCliUtilitiesAtomicDirectoryModel,
+    FlextCliUtilitiesAtomicDirectoryState,
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFilePath,
+)
 
 
 class FlextCliUtilitiesAtomicDirectoryCreate:
@@ -32,7 +41,6 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
             OSError: If ``mode is None``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryCleanup, FlextCliUtilitiesAtomicDirectoryDescriptor, FlextCliUtilitiesAtomicDirectoryModel, FlextCliUtilitiesAtomicDirectoryState, FlextCliUtilitiesAtomicFileMode, FlextCliUtilitiesAtomicFilePath
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(before.path)
         FlextCliUtilitiesAtomicDirectoryModel.require_absent(before, purpose="created")
         mode = FlextCliUtilitiesAtomicFileMode.validate_mode(
@@ -89,7 +97,6 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> os.stat_result:
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryState
         initial = FlextCliUtilitiesAtomicDirectoryState.destination_state(
             path,
             parent=parent,
@@ -107,7 +114,6 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         identity: t.Pair[int, int],
         mode: int,
     ) -> os.stat_result:
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryState, FlextCliUtilitiesAtomicFileDurability
         final = FlextCliUtilitiesAtomicDirectoryState.initialize_empty_state(
             parent,
             path,

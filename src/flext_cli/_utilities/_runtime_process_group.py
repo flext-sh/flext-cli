@@ -11,9 +11,11 @@ import platform
 import signal
 
 from flext_cli import p, r
-from flext_cli._utilities import FlextCliUtilitiesRuntimeDarwinProcessGroupMixin
-from flext_cli._utilities import FlextCliUtilitiesRuntimeWindowsJobStartMixin
-from flext_cli._utilities import FlextCliUtilitiesRuntimeWindowsJobStateMixin
+from flext_cli._utilities import (
+    FlextCliUtilitiesRuntimeDarwinProcessGroupMixin,
+    FlextCliUtilitiesRuntimeWindowsJobStartMixin,
+    FlextCliUtilitiesRuntimeWindowsJobStateMixin,
+)
 
 
 class FlextCliUtilitiesRuntimeProcessGroupMixin(

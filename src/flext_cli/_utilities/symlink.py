@@ -9,6 +9,11 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import m, p, r, t
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicSymlinkPublish,
+    FlextCliUtilitiesAtomicSymlinkState,
+)
 
 
 class FlextCliUtilitiesSymlink:
@@ -28,7 +33,6 @@ class FlextCliUtilitiesSymlink:
             The resulting ``p.Result[m.Cli.AtomicSymlinkState]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor, FlextCliUtilitiesAtomicSymlinkState
         try:
             location = Path(path)
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
@@ -56,7 +60,6 @@ class FlextCliUtilitiesSymlink:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicSymlinkPublish
         try:
             FlextCliUtilitiesAtomicSymlinkPublish.write_guarded_symlink(before, target)
         except (OSError, ValueError) as exc:
@@ -73,7 +76,6 @@ class FlextCliUtilitiesSymlink:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicSymlinkPublish
         try:
             FlextCliUtilitiesAtomicSymlinkPublish.delete_guarded_symlink(before)
         except OSError as exc:

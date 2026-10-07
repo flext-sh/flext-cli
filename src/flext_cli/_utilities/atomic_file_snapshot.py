@@ -11,6 +11,11 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileState,
+)
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -40,7 +45,6 @@ class FlextCliUtilitiesAtomicFileSnapshot:
             FileNotFoundError: If ``required``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor, FlextCliUtilitiesAtomicFilePath, FlextCliUtilitiesAtomicFileState
         validated = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         if (
             not required

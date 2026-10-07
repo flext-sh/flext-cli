@@ -11,6 +11,11 @@ import os
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import (
+    FlextCliUtilitiesFilesPart02,
+    FlextCliUtilitiesFilesPart03,
+    FlextCliUtilitiesRuntime,
+)
 
 
 class FlextCliUtilitiesFilesPart06:
@@ -44,7 +49,6 @@ class FlextCliUtilitiesFilesPart06:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02, FlextCliUtilitiesFilesPart03
         before = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
             file_path,
             required=False,
@@ -77,7 +81,6 @@ class FlextCliUtilitiesFilesPart06:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart02, FlextCliUtilitiesFilesPart03
         before = publication.before
         replacement = publication.replacement
         if replacement.content is None:
@@ -107,7 +110,6 @@ class FlextCliUtilitiesFilesPart06:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesFilesPart03
         by_path: dict[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
         for expected in expected_states:
             existing = by_path.get(expected.path)
@@ -143,7 +145,6 @@ class FlextCliUtilitiesFilesPart06:
             The resulting ``p.Result[t.SequenceOf[Path]]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesRuntime
         result = r[t.SequenceOf[Path]]
         if not root.is_dir():
             return result.fail(f"file selection root is not a directory: {root}")

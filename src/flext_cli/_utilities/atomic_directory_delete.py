@@ -9,6 +9,15 @@ from __future__ import annotations
 import errno
 from typing import TYPE_CHECKING
 
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicDirectoryDescriptor,
+    FlextCliUtilitiesAtomicDirectoryModel,
+    FlextCliUtilitiesAtomicDirectoryState,
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileRead,
+)
 
 if TYPE_CHECKING:
     from flext_cli import m
@@ -27,7 +36,6 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
             ``directory_state.destination_state(path, parent=parent) is not None``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryDescriptor, FlextCliUtilitiesAtomicDirectoryModel, FlextCliUtilitiesAtomicDirectoryState, FlextCliUtilitiesAtomicFileDescriptor, FlextCliUtilitiesAtomicFileDurability, FlextCliUtilitiesAtomicFilePath, FlextCliUtilitiesAtomicFileRead
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(state.path)
         FlextCliUtilitiesAtomicDirectoryModel.require_existing(state, purpose="deleted")
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_delete_capabilities(path)

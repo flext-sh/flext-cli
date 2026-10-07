@@ -8,13 +8,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli._models import FlextCliModelsBase
-from flext_cli._models import FlextCliModelsDocx
-from flext_cli._models import FlextCliModelsPipeline
-from flext_cli._models import FlextCliModelsPptx
-from flext_cli._models import FlextCliModelsRules
-from flext_cli._models import FlextCliModelsTemplate
-from flext_cli._models import FlextCliModelsXlsx
+from flext_cli._models import (
+    FlextCliModelsBase,
+    FlextCliModelsDocx,
+    FlextCliModelsPipeline,
+    FlextCliModelsPptx,
+    FlextCliModelsRules,
+    FlextCliModelsTemplate,
+    FlextCliModelsXlsx,
+)
 from flext_core import FlextModels
 
 if TYPE_CHECKING:

@@ -10,6 +10,13 @@ import errno
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicDirectoryDescriptor,
+    FlextCliUtilitiesAtomicDirectoryModel,
+    FlextCliUtilitiesAtomicDirectoryState,
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
+)
 
 if TYPE_CHECKING:
     from flext_cli import m
@@ -38,7 +45,6 @@ class FlextCliUtilitiesAtomicDirectorySnapshot:
             FileNotFoundError: If ``required``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryDescriptor, FlextCliUtilitiesAtomicDirectoryModel, FlextCliUtilitiesAtomicDirectoryState, FlextCliUtilitiesAtomicFileDescriptor, FlextCliUtilitiesAtomicFilePath
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(path)
         if (

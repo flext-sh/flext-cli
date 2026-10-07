@@ -19,6 +19,8 @@ from pathlib import Path
 from typing import cast
 
 from flext_cli import c, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesFiles, FlextCliUtilitiesJson
+from flext_core import u
 
 
 class FlextCliUtilitiesFileTestHelpersMixinPart01:
@@ -46,7 +48,6 @@ class FlextCliUtilitiesFileTestHelpersMixinPart01:
             Mapping[str, Path] with resolved file paths.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesFiles
         base_dir = directory or Path(tempfile.mkdtemp())
         created: dict[str, Path] = {}
         try:
@@ -97,8 +98,6 @@ class FlextCliUtilitiesFileTestHelpersMixinPart01:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesFiles, FlextCliUtilitiesJson
-        from flext_core import u
         validated = t.Cli.JSON_VALUE_ADAPTER.validate_python(data)
         if fmt == c.Cli.FILE_FORMAT_YAML:
             dumped = u.Yaml.safe_dump(validated)

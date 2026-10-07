@@ -13,6 +13,17 @@ from pathlib import Path
 from typing import Never
 
 from flext_cli import m, t
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicDirectoryDelete,
+    FlextCliUtilitiesAtomicDirectoryDescriptor,
+    FlextCliUtilitiesAtomicDirectorySnapshot,
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFileState,
+    FlextCliUtilitiesAtomicParentDescriptor,
+    FlextCliUtilitiesAtomicTreeDescriptor,
+    FlextCliUtilitiesAtomicTreeInventory,
+)
 
 
 class FlextCliUtilitiesAtomicTreeCleanup:
@@ -23,7 +34,6 @@ class FlextCliUtilitiesAtomicTreeCleanup:
         manifest: m.Cli.AtomicPhysicalTreeManifest,
     ) -> None:
         """Delete only the exact manifested tree under the caller's exclusive lock."""
-        from flext_cli._utilities import FlextCliUtilitiesAtomicTreeInventory
         FlextCliUtilitiesAtomicTreeCleanup._require_cleanup_capabilities(manifest)
         current = FlextCliUtilitiesAtomicTreeInventory.inventory_physical_tree(
             manifest.root.path,
@@ -57,7 +67,6 @@ class FlextCliUtilitiesAtomicTreeCleanup:
     def _require_cleanup_capabilities(
         manifest: m.Cli.AtomicPhysicalTreeManifest,
     ) -> None:
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryDescriptor, FlextCliUtilitiesAtomicFileDescriptor, FlextCliUtilitiesAtomicFileDurability, FlextCliUtilitiesAtomicParentDescriptor, FlextCliUtilitiesAtomicTreeDescriptor
         root = manifest.root
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_delete_capabilities(
             root.path,
@@ -101,7 +110,6 @@ class FlextCliUtilitiesAtomicTreeCleanup:
 
     @staticmethod
     def _delete_file(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor, FlextCliUtilitiesAtomicFileDurability, FlextCliUtilitiesAtomicFileState, FlextCliUtilitiesAtomicTreeDescriptor
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
             entry.path,
             unlink=True,
@@ -155,7 +163,6 @@ class FlextCliUtilitiesAtomicTreeCleanup:
 
     @staticmethod
     def _delete_symlink(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor, FlextCliUtilitiesAtomicFileDurability, FlextCliUtilitiesAtomicTreeDescriptor
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
             entry.path,
             unlink=True,
@@ -215,7 +222,6 @@ class FlextCliUtilitiesAtomicTreeCleanup:
 
     @staticmethod
     def _delete_directory(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryDelete, FlextCliUtilitiesAtomicDirectorySnapshot
         current = (
             FlextCliUtilitiesAtomicDirectorySnapshot.read_authenticated_empty_directory(
                 entry.path,

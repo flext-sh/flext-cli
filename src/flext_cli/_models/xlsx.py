@@ -7,17 +7,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import t
-from flext_cli._models import FlextCliModelsXlsxArchive
-from flext_cli._models import FlextCliModelsXlsxCells
-from flext_cli._models import FlextCliModelsXlsxLayout
-from flext_cli._models import FlextCliModelsXlsxRecalc
-from flext_cli._models import FlextCliModelsXlsxRules
-from flext_cli._models import FlextCliModelsXlsxSnapshot
-from flext_cli._models import FlextCliModelsXlsxStyleCatalog
-from flext_cli._models import FlextCliModelsXlsxStyles
-from flext_cli._models import FlextCliModelsXlsxTables
-from flext_cli._models import FlextCliModelsXlsxValidation
-from flext_cli._models import FlextCliModelsXlsxWorkbook
+from flext_cli._models import (
+    FlextCliModelsXlsxArchive,
+    FlextCliModelsXlsxCells,
+    FlextCliModelsXlsxLayout,
+    FlextCliModelsXlsxRecalc,
+    FlextCliModelsXlsxRules,
+    FlextCliModelsXlsxSnapshot,
+    FlextCliModelsXlsxStyleCatalog,
+    FlextCliModelsXlsxStyles,
+    FlextCliModelsXlsxTables,
+    FlextCliModelsXlsxValidation,
+    FlextCliModelsXlsxWorkbook,
+)
 
 
 class FlextCliModelsXlsx(

@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, p, t
+from flext_cli._models import FlextCliModelsAtomicState
 from flext_core import m, u
 
 
@@ -73,7 +74,6 @@ class FlextCliModelsBasePart03:
         @u.field_validator("path")
         @classmethod
         def _validate_absolute_path(cls, value: Path) -> Path:
-            from flext_cli._models import FlextCliModelsAtomicState
             return FlextCliModelsAtomicState.validate_atomic_state_path(
                 value,
                 label="atomic directory state",
@@ -81,7 +81,6 @@ class FlextCliModelsBasePart03:
 
         @u.model_validator(mode="after")
         def _validate_presence_tuple(self) -> Self:
-            from flext_cli._models import FlextCliModelsAtomicState
             physical = (self.mode, self.device, self.inode, self.link_count)
             if (self.exists and not all(value is not None for value in physical)) or (
                 not self.exists and any(value is not None for value in physical)

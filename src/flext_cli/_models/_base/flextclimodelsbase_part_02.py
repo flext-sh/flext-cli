@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, t
+from flext_cli._models import FlextCliModelsAtomicState
 from flext_core import m, u
 
 
@@ -100,7 +101,6 @@ class FlextCliModelsBasePart02:
                 The resulting ``Path``.
 
             """
-            from flext_cli._models import FlextCliModelsAtomicState
             return FlextCliModelsAtomicState.validate_atomic_state_path(
                 value,
                 label="atomic file state",
@@ -119,7 +119,6 @@ class FlextCliModelsBasePart02:
                     state cannot contain host metadata.
 
             """
-            from flext_cli._models import FlextCliModelsAtomicState
             presence = tuple(
                 value is not None
                 for value in (

@@ -13,7 +13,14 @@ from pathlib import Path
 from typing import Literal, Never
 
 from flext_cli import m, t
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicDirectoryDescriptor,
+    FlextCliUtilitiesAtomicDirectoryState,
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileState,
+    FlextCliUtilitiesAtomicTreeDescriptor,
+)
 
 
 class FlextCliUtilitiesAtomicTreeInventory:
@@ -37,7 +44,6 @@ class FlextCliUtilitiesAtomicTreeInventory:
             FileNotFoundError: If ``root_state is None``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryDescriptor, FlextCliUtilitiesAtomicDirectoryState, FlextCliUtilitiesAtomicFilePath, FlextCliUtilitiesAtomicTreeDescriptor
         root_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(root_path)
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(root_path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
@@ -128,7 +134,6 @@ class FlextCliUtilitiesAtomicTreeInventory:
         entries: list[m.Cli.AtomicPhysicalTreeEntry],
         directory_identities: set[t.Pair[int, int]],
     ) -> None:
-        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath, FlextCliUtilitiesAtomicFileState, FlextCliUtilitiesAtomicTreeDescriptor
         FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
             parent.descriptor,
             parent.path,

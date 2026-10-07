@@ -9,6 +9,15 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicDirectoryChain,
+    FlextCliUtilitiesAtomicDirectoryCreate,
+    FlextCliUtilitiesAtomicDirectoryDelete,
+    FlextCliUtilitiesAtomicDirectoryPublish,
+    FlextCliUtilitiesAtomicDirectorySnapshot,
+    FlextCliUtilitiesAtomicTreeCleanup,
+    FlextCliUtilitiesAtomicTreeInventory,
+)
 
 
 class FlextCliUtilitiesFilesPart05:
@@ -27,7 +36,6 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[m.Cli.AtomicDirectoryChainPlan]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryChain
         try:
             plan = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(
                 Path(directory_path),
@@ -54,7 +62,6 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[t.SequenceOf[m.Cli.AtomicDirectoryState]]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryChain
         try:
             created = (
                 FlextCliUtilitiesAtomicDirectoryChain.create_guarded_directory_chain(
@@ -80,7 +87,6 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[m.Cli.AtomicDirectoryState]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectorySnapshot
         try:
             snapshot = FlextCliUtilitiesAtomicDirectorySnapshot
             state = snapshot.read_authenticated_empty_directory(
@@ -108,7 +114,6 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[m.Cli.AtomicDirectoryState]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryCreate
         try:
             state = (
                 FlextCliUtilitiesAtomicDirectoryCreate.create_guarded_empty_directory(
@@ -136,7 +141,6 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryDelete
         try:
             FlextCliUtilitiesAtomicDirectoryDelete.remove_guarded_empty_directory(state)
         except OSError as exc:
@@ -159,7 +163,6 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[m.Cli.AtomicDirectoryState]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryPublish
         try:
             publish = FlextCliUtilitiesAtomicDirectoryPublish
             published = publish.publish_guarded_staged_empty_directory(
@@ -188,7 +191,6 @@ class FlextCliUtilitiesFilesPart05:
             An exact descriptor-authenticated tree manifest.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicTreeInventory
         try:
             manifest = FlextCliUtilitiesAtomicTreeInventory.inventory_physical_tree(
                 Path(root_path),
@@ -216,7 +218,6 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[bool]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesAtomicTreeCleanup
         try:
             FlextCliUtilitiesAtomicTreeCleanup.cleanup_physical_tree_guarded(manifest)
         except OSError as exc:
