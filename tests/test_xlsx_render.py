@@ -14,6 +14,7 @@ from flext_tests import tm
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font
 from openpyxl.workbook.defined_name import DefinedName
+from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import cli, m
 
@@ -97,8 +98,13 @@ def test_xlsx_datetime_rejects_unrepresentable_timezone() -> None:
         m.Cli.XlsxDateTimeValue(value=dt.datetime(2026, 7, 13, tzinfo=dt.UTC))
 
 
-def test_xlsx_render_executes_typed_runtime_plan() -> None:
-    """One immutable plan owns formulas, rules, tables, names, and protection."""
+def _styled_template() -> m.Cli.XlsxStyleTemplateResult:
+    """Build a workbook with a styled cell and extract its style template.
+
+    Returns:
+        The extracted runtime style template value.
+
+    """
     source_workbook = Workbook()
     source_cell = source_workbook.worksheets[0]["A1"]
     source_cell.value = "visual"
@@ -112,7 +118,19 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
         ),
     )
     tm.that(template_result.success, eq=True)
-    style_name = template_result.value.style_map[0].style_name
+    return template_result.value
+
+
+def _typed_runtime_plan(style_name: str) -> m.Cli.XlsxWorkbookPlan:
+    """Build the immutable runtime plan owning formulas, rules, and protection.
+
+    Args:
+        style_name: Name of the extracted runtime style to apply.
+
+    Returns:
+        The typed workbook plan.
+
+    """
     data_area = m.Cli.XlsxCellRange(
         first=m.Cli.XlsxCellAddress(row=1, column=1),
         last=m.Cli.XlsxCellAddress(row=2, column=2),
@@ -121,7 +139,7 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
         first=m.Cli.XlsxCellAddress(row=2, column=2),
         last=m.Cli.XlsxCellAddress(row=2, column=2),
     )
-    plan = m.Cli.XlsxWorkbookPlan(
+    return m.Cli.XlsxWorkbookPlan(
         sheets=(
             m.Cli.XlsxSheetPlan(
                 name="Data",
@@ -206,13 +224,19 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
         ),
     )
 
-    result = cli.xlsx_render(
-        m.Cli.XlsxRenderRequest(template=template_result.value.content, plan=plan),
-    )
 
-    tm.that(result.success, eq=True)
-    tm.that(result.value.plan is plan, eq=True)
-    rendered = load_workbook(BytesIO(result.value.content), data_only=False)
+def _assert_rendered_workbook(content: bytes, style_name: str) -> Worksheet:
+    """Assert the rendered workbook carries formulas, styles, and protection.
+
+    Args:
+        content: Rendered workbook bytes.
+        style_name: Expected runtime style name.
+
+    Returns:
+        The first rendered worksheet.
+
+    """
+    rendered = load_workbook(BytesIO(content), data_only=False)
     tm.that(tuple(rendered.sheetnames), eq=("Data", "Summary"))
     data = rendered.worksheets[0]
     tm.that(data["B2"].value, eq="=1+1")
@@ -225,14 +249,21 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
     tm.that(len(data.conditional_formatting), eq=1)
     tm.that("DataRange" in rendered.defined_names, eq=True)
     tm.that(rendered.calculation.fullCalcOnLoad, eq=True)
+    return data
 
+
+def _assert_xlsx_snapshot(
+    content: bytes,
+    style_name: str,
+    legacy_password: str,
+) -> None:
+    """Assert typed and cached snapshots agree with the rendered workbook."""
     snapshot = cli.xlsx_snapshot(
-        m.Cli.XlsxSnapshotRequest(source=result.value.content, data_only=False),
+        m.Cli.XlsxSnapshotRequest(source=content, data_only=False),
     )
     cached = cli.xlsx_snapshot(
-        m.Cli.XlsxSnapshotRequest(source=result.value.content, data_only=True),
+        m.Cli.XlsxSnapshotRequest(source=content, data_only=True),
     )
-
     tm.that(snapshot.success, eq=True, msg=snapshot.error)
     tm.that(cached.success, eq=True, msg=cached.error)
     tm.that(tuple(item.name for item in snapshot.value.sheets), eq=("Data", "Summary"))
@@ -252,6 +283,20 @@ def test_xlsx_render_executes_typed_runtime_plan() -> None:
     tm.that(data_snapshot.data_validation_count, eq=1)
     tm.that(data_snapshot.conditional_format_count, eq=1)
     tm.that(data_snapshot.protection.enabled, eq=True)
-    tm.that(data_snapshot.protection.legacy_password_hash, eq=data.protection.password)
+    tm.that(data_snapshot.protection.legacy_password_hash, eq=legacy_password)
     tm.that(data_snapshot.tables[0].reference, eq="A1:B2")
     tm.that(snapshot.value.defined_names[0].name, eq="DataRange")
+
+
+def test_xlsx_render_executes_typed_runtime_plan() -> None:
+    """One immutable plan owns formulas, rules, tables, names, and protection."""
+    template = _styled_template()
+    style_name = template.style_map[0].style_name
+    plan = _typed_runtime_plan(style_name)
+    result = cli.xlsx_render(
+        m.Cli.XlsxRenderRequest(template=template.content, plan=plan),
+    )
+    tm.that(result.success, eq=True)
+    tm.that(result.value.plan is plan, eq=True)
+    data = _assert_rendered_workbook(result.value.content, style_name)
+    _assert_xlsx_snapshot(result.value.content, style_name, data.protection.password)
