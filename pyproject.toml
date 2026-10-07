@@ -23,7 +23,7 @@ dependencies = [
   "click>=8.5.0",
   "defusedxml>=0.7.1",
   "dependency-injector>=4.49.1",
-  "flext-core",
+  "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
   "jinja2>=3.1.6",
   "jsonschema>=4.26.0",
   "openpyxl>=3.1.5",
@@ -69,7 +69,7 @@ dev = [
   "bandit>=1.9.4",
   "deptry",
   "editables>=0.6",
-  "flext-tests",
+  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@0.12.0-dev",
   "hypothesis",
   "mkdocs",
   "mkdocs-autorefs",
@@ -657,11 +657,3 @@ dependencies = ["flext-cli"]
 [tool.uv.exclude-dependencies.package]
 name = "flext-tests"
 
-[tool.uv.sources.flext-core]
-workspace = true
-
-[tool.uv.sources.flext-infra]
-workspace = true
-
-[tool.uv.sources.flext-tests]
-workspace = true
