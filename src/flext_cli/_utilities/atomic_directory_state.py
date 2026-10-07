@@ -12,12 +12,12 @@ from pathlib import Path
 from typing import ClassVar
 
 from flext_cli import t
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileRead,
 )
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
 
 
 class FlextCliUtilitiesAtomicDirectoryState:

@@ -10,14 +10,12 @@ from inspect import Parameter
 from typing import get_origin
 
 from flext_cli import c, m, p, r, settings, t, u
-from flext_cli.services._cli_parts.flextclicli_part_01 import (
-    FlextCliCli as FlextCliCliPart01,
-)
+from flext_cli.services._cli_parts.flextclicli_part_01 import FlextCliCliPart01
 from flext_cli.services.cli_params import FlextCliCommonParams
 
 
-class FlextCliCli(FlextCliCliPart01):
-    """Implementation part for FlextCliCli."""
+class FlextCliCliPart02(FlextCliCliPart01):
+    """Implementation part for FlextCliCliPart02."""
 
     @classmethod
     def parse_model_options(
@@ -214,7 +212,7 @@ class FlextCliCli(FlextCliCliPart01):
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
-        global_callback: FlextCliCli._ModelCommand[m.Cli.CliParamsConfig] = (
+        global_callback: FlextCliCliPart02._ModelCommand[m.Cli.CliParamsConfig] = (
             self._ModelCommand(
                 handler=apply_common_params,
                 model_cls=m.Cli.CliParamsConfig,
@@ -251,4 +249,4 @@ class FlextCliCli(FlextCliCliPart01):
         )
 
 
-__all__: list[str] = ["FlextCliCli"]
+__all__: list[str] = ["FlextCliCliPart02"]

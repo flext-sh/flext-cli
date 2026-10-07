@@ -8,19 +8,16 @@ from __future__ import annotations
 
 from functools import cache
 
-from flext_cli import c, t
-from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
+from flext_cli import c, m, t
+from flext_cli._utilities import (
     FlextCliUtilitiesOptionBuilder,
+    FlextCliUtilitiesOptionsPart01,
 )
-from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_01 import (
-    FlextCliUtilitiesOptions as FlextCliUtilitiesOptionsPart01,
-)
-from flext_cli.models import m
 from flext_core import u
 
 
-class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
-    """Implementation part for FlextCliUtilitiesOptions."""
+class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
+    """Implementation part for FlextCliUtilitiesOptionsPart02."""
 
     @classmethod
     @cache
@@ -157,4 +154,4 @@ class FlextCliUtilitiesOptions(FlextCliUtilitiesOptionsPart01):
         return list(args)
 
 
-__all__: list[str] = ["FlextCliUtilitiesOptions"]
+__all__: list[str] = ["FlextCliUtilitiesOptionsPart02"]

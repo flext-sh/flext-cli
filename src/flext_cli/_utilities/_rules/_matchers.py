@@ -18,7 +18,7 @@ import fnmatch
 from collections.abc import Mapping, MutableSequence
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
+from flext_cli._utilities import FlextCliUtilitiesJson
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -100,7 +100,7 @@ class FlextCliUtilitiesRulesMatchersMixin:
             The resulting ``str | None``.
 
         """
-        rule_id = uj.json_get_str_key(rule_def, rule_id_key)
+        rule_id = FlextCliUtilitiesJson.json_get_str_key(rule_def, rule_id_key)
         _, _, required_mapping_keys, required_non_empty_list_keys = matcher
         for key in required_mapping_keys:
             if not isinstance(rule_def.get(key), Mapping):

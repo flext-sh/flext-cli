@@ -20,7 +20,7 @@ class FlextCliUtilitiesDocx:
             The resulting ``p.Result[m.Cli.DocxDocumentPlan]``.
 
         """
-        from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
+        from flext_cli._utilities import FlextCliUtilitiesDocxReader
 
         return FlextCliUtilitiesDocxReader.docx_read(source)
 
@@ -34,7 +34,7 @@ class FlextCliUtilitiesDocx:
             The resulting ``p.Result[m.Cli.DocxRenderResult]``.
 
         """
-        from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
+        from flext_cli._utilities import FlextCliUtilitiesDocxRenderer
 
         return FlextCliUtilitiesDocxRenderer.docx_render(request)
 

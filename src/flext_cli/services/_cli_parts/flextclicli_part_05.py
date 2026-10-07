@@ -9,16 +9,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_cli import c, r, settings, t, u
-from flext_cli.services._cli_parts.flextclicli_part_04 import (
-    FlextCliCli as FlextCliCliPart04,
-)
+from flext_cli.services._cli_parts.flextclicli_part_04 import FlextCliCliPart04
 
 if TYPE_CHECKING:
     from flext_cli import p
 
 
-class FlextCliCli(FlextCliCliPart04):
-    """Implementation part for FlextCliCli."""
+class FlextCliCliPart05(FlextCliCliPart04):
+    """Implementation part for FlextCliCliPart05."""
 
     @classmethod
     def register_result_callback[M: t.Cli.ModelLike, TResult](
@@ -167,8 +165,8 @@ class FlextCliCli(FlextCliCliPart04):
             return c.Cli.EXIT_CODE_SUCCESS
         u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)
         # NOTE (multi-agent): the outermost CLI owns its process contract while
-        # FlextCliCli remains the single error-emission boundary.
+        # FlextCliCliPart05 remains the single error-emission boundary.
         return failure_exit_code
 
 
-__all__: list[str] = ["FlextCliCli"]
+__all__: list[str] = ["FlextCliCliPart05"]

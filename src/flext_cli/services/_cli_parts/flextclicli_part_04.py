@@ -7,13 +7,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import p, t, u
-from flext_cli.services._cli_parts.flextclicli_part_03 import (
-    FlextCliCli as FlextCliCliPart03,
-)
+from flext_cli.services._cli_parts.flextclicli_part_03 import FlextCliCliPart03
 
 
-class FlextCliCli(FlextCliCliPart03):
-    """Implementation part for FlextCliCli."""
+class FlextCliCliPart04(FlextCliCliPart03):
+    """Implementation part for FlextCliCliPart04."""
 
     @staticmethod
     def execute_app(
@@ -82,4 +80,4 @@ class FlextCliCli(FlextCliCliPart03):
         )
 
 
-__all__: list[str] = ["FlextCliCli"]
+__all__: list[str] = ["FlextCliCliPart04"]

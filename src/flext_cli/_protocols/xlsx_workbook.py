@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from flext_cli import t
-    from flext_cli._protocols.xlsx_rules import FlextCliProtocolsXlsxRules
+    from flext_cli._protocols import FlextCliProtocolsXlsxRules
 
 
 class FlextCliProtocolsXlsxWorkbook:

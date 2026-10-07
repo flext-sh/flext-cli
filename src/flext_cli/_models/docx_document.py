@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from flext_cli import c, t
-from flext_cli._models.docx_styles import FlextCliModelsDocxStyles
+from flext_cli._models import FlextCliModelsDocxStyles
 from flext_core import m
 
 

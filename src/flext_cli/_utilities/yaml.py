@@ -14,8 +14,10 @@ from types import MappingProxyType
 from typing import ClassVar
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
-from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli._utilities import (
+    FlextCliUtilitiesJson,
+    FlextCliUtilitiesYamlEditingMixin,
+)
 from flext_core import u
 
 

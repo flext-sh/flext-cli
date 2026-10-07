@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     from tests import p
 
 
-class TestsFlextCliPrompts:
-    """Implementation part for TestsFlextCliPrompts."""
+class TestsFlextCliPromptsPart01:
+    """Implementation part for TestsFlextCliPromptsPart01."""
 
     @staticmethod
     def test_execute_success(

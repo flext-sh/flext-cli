@@ -580,14 +580,6 @@ backend = "npm:@ast-grep/cli"
 specifiers = ["latest"]
 
 [tools."npm:@ast-grep/cli".options]
-allow_builds = '["@ast-grep/cli"]'
-
-[[tools."npm:@ast-grep/cli"]]
-version = "0.45.3"
-backend = "npm:@ast-grep/cli"
-specifiers = ["latest"]
-
-[tools."npm:@ast-grep/cli".options]
 bun_args = "--trust"
 
 [[tools."npm:prettier"]]

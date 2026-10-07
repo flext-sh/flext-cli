@@ -8,11 +8,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
-)
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_03 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart03,
+from flext_cli._utilities import (
+    FlextCliUtilitiesTomlPart01,
+    FlextCliUtilitiesTomlPart03,
 )
 from flext_core import u
 
@@ -23,8 +21,8 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-class FlextCliUtilitiesToml:
-    """Implementation part for FlextCliUtilitiesToml."""
+class FlextCliUtilitiesTomlPart04:
+    """Implementation part for FlextCliUtilitiesTomlPart04."""
 
     @staticmethod
     def toml_sync_value(
@@ -147,4 +145,4 @@ class FlextCliUtilitiesToml:
         return True
 
 
-__all__: list[str] = ["FlextCliUtilitiesToml"]
+__all__: list[str] = ["FlextCliUtilitiesTomlPart04"]

@@ -17,7 +17,7 @@ from flext_tests import FlextTestsConstants
 
 from flext_cli import FlextCliConstants
 from tests._constants_parts.testsflextcliconstants_part_01 import (
-    TestsFlextCliConstants as TestsFlextCliConstantsPart01,
+    TestsFlextCliConstantsPart01,
 )
 
 

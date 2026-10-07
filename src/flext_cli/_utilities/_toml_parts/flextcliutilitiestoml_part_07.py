@@ -9,19 +9,17 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_cli import c, e, p, r, t
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
-)
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart06,
+from flext_cli._utilities import (
+    FlextCliUtilitiesTomlPart01,
+    FlextCliUtilitiesTomlPart06,
 )
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-class FlextCliUtilitiesToml:
-    """Implementation part for FlextCliUtilitiesToml."""
+class FlextCliUtilitiesTomlPart07:
+    """Implementation part for FlextCliUtilitiesTomlPart07."""
 
     @staticmethod
     def toml_write_mapping(path: Path, mapping: t.JsonMapping) -> p.Result[bool]:
@@ -38,4 +36,4 @@ class FlextCliUtilitiesToml:
         return FlextCliUtilitiesTomlPart06.toml_write_document(path, document)
 
 
-__all__: list[str] = ["FlextCliUtilitiesToml"]
+__all__: list[str] = ["FlextCliUtilitiesTomlPart07"]

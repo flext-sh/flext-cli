@@ -12,11 +12,11 @@ import stat
 from pathlib import Path
 
 from flext_cli import t
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileRead,
 )
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
 
 
 class FlextCliUtilitiesAtomicFileState:

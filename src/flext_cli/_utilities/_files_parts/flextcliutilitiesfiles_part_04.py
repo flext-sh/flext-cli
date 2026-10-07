@@ -14,15 +14,12 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
-    FlextCliUtilitiesFiles as FlextCliUtilitiesFilesPart02,
-)
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
+from flext_cli._utilities import FlextCliUtilitiesFilesPart02, FlextCliUtilitiesJson
 from flext_core import u
 
 
-class FlextCliUtilitiesFiles:
-    """Implementation part for FlextCliUtilitiesFiles."""
+class FlextCliUtilitiesFilesPart04:
+    """Implementation part for FlextCliUtilitiesFilesPart04."""
 
     @staticmethod
     def files_detect_format(file_path: t.Cli.TextPath) -> p.Result[str]:
@@ -103,7 +100,7 @@ class FlextCliUtilitiesFiles:
         """
         path = Path(file_path)
         if path.suffix.lower() == ".json":
-            read_result = uj.json_read(path)
+            read_result = FlextCliUtilitiesJson.json_read(path)
         elif path.suffix.lower() in {".yaml", ".yml"}:
             read_result = u.Yaml.yaml_safe_load(path)
         else:
@@ -221,4 +218,4 @@ class FlextCliUtilitiesFiles:
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesFiles"]
+__all__: list[str] = ["FlextCliUtilitiesFilesPart04"]

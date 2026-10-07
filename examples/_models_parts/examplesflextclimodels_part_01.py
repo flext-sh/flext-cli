@@ -15,8 +15,8 @@ from examples._models_parts.examples_database import (
 )
 
 
-class ExamplesFlextCliModels:
-    """Implementation part for ExamplesFlextCliModels."""
+class ExamplesFlextCliModelsPart01:
+    """Implementation part for ExamplesFlextCliModelsPart01."""
 
     class Examples(
         ExamplesFlextCliModelsExamplesCommon,
@@ -26,4 +26,4 @@ class ExamplesFlextCliModels:
         """Examples namespace for example-domain models."""
 
 
-__all__: list[str] = ["ExamplesFlextCliModels"]
+__all__: list[str] = ["ExamplesFlextCliModelsPart01"]

@@ -12,14 +12,10 @@ from typing import TYPE_CHECKING
 from tomlkit.items import Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart01,
-)
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_02 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart02,
-)
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_03 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart03,
+from flext_cli._utilities import (
+    FlextCliUtilitiesTomlPart01,
+    FlextCliUtilitiesTomlPart02,
+    FlextCliUtilitiesTomlPart03,
 )
 from flext_core import u
 
@@ -27,8 +23,8 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-class FlextCliUtilitiesToml:
-    """Implementation part for FlextCliUtilitiesToml."""
+class FlextCliUtilitiesTomlPart05:
+    """Implementation part for FlextCliUtilitiesTomlPart05."""
 
     @staticmethod
     def toml_sync_mapping_table(
@@ -160,10 +156,10 @@ class FlextCliUtilitiesToml:
             The resulting ``str``.
 
         """
-        return FlextCliUtilitiesToml.toml_dot_path(
+        return FlextCliUtilitiesTomlPart05.toml_dot_path(
             "tool",
             *(segment for segment in path if segment != "tool"),
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesToml"]
+__all__: list[str] = ["FlextCliUtilitiesTomlPart05"]

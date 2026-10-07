@@ -18,8 +18,9 @@ import pytest
 from examples import c, m, u
 from flext_tests import tm
 
+import tests
 from flext_cli import cli
-from tests import c as tc, t
+from tests import t
 
 
 class TestsFlextCliExampleModelsUtilitiesCov:
@@ -129,7 +130,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
             host=host,
             name="production",
             username="db-user",
-            password=tc.Tests.CREDENTIAL_SAMPLE_VALUE,
+            password=tests.c.Tests.CREDENTIAL_SAMPLE_VALUE,
         )
 
         tm.that(config.host, eq=host)
@@ -142,7 +143,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
                 host="invalid-host",
                 name="production",
                 username="db-user",
-                password=tc.Tests.CREDENTIAL_SAMPLE_VALUE,
+                password=tests.c.Tests.CREDENTIAL_SAMPLE_VALUE,
             )
 
     # ------------------------------------------------------------------

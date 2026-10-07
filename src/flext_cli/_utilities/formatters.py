@@ -9,8 +9,7 @@ from __future__ import annotations
 from typing import Final
 
 from flext_cli import c, m
-from flext_cli._utilities.output import FlextCliUtilitiesOutput
-from flext_cli._utilities.tables import FlextCliUtilitiesTables
+from flext_cli._utilities import FlextCliUtilitiesOutput, FlextCliUtilitiesTables
 
 
 class FlextCliUtilitiesFormatters:

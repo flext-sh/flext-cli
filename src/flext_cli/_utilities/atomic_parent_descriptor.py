@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from flext_cli import t
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
 from flext_cli.typings import DirectoryChainInspection
 
 

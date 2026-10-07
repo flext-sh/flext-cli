@@ -13,18 +13,12 @@ from pathlib import Path
 from typing import Literal, Never
 
 from flext_cli import m, t
-from flext_cli._utilities.atomic_directory_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
-)
-from flext_cli._utilities.atomic_directory_state import (
     FlextCliUtilitiesAtomicDirectoryState,
-)
-from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
-from flext_cli._utilities.atomic_tree_descriptor import (
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileState,
     FlextCliUtilitiesAtomicTreeDescriptor,
 )
 

@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     from tests import t
 
 
-class TestsFlextCliService:
-    """Implementation part for TestsFlextCliService."""
+class TestsFlextCliServicePart04:
+    """Implementation part for TestsFlextCliServicePart04."""
 
     @staticmethod
     def test_execute_app_handles_nonzero_int_result() -> None:

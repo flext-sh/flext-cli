@@ -10,12 +10,12 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, t
-from flext_cli._models.atomic_state import FlextCliModelsAtomicState
+from flext_cli._models import FlextCliModelsAtomicState
 from flext_core import m, u
 
 
-class FlextCliModelsBase:
-    """Implementation part for FlextCliModelsBase."""
+class FlextCliModelsBasePart02:
+    """Implementation part for FlextCliModelsBasePart02."""
 
     class AtomicFileState(m.BaseModel):
         """Exact content and physical identity for one regular file version."""
@@ -247,4 +247,4 @@ class FlextCliModelsBase:
             return resolved
 
 
-__all__: list[str] = ["FlextCliModelsBase"]
+__all__: list[str] = ["FlextCliModelsBasePart02"]

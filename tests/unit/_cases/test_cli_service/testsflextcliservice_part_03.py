@@ -16,8 +16,8 @@ from tests.utilities import u
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
 
-class TestsFlextCliService:
-    """Implementation part for TestsFlextCliService."""
+class TestsFlextCliServicePart03:
+    """Implementation part for TestsFlextCliServicePart03."""
 
     @staticmethod
     def test_model_command_skips_excluded_fields() -> None:

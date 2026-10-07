@@ -34,20 +34,20 @@ class TestsFlextCliServiceRoutes:
     class Greeter(s[Status]):
         """Service whose public operations are the CLI."""
 
-        @staticmethod
-        def greet_default() -> p.Result[TestsFlextCliServiceRoutes.Status]:
+        # Operations are plain public instance methods below FlextService:
+        # the discovery scanner counts instance functions only, so these
+        # deliberately keep ``self`` even where a staticmethod would do.
+        def greet_default(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
             """Run the default service action.
 
             Returns:
                 The resulting ``p.Result[TestsFlextCliServiceRoutes.Status]``.
 
             """
-            return r[TestsFlextCliServiceRoutes.Status].ok(
-                TestsFlextCliServiceRoutes.Status(ready=1),
-            )
+            return self.report()
 
-        @staticmethod
         def greet_all(
+            self,
             request: TestsFlextCliServiceRoutes.Greeting,
         ) -> p.Result[str]:
             """Greet someone by name.
@@ -58,8 +58,7 @@ class TestsFlextCliServiceRoutes:
             """
             return r[str].ok(" ".join([f"hello {request.name}"] * request.times))
 
-        @staticmethod
-        def report() -> p.Result[TestsFlextCliServiceRoutes.Status]:
+        def report(self) -> p.Result[TestsFlextCliServiceRoutes.Status]:
             """Report the service status.
 
             Returns:

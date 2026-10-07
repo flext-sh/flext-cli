@@ -16,27 +16,27 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from tests.unit._cases.test_cli_service.testsflextcliservice_part_01 import (
-    TestsFlextCliService as _CliServicePart01,
+    TestsFlextCliServicePart01,
 )
 from tests.unit._cases.test_cli_service.testsflextcliservice_part_02 import (
-    TestsFlextCliService as _CliServicePart02,
+    TestsFlextCliServicePart02,
 )
 from tests.unit._cases.test_cli_service.testsflextcliservice_part_03 import (
-    TestsFlextCliService as _CliServicePart03,
+    TestsFlextCliServicePart03,
 )
 from tests.unit._cases.test_cli_service.testsflextcliservice_part_04 import (
-    TestsFlextCliService as _CliServicePart04,
+    TestsFlextCliServicePart04,
 )
 from tests.unit._cases.test_cli_service.testsflextcliservice_part_05 import (
-    TestsFlextCliService as _CliServicePart05,
+    TestsFlextCliServicePart05,
 )
 
 
 class TestsFlextCliService(
-    _CliServicePart01,
-    _CliServicePart02,
-    _CliServicePart03,
-    _CliServicePart04,
-    _CliServicePart05,
+    TestsFlextCliServicePart01,
+    TestsFlextCliServicePart02,
+    TestsFlextCliServicePart03,
+    TestsFlextCliServicePart04,
+    TestsFlextCliServicePart05,
 ):
     """Public behavioral suite for the flext-cli CLI facade."""

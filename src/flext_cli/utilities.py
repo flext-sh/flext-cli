@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
+from flext_cli._utilities import FlextCliUtilitiesCli
 from flext_core import FlextUtilities, m
 
 

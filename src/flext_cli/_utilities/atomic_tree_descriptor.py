@@ -14,13 +14,13 @@ from pathlib import Path
 from typing import Never
 
 from flext_cli import t
-from flext_cli._utilities import atomic_tree_darwin as tree_darwin
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileRead,
+    FlextCliUtilitiesAtomicFileState,
+    atomic_tree_darwin,
 )
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
 
 
 class FlextCliUtilitiesAtomicTreeDescriptor:
@@ -94,7 +94,10 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         """
         platform_name = FlextCliUtilitiesAtomicTreeDescriptor._runtime_platform()
         if platform_name == "darwin":
-            return tree_darwin.FlextCliAtomicTreeDarwin.mount_id(descriptor, path)
+            return atomic_tree_darwin.FlextCliAtomicTreeDarwin.mount_id(
+                descriptor,
+                path,
+            )
         if platform_name != "linux":
             message = "descriptor-bound mount identity is unsupported"
             raise OSError(errno.ENOTSUP, message, path)

@@ -8,14 +8,12 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar, Self
 
-from flext_cli._models._base.flextclimodelsbase_part_02 import (
-    FlextCliModelsBase as FlextCliModelsBasePart02,
-)
+from flext_cli._models import FlextCliModelsBasePart02
 from flext_core import m, u
 
 
-class FlextCliModelsBase:
-    """Implementation part for FlextCliModelsBase."""
+class FlextCliModelsBasePart10:
+    """Implementation part for FlextCliModelsBasePart10."""
 
     class AtomicFilePublication(m.BaseModel):
         """One guarded live state and its caller-owned staged replacement."""
@@ -53,4 +51,4 @@ class FlextCliModelsBase:
             return self
 
 
-__all__: list[str] = ["FlextCliModelsBase"]
+__all__: list[str] = ["FlextCliModelsBasePart10"]

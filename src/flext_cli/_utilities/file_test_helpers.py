@@ -11,25 +11,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_01 import (
-    FlextCliUtilitiesFileTestHelpersMixin as FileTestHelpersMixinPart01,
-)
-from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_02 import (
-    FlextCliUtilitiesFileTestHelpersMixin as FileTestHelpersMixinPart02,
-)
-from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_03 import (
-    FlextCliUtilitiesFileTestHelpersMixin as FileTestHelpersMixinPart03,
-)
-from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
-    FlextCliUtilitiesFileTestHelpersMixin as FileTestHelpersMixinPart04,
+from flext_cli._utilities import (
+    FlextCliUtilitiesFileTestHelpersMixinPart01,
+    FlextCliUtilitiesFileTestHelpersMixinPart02,
+    FlextCliUtilitiesFileTestHelpersMixinPart03,
+    FlextCliUtilitiesFileTestHelpersMixinPart04,
 )
 
 
 class FlextCliUtilitiesFileTestHelpersMixin(
-    FileTestHelpersMixinPart01,
-    FileTestHelpersMixinPart02,
-    FileTestHelpersMixinPart03,
-    FileTestHelpersMixinPart04,
+    FlextCliUtilitiesFileTestHelpersMixinPart01,
+    FlextCliUtilitiesFileTestHelpersMixinPart02,
+    FlextCliUtilitiesFileTestHelpersMixinPart03,
+    FlextCliUtilitiesFileTestHelpersMixinPart04,
 ):
     """Public facade for FlextCliUtilitiesFileTestHelpersMixin."""
 

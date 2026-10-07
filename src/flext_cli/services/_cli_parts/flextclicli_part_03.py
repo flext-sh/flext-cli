@@ -10,20 +10,16 @@ from inspect import Parameter
 from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p, r, t, u
-from flext_cli.services._cli_parts.flextclicli_part_02 import (
-    FlextCliCli as FlextCliCliPart02,
-)
+from flext_cli.services._cli_parts.flextclicli_part_02 import FlextCliCliPart02
 
 if TYPE_CHECKING:
     # mro-j47u (codex): the earlier MRO part is referenced only by annotation;
     # inspect.Parameter remains runtime because it constructs the CLI signature.
-    from flext_cli.services._cli_parts.flextclicli_part_01 import (
-        FlextCliCli as FlextCliCliPart01,
-    )
+    from flext_cli.services._cli_parts.flextclicli_part_01 import FlextCliCliPart01
 
 
-class FlextCliCli(FlextCliCliPart02):
-    """Implementation part for FlextCliCli."""
+class FlextCliCliPart03(FlextCliCliPart02):
+    """Implementation part for FlextCliCliPart03."""
 
     @classmethod
     def model_command[M: t.Cli.ModelLike](
@@ -99,4 +95,4 @@ class FlextCliCli(FlextCliCliPart02):
         )
 
 
-__all__: list[str] = ["FlextCliCli"]
+__all__: list[str] = ["FlextCliCliPart03"]

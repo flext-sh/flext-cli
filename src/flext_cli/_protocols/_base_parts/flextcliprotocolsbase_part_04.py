@@ -8,9 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_03 import (
-    FlextCliProtocolsBase as FlextCliProtocolsBasePart03,
-)
+from flext_cli._protocols import FlextCliProtocolsBasePart03
 from flext_core import p
 
 if TYPE_CHECKING:
@@ -19,8 +17,8 @@ if TYPE_CHECKING:
     from flext_cli import m, t
 
 
-class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
-    """Implementation part for FlextCliProtocolsBase."""
+class FlextCliProtocolsBasePart04(FlextCliProtocolsBasePart03):
+    """Implementation part for FlextCliProtocolsBasePart04."""
 
     @runtime_checkable
     class ParsedOptionTokens(Protocol):
@@ -52,7 +50,7 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
             *,
             field_names: t.StrSequence | None = None,
             stop_at_positional: bool = False,
-        ) -> FlextCliProtocolsBase.ParsedOptionTokens:
+        ) -> FlextCliProtocolsBasePart04.ParsedOptionTokens:
             """Read command routing facts from canonical option declarations."""
             ...
 
@@ -154,4 +152,4 @@ class FlextCliProtocolsBase(FlextCliProtocolsBasePart03):
     # mro-j47u (codex): formatter callables have one owner in t.Cli.
 
 
-__all__: list[str] = ["FlextCliProtocolsBase"]
+__all__: list[str] = ["FlextCliProtocolsBasePart04"]

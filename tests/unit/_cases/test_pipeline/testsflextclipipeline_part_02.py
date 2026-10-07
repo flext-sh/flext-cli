@@ -20,8 +20,8 @@ if TYPE_CHECKING:
     from tests import p
 
 
-class TestsFlextCliPipeline:
-    """Implementation part for TestsFlextCliPipeline."""
+class TestsFlextCliPipelinePart02:
+    """Implementation part for TestsFlextCliPipelinePart02."""
 
     @staticmethod
     def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:

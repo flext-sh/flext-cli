@@ -14,8 +14,8 @@ from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli._constants.enums import FlextCliConstantsEnums as ce
-from flext_cli._typings.base import FlextCliTypesBase as tb
+from flext_cli._constants import FlextCliConstantsEnums
+from flext_cli._typings import FlextCliTypesBase
 from flext_core import p, t
 
 
@@ -49,7 +49,7 @@ class FlextCliTypesDomain:
         t.SequenceOf[tuple[TFileRuleKind, t.JsonMapping]],
     ]
     type RuleLoadOption[TRuleKind, TFileRuleKind] = (
-        tb.CliValue
+        FlextCliTypesBase.CliValue
         | Path
         | FlextCliTypesDomain.RuleCatalog[TRuleKind]
         | FlextCliTypesDomain.RuleCatalog[TFileRuleKind]
@@ -61,7 +61,7 @@ class FlextCliTypesDomain:
     type ProjectNamesValue = str | t.StrSequence
     type TableHeaders = str | t.StrSequence
     type IntTextValue = int | str
-    type MessageType = ce.MessageTypes
+    type MessageType = FlextCliConstantsEnums.MessageTypes
     type ModelLike = t.BaseModel
     type OptionRegistry = t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]
     type NullaryOperation[T] = Callable[[], T]
@@ -91,9 +91,9 @@ class FlextCliTypesDomain:
         | t.JsonMapping
         | t.JsonPayload
     )
-    type TypeKind = ce.TypeKind
+    type TypeKind = FlextCliConstantsEnums.TypeKind
     type TypedExtractValue = str | bool | t.JsonMapping
-    type TableDataSource = tb.TabularData | t.SequenceOf[t.JsonMapping]
+    type TableDataSource = FlextCliTypesBase.TabularData | t.SequenceOf[t.JsonMapping]
     type TextPath = str | Path
     type JsonWriteData = t.JsonPayload
 
