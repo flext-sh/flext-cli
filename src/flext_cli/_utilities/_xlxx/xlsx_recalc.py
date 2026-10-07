@@ -10,11 +10,8 @@ import tempfile
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._xlxx.xlsx_recalc_evidence import (
-    FlextCliUtilitiesXlsxRecalcEvidence,
-)
-from flext_cli._utilities._xlxx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
-from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
+from flext_cli._utilities import FlextCliUtilitiesXlsxRecalcEvidence
+from flext_cli._utilities import FlextCliUtilitiesXlsxSnapshot
 
 
 class FlextCliUtilitiesXlsxRecalc(
@@ -49,6 +46,7 @@ class FlextCliUtilitiesXlsxRecalc(
     def _xlsx_recalc_unchecked(
         request: m.Cli.XlsxRecalcRequest,
     ) -> p.Result[m.Cli.XlsxRecalcResult]:
+        from flext_cli._utilities import FlextCliUtilitiesProcesses
         with tempfile.TemporaryDirectory(
             prefix=c.Cli.XLSX_RECALC_TEMP_PREFIX,
         ) as workspace:

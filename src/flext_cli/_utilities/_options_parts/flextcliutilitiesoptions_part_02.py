@@ -8,15 +8,8 @@ from __future__ import annotations
 
 from functools import cache
 
-from flext_cli import c, t
-from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
-    FlextCliUtilitiesOptionBuilder,
-)
-from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_01 import (
-    FlextCliUtilitiesOptionsPart01,
-)
-from flext_cli.models import m
-from flext_core import u
+from flext_cli import c, m, t
+from flext_cli._utilities import FlextCliUtilitiesOptionsPart01
 
 
 class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
@@ -31,6 +24,7 @@ class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
             The resulting ``t.ValueAdapter[t.Cli.CliDefaultSource]``.
 
         """
+        from flext_core import u
         return u.type_adapter(t.Cli.CliDefaultSource)
 
     @staticmethod
@@ -76,6 +70,7 @@ class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
             TypeError: If ``normalized_atom is None``.
 
         """
+        from flext_core import u
         source_value = (
             getattr(settings, field_name)
             if settings is not None and field_name in type(settings).model_fields
@@ -113,6 +108,7 @@ class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
             The resulting ``m.Cli.OptionSpec``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesOptionBuilder
         return FlextCliUtilitiesOptionBuilder.build(field_name, registry)
 
     @staticmethod

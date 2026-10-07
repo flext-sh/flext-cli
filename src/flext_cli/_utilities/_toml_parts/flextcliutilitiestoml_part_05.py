@@ -12,16 +12,6 @@ from typing import TYPE_CHECKING
 from tomlkit.items import Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
-    FlextCliUtilitiesTomlPart01,
-)
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_02 import (
-    FlextCliUtilitiesTomlPart02,
-)
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_03 import (
-    FlextCliUtilitiesTomlPart03,
-)
-from flext_core import u
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -44,6 +34,8 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``bool``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesTomlPart01, FlextCliUtilitiesTomlPart02
+        from flext_core import u
         existing = container.get(key, None)
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing
@@ -79,6 +71,7 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``bool``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesTomlPart01
         current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
             container.get(key, None),
         )
@@ -104,6 +97,7 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``bool``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesTomlPart01, FlextCliUtilitiesTomlPart03
         existing = container.get(key, None)
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing if isinstance(existing, Mapping) else None,
@@ -137,6 +131,7 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``Table``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesTomlPart02, FlextCliUtilitiesTomlPart03
         return FlextCliUtilitiesTomlPart02.toml_ensure_path(
             FlextCliUtilitiesTomlPart03.toml_ensure_tool_table(doc),
             [segment for segment in path if segment != "tool"],

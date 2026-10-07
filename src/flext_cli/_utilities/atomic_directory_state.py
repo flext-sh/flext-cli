@@ -12,12 +12,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from flext_cli import t
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
+from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
 
 
 class FlextCliUtilitiesAtomicDirectoryState:
@@ -40,6 +35,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
             OSError: If ``state.st_dev != parent.state.st_dev``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
         state: os.stat_result | None
         try:
             state = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
@@ -106,6 +102,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
             The resulting ``os.stat_result``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFileMode
         flags = (
             os.O_RDONLY
             | getattr(os, "O_DIRECTORY", 0)
@@ -155,6 +152,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
             OSError: If ``file_path.identity(state) != expected``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
         if FlextCliUtilitiesAtomicFilePath.identity(state) != expected:
             message = f"atomic directory identity changed: {path}"
             raise OSError(errno.ESTALE, message, path)
@@ -165,6 +163,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
         path: Path,
         expected: os.stat_result,
     ) -> None:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath, FlextCliUtilitiesAtomicFileRead
         observed = os.fstat(descriptor)
         FlextCliUtilitiesAtomicFilePath.validate_directory_state(path, observed)
         if FlextCliUtilitiesAtomicFileRead.state_key(
@@ -193,6 +192,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
         path: Path,
         expected: os.stat_result,
     ) -> os.stat_result:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFileRead
         current = FlextCliUtilitiesAtomicDirectoryState.destination_state(
             path,
             parent=parent,

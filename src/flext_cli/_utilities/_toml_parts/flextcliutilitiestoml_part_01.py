@@ -15,9 +15,6 @@ from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c, p, t
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_02 import (
-    FlextCliUtilitiesTomlPart02,
-)
 from flext_core import u
 
 
@@ -169,6 +166,7 @@ class FlextCliUtilitiesTomlPart01:
             The resulting ``TOMLDocument``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesTomlPart02
         document = FlextCliUtilitiesTomlPart01.toml_document()
         for key, value in mapping.items():
             document[key] = FlextCliUtilitiesTomlPart02.toml_item_from_json_value(value)

@@ -14,13 +14,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from flext_cli import t
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_parent_descriptor import (
-    FlextCliUtilitiesAtomicParentDescriptor,
-)
-from flext_cli._utilities.atomic_parent_failure import (
-    FlextCliUtilitiesAtomicParentFailure,
-)
 
 
 class FlextCliUtilitiesAtomicFileDescriptor:
@@ -54,6 +47,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
             Each ``ParentDescriptor``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath, FlextCliUtilitiesAtomicParentDescriptor, FlextCliUtilitiesAtomicParentFailure
         validated = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         FlextCliUtilitiesAtomicFileDescriptor._require_capabilities(
             validated,
@@ -94,6 +88,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
                 ``parent.ancestry[-1] != expected``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath, FlextCliUtilitiesAtomicParentDescriptor
         descriptor_state = os.fstat(parent.descriptor)
         FlextCliUtilitiesAtomicFilePath.validate_directory_state(
             parent.path,
@@ -207,6 +202,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
 
     @staticmethod
     def _require_capabilities(path: Path, *, replace: bool, unlink: bool) -> None:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicParentDescriptor
         FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(path)
         operations: list[tuple[str, object]] = []
         if replace:
@@ -234,6 +230,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
             OSError: If ``validated.parent != parent.path``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
         validated = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         if validated.parent != parent.path:
             message = f"atomic file does not belong to authenticated parent: {path}"

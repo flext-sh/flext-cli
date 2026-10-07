@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_cli._constants import FlextCliConstantsEnums
 
 
 class FlextCliTypesPipeline:

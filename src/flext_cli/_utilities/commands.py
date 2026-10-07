@@ -11,8 +11,6 @@ from typing import TYPE_CHECKING
 
 # mro-j47u (codex): formatter contracts are owned once by the t facade.
 from flext_cli import c, r, t
-from flext_cli._utilities.output import FlextCliUtilitiesOutput
-from flext_core import u
 
 if TYPE_CHECKING:
     from flext_cli import p
@@ -34,6 +32,7 @@ class FlextCliUtilitiesCommands:
             The resulting ``str | None``.
 
         """
+        from flext_core import u
         if success_formatter is not None:
             formatted: str = success_formatter(result_value)
             return formatted
@@ -52,6 +51,7 @@ class FlextCliUtilitiesCommands:
         success_type: c.Cli.MessageTypes,
     ) -> None:
         """Emit success output as raw payload or styled CLI message."""
+        from flext_cli._utilities import FlextCliUtilitiesOutput
         rendered = (
             message
             if message.lstrip().startswith(("{", "["))
@@ -73,6 +73,7 @@ class FlextCliUtilitiesCommands:
         finalized by the CLI border's ``commands_emit_result_error``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesOutput
         error = r.require_error(result)
         FlextCliUtilitiesOutput.emit_raw(
             "{}\n".format(
@@ -92,6 +93,8 @@ class FlextCliUtilitiesCommands:
         """Finalize one failed Result through structured logging and CLI output."""
         # NOTE (multi-agent): keep the canonical Result intact through every
         # service layer; only this outer CLI boundary exposes its failure state.
+        from flext_cli._utilities import FlextCliUtilitiesOutput
+        from flext_core import u
         error = r.require_error(result)
         logger = u.fetch_logger(__name__)
         if isinstance(result.exception, Exception):

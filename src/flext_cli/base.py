@@ -13,14 +13,12 @@ from typing import TYPE_CHECKING, override
 
 # Concrete-module imports: this module resolves during the package root's
 # lazy ``s`` export, when the root namespace is still initializing.
-from flext_cli._settings import FlextCliSettings
-from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
-from flext_cli.models import m
-from flext_cli.protocols import p
+from flext_cli._utilities import FlextCliUtilitiesCli
+from flext_cli import m, p
 from flext_core import FlextService
 
 if TYPE_CHECKING:
-    from flext_cli.typings import t
+    from flext_cli import t
 
 
 class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
@@ -50,6 +48,7 @@ class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
     @classmethod
     def runtime_bootstrap_options(cls) -> m.RuntimeBootstrapOptions:
         """Return runtime bootstrap options binding the CLI settings class."""
+        from flext_cli._settings import FlextCliSettings
         return m.RuntimeBootstrapOptions(settings_type=FlextCliSettings)
 
 

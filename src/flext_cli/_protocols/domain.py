@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Protocol, runtime_checkable
 
 from flext_cli import t
-from flext_cli._protocols.base import FlextCliProtocolsBase
+from flext_cli._protocols import FlextCliProtocolsBase
 
 
 class FlextCliProtocolsDomain:

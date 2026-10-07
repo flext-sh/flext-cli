@@ -7,17 +7,17 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import t
-from flext_cli._models._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
-from flext_cli._models._xlsx.xlsx_cells import FlextCliModelsXlsxCells
-from flext_cli._models._xlsx.xlsx_layout import FlextCliModelsXlsxLayout
-from flext_cli._models._xlsx.xlsx_recalc import FlextCliModelsXlsxRecalc
-from flext_cli._models._xlsx.xlsx_rules import FlextCliModelsXlsxRules
-from flext_cli._models._xlsx.xlsx_snapshot import FlextCliModelsXlsxSnapshot
-from flext_cli._models._xlsx.xlsx_style_catalog import FlextCliModelsXlsxStyleCatalog
-from flext_cli._models._xlsx.xlsx_styles import FlextCliModelsXlsxStyles
-from flext_cli._models._xlsx.xlsx_tables import FlextCliModelsXlsxTables
-from flext_cli._models._xlsx.xlsx_validation import FlextCliModelsXlsxValidation
-from flext_cli._models._xlsx.xlsx_workbook import FlextCliModelsXlsxWorkbook
+from flext_cli._models import FlextCliModelsXlsxArchive
+from flext_cli._models import FlextCliModelsXlsxCells
+from flext_cli._models import FlextCliModelsXlsxLayout
+from flext_cli._models import FlextCliModelsXlsxRecalc
+from flext_cli._models import FlextCliModelsXlsxRules
+from flext_cli._models import FlextCliModelsXlsxSnapshot
+from flext_cli._models import FlextCliModelsXlsxStyleCatalog
+from flext_cli._models import FlextCliModelsXlsxStyles
+from flext_cli._models import FlextCliModelsXlsxTables
+from flext_cli._models import FlextCliModelsXlsxValidation
+from flext_cli._models import FlextCliModelsXlsxWorkbook
 
 
 class FlextCliModelsXlsx(

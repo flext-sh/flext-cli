@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import overload
 
 from flext_cli import c, m, p, t
-from flext_core import u
 
 
 class FlextCliUtilitiesSettings:
@@ -104,6 +103,7 @@ class FlextCliUtilitiesSettings:
             The canonical CLI settings snapshot.
 
         """
+        from flext_core import u
         path = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
         exists = path.exists()
         return m.Cli.SettingsSnapshot(

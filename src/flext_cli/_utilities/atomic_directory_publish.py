@@ -11,22 +11,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Never
 
-from flext_cli._utilities.atomic_directory_descriptor import (
-    FlextCliUtilitiesAtomicDirectoryDescriptor,
-)
-from flext_cli._utilities.atomic_directory_model import (
-    FlextCliUtilitiesAtomicDirectoryModel,
-)
-from flext_cli._utilities.atomic_directory_state import (
-    FlextCliUtilitiesAtomicDirectoryState,
-)
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_durability import (
-    FlextCliUtilitiesAtomicFileDurability,
-)
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
 
 if TYPE_CHECKING:
     from flext_cli import m
@@ -55,6 +40,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
             OSError: If ``destination == staged_path``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryDescriptor, FlextCliUtilitiesAtomicDirectoryModel, FlextCliUtilitiesAtomicFileDurability, FlextCliUtilitiesAtomicFilePath
         destination = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(
             destination_before.path,
         )
@@ -151,6 +137,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> None:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryModel, FlextCliUtilitiesAtomicDirectoryState
         observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
             path,
             parent=parent,
@@ -164,6 +151,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> os.stat_result:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryModel, FlextCliUtilitiesAtomicDirectoryState
         observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
             path,
             parent=parent,
@@ -200,6 +188,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         staged_path: Path,
         staged: m.Cli.AtomicDirectoryState,
     ) -> m.Cli.AtomicDirectoryState:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryModel, FlextCliUtilitiesAtomicDirectoryState
         if (
             FlextCliUtilitiesAtomicDirectoryState.destination_state(
                 staged_path,

@@ -10,10 +10,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
-from flext_cli._utilities._xlxx.xlsx_formula_codec import (
-    FlextCliUtilitiesXlsxFormulaCodec,
-)
+from flext_cli._utilities import FlextCliUtilitiesXlsxAddresses
 
 
 class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
@@ -67,6 +64,7 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
 
     @classmethod
     def _data_validation(cls, plan: m.Cli.XlsxDataValidationPlan) -> DataValidation:
+        from flext_cli._utilities import FlextCliUtilitiesXlsxFormulaCodec
         messages = plan.messages
         formula1: str | None = None
         formula2: str | None = None

@@ -9,16 +9,6 @@ from __future__ import annotations
 import errno
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_durability import (
-    FlextCliUtilitiesAtomicFileDurability,
-)
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileModel
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
 
 if TYPE_CHECKING:
     from flext_cli import m
@@ -36,6 +26,7 @@ class FlextCliUtilitiesAtomicFileDelete:
             None``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor, FlextCliUtilitiesAtomicFileDurability, FlextCliUtilitiesAtomicFileMode, FlextCliUtilitiesAtomicFileModel, FlextCliUtilitiesAtomicFilePath, FlextCliUtilitiesAtomicFileState
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(state.path)
         content, mode, _identity = FlextCliUtilitiesAtomicFileModel.require_existing(
             state,

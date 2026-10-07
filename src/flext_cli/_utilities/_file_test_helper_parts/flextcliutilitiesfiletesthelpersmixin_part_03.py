@@ -15,10 +15,6 @@ from collections.abc import Mapping, MutableMapping
 from typing import TYPE_CHECKING
 
 from flext_cli import c, p, r
-from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
-    FlextCliUtilitiesFileTestHelpersMixinPart04,
-)
-from flext_cli._utilities.files import FlextCliUtilitiesFiles
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -50,6 +46,7 @@ class FlextCliUtilitiesFileTestHelpersMixinPart03:
             ``r.fail(msg)`` on error.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesFiles
         if mode == "size":
             return r[bool].ok(file1.stat().st_size == file2.stat().st_size)
         if mode == "hash":
@@ -104,6 +101,7 @@ class FlextCliUtilitiesFileTestHelpersMixinPart03:
             ``is_file``, ``is_dir``, ``format``, ``hash``, ``parsed``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesFileTestHelpersMixinPart04, FlextCliUtilitiesFiles
         try:
             stat = path.stat()
         except OSError as exc:

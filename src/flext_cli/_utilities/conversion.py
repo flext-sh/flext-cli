@@ -9,7 +9,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_core import u
 
 
 class FlextCliUtilitiesConversion:
@@ -72,6 +71,7 @@ class FlextCliUtilitiesConversion:
             The resulting ``str | None``.
 
         """
+        from flext_core import u
         if isinstance(value, Path):
             return str(value)
         normalized = u.norm_str(value, default="").strip()

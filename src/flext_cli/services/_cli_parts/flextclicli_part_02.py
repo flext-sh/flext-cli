@@ -11,7 +11,6 @@ from typing import get_origin
 
 from flext_cli import c, m, p, r, settings, t, u
 from flext_cli.services._cli_parts.flextclicli_part_01 import FlextCliCliPart01
-from flext_cli.services.cli_params import FlextCliCommonParams
 
 
 class FlextCliCliPart02(FlextCliCliPart01):
@@ -128,6 +127,7 @@ class FlextCliCliPart02(FlextCliCliPart01):
 
     def _apply_common_params_to_config(self, *, params: m.Cli.CliParamsConfig) -> None:
         """Apply global CLI flags to the shared settings singleton."""
+        from flext_cli.services.cli_params import FlextCliCommonParams
         resolved_log_level: str = (
             params.log_level if params.log_level is not None else settings.cli_log_level
         )

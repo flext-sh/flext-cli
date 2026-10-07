@@ -15,14 +15,13 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING
 
-from flext_cli._constants.base import FlextCliConstantsBase
-from flext_cli._models.config import FlextCliConfigModels
+from flext_cli._constants import FlextCliConstantsBase
 from flext_core import FlextConfig
 
 if TYPE_CHECKING:
     # NOTE (multi-agent): accessor typed by PROTOCOL (p), never the model
     # class; the protocol module enters under TYPE_CHECKING only (§2.5/§3.4).
-    from flext_cli._protocols.config import FlextCliProtocolsConfig
+    from flext_cli._protocols import FlextCliProtocolsConfig
 
 
 class FlextCliConfig(FlextConfig):
@@ -37,6 +36,7 @@ class FlextCliConfig(FlextConfig):
     @cached_property
     def Cli(self) -> FlextCliProtocolsConfig.Cli:
         """Validated ``Cli`` config domain (name/version identity metadata)."""
+        from flext_cli._models import FlextCliConfigModels
         root = FlextCliConfigModels.Root.model_validate(dict(self.model_extra or {}))
         return root.Cli
 

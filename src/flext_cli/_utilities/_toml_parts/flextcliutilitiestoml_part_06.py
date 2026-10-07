@@ -12,11 +12,6 @@ import tomlkit
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c, e, p, r, t
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
-    FlextCliUtilitiesTomlPart01,
-)
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-from flext_core import u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -33,6 +28,7 @@ class FlextCliUtilitiesTomlPart06:
             The resulting ``TOMLDocument | None``.
 
         """
+        from flext_core import u
         if not path.exists():
             return None
         parsed: TOMLDocument | None
@@ -74,6 +70,7 @@ class FlextCliUtilitiesTomlPart06:
             The resulting ``p.Result[t.JsonMapping]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesTomlPart01
         if not path.exists():
             return e.fail_not_found(
                 "TOML file",
@@ -115,6 +112,8 @@ class FlextCliUtilitiesTomlPart06:
             The resulting ``p.Result[bool]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesRuntime
+        from flext_core import u
         if path.name != "pyproject.toml":
             return r[bool].ok(value=False)
         command = ["taplo", "format"]
@@ -146,6 +145,7 @@ class FlextCliUtilitiesTomlPart06:
             The resulting ``p.Result[bool]``.
 
         """
+        from flext_core import u
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             u.write_file(path, doc.as_string(), encoding=c.Cli.ENCODING_DEFAULT)

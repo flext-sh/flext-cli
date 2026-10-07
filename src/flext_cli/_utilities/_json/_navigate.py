@@ -15,8 +15,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities._json._core import FlextCliUtilitiesJsonCoreMixin
-from flext_core import u
+from flext_cli._utilities import FlextCliUtilitiesJsonCoreMixin
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -49,6 +48,7 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
             The resulting ``t.JsonValue | None``.
 
         """
+        from flext_core import u
         current: t.JsonMapping = data
         for key in keys[:-1]:
             raw = current.get(key, None)
@@ -100,6 +100,7 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
             The resulting ``str``.
 
         """
+        from flext_core import u
         return u.norm_str(data.get(key, default), default=default).strip()
 
     @staticmethod
@@ -110,6 +111,7 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
             The resulting ``int``.
 
         """
+        from flext_core import u
         parsed = u.parse(data.get(key, default), int, default=default).unwrap_or(
             default,
         )
@@ -123,6 +125,7 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
             The resulting ``bool``.
 
         """
+        from flext_core import u
         parsed: bool = u.parse(data.get(key, None), bool, default=default).unwrap_or(
             default,
         )
@@ -136,6 +139,7 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
             The resulting ``int``.
 
         """
+        from flext_core import u
         parsed = u.parse(
             FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys),
             int,
@@ -157,6 +161,7 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
             The resulting ``str``.
 
         """
+        from flext_core import u
         raw = FlextCliUtilitiesJsonNavigateMixin.json_pick_str(mapping, key, default)
         return u.normalize(raw, case=case)
 

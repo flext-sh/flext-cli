@@ -10,19 +10,6 @@ import errno
 import os
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_durability import (
-    FlextCliUtilitiesAtomicFileDurability,
-)
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileModel
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_publish_checks import (
-    FlextCliUtilitiesAtomicFilePublishChecks,
-)
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
 
 if TYPE_CHECKING:
     from flext_cli import m
@@ -52,6 +39,7 @@ class FlextCliUtilitiesAtomicFilePublish:
             OSError: If ``destination == staged_path``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor, FlextCliUtilitiesAtomicFileDurability, FlextCliUtilitiesAtomicFileMode, FlextCliUtilitiesAtomicFileModel, FlextCliUtilitiesAtomicFilePath, FlextCliUtilitiesAtomicFilePublishChecks, FlextCliUtilitiesAtomicFileState
         destination = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(
             destination_before.path,
         )

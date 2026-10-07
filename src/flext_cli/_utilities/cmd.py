@@ -7,8 +7,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.settings import FlextCliUtilitiesSettings
-from flext_core import u
 
 
 class FlextCliUtilitiesCmd:
@@ -22,6 +20,7 @@ class FlextCliUtilitiesCmd:
             The canonical public CLI runtime status model.
 
         """
+        from flext_core import u
         return m.Cli.RuntimeStatus(
             status=c.Cli.ServiceStatus.OPERATIONAL,
             service=c.Cli.FLEXT_CLI,
@@ -43,6 +42,7 @@ class FlextCliUtilitiesCmd:
             The canonical settings snapshot without normalizing failures.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesSettings
         return r[m.Cli.SettingsSnapshot].ok(
             FlextCliUtilitiesSettings.settings_snapshot_model(),
         )
@@ -74,6 +74,7 @@ class FlextCliUtilitiesCmd:
             The resulting ``p.Result[bool]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesSettings
         results = FlextCliUtilitiesSettings.validate_settings_structure()
         if results:
             logger.info(

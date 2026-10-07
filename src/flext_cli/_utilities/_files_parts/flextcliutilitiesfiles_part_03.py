@@ -14,13 +14,6 @@ import stat
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
-    FlextCliUtilitiesFilesPart02,
-)
-from flext_cli._utilities.atomic_file_publish import FlextCliUtilitiesAtomicFilePublish
-from flext_cli._utilities.atomic_file_snapshot import (
-    FlextCliUtilitiesAtomicFileSnapshot,
-)
 
 
 class FlextCliUtilitiesFilesPart03:
@@ -37,6 +30,7 @@ class FlextCliUtilitiesFilesPart03:
 
         """
 
+        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         def _load() -> t.SequenceOf[t.StrMapping]:
             with Path(file_path).open(
                 encoding=c.Cli.ENCODING_DEFAULT,
@@ -57,6 +51,7 @@ class FlextCliUtilitiesFilesPart03:
             The resulting ``p.Result[bytes]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         return FlextCliUtilitiesFilesPart02.files_execute(
             lambda: Path(file_path).read_bytes(),
             c.Cli.ERR_BINARY_READ_FAILED,
@@ -80,6 +75,7 @@ class FlextCliUtilitiesFilesPart03:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFileSnapshot
         path = Path(file_path)
         try:
             parent, state, content = (
@@ -124,6 +120,7 @@ class FlextCliUtilitiesFilesPart03:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePublish
         try:
             published = FlextCliUtilitiesAtomicFilePublish.publish_guarded_staged_file(
                 destination_before,
@@ -158,6 +155,7 @@ class FlextCliUtilitiesFilesPart03:
             Sorted child directory names for one path.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         path = Path(file_path)
         if not path.exists():
             return r[t.SequenceOf[str]].ok(())
@@ -182,6 +180,7 @@ class FlextCliUtilitiesFilesPart03:
             The resulting ``p.Result[bool]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesFilesPart02
         target_path = Path(target)
         source_path = Path(source).resolve()
         ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(target_path.parent)

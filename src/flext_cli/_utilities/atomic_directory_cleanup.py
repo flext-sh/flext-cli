@@ -11,19 +11,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities.atomic_directory_descriptor import (
-    FlextCliUtilitiesAtomicDirectoryDescriptor,
-)
-from flext_cli._utilities.atomic_directory_state import (
-    FlextCliUtilitiesAtomicDirectoryState,
-)
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_durability import (
-    FlextCliUtilitiesAtomicFileDurability,
-)
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
+from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -62,6 +50,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         path: Path,
         identity: t.Pair[int, int] | None,
     ) -> None:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryDescriptor, FlextCliUtilitiesAtomicDirectoryState, FlextCliUtilitiesAtomicFileDurability
         state = FlextCliUtilitiesAtomicDirectoryState.destination_state(
             path,
             parent=parent,
@@ -104,6 +93,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         state: os.stat_result,
         identity: t.Pair[int, int] | None,
     ) -> t.Pair[int, int]:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryState
         if identity is None:
             message = f"refusing unauthenticated directory cleanup: {path}"
             raise OSError(errno.ESTALE, message, path)
@@ -116,6 +106,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         current: os.stat_result | None,
         authenticated: os.stat_result,
     ) -> None:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFileRead
         if current is None:
             message = f"atomic directory changed before cleanup: {path}"
             raise OSError(errno.ESTALE, message, path)

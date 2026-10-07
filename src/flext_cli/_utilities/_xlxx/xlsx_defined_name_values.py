@@ -14,10 +14,8 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._xlxx.xlsx_snapshot_values import (
-    FlextCliUtilitiesXlsxSnapshotValues,
-)
-from flext_cli._utilities._xlxx.xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
+from flext_cli._utilities import FlextCliUtilitiesXlsxSnapshotValues
+from flext_cli._utilities import FlextCliUtilitiesXlsxWorkbookIo
 
 
 class FlextCliUtilitiesXlsxDefinedNameValues(

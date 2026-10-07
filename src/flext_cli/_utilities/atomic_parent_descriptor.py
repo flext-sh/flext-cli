@@ -15,7 +15,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from flext_cli import t
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli.typings import DirectoryChainInspection
 
 
@@ -51,6 +50,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
             Each ``PhysicalDirectory``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
         FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(path)
         FlextCliUtilitiesAtomicFilePath.validate_directory_path(path)
         descriptors: list[int] = []
@@ -106,6 +106,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                 ``file_path.identity(state) != ancestry[index + 1]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
         parts = path.parts
         if len(parts) != len(ancestry) or len(lineage) != len(ancestry) - 1:
             message = f"atomic parent lineage does not match its pathname: {path}"
@@ -148,6 +149,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                 != (state.st_dev, state.st_ino)``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
         target = FlextCliUtilitiesAtomicFilePath.validate_directory_path(path)
         FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(target)
         descriptors: list[int] = []
@@ -220,6 +222,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
         *,
         stop_at_missing: bool,
     ) -> t.Quad[int, os.stat_result, t.VariadicTuple[t.Pair[int, int]], int]:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
         flags = (
             os.O_RDONLY
             | getattr(os, "O_DIRECTORY", 0)

@@ -11,7 +11,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import c, m, p, s, t, u
-from flext_cli.services.formatters import FlextCliFormatters
 
 
 class FlextCliTables(s[m.Cli.RuntimeStatus]):
@@ -43,6 +42,7 @@ class FlextCliTables(s[m.Cli.RuntimeStatus]):
     ) -> None:
         """Render and display a formatted table on the console."""
 
+        from flext_cli.services.formatters import FlextCliFormatters
         def _render_with_title(rendered: str, title: str | None = None) -> str:
             if title:
                 FlextCliFormatters.print(title, style=c.Cli.MessageStyles.BOLD)

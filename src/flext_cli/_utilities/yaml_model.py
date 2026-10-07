@@ -9,7 +9,6 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import c, p, r, t
-from flext_core import u
 
 
 class FlextCliUtilitiesYamlModel:
@@ -25,6 +24,7 @@ class FlextCliUtilitiesYamlModel:
             The resulting ``p.Result[bool]``.
 
         """
+        from flext_core import u
         try:
             return u.Yaml.yaml_dump(
                 Path(file_path),

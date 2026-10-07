@@ -12,11 +12,7 @@ import stat
 from pathlib import Path
 
 from flext_cli import t
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
+from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
 
 
 class FlextCliUtilitiesAtomicFileState:
@@ -145,6 +141,7 @@ class FlextCliUtilitiesAtomicFileState:
                 file_read.state_key(expected)``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFileRead
         if parent is None:
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
                 path,
@@ -180,6 +177,7 @@ class FlextCliUtilitiesAtomicFileState:
             The filesystem identity shared by descriptor and pathname stats.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
         return FlextCliUtilitiesAtomicFilePath.identity(state)
 
     @staticmethod
@@ -195,6 +193,7 @@ class FlextCliUtilitiesAtomicFileState:
             The resulting ``bytes``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFileRead
         if parent is None:
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
                 path,
@@ -218,6 +217,7 @@ class FlextCliUtilitiesAtomicFileState:
 
     @staticmethod
     def _validate_regular_state(path: Path, state: os.stat_result) -> None:
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
         if not stat.S_ISREG(
             state.st_mode,
         ) or FlextCliUtilitiesAtomicFilePath.reparse_point(state):

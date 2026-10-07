@@ -21,10 +21,6 @@ from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
-    FlextCliUtilitiesFilesPart03,
-)
-from flext_core import u
 
 
 class FlextCliUtilitiesTemplate:
@@ -73,6 +69,7 @@ class FlextCliUtilitiesTemplate:
                     ``UnicodeDecodeError`` is caught.
 
             """
+            from flext_cli._utilities import FlextCliUtilitiesFilesPart03
             del environment
             relative = Path(template)
             source = (self.search_path / relative).absolute()
@@ -149,6 +146,7 @@ class FlextCliUtilitiesTemplate:
             The resulting ``p.Result[str]``.
 
         """
+        from flext_core import u
         if not path.is_file():
             return r[str].fail(f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {path}")
         env = FlextCliUtilitiesTemplate.template_environment(path.parent)
@@ -172,6 +170,7 @@ class FlextCliUtilitiesTemplate:
             The resulting ``p.Result[m.Cli.AuthenticatedTemplateRender]``.
 
         """
+        from flext_core import u
         source = path.expanduser().absolute()
         loader = FlextCliUtilitiesTemplate._AuthenticatedLoader(source.parent)
         environment = SandboxedEnvironment(
@@ -211,6 +210,7 @@ class FlextCliUtilitiesTemplate:
             The resulting ``p.Result[bool]``.
 
         """
+        from flext_core import u
         rendered = FlextCliUtilitiesTemplate.template_render(path, context)
         if rendered.failure:
             return r[bool].from_failure(rendered)

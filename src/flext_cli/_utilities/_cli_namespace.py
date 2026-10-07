@@ -6,39 +6,37 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
-    FlextCliUtilitiesOptionsPart02,
-)
-from flext_cli._utilities.auth import FlextCliUtilitiesAuth
-from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
-from flext_cli._utilities.commands import FlextCliUtilitiesCommands
-from flext_cli._utilities.config import FlextCliUtilitiesConfig
-from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
-from flext_cli._utilities.docx import FlextCliUtilitiesDocx
-from flext_cli._utilities.env import FlextCliUtilitiesEnv
-from flext_cli._utilities.file_test_helpers import FlextCliUtilitiesFileTestHelpersMixin
-from flext_cli._utilities.files import FlextCliUtilitiesFiles
-from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
-from flext_cli._utilities.framework import FlextCliUtilitiesFramework
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_cli._utilities.matching import FlextCliUtilitiesMatching
-from flext_cli._utilities.output import FlextCliUtilitiesOutput
-from flext_cli._utilities.params import FlextCliUtilitiesParams
-from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
-from flext_cli._utilities.pptx import FlextCliUtilitiesPptx
-from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
-from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
-from flext_cli._utilities.report import FlextCliUtilitiesReport
-from flext_cli._utilities.rules import FlextCliUtilitiesRules
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-from flext_cli._utilities.settings import FlextCliUtilitiesSettings
-from flext_cli._utilities.tables import FlextCliUtilitiesTables
-from flext_cli._utilities.template import FlextCliUtilitiesTemplate
-from flext_cli._utilities.toml import FlextCliUtilitiesToml
-from flext_cli._utilities.validation import FlextCliUtilitiesValidation
-from flext_cli._utilities.xlsx import FlextCliUtilitiesXlsx
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
-from flext_cli._utilities.yaml_model import FlextCliUtilitiesYamlModel
+from flext_cli._utilities import FlextCliUtilitiesOptionsPart02
+from flext_cli._utilities import FlextCliUtilitiesAuth
+from flext_cli._utilities import FlextCliUtilitiesCmd
+from flext_cli._utilities import FlextCliUtilitiesCommands
+from flext_cli._utilities import FlextCliUtilitiesConfig
+from flext_cli._utilities import FlextCliUtilitiesConversion
+from flext_cli._utilities import FlextCliUtilitiesDocx
+from flext_cli._utilities import FlextCliUtilitiesEnv
+from flext_cli._utilities import FlextCliUtilitiesFileTestHelpersMixin
+from flext_cli._utilities import FlextCliUtilitiesFiles
+from flext_cli._utilities import FlextCliUtilitiesFormatters
+from flext_cli._utilities import FlextCliUtilitiesFramework
+from flext_cli._utilities import FlextCliUtilitiesJson
+from flext_cli._utilities import FlextCliUtilitiesMatching
+from flext_cli._utilities import FlextCliUtilitiesOutput
+from flext_cli._utilities import FlextCliUtilitiesParams
+from flext_cli._utilities import FlextCliUtilitiesPipeline
+from flext_cli._utilities import FlextCliUtilitiesPptx
+from flext_cli._utilities import FlextCliUtilitiesProcesses
+from flext_cli._utilities import FlextCliUtilitiesPrompts
+from flext_cli._utilities import FlextCliUtilitiesReport
+from flext_cli._utilities import FlextCliUtilitiesRules
+from flext_cli._utilities import FlextCliUtilitiesRuntime
+from flext_cli._utilities import FlextCliUtilitiesSettings
+from flext_cli._utilities import FlextCliUtilitiesTables
+from flext_cli._utilities import FlextCliUtilitiesTemplate
+from flext_cli._utilities import FlextCliUtilitiesToml
+from flext_cli._utilities import FlextCliUtilitiesValidation
+from flext_cli._utilities import FlextCliUtilitiesXlsx
+from flext_cli._utilities import FlextCliUtilitiesYaml
+from flext_cli._utilities import FlextCliUtilitiesYamlModel
 
 
 class FlextCliUtilitiesCli(

@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Annotated
 
 from flext_cli import t
-from flext_cli._models.base import FlextCliModelsBase
+from flext_cli._models import FlextCliModelsBase
 from flext_core import m
 
 

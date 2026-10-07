@@ -6,9 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_05 import (
-    FlextCliProtocolsBasePart05,
-)
+from flext_cli._protocols import FlextCliProtocolsBasePart05
 
 
 class FlextCliProtocolsBase(FlextCliProtocolsBasePart05):

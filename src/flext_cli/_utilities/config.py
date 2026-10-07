@@ -19,11 +19,6 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06 import (
-    FlextCliUtilitiesTomlPart06,
-)
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_core import u
 
 
 class FlextCliUtilitiesConfig:
@@ -37,6 +32,8 @@ class FlextCliUtilitiesConfig:
             The resulting ``p.Result[t.JsonMapping]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesJson, FlextCliUtilitiesTomlPart06
+        from flext_core import u
         suffix = path.suffix.lower()
         if suffix in {c.CONFIG_YAML_SUFFIX, ".yml"}:
             return u.Yaml.yaml_safe_load(path)
@@ -62,6 +59,7 @@ class FlextCliUtilitiesConfig:
             The resulting ``p.Result[m.ConfigDocument]``.
 
         """
+        from flext_core import u
         read = FlextCliUtilitiesConfig._read_by_suffix(path)
         if read.failure:
             return r[m.ConfigDocument].from_failure(read)
@@ -120,6 +118,8 @@ class FlextCliUtilitiesConfig:
             The resulting ``p.Result[bool]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesJson
+        from flext_core import u
         schema_read = FlextCliUtilitiesJson.json_read(schema_path)
         if schema_read.failure:
             return r[bool].from_failure(schema_read)

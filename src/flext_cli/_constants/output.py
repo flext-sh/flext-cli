@@ -9,7 +9,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar
 
-from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_cli._constants import FlextCliConstantsEnums
 from flext_core import c, t
 
 if TYPE_CHECKING:

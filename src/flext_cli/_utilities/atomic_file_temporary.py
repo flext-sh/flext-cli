@@ -13,10 +13,7 @@ import stat
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
+from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
 
 
 class FlextCliUtilitiesAtomicFileTemporary:
@@ -90,6 +87,7 @@ class FlextCliUtilitiesAtomicFileTemporary:
             OSError: If ``written == 0``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesAtomicFileMode
         remaining = memoryview(content)
         while remaining:
             written = os.write(descriptor, remaining)

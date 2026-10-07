@@ -17,9 +17,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._rules._matchers import FlextCliUtilitiesRulesMatchersMixin
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_core import u
+from flext_cli._utilities import FlextCliUtilitiesRulesMatchersMixin
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -41,6 +39,7 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
             The resulting ``t.JsonMapping``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesJson
         normalized = FlextCliUtilitiesJson.json_as_mapping(settings)
         scope_raw = normalized.get(scope_key)
         scope_map = FlextCliUtilitiesJson.json_as_mapping(scope_raw)
@@ -61,6 +60,7 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
             The resulting ``p.Result[t.JsonMapping]``.
 
         """
+        from flext_core import u
         normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
             u.Yaml.safe_load_file(config_path),
         )
@@ -87,6 +87,7 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
             The resulting ``p.Result[t.JsonMapping]``.
 
         """
+        from flext_core import u
         package_registry = package_rules_dir / registry_filename
         candidates = [
             FlextCliUtilitiesRulesLoadersMixin.rules_resolve_directory(
@@ -125,6 +126,8 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
             The resulting ``p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesJson
+        from flext_core import u
         options = m.Cli.LocalDefinitionsOptions[
             TRuleKind,
             TFileRuleKind,

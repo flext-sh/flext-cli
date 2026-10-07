@@ -14,9 +14,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_cli._utilities.toml import FlextCliUtilitiesToml
-from flext_core import u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -33,6 +30,8 @@ class FlextCliUtilitiesFileTestHelpersMixinPart04:
             The resulting ``p.Result[t.JsonMapping]``.
 
         """
+        from flext_cli._utilities import FlextCliUtilitiesJson, FlextCliUtilitiesToml
+        from flext_core import u
         if fmt == c.Cli.FILE_FORMAT_JSON:
             result = FlextCliUtilitiesJson.json_read(path)
             if result.failure:
