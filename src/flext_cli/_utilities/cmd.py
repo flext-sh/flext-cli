@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.settings import FlextCliUtilitiesSettings as us
+from flext_cli._utilities import FlextCliUtilitiesSettings
 from flext_core import u
 
 
@@ -43,7 +43,9 @@ class FlextCliUtilitiesCmd:
             The canonical settings snapshot without normalizing failures.
 
         """
-        return r[m.Cli.SettingsSnapshot].ok(us.settings_snapshot_model())
+        return r[m.Cli.SettingsSnapshot].ok(
+            FlextCliUtilitiesSettings.settings_snapshot_model(),
+        )
 
     @staticmethod
     def cmd_show_settings(logger: p.Logger) -> p.Result[bool]:
@@ -72,7 +74,7 @@ class FlextCliUtilitiesCmd:
             The resulting ``p.Result[bool]``.
 
         """
-        results = us.validate_settings_structure()
+        results = FlextCliUtilitiesSettings.validate_settings_structure()
         if results:
             logger.info(
                 c.Cli.LOG_MSG_SETTINGS_VALIDATION_RESULTS.format(results=results),

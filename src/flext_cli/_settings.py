@@ -14,9 +14,8 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar
 
-from flext_cli._constants.settings import FlextCliConstantsSettings
-from flext_cli.models import m
-from flext_core import FlextSettings
+from flext_cli._constants import FlextCliConstantsSettings
+from flext_core import FlextSettings, m
 
 
 class FlextCliSettings(FlextSettings):

@@ -13,8 +13,8 @@ from flext_cli import c, t
 from flext_core import m, u
 
 
-class FlextCliModelsBase:
-    """Implementation part for FlextCliModelsBase."""
+class FlextCliModelsBasePart01:
+    """Implementation part for FlextCliModelsBasePart01."""
 
     class ProcessOutcome(m.Value):
         """Causal completion state for one fully reaped process."""
@@ -46,7 +46,7 @@ class FlextCliModelsBase:
             m.Field("", description="Captured standard error"),
         ] = ""
         outcome: Annotated[
-            FlextCliModelsBase.ProcessOutcome,
+            FlextCliModelsBasePart01.ProcessOutcome,
             m.Field(description="Causal process completion state"),
         ]
         duration: Annotated[
@@ -71,7 +71,7 @@ class FlextCliModelsBase:
             m.Field(b"", description="Captured standard error as raw bytes"),
         ] = b""
         outcome: Annotated[
-            FlextCliModelsBase.ProcessOutcome,
+            FlextCliModelsBasePart01.ProcessOutcome,
             m.Field(description="Causal process completion state"),
         ]
         duration: Annotated[
@@ -114,7 +114,7 @@ class FlextCliModelsBase:
         timestamp: Annotated[str, m.Field(description="Status generation timestamp")]
         version: Annotated[str, m.Field(description="CLI version")]
         components: Annotated[
-            FlextCliModelsBase.RuntimeComponents,
+            FlextCliModelsBasePart01.RuntimeComponents,
             m.Field(description="Component availability states"),
         ]
 
@@ -203,4 +203,4 @@ class FlextCliModelsBase:
         root: t.MappingKV[str, str]
 
 
-__all__: list[str] = ["FlextCliModelsBase"]
+__all__: list[str] = ["FlextCliModelsBasePart01"]

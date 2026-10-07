@@ -12,8 +12,8 @@ from flext_cli import c, t
 from flext_core import m, u
 
 
-class FlextCliModelsBase:
-    """Implementation part for FlextCliModelsBase."""
+class FlextCliModelsBasePart04:
+    """Implementation part for FlextCliModelsBasePart04."""
 
     class TableConfig(m.Value):
         """Table display configuration extending Value via inheritance.
@@ -105,4 +105,4 @@ class FlextCliModelsBase:
         )
 
 
-__all__: list[str] = ["FlextCliModelsBase"]
+__all__: list[str] = ["FlextCliModelsBasePart04"]

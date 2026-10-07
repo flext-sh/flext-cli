@@ -10,12 +10,12 @@ from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import c, p, t
-from flext_cli._models.atomic_state import FlextCliModelsAtomicState
+from flext_cli._models import FlextCliModelsAtomicState
 from flext_core import m, u
 
 
-class FlextCliModelsBase:
-    """Implementation part for FlextCliModelsBase."""
+class FlextCliModelsBasePart03:
+    """Implementation part for FlextCliModelsBasePart03."""
 
     class AtomicDirectoryState(m.BaseModel):
         """Exact empty-directory presence and physical identity."""
@@ -158,4 +158,4 @@ class FlextCliModelsBase:
         ] = c.Cli.MessageTypes.SUCCESS
 
 
-__all__: list[str] = ["FlextCliModelsBase"]
+__all__: list[str] = ["FlextCliModelsBasePart03"]

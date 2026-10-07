@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from examples import Ex05Authentication, Ex06Settings, c as ec
+from examples import Ex05Authentication, Ex06Settings, c
 from flext_tests import tm
 
 from flext_cli import cli, settings
@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
 
 
-class TestsFlextCliExamplesSmoke:
-    """Implementation part for TestsFlextCliExamplesSmoke."""
+class TestsFlextCliExamplesSmokePart03:
+    """Implementation part for TestsFlextCliExamplesSmokePart03."""
 
     @staticmethod
     @pytest.fixture
@@ -103,12 +103,12 @@ class TestsFlextCliExamplesSmoke:
         failures.
         """
         production_profile = Ex06Settings.load_profile_settings(
-            ec.DeploymentEnvironment.PRODUCTION,
+            c.DeploymentEnvironment.PRODUCTION,
         )
         tm.ok(production_profile)
         tm.that(
             production_profile.value.cli_output_format,
-            eq=ec.Cli.OutputFormats.JSON,
+            eq=c.Cli.OutputFormats.JSON,
         )
 
         testing_settings = Ex06Settings.apply_environment_overrides(
@@ -117,7 +117,7 @@ class TestsFlextCliExamplesSmoke:
                 "enable_metrics": True,
                 "temp_dir": str(tmp_path / "testing-cache"),
             },
-            ec.DeploymentEnvironment.TESTING,
+            c.DeploymentEnvironment.TESTING,
         )
         tm.that(testing_settings["max_workers"], eq=1)
         tm.that(testing_settings["enable_metrics"], eq=False)
@@ -125,5 +125,5 @@ class TestsFlextCliExamplesSmoke:
         with pytest.raises(TypeError):
             Ex06Settings.apply_environment_overrides(
                 {"max_workers": "bad", "enable_metrics": False},
-                ec.DeploymentEnvironment.PRODUCTION,
+                c.DeploymentEnvironment.PRODUCTION,
             )

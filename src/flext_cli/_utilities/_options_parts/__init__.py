@@ -16,14 +16,18 @@ if TYPE_CHECKING:
     from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
         FlextCliUtilitiesOptionBuilder,
     )
+    from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_01 import (
+        FlextCliUtilitiesOptionsPart01,
+    )
     from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
-        FlextCliUtilitiesOptions,
+        FlextCliUtilitiesOptionsPart02,
     )
 
 
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesOptionBuilder",
-    "FlextCliUtilitiesOptions",
+    "FlextCliUtilitiesOptionsPart01",
+    "FlextCliUtilitiesOptionsPart02",
 )
 
 install_lazy_exports(
@@ -31,7 +35,8 @@ install_lazy_exports(
     globals(),
     MappingProxyType({
         "FlextCliUtilitiesOptionBuilder": ".flextcliutilitiesoptionbuilder_part_01",
-        "FlextCliUtilitiesOptions": ".flextcliutilitiesoptions_part_02",
+        "FlextCliUtilitiesOptionsPart01": ".flextcliutilitiesoptions_part_01",
+        "FlextCliUtilitiesOptionsPart02": ".flextcliutilitiesoptions_part_02",
     }),
     public_exports=__all__,
 )

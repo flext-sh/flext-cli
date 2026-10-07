@@ -11,8 +11,8 @@ from typing import Annotated, ClassVar
 from flext_core import m
 
 
-class FlextCliModelsBase:
-    """Implementation part for FlextCliModelsBase."""
+class FlextCliModelsBasePart05:
+    """Implementation part for FlextCliModelsBasePart05."""
 
     class SettingsSnapshot(m.Value):
         """Snapshot of current CLI settings information."""
@@ -41,4 +41,4 @@ class FlextCliModelsBase:
         timestamp: Annotated[str, m.Field(description="Timestamp of snapshot")] = ""
 
 
-__all__: list[str] = ["FlextCliModelsBase"]
+__all__: list[str] = ["FlextCliModelsBasePart05"]

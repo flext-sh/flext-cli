@@ -19,7 +19,6 @@ from typer.models import OptionInfo
 from typer.testing import CliRunner
 
 from flext_cli import c, e, r, t
-from flext_core import u
 
 # mro-j47u (codex): consume every public facade through the package root.
 
@@ -258,6 +257,8 @@ class FlextCliUtilitiesFramework:
             The resulting ``Parameter``.
 
         """
+        from flext_core import u
+
         option_default: t.Cli.CliValue | EllipsisType | None = (
             ... if spec.required else spec.default
         )

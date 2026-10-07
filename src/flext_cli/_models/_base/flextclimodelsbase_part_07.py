@@ -16,8 +16,8 @@ from flext_core import m, u
 _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 
 
-class FlextCliModelsBase:
-    """Implementation part for FlextCliModelsBase."""
+class FlextCliModelsBasePart07:
+    """Implementation part for FlextCliModelsBasePart07."""
 
     class LogLevelResolved(m.BaseModel):
         """Single contract for log level string."""
@@ -187,4 +187,4 @@ class FlextCliModelsBase:
         ] = True
 
 
-__all__: list[str] = ["FlextCliModelsBase"]
+__all__: list[str] = ["FlextCliModelsBasePart07"]

@@ -15,17 +15,17 @@ from collections.abc import Mapping, MutableMapping
 from typing import TYPE_CHECKING
 
 from flext_cli import c, p, r
-from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
-    FlextCliUtilitiesFileTestHelpersMixin as FileTestHelpersMixinPart04,
+from flext_cli._utilities import (
+    FlextCliUtilitiesFiles,
+    FlextCliUtilitiesFileTestHelpersMixinPart04,
 )
-from flext_cli._utilities.files import FlextCliUtilitiesFiles
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-class FlextCliUtilitiesFileTestHelpersMixin:
-    """Implementation part for FlextCliUtilitiesFileTestHelpersMixin."""
+class FlextCliUtilitiesFileTestHelpersMixinPart03:
+    """Implementation part for FlextCliUtilitiesFileTestHelpersMixinPart03."""
 
     @staticmethod
     def files_compare(
@@ -121,12 +121,14 @@ class FlextCliUtilitiesFileTestHelpersMixin:
         if compute_hash:
             info["hash"] = FlextCliUtilitiesFiles.sha256_file(path)
         if parse_content and path.is_file():
-            parsed_result = FileTestHelpersMixinPart04.files_parse_content(
-                path,
-                str(info["format"]),
+            parsed_result = (
+                FlextCliUtilitiesFileTestHelpersMixinPart04.files_parse_content(
+                    path,
+                    str(info["format"]),
+                )
             )
             info["parsed"] = parsed_result
         return r[Mapping[str, object]].ok(info)
 
 
-__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixin"]
+__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixinPart03"]

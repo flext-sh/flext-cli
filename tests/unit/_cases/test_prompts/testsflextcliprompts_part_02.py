@@ -20,8 +20,8 @@ if TYPE_CHECKING:
     from tests import p
 
 
-class TestsFlextCliPrompts:
-    """Implementation part for TestsFlextCliPrompts."""
+class TestsFlextCliPromptsPart02:
+    """Implementation part for TestsFlextCliPromptsPart02."""
 
     @staticmethod
     def test_prompt_choice_paths(

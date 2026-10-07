@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 # ── Fixtures ────────────────────────────────────────────────────────
 
 
-class TestsFlextCliPipeline:
-    """Implementation part for TestsFlextCliPipeline."""
+class TestsFlextCliPipelinePart03:
+    """Implementation part for TestsFlextCliPipelinePart03."""
 
     @staticmethod
     def test_diamond_dependency(tmp_path: Path) -> None:

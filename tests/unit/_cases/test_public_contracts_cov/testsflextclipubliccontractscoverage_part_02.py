@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     from tests import p
 
 
-class TestsFlextCliPublicContractsCoverage:
-    """Implementation part for TestsFlextCliPublicContractsCoverage."""
+class TestsFlextCliPublicContractsCoveragePart02:
+    """Implementation part for TestsFlextCliPublicContractsCoveragePart02."""
 
     @staticmethod
     def test_public_model_contracts_cover_cli_shapes(tmp_path: Path) -> None:

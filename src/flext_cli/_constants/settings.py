@@ -9,7 +9,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli._constants.enums import FlextCliConstantsEnums as ce
+from flext_cli._constants import FlextCliConstantsEnums
 from flext_core import c, t
 
 
@@ -22,11 +22,11 @@ class FlextCliConstantsSettings:
     """
 
     OUTPUT_FORMATS: ClassVar[t.StrSequence] = tuple(
-        output_format.value for output_format in ce.OutputFormats
+        output_format.value for output_format in FlextCliConstantsEnums.OutputFormats
     )
     LOG_LEVELS: ClassVar[t.StrSequence] = tuple(item.value for item in c.LogLevel)
     MESSAGE_TYPES: ClassVar[t.StrSequence] = tuple(
-        item.value for item in ce.MessageTypes
+        item.value for item in FlextCliConstantsEnums.MessageTypes
     )
 
     CLI_DEFAULT_NO_COLOR: ClassVar[bool] = False
@@ -35,9 +35,13 @@ class FlextCliConstantsSettings:
     # NOTE (multi-agent): canonical scalar defaults consumed by _settings.py —
     # the settings foundation imports this PURE private module directly
     # (no facade cycle) so defaults stay SSOT with the enums (§1.8/§2.5).
-    CLI_DEFAULT_LOG_VERBOSITY: ClassVar[str] = ce.LogVerbosity.COMPACT.value
+    CLI_DEFAULT_LOG_VERBOSITY: ClassVar[str] = (
+        FlextCliConstantsEnums.LogVerbosity.COMPACT.value
+    )
     CLI_DEFAULT_LOG_LEVEL: ClassVar[str] = c.LogLevel.INFO.value
-    CLI_DEFAULT_OUTPUT_FORMAT: ClassVar[str] = ce.OutputFormats.TABLE.value
+    CLI_DEFAULT_OUTPUT_FORMAT: ClassVar[str] = (
+        FlextCliConstantsEnums.OutputFormats.TABLE.value
+    )
     CLI_PROCESS_HEARTBEAT_SECONDS: ClassVar[float] = 30.0
     CLI_PROCESS_HEARTBEAT_MAX_SECONDS: ClassVar[float] = 60.0
     CLI_PROCESS_HEARTBEAT_MESSAGE: ClassVar[str] = "flext-cli: process still running"
@@ -84,7 +88,7 @@ class FlextCliConstantsSettings:
     CLI_PARAM_LOG_FORMAT_OVERRIDE: ClassVar[str] = "log-format"
     CLI_PARAM_CASE_INSENSITIVE: ClassVar[bool] = False
     CLI_VALID_LOG_FORMATS: ClassVar[t.StrSequence] = tuple(
-        item.value for item in ce.LogVerbosity
+        item.value for item in FlextCliConstantsEnums.LogVerbosity
     )
 
     COMMANDS_DEFAULT_NAME: ClassVar[str] = "flext"

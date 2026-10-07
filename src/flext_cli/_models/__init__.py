@@ -14,6 +14,36 @@ from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._models import _base, _xlsx
+    from flext_cli._models._base.flextclimodelsbase_part_01 import (
+        FlextCliModelsBasePart01,
+    )
+    from flext_cli._models._base.flextclimodelsbase_part_02 import (
+        FlextCliModelsBasePart02,
+    )
+    from flext_cli._models._base.flextclimodelsbase_part_03 import (
+        FlextCliModelsBasePart03,
+    )
+    from flext_cli._models._base.flextclimodelsbase_part_04 import (
+        FlextCliModelsBasePart04,
+    )
+    from flext_cli._models._base.flextclimodelsbase_part_05 import (
+        FlextCliModelsBasePart05,
+    )
+    from flext_cli._models._base.flextclimodelsbase_part_06 import (
+        FlextCliModelsBasePart06,
+    )
+    from flext_cli._models._base.flextclimodelsbase_part_07 import (
+        FlextCliModelsBasePart07,
+    )
+    from flext_cli._models._base.flextclimodelsbase_part_08 import (
+        FlextCliModelsBasePart08,
+    )
+    from flext_cli._models._base.flextclimodelsbase_part_09 import (
+        FlextCliModelsBasePart09,
+    )
+    from flext_cli._models._base.flextclimodelsbase_part_10 import (
+        FlextCliModelsBasePart10,
+    )
     from flext_cli._models._defaults import FlextCliModelsDefaults
     from flext_cli._models._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
     from flext_cli._models._xlsx.xlsx_cells import FlextCliModelsXlsxCells
@@ -52,6 +82,16 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsAtomicState",
     "FlextCliModelsAtomicSymlink",
     "FlextCliModelsBase",
+    "FlextCliModelsBasePart01",
+    "FlextCliModelsBasePart02",
+    "FlextCliModelsBasePart03",
+    "FlextCliModelsBasePart04",
+    "FlextCliModelsBasePart05",
+    "FlextCliModelsBasePart06",
+    "FlextCliModelsBasePart07",
+    "FlextCliModelsBasePart08",
+    "FlextCliModelsBasePart09",
+    "FlextCliModelsBasePart10",
     "FlextCliModelsDefaults",
     "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
@@ -87,6 +127,16 @@ install_lazy_exports(
         "FlextCliModelsAtomicState": ".atomic_state",
         "FlextCliModelsAtomicSymlink": ".atomic_symlink",
         "FlextCliModelsBase": ".base",
+        "FlextCliModelsBasePart01": "._base.flextclimodelsbase_part_01",
+        "FlextCliModelsBasePart02": "._base.flextclimodelsbase_part_02",
+        "FlextCliModelsBasePart03": "._base.flextclimodelsbase_part_03",
+        "FlextCliModelsBasePart04": "._base.flextclimodelsbase_part_04",
+        "FlextCliModelsBasePart05": "._base.flextclimodelsbase_part_05",
+        "FlextCliModelsBasePart06": "._base.flextclimodelsbase_part_06",
+        "FlextCliModelsBasePart07": "._base.flextclimodelsbase_part_07",
+        "FlextCliModelsBasePart08": "._base.flextclimodelsbase_part_08",
+        "FlextCliModelsBasePart09": "._base.flextclimodelsbase_part_09",
+        "FlextCliModelsBasePart10": "._base.flextclimodelsbase_part_10",
         "FlextCliModelsDefaults": "._defaults",
         "FlextCliModelsDocx": ".docx",
         "FlextCliModelsDocxDocument": ".docx_document",

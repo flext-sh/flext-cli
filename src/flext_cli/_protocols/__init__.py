@@ -14,6 +14,21 @@ from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._protocols import _base_parts
+    from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_01 import (
+        FlextCliProtocolsBasePart01,
+    )
+    from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_02 import (
+        FlextCliProtocolsBasePart02,
+    )
+    from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_03 import (
+        FlextCliProtocolsBasePart03,
+    )
+    from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_04 import (
+        FlextCliProtocolsBasePart04,
+    )
+    from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_05 import (
+        FlextCliProtocolsBasePart05,
+    )
     from flext_cli._protocols.base import FlextCliProtocolsBase
     from flext_cli._protocols.config import FlextCliProtocolsConfig
     from flext_cli._protocols.domain import FlextCliProtocolsDomain
@@ -31,6 +46,11 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     "FlextCliProtocolsBase",
+    "FlextCliProtocolsBasePart01",
+    "FlextCliProtocolsBasePart02",
+    "FlextCliProtocolsBasePart03",
+    "FlextCliProtocolsBasePart04",
+    "FlextCliProtocolsBasePart05",
     "FlextCliProtocolsConfig",
     "FlextCliProtocolsDomain",
     "FlextCliProtocolsFramework",
@@ -49,6 +69,11 @@ install_lazy_exports(
     globals(),
     MappingProxyType({
         "FlextCliProtocolsBase": ".base",
+        "FlextCliProtocolsBasePart01": "._base_parts.flextcliprotocolsbase_part_01",
+        "FlextCliProtocolsBasePart02": "._base_parts.flextcliprotocolsbase_part_02",
+        "FlextCliProtocolsBasePart03": "._base_parts.flextcliprotocolsbase_part_03",
+        "FlextCliProtocolsBasePart04": "._base_parts.flextcliprotocolsbase_part_04",
+        "FlextCliProtocolsBasePart05": "._base_parts.flextcliprotocolsbase_part_05",
         "FlextCliProtocolsConfig": ".config",
         "FlextCliProtocolsDomain": ".domain",
         "FlextCliProtocolsFramework": ".framework",

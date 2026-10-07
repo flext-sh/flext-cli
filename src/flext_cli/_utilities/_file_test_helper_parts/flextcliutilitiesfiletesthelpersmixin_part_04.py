@@ -14,16 +14,15 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities.json import FlextCliUtilitiesJson as uj
-from flext_cli._utilities.toml import FlextCliUtilitiesToml as ut
+from flext_cli._utilities import FlextCliUtilitiesJson, FlextCliUtilitiesToml
 from flext_core import u
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-class FlextCliUtilitiesFileTestHelpersMixin:
-    """Implementation part for FlextCliUtilitiesFileTestHelpersMixin."""
+class FlextCliUtilitiesFileTestHelpersMixinPart04:
+    """Implementation part for FlextCliUtilitiesFileTestHelpersMixinPart04."""
 
     @staticmethod
     def files_parse_content(path: Path, fmt: str) -> p.Result[t.JsonMapping]:
@@ -34,7 +33,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
 
         """
         if fmt == c.Cli.FILE_FORMAT_JSON:
-            result = uj.json_read(path)
+            result = FlextCliUtilitiesJson.json_read(path)
             if result.failure:
                 return r[t.JsonMapping].from_failure(result)
             return r[t.JsonMapping].ok(result.value)
@@ -44,7 +43,7 @@ class FlextCliUtilitiesFileTestHelpersMixin:
                 return r[t.JsonMapping].from_failure(result)
             return r[t.JsonMapping].ok(result.value)
         if fmt == c.Cli.FILE_FORMAT_TOML:
-            toml_result = ut.toml_read_json(path)
+            toml_result = FlextCliUtilitiesToml.toml_read_json(path)
             if toml_result.failure:
                 return r[t.JsonMapping].from_failure(toml_result)
             return r[t.JsonMapping].ok(toml_result.value)
@@ -52,4 +51,4 @@ class FlextCliUtilitiesFileTestHelpersMixin:
         return r[t.JsonMapping].fail(msg)
 
 
-__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixin"]
+__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixinPart04"]

@@ -19,8 +19,8 @@ if TYPE_CHECKING:
     from tests import p
 
 
-class TestsFlextCliService:
-    """Implementation part for TestsFlextCliService."""
+class TestsFlextCliServicePart05:
+    """Implementation part for TestsFlextCliServicePart05."""
 
     @staticmethod
     def test_register_result_command_renders_success_and_failure() -> None:

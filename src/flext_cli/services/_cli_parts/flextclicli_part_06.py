@@ -7,13 +7,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import m, p, s, t, u
-from flext_cli.services._cli_parts.flextclicli_part_05 import (
-    FlextCliCli as FlextCliCliPart05,
-)
+from flext_cli.services._cli_parts.flextclicli_part_05 import FlextCliCliPart05
 
 
-class FlextCliCli(FlextCliCliPart05):
-    """Implementation part for FlextCliCli."""
+class FlextCliCliPart06(FlextCliCliPart05):
+    """Implementation part for FlextCliCliPart06."""
 
     @classmethod
     def service_routes[R: p.Base](
@@ -81,4 +79,4 @@ class FlextCliCli(FlextCliCliPart05):
         return u.to_json(normalized).decode()
 
 
-__all__: list[str] = ["FlextCliCli"]
+__all__: list[str] = ["FlextCliCliPart06"]

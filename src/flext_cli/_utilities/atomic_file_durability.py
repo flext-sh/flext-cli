@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import os
 
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
 )
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 
 
 class FlextCliUtilitiesAtomicFileDurability:

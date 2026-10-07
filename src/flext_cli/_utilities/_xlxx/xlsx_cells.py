@@ -11,9 +11,7 @@ from openpyxl.utils.exceptions import IllegalCharacterError
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._xlxx.xlsx_formula_codec import (
-    FlextCliUtilitiesXlsxFormulaCodec,
-)
+from flext_cli._utilities import FlextCliUtilitiesXlsxFormulaCodec
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
 

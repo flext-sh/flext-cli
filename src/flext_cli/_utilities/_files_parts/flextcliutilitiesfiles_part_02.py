@@ -10,13 +10,15 @@ import shutil
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.atomic_file import FlextCliUtilitiesAtomicFile
-from flext_cli._utilities.atomic_file_delete import FlextCliUtilitiesAtomicFileDelete
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFile,
+    FlextCliUtilitiesAtomicFileDelete,
+    FlextCliUtilitiesAtomicFilePath,
+)
 
 
-class FlextCliUtilitiesFiles:
-    """Implementation part for FlextCliUtilitiesFiles."""
+class FlextCliUtilitiesFilesPart02:
+    """Implementation part for FlextCliUtilitiesFilesPart02."""
 
     @staticmethod
     def files_write_binary(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
@@ -31,7 +33,7 @@ class FlextCliUtilitiesFiles:
             FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
-        ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
+        ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(path.parent)
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
         try:
@@ -58,7 +60,7 @@ class FlextCliUtilitiesFiles:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
             )
-        ensure_result = FlextCliUtilitiesFiles.ensure_dir(path.parent)
+        ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(path.parent)
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
         try:
@@ -165,7 +167,10 @@ class FlextCliUtilitiesFiles:
             shutil.copy2(source_path, destination_path)
             return True
 
-        return FlextCliUtilitiesFiles.files_execute(_copy, c.Cli.ERR_FILE_COPY_FAILED)
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            _copy,
+            c.Cli.ERR_FILE_COPY_FAILED,
+        )
 
     @staticmethod
     def files_execute[T](
@@ -201,7 +206,7 @@ class FlextCliUtilitiesFiles:
             _ = operation_func()
             return True
 
-        return FlextCliUtilitiesFiles.files_execute(
+        return FlextCliUtilitiesFilesPart02.files_execute(
             _run,
             error_template,
             **format_kwargs,
@@ -223,4 +228,4 @@ class FlextCliUtilitiesFiles:
         return r[Path].ok(target)
 
 
-__all__: list[str] = ["FlextCliUtilitiesFiles"]
+__all__: list[str] = ["FlextCliUtilitiesFilesPart02"]

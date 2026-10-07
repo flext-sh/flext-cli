@@ -9,28 +9,18 @@ from __future__ import annotations
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.atomic_directory_chain import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryChain,
-)
-from flext_cli._utilities.atomic_directory_create import (
     FlextCliUtilitiesAtomicDirectoryCreate,
-)
-from flext_cli._utilities.atomic_directory_delete import (
     FlextCliUtilitiesAtomicDirectoryDelete,
-)
-from flext_cli._utilities.atomic_directory_publish import (
     FlextCliUtilitiesAtomicDirectoryPublish,
-)
-from flext_cli._utilities.atomic_directory_snapshot import (
     FlextCliUtilitiesAtomicDirectorySnapshot,
-)
-from flext_cli._utilities.atomic_tree_cleanup import FlextCliUtilitiesAtomicTreeCleanup
-from flext_cli._utilities.atomic_tree_inventory import (
+    FlextCliUtilitiesAtomicTreeCleanup,
     FlextCliUtilitiesAtomicTreeInventory,
 )
 
 
-class FlextCliUtilitiesFiles:
+class FlextCliUtilitiesFilesPart05:
     """Implementation part for strict physical empty-directory effects."""
 
     @staticmethod
@@ -238,4 +228,4 @@ class FlextCliUtilitiesFiles:
         return r[bool].ok(value=True)
 
 
-__all__: list[str] = ["FlextCliUtilitiesFiles"]
+__all__: list[str] = ["FlextCliUtilitiesFilesPart05"]

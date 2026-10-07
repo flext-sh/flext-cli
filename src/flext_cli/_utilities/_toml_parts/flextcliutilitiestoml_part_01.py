@@ -15,14 +15,12 @@ from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c, p, t
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_02 import (
-    FlextCliUtilitiesToml as FlextCliUtilitiesTomlPart02,
-)
+from flext_cli._utilities import FlextCliUtilitiesTomlPart02
 from flext_core import u
 
 
-class FlextCliUtilitiesToml:
-    """Implementation part for FlextCliUtilitiesToml."""
+class FlextCliUtilitiesTomlPart01:
+    """Implementation part for FlextCliUtilitiesTomlPart01."""
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
@@ -34,7 +32,7 @@ class FlextCliUtilitiesToml:
             The resulting ``t.JsonMapping | None``.
 
         """
-        normalized = FlextCliUtilitiesToml.toml_unwrap_item(value)
+        normalized = FlextCliUtilitiesTomlPart01.toml_unwrap_item(value)
         if normalized is None or not u.mapping(normalized):
             return None
         return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
@@ -169,10 +167,10 @@ class FlextCliUtilitiesToml:
             The resulting ``TOMLDocument``.
 
         """
-        document = FlextCliUtilitiesToml.toml_document()
+        document = FlextCliUtilitiesTomlPart01.toml_document()
         for key, value in mapping.items():
             document[key] = FlextCliUtilitiesTomlPart02.toml_item_from_json_value(value)
         return document
 
 
-__all__: list[str] = ["FlextCliUtilitiesToml"]
+__all__: list[str] = ["FlextCliUtilitiesTomlPart01"]

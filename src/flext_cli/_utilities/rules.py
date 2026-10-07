@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli._utilities._rules._loaders import FlextCliUtilitiesRulesLoadersMixin
+from flext_cli._utilities import FlextCliUtilitiesRulesLoadersMixin
 
 # NOTE (multi-agent): mro-i6nq.13 — composed from the _rules/{_loaders,_matchers}
 # mixin chain (replacing the numbered _rules_parts).

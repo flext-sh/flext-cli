@@ -14,11 +14,9 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from flext_cli import t
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_parent_descriptor import (
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicParentDescriptor,
-)
-from flext_cli._utilities.atomic_parent_failure import (
     FlextCliUtilitiesAtomicParentFailure,
 )
 
