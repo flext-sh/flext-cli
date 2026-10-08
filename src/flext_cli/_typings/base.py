@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, MutableMapping
 from pathlib import Path
 from types import FrameType, GenericAlias
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from jinja2.sandbox import SandboxedEnvironment
 from tomlkit.container import Container
@@ -48,7 +48,7 @@ class FlextCliTypesBase:
     type TomlContainer = Container
     type TomlParent = TOMLDocument | Table
     type TomlValue = TOMLDocument | Table | Item | Array | AoT | Container
-    type RuntimeAnnotation = TypeForm[Any]
+    type RuntimeAnnotation = TypeForm
     type SignalHandler = int | Callable[[int, FrameType | None], None] | None
     type TemplateEnvironmentCache = MutableMapping[str, SandboxedEnvironment]
 

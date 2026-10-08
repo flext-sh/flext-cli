@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 import shlex
-import subprocess  # ruff: ignore[suspicious-subprocess-import] -- managed-process primitives module S404 - canonical process execution owner for CLI verbs; B404 covers the bandit gate
+import subprocess
 from typing import BinaryIO, ClassVar, override
 
 from flext_cli import m, p, r, t
@@ -89,7 +89,7 @@ class FlextCliUtilitiesRuntime(
             The resulting ``p.Cli.ProcessHandle``.
 
         """
-        return subprocess.Popen(  # ruff: ignore[subprocess-without-shell-equals-true] -- internal process execution, inputs from typed config
+        return subprocess.Popen(
             list(cmd),
             cwd=cwd,
             stdin=subprocess.DEVNULL if stdin_handle is None else stdin_handle,

@@ -10,7 +10,7 @@ import os
 import select
 import shlex
 import signal
-import subprocess  # ruff: ignore[suspicious-subprocess-import] -- managed-process primitives module
+import subprocess
 import time
 from collections.abc import Mapping
 from pathlib import Path
@@ -282,7 +282,7 @@ class FlextCliUtilitiesProcesses:
                 remove_keys=launch.remove_env_keys,
             )
         try:
-            process = subprocess.Popen(  # ruff: ignore[subprocess-without-shell-equals-true] -- internal process execution, inputs from typed config
+            process = subprocess.Popen(
                 list(cmd),
                 cwd=cwd,
                 stdin=subprocess.PIPE if capture else None,
