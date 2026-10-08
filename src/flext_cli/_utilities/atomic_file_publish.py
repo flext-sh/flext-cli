@@ -19,6 +19,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFilePublishChecks,
     FlextCliUtilitiesAtomicFileState,
 )
+from flext_cli._utilities._atomic_models import FlextCliAtomicModels
 
 if TYPE_CHECKING:
     from flext_cli import m
@@ -70,6 +71,12 @@ class FlextCliUtilitiesAtomicFilePublish:
             staged_path,
             staged_identity,
             label="staged_identity",
+        )
+        staged_proof = FlextCliAtomicModels.StagedFile(
+            path=staged_path,
+            content=staged_bytes,
+            mode=staged_mode,
+            identity=staged_identity,
         )
         with (
             FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
@@ -123,9 +130,8 @@ class FlextCliUtilitiesAtomicFilePublish:
                 destination,
                 destination_parent,
                 destination_state,
-                staged_path,
                 staged_parent,
-                staged_state,
+                FlextCliAtomicModels.ObservedFile(path=staged_path, state=staged_state),
             )
             FlextCliUtilitiesAtomicFileState.validate_precondition(
                 staged_path,
@@ -163,10 +169,7 @@ class FlextCliUtilitiesAtomicFilePublish:
                 destination_parent,
                 destination,
                 staged_parent,
-                staged_path,
-                staged_bytes,
-                staged_mode,
-                staged_identity,
+                staged_proof,
             )
             FlextCliUtilitiesAtomicFileModel.require_observed(
                 staged,

@@ -6,11 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import contextlib
 import threading
-from typing import IO, TYPE_CHECKING, BinaryIO
+from typing import IO, TYPE_CHECKING
 
 from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessThreadsMixin
+from flext_cli._utilities._runtime_models import (
+    RuntimeOutputTarget,
+    RuntimeProcessState,
+)
 
 if TYPE_CHECKING:
     from flext_cli import p, t
@@ -25,33 +28,27 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
     def _start_process_output(
         cls,
         process: p.Cli.ProcessHandle,
-        stack: contextlib.ExitStack,
-        durable_log: BinaryIO | None,
+        state: RuntimeProcessState,
         live_fd: int | None,
-        failures: list[str],
-        stop: threading.Event,
-        wake: threading.Event,
-        stdout_output: bytearray,
-        stderr_output: bytearray,
         *,
         capture_output: bool,
     ) -> t.VariadicTuple[t.Pair[threading.Thread, IO[bytes]]]:
-        combine_output = durable_log is not None
+        combine_output = state.durable_log is not None
         pipe_output = combine_output or capture_output
         pump_streams: list[tuple[threading.Thread, IO[bytes]]] = []
         stdout_source = process.stdout
         if pipe_output and stdout_source is None:
-            failures.append("process stdout is not available")
+            state.failures.append("process stdout is not available")
         elif stdout_source is not None:
-            stack.callback(stdout_source.close)
+            state.stack.callback(stdout_source.close)
             stdout_pump = cls._start_output_pump(
                 stdout_source,
-                durable_log,
-                stdout_output if capture_output else None,
-                live_fd,
-                failures,
-                stop,
-                wake,
+                RuntimeOutputTarget(
+                    durable_log=state.durable_log,
+                    captured_output=state.stdout_output if capture_output else None,
+                    live_fd=live_fd,
+                ),
+                state,
                 thread_name=(
                     "flext-cli-process-output"
                     if combine_output
@@ -61,17 +58,13 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
             pump_streams.append((stdout_pump, stdout_source))
         stderr_source = process.stderr
         if capture_output and stderr_source is None:
-            failures.append("process stderr is not available")
+            state.failures.append("process stderr is not available")
         elif stderr_source is not None:
-            stack.callback(stderr_source.close)
+            state.stack.callback(stderr_source.close)
             stderr_pump = cls._start_output_pump(
                 stderr_source,
-                None,
-                stderr_output,
-                None,
-                failures,
-                stop,
-                wake,
+                RuntimeOutputTarget(captured_output=state.stderr_output),
+                state,
                 thread_name="flext-cli-process-stderr",
             )
             pump_streams.append((stderr_pump, stderr_source))

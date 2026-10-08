@@ -9,8 +9,11 @@ from __future__ import annotations
 import ctypes
 import os
 from ctypes import wintypes
+from typing import Final
 
 from flext_cli import p, r
+
+_RESUME_THREAD_FAILED: Final[int] = 0xFFFFFFFF
 
 
 class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
@@ -196,8 +199,7 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             prior_suspend_count = resume_thread(thread_handle)
         finally:
             close_handle(thread_handle)
-        resume_failed = 0xFFFFFFFF
-        if prior_suspend_count == resume_failed:
+        if prior_suspend_count == _RESUME_THREAD_FAILED:
             error = int(getattr(ctypes, "get_last_error", ctypes.get_errno)())
             return f"ResumeThread failed: {error}"
         return None

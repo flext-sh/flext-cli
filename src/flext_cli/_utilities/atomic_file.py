@@ -23,6 +23,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileState,
     FlextCliUtilitiesAtomicFileTemporary,
 )
+from flext_cli._utilities._atomic_models import FlextCliAtomicModels
 
 if TYPE_CHECKING:
     from flext_cli import m, t
@@ -226,14 +227,17 @@ class FlextCliUtilitiesAtomicFile:
             if self.identity is None or self.mode is None:
                 message = "atomic staging must be written before publication"
                 raise RuntimeError(message)
+            staged = FlextCliAtomicModels.StagedFile(
+                path=self.temporary,
+                content=content,
+                mode=self.mode,
+                identity=self.identity,
+            )
             FlextCliUtilitiesAtomicFile._validate_replacement(
                 self.parent,
                 destination,
                 expected,
-                self.temporary,
-                content,
-                self.mode,
-                self.identity,
+                staged,
             )
             FlextCliUtilitiesAtomicFileDescriptor.replace_entry(
                 self.parent,
@@ -250,10 +254,7 @@ class FlextCliUtilitiesAtomicFile:
                 self.parent,
                 destination,
                 self.parent,
-                self.temporary,
-                content,
-                self.mode,
-                self.identity,
+                staged,
             )
 
         def cleanup(self, operation_error: BaseException) -> None:
@@ -272,30 +273,26 @@ class FlextCliUtilitiesAtomicFile:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         destination: Path,
         expected: os.stat_result | None,
-        temporary: Path,
-        content: bytes,
-        staged_mode: int,
-        staged_identity: t.Pair[int, int],
+        staged: FlextCliAtomicModels.StagedFile,
     ) -> None:
         staged_state = FlextCliUtilitiesAtomicFile._validate_staged(
             parent,
-            temporary,
-            content,
-            staged_mode,
-            staged_identity,
+            staged.path,
+            staged.content,
+            staged.mode,
+            staged.identity,
         )
         FlextCliUtilitiesAtomicFilePublishChecks.require_distinct_inode(
             destination,
             expected,
-            staged_identity,
+            staged.identity,
         )
         FlextCliUtilitiesAtomicFilePublishChecks.validate_devices(
             destination,
             parent,
             expected,
-            temporary,
             parent,
-            staged_state,
+            FlextCliAtomicModels.ObservedFile(path=staged.path, state=staged_state),
         )
         FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
             destination,
@@ -303,8 +300,8 @@ class FlextCliUtilitiesAtomicFile:
             parent=parent,
         )
         FlextCliUtilitiesAtomicFileState.assert_temporary_owned(
-            temporary,
-            staged_identity,
+            staged.path,
+            staged.identity,
             parent=parent,
         )
 

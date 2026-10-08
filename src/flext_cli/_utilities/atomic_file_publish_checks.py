@@ -17,6 +17,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileMode,
     FlextCliUtilitiesAtomicFileState,
 )
+from flext_cli._utilities._atomic_models import FlextCliAtomicModels
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -88,14 +89,13 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         destination: Path,
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination_state: os.stat_result | None,
-        staged: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged_state: os.stat_result,
+        staged: FlextCliAtomicModels.ObservedFile,
     ) -> None:
         """Require both entries and parents to occupy one filesystem.
 
         Raises:
-            OSError: If ``staged_parent.state.st_dev != device or staged_state.st_dev !=
+            OSError: If ``staged_parent.state.st_dev != device or staged.state.st_dev !=
                 staged_parent.state.st_dev or (destination_state is not None and
                 destination_state.st_dev != device)``.
 
@@ -103,11 +103,11 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         device = destination_parent.state.st_dev
         if (
             staged_parent.state.st_dev != device
-            or staged_state.st_dev != staged_parent.state.st_dev
+            or staged.state.st_dev != staged_parent.state.st_dev
             or (destination_state is not None and destination_state.st_dev != device)
         ):
             message = (
-                f"atomic staged and destination entries span filesystems: {staged}"
+                f"atomic staged and destination entries span filesystems: {staged.path}"
             )
             raise OSError(errno.EXDEV, message, destination)
 
@@ -116,10 +116,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged: Path,
-        staged_bytes: bytes,
-        staged_mode: int,
-        staged_identity: t.Pair[int, int],
+        staged: FlextCliAtomicModels.StagedFile,
     ) -> os.stat_result:
         """Prove replacement consumed the staged name and retained its exact state.
 
@@ -127,28 +124,28 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
             The resulting ``os.stat_result``.
 
         Raises:
-            OSError: If ``file_state.destination_state(staged, parent=staged_parent) is
-            not None``; or if ``published is None or file_state.identity(published) !=
-            staged_identity``; or if ``file_state.read_authenticated_bytes(destination,
-            published, parent=destination_parent) != staged_bytes``.
+            OSError: If the staged name remains, or the published identity, bytes or
+                mode differ from the captured staging context.
 
         """
         if (
             FlextCliUtilitiesAtomicFileState.destination_state(
-                staged,
+                staged.path,
                 parent=staged_parent,
             )
             is not None
         ):
-            message = f"atomic staged file still exists after publication: {staged}"
-            raise OSError(errno.ESTALE, message, staged)
+            message = (
+                f"atomic staged file still exists after publication: {staged.path}"
+            )
+            raise OSError(errno.ESTALE, message, staged.path)
         published = FlextCliUtilitiesAtomicFileState.destination_state(
             destination,
             parent=destination_parent,
         )
         if (
             published is None
-            or FlextCliUtilitiesAtomicFileState.identity(published) != staged_identity
+            or FlextCliUtilitiesAtomicFileState.identity(published) != staged.identity
         ):
             message = f"published atomic file has another identity: {destination}"
             raise OSError(errno.ESTALE, message, destination)
@@ -158,14 +155,14 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
                 published,
                 parent=destination_parent,
             )
-            != staged_bytes
+            != staged.content
         ):
             message = f"published atomic file bytes differ: {destination}"
             raise OSError(errno.ESTALE, message, destination)
         FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
             destination,
             published,
-            staged_mode,
+            staged.mode,
         )
         return published
 

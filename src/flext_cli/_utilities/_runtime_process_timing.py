@@ -9,6 +9,7 @@ from __future__ import annotations
 import shlex
 
 from flext_cli import c, p, r, t
+from flext_cli._utilities._runtime_models import RuntimeProcessRequest
 
 
 class FlextCliUtilitiesRuntimeProcessTimingMixin:
@@ -16,44 +17,24 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
 
     @staticmethod
     def _resolve_process_timing(
-        cmd: t.StrSequence,
-        timeout: int | None,
-        deadline: p.Cli.ProcessDeadline | None,
+        request: RuntimeProcessRequest,
         started: float,
         *,
-        capture_output: bool,
-        has_output_path: bool,
-        live: bool,
-        heartbeat_seconds: float | None,
         on_main_thread: bool,
     ) -> p.Result[t.Pair[float | None, float]]:
+        timeout, deadline = request.timeout, request.deadline
         if timeout is not None and deadline is not None:
             return r[tuple[float | None, float]].fail(
                 "timeout and deadline are mutually exclusive",
             )
-        if live and not has_output_path:
-            return r[tuple[float | None, float]].fail(
-                "live output requires a durable output path",
+        output_error = (
+            FlextCliUtilitiesRuntimeProcessTimingMixin._process_output_policy_error(
+                request,
+                on_main_thread=on_main_thread,
             )
-        if heartbeat_seconds is not None and not live:
-            return r[tuple[float | None, float]].fail(
-                "process heartbeat requires live output",
-            )
-        if heartbeat_seconds is not None and not (
-            0 < heartbeat_seconds < c.Cli.CLI_PROCESS_HEARTBEAT_MAX_SECONDS
-        ):
-            return r[tuple[float | None, float]].fail(
-                "process heartbeat interval must be greater than zero and below "
-                f"{c.Cli.CLI_PROCESS_HEARTBEAT_MAX_SECONDS:g} seconds",
-            )
-        if capture_output and has_output_path:
-            return r[tuple[float | None, float]].fail(
-                "captured and durable output are mutually exclusive",
-            )
-        if (live or deadline is not None) and not on_main_thread:
-            return r[tuple[float | None, float]].fail(
-                "live/deadline process execution requires the main interpreter thread",
-            )
+        )
+        if output_error is not None:
+            return r[tuple[float | None, float]].fail(output_error)
         absolute_deadline: float | None = None
         grace_seconds = 0.0
 
@@ -64,7 +45,7 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
         elif timeout is not None:
             if timeout <= 0:
                 return r[tuple[float | None, float]].fail(
-                    f"timeout {timeout}s: {shlex.join(list(cmd))}",
+                    f"timeout {timeout}s: {shlex.join(list(request.cmd))}",
                 )
             absolute_deadline = started + timeout
             grace_seconds = min(max(timeout * 0.1, 0.05), timeout * 0.5)
@@ -75,6 +56,32 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
                     "process deadline must leave a positive grace reserve",
                 )
         return r[tuple[float | None, float]].ok((absolute_deadline, grace_seconds))
+
+    @staticmethod
+    def _process_output_policy_error(
+        request: RuntimeProcessRequest,
+        *,
+        on_main_thread: bool,
+    ) -> str | None:
+        error: str | None = None
+        if request.live and request.output_path is None:
+            error = "live output requires a durable output path"
+        elif request.heartbeat_seconds is not None and not request.live:
+            error = "process heartbeat requires live output"
+        elif request.heartbeat_seconds is not None and not (
+            0 < request.heartbeat_seconds < c.Cli.CLI_PROCESS_HEARTBEAT_MAX_SECONDS
+        ):
+            error = (
+                "process heartbeat interval must be greater than zero and below "
+                f"{c.Cli.CLI_PROCESS_HEARTBEAT_MAX_SECONDS:g} seconds"
+            )
+        elif request.capture_output and request.output_path is not None:
+            error = "captured and durable output are mutually exclusive"
+        elif (request.live or request.deadline is not None) and not on_main_thread:
+            error = (
+                "live/deadline process execution requires the main interpreter thread"
+            )
+        return error
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessTimingMixin"]

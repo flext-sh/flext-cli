@@ -34,21 +34,16 @@ class FlextCliUtilitiesFileTestHelpersMixinPart04:
         """
         if fmt == c.Cli.FILE_FORMAT_JSON:
             result = FlextCliUtilitiesJson.json_read(path)
-            if result.failure:
-                return r[t.JsonMapping].from_failure(result)
-            return r[t.JsonMapping].ok(result.value)
-        if fmt == c.Cli.FILE_FORMAT_YAML:
+        elif fmt == c.Cli.FILE_FORMAT_YAML:
             result = u.Yaml.yaml_safe_load(path)
-            if result.failure:
-                return r[t.JsonMapping].from_failure(result)
-            return r[t.JsonMapping].ok(result.value)
-        if fmt == c.Cli.FILE_FORMAT_TOML:
-            toml_result = FlextCliUtilitiesToml.toml_read_json(path)
-            if toml_result.failure:
-                return r[t.JsonMapping].from_failure(toml_result)
-            return r[t.JsonMapping].ok(toml_result.value)
-        msg = f"Cannot parse format: {fmt}"
-        return r[t.JsonMapping].fail(msg)
+        elif fmt == c.Cli.FILE_FORMAT_TOML:
+            result = FlextCliUtilitiesToml.toml_read_json(path)
+        else:
+            msg = f"Cannot parse format: {fmt}"
+            return r[t.JsonMapping].fail(msg)
+        if result.failure:
+            return r[t.JsonMapping].from_failure(result)
+        return r[t.JsonMapping].ok(result.value)
 
 
 __all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixinPart04"]

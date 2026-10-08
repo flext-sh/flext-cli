@@ -13,6 +13,10 @@ from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeProcessStreamMixin,
     FlextCliUtilitiesRuntimeProcessWaitMixin,
 )
+from flext_cli._utilities._runtime_models import (
+    RuntimeOutputTarget,
+    RuntimeProcessState,
+)
 
 if TYPE_CHECKING:
     from flext_cli import p, t
@@ -29,7 +33,7 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
         cls,
         sink: BinaryIO,
         payload: bytes,
-        failures: t.SequenceOf[str],
+        failures: t.MutableSequenceOf[str],
         wake: threading.Event,
     ) -> threading.Thread:
         """Start the sole non-daemon writer for one anonymous stdin pipe.
@@ -51,8 +55,8 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     def _start_root_waiter(
         cls,
         process: p.Cli.ProcessHandle,
-        return_codes: t.SequenceOf[int],
-        failures: t.SequenceOf[str],
+        return_codes: t.MutableSequenceOf[int],
+        failures: t.MutableSequenceOf[str],
         process_done: threading.Event,
         wake: threading.Event,
     ) -> threading.Thread:
@@ -69,18 +73,14 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     def _start_output_pump(
         cls,
         source: IO[bytes],
-        durable_log: BinaryIO | None,
-        captured_output: bytearray | None,
-        live_fd: int | None,
-        failures: t.SequenceOf[str],
-        stop: threading.Event,
-        wake: threading.Event,
+        target: RuntimeOutputTarget,
+        state: RuntimeProcessState,
         *,
         thread_name: str,
     ) -> threading.Thread:
         pump = threading.Thread(
             target=cls._pump_process_output,
-            args=(source, durable_log, captured_output, live_fd, failures, stop, wake),
+            args=(source, target, state),
             name=thread_name,
             daemon=False,
         )

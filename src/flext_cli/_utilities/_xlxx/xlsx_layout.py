@@ -37,6 +37,33 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
         worksheet: Worksheet,
         plan: m.Cli.XlsxSheetLayoutPlan,
     ) -> p.Result[bool]:
+        annotations = cls._apply_cell_annotations(worksheet, plan)
+        if annotations.failure:
+            return annotations
+        cls._apply_dimensions_and_groups(worksheet, plan)
+        if plan.freeze_pane is not None:
+            worksheet.freeze_panes = cls._cell_ref(plan.freeze_pane.at)
+        if plan.auto_filter is not None:
+            worksheet.auto_filter.ref = cls._range_ref(plan.auto_filter.area)
+        if plan.view is not None:
+            worksheet.sheet_state = plan.view.visibility
+            worksheet.sheet_properties.tabColor = plan.view.tab_color
+        for item in plan.merges:
+            worksheet.merge_cells(cls._range_ref(item.area))
+        return r[bool].ok(value=True)
+
+    @classmethod
+    def _apply_cell_annotations(
+        cls,
+        worksheet: Worksheet,
+        plan: m.Cli.XlsxSheetLayoutPlan,
+    ) -> p.Result[bool]:
+        """Apply comments before links, rejecting merged cells at the same step.
+
+        Returns:
+            Success or the first merged-cell annotation error.
+
+        """
         for item in plan.comments:
             comment = Comment(item.text, item.author)
             if item.width is not None:
@@ -63,6 +90,15 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
                 destination = cls._cell_ref(item.destination)
                 sheet = cls._sheet_ref(item.destination_sheet)
                 cell.hyperlink = f"#{sheet}!{destination}"
+        return r[bool].ok(value=True)
+
+    @classmethod
+    def _apply_dimensions_and_groups(
+        cls,
+        worksheet: Worksheet,
+        plan: m.Cli.XlsxSheetLayoutPlan,
+    ) -> None:
+        """Apply explicit dimensions before outline groups."""
         for item in plan.dimensions:
             for index in range(item.first, item.last + 1):
                 if item.axis == "row":
@@ -88,16 +124,6 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
                     outline_level=item.outline_level,
                     hidden=item.hidden,
                 )
-        if plan.freeze_pane is not None:
-            worksheet.freeze_panes = cls._cell_ref(plan.freeze_pane.at)
-        if plan.auto_filter is not None:
-            worksheet.auto_filter.ref = cls._range_ref(plan.auto_filter.area)
-        if plan.view is not None:
-            worksheet.sheet_state = plan.view.visibility
-            worksheet.sheet_properties.tabColor = plan.view.tab_color
-        for item in plan.merges:
-            worksheet.merge_cells(cls._range_ref(item.area))
-        return r[bool].ok(value=True)
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxLayout",)

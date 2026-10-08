@@ -28,6 +28,18 @@ from flext_core import u
 class FlextCliUtilitiesTemplate:
     """Generic Jinja2 render helpers (ADR-005 template SSOT)."""
 
+    class TemplateRenderOptions(m.ArbitraryTypesModel):
+        """Directory-render suffix and destination overwrite policy."""
+
+        strip_suffix: str = m.Field(
+            default=c.Cli.TEMPLATE_SUFFIX,
+            description="Template suffix removed from rendered destination names.",
+        )
+        overwrite: bool = m.Field(
+            default=False,
+            description="Whether directory rendering may replace existing files.",
+        )
+
     class _ContentLoader(FileSystemLoader):
         """Keep compiled templates only while their source content is unchanged."""
 
@@ -225,8 +237,7 @@ class FlextCliUtilitiesTemplate:
         context: p.Model,
         entries: t.SequenceOf[m.Cli.TemplateRenderEntry],
         *,
-        strip_suffix: str = c.Cli.TEMPLATE_SUFFIX,
-        overwrite: bool = False,
+        options: FlextCliUtilitiesTemplate.TemplateRenderOptions | None = None,
     ) -> p.Result[m.Cli.TemplateRenderReport]:
         """Render every entry from ``templates_root`` into ``output_root``.
 
@@ -235,6 +246,9 @@ class FlextCliUtilitiesTemplate:
         engine mirrors the tree, strips the template suffix, and reports
         created/skipped/failed per entry. It carries no FLEXT naming policy —
         output paths and context are fully resolved by the caller.
+
+        Optional ``options`` groups the suffix and overwrite policy; omitting
+        it retains the canonical suffix and preserves existing destinations.
 
         Fail-closed on a missing templates root. Per-entry render failures and
         path-escape attempts are accumulated in ``TemplateRenderReport.failed``;
@@ -248,14 +262,17 @@ class FlextCliUtilitiesTemplate:
             return r[m.Cli.TemplateRenderReport].fail(
                 f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}",
             )
+        render_options = options or FlextCliUtilitiesTemplate.TemplateRenderOptions()
         root = output_root.resolve()
         created: list[Path] = []
         skipped: list[Path] = []
         failed: list[tuple[Path, str]] = []
         for entry in entries:
             out_rel = entry.output_relpath
-            if strip_suffix and str(out_rel).endswith(strip_suffix):
-                out_rel = Path(str(out_rel)[: -len(strip_suffix)])
+            if render_options.strip_suffix and str(out_rel).endswith(
+                render_options.strip_suffix,
+            ):
+                out_rel = Path(str(out_rel)[: -len(render_options.strip_suffix)])
             dest = output_root / out_rel
             try:
                 if not dest.resolve().is_relative_to(root):
@@ -271,7 +288,7 @@ class FlextCliUtilitiesTemplate:
             if not entry.when:
                 skipped.append(dest)
                 continue
-            if dest.exists() and not (entry.overwrite or overwrite):
+            if dest.exists() and not (entry.overwrite or render_options.overwrite):
                 skipped.append(dest)
                 continue
             src = templates_root / entry.relpath_template

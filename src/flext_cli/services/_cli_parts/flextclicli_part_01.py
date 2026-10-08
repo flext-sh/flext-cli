@@ -87,20 +87,7 @@ class FlextCliCliPart01:
         alias = getattr(field_info, "alias", None)
         cli_name = alias or field_name
         option_name = f"--{cli_name.replace('_', '-')}"
-        # Every validation alias is a first-class input name: the CLI exposes
-        # the canonical alias plus each string validation_alias choice, so a
-        # field migrated between names (e.g. workspace -> repository_root)
-        # accepts both spellings instead of stranding one of them.
-        extra_option_names: list[str] = []
-        validation_alias = getattr(field_info, "validation_alias", None)
-        choices = getattr(validation_alias, "choices", None)
-        if isinstance(choices, tuple):
-            for choice in choices:
-                if not isinstance(choice, str):
-                    continue
-                candidate = f"--{choice.replace('_', '-')}"
-                if candidate != option_name and candidate not in extra_option_names:
-                    extra_option_names.append(candidate)
+        extra_option_names = cls._validation_option_names(field_info, option_name)
         field_annotation = u.Cli.field_annotation(field_name, field_info)
         annotation = u.Cli.resolve_typer_annotation(field_annotation)
         json_annotation = (
@@ -116,12 +103,7 @@ class FlextCliCliPart01:
             else u.Cli.field_default(field_name, field_info, settings)
         )
         option_decls = [option_name, *extra_option_names]
-        extra = getattr(field_info, "json_schema_extra", None)
-        custom_param_decls: list[str] | None = None
-        if isinstance(extra, Mapping):
-            declared = extra.get("typer_param_decls")
-            if isinstance(declared, Sequence) and not isinstance(declared, str):
-                custom_param_decls = [str(item) for item in declared]
+        custom_param_decls = cls._custom_option_declarations(field_info)
         if annotation is bool and isinstance(default_value, bool):
             dashed_name = cli_name.replace("_", "-")
             option_decls = [f"--{dashed_name}/--no-{dashed_name}"]
@@ -134,6 +116,44 @@ class FlextCliCliPart01:
             required=is_required,
         )
         return spec, annotation
+
+    @staticmethod
+    def _validation_option_names(
+        field_info: m.FieldInfo,
+        option_name: str,
+    ) -> list[str]:
+        """Collect distinct string validation aliases in declaration order.
+
+        Returns:
+            Additional option names, excluding the canonical name.
+
+        """
+        extra_option_names: list[str] = []
+        validation_alias = getattr(field_info, "validation_alias", None)
+        choices = getattr(validation_alias, "choices", None)
+        if isinstance(choices, tuple):
+            for choice in choices:
+                if not isinstance(choice, str):
+                    continue
+                candidate = f"--{choice.replace('_', '-')}"
+                if candidate != option_name and candidate not in extra_option_names:
+                    extra_option_names.append(candidate)
+        return extra_option_names
+
+    @staticmethod
+    def _custom_option_declarations(field_info: m.FieldInfo) -> list[str] | None:
+        """Read explicit Typer declarations without interpreting their order.
+
+        Returns:
+            The custom declarations, or None when none are declared.
+
+        """
+        extra = getattr(field_info, "json_schema_extra", None)
+        if isinstance(extra, Mapping):
+            declared = extra.get("typer_param_decls")
+            if isinstance(declared, Sequence) and not isinstance(declared, str):
+                return [str(item) for item in declared]
+        return None
 
     @classmethod
     def _build_model_parameter(

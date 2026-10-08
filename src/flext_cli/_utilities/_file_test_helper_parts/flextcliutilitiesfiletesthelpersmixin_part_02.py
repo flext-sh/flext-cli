@@ -12,34 +12,56 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
+
+from flext_core import m
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
+class _FileAssertionOptions(m.FrozenModel):
+    """Typed filesystem predicates, with None leaving each check unselected."""
+
+    is_file: bool | None = m.Field(
+        default=None,
+        description="Require or reject a regular file; None leaves it unchecked.",
+    )
+    is_dir: bool | None = m.Field(
+        default=None,
+        description="Require or reject a directory; None leaves it unchecked.",
+    )
+    not_empty: bool | None = m.Field(
+        default=None,
+        description="Require non-empty file or directory contents when True.",
+    )
+    readable: bool | None = m.Field(
+        default=None,
+        description="Require read access to the path when True.",
+    )
+    writable: bool | None = m.Field(
+        default=None,
+        description="Require write access to the path when True.",
+    )
+
+
 class FlextCliUtilitiesFileTestHelpersMixinPart02:
     """Implementation part for FlextCliUtilitiesFileTestHelpersMixinPart02."""
+
+    FileAssertionOptions: ClassVar[type[_FileAssertionOptions]] = _FileAssertionOptions
 
     @staticmethod
     def files_assert_exists(
         path: Path,
         *,
-        is_file: bool | None = None,
-        is_dir: bool | None = None,
-        not_empty: bool | None = None,
-        readable: bool | None = None,
-        writable: bool | None = None,
+        options: _FileAssertionOptions | None = None,
     ) -> Path:
         """Assert file-system properties on ``path``.
 
         Args:
             path: Path to validate.
-            is_file: Assert (or deny) that ``path`` is a regular file.
-            is_dir: Assert (or deny) that ``path`` is a directory.
-            not_empty: Assert that a file has content or a directory has entries.
-            readable: Assert that ``path`` is readable.
-            writable: Assert that ``path`` is writable.
+            options: File/directory, non-empty, readable, and writable predicates;
+                omitted options leave all checks unselected.
 
         Returns:
             The validated ``path``.
@@ -48,29 +70,30 @@ class FlextCliUtilitiesFileTestHelpersMixinPart02:
             AssertionError: when any predicate fails.
 
         """
-        if is_file is True and not path.is_file():
+        predicates = options if options is not None else _FileAssertionOptions()
+        if predicates.is_file is True and not path.is_file():
             msg = f"Expected file: {path}"
             raise AssertionError(msg)
-        if is_file is False and path.is_file():
+        if predicates.is_file is False and path.is_file():
             msg = f"Expected non-file: {path}"
             raise AssertionError(msg)
-        if is_dir is True and not path.is_dir():
+        if predicates.is_dir is True and not path.is_dir():
             msg = f"Expected directory: {path}"
             raise AssertionError(msg)
-        if is_dir is False and path.is_dir():
+        if predicates.is_dir is False and path.is_dir():
             msg = f"Expected non-directory: {path}"
             raise AssertionError(msg)
-        if not_empty is True:
+        if predicates.not_empty is True:
             if path.is_file() and path.stat().st_size == 0:
                 msg = f"Expected non-empty file: {path}"
                 raise AssertionError(msg)
             if path.is_dir() and not any(path.iterdir()):
                 msg = f"Expected non-empty directory: {path}"
                 raise AssertionError(msg)
-        if readable is True and not os.access(path, os.R_OK):
+        if predicates.readable is True and not os.access(path, os.R_OK):
             msg = f"Expected readable path: {path}"
             raise AssertionError(msg)
-        if writable is True and not os.access(path, os.W_OK):
+        if predicates.writable is True and not os.access(path, os.W_OK):
             msg = f"Expected writable path: {path}"
             raise AssertionError(msg)
         return path

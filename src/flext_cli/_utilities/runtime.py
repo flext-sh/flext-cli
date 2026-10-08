@@ -16,6 +16,11 @@ from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeCommandsMixin,
     FlextCliUtilitiesRuntimeRunToFileMixin,
 )
+from flext_cli._utilities._runtime_models import (
+    RuntimeProcessOptions,
+    RuntimeProcessRequest,
+    RuntimeSpawnOptions,
+)
 from flext_core import u as core_u
 
 
@@ -81,9 +86,7 @@ class FlextCliUtilitiesRuntime(
         env: t.MappingKV[str, str] | None,
         stdin_handle: BinaryIO | None,
         *,
-        capture_output: bool,
-        combine_output: bool,
-        creation_flags: int,
+        options: RuntimeSpawnOptions,
     ) -> p.Cli.ProcessHandle:
         """Create the sole raw child owned by the streamed lifecycle.
 
@@ -95,19 +98,19 @@ class FlextCliUtilitiesRuntime(
             list(cmd),
             cwd=cwd,
             stdin=subprocess.DEVNULL if stdin_handle is None else stdin_handle,
-            stdout=subprocess.PIPE if capture_output else None,
+            stdout=subprocess.PIPE if options.capture_output else None,
             stderr=(
                 subprocess.STDOUT
-                if combine_output
+                if options.combine_output
                 else subprocess.PIPE
-                if capture_output
+                if options.capture_output
                 else None
             ),
             text=False,
             bufsize=0,
             env=env,
             start_new_session=os.name != "nt",
-            creationflags=creation_flags,
+            creationflags=options.creation_flags,
         )
 
     @staticmethod
@@ -132,10 +135,8 @@ class FlextCliUtilitiesRuntime(
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
         *,
+        options: RuntimeProcessOptions | None = None,
         capture: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command without enforcing a zero exit code.
@@ -177,17 +178,16 @@ class FlextCliUtilitiesRuntime(
                 ),
             )
 
+        launch = options if options is not None else cls.ProcessOptions()
         return cls._execute_streamed_process(
-            cmd,
-            None,
-            cwd,
-            cls._resolved_env(env, remove_env_keys),
-            input_data,
-            capture_output=capture,
-            live=False,
-            heartbeat_seconds=None,
-            timeout=timeout,
-            deadline=None,
+            RuntimeProcessRequest(
+                cmd=cmd,
+                cwd=cwd,
+                env=cls._resolved_env(launch.env, launch.remove_env_keys),
+                input_data=launch.input_data,
+                capture_output=capture,
+                timeout=timeout,
+            ),
         ).flat_map(decode_output)
 
     @classmethod
@@ -196,9 +196,8 @@ class FlextCliUtilitiesRuntime(
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
+        *,
+        options: RuntimeProcessOptions | None = None,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Run a command capturing byte-exact stdout/stderr (no text decoding).
 
@@ -206,17 +205,15 @@ class FlextCliUtilitiesRuntime(
             The resulting ``p.Result[p.Cli.CommandBytesOutput]``.
 
         """
+        launch = options if options is not None else cls.ProcessOptions()
         return cls._execute_streamed_process(
-            cmd,
-            None,
-            cwd,
-            cls._resolved_env(env, remove_env_keys),
-            input_data,
-            capture_output=True,
-            live=False,
-            heartbeat_seconds=None,
-            timeout=timeout,
-            deadline=None,
+            RuntimeProcessRequest(
+                cmd=cmd,
+                cwd=cwd,
+                env=cls._resolved_env(launch.env, launch.remove_env_keys),
+                input_data=launch.input_data,
+                timeout=timeout,
+            ),
         )
 
 

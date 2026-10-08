@@ -8,11 +8,11 @@ from __future__ import annotations
 
 import os
 import signal
-import threading
 import time
 
 from flext_cli import c, p, t
 from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessGroupMixin
+from flext_cli._utilities._runtime_models import RuntimeProcessState
 
 
 class FlextCliUtilitiesRuntimeProcessMonitorMixin(
@@ -24,15 +24,11 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
     def _monitor_process(
         cls,
         process: p.Cli.ProcessHandle,
-        process_done: threading.Event,
-        wake: threading.Event,
-        failures: list[str],
-        received_signals: t.SequenceOf[int],
-        job_handle: int,
+        state: RuntimeProcessState,
         absolute_deadline: float | None,
         grace_seconds: float,
-        progress_fd: int | None,
-        heartbeat_seconds: float | None,
+        *,
+        progress: t.Pair[int | None, float | None],
     ) -> t.Pair[bool, float | None]:
         """Forward signals and advance TERM/KILL phases without polling.
 
@@ -52,18 +48,18 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
         kill_sent = False
         interrupt_mode = False
         heartbeat_at = (
-            time.monotonic() + heartbeat_seconds
-            if progress_fd is not None and heartbeat_seconds is not None
+            time.monotonic() + progress[1]
+            if progress[0] is not None and progress[1] is not None
             else None
         )
         while True:
-            wake.clear()
+            state.wake.clear()
             # Clear before observing completion: a waiter that finishes between
             # the observation and clear would otherwise lose its only wake-up.
-            if process_done.is_set():
+            if state.process_done.is_set():
                 break
             now = time.monotonic()
-            if received_signals and not interrupt_mode:
+            if state.received_signals and not interrupt_mode:
                 interrupt_mode = True
                 lifecycle_deadline = cls._interrupt_deadline(now, absolute_deadline)
                 reserve = max(0.0, lifecycle_deadline - now)
@@ -73,27 +69,25 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
                 cleanup_at = cls._phase_boundary(now, reserve, numerator=5)
             forwarded_count, term_sent, kill_sent = cls._forward_received(
                 process,
-                received_signals,
+                state,
                 forwarded_count,
-                job_handle,
-                failures,
                 term_sent=term_sent,
                 kill_sent=kill_sent,
             )
             if (
                 heartbeat_at is not None
-                and heartbeat_seconds is not None
+                and progress[1] is not None
                 and now >= heartbeat_at
             ):
-                cls._write_heartbeat(progress_fd)
-                heartbeat_at = now + heartbeat_seconds
-            if failures and not kill_sent:
+                cls._write_heartbeat(progress[0])
+                heartbeat_at = now + progress[1]
+            if state.failures and not kill_sent:
                 cls._record_signal_error(
-                    failures,
+                    state.failures,
                     cls._signal_process_tree(
                         process,
                         signal.SIGKILL,
-                        job_handle,
+                        state.job_handle,
                         force=True,
                     ),
                 )
@@ -101,38 +95,38 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
             if (
                 soft_at is not None
                 and now >= soft_at
-                and not received_signals
+                and not state.received_signals
                 and not timeout_interrupt_sent
             ):
                 timed_out = True
                 cls._record_signal_error(
-                    failures,
+                    state.failures,
                     cls._signal_process_tree(
                         process,
                         signal.SIGINT,
-                        job_handle,
+                        state.job_handle,
                         force=False,
                     ),
                 )
                 timeout_interrupt_sent = True
             if term_at is not None and now >= term_at and not term_sent:
                 cls._record_signal_error(
-                    failures,
+                    state.failures,
                     cls._signal_process_tree(
                         process,
                         signal.SIGTERM,
-                        job_handle,
+                        state.job_handle,
                         force=False,
                     ),
                 )
                 term_sent = True
             if kill_at is not None and now >= kill_at and not kill_sent:
                 cls._record_signal_error(
-                    failures,
+                    state.failures,
                     cls._signal_process_tree(
                         process,
                         signal.SIGKILL,
-                        job_handle,
+                        state.job_handle,
                         force=True,
                     ),
                 )
@@ -147,7 +141,7 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
                 cleanup_at,
                 heartbeat_at,
             )
-            wake.wait(
+            state.wake.wait(
                 None
                 if next_boundary is None
                 else max(0.0, next_boundary - time.monotonic()),
@@ -201,17 +195,15 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
     def _forward_received(
         cls,
         process: p.Cli.ProcessHandle,
-        received: t.SequenceOf[int],
+        state: RuntimeProcessState,
         forwarded_count: int,
-        job_handle: int,
-        failures: list[str],
         *,
         term_sent: bool,
         kill_sent: bool,
     ) -> t.Triple[int, bool, bool]:
         force_after_signals = 2
-        while forwarded_count < len(received):
-            signal_number = received[forwarded_count]
+        while forwarded_count < len(state.received_signals):
+            signal_number = state.received_signals[forwarded_count]
             force = forwarded_count >= force_after_signals
             forwarded_signal = (
                 signal_number
@@ -221,11 +213,11 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
                 else signal.SIGTERM
             )
             cls._record_signal_error(
-                failures,
+                state.failures,
                 cls._signal_process_tree(
                     process,
                     forwarded_signal,
-                    job_handle,
+                    state.job_handle,
                     force=force,
                 ),
             )
@@ -236,7 +228,7 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
 
     @staticmethod
     def _record_signal_error(
-        failures: list[str],
+        failures: t.MutableSequenceOf[str],
         signal_result: p.Result[bool],
     ) -> None:
         if signal_result.failure:

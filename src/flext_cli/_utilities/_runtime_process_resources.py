@@ -12,6 +12,7 @@ import time
 from typing import BinaryIO, Final
 
 from flext_cli import c, p, r, t
+from flext_cli._utilities._runtime_models import RuntimeBinaryStream
 
 
 class FlextCliUtilitiesRuntimeProcessResourcesMixin:
@@ -117,7 +118,7 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         return mirrored
 
     @staticmethod
-    def _flush_durable_log(durable_log: BinaryIO) -> t.VariadicTuple[str]:
+    def _flush_durable_log(durable_log: RuntimeBinaryStream) -> t.VariadicTuple[str]:
         """Finalize the durable log after reaping; only I/O errors are failures.
 
         The flush runs post-reaping, after bounded cleanup has deliberately

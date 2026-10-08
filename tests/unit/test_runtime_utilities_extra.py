@@ -175,7 +175,11 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         output_file = tmp_path / "output.txt"
 
         # Act
-        result = u.Cli().run_to_file(["echo", "test"], output_file, env={"BAD": "x\0y"})
+        result = u.Cli().run_to_file(
+            ["echo", "test"],
+            output_file,
+            options=u.Cli.ProcessOptions(env={"BAD": "x\0y"}),
+        )
 
         # Assert
         tm.fail(result)

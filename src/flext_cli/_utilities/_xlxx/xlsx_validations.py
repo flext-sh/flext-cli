@@ -23,24 +23,26 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
     # external flag; caller models consistently express show_dropdown.
     @staticmethod
     def _comparison_operator(mode: str) -> t.Cli.XlsxComparisonOperator:
+        operator: t.Cli.XlsxComparisonOperator
         match mode:
             case "between" | "equal":
-                return mode
+                operator = mode
             case "not_between":
-                return "notBetween"
+                operator = "notBetween"
             case "not_equal":
-                return "notEqual"
+                operator = "notEqual"
             case "less_than":
-                return "lessThan"
+                operator = "lessThan"
             case "less_or_equal":
-                return "lessThanOrEqual"
+                operator = "lessThanOrEqual"
             case "greater_than":
-                return "greaterThan"
+                operator = "greaterThan"
             case "greater_or_equal":
-                return "greaterThanOrEqual"
+                operator = "greaterThanOrEqual"
             case _:
                 msg = f"Unsupported comparison operator: {mode}"
                 raise ValueError(msg)
+        return operator
 
     @staticmethod
     def _validation_type(kind: str) -> t.Cli.XlsxValidationType:

@@ -21,6 +21,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesRuntime,
     FlextCliUtilitiesRuntimeProcessGroupMixin,
 )
+from flext_cli._utilities._runtime_models import RuntimeProcessOptions
 
 
 class FlextCliUtilitiesProcesses:
@@ -244,10 +245,8 @@ class FlextCliUtilitiesProcesses:
     def process_start(
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        pass_fds: t.SequenceOf[int] = (),
         *,
+        options: RuntimeProcessOptions | None = None,
         capture: bool = True,
         start_new_session: bool = False,
     ) -> p.Result[FlextCliUtilitiesProcesses.ManagedProcess]:
@@ -264,7 +263,8 @@ class FlextCliUtilitiesProcesses:
             The resulting ``p.Result[FlextCliUtilitiesProcesses.ManagedProcess]``.
 
         """
-        forwarded_fds = tuple(pass_fds)
+        launch = options if options is not None else RuntimeProcessOptions()
+        forwarded_fds = tuple(launch.pass_fds)
         if any(
             isinstance(file_descriptor, bool) or file_descriptor < 0
             for file_descriptor in forwarded_fds
@@ -277,10 +277,10 @@ class FlextCliUtilitiesProcesses:
                 "process pass_fds is unsupported on Windows",
             )
         resolved_env = None
-        if env is not None or remove_env_keys:
+        if launch.env is not None or launch.remove_env_keys:
             resolved_env = FlextCliUtilitiesRuntime.process_env(
-                overrides=env,
-                remove_keys=remove_env_keys,
+                overrides=launch.env,
+                remove_keys=launch.remove_env_keys,
             )
         try:
             process = subprocess.Popen(  # ruff: ignore[subprocess-without-shell-equals-true] -- internal process execution, inputs from typed config

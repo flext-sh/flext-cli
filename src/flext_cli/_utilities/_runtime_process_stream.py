@@ -10,7 +10,12 @@ import os
 import threading
 from typing import IO, BinaryIO, ClassVar
 
-from flext_cli import r
+from flext_cli import r, t
+from flext_cli._utilities._runtime_models import (
+    RuntimeBinaryStream,
+    RuntimeOutputTarget,
+    RuntimeProcessState,
+)
 
 
 class FlextCliUtilitiesRuntimeProcessStreamMixin:
@@ -23,7 +28,7 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
     def _pump_process_input(
         sink: BinaryIO,
         payload: bytes,
-        failures: list[str],
+        failures: t.MutableSequenceOf[str],
         wake: threading.Event,
     ) -> None:
         """Write every input byte to the child pipe, then publish EOF."""
@@ -59,42 +64,38 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
     def _pump_process_output(
         cls,
         source: IO[bytes],
-        durable_log: BinaryIO | None,
-        captured_output: bytearray | None,
-        live_fd: int | None,
-        failures: list[str],
-        stop: threading.Event,
-        wake: threading.Event,
+        target: RuntimeOutputTarget,
+        state: RuntimeProcessState,
     ) -> None:
         """Own one child pipe until EOF and preserve each byte exactly once."""
-        live_available = live_fd is not None
+        live_available = target.live_fd is not None
         try:
-            while not stop.is_set():
-                chunk = cls._read_process_chunk(source, failures)
+            while not state.pump_stop.is_set():
+                chunk = cls._read_process_chunk(source, state.failures)
                 if chunk is None:
                     return
-                if durable_log is not None:
-                    durable_error = cls._write_durable_chunk(durable_log, chunk)
+                if target.durable_log is not None:
+                    durable_error = cls._write_durable_chunk(target.durable_log, chunk)
                     if durable_error is not None:
-                        failures.append(durable_error)
+                        state.failures.append(durable_error)
                         return
-                if captured_output is not None:
-                    captured_output.extend(chunk)
-                if live_available and live_fd is not None:
+                if target.captured_output is not None:
+                    target.captured_output.extend(chunk)
+                if live_available and target.live_fd is not None:
                     live_available = cls._write_live_chunk(
-                        live_fd,
+                        target.live_fd,
                         chunk,
-                        stop,
-                        failures,
+                        state.pump_stop,
+                        state.failures,
                     )
         finally:
-            wake.set()
+            state.wake.set()
 
     @classmethod
     def _read_process_chunk(
         cls,
         source: IO[bytes],
-        failures: list[str],
+        failures: t.MutableSequenceOf[str],
     ) -> bytes | None:
         try:
             chunk = source.read(cls._STREAM_CHUNK_BYTES)
@@ -107,7 +108,10 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
         return chunk or None
 
     @staticmethod
-    def _write_durable_chunk(durable_log: BinaryIO, chunk: bytes) -> str | None:
+    def _write_durable_chunk(
+        durable_log: RuntimeBinaryStream,
+        chunk: bytes,
+    ) -> str | None:
         remaining = memoryview(chunk)
         try:
             while remaining:
@@ -129,7 +133,7 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
         live_fd: int,
         chunk: bytes,
         stop: threading.Event,
-        diagnostics: list[str],
+        diagnostics: t.MutableSequenceOf[str],
     ) -> bool:
         remaining = memoryview(chunk)
         while remaining and not stop.is_set():

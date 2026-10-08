@@ -6,12 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableMapping
+from collections.abc import Callable, MutableMapping, Sequence
 from pathlib import Path
-from types import GenericAlias, UnionType
+from types import FrameType, GenericAlias, UnionType
 from typing import ClassVar, TypeAliasType
 
 from jinja2.sandbox import SandboxedEnvironment
+from pydantic import InstanceOf
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
@@ -48,6 +49,8 @@ class FlextCliTypesBase:
     type TomlParent = TOMLDocument | Table
     type TomlValue = TOMLDocument | Table | Item | Array | AoT | Container
     type RuntimeAnnotation = type | GenericAlias | UnionType | TypeAliasType
+    type SignalHandler = int | Callable[[int, FrameType | None], None] | None
+    type BorrowedSequence[T] = InstanceOf[Sequence[T]]
     type TemplateEnvironmentCache = MutableMapping[str, SandboxedEnvironment]
 
     STR_SEQUENCE_ADAPTER: ClassVar[t.ValueAdapter[t.StrSequence]] = (

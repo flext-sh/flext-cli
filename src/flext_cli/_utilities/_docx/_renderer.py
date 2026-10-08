@@ -295,6 +295,10 @@ class FlextCliUtilitiesDocxRenderer:
             font.color.rgb = cls._color_value(spec.color)
         if spec.highlight is not None:
             font.highlight_color = cls._HIGHLIGHT_MAP.get(spec.highlight)
+        cls._apply_font_variants(font, spec)
+
+    @staticmethod
+    def _apply_font_variants(font: Font, spec: m.Cli.DocxFontSpec) -> None:
         if spec.superscript is not None:
             font.superscript = spec.superscript
         if spec.subscript is not None:
@@ -324,6 +328,13 @@ class FlextCliUtilitiesDocxRenderer:
             fmt.left_indent = Inches(spec.left_indent / 72)
         if spec.right_indent is not None:
             fmt.right_indent = Inches(spec.right_indent / 72)
+        cls._apply_paragraph_pagination(fmt, spec)
+
+    @staticmethod
+    def _apply_paragraph_pagination(
+        fmt: ParagraphFormat,
+        spec: m.Cli.DocxParagraphFormatSpec,
+    ) -> None:
         if spec.keep_together is not None:
             fmt.keep_together = spec.keep_together
         if spec.keep_with_next is not None:

@@ -10,7 +10,7 @@ import errno
 import os
 import stat
 from pathlib import Path
-from typing import Literal, Never
+from typing import Never
 
 from flext_cli import m, t
 from flext_cli._utilities import (
@@ -21,6 +21,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileState,
     FlextCliUtilitiesAtomicTreeDescriptor,
 )
+from flext_cli._utilities._atomic_models import FlextCliAtomicModels
 
 
 class FlextCliUtilitiesAtomicTreeInventory:
@@ -82,11 +83,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 )
                 root = FlextCliUtilitiesAtomicTreeInventory._entry(
                     root_path,
-                    "directory",
                     outer_parent.state,
                     root_state,
-                    parent_mount_id=parent_mount_id,
-                    mount_id=root_mount_id,
+                    FlextCliAtomicModels.TreeEntryDetails(
+                        kind="directory",
+                        parent_mount_id=parent_mount_id,
+                        mount_id=root_mount_id,
+                    ),
                 )
                 root_parent = FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor(
                     root_path,
@@ -177,11 +180,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     entries.append(
                         FlextCliUtilitiesAtomicTreeInventory._entry(
                             path,
-                            "directory",
                             parent.state,
                             observed,
-                            parent_mount_id=parent_mount_id,
-                            mount_id=mount_id,
+                            FlextCliAtomicModels.TreeEntryDetails(
+                                kind="directory",
+                                parent_mount_id=parent_mount_id,
+                                mount_id=mount_id,
+                            ),
                         ),
                     )
                     child_parent = (
@@ -235,13 +240,15 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 entries.append(
                     FlextCliUtilitiesAtomicTreeInventory._entry(
                         path,
-                        "file",
                         parent.state,
                         authenticated,
-                        parent_mount_id=parent_mount_id,
-                        size=size,
-                        digest=digest,
-                        mount_id=parent_mount_id,
+                        FlextCliAtomicModels.TreeEntryDetails(
+                            kind="file",
+                            parent_mount_id=parent_mount_id,
+                            size=size,
+                            digest=digest,
+                            mount_id=parent_mount_id,
+                        ),
                     ),
                 )
             elif stat.S_ISLNK(observed.st_mode):
@@ -261,12 +268,14 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 entries.append(
                     FlextCliUtilitiesAtomicTreeInventory._entry(
                         path,
-                        "symlink",
                         parent.state,
                         observed,
-                        parent_mount_id=parent_mount_id,
-                        mount_id=parent_mount_id,
-                        link_target=target,
+                        FlextCliAtomicModels.TreeEntryDetails(
+                            kind="symlink",
+                            parent_mount_id=parent_mount_id,
+                            mount_id=parent_mount_id,
+                            link_target=target,
+                        ),
                     ),
                 )
             else:
@@ -288,17 +297,11 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @staticmethod
     def _entry(
         path: Path,
-        kind: Literal["directory", "file", "symlink"],
         parent: os.stat_result,
         observed: os.stat_result,
-        *,
-        parent_mount_id: int,
-        mount_id: int,
-        size: int | None = None,
-        digest: str | None = None,
-        link_target: str | None = None,
+        details: FlextCliAtomicModels.TreeEntryDetails,
     ) -> m.Cli.AtomicPhysicalTreeEntry:
-        if kind == "file" and observed.st_nlink > 1:
+        if details.kind == "file" and observed.st_nlink > 1:
             # Cleanup authority is per pathname; a second physical name sharing
             # the inode means pruning this tree must not silently claim the
             # sibling's content. Read/replace paths stay permissive — this
@@ -310,14 +313,14 @@ class FlextCliUtilitiesAtomicTreeInventory:
             raise OSError(errno.EMLINK, message, path)
         return m.Cli.AtomicPhysicalTreeEntry(
             path=path,
-            kind=kind,
+            kind=details.kind,
             parent_device=parent.st_dev,
             parent_inode=parent.st_ino,
-            parent_mount_id=parent_mount_id,
+            parent_mount_id=details.parent_mount_id,
             mode=stat.S_IMODE(observed.st_mode),
             device=observed.st_dev,
             inode=observed.st_ino,
-            mount_id=mount_id,
+            mount_id=details.mount_id,
             link_count=observed.st_nlink,
             uid=observed.st_uid,
             gid=observed.st_gid,
@@ -325,9 +328,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ctime_ns=observed.st_ctime_ns,
             file_attributes=getattr(observed, "st_file_attributes", None),
             reparse_tag=getattr(observed, "st_reparse_tag", None),
-            size=size,
-            sha256=digest,
-            link_target=link_target,
+            size=details.size,
+            sha256=details.digest,
+            link_target=details.link_target,
         )
 
     @staticmethod

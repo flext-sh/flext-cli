@@ -43,8 +43,7 @@ class TestsFlextCliRuntimeChildEnvironment:
         return tm.ok(
             u.Cli.capture(
                 [sys.executable, "-c", _ECHO, key],
-                env=env,
-                remove_env_keys=remove_env_keys,
+                options=u.Cli.ProcessOptions(env=env, remove_env_keys=remove_env_keys),
             ),
         )
 

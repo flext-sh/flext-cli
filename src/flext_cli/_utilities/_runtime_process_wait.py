@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import threading
 
-from flext_cli import c, p
+from flext_cli import c, p, t
 
 
 class FlextCliUtilitiesRuntimeProcessWaitMixin:
@@ -17,8 +17,8 @@ class FlextCliUtilitiesRuntimeProcessWaitMixin:
     @staticmethod
     def _wait_for_root_process(
         process: p.Cli.ProcessHandle,
-        return_codes: list[int],
-        failures: list[str],
+        return_codes: t.MutableSequenceOf[int],
+        failures: t.MutableSequenceOf[str],
         process_done: threading.Event,
         wake: threading.Event,
     ) -> None:

@@ -19,28 +19,19 @@ class FlextCliCliPart05(FlextCliCliPart04):
     """Implementation part for FlextCliCliPart05."""
 
     @classmethod
-    def register_result_callback[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
+    def register_result_callback(
         cls,
         app: p.Cli.Application,
         *,
-        handler: p.Cli.ResultCommandHandler[M, TResult],
-        model_cls: t.ModelClass[M],
+        route: p.Cli.ResultCommandRoute,
         settings: t.Cli.ModelLike | None = None,
-        success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None = None,
-        success_message: str | None = None,
-        success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
     ) -> None:
         """Register one model/result handler as the application root callback."""
-        execute = cls._build_result_executor(
-            handler=handler,
-            success_formatter=success_formatter,
-            success_message=success_message,
-            success_type=success_type,
-        )
+        execute = cls._build_route_executor(route)
         cls.register_callback(
             app,
             command=cls.model_command(
-                model_cls,
+                route.model_cls,
                 execute,
                 settings=settings,
                 result_border=True,
@@ -48,33 +39,21 @@ class FlextCliCliPart05(FlextCliCliPart04):
         )
 
     @classmethod
-    def register_result_command[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
+    def register_result_command(
         cls,
         app: p.Cli.Application,
         *,
-        handler: p.Cli.ResultCommandHandler[M, TResult],
-        help_text: str,
-        # mro-j47u (codex): route registration preserves the model protocol.
-        model_cls: t.ModelClass[M],
-        name: str,
+        route: p.Cli.ResultCommandRoute,
         settings: t.Cli.ModelLike | None = None,
-        success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None = None,
-        success_message: str | None = None,
-        success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
     ) -> None:
         """Register a model command that normalizes `r[...]` CLI handling."""
-        execute = cls._build_result_executor(
-            handler=handler,
-            success_formatter=success_formatter,
-            success_message=success_message,
-            success_type=success_type,
-        )
+        execute = cls._build_route_executor(route)
         cls.register_command(
             app,
-            name=name,
-            help_text=help_text,
+            name=route.name,
+            help_text=route.help_text,
             command=cls.model_command(
-                model_cls,
+                route.model_cls,
                 execute,
                 settings=settings,
                 result_border=True,
@@ -121,6 +100,19 @@ class FlextCliCliPart05(FlextCliCliPart04):
         route: p.Cli.ResultCommandRoute,
     ) -> None:
         """Register a declarative result route on a Typer app."""
+        cls.register_result_command(app, route=route)
+
+    @classmethod
+    def _build_route_executor(
+        cls,
+        route: p.Cli.ResultCommandRoute,
+    ) -> p.Cli.ModelCommandHandler[t.Cli.ModelLike]:
+        """Adapt the existing heterogeneous route contract to the result executor.
+
+        Returns:
+            A model handler retaining the route's result and success formatting.
+
+        """
 
         def route_execute(params: t.Cli.ModelLike) -> p.Result[t.Cli.ResultValue]:
             result = route.handler(params)
@@ -128,11 +120,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
                 return r[t.Cli.ResultValue].from_failure(result)
             return r[t.Cli.ResultValue].ok(result.value)
 
-        cls.register_result_command(
-            app,
-            name=route.name,
-            help_text=route.help_text,
-            model_cls=route.model_cls,
+        return cls._build_result_executor(
             handler=route_execute,
             success_message=route.success_message,
             success_formatter=route.success_formatter,

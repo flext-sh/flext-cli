@@ -140,7 +140,6 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
             return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].fail(
                 f"Rules directory not found: {rules_dir}",
             )
-        file_catalog = options.file_rule_catalog
         loaded_rules: t.MutableSequenceOf[t.Pair[TRuleKind, t.JsonMapping]] = []
         loaded_file_rules: t.MutableSequenceOf[
             t.Pair[TFileRuleKind, t.JsonMapping]
@@ -157,66 +156,13 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
                 rule_config.get(options.rules_key),
             )
             for typed_rule_def in typed_rules:
-                rule_id = FlextCliUtilitiesJson.json_get_str_key(
+                cls._rules_load_definition(
                     typed_rule_def,
-                    options.rule_id_key,
+                    options,
+                    loaded=(loaded_rules, loaded_file_rules),
+                    loaded_file_rule_kinds=loaded_file_rule_kinds,
+                    unknown_rules=unknown_rules,
                 )
-                if not rule_id:
-                    continue
-                if not typed_rule_def.get(options.enabled_key, True):
-                    continue
-                if not cls.rules_matches_filters(rule_id, options.rule_filters):
-                    continue
-                action_name = FlextCliUtilitiesJson.json_get_str_key(
-                    typed_rule_def,
-                    options.action_key,
-                    case="lower",
-                )
-                check_name = FlextCliUtilitiesJson.json_get_str_key(
-                    typed_rule_def,
-                    options.check_key,
-                    case="lower",
-                )
-                if not action_name and not check_name:
-                    continue
-                file_match: t.Pair[TFileRuleKind, t.Cli.RuleMatcher] | None = (
-                    cls.rules_match_catalog_entry(action_name, check_name, file_catalog)
-                )
-                if file_match is not None:
-                    file_kind, file_matcher = file_match
-                    rule_validation = cls.rules_validate_matcher(
-                        typed_rule_def,
-                        file_matcher,
-                        rule_id_key=options.rule_id_key,
-                    )
-                    if rule_validation is not None:
-                        unknown_rules.append(rule_validation)
-                        continue
-                    file_kind_key = str(file_kind)
-                    if file_kind_key not in loaded_file_rule_kinds:
-                        loaded_file_rules.append((file_kind, typed_rule_def))
-                        loaded_file_rule_kinds.add(file_kind_key)
-                    continue
-                rule_match: t.Pair[TRuleKind, t.Cli.RuleMatcher] | None = (
-                    cls.rules_match_catalog_entry(
-                        action_name,
-                        check_name,
-                        options.rule_catalog,
-                    )
-                )
-                if rule_match is None:
-                    unknown_rules.append(rule_id)
-                    continue
-                rule_kind, rule_matcher = rule_match
-                rule_validation = cls.rules_validate_matcher(
-                    typed_rule_def,
-                    rule_matcher,
-                    rule_id_key=options.rule_id_key,
-                )
-                if rule_validation is not None:
-                    unknown_rules.append(rule_validation)
-                    continue
-                loaded_rules.append((rule_kind, typed_rule_def))
         if unknown_rules:
             unknown = ", ".join(sorted(unknown_rules))
             return r[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]].fail(
@@ -226,6 +172,98 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
             loaded_rules,
             loaded_file_rules,
         ))
+
+    @classmethod
+    def _rules_definition_id[TRuleKind, TFileRuleKind](
+        cls,
+        definition: t.JsonMapping,
+        options: m.Cli.LocalDefinitionsOptions[TRuleKind, TFileRuleKind],
+    ) -> str | None:
+        """Select definitions in identifier, enabled, then filter order.
+
+        Returns:
+            The eligible identifier, or None for a skipped definition.
+
+        """
+        rule_id = FlextCliUtilitiesJson.json_get_str_key(
+            definition,
+            options.rule_id_key,
+        )
+        if not rule_id:
+            return None
+        if not definition.get(options.enabled_key, True):
+            return None
+        if not cls.rules_matches_filters(rule_id, options.rule_filters):
+            return None
+        return rule_id
+
+    @classmethod
+    def _rules_load_definition[TRuleKind, TFileRuleKind](
+        cls,
+        definition: t.JsonMapping,
+        options: m.Cli.LocalDefinitionsOptions[TRuleKind, TFileRuleKind],
+        *,
+        loaded: t.Pair[
+            t.MutableSequenceOf[t.Pair[TRuleKind, t.JsonMapping]],
+            t.MutableSequenceOf[t.Pair[TFileRuleKind, t.JsonMapping]],
+        ],
+        loaded_file_rule_kinds: set[str],
+        unknown_rules: t.MutableSequenceOf[str],
+    ) -> None:
+        """Route one eligible definition, preferring and deduplicating file kinds."""
+        rule_id = cls._rules_definition_id(definition, options)
+        if rule_id is None:
+            return
+        action_name = FlextCliUtilitiesJson.json_get_str_key(
+            definition,
+            options.action_key,
+            case="lower",
+        )
+        check_name = FlextCliUtilitiesJson.json_get_str_key(
+            definition,
+            options.check_key,
+            case="lower",
+        )
+        if not action_name and not check_name:
+            return
+        file_match: t.Pair[TFileRuleKind, t.Cli.RuleMatcher] | None = (
+            cls.rules_match_catalog_entry(
+                action_name,
+                check_name,
+                options.file_rule_catalog,
+            )
+        )
+        if file_match is not None:
+            file_kind, file_matcher = file_match
+            rule_validation = cls.rules_validate_matcher(
+                definition,
+                file_matcher,
+                rule_id_key=options.rule_id_key,
+            )
+            if rule_validation is not None:
+                unknown_rules.append(rule_validation)
+                return
+            file_kind_key = str(file_kind)
+            if file_kind_key not in loaded_file_rule_kinds:
+                loaded[1].append((file_kind, definition))
+                loaded_file_rule_kinds.add(file_kind_key)
+            return
+        rule_match: t.Pair[TRuleKind, t.Cli.RuleMatcher] | None = (
+            cls.rules_match_catalog_entry(action_name, check_name, options.rule_catalog)
+        )
+        if rule_match is None:
+            unknown_rules.append(rule_id)
+            return
+        rule_kind, rule_matcher = rule_match
+        rule_validation = cls.rules_validate_matcher(
+            definition,
+            rule_matcher,
+            rule_id_key=options.rule_id_key,
+        )
+        if rule_validation is not None:
+            unknown_rules.append(rule_validation)
+            return
+        loaded[0].append((rule_kind, definition))
 
 
 __all__: list[str] = ["FlextCliUtilitiesRulesLoadersMixin"]
