@@ -42,7 +42,7 @@ class RuntimeProcessOptions(m.ArbitraryTypesModel):
         default=None,
         description="Absolute deadline and termination grace policy.",
     )
-    pass_fds: t.Cli.BorrowedSequence[int] = m.Field(
+    pass_fds: t.InstanceOfSequence[int] = m.Field(
         default=(),
         description="File descriptors inherited by the child process.",
     )
@@ -70,7 +70,7 @@ class RuntimeProcessRequest(m.ArbitraryTypesModel):
     """Resolved launch inputs shared by preparation and process creation."""
 
     # Borrow the sequence: iteration belongs after signal handlers are installed.
-    cmd: t.Cli.BorrowedSequence[str] = m.Field(
+    cmd: t.InstanceOfSequence[str] = m.Field(
         description="Executable and ordered child arguments.",
     )
     output_path: Path | None = m.Field(
