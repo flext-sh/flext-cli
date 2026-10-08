@@ -23,6 +23,9 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
+from flext_cli._models.process import FlextCliModelsProcess
+
+
 class FlextCliModels(FlextModels):
     """FlextCli models extending FlextModels."""
 
@@ -34,6 +37,7 @@ class FlextCliModels(FlextModels):
         FlextCliModelsXlsx,
         FlextCliModelsDocx,
         FlextCliModelsPptx,
+        FlextCliModelsProcess,
     ):
         """CLI project namespace."""
 

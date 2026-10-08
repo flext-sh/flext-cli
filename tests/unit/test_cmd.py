@@ -128,7 +128,7 @@ class TestsFlextCliCmd:
                         "print(cli.settings_snapshot().unwrap().model_dump_json())"
                     ),
                 ],
-                options=u.Cli.ProcessOptions(env={c.Cli.ENV_VAR_HOME: str(home)}),
+                options=m.Cli.ProcessOptions(env={c.Cli.ENV_VAR_HOME: str(home)}),
             ),
         )
         return m.Cli.SettingsSnapshot.model_validate_json(output)

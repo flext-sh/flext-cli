@@ -157,7 +157,7 @@ class FlextCliUtilitiesFilesPart06:
             ["git", "rev-parse", "--is-inside-work-tree"],
             cwd=scope,
             timeout=c.DEFAULT_TIMEOUT_SECONDS,
-            options=FlextCliUtilitiesRuntime.ProcessOptions(
+            options=m.Cli.ProcessOptions(
                 env={**os.environ, "LC_ALL": "C"},
             ),
         )

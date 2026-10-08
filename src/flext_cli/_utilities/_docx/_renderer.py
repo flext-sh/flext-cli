@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 from io import BytesIO
-from typing import TYPE_CHECKING, ClassVar, Protocol
+from typing import TYPE_CHECKING, ClassVar
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from docx import Document
@@ -20,16 +20,9 @@ from docx.shared import Inches, Pt, RGBColor
 from flext_cli import c, m, p, r, t
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-
-    from docx.text.paragraph import Paragraph, ParagraphFormat
-    from docx.text.run import Font
-
-    class _DocxParagraphContainer(Protocol):
-        def add_paragraph(self) -> Paragraph: ...
-
-        @property
-        def paragraphs(self) -> Sequence[Paragraph]: ...
+    from docx.text.font import Font
+    from docx.text.paragraph import Paragraph
+    from docx.text.parfmt import ParagraphFormat
 
 
 _HEX_COLOR_WITH_ALPHA_LENGTH = 8
@@ -239,7 +232,7 @@ class FlextCliUtilitiesDocxRenderer:
     @classmethod
     def _apply_paragraph(
         cls,
-        container: DocumentType | _DocxParagraphContainer,
+        container: DocumentType | p.Cli.DocxParagraphContainer,
         plan: m.Cli.DocxParagraphPlan,
         paragraph: Paragraph | None = None,
     ) -> Paragraph:
@@ -298,7 +291,10 @@ class FlextCliUtilitiesDocxRenderer:
         cls._apply_font_variants(font, spec)
 
     @staticmethod
-    def _apply_font_variants(font: Font, spec: m.Cli.DocxFontSpec) -> None:
+    def _apply_font_variants(
+        font: p.Cli.DocxFontVariants,
+        spec: m.Cli.DocxFontSpec,
+    ) -> None:
         if spec.superscript is not None:
             font.superscript = spec.superscript
         if spec.subscript is not None:
@@ -332,7 +328,7 @@ class FlextCliUtilitiesDocxRenderer:
 
     @staticmethod
     def _apply_paragraph_pagination(
-        fmt: ParagraphFormat,
+        fmt: p.Cli.DocxParagraphPagination,
         spec: m.Cli.DocxParagraphFormatSpec,
     ) -> None:
         if spec.keep_together is not None:

@@ -9,12 +9,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli import p, settings, t
+from flext_cli import m, p, settings, t
 from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessExecutionMixin
-from flext_cli._utilities._runtime_models import (
-    RuntimeProcessOptions,
-    RuntimeProcessRequest,
-)
+from flext_cli._utilities._runtime_models import RuntimeProcessRequest
 
 
 class FlextCliUtilitiesRuntimeRunToFileMixin(
@@ -38,7 +35,7 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
-        options: RuntimeProcessOptions | None = None,
+        options: p.Cli.ProcessOptions | None = None,
     ) -> p.Result[p.Cli.ProcessOutcome]:
         """Stream combined bytes live and durably under one absolute deadline.
 
@@ -53,7 +50,7 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
             The resulting ``p.Result[p.Cli.ProcessOutcome]``.
 
         """
-        launch = options if options is not None else RuntimeProcessOptions()
+        launch = options if options is not None else m.Cli.ProcessOptions()
         return cls._execute_streamed_process(
             RuntimeProcessRequest(
                 cmd=cmd,

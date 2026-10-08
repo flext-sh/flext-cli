@@ -12,7 +12,6 @@ from flext_cli._protocols import FlextCliProtocolsBasePart02
 
 if TYPE_CHECKING:
     from flext_cli import p, t
-    from flext_cli._utilities._runtime_models import RuntimeProcessOptions
 
 
 class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
@@ -28,7 +27,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
-            options: RuntimeProcessOptions | None = None,
+            options: p.Cli.ProcessOptions | None = None,
             capture: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command and require zero exit status."""
@@ -40,7 +39,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
-            options: RuntimeProcessOptions | None = None,
+            options: p.Cli.ProcessOptions | None = None,
         ) -> p.Result[str]:
             """Execute a command and return stripped stdout."""
             ...
@@ -51,7 +50,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
-            options: RuntimeProcessOptions | None = None,
+            options: p.Cli.ProcessOptions | None = None,
             capture: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
@@ -64,7 +63,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
-            options: RuntimeProcessOptions | None = None,
+            options: p.Cli.ProcessOptions | None = None,
         ) -> p.Result[p.Cli.CommandBytesOutput]:
             """Execute a command and preserve byte-exact output."""
             ...
@@ -75,7 +74,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
-            options: RuntimeProcessOptions | None = None,
+            options: p.Cli.ProcessOptions | None = None,
             capture: bool = True,
         ) -> p.Result[bool]:
             """Execute a command and return a success flag."""
@@ -87,7 +86,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
-            options: RuntimeProcessOptions | None = None,
+            options: p.Cli.ProcessOptions | None = None,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a checked command with inherited live output."""
             ...
@@ -99,7 +98,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
-            options: RuntimeProcessOptions | None = None,
+            options: p.Cli.ProcessOptions | None = None,
         ) -> p.Result[p.Cli.ProcessOutcome]:
             """Execute once with byte-identical combined live and durable output."""
             ...

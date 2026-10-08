@@ -16,12 +16,11 @@ from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
 
-from flext_cli import c, p, r, t
+from flext_cli import c, m, p, r, t
 from flext_cli._utilities import (
     FlextCliUtilitiesRuntime,
     FlextCliUtilitiesRuntimeProcessGroupMixin,
 )
-from flext_cli._utilities._runtime_models import RuntimeProcessOptions
 
 
 class FlextCliUtilitiesProcesses:
@@ -246,7 +245,7 @@ class FlextCliUtilitiesProcesses:
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
         *,
-        options: RuntimeProcessOptions | None = None,
+        options: p.Cli.ProcessOptions | None = None,
         capture: bool = True,
         start_new_session: bool = False,
     ) -> p.Result[FlextCliUtilitiesProcesses.ManagedProcess]:
@@ -263,7 +262,7 @@ class FlextCliUtilitiesProcesses:
             The resulting ``p.Result[FlextCliUtilitiesProcesses.ManagedProcess]``.
 
         """
-        launch = options if options is not None else RuntimeProcessOptions()
+        launch = options if options is not None else m.Cli.ProcessOptions()
         forwarded_fds = tuple(launch.pass_fds)
         if any(
             isinstance(file_descriptor, bool) or file_descriptor < 0

@@ -61,7 +61,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", script],
             output_file,
-            options=u.Cli.ProcessOptions(live=True),
+            options=m.Cli.ProcessOptions(live=True),
         )
 
         captured = capfd.readouterr()
@@ -95,7 +95,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "import time;time.sleep(.08)"],
             output_file,
-            options=u.Cli.ProcessOptions(live=True, heartbeat_seconds=0.02),
+            options=m.Cli.ProcessOptions(live=True, heartbeat_seconds=0.02),
         )
 
         captured = capfd.readouterr()
@@ -129,7 +129,7 @@ class TestsFlextCliRuntimeStreamedProcess:
                 "import sys;sys.stdout.buffer.write(sys.stdin.buffer.read())",
             ],
             output_file,
-            options=u.Cli.ProcessOptions(input_data=payload),
+            options=m.Cli.ProcessOptions(input_data=payload),
         )
 
         tm.ok(result)
@@ -162,7 +162,7 @@ class TestsFlextCliRuntimeStreamedProcess:
                 "import sys;sys.stdout.buffer.write(sys.stdin.buffer.read())",
             ],
             output_file,
-            options=u.Cli.ProcessOptions(
+            options=m.Cli.ProcessOptions(
                 input_data=payload,
                 deadline=_deadline(seconds=5.0, grace=1.0),
             ),
@@ -184,7 +184,7 @@ class TestsFlextCliRuntimeStreamedProcess:
                 "import sys;sys.stdout.write(str(len(sys.stdin.buffer.read())))",
             ],
             output_file,
-            options=u.Cli.ProcessOptions(input_data=b""),
+            options=m.Cli.ProcessOptions(input_data=b""),
         )
 
         tm.ok(result)
@@ -198,7 +198,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "raise SystemExit(23)"],
             tmp_path / "early-exit.log",
-            options=u.Cli.ProcessOptions(input_data=b"unread" * 131_072),
+            options=m.Cli.ProcessOptions(input_data=b"unread" * 131_072),
         )
 
         tm.ok(result)
@@ -214,7 +214,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", "import time;time.sleep(30)"],
             tmp_path / "timeout-input.log",
-            options=u.Cli.ProcessOptions(input_data=b"blocked-writer" * 131_072),
+            options=m.Cli.ProcessOptions(input_data=b"blocked-writer" * 131_072),
             timeout=1,
         )
 
@@ -247,7 +247,7 @@ class TestsFlextCliRuntimeStreamedProcess:
             ],
             tmp_path / "conflict.log",
             timeout=1,
-            options=u.Cli.ProcessOptions(deadline=_deadline(seconds=2.0, grace=0.5)),
+            options=m.Cli.ProcessOptions(deadline=_deadline(seconds=2.0, grace=0.5)),
         )
 
         tm.fail(result)
@@ -293,7 +293,7 @@ class TestsFlextCliRuntimeStreamedProcess:
             result = u.Cli().run_to_file(
                 [sys.executable, "-c", child],
                 output_file,
-                options=u.Cli.ProcessOptions(live=True),
+                options=m.Cli.ProcessOptions(live=True),
             )
         finally:
             os.dup2(saved_stdout, 1)

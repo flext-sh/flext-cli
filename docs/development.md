@@ -245,6 +245,42 @@ cli.confirm("Continue?")
 # cli.prompts.confirm("Continue?")           # NO sub-facade
 ```
 
+Process launch data is declared once by
+`_models/process.py::FlextCliModelsProcess.ProcessOptions`. Construct it through
+`m.Cli.ProcessOptions` and pass it as the `options=` argument to `u.Cli.run_raw`,
+`run_bytes`, `run`, `capture`, `run_to_file`, or `process_start`. Runtime annotations
+consume the generated structural contract `p.Cli.ProcessOptions`. There is no
+`u.Cli.ProcessOptions` DTO alias or flat `input_data=`/`env=` launch contract.
+Omitting options constructs the same canonical model used by explicit callers;
+tests compare that model's defaults with omitted-option behavior rather than
+freezing configured values. Namespace/facade and model-protocol generation must
+publish the model and protocol together before public-runtime validation.
+
+The remaining declarations in `_utilities/_runtime_models.py` are private lifecycle
+witnesses: `RuntimeProcessRequest`, `RuntimeProcessState`, `RuntimeOutputTarget`,
+`RuntimeSpawnOptions`, and the owned-stream protocols `RuntimeClosableStream` and
+`RuntimeBinaryStream`. They carry resolved launch state, OS resources and cleanup
+ownership; they are not a second public launch-options model. Their broader family
+placement is outside this bounded producer repair. Subprocess execution, signals,
+deadlines, environment validation and descriptor forwarding retain their existing
+behavior.
+The durable sink follows Python's raw-I/O contract: `write` accepts a positional
+buffer and returns `int | None`. Partial writes are retried; `None` or non-positive
+progress produces the existing durable-write failure rather than losing output.
+
+The DOCX renderer consumes only the writable capabilities it needs:
+`p.Cli.DocxFontVariants` covers superscript, subscript, all-caps and small-caps;
+`p.Cli.DocxParagraphPagination` covers the four pagination flags. Each property
+accepts and returns `bool | None`, matching the
+[python-docx text API](https://python-docx.readthedocs.io/en/latest/api/text.html).
+The authored owner is `_protocols/docx.py::FlextCliProtocolsDocx`; canonical namespace
+conformance publishes both contracts through `p.Cli`. They require no runtime type
+checks or adapter objects. Other document, font and paragraph operations retain
+their existing external types; rendering behavior and inherited formatting remain
+unchanged. Public regressions compare rendered bytes read by python-docx with the
+same library's real property setters, using the typed input specs as expectations
+rather than freezing configured defaults or assuming boolean XML normalization.
+
 ---
 
 ## Testing Guidelines (v0.12.0-dev)

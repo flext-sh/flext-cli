@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from io import BytesIO
 
+import pytest
 from docx import Document
 from flext_tests import tm
 
@@ -83,6 +84,74 @@ def test_docx_render_with_styles() -> None:
     tm.that(run.font.bold, eq=True)
     tm.that(run.font.italic, eq=True)
     tm.that(str(run.font.color.rgb), eq="FF0000")
+
+
+@pytest.mark.parametrize("state", [True, False, None])
+def test_docx_nullable_formatting_matches_real_consumer(*, state: bool | None) -> None:
+    """Render the eight tri-state properties through real python-docx objects."""
+    font_spec = m.Cli.DocxFontSpec(
+        superscript=state,
+        all_caps=state,
+        small_caps=state,
+    )
+    subscript_spec = m.Cli.DocxFontSpec(subscript=state)
+    pagination_spec = m.Cli.DocxParagraphFormatSpec(
+        keep_together=state,
+        keep_with_next=state,
+        page_break_before=state,
+        widow_control=state,
+    )
+    plan = m.Cli.DocxDocumentPlan(
+        paragraphs=(
+            m.Cli.DocxParagraphPlan(
+                runs=(
+                    m.Cli.DocxRunPlan(
+                        text="Variants",
+                        style=m.Cli.DocxRunStyleSpec(font=font_spec),
+                    ),
+                ),
+                style_spec=m.Cli.DocxParagraphStyleSpec(
+                    paragraph_format=pagination_spec,
+                ),
+            ),
+            m.Cli.DocxParagraphPlan(
+                runs=(
+                    m.Cli.DocxRunPlan(
+                        text="Subscript",
+                        style=m.Cli.DocxRunStyleSpec(font=subscript_spec),
+                    ),
+                ),
+            ),
+        ),
+    )
+    result = tm.ok(cli.docx_render(m.Cli.DocxRenderRequest(plan=plan, template=None)))
+    document = Document(BytesIO(result.content))
+    font = document.paragraphs[0].runs[0].font
+    subscript = document.paragraphs[1].runs[0].font
+    pagination = document.paragraphs[0].paragraph_format
+
+    expected = Document()
+    paragraph = expected.add_paragraph()
+    expected_font = paragraph.add_run().font
+    expected_subscript = expected.add_paragraph().add_run().font
+    expected_pagination = paragraph.paragraph_format
+    expected_font.superscript = font_spec.superscript
+    expected_font.all_caps = font_spec.all_caps
+    expected_font.small_caps = font_spec.small_caps
+    expected_subscript.subscript = subscript_spec.subscript
+    expected_pagination.keep_together = pagination_spec.keep_together
+    expected_pagination.keep_with_next = pagination_spec.keep_with_next
+    expected_pagination.page_break_before = pagination_spec.page_break_before
+    expected_pagination.widow_control = pagination_spec.widow_control
+
+    tm.that(font.superscript, eq=expected_font.superscript)
+    tm.that(font.all_caps, eq=expected_font.all_caps)
+    tm.that(font.small_caps, eq=expected_font.small_caps)
+    tm.that(subscript.subscript, eq=expected_subscript.subscript)
+    tm.that(pagination.keep_together, eq=expected_pagination.keep_together)
+    tm.that(pagination.keep_with_next, eq=expected_pagination.keep_with_next)
+    tm.that(pagination.page_break_before, eq=expected_pagination.page_break_before)
+    tm.that(pagination.widow_control, eq=expected_pagination.widow_control)
 
 
 def test_docx_render_with_table() -> None:
