@@ -116,7 +116,7 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
         try:
             while remaining:
                 written = durable_log.write(remaining)
-                if written <= 0:
+                if written is None or written <= 0:
                     return "durable log write made no progress"
                 remaining = remaining[written:]
             durable_log.flush()

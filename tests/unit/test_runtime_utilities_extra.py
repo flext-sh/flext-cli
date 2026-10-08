@@ -178,7 +178,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         result = u.Cli().run_to_file(
             ["echo", "test"],
             output_file,
-            options=u.Cli.ProcessOptions(env={"BAD": "x\0y"}),
+            options=m.Cli.ProcessOptions(env={"BAD": "x\0y"}),
         )
 
         # Assert

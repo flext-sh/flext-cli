@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         _xlxx,
         _yaml,
     )
+    from flext_cli._utilities._atomic_models import FlextCliAtomicModels
     from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
     from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
     from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
@@ -82,6 +83,14 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities._runtime_darwin_process_group import (
         FlextCliUtilitiesRuntimeDarwinProcessGroupMixin,
+    )
+    from flext_cli._utilities._runtime_models import (
+        RuntimeBinaryStream,
+        RuntimeClosableStream,
+        RuntimeOutputTarget,
+        RuntimeProcessRequest,
+        RuntimeProcessState,
+        RuntimeSpawnOptions,
     )
     from flext_cli._utilities._runtime_process_cleanup import (
         FlextCliUtilitiesRuntimeProcessCleanupMixin,
@@ -331,6 +340,7 @@ if TYPE_CHECKING:
 
 
 __all__: tuple[str, ...] = (
+    "FlextCliAtomicModels",
     "FlextCliAtomicTreeDarwin",
     "FlextCliUtilitiesAtomicDirectoryChain",
     "FlextCliUtilitiesAtomicDirectoryCleanup",
@@ -471,6 +481,12 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlEditingMixin",
     "FlextCliUtilitiesYamlEngineMixin",
     "FlextCliUtilitiesYamlModel",
+    "RuntimeBinaryStream",
+    "RuntimeClosableStream",
+    "RuntimeOutputTarget",
+    "RuntimeProcessRequest",
+    "RuntimeProcessState",
+    "RuntimeSpawnOptions",
     "_docx",
     "_file_test_helper_parts",
     "_files_parts",
@@ -488,6 +504,7 @@ install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
+        "FlextCliAtomicModels": "._atomic_models",
         "FlextCliAtomicTreeDarwin": ".atomic_tree_darwin",
         "FlextCliUtilitiesAtomicDirectoryChain": ".atomic_directory_chain",
         "FlextCliUtilitiesAtomicDirectoryCleanup": ".atomic_directory_cleanup",
@@ -646,6 +663,12 @@ install_lazy_exports(
         "FlextCliUtilitiesYamlEditingMixin": "._yaml._editing",
         "FlextCliUtilitiesYamlEngineMixin": "._yaml._engine",
         "FlextCliUtilitiesYamlModel": ".yaml_model",
+        "RuntimeBinaryStream": "._runtime_models",
+        "RuntimeClosableStream": "._runtime_models",
+        "RuntimeOutputTarget": "._runtime_models",
+        "RuntimeProcessRequest": "._runtime_models",
+        "RuntimeProcessState": "._runtime_models",
+        "RuntimeSpawnOptions": "._runtime_models",
         "_docx": "._docx",
         "_file_test_helper_parts": "._file_test_helper_parts",
         "_files_parts": "._files_parts",

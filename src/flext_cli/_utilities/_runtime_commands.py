@@ -7,19 +7,16 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import shlex
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING
 
 from flext_cli import p, r, t
 from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessOutcomeMixin
-from flext_cli._utilities._runtime_models import RuntimeProcessOptions
 
 
 class FlextCliUtilitiesRuntimeCommandsMixin(
     FlextCliUtilitiesRuntimeProcessOutcomeMixin,
 ):
     """Compose captured command primitives without owning subprocess creation."""
-
-    ProcessOptions: ClassVar[type[RuntimeProcessOptions]] = RuntimeProcessOptions
 
     if TYPE_CHECKING:
 
@@ -30,7 +27,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
-            options: RuntimeProcessOptions | None = None,
+            options: p.Cli.ProcessOptions | None = None,
             capture: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]: ...
 
@@ -41,7 +38,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
-        options: RuntimeProcessOptions | None = None,
+        options: p.Cli.ProcessOptions | None = None,
         capture: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Require a zero exit without timeout or forwarded interruption.
@@ -79,7 +76,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
-        options: RuntimeProcessOptions | None = None,
+        options: p.Cli.ProcessOptions | None = None,
         capture: bool = True,
     ) -> p.Result[bool]:
         """Run a command and return a success flag.
@@ -103,7 +100,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
-        options: RuntimeProcessOptions | None = None,
+        options: p.Cli.ProcessOptions | None = None,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command with inherited live stdout and stderr.
 
@@ -126,7 +123,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
-        options: RuntimeProcessOptions | None = None,
+        options: p.Cli.ProcessOptions | None = None,
     ) -> p.Result[str]:
         """Run a command and return stripped stdout.
 

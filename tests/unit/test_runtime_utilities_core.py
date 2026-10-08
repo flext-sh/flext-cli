@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
-from tests import c, m, u
+from tests import c, m, p, u
 
 
 def fixtures_path(name: str) -> str:
@@ -63,7 +63,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Verify that run raw remove env keys strips inherited values."""
         result = runner.run_raw(
             ["sh", "-c", 'printf %s "${TEST_RUNTIME_INHERITED:-missing}"'],
-            options=u.Cli.ProcessOptions(
+            options=m.Cli.ProcessOptions(
                 env={"TEST_RUNTIME_INHERITED": "should-not-leak"},
                 remove_env_keys=("TEST_RUNTIME_INHERITED",),
             ),
@@ -89,7 +89,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             case.command,
             cwd=cwd,
             timeout=case.timeout,
-            options=u.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
+            options=m.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
         )
         if case.expect_success:
             output = m.Cli.CommandOutput.model_validate(tm.ok(result))
@@ -129,7 +129,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             case.command,
             cwd=cwd,
             timeout=case.timeout,
-            options=u.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
+            options=m.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
         )
         if case.expect_success:
             output = m.Cli.CommandOutput.model_validate(tm.ok(result))
@@ -158,7 +158,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             case.command,
             cwd=cwd,
             timeout=case.timeout,
-            options=u.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
+            options=m.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
         )
         if case.expect_success:
             output = u.type_adapter(str).validate_python(tm.ok(result))
@@ -176,7 +176,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             tm.ok(
                 runner.run_bytes(
                     ("cat",),
-                    options=u.Cli.ProcessOptions(input_data="text-payload"),
+                    options=m.Cli.ProcessOptions(input_data="text-payload"),
                 ),
             ),
         )
@@ -185,11 +185,35 @@ class TestsFlextCliRuntimeUtilitiesCore:
             tm.ok(
                 runner.run_bytes(
                     ("cat",),
-                    options=u.Cli.ProcessOptions(input_data=b"\x00\xff\x01"),
+                    options=m.Cli.ProcessOptions(input_data=b"\x00\xff\x01"),
                 ),
             ),
         )
         tm.that(binary_out.stdout, eq=b"\x00\xff\x01")
+
+    @staticmethod
+    def test_default_options_match_omitted_options(runner: u.Cli) -> None:
+        """Public model defaults and omitted options produce equivalent outputs."""
+        defaults = m.Cli.ProcessOptions()
+        tm.that(isinstance(defaults, p.Cli.ProcessOptions), eq=True)
+        command = (
+            sys.executable,
+            "-c",
+            (
+                "import sys; print('default-output'); "
+                "print('default-error', file=sys.stderr)"
+            ),
+        )
+        implicit_text = tm.ok(runner.run_raw(command))
+        explicit_text = tm.ok(runner.run_raw(command, options=defaults))
+        tm.that(explicit_text.stdout, eq=implicit_text.stdout)
+        tm.that(explicit_text.stderr, eq=implicit_text.stderr)
+        tm.that(explicit_text.outcome, eq=implicit_text.outcome)
+        implicit_bytes = tm.ok(runner.run_bytes(command))
+        explicit_bytes = tm.ok(runner.run_bytes(command, options=defaults))
+        tm.that(explicit_bytes.stdout, eq=implicit_bytes.stdout)
+        tm.that(explicit_bytes.stderr, eq=implicit_bytes.stderr)
+        tm.that(explicit_bytes.outcome, eq=implicit_bytes.outcome)
 
     @staticmethod
     def test_run_checked_rejects_a_real_timeout(runner: u.Cli) -> None:
@@ -257,7 +281,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         output = tm.ok(
             runner.run_raw(
                 [sys.executable, "-c", script],
-                options=u.Cli.ProcessOptions(input_data="inherited-input\n"),
+                options=m.Cli.ProcessOptions(input_data="inherited-input\n"),
             ),
         )
         tm.that(u.Cli.process_succeeded(output.outcome), eq=True)
@@ -297,7 +321,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             )
             result = runner.process_start(
                 [sys.executable, "-c", script, str(child_end.fileno())],
-                options=u.Cli.ProcessOptions(pass_fds=(child_end.fileno(),)),
+                options=m.Cli.ProcessOptions(pass_fds=(child_end.fileno(),)),
             )
             tm.ok(result)
             process = result.value
@@ -325,7 +349,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         result = runner.process_start(
             [sys.executable, "-c", script],
             cwd=tmp_path,
-            options=u.Cli.ProcessOptions(env={"FLEXT_CLI_PROCESS_TEST": "env-ok"}),
+            options=m.Cli.ProcessOptions(env={"FLEXT_CLI_PROCESS_TEST": "env-ok"}),
         )
         tm.ok(result)
         process = result.value
@@ -351,7 +375,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             script = "import os, sys; os.write(int(sys.argv[1]), b'fd-forwarded')"
             result = runner.process_start(
                 [sys.executable, "-c", script, str(write_fd)],
-                options=u.Cli.ProcessOptions(pass_fds=(write_fd,)),
+                options=m.Cli.ProcessOptions(pass_fds=(write_fd,)),
             )
             os.close(write_fd)
             write_fd = -1

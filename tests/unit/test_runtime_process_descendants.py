@@ -90,7 +90,7 @@ class TestsFlextCliRuntimeProcessDescendants:
         result = _ObservedWindowsCli.run_to_file(
             [sys.executable, "-c", "import time;time.sleep(30)"],
             tmp_path / "windows-job.log",
-            options=u.Cli.ProcessOptions(
+            options=m.Cli.ProcessOptions(
                 deadline=m.Cli.ProcessDeadline(
                     expires_at_monotonic=time.monotonic() + 1.2,
                     termination_grace_seconds=0.6,

@@ -18,7 +18,7 @@ from collections.abc import Mapping, Sequence
 
 from flext_tests import tm
 
-from flext_cli import u
+from flext_cli import m, u
 
 _MARKER = "FLEXT_CLI_CHILD_ENV_PROBE"
 _ECHO = "import os,sys; sys.stdout.write(os.environ.get(sys.argv[1], '<unset>'))"
@@ -43,7 +43,7 @@ class TestsFlextCliRuntimeChildEnvironment:
         return tm.ok(
             u.Cli.capture(
                 [sys.executable, "-c", _ECHO, key],
-                options=u.Cli.ProcessOptions(env=env, remove_env_keys=remove_env_keys),
+                options=m.Cli.ProcessOptions(env=env, remove_env_keys=remove_env_keys),
             ),
         )
 

@@ -183,7 +183,7 @@ class TestsFlextCliRuntimeProcessContainment:
                 str(survivor_ack),
             ],
             tmp_path / "boundary.log",
-            options=u.Cli.ProcessOptions(deadline=_deadline(seconds=2.0, grace=0.8)),
+            options=m.Cli.ProcessOptions(deadline=_deadline(seconds=2.0, grace=0.8)),
         )
 
         tm.ok(result)
@@ -222,7 +222,7 @@ class TestsFlextCliRuntimeProcessContainment:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", child, str(ready)],
             output_file,
-            options=u.Cli.ProcessOptions(deadline=_deadline(seconds=3.0, grace=1.0)),
+            options=m.Cli.ProcessOptions(deadline=_deadline(seconds=3.0, grace=1.0)),
         )
         signaler.join(timeout=1.0)
 
@@ -271,7 +271,7 @@ class TestsFlextCliRuntimeProcessContainment:
         result = u.Cli().run_to_file(
             [sys.executable, "-c", script],
             output_file,
-            options=u.Cli.ProcessOptions(deadline=_deadline(seconds=1.2, grace=0.6)),
+            options=m.Cli.ProcessOptions(deadline=_deadline(seconds=1.2, grace=0.6)),
         )
 
         tm.ok(result)
@@ -315,7 +315,7 @@ class TestsFlextCliRuntimeProcessContainment:
                 str(survivor_ack),
             ],
             output_file,
-            options=u.Cli.ProcessOptions(deadline=_deadline(seconds=1.5, grace=0.7)),
+            options=m.Cli.ProcessOptions(deadline=_deadline(seconds=1.5, grace=0.7)),
         )
 
         tm.ok(result)

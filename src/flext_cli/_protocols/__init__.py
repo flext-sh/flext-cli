@@ -31,9 +31,11 @@ if TYPE_CHECKING:
     )
     from flext_cli._protocols.base import FlextCliProtocolsBase
     from flext_cli._protocols.config import FlextCliProtocolsConfig
+    from flext_cli._protocols.docx import FlextCliProtocolsDocx
     from flext_cli._protocols.domain import FlextCliProtocolsDomain
     from flext_cli._protocols.framework import FlextCliProtocolsFramework
     from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
+    from flext_cli._protocols.process import FlextCliProtocolsProcess
     from flext_cli._protocols.xlsx import FlextCliProtocolsXlsx
     from flext_cli._protocols.xlsx_archive import FlextCliProtocolsXlsxArchive
     from flext_cli._protocols.xlsx_rules import FlextCliProtocolsXlsxRules
@@ -52,9 +54,11 @@ __all__: tuple[str, ...] = (
     "FlextCliProtocolsBasePart04",
     "FlextCliProtocolsBasePart05",
     "FlextCliProtocolsConfig",
+    "FlextCliProtocolsDocx",
     "FlextCliProtocolsDomain",
     "FlextCliProtocolsFramework",
     "FlextCliProtocolsPipeline",
+    "FlextCliProtocolsProcess",
     "FlextCliProtocolsXlsx",
     "FlextCliProtocolsXlsxArchive",
     "FlextCliProtocolsXlsxRules",
@@ -75,9 +79,11 @@ install_lazy_exports(
         "FlextCliProtocolsBasePart04": "._base_parts.flextcliprotocolsbase_part_04",
         "FlextCliProtocolsBasePart05": "._base_parts.flextcliprotocolsbase_part_05",
         "FlextCliProtocolsConfig": ".config",
+        "FlextCliProtocolsDocx": ".docx",
         "FlextCliProtocolsDomain": ".domain",
         "FlextCliProtocolsFramework": ".framework",
         "FlextCliProtocolsPipeline": ".pipeline",
+        "FlextCliProtocolsProcess": ".process",
         "FlextCliProtocolsXlsx": ".xlsx",
         "FlextCliProtocolsXlsxArchive": ".xlsx_archive",
         "FlextCliProtocolsXlsxRules": ".xlsx_rules",

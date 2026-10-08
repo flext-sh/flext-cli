@@ -17,7 +17,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeRunToFileMixin,
 )
 from flext_cli._utilities._runtime_models import (
-    RuntimeProcessOptions,
     RuntimeProcessRequest,
     RuntimeSpawnOptions,
 )
@@ -136,7 +135,7 @@ class FlextCliUtilitiesRuntime(
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
-        options: RuntimeProcessOptions | None = None,
+        options: p.Cli.ProcessOptions | None = None,
         capture: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command without enforcing a zero exit code.
@@ -178,7 +177,7 @@ class FlextCliUtilitiesRuntime(
                 ),
             )
 
-        launch = options if options is not None else cls.ProcessOptions()
+        launch = options if options is not None else m.Cli.ProcessOptions()
         return cls._execute_streamed_process(
             RuntimeProcessRequest(
                 cmd=cmd,
@@ -197,7 +196,7 @@ class FlextCliUtilitiesRuntime(
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
-        options: RuntimeProcessOptions | None = None,
+        options: p.Cli.ProcessOptions | None = None,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Run a command capturing byte-exact stdout/stderr (no text decoding).
 
@@ -205,7 +204,7 @@ class FlextCliUtilitiesRuntime(
             The resulting ``p.Result[p.Cli.CommandBytesOutput]``.
 
         """
-        launch = options if options is not None else cls.ProcessOptions()
+        launch = options if options is not None else m.Cli.ProcessOptions()
         return cls._execute_streamed_process(
             RuntimeProcessRequest(
                 cmd=cmd,
