@@ -10,7 +10,7 @@ import os
 import select
 import shlex
 import signal
-import subprocess  # nosec
+import subprocess  # ruff: ignore: S404 -- managed-process primitives module
 import time
 from collections.abc import Mapping
 from pathlib import Path
@@ -283,7 +283,7 @@ class FlextCliUtilitiesProcesses:
                 remove_keys=remove_env_keys,
             )
         try:
-            process = subprocess.Popen(  # nosec S603 B603 - internal process execution, inputs from typed config
+            process = subprocess.Popen(  # ruff: ignore: S603 -- internal process execution, inputs from typed config
                 list(cmd),
                 cwd=cwd,
                 stdin=subprocess.PIPE if capture else None,
