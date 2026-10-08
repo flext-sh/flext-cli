@@ -14,14 +14,10 @@ from collections.abc import Callable
 from functools import partial
 from types import FrameType
 
-from flext_cli import p, r, t
+from flext_cli import m, p, r, t
 from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeProcessMonitorMixin,
     FlextCliUtilitiesRuntimeProcessThreadsMixin,
-)
-from flext_cli._utilities._runtime_models import (
-    RuntimeClosableStream,
-    RuntimeProcessState,
 )
 
 
@@ -110,7 +106,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         cls,
         process: p.Cli.ProcessHandle,
         waiter: threading.Thread,
-        state: RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
     ) -> int | None:
         """Kill the owned boundary, reap root, drain output, and prove empty.
 
@@ -152,7 +148,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
     def _drain_input(
         cls,
         pump: threading.Thread,
-        sink: RuntimeClosableStream,
+        sink: p.Cli.RuntimeClosableStream,
         cleanup_errors: t.MutableSequenceOf[str],
         cleanup_deadline: float,
     ) -> None:
@@ -176,7 +172,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
     def _empty_owned_boundary(
         cls,
         process: p.Cli.ProcessHandle,
-        state: RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         cleanup_deadline: float,
     ) -> None:
         boundary = cls._process_boundary_empty(process.pid, state.job_handle)
@@ -225,7 +221,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         cls,
         pump: threading.Thread,
         stop: threading.Event,
-        source: RuntimeClosableStream,
+        source: p.Cli.RuntimeClosableStream,
         cleanup_errors: t.MutableSequenceOf[str],
         cleanup_deadline: float,
     ) -> None:

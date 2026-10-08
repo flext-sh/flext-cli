@@ -9,6 +9,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
+    from collections.abc import Buffer
+
     from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_02 import (
         FlextCliProtocolsBasePart02,
     )
@@ -17,6 +19,30 @@ if TYPE_CHECKING:
 
 class FlextCliProtocolsProcess:
     """Structural process input declarations exposed through ``p.Cli``."""
+
+    @runtime_checkable
+    class RuntimeClosableStream(Protocol):
+        """The cleanup capability shared by owned input and output streams."""
+
+        def close(self) -> None:
+            """Release the stream."""
+            ...
+
+    @runtime_checkable
+    class RuntimeBinaryStream(RuntimeClosableStream, Protocol):
+        """Opaque durable sink, retained by identity rather than serialized."""
+
+        def write(self, data: Buffer, /) -> int | None:
+            """Write bytes to the sink."""
+            ...
+
+        def flush(self) -> None:
+            """Flush buffered bytes."""
+            ...
+
+        def fileno(self) -> int:
+            """Return the underlying descriptor."""
+            ...
 
     @runtime_checkable
     class ProcessOptions(Protocol):

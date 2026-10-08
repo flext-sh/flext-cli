@@ -9,11 +9,8 @@ from __future__ import annotations
 import threading
 from typing import IO, TYPE_CHECKING
 
+from flext_cli import m
 from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessThreadsMixin
-from flext_cli._utilities._runtime_models import (
-    RuntimeOutputTarget,
-    RuntimeProcessState,
-)
 
 if TYPE_CHECKING:
     from flext_cli import p, t
@@ -28,7 +25,7 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
     def _start_process_output(
         cls,
         process: p.Cli.ProcessHandle,
-        state: RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         live_fd: int | None,
         *,
         capture_output: bool,
@@ -43,7 +40,7 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
             state.stack.callback(stdout_source.close)
             stdout_pump = cls._start_output_pump(
                 stdout_source,
-                RuntimeOutputTarget(
+                m.Cli.RuntimeOutputTarget(
                     durable_log=state.durable_log,
                     captured_output=state.stdout_output if capture_output else None,
                     live_fd=live_fd,
@@ -63,7 +60,7 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
             state.stack.callback(stderr_source.close)
             stderr_pump = cls._start_output_pump(
                 stderr_source,
-                RuntimeOutputTarget(captured_output=state.stderr_output),
+                m.Cli.RuntimeOutputTarget(captured_output=state.stderr_output),
                 state,
                 thread_name="flext-cli-process-stderr",
             )

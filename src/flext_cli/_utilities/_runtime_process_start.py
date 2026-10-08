@@ -9,8 +9,7 @@ from __future__ import annotations
 import signal
 from typing import TYPE_CHECKING, BinaryIO
 
-from flext_cli import p, r, t
-from flext_cli._utilities._runtime_models import RuntimeSpawnOptions
+from flext_cli import m, p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessStartMixin:
@@ -25,7 +24,7 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
             env: t.MappingKV[str, str] | None,
             stdin_handle: BinaryIO | None,
             *,
-            options: RuntimeSpawnOptions,
+            options: m.Cli.RuntimeSpawnOptions,
         ) -> p.Cli.ProcessHandle: ...
 
         @staticmethod
@@ -58,7 +57,7 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
         env: t.MappingKV[str, str] | None,
         stdin_handle: BinaryIO | None,
         *,
-        options: RuntimeSpawnOptions,
+        options: m.Cli.RuntimeSpawnOptions,
     ) -> p.Result[t.Pair[p.Cli.ProcessHandle, int]]:
         process = cls._spawn_streamed_process(
             cmd,
