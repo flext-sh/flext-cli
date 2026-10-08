@@ -30,8 +30,7 @@ from pathlib import Path
 
 from examples import c
 from flext_cli import cli, m, t
-from flext_cli.protocols import p
-from flext_core import r
+from flext_core import p, r
 
 
 class DataManagerCLI:

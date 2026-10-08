@@ -11,6 +11,10 @@ from typing import TYPE_CHECKING
 
 from flext_cli import p, settings, t
 from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessExecutionMixin
+from flext_cli._utilities._runtime_models import (
+    RuntimeProcessOptions,
+    RuntimeProcessRequest,
+)
 
 
 class FlextCliUtilitiesRuntimeRunToFileMixin(
@@ -33,13 +37,8 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         output_file: t.Cli.TextPath,
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
         *,
-        live: bool = False,
-        heartbeat_seconds: float | None = None,
-        deadline: p.Cli.ProcessDeadline | None = None,
+        options: RuntimeProcessOptions | None = None,
     ) -> p.Result[p.Cli.ProcessOutcome]:
         """Stream combined bytes live and durably under one absolute deadline.
 
@@ -54,21 +53,24 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
             The resulting ``p.Result[p.Cli.ProcessOutcome]``.
 
         """
+        launch = options if options is not None else RuntimeProcessOptions()
         return cls._execute_streamed_process(
-            cmd,
-            Path(output_file),
-            cwd,
-            cls._resolved_env(env, remove_env_keys),
-            input_data,
-            capture_output=False,
-            live=live,
-            heartbeat_seconds=(
-                settings.cli_process_heartbeat_seconds
-                if live and heartbeat_seconds is None
-                else heartbeat_seconds
+            RuntimeProcessRequest(
+                cmd=cmd,
+                output_path=Path(output_file),
+                cwd=cwd,
+                env=cls._resolved_env(launch.env, launch.remove_env_keys),
+                input_data=launch.input_data,
+                capture_output=False,
+                live=launch.live,
+                heartbeat_seconds=(
+                    settings.cli_process_heartbeat_seconds
+                    if launch.live and launch.heartbeat_seconds is None
+                    else launch.heartbeat_seconds
+                ),
+                timeout=timeout,
+                deadline=launch.deadline,
             ),
-            timeout=timeout,
-            deadline=deadline,
         ).map(lambda output: output.outcome)
 
 

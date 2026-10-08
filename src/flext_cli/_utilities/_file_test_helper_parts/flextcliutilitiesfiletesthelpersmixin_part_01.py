@@ -55,24 +55,7 @@ class FlextCliUtilitiesFileTestHelpersMixinPart01:
                 file_name = f"{name}{ext or ''}"
                 file_path = base_dir / file_name
                 FlextCliUtilitiesFiles.ensure_dir(file_path.parent)
-                if isinstance(raw, bytes):
-                    file_path.write_bytes(raw)
-                elif isinstance(raw, str):
-                    file_path.write_text(raw, encoding=c.Cli.ENCODING_DEFAULT)
-                elif isinstance(raw, Mapping):
-                    fmt = (
-                        c.Cli.FILE_FORMAT_YAML
-                        if file_path.suffix in {".yaml", ".yml"}
-                        else c.Cli.FILE_FORMAT_JSON
-                    )
-                    cls._files_write_structured(file_path, raw, fmt)
-                elif isinstance(raw, list):
-                    FlextCliUtilitiesFiles.files_write_csv(
-                        file_path,
-                        cast("t.SequenceOf[t.StrSequence]", raw),
-                    )
-                else:
-                    file_path.write_text(str(raw), encoding=c.Cli.ENCODING_DEFAULT)
+                cls._files_write_content(file_path, raw)
                 created[name] = file_path
             yield created
         finally:
@@ -85,6 +68,32 @@ class FlextCliUtilitiesFileTestHelpersMixinPart01:
                             path.unlink()
                 if directory is None and base_dir.exists():
                     shutil.rmtree(base_dir)
+
+    @classmethod
+    def _files_write_content(
+        cls,
+        file_path: Path,
+        raw: str | bytes | t.JsonValue | t.SequenceOf[t.StrSequence],
+    ) -> None:
+        """Write one bundle entry using the original content-type precedence."""
+        if isinstance(raw, bytes):
+            file_path.write_bytes(raw)
+        elif isinstance(raw, str):
+            file_path.write_text(raw, encoding=c.Cli.ENCODING_DEFAULT)
+        elif isinstance(raw, Mapping):
+            fmt = (
+                c.Cli.FILE_FORMAT_YAML
+                if file_path.suffix in {".yaml", ".yml"}
+                else c.Cli.FILE_FORMAT_JSON
+            )
+            cls._files_write_structured(file_path, raw, fmt)
+        elif isinstance(raw, list):
+            FlextCliUtilitiesFiles.files_write_csv(
+                file_path,
+                cast("t.SequenceOf[t.StrSequence]", raw),
+            )
+        else:
+            file_path.write_text(str(raw), encoding=c.Cli.ENCODING_DEFAULT)
 
     @staticmethod
     def _files_write_structured(

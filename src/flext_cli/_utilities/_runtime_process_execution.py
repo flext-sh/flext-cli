@@ -6,13 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import contextlib
 import signal
 import threading
 import time
-from collections.abc import Callable
-from pathlib import Path
-from typing import IO, BinaryIO
+from typing import BinaryIO
 
 from flext_cli import c, p, r, t
 from flext_cli._utilities import (
@@ -22,6 +19,11 @@ from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeProcessResourcesMixin,
     FlextCliUtilitiesRuntimeProcessStartMixin,
     FlextCliUtilitiesRuntimeProcessTimingMixin,
+)
+from flext_cli._utilities._runtime_models import (
+    RuntimeProcessRequest,
+    RuntimeProcessState,
+    RuntimeSpawnOptions,
 )
 
 
@@ -38,246 +40,199 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
     @classmethod
     def _execute_streamed_process(
         cls,
-        cmd: t.StrSequence,
-        output_path: Path | None,
-        cwd: t.Cli.TextPath | None,
-        env: t.MappingKV[str, str] | None,
-        input_data: str | bytes | None,
-        *,
-        capture_output: bool,
-        live: bool,
-        heartbeat_seconds: float | None,
-        timeout: int | None,
-        deadline: p.Cli.ProcessDeadline | None,
+        request: RuntimeProcessRequest,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Own resources and complete one streamed child lifecycle.
 
         Returns:
-            The resulting ``p.Result[p.Cli.CommandBytesOutput]``.
+            Captured bytes and the exact causal process outcome.
 
         """
         started = time.monotonic()
         timing_result = cls._resolve_process_timing(
-            cmd,
-            timeout,
-            deadline,
+            request,
             started,
-            capture_output=capture_output,
-            has_output_path=output_path is not None,
-            live=live,
-            heartbeat_seconds=heartbeat_seconds,
             on_main_thread=threading.current_thread() is threading.main_thread(),
         )
         if timing_result.failure:
             return r[p.Cli.CommandBytesOutput].from_failure(timing_result)
         absolute_deadline, grace_seconds = timing_result.unwrap()
-        process: p.Cli.ProcessHandle | None = None
-        waiter: threading.Thread | None = None
-        durable_log: BinaryIO | None = None
-        job_handle = 0
-        failures: list[str] = []
-        cleanup_errors: list[str] = []
-        restore_handlers: list[Callable[[], object]] = []
-        forwarded_signals: list[int] = []
-        received_signals: list[int] = []
-        return_codes: list[int] = []
-        stdout_output = bytearray()
-        stderr_output = bytearray()
-        pump_streams: list[tuple[threading.Thread, IO[bytes]]] = []
-        input_pump: t.Pair[threading.Thread, BinaryIO] | None = None
-        pump_stop = threading.Event()
-        process_done = threading.Event()
-        wake = threading.Event()
-        stack = contextlib.ExitStack()
-        return_code: int | None = None
-        timed_out = False
-        final_deadline = absolute_deadline
-        cleanup_complete = False
-        primary_error: BaseException | None = None
-
-        def execute_lifecycle() -> None:
-            nonlocal \
-                cleanup_complete, \
-                durable_log, \
-                final_deadline, \
-                job_handle, \
-                process, \
-                return_code, \
-                timed_out, \
-                waiter, \
-                input_pump
-            if threading.current_thread() is threading.main_thread():
-                restore_handlers.extend(
-                    cls._install_forwarding_handlers(
-                        received_signals,
-                        forwarded_signals,
-                        wake,
-                    ),
-                )
-            prepared_cmd = tuple(cmd)
-            if received_signals:
-                wake.set()
-                return
-            if output_path is not None:
-                output_path.parent.mkdir(parents=True, exist_ok=True)
-                durable_log = stack.enter_context(output_path.open("wb", buffering=0))
-            stdin_result = cls._prepare_streamed_stdin(stack, input_data)
-            live_result = cls._prepare_live_descriptor(stack, live=live)
-            if stdin_result.failure:
-                failures.append(stdin_result.error or "stdin preparation failed")
-            elif live_result.failure:
-                failures.append(live_result.error or "live output preparation failed")
-            elif received_signals:
-                wake.set()
-            elif cls._spawn_deadline_exhausted(absolute_deadline, grace_seconds):
-                failures.append("process deadline exhausted before child spawn")
-            else:
-                combine_output = output_path is not None
-                pipe_output = combine_output or capture_output
-                start_result = cls._start_contained_process(
-                    prepared_cmd,
-                    cwd,
-                    env,
-                    stdin_result.value[0],
-                    capture_output=pipe_output,
-                    combine_output=combine_output,
-                )
-                if start_result.failure:
-                    failures.append(start_result.error or "process start failed")
-                else:
-                    owned_process, job_handle = start_result.unwrap()
-                    process = owned_process
-                    stdin_reader, stdin_writer, stdin_payload = stdin_result.unwrap()
-                    if stdin_reader is not None:
-                        try:
-                            stdin_reader.close()
-                        except (OSError, ValueError) as exc:
-                            failures.append(
-                                r[str]
-                                .fail(
-                                    f"parent stdin reader close error: {exc}",
-                                    exception=exc,
-                                )
-                                .error
-                                or str(exc),
-                            )
-                    waiter = cls._start_root_waiter(
-                        owned_process,
-                        return_codes,
-                        failures,
-                        process_done,
-                        wake,
-                    )
-                    pump_streams.extend(
-                        cls._start_process_output(
-                            owned_process,
-                            stack,
-                            durable_log,
-                            live_result.value[0],
-                            failures,
-                            pump_stop,
-                            wake,
-                            stdout_output,
-                            stderr_output,
-                            capture_output=capture_output,
-                        ),
-                    )
-                    if stdin_writer is not None:
-                        input_thread = cls._start_input_pump(
-                            stdin_writer,
-                            stdin_payload,
-                            failures,
-                            wake,
-                        )
-                        input_pump = (input_thread, stdin_writer)
-                    timed_out, final_deadline = cls._monitor_process(
-                        owned_process,
-                        process_done,
-                        wake,
-                        failures,
-                        received_signals,
-                        job_handle,
-                        absolute_deadline,
-                        grace_seconds,
-                        live_result.value[1],
-                        heartbeat_seconds,
-                    )
-                    return_code = cls._reap_and_drain(
-                        owned_process,
-                        waiter,
-                        process_done,
-                        wake,
-                        pump_stop,
-                        tuple(pump_streams),
-                        input_pump,
-                        cleanup_errors,
-                        job_handle,
-                        final_deadline,
-                        return_codes,
-                    )
-                    cleanup_complete = True
-
+        state = RuntimeProcessState(final_deadline=absolute_deadline)
         try:
-            execute_lifecycle()
+            cls._execute_lifecycle(request, state, absolute_deadline, grace_seconds)
         except (OSError, TypeError, ValueError) as exc:
-            # Why: propagated as typed causal evidence immediately (r.fail(...)
-            # note) rather than only at the deferred r.fail(...) return below,
-            # so cleanup's own exc.add_note calls compose with it in order
-            # (silent-failure-broad-except).
             exc.add_note(r[str].fail(str(exc), exception=exc).error or str(exc))
-            primary_error = exc
-            if process is not None:
+            state.primary_error = exc
+            if state.process is not None:
                 signal_result = cls._signal_process_tree(
-                    process,
+                    state.process,
                     signal.SIGKILL,
-                    job_handle,
+                    state.job_handle,
                     force=True,
                 )
                 if signal_result.failure:
                     exc.add_note(signal_result.error or "process signal failed")
         finally:
-            if process is not None and waiter is not None and not cleanup_complete:
-                return_code = cls._reap_and_drain(
-                    process,
-                    waiter,
-                    process_done,
-                    wake,
-                    pump_stop,
-                    tuple(pump_streams),
-                    input_pump,
-                    cleanup_errors,
-                    job_handle,
-                    final_deadline,
-                    return_codes,
-                )
-            if durable_log is not None:
-                cleanup_errors.extend(cls._flush_durable_log(durable_log))
-            close_error = cls._windows_job_close(job_handle)
-            if close_error is not None:
-                cleanup_errors.append(close_error)
-            cleanup_errors.extend(cls._close_process_resources(stack))
-            cleanup_errors.extend(cls._restore_forwarding_handlers(restore_handlers))
-            if primary_error is not None:
-                for cleanup_error in cleanup_errors:
-                    primary_error.add_note(cleanup_error)
-        if primary_error is not None:
-            # Why: primary_error is narrowed to OSError | TypeError | ValueError
-            # by the except clause above, so it is always an Exception instance
-            # (pyright reportUnnecessaryIsInstance) -- the isinstance guard and
-            # its dead raise branch are removed at the root.
+            cls._finalize_lifecycle(state)
+        if state.primary_error is not None:
             return r[p.Cli.CommandBytesOutput].fail(
-                f"{c.Cli.OUTPUT_EXECUTION_ERROR}: {primary_error}",
-                exception=primary_error,
+                f"{c.Cli.OUTPUT_EXECUTION_ERROR}: {state.primary_error}",
+                exception=state.primary_error,
             )
         return cls._captured_process_result(
-            return_code,
-            received_signals,
-            (*failures, *cleanup_errors),
-            stdout_output,
-            stderr_output,
+            state,
             max(0.0, time.monotonic() - started),
-            timed_out=timed_out,
         )
+
+    @classmethod
+    def _execute_lifecycle(
+        cls,
+        request: RuntimeProcessRequest,
+        state: RuntimeProcessState,
+        absolute_deadline: float | None,
+        grace_seconds: float,
+    ) -> None:
+        if threading.current_thread() is threading.main_thread():
+            state.restore_handlers.extend(
+                cls._install_forwarding_handlers(
+                    state.received_signals,
+                    state.forwarded_signals,
+                    state.wake,
+                ),
+            )
+        prepared_cmd = tuple(request.cmd)
+        if state.received_signals:
+            state.wake.set()
+            return
+        if request.output_path is not None:
+            request.output_path.parent.mkdir(parents=True, exist_ok=True)
+            state.durable_log = state.stack.enter_context(
+                request.output_path.open("wb", buffering=0),
+            )
+        stdin_result = cls._prepare_streamed_stdin(state.stack, request.input_data)
+        live_result = cls._prepare_live_descriptor(state.stack, live=request.live)
+        if stdin_result.failure:
+            state.failures.append(stdin_result.error or "stdin preparation failed")
+        elif live_result.failure:
+            state.failures.append(live_result.error or "live output preparation failed")
+        elif state.received_signals:
+            state.wake.set()
+        elif cls._spawn_deadline_exhausted(absolute_deadline, grace_seconds):
+            state.failures.append("process deadline exhausted before child spawn")
+        else:
+            start_result = cls._start_contained_process(
+                prepared_cmd,
+                request.cwd,
+                request.env,
+                stdin_result.value[0],
+                options=RuntimeSpawnOptions(
+                    capture_output=(
+                        request.output_path is not None or request.capture_output
+                    ),
+                    combine_output=request.output_path is not None,
+                ),
+            )
+            if start_result.failure:
+                state.failures.append(start_result.error or "process start failed")
+            else:
+                owned_process, state.job_handle = start_result.unwrap()
+                state.process = owned_process
+                waiter = cls._attach_process_streams(
+                    owned_process,
+                    request,
+                    state,
+                    stdin_result.unwrap(),
+                    live_result.value[0],
+                )
+                state.timed_out, state.final_deadline = cls._monitor_process(
+                    owned_process,
+                    state,
+                    absolute_deadline,
+                    grace_seconds,
+                    progress=(live_result.value[1], request.heartbeat_seconds),
+                )
+                state.return_code = cls._reap_and_drain(owned_process, waiter, state)
+                state.cleanup_complete = True
+
+    @classmethod
+    def _attach_process_streams(
+        cls,
+        process: p.Cli.ProcessHandle,
+        request: RuntimeProcessRequest,
+        state: RuntimeProcessState,
+        stdin: t.Triple[BinaryIO | None, BinaryIO | None, bytes],
+        live_fd: int | None,
+    ) -> threading.Thread:
+        """Attach child I/O without losing ownership on a partial failure.
+
+        Returns:
+            The root waiter already retained by the lifecycle state.
+
+        """
+        stdin_reader, stdin_writer, stdin_payload = stdin
+        if stdin_reader is not None:
+            try:
+                stdin_reader.close()
+            except (OSError, ValueError) as exc:
+                state.failures.append(
+                    r[str]
+                    .fail(
+                        f"parent stdin reader close error: {exc}",
+                        exception=exc,
+                    )
+                    .error
+                    or str(exc),
+                )
+        waiter = cls._start_root_waiter(
+            process,
+            state.return_codes,
+            state.failures,
+            state.process_done,
+            state.wake,
+        )
+        state.waiter = waiter
+        state.pump_streams.extend(
+            cls._start_process_output(
+                process,
+                state,
+                live_fd,
+                capture_output=request.capture_output,
+            ),
+        )
+        if stdin_writer is not None:
+            input_thread = cls._start_input_pump(
+                stdin_writer,
+                stdin_payload,
+                state.failures,
+                state.wake,
+            )
+            state.input_pump = (input_thread, stdin_writer)
+        return waiter
+
+    @classmethod
+    def _finalize_lifecycle(cls, state: RuntimeProcessState) -> None:
+        if (
+            state.process is not None
+            and state.waiter is not None
+            and not state.cleanup_complete
+        ):
+            state.return_code = cls._reap_and_drain(
+                state.process,
+                state.waiter,
+                state,
+            )
+        if state.durable_log is not None:
+            state.cleanup_errors.extend(cls._flush_durable_log(state.durable_log))
+        close_error = cls._windows_job_close(state.job_handle)
+        if close_error is not None:
+            state.cleanup_errors.append(close_error)
+        state.cleanup_errors.extend(cls._close_process_resources(state.stack))
+        state.cleanup_errors.extend(
+            cls._restore_forwarding_handlers(state.restore_handlers),
+        )
+        if state.primary_error is not None:
+            for cleanup_error in state.cleanup_errors:
+                state.primary_error.add_note(cleanup_error)
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessExecutionMixin"]

@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities._runtime_models import RuntimeProcessState
 
 
 class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
@@ -63,14 +64,8 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
     @classmethod
     def _captured_process_result(
         cls,
-        return_code: int | None,
-        received_signals: t.SequenceOf[int],
-        diagnostics: t.VariadicTuple[str],
-        stdout_output: bytearray,
-        stderr_output: bytearray,
+        state: RuntimeProcessState,
         duration: float,
-        *,
-        timed_out: bool,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Attach captured bytes only after the owned process boundary is empty.
 
@@ -79,15 +74,15 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
 
         """
         return cls._process_exit_result(
-            return_code,
-            received_signals,
-            diagnostics,
-            timed_out=timed_out,
+            state.return_code,
+            state.received_signals,
+            (*state.failures, *state.cleanup_errors),
+            timed_out=state.timed_out,
         ).flat_map(
             lambda outcome: r[p.Cli.CommandBytesOutput].ok(
                 m.Cli.CommandBytesOutput(
-                    stdout=bytes(stdout_output),
-                    stderr=bytes(stderr_output),
+                    stdout=bytes(state.stdout_output),
+                    stderr=bytes(state.stderr_output),
                     outcome=outcome,
                     duration=duration,
                 ),

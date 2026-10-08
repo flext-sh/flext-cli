@@ -80,6 +80,31 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
         return r[bool].ok(value=True)
 
     @classmethod
+    def _signal_permission_result(
+        cls,
+        process: p.Cli.ProcessHandle,
+        error: PermissionError,
+    ) -> p.Result[bool]:
+        """Check Darwin's zombie-only group before reporting a signal denial.
+
+        Returns:
+            Success for an exited Darwin group, or the causal signal/probe failure.
+
+        """
+        # XNU killpg excludes zombies and returns EPERM if none are live.
+        # Confirm that state; cleanup still waits for every PID to be reaped.
+        if platform.system() == "Darwin":
+            try:
+                if cls._darwin_process_group_exited(process.pid):
+                    return r[bool].ok(value=True)
+            except OSError as probe_error:
+                return r[bool].fail(
+                    f"process-tree state error: {probe_error}",
+                    exception=probe_error,
+                )
+        return r[bool].fail(f"process-tree signal error: {error}", exception=error)
+
+    @classmethod
     def _signal_process_tree(
         cls,
         process: p.Cli.ProcessHandle,
@@ -106,18 +131,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
         except ProcessLookupError:
             return r[bool].ok(value=True)
         except PermissionError as exc:
-            # XNU killpg excludes zombies and returns EPERM if none are live.
-            # Confirm that state; cleanup still waits for every PID to be reaped.
-            if platform.system() == "Darwin":
-                try:
-                    if cls._darwin_process_group_exited(process.pid):
-                        return r[bool].ok(value=True)
-                except OSError as probe_error:
-                    return r[bool].fail(
-                        f"process-tree state error: {probe_error}",
-                        exception=probe_error,
-                    )
-            return r[bool].fail(f"process-tree signal error: {exc}", exception=exc)
+            return cls._signal_permission_result(process, exc)
         except (OSError, ValueError) as exc:
             return r[bool].fail(f"process-tree signal error: {exc}", exception=exc)
         return r[bool].ok(value=True)

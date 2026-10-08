@@ -28,40 +28,18 @@ class FlextCliCliPart02(FlextCliCliPart01):
     ) -> p.Cli.ParsedOptionTokens:
         """Parse route options from the same declarations used to build Typer.
 
+        Classification propagates TypeError for required excluded fields or
+        invalid repeated values. Token consumption propagates ValueError for
+        undeclared or duplicated options and invalid flag/value arity.
+
         Returns:
             The resulting ``p.Cli.ParsedOptionTokens``.
-
-        Raises:
-            TypeError: If ``field.is_required()``; or if CLI repeated option has an
-                invalid value.
-            ValueError: If CLI option is not declared for this route; or if CLI option
-                is duplicated; or if CLI flag cannot take a value; or if CLI option
-                requires a value.
 
         """
         selected = (
             field_names if field_names is not None else tuple(model_cls.model_fields)
         )
-        options: dict[str, tuple[str, bool, bool, bool]] = {}
-        for field_name in selected:
-            field = model_cls.model_fields[field_name]
-            if field.exclude is True:
-                if field.is_required():
-                    msg = c.Cli.ERR_REQUIRED_EXCLUDED_FIELD_FMT.format(
-                        model=model_cls.__name__,
-                        field_name=field_name,
-                    )
-                    raise TypeError(msg)
-                continue
-            spec, annotation = cls.model_option_spec(field_name, field, None)
-            for declaration in spec.declarations:
-                for position, name in enumerate(declaration.split("/")):
-                    options[name] = (
-                        field_name,
-                        annotation is bool,
-                        position == 0,
-                        get_origin(annotation) is list,
-                    )
+        options = cls._model_option_routes(model_cls, selected)
         values: dict[str, t.JsonValue] = {}
         index = 0
         while index < len(arguments):
@@ -84,47 +62,131 @@ class FlextCliCliPart02(FlextCliCliPart01):
                     remaining=tuple(arguments[index:]),
                     help_requested=False,
                 )
-            option, separator, inline = argument.partition("=")
-            route = options.get(option)
-            if route is None:
-                msg = f"CLI option is not declared for this route: {argument}"
-                raise ValueError(msg)
-            field_name, is_flag, flag_value, is_repeated = route
-            if field_name in values and not is_repeated:
-                msg = f"CLI option is duplicated: {field_name}"
-                raise ValueError(msg)
-            if is_flag:
-                if separator:
-                    msg = f"CLI flag cannot take a value: {option}"
-                    raise ValueError(msg)
-                values[field_name] = flag_value
-            else:
-                if not separator:
-                    index += 1
-                    if index >= len(arguments):
-                        msg = f"CLI option requires a value: {option}"
-                        raise ValueError(msg)
-                    inline = arguments[index]
-                if not inline:
-                    msg = f"CLI option requires a value: {option}"
-                    raise ValueError(msg)
-                if is_repeated:
-                    existing = values.get(field_name)
-                    if existing is None:
-                        values[field_name] = [inline]
-                    elif isinstance(existing, list):
-                        existing.append(inline)
-                    else:
-                        msg = f"CLI repeated option has an invalid value: {field_name}"
-                        raise TypeError(msg)
-                else:
-                    values[field_name] = inline
-            index += 1
+            index = cls._consume_model_option(
+                arguments,
+                index=index,
+                options=options,
+                values=values,
+            )
         return m.Cli.ParsedOptionTokens(
             values=values,
             remaining=(),
             help_requested=False,
         )
+
+    @classmethod
+    def _model_option_routes(
+        cls,
+        model_cls: t.ModelClass[t.Cli.ModelLike],
+        selected: t.StrSequence,
+    ) -> dict[str, tuple[str, bool, bool, bool]]:
+        """Classify declarations using the same option specification as Typer.
+
+        Returns:
+            Canonical field, flag status, polarity and repetition for each name.
+
+        Raises:
+            TypeError: If a required field is excluded from the CLI.
+
+        """
+        options: dict[str, tuple[str, bool, bool, bool]] = {}
+        for field_name in selected:
+            field = model_cls.model_fields[field_name]
+            if field.exclude is True:
+                if field.is_required():
+                    msg = c.Cli.ERR_REQUIRED_EXCLUDED_FIELD_FMT.format(
+                        model=model_cls.__name__,
+                        field_name=field_name,
+                    )
+                    raise TypeError(msg)
+                continue
+            spec, annotation = cls.model_option_spec(field_name, field, None)
+            for declaration in spec.declarations:
+                for position, name in enumerate(declaration.split("/")):
+                    options[name] = (
+                        field_name,
+                        annotation is bool,
+                        position == 0,
+                        get_origin(annotation) is list,
+                    )
+        return options
+
+    @classmethod
+    def _consume_model_option(
+        cls,
+        arguments: t.StrSequence,
+        *,
+        index: int,
+        options: t.MappingKV[str, tuple[str, bool, bool, bool]],
+        values: dict[str, t.JsonValue],
+    ) -> int:
+        """Consume one declared option and its value before inspecting more tokens.
+
+        Returns:
+            The index of the next unconsumed token.
+
+        Raises:
+            ValueError: If the option is undeclared, duplicated or has invalid arity.
+
+        """
+        argument = arguments[index]
+        option, separator, inline = argument.partition("=")
+        route = options.get(option)
+        if route is None:
+            msg = f"CLI option is not declared for this route: {argument}"
+            raise ValueError(msg)
+        field_name, is_flag, flag_value, is_repeated = route
+        if field_name in values and not is_repeated:
+            msg = f"CLI option is duplicated: {field_name}"
+            raise ValueError(msg)
+        if is_flag:
+            if separator:
+                msg = f"CLI flag cannot take a value: {option}"
+                raise ValueError(msg)
+            values[field_name] = flag_value
+        else:
+            if not separator:
+                index += 1
+                if index >= len(arguments):
+                    msg = f"CLI option requires a value: {option}"
+                    raise ValueError(msg)
+                inline = arguments[index]
+            if not inline:
+                msg = f"CLI option requires a value: {option}"
+                raise ValueError(msg)
+            cls._store_model_option_value(
+                values,
+                field_name=field_name,
+                value=inline,
+                repeated=is_repeated,
+            )
+        return index + 1
+
+    @staticmethod
+    def _store_model_option_value(
+        values: dict[str, t.JsonValue],
+        *,
+        field_name: str,
+        value: str,
+        repeated: bool,
+    ) -> None:
+        """Store scalar or repeated values without changing insertion order.
+
+        Raises:
+            TypeError: If a repeated option already holds a non-list value.
+
+        """
+        if not repeated:
+            values[field_name] = value
+            return
+        existing = values.get(field_name)
+        if existing is None:
+            values[field_name] = [value]
+        elif isinstance(existing, list):
+            existing.append(value)
+        else:
+            msg = f"CLI repeated option has an invalid value: {field_name}"
+            raise TypeError(msg)
 
     def _apply_common_params_to_config(self, *, params: m.Cli.CliParamsConfig) -> None:
         """Apply global CLI flags to the shared settings singleton."""

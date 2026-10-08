@@ -11,13 +11,17 @@ import signal
 import threading
 import time
 from collections.abc import Callable
+from functools import partial
 from types import FrameType
-from typing import IO, BinaryIO
 
 from flext_cli import p, r, t
 from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeProcessMonitorMixin,
     FlextCliUtilitiesRuntimeProcessThreadsMixin,
+)
+from flext_cli._utilities._runtime_models import (
+    RuntimeClosableStream,
+    RuntimeProcessState,
 )
 
 
@@ -30,21 +34,21 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
     @classmethod
     def _install_forwarding_handlers(
         cls,
-        received_signals: list[int],
-        forwarded_signals: list[int],
+        received_signals: t.MutableSequenceOf[int],
+        forwarded_signals: t.MutableSequenceOf[int],
         wake: threading.Event,
-    ) -> list[Callable[[], object]]:
+    ) -> t.MutableSequenceOf[Callable[[], None]]:
         """Capture operator signals before opening the containment window.
 
         Returns:
-            The resulting ``list[Callable[[], object]]``.
+            The callbacks that restore the original parent signal handlers.
 
         Raises:
             OSError: If a ``(OSError, ValueError)`` is caught.
             ValueError: If a ``(OSError, ValueError)`` is caught.
 
         """
-        restore_handlers: list[Callable[[], object]] = []
+        restore_handlers: t.MutableSequenceOf[Callable[[], None]] = []
 
         def forward(signal_number: int, _frame: FrameType | None) -> None:
             received_signals.append(signal_number)
@@ -55,14 +59,11 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
             forwarded = (*forwarded, signal.SIGHUP)
         try:
             for signal_number in forwarded:
-                previous = signal.getsignal(signal_number)
+                previous: t.Cli.SignalHandler = signal.getsignal(signal_number)
                 signal.signal(signal_number, forward)
                 forwarded_signals.append(int(signal_number))
                 restore_handlers.append(
-                    lambda number=int(signal_number), handler=previous: signal.signal(
-                        number,
-                        handler,
-                    ),
+                    partial(cls._restore_signal_handler, int(signal_number), previous),
                 )
         except (OSError, ValueError):
             for restore in reversed(restore_handlers):
@@ -71,8 +72,16 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         return restore_handlers
 
     @staticmethod
+    def _restore_signal_handler(
+        signal_number: int,
+        handler: t.Cli.SignalHandler,
+    ) -> None:
+        """Restore the captured handler without exposing the displaced handler."""
+        signal.signal(signal_number, handler)
+
+    @staticmethod
     def _restore_forwarding_handlers(
-        restore_handlers: list[Callable[[], object]],
+        restore_handlers: t.SequenceOf[Callable[[], None]],
     ) -> t.VariadicTuple[str]:
         """Restore parent handlers after child lifecycle completion.
 
@@ -80,7 +89,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
             The resulting ``t.VariadicTuple[str]``.
 
         """
-        failures: list[str] = []
+        failures: t.MutableSequenceOf[str] = []
         for restore in reversed(restore_handlers):
             try:
                 restore()
@@ -101,15 +110,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         cls,
         process: p.Cli.ProcessHandle,
         waiter: threading.Thread,
-        process_done: threading.Event,
-        wake: threading.Event,
-        stop: threading.Event,
-        pump_streams: t.VariadicTuple[t.Pair[threading.Thread, IO[bytes]]],
-        input_pump: t.Pair[threading.Thread, BinaryIO] | None,
-        cleanup_errors: list[str],
-        job_handle: int,
-        absolute_deadline: float | None,
-        return_codes: t.SequenceOf[int],
+        state: RuntimeProcessState,
     ) -> int | None:
         """Kill the owned boundary, reap root, drain output, and prove empty.
 
@@ -118,38 +119,41 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
 
         """
         cleanup_deadline = (
-            absolute_deadline
-            if absolute_deadline is not None
+            state.final_deadline
+            if state.final_deadline is not None
             else time.monotonic() + 1.0
         )
         cls._empty_owned_boundary(
             process,
-            process_done,
-            wake,
-            cleanup_errors,
-            job_handle,
+            state,
             cleanup_deadline,
         )
         waiter.join(cls._remaining(cleanup_deadline))
         if waiter.is_alive():
-            cleanup_errors.append("process deadline expired before root reaping")
-        if input_pump is not None:
+            state.cleanup_errors.append("process deadline expired before root reaping")
+        if state.input_pump is not None:
             cls._drain_input(
-                input_pump[0],
-                input_pump[1],
-                cleanup_errors,
+                state.input_pump[0],
+                state.input_pump[1],
+                state.cleanup_errors,
                 cleanup_deadline,
             )
-        for pump, source in pump_streams:
-            cls._drain_output(pump, stop, source, cleanup_errors, cleanup_deadline)
-        return return_codes[0] if return_codes else process.poll()
+        for pump, source in tuple(state.pump_streams):
+            cls._drain_output(
+                pump,
+                state.pump_stop,
+                source,
+                state.cleanup_errors,
+                cleanup_deadline,
+            )
+        return state.return_codes[0] if state.return_codes else process.poll()
 
     @classmethod
     def _drain_input(
         cls,
         pump: threading.Thread,
-        sink: BinaryIO,
-        cleanup_errors: list[str],
+        sink: RuntimeClosableStream,
+        cleanup_errors: t.MutableSequenceOf[str],
         cleanup_deadline: float,
     ) -> None:
         """Join the input writer after the child boundary has lost every reader."""
@@ -172,28 +176,30 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
     def _empty_owned_boundary(
         cls,
         process: p.Cli.ProcessHandle,
-        process_done: threading.Event,
-        wake: threading.Event,
-        cleanup_errors: list[str],
-        job_handle: int,
+        state: RuntimeProcessState,
         cleanup_deadline: float,
     ) -> None:
-        boundary = cls._process_boundary_empty(process.pid, job_handle)
+        boundary = cls._process_boundary_empty(process.pid, state.job_handle)
         if boundary.success and boundary.value:
             return
         cls._append_signal_error(
-            cleanup_errors,
-            cls._signal_process_tree(process, signal.SIGTERM, job_handle, force=False),
+            state.cleanup_errors,
+            cls._signal_process_tree(
+                process,
+                signal.SIGTERM,
+                state.job_handle,
+                force=False,
+            ),
         )
-        process_done.wait(min(0.1, cls._remaining(cleanup_deadline)))
-        boundary = cls._process_boundary_empty(process.pid, job_handle)
+        state.process_done.wait(min(0.1, cls._remaining(cleanup_deadline)))
+        boundary = cls._process_boundary_empty(process.pid, state.job_handle)
         if boundary.success and not boundary.value:
             cls._append_signal_error(
-                cleanup_errors,
+                state.cleanup_errors,
                 cls._signal_process_tree(
                     process,
                     signal.SIGKILL,
-                    job_handle,
+                    state.job_handle,
                     force=True,
                 ),
             )
@@ -202,23 +208,25 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
             and not boundary.value
             and cls._remaining(cleanup_deadline) > 0
         ):
-            wake.wait(min(0.02, cls._remaining(cleanup_deadline)))
-            wake.clear()
-            boundary = cls._process_boundary_empty(process.pid, job_handle)
+            state.wake.wait(min(0.02, cls._remaining(cleanup_deadline)))
+            state.wake.clear()
+            boundary = cls._process_boundary_empty(process.pid, state.job_handle)
         if boundary.failure:
-            cleanup_errors.append(
+            state.cleanup_errors.append(
                 boundary.error or "owned process-boundary probe failed",
             )
         elif not boundary.value:
-            cleanup_errors.append("owned process boundary was not empty before return")
+            state.cleanup_errors.append(
+                "owned process boundary was not empty before return",
+            )
 
     @classmethod
     def _drain_output(
         cls,
         pump: threading.Thread,
         stop: threading.Event,
-        source: IO[bytes],
-        cleanup_errors: list[str],
+        source: RuntimeClosableStream,
+        cleanup_errors: t.MutableSequenceOf[str],
         cleanup_deadline: float,
     ) -> None:
         pump.join(cls._remaining(cleanup_deadline))
@@ -238,7 +246,10 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
             cleanup_errors.append("process deadline expired before output drain")
 
     @staticmethod
-    def _append_signal_error(errors: list[str], signal_result: p.Result[bool]) -> None:
+    def _append_signal_error(
+        errors: t.MutableSequenceOf[str],
+        signal_result: p.Result[bool],
+    ) -> None:
         if signal_result.failure:
             errors.append(signal_result.error or "process signal failed")
 

@@ -161,17 +161,21 @@ class FlextCliModelsBasePart09:
         ] = ()
 
         @u.model_validator(mode="after")
-        def _validate_topology(self) -> Self:
+        def _validate_root_and_order(self) -> Self:
             if self.root.kind != "directory":
                 msg = "atomic physical-tree root must be a directory"
                 raise ValueError(msg)
-            directories = {self.root.path: self.root}
-            directory_identities = {(self.root.device, self.root.inode)}
-            seen = {self.root.path}
             ordered_paths = tuple(entry.path.as_posix() for entry in self.entries)
             if ordered_paths != tuple(sorted(ordered_paths)):
                 msg = "atomic physical-tree entries must be lexically ordered"
                 raise ValueError(msg)
+            return self
+
+        @u.model_validator(mode="after")
+        def _validate_topology(self) -> Self:
+            directories = {self.root.path: self.root}
+            directory_identities = {(self.root.device, self.root.inode)}
+            seen = {self.root.path}
             for entry in self.entries:
                 if entry.path in seen:
                     msg = "atomic physical-tree entries must have unique paths"

@@ -330,15 +330,11 @@ class FlextCliUtilitiesFramework:
             return e.fail_validation(error=exc, result_type=r[bool])
         except typer.Abort:
             raise
-        except typer.Exit as exc:
+        except (typer.Exit, SystemExit) as exc:
             if (failure := cls._active_failure.get()) is not None:
                 return r[bool].from_failure(failure)
-            if exc.exit_code == c.Cli.EXIT_CODE_SUCCESS:
+            if isinstance(exc, typer.Exit) and exc.exit_code == c.Cli.EXIT_CODE_SUCCESS:
                 return r[bool].ok(value=True)
-            raise
-        except SystemExit:
-            if (failure := cls._active_failure.get()) is not None:
-                return r[bool].from_failure(failure)
             raise
         finally:
             sys.argv = original_argv

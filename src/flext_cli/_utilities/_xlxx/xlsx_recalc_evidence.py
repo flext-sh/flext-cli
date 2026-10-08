@@ -92,6 +92,21 @@ class FlextCliUtilitiesXlsxRecalcEvidence(FlextCliUtilitiesXlsxArchiveChecks):
         return r[tuple[t.VariadicTuple[str], t.VariadicTuple[str]]].ok(evidence)
 
     @classmethod
+    def _formula_cache_parts(
+        cls,
+        element: p.Cli.XlsxXmlElement,
+    ) -> t.Pair[bool, p.Cli.XlsxXmlElement | None]:
+        has_formula = False
+        value_element: p.Cli.XlsxXmlElement | None = None
+        for child in element.iter():
+            local = cls._local_name(child.tag)
+            if local == "f":
+                has_formula = True
+            elif local == "v" and value_element is None:
+                value_element = child
+        return has_formula, value_element
+
+    @classmethod
     def _formula_cache_evidence_unchecked(
         cls,
         source: bytes,
@@ -106,14 +121,7 @@ class FlextCliUtilitiesXlsxRecalcEvidence(FlextCliUtilitiesXlsxArchiveChecks):
                 for element in root.iter():
                     if cls._local_name(element.tag) != "c":
                         continue
-                    has_formula = False
-                    value_element: p.Cli.XlsxXmlElement | None = None
-                    for child in element.iter():
-                        local = cls._local_name(child.tag)
-                        if local == "f":
-                            has_formula = True
-                        elif local == "v" and value_element is None:
-                            value_element = child
+                    has_formula, value_element = cls._formula_cache_parts(element)
                     if not has_formula:
                         continue
                     coordinate = element.get("r")

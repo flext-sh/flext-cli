@@ -63,8 +63,10 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Verify that run raw remove env keys strips inherited values."""
         result = runner.run_raw(
             ["sh", "-c", 'printf %s "${TEST_RUNTIME_INHERITED:-missing}"'],
-            env={"TEST_RUNTIME_INHERITED": "should-not-leak"},
-            remove_env_keys=("TEST_RUNTIME_INHERITED",),
+            options=u.Cli.ProcessOptions(
+                env={"TEST_RUNTIME_INHERITED": "should-not-leak"},
+                remove_env_keys=("TEST_RUNTIME_INHERITED",),
+            ),
         )
 
         output = m.Cli.CommandOutput.model_validate(tm.ok(result))
@@ -87,8 +89,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             case.command,
             cwd=cwd,
             timeout=case.timeout,
-            env=case.env,
-            input_data=case.input_data,
+            options=u.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
         )
         if case.expect_success:
             output = m.Cli.CommandOutput.model_validate(tm.ok(result))
@@ -128,8 +129,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             case.command,
             cwd=cwd,
             timeout=case.timeout,
-            env=case.env,
-            input_data=case.input_data,
+            options=u.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
         )
         if case.expect_success:
             output = m.Cli.CommandOutput.model_validate(tm.ok(result))
@@ -158,8 +158,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             case.command,
             cwd=cwd,
             timeout=case.timeout,
-            env=case.env,
-            input_data=case.input_data,
+            options=u.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
         )
         if case.expect_success:
             output = u.type_adapter(str).validate_python(tm.ok(result))
@@ -174,11 +173,21 @@ class TestsFlextCliRuntimeUtilitiesCore:
     def test_run_bytes_accepts_text_and_binary_stdin(runner: u.Cli) -> None:
         """Verify run_bytes accepts str or bytes stdin and echoes byte-exact."""
         text_out = m.Cli.CommandBytesOutput.model_validate(
-            tm.ok(runner.run_bytes(("cat",), input_data="text-payload")),
+            tm.ok(
+                runner.run_bytes(
+                    ("cat",),
+                    options=u.Cli.ProcessOptions(input_data="text-payload"),
+                ),
+            ),
         )
         tm.that(text_out.stdout, eq=b"text-payload")
         binary_out = m.Cli.CommandBytesOutput.model_validate(
-            tm.ok(runner.run_bytes(("cat",), input_data=b"\x00\xff\x01")),
+            tm.ok(
+                runner.run_bytes(
+                    ("cat",),
+                    options=u.Cli.ProcessOptions(input_data=b"\x00\xff\x01"),
+                ),
+            ),
         )
         tm.that(binary_out.stdout, eq=b"\x00\xff\x01")
 
@@ -248,7 +257,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         output = tm.ok(
             runner.run_raw(
                 [sys.executable, "-c", script],
-                input_data="inherited-input\n",
+                options=u.Cli.ProcessOptions(input_data="inherited-input\n"),
             ),
         )
         tm.that(u.Cli.process_succeeded(output.outcome), eq=True)
@@ -288,7 +297,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             )
             result = runner.process_start(
                 [sys.executable, "-c", script, str(child_end.fileno())],
-                pass_fds=(child_end.fileno(),),
+                options=u.Cli.ProcessOptions(pass_fds=(child_end.fileno(),)),
             )
             tm.ok(result)
             process = result.value
@@ -316,7 +325,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         result = runner.process_start(
             [sys.executable, "-c", script],
             cwd=tmp_path,
-            env={"FLEXT_CLI_PROCESS_TEST": "env-ok"},
+            options=u.Cli.ProcessOptions(env={"FLEXT_CLI_PROCESS_TEST": "env-ok"}),
         )
         tm.ok(result)
         process = result.value
@@ -342,7 +351,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             script = "import os, sys; os.write(int(sys.argv[1]), b'fd-forwarded')"
             result = runner.process_start(
                 [sys.executable, "-c", script, str(write_fd)],
-                pass_fds=(write_fd,),
+                options=u.Cli.ProcessOptions(pass_fds=(write_fd,)),
             )
             os.close(write_fd)
             write_fd = -1

@@ -12,6 +12,7 @@ from flext_cli._protocols import FlextCliProtocolsBasePart02
 
 if TYPE_CHECKING:
     from flext_cli import p, t
+    from flext_cli._utilities._runtime_models import RuntimeProcessOptions
 
 
 class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
@@ -26,10 +27,8 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cmd: t.StrSequence,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
-            env: t.StrMapping | None = None,
-            remove_env_keys: t.StrSequence = (),
-            input_data: str | bytes | None = None,
             *,
+            options: RuntimeProcessOptions | None = None,
             capture: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command and require zero exit status."""
@@ -40,9 +39,8 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cmd: t.StrSequence,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
-            env: t.StrMapping | None = None,
-            remove_env_keys: t.StrSequence = (),
-            input_data: str | bytes | None = None,
+            *,
+            options: RuntimeProcessOptions | None = None,
         ) -> p.Result[str]:
             """Execute a command and return stripped stdout."""
             ...
@@ -52,10 +50,8 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cmd: t.StrSequence,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
-            env: t.StrMapping | None = None,
-            remove_env_keys: t.StrSequence = (),
-            input_data: str | bytes | None = None,
             *,
+            options: RuntimeProcessOptions | None = None,
             capture: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
@@ -67,9 +63,8 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cmd: t.StrSequence,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
-            env: t.StrMapping | None = None,
-            remove_env_keys: t.StrSequence = (),
-            input_data: str | bytes | None = None,
+            *,
+            options: RuntimeProcessOptions | None = None,
         ) -> p.Result[p.Cli.CommandBytesOutput]:
             """Execute a command and preserve byte-exact output."""
             ...
@@ -79,10 +74,8 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cmd: t.StrSequence,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
-            env: t.StrMapping | None = None,
-            remove_env_keys: t.StrSequence = (),
-            input_data: str | bytes | None = None,
             *,
+            options: RuntimeProcessOptions | None = None,
             capture: bool = True,
         ) -> p.Result[bool]:
             """Execute a command and return a success flag."""
@@ -93,9 +86,8 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             cmd: t.StrSequence,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
-            env: t.StrMapping | None = None,
-            remove_env_keys: t.StrSequence = (),
-            input_data: str | bytes | None = None,
+            *,
+            options: RuntimeProcessOptions | None = None,
         ) -> p.Result[p.Cli.CommandOutput]:
             """Execute a checked command with inherited live output."""
             ...
@@ -106,13 +98,8 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             output_file: t.Cli.TextPath,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
-            env: t.StrMapping | None = None,
-            remove_env_keys: t.StrSequence = (),
-            input_data: str | bytes | None = None,
             *,
-            live: bool = False,
-            heartbeat_seconds: float | None = None,
-            deadline: p.Cli.ProcessDeadline | None = None,
+            options: RuntimeProcessOptions | None = None,
         ) -> p.Result[p.Cli.ProcessOutcome]:
             """Execute once with byte-identical combined live and durable output."""
             ...

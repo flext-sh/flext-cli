@@ -212,6 +212,65 @@ class FlextCliUtilitiesTablesRenderer:
         return None, data_rows
 
     @classmethod
+    def _compose_pipe(
+        cls,
+        cells: t.SequenceOf[t.SequenceOf[str]],
+        header_labels: t.SequenceOf[str],
+        widths: t.SequenceOf[int],
+        alignments: list[str],
+        *,
+        settings: m.Cli.TableConfig,
+    ) -> str:
+        """Compose the header, separator, and rows of a pipe table.
+
+        Returns:
+            The rendered pipe table.
+
+        """
+        lines: list[str] = []
+        if header_labels and settings.show_header:
+            lines.extend([
+                _COLUMN_EDGE
+                + _COLUMN_EDGE.join(
+                    f" {cls._pad(label, widths[index], alignments[index])} "
+                    for index, label in enumerate(header_labels)
+                )
+                + _COLUMN_EDGE,
+                _COLUMN_EDGE
+                + _COLUMN_EDGE.join(f" {_ROW_GLYPH * width} " for width in widths)
+                + _COLUMN_EDGE,
+            ])
+        lines.extend(
+            _COLUMN_EDGE
+            + _COLUMN_EDGE.join(
+                f" {cls._pad(cell, widths[index], alignments[index])} "
+                for index, cell in enumerate(row)
+            )
+            + _COLUMN_EDGE
+            for row in cells
+        )
+        return "\n".join(lines)
+
+    @staticmethod
+    def _compose_tsv(
+        cells: t.SequenceOf[t.SequenceOf[str]],
+        header_labels: t.SequenceOf[str],
+        *,
+        settings: m.Cli.TableConfig,
+    ) -> str:
+        """Compose an unpadded tab-separated header and rows.
+
+        Returns:
+            The rendered tab-separated table.
+
+        """
+        lines: list[str] = []
+        if header_labels and settings.show_header:
+            lines.append(_TSV_GAP.join(header_labels))
+        lines.extend(_TSV_GAP.join(row) for row in cells)
+        return "\n".join(lines)
+
+    @classmethod
     def _compose(
         cls,
         cells: t.SequenceOf[t.SequenceOf[str]],
@@ -224,33 +283,15 @@ class FlextCliUtilitiesTablesRenderer:
         shape = _SHAPES.get(settings.table_format, _SHAPE_SIMPLE)
         lines: list[str] = []
         if shape == "pipe":
-            if header_labels and settings.show_header:
-                lines.extend([
-                    _COLUMN_EDGE
-                    + _COLUMN_EDGE.join(
-                        f" {cls._pad(label, widths[index], alignments[index])} "
-                        for index, label in enumerate(header_labels)
-                    )
-                    + _COLUMN_EDGE,
-                    _COLUMN_EDGE
-                    + _COLUMN_EDGE.join(f" {_ROW_GLYPH * width} " for width in widths)
-                    + _COLUMN_EDGE,
-                ])
-            lines.extend(
-                _COLUMN_EDGE
-                + _COLUMN_EDGE.join(
-                    f" {cls._pad(cell, widths[index], alignments[index])} "
-                    for index, cell in enumerate(row)
-                )
-                + _COLUMN_EDGE
-                for row in cells
+            return cls._compose_pipe(
+                cells,
+                header_labels,
+                widths,
+                alignments,
+                settings=settings,
             )
-            return "\n".join(lines)
         if shape == "tsv":
-            if header_labels and settings.show_header:
-                lines.append(_TSV_GAP.join(header_labels))
-            lines.extend(_TSV_GAP.join(row) for row in cells)
-            return "\n".join(lines)
+            return cls._compose_tsv(cells, header_labels, settings=settings)
         border = (
             _ROW_EDGE
             + _ROW_EDGE.join(_ROW_GLYPH * (width + 2) for width in widths)

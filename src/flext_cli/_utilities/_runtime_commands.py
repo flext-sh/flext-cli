@@ -7,16 +7,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import shlex
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar
 
 from flext_cli import p, r, t
 from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessOutcomeMixin
+from flext_cli._utilities._runtime_models import RuntimeProcessOptions
 
 
 class FlextCliUtilitiesRuntimeCommandsMixin(
     FlextCliUtilitiesRuntimeProcessOutcomeMixin,
 ):
     """Compose captured command primitives without owning subprocess creation."""
+
+    ProcessOptions: ClassVar[type[RuntimeProcessOptions]] = RuntimeProcessOptions
 
     if TYPE_CHECKING:
 
@@ -26,10 +29,8 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
             cmd: t.StrSequence,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
-            env: t.StrMapping | None = None,
-            remove_env_keys: t.StrSequence = (),
-            input_data: str | bytes | None = None,
             *,
+            options: RuntimeProcessOptions | None = None,
             capture: bool = True,
         ) -> p.Result[p.Cli.CommandOutput]: ...
 
@@ -39,10 +40,8 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
         *,
+        options: RuntimeProcessOptions | None = None,
         capture: bool = True,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Require a zero exit without timeout or forwarded interruption.
@@ -69,9 +68,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
             cmd,
             cwd=cwd,
             timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
+            options=options,
             capture=capture,
         ).flat_map(require_zero_exit)
 
@@ -81,10 +78,8 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
         *,
+        options: RuntimeProcessOptions | None = None,
         capture: bool = True,
     ) -> p.Result[bool]:
         """Run a command and return a success flag.
@@ -97,9 +92,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
             cmd,
             cwd=cwd,
             timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
+            options=options,
             capture=capture,
         ).map(lambda _: True)
 
@@ -109,9 +102,8 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
+        *,
+        options: RuntimeProcessOptions | None = None,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command with inherited live stdout and stderr.
 
@@ -123,9 +115,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
             cmd,
             cwd=cwd,
             timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
+            options=options,
             capture=False,
         )
 
@@ -135,9 +125,8 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence = (),
-        input_data: str | bytes | None = None,
+        *,
+        options: RuntimeProcessOptions | None = None,
     ) -> p.Result[str]:
         """Run a command and return stripped stdout.
 
@@ -149,9 +138,7 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
             cmd,
             cwd=cwd,
             timeout=timeout,
-            env=env,
-            remove_env_keys=remove_env_keys,
-            input_data=input_data,
+            options=options,
         ).map(lambda output: output.stdout.strip())
 
 

@@ -14,15 +14,8 @@ from typing import ClassVar
 from flext_cli import c, p, t
 
 
-class FlextCliUtilitiesOutput:
-    """Canonical CLI output rendering helpers exposed through ``u.Cli``."""
-
-    # stdout is one process-wide mutable resource. Pipeline stages that carry no
-    # dependency between them run concurrently, so two stages can emit a
-    # multi-line block at the same time; unguarded `write` interleaves them and
-    # the check report becomes unreadable. Serializing only the write keeps the
-    # emitted block atomic without constraining the callers.
-    _EMIT_LOCK: ClassVar[threading.Lock] = threading.Lock()
+class _OutputPayloads:
+    """Build output text and styles without writing to process streams."""
 
     @staticmethod
     def output_resolve_message_type(
@@ -166,6 +159,17 @@ class FlextCliUtilitiesOutput:
         )
         suffix = f"  {message}" if message else ""
         return f"    {symbol} {name:<10}{suffix}", style
+
+
+class FlextCliUtilitiesOutput(_OutputPayloads):
+    """Canonical CLI output rendering helpers exposed through ``u.Cli``."""
+
+    # stdout is one process-wide mutable resource. Pipeline stages that carry no
+    # dependency between them run concurrently, so two stages can emit a
+    # multi-line block at the same time; unguarded `write` interleaves them and
+    # the check report becomes unreadable. Serializing only the write keeps the
+    # emitted block atomic without constraining the callers.
+    _EMIT_LOCK: ClassVar[threading.Lock] = threading.Lock()
 
     @staticmethod
     def emit_raw(text: str, *, error: bool = False) -> None:

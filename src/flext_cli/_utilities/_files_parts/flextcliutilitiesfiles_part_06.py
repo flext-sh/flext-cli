@@ -157,7 +157,9 @@ class FlextCliUtilitiesFilesPart06:
             ["git", "rev-parse", "--is-inside-work-tree"],
             cwd=scope,
             timeout=c.DEFAULT_TIMEOUT_SECONDS,
-            env={**os.environ, "LC_ALL": "C"},
+            options=FlextCliUtilitiesRuntime.ProcessOptions(
+                env={**os.environ, "LC_ALL": "C"},
+            ),
         )
         if probe.failure:
             return result.from_failure(probe)
@@ -165,29 +167,13 @@ class FlextCliUtilitiesFilesPart06:
         if outcome.timed_out or outcome.forwarded_signal is not None:
             return result.fail(f"Git worktree probe interrupted: {scope}")
         if outcome.raw_return_code == c.Cli.EXIT_CODE_SUCCESS:
-            if probe.value.stdout.strip() != b"true":
-                return result.fail(f"file selection root is not in a worktree: {scope}")
-            listed = FlextCliUtilitiesRuntime.run_bytes(
-                ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
-                cwd=scope,
-                timeout=c.DEFAULT_TIMEOUT_SECONDS,
+            listed = FlextCliUtilitiesFilesPart06._files_git_candidates(
+                scope,
+                worktree_status=probe.value.stdout,
             )
             if listed.failure:
                 return result.from_failure(listed)
-            listing = listed.value
-            if (
-                listing.outcome.raw_return_code != c.Cli.EXIT_CODE_SUCCESS
-                or listing.outcome.timed_out
-                or listing.outcome.forwarded_signal is not None
-            ):
-                return result.fail(
-                    listing.stderr.decode(c.Cli.ENCODING_DEFAULT, errors="strict"),
-                )
-            candidates = [
-                scope / relative.decode(c.Cli.ENCODING_DEFAULT, errors="strict")
-                for relative in listing.stdout.split(b"\0")
-                if relative
-            ]
+            candidates = listed.value
         elif (
             outcome.raw_return_code == c.Cli.GIT_NOT_A_REPOSITORY_EXIT_CODE
             and b"not a git repository" in probe.value.stderr
@@ -210,6 +196,43 @@ class FlextCliUtilitiesFilesPart06:
             )
 
         return result.ok(sorted(path for path in candidates if selected(path)))
+
+    @staticmethod
+    def _files_git_candidates(
+        scope: Path,
+        *,
+        worktree_status: bytes,
+    ) -> p.Result[t.SequenceOf[Path]]:
+        """Read Git-visible candidates after a successful worktree probe.
+
+        Returns:
+            Git-visible paths or the original probe/listing failure.
+
+        """
+        result = r[t.SequenceOf[Path]]
+        if worktree_status.strip() != b"true":
+            return result.fail(f"file selection root is not in a worktree: {scope}")
+        listed = FlextCliUtilitiesRuntime.run_bytes(
+            ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+            cwd=scope,
+            timeout=c.DEFAULT_TIMEOUT_SECONDS,
+        )
+        if listed.failure:
+            return result.from_failure(listed)
+        listing = listed.value
+        if (
+            listing.outcome.raw_return_code != c.Cli.EXIT_CODE_SUCCESS
+            or listing.outcome.timed_out
+            or listing.outcome.forwarded_signal is not None
+        ):
+            return result.fail(
+                listing.stderr.decode(c.Cli.ENCODING_DEFAULT, errors="strict"),
+            )
+        return result.ok([
+            scope / relative.decode(c.Cli.ENCODING_DEFAULT, errors="strict")
+            for relative in listing.stdout.split(b"\0")
+            if relative
+        ])
 
 
 __all__: list[str] = ["FlextCliUtilitiesFilesPart06"]

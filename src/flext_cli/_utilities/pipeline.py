@@ -72,48 +72,23 @@ class FlextCliUtilitiesPipeline:
             wave = tuple(sorter.get_ready())
             if not wave:
                 break
-            known = tuple(stage_id for stage_id in wave if stage_id in stage_map)
-            for stage_id in wave:
-                if stage_id not in stage_map:
-                    # Dependency named by an edge but never declared as a stage:
-                    # retire it so the graph can advance, exactly as the serial
-                    # walk skipped it.
-                    sorter.done(stage_id)
+            known = FlextCliUtilitiesPipeline._retire_unknown_stages(
+                wave,
+                stage_map,
+                sorter,
+            )
             if failed:
-                for stage_id in known:
-                    completed[stage_id] = m.Cli.PipelineStageResult(
-                        stage_id=stage_id,
-                        status=c.Cli.PipelineStageStatus.SKIPPED,
-                        error="skipped due to prior failure",
-                    )
-                    sorter.done(stage_id)
+                FlextCliUtilitiesPipeline._skip_failed_wave(known, completed, sorter)
                 continue
-            if len(known) == 1:
-                stage_id = known[0]
-                completed[stage_id] = FlextCliUtilitiesPipeline._run_stage(
-                    stage_map[stage_id],
-                    context,
-                    log,
-                )
+            FlextCliUtilitiesPipeline._execute_ready_wave(
+                known,
+                stage_map,
+                context,
+                log,
+                completed,
+            )
+            for stage_id in known:
                 sorter.done(stage_id)
-            elif known:
-                with ThreadPoolExecutor(
-                    max_workers=min(settings.cli_pipeline_max_workers, len(known)),
-                    thread_name_prefix="pipeline_",
-                ) as executor:
-                    futures = {
-                        stage_id: executor.submit(
-                            FlextCliUtilitiesPipeline._run_stage,
-                            stage_map[stage_id],
-                            context,
-                            log,
-                        )
-                        for stage_id in known
-                    }
-                    for stage_id, future in futures.items():
-                        completed[stage_id] = future.result()
-                for stage_id in known:
-                    sorter.done(stage_id)
             if any(
                 completed[stage_id].status == c.Cli.PipelineStageStatus.FAILED
                 for stage_id in known
@@ -143,6 +118,72 @@ class FlextCliUtilitiesPipeline:
         if pipeline_result.failed_stages:
             return r[m.Cli.PipelineResult].fail("one or more pipeline stages failed")
         return r[m.Cli.PipelineResult].ok(pipeline_result)
+
+    @staticmethod
+    def _retire_unknown_stages(
+        wave: t.VariadicTuple[str],
+        stage_map: dict[str, m.Cli.PipelineStageSpec],
+        sorter: TopologicalSorter[str],
+    ) -> t.VariadicTuple[str]:
+        """Retire undeclared dependencies while retaining ready-stage order.
+
+        Returns:
+            Declared stage IDs in their ready-wave order.
+
+        """
+        known = tuple(stage_id for stage_id in wave if stage_id in stage_map)
+        for stage_id in wave:
+            if stage_id not in stage_map:
+                sorter.done(stage_id)
+        return known
+
+    @staticmethod
+    def _skip_failed_wave(
+        known: t.VariadicTuple[str],
+        completed: dict[str, m.Cli.PipelineStageResult],
+        sorter: TopologicalSorter[str],
+    ) -> None:
+        """Record skipped stages and advance the graph after a prior failure."""
+        for stage_id in known:
+            completed[stage_id] = m.Cli.PipelineStageResult(
+                stage_id=stage_id,
+                status=c.Cli.PipelineStageStatus.SKIPPED,
+                error="skipped due to prior failure",
+            )
+            sorter.done(stage_id)
+
+    @staticmethod
+    def _execute_ready_wave(
+        known: t.VariadicTuple[str],
+        stage_map: dict[str, m.Cli.PipelineStageSpec],
+        context: m.Cli.PipelineStageContext,
+        log: p.Logger,
+        completed: dict[str, m.Cli.PipelineStageResult],
+    ) -> None:
+        """Run ready stages and collect futures in submission order before retiring."""
+        if len(known) == 1:
+            stage_id = known[0]
+            completed[stage_id] = FlextCliUtilitiesPipeline._run_stage(
+                stage_map[stage_id],
+                context,
+                log,
+            )
+        elif known:
+            with ThreadPoolExecutor(
+                max_workers=min(settings.cli_pipeline_max_workers, len(known)),
+                thread_name_prefix="pipeline_",
+            ) as executor:
+                futures = {
+                    stage_id: executor.submit(
+                        FlextCliUtilitiesPipeline._run_stage,
+                        stage_map[stage_id],
+                        context,
+                        log,
+                    )
+                    for stage_id in known
+                }
+                for stage_id, future in futures.items():
+                    completed[stage_id] = future.result()
 
     @staticmethod
     def _run_stage(
