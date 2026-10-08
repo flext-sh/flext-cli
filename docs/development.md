@@ -257,11 +257,12 @@ freezing configured values. Namespace/facade and model-protocol generation must
 publish the model and protocol together before public-runtime validation.
 
 The remaining declarations in `_utilities/_runtime_models.py` are private lifecycle
-witnesses: `RuntimeProcessRequest`, `RuntimeProcessState`, `RuntimeOutputTarget`,
-`RuntimeSpawnOptions`, and the owned-stream protocols `RuntimeClosableStream` and
-`RuntimeBinaryStream`. They carry resolved launch state, OS resources and cleanup
-ownership; they are not a second public launch-options model. Their broader family
-placement is outside this bounded producer repair. Subprocess execution, signals,
+witnesses: `FlextCliRuntimeProcessRequest`, `FlextCliRuntimeProcessState`,
+`FlextCliRuntimeOutputTarget`, `FlextCliRuntimeSpawnOptions`, and the owned-stream
+protocols `FlextCliRuntimeClosableStream` and `FlextCliRuntimeBinaryStream`. They
+carry resolved launch state, OS resources and cleanup ownership; they are not a
+second public launch-options model. Their broader family placement is outside this
+bounded producer repair. Subprocess execution, signals,
 deadlines, environment validation and descriptor forwarding retain their existing
 behavior.
 The durable sink follows Python's raw-I/O contract: `write` accepts a positional

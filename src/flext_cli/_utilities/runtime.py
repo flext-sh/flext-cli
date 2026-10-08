@@ -17,8 +17,8 @@ from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeRunToFileMixin,
 )
 from flext_cli._utilities._runtime_models import (
-    RuntimeProcessRequest,
-    RuntimeSpawnOptions,
+    FlextCliRuntimeProcessRequest,
+    FlextCliRuntimeSpawnOptions,
 )
 from flext_core import u as core_u
 
@@ -85,7 +85,7 @@ class FlextCliUtilitiesRuntime(
         env: t.MappingKV[str, str] | None,
         stdin_handle: BinaryIO | None,
         *,
-        options: RuntimeSpawnOptions,
+        options: FlextCliRuntimeSpawnOptions,
     ) -> p.Cli.ProcessHandle:
         """Create the sole raw child owned by the streamed lifecycle.
 
@@ -179,7 +179,7 @@ class FlextCliUtilitiesRuntime(
 
         launch = options if options is not None else m.Cli.ProcessOptions()
         return cls._execute_streamed_process(
-            RuntimeProcessRequest(
+            FlextCliRuntimeProcessRequest(
                 cmd=cmd,
                 cwd=cwd,
                 env=cls._resolved_env(launch.env, launch.remove_env_keys),
@@ -206,7 +206,7 @@ class FlextCliUtilitiesRuntime(
         """
         launch = options if options is not None else m.Cli.ProcessOptions()
         return cls._execute_streamed_process(
-            RuntimeProcessRequest(
+            FlextCliRuntimeProcessRequest(
                 cmd=cmd,
                 cwd=cwd,
                 env=cls._resolved_env(launch.env, launch.remove_env_keys),

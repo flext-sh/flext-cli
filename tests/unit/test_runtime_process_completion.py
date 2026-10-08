@@ -28,7 +28,7 @@ class TestsRuntimeProcessCompletion:
     def test_completion_before_wake_clear_ends_monitoring(tmp_path: Path) -> None:
         """Schedule a real waiter at the exact lost-notification boundary.
 
-        The trace holds the monitor at its first ``wake.clear()`` until the
+        The trace holds the monitor at its first ``state.wake.clear()`` until the
         root waiter has set both ``process_done`` and ``wake``, so completion
         is always observed before the wake is cleared. A monitor that lost
         that notification would sleep until its deadline and report
@@ -43,11 +43,12 @@ class TestsRuntimeProcessCompletion:
                 event == "line"
                 and frame.f_code.co_name == "_monitor_process"
                 and linecache.getline(frame.f_code.co_filename, frame.f_lineno).strip()
-                == "wake.clear()"
+                == "state.wake.clear()"
                 and not scheduled
             ):
-                done = frame.f_locals["process_done"]
-                wake = frame.f_locals["wake"]
+                state = frame.f_locals["state"]
+                done = state.process_done
+                wake = state.wake
                 assert isinstance(done, threading.Event)
                 assert isinstance(wake, threading.Event)
                 done.wait()

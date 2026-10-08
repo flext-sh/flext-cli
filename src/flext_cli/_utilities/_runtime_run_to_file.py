@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 from flext_cli import m, p, settings, t
 from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessExecutionMixin
-from flext_cli._utilities._runtime_models import RuntimeProcessRequest
+from flext_cli._utilities._runtime_models import FlextCliRuntimeProcessRequest
 
 
 class FlextCliUtilitiesRuntimeRunToFileMixin(
@@ -52,7 +52,7 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         """
         launch = options if options is not None else m.Cli.ProcessOptions()
         return cls._execute_streamed_process(
-            RuntimeProcessRequest(
+            FlextCliRuntimeProcessRequest(
                 cmd=cmd,
                 output_path=Path(output_file),
                 cwd=cwd,

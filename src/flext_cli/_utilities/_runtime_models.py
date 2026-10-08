@@ -16,14 +16,14 @@ from flext_cli import m, p, t
 
 
 @runtime_checkable
-class RuntimeClosableStream(Protocol):
+class FlextCliRuntimeClosableStream(Protocol):
     """The cleanup capability shared by owned input and output streams."""
 
     def close(self) -> None: ...
 
 
 @runtime_checkable
-class RuntimeBinaryStream(RuntimeClosableStream, Protocol):
+class FlextCliRuntimeBinaryStream(FlextCliRuntimeClosableStream, Protocol):
     """Opaque durable sink, retained by identity rather than serialized."""
 
     def write(self, data: Buffer, /) -> int | None: ...
@@ -33,7 +33,7 @@ class RuntimeBinaryStream(RuntimeClosableStream, Protocol):
     def fileno(self) -> int: ...
 
 
-class RuntimeProcessRequest(m.ArbitraryTypesModel):
+class FlextCliRuntimeProcessRequest(m.ArbitraryTypesModel):
     """Resolved launch inputs shared by preparation and process creation."""
 
     # Borrow the sequence: iteration belongs after signal handlers are installed.
@@ -78,7 +78,7 @@ class RuntimeProcessRequest(m.ArbitraryTypesModel):
     )
 
 
-class RuntimeProcessState(m.ArbitraryTypesModel):
+class FlextCliRuntimeProcessState(m.ArbitraryTypesModel):
     """Mutable ownership and causal evidence for exactly one lifecycle."""
 
     model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
@@ -93,7 +93,7 @@ class RuntimeProcessState(m.ArbitraryTypesModel):
         default=None,
         description="Thread responsible for reaping the root child.",
     )
-    durable_log: RuntimeBinaryStream | None = m.Field(
+    durable_log: FlextCliRuntimeBinaryStream | None = m.Field(
         default=None,
         description="Owned stream for durable combined child output.",
     )
@@ -134,12 +134,12 @@ class RuntimeProcessState(m.ArbitraryTypesModel):
         description="Mutable byte-exact captured stderr buffer.",
     )
     pump_streams: t.MutableSequenceOf[
-        t.Pair[threading.Thread, RuntimeClosableStream]
+        t.Pair[threading.Thread, FlextCliRuntimeClosableStream]
     ] = m.Field(
         default_factory=list,
         description="Owned output pump threads paired with their source streams.",
     )
-    input_pump: tuple[threading.Thread, RuntimeClosableStream] | None = m.Field(
+    input_pump: tuple[threading.Thread, FlextCliRuntimeClosableStream] | None = m.Field(
         default=None,
         description="Owned stdin pump thread paired with its sink stream.",
     )
@@ -181,10 +181,10 @@ class RuntimeProcessState(m.ArbitraryTypesModel):
     )
 
 
-class RuntimeOutputTarget(m.ArbitraryTypesModel):
+class FlextCliRuntimeOutputTarget(m.ArbitraryTypesModel):
     """Destinations for one byte-exact output pump."""
 
-    durable_log: RuntimeBinaryStream | None = m.Field(
+    durable_log: FlextCliRuntimeBinaryStream | None = m.Field(
         default=None,
         description="Durable sink receiving byte-exact child output.",
     )
@@ -198,7 +198,7 @@ class RuntimeOutputTarget(m.ArbitraryTypesModel):
     )
 
 
-class RuntimeSpawnOptions(m.ArbitraryTypesModel):
+class FlextCliRuntimeSpawnOptions(m.ArbitraryTypesModel):
     """Pipe and platform creation policy for one child."""
 
     capture_output: bool = m.Field(
@@ -214,10 +214,10 @@ class RuntimeSpawnOptions(m.ArbitraryTypesModel):
 
 
 __all__ = [
-    "RuntimeBinaryStream",
-    "RuntimeClosableStream",
-    "RuntimeOutputTarget",
-    "RuntimeProcessRequest",
-    "RuntimeProcessState",
-    "RuntimeSpawnOptions",
+    "FlextCliRuntimeBinaryStream",
+    "FlextCliRuntimeClosableStream",
+    "FlextCliRuntimeOutputTarget",
+    "FlextCliRuntimeProcessRequest",
+    "FlextCliRuntimeProcessState",
+    "FlextCliRuntimeSpawnOptions",
 ]
