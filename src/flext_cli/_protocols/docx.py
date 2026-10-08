@@ -18,9 +18,7 @@ class FlextCliProtocolsDocx:
     class DocxParagraphContainer(Protocol):
         """Paragraph creation consumed by the existing document renderer."""
 
-        def add_paragraph(
-            self, text: str = "", style: str | None = None
-        ) -> Paragraph:
+        def add_paragraph(self, text: str = "", style: str | None = None) -> Paragraph:
             """Create a paragraph using the external library contract."""
             ...
 
