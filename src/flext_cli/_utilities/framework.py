@@ -257,26 +257,19 @@ class FlextCliUtilitiesFramework:
             The resulting ``Parameter``.
 
         """
-        from flext_core import u
-
         option_default: t.Cli.CliValue | EllipsisType | None = (
             ... if spec.required else spec.default
         )
-
-        def json_option(raw: str) -> t.JsonPayload:
-            adapter: t.ValueAdapter[t.JsonPayload] = u.type_adapter(json_annotation)
-            try:
-                return adapter.validate_json(raw)
-            except ValueError as exc:
-                # Click's parser hook discards a ValueError's text; the usage
-                # error carries the Pydantic cause and chains the original.
-                raise typer.BadParameter(str(exc)) from exc
 
         option = OptionInfo(
             default=option_default,
             param_decls=list(spec.declarations),
             help=spec.help_text or None,
-            parser=None if json_annotation is None else json_option,
+            parser=(
+                None
+                if json_annotation is None
+                else FlextCliUtilitiesFramework._json_parser(json_annotation)
+            ),
             metavar=None if json_annotation is None else c.Cli.CLI_JSON_OPTION_METAVAR,
         )
         return Parameter(
@@ -285,6 +278,31 @@ class FlextCliUtilitiesFramework:
             default=option,
             annotation=annotation,
         )
+
+    @staticmethod
+    def _json_parser(
+        annotation: t.Cli.RuntimeAnnotation,
+    ) -> Callable[[str], t.JsonPayload]:
+        """Build the parse hook validating one JSON option into its declared type.
+
+        The adapter is built only on parse; rendering help never builds it.
+
+        Returns:
+            The resulting parse hook carrying the declared annotation.
+
+        """
+        from flext_core import u
+
+        def parse(raw: str) -> t.JsonPayload:
+            adapter: t.ValueAdapter[t.JsonPayload] = u.type_adapter(annotation)
+            try:
+                return adapter.validate_json(raw)
+            except ValueError as exc:
+                # Click's parser hook discards a ValueError's text; the usage
+                # error carries the Pydantic cause and chains the original.
+                raise typer.BadParameter(str(exc)) from exc
+
+        return parse
 
     @classmethod
     def framework_execute(
