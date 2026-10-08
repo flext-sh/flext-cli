@@ -92,7 +92,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
     @staticmethod
     def _create_chained_directories(
         plan: m.Cli.AtomicDirectoryChainPlan,
-        mode: int | None,
+        mode: int,
         created: list[m.Cli.AtomicDirectoryState],
         expected_parent: tuple[int, int],
     ) -> list[m.Cli.AtomicDirectoryState]:

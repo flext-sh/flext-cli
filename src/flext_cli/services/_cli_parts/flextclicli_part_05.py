@@ -19,7 +19,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
     """Implementation part for FlextCliCliPart05."""
 
     @classmethod
-    def register_result_callback[M: t.Cli.ModelLike, TResult](
+    def register_result_callback[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
         cls,
         app: p.Cli.Application,
         *,
@@ -48,7 +48,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
         )
 
     @classmethod
-    def register_result_command[M: t.Cli.ModelLike, TResult](
+    def register_result_command[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
         cls,
         app: p.Cli.Application,
         *,
@@ -82,7 +82,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
         )
 
     @classmethod
-    def _build_result_executor[M: t.Cli.ModelLike, TResult](
+    def _build_result_executor[M: t.Cli.ModelLike, TResult: t.Cli.ResultValue](
         cls,
         *,
         handler: p.Cli.ResultCommandHandler[M, TResult],
