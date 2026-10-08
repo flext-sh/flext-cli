@@ -89,9 +89,8 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         destination: Path,
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination_state: os.stat_result | None,
-        staged: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged_state: os.stat_result,
+        staged: FlextCliAtomicModels.ObservedFile,
     ) -> None:
         """Require both entries and parents to occupy one filesystem.
 
