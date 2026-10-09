@@ -61,7 +61,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
         )
 
     @classmethod
-    def _build_result_executor[M: t.Cli.ModelLike, TResult](
+    def _build_result_executor[M: t.Cli.ModelLike, TResult: t.JsonPayload](
         cls,
         *,
         handler: p.Cli.ResultCommandHandler[M, TResult],
