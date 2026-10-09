@@ -9,7 +9,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated
 
-from tests import c, m
+from flext_cli import m
+from tests import c
 
 
 class TestsFlextCliModelsCli:

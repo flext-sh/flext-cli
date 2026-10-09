@@ -61,15 +61,22 @@ class FlextCliUtilitiesYamlConvertMixin:
         """
         if isinstance(data, dict):
             items = cast("t.MappingKV[str, t.Cli.YamlValue]", data).items()
-            return {
-                key: FlextCliUtilitiesYamlConvertMixin.yaml_to_plain(value)
-                for key, value in items
-            }
+            return cast(
+                "t.Cli.YamlValue",
+                {
+                    key: FlextCliUtilitiesYamlConvertMixin.yaml_to_plain(value)
+                    for key, value in items
+                },
+            )
         if isinstance(data, list):
             values = cast("t.SequenceOf[t.Cli.YamlValue]", data)
-            return [
-                FlextCliUtilitiesYamlConvertMixin.yaml_to_plain(item) for item in values
-            ]
+            return cast(
+                "t.Cli.YamlValue",
+                [
+                    FlextCliUtilitiesYamlConvertMixin.yaml_to_plain(item)
+                    for item in values
+                ],
+            )
         return data
 
     @overload

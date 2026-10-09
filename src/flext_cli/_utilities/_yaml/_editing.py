@@ -52,8 +52,7 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
         if FlextCliUtilitiesYamlEditingMixin._yaml_has_anchor(node):
             cast("p.Cli.YamlAnchorNode", node).yaml_set_anchor(None)
         if isinstance(node, Mapping):
-            values = cast("t.MappingKV[str, t.Cli.YamlValue]", node).values()
-            for value in values:
+            for value in node.values():
                 FlextCliUtilitiesYamlEditingMixin.yaml_clear_anchors(value)
         elif FlextCliUtilitiesYamlEditingMixin.yaml_is_sequence(node):
             items = cast("t.SequenceOf[t.Cli.YamlValue]", node)
@@ -116,9 +115,7 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             return [post]
         if isinstance(post, list):
             tokens = cast("t.SequenceOf[object]", post)
-            return [
-                token for token in tokens if isinstance(token, RuamelCommentToken)
-            ]
+            return [token for token in tokens if isinstance(token, RuamelCommentToken)]
         return []
 
     @staticmethod
