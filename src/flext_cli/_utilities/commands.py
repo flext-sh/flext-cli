@@ -22,7 +22,7 @@ class FlextCliUtilitiesCommands:
     """Helpers for result-command messaging in the public Typer DSL."""
 
     @staticmethod
-    def commands_resolve_success_message[TResult: t.Cli.ResultValue](
+    def commands_resolve_success_message[TResult](
         *,
         result_value: TResult,
         success_message: str | None,
