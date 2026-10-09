@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from openpyxl.cell.cell import Cell
 from openpyxl.formatting.rule import Rule
 from openpyxl.styles.differential import DifferentialStyle
@@ -120,7 +122,10 @@ class FlextCliUtilitiesXlsxConditional(
                 style = cls._registered_style(worksheet, plan.style)
                 if style.failure:
                     return r[bool].from_failure(style)
-                worksheet.conditional_formatting.add(
+                cast(
+                    "p.Cli.XlsxConditionalFormattingList",
+                    worksheet.conditional_formatting,
+                ).add(
                     cls._range_ref(plan.area),
                     cls._rule(plan, style.value),
                 )

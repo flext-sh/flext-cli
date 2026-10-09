@@ -58,12 +58,12 @@ class FlextCliModelsBasePart07:
         type_kind: Annotated[t.Cli.TypeKind, m.Field(description="Requested type")]
         value: Annotated[
             t.JsonValue | None,
-            m.Field(None, description="Value to extract and coerce"),
-        ]
+            m.Field(description="Value to extract and coerce"),
+        ] = None
         default: Annotated[
             t.JsonValue | None,
-            m.Field(None, description="Fallback value when extraction fails"),
-        ]
+            m.Field(description="Fallback value when extraction fails"),
+        ] = None
 
         @u.computed_field
         @property

@@ -36,7 +36,7 @@ class FlextCliModelsPipeline:
             m.Field(
                 description="Mutable shared state between stages",
             ),
-        ] = m.Field(default_factory=dict)
+        ] = m.Field(default_factory=dict[str, t.JsonValue])
         settings: Annotated[
             t.JsonMapping,
             m.Field(
@@ -58,7 +58,7 @@ class FlextCliModelsPipeline:
             m.Field(
                 description="Stage IDs this stage depends on",
             ),
-        ] = m.Field(default_factory=frozenset)
+        ] = m.Field(default_factory=frozenset[str])
         # Pydantic owns runtime validation here; public callback contracts live
         # in p.Cli and this model retains the equivalent concrete callable shape.
         handler: Annotated[

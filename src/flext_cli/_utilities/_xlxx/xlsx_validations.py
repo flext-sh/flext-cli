@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.worksheet import Worksheet
 
@@ -125,7 +127,9 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
             for plan in plans:
                 validation = cls._data_validation(plan)
                 worksheet.add_data_validation(validation)
-                validation.add(cls._range_ref(plan.area))
+                cast("p.Cli.XlsxDataValidationSurface", validation).add(
+                    cls._range_ref(plan.area),
+                )
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
             return r[bool].fail(f"{c.Cli.XlsxError.RENDER_FAILED}: {detail}")

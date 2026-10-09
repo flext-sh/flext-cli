@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, TypeIs
+from typing import TYPE_CHECKING, TypeIs, cast
 
 import tomlkit
 from tomlkit.container import OutOfOrderTableProxy
@@ -74,8 +74,9 @@ class FlextCliUtilitiesTomlPart02:
 
         """
         table = tomlkit.table()
-        for entry_key in list(proxy):
-            table[entry_key] = proxy[entry_key]
+        proxy_view = cast("t.MappingKV[str, object]", proxy)
+        for entry_key in proxy_view:
+            table[entry_key] = proxy_view[entry_key]
         return table
 
     @staticmethod
@@ -147,8 +148,9 @@ class FlextCliUtilitiesTomlPart02:
             # subsequent mutation targets a single contiguous section instead of
             # silently overwriting the fragments with an empty table.
             table = tomlkit.table()
-            for entry_key in list(existing):
-                table[entry_key] = existing[entry_key]
+            proxy_view = cast("t.MappingKV[str, object]", existing)
+            for entry_key in proxy_view:
+                table[entry_key] = proxy_view[entry_key]
             del parent[key]
             parent[key] = table
             return table
@@ -158,8 +160,9 @@ class FlextCliUtilitiesTomlPart02:
                 return table
             del parent[key]
             table = tomlkit.table()
-            for entry_key in list(existing):
-                table[entry_key] = existing[entry_key]
+            table_view = cast("t.MappingKV[str, object]", existing)
+            for entry_key in table_view:
+                table[entry_key] = table_view[entry_key]
             parent[key] = table
             return table
         table = tomlkit.table()

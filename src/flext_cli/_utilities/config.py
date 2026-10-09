@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import cast
 
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
@@ -134,7 +135,8 @@ class FlextCliUtilitiesConfig:
             The resulting ``bool``.
 
         """
-        Draft202012Validator(dict(schema)).validate(dict(data))
+        validator = cast("p.Cli.JsonSchemaValidator", Draft202012Validator(dict(schema)))
+        validator.validate(dict(data))
         return True
 
 

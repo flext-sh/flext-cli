@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from io import BytesIO
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, cast
 from zipfile import BadZipFile
 
 from docx import Document
@@ -75,7 +75,12 @@ class FlextCliUtilitiesDocxReader:
     @classmethod
     def _snapshot_paragraph(cls, paragraph: Paragraph) -> m.Cli.DocxParagraphPlan:
         runs = tuple(cls._snapshot_run(run) for run in paragraph.runs)
-        alignment = cls._snapshot_alignment(paragraph.paragraph_format.alignment)
+        alignment = cls._snapshot_alignment(
+            cast(
+                "WD_ALIGN_PARAGRAPH | None",
+                paragraph.paragraph_format.alignment,
+            ),
+        )
         return m.Cli.DocxParagraphPlan(
             runs=runs,
             style=paragraph.style.name if paragraph.style else None,
