@@ -6,8 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import ClassVar
-
 from flext_cli._utilities import FlextCliUtilitiesCli
 from flext_core import FlextUtilities, m
 
@@ -21,7 +19,11 @@ class FlextCliUtilities(FlextUtilities):
     model_config = m.ConfigDict(ignored_types=(type(FlextCliUtilitiesCli),))
 
     # NOTE (multi-agent): mro-wkii.17.17 publishes the canonical class directly.
-    Cli: ClassVar[type[FlextCliUtilitiesCli]] = FlextCliUtilitiesCli
+    # Unannotated single bind: pyright resolves the member as a type alias so
+    # ``u.Cli`` stays valid in type expressions; pydantic still ignores the
+    # class-typed attribute through ``ignored_types`` (runtime identical to the
+    # former ``ClassVar`` form).
+    Cli = FlextCliUtilitiesCli
 
 
 u = FlextCliUtilities
