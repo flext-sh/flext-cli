@@ -12,8 +12,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import pytest
 from flext_tests import tm
@@ -188,7 +189,10 @@ class TestsFlextCliYamlRoundtripConvert:
         assert isinstance(node, CommentedMap)
         tm.that(node["a"], is_=CommentedSeq)
         expected: t.JsonMapping = {"a": [1, "x"], "b": {"c": True}}
-        tm.that(u.Cli.yaml_to_plain(node), eq=expected)
+        tm.that(
+            cast("dict[str, object]", u.Cli.yaml_to_plain(node)),
+            eq=cast("dict[str, object]", expected),
+        )
 
     @staticmethod
     def test_deep_to_commented_quotes_yaml_11_tokens() -> None:
@@ -230,7 +234,8 @@ class TestsFlextCliYamlScalars:
     def test_plain_str_unwraps_ruamel_subclass() -> None:
         """Verify that plain str unwraps ruamel subclass."""
         node = u.Cli.yaml_roundtrip_load_map_text('k: "quoted"\n').unwrap()
-        value = node["k"]
+        node_map = cast("Mapping[str, t.Cli.YamlScalar]", node)
+        value = node_map["k"]
 
         plain = u.Cli.yaml_plain_str(value)
 
@@ -243,10 +248,11 @@ class TestsFlextCliYamlScalars:
     def test_plain_int_float_bool_unwrap_subclasses() -> None:
         """Verify that plain int float bool unwrap subclasses."""
         node = u.Cli.yaml_roundtrip_load_map_text("i: 3\nf: 1.5\nb: true\n").unwrap()
+        node_map = cast("Mapping[str, t.Cli.YamlScalar]", node)
 
-        plain_int = u.Cli.yaml_plain_int(node["i"])
-        plain_float = u.Cli.yaml_plain_float(node["f"])
-        plain_bool = u.Cli.yaml_plain_bool(node["b"])
+        plain_int = u.Cli.yaml_plain_int(cast("int", node_map["i"]))
+        plain_float = u.Cli.yaml_plain_float(cast("float", node_map["f"]))
+        plain_bool = u.Cli.yaml_plain_bool(node_map["b"])
 
         tm.that(plain_int, eq=3)
         tm.that(type(plain_int) is int, eq=True)
@@ -257,9 +263,10 @@ class TestsFlextCliYamlScalars:
     def test_normalize_scalar_keeps_containers_untouched() -> None:
         """Verify that normalize scalar keeps containers untouched."""
         node = u.Cli.yaml_roundtrip_load_map_text("a: 1\n").unwrap()
+        node_map = cast("Mapping[str, t.Cli.YamlScalar]", node)
 
         tm.that(u.Cli.yaml_normalize_scalar(node) is node, eq=True)
-        tm.that(u.Cli.yaml_normalize_scalar(node["a"]), eq=1)
+        tm.that(u.Cli.yaml_normalize_scalar(node_map["a"]), eq=1)
 
 
 class TestsFlextCliYamlAnchors:
@@ -348,12 +355,13 @@ class TestsFlextCliYamlEdit:
     def test_overlay_preserving_order_keeps_base_order() -> None:
         """Verify that overlay preserving order keeps base order."""
         base = u.Cli.yaml_roundtrip_load_map_text("a: 1\nb: 2\n").unwrap()
+        base_map = cast("Mapping[str, t.Cli.YamlScalar]", base)
 
         u.Cli.yaml_overlay_preserving_order(base, {"b": 20, "c": 30})
 
-        tm.that(list(base.keys()), eq=["a", "b", "c"])
-        tm.that(base["b"], eq=20)
-        tm.that(base["c"], eq=30)
+        tm.that(list(base_map.keys()), eq=["a", "b", "c"])
+        tm.that(base_map["b"], eq=20)
+        tm.that(base_map["c"], eq=30)
 
     @staticmethod
     def test_update_value_inplace_preserves_comments() -> None:

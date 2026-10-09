@@ -9,8 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated
 
-from flext_cli import m
-from tests import c
+from tests import c, m
 
 
 class TestsFlextCliModelsCli:
@@ -38,7 +37,7 @@ class TestsFlextCliModelsCli:
         make_arg: Annotated[
             list[str],
             m.Field(description="Repeatable make-style arg"),
-        ] = m.Field(default_factory=list, validate_default=True)
+        ] = m.Field(default_factory=list[str], validate_default=True)
 
     class ReportRow(m.BaseModel):
         """Tabular report row used by the export-report example."""

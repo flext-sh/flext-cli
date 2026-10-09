@@ -14,7 +14,8 @@ import pytest
 from flext_tests import tm
 
 import tests
-from flext_cli import c, m, p, settings, u
+from flext_cli import settings
+from tests import c, m, p, u
 
 
 class TestsFlextCliParams:

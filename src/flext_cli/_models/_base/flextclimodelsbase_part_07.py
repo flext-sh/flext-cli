@@ -25,15 +25,12 @@ class FlextCliModelsBasePart07:
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         raw: Annotated[
             str | None,
-            m.Field(None, description="Raw log level input string"),
-        ]
+            m.Field(description="Raw log level input string"),
+        ] = None
         default: Annotated[
             str,
-            m.Field(
-                c.LogLevel.INFO,
-                description="Default log level when raw is absent",
-            ),
-        ]
+            m.Field(description="Default log level when raw is absent"),
+        ] = c.LogLevel.INFO
 
         @u.computed_field
         @property

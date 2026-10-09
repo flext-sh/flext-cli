@@ -15,8 +15,8 @@ from __future__ import annotations
 import pytest
 from flext_tests import tm
 
-from flext_cli import c, cli
-from tests import m, p, t, u
+from flext_cli import cli
+from tests import c, m, p, t, u
 
 
 class TestsFlextCliModelCommandJsonOptions:
@@ -31,7 +31,9 @@ class TestsFlextCliModelCommandJsonOptions:
         """Request carrying a nested model and a sequence of nested models."""
 
         prefs: m.Tests.UserPreferences
-        others: list[m.Tests.UserPreferences] = m.Field(default_factory=list)
+        others: list[m.Tests.UserPreferences] = m.Field(
+            default_factory=list[m.Tests.UserPreferences],
+        )
 
     class JsonDefaultsModel(m.BaseModel):
         """Request whose JSON options all carry defaults."""

@@ -12,6 +12,7 @@ import socket
 import sys
 import time
 from pathlib import Path
+from typing import cast
 
 import pytest
 from flext_tests import tm
@@ -195,7 +196,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
     def test_default_options_match_omitted_options(runner: u.Cli) -> None:
         """Public model defaults and omitted options produce equivalent outputs."""
         defaults = m.Cli.ProcessOptions()
-        tm.that(isinstance(defaults, p.Cli.ProcessOptions), eq=True)
+        tm.that(isinstance(cast("object", defaults), p.Cli.ProcessOptions), eq=True)
         command = (
             sys.executable,
             "-c",

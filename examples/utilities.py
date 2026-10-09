@@ -14,13 +14,13 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from examples import c, m, t
-from flext_cli import cli, u
+from flext_cli import FlextCliUtilities, cli
 
 if TYPE_CHECKING:
     from collections.abc import MutableSequence
 
 
-class ExamplesFlextCliUtilities(u):
+class ExamplesFlextCliUtilities(FlextCliUtilities):
     """Public examples utility facade extending flext-cli utilities."""
 
     @classmethod

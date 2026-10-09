@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from pathlib import Path
 
 from flext_tests import tm
@@ -20,6 +22,8 @@ class TestsFlextCliOptions:
     @staticmethod
     def test_tuple_field_becomes_repeated_typer_input() -> None:
         """Canonical tuple fields accept repeated CLI values through a list."""
-        resolved = u.Cli.resolve_typer_annotation(t.VariadicTuple[Path])
+        resolved = u.Cli.resolve_typer_annotation(
+            cast("t.Cli.RuntimeAnnotation", t.VariadicTuple[Path]),
+        )
 
         tm.that(resolved, eq=list[Path])
