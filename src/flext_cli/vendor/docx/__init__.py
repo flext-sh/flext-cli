@@ -35,7 +35,7 @@ from docx.text.run import Run
 # consumes the ``BaseOxmlElement`` surface, pinned through one typed binding.
 OxmlElement: Callable[..., BaseOxmlElement] = cast(
     "Callable[..., BaseOxmlElement]",
-    docx.oxml.OxmlElement,
+    getattr(docx.oxml, "OxmlElement"),
 )
 
 __all__ = [

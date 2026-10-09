@@ -45,9 +45,9 @@ class FlextCliUtilitiesXlsxStyleReaders:
         # real runtime value types consumed by the model.
         return m.Cli.XlsxFontSpec(
             name=font.name,
-            size=cast("float | None", font.size),
-            bold=cast("bool | None", font.bold),
-            italic=cast("bool | None", font.italic),
+            size=cast("float | None", getattr(font, "size")),
+            bold=cast("bool | None", getattr(font, "bold")),
+            italic=cast("bool | None", getattr(font, "italic")),
             strike=font.strike,
             outline=font.outline,
             shadow=font.shadow,
@@ -55,7 +55,7 @@ class FlextCliUtilitiesXlsxStyleReaders:
             extend=font.extend,
             underline=cast(
                 'Literal["single", "double", "singleAccounting", "doubleAccounting"] | None',
-                font.underline,
+                getattr(font, "underline"),
             ),
             vertical_align=font.vertAlign,
             color=cls._color_spec(font.color),
