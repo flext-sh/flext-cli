@@ -187,7 +187,8 @@ class TestsFlextCliYamlRoundtripConvert:
 
         tm.that(node, is_=CommentedMap)
         assert isinstance(node, CommentedMap)
-        tm.that(node["a"], is_=CommentedSeq)
+        node_map = cast("Mapping[str, t.Cli.YamlValue]", node)
+        tm.that(node_map["a"], is_=CommentedSeq)
         expected: t.JsonMapping = {"a": [1, "x"], "b": {"c": True}}
         tm.that(
             cast("dict[str, object]", u.Cli.yaml_to_plain(node)),

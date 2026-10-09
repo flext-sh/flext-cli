@@ -6,14 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 from pathlib import Path
+from typing import cast
 
 from flext_tests import tm
 
-from flext_cli import u
-from flext_core import t
+from flext_cli import t, u
 
 
 class TestsFlextCliOptions:
