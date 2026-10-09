@@ -128,10 +128,9 @@ class FlextCliModelsBasePart01:
         data: Annotated[
             t.JsonMapping,
             m.Field(
-                default_factory=lambda: c.Cli.EMPTY_JSON_MAPPING,
                 description="Field-value pairs for display",
             ),
-        ]
+        ] = m.Field(default_factory=lambda: c.Cli.EMPTY_JSON_MAPPING)
 
         @u.model_serializer
         def _serialize(self) -> t.JsonMapping:
@@ -179,16 +178,14 @@ class FlextCliModelsBasePart01:
             validate_assignment=True,
         )
         value: Annotated[
-            t.JsonValue,
-            m.Field(default_factory=dict, description="The normalized JSON value"),
-        ]
+            t.JsonValue, m.Field(description="The normalized JSON value")
+        ] = m.Field(default_factory=dict)
         default: Annotated[
             t.JsonMapping,
             m.Field(
-                default_factory=lambda: c.Cli.EMPTY_JSON_MAPPING,
                 description="Default mapping if value is not a dict",
             ),
-        ]
+        ] = m.Field(default_factory=lambda: c.Cli.EMPTY_JSON_MAPPING)
 
         @property
         def resolved(self) -> t.JsonMapping:

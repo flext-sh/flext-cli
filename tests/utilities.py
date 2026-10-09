@@ -14,14 +14,14 @@ from typing import TYPE_CHECKING, Annotated
 
 from flext_tests import FlextTestsUtilities, r, tm
 
-from flext_cli import cli, u
+from flext_cli import FlextCliUtilities, cli
 from tests import TestsFlextCliSettings, c, m, p
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-class TestsFlextCliUtilities(FlextTestsUtilities, u):
+class TestsFlextCliUtilities(FlextTestsUtilities, FlextCliUtilities):
     """Test utilities for flext-cli."""
 
     @staticmethod

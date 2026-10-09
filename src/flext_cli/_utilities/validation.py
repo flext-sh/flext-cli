@@ -6,14 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_cli import c, p, r, t
-
-if TYPE_CHECKING:
-    from flext_cli import m
-
-    PydanticValidationError = m.ValidationError
 
 
 class FlextCliUtilitiesValidation:
@@ -61,7 +54,7 @@ class FlextCliUtilitiesValidation:
 
     @staticmethod
     def format_validation_errors(
-        exc: PydanticValidationError,
+        exc: t.ValidationError,
         *,
         command: str,
         model: str,

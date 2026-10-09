@@ -58,23 +58,20 @@ class FlextCliModelsTemplate:
         # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): callers
         # consume the declared failure field directly; models remain behavior-free.
         created: Annotated[
-            t.VariadicTuple[Path],
-            m.Field(default_factory=tuple, description="Destination paths written"),
-        ]
+            t.VariadicTuple[Path], m.Field(description="Destination paths written")
+        ] = m.Field(default_factory=tuple)
         skipped: Annotated[
             t.VariadicTuple[Path],
             m.Field(
-                default_factory=tuple,
                 description="Destinations skipped (exists or disabled)",
             ),
-        ]
+        ] = m.Field(default_factory=tuple)
         failed: Annotated[
             t.VariadicTuple[t.Pair[Path, str]],
             m.Field(
-                default_factory=tuple,
                 description="(destination, error) pairs that failed to render",
             ),
-        ]
+        ] = m.Field(default_factory=tuple)
 
     class AuthenticatedTemplateRender(m.ArbitraryTypesModel):
         """Rendered text plus every physical template state Jinja consumed."""
