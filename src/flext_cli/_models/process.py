@@ -119,27 +119,27 @@ class FlextCliModelsProcess:
             description="Windows job handle owning the child boundary.",
         )
         failures: t.MutableSequenceOf[str] = m.Field(
-            default_factory=list,
+            default_factory=list[str],
             description="Causal failures collected during execution.",
         )
         cleanup_errors: t.MutableSequenceOf[str] = m.Field(
-            default_factory=list,
+            default_factory=list[str],
             description="Failures collected while releasing resources.",
         )
         restore_handlers: t.MutableSequenceOf[Callable[[], None]] = m.Field(
-            default_factory=list,
+            default_factory=list[Callable[[], None]],
             description="Callbacks restoring the parent signal handlers.",
         )
         forwarded_signals: t.MutableSequenceOf[int] = m.Field(
-            default_factory=list,
+            default_factory=list[int],
             description="Signal numbers registered for forwarding.",
         )
         received_signals: t.MutableSequenceOf[int] = m.Field(
-            default_factory=list,
+            default_factory=list[int],
             description="Parent signals received during this lifecycle.",
         )
         return_codes: t.MutableSequenceOf[int] = m.Field(
-            default_factory=list,
+            default_factory=list[int],
             description="Root child return codes recorded by the waiter.",
         )
         stdout_output: bytearray = m.Field(
@@ -153,7 +153,7 @@ class FlextCliModelsProcess:
         pump_streams: t.MutableSequenceOf[
             t.Pair[threading.Thread, p.Cli.RuntimeClosableStream]
         ] = m.Field(
-            default_factory=list,
+            default_factory=list[t.Pair[threading.Thread, p.Cli.RuntimeClosableStream]],
             description="Owned output pump threads paired with their source streams.",
         )
         input_pump: tuple[threading.Thread, p.Cli.RuntimeClosableStream] | None = (

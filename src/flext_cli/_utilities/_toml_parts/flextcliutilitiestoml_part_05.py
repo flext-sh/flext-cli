@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from tomlkit.items import Item, Table
 from tomlkit.toml_document import TOMLDocument
@@ -40,11 +40,15 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``bool``.
 
         """
-        existing = container.get(key, None)
+        container_view = cast("Mapping[str, object]", container)
+        existing = cast("t.Cli.TomlRuntimeSource | None", container_view.get(key))
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing
             if existing is not None
-            and (u.mapping(existing) or isinstance(existing, TOMLDocument | Item))
+            and (
+                u.mapping(cast("t.GuardInput", existing))
+                or isinstance(existing, TOMLDocument | Item)
+            )
             else None,
         )
         normalized_expected = {
@@ -54,7 +58,8 @@ class FlextCliUtilitiesTomlPart05:
         if current == normalized_expected:
             return False
         table = FlextCliUtilitiesTomlPart02.toml_ensure_table(container, key)
-        for existing_key in list(table):
+        table_view = cast("Mapping[str, object]", table)
+        for existing_key in table_view:
             if existing_key not in normalized_expected:
                 del table[existing_key]
         for item_key, item_value in normalized_expected.items():
@@ -100,7 +105,8 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``bool``.
 
         """
-        existing = container.get(key, None)
+        container_view = cast("Mapping[str, object]", container)
+        existing = cast("t.Cli.TomlRuntimeSource | None", container_view.get(key))
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing if isinstance(existing, Mapping) else None,
         )

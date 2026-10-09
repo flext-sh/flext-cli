@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import Annotated
+
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -122,7 +124,7 @@ class TestsFlextCliTypings:
     @staticmethod
     def test_scalar_alias_validates_each_primitive() -> None:
         """The Scalar alias round-trips every primitive value."""
-        adapter: m.TypeAdapter[t.Scalar] = u.type_adapter(t.Scalar)
+        adapter: m.TypeAdapter[t.Scalar] = u.type_adapter(Annotated[t.Scalar, None])
         tm.that(adapter.validate_python("value"), eq="value")
         bool_input = True
         tm.that(adapter.validate_python(bool_input), eq=True)
@@ -132,7 +134,7 @@ class TestsFlextCliTypings:
     def test_optional_str_sequence_alias_accepts_value_and_none() -> None:
         """A ``StrSequence | None`` alias accepts both a sequence and None."""
         adapter: m.TypeAdapter[t.StrSequence | None] = u.type_adapter(
-            t.StrSequence | None,
+            Annotated[t.StrSequence | None, None],
         )
         tm.that(adapter.validate_python(["alpha", "beta"]), eq=["alpha", "beta"])
         tm.that(adapter.validate_python(None), none=True)

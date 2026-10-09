@@ -25,15 +25,12 @@ class FlextCliModelsBasePart07:
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
         raw: Annotated[
             str | None,
-            m.Field(None, description="Raw log level input string"),
-        ]
+            m.Field(description="Raw log level input string"),
+        ] = None
         default: Annotated[
             str,
-            m.Field(
-                c.LogLevel.INFO,
-                description="Default log level when raw is absent",
-            ),
-        ]
+            m.Field(description="Default log level when raw is absent"),
+        ] = c.LogLevel.INFO
 
         @u.computed_field
         @property
@@ -58,12 +55,12 @@ class FlextCliModelsBasePart07:
         type_kind: Annotated[t.Cli.TypeKind, m.Field(description="Requested type")]
         value: Annotated[
             t.JsonValue | None,
-            m.Field(None, description="Value to extract and coerce"),
-        ]
+            m.Field(description="Value to extract and coerce"),
+        ] = None
         default: Annotated[
             t.JsonValue | None,
-            m.Field(None, description="Fallback value when extraction fails"),
-        ]
+            m.Field(description="Fallback value when extraction fails"),
+        ] = None
 
         @u.computed_field
         @property

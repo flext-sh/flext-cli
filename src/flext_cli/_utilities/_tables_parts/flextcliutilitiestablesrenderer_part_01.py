@@ -134,7 +134,7 @@ class FlextCliUtilitiesTablesRenderer:
     ) -> set[int]:
         if settings.disable_numparse is True or not cells:
             return set()
-        skipped = (
+        skipped: set[int] = (
             set(settings.disable_numparse)
             if isinstance(settings.disable_numparse, list)
             else set()

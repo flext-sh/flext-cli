@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from openpyxl import Workbook
 from openpyxl.utils.cell import column_index_from_string
 from openpyxl.workbook.defined_name import DefinedName
@@ -113,7 +115,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                     *rows,
                     m.Cli.XlsxRowDimensionSnapshot(
                         position=item.index,
-                        size=item.height,
+                        size=cast("float | None", getattr(item, "height")),
                         hidden=item.hidden,
                         outline_level=item.outlineLevel,
                     ),

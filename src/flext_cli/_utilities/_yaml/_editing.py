@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, ClassVar, TypeGuard
+from typing import TYPE_CHECKING, ClassVar, cast
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.tokens import CommentToken as RuamelCommentToken
@@ -35,7 +35,7 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
     @staticmethod
-    def _yaml_has_anchor(value: t.Cli.YamlValue) -> TypeGuard[p.Cli.YamlAnchorNode]:
+    def _yaml_has_anchor(value: t.Cli.YamlValue) -> bool:
         """Return True when a value exposes the ruamel anchor API.
 
         Returns:
@@ -50,32 +50,42 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
         if node is None:
             return
         if FlextCliUtilitiesYamlEditingMixin._yaml_has_anchor(node):
-            node.yaml_set_anchor(None)
+            cast("p.Cli.YamlAnchorNode", node).yaml_set_anchor(None)
         if isinstance(node, Mapping):
-            for value in node.values():
+            values = cast("t.MappingKV[str, t.Cli.YamlValue]", node).values()
+            for value in values:
                 FlextCliUtilitiesYamlEditingMixin.yaml_clear_anchors(value)
         elif FlextCliUtilitiesYamlEditingMixin.yaml_is_sequence(node):
-            for item in node:
+            items = cast("t.SequenceOf[t.Cli.YamlValue]", node)
+            for item in items:
                 FlextCliUtilitiesYamlEditingMixin.yaml_clear_anchors(item)
 
     @staticmethod
     def yaml_deep_copy_comments(src: t.Cli.YamlNode, dst: t.Cli.YamlNode) -> None:
         """Copy ruamel comments from *src* to *dst* for commented containers."""
         if isinstance(src, CommentedMap) and isinstance(dst, CommentedMap):
-            dst.ca.comment = src.ca.comment
-            for key in src:
-                if key in dst:
+            src_ca = cast("p.Cli.YamlCommentCarrier", src).ca
+            dst_ca = cast("p.Cli.YamlCommentCarrier", dst).ca
+            dst_ca.comment = src_ca.comment
+            src_map = cast("t.MappingKV[str, t.Cli.YamlNode]", src)
+            dst_map = cast("t.MappingKV[str, t.Cli.YamlNode]", dst)
+            for key in src_map:
+                if key in dst_map:
                     FlextCliUtilitiesYamlEditingMixin.yaml_deep_copy_comments(
-                        src[key],
-                        dst[key],
+                        src_map[key],
+                        dst_map[key],
                     )
         elif isinstance(src, CommentedSeq) and isinstance(dst, CommentedSeq):
-            dst.ca.comment = src.ca.comment
-            for index, item in enumerate(src):
-                if index < len(dst):
+            src_ca = cast("p.Cli.YamlCommentCarrier", src).ca
+            dst_ca = cast("p.Cli.YamlCommentCarrier", dst).ca
+            dst_ca.comment = src_ca.comment
+            src_seq = cast("t.SequenceOf[t.Cli.YamlNode]", src)
+            dst_seq = cast("t.SequenceOf[t.Cli.YamlNode]", dst)
+            for index, item in enumerate(src_seq):
+                if index < len(dst_seq):
                     FlextCliUtilitiesYamlEditingMixin.yaml_deep_copy_comments(
                         item,
-                        dst[index],
+                        dst_seq[index],
                     )
 
     @staticmethod
@@ -85,8 +95,10 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
         target: CommentedMap,
     ) -> None:
         """Copy ruamel pre-key comments for one key between two maps."""
-        if key in parent.ca.items:
-            target.ca.items[key] = copy.deepcopy(parent.ca.items[key])
+        parent_ca = cast("p.Cli.YamlCommentCarrier", parent).ca
+        target_ca = cast("p.Cli.YamlCommentCarrier", target).ca
+        if key in parent_ca.items:
+            target_ca.items[key] = copy.deepcopy(parent_ca.items[key])
 
     @staticmethod
     def yaml_pre_key_tokens(node: CommentedMap, key: str) -> list[RuamelCommentToken]:
@@ -96,14 +108,17 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             The existing pre-key comment tokens for one key.
 
         """
-        existing = node.ca.items.get(key)
+        existing = cast("p.Cli.YamlCommentCarrier", node).ca.items.get(key)
         if not existing or not existing[1]:
             return []
         post = existing[1]
-        if isinstance(post, list):
-            return [token for token in post if isinstance(token, RuamelCommentToken)]
         if isinstance(post, RuamelCommentToken):
             return [post]
+        if isinstance(post, list):
+            tokens = cast("t.SequenceOf[object]", post)
+            return [
+                token for token in tokens if isinstance(token, RuamelCommentToken)
+            ]
         return []
 
     @staticmethod
@@ -153,7 +168,12 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             return
         comment_text = FlextCliUtilitiesYamlEditingMixin._yaml_comment_core(text)
         indent = max(len(path) - 1, 0) * 2
-        node.yaml_set_comment_before_after_key(key, before=comment_text, indent=indent)
+        setter = cast("p.Cli.YamlCommentKeySetter", node)
+        setter.yaml_set_comment_before_after_key(
+            key,
+            before=comment_text,
+            indent=indent,
+        )
 
     @staticmethod
     def yaml_force_block_style(node: t.Cli.YamlNode) -> None:
@@ -161,14 +181,16 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
         if isinstance(node, CommentedMap):
             if not node:
                 return
-            node.fa.set_block_style()
-            for value in node.values():
+            cast("p.Cli.YamlFlowStyleCarrier", node).fa.set_block_style()
+            values = cast("t.MappingKV[str, t.Cli.YamlNode]", node).values()
+            for value in values:
                 FlextCliUtilitiesYamlEditingMixin.yaml_force_block_style(value)
         elif isinstance(node, CommentedSeq):
             if not node:
                 return
-            node.fa.set_block_style()
-            for item in node:
+            cast("p.Cli.YamlFlowStyleCarrier", node).fa.set_block_style()
+            items = cast("t.SequenceOf[t.Cli.YamlNode]", node)
+            for item in items:
                 FlextCliUtilitiesYamlEditingMixin.yaml_force_block_style(item)
 
     @staticmethod
@@ -194,11 +216,14 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
         of existing keys keep their position.
         """
         new_keys: list[tuple[str, t.Cli.YamlValue]] = []
-        for key, value in overlay.items():
-            if key in base:
-                if isinstance(base[key], CommentedMap) and isinstance(value, dict):
+        overlay_map = cast("t.MappingKV[str, t.Cli.YamlValue]", overlay)
+        base_map = cast("t.MappingKV[str, t.Cli.YamlValue]", base)
+        for key, value in overlay_map.items():
+            if key in base_map:
+                current = base_map[key]
+                if isinstance(current, CommentedMap) and isinstance(value, dict):
                     FlextCliUtilitiesYamlEditingMixin.yaml_overlay_preserving_order(
-                        base[key],
+                        current,
                         value,
                     )
                 else:

@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import Literal, cast
 
 from openpyxl.worksheet.worksheet import Worksheet
 
@@ -85,6 +85,10 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
         tables = cls._require_success(cls._snapshot_tables(formula_sheet))
         rows = cls._require_success(cls._snapshot_rows(formula_sheet))
         columns = cls._require_success(cls._snapshot_columns(formula_sheet))
+        conditional_formatting = cast(
+            "p.Cli.XlsxConditionalFormattingList",
+            formula_sheet.conditional_formatting,
+        )
         merged_ranges = tuple(
             sorted(str(item) for item in formula_sheet.merged_cells.ranges),
         )
@@ -120,8 +124,8 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
             ),
             data_validation_count=len(formula_sheet.data_validations.dataValidation),
             conditional_format_count=sum(
-                len(formula_sheet.conditional_formatting[item])
-                for item in formula_sheet.conditional_formatting
+                len(conditional_formatting[entry])
+                for entry in conditional_formatting
             ),
             merge_count=len(merged_ranges),
         )
