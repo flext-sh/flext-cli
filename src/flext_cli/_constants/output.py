@@ -7,13 +7,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from types import MappingProxyType
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from flext_cli._constants import FlextCliConstantsEnums
 from flext_core import c, t
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliConstantsOutput:
