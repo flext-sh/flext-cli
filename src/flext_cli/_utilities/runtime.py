@@ -133,6 +133,8 @@ class FlextCliUtilitiesRuntime(
         *,
         options: p.Cli.ProcessOptions | None = None,
         capture: bool = True,
+        env: t.StrMapping | None = None,
+        remove_env_keys: t.StrSequence | None = None,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Run a command without enforcing a zero exit code.
 
@@ -143,6 +145,11 @@ class FlextCliUtilitiesRuntime(
         child inherits the parent's stdout/stderr so its output streams live
         (for long-running makes/rollouts); the returned stdout/stderr are then
         empty and only the exit code is meaningful.
+
+        ``env`` and ``remove_env_keys`` are convenience projections onto
+        ``p.Cli.ProcessOptions``: ``env`` overlays keys on top of the parent
+        environment and ``remove_env_keys`` removes keys before child
+        execution. Values passed here override the same fields on ``options``.
 
         Returns:
             The resulting ``p.Result[p.Cli.CommandOutput]``.
@@ -174,6 +181,20 @@ class FlextCliUtilitiesRuntime(
             )
 
         launch = options if options is not None else m.Cli.ProcessOptions()
+        if env is not None or remove_env_keys is not None:
+            resolved_env = env if env is not None else launch.env
+            resolved_remove = launch.remove_env_keys
+            if remove_env_keys is not None:
+                resolved_remove = remove_env_keys
+            launch = m.Cli.ProcessOptions(
+                env=resolved_env,
+                remove_env_keys=resolved_remove,
+                input_data=launch.input_data,
+                live=launch.live,
+                heartbeat_seconds=launch.heartbeat_seconds,
+                deadline=launch.deadline,
+                pass_fds=launch.pass_fds,
+            )
         return cls._execute_streamed_process(
             m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
