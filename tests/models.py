@@ -24,12 +24,16 @@ class TestsFlextCliModels(TestsFlextCliModelsPart01, FlextTestsModels, FlextCliM
             """Strict service endpoint loaded from external YAML."""
 
             host: Annotated[str, FlextCliModels.Field(description="Service host name.")]
-            port: Annotated[int, FlextCliModels.Field(description="Service port number.")]
+            port: Annotated[
+                int, FlextCliModels.Field(description="Service port number.")
+            ]
 
         class YamlFeatures(FlextCliModels.FrozenModel):
             """Strict feature configuration loaded from external YAML."""
 
-            enabled: Annotated[bool, FlextCliModels.Field(description="Feature activation flag.")]
+            enabled: Annotated[
+                bool, FlextCliModels.Field(description="Feature activation flag.")
+            ]
 
         class YamlConsumerConfig(FlextCliModels.FrozenModel):
             """Strict consumer configuration returned by the public loader."""
@@ -48,7 +52,9 @@ class TestsFlextCliModels(TestsFlextCliModelsPart01, FlextTestsModels, FlextCliM
         class TemplateServer(FlextCliModels.FrozenModel):
             """Template render context nested ``server`` record."""
 
-            port: Annotated[int, FlextCliModels.Field(description="Server port number.")]
+            port: Annotated[
+                int, FlextCliModels.Field(description="Server port number.")
+            ]
 
         class TemplateServerContext(FlextCliModels.FrozenModel):
             """Template render context exposing a nested ``server`` field."""
