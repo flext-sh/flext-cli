@@ -10,8 +10,7 @@ import pytest
 from flext_tests import tm
 
 from flext_cli import cli, settings
-from tests import m
-from tests.utilities import u
+from tests import m, u
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 

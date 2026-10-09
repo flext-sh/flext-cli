@@ -13,13 +13,9 @@ from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeProcessStreamMixin,
     FlextCliUtilitiesRuntimeProcessWaitMixin,
 )
-from flext_cli._utilities._runtime_models import (
-    RuntimeOutputTarget,
-    RuntimeProcessState,
-)
 
 if TYPE_CHECKING:
-    from flext_cli import p, t
+    from flext_cli import m, p, t
 
 
 class FlextCliUtilitiesRuntimeProcessThreadsMixin(
@@ -73,8 +69,8 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     def _start_output_pump(
         cls,
         source: IO[bytes],
-        target: RuntimeOutputTarget,
-        state: RuntimeProcessState,
+        target: m.Cli.RuntimeOutputTarget,
+        state: m.Cli.RuntimeProcessState,
         *,
         thread_name: str,
     ) -> threading.Thread:

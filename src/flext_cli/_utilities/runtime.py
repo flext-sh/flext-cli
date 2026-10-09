@@ -8,17 +8,13 @@ from __future__ import annotations
 
 import os
 import shlex
-import subprocess  # ruff: ignore[suspicious-subprocess-import] -- managed-process primitives module S404 - canonical process execution owner for CLI verbs; B404 covers the bandit gate
+import subprocess
 from typing import BinaryIO, ClassVar, override
 
 from flext_cli import m, p, r, t
 from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeCommandsMixin,
     FlextCliUtilitiesRuntimeRunToFileMixin,
-)
-from flext_cli._utilities._runtime_models import (
-    RuntimeProcessRequest,
-    RuntimeSpawnOptions,
 )
 from flext_core import u as core_u
 
@@ -85,7 +81,7 @@ class FlextCliUtilitiesRuntime(
         env: t.MappingKV[str, str] | None,
         stdin_handle: BinaryIO | None,
         *,
-        options: RuntimeSpawnOptions,
+        options: m.Cli.RuntimeSpawnOptions,
     ) -> p.Cli.ProcessHandle:
         """Create the sole raw child owned by the streamed lifecycle.
 
@@ -93,7 +89,7 @@ class FlextCliUtilitiesRuntime(
             The resulting ``p.Cli.ProcessHandle``.
 
         """
-        return subprocess.Popen(  # ruff: ignore[subprocess-without-shell-equals-true] -- internal process execution, inputs from typed config
+        return subprocess.Popen(
             list(cmd),
             cwd=cwd,
             stdin=subprocess.DEVNULL if stdin_handle is None else stdin_handle,
@@ -179,7 +175,7 @@ class FlextCliUtilitiesRuntime(
 
         launch = options if options is not None else m.Cli.ProcessOptions()
         return cls._execute_streamed_process(
-            RuntimeProcessRequest(
+            m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
                 cwd=cwd,
                 env=cls._resolved_env(launch.env, launch.remove_env_keys),
@@ -206,7 +202,7 @@ class FlextCliUtilitiesRuntime(
         """
         launch = options if options is not None else m.Cli.ProcessOptions()
         return cls._execute_streamed_process(
-            RuntimeProcessRequest(
+            m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
                 cwd=cwd,
                 env=cls._resolved_env(launch.env, launch.remove_env_keys),

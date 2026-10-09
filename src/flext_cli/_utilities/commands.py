@@ -114,6 +114,7 @@ class FlextCliUtilitiesCommands:
                     c.Cli.MessageTypes.ERROR,
                 )[0],
             ),
+            error=True,
         )
         if result.error_code:
             FlextCliUtilitiesOutput.emit_raw(f"   [{result.error_code}]\n", error=True)

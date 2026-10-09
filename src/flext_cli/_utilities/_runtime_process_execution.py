@@ -11,7 +11,7 @@ import threading
 import time
 from typing import BinaryIO
 
-from flext_cli import c, p, r, t
+from flext_cli import c, m, p, r, t
 from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeProcessCleanupMixin,
     FlextCliUtilitiesRuntimeProcessOutcomeMixin,
@@ -19,11 +19,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeProcessResourcesMixin,
     FlextCliUtilitiesRuntimeProcessStartMixin,
     FlextCliUtilitiesRuntimeProcessTimingMixin,
-)
-from flext_cli._utilities._runtime_models import (
-    RuntimeProcessRequest,
-    RuntimeProcessState,
-    RuntimeSpawnOptions,
 )
 
 
@@ -40,7 +35,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
     @classmethod
     def _execute_streamed_process(
         cls,
-        request: RuntimeProcessRequest,
+        request: m.Cli.RuntimeProcessRequest,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Own resources and complete one streamed child lifecycle.
 
@@ -57,7 +52,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         if timing_result.failure:
             return r[p.Cli.CommandBytesOutput].from_failure(timing_result)
         absolute_deadline, grace_seconds = timing_result.unwrap()
-        state = RuntimeProcessState(final_deadline=absolute_deadline)
+        state = m.Cli.RuntimeProcessState(final_deadline=absolute_deadline)
         try:
             cls._execute_lifecycle(request, state, absolute_deadline, grace_seconds)
         except (OSError, TypeError, ValueError) as exc:
@@ -87,8 +82,8 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
     @classmethod
     def _execute_lifecycle(
         cls,
-        request: RuntimeProcessRequest,
-        state: RuntimeProcessState,
+        request: m.Cli.RuntimeProcessRequest,
+        state: m.Cli.RuntimeProcessState,
         absolute_deadline: float | None,
         grace_seconds: float,
     ) -> None:
@@ -125,7 +120,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 request.cwd,
                 request.env,
                 stdin_result.value[0],
-                options=RuntimeSpawnOptions(
+                options=m.Cli.RuntimeSpawnOptions(
                     capture_output=(
                         request.output_path is not None or request.capture_output
                     ),
@@ -158,8 +153,8 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
     def _attach_process_streams(
         cls,
         process: p.Cli.ProcessHandle,
-        request: RuntimeProcessRequest,
-        state: RuntimeProcessState,
+        request: m.Cli.RuntimeProcessRequest,
+        state: m.Cli.RuntimeProcessState,
         stdin: t.Triple[BinaryIO | None, BinaryIO | None, bytes],
         live_fd: int | None,
     ) -> threading.Thread:
@@ -210,7 +205,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         return waiter
 
     @classmethod
-    def _finalize_lifecycle(cls, state: RuntimeProcessState) -> None:
+    def _finalize_lifecycle(cls, state: m.Cli.RuntimeProcessState) -> None:
         if (
             state.process is not None
             and state.waiter is not None

@@ -10,9 +10,8 @@ import os
 import signal
 import time
 
-from flext_cli import c, p, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessGroupMixin
-from flext_cli._utilities._runtime_models import RuntimeProcessState
 
 
 class FlextCliUtilitiesRuntimeProcessMonitorMixin(
@@ -24,7 +23,7 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
     def _monitor_process(
         cls,
         process: p.Cli.ProcessHandle,
-        state: RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         absolute_deadline: float | None,
         grace_seconds: float,
         *,
@@ -195,7 +194,7 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
     def _forward_received(
         cls,
         process: p.Cli.ProcessHandle,
-        state: RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         forwarded_count: int,
         *,
         term_sent: bool,

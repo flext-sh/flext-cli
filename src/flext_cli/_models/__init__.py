@@ -44,7 +44,6 @@ if TYPE_CHECKING:
     from flext_cli._models._base.flextclimodelsbase_part_10 import (
         FlextCliModelsBasePart10,
     )
-    from flext_cli._models._defaults import FlextCliModelsDefaults
     from flext_cli._models._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
     from flext_cli._models._xlsx.xlsx_cells import FlextCliModelsXlsxCells
     from flext_cli._models._xlsx.xlsx_layout import FlextCliModelsXlsxLayout
@@ -93,7 +92,6 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsBasePart08",
     "FlextCliModelsBasePart09",
     "FlextCliModelsBasePart10",
-    "FlextCliModelsDefaults",
     "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
     "FlextCliModelsDocxStyles",
@@ -139,7 +137,6 @@ install_lazy_exports(
         "FlextCliModelsBasePart08": "._base.flextclimodelsbase_part_08",
         "FlextCliModelsBasePart09": "._base.flextclimodelsbase_part_09",
         "FlextCliModelsBasePart10": "._base.flextclimodelsbase_part_10",
-        "FlextCliModelsDefaults": "._defaults",
         "FlextCliModelsDocx": ".docx",
         "FlextCliModelsDocxDocument": ".docx_document",
         "FlextCliModelsDocxStyles": ".docx_styles",

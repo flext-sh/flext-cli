@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from docx.text.paragraph import Paragraph
@@ -15,15 +15,15 @@ if TYPE_CHECKING:
 class FlextCliProtocolsDocx:
     """Structural contracts currently published by the protocol facade."""
 
+    @runtime_checkable
     class DocxParagraphContainer(Protocol):
         """Paragraph creation consumed by the existing document renderer."""
 
-        def add_paragraph(
-            self, text: str = "", style: str | None = None
-        ) -> Paragraph:
+        def add_paragraph(self, text: str = "", style: str | None = None) -> Paragraph:
             """Create a paragraph using the external library contract."""
             ...
 
+    @runtime_checkable
     class DocxFontVariants(Protocol):
         """Writable tri-state character properties."""
 
@@ -67,6 +67,7 @@ class FlextCliProtocolsDocx:
             """Write small-caps state."""
             ...
 
+    @runtime_checkable
     class DocxParagraphPagination(Protocol):
         """Writable tri-state pagination properties."""
 

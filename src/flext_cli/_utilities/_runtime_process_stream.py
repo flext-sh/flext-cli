@@ -10,12 +10,7 @@ import os
 import threading
 from typing import IO, BinaryIO, ClassVar
 
-from flext_cli import r, t
-from flext_cli._utilities._runtime_models import (
-    RuntimeBinaryStream,
-    RuntimeOutputTarget,
-    RuntimeProcessState,
-)
+from flext_cli import m, p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessStreamMixin:
@@ -64,8 +59,8 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
     def _pump_process_output(
         cls,
         source: IO[bytes],
-        target: RuntimeOutputTarget,
-        state: RuntimeProcessState,
+        target: m.Cli.RuntimeOutputTarget,
+        state: m.Cli.RuntimeProcessState,
     ) -> None:
         """Own one child pipe until EOF and preserve each byte exactly once."""
         live_available = target.live_fd is not None
@@ -109,7 +104,7 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
 
     @staticmethod
     def _write_durable_chunk(
-        durable_log: RuntimeBinaryStream,
+        durable_log: p.Cli.RuntimeBinaryStream,
         chunk: bytes,
     ) -> str | None:
         remaining = memoryview(chunk)

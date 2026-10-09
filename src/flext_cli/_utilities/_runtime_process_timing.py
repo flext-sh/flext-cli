@@ -8,8 +8,7 @@ from __future__ import annotations
 
 import shlex
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities._runtime_models import RuntimeProcessRequest
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessTimingMixin:
@@ -17,7 +16,7 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
 
     @staticmethod
     def _resolve_process_timing(
-        request: RuntimeProcessRequest,
+        request: m.Cli.RuntimeProcessRequest,
         started: float,
         *,
         on_main_thread: bool,
@@ -59,7 +58,7 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
 
     @staticmethod
     def _process_output_policy_error(
-        request: RuntimeProcessRequest,
+        request: m.Cli.RuntimeProcessRequest,
         *,
         on_main_thread: bool,
     ) -> str | None:

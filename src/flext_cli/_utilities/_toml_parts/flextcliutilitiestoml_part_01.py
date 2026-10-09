@@ -14,7 +14,7 @@ import tomlkit
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c, p, t
+from flext_cli import c, p, r, t
 from flext_cli._utilities import FlextCliUtilitiesTomlPart02
 from flext_core import u
 
@@ -150,14 +150,24 @@ class FlextCliUtilitiesTomlPart01:
             The resulting ``t.JsonMapping | None``.
 
         """
-        loaded: t.JsonMapping | None
+        parsed = FlextCliUtilitiesTomlPart01.toml_mapping_from_text_result(text)
+        return parsed.value if parsed.success else None
+
+    @staticmethod
+    def toml_mapping_from_text_result(text: str) -> p.Result[t.JsonMapping]:
+        """Parse TOML text while retaining the native failure and its location.
+
+        Returns:
+            The validated mapping or the original TOML parsing failure.
+
+        """
         try:
             loaded = tomllib.loads(text)
-        except tomllib.TOMLDecodeError:
-            loaded = None
-        if loaded is None:
-            return None
-        return t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded)
+        except tomllib.TOMLDecodeError as exc:
+            return r[t.JsonMapping].fail(str(exc), exception=exc)
+        return r[t.JsonMapping].ok(
+            t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded),
+        )
 
     @staticmethod
     def toml_document_from_mapping(mapping: t.JsonMapping) -> TOMLDocument:
