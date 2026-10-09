@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, MutableMapping
 from pathlib import Path
 from types import FrameType, GenericAlias
-from typing import ClassVar
+from typing import Annotated, ClassVar
 
 from jinja2.sandbox import SandboxedEnvironment
 from tomlkit.container import Container
@@ -65,7 +65,7 @@ class FlextCliTypesBase:
     )
     YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
     CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
-        u.type_adapter(CliValue | t.SequenceOf[str | int] | Path)
+        u.type_adapter(Annotated[CliDefaultSource, None])
     )
 
 

@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import cast
+
 from io import BytesIO
 
 import pytest
@@ -148,10 +150,22 @@ def test_docx_nullable_formatting_matches_real_consumer(*, state: bool | None) -
     tm.that(font.all_caps, eq=expected_font.all_caps)
     tm.that(font.small_caps, eq=expected_font.small_caps)
     tm.that(subscript.subscript, eq=expected_subscript.subscript)
-    tm.that(pagination.keep_together, eq=expected_pagination.keep_together)
-    tm.that(pagination.keep_with_next, eq=expected_pagination.keep_with_next)
-    tm.that(pagination.page_break_before, eq=expected_pagination.page_break_before)
-    tm.that(pagination.widow_control, eq=expected_pagination.widow_control)
+    tm.that(
+        cast("bool | None", getattr(pagination, "keep_together")),
+        eq=cast("bool | None", getattr(expected_pagination, "keep_together")),
+    )
+    tm.that(
+        cast("bool | None", getattr(pagination, "keep_with_next")),
+        eq=cast("bool | None", getattr(expected_pagination, "keep_with_next")),
+    )
+    tm.that(
+        cast("bool | None", getattr(pagination, "page_break_before")),
+        eq=cast("bool | None", getattr(expected_pagination, "page_break_before")),
+    )
+    tm.that(
+        cast("bool | None", getattr(pagination, "widow_control")),
+        eq=cast("bool | None", getattr(expected_pagination, "widow_control")),
+    )
 
 
 def test_docx_render_with_table() -> None:

@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import io
-from typing import TYPE_CHECKING, TextIO
+from typing import TYPE_CHECKING, TextIO, cast
 
 import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap
@@ -35,21 +35,23 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def _roundtrip_yaml() -> ruamel.yaml.YAML:
+def _roundtrip_yaml() -> p.Cli.YamlRoundtripEngine:
     """Build a fresh comment/quote-preserving round-trip engine.
 
     A new instance per call keeps load/dump operations thread-safe: ruamel
-    stores mutable parser state on the instance while parsing.
+    stores mutable parser state on the instance while parsing. The returned
+    surface is pinned to the typed ``p.Cli.YamlRoundtripEngine`` contract
+    because ruamel annotates load/dump with untyped parameters.
 
     Returns:
-        The resulting ``ruamel.yaml.YAML``.
+        The resulting ``p.Cli.YamlRoundtripEngine``.
 
     """
     yaml = ruamel.yaml.YAML()
     yaml.preserve_quotes = True
     yaml.width = 4096
     yaml.indent(mapping=2, sequence=4, offset=2)
-    return yaml
+    return cast("p.Cli.YamlRoundtripEngine", yaml)
 
 
 class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):

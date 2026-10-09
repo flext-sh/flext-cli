@@ -6,9 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterator, Mapping, MutableMapping, Sequence
 from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import Protocol, TextIO, runtime_checkable
 
 from flext_cli import t
 from flext_cli._protocols import FlextCliProtocolsBase
@@ -38,6 +38,118 @@ class FlextCliProtocolsDomain:
 
         def yaml_set_anchor(self, value: str | None) -> None:
             """Set or clear the YAML anchor on the node."""
+            ...
+
+    class YamlCommentSurface(Protocol):
+        """ruamel.yaml ``Comment`` surface reached through ``CommentedBase.ca``.
+
+        NOTE (multi-agent): mirrors the consumed slice of ruamel ``Comment``
+        (comment payload plus the per-key/item comment slot mapping) so leaf
+        modules keep fully typed access; consumed through ``cast`` because the
+        ruamel property is unannotated and the module already imports ruamel.
+        """
+
+        comment: object
+        items: MutableMapping[str, Sequence[object]]
+
+    class YamlCommentCarrier(Protocol):
+        """ruamel.yaml node exposing its comment surface through ``ca``."""
+
+        ca: FlextCliProtocolsDomain.YamlCommentSurface
+
+    class YamlBlockStyleSetter(Protocol):
+        """ruamel.yaml block-style surface reached through ``CommentedBase.fa``."""
+
+        def set_block_style(self) -> None:
+            """Force block-style rendering on the node."""
+            ...
+
+    class YamlFlowStyleCarrier(Protocol):
+        """ruamel.yaml node exposing its style surface through ``fa``."""
+
+        fa: FlextCliProtocolsDomain.YamlBlockStyleSetter
+
+    class YamlCommentKeySetter(Protocol):
+        """ruamel.yaml pre/post-key comment insertion surface of ``CommentedMap``."""
+
+        def yaml_set_comment_before_after_key(
+            self,
+            key: str,
+            before: str | None = None,
+            indent: int = 0,
+            after: str | None = None,
+            after_indent: int | None = None,
+        ) -> None:
+            """Insert one comment before or after one mapping key."""
+            ...
+
+    class YamlRoundtripEngine(Protocol):
+        """ruamel.yaml round-trip engine surface consumed by the YAML engine.
+
+        NOTE (multi-agent): mirrors the configured slice of ``ruamel.yaml.YAML``
+        (quote preservation, width, indent policy, load/dump) so the engine's
+        load/dump calls keep fully typed signatures; consumed through ``cast``.
+        """
+
+        preserve_quotes: bool
+        width: int
+
+        def indent(
+            self,
+            *,
+            mapping: int,
+            sequence: int,
+            offset: int,
+        ) -> None:
+            """Configure block indentation for mappings and sequences."""
+            ...
+
+        def load(self, stream: TextIO | str) -> t.Cli.YamlNode:
+            """Parse one YAML document from a stream or text."""
+            ...
+
+        def dump(self, data: t.Cli.YamlNode, stream: TextIO) -> None:
+            """Serialize one YAML tree to a text stream."""
+            ...
+
+    class XlsxConditionalFormattingList(Protocol):
+        """openpyxl conditional-formatting registry surface of one worksheet.
+
+        NOTE (multi-agent): openpyxl-stubs leaves ``add`` parameters and rule
+        lookups ``Incomplete``/unannotated; this pins the consumed contract.
+        """
+
+        def add(self, range_string: str, cfRule: object) -> None:
+            """Register one conditional-format rule over one cell range."""
+            ...
+
+        def __getitem__(self, key: object) -> Sequence[object]:
+            """Return the rules attached to one conditional-format entry."""
+            ...
+
+        def __iter__(self) -> Iterator[object]:
+            """Iterate the registered conditional-format entries."""
+            ...
+
+    class XlsxDataValidationSurface(Protocol):
+        """openpyxl data-validation range-attachment surface."""
+
+        def add(self, cell: str) -> None:
+            """Attach the validation to one cell range reference."""
+            ...
+
+    class JinjaTemplateRenderer(Protocol):
+        """jinja2 template render surface consumed by the template utilities."""
+
+        def render(self, variables: Mapping[str, object]) -> str:
+            """Render the template with one variable mapping."""
+            ...
+
+    class JsonSchemaValidator(Protocol):
+        """jsonschema validator surface consumed by config validation."""
+
+        def validate(self, instance: object) -> None:
+            """Validate one instance; raise on the first violation."""
             ...
 
     @runtime_checkable

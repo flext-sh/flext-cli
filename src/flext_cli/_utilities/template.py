@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from pathlib import Path
-from typing import ClassVar, override
+from typing import ClassVar, cast, override
 
 from jinja2 import BaseLoader, Environment, StrictUndefined
 from jinja2.exceptions import TemplateError, TemplateNotFound
@@ -162,8 +162,9 @@ class FlextCliUtilitiesTemplate:
         if not path.is_file():
             return r[str].fail(f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {path}")
         env = FlextCliUtilitiesTemplate.template_environment(path.parent)
+        template = cast("p.Cli.JinjaTemplateRenderer", env.get_template(path.name))
         rendered = u.try_(
-            lambda: env.get_template(path.name).render(context.model_dump(mode="json")),
+            lambda: template.render(context.model_dump(mode="json")),
             catch=(TemplateError, OSError),
             op_name="template_render",
         )
@@ -193,10 +194,12 @@ class FlextCliUtilitiesTemplate:
             autoescape=select_autoescape(),
             auto_reload=False,
         )
+        template = cast(
+            "p.Cli.JinjaTemplateRenderer",
+            environment.get_template(source.name),
+        )
         rendered = u.try_(
-            lambda: environment.get_template(source.name).render(
-                context.model_dump(mode="json"),
-            ),
+            lambda: template.render(context.model_dump(mode="json")),
             catch=(TemplateError, OSError),
             op_name="template_render_authenticated",
         )

@@ -179,7 +179,7 @@ class FlextCliModelsBasePart01:
         )
         value: Annotated[
             t.JsonValue, m.Field(description="The normalized JSON value")
-        ] = m.Field(default_factory=dict)
+        ] = m.Field(default_factory=dict[str, t.JsonValue])
         default: Annotated[
             t.JsonMapping,
             m.Field(

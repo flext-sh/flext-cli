@@ -52,7 +52,7 @@ class FlextCliUtilitiesYamlConvertMixin:
     """Plain<->commented conversion and scalar normalization for YAML trees."""
 
     @staticmethod
-    def yaml_to_plain(data: t.Cli.YamlNode) -> t.Cli.YamlValue:
+    def yaml_to_plain(data: t.Cli.YamlValue) -> t.Cli.YamlValue:
         """Recursively convert ruamel containers into plain Python values.
 
         Returns:
@@ -60,13 +60,15 @@ class FlextCliUtilitiesYamlConvertMixin:
 
         """
         if isinstance(data, dict):
+            items = cast("t.MappingKV[str, t.Cli.YamlValue]", data).items()
             return {
                 key: FlextCliUtilitiesYamlConvertMixin.yaml_to_plain(value)
-                for key, value in data.items()
+                for key, value in items
             }
         if isinstance(data, list):
+            values = cast("t.SequenceOf[t.Cli.YamlValue]", data)
             return [
-                FlextCliUtilitiesYamlConvertMixin.yaml_to_plain(item) for item in data
+                FlextCliUtilitiesYamlConvertMixin.yaml_to_plain(item) for item in values
             ]
         return data
 
@@ -84,11 +86,9 @@ class FlextCliUtilitiesYamlConvertMixin:
 
     @overload
     @staticmethod
-    def yaml_deep_to_commented(data: list[t.Cli.YamlValue]) -> CommentedSeq: ...
-
-    @overload
-    @staticmethod
-    def yaml_deep_to_commented(data: tuple[t.Cli.YamlValue, ...]) -> CommentedSeq: ...
+    def yaml_deep_to_commented(
+        data: t.SequenceOf[t.Cli.YamlValue],
+    ) -> CommentedSeq: ...
 
     @overload
     @staticmethod
@@ -123,9 +123,10 @@ class FlextCliUtilitiesYamlConvertMixin:
                 )
             return node
         if FlextCliUtilitiesYamlConvertMixin.yaml_is_sequence(data):
+            values = cast("t.SequenceOf[t.Cli.YamlValue]", data)
             return CommentedSeq(
                 FlextCliUtilitiesYamlConvertMixin.yaml_deep_to_commented(item)
-                for item in data
+                for item in values
             )
         if isinstance(data, str):
             if "\n" in data:

@@ -16,8 +16,7 @@ from pathlib import Path
 import pytest
 from flext_tests import tm
 
-from flext_cli import c, m
-from tests import t, u
+from tests import c, m, t, u
 
 
 class TestsFlextCliOptions:

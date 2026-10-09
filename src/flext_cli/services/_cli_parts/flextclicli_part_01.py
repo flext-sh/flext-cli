@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from inspect import Parameter, Signature
 from types import GenericAlias
-from typing import Never
+from typing import Never, cast
 
 from flext_cli import c, e, m, p, r, settings, t, u
 
@@ -130,7 +130,11 @@ class FlextCliCliPart01:
         """
         extra_option_names: list[str] = []
         validation_alias = getattr(field_info, "validation_alias", None)
-        choices = getattr(validation_alias, "choices", None)
+        choices: tuple[object, ...] | None = getattr(
+            validation_alias,
+            "choices",
+            None,
+        )
         if isinstance(choices, tuple):
             for choice in choices:
                 if not isinstance(choice, str):
@@ -150,7 +154,8 @@ class FlextCliCliPart01:
         """
         extra = getattr(field_info, "json_schema_extra", None)
         if isinstance(extra, Mapping):
-            declared = extra.get("typer_param_decls")
+            extra_map = cast("Mapping[str, Sequence[object]]", extra)
+            declared = extra_map.get("typer_param_decls")
             if isinstance(declared, Sequence) and not isinstance(declared, str):
                 return [str(item) for item in declared]
         return None

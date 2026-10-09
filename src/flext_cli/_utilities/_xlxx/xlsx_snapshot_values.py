@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import datetime as dt
 from decimal import Decimal, InvalidOperation
+from typing import cast
 
 from openpyxl.cell.cell import Cell, MergedCell
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-from flext_cli.typings import T
 
 
 class FlextCliUtilitiesXlsxSnapshotValues:
@@ -173,8 +173,8 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                 style_name=cls._snapshot_style_name(formula_cell),
                 style_id=formula_cell.style_id,
                 number_format=formula_cell.number_format,
-                locked=formula_cell.protection.locked,
-                hidden=formula_cell.protection.hidden,
+                locked=cast("bool", getattr(formula_cell.protection, "locked")),
+                hidden=cast("bool", getattr(formula_cell.protection, "hidden")),
             ),
         )
 

@@ -225,7 +225,8 @@ class TestsFlextCliRulesCov:
             )
         )
         tm.ok(result)
-        tm.that(result.value, eq=([], []))
+        expected: tuple[list[str], list[str]] = ([], [])
+        tm.that(result.value, eq=expected)
 
     def test_load_local_definitions_skips_registry_noid_disabled_empty(
         self,
@@ -250,7 +251,8 @@ class TestsFlextCliRulesCov:
             )
         )
         tm.ok(result)
-        tm.that(result.value, eq=([], []))
+        expected: tuple[list[str], list[str]] = ([], [])
+        tm.that(result.value, eq=expected)
 
     def test_load_local_definitions_unknown_rule_fails(self, tmp_path: Path) -> None:
         """Verify that load local definitions unknown rule fails."""

@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, u
+from tests import m, u
 
 
 class TestsFlextCliDataReport:

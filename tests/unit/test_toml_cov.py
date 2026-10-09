@@ -12,7 +12,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
+from collections.abc import Mapping
+
+from typing import cast, TYPE_CHECKING, ClassVar
 
 import pytest
 from flext_tests import tm
@@ -291,7 +293,7 @@ class TestsFlextCliTomlCov:
         table = u.Cli.toml_navigate_path(doc, ["created", "nested"])
 
         tm.that(u.Cli.toml_is_table(table), eq=True)
-        tm.that(dict(table), eq={})
+        tm.that(dict(cast("Mapping[str, object]", table)), eq={})
         table["leaf"] = "wired"
         expected: t.JsonMapping = {
             "tool": {
