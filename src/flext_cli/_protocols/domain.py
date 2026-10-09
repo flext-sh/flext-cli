@@ -119,7 +119,7 @@ class FlextCliProtocolsDomain:
         lookups ``Incomplete``/unannotated; this pins the consumed contract.
         """
 
-        def add(self, range_string: str, cfRule: object) -> None:
+        def add(self, range_string: str, cf_rule: object) -> None:
             """Register one conditional-format rule over one cell range."""
             ...
 
@@ -151,6 +151,44 @@ class FlextCliProtocolsDomain:
         def validate(self, instance: object) -> None:
             """Validate one instance; raise on the first violation."""
             ...
+
+    class XlsxFontStyleSurface(Protocol):
+        """openpyxl font style surface consumed by the style readers.
+
+        NOTE (multi-agent): openpyxl-stubs types these members as unparameterized
+        ``Alias`` descriptors (Unknown); the surface pins them as ``object`` and
+        call sites narrow to the real runtime value types.
+        """
+
+        size: object
+        bold: object
+        italic: object
+        underline: object
+
+    class XlsxProtectionSurface(Protocol):
+        """openpyxl cell-protection surface consumed by snapshot values."""
+
+        locked: object
+        hidden: object
+
+    class XlsxRowDimensionSurface(Protocol):
+        """openpyxl row-dimension surface consumed by snapshot structure."""
+
+        height: object
+
+    class DocxParagraphFormatSurface(Protocol):
+        """python-docx paragraph-format surface consumed by readers and tests.
+
+        NOTE (multi-agent): python-docx annotates these properties without
+        return types (Unknown); the surface pins them as ``object`` and call
+        sites narrow to the real runtime value types.
+        """
+
+        alignment: object
+        keep_together: object
+        keep_with_next: object
+        page_break_before: object
+        widow_control: object
 
     @runtime_checkable
     class ModelCommandHandler[TParams: t.Cli.ModelLike](Protocol):

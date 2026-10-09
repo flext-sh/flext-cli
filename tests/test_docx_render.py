@@ -6,15 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import cast
-
 from io import BytesIO
+from typing import cast
 
 import pytest
 from docx import Document
 from flext_tests import tm
 
-from flext_cli import cli, m
+from flext_cli import cli, m, p
 
 
 def test_docx_render_is_reproducible_for_explicit_source_date_epoch() -> None:
@@ -150,21 +149,31 @@ def test_docx_nullable_formatting_matches_real_consumer(*, state: bool | None) -
     tm.that(font.all_caps, eq=expected_font.all_caps)
     tm.that(font.small_caps, eq=expected_font.small_caps)
     tm.that(subscript.subscript, eq=expected_subscript.subscript)
+    assert_pagination_flags_match(pagination, expected_pagination)
+
+
+def assert_pagination_flags_match(
+    pagination: object,
+    expected_pagination: object,
+) -> None:
+    """Assert the four paragraph pagination flags match one expected set."""
+    pagination_fmt = cast("p.Cli.DocxParagraphFormatSurface", pagination)
+    expected_fmt = cast("p.Cli.DocxParagraphFormatSurface", expected_pagination)
     tm.that(
-        cast("bool | None", getattr(pagination, "keep_together")),
-        eq=cast("bool | None", getattr(expected_pagination, "keep_together")),
+        cast("bool | None", pagination_fmt.keep_together),
+        eq=cast("bool | None", expected_fmt.keep_together),
     )
     tm.that(
-        cast("bool | None", getattr(pagination, "keep_with_next")),
-        eq=cast("bool | None", getattr(expected_pagination, "keep_with_next")),
+        cast("bool | None", pagination_fmt.keep_with_next),
+        eq=cast("bool | None", expected_fmt.keep_with_next),
     )
     tm.that(
-        cast("bool | None", getattr(pagination, "page_break_before")),
-        eq=cast("bool | None", getattr(expected_pagination, "page_break_before")),
+        cast("bool | None", pagination_fmt.page_break_before),
+        eq=cast("bool | None", expected_fmt.page_break_before),
     )
     tm.that(
-        cast("bool | None", getattr(pagination, "widow_control")),
-        eq=cast("bool | None", getattr(expected_pagination, "widow_control")),
+        cast("bool | None", pagination_fmt.widow_control),
+        eq=cast("bool | None", expected_fmt.widow_control),
     )
 
 

@@ -115,7 +115,10 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
                     *rows,
                     m.Cli.XlsxRowDimensionSnapshot(
                         position=item.index,
-                        size=cast("float | None", getattr(item, "height")),
+                        size=cast(
+                            "float | None",
+                            cast("p.Cli.XlsxRowDimensionSurface", item).height,
+                        ),
                         hidden=item.hidden,
                         outline_level=item.outlineLevel,
                     ),

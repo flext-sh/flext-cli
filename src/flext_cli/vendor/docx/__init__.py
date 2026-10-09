@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
+from operator import attrgetter
 from typing import cast
 
 import docx.oxml
@@ -31,11 +32,13 @@ from docx.text.paragraph import Paragraph
 from docx.text.run import Run
 
 # NOTE (multi-agent): python-docx annotates the factory return as
-# ``BaseOxmlElement | etree._Element`` (private lxml type); the fleet contract
-# consumes the ``BaseOxmlElement`` surface, pinned through one typed binding.
+# ``BaseOxmlElement | etree._Element`` (private lxml type, untyped in this
+# environment); the fleet contract consumes the ``BaseOxmlElement`` surface.
+# ``attrgetter`` preserves the exact factory object while keeping the binding
+# fully typed (direct member access propagates the Unknown union).
 OxmlElement: Callable[..., BaseOxmlElement] = cast(
     "Callable[..., BaseOxmlElement]",
-    getattr(docx.oxml, "OxmlElement"),
+    attrgetter("OxmlElement")(docx.oxml),
 )
 
 __all__ = [

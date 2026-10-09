@@ -13,10 +13,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Annotated
-
 from collections.abc import Sequence
 from pathlib import Path
+from typing import Annotated
 
 import pytest
 from flext_tests import tm

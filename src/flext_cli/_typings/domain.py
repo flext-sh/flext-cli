@@ -23,12 +23,14 @@ class FlextCliTypesDomain:
     """Composite CLI aliases built from canonical protocols and core types."""
 
     type YamlScalar = str | int | float | bool | None
-    # mro-pyright-strict: CLI-local recursive YAML tree union. The former
-    # ``t.JsonValue`` binding pulled pydantic's discriminated ``Annotated``
-    # expansion into every narrowing site, which made ``Unknown`` leak into
-    # callers. Same runtime value set (scalars, lists, string-keyed maps);
-    # tuples are excluded because ruamel never produces them.
-    type YamlValue = YamlScalar | t.SequenceOf[YamlValue] | t.MappingKV[str, YamlValue]
+    # mro-pyright-strict: CLI-local YAML tree union. The former ``t.JsonValue``
+    # binding pulled pydantic's discriminated ``Annotated`` expansion into every
+    # narrowing site, which made ``Unknown`` leak into callers. The recursion
+    # stays inside the canonical core containers (``t.JsonList`` /
+    # ``t.JsonMapping``); tuples are excluded because ruamel never produces
+    # them.
+    type YamlCollection = t.JsonList | t.JsonMapping
+    type YamlValue = YamlScalar | YamlCollection
     type YamlNode = CommentedMap | CommentedSeq | YamlScalar
     type YamlSequence = CommentedSeq | list[YamlValue]
 
