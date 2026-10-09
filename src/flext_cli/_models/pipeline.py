@@ -34,17 +34,15 @@ class FlextCliModelsPipeline:
         shared: Annotated[
             t.MutableJsonMapping,
             m.Field(
-                default_factory=dict,
                 description="Mutable shared state between stages",
             ),
-        ]
+        ] = m.Field(default_factory=dict)
         settings: Annotated[
             t.JsonMapping,
             m.Field(
-                default_factory=lambda: c.Cli.EMPTY_JSON_MAPPING,
                 description="Immutable pipeline configuration",
             ),
-        ]
+        ] = m.Field(default_factory=lambda: c.Cli.EMPTY_JSON_MAPPING)
 
     class PipelineStageSpec(m.ContractModel):
         """Declarative stage definition with dependency tracking."""
@@ -58,10 +56,9 @@ class FlextCliModelsPipeline:
         depends_on: Annotated[
             frozenset[str],
             m.Field(
-                default_factory=frozenset,
                 description="Stage IDs this stage depends on",
             ),
-        ]
+        ] = m.Field(default_factory=frozenset)
         # Pydantic owns runtime validation here; public callback contracts live
         # in p.Cli and this model retains the equivalent concrete callable shape.
         handler: Annotated[
@@ -97,10 +94,9 @@ class FlextCliModelsPipeline:
         output: Annotated[
             t.JsonMapping,
             m.Field(
-                default_factory=lambda: c.Cli.EMPTY_JSON_MAPPING,
                 description="Stage output payload",
             ),
-        ]
+        ] = m.Field(default_factory=lambda: c.Cli.EMPTY_JSON_MAPPING)
         duration_ms: Annotated[
             float,
             m.Field(description="Execution duration in milliseconds"),
@@ -117,10 +113,9 @@ class FlextCliModelsPipeline:
         stages: Annotated[
             t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult],
             m.Field(
-                default_factory=tuple,
                 description="Results from all executed stages",
             ),
-        ]
+        ] = m.Field(default_factory=tuple)
         total_duration_ms: Annotated[
             float,
             m.Field(description="Total pipeline execution time"),
