@@ -49,6 +49,11 @@ class TestsFlextCliModelCommandJsonOptions:
             ),
         )
 
+    class OptionalSequenceModel(m.BaseModel):
+        """Request whose optional string sequence is a repeated option."""
+
+        projects: t.StrSequence | None = None
+
     @staticmethod
     def _app[M: t.Cli.ModelLike](
         model_cls: t.ModelClass[M],
@@ -172,3 +177,21 @@ class TestsFlextCliModelCommandJsonOptions:
         tm.that(invocation.stdout, has=["--labels", "--prefs"])
         tm.that(invocation.stdout, has=c.Cli.CLI_JSON_OPTION_METAVAR)
         tm.that(received, empty=True)
+
+    def test_optional_sequence_option_accepts_single_value(self) -> None:
+        """An optional string sequence given once validates as a one-item sequence."""
+        invocation, received = self._invoke(
+            self.OptionalSequenceModel,
+            ["--projects", "."],
+        )
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.that(received, eq=[self.OptionalSequenceModel(projects=["."])])
+
+    def test_optional_sequence_option_repeats(self) -> None:
+        """An optional string sequence collects every repeated value in order."""
+        invocation, received = self._invoke(
+            self.OptionalSequenceModel,
+            ["--projects", "a", "--projects", "b"],
+        )
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.that(received, eq=[self.OptionalSequenceModel(projects=["a", "b"])])
