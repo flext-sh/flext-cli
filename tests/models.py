@@ -10,7 +10,7 @@ from typing import Annotated
 
 from flext_tests import FlextTestsModels
 
-from flext_cli import FlextCliModels, m
+from flext_cli import FlextCliModels
 from tests._models_parts.testsflextclimodels_part_01 import TestsFlextCliModelsPart01
 
 
@@ -20,37 +20,37 @@ class TestsFlextCliModels(TestsFlextCliModelsPart01, FlextTestsModels, FlextCliM
     class Tests(TestsFlextCliModelsPart01.Tests):
         """Consumer-owned records used to exercise typed YAML ingress."""
 
-        class YamlService(m.FrozenModel):
+        class YamlService(FlextCliModels.FrozenModel):
             """Strict service endpoint loaded from external YAML."""
 
-            host: Annotated[str, m.Field(description="Service host name.")]
-            port: Annotated[int, m.Field(description="Service port number.")]
+            host: Annotated[str, FlextCliModels.Field(description="Service host name.")]
+            port: Annotated[int, FlextCliModels.Field(description="Service port number.")]
 
-        class YamlFeatures(m.FrozenModel):
+        class YamlFeatures(FlextCliModels.FrozenModel):
             """Strict feature configuration loaded from external YAML."""
 
-            enabled: Annotated[bool, m.Field(description="Feature activation flag.")]
+            enabled: Annotated[bool, FlextCliModels.Field(description="Feature activation flag.")]
 
-        class YamlConsumerConfig(m.FrozenModel):
+        class YamlConsumerConfig(FlextCliModels.FrozenModel):
             """Strict consumer configuration returned by the public loader."""
 
             service: TestsFlextCliModels.Tests.YamlService
             features: TestsFlextCliModels.Tests.YamlFeatures
 
-        class TemplateEmpty(m.FrozenModel):
+        class TemplateEmpty(FlextCliModels.FrozenModel):
             """Empty template render context (no variables provided)."""
 
-        class TemplateValue(m.FrozenModel):
+        class TemplateValue(FlextCliModels.FrozenModel):
             """Template render context exposing a single ``value`` field."""
 
-            value: Annotated[int, m.Field(description="Template value.")]
+            value: Annotated[int, FlextCliModels.Field(description="Template value.")]
 
-        class TemplateServer(m.FrozenModel):
+        class TemplateServer(FlextCliModels.FrozenModel):
             """Template render context nested ``server`` record."""
 
-            port: Annotated[int, m.Field(description="Server port number.")]
+            port: Annotated[int, FlextCliModels.Field(description="Server port number.")]
 
-        class TemplateServerContext(m.FrozenModel):
+        class TemplateServerContext(FlextCliModels.FrozenModel):
             """Template render context exposing a nested ``server`` field."""
 
             server: TestsFlextCliModels.Tests.TemplateServer
