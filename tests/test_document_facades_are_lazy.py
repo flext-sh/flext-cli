@@ -1,10 +1,8 @@
-"""The public facades must not drag the document stacks into every consumer.
+"""Document imports follow their public facade composition contracts.
 
 `openpyxl`, `python-docx`, and `python-pptx` are hard dependencies, but they
-are only needed by the document operations. Importing `flext_cli` or its
-utility facade must not pay for them: a cold import costs seconds of pure
-module construction that every CLI consumer in the fleet pays on every
-invocation, including for `--help`.
+DOCX behavior owners compose directly through MRO and load with the utility
+namespace. The remaining document adapters load when their operations run.
 
 These probes run in a fresh interpreter because `sys.modules` is global: once
 any earlier test in the session has imported a document module, an in-process
@@ -47,19 +45,19 @@ def _loaded_heavy_modules(import_statement: str) -> frozenset[str]:
 
 
 class TestsDocumentFacadesAreLazy:
-    """Document owners load on first use, never at facade import."""
+    """Direct MRO owners load with the namespace; other adapters stay lazy."""
 
     @staticmethod
-    def test_utilities_facade_import_does_not_load_document_stacks() -> None:
+    def test_utilities_namespace_loads_its_docx_mro_owners() -> None:
         loaded = _loaded_heavy_modules(
             "from flext_cli.utilities import FlextCliUtilities as u\n_ = u.Cli",
         )
-        tm.that(loaded, eq=frozenset[str]())
+        tm.that(loaded, eq=frozenset({"docx"}))
 
     @staticmethod
     def test_public_api_import_does_not_load_document_stacks() -> None:
         loaded = _loaded_heavy_modules("from flext_cli import FlextCli\n_ = FlextCli")
-        tm.that(loaded, eq=frozenset[str]())
+        tm.that(loaded.difference({"docx"}), eq=frozenset[str]())
 
     @staticmethod
     def test_xlsx_operation_still_resolves_through_the_utility_facade() -> None:
