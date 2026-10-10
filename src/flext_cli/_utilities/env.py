@@ -61,12 +61,7 @@ class FlextCliUtilitiesEnv:
 
         """
         if strict:
-            try:
-                return r[str].ok(
-                    FlextCliUtilitiesEnv._expand_strict(template, environment),
-                )
-            except ValueError as exc:
-                return r[str].fail(str(exc))
+            return FlextCliUtilitiesEnv._expand_strict(template, environment)
 
         def _replace(match: re.Match[str]) -> str:
             token = (
@@ -88,85 +83,116 @@ class FlextCliUtilitiesEnv:
 
         Every string leaf follows ``env_expand(..., strict=True)``. A mapping
         entry whose key is in ``skip_keys`` keeps its whole subtree verbatim at
-        every nesting level, so a later renderer can bind its own roots.
+        every nesting level, so a later renderer can bind its own roots. The
+        first failing leaf fails the document.
 
         Returns:
             The resulting ``p.Result[t.JsonValue]``.
 
         """
-        try:
-            return r[t.JsonValue].ok(
-                FlextCliUtilitiesEnv._expand_tree(document, environment, skip_keys),
-            )
-        except ValueError as exc:
-            return r[t.JsonValue].fail(str(exc))
+        if isinstance(value := document, str):
+            expanded = FlextCliUtilitiesEnv._expand_strict(value, environment)
+            if expanded.failure:
+                return r[t.JsonValue].from_failure(expanded)
+            return r[t.JsonValue].ok(expanded.value)
+        if isinstance(value, Mapping):
+            return FlextCliUtilitiesEnv._expand_mapping(value, environment, skip_keys)
+        if isinstance(value, Sequence):
+            return FlextCliUtilitiesEnv._expand_sequence(value, environment, skip_keys)
+        return r[t.JsonValue].ok(value)
 
     @staticmethod
-    def _expand_tree(
-        value: t.JsonValue,
+    def _expand_mapping(
+        value: t.JsonMapping,
         environment: t.StrMapping,
         skip_keys: frozenset[str],
-    ) -> t.JsonValue:
-        if isinstance(value, str):
-            return FlextCliUtilitiesEnv._expand_strict(value, environment)
-        if isinstance(value, Mapping):
-            return {
-                key: item
-                if key in skip_keys
-                else FlextCliUtilitiesEnv._expand_tree(item, environment, skip_keys)
-                for key, item in value.items()
-            }
-        if isinstance(value, Sequence):
-            return [
-                FlextCliUtilitiesEnv._expand_tree(item, environment, skip_keys)
-                for item in value
-            ]
-        return value
+    ) -> p.Result[t.JsonValue]:
+        """Expand every non-skipped entry of one mapping, stopping at a failure.
+
+        Returns:
+            The expanded mapping, or the first failing entry.
+
+        """
+        mapping: dict[str, t.JsonValue] = {}
+        for key, item in value.items():
+            if key in skip_keys:
+                mapping[key] = item
+                continue
+            child = FlextCliUtilitiesEnv.env_expand_document(
+                item,
+                environment,
+                skip_keys=skip_keys,
+            )
+            if child.failure:
+                return child
+            mapping[key] = child.value
+        return r[t.JsonValue].ok(mapping)
 
     @staticmethod
-    def _expand_strict(template: str, environment: t.StrMapping) -> str:
+    def _expand_sequence(
+        value: t.SequenceOf[t.JsonValue],
+        environment: t.StrMapping,
+        skip_keys: frozenset[str],
+    ) -> p.Result[t.JsonValue]:
+        """Expand every item of one sequence, stopping at a failure.
+
+        Returns:
+            The expanded list, or the first failing item.
+
+        """
+        items: list[t.JsonValue] = []
+        for item in value:
+            child = FlextCliUtilitiesEnv.env_expand_document(
+                item,
+                environment,
+                skip_keys=skip_keys,
+            )
+            if child.failure:
+                return child
+            items.append(child.value)
+        return r[t.JsonValue].ok(items)
+
+    @staticmethod
+    def _expand_strict(template: str, environment: t.StrMapping) -> p.Result[str]:
         """Expand one value to its fixed point under the closed braced grammar.
 
         Returns:
-            The fully expanded value.
-
-        Raises:
-            ValueError: If a name is undeclared without default, a placeholder
-                survives, or no fixed point is reached.
+            The fully expanded value, or the first undeclared name, surviving
+            placeholder, or missing fixed point as a failure.
 
         """
-
-        def _replace(match: re.Match[str]) -> str:
-            name = match.group("name")
-            if name in environment:
-                return environment[name]
-            default = match.group("default")
-            if default is None:
-                message = (
-                    f"undeclared placeholder ${{{name}}} without ':-default' "
-                    f"in {template!r}"
-                )
-                raise ValueError(message)
-            return default
-
         current = template
         for _ in range(c.Cli.ENV_EXPAND_MAX_PASSES):
-            expanded = FlextCliUtilitiesEnv._STRICT_PATTERN.sub(_replace, current)
+            pieces: list[str] = []
+            position = 0
+            for match in FlextCliUtilitiesEnv._STRICT_PATTERN.finditer(current):
+                name = match.group("name")
+                default = match.group("default")
+                if name not in environment and default is None:
+                    return r[str].fail(
+                        f"undeclared placeholder ${{{name}}} without ':-default' "
+                        f"in {template!r}",
+                    )
+                pieces.extend((
+                    current[position : match.start()],
+                    environment.get(name, default or ""),
+                ))
+                position = match.end()
+            pieces.append(current[position:])
+            expanded = "".join(pieces)
             if expanded == current:
                 residue = FlextCliUtilitiesEnv._ANY_PLACEHOLDER.search(expanded)
                 if residue is not None:
-                    message = (
+                    return r[str].fail(
                         f"placeholder {residue.group(0)!r} survives expansion "
-                        f"of {template!r}"
+                        f"of {template!r}",
                     )
-                    raise ValueError(message)
-                return expanded
+                return r[str].ok(expanded)
             current = expanded
-        message = (
+        return r[str].fail(
             f"no fixed point after {c.Cli.ENV_EXPAND_MAX_PASSES} expansion "
-            f"passes: {template!r}"
+            f"passes: {template!r}",
         )
-        raise ValueError(message)
 
 
 __all__: list[str] = ["FlextCliUtilitiesEnv"]
