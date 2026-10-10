@@ -75,7 +75,7 @@ class FlextCliUtilitiesTomlPart02:
         """
         table = tomlkit.table()
         proxy_view = cast("t.MappingKV[str, object]", proxy)
-        for entry_key in proxy_view:
+        for entry_key in list(proxy_view):
             table[entry_key] = proxy_view[entry_key]
         return table
 
@@ -149,7 +149,7 @@ class FlextCliUtilitiesTomlPart02:
             # silently overwriting the fragments with an empty table.
             table = tomlkit.table()
             proxy_view = cast("t.MappingKV[str, object]", existing)
-            for entry_key in proxy_view:
+            for entry_key in list(proxy_view):
                 table[entry_key] = proxy_view[entry_key]
             del parent[key]
             parent[key] = table
@@ -161,7 +161,7 @@ class FlextCliUtilitiesTomlPart02:
             del parent[key]
             table = tomlkit.table()
             table_view = cast("t.MappingKV[str, object]", existing)
-            for entry_key in table_view:
+            for entry_key in list(table_view):
                 table[entry_key] = table_view[entry_key]
             parent[key] = table
             return table

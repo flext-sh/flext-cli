@@ -124,8 +124,7 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
             ),
             data_validation_count=len(formula_sheet.data_validations.dataValidation),
             conditional_format_count=sum(
-                len(conditional_formatting[entry])
-                for entry in conditional_formatting
+                len(conditional_formatting[entry]) for entry in conditional_formatting
             ),
             merge_count=len(merged_ranges),
         )

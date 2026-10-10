@@ -40,6 +40,7 @@ class FlextCliProtocolsDomain:
             """Set or clear the YAML anchor on the node."""
             ...
 
+    @runtime_checkable
     class YamlCommentSurface(Protocol):
         """ruamel.yaml ``Comment`` surface reached through ``CommentedBase.ca``.
 
@@ -52,11 +53,13 @@ class FlextCliProtocolsDomain:
         comment: object
         items: MutableMapping[str, Sequence[object]]
 
+    @runtime_checkable
     class YamlCommentCarrier(Protocol):
         """ruamel.yaml node exposing its comment surface through ``ca``."""
 
         ca: FlextCliProtocolsDomain.YamlCommentSurface
 
+    @runtime_checkable
     class YamlBlockStyleSetter(Protocol):
         """ruamel.yaml block-style surface reached through ``CommentedBase.fa``."""
 
@@ -64,11 +67,13 @@ class FlextCliProtocolsDomain:
             """Force block-style rendering on the node."""
             ...
 
+    @runtime_checkable
     class YamlFlowStyleCarrier(Protocol):
         """ruamel.yaml node exposing its style surface through ``fa``."""
 
         fa: FlextCliProtocolsDomain.YamlBlockStyleSetter
 
+    @runtime_checkable
     class YamlCommentKeySetter(Protocol):
         """ruamel.yaml pre/post-key comment insertion surface of ``CommentedMap``."""
 
@@ -83,26 +88,13 @@ class FlextCliProtocolsDomain:
             """Insert one comment before or after one mapping key."""
             ...
 
+    @runtime_checkable
     class YamlRoundtripEngine(Protocol):
         """ruamel.yaml round-trip engine surface consumed by the YAML engine.
 
-        NOTE (multi-agent): mirrors the configured slice of ``ruamel.yaml.YAML``
-        (quote preservation, width, indent policy, load/dump) so the engine's
-        load/dump calls keep fully typed signatures; consumed through ``cast``.
+        Pins only the load/dump slice the engine consumes, with typed
+        signatures; ``ruamel.yaml.YAML`` satisfies it structurally.
         """
-
-        preserve_quotes: bool
-        width: int
-
-        def indent(
-            self,
-            *,
-            mapping: int,
-            sequence: int,
-            offset: int,
-        ) -> None:
-            """Configure block indentation for mappings and sequences."""
-            ...
 
         def load(self, stream: TextIO | str) -> t.Cli.YamlNode:
             """Parse one YAML document from a stream or text."""
@@ -112,6 +104,7 @@ class FlextCliProtocolsDomain:
             """Serialize one YAML tree to a text stream."""
             ...
 
+    @runtime_checkable
     class XlsxConditionalFormattingList(Protocol):
         """openpyxl conditional-formatting registry surface of one worksheet.
 
@@ -119,7 +112,7 @@ class FlextCliProtocolsDomain:
         lookups ``Incomplete``/unannotated; this pins the consumed contract.
         """
 
-        def add(self, range_string: str, cfRule: object) -> None:
+        def add(self, range_string: str, cf_rule: object) -> None:
             """Register one conditional-format rule over one cell range."""
             ...
 
@@ -131,6 +124,7 @@ class FlextCliProtocolsDomain:
             """Iterate the registered conditional-format entries."""
             ...
 
+    @runtime_checkable
     class XlsxDataValidationSurface(Protocol):
         """openpyxl data-validation range-attachment surface."""
 
@@ -138,6 +132,7 @@ class FlextCliProtocolsDomain:
             """Attach the validation to one cell range reference."""
             ...
 
+    @runtime_checkable
     class JinjaTemplateRenderer(Protocol):
         """jinja2 template render surface consumed by the template utilities."""
 
@@ -145,12 +140,55 @@ class FlextCliProtocolsDomain:
             """Render the template with one variable mapping."""
             ...
 
+    @runtime_checkable
     class JsonSchemaValidator(Protocol):
         """jsonschema validator surface consumed by config validation."""
 
         def validate(self, instance: object) -> None:
             """Validate one instance; raise on the first violation."""
             ...
+
+    @runtime_checkable
+    class XlsxFontStyleSurface(Protocol):
+        """openpyxl font style surface consumed by the style readers.
+
+        NOTE (multi-agent): openpyxl-stubs types these members as unparameterized
+        ``Alias`` descriptors (Unknown); the surface pins them as ``object`` and
+        call sites narrow to the real runtime value types.
+        """
+
+        size: object
+        bold: object
+        italic: object
+        underline: object
+
+    @runtime_checkable
+    class XlsxProtectionSurface(Protocol):
+        """openpyxl cell-protection surface consumed by snapshot values."""
+
+        locked: object
+        hidden: object
+
+    @runtime_checkable
+    class XlsxRowDimensionSurface(Protocol):
+        """openpyxl row-dimension surface consumed by snapshot structure."""
+
+        height: object
+
+    @runtime_checkable
+    class DocxParagraphFormatSurface(Protocol):
+        """python-docx paragraph-format surface consumed by readers and tests.
+
+        NOTE (multi-agent): python-docx annotates these properties without
+        return types (Unknown); the surface pins them as ``object`` and call
+        sites narrow to the real runtime value types.
+        """
+
+        alignment: object
+        keep_together: object
+        keep_with_next: object
+        page_break_before: object
+        widow_control: object
 
     @runtime_checkable
     class ModelCommandHandler[TParams: t.Cli.ModelLike](Protocol):

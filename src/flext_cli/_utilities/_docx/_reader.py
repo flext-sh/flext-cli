@@ -78,7 +78,10 @@ class FlextCliUtilitiesDocxReader:
         alignment = cls._snapshot_alignment(
             cast(
                 "WD_ALIGN_PARAGRAPH | None",
-                getattr(paragraph.paragraph_format, "alignment"),
+                cast(
+                    "p.Cli.DocxParagraphFormatSurface",
+                    paragraph.paragraph_format,
+                ).alignment,
             ),
         )
         return m.Cli.DocxParagraphPlan(

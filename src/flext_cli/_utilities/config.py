@@ -135,7 +135,9 @@ class FlextCliUtilitiesConfig:
             The resulting ``bool``.
 
         """
-        validator = cast("p.Cli.JsonSchemaValidator", Draft202012Validator(dict(schema)))
+        validator = cast(
+            "p.Cli.JsonSchemaValidator", Draft202012Validator(dict(schema))
+        )
         validator.validate(dict(data))
         return True
 

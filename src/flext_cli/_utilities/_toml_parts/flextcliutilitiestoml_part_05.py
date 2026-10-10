@@ -59,7 +59,7 @@ class FlextCliUtilitiesTomlPart05:
             return False
         table = FlextCliUtilitiesTomlPart02.toml_ensure_table(container, key)
         table_view = cast("Mapping[str, object]", table)
-        for existing_key in table_view:
+        for existing_key in list(table_view):
             if existing_key not in normalized_expected:
                 del table[existing_key]
         for item_key, item_value in normalized_expected.items():
