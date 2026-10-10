@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, MutableMapping
 from pathlib import Path
 from types import FrameType, GenericAlias
-from typing import Annotated, ClassVar
+from typing import ClassVar
 
 from jinja2.sandbox import SandboxedEnvironment
 from tomlkit.container import Container
@@ -52,20 +52,26 @@ class FlextCliTypesBase:
     type SignalHandler = int | Callable[[int, FrameType | None], None] | None
     type TemplateEnvironmentCache = MutableMapping[str, SandboxedEnvironment]
 
-    STR_SEQUENCE_ADAPTER: ClassVar[t.ValueAdapter[t.StrSequence]] = (
-        t.str_sequence_adapter()
+    STR_SEQUENCE_ADAPTER: ClassVar[t.ValueAdapter[t.StrSequence]] = u.type_adapter(
+        TypeForm(t.StrSequence)
     )
-    JSON_VALUE_ADAPTER: ClassVar[t.ValueAdapter[t.JsonValue]] = t.json_value_adapter()
-    JSON_MAPPING_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = (
-        t.json_mapping_adapter()
+    JSON_VALUE_ADAPTER: ClassVar[t.ValueAdapter[t.JsonValue]] = u.type_adapter(
+        TypeForm(t.JsonValue)
     )
-    JSON_LIST_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
-    YAML_DICT_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = (
-        t.json_mapping_adapter()
+    JSON_MAPPING_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = u.type_adapter(
+        TypeForm(t.JsonMapping)
     )
-    YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
+    JSON_LIST_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = u.type_adapter(
+        TypeForm(t.JsonList)
+    )
+    YAML_DICT_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = u.type_adapter(
+        TypeForm(t.JsonMapping)
+    )
+    YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = u.type_adapter(
+        TypeForm(t.JsonList)
+    )
     CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
-        u.type_adapter(Annotated[CliDefaultSource, None])
+        u.type_adapter(TypeForm(CliDefaultSource))
     )
 
 

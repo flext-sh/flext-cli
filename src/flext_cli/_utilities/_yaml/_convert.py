@@ -91,6 +91,10 @@ class FlextCliUtilitiesYamlConvertMixin:
     @staticmethod
     def yaml_deep_to_commented(data: Mapping[str, t.Cli.YamlValue]) -> CommentedMap: ...
 
+    # NOTE (multi-agent): the sequence and scalar variants share one overload —
+    # a ``str`` is both ``Sequence[YamlValue]`` and ``YamlScalar``, so separate
+    # overloads unsafely partially overlap (mypy overload-overlap) and resolve
+    # strings to the sequence arm. The merged form returns the honest union.
     @overload
     @staticmethod
     def yaml_deep_to_commented(data: t.Cli.YamlScalar) -> t.Cli.YamlScalar: ...

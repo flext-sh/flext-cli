@@ -12,13 +12,16 @@ import socket
 import sys
 import time
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 import pytest
 from flext_tests import tm
 
 from flext_cli._utilities import FlextCliUtilitiesCli
 from tests import c, m, p, u
+
+if TYPE_CHECKING:
+    from flext_cli._utilities import FlextCliUtilitiesCli
 
 
 def fixtures_path(name: str) -> str:

@@ -13,7 +13,7 @@ import pytest
 from docx import Document
 from flext_tests import tm
 
-from flext_cli import cli, m, p
+from flext_cli import c, cli, m, p, u
 
 
 def test_docx_render_is_reproducible_for_explicit_source_date_epoch() -> None:
@@ -283,9 +283,9 @@ def test_docx_read_round_trip() -> None:
             ),
         ),
     )
-    render_result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
+    render_result = u.Cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
     tm.that(render_result.success, eq=True, msg=render_result.error)
-    read_result = cli.docx_read(render_result.value.content)
+    read_result = u.Cli.docx_read(render_result.value.content)
     tm.that(read_result.success, eq=True, msg=read_result.error)
     tm.that(read_result.value.paragraphs[0].runs[0].text, eq="Hello")
     tm.that(read_result.value.paragraphs[1].runs[0].text, eq="World")
@@ -294,6 +294,6 @@ def test_docx_read_round_trip() -> None:
 
 def test_docx_read_rejects_invalid_bytes() -> None:
     """Reading invalid bytes returns a failure result."""
-    result = cli.docx_read(b"not a docx")
+    result = u.Cli.docx_read(b"not a docx")
     tm.that(result.success, eq=False)
-    tm.that(result.error, ne=None)
+    tm.that(result.error, has=str(c.Cli.DocxError.DOCUMENT_LOAD_FAILED))

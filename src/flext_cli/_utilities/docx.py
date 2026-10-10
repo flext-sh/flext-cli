@@ -1,4 +1,4 @@
-"""Lightweight public utility boundary for generic DOCX bytes.
+"""Public MRO composition of the generic DOCX behavior owners.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -6,37 +6,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, p, t
+from flext_cli import t
+from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
+from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
 
 
-class FlextCliUtilitiesDocx:
-    """Load the DOCX adapter only when a document operation executes."""
-
-    @staticmethod
-    def docx_read(source: bytes) -> p.Result[m.Cli.DocxDocumentPlan]:
-        """Read document bytes through the causal DOCX adapter boundary.
-
-        Returns:
-            The resulting ``p.Result[m.Cli.DocxDocumentPlan]``.
-
-        """
-        from flext_cli._utilities import FlextCliUtilitiesDocxReader
-
-        return FlextCliUtilitiesDocxReader.docx_read(source)
-
-    @staticmethod
-    def docx_render(
-        request: m.Cli.DocxRenderRequest,
-    ) -> p.Result[m.Cli.DocxRenderResult]:
-        """Render a typed document through the causal DOCX adapter boundary.
-
-        Returns:
-            The resulting ``p.Result[m.Cli.DocxRenderResult]``.
-
-        """
-        from flext_cli._utilities import FlextCliUtilitiesDocxRenderer
-
-        return FlextCliUtilitiesDocxRenderer.docx_render(request)
+class FlextCliUtilitiesDocx(
+    FlextCliUtilitiesDocxReader,
+    FlextCliUtilitiesDocxRenderer,
+):
+    """Inherit reading and rendering from their sole defining owners."""
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesDocx",)
