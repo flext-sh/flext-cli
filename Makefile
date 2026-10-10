@@ -201,8 +201,8 @@ endif
 # === SECTION: verb dispatch (managed) ===
 # Source: config:make.verbs and the canonical gate vocabulary. A verb exists
 # only in the profiles it declares (make.verbs[].profiles).
-PUBLIC_VERBS := help setup pre-commit upg build check smells test test-full test-file file-gate profile-test profile-test-report fmt fix fix-namespace fix-accessors audit status verify-clean docs clean bootstrap-candidate release-plan release-version release-tag release-build publication gen gen-footprint initialize mod mod-text mod-text-candidate mod-snapshots waza duplication sonarcloud-sync sonarcloud-issues
-BUILTIN_VERBS := help setup pre-commit upg build check smells test test-full test-file file-gate profile-test profile-test-report fmt fix fix-namespace fix-accessors audit status verify-clean docs clean bootstrap-candidate release-plan release-version release-tag release-build publication gen gen-footprint initialize mod mod-text mod-text-candidate mod-snapshots waza duplication sonarcloud-sync sonarcloud-issues
+PUBLIC_VERBS := help setup pre-commit upg build check census census-constants smells test test-full test-file file-gate profile-test profile-test-report fmt fix fix-namespace fix-accessors audit status verify-clean docs clean bootstrap-candidate release-plan release-version release-tag release-build publication gen gen-footprint initialize mod mod-text mod-text-candidate mod-snapshots waza duplication sonarcloud-sync sonarcloud-issues
+BUILTIN_VERBS := help setup pre-commit upg build check census census-constants smells test test-full test-file file-gate profile-test profile-test-report fmt fix fix-namespace fix-accessors audit status verify-clean docs clean bootstrap-candidate release-plan release-version release-tag release-build publication gen gen-footprint initialize mod mod-text mod-text-candidate mod-snapshots waza duplication sonarcloud-sync sonarcloud-issues
 SCRIPT_VERBS :=
 
 CUSTOM_MAKEFILE := $(MAKEFILE_ROOT)/custom.mk
@@ -570,6 +570,9 @@ export CI
 override TOOL_BOOTSTRAP_LIFECYCLE := _setup_lifecycle
 endif
 override SELF_MAKE := "$(SELF_MAKE_EXECUTABLE)" --no-print-directory -f "$(SELF_MAKEFILE)"
+# Digest of the Makefile this make parsed; `upg` compares it after `gen`
+# publishes to decide whether the remaining recipe may still name its targets.
+override SELF_MAKEFILE_DIGEST := $(shell sha256sum "$(SELF_MAKEFILE)")
 
 define RUN_PUBLIC_POST
 	$(if $(filter post-$(1),$(CUSTOM_DECLARED_TARGETS)),+@$(SELF_MAKE) post-$(1))
@@ -584,8 +587,11 @@ define RUN_PUBLIC_PRODUCE
 	$(if $(filter _custom-$(1),$(CUSTOM_DECLARED_TARGETS)),+@$(SELF_MAKE) _custom-$(1),+@$(SELF_MAKE) _builtin-$(1))
 endef
 
+# Activation follows the same context rule as every public verb: CI runs the
+# activated target directly in its provisioned environment; elsewhere direnv
+# activates the checkout first.
 define RUN_PUBLIC_ACTIVATE
-	+@direnv exec "$(PROJECT_ROOT)" $(SELF_MAKE) _activated-$(1)
+	+@$(if $(filter Y,$(CI)),$(SELF_MAKE) _activated-$(1),direnv exec "$(PROJECT_ROOT)" $(SELF_MAKE) _activated-$(1))
 endef
 
 define RUN_PUBLIC
@@ -649,6 +655,30 @@ check: _builtin_require_workspace
 _activated-check: _builtin_require_environment
 
 	$(if $(filter Y,$(CI)),+@$(SELF_MAKE) _builtin-check,$(call RUN_PUBLIC,check))
+
+
+
+
+census: _builtin_require_workspace
+
+	+@$(if $(filter Y,$(CI)),$(SELF_MAKE) _activated-census,direnv exec "$(PROJECT_ROOT)" $(SELF_MAKE) _activated-census)
+
+.PHONY: _activated-census
+_activated-census: _builtin_require_environment
+
+	$(if $(filter Y,$(CI)),+@$(SELF_MAKE) _builtin-census,$(call RUN_PUBLIC,census))
+
+
+
+
+census-constants: _builtin_require_workspace
+
+	+@$(if $(filter Y,$(CI)),$(SELF_MAKE) _activated-census-constants,direnv exec "$(PROJECT_ROOT)" $(SELF_MAKE) _activated-census-constants)
+
+.PHONY: _activated-census-constants
+_activated-census-constants: _builtin_require_environment
+
+	$(if $(filter Y,$(CI)),+@$(SELF_MAKE) _builtin-census-constants,$(call RUN_PUBLIC,census-constants))
 
 
 
@@ -1090,6 +1120,14 @@ check:
 	@printf '  %-16s %s\n' 'check' 'Run the configured non-test gates except the dedicated smells audit.'
 	@printf '%s\n' 'OPTIONS=Y displays this contract without effects; run make check to execute it.'
 
+census:
+	@printf '  %-16s %s\n' 'census' 'Inventory constants, duplicate declarations and placement across every declared first-party project.'
+	@printf '%s\n' 'OPTIONS=Y displays this contract without effects; run make census to execute it.'
+
+census-constants:
+	@printf '  %-16s %s\n' 'census-constants' 'Apply identity-proven constants consumer rewrites through the workspace census and publish its complete report.'
+	@printf '%s\n' 'OPTIONS=Y displays this contract without effects; run make census-constants to execute it.'
+
 smells:
 	@printf '  %-16s %s\n' 'smells' 'Run the strict code-smell audit as a dedicated gate.'
 	@printf '%s\n' 'OPTIONS=Y displays this contract without effects; run make smells to execute it.'
@@ -1103,7 +1141,7 @@ test-full:
 	@printf '%s\n' 'OPTIONS=Y displays this contract without effects; run make test-full to execute it.'
 
 test-file:
-	@printf '  %-16s %s\n' 'test-file' 'Run one declared test file through the budgeted and slow phases with the same persistent testmon cache (FILE=<repository-relative path>).'
+	@printf '  %-16s %s\n' 'test-file' 'Run one declared test file incremental then complete, slow items included, with the same persistent testmon cache (FILE=<repository-relative path>).'
 	@printf '%s\n' 'OPTIONS=Y displays this contract without effects; run make test-file to execute it.'
 
 file-gate:
@@ -1265,13 +1303,17 @@ _builtin-help:
 
 	@printf '  %-16s %s\n' 'check' 'Run the configured non-test gates except the dedicated smells audit.';
 
+	@printf '  %-16s %s\n' 'census' 'Inventory constants, duplicate declarations and placement across every declared first-party project.';
+
+	@printf '  %-16s %s\n' 'census-constants' 'Apply identity-proven constants consumer rewrites through the workspace census and publish its complete report.';
+
 	@printf '  %-16s %s\n' 'smells' 'Run the strict code-smell audit as a dedicated gate.';
 
 	@printf '  %-16s %s\n' 'test' 'Run incremental tests through the persistent testmon cache.';
 
 	@printf '  %-16s %s\n' 'test-full' 'Run incremental then all tests, including external and CI-excluded markers, through the same persistent testmon cache.';
 
-	@printf '  %-16s %s\n' 'test-file' 'Run one declared test file through the budgeted and slow phases with the same persistent testmon cache (FILE=<repository-relative path>).';
+	@printf '  %-16s %s\n' 'test-file' 'Run one declared test file incremental then complete, slow items included, with the same persistent testmon cache (FILE=<repository-relative path>).';
 
 	@printf '  %-16s %s\n' 'file-gate' 'Run configured canonical read-only gates on one literal FILE=<repository-relative path>; invalid selection and missing gate owners fail loud.';
 
@@ -1601,7 +1643,14 @@ _builtin_setup_environment: $(if $(filter Y,$(CI)),,_builtin_setup_submodules)
 # metadata so a stale cached requires-dist can never block or skew the
 # resolution. Like `setup`, it runs the declared pre-/post-upg lifecycle
 # hooks, post-upg inside the activated environment.
-.PHONY: _upg_lifecycle
+# The producer half of `gen` publishes this Makefile. A recipe never names a
+# target after that point from a file it did not parse: when publication
+# changed the Makefile, the upgrade hands off to a fresh `make upg` that
+# parses the new file and converges there (its own producer half is then a
+# fixed point); otherwise `_upg_converge`, defined by this same file,
+# finishes it. A second change inside the hand-off is a gen fixed-point
+# defect and fails loud.
+.PHONY: _upg_lifecycle _upg_converge
 _upg_lifecycle: _builtin_setup_submodules
 	@set -eu; \
 	case " $(CUSTOM_DECLARED_TARGETS) " in \
@@ -1619,6 +1668,19 @@ _upg_lifecycle: _builtin_setup_submodules
 		--apply --rewrite-constraints --projects .
 	@$(SELF_MAKE) _builtin_require_environment
 	$(call RUN_PUBLIC_PRODUCE,gen)
+	+@set -eu; \
+	published="$$(sha256sum "$(SELF_MAKEFILE)")"; \
+	if [ "$$published" = "$(SELF_MAKEFILE_DIGEST)" ]; then \
+		$(SELF_MAKE) _upg_converge; \
+	elif [ "$(UPG_HANDOFF)" = "Y" ]; then \
+		printf 'ERROR: upg: gen republished %s inside the hand-off; gen is not a fixed point\n' "$(SELF_MAKEFILE)" >&2; \
+		exit 1; \
+	else \
+		printf 'upg: gen published a new %s; handing off to make upg on it\n' "$(SELF_MAKEFILE)"; \
+		"$(SELF_MAKE_EXECUTABLE)" --no-print-directory -f "$(SELF_MAKEFILE)" upg UPG_HANDOFF=Y; \
+	fi
+
+_upg_converge:
 	@$(UV) lock --project "$(PROJECT_ROOT)"
 	@$(UV) lock --check --project "$(PROJECT_ROOT)"
 	@$(SELF_MAKE) _builtin_setup_environment
@@ -1723,10 +1785,7 @@ mkdir -p "$$scratch/tmp"; \
 scratch_tmp="$$(cd "$$scratch/tmp" && pwd -P)"; \
 TMPDIR="$$scratch_tmp"; TMP="$$scratch_tmp"; TEMP="$$scratch_tmp"; \
 export TMPDIR TMP TEMP; \
-file_executed=0; \
-if TESTMON_DATAFILE="$$database" $(PYTEST_BOUNDED) $(UV_RUN) python -m flext_infra._pytest_entry file; then file_executed=1; else phase_status=$$?; case "$$phase_status" in 5) printf 'INFO: test-file file NOT EXECUTED: no requested tests in phase\n' ;; *) exit "$$phase_status" ;; esac; fi; \
-if TESTMON_DATAFILE="$$database" $(PYTEST_BOUNDED) $(UV_RUN) python -m flext_infra._pytest_entry file-slow; then file_executed=1; else phase_status=$$?; case "$$phase_status" in 5) printf 'INFO: test-file file-slow NOT EXECUTED: no requested tests in phase\n' ;; *) exit "$$phase_status" ;; esac; fi; \
-if [ "$$file_executed" -eq 0 ]; then printf 'ERROR: test-file executed zero requested tests\n' >&2; exit 5; fi
+TESTMON_DATAFILE="$$database" $(PYTEST_BOUNDED) $(UV_RUN) python -m flext_infra._pytest_entry file
 
 # Literal-file selection and verdicts belong to the existing canonical checker.
 # Export the raw Make value instead of interpolating operator input into shell code.
@@ -1795,19 +1854,21 @@ profile-mypy-report: _builtin_require_environment
 		'import pstats, sys; pstats.Stats(sys.argv[1]).sort_stats("cumtime").print_stats(50)' \
 		"$(PROFILE_REPORTS_DIR)/mypy.pstats"
 
+# Profile the whole read-only generation plan `make gen` executes (every
+# governed repository, lazy-init and docs phases) without publishing.
 .PHONY: profile-gen
 profile-gen: _builtin_require_environment
 	@mkdir -p "$(PROFILE_REPORTS_DIR)"
 	@$(RUNTIME_PYTHON) -c \
 		'import cProfile, sys; from flext_infra.cli import main; profile = cProfile.Profile(); status = profile.runcall(main, sys.argv[2:]); profile.dump_stats(sys.argv[1]); raise SystemExit(status)' \
-		"$(PROFILE_REPORTS_DIR)/lazy-init.pstats" codegen lazy-init \
-		--repository-root "$(PROJECT_ROOT)" --module flext_cli --dry-run
+		"$(PROFILE_REPORTS_DIR)/conform.pstats" codegen conform \
+		--root "$(PROJECT_ROOT)" --scope all --mode check
 
 .PHONY: profile-gen-report
 profile-gen-report: _builtin_require_environment
 	@$(RUNTIME_PYTHON) -c \
-		'import pstats, sys; pstats.Stats(sys.argv[1]).sort_stats("cumtime").print_stats(50)' \
-		"$(PROFILE_REPORTS_DIR)/lazy-init.pstats"
+		'import pstats, sys; stats = pstats.Stats(sys.argv[1]); stats.sort_stats("cumtime").print_stats(50); stats.sort_stats("tottime").print_callers(15)' \
+		"$(PROFILE_REPORTS_DIR)/conform.pstats"
 
 # Profile the cold canonical pytest execution through its thin entrypoint
 # for startup diagnosis: the same persistent testmon database
@@ -1934,6 +1995,16 @@ _builtin-bootstrap-candidate: _builtin_require_environment
 # The current directory defines scope; callers never address tools directly.
 _builtin_mod_apply: _builtin_require_environment
 	@$(PROJECT_FLEXT_INFRA) refactor mod --repository-root "$(PROJECT_ROOT)" --apply
+
+_builtin-census: _builtin_require_environment
+	@$(PROJECT_FLEXT_INFRA) refactor census --repository-root "$(PROJECT_ROOT)" \
+		--families c --rules duplicate --rules wrong_tier --rules constant-consumers \
+		--json-output "$(PROJECT_ROOT)/.reports/constants-census.json"
+
+_builtin-census-constants: _builtin_require_environment
+	@$(PROJECT_FLEXT_INFRA) refactor census --repository-root "$(PROJECT_ROOT)" \
+		--families c --rules duplicate --rules wrong_tier --rules constant-consumers \
+		--json-output "$(PROJECT_ROOT)/.reports/constants-census.json" --apply
 
 _builtin_mod_text: _builtin_require_environment
 	@$(PROJECT_FLEXT_INFRA) refactor mod-text --apply
