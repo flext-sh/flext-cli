@@ -25,7 +25,5 @@ def pytest_collection_modifyitems(
             item.add_marker(pytest.mark.integration)
         elif "unit" in str(item.fspath):
             item.add_marker(pytest.mark.unit)
-        if "docker" in item.name:
-            item.add_marker(pytest.mark.docker)
         if "slow" in item.name:
             item.add_marker(pytest.mark.slow)

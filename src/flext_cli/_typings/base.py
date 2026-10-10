@@ -53,17 +53,23 @@ class FlextCliTypesBase:
     type TemplateEnvironmentCache = MutableMapping[str, SandboxedEnvironment]
 
     STR_SEQUENCE_ADAPTER: ClassVar[t.ValueAdapter[t.StrSequence]] = (
-        t.str_sequence_adapter()
+        u.type_adapter(TypeForm(t.StrSequence))
     )
-    JSON_VALUE_ADAPTER: ClassVar[t.ValueAdapter[t.JsonValue]] = t.json_value_adapter()
+    JSON_VALUE_ADAPTER: ClassVar[t.ValueAdapter[t.JsonValue]] = u.type_adapter(
+        TypeForm(t.JsonValue)
+    )
     JSON_MAPPING_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = (
-        t.json_mapping_adapter()
+        u.type_adapter(TypeForm(t.JsonMapping))
     )
-    JSON_LIST_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
+    JSON_LIST_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = u.type_adapter(
+        TypeForm(t.JsonList)
+    )
     YAML_DICT_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = (
-        t.json_mapping_adapter()
+        u.type_adapter(TypeForm(t.JsonMapping))
     )
-    YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = t.json_list_adapter()
+    YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = u.type_adapter(
+        TypeForm(t.JsonList)
+    )
     CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
         u.type_adapter(Annotated[CliDefaultSource, None])
     )

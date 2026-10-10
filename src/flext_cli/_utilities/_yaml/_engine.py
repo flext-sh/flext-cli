@@ -46,6 +46,9 @@ def _roundtrip_yaml() -> p.Cli.YamlRoundtripEngine:
     Returns:
         The resulting ``p.Cli.YamlRoundtripEngine``.
 
+    Raises:
+        TypeError: If the engine lacks the public load/dump contract.
+
     """
     yaml = ruamel.yaml.YAML()
     yaml.preserve_quotes = True

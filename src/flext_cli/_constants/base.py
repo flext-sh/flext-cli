@@ -24,7 +24,10 @@ class FlextCliConstantsBase:
 
     GIT_INIT_COMMAND: ClassVar[tuple[str, ...]] = ("git", "init", "--quiet")
     GIT_TRACKED_FILE_COMMAND: ClassVar[tuple[str, ...]] = (
-        "git", "ls-files", "--error-unmatch", "--",
+        "git",
+        "ls-files",
+        "--error-unmatch",
+        "--",
     )
     ENCODING_DEFAULT: ClassVar[str] = "utf-8"
     CLI_GLOBAL_PARAM_FIELDS: ClassVar[tuple[str, ...]] = (
