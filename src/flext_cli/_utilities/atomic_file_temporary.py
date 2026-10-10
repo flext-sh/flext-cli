@@ -80,8 +80,10 @@ class FlextCliUtilitiesAtomicFileTemporary:
         temporary: Path,
         content: bytes,
         permission_mode: int | None,
+        *,
+        durable: bool = True,
     ) -> int:
-        """Write exact bytes, materialize exact mode, and sync the open inode.
+        """Write exact bytes, materialize exact mode, and sync a durable inode.
 
         Returns:
             The resulting ``int``.
@@ -104,7 +106,8 @@ class FlextCliUtilitiesAtomicFileTemporary:
                 os.fstat(descriptor),
                 permission_mode,
             )
-        os.fsync(descriptor)
+        if durable:
+            os.fsync(descriptor)
         return stat.S_IMODE(os.fstat(descriptor).st_mode)
 
 
