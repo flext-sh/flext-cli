@@ -12,6 +12,7 @@ import signal
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from flext_cli import c
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileCleanup,
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -44,13 +45,16 @@ class FlextCliUtilitiesAtomicFile:
         *,
         expected_state: m.Cli.AtomicFileState | _NoPrecondition = _NO_PRECONDITION,
         permission_mode: int | None = None,
+        durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
     ) -> None:
         """Replace bytes and mode for a uniquely owned regular destination.
 
         ``expected_state`` is a complete physical precondition for a caller that
         holds the same exclusive cooperative lock from planning through publication.
         The descriptor-bound replace is not compare-and-swap against actors that
-        ignore that lock. Both the staged inode and containing directory are synced.
+        ignore that lock. ``DURABLE`` syncs the staged inode and containing
+        directory; ``SCRATCH`` keeps every atomic and physical check but skips
+        both syncs for throwaway trees.
 
         Raises:
             OSError: If ``not isinstance(content, bytes)``.
@@ -103,7 +107,10 @@ class FlextCliUtilitiesAtomicFile:
                 target_mode,
             )
             FlextCliUtilitiesAtomicFile._stage_and_publish(
-                parent,
+                FlextCliUtilitiesAtomicFile._AtomicStage(
+                    parent,
+                    durable=durability is c.Cli.WriteDurability.DURABLE,
+                ),
                 path,
                 content,
                 expected,
@@ -132,14 +139,13 @@ class FlextCliUtilitiesAtomicFile:
 
     @staticmethod
     def _stage_and_publish(
-        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        stage: FlextCliUtilitiesAtomicFile._AtomicStage,
         destination: Path,
         content: bytes,
         expected: os.stat_result | None,
         target_mode: int | None,
     ) -> None:
         """Retain the staging owner through acquisition, publication and cleanup."""
-        stage = FlextCliUtilitiesAtomicFile._AtomicStage(parent)
         try:
             stage.acquire()
             stage.write(content, target_mode)
@@ -154,8 +160,11 @@ class FlextCliUtilitiesAtomicFile:
         def __init__(
             self,
             parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+            *,
+            durable: bool,
         ) -> None:
             self.parent = parent
+            self.durable = durable
             self.temporary = FlextCliUtilitiesAtomicFileTemporary.temporary_path(parent)
             self.descriptor: int | None = None
             self.identity: t.Pair[int, int] | None = None
@@ -208,6 +217,7 @@ class FlextCliUtilitiesAtomicFile:
                 self.temporary,
                 content,
                 target_mode,
+                durable=self.durable,
             )
             os.close(self.descriptor)
             self.descriptor = None
@@ -246,10 +256,11 @@ class FlextCliUtilitiesAtomicFile:
                 destination,
             )
             self.replacement_completed = True
-            FlextCliUtilitiesAtomicFileDurability.sync_replacement(
-                self.parent,
-                self.parent,
-            )
+            if self.durable:
+                FlextCliUtilitiesAtomicFileDurability.sync_replacement(
+                    self.parent,
+                    self.parent,
+                )
             FlextCliUtilitiesAtomicFilePublishChecks.validate_publication(
                 self.parent,
                 destination,

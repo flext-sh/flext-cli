@@ -24,6 +24,19 @@ class FlextCliConstantsFiles:
     "A strict file identity is one non-negative device and inode pair."
 
     @unique
+    class WriteDurability(StrEnum):
+        """Caller-declared durability of one atomic file publication.
+
+        ``DURABLE`` syncs the staged inode and every changed directory before
+        success. ``SCRATCH`` keeps the same atomic rename and physical checks
+        but skips every ``fsync`` for throwaway trees no consumer recovers
+        after a crash.
+        """
+
+        DURABLE = "durable"
+        SCRATCH = "scratch"
+
+    @unique
     class FileFormat(StrEnum):
         """Canonical file format labels."""
 
