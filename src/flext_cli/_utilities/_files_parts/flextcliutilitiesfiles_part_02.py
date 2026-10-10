@@ -21,8 +21,15 @@ class FlextCliUtilitiesFilesPart02:
     """Implementation part for FlextCliUtilitiesFilesPart02."""
 
     @staticmethod
-    def files_write_binary(file_path: t.Cli.TextPath, data: bytes) -> p.Result[bool]:
+    def files_write_binary(
+        file_path: t.Cli.TextPath,
+        data: bytes,
+        *,
+        durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
+    ) -> p.Result[bool]:
         """Write one binary file atomically in its destination directory.
+
+        ``durability`` is the caller's declaration; ``SCRATCH`` skips fsync.
 
         Returns:
             The resulting ``p.Result[bool]``.
@@ -37,7 +44,11 @@ class FlextCliUtilitiesFilesPart02:
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
         try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(path, data)
+            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+                path,
+                data,
+                durability=durability,
+            )
         except OSError as exc:
             return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
         return r[bool].ok(value=True)
@@ -46,8 +57,12 @@ class FlextCliUtilitiesFilesPart02:
     def atomic_write_text_file(
         file_path: t.Cli.TextPath,
         content: str,
+        *,
+        durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
     ) -> p.Result[bool]:
         """Write a text file atomically via the shared byte primitive.
+
+        ``durability`` is the caller's declaration; ``SCRATCH`` skips fsync.
 
         Returns:
             The resulting ``p.Result[bool]``.
@@ -67,6 +82,7 @@ class FlextCliUtilitiesFilesPart02:
             FlextCliUtilitiesAtomicFile.write_atomic_bytes(
                 path,
                 content.encode(c.Cli.ENCODING_DEFAULT),
+                durability=durability,
             )
         except OSError as exc:
             return r[bool].fail(
