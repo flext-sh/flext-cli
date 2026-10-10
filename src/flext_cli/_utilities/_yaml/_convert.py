@@ -93,13 +93,15 @@ class FlextCliUtilitiesYamlConvertMixin:
 
     @overload
     @staticmethod
-    def yaml_deep_to_commented(
-        data: t.SequenceOf[t.Cli.YamlValue],
-    ) -> CommentedSeq: ...
+    def yaml_deep_to_commented(data: t.Cli.YamlScalar) -> t.Cli.YamlScalar: ...
 
     @overload
     @staticmethod
-    def yaml_deep_to_commented(data: t.Cli.YamlScalar) -> t.Cli.YamlScalar: ...
+    def yaml_deep_to_commented(
+        data: Mapping[str, t.Cli.YamlValue]
+        | t.SequenceOf[t.Cli.YamlValue]
+        | t.Cli.YamlScalar,
+    ) -> t.Cli.YamlNode: ...
 
     @staticmethod
     def yaml_deep_to_commented(

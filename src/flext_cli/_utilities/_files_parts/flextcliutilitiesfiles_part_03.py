@@ -65,8 +65,13 @@ class FlextCliUtilitiesFilesPart03:
         file_path: t.Cli.TextPath,
         *,
         required: bool = False,
+        owner_uid: int | None = None,
+        max_bytes: int | None = None,
     ) -> p.Result[m.Cli.AtomicFileState]:
         """Read exact bytes plus leaf and immediate-parent physical identities.
+
+        ``owner_uid`` fails the read when the authenticated parent or the leaf
+        belongs to another uid; ``max_bytes`` fails it when the leaf is larger.
 
         A required read demands one physical, non-aliased parent directory. An
         optional read of a path whose directory chain is not materialized is
@@ -84,6 +89,8 @@ class FlextCliUtilitiesFilesPart03:
                 FlextCliUtilitiesAtomicFileSnapshot.read_authenticated_state(
                     path,
                     required=required,
+                    owner_uid=owner_uid,
+                    max_bytes=max_bytes,
                 )
             )
         except OSError as exc:
