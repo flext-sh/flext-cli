@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import io
-from typing import TYPE_CHECKING, TextIO, cast
+from typing import TYPE_CHECKING, TextIO
 
 import ruamel.yaml
 from ruamel.yaml.comments import CommentedMap
@@ -51,7 +51,10 @@ def _roundtrip_yaml() -> p.Cli.YamlRoundtripEngine:
     yaml.preserve_quotes = True
     yaml.width = 4096
     yaml.indent(mapping=2, sequence=4, offset=2)
-    return cast("p.Cli.YamlRoundtripEngine", yaml)
+    if not isinstance(yaml, p.Cli.YamlRoundtripEngine):
+        msg = "ruamel.yaml engine does not satisfy p.Cli.YamlRoundtripEngine"
+        raise TypeError(msg)
+    return yaml
 
 
 class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):

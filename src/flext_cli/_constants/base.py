@@ -22,6 +22,10 @@ if TYPE_CHECKING:
 class FlextCliConstantsBase:
     """Base CLI constants for metadata, paths, symbols, and static values."""
 
+    GIT_INIT_COMMAND: ClassVar[tuple[str, ...]] = ("git", "init", "--quiet")
+    GIT_TRACKED_FILE_COMMAND: ClassVar[tuple[str, ...]] = (
+        "git", "ls-files", "--error-unmatch", "--",
+    )
     ENCODING_DEFAULT: ClassVar[str] = "utf-8"
     CLI_GLOBAL_PARAM_FIELDS: ClassVar[tuple[str, ...]] = (
         "debug",
