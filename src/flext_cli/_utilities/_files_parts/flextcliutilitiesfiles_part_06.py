@@ -42,16 +42,27 @@ class FlextCliUtilitiesFilesPart06:
         data: bytes,
         *,
         permission_mode: int,
+        owner_uid: int | None = None,
+        max_bytes: int | None = None,
     ) -> p.Result[m.Cli.AtomicFileState]:
         """Create one absent file and return its authenticated published state.
+
+        ``max_bytes`` rejects oversized ``data`` and ``owner_uid`` rejects a
+        parent owned by another uid, both before any effect; the published leaf
+        is re-read under the same guards.
 
         Returns:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
 
         """
+        if max_bytes is not None and len(data) > max_bytes:
+            return r[m.Cli.AtomicFileState].fail(
+                f"atomic create content exceeds {max_bytes} bytes: {file_path}",
+            )
         before = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
             file_path,
             required=False,
+            owner_uid=owner_uid,
         )
         if before.failure:
             return r[m.Cli.AtomicFileState].from_failure(before)
@@ -69,6 +80,8 @@ class FlextCliUtilitiesFilesPart06:
         return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
             before.value.path,
             required=True,
+            owner_uid=owner_uid,
+            max_bytes=max_bytes,
         )
 
     @staticmethod

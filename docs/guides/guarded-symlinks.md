@@ -2,8 +2,6 @@
 
 <!-- TOC START -->
 
-- No sections found
-
 <!-- TOC END -->
 
 The public `u.Cli` filesystem domain provides three operations:

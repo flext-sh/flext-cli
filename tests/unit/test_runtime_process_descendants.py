@@ -14,13 +14,14 @@ from typing import TYPE_CHECKING, ClassVar, override
 import pytest
 from flext_tests import tm
 
+from flext_cli._utilities import FlextCliUtilitiesCli
 from tests import m, p, u
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-class _ObservedWindowsCli(u.Cli):
+class _ObservedWindowsCli(FlextCliUtilitiesCli):
     active_counts: ClassVar[list[int]] = []
 
     @classmethod

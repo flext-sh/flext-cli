@@ -28,3 +28,5 @@ class FlextCliConstantsConfig:
     ERR_SCHEMA_INVALID: ClassVar[str] = "schema: document failed validation"
     ERR_SCHEMA_READ_FAILED: ClassVar[str] = "schema: cannot read schema file"
     ERR_CONFIG_UNSUPPORTED_FORMAT: ClassVar[str] = "config: unsupported source format"
+    ENV_EXPAND_MAX_PASSES: ClassVar[int] = 10
+    "Strict expansion passes allowed before a value must reach a fixed point."

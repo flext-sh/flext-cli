@@ -92,8 +92,8 @@ class FlextCliProtocolsDomain:
     class YamlRoundtripEngine(Protocol):
         """ruamel.yaml round-trip engine surface consumed by the YAML engine.
 
-        The concrete engine owner configures quote preservation, width and
-        indentation before exposing the typed load/dump consumer contract.
+        Pins only the load/dump slice the engine consumes, with typed
+        signatures; ``ruamel.yaml.YAML`` satisfies it structurally.
         """
 
         def load(self, stream: TextIO | str) -> t.Cli.YamlNode:

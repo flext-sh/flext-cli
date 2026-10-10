@@ -115,22 +115,29 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
     def rules_load_local_definitions[TRuleKind, TFileRuleKind](
         cls,
         config_path: Path,
-        **kwargs: t.Cli.CliValue
-        | Path
-        | t.Cli.RuleCatalog[TRuleKind]
-        | t.Cli.RuleCatalog[TFileRuleKind]
-        | None,
+        *,
+        package_rules_dir: Path,
+        rule_filters: t.StrSequence,
+        rule_catalog: t.Cli.RuleCatalog[TRuleKind],
+        file_rule_catalog: t.Cli.RuleCatalog[TFileRuleKind] | None = None,
+        **keys: str,
     ) -> p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]:
         """Load local YAML rule definitions using declarative matcher catalogs.
+
+        The typed catalogs bind the rule-kind parameters; ``keys`` overrides
+        the YAML key and file names declared by ``m.Cli.LocalDefinitionsOptions``.
 
         Returns:
             The resulting ``p.Result[t.Cli.RuleLoadResult[TRuleKind, TFileRuleKind]]``.
 
         """
-        options = m.Cli.LocalDefinitionsOptions[
-            TRuleKind,
-            TFileRuleKind,
-        ].model_validate(kwargs)
+        options = m.Cli.LocalDefinitionsOptions(
+            package_rules_dir=package_rules_dir,
+            rule_filters=rule_filters,
+            rule_catalog=rule_catalog,
+            file_rule_catalog=file_rule_catalog,
+            **keys,
+        )
         rules_dir = cls.rules_resolve_directory(
             config_path,
             package_rules_dir=options.package_rules_dir,
