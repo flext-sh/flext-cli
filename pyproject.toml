@@ -462,7 +462,6 @@ runtime-evaluated-base-classes = [
   "flext_cli.FlextCliSettings",
   "flext_cli.m.ArbitraryTypesModel",
   "flext_cli.m.BaseModel",
-  "flext_cli.m.FrozenModel",
   "flext_cli.m.Value",
   "flext_cli.s",
   "flext_cli.services._prompts_support.FlextCliPromptsSupport",
@@ -499,6 +498,7 @@ runtime-evaluated-base-classes = [
   "flext_tests.FlextTestsUtilities.Tests",
   "pydantic.BaseModel",
   "tests.m.BaseModel",
+  "tests.m.FrozenModel",
 ]
 
 [tool.ruff.lint.flake8-tidy-imports]
