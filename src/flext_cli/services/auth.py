@@ -24,6 +24,7 @@ from flext_cli.services.file_tools import FlextCliFileTools
 from flext_cli.typings import FlextCliTypes as t
 from flext_cli.utilities import FlextCliUtilities as u
 from flext_core import r
+from flext_cli.services.file_tools import FlextCliFileTools
 
 
 class FlextCliAuth(s[m.Cli.RuntimeStatus]):
