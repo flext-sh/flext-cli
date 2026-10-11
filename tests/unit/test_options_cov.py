@@ -24,10 +24,9 @@ from types import MappingProxyType
 from typing import Annotated, ClassVar
 
 import pytest
-from flext_tests import tm
 
 from flext_cli import c, cli, m
-from tests import t, u
+from tests import t, tm, u
 
 
 class TestsFlextCliOptionsUtilsCov:

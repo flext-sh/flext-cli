@@ -16,9 +16,8 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, ClassVar, cast
 
 import pytest
-from flext_tests import tm
 
-from tests import c, t, u
+from tests import c, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path

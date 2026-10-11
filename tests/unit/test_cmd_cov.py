@@ -17,10 +17,9 @@ from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tm
 
 from flext_cli import cli, m
-from tests import c
+from tests import c, tm
 
 if TYPE_CHECKING:
     from collections.abc import Generator

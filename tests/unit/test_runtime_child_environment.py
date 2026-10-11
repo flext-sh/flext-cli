@@ -16,9 +16,7 @@ import os
 import sys
 from collections.abc import Mapping, Sequence
 
-from flext_tests import tm
-
-from flext_cli import m, u
+from tests import m, tm, u
 
 _MARKER = "FLEXT_CLI_CHILD_ENV_PROBE"
 _ECHO = "import os,sys; sys.stdout.write(os.environ.get(sys.argv[1], '<unset>'))"

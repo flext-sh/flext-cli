@@ -16,9 +16,8 @@ from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, override
 
 import pytest
-from flext_tests import tm
 
-from tests import m, p, u
+from tests import m, p, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path

@@ -18,9 +18,8 @@ from pathlib import Path
 from typing import Annotated
 
 import pytest
-from flext_tests import tm
 
-from tests import c, m, t, u
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliTypings:

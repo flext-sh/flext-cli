@@ -16,7 +16,8 @@ from examples.ex_12_pydantic_driven_cli import (
     validate_business_rules,
     validate_required_fields,
 )
-from flext_tests import tm
+
+from tests import tm
 
 
 class TestsFlextCliExamplesSmokePart05:

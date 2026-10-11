@@ -15,10 +15,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 import pytest
-from flext_tests import tm
 
 from flext_cli._utilities import FlextCliUtilitiesCli
-from tests import c, m, p, u
+from tests import c, m, p, tm, u
 
 if TYPE_CHECKING:
     from flext_cli._utilities import FlextCliUtilitiesCli

@@ -12,10 +12,9 @@ import time
 from typing import TYPE_CHECKING, ClassVar, override
 
 import pytest
-from flext_tests import tm
 
 from flext_cli._utilities import FlextCliUtilitiesCli
-from tests import m, p, u
+from tests import m, p, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path

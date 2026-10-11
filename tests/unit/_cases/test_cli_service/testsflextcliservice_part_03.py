@@ -7,10 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 
 from flext_cli import cli, settings
-from tests import m, u
+from tests import m, tm, u
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 

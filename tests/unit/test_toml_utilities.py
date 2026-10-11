@@ -17,9 +17,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tm
 
-from tests import u
+from tests import tm, u
 
 if TYPE_CHECKING:
     from tests import t
@@ -27,6 +26,33 @@ if TYPE_CHECKING:
 
 class TestsFlextCliTomlUtilities:
     """Public contract of the ``u.Cli.toml_*`` helper family."""
+
+    @staticmethod
+    def test_array_item_comments_preserve_occurrences_and_document() -> None:
+        """Associate comments with repeated values without mutating the source."""
+        source = (
+            'dependencies = [\n'
+            '  "same", # first\n'
+            '  # standalone\n'
+            '  "same", # second\n'
+            '  "flext_toml_slot_0",\n'
+            ']\n'
+        )
+        document = tm.not_none(u.Cli.toml_parse_text(source))
+        before = document.as_string()
+        tm.that(
+            u.Cli.toml_array_item_comments(document, "dependencies"),
+            eq=("# first", "# second", ""),
+        )
+        tm.that(document.as_string(), eq=before)
+
+    @staticmethod
+    @pytest.mark.parametrize("source", ['dependencies = "value"\n', 'other = []\n'])
+    def test_array_item_comments_reject_non_array_fields(source: str) -> None:
+        """Missing and scalar fields cannot masquerade as dependency arrays."""
+        document = tm.not_none(u.Cli.toml_parse_text(source))
+        with pytest.raises(TypeError, match="must be an array"):
+            u.Cli.toml_array_item_comments(document, "dependencies")
 
     # ------------------------------------------------------------------ read
 

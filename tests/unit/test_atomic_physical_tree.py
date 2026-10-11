@@ -11,10 +11,9 @@ import os
 from pathlib import Path
 
 import pytest
-from flext_tests import tm
 
 from flext_cli import m
-from tests import u
+from tests import tm, u
 
 
 class TestsAtomicPhysicalTree:

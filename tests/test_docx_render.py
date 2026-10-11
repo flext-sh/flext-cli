@@ -11,9 +11,9 @@ from typing import cast
 
 import pytest
 from docx import Document
-from flext_tests import tm
 
 from flext_cli import c, cli, m, p, u
+from tests import tm
 
 
 def test_docx_render_is_reproducible_for_explicit_source_date_epoch() -> None:

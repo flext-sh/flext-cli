@@ -143,12 +143,16 @@ class FlextCliUtilitiesTomlPart02:
         replace values in a copy, so public multiline rendering gives each real
         occurrence one scalar line. TOMLKit parses its comment into Item.trivia;
         original literals and standalone comments are never interpreted as slots.
+
+        Raises:
+            TypeError: If the field is not an array or a slot is not an item.
+            ValueError: If serialization duplicates or loses an occurrence.
         """
         source = FlextCliUtilitiesTomlPart02.toml_item_child(container, key)
         if not isinstance(source, Array):
             msg = f"TOML field {key} must be an array"
             raise TypeError(msg)
-        view = deepcopy(source).multiline(True)
+        view = deepcopy(source).multiline(multiline=True)
         labels = tuple(f"flext_toml_slot_{index}" for index in range(len(view)))
         prefixes = {
             tomlkit.string(label).as_string(): index
@@ -166,6 +170,9 @@ class FlextCliUtilitiesTomlPart02:
                     msg = "TOML array serialization duplicated a slot"
                     raise ValueError(msg)
                 item = tomlkit.parse(f"entry = {prefix}{suffix}").item("entry")
+                if not FlextCliUtilitiesTomlPart02.toml_is_item(item):
+                    msg = "TOML array slot must parse into an item"
+                    raise TypeError(msg)
                 comments[index] = item.trivia.comment
         if any(comment is None for comment in comments):
             msg = "TOML array serialization lost an occurrence"

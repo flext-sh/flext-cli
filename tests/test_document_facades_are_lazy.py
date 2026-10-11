@@ -17,9 +17,7 @@ from __future__ import annotations
 
 import sys
 
-from flext_tests import tm
-
-from tests import c, u
+from tests import c, tm, u
 
 
 def _loaded_heavy_modules(import_statement: str) -> frozenset[str]:

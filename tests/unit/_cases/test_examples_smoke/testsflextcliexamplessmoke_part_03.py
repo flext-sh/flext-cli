@@ -11,9 +11,9 @@ from typing import TYPE_CHECKING
 
 import pytest
 from examples import Ex05Authentication, Ex06Settings, c
-from flext_tests import tm
 
 from flext_cli import cli, settings
+from tests import tm
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
