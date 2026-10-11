@@ -15,8 +15,8 @@ from openpyxl.styles import Font
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import cli, m
-from tests import tm
+from flext_cli import cli
+from tests import m, tm
 
 
 def _defined_name_workbook() -> bytes:
