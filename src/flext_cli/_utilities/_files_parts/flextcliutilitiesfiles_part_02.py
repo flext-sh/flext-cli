@@ -81,7 +81,7 @@ class FlextCliUtilitiesFilesPart02:
         try:
             FlextCliUtilitiesAtomicFile.write_atomic_bytes(
                 path,
-                content.encode(c.Cli.ENCODING_DEFAULT),
+                content.encode(c.DEFAULT_ENCODING),
                 durability=durability,
             )
         except OSError as exc:
@@ -109,7 +109,7 @@ class FlextCliUtilitiesFilesPart02:
         try:
             FlextCliUtilitiesAtomicFile.write_atomic_bytes(
                 before.path,
-                content.encode(c.Cli.ENCODING_DEFAULT),
+                content.encode(c.DEFAULT_ENCODING),
                 expected_state=before,
             )
         except OSError as exc:

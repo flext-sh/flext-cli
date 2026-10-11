@@ -28,6 +28,8 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities._atomic_models import FlextCliAtomicModels
     from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
+    from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
+    from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
     from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_01 import (
         FlextCliUtilitiesFileTestHelpersMixinPart01,
     )
@@ -372,6 +374,8 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesConfig",
     "FlextCliUtilitiesConversion",
     "FlextCliUtilitiesDocx",
+    "FlextCliUtilitiesDocxReader",
+    "FlextCliUtilitiesDocxRenderer",
     "FlextCliUtilitiesEnv",
     "FlextCliUtilitiesFileTestHelpersMixin",
     "FlextCliUtilitiesFileTestHelpersMixinPart01",
@@ -529,6 +533,8 @@ install_lazy_exports(
         "FlextCliUtilitiesConfig": ".config",
         "FlextCliUtilitiesConversion": ".conversion",
         "FlextCliUtilitiesDocx": ".docx",
+        "FlextCliUtilitiesDocxReader": "._docx._reader",
+        "FlextCliUtilitiesDocxRenderer": "._docx._renderer",
         "FlextCliUtilitiesEnv": ".env",
         "FlextCliUtilitiesFileTestHelpersMixin": ".file_test_helpers",
         "FlextCliUtilitiesFileTestHelpersMixinPart01": (

@@ -430,7 +430,7 @@ class FlextCliUtilitiesFramework:
         application: p.Cli.Application,
         *,
         args: t.StrSequence | None = None,
-        charset: str = c.Cli.ENCODING_DEFAULT,
+        charset: str = c.DEFAULT_ENCODING,
         env: t.StrMapping | None = None,
     ) -> m.Cli.InvocationResult:
         """Invoke one application through the real framework test runner.

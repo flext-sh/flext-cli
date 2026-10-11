@@ -18,7 +18,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import tm, u
+from flext_cli import u
+from tests import tm
 
 if TYPE_CHECKING:
     from tests import t
@@ -31,12 +32,12 @@ class TestsFlextCliTomlUtilities:
     def test_array_item_comments_preserve_occurrences_and_document() -> None:
         """Associate comments with repeated values without mutating the source."""
         source = (
-            'dependencies = [\n'
+            "dependencies = [\n"
             '  "same", # first\n'
-            '  # standalone\n'
+            "  # standalone\n"
             '  "same", # second\n'
             '  "flext_toml_slot_0",\n'
-            ']\n'
+            "]\n"
         )
         document = tm.not_none(u.Cli.toml_parse_text(source))
         before = document.as_string()
@@ -47,7 +48,7 @@ class TestsFlextCliTomlUtilities:
         tm.that(document.as_string(), eq=before)
 
     @staticmethod
-    @pytest.mark.parametrize("source", ['dependencies = "value"\n', 'other = []\n'])
+    @pytest.mark.parametrize("source", ['dependencies = "value"\n', "other = []\n"])
     def test_array_item_comments_reject_non_array_fields(source: str) -> None:
         """Missing and scalar fields cannot masquerade as dependency arrays."""
         document = tm.not_none(u.Cli.toml_parse_text(source))

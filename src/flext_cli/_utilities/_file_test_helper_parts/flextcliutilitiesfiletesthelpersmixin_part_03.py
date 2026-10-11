@@ -59,8 +59,8 @@ class FlextCliUtilitiesFileTestHelpersMixinPart03:
             )
         if mode == "lines":
             try:
-                lines1 = file1.read_text(encoding=c.Cli.ENCODING_DEFAULT).splitlines()
-                lines2 = file2.read_text(encoding=c.Cli.ENCODING_DEFAULT).splitlines()
+                lines1 = file1.read_text(encoding=c.DEFAULT_ENCODING).splitlines()
+                lines2 = file2.read_text(encoding=c.DEFAULT_ENCODING).splitlines()
             except OSError as exc:
                 msg = f"Compare lines failed: {exc}"
                 return r[bool].fail(msg)
@@ -72,8 +72,8 @@ class FlextCliUtilitiesFileTestHelpersMixinPart03:
                 lines2 = [line.lower() for line in lines2]
             return r[bool].ok(lines1 == lines2)
         try:
-            text1 = file1.read_text(encoding=c.Cli.ENCODING_DEFAULT)
-            text2 = file2.read_text(encoding=c.Cli.ENCODING_DEFAULT)
+            text1 = file1.read_text(encoding=c.DEFAULT_ENCODING)
+            text2 = file2.read_text(encoding=c.DEFAULT_ENCODING)
         except OSError as exc:
             msg = f"Compare content failed: {exc}"
             return r[bool].fail(msg)

@@ -79,7 +79,7 @@ class FlextCliUtilitiesFileTestHelpersMixinPart01:
         if isinstance(raw, bytes):
             file_path.write_bytes(raw)
         elif isinstance(raw, str):
-            file_path.write_text(raw, encoding=c.Cli.ENCODING_DEFAULT)
+            file_path.write_text(raw, encoding=c.DEFAULT_ENCODING)
         elif isinstance(raw, Mapping):
             fmt = (
                 c.Cli.FILE_FORMAT_YAML
@@ -93,7 +93,7 @@ class FlextCliUtilitiesFileTestHelpersMixinPart01:
                 cast("t.SequenceOf[t.StrSequence]", raw),
             )
         else:
-            file_path.write_text(str(raw), encoding=c.Cli.ENCODING_DEFAULT)
+            file_path.write_text(str(raw), encoding=c.DEFAULT_ENCODING)
 
     @staticmethod
     def _files_write_structured(

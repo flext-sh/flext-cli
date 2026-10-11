@@ -11,8 +11,6 @@ from typing import TYPE_CHECKING
 from flext_cli import cli
 from tests import c, m, tm, u
 
-# NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
-
 if TYPE_CHECKING:
     from collections.abc import MutableSequence
 

@@ -78,7 +78,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         if not path.is_file():
             return r[t.Cli.YamlNode].fail(f"YAML file not found: {path}")
         try:
-            with path.open("r", encoding=c.Cli.ENCODING_DEFAULT) as fh:
+            with path.open("r", encoding=c.DEFAULT_ENCODING) as fh:
                 loaded = _roundtrip_yaml().load(fh)
             node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
         except OSError as exc:

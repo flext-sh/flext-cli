@@ -62,7 +62,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         if not path.is_file():
             return r[t.JsonMapping].fail(f"YAML file not found: {path}")
         try:
-            raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
+            raw = path.read_text(encoding=c.DEFAULT_ENCODING)
         except OSError as exc:
             return r[t.JsonMapping].fail(f"YAML read error: {exc}", exception=exc)
         return FlextCliUtilitiesYaml.yaml_parse(raw)
@@ -123,7 +123,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             TypeError: If YAML content is not a list.
 
         """
-        raw = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
+        raw = path.read_text(encoding=c.DEFAULT_ENCODING)
         parsed = u.Yaml.safe_load(raw)
         if not isinstance(parsed, list):
             msg = f"YAML content is not a list: {type(parsed).__name__}"
@@ -187,7 +187,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
                 allow_unicode=True,
                 indent=indent,
             )
-            with path.open("w", encoding=c.Cli.ENCODING_DEFAULT) as fh:
+            with path.open("w", encoding=c.DEFAULT_ENCODING) as fh:
                 fh.write(serialized)
             return r[bool].ok(value=True)
         except (OSError, u.Yaml.YAMLError, ValueError, TypeError) as exc:

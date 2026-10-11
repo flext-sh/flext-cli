@@ -15,9 +15,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Annotated
 
 import pytest
+from typing_extensions import TypeForm
 
 from tests import c, m, t, tm, u
 
@@ -122,7 +122,7 @@ class TestsFlextCliTypings:
     @staticmethod
     def test_scalar_alias_validates_each_primitive() -> None:
         """The Scalar alias round-trips every primitive value."""
-        adapter: m.TypeAdapter[t.Scalar] = u.type_adapter(Annotated[t.Scalar, None])
+        adapter: m.TypeAdapter[t.Scalar] = u.type_adapter(TypeForm(t.Scalar))
         tm.that(adapter.validate_python("value"), eq="value")
         bool_input = True
         tm.that(adapter.validate_python(bool_input), eq=True)
@@ -132,7 +132,7 @@ class TestsFlextCliTypings:
     def test_optional_str_sequence_alias_accepts_value_and_none() -> None:
         """A ``StrSequence | None`` alias accepts both a sequence and None."""
         adapter: m.TypeAdapter[t.StrSequence | None] = u.type_adapter(
-            Annotated[t.StrSequence | None, None],
+            TypeForm(t.StrSequence | None),
         )
         tm.that(adapter.validate_python(["alpha", "beta"]), eq=["alpha", "beta"])
         tm.that(adapter.validate_python(None), none=True)

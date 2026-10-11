@@ -78,7 +78,7 @@ class FlextCliCliPart03(FlextCliCliPart02):
         app: p.Cli.Application,
         *,
         args: t.StrSequence | None = None,
-        charset: str = c.Cli.ENCODING_DEFAULT,
+        charset: str = c.DEFAULT_ENCODING,
         env: t.StrMapping | None = None,
     ) -> p.Result[m.Cli.InvocationResult]:
         """Invoke an application through the private real-framework boundary.

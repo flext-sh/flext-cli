@@ -72,7 +72,7 @@ class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
             adapter = u.type_adapter(field_info.rebuild_annotation())
             validated = adapter.validate_python(source_value)
             return adapter.dump_json(validated, warnings="error").decode(
-                c.Cli.ENCODING_DEFAULT,
+                c.DEFAULT_ENCODING,
             )
         normalized_atom = cls.normalize_cli_atom(
             t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value),

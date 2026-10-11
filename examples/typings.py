@@ -7,7 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Annotated, ClassVar
+from typing import ClassVar
+
+from typing_extensions import TypeForm
 
 from flext_cli import FlextCli, FlextCliTypes
 from flext_core import u
@@ -26,7 +28,7 @@ class ExamplesFlextCliTypes(FlextCliTypes):
     type JsonDictAdapter = FlextCliTypes.ValueAdapter[FlextCliTypes.JsonMapping]
 
     JSON_DICT_ADAPTER: ClassVar[JsonDictAdapter] = u.type_adapter(
-        Annotated[FlextCliTypes.JsonMapping, None],
+        TypeForm(FlextCliTypes.JsonMapping),
     )
 
 

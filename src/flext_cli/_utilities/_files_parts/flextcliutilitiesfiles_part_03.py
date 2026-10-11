@@ -37,7 +37,7 @@ class FlextCliUtilitiesFilesPart03:
 
         def _load() -> t.SequenceOf[t.StrMapping]:
             with Path(file_path).open(
-                encoding=c.Cli.ENCODING_DEFAULT,
+                encoding=c.DEFAULT_ENCODING,
                 newline="",
             ) as handle:
                 return [dict(row) for row in csv.DictReader(handle)]
@@ -257,7 +257,7 @@ class FlextCliUtilitiesFilesPart03:
             The SHA-256 hex digest for text content.
 
         """
-        return hashlib.sha256(content.encode(c.Cli.ENCODING_DEFAULT)).hexdigest()
+        return hashlib.sha256(content.encode(c.DEFAULT_ENCODING)).hexdigest()
 
     @staticmethod
     def sha256_bytes(content: bytes) -> str:
