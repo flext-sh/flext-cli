@@ -10,9 +10,9 @@ import shutil
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-from flext_tests import tm
 
 from flext_cli import c, cli, m, p
+from tests import tm
 
 pytestmark = pytest.mark.skipif(
     shutil.which(c.Cli.XLSX_RECALC_COMMAND[0]) is None,

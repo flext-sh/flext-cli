@@ -69,7 +69,7 @@ class FlextCliUtilitiesXlsxAddresses:
         return r[m.Cli.XlsxCellRange].fail(f"{c.Cli.XlsxError.RANGE_INVALID}: {detail}")
 
     @classmethod
-    def xlsx_parse_range(
+    def parse_cell_range(
         cls,
         request: m.Cli.XlsxParseRangeRequest,
     ) -> p.Result[m.Cli.XlsxCellRange]:
@@ -107,7 +107,7 @@ class FlextCliUtilitiesXlsxAddresses:
 
     # mro-j2yt.1 (xlsx_reference_api): keep vendor formatting behind cli.
     @classmethod
-    def xlsx_format_reference(
+    def format_cell_reference(
         cls,
         request: m.Cli.XlsxFormatReferenceRequest,
     ) -> p.Result[m.Cli.XlsxReference]:

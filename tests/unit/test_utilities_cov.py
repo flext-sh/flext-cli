@@ -14,9 +14,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 
-from tests import t, u
+from tests import t, tm, u
 
 
 def _raise_on_zero(value: int) -> int:

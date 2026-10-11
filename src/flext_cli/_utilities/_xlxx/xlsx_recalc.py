@@ -27,7 +27,7 @@ class FlextCliUtilitiesXlsxRecalc(
     # at this private adapter; process spawning is consumed from the generic
     # processes facade without polluting the XLSX composition order.
     @classmethod
-    def xlsx_recalc(
+    def recalculate_workbook(
         cls,
         request: m.Cli.XlsxRecalcRequest,
     ) -> p.Result[m.Cli.XlsxRecalcResult]:
@@ -96,7 +96,7 @@ class FlextCliUtilitiesXlsxRecalc(
         return r[m.Cli.XlsxRecalcResult].ok(m.Cli.XlsxRecalcResult(content=content))
 
     @classmethod
-    def xlsx_recalc_parity(
+    def verify_recalculation_parity(
         cls,
         request: m.Cli.XlsxRecalcParityRequest,
     ) -> p.Result[m.Cli.XlsxRecalcParityReport]:
@@ -106,19 +106,21 @@ class FlextCliUtilitiesXlsxRecalc(
             The resulting ``p.Result[m.Cli.XlsxRecalcParityReport]``.
 
         """
-        formula_snapshot = cls.xlsx_snapshot(
+        formula_snapshot = cls.snapshot_workbook(
             m.Cli.XlsxSnapshotRequest(source=request.source, data_only=False),
         )
         if formula_snapshot.failure:
             return r[m.Cli.XlsxRecalcParityReport].fail(
                 f"{c.Cli.XlsxError.PARITY_FAILED}: {formula_snapshot.error}",
             )
-        recalculated = cls.xlsx_recalc(m.Cli.XlsxRecalcRequest(source=request.source))
+        recalculated = cls.recalculate_workbook(
+            m.Cli.XlsxRecalcRequest(source=request.source),
+        )
         if recalculated.failure:
             return r[m.Cli.XlsxRecalcParityReport].fail(
                 f"{c.Cli.XlsxError.PARITY_FAILED}: {recalculated.error}",
             )
-        value_snapshot = cls.xlsx_snapshot(
+        value_snapshot = cls.snapshot_workbook(
             m.Cli.XlsxSnapshotRequest(
                 source=recalculated.value.content,
                 data_only=True,

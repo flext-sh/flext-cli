@@ -17,10 +17,9 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, cast
 
 import pytest
-from flext_tests import tm
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
-from tests import c, t, u
+from tests import c, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path

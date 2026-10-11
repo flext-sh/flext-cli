@@ -110,7 +110,7 @@ class FlextCliUtilitiesTemplate:
                 self.failure = f"authenticated template has no bytes: {source}"
                 raise TemplateNotFound(template)
             try:
-                content = existing.content.decode(c.Cli.ENCODING_DEFAULT)
+                content = existing.content.decode(c.DEFAULT_ENCODING)
             except UnicodeDecodeError as exc:
                 self.failure = f"decode authenticated template {source}: {exc}"
                 raise TemplateNotFound(template) from exc
@@ -316,7 +316,7 @@ class FlextCliUtilitiesTemplate:
 
         """
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
+        dest.write_text(content, encoding=c.DEFAULT_ENCODING)
         return True
 
 

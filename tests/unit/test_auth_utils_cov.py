@@ -18,9 +18,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from flext_tests import tm
 
-from tests import c, u
+from tests import c, tm, u
 
 if TYPE_CHECKING:
     from tests import t

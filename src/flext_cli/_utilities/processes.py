@@ -136,11 +136,11 @@ class FlextCliUtilitiesProcesses:
                 return r[int].fail(f"process wait error: {exc}", exception=exc)
             try:
                 self._stdout = (bytes(self._stdout_buffer) + (stdout or b"")).decode(
-                    c.Cli.ENCODING_DEFAULT,
+                    c.DEFAULT_ENCODING,
                     errors="strict",
                 )
                 self._stderr = (stderr or b"").decode(
-                    c.Cli.ENCODING_DEFAULT,
+                    c.DEFAULT_ENCODING,
                     errors="strict",
                 )
             except UnicodeDecodeError as exc:

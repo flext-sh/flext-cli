@@ -13,9 +13,8 @@ import tempfile
 from pathlib import Path
 
 import pytest
-from flext_tests import tm
 
-from tests import t, u
+from tests import t, tm, u
 
 
 class TestsAtomicFileContract:

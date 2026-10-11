@@ -18,9 +18,8 @@ from collections.abc import Mapping
 from enum import StrEnum
 
 import pytest
-from flext_tests import tm
 
-from tests import c, u
+from tests import c, tm, u
 
 
 class TestsFlextCliConstants:

@@ -34,7 +34,7 @@ class FlextCliUtilitiesTomlPart06:
             return None
         parsed: TOMLDocument | None
         try:
-            parsed = tomlkit.parse(path.read_text(encoding=c.Cli.ENCODING_DEFAULT))
+            parsed = tomlkit.parse(path.read_text(encoding=c.DEFAULT_ENCODING))
         except c.EXC_OS_VALUE as exc:
             u.fetch_logger(__name__).warning(
                 "Failed to read or parse TOML document",
@@ -78,7 +78,7 @@ class FlextCliUtilitiesTomlPart06:
                 result_type=r[t.JsonMapping],
             )
         try:
-            original_rendered = path.read_text(encoding=c.Cli.ENCODING_DEFAULT)
+            original_rendered = path.read_text(encoding=c.DEFAULT_ENCODING)
         except OSError as exc:
             return e.fail_operation("read TOML", exc, result_type=r[t.JsonMapping])
         mapping = FlextCliUtilitiesTomlPart01.toml_mapping_from_text(original_rendered)
@@ -145,7 +145,7 @@ class FlextCliUtilitiesTomlPart06:
         """
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            u.write_file(path, doc.as_string(), encoding=c.Cli.ENCODING_DEFAULT)
+            u.write_file(path, doc.as_string(), encoding=c.DEFAULT_ENCODING)
         except OSError as exc:
             return e.fail_operation("TOML write", exc, result_type=r[bool])
         return (

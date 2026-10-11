@@ -194,7 +194,7 @@ class FlextCliUtilitiesFilesPart06:
             candidates = list(scope.rglob("*"))
         else:
             return result.fail(
-                probe.value.stderr.decode(c.Cli.ENCODING_DEFAULT, errors="strict"),
+                probe.value.stderr.decode(c.DEFAULT_ENCODING, errors="strict"),
             )
 
         def selected(path: Path) -> bool:
@@ -239,10 +239,10 @@ class FlextCliUtilitiesFilesPart06:
             or listing.outcome.forwarded_signal is not None
         ):
             return result.fail(
-                listing.stderr.decode(c.Cli.ENCODING_DEFAULT, errors="strict"),
+                listing.stderr.decode(c.DEFAULT_ENCODING, errors="strict"),
             )
         return result.ok([
-            scope / relative.decode(c.Cli.ENCODING_DEFAULT, errors="strict")
+            scope / relative.decode(c.DEFAULT_ENCODING, errors="strict")
             for relative in listing.stdout.split(b"\0")
             if relative
         ])

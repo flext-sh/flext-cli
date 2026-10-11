@@ -52,7 +52,7 @@ class FlextCliUtilitiesFilesPart01:
 
         """
         return FlextCliUtilitiesFilesPart02.files_execute(
-            lambda: Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT),
+            lambda: Path(file_path).read_text(encoding=c.DEFAULT_ENCODING),
             c.Cli.ERR_TEXT_READ_FAILED,
         )
 
@@ -66,7 +66,7 @@ class FlextCliUtilitiesFilesPart01:
         """
 
         def _write() -> bool:
-            Path(file_path).write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
+            Path(file_path).write_text(content, encoding=c.DEFAULT_ENCODING)
             return True
 
         return FlextCliUtilitiesFilesPart02.files_execute(
@@ -84,7 +84,7 @@ class FlextCliUtilitiesFilesPart01:
         """
 
         def _load() -> t.JsonValue:
-            raw = Path(file_path).read_text(encoding=c.Cli.ENCODING_DEFAULT)
+            raw = Path(file_path).read_text(encoding=c.DEFAULT_ENCODING)
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return FlextCliUtilitiesFilesPart02.files_execute(
@@ -180,7 +180,7 @@ class FlextCliUtilitiesFilesPart01:
         def _write() -> bool:
             with Path(file_path).open(
                 mode="w",
-                encoding=c.Cli.ENCODING_DEFAULT,
+                encoding=c.DEFAULT_ENCODING,
                 newline="",
             ) as handle:
                 writer = csv.writer(handle)

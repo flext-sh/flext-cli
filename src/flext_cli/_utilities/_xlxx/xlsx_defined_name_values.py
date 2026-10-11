@@ -30,7 +30,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
     # values of its cell extent; workbook parsing stays inside this boundary so
     # no consumer re-implements openpyxl range resolution.
     @classmethod
-    def xlsx_defined_name_values(
+    def resolve_defined_name_values(
         cls,
         request: m.Cli.XlsxDefinedNameValuesRequest,
     ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]:

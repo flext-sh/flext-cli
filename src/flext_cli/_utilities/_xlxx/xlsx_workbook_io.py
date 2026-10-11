@@ -32,7 +32,7 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
             source=source,
             policy=m.Cli.XlsxArchivePolicy(),
         )
-        inspection_result = cls.xlsx_inspect(inspection_request)
+        inspection_result = cls.inspect_archive(inspection_request)
         if inspection_result.failure:
             return r[Workbook].from_failure(inspection_result)
         inspection = inspection_result.value

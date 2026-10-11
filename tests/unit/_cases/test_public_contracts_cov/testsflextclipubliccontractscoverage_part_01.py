@@ -6,10 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_tests import tm
-
 from flext_cli import FlextCliSettings, cli, settings
-from tests import c, p, u
+from tests import c, p, tm, u
 
 
 class TestsFlextCliPublicContractsCoveragePart01:

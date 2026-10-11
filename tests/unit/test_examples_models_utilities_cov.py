@@ -16,11 +16,10 @@ from pathlib import Path
 
 import pytest
 from examples import c, m, u
-from flext_tests import tm
 
 import tests
 from flext_cli import cli
-from tests import t
+from tests import t, tm
 
 
 class TestsFlextCliExampleModelsUtilitiesCov:

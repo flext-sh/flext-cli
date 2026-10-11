@@ -15,12 +15,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_tests import tm
-
 import flext_cli
 from flext_cli import cli
 from flext_cli.__version__ import FlextCliVersion
-from tests import c
+from tests import c, tm
 
 
 class TestsFlextCliVersion:

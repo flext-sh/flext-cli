@@ -153,7 +153,7 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
             msg = "process heartbeat descriptor is unavailable"
             raise RuntimeError(msg)
         payload = f"{c.Cli.CLI_PROCESS_HEARTBEAT_MESSAGE}\n".encode(
-            c.Cli.ENCODING_DEFAULT,
+            c.DEFAULT_ENCODING,
         )
         written = os.write(progress_fd, payload)
         if written != len(payload):

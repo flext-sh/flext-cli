@@ -11,10 +11,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import pytest
-from flext_tests import tm
 
-from flext_cli import cli, r, s
-from tests import m, p, t, u
+from flext_cli import cli, s
+from tests import m, p, r, t, tm, u
 
 
 class TestsFlextCliServiceRoutes:

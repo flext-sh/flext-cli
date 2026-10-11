@@ -6,9 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_tests import tm
-
 from flext_cli import cli, m
+from tests import tm
 
 
 def test_pptx_render_empty_presentation() -> None:

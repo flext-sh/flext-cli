@@ -52,7 +52,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             lambda: t.Cli.JSON_VALUE_ADAPTER.dump_json(
                 normalized,
                 indent=indent,
-            ).decode(c.Cli.ENCODING_DEFAULT),
+            ).decode(c.DEFAULT_ENCODING),
             catch=(c.ValidationError, ValueError, TypeError),
             op_name="json_dumps",
         )
@@ -184,7 +184,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             indent=options.indent,
             ensure_ascii=options.ensure_ascii,
         )
-        return payload_bytes.decode(c.Cli.ENCODING_DEFAULT) + "\n"
+        return payload_bytes.decode(c.DEFAULT_ENCODING) + "\n"
 
     @staticmethod
     def json_read(path: Path) -> p.Result[t.JsonMapping]:
@@ -200,7 +200,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             return r[t.JsonMapping].fail(f"json_read: file not found: {path}")
         loaded = u.try_(
             lambda: t.Cli.JSON_VALUE_ADAPTER.validate_json(
-                path.read_text(encoding=c.Cli.ENCODING_DEFAULT),
+                path.read_text(encoding=c.DEFAULT_ENCODING),
             ),
             catch=(c.ValidationError, OSError),
             op_name="json_read",
@@ -230,7 +230,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         def _write() -> bool:
             path.parent.mkdir(parents=True, exist_ok=True)
             content = FlextCliUtilitiesJsonCoreMixin._json_write_content(payload, opts)
-            _ = path.write_text(content, encoding=c.Cli.ENCODING_DEFAULT)
+            _ = path.write_text(content, encoding=c.DEFAULT_ENCODING)
             return True
 
         written = u.try_(_write, catch=c.EXC_OS_VALIDATION, op_name="json_write")

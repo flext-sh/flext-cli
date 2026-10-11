@@ -22,7 +22,7 @@ class FlextCliUtilitiesPptxRenderer:
     # module; consumers exchange only validated plans and bytes.
 
     @classmethod
-    def pptx_render(
+    def render_presentation(
         cls,
         request: m.Cli.PptxRenderRequest,
     ) -> p.Result[m.Cli.PptxRenderResult]:

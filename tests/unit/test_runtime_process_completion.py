@@ -9,9 +9,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from flext_tests import tm
-
-from tests import u
+from tests import tm, u
 
 
 class TestsRuntimeProcessCompletion:
