@@ -6,8 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from functools import cache
-
 from flext_cli import c, m, t
 from flext_cli._utilities import (
     FlextCliUtilitiesOptionBuilder,
@@ -18,17 +16,6 @@ from flext_core import u
 
 class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
     """Implementation part for FlextCliUtilitiesOptionsPart02."""
-
-    @classmethod
-    @cache
-    def cli_default_source_adapter(cls) -> t.ValueAdapter[t.Cli.CliDefaultSource]:
-        """Build the CLI default adapter once at the utility boundary.
-
-        Returns:
-            The resulting ``t.ValueAdapter[t.Cli.CliDefaultSource]``.
-
-        """
-        return u.type_adapter(t.Cli.CliDefaultSource)
 
     @staticmethod
     def field_annotation(
@@ -88,7 +75,7 @@ class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
                 c.Cli.ENCODING_DEFAULT,
             )
         normalized_atom = cls.normalize_cli_atom(
-            cls.cli_default_source_adapter().validate_python(source_value),
+            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value),
         )
         if normalized_atom is None:
             raise TypeError(

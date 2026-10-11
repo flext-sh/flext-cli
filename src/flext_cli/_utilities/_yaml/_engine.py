@@ -40,8 +40,8 @@ def _roundtrip_yaml() -> p.Cli.YamlRoundtripEngine:
 
     A new instance per call keeps load/dump operations thread-safe: ruamel
     stores mutable parser state on the instance while parsing. The returned
-    surface is pinned to the typed ``p.Cli.YamlRoundtripEngine`` contract
-    because ruamel annotates load/dump with untyped parameters.
+    surface is returned through the typed ``p.Cli.YamlRoundtripEngine``
+    contract, which ``ruamel.yaml.YAML`` satisfies structurally.
 
     Returns:
         The resulting ``p.Cli.YamlRoundtripEngine``.

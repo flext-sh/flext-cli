@@ -100,7 +100,7 @@ class TestsFlextCliTypings:
         expected: object,
     ) -> None:
         """The CLI default-source adapter accepts scalars, sequences, and paths."""
-        result = u.Cli.cli_default_source_adapter().validate_python(payload)
+        result = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)
         tm.that(result == expected, eq=True)
 
     # --- Published type-tuple ClassVars ---------------------------------

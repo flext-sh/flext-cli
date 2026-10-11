@@ -53,9 +53,9 @@ class FlextCliUtilitiesOptionsPart01:
 
         """
         resolved = cls.unwrap_annotation(annotation)
-        if isinstance(resolved, UnionType):
-            return any(cls.json_option(arg) for arg in get_args(resolved))
         origin = get_origin(resolved)
+        if origin is UnionType:
+            return any(cls.json_option(arg) for arg in get_args(resolved))
         while isinstance(origin, TypeAliasType):
             origin = get_origin(origin.__value__)
         carrier = resolved if origin is None else origin
@@ -104,7 +104,10 @@ class FlextCliUtilitiesOptionsPart01:
         resolved_annotation_input = cls.unwrap_annotation(annotation)
         origin = get_origin(resolved_annotation_input)
 
-        if isinstance(resolved_annotation_input, UnionType):
+        # ``X | None`` is a runtime ``UnionType`` the static ``TypeForm``
+        # contract cannot narrow to: an optional field resolves to its single
+        # carried type, so ``t.StrSequence | None`` stays a repeated option.
+        if origin is UnionType:
             resolved_args = tuple(
                 cls.resolve_typer_annotation(arg)
                 for arg in get_args(resolved_annotation_input)
