@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import secrets
 
+from flext_cli import u
 from flext_cli._settings import settings
 from flext_cli.base import FlextCliServiceBase as s
 from flext_cli.constants import FlextCliConstants as c
@@ -21,7 +22,6 @@ from flext_cli.models import FlextCliModels as m
 from flext_cli.protocols import FlextCliProtocols as p
 from flext_cli.services.file_tools import FlextCliFileTools
 from flext_cli.typings import FlextCliTypes as t
-from flext_cli.utilities import FlextCliUtilities as u
 from flext_core import r
 
 

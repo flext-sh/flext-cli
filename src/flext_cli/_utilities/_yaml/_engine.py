@@ -46,17 +46,11 @@ def _roundtrip_yaml() -> p.Cli.YamlRoundtripEngine:
     Returns:
         The resulting ``p.Cli.YamlRoundtripEngine``.
 
-    Raises:
-        TypeError: If the engine lacks the public load/dump contract.
-
     """
     yaml = ruamel.yaml.YAML()
     yaml.preserve_quotes = True
     yaml.width = 4096
     yaml.indent(mapping=2, sequence=4, offset=2)
-    if not isinstance(yaml, p.Cli.YamlRoundtripEngine):
-        msg = "ruamel.yaml engine does not satisfy p.Cli.YamlRoundtripEngine"
-        raise TypeError(msg)
     return yaml
 
 
