@@ -6,11 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import TYPE_CHECKING, TypeIs, cast
 
 import tomlkit
 from tomlkit.container import OutOfOrderTableProxy
-from tomlkit.items import AoT, Item, Table
+from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
 if TYPE_CHECKING:
@@ -130,6 +131,46 @@ class FlextCliUtilitiesTomlPart02:
             return None
         value = container[key]
         return value if FlextCliUtilitiesTomlPart02.toml_is_item(value) else None
+
+    @staticmethod
+    def toml_array_item_comments(
+        container: t.Cli.TomlDocument | t.Cli.TomlTable,
+        key: str,
+    ) -> t.StrSequence:
+        """Return each parsed array occurrence's inline comment without private APIs.
+
+        Public array mutation preserves comment association. Trusted slot labels
+        replace values in a copy, so public multiline rendering gives each real
+        occurrence one scalar line. TOMLKit parses its comment into Item.trivia;
+        original literals and standalone comments are never interpreted as slots.
+        """
+        source = FlextCliUtilitiesTomlPart02.toml_item_child(container, key)
+        if not isinstance(source, Array):
+            msg = f"TOML field {key} must be an array"
+            raise TypeError(msg)
+        view = deepcopy(source).multiline(True)
+        labels = tuple(f"flext_toml_slot_{index}" for index in range(len(view)))
+        prefixes = {
+            tomlkit.string(label).as_string(): index
+            for index, label in enumerate(labels)
+        }
+        for index, label in enumerate(labels):
+            view[index] = label
+        comments: list[str | None] = [None] * len(view)
+        # The prefixes are library-rendered slots, never original TOML tokens.
+        for line in view.as_string().splitlines():
+            prefix, comma, suffix = line.lstrip().partition(",")
+            if comma and prefix in prefixes:
+                index = prefixes[prefix]
+                if comments[index] is not None:
+                    msg = "TOML array serialization duplicated a slot"
+                    raise ValueError(msg)
+                item = tomlkit.parse(f"entry = {prefix}{suffix}").item("entry")
+                comments[index] = item.trivia.comment
+        if any(comment is None for comment in comments):
+            msg = "TOML array serialization lost an occurrence"
+            raise ValueError(msg)
+        return tuple(comment for comment in comments if comment is not None)
 
     @staticmethod
     def toml_ensure_table(parent: TOMLDocument | Table, key: str) -> Table:

@@ -80,7 +80,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
         return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].ok(ordered)
 
     @classmethod
-    def xlsx_style_catalog(
+    def extract_style_catalog(
         cls,
         request: m.Cli.XlsxStyleCatalogRequest,
     ) -> p.Result[m.Cli.XlsxStyleCatalog]:
@@ -122,7 +122,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
         )
 
     @classmethod
-    def xlsx_style_template(
+    def build_style_template(
         cls,
         request: m.Cli.XlsxStyleTemplateRequest,
     ) -> p.Result[m.Cli.XlsxStyleTemplateResult]:
@@ -132,7 +132,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
             The resulting ``p.Result[m.Cli.XlsxStyleTemplateResult]``.
 
         """
-        catalog_result = cls.xlsx_style_catalog(
+        catalog_result = cls.extract_style_catalog(
             m.Cli.XlsxStyleCatalogRequest(
                 source=request.source,
                 style_name_prefix=request.style_name_prefix,

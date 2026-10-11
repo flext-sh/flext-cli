@@ -22,7 +22,7 @@ class FlextCliUtilitiesPptx:
         """
         from flext_cli._utilities import FlextCliUtilitiesPptxReader
 
-        return FlextCliUtilitiesPptxReader.pptx_read(source)
+        return FlextCliUtilitiesPptxReader.read_presentation(source)
 
     @staticmethod
     def pptx_render(
@@ -36,7 +36,7 @@ class FlextCliUtilitiesPptx:
         """
         from flext_cli._utilities import FlextCliUtilitiesPptxRenderer
 
-        return FlextCliUtilitiesPptxRenderer.pptx_render(request)
+        return FlextCliUtilitiesPptxRenderer.render_presentation(request)
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesPptx",)

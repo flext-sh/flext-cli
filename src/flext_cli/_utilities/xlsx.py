@@ -24,7 +24,7 @@ class FlextCliUtilitiesXlsx:
         """
         from flext_cli._utilities import FlextCliUtilitiesXlsxRenderer
 
-        return FlextCliUtilitiesXlsxRenderer.xlsx_render(request)
+        return FlextCliUtilitiesXlsxRenderer.render_workbook(request)
 
     @staticmethod
     def xlsx_snapshot(
@@ -38,7 +38,7 @@ class FlextCliUtilitiesXlsx:
         """
         from flext_cli._utilities import FlextCliUtilitiesXlsxSnapshot
 
-        return FlextCliUtilitiesXlsxSnapshot.xlsx_snapshot(request)
+        return FlextCliUtilitiesXlsxSnapshot.snapshot_workbook(request)
 
     @staticmethod
     def xlsx_inspect(
@@ -52,7 +52,7 @@ class FlextCliUtilitiesXlsx:
         """
         from flext_cli._utilities import FlextCliUtilitiesXlsxArchive
 
-        return FlextCliUtilitiesXlsxArchive.xlsx_inspect(request)
+        return FlextCliUtilitiesXlsxArchive.inspect_archive(request)
 
     @staticmethod
     def xlsx_recalc(
@@ -66,7 +66,7 @@ class FlextCliUtilitiesXlsx:
         """
         from flext_cli._utilities import FlextCliUtilitiesXlsxRecalc
 
-        return FlextCliUtilitiesXlsxRecalc.xlsx_recalc(request)
+        return FlextCliUtilitiesXlsxRecalc.recalculate_workbook(request)
 
     @staticmethod
     def xlsx_recalc_parity(
@@ -80,7 +80,7 @@ class FlextCliUtilitiesXlsx:
         """
         from flext_cli._utilities import FlextCliUtilitiesXlsxRecalc
 
-        return FlextCliUtilitiesXlsxRecalc.xlsx_recalc_parity(request)
+        return FlextCliUtilitiesXlsxRecalc.verify_recalculation_parity(request)
 
     @staticmethod
     def xlsx_defined_name_values(
@@ -94,7 +94,9 @@ class FlextCliUtilitiesXlsx:
         """
         from flext_cli._utilities import FlextCliUtilitiesXlsxDefinedNameValues
 
-        return FlextCliUtilitiesXlsxDefinedNameValues.xlsx_defined_name_values(request)
+        return FlextCliUtilitiesXlsxDefinedNameValues.resolve_defined_name_values(
+            request
+        )
 
     @staticmethod
     def xlsx_style_catalog(
@@ -108,7 +110,7 @@ class FlextCliUtilitiesXlsx:
         """
         from flext_cli._utilities import FlextCliUtilitiesXlsxStyleCatalog
 
-        return FlextCliUtilitiesXlsxStyleCatalog.xlsx_style_catalog(request)
+        return FlextCliUtilitiesXlsxStyleCatalog.extract_style_catalog(request)
 
     @staticmethod
     def xlsx_style_template(
@@ -122,7 +124,7 @@ class FlextCliUtilitiesXlsx:
         """
         from flext_cli._utilities import FlextCliUtilitiesXlsxStyleCatalog
 
-        return FlextCliUtilitiesXlsxStyleCatalog.xlsx_style_template(request)
+        return FlextCliUtilitiesXlsxStyleCatalog.build_style_template(request)
 
     @staticmethod
     def xlsx_parse_range(
@@ -136,7 +138,7 @@ class FlextCliUtilitiesXlsx:
         """
         from flext_cli._utilities import FlextCliUtilitiesXlsxAddresses
 
-        return FlextCliUtilitiesXlsxAddresses.xlsx_parse_range(request)
+        return FlextCliUtilitiesXlsxAddresses.parse_cell_range(request)
 
     @staticmethod
     def xlsx_format_reference(
@@ -150,7 +152,7 @@ class FlextCliUtilitiesXlsx:
         """
         from flext_cli._utilities import FlextCliUtilitiesXlsxAddresses
 
-        return FlextCliUtilitiesXlsxAddresses.xlsx_format_reference(request)
+        return FlextCliUtilitiesXlsxAddresses.format_cell_reference(request)
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsx",)

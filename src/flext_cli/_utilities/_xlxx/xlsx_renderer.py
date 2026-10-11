@@ -63,7 +63,7 @@ class FlextCliUtilitiesXlsxRenderer(
         return r[frozenset[str]].ok(tables.value)
 
     @classmethod
-    def xlsx_render(
+    def render_workbook(
         cls,
         request: m.Cli.XlsxRenderRequest,
     ) -> p.Result[m.Cli.XlsxRenderResult]:

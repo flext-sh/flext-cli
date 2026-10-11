@@ -24,7 +24,7 @@ class FlextCliUtilitiesPptxReader:
     # module; consumers receive only validated plans.
 
     @classmethod
-    def pptx_read(cls, source: bytes) -> p.Result[m.Cli.PptxPresentationPlan]:
+    def read_presentation(cls, source: bytes) -> p.Result[m.Cli.PptxPresentationPlan]:
         """Read presentation bytes into a validated plan.
 
         Returns:

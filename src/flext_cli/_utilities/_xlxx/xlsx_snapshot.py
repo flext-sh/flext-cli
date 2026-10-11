@@ -22,7 +22,7 @@ class FlextCliUtilitiesXlsxSnapshot(
     # NOTE (multi-agent, mro-j2yt.1): the formula view owns structure and
     # counts; a second data-only view supplies cached values only when asked.
     @classmethod
-    def xlsx_snapshot(
+    def snapshot_workbook(
         cls,
         request: m.Cli.XlsxSnapshotRequest,
     ) -> p.Result[m.Cli.XlsxWorkbookSnapshot]:

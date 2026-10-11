@@ -143,7 +143,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
         return r[m.Cli.XlsxArchiveInspection].ok(inspection)
 
     @classmethod
-    def xlsx_inspect(
+    def inspect_archive(
         cls,
         request: m.Cli.XlsxArchiveInspectionRequest,
     ) -> p.Result[m.Cli.XlsxArchiveInspection]:
