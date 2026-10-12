@@ -33,7 +33,7 @@ from flext_cli import cli, m, t
 from flext_core import p, r
 
 
-class DataManagerCLI:
+class ExamplesFlextCliDataManager:
     """Minimal end-to-end CLI workflow using the public facade."""
 
     def __init__(self) -> None:
@@ -133,4 +133,4 @@ class DataManagerCLI:
         return r[bool].ok(value=True)
 
 
-__all__: list[str] = ["DataManagerCLI"]
+__all__: list[str] = ["ExamplesFlextCliDataManager"]

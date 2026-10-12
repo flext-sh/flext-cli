@@ -17,7 +17,7 @@ import pytest
 from tests import t, tm, u
 
 
-class TestsAtomicFileContract:
+class TestsFlextCliAtomicFileContract:
     """Observable atomic-write behavior shared by text and binary APIs."""
 
     @staticmethod

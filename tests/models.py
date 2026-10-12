@@ -11,7 +11,7 @@ from typing import Annotated
 from flext_tests import FlextTestsModels
 
 from flext_cli import FlextCliModels
-from tests._models_parts.testsflextclimodels_part_01 import TestsFlextCliModelsPart01
+from tests.models_parts.testsflextclimodels_part_01 import TestsFlextCliModelsPart01
 
 
 class TestsFlextCliModels(TestsFlextCliModelsPart01, FlextTestsModels, FlextCliModels):

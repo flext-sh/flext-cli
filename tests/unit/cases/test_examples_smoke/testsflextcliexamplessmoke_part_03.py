@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from examples import Ex05Authentication, Ex06Settings, c
+from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings, c
 
 from flext_cli import cli, settings
 from tests import tm
@@ -44,26 +44,26 @@ class TestsFlextCliExamplesSmokePart03:
         token_path = tmp_path / "auth_token.json"
         settings.cli_token_file = str(token_path)
 
-        missing_token = Ex05Authentication.fetch_saved_token()
+        missing_token = ExamplesFlextCliAuthentication.fetch_saved_token()
         tm.fail(missing_token)
-        missing_validation = Ex05Authentication.validate_current_token()
+        missing_validation = ExamplesFlextCliAuthentication.validate_current_token()
         tm.fail(missing_validation)
 
-        missing_logout = Ex05Authentication.logout()
+        missing_logout = ExamplesFlextCliAuthentication.logout()
         tm.fail(missing_logout)
 
-        invalid_login = Ex05Authentication.login_to_service("", "")
+        invalid_login = ExamplesFlextCliAuthentication.login_to_service("", "")
         tm.fail(invalid_login)
 
         short_token_result = cli.save_auth_token("short-token")
         tm.ok(short_token_result)
-        short_validation = Ex05Authentication.validate_current_token()
+        short_validation = ExamplesFlextCliAuthentication.validate_current_token()
         tm.fail(short_validation)
 
         broken_token_path = tmp_path / "token-dir"
         broken_token_path.mkdir()
         settings.cli_token_file = str(broken_token_path)
-        directory_logout = Ex05Authentication.logout()
+        directory_logout = ExamplesFlextCliAuthentication.logout()
         tm.fail(directory_logout)
         tm.that(broken_token_path.exists(), eq=True)
 
@@ -87,7 +87,7 @@ class TestsFlextCliExamplesSmokePart03:
         # logout flow; permissions are restored for tmp_path cleanup.
         token_dir.chmod(0o555)
         try:
-            logout_result = Ex05Authentication.logout()
+            logout_result = ExamplesFlextCliAuthentication.logout()
         finally:
             token_dir.chmod(0o755)
         tm.fail(logout_result)
@@ -102,7 +102,7 @@ class TestsFlextCliExamplesSmokePart03:
         The example must cover alternate profiles and environment override
         failures.
         """
-        production_profile = Ex06Settings.load_profile_settings(
+        production_profile = ExamplesFlextCliSettings.load_profile_settings(
             c.DeploymentEnvironment.PRODUCTION,
         )
         tm.ok(production_profile)
@@ -111,7 +111,7 @@ class TestsFlextCliExamplesSmokePart03:
             eq=c.Cli.OutputFormats.JSON,
         )
 
-        testing_settings = Ex06Settings.apply_environment_overrides(
+        testing_settings = ExamplesFlextCliSettings.apply_environment_overrides(
             {
                 "max_workers": 8,
                 "enable_metrics": True,
@@ -123,7 +123,7 @@ class TestsFlextCliExamplesSmokePart03:
         tm.that(testing_settings["enable_metrics"], eq=False)
 
         with pytest.raises(TypeError):
-            Ex06Settings.apply_environment_overrides(
+            ExamplesFlextCliSettings.apply_environment_overrides(
                 {"max_workers": "bad", "enable_metrics": False},
                 c.DeploymentEnvironment.PRODUCTION,
             )

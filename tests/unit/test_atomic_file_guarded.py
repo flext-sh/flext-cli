@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from flext_cli import m
 
 
-class TestsAtomicFileGuarded:
+class TestsFlextCliAtomicFileGuarded:
     """Observable guarded-write behavior through public Flext CLI surfaces."""
 
     def test_matching_content_is_replaced(self, tmp_path: Path) -> None:

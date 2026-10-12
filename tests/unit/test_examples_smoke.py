@@ -6,19 +6,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_01 import (
+from tests.unit.cases.test_examples_smoke.testsflextcliexamplessmoke_part_01 import (
     TestsFlextCliExamplesSmokePart01,
 )
-from tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_02 import (
+from tests.unit.cases.test_examples_smoke.testsflextcliexamplessmoke_part_02 import (
     TestsFlextCliExamplesSmokePart02,
 )
-from tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_03 import (
+from tests.unit.cases.test_examples_smoke.testsflextcliexamplessmoke_part_03 import (
     TestsFlextCliExamplesSmokePart03,
 )
-from tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_04 import (
+from tests.unit.cases.test_examples_smoke.testsflextcliexamplessmoke_part_04 import (
     TestsFlextCliExamplesSmokePart04,
 )
-from tests.unit._cases.test_examples_smoke.testsflextcliexamplessmoke_part_05 import (
+from tests.unit.cases.test_examples_smoke.testsflextcliexamplessmoke_part_05 import (
     TestsFlextCliExamplesSmokePart05,
 )
 

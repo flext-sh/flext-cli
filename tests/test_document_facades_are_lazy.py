@@ -42,7 +42,7 @@ def _loaded_heavy_modules(import_statement: str) -> frozenset[str]:
     return frozenset(reported.split(",")) if reported else frozenset()
 
 
-class TestsDocumentFacadesAreLazy:
+class TestsFlextCliDocumentFacadesAreLazy:
     """Direct MRO owners load with the namespace; other adapters stay lazy."""
 
     @staticmethod

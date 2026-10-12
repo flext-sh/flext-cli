@@ -11,7 +11,7 @@ from pathlib import Path
 from tests import tm, u
 
 
-class TestsAtomicDirectoryPublish:
+class TestsFlextCliAtomicDirectoryPublish:
     """Prove staged directory publication preserves identities and names."""
 
     @staticmethod

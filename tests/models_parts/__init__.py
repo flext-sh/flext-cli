@@ -13,11 +13,9 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from tests._models_parts.tests_cli import TestsFlextCliModelsCli
-    from tests._models_parts.tests_runtime import TestsFlextCliModelsRuntime
-    from tests._models_parts.testsflextclimodels_part_01 import (
-        TestsFlextCliModelsPart01,
-    )
+    from tests.models_parts.tests_cli import TestsFlextCliModelsCli
+    from tests.models_parts.tests_runtime import TestsFlextCliModelsRuntime
+    from tests.models_parts.testsflextclimodels_part_01 import TestsFlextCliModelsPart01
 
 
 __all__: tuple[str, ...] = (

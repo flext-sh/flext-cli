@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from examples import DataManagerCLI
+from examples import ExamplesFlextCliDataManager
 
 from tests import tm
 
@@ -24,7 +24,7 @@ class TestsFlextCliExamplesSmokePart04:
         tmp_path: Path,
     ) -> None:
         """Complete integration example must persist and reload real workflow data."""
-        app = DataManagerCLI()
+        app = ExamplesFlextCliDataManager()
         app.data_file = tmp_path / "app_data.json"
 
         workflow_result = app.run_workflow()
@@ -43,7 +43,7 @@ class TestsFlextCliExamplesSmokePart04:
 
         unwritable data files.
         """
-        app = DataManagerCLI()
+        app = ExamplesFlextCliDataManager()
 
         app.data_file = tmp_path / "missing-app-data.json"
         missing_load = app.load_data()
@@ -66,7 +66,7 @@ class TestsFlextCliExamplesSmokePart04:
         tmp_path: Path,
     ) -> None:
         """Complete integration surfaces invalid JSON and publication failures."""
-        app = DataManagerCLI()
+        app = ExamplesFlextCliDataManager()
 
         invalid_json_file = tmp_path / "invalid-app-data.json"
         invalid_json_file.write_text("not json", encoding="utf-8")

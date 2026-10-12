@@ -16,7 +16,7 @@ from flext_cli import m
 from tests import tm, u
 
 
-class TestsAtomicPhysicalTree:
+class TestsFlextCliAtomicPhysicalTree:
     """Prove manifests authenticate every entry before nonrecursive cleanup."""
 
     def test_inventory_preserves_mount_identity_across_entries_and_reads(

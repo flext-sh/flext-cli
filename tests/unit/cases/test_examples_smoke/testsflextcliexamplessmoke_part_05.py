@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from examples import Ex06Settings, c, m, t
+from examples import ExamplesFlextCliSettings, c, m, t
 from examples.ex_12_pydantic_driven_cli import (
     convert_and_validate_with_pydantic,
     create_database_config_from_cli,
@@ -29,7 +29,7 @@ class TestsFlextCliExamplesSmokePart05:
     ) -> None:
         """Settings examples consume injected models and typed workflow rules."""
         cache_dir = tmp_path / "cache"
-        settings_result = Ex06Settings.load_application_settings(
+        settings_result = ExamplesFlextCliSettings.load_application_settings(
             m.Examples.AppSettingsAdvanced(
                 environment=c.DeploymentEnvironment.PRODUCTION,
                 api_key="k" + "3" * 14,

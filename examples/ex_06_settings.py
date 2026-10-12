@@ -32,7 +32,7 @@ from flext_cli import cli, p, settings
 from flext_core import r
 
 
-class Ex06Settings:
+class ExamplesFlextCliSettings:
     """Public settings example for flext-cli consumers."""
 
     @staticmethod
@@ -211,4 +211,4 @@ class Ex06Settings:
         return result
 
 
-__all__: list[str] = ["Ex06Settings"]
+__all__: list[str] = ["ExamplesFlextCliSettings"]

@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class TestsFileDerivedContracts:
+class TestsFlextCliFileDerivedContracts:
     """Observable behavior derived from the canonical public file surface."""
 
     @staticmethod

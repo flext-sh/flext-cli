@@ -15,7 +15,7 @@ from flext_cli import m
 from tests import tm, u
 
 
-class TestsAtomicFileIdentity:
+class TestsFlextCliAtomicFileIdentity:
     """Prove callers cannot authorize effects with only matching content."""
 
     @staticmethod

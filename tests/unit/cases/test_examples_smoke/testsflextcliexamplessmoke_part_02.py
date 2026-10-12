@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import examples
 import pytest
-from examples import Ex05Authentication, Ex06Settings, p
+from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings, p
 from examples.ex_04_file_operations import (
     load_deployment_config,
     load_user_preferences,
@@ -83,24 +83,24 @@ class TestsFlextCliExamplesSmokePart02:
         """Auth and settings examples must work through settings and cli auth APIs."""
         settings.cli_token_file = str(tmp_path / "auth_token.json")
 
-        shown_settings = Ex06Settings.show_cli_settings()
+        shown_settings = ExamplesFlextCliSettings.show_cli_settings()
         tm.that(shown_settings, is_=p.Cli.Settings)
         tm.that(shown_settings.cli_token_file, eq=settings.cli_token_file)
 
-        login_result = Ex05Authentication.login_to_service("demo", "secret")
+        login_result = ExamplesFlextCliAuthentication.login_to_service("demo", "secret")
         tm.ok(login_result)
 
-        token_result = Ex05Authentication.fetch_saved_token()
+        token_result = ExamplesFlextCliAuthentication.fetch_saved_token()
         tm.ok(token_result)
         tm.that(len(token_result.value) >= c.Tests.AUTH_TOKEN_MIN_LENGTH, eq=True)
-        validation_result = Ex05Authentication.validate_current_token()
+        validation_result = ExamplesFlextCliAuthentication.validate_current_token()
         tm.ok(validation_result)
 
-        locations = Ex06Settings.show_settings_locations()
+        locations = ExamplesFlextCliSettings.show_settings_locations()
         tm.that(locations.data, is_=Mapping)
         tm.that(locations.data["Token Exists"], eq="Yes")
 
-        profile_result = Ex06Settings.load_profile_settings(
+        profile_result = ExamplesFlextCliSettings.load_profile_settings(
             examples.c.DeploymentEnvironment.DEVELOPMENT,
         )
         tm.ok(profile_result)
@@ -110,7 +110,7 @@ class TestsFlextCliExamplesSmokePart02:
             eq=examples.c.Cli.OutputFormats.TABLE,
         )
 
-        logout_result = Ex05Authentication.logout()
+        logout_result = ExamplesFlextCliAuthentication.logout()
         tm.ok(logout_result)
         cleared_result = cli.fetch_auth_token()
         tm.fail(cleared_result)

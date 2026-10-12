@@ -32,7 +32,7 @@ from flext_core import p, r
 _MIN_VALID_TOKEN_LENGTH = 20
 
 
-class Ex05Authentication:
+class ExamplesFlextCliAuthentication:
     """Public authentication example for flext-cli consumers."""
 
     @staticmethod
@@ -122,4 +122,4 @@ class Ex05Authentication:
         return r[bool].ok(value=True)
 
 
-__all__: list[str] = ["Ex05Authentication"]
+__all__: list[str] = ["ExamplesFlextCliAuthentication"]

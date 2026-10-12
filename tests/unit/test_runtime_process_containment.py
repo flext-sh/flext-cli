@@ -112,7 +112,7 @@ def _timed_out_failure(result: p.Result[p.Cli.CommandOutput]) -> None:
     tm.fail(result, has="timed_out=True")
 
 
-class _InterruptingCommand(UserList[str]):
+class TestsFlextCliInterruptingCommand(UserList[str]):
     @override
     def __iter__(self) -> Iterator[str]:
         signal.raise_signal(signal.SIGTERM)
@@ -238,7 +238,7 @@ class TestsFlextCliRuntimeProcessContainment:
         """Test pre spawn signal is captured before command materialization."""
         marker = tmp_path / "must-not-spawn"
         result = u.Cli().run_to_file(
-            _InterruptingCommand([
+            TestsFlextCliInterruptingCommand([
                 sys.executable,
                 "-c",
                 "import pathlib,sys;pathlib.Path(sys.argv[1]).touch()",

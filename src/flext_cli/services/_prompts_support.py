@@ -15,7 +15,7 @@ from typing import Annotated, Self
 from flext_cli import c, m, p, r, s, settings, t, u
 
 
-class _PromptInputReaderDefault:
+class FlextCliPromptInputReaderDefault:
     """Resolve the built-in input reader without storing a method descriptor."""
 
     def __call__(self, prompt: str) -> str:
@@ -46,7 +46,7 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
             ),
             exclude=True,
         ),
-    ] = m.Field(default_factory=_PromptInputReaderDefault, validate_default=True)
+    ] = m.Field(default_factory=FlextCliPromptInputReaderDefault, validate_default=True)
 
     password_reader: Annotated[
         t.Cli.PromptTextReader,

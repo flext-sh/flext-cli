@@ -15,7 +15,7 @@ from flext_cli import m
 from tests import tm, u
 
 
-class TestsAtomicDirectoryIdentity:
+class TestsFlextCliAtomicDirectoryIdentity:
     """Prove directory effects consume exact parent and leaf identities."""
 
     @staticmethod

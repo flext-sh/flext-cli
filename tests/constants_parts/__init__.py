@@ -13,14 +13,12 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from tests._constants_parts.tests_core import TestsFlextCliConstantsCore
-    from tests._constants_parts.tests_rules_options import (
+    from tests.constants_parts.tests_core import TestsFlextCliConstantsCore
+    from tests.constants_parts.tests_rules_options import (
         TestsFlextCliConstantsRulesOptions,
     )
-    from tests._constants_parts.tests_yaml_output import (
-        TestsFlextCliConstantsYamlOutput,
-    )
-    from tests._constants_parts.testsflextcliconstants_part_01 import (
+    from tests.constants_parts.tests_yaml_output import TestsFlextCliConstantsYamlOutput
+    from tests.constants_parts.testsflextcliconstants_part_01 import (
         TestsFlextCliConstantsPart01,
     )
 
