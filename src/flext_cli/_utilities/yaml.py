@@ -93,6 +93,29 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         return r[t.JsonMapping].ok(validated)
 
     @staticmethod
+    def yaml_parse_documents(text: str) -> p.Result[t.SequenceOf[t.JsonMapping]]:
+        """Parse all mapping documents without replacing the YAML engine.
+
+        Returns:
+            Every validated document in stream order, or the first failure.
+        """
+        loaded = FlextCliUtilitiesYaml.yaml_roundtrip_load_all_text(text)
+        if loaded.failure:
+            return r[t.SequenceOf[t.JsonMapping]].from_failure(loaded)
+        try:
+            documents = tuple(
+                t.Cli.YAML_DICT_ADAPTER.validate_python(
+                    FlextCliUtilitiesYaml.yaml_to_plain(node)
+                )
+                for node in loaded.value
+            )
+        except c.ValidationError as exc:
+            return r[t.SequenceOf[t.JsonMapping]].fail(
+                f"YAML validation error: {exc}", exception=exc
+            )
+        return r[t.SequenceOf[t.JsonMapping]].ok(documents)
+
+    @staticmethod
     def yaml_load_mapping(
         path: Path,
         *,

@@ -105,6 +105,30 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         return r[t.Cli.YamlNode].ok(node)
 
     @staticmethod
+    def yaml_roundtrip_load_all_text(
+        text: str,
+    ) -> p.Result[t.SequenceOf[t.Cli.YamlNode]]:
+        """Parse every YAML document with one fresh canonical engine.
+
+        Returns:
+            The complete document sequence, or the original parsing failure.
+        """
+        try:
+            nodes = tuple(
+                FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(value)
+                for value in _roundtrip_yaml().load_all(text)
+            )
+        except YAMLError as exc:
+            return r[t.SequenceOf[t.Cli.YamlNode]].fail(
+                f"YAML parse error: {exc}", exception=exc
+            )
+        except TypeError as exc:
+            return r[t.SequenceOf[t.Cli.YamlNode]].fail(
+                f"YAML content error: {exc}", exception=exc
+            )
+        return r[t.SequenceOf[t.Cli.YamlNode]].ok(nodes)
+
+    @staticmethod
     def yaml_roundtrip_load_map(path: Path) -> p.Result[CommentedMap]:
         """Load a YAML file and require a mapping root -> ``r[CommentedMap]``.
 

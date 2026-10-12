@@ -100,6 +100,10 @@ class FlextCliProtocolsDomain:
             """Parse one YAML document from a stream or text."""
             ...
 
+        def load_all(self, stream: TextIO | str) -> t.IterableOf[t.Cli.YamlNode]:
+            """Parse every document in a YAML stream."""
+            ...
+
         def dump(self, data: t.Cli.YamlNode, stream: TextIO) -> None:
             """Serialize one YAML tree to a text stream."""
             ...
