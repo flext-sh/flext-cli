@@ -29,6 +29,46 @@ class TestsFlextCliYamlRoundtripLoad:
     """Load/dump round-trip contract of ``u.Cli.yaml_roundtrip_*``."""
 
     @staticmethod
+    def test_empty_yaml_stream_contains_no_documents() -> None:
+        """An empty stream is data, distinct from an explicit null document."""
+        tm.that(tm.ok(u.Cli.yaml_parse_documents("# no documents\n")), empty=True)
+
+    @staticmethod
+    def test_mapping_document_stream_preserves_order_and_literal_markers() -> None:
+        """Document markers inside scalar content never split that content."""
+        documents = tm.ok(
+            u.Cli.yaml_parse_documents(
+                "id: first\ncontent: |\n  ---\n  retained\n"
+                '--- # document boundary\nid: second\ncontent: "---"\n'
+            )
+        )
+        tm.that(
+            documents,
+            eq=(
+                {"id": "first", "content": "---\nretained\n"},
+                {"id": "second", "content": "---"},
+            ),
+        )
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "suffix",
+        ["id: second\nid: contradictory\n", "items: [\n"],
+    )
+    def test_document_stream_rejects_the_first_bad_document(suffix: str) -> None:
+        """A valid prefix never turns a broken stream into partial success."""
+        outcome = u.Cli.yaml_parse_documents("id: first\n---\n" + suffix)
+        tm.fail(outcome, has="YAML parse error")
+        tm.not_none(outcome.exception)
+
+    @staticmethod
+    def test_document_stream_requires_each_root_to_be_a_mapping() -> None:
+        """A scalar document remains a validation failure after a valid map."""
+        outcome = u.Cli.yaml_parse_documents("id: first\n---\n- scalar\n")
+        tm.fail(outcome, has="YAML validation error")
+        tm.not_none(outcome.exception)
+
+    @staticmethod
     def test_round_trip_preserves_comments_quotes_and_order(
         tmp_path: Path,
     ) -> None:
