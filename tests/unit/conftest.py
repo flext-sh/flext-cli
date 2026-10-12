@@ -11,7 +11,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from flext_cli import FlextCliPrompts, FlextCliSettings
+from flext_cli import FlextCliSettings
+from flext_cli.services import FlextCliPrompts
 from tests import c, m
 
 if TYPE_CHECKING:
