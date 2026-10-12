@@ -10,20 +10,28 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_cli.__version__ import (
-    __author__,
-    __author_email__,
-    __description__,
-    __license__,
-    __title__,
-    __url__,
-    __version__,
-    __version_info__,
-)
+from flext_cli.__version__ import __version__
 from flext_core import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli import services
+    from flext_cli import (
+        _constants,
+        _models,
+        _protocols,
+        _typings,
+        _utilities,
+        services,
+    )
+    from flext_cli.__version__ import (
+        FlextCliVersion,
+        __author__,
+        __author_email__,
+        __description__,
+        __license__,
+        __title__,
+        __url__,
+        __version_info__,
+    )
     from flext_cli._settings import FlextCliSettings, settings
     from flext_cli.api import FlextCli, cli
     from flext_cli.base import FlextCliServiceBase, s
@@ -32,22 +40,6 @@ if TYPE_CHECKING:
     from flext_cli.constants import FlextCliConstants, c
     from flext_cli.models import FlextCliModels, m
     from flext_cli.protocols import FlextCliProtocols, p
-    from flext_cli.services.auth import FlextCliAuth
-    from flext_cli.services.cli import FlextCliCli
-    from flext_cli.services.cli_params import FlextCliCommonParams
-    from flext_cli.services.cmd import FlextCliCmd
-    from flext_cli.services.docx import FlextCliDocx
-    from flext_cli.services.file_tools import FlextCliFileTools
-    from flext_cli.services.formatters import FlextCliFormatters
-    from flext_cli.services.output import FlextCliOutput
-    from flext_cli.services.pipeline import FlextCliPipeline
-    from flext_cli.services.pptx import FlextCliPptx
-    from flext_cli.services.prompts import FlextCliPrompts
-    from flext_cli.services.rules import FlextCliRules
-    from flext_cli.services.runtime import FlextCliRuntime
-    from flext_cli.services.tables import FlextCliTables
-    from flext_cli.services.xlsx import FlextCliXlsx
-    from flext_cli.services.yaml_model import FlextCliYamlModel
     from flext_cli.typings import FlextCliTypes, t
     from flext_cli.utilities import FlextCliUtilities, u
     from flext_core import d, e, h, r, x
@@ -55,30 +47,15 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     "FlextCli",
-    "FlextCliAuth",
-    "FlextCliCli",
-    "FlextCliCmd",
-    "FlextCliCommonParams",
     "FlextCliConfig",
     "FlextCliConstants",
-    "FlextCliDocx",
-    "FlextCliFileTools",
-    "FlextCliFormatters",
     "FlextCliModels",
-    "FlextCliOutput",
-    "FlextCliPipeline",
-    "FlextCliPptx",
-    "FlextCliPrompts",
     "FlextCliProtocols",
-    "FlextCliRules",
-    "FlextCliRuntime",
     "FlextCliServiceBase",
     "FlextCliSettings",
-    "FlextCliTables",
     "FlextCliTypes",
     "FlextCliUtilities",
-    "FlextCliXlsx",
-    "FlextCliYamlModel",
+    "FlextCliVersion",
     "__author__",
     "__author_email__",
     "__description__",
@@ -87,6 +64,11 @@ __all__: tuple[str, ...] = (
     "__url__",
     "__version__",
     "__version_info__",
+    "_constants",
+    "_models",
+    "_protocols",
+    "_typings",
+    "_utilities",
     "c",
     "cli",
     "config",
@@ -110,30 +92,27 @@ install_lazy_exports(
     globals(),
     MappingProxyType({
         "FlextCli": ".api",
-        "FlextCliAuth": ".services.auth",
-        "FlextCliCli": ".services.cli",
-        "FlextCliCmd": ".services.cmd",
-        "FlextCliCommonParams": ".services.cli_params",
         "FlextCliConfig": ".config",
         "FlextCliConstants": ".constants",
-        "FlextCliDocx": ".services.docx",
-        "FlextCliFileTools": ".services.file_tools",
-        "FlextCliFormatters": ".services.formatters",
         "FlextCliModels": ".models",
-        "FlextCliOutput": ".services.output",
-        "FlextCliPipeline": ".services.pipeline",
-        "FlextCliPptx": ".services.pptx",
-        "FlextCliPrompts": ".services.prompts",
         "FlextCliProtocols": ".protocols",
-        "FlextCliRules": ".services.rules",
-        "FlextCliRuntime": ".services.runtime",
         "FlextCliServiceBase": ".base",
         "FlextCliSettings": "._settings",
-        "FlextCliTables": ".services.tables",
         "FlextCliTypes": ".typings",
         "FlextCliUtilities": ".utilities",
-        "FlextCliXlsx": ".services.xlsx",
-        "FlextCliYamlModel": ".services.yaml_model",
+        "FlextCliVersion": ".__version__",
+        "__author__": ".__version__",
+        "__author_email__": ".__version__",
+        "__description__": ".__version__",
+        "__license__": ".__version__",
+        "__title__": ".__version__",
+        "__url__": ".__version__",
+        "__version_info__": ".__version__",
+        "_constants": "._constants",
+        "_models": "._models",
+        "_protocols": "._protocols",
+        "_typings": "._typings",
+        "_utilities": "._utilities",
         "c": ".constants",
         "cli": ".api",
         "config": ".config",
