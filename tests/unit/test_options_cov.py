@@ -152,16 +152,23 @@ class TestsFlextCliOptionsUtilsCov:
     class AliasOptionsModel(m.BaseModel):
         """Group the AliasOptionsModel test behavior."""
 
-        project_name: str = m.Field(..., alias="project", validate_default=True)
+        project_name: Annotated[
+            str, m.Field(..., alias="project", validate_default=True)
+        ]
 
     class CustomDeclModel(m.BaseModel):
         """Group the CustomDeclModel test behavior."""
 
-        custom_name: str = m.Field(
-            ...,
-            json_schema_extra={"typer_param_decls": ["--custom-name", "--projects"]},
-            validate_default=True,
-        )
+        custom_name: Annotated[
+            str,
+            m.Field(
+                ...,
+                json_schema_extra={
+                    "typer_param_decls": ["--custom-name", "--projects"]
+                },
+                validate_default=True,
+            ),
+        ]
 
     class BoolToggleModel(m.BaseModel):
         """Group the BoolToggleModel test behavior."""

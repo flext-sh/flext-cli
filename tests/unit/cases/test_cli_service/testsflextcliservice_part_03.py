@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import Annotated
+
 import pytest
 
 from flext_cli import cli, settings
@@ -22,7 +24,9 @@ class TestsFlextCliServicePart03:
         """Exclude model fields marked private from the generated CLI surface."""
 
         class ExcludedFieldModel(m.BaseModel):
-            visible: str = m.Field(..., description="Visible", validate_default=True)
+            visible: Annotated[
+                str, m.Field(..., description="Visible", validate_default=True)
+            ]
             hidden: str = m.Field("secret", exclude=True, validate_default=True)
 
         app = cli.create_app_with_common_params(

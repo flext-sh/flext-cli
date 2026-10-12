@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from ipaddress import ip_address
-from typing import ClassVar
+from typing import Annotated, ClassVar
 
 from examples import c
 from flext_cli import m, u
@@ -23,7 +23,9 @@ class ExamplesFlextCliModelsExamplesDatabase:
             extra="forbid",
             validate_assignment=True,
         )
-        host: str = m.Field(..., description="Database host", validate_default=True)
+        host: Annotated[
+            str, m.Field(..., description="Database host", validate_default=True)
+        ]
         port: int = m.Field(
             c.EXAMPLE_DEFAULT_DB_PORT,
             description="Database port",
@@ -31,24 +33,33 @@ class ExamplesFlextCliModelsExamplesDatabase:
             le=c.EXAMPLE_MAX_PORT,
             validate_default=True,
         )
-        name: str = m.Field(
-            ...,
-            description="Database name",
-            min_length=1,
-            validate_default=True,
-        )
-        username: str = m.Field(
-            ...,
-            description="Database username",
-            min_length=1,
-            validate_default=True,
-        )
-        password: str = m.Field(
-            ...,
-            description="Database password",
-            min_length=c.EXAMPLE_MIN_PASSWORD_LENGTH,
-            validate_default=True,
-        )
+        name: Annotated[
+            str,
+            m.Field(
+                ...,
+                description="Database name",
+                min_length=1,
+                validate_default=True,
+            ),
+        ]
+        username: Annotated[
+            str,
+            m.Field(
+                ...,
+                description="Database username",
+                min_length=1,
+                validate_default=True,
+            ),
+        ]
+        password: Annotated[
+            str,
+            m.Field(
+                ...,
+                description="Database password",
+                min_length=c.EXAMPLE_MIN_PASSWORD_LENGTH,
+                validate_default=True,
+            ),
+        ]
         ssl_enabled: bool = m.Field(
             default=True,
             description="Enable SSL",
