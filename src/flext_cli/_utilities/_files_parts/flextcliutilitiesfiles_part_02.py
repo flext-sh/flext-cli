@@ -18,7 +18,11 @@ from flext_cli._utilities import (
 
 
 class FlextCliUtilitiesFilesPart02:
-    """Implementation part for FlextCliUtilitiesFilesPart02."""
+    """Atomic file operations and directory helpers.
+
+    Guarded atomic operations retain the native filesystem exception as the
+    result's cause when physical identity validation rejects a write or deletion.
+    """
 
     @staticmethod
     def files_write_binary(
@@ -74,6 +78,7 @@ class FlextCliUtilitiesFilesPart02:
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
+                exception=exc,
             )
         ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(path.parent)
         if ensure_result.failure:
@@ -115,6 +120,7 @@ class FlextCliUtilitiesFilesPart02:
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
+                exception=exc,
             )
         return r[bool].ok(value=True)
 
@@ -144,7 +150,10 @@ class FlextCliUtilitiesFilesPart02:
                 permission_mode=permission_mode,
             )
         except OSError as exc:
-            return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
+            return r[bool].fail(
+                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc),
+                exception=exc,
+            )
         return r[bool].ok(value=True)
 
     @staticmethod
@@ -164,7 +173,10 @@ class FlextCliUtilitiesFilesPart02:
         try:
             FlextCliUtilitiesAtomicFileDelete.remove_guarded_file(state)
         except OSError as exc:
-            return r[bool].fail(c.Cli.ERR_FILE_DELETION_FAILED.format(error=exc))
+            return r[bool].fail(
+                c.Cli.ERR_FILE_DELETION_FAILED.format(error=exc),
+                exception=exc,
+            )
         return r[bool].ok(value=True)
 
     @staticmethod

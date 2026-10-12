@@ -9,12 +9,54 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
+import pytest
+
 from flext_cli import m
 from tests import tm, u
 
 
 class TestsAtomicFileIdentity:
     """Prove callers cannot authorize effects with only matching content."""
+
+    @staticmethod
+    @pytest.mark.parametrize("operation", ["write", "delete"])
+    def test_guarded_symlink_failure_preserves_original_exception(
+        tmp_path: Path,
+        operation: str,
+    ) -> None:
+        """Keep the real filesystem exception available to a failing consumer."""
+        destination = tmp_path / "atomic.bin"
+        destination.write_bytes(b"planned")
+        before = u.Cli.atomic_read_binary_file_state(destination, required=True)
+        tm.ok(before)
+        snapshot = before.value
+        if snapshot.mode is None:
+            pytest.fail("required atomic snapshot has no permission mode")
+        target = tmp_path / "target.bin"
+        original = b"independent target"
+        target.write_bytes(original)
+        modified_ns = target.stat().st_mtime_ns
+        destination.unlink()
+        destination.symlink_to(target)
+
+        result = (
+            u.Cli.atomic_write_binary_file_guarded(
+                snapshot,
+                b"replacement",
+                permission_mode=snapshot.mode,
+            )
+            if operation == "write"
+            else u.Cli.atomic_delete_binary_file_guarded(snapshot)
+        )
+
+        tm.fail(result)
+        tm.that(destination.is_symlink(), eq=True)
+        tm.that(target.read_bytes(), eq=original)
+        tm.that(target.stat().st_mtime_ns, eq=modified_ns)
+        tm.that(result.exception, is_=OSError)
+        with pytest.raises(RuntimeError) as raised:
+            result.unwrap()
+        tm.that(raised.value.__cause__, eq=result.exception)
 
     @staticmethod
     def test_publication_unchanged_requires_equal_bytes_and_mode(
