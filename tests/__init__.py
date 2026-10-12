@@ -66,7 +66,6 @@ __all__: tuple[str, ...] = (
     "tk",
     "tm",
     "u",
-    "unit",
     "x",
 )
 
