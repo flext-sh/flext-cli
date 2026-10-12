@@ -12,7 +12,7 @@ from typing import ClassVar
 from typing_extensions import TypeForm
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesTablesRenderer
+from flext_cli._utilities._tables_parts import FlextCliUtilitiesTablesRenderer
 from flext_core import u
 
 

@@ -10,8 +10,8 @@ import tempfile
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import (
-    FlextCliUtilitiesProcesses,
+from flext_cli._utilities import FlextCliUtilitiesProcesses
+from flext_cli._utilities._xlxx import (
     FlextCliUtilitiesXlsxRecalcEvidence,
     FlextCliUtilitiesXlsxSnapshot,
 )

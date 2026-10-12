@@ -10,8 +10,8 @@ from inspect import Parameter
 from typing import get_origin
 
 from flext_cli import c, m, p, r, settings, t, u
-from flext_cli.services._cli_parts.flextclicli_part_01 import FlextCliCliPart01
-from flext_cli.services.cli_params import FlextCliCommonParams
+from flext_cli.services import FlextCliCommonParams
+from flext_cli.services._cli_parts import FlextCliCliPart01
 
 
 class FlextCliCliPart02(FlextCliCliPart01):

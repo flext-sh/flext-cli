@@ -11,8 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
-from flext_cli import m, p
-from flext_cli._settings import FlextCliSettings
+from flext_cli import FlextCliSettings, m, p
 
 # Concrete-module imports: this module resolves during the package root's
 # lazy ``s`` export, when the root namespace is still initializing.

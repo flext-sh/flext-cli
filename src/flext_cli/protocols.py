@@ -9,13 +9,13 @@ from __future__ import annotations
 from flext_cli._protocols import (
     FlextCliProtocolsBase,
     FlextCliProtocolsConfig,
+    FlextCliProtocolsDocx,
     FlextCliProtocolsDomain,
     FlextCliProtocolsFramework,
     FlextCliProtocolsPipeline,
+    FlextCliProtocolsProcess,
     FlextCliProtocolsXlsx,
 )
-from flext_cli._protocols.docx import FlextCliProtocolsDocx
-from flext_cli._protocols.process import FlextCliProtocolsProcess
 from flext_core import FlextProtocols
 
 

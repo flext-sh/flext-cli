@@ -11,7 +11,7 @@ from openpyxl.workbook.properties import CalcProperties
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import (
+from flext_cli._utilities._xlxx import (
     FlextCliUtilitiesXlsxStyleCodec,
     FlextCliUtilitiesXlsxWorkbookIo,
 )
