@@ -10,10 +10,9 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_core import install_lazy_exports
+from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from examples import _models_parts
     from examples.constants import ExamplesFlextCliConstants, c
     from examples.ex_01_getting_started import ExamplesFlextCliGettingStarted
     from examples.ex_05_authentication import Ex05Authentication
@@ -37,7 +36,6 @@ __all__: tuple[str, ...] = (
     "ExamplesFlextCliProtocols",
     "ExamplesFlextCliTypes",
     "ExamplesFlextCliUtilities",
-    "_models_parts",
     "c",
     "d",
     "e",
@@ -64,7 +62,6 @@ install_lazy_exports(
         "ExamplesFlextCliProtocols": ".protocols",
         "ExamplesFlextCliTypes": ".typings",
         "ExamplesFlextCliUtilities": ".utilities",
-        "_models_parts": "._models_parts",
         "c": ".constants",
         "d": "flext_core",
         "e": "flext_core",
