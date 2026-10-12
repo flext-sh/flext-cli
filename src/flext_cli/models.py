@@ -34,20 +34,20 @@ class FlextCliModels(FlextModels):
     """FlextCli models extending FlextModels."""
 
     class Cli(
-        FlextCliModelsPipeline,
-        FlextCliModelsRules,
+        FlextCliModelsAtomicState,
         FlextCliModelsBase,
         FlextCliModelsAtomicSymlink,
-        FlextCliModelsTemplate,
-        FlextCliModelsXlsx,
+        FlextCliConfigModels,
         FlextCliModelsDocx,
         FlextCliModelsDocxDocument,
         FlextCliModelsDocxStyles,
+        FlextCliModelsPipeline,
         FlextCliModelsPptx,
         FlextCliModelsPptxPresentation,
         FlextCliModelsProcess,
-        FlextCliModelsAtomicState,
-        FlextCliConfigModels,
+        FlextCliModelsRules,
+        FlextCliModelsTemplate,
+        FlextCliModelsXlsx,
     ):
         """CLI project namespace."""
 
