@@ -6,8 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, p, s, t, u
+from flext_cli import m, p, t, u
 from flext_cli.services._cli_parts import FlextCliCliPart05
+from flext_core import s
 
 
 class FlextCliCliPart06(FlextCliCliPart05):
@@ -20,7 +21,7 @@ class FlextCliCliPart06(FlextCliCliPart05):
         *,
         provide: t.Cli.NullaryOperation[s[R]],
     ) -> tuple[m.Cli.ResultCommandRoute, ...]:
-        """Derive one result route per operation of a service class.
+        """Derive one result route per operation of a core service class.
 
         Routes come from ``u.service_operations(service_type)``: the kebab-case
         operation name, its summary as help, and its request model or the
