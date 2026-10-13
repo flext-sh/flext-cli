@@ -8,16 +8,16 @@ from __future__ import annotations
 
 from typing import Literal
 
-from flext_cli import c
+from flext_cli._constants import FlextCliConstantsEnums
 
 
 class FlextCliTypesPipeline:
     """Pipeline type aliases namespace."""
 
     type PipelineStageStatus = Literal[
-        c.Cli.PipelineStageStatus.OK,
-        c.Cli.PipelineStageStatus.SKIPPED,
-        c.Cli.PipelineStageStatus.FAILED,
+        FlextCliConstantsEnums.PipelineStageStatus.OK,
+        FlextCliConstantsEnums.PipelineStageStatus.SKIPPED,
+        FlextCliConstantsEnums.PipelineStageStatus.FAILED,
     ]
 
 

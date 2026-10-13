@@ -287,8 +287,8 @@ class TestsFlextCliDocxRender:
 
 
 def assert_pagination_flags_match(
-    pagination: object,
-    expected_pagination: object,
+    pagination: object,  # ast-grep-ignore: ban-broad-annotation
+    expected_pagination: object,  # ast-grep-ignore: ban-broad-annotation
 ) -> None:
     """Assert the four paragraph pagination flags match one expected set."""
     pagination_fmt = cast("p.Cli.DocxParagraphFormatSurface", pagination)

@@ -22,6 +22,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import io
+from collections.abc import Callable
 from typing import TYPE_CHECKING, TextIO
 
 import ruamel.yaml
@@ -71,12 +72,26 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         """
         if not path.is_file():
             return r[t.Cli.YamlNode].fail(f"YAML file not found: {path}")
-        try:
+
+        def produce() -> t.Cli.YamlValue:
             with path.open("r", encoding=c.DEFAULT_ENCODING) as fh:
-                loaded = FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml().load(fh)
-            node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
+                return FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml().load(fh)
+
+        try:
+            return FlextCliUtilitiesYamlEngineMixin._load_node(produce)
         except OSError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML read error: {exc}", exception=exc)
+
+    @staticmethod
+    def _load_node(produce: Callable[[], t.Cli.YamlValue]) -> p.Result[t.Cli.YamlNode]:
+        """Load, coerce, and validate one YAML document through the engine.
+
+        Returns:
+            The resulting ``p.Result[t.Cli.YamlNode]``.
+
+        """
+        try:
+            node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(produce())
         except YAMLError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
         except TypeError as exc:
@@ -93,16 +108,9 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             The resulting ``p.Result[t.Cli.YamlNode]``.
 
         """
-        try:
-            loaded = FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml().load(text)
-            node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
-        except YAMLError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
-        except TypeError as exc:
-            return r[t.Cli.YamlNode].fail(f"YAML content error: {exc}", exception=exc)
-        if node is None:
-            return r[t.Cli.YamlNode].fail("YAML document is empty (no content)")
-        return r[t.Cli.YamlNode].ok(node)
+        return FlextCliUtilitiesYamlEngineMixin._load_node(
+            lambda: FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml().load(text),
+        )
 
     @staticmethod
     def yaml_roundtrip_load_all_text(

@@ -12,6 +12,9 @@ import pytest
 
 from flext_cli import cli
 from tests import m, r, tm
+from tests.unit.cases.test_pipeline.testsflextclipipelinehandlers import (
+    TestsFlextCliPipelineHandlers,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -19,29 +22,8 @@ if TYPE_CHECKING:
     from tests import p
 
 
-class TestsFlextCliPipelinePart02:
+class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
     """Implementation part for TestsFlextCliPipelinePart02."""
-
-    @staticmethod
-    def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:
-        """Build a handler that succeeds and writes to shared.
-
-        Returns:
-            The resulting ``p.Cli.PipelineStage``.
-
-        """
-
-        def handler(
-            ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
-            ctx.shared[output_key] = stage_id
-            return cli.ok_stage(
-                stage_id,
-                output={output_key: stage_id},
-                duration_ms=1.0,
-            )
-
-        return handler
 
     def test_cycle_detection(self, tmp_path: Path) -> None:
         """Circular dependencies produce a failure result."""

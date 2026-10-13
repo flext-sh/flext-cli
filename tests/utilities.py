@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Annotated
 
 from flext_tests import FlextTestsUtilities
 
+from examples import ExamplesFlextCliUtilities
 from flext_cli import FlextCliUtilities, cli
 from tests import TestsFlextCliSettings, c, m, p, r, tm
 
@@ -21,7 +22,11 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class TestsFlextCliUtilities(FlextTestsUtilities, FlextCliUtilities):
+class TestsFlextCliUtilities(
+    FlextTestsUtilities,
+    ExamplesFlextCliUtilities,
+    FlextCliUtilities,
+):
     """Test utilities for flext-cli."""
 
     @staticmethod

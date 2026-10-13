@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from flext_tests import FlextTestsConstants
 
+from examples import ExamplesFlextCliConstants
 from flext_cli import FlextCliConstants
 from tests.constants_parts import TestsFlextCliConstantsPart01
 
@@ -22,6 +23,7 @@ from tests.constants_parts import TestsFlextCliConstantsPart01
 class TestsFlextCliConstants(
     TestsFlextCliConstantsPart01,
     FlextTestsConstants,
+    ExamplesFlextCliConstants,
     FlextCliConstants,
 ):
     """Public facade for TestsFlextCliConstants."""

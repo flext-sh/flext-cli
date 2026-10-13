@@ -15,7 +15,7 @@ from tests import c, m, tm, u
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
 if TYPE_CHECKING:
-    from tests import t
+    from tests import p, t
 
 
 class TestsFlextCliServicePart01:
@@ -39,8 +39,13 @@ class TestsFlextCliServicePart01:
         tm.that(result, eq=True)
 
     @staticmethod
-    def test_create_app_with_common_params_applies_settings() -> None:
-        """Apply the shared debug option through the public invocation facade."""
+    def _invoke_common_app(args: t.StrSequence) -> p.Result[m.Cli.InvocationResult]:
+        """Register one inspect command and invoke the shared application.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.InvocationResult]``.
+
+        """
         app = cli.create_app_with_common_params(
             name="sample",
             help_text="Sample application",
@@ -51,8 +56,12 @@ class TestsFlextCliServicePart01:
             help_text="Inspect settings",
             command=lambda: True,
         )
+        return cli.invoke_app(app, args=args)
 
-        result = cli.invoke_app(app, args=["--debug", "inspect"])
+    @staticmethod
+    def test_create_app_with_common_params_applies_settings() -> None:
+        """Apply the shared debug option through the public invocation facade."""
+        result = TestsFlextCliServicePart01._invoke_common_app(["--debug", "inspect"])
 
         tm.ok(result)
         tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
@@ -60,18 +69,9 @@ class TestsFlextCliServicePart01:
     @staticmethod
     def test_create_app_with_common_params_applies_log_level() -> None:
         """Apply the shared log-level option through the public invocation facade."""
-        app = cli.create_app_with_common_params(
-            name="sample",
-            help_text="Sample application",
+        result = TestsFlextCliServicePart01._invoke_common_app(
+            ["--log-level", c.LogLevel.DEBUG, "inspect"],
         )
-        cli.register_command(
-            app,
-            name="inspect",
-            help_text="Inspect settings",
-            command=lambda: True,
-        )
-
-        result = cli.invoke_app(app, args=["--log-level", c.LogLevel.DEBUG, "inspect"])
 
         tm.ok(result)
         tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)

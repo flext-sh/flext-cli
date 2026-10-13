@@ -41,7 +41,7 @@ class FlextCliUtilitiesAtomicFile:
     @staticmethod
     def write_atomic_bytes(
         path: Path,
-        content: object,
+        content: object,  # ast-grep-ignore: ban-broad-annotation
         *,
         expected_state: m.Cli.AtomicFileState | _NoPrecondition = _NO_PRECONDITION,
         permission_mode: int | None = None,

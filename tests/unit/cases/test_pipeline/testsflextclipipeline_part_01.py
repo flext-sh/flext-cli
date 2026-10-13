@@ -10,6 +10,9 @@ from typing import TYPE_CHECKING
 
 from flext_cli import cli
 from tests import c, m, r, t, tm
+from tests.unit.cases.test_pipeline.testsflextclipipelinehandlers import (
+    TestsFlextCliPipelineHandlers,
+)
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -17,29 +20,8 @@ if TYPE_CHECKING:
     from tests import p
 
 
-class TestsFlextCliPipelinePart01:
+class TestsFlextCliPipelinePart01(TestsFlextCliPipelineHandlers):
     """Implementation part for TestsFlextCliPipelinePart01."""
-
-    @staticmethod
-    def _ok_handler(stage_id: str, output_key: str = "done") -> p.Cli.PipelineStage:
-        """Build a handler that succeeds and writes to shared.
-
-        Returns:
-            The resulting ``p.Cli.PipelineStage``.
-
-        """
-
-        def handler(
-            ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
-            ctx.shared[output_key] = stage_id
-            return cli.ok_stage(
-                stage_id,
-                output={output_key: stage_id},
-                duration_ms=1.0,
-            )
-
-        return handler
 
     @staticmethod
     def _fail_handler(stage_id: str) -> p.Cli.PipelineStage:
@@ -100,7 +82,7 @@ class TestsFlextCliPipelinePart01:
     @staticmethod
     def test_shared_state_propagation(tmp_path: Path) -> None:
         """Stage B can read what stage A wrote to shared."""
-        received: dict[str, t.JsonValue | None] = {}
+        received: t.MutableMappingKV[str, t.JsonValue | None] = {}
 
         def reader(
             ctx: p.Cli.PipelineStageContext,

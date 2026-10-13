@@ -8,9 +8,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from tomlkit.items import Array
+
 from flext_cli import t
 from flext_cli._utilities._toml_parts import (
     FlextCliUtilitiesTomlPart01,
+    FlextCliUtilitiesTomlPart02,
     FlextCliUtilitiesTomlPart03,
 )
 from flext_core import u
@@ -62,6 +65,16 @@ class FlextCliUtilitiesTomlPart04:
         normalized_current = sorted(current) if sort_values else [*current]
         if normalized_current == normalized_expected:
             return False
+        original = FlextCliUtilitiesTomlPart02.toml_item_child(container, key)
+        if (
+            not sort_values
+            and isinstance(original, Array)
+            and len(original) == len(normalized_expected)
+        ):
+            for index, value in enumerate(normalized_expected):
+                if original[index] != value:
+                    original[index] = value
+            return True
         container[key] = FlextCliUtilitiesTomlPart01.toml_array(normalized_expected)
         return True
 

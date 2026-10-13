@@ -23,7 +23,7 @@ class FlextCliProtocolsDomain:
     class JsonValueProcessor(Protocol):
         """Protocol for JSON-compatible value processors."""
 
-        def __call__(self, value: object) -> t.JsonValue:
+        def __call__(self, value: t.JsonValue) -> t.JsonValue:
             """Transform one JSON-compatible value."""
             ...
 
@@ -50,8 +50,10 @@ class FlextCliProtocolsDomain:
         ruamel property is unannotated and the module already imports ruamel.
         """
 
-        comment: object
-        items: MutableMapping[str, Sequence[object]]
+        comment: object  # ast-grep-ignore: ban-broad-annotation
+        items: MutableMapping[
+            str, Sequence[object]  # ast-grep-ignore: ban-broad-annotation
+        ]
 
     @runtime_checkable
     class YamlCommentCarrier(Protocol):
@@ -116,15 +118,22 @@ class FlextCliProtocolsDomain:
         lookups ``Incomplete``/unannotated; this pins the consumed contract.
         """
 
-        def add(self, range_string: str, cf_rule: object) -> None:
+        def add(
+            self,
+            range_string: str,
+            cf_rule: object,  # ast-grep-ignore: ban-broad-annotation
+        ) -> None:
             """Register one conditional-format rule over one cell range."""
             ...
 
-        def __getitem__(self, key: object) -> Sequence[object]:
+        def __getitem__(
+            self,
+            key: object,  # ast-grep-ignore: ban-broad-annotation
+        ) -> Sequence[object]:  # ast-grep-ignore: ban-broad-annotation
             """Return the rules attached to one conditional-format entry."""
             ...
 
-        def __iter__(self) -> Iterator[object]:
+        def __iter__(self) -> Iterator[object]:  # ast-grep-ignore: ban-broad-annotation
             """Iterate the registered conditional-format entries."""
             ...
 
@@ -140,7 +149,10 @@ class FlextCliProtocolsDomain:
     class JinjaTemplateRenderer(Protocol):
         """jinja2 template render surface consumed by the template utilities."""
 
-        def render(self, variables: Mapping[str, object]) -> str:
+        def render(
+            self,
+            variables: Mapping[str, object],  # ast-grep-ignore: ban-broad-annotation
+        ) -> str:
             """Render the template with one variable mapping."""
             ...
 
@@ -148,7 +160,10 @@ class FlextCliProtocolsDomain:
     class JsonSchemaValidator(Protocol):
         """jsonschema validator surface consumed by config validation."""
 
-        def validate(self, instance: object) -> None:
+        def validate(
+            self,
+            instance: object,  # ast-grep-ignore: ban-broad-annotation
+        ) -> None:
             """Validate one instance; raise on the first violation."""
             ...
 
@@ -161,23 +176,23 @@ class FlextCliProtocolsDomain:
         call sites narrow to the real runtime value types.
         """
 
-        size: object
-        bold: object
-        italic: object
-        underline: object
+        size: object  # ast-grep-ignore: ban-broad-annotation
+        bold: object  # ast-grep-ignore: ban-broad-annotation
+        italic: object  # ast-grep-ignore: ban-broad-annotation
+        underline: object  # ast-grep-ignore: ban-broad-annotation
 
     @runtime_checkable
     class XlsxProtectionSurface(Protocol):
         """openpyxl cell-protection surface consumed by snapshot values."""
 
-        locked: object
-        hidden: object
+        locked: object  # ast-grep-ignore: ban-broad-annotation
+        hidden: object  # ast-grep-ignore: ban-broad-annotation
 
     @runtime_checkable
     class XlsxRowDimensionSurface(Protocol):
         """openpyxl row-dimension surface consumed by snapshot structure."""
 
-        height: object
+        height: object  # ast-grep-ignore: ban-broad-annotation
 
     @runtime_checkable
     class DocxParagraphFormatSurface(Protocol):
@@ -188,11 +203,11 @@ class FlextCliProtocolsDomain:
         sites narrow to the real runtime value types.
         """
 
-        alignment: object
-        keep_together: object
-        keep_with_next: object
-        page_break_before: object
-        widow_control: object
+        alignment: object  # ast-grep-ignore: ban-broad-annotation
+        keep_together: object  # ast-grep-ignore: ban-broad-annotation
+        keep_with_next: object  # ast-grep-ignore: ban-broad-annotation
+        page_break_before: object  # ast-grep-ignore: ban-broad-annotation
+        widow_control: object  # ast-grep-ignore: ban-broad-annotation
 
     @runtime_checkable
     class ModelCommandHandler[TParams: t.Cli.ModelLike](Protocol):

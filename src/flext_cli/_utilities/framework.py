@@ -443,7 +443,7 @@ class FlextCliUtilitiesFramework:
             The resulting ``m.Cli.InvocationResult``.
 
         """
-        runner_env: dict[str, str | None] = {
+        runner_env: t.MutableMappingKV[str, str | None] = {
             "NO_COLOR": "1",
             "GITHUB_ACTIONS": "",
             "FORCE_COLOR": "",

@@ -408,7 +408,7 @@ class TestsFlextCliOptionsUtilsCov:
 
     def test_invoking_command_passes_validated_model_to_handler(self) -> None:
         """Verify that invoking command passes validated model to handler."""
-        received: dict[str, TestsFlextCliOptionsUtilsCov.GreetModel] = {}
+        received: t.MutableMappingKV[str, TestsFlextCliOptionsUtilsCov.GreetModel] = {}
 
         def _capture(params: TestsFlextCliOptionsUtilsCov.GreetModel) -> str:
             received["model"] = params
@@ -446,7 +446,9 @@ class TestsFlextCliOptionsUtilsCov:
         # through the validated model and the settings instance stays intact.
         """Verify that invoking command uses parsed values without mutating settings."""
         settings = self.OptionsDefaultsModel(name="start-name")
-        received: dict[str, TestsFlextCliOptionsUtilsCov.OptionsDefaultsModel] = {}
+        received: t.MutableMappingKV[
+            str, TestsFlextCliOptionsUtilsCov.OptionsDefaultsModel
+        ] = {}
 
         def _capture(params: TestsFlextCliOptionsUtilsCov.OptionsDefaultsModel) -> str:
             received["model"] = params

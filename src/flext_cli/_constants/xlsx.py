@@ -7,9 +7,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from enum import StrEnum, unique
-from typing import ClassVar
+from typing import TYPE_CHECKING, ClassVar
 
-from flext_core import t
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliConstantsXlsx:
