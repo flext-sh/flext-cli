@@ -72,17 +72,32 @@ class FlextCliUtilitiesJsonCoreMixin:
             The resulting ``p.Result[t.JsonValue]``.
 
         """
+        return FlextCliUtilitiesJsonCoreMixin._parse_json_value(
+            raw,
+            reject_duplicate_keys=reject_duplicate_keys,
+            op_name="json_loads",
+        )
+
+    @staticmethod
+    def _parse_json_value(
+        raw: str | bytes,
+        *,
+        reject_duplicate_keys: bool,
+        op_name: str,
+    ) -> p.Result[t.JsonValue]:
+        """Parse one JSON payload through the canonical value adapter.
+
+        Returns:
+            The resulting ``p.Result[t.JsonValue]``.
+
+        """
 
         def _parse() -> t.JsonValue:
             if reject_duplicate_keys:
                 FlextCliUtilitiesJsonCoreMixin._reject_duplicate_json_keys(raw)
             return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
-        return u.try_(
-            _parse,
-            catch=(c.ValidationError, ValueError),
-            op_name="json_loads",
-        )
+        return u.try_(_parse, catch=c.EXC_VALIDATION_VALUE, op_name=op_name)
 
     @staticmethod
     def _reject_duplicate_json_keys(raw: str | bytes) -> None:
@@ -257,13 +272,11 @@ class FlextCliUtilitiesJsonCoreMixin:
             The resulting ``p.Result[t.JsonValue]``.
 
         """
-
-        def _parse() -> t.JsonValue:
-            if reject_duplicate_keys:
-                FlextCliUtilitiesJsonCoreMixin._reject_duplicate_json_keys(text)
-            return t.Cli.JSON_VALUE_ADAPTER.validate_json(text)
-
-        return u.try_(_parse, catch=c.EXC_VALIDATION_VALUE, op_name="json_parse")
+        return FlextCliUtilitiesJsonCoreMixin._parse_json_value(
+            text,
+            reject_duplicate_keys=reject_duplicate_keys,
+            op_name="json_parse",
+        )
 
     @staticmethod
     def json_as_mapping(value: t.JsonValue | t.JsonPayload | None) -> t.JsonMapping:

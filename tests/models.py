@@ -10,11 +10,17 @@ from typing import Annotated
 
 from flext_tests import FlextTestsModels
 
+from examples import ExamplesFlextCliModels
 from flext_cli import FlextCliModels
 from tests.models_parts import TestsFlextCliModelsPart01
 
 
-class TestsFlextCliModels(TestsFlextCliModelsPart01, FlextTestsModels, FlextCliModels):
+class TestsFlextCliModels(
+    TestsFlextCliModelsPart01,
+    FlextTestsModels,
+    ExamplesFlextCliModels,
+    FlextCliModels,
+):
     """Test model facade composed from canonical FLEXT model owners."""
 
     class Tests(TestsFlextCliModelsPart01.Tests):

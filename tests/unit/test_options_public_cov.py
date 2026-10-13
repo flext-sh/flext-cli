@@ -26,7 +26,7 @@ class TestsFlextCliOptions:
 
         output_path: Path = Path("reports/output.json")
         tags: t.StrSequence = ("lint", "typecheck")
-        flags: dict[str, bool] = m.Field(default_factory=lambda: {"debug": True})
+        flags: t.MappingKV[str, bool] = m.Field(default_factory=lambda: {"debug": True})
 
     @staticmethod
     @pytest.mark.parametrize(

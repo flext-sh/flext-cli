@@ -20,7 +20,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from flext_cli import cli
-from tests import c, m, tm
+from tests import c, m, t, tm
 
 if TYPE_CHECKING:
     from collections.abc import Generator
@@ -119,7 +119,7 @@ class TestsFlextCliCmdCov:
         settings_dir = self._make_flext_dir(tmp_path)
         with self._home(tmp_path):
             result = cli.settings_snapshot()
-        dumped: dict[str, object] = tm.ok(result).model_dump()
+        dumped: t.JsonDict = tm.ok(result).model_dump()
         tm.that(dumped["settings_dir"], eq=str(settings_dir))
         tm.that(dumped["settings_exists"], eq=True)
         tm.that(

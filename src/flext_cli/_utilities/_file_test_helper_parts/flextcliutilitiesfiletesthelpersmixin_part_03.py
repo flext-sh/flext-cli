@@ -91,7 +91,7 @@ class FlextCliUtilitiesFileTestHelpersMixinPart03:
         *,
         compute_hash: bool = False,
         parse_content: bool = False,
-    ) -> p.Result[Mapping[str, object]]:
+    ) -> p.Result[Mapping[str, object]]:  # ast-grep-ignore: ban-broad-annotation
         """Return generic file metadata.
 
         Args:
@@ -108,9 +108,11 @@ class FlextCliUtilitiesFileTestHelpersMixinPart03:
             stat = path.stat()
         except OSError as exc:
             msg = f"files_info failed: {exc}"
-            return r[Mapping[str, object]].fail(msg)
+            return r[Mapping[str, object]].fail(
+                msg
+            )  # ast-grep-ignore: ban-broad-annotation
 
-        info: MutableMapping[str, object] = {
+        info: MutableMapping[str, object] = {  # ast-grep-ignore: ban-broad-annotation
             "exists": path.exists(),
             "path": str(path),
             "size": stat.st_size,
@@ -128,7 +130,7 @@ class FlextCliUtilitiesFileTestHelpersMixinPart03:
                 )
             )
             info["parsed"] = parsed_result
-        return r[Mapping[str, object]].ok(info)
+        return r[Mapping[str, object]].ok(info)  # ast-grep-ignore: ban-broad-annotation
 
 
 __all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixinPart03"]

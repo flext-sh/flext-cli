@@ -10,10 +10,12 @@ from typing import override
 
 from flext_tests import FlextTestsServiceBase
 
-from tests import TestsFlextCliSettings, m
+from tests import TestsFlextCliSettings, m, p
 
 
-class TestsFlextCliServiceBase(FlextTestsServiceBase):
+class TestsFlextCliServiceBase[TDomainResult: p.Base](
+    FlextTestsServiceBase[TDomainResult],
+):
     """CLI test service base with source and test settings namespaces."""
 
     # NOTE (multi-agent, mro-wkii.19.4): flext-tests owns fetch_settings;

@@ -46,7 +46,7 @@ class TestsFlextCliTypings:
         [123, "not-a-sequence-of-str-only", [1, 2, 3], {"k": "v"}],
     )
     def test_str_sequence_adapter_rejects_non_string_sequences(
-        payload: object,
+        payload: object,  # ast-grep-ignore: ban-broad-annotation
     ) -> None:
         """STR_SEQUENCE_ADAPTER raises ValidationError on invalid input."""
         with pytest.raises(m.ValidationError):
@@ -66,7 +66,9 @@ class TestsFlextCliTypings:
 
     @staticmethod
     @pytest.mark.parametrize("payload", [["a", "list"], "string", 42, True])
-    def test_json_mapping_adapter_rejects_non_mappings(payload: object) -> None:
+    def test_json_mapping_adapter_rejects_non_mappings(
+        payload: object,  # ast-grep-ignore: ban-broad-annotation
+    ) -> None:
         """JSON_MAPPING_ADAPTER raises ValidationError for non-object input."""
         with pytest.raises(m.ValidationError):
             t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
@@ -95,8 +97,8 @@ class TestsFlextCliTypings:
         ],
     )
     def test_cli_default_source_adapter_accepts_cli_value_kinds(
-        payload: object,
-        expected: object,
+        payload: object,  # ast-grep-ignore: ban-broad-annotation
+        expected: object,  # ast-grep-ignore: ban-broad-annotation
     ) -> None:
         """The CLI default-source adapter accepts scalars, sequences, and paths."""
         result = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)

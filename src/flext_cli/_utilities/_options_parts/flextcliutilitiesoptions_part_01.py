@@ -83,23 +83,25 @@ class FlextCliUtilitiesOptionsPart01:
         """
         if cls.json_option(annotation):
             return str
-        sequence_origins: frozenset[object] = frozenset(
-            filter(
-                None,
-                [
-                    get_origin(Sequence[str]),
-                    get_origin(list[str]),
-                    # mro-j2yt (codex): Typer repeats canonical tuple model fields.
-                    get_origin(t.VariadicTuple[str]),
-                    get_origin(t.StrSequence),
-                    t.SequenceOf,
-                    t.MutableSequenceOf,
-                    # Typer has no set type: sets are repeated options whose
-                    # list the request model validates into set/frozenset.
-                    get_origin(set[str]),
-                    get_origin(frozenset[str]),
-                ],
-            ),
+        sequence_origins: frozenset[object] = (  # ast-grep-ignore: ban-broad-annotation
+            frozenset(
+                filter(
+                    None,
+                    [
+                        get_origin(Sequence[str]),
+                        get_origin(list[str]),
+                        # mro-j2yt (codex): Typer repeats canonical tuple model fields.
+                        get_origin(t.VariadicTuple[str]),
+                        get_origin(t.StrSequence),
+                        t.SequenceOf,
+                        t.MutableSequenceOf,
+                        # Typer has no set type: sets are repeated options whose
+                        # list the request model validates into set/frozenset.
+                        get_origin(set[str]),
+                        get_origin(frozenset[str]),
+                    ],
+                ),
+            )
         )
         resolved_annotation_input = cls.unwrap_annotation(annotation)
         origin = get_origin(resolved_annotation_input)
