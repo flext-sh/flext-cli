@@ -292,6 +292,9 @@ jobs:
             .reports/**/coverage.json
             .reports/check/**/*.sarif
             .reports/check/**/*.md
+            .reports/gates/**/original-receipt.json
+            .reports/gates/**/check/**/*.sarif
+            .reports/gates/**/check/**/*.md
             .reports/codegen-plan.json
             .reports/codegen-publication.json
             .reports/codegen-publication/**/*.json
@@ -304,6 +307,8 @@ jobs:
             .reports/tests/**/testmon-selection.json
             .reports/tests/**/testmon-inventory.json
             .reports/tests/**/run-accounting.json
+            .reports/tests/**/diagnostics.json
+            .reports/tests/**/original-receipt.json
             .reports/tests/**/cache-before.json
             .reports/tests/**/cache-after.json
             .reports/tests/**/cache-policy.json

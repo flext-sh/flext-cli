@@ -364,6 +364,7 @@ addopts = [
   "--strict-markers",
   "--markdown-docs",
   "--durations=10",
+  "--flext-enforce-strict",
   "--timeout=10",
 ]
 flext_slow_timeout_seconds = "30"
@@ -499,6 +500,7 @@ runtime-evaluated-base-classes = [
   "flext_tests.FlextTestsUtilities.Tests",
   "pydantic.BaseModel",
   "tests.m.BaseModel",
+  "tests.s",
 ]
 
 [tool.ruff.lint.flake8-tidy-imports]
