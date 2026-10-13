@@ -8,14 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli._models.xlsx import (
-    FlextCliModelsXlsx,
-)
-from flext_core import FlextModels
-from flext_cli._models.config import FlextCliConfigModels
 from flext_cli._models.atomic_state import FlextCliModelsAtomicState
 from flext_cli._models.atomic_symlink import FlextCliModelsAtomicSymlink
 from flext_cli._models.base import FlextCliModelsBase
+from flext_cli._models.config import FlextCliConfigModels
 from flext_cli._models.docx import FlextCliModelsDocx
 from flext_cli._models.docx_document import FlextCliModelsDocxDocument
 from flext_cli._models.docx_styles import FlextCliModelsDocxStyles
@@ -25,6 +21,8 @@ from flext_cli._models.pptx_presentation import FlextCliModelsPptxPresentation
 from flext_cli._models.process import FlextCliModelsProcess
 from flext_cli._models.rules import FlextCliModelsRules
 from flext_cli._models.template import FlextCliModelsTemplate
+from flext_cli._models.xlsx import FlextCliModelsXlsx
+from flext_core import FlextModels
 
 if TYPE_CHECKING:
     from flext_cli import t

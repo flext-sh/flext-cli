@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-
 import pytest
 
 from tests import c, m, t, tm, u
