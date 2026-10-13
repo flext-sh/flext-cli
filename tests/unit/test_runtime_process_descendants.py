@@ -13,14 +13,16 @@ from typing import TYPE_CHECKING, ClassVar, override
 
 import pytest
 
-from flext_cli._utilities import FlextCliUtilitiesCli
-from tests import m, p, tm, u
+from flext_cli import FlextCliUtilitiesCli
+from tests import m, p, tm
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-class _ObservedWindowsCli(FlextCliUtilitiesCli):
+class TestsFlextCliObservedWindowsCli(FlextCliUtilitiesCli):
+    """CLI utilities double recording each Windows job active-count query."""
+
     active_counts: ClassVar[list[int]] = []
 
     @classmethod
@@ -68,7 +70,7 @@ class TestsFlextCliRuntimeProcessDescendants:
             "pathlib.Path(sys.argv[1]).write_bytes(child.stdout.readline())"
         )
 
-        result = u.Cli().run_to_file(
+        result = FlextCliUtilitiesCli().run_to_file(
             [sys.executable, "-I", "-S", "-c", parent, str(process_info)],
             output_file,
         )
@@ -86,8 +88,8 @@ class TestsFlextCliRuntimeProcessDescendants:
     @staticmethod
     def test_windows_job_reports_zero_active_processes(tmp_path: Path) -> None:
         """Test windows job reports zero active processes."""
-        _ObservedWindowsCli.active_counts.clear()
-        result = _ObservedWindowsCli.run_to_file(
+        TestsFlextCliObservedWindowsCli.active_counts.clear()
+        result = TestsFlextCliObservedWindowsCli.run_to_file(
             [sys.executable, "-c", "import time;time.sleep(30)"],
             tmp_path / "windows-job.log",
             options=m.Cli.ProcessOptions(
@@ -102,10 +104,10 @@ class TestsFlextCliRuntimeProcessDescendants:
         tm.that(result.value.timed_out, eq=True)
         tm.that(result.value.raw_return_code, lt=0)
         if os.name == "nt":
-            tm.that(_ObservedWindowsCli.active_counts, empty=False)
-            tm.that(_ObservedWindowsCli.active_counts[-1], eq=0)
+            tm.that(TestsFlextCliObservedWindowsCli.active_counts, empty=False)
+            tm.that(TestsFlextCliObservedWindowsCli.active_counts[-1], eq=0)
             return
-        active_count = u.Cli.windows_job_active_count(0)
+        active_count = FlextCliUtilitiesCli.windows_job_active_count(0)
         tm.that(active_count.success, eq=True)
         tm.that(active_count.value, eq=0)
-        tm.that(_ObservedWindowsCli.active_counts, empty=True)
+        tm.that(TestsFlextCliObservedWindowsCli.active_counts, empty=True)

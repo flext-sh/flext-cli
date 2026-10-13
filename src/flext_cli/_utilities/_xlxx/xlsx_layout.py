@@ -11,7 +11,7 @@ from openpyxl.comments import Comment
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesXlsxAddresses
+from flext_cli._utilities._xlxx import FlextCliUtilitiesXlsxAddresses
 
 
 class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):

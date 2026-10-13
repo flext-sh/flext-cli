@@ -15,9 +15,9 @@ from flext_core.lazy import install_lazy_exports
 if TYPE_CHECKING:
     from examples.constants import ExamplesFlextCliConstants, c
     from examples.ex_01_getting_started import ExamplesFlextCliGettingStarted
-    from examples.ex_05_authentication import Ex05Authentication
-    from examples.ex_06_settings import Ex06Settings
-    from examples.ex_11_complete_integration import DataManagerCLI
+    from examples.ex_05_authentication import ExamplesFlextCliAuthentication
+    from examples.ex_06_settings import ExamplesFlextCliSettings
+    from examples.ex_11_complete_integration import ExamplesFlextCliDataManager
     from examples.models import ExamplesFlextCliModels, m
     from examples.protocols import ExamplesFlextCliProtocols, p
     from examples.typings import ExamplesFlextCliTypes, t
@@ -27,13 +27,13 @@ if TYPE_CHECKING:
 
 
 __all__: tuple[str, ...] = (
-    "DataManagerCLI",
-    "Ex05Authentication",
-    "Ex06Settings",
+    "ExamplesFlextCliAuthentication",
     "ExamplesFlextCliConstants",
+    "ExamplesFlextCliDataManager",
     "ExamplesFlextCliGettingStarted",
     "ExamplesFlextCliModels",
     "ExamplesFlextCliProtocols",
+    "ExamplesFlextCliSettings",
     "ExamplesFlextCliTypes",
     "ExamplesFlextCliUtilities",
     "c",
@@ -53,13 +53,13 @@ install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "DataManagerCLI": ".ex_11_complete_integration",
-        "Ex05Authentication": ".ex_05_authentication",
-        "Ex06Settings": ".ex_06_settings",
+        "ExamplesFlextCliAuthentication": ".ex_05_authentication",
         "ExamplesFlextCliConstants": ".constants",
+        "ExamplesFlextCliDataManager": ".ex_11_complete_integration",
         "ExamplesFlextCliGettingStarted": ".ex_01_getting_started",
         "ExamplesFlextCliModels": ".models",
         "ExamplesFlextCliProtocols": ".protocols",
+        "ExamplesFlextCliSettings": ".ex_06_settings",
         "ExamplesFlextCliTypes": ".typings",
         "ExamplesFlextCliUtilities": ".utilities",
         "c": ".constants",

@@ -16,9 +16,7 @@ from __future__ import annotations
 from flext_tests import FlextTestsConstants
 
 from flext_cli import FlextCliConstants
-from tests._constants_parts.testsflextcliconstants_part_01 import (
-    TestsFlextCliConstantsPart01,
-)
+from tests.constants_parts import TestsFlextCliConstantsPart01
 
 
 class TestsFlextCliConstants(

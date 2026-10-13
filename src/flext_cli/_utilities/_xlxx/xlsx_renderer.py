@@ -9,7 +9,7 @@ from __future__ import annotations
 from openpyxl import Workbook
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import (
+from flext_cli._utilities._xlxx import (
     FlextCliUtilitiesXlsxCells,
     FlextCliUtilitiesXlsxLayout,
     FlextCliUtilitiesXlsxRules,

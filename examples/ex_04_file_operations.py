@@ -10,7 +10,8 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
-from flext_cli import c, cli, m, p, r, t, u
+from examples import c, m, p, r, t, u
+from flext_cli import cli
 
 if TYPE_CHECKING:
     from pathlib import Path

@@ -14,16 +14,16 @@ from __future__ import annotations
 
 import os
 from contextlib import contextmanager
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
 
-from flext_cli import cli, m
-from tests import c, tm
+from flext_cli import cli
+from tests import c, m, tm
 
 if TYPE_CHECKING:
     from collections.abc import Generator
-    from pathlib import Path
 
 
 class TestsFlextCliCmdCov:

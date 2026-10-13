@@ -80,7 +80,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
         if not hasattr(os, "fsync"):
             message = "physical-tree cleanup durability sync is unsupported"
             raise OSError(errno.ENOTSUP, message, root.path)
-        bindings: dict[Path, tuple[int, int, int]] = {}
+        bindings: t.MutableMappingKV[Path, tuple[int, int, int]] = {}
         for entry in (root, *manifest.entries):
             expected = (entry.parent_device, entry.parent_inode, entry.parent_mount_id)
             prior = bindings.setdefault(entry.path.parent, expected)

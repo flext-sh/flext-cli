@@ -11,10 +11,10 @@ import os
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import (
+from flext_cli._utilities import FlextCliUtilitiesRuntime
+from flext_cli._utilities._files_parts import (
     FlextCliUtilitiesFilesPart02,
     FlextCliUtilitiesFilesPart03,
-    FlextCliUtilitiesRuntime,
 )
 
 
@@ -123,7 +123,7 @@ class FlextCliUtilitiesFilesPart06:
             The resulting ``p.Result[bool]``.
 
         """
-        by_path: dict[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
+        by_path: t.MutableMappingKV[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
         for expected in expected_states:
             existing = by_path.get(expected.path)
             if existing is not None and existing != expected:

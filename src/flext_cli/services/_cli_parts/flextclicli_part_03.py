@@ -7,15 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from inspect import Parameter
-from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p, r, t, u
-from flext_cli.services._cli_parts.flextclicli_part_02 import FlextCliCliPart02
-
-if TYPE_CHECKING:
-    # mro-j47u (codex): the earlier MRO part is referenced only by annotation;
-    # inspect.Parameter remains runtime because it constructs the CLI signature.
-    from flext_cli.services._cli_parts.flextclicli_part_01 import FlextCliCliPart01
+from flext_cli.services._cli_parts import FlextCliCliPart01, FlextCliCliPart02
 
 
 class FlextCliCliPart03(FlextCliCliPart02):

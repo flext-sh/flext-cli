@@ -34,22 +34,23 @@ if TYPE_CHECKING:
 #: YAML 1.1 boolean/null tokens that must be quoted to survive a round-trip.
 #: Single consumer (``yaml_deep_to_commented``); promote to ``c.Cli`` if a
 #: second consumer appears. NOTE (multi-agent): domain data, not a lint token.
-_YAML_1_1_IMPLICIT_STRING_VALUES = frozenset({
-    "y",
-    "yes",
-    "n",
-    "no",
-    "true",
-    "false",
-    "on",
-    "off",
-    "null",
-    "~",
-})
 
 
 class FlextCliUtilitiesYamlConvertMixin:
     """Plain<->commented conversion and scalar normalization for YAML trees."""
+
+    _YAML_1_1_IMPLICIT_STRING_VALUES = frozenset({
+        "y",
+        "yes",
+        "n",
+        "no",
+        "true",
+        "false",
+        "on",
+        "off",
+        "null",
+        "~",
+    })
 
     @staticmethod
     def yaml_to_plain(data: t.Cli.YamlValue) -> t.Cli.YamlValue:
@@ -144,7 +145,10 @@ class FlextCliUtilitiesYamlConvertMixin:
         if isinstance(data, str):
             if "\n" in data:
                 return cast("t.Cli.YamlScalar", LiteralScalarString(data))
-            if data.lower() in _YAML_1_1_IMPLICIT_STRING_VALUES:
+            if (
+                data.lower()
+                in FlextCliUtilitiesYamlConvertMixin._YAML_1_1_IMPLICIT_STRING_VALUES
+            ):
                 return cast("t.Cli.YamlScalar", DoubleQuotedScalarString(data))
         if data is not None and not isinstance(data, (str, int, float, bool)):
             msg = f"unsupported YAML value type: {type(data).__name__}"

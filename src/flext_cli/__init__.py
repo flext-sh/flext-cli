@@ -41,7 +41,7 @@ if TYPE_CHECKING:
     from flext_cli.models import FlextCliModels, m
     from flext_cli.protocols import FlextCliProtocols, p
     from flext_cli.typings import FlextCliTypes, t
-    from flext_cli.utilities import FlextCliUtilities, u
+    from flext_cli.utilities import FlextCliUtilities, FlextCliUtilitiesCli, u
     from flext_core import d, e, h, r, x
 
 
@@ -55,6 +55,7 @@ __all__: tuple[str, ...] = (
     "FlextCliSettings",
     "FlextCliTypes",
     "FlextCliUtilities",
+    "FlextCliUtilitiesCli",
     "FlextCliVersion",
     "__author__",
     "__author_email__",
@@ -100,6 +101,7 @@ install_lazy_exports(
         "FlextCliSettings": "._settings",
         "FlextCliTypes": ".typings",
         "FlextCliUtilities": ".utilities",
+        "FlextCliUtilitiesCli": ".utilities",
         "FlextCliVersion": ".__version__",
         "__author__": ".__version__",
         "__author_email__": ".__version__",

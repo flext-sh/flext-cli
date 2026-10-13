@@ -18,8 +18,6 @@ import pytest
 from flext_cli import cli
 from tests import c, tm
 
-type Capture = pytest.CaptureFixture[str]
-
 
 class TestsFlextCliServicesOutputCov:
     """Observable-behavior tests for the FlextCliOutput display contract."""
@@ -39,7 +37,7 @@ class TestsFlextCliServicesOutputCov:
         ],
     )
     def test_display_message_prefixes_type_marker_and_keeps_text(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
         message_type: c.Cli.MessageTypes | None,
         expected_marker: str,
     ) -> None:
@@ -63,7 +61,7 @@ class TestsFlextCliServicesOutputCov:
         [c.Cli.MessageTypes.ERROR, c.Cli.MessageTypes.INFO],
     )
     def test_display_message_plain_routes_error_to_stderr(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
         message_type: c.Cli.MessageTypes,
     ) -> None:
         """Keep plain error output separate from regular messages."""
@@ -81,7 +79,7 @@ class TestsFlextCliServicesOutputCov:
     @staticmethod
     @pytest.mark.parametrize("style", ["bold red", "dim", None])
     def test_display_text_emits_text_regardless_of_style(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
         style: str | None,
     ) -> None:
         """Verify that display text emits text regardless of style."""
@@ -93,7 +91,7 @@ class TestsFlextCliServicesOutputCov:
         tm.that(capsys.readouterr().out, has="visible words")
 
     @staticmethod
-    def test_display_text_is_repeatable(capsys: Capture) -> None:
+    def test_display_text_is_repeatable(capsys: pytest.CaptureFixture[str]) -> None:
         """Verify that display text is repeatable."""
         cli.display_text("echo")
         cli.display_text("echo")
@@ -105,7 +103,7 @@ class TestsFlextCliServicesOutputCov:
     @staticmethod
     @pytest.mark.parametrize("style", ["bold red", None])
     def test_print_message_emits_message_with_or_without_style(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
         style: str | None,
     ) -> None:
         """Verify that print message emits message with or without style."""
@@ -118,7 +116,7 @@ class TestsFlextCliServicesOutputCov:
     @staticmethod
     @pytest.mark.parametrize("label", ["Setup", "Results", "Done"])
     def test_display_header_renders_label_in_rule(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
         label: str,
     ) -> None:
         """Verify that display header renders label in rule."""
@@ -134,7 +132,7 @@ class TestsFlextCliServicesOutputCov:
         [(3, 10, "[03/10]"), (5, 5, "[5/5]"), (1, 100, "[001/100]"), (0, 8, "[0/8]")],
     )
     def test_display_progress_zero_pads_counter_to_total_width(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
         current: int,
         total: int,
         expected_counter: str,
@@ -148,7 +146,7 @@ class TestsFlextCliServicesOutputCov:
 
     @staticmethod
     def test_display_progress_appends_detail_when_present(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that display progress appends detail when present."""
         cli.display_progress(3, 10, "Steps", detail="loading")
@@ -156,7 +154,9 @@ class TestsFlextCliServicesOutputCov:
         tm.that(capsys.readouterr().out, has="loading")
 
     @staticmethod
-    def test_display_progress_omits_detail_when_empty(capsys: Capture) -> None:
+    def test_display_progress_omits_detail_when_empty(
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
         """Verify that display progress omits detail when empty."""
         cli.display_progress(3, 10, "Steps")
 
@@ -171,7 +171,7 @@ class TestsFlextCliServicesOutputCov:
         [(True, "✓"), (False, "✗")],
     )
     def test_display_status_symbol_reflects_outcome(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
         *,
         success: bool,
         expected_symbol: str,
@@ -190,7 +190,7 @@ class TestsFlextCliServicesOutputCov:
         [(1.23, "(1.23s)"), (0.5, "(0.50s)")],
     )
     def test_display_status_formats_elapsed_to_two_decimals(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
         elapsed: float,
         expected_timing: str,
     ) -> None:
@@ -201,7 +201,7 @@ class TestsFlextCliServicesOutputCov:
 
     @staticmethod
     def test_display_status_omits_timing_when_elapsed_absent(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that display status omits timing when elapsed absent."""
         cli.display_status("build", "ok", success=True)
@@ -211,7 +211,9 @@ class TestsFlextCliServicesOutputCov:
     # ── display_summary ───────────────────────────────────────────────
 
     @staticmethod
-    def test_display_summary_reports_all_counters(capsys: Capture) -> None:
+    def test_display_summary_reports_all_counters(
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
         """Verify that display summary reports all counters."""
         cli.display_summary("Run Summary", total=10, success=8, failed=2)
 
@@ -223,7 +225,9 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has="Skipped: 0")
 
     @staticmethod
-    def test_display_summary_reflects_explicit_skipped(capsys: Capture) -> None:
+    def test_display_summary_reflects_explicit_skipped(
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
         """Verify that display summary reflects explicit skipped."""
         cli.display_summary("Summary", total=10, success=7, failed=1, skipped=2)
 
@@ -233,7 +237,7 @@ class TestsFlextCliServicesOutputCov:
 
     @staticmethod
     def test_display_gate_passed_shows_success_symbol_and_name(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that display gate passed shows success symbol and name."""
         cli.display_gate("ruff", passed=True)
@@ -244,7 +248,7 @@ class TestsFlextCliServicesOutputCov:
 
     @staticmethod
     def test_display_gate_failed_shows_failure_symbol_name_and_message(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that display gate failed shows failure symbol name and message."""
         cli.display_gate("pyrefly", passed=False, message="2 errors")
@@ -257,7 +261,9 @@ class TestsFlextCliServicesOutputCov:
     # ── display_metrics ───────────────────────────────────────────────
 
     @staticmethod
-    def test_display_metrics_emits_each_key_value_pair(capsys: Capture) -> None:
+    def test_display_metrics_emits_each_key_value_pair(
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
         """Verify that display metrics emits each key value pair."""
         cli.display_metrics({"total": 100, "passed": 95, "failed": 5})
 
@@ -267,7 +273,9 @@ class TestsFlextCliServicesOutputCov:
         tm.that(out, has="failed=5")
 
     @staticmethod
-    def test_display_metrics_empty_mapping_emits_nothing(capsys: Capture) -> None:
+    def test_display_metrics_empty_mapping_emits_nothing(
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
         """Verify that display metrics empty mapping emits nothing."""
         cli.display_metrics({})
 
@@ -276,7 +284,9 @@ class TestsFlextCliServicesOutputCov:
     # ── display_debug ─────────────────────────────────────────────────
 
     @staticmethod
-    def test_display_debug_is_noop_when_not_verbose(capsys: Capture) -> None:
+    def test_display_debug_is_noop_when_not_verbose(
+        capsys: pytest.CaptureFixture[str],
+    ) -> None:
         """Verify that display debug is noop when not verbose."""
         cli.display_debug("hidden", verbose=False)
 
@@ -284,7 +294,7 @@ class TestsFlextCliServicesOutputCov:
 
     @staticmethod
     def test_display_debug_emits_labelled_line_when_verbose(
-        capsys: Capture,
+        capsys: pytest.CaptureFixture[str],
     ) -> None:
         """Verify that display debug emits labelled line when verbose."""
         cli.display_debug("visible", verbose=True)

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class TestsAtomicSymlinkStaging:
+class TestsFlextCliAtomicSymlinkStaging:
     """An unverified staged inode must stay discoverable through its failure."""
 
     @staticmethod

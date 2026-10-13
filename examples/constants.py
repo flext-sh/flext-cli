@@ -7,14 +7,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import TYPE_CHECKING, Final
+from typing import Final
 
 from flext_cli import FlextCliConstants
-
-if TYPE_CHECKING:
-    from examples import t
 
 
 class ExamplesFlextCliConstants(FlextCliConstants):
@@ -29,7 +27,7 @@ class ExamplesFlextCliConstants(FlextCliConstants):
         STAGING = "staging"
         PRODUCTION = "production"
 
-    EXAMPLE_DEPLOYMENT_ENVIRONMENTS: Final[t.VariadicTuple[DeploymentEnvironment]] = (
+    EXAMPLE_DEPLOYMENT_ENVIRONMENTS: Final[tuple[DeploymentEnvironment, ...]] = (
         DeploymentEnvironment.DEVELOPMENT,
         DeploymentEnvironment.TESTING,
         DeploymentEnvironment.STAGING,
@@ -38,38 +36,38 @@ class ExamplesFlextCliConstants(FlextCliConstants):
     EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SET: Final[frozenset[DeploymentEnvironment]] = (
         frozenset(EXAMPLE_DEPLOYMENT_ENVIRONMENTS)
     )
-    EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SHORT: Final[t.VariadicTuple[str]] = (
+    EXAMPLE_DEPLOYMENT_ENVIRONMENTS_SHORT: Final[tuple[str, ...]] = (
         "dev",
         "test",
         "staging",
         "prod",
     )
-    EXAMPLE_REQUIRED_DATA_FIELDS: Final[t.VariadicTuple[str]] = ("id", "name", "value")
-    EXAMPLE_DATABASE_REQUIRED_FIELDS: Final[t.VariadicTuple[str]] = (
+    EXAMPLE_REQUIRED_DATA_FIELDS: Final[tuple[str, ...]] = ("id", "name", "value")
+    EXAMPLE_DATABASE_REQUIRED_FIELDS: Final[tuple[str, ...]] = (
         "host",
         "name",
         "username",
         "password",
     )
-    EXAMPLE_DEFAULT_SHELL_ITEMS: Final[t.VariadicTuple[str]] = (
+    EXAMPLE_DEFAULT_SHELL_ITEMS: Final[tuple[str, ...]] = (
         "item1",
         "item2",
         "item3",
         "test_item",
     )
-    EXAMPLE_SAMPLE_FILES: Final[t.VariadicTuple[str]] = (
+    EXAMPLE_SAMPLE_FILES: Final[tuple[str, ...]] = (
         "file1",
         "file2",
         "file3",
         "file4",
     )
-    EXAMPLE_TABLE_HEADERS_FIELD_VALUE: Final[t.Pair[str, str]] = ("Field", "Value")
-    EXAMPLE_TABLE_HEADERS_SETTING_VALUE: Final[t.Pair[str, str]] = ("Setting", "Value")
+    EXAMPLE_TABLE_HEADERS_FIELD_VALUE: Final[tuple[str, str]] = ("Field", "Value")
+    EXAMPLE_TABLE_HEADERS_SETTING_VALUE: Final[tuple[str, str]] = ("Setting", "Value")
 
-    EXAMPLE_REGEX_EMAIL: Final[t.RegexPattern] = re.compile(
+    EXAMPLE_REGEX_EMAIL: Final[re.Pattern[str]] = re.compile(
         r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
     )
-    EXAMPLE_REGEX_DOT: Final[t.RegexPattern] = re.compile(r"\.")
+    EXAMPLE_REGEX_DOT: Final[re.Pattern[str]] = re.compile(r"\.")
 
     EXAMPLE_DEFAULT_HOST: Final[str] = "localhost"
     EXAMPLE_DEFAULT_DB_PORT: Final[int] = 5432
@@ -114,13 +112,13 @@ class ExamplesFlextCliConstants(FlextCliConstants):
     EXAMPLE_ENV_KEY_ENVIRONMENT: Final[str] = "ENVIRONMENT"
     EXAMPLE_ENV_VALUE_PRODUCTION: Final[str] = "production"
 
-    EXAMPLE_ENV_MAP_MY_APP: Final[t.StrMapping] = MappingProxyType({
+    EXAMPLE_ENV_MAP_MY_APP: Final[Mapping[str, str]] = MappingProxyType({
         "app_name": EXAMPLE_ENV_KEY_APP_NAME,
         "api_key": EXAMPLE_ENV_KEY_API_KEY,
         "max_workers": EXAMPLE_ENV_KEY_MAX_WORKERS,
         "timeout": EXAMPLE_ENV_KEY_TIMEOUT,
     })
-    EXAMPLE_ENV_MAP_ADVANCED_APP: Final[t.StrMapping] = MappingProxyType({
+    EXAMPLE_ENV_MAP_ADVANCED_APP: Final[Mapping[str, str]] = MappingProxyType({
         "database_url": EXAMPLE_ENV_KEY_DATABASE_URL,
         "redis_url": EXAMPLE_ENV_KEY_REDIS_URL,
         "api_key": EXAMPLE_ENV_KEY_API_KEY,
@@ -131,7 +129,7 @@ class ExamplesFlextCliConstants(FlextCliConstants):
         "environment": EXAMPLE_ENV_KEY_ENVIRONMENT,
     })
 
-    EXAMPLE_DB_URL_PREFIXES: Final[t.Pair[str, str]] = ("postgresql://", "mysql://")
+    EXAMPLE_DB_URL_PREFIXES: Final[tuple[str, str]] = ("postgresql://", "mysql://")
     EXAMPLE_REDIS_URL_PREFIX: Final[str] = "redis://"
     EXAMPLE_ERR_INVALID_HOST: Final[str] = "Host must be a valid hostname or IP"
     EXAMPLE_ERR_INVALID_DB_URL: Final[str] = "DATABASE_URL must be a valid database URL"
@@ -185,4 +183,4 @@ class ExamplesFlextCliConstants(FlextCliConstants):
 
 c = ExamplesFlextCliConstants
 
-__all__: t.MutableSequenceOf[str] = ["ExamplesFlextCliConstants", "c"]
+__all__: list[str] = ["ExamplesFlextCliConstants", "c"]

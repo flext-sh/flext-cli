@@ -7,8 +7,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import t
-from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
-from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
+from flext_cli._utilities._docx import (
+    FlextCliUtilitiesDocxReader,
+    FlextCliUtilitiesDocxRenderer,
+)
 
 
 class FlextCliUtilitiesDocx(

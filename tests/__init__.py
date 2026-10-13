@@ -21,15 +21,6 @@ if TYPE_CHECKING:
     from tests.models import TestsFlextCliModels, m
     from tests.protocols import TestsFlextCliProtocols, p
     from tests.settings import TestsFlextCliSettings
-    from tests.test_xlsx_range import (
-        test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion,
-        test_xlsx_format_reference_exposes_every_typed_rendering_mode,
-        test_xlsx_parse_range_fails_loud_for_non_concrete_or_inverted_input,
-        test_xlsx_parse_range_returns_typed_concrete_bounds,
-    )
-    from tests.test_yaml_model_write import (
-        test_write_yaml_model_round_trips_the_same_model_contract,
-    )
     from tests.typings import TestsFlextCliTypes, t
     from tests.utilities import TestsFlextCliUtilities, u
 
@@ -53,11 +44,6 @@ __all__: tuple[str, ...] = (
     "s",
     "t",
     "td",
-    "test_write_yaml_model_round_trips_the_same_model_contract",
-    "test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion",
-    "test_xlsx_format_reference_exposes_every_typed_rendering_mode",
-    "test_xlsx_parse_range_fails_loud_for_non_concrete_or_inverted_input",
-    "test_xlsx_parse_range_returns_typed_concrete_bounds",
     "tf",
     "tk",
     "tm",
@@ -87,19 +73,6 @@ install_lazy_exports(
         "s": ".base",
         "t": ".typings",
         "td": "flext_tests",
-        "test_write_yaml_model_round_trips_the_same_model_contract": (
-            ".test_yaml_model_write"
-        ),
-        "test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion": (
-            ".test_xlsx_range"
-        ),
-        "test_xlsx_format_reference_exposes_every_typed_rendering_mode": (
-            ".test_xlsx_range"
-        ),
-        "test_xlsx_parse_range_fails_loud_for_non_concrete_or_inverted_input": (
-            ".test_xlsx_range"
-        ),
-        "test_xlsx_parse_range_returns_typed_concrete_bounds": ".test_xlsx_range",
         "tf": "flext_tests",
         "tk": "flext_tests",
         "tm": "flext_tests",

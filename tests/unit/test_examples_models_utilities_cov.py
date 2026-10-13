@@ -15,11 +15,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from examples import c, m, u
 
 import tests
 from flext_cli import cli
-from tests import t, tm
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliExampleModelsUtilitiesCov:

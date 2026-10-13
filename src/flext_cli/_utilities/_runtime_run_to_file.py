@@ -24,7 +24,7 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         def _resolved_env(
             env: t.StrMapping | None,
             remove_env_keys: t.StrSequence = (),
-        ) -> dict[str, str] | None: ...
+        ) -> t.StrDict | None: ...
 
     @classmethod
     def run_to_file(

@@ -6,13 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests.unit._cases.test_pipeline.testsflextclipipeline_part_01 import (
+from tests.unit.cases.test_pipeline.testsflextclipipeline_part_01 import (
     TestsFlextCliPipelinePart01,
 )
-from tests.unit._cases.test_pipeline.testsflextclipipeline_part_02 import (
+from tests.unit.cases.test_pipeline.testsflextclipipeline_part_02 import (
     TestsFlextCliPipelinePart02,
 )
-from tests.unit._cases.test_pipeline.testsflextclipipeline_part_03 import (
+from tests.unit.cases.test_pipeline.testsflextclipipeline_part_03 import (
     TestsFlextCliPipelinePart03,
 )
 

@@ -33,69 +33,89 @@ def _defined_name_workbook() -> bytes:
     return target.getvalue()
 
 
-def test_xlsx_defined_name_values_resolves_cached_scalar() -> None:
-    """Test xlsx defined name values resolves cached scalar."""
-    source = _defined_name_workbook()
+class TestsFlextCliXlsxRender:
+    """Behavioral contract validated by this module."""
 
-    result = cli.xlsx_defined_name_values(
-        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="ScalarValue"),
-    )
+    @staticmethod
+    def test_xlsx_defined_name_values_resolves_cached_scalar() -> None:
+        """Test xlsx defined name values resolves cached scalar."""
+        source = _defined_name_workbook()
 
-    tm.that(result.success, eq=True, msg=result.error)
-    tm.that(result.value.name, eq="ScalarValue")
-    tm.that(len(result.value.cells), eq=1)
-    tm.that(result.value.cells[0].sheet, eq="Data")
-    tm.that(result.value.cells[0].coordinate, eq="A1")
-    tm.that(result.value.cells[0].value.kind, eq="integer")
-    scalar = result.value.cells[0].value
-    if not isinstance(scalar, m.Cli.XlsxIntegerValue):
-        pytest.fail(f"expected integer cell value, got {scalar.kind}")
-    tm.that(scalar.value, eq=17)
+        result = cli.xlsx_defined_name_values(
+            m.Cli.XlsxDefinedNameValuesRequest(source=source, name="ScalarValue"),
+        )
 
+        tm.that(result.success, eq=True, msg=result.error)
+        tm.that(result.value.name, eq="ScalarValue")
+        tm.that(len(result.value.cells), eq=1)
+        tm.that(result.value.cells[0].sheet, eq="Data")
+        tm.that(result.value.cells[0].coordinate, eq="A1")
+        tm.that(result.value.cells[0].value.kind, eq="integer")
+        scalar = result.value.cells[0].value
+        if not isinstance(scalar, m.Cli.XlsxIntegerValue):
+            pytest.fail(f"expected integer cell value, got {scalar.kind}")
+        tm.that(scalar.value, eq=17)
 
-def test_xlsx_defined_name_values_resolves_cached_range() -> None:
-    """Test xlsx defined name values resolves cached range."""
-    source = _defined_name_workbook()
+    @staticmethod
+    def test_xlsx_defined_name_values_resolves_cached_range() -> None:
+        """Test xlsx defined name values resolves cached range."""
+        source = _defined_name_workbook()
 
-    result = cli.xlsx_defined_name_values(
-        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="RangeValues"),
-    )
+        result = cli.xlsx_defined_name_values(
+            m.Cli.XlsxDefinedNameValuesRequest(source=source, name="RangeValues"),
+        )
 
-    tm.that(result.success, eq=True, msg=result.error)
-    tm.that(
-        tuple((cell.coordinate, cell.value.kind) for cell in result.value.cells),
-        eq=(("A1", "integer"), ("A2", "text")),
-    )
+        tm.that(result.success, eq=True, msg=result.error)
+        tm.that(
+            tuple((cell.coordinate, cell.value.kind) for cell in result.value.cells),
+            eq=(("A1", "integer"), ("A2", "text")),
+        )
 
+    @staticmethod
+    def test_xlsx_defined_name_values_fails_when_name_is_missing() -> None:
+        """Test xlsx defined name values fails when name is missing."""
+        source = _defined_name_workbook()
 
-def test_xlsx_defined_name_values_fails_when_name_is_missing() -> None:
-    """Test xlsx defined name values fails when name is missing."""
-    source = _defined_name_workbook()
+        result = cli.xlsx_defined_name_values(
+            m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MissingValue"),
+        )
 
-    result = cli.xlsx_defined_name_values(
-        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MissingValue"),
-    )
+        tm.that(result.success, eq=False)
+        tm.that(result.error, has="xlsx_defined_name_missing")
 
-    tm.that(result.success, eq=False)
-    tm.that(result.error, has="xlsx_defined_name_missing")
+    @staticmethod
+    def test_xlsx_defined_name_values_fails_for_non_range_name() -> None:
+        """Test xlsx defined name values fails for non range name."""
+        source = _defined_name_workbook()
 
+        result = cli.xlsx_defined_name_values(
+            m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MalformedValue"),
+        )
 
-def test_xlsx_defined_name_values_fails_for_non_range_name() -> None:
-    """Test xlsx defined name values fails for non range name."""
-    source = _defined_name_workbook()
+        tm.that(result.success, eq=False)
+        tm.that(result.error, has="xlsx_defined_name_invalid")
 
-    result = cli.xlsx_defined_name_values(
-        m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MalformedValue"),
-    )
+    @staticmethod
+    def test_xlsx_datetime_rejects_unrepresentable_timezone() -> None:
+        """XLSX ingress fails before vendor serialization for aware datetimes."""
+        with pytest.raises(ValueError, match="Input should not have timezone info"):
+            m.Cli.XlsxDateTimeValue(value=dt.datetime(2026, 7, 13, tzinfo=dt.UTC))
 
-    tm.that(result.success, eq=False)
-    tm.that(result.error, has="xlsx_defined_name_invalid")
-
-
-def test_xlsx_datetime_rejects_unrepresentable_timezone() -> None:
-    """XLSX ingress fails before vendor serialization for aware datetimes."""
-    with pytest.raises(ValueError, match="Input should not have timezone info"):
-        m.Cli.XlsxDateTimeValue(value=dt.datetime(2026, 7, 13, tzinfo=dt.UTC))
+    @staticmethod
+    def test_xlsx_render_executes_typed_runtime_plan() -> None:
+        """One immutable plan owns formulas, rules, tables, names, and protection."""
+        template = _styled_template()
+        style_name = template.style_map[0].style_name
+        plan = _typed_runtime_plan(style_name)
+        result = cli.xlsx_render(
+            m.Cli.XlsxRenderRequest(template=template.content, plan=plan),
+        )
+        tm.that(result.success, eq=True)
+        tm.that(result.value.plan is plan, eq=True)
+        data = _assert_rendered_workbook(result.value.content, style_name)
+        _assert_xlsx_snapshot(
+            result.value.content, style_name, data.protection.password
+        )
 
 
 def _styled_template() -> m.Cli.XlsxStyleTemplateResult:
@@ -286,17 +306,3 @@ def _assert_xlsx_snapshot(
     tm.that(data_snapshot.protection.legacy_password_hash, eq=legacy_password)
     tm.that(data_snapshot.tables[0].reference, eq="A1:B2")
     tm.that(snapshot.value.defined_names[0].name, eq="DataRange")
-
-
-def test_xlsx_render_executes_typed_runtime_plan() -> None:
-    """One immutable plan owns formulas, rules, tables, names, and protection."""
-    template = _styled_template()
-    style_name = template.style_map[0].style_name
-    plan = _typed_runtime_plan(style_name)
-    result = cli.xlsx_render(
-        m.Cli.XlsxRenderRequest(template=template.content, plan=plan),
-    )
-    tm.that(result.success, eq=True)
-    tm.that(result.value.plan is plan, eq=True)
-    data = _assert_rendered_workbook(result.value.content, style_name)
-    _assert_xlsx_snapshot(result.value.content, style_name, data.protection.password)

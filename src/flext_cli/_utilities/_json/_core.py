@@ -23,12 +23,12 @@ from typing import ClassVar
 from flext_cli import c, m, p, r, t
 from flext_core import u
 
-_EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
-_EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()
-
 
 class FlextCliUtilitiesJsonCoreMixin:
     """Core JSON serialization, file read/write, and value normalization."""
+
+    _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
+    _EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
@@ -99,7 +99,7 @@ class FlextCliUtilitiesJsonCoreMixin:
 
         def _object_pairs_hook(
             pairs: t.SequenceOf[t.Pair[str, t.JsonValue]],
-        ) -> dict[str, t.JsonValue]:
+        ) -> t.JsonDict:
             obj = dict(pairs)
             seen: set[str] = set()
             for key, _ in pairs:
@@ -110,7 +110,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             return obj
 
         root: t.JsonValue = json.loads(raw, object_pairs_hook=_object_pairs_hook)
-        paths: dict[int, str] = {}
+        paths: t.MutableMappingKV[int, str] = {}
         stack: list[tuple[t.JsonValue, str]] = [(root, "$")]
         while stack:
             node, path = stack.pop()
@@ -274,10 +274,10 @@ class FlextCliUtilitiesJsonCoreMixin:
 
         """
         if value is None:
-            return _EMPTY_JSON_MAPPING
+            return FlextCliUtilitiesJsonCoreMixin._EMPTY_JSON_MAPPING
         normalized: t.JsonValue = u.normalize_to_json_value(value)
         if not isinstance(normalized, Mapping):
-            return _EMPTY_JSON_MAPPING
+            return FlextCliUtilitiesJsonCoreMixin._EMPTY_JSON_MAPPING
         return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
 
     @staticmethod
@@ -291,10 +291,10 @@ class FlextCliUtilitiesJsonCoreMixin:
 
         """
         if value is None:
-            return _EMPTY_JSON_SEQUENCE
+            return FlextCliUtilitiesJsonCoreMixin._EMPTY_JSON_SEQUENCE
         normalized: t.JsonValue = u.normalize_to_json_value(value)
         if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
-            return _EMPTY_JSON_SEQUENCE
+            return FlextCliUtilitiesJsonCoreMixin._EMPTY_JSON_SEQUENCE
         return t.Cli.JSON_LIST_ADAPTER.validate_python(normalized)
 
 

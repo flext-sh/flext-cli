@@ -12,7 +12,7 @@ from pathlib import Path
 from tests import tm, u
 
 
-class TestsAtomicFileGuards:
+class TestsFlextCliAtomicFileGuards:
     """Guards reject foreign owners and oversized content before effects."""
 
     @staticmethod

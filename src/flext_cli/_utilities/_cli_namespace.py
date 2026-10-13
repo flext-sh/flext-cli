@@ -20,7 +20,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesFramework,
     FlextCliUtilitiesJson,
     FlextCliUtilitiesMatching,
-    FlextCliUtilitiesOptionsPart02,
     FlextCliUtilitiesOutput,
     FlextCliUtilitiesParams,
     FlextCliUtilitiesPipeline,
@@ -39,6 +38,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesYaml,
     FlextCliUtilitiesYamlModel,
 )
+from flext_cli._utilities._options_parts import FlextCliUtilitiesOptionsPart02
 
 
 class FlextCliUtilitiesCli(

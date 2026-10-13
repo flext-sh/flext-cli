@@ -11,11 +11,10 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import m
-from tests import tm, u
+from tests import m, tm, u
 
 
-class TestsAtomicDirectoryIdentity:
+class TestsFlextCliAtomicDirectoryIdentity:
     """Prove directory effects consume exact parent and leaf identities."""
 
     @staticmethod

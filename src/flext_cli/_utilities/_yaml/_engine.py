@@ -29,29 +29,10 @@ from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml.error import YAMLError
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesYamlConvertMixin
+from flext_cli._utilities._yaml import FlextCliUtilitiesYamlConvertMixin
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-
-def _roundtrip_yaml() -> p.Cli.YamlRoundtripEngine:
-    """Build a fresh comment/quote-preserving round-trip engine.
-
-    A new instance per call keeps load/dump operations thread-safe: ruamel
-    stores mutable parser state on the instance while parsing. The returned
-    surface is returned through the typed ``p.Cli.YamlRoundtripEngine``
-    contract, which ``ruamel.yaml.YAML`` satisfies structurally.
-
-    Returns:
-        The resulting ``p.Cli.YamlRoundtripEngine``.
-
-    """
-    yaml = ruamel.yaml.YAML()
-    yaml.preserve_quotes = True
-    yaml.width = 4096
-    yaml.indent(mapping=2, sequence=4, offset=2)
-    return yaml
 
 
 class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
@@ -60,6 +41,25 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
     Loading and dumping return ``r[T]`` so parse and validation failures
     propagate as typed failures, never as silent defaults.
     """
+
+    @staticmethod
+    def _roundtrip_yaml() -> p.Cli.YamlRoundtripEngine:
+        """Build a fresh comment/quote-preserving round-trip engine.
+
+        A new instance per call keeps load/dump operations thread-safe: ruamel
+        stores mutable parser state on the instance while parsing. The returned
+        surface is returned through the typed ``p.Cli.YamlRoundtripEngine``
+        contract, which ``ruamel.yaml.YAML`` satisfies structurally.
+
+        Returns:
+            The resulting ``p.Cli.YamlRoundtripEngine``.
+
+        """
+        yaml = ruamel.yaml.YAML()
+        yaml.preserve_quotes = True
+        yaml.width = 4096
+        yaml.indent(mapping=2, sequence=4, offset=2)
+        return yaml
 
     @staticmethod
     def yaml_roundtrip_load(path: Path) -> p.Result[t.Cli.YamlNode]:
@@ -73,7 +73,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             return r[t.Cli.YamlNode].fail(f"YAML file not found: {path}")
         try:
             with path.open("r", encoding=c.DEFAULT_ENCODING) as fh:
-                loaded = _roundtrip_yaml().load(fh)
+                loaded = FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml().load(fh)
             node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
         except OSError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML read error: {exc}", exception=exc)
@@ -94,7 +94,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
 
         """
         try:
-            loaded = _roundtrip_yaml().load(text)
+            loaded = FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml().load(text)
             node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(loaded)
         except YAMLError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
@@ -114,9 +114,10 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             The complete document sequence, or the original parsing failure.
         """
         try:
+            engine = FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml()
             nodes = tuple(
                 FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(value)
-                for value in _roundtrip_yaml().load_all(text)
+                for value in engine.load_all(text)
             )
         except YAMLError as exc:
             return r[t.SequenceOf[t.Cli.YamlNode]].fail(
@@ -175,7 +176,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
 
         """
         try:
-            _roundtrip_yaml().dump(data, stream)
+            FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml().dump(data, stream)
         except (OSError, YAMLError, TypeError, ValueError) as exc:
             return r[bool].fail(f"YAML dump error: {exc}", exception=exc)
         return r[bool].ok(value=True)

@@ -28,12 +28,11 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from examples import c
-from flext_cli import cli, m, t
-from flext_core import p, r
+from examples import c, m, p, r, t
+from flext_cli import cli
 
 
-class DataManagerCLI:
+class ExamplesFlextCliDataManager:
     """Minimal end-to-end CLI workflow using the public facade."""
 
     def __init__(self) -> None:
@@ -133,4 +132,4 @@ class DataManagerCLI:
         return r[bool].ok(value=True)
 
 
-__all__: list[str] = ["DataManagerCLI"]
+__all__: list[str] = ["ExamplesFlextCliDataManager"]

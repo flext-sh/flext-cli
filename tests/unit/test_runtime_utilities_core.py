@@ -1,4 +1,4 @@
-"""Tests for ``u.Cli`` runtime core run/capture operations.
+"""Tests for ``FlextCliUtilitiesCli`` runtime core run/capture operations.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -16,7 +16,7 @@ from typing import cast
 
 import pytest
 
-from flext_cli._utilities import FlextCliUtilitiesCli
+from flext_cli import FlextCliUtilitiesCli
 from tests import c, m, p, tm, u
 
 
@@ -52,10 +52,10 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Define the runner test contract.
 
         Returns:
-            The resulting ``u.Cli``.
+            The resulting ``FlextCliUtilitiesCli``.
 
         """
-        return u.Cli()
+        return FlextCliUtilitiesCli()
 
     @staticmethod
     def test_run_raw_remove_env_keys_strips_inherited_values(
@@ -103,7 +103,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             if case.exit_code is not None:
                 tm.that(
                     (
-                        u.Cli.process_succeeded(output.outcome),
+                        FlextCliUtilitiesCli.process_succeeded(output.outcome),
                         output.outcome.raw_return_code,
                     ),
                     eq=(case.exit_code == c.Cli.EXIT_CODE_SUCCESS, case.exit_code),
@@ -236,7 +236,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Verify run(capture=False) streams live: captured stdout is empty, exit ok."""
         result = runner.run(("sh", "-c", "echo streamed-line"), capture=False)
         output = m.Cli.CommandOutput.model_validate(tm.ok(result))
-        tm.that(u.Cli.process_succeeded(output.outcome), eq=True)
+        tm.that(FlextCliUtilitiesCli.process_succeeded(output.outcome), eq=True)
         tm.that(output.stdout, eq="")
         tm.that(output.stderr, eq="")
 
@@ -257,7 +257,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ok_result = runner.run_live(("sh", "-c", "echo live-ok"))
         ok_output = m.Cli.CommandOutput.model_validate(tm.ok(ok_result))
         tm.that(ok_output.stdout, eq="")
-        tm.that(u.Cli.process_succeeded(ok_output.outcome), eq=True)
+        tm.that(FlextCliUtilitiesCli.process_succeeded(ok_output.outcome), eq=True)
         tm.fail(runner.run_live(("sh", "-c", "exit 7")), has="failed")
 
     @staticmethod
@@ -281,7 +281,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """A supervised child consumes inherited input and forwards both outputs."""
         script = (
             "import sys; from flext_cli import u; "
-            "child = u.Cli.process_start("
+            "child = FlextCliUtilitiesCli.process_start("
             "[sys.executable, '-c', "
             '"import sys; print(sys.stdin.readline().strip()); '
             "print('inherited-error', file=sys.stderr)\"], "
@@ -295,7 +295,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
                 options=m.Cli.ProcessOptions(input_data="inherited-input\n"),
             ),
         )
-        tm.that(u.Cli.process_succeeded(output.outcome), eq=True)
+        tm.that(FlextCliUtilitiesCli.process_succeeded(output.outcome), eq=True)
         tm.that(output.stdout.splitlines(), eq=["inherited-input", "'' ''"])
         tm.that(output.stderr.strip(), eq="inherited-error")
 

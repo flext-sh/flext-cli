@@ -14,7 +14,7 @@ import pytest
 from tests import c, tm, u
 
 
-class TestsAtomicFileDurability:
+class TestsFlextCliAtomicFileDurability:
     """SCRATCH keeps every publication check while durability stays default."""
 
     @staticmethod

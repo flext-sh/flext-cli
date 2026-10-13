@@ -36,7 +36,7 @@ class FlextCliModelsPipeline:
             m.Field(
                 description="Mutable shared state between stages",
             ),
-        ] = m.Field(default_factory=dict[str, t.JsonValue])
+        ] = m.Field(default_factory=dict)
         settings: Annotated[
             t.JsonMapping,
             m.Field(

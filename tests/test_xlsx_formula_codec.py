@@ -9,8 +9,8 @@ from __future__ import annotations
 import zipfile
 from io import BytesIO
 
-from flext_cli import cli, m
-from tests import tm
+from flext_cli import cli
+from tests import m, tm
 
 
 def _render_formula(formula: str) -> str:
@@ -38,23 +38,27 @@ def _render_formula(formula: str) -> str:
     return archive.read("xl/worksheets/sheet1.xml").decode("utf-8")
 
 
-def test_xlsx_future_function_stored_with_xlfn_prefix() -> None:
-    """OOXML storage prefixes post-2007 functions so readers resolve them."""
-    sheet_xml = _render_formula("=XLOOKUP(A1,B1:B5,C1:C5)+SUM(D1:D5)")
-    tm.that("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml, eq=True)
-    tm.that("SUM(D1:D5)" in sheet_xml, eq=True)
-    tm.that("_xlfn.SUM" not in sheet_xml, eq=True)
+class TestsFlextCliXlsxFormulaCodec:
+    """Behavioral contract validated by this module."""
 
+    @staticmethod
+    def test_xlsx_future_function_stored_with_xlfn_prefix() -> None:
+        """OOXML storage prefixes post-2007 functions so readers resolve them."""
+        sheet_xml = _render_formula("=XLOOKUP(A1,B1:B5,C1:C5)+SUM(D1:D5)")
+        tm.that("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml, eq=True)
+        tm.that("SUM(D1:D5)" in sheet_xml, eq=True)
+        tm.that("_xlfn.SUM" not in sheet_xml, eq=True)
 
-def test_xlsx_future_function_skips_string_literals() -> None:
-    """Text inside formula string literals is never rewritten."""
-    sheet_xml = _render_formula('=IF(A1="","XLOOKUP(",XLOOKUP(A1,B1:B5,C1:C5))')
-    tm.that('"XLOOKUP("' in sheet_xml, eq=True)
-    tm.that("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml, eq=True)
+    @staticmethod
+    def test_xlsx_future_function_skips_string_literals() -> None:
+        """Text inside formula string literals is never rewritten."""
+        sheet_xml = _render_formula('=IF(A1="","XLOOKUP(",XLOOKUP(A1,B1:B5,C1:C5))')
+        tm.that('"XLOOKUP("' in sheet_xml, eq=True)
+        tm.that("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml, eq=True)
 
-
-def test_xlsx_prefixed_function_not_double_prefixed() -> None:
-    """Storage-safe input passes through without a second prefix."""
-    sheet_xml = _render_formula("=_xlfn.XLOOKUP(A1,B1:B5,C1:C5)")
-    tm.that("_xlfn._xlfn" not in sheet_xml, eq=True)
-    tm.that("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml, eq=True)
+    @staticmethod
+    def test_xlsx_prefixed_function_not_double_prefixed() -> None:
+        """Storage-safe input passes through without a second prefix."""
+        sheet_xml = _render_formula("=_xlfn.XLOOKUP(A1,B1:B5,C1:C5)")
+        tm.that("_xlfn._xlfn" not in sheet_xml, eq=True)
+        tm.that("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml, eq=True)

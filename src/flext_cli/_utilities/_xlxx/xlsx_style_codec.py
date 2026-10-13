@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import (
+from flext_cli._utilities._xlxx import (
     FlextCliUtilitiesXlsxStyleBuilders,
     FlextCliUtilitiesXlsxStyleReaders,
 )

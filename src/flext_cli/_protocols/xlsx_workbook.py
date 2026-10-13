@@ -10,8 +10,9 @@ from collections.abc import Iterable, Sequence
 from io import BytesIO
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from flext_cli import t
+
 if TYPE_CHECKING:
-    from flext_cli import t
     from flext_cli._protocols import FlextCliProtocolsXlsxRules
 
 

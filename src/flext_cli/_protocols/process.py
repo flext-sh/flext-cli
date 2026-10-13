@@ -11,9 +11,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 if TYPE_CHECKING:
     from collections.abc import Buffer
 
-    from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_02 import (
-        FlextCliProtocolsBasePart02,
-    )
+    from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart02
     from flext_core import t
 
 

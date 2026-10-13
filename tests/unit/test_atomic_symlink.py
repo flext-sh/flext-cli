@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class TestsAtomicSymlink:
+class TestsFlextCliAtomicSymlink:
     """Guard link text and physical ownership independently of target existence."""
 
     @staticmethod

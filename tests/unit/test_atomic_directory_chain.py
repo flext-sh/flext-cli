@@ -12,7 +12,7 @@ from pathlib import Path
 from tests import tm, u
 
 
-class TestsAtomicDirectoryChain:
+class TestsFlextCliAtomicDirectoryChain:
     """Prove missing ancestors are explicit, physical, and rollback-capable."""
 
     @staticmethod

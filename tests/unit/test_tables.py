@@ -19,7 +19,7 @@ from flext_cli import cli
 from tests import c, tm
 
 if TYPE_CHECKING:
-    from flext_cli import t
+    from tests import t
 
 
 class TestsFlextCliTables:

@@ -7,6 +7,15 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import m, p, t
+from flext_cli._utilities._xlxx import (
+    FlextCliUtilitiesXlsxAddresses,
+    FlextCliUtilitiesXlsxArchive,
+    FlextCliUtilitiesXlsxDefinedNameValues,
+    FlextCliUtilitiesXlsxRecalc,
+    FlextCliUtilitiesXlsxRenderer,
+    FlextCliUtilitiesXlsxSnapshot,
+    FlextCliUtilitiesXlsxStyleCatalog,
+)
 
 
 class FlextCliUtilitiesXlsx:
@@ -22,8 +31,6 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxRenderResult]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesXlsxRenderer
-
         return FlextCliUtilitiesXlsxRenderer.render_workbook(request)
 
     @staticmethod
@@ -36,8 +43,6 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxWorkbookSnapshot]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesXlsxSnapshot
-
         return FlextCliUtilitiesXlsxSnapshot.snapshot_workbook(request)
 
     @staticmethod
@@ -50,8 +55,6 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxArchiveInspection]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesXlsxArchive
-
         return FlextCliUtilitiesXlsxArchive.inspect_archive(request)
 
     @staticmethod
@@ -64,8 +67,6 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxRecalcResult]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesXlsxRecalc
-
         return FlextCliUtilitiesXlsxRecalc.recalculate_workbook(request)
 
     @staticmethod
@@ -78,8 +79,6 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxRecalcParityReport]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesXlsxRecalc
-
         return FlextCliUtilitiesXlsxRecalc.verify_recalculation_parity(request)
 
     @staticmethod
@@ -92,8 +91,6 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxDefinedNameValuesResult]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesXlsxDefinedNameValues
-
         return FlextCliUtilitiesXlsxDefinedNameValues.resolve_defined_name_values(
             request
         )
@@ -108,8 +105,6 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxStyleCatalog]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesXlsxStyleCatalog
-
         return FlextCliUtilitiesXlsxStyleCatalog.extract_style_catalog(request)
 
     @staticmethod
@@ -122,8 +117,6 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxStyleTemplateResult]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesXlsxStyleCatalog
-
         return FlextCliUtilitiesXlsxStyleCatalog.build_style_template(request)
 
     @staticmethod
@@ -136,8 +129,6 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxCellRange]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesXlsxAddresses
-
         return FlextCliUtilitiesXlsxAddresses.parse_cell_range(request)
 
     @staticmethod
@@ -150,8 +141,6 @@ class FlextCliUtilitiesXlsx:
             The resulting ``p.Result[m.Cli.XlsxReference]``.
 
         """
-        from flext_cli._utilities import FlextCliUtilitiesXlsxAddresses
-
         return FlextCliUtilitiesXlsxAddresses.format_cell_reference(request)
 
 

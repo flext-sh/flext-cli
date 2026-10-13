@@ -26,9 +26,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from examples import c, m, t, u
+from examples import c, m, p, r, t, u
 from flext_cli import cli
-from flext_core import p, r
 
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): the example enters
 # the railway as one validated model and retains that object through services.
@@ -67,128 +66,134 @@ def _finish_database_config(
     return settings
 
 
-def create_database_config_from_cli() -> p.Result[m.Examples.AdvancedDatabaseConfig]:
-    """Create validated DatabaseConfig using Railway Pattern with Pydantic.
+class ExamplesFlextCliPydanticDrivenCli:
+    """Pydantic-driven CLI example: build type-safe CLIs from models."""
 
-    Returns:
-        The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+    @staticmethod
+    def create_database_config_from_cli() -> p.Result[
+        m.Examples.AdvancedDatabaseConfig
+    ]:
+        """Create validated DatabaseConfig using Railway Pattern with Pydantic.
 
-    """
-    cli.print(
-        "\n🗄️  Database Configuration with Railway Pattern:",
-        style=c.Cli.MessageStyles.BOLD_CYAN,
-    )
-    cli_args = m.Examples.AdvancedDatabaseConfig(
-        host="db.example.com",
-        port=_DEFAULT_POSTGRES_PORT,
-        name="production_db",
-        username="example_user",
-        password=_DEMO_DB_PLACEHOLDER,
-        ssl_enabled=True,
-        connection_pool=20,
-    )
-    return (
-        r[m.Examples.AdvancedDatabaseConfig]
-        .ok(cli_args)
-        .map(
-            lambda settings: _report_step_success(
-                settings,
-                "✅ Required fields validated",
-            ),
+        Returns:
+            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+
+        """
+        cli.print(
+            "\n🗄️  Database Configuration with Railway Pattern:",
+            style=c.Cli.MessageStyles.BOLD_CYAN,
         )
-        .map(
-            lambda settings: _report_step_success(
-                settings,
-                "✅ Pydantic validation passed",
-            ),
+        cli_args = m.Examples.AdvancedDatabaseConfig(
+            host="db.example.com",
+            port=_DEFAULT_POSTGRES_PORT,
+            name="production_db",
+            username="example_user",
+            password=_DEMO_DB_PLACEHOLDER,
+            ssl_enabled=True,
+            connection_pool=20,
         )
-        .flat_map(validate_business_rules)
-        .map(
-            lambda settings: _report_step_success(
-                settings,
-                "✅ Business rules validated",
-            ),
-        )
-        .flat_map(perform_connection_test)
-        .map(
-            lambda settings: _report_step_success(
-                settings,
-                "✅ Connection test passed",
-            ),
-        )
-        .map(_finish_database_config)
-    )
-
-
-def validate_required_fields(
-    data: t.MappingKV[str, t.JsonPayloadCollectionValue],
-) -> p.Result[t.JsonMapping]:
-    """Validate that all required fields are present.
-
-    Returns:
-        The resulting ``p.Result[t.JsonMapping]``.
-
-    """
-    required = list(c.EXAMPLE_DATABASE_REQUIRED_FIELDS)
-    missing = [field for field in required if field not in data or not data[field]]
-    if missing:
-        return r[t.JsonMapping].fail(f"Missing required fields: {missing}")
-    normalized_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-        u.normalize_to_json_value(data),
-    )
-    return r[t.JsonMapping].ok(normalized_data)
-
-
-def convert_and_validate_with_pydantic(
-    data: t.JsonMapping,
-) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
-    """Convert raw data to validated Pydantic model.
-
-    Returns:
-        The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
-
-    """
-    try:
-        return r[m.Examples.AdvancedDatabaseConfig].ok(
-            m.Examples.AdvancedDatabaseConfig.model_validate(data),
-        )
-    except c.ValidationError as error:
-        return r[m.Examples.AdvancedDatabaseConfig].fail(
-            f"Pydantic validation failed: {error}",
-            exception=error,
+        return (
+            r[m.Examples.AdvancedDatabaseConfig]
+            .ok(cli_args)
+            .map(
+                lambda settings: _report_step_success(
+                    settings,
+                    "✅ Required fields validated",
+                ),
+            )
+            .map(
+                lambda settings: _report_step_success(
+                    settings,
+                    "✅ Pydantic validation passed",
+                ),
+            )
+            .flat_map(ExamplesFlextCliPydanticDrivenCli.validate_business_rules)
+            .map(
+                lambda settings: _report_step_success(
+                    settings,
+                    "✅ Business rules validated",
+                ),
+            )
+            .flat_map(ExamplesFlextCliPydanticDrivenCli.perform_connection_test)
+            .map(
+                lambda settings: _report_step_success(
+                    settings,
+                    "✅ Connection test passed",
+                ),
+            )
+            .map(_finish_database_config)
         )
 
+    @staticmethod
+    def validate_required_fields(
+        data: t.MappingKV[str, t.JsonPayloadCollectionValue],
+    ) -> p.Result[t.JsonMapping]:
+        """Validate that all required fields are present.
 
-def validate_business_rules(
-    settings: m.Examples.AdvancedDatabaseConfig,
-) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
-    """Apply custom business rules to validated database configuration.
+        Returns:
+            The resulting ``p.Result[t.JsonMapping]``.
 
-    Returns:
-        The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
-
-    """
-    if settings.ssl_enabled and settings.port == _DEFAULT_POSTGRES_PORT:
-        settings = settings.model_copy(update={"port": _SSL_POSTGRES_PORT})
-    if (
-        settings.connection_pool > _MAX_LOCALHOST_CONNECTION_POOL
-        and settings.host == "localhost"
-    ):
-        return r[m.Examples.AdvancedDatabaseConfig].fail(
-            "Localhost cannot handle large connection pools",
+        """
+        required = list(c.EXAMPLE_DATABASE_REQUIRED_FIELDS)
+        missing = [field for field in required if field not in data or not data[field]]
+        if missing:
+            return r[t.JsonMapping].fail(f"Missing required fields: {missing}")
+        normalized_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
+            u.normalize_to_json_value(data),
         )
-    return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
+        return r[t.JsonMapping].ok(normalized_data)
 
+    @staticmethod
+    def convert_and_validate_with_pydantic(
+        data: t.JsonMapping,
+    ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+        """Convert raw data to validated Pydantic model.
 
-def perform_connection_test(
-    settings: m.Examples.AdvancedDatabaseConfig,
-) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
-    """Simulate database connection test.
+        Returns:
+            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
 
-    Returns:
-        The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+        """
+        try:
+            return r[m.Examples.AdvancedDatabaseConfig].ok(
+                m.Examples.AdvancedDatabaseConfig.model_validate(data),
+            )
+        except c.ValidationError as error:
+            return r[m.Examples.AdvancedDatabaseConfig].fail(
+                f"Pydantic validation failed: {error}",
+                exception=error,
+            )
 
-    """
-    if "fail" in settings.host:
-        return r[m.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
-    return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
+    @staticmethod
+    def validate_business_rules(
+        settings: m.Examples.AdvancedDatabaseConfig,
+    ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+        """Apply custom business rules to validated database configuration.
+
+        Returns:
+            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+
+        """
+        if settings.ssl_enabled and settings.port == _DEFAULT_POSTGRES_PORT:
+            settings = settings.model_copy(update={"port": _SSL_POSTGRES_PORT})
+        if (
+            settings.connection_pool > _MAX_LOCALHOST_CONNECTION_POOL
+            and settings.host == "localhost"
+        ):
+            return r[m.Examples.AdvancedDatabaseConfig].fail(
+                "Localhost cannot handle large connection pools",
+            )
+        return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
+
+    @staticmethod
+    def perform_connection_test(
+        settings: m.Examples.AdvancedDatabaseConfig,
+    ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+        """Simulate database connection test.
+
+        Returns:
+            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+
+        """
+        if "fail" in settings.host:
+            return r[m.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
+        return r[m.Examples.AdvancedDatabaseConfig].ok(settings)

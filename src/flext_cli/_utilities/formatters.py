@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Final
 
-from flext_cli import c, m
+from flext_cli import c, m, t
 from flext_cli._utilities import FlextCliUtilitiesOutput, FlextCliUtilitiesTables
 
 
@@ -17,7 +17,7 @@ class FlextCliUtilitiesFormatters:
 
     _RESET: Final[str] = "\x1b[0m"
 
-    _ANSI_BY_STYLE: Final[dict[str, str]] = {
+    _ANSI_BY_STYLE: Final[t.StrMapping] = {
         c.Cli.MessageStyles.BLUE: "\x1b[34m",
         c.Cli.MessageStyles.GREEN: "\x1b[32m",
         c.Cli.MessageStyles.RED: "\x1b[31m",

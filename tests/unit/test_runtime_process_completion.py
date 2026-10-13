@@ -12,7 +12,7 @@ from pathlib import Path
 from tests import tm, u
 
 
-class TestsRuntimeProcessCompletion:
+class TestsFlextCliRuntimeProcessCompletion:
     """A completed child must not wait for its execution deadline."""
 
     @staticmethod

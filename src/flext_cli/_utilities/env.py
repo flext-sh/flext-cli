@@ -113,7 +113,7 @@ class FlextCliUtilitiesEnv:
             The expanded mapping, or the first failing entry.
 
         """
-        mapping: dict[str, t.JsonValue] = {}
+        mapping: t.JsonDict = {}
         for key, item in value.items():
             if key in skip_keys:
                 mapping[key] = item

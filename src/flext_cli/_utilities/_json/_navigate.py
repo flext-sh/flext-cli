@@ -13,13 +13,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from flext_cli._utilities import FlextCliUtilitiesJsonCoreMixin
+from flext_cli import t
+from flext_cli._utilities._json import FlextCliUtilitiesJsonCoreMixin
 from flext_core import u
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):

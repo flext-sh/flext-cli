@@ -14,7 +14,8 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesFilesPart02, FlextCliUtilitiesJson
+from flext_cli._utilities import FlextCliUtilitiesJson
+from flext_cli._utilities._files_parts import FlextCliUtilitiesFilesPart02
 from flext_core import u
 
 
@@ -44,7 +45,7 @@ class FlextCliUtilitiesFilesPart04:
         | m.ConfigMap
         | m.Dict
         | p.Model
-        | Mapping[str, object]
+        | t.JsonMapping
         | t.SequenceOf[t.StrSequence],
         name: str,
         fmt: str = c.Cli.FILE_FORMAT_AUTO,

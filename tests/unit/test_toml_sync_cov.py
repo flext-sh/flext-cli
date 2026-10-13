@@ -18,16 +18,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
+from tomlkit.items import Table
 
-from tests import tm, u
-
-if TYPE_CHECKING:
-    from tomlkit.items import Table
-
-    from tests import t
+from tests import t, tm, u
 
 
 class TestsFlextCliTomlSyncCoverage:
@@ -239,11 +234,11 @@ class TestsFlextCliTomlSyncCoverage:
 
     @staticmethod
     @pytest.fixture
-    def payload() -> dict[str, t.JsonValue]:
+    def payload() -> t.JsonDict:
         """Fresh plain pyproject-style mapping.
 
         Returns:
-            The resulting ``dict[str, t.JsonValue]``.
+            The resulting ``t.JsonDict``.
 
         """
         return {"project": {"name": "demo"}, "obsolete": True}

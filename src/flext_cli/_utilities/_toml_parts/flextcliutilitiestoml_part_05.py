@@ -7,20 +7,18 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 from tomlkit.items import Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli._utilities import (
+from flext_cli import t
+from flext_cli._utilities._toml_parts import (
     FlextCliUtilitiesTomlPart01,
     FlextCliUtilitiesTomlPart02,
     FlextCliUtilitiesTomlPart03,
 )
 from flext_core import u
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliUtilitiesTomlPart05:
@@ -40,7 +38,7 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``bool``.
 
         """
-        container_view = cast("Mapping[str, object]", container)
+        container_view = cast("t.JsonMapping", container)
         existing = cast("t.Cli.TomlRuntimeSource | None", container_view.get(key))
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing
@@ -58,7 +56,7 @@ class FlextCliUtilitiesTomlPart05:
         if current == normalized_expected:
             return False
         table = FlextCliUtilitiesTomlPart02.toml_ensure_table(container, key)
-        table_view = cast("Mapping[str, object]", table)
+        table_view = cast("t.JsonMapping", table)
         for existing_key in list(table_view):
             if existing_key not in normalized_expected:
                 del table[existing_key]
@@ -105,7 +103,7 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``bool``.
 
         """
-        container_view = cast("Mapping[str, object]", container)
+        container_view = cast("t.JsonMapping", container)
         existing = cast("t.Cli.TomlRuntimeSource | None", container_view.get(key))
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing if isinstance(existing, Mapping) else None,
