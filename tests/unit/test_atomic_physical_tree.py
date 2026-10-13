@@ -18,6 +18,26 @@ from tests import m, tm, u
 class TestsFlextCliAtomicPhysicalTree:
     """Prove manifests authenticate every entry before nonrecursive cleanup."""
 
+    @staticmethod
+    def test_file_snapshot_and_tree_digest_share_exact_large_input(
+        tmp_path: Path,
+    ) -> None:
+        """Byte snapshots and incremental inventory agree beyond one read chunk."""
+        root = tmp_path / "tree"
+        root.mkdir()
+        path = root / "payload.bin"
+        payload = bytes(range(256)) * 16_385
+        path.write_bytes(payload)
+        manifest = tm.ok(u.Cli.atomic_inventory_physical_tree(root))
+        snapshot = tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True))
+        tm.that(snapshot.content, eq=payload)
+        tm.that(len(manifest.entries), eq=1)
+        entry = manifest.entries[0]
+        tm.that(entry.path, eq=path)
+        tm.that(entry.size, eq=len(payload))
+        tm.that(entry.sha256, eq=u.Cli.sha256_bytes(payload))
+        tm.that((entry.device, entry.inode), eq=(snapshot.device, snapshot.inode))
+
     def test_inventory_preserves_mount_identity_across_entries_and_reads(
         self,
         tmp_path: Path,
