@@ -12,8 +12,6 @@ from typing import ClassVar
 from flext_cli._constants import FlextCliConstantsEnums
 from flext_core import c, t
 
-__all__: t.StrSequence = ("FlextCliConstantsSettings",)
-
 
 class FlextCliConstantsSettings:
     """CLI defaults, messages, registries, and output configuration.
@@ -140,3 +138,6 @@ class FlextCliConstantsSettings:
             CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_CONFIG_FILE,
         },
     })
+
+
+__all__: t.StrSequence = ("FlextCliConstantsSettings",)
