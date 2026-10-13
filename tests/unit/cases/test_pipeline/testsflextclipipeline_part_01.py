@@ -8,13 +8,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, r
-from tests import c, m, tm
+from flext_cli import cli
+from tests import c, m, r, t, tm
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import p, t
+    from tests import p
 
 
 class TestsFlextCliPipelinePart01:

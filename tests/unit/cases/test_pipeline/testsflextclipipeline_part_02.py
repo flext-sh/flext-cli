@@ -10,8 +10,8 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from flext_cli import cli, r
-from tests import m, tm
+from flext_cli import cli
+from tests import m, r, tm
 
 if TYPE_CHECKING:
     from pathlib import Path

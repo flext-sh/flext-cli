@@ -17,16 +17,14 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import ClassVar, cast
 
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.tokens import CommentToken as RuamelCommentToken
 
+from flext_cli import p, t
 from flext_cli._utilities._yaml import FlextCliUtilitiesYamlEngineMixin
 from flext_core import u
-
-if TYPE_CHECKING:
-    from flext_cli import p, t
 
 
 class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):

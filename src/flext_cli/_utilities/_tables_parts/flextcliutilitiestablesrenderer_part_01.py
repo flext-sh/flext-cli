@@ -7,37 +7,37 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable, Mapping, Sequence
-from typing import Final
+from typing import ClassVar
 
 from flext_cli import c, m, t
-
-_EMPTY: Final[str] = ""
-_GAP: Final[str] = "  "
-_TSV_GAP: Final[str] = "\t"
-_ROW_GLYPH: Final[str] = "-"
-_ROW_EDGE: Final[str] = "+"
-_COLUMN_EDGE: Final[str] = "|"
-_INDEX_HEADER: Final[str] = ""
-_PAD_METHODS: Final[dict[str, Callable[[str, int], str]]] = {
-    "left": str.ljust,
-    "right": str.rjust,
-    "center": str.center,
-}
-_DECIMAL_ALIASES: Final[frozenset[str]] = frozenset({"decimal", "right"})
-_SHAPES: Final[dict[str, str]] = {
-    c.Cli.TabularFormat.PLAIN: "plain",
-    c.Cli.TabularFormat.TSV: "tsv",
-    c.Cli.TabularFormat.GRID: "grid",
-    c.Cli.TabularFormat.FANCY_GRID: "grid",
-    c.Cli.TabularFormat.PIPE: "pipe",
-    c.Cli.TabularFormat.RST: "rst",
-}
-_SHAPE_SIMPLE: Final[str] = "simple"
-_RST_GLYPH: Final[str] = "="
 
 
 class FlextCliUtilitiesTablesRenderer:
     """Render normalized table rows to deterministic plain-text tables."""
+
+    _EMPTY: ClassVar[str] = ""
+    _GAP: ClassVar[str] = "  "
+    _TSV_GAP: ClassVar[str] = "\t"
+    _ROW_GLYPH: ClassVar[str] = "-"
+    _ROW_EDGE: ClassVar[str] = "+"
+    _COLUMN_EDGE: ClassVar[str] = "|"
+    _INDEX_HEADER: ClassVar[str] = ""
+    _PAD_METHODS: ClassVar[t.MappingKV[str, Callable[[str, int], str]]] = {
+        "left": str.ljust,
+        "right": str.rjust,
+        "center": str.center,
+    }
+    _DECIMAL_ALIASES: ClassVar[frozenset[str]] = frozenset({"decimal", "right"})
+    _SHAPES: ClassVar[t.StrMapping] = {
+        c.Cli.TabularFormat.PLAIN: "plain",
+        c.Cli.TabularFormat.TSV: "tsv",
+        c.Cli.TabularFormat.GRID: "grid",
+        c.Cli.TabularFormat.FANCY_GRID: "grid",
+        c.Cli.TabularFormat.PIPE: "pipe",
+        c.Cli.TabularFormat.RST: "rst",
+    }
+    _SHAPE_SIMPLE: ClassVar[str] = "simple"
+    _RST_GLYPH: ClassVar[str] = "="
 
     @staticmethod
     def _format_cell(value: t.JsonPayload, floatfmt: str, missingval: str) -> str:
@@ -49,7 +49,9 @@ class FlextCliUtilitiesTablesRenderer:
 
     @staticmethod
     def _pad(cell: str, width: int, alignment: str) -> str:
-        return _PAD_METHODS.get(alignment, str.ljust)(cell, width)
+        return FlextCliUtilitiesTablesRenderer._PAD_METHODS.get(alignment, str.ljust)(
+            cell, width
+        )
 
     @staticmethod
     def _is_numeric(cell: str) -> bool:
@@ -86,18 +88,31 @@ class FlextCliUtilitiesTablesRenderer:
     ) -> list[str]:
         alignments: list[str] = []
         for index in range(column_count):
-            override = colalign[index] if index < len(colalign) else _EMPTY
+            override = (
+                colalign[index]
+                if index < len(colalign)
+                else FlextCliUtilitiesTablesRenderer._EMPTY
+            )
             if override:
-                resolved = "right" if override in _DECIMAL_ALIASES else override
+                resolved = (
+                    "right"
+                    if override in FlextCliUtilitiesTablesRenderer._DECIMAL_ALIASES
+                    else override
+                )
             elif index in numeric_columns:
                 resolved = (
                     "right"
-                    if settings.numalign in _DECIMAL_ALIASES
+                    if settings.numalign
+                    in FlextCliUtilitiesTablesRenderer._DECIMAL_ALIASES
                     else settings.numalign
                 )
             else:
                 resolved = settings.stralign
-            alignments.append(resolved if resolved in _PAD_METHODS else "left")
+            alignments.append(
+                resolved
+                if resolved in FlextCliUtilitiesTablesRenderer._PAD_METHODS
+                else "left"
+            )
         return alignments
 
     @classmethod
@@ -198,7 +213,7 @@ class FlextCliUtilitiesTablesRenderer:
     ) -> tuple[list[str] | None, Sequence[t.Cli.TableRow]]:
         if settings.showindex is True:
             return (
-                [_INDEX_HEADER],
+                [FlextCliUtilitiesTablesRenderer._INDEX_HEADER],
                 [[str(number + 1), *row] for number, row in enumerate(data_rows)],
             )
         if isinstance(settings.showindex, list):
@@ -230,23 +245,26 @@ class FlextCliUtilitiesTablesRenderer:
         lines: list[str] = []
         if header_labels and settings.show_header:
             lines.extend([
-                _COLUMN_EDGE
-                + _COLUMN_EDGE.join(
+                FlextCliUtilitiesTablesRenderer._COLUMN_EDGE
+                + FlextCliUtilitiesTablesRenderer._COLUMN_EDGE.join(
                     f" {cls._pad(label, widths[index], alignments[index])} "
                     for index, label in enumerate(header_labels)
                 )
-                + _COLUMN_EDGE,
-                _COLUMN_EDGE
-                + _COLUMN_EDGE.join(f" {_ROW_GLYPH * width} " for width in widths)
-                + _COLUMN_EDGE,
+                + FlextCliUtilitiesTablesRenderer._COLUMN_EDGE,
+                FlextCliUtilitiesTablesRenderer._COLUMN_EDGE
+                + FlextCliUtilitiesTablesRenderer._COLUMN_EDGE.join(
+                    f" {FlextCliUtilitiesTablesRenderer._ROW_GLYPH * width} "
+                    for width in widths
+                )
+                + FlextCliUtilitiesTablesRenderer._COLUMN_EDGE,
             ])
         lines.extend(
-            _COLUMN_EDGE
-            + _COLUMN_EDGE.join(
+            FlextCliUtilitiesTablesRenderer._COLUMN_EDGE
+            + FlextCliUtilitiesTablesRenderer._COLUMN_EDGE.join(
                 f" {cls._pad(cell, widths[index], alignments[index])} "
                 for index, cell in enumerate(row)
             )
-            + _COLUMN_EDGE
+            + FlextCliUtilitiesTablesRenderer._COLUMN_EDGE
             for row in cells
         )
         return "\n".join(lines)
@@ -266,8 +284,10 @@ class FlextCliUtilitiesTablesRenderer:
         """
         lines: list[str] = []
         if header_labels and settings.show_header:
-            lines.append(_TSV_GAP.join(header_labels))
-        lines.extend(_TSV_GAP.join(row) for row in cells)
+            lines.append(FlextCliUtilitiesTablesRenderer._TSV_GAP.join(header_labels))
+        lines.extend(
+            FlextCliUtilitiesTablesRenderer._TSV_GAP.join(row) for row in cells
+        )
         return "\n".join(lines)
 
     @classmethod
@@ -280,7 +300,9 @@ class FlextCliUtilitiesTablesRenderer:
         *,
         settings: m.Cli.TableConfig,
     ) -> str:
-        shape = _SHAPES.get(settings.table_format, _SHAPE_SIMPLE)
+        shape = FlextCliUtilitiesTablesRenderer._SHAPES.get(
+            settings.table_format, FlextCliUtilitiesTablesRenderer._SHAPE_SIMPLE
+        )
         lines: list[str] = []
         if shape == "pipe":
             return cls._compose_pipe(
@@ -293,28 +315,38 @@ class FlextCliUtilitiesTablesRenderer:
         if shape == "tsv":
             return cls._compose_tsv(cells, header_labels, settings=settings)
         border = (
-            _ROW_EDGE
-            + _ROW_EDGE.join(_ROW_GLYPH * (width + 2) for width in widths)
-            + _ROW_EDGE
+            FlextCliUtilitiesTablesRenderer._ROW_EDGE
+            + FlextCliUtilitiesTablesRenderer._ROW_EDGE.join(
+                FlextCliUtilitiesTablesRenderer._ROW_GLYPH * (width + 2)
+                for width in widths
+            )
+            + FlextCliUtilitiesTablesRenderer._ROW_EDGE
         )
-        rst_rule = _RST_GLYPH * (sum(widths) + 2 * (len(widths) - 1))
+        rst_rule = FlextCliUtilitiesTablesRenderer._RST_GLYPH * (
+            sum(widths) + 2 * (len(widths) - 1)
+        )
         if shape == "grid":
             lines.append(border)
         if header_labels and settings.show_header:
             lines.append(
-                _GAP.join(
+                FlextCliUtilitiesTablesRenderer._GAP.join(
                     cls._pad(label, widths[index], alignments[index])
                     for index, label in enumerate(header_labels)
                 ),
             )
             if shape == "simple":
-                lines.append(_GAP.join(_ROW_GLYPH * width for width in widths))
+                lines.append(
+                    FlextCliUtilitiesTablesRenderer._GAP.join(
+                        FlextCliUtilitiesTablesRenderer._ROW_GLYPH * width
+                        for width in widths
+                    )
+                )
             elif shape == "grid":
                 lines.append(border)
             elif shape == "rst":
                 lines.append(rst_rule)
         lines.extend(
-            _GAP.join(
+            FlextCliUtilitiesTablesRenderer._GAP.join(
                 cls._pad(cell, widths[index], alignments[index])
                 for index, cell in enumerate(row)
             )

@@ -6,14 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence
 from pathlib import Path
-from typing import TYPE_CHECKING, Annotated, ClassVar
+from typing import Annotated, ClassVar
 
 from examples import c, p, r, t
 from flext_cli import m, u
-
-if TYPE_CHECKING:
-    from collections.abc import MutableSequence
 
 
 class ExamplesFlextCliModelsExamplesAdvanced:

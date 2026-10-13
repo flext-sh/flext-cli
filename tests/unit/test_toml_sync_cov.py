@@ -18,16 +18,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
 
 import pytest
+from tomlkit.items import Table
 
-from tests import tm, u
-
-if TYPE_CHECKING:
-    from tomlkit.items import Table
-
-    from tests import t
+from tests import t, tm, u
 
 
 class TestsFlextCliTomlSyncCoverage:

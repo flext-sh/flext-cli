@@ -12,10 +12,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Annotated
 
-from flext_tests import FlextTestsUtilities, r, tm
+from flext_tests import FlextTestsUtilities
 
 from flext_cli import FlextCliUtilities, cli
-from tests import TestsFlextCliSettings, c, m, p
+from tests import TestsFlextCliSettings, c, m, p, r, tm
 
 if TYPE_CHECKING:
     from pathlib import Path

@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from docx.text.run import Run
 
 
-_DOCX_UNDERLINE_VALUE = Literal[
+type _DOCX_UNDERLINE_VALUE = Literal[
     "single",
     "double",
     "singleAccounting",
@@ -127,7 +127,7 @@ class FlextCliUtilitiesDocxReader:
     @classmethod
     def _snapshot_core_properties(cls, document: DocumentType) -> t.JsonMapping:
         core_props = document.core_properties
-        properties: dict[str, str] = {}
+        properties: t.MutableStrMapping = {}
         for key in ("author", "title", "subject", "keywords", "comments", "category"):
             value = getattr(core_props, key, None)
             if value:
@@ -138,7 +138,7 @@ class FlextCliUtilitiesDocxReader:
     def _snapshot_alignment(alignment: WD_ALIGN_PARAGRAPH | None) -> str | None:
         if alignment is None:
             return None
-        mapping: dict[WD_ALIGN_PARAGRAPH, str] = {
+        mapping: t.MappingKV[WD_ALIGN_PARAGRAPH, str] = {
             WD_ALIGN_PARAGRAPH.LEFT: "left",
             WD_ALIGN_PARAGRAPH.CENTER: "center",
             WD_ALIGN_PARAGRAPH.RIGHT: "right",
@@ -154,7 +154,7 @@ class FlextCliUtilitiesDocxReader:
     ) -> _DOCX_UNDERLINE_VALUE | None:
         if underline is None or underline is False:
             return None
-        mapping: dict[WD_UNDERLINE | int, _DOCX_UNDERLINE_VALUE] = {
+        mapping: t.MappingKV[WD_UNDERLINE | int, _DOCX_UNDERLINE_VALUE] = {
             WD_UNDERLINE.SINGLE: "single",
             WD_UNDERLINE.DOUBLE: "double",
             9: "singleAccounting",

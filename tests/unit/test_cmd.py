@@ -20,8 +20,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-from flext_cli import cli, m
-from tests import c, p, t, tm, u
+from flext_cli import cli
+from tests import c, m, p, t, tm, u
 
 
 class TestsFlextCliCmd:

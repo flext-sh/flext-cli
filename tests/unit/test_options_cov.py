@@ -25,8 +25,8 @@ from typing import Annotated, ClassVar
 
 import pytest
 
-from flext_cli import c, cli, m
-from tests import t, tm, u
+from flext_cli import cli
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliOptionsUtilsCov:

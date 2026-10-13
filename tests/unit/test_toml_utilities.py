@@ -14,15 +14,10 @@ from __future__ import annotations
 import stat
 import tomllib
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
-from flext_cli import u
-from tests import tm
-
-if TYPE_CHECKING:
-    from tests import t
+from tests import t, tm, u
 
 
 class TestsFlextCliTomlUtilities:

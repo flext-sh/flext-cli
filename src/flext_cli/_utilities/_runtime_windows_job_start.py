@@ -9,15 +9,15 @@ from __future__ import annotations
 import ctypes
 import os
 from ctypes import wintypes
-from typing import Final
+from typing import ClassVar
 
 from flext_cli import p, r
-
-_RESUME_THREAD_FAILED: Final[int] = 0xFFFFFFFF
 
 
 class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
     """Contain a suspended Windows process before any child code executes."""
+
+    _RESUME_THREAD_FAILED: ClassVar[int] = 0xFFFFFFFF
 
     @classmethod
     def _windows_job_create(cls, process_id: int) -> p.Result[int]:
@@ -136,8 +136,8 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
                 exception=exc,
             ).error or str(exc)
 
-    @staticmethod
-    def _windows_process_resume_native(process_id: int) -> str | None:
+    @classmethod
+    def _windows_process_resume_native(cls, process_id: int) -> str | None:
 
         class _ThreadEntry32(ctypes.Structure):
             _fields_ = [
@@ -199,7 +199,7 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
             prior_suspend_count = resume_thread(thread_handle)
         finally:
             close_handle(thread_handle)
-        if prior_suspend_count == _RESUME_THREAD_FAILED:
+        if prior_suspend_count == cls._RESUME_THREAD_FAILED:
             error = int(getattr(ctypes, "get_last_error", ctypes.get_errno)())
             return f"ResumeThread failed: {error}"
         return None

@@ -9,8 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import cast
 
-from flext_cli import t, u
-from tests import tm
+from tests import t, tm, u
 
 
 class TestsFlextCliOptions:

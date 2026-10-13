@@ -13,11 +13,11 @@ from typing import Annotated, ClassVar
 from flext_cli import c, t
 from flext_core import m, u
 
-_EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
-
 
 class FlextCliModelsBasePart07:
     """Implementation part for FlextCliModelsBasePart07."""
+
+    _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 
     class LogLevelResolved(m.BaseModel):
         """Single contract for log level string."""
@@ -101,7 +101,7 @@ class FlextCliModelsBasePart07:
                             for k, vv in source_mapping.items()
                         }
                         if source_mapping is not None
-                        else _EMPTY_JSON_MAPPING
+                        else FlextCliModelsBasePart07._EMPTY_JSON_MAPPING
                     )
             return resolved_value
 
@@ -122,7 +122,7 @@ class FlextCliModelsBasePart07:
                     for k, vv in self.default.items()
                 }
             # NOTE (multi-agent): Empty mapping is immutable and typed once.
-            return _EMPTY_JSON_MAPPING
+            return FlextCliModelsBasePart07._EMPTY_JSON_MAPPING
 
     class JsonWriteOptions(m.BaseModel):
         """Options for JSON file write operations."""

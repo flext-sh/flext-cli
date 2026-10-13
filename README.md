@@ -56,7 +56,7 @@ verification).
   by `flext-*`. The FLEXT cascade is encoded in the inheritance lists of the facade
   classes listed under Module Map above.
 - Public extensions exposed by this project: `FlextCli`, `FlextCliConfig`,
-  `FlextCliConstants`, `FlextCliModels`, `FlextCliProtocols`, `FlextCliServiceBase` (+4
+  `FlextCliConstants`, `FlextCliModels`, `FlextCliProtocols`, `FlextCliServiceBase` (+5
   more).
 - Library abstraction boundaries: see AGENTS.md §2.7.
 

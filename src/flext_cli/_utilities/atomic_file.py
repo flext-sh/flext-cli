@@ -12,7 +12,7 @@ import signal
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli import c
+from flext_cli import c, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileCleanup,
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -27,7 +27,7 @@ from flext_cli._utilities import (
 from flext_cli._utilities._atomic_models import FlextCliAtomicModels
 
 if TYPE_CHECKING:
-    from flext_cli import m, t
+    from flext_cli import m
 
 
 class FlextCliUtilitiesAtomicFile:

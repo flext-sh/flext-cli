@@ -11,22 +11,19 @@ from collections.abc import Callable
 from contextvars import ContextVar
 from inspect import Parameter
 from types import EllipsisType, GenericAlias
-from typing import TYPE_CHECKING, ClassVar, Never
+from typing import ClassVar, Never
 
 import click
 import typer
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
-from flext_cli import c, e, m, r, settings, t
+from flext_cli import c, e, m, p, r, settings, t
 from flext_cli._utilities import FlextCliUtilitiesCommands
 from flext_core import u
 
-if TYPE_CHECKING:
-    from flext_cli import p
-
-    # typer ships a vendored click, so the exceptions it raises are NOT instances
-    # of the top-level `click` package's classes. `typer.BadParameter` is exported
+# typer ships a vendored click, so the exceptions it raises are NOT instances
+# of the top-level `click` package's classes. `typer.BadParameter` is exported
 
 
 class FlextCliUtilitiesFramework:

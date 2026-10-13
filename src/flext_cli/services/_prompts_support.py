@@ -15,22 +15,20 @@ from typing import Annotated, Self
 from flext_cli import c, m, p, r, s, settings, t, u
 
 
-class FlextCliPromptInputReaderDefault:
-    """Resolve the built-in input reader without storing a method descriptor."""
-
-    def __call__(self, prompt: str) -> str:
-        return input(prompt)
-
-
-class _PromptPasswordReaderDefault:
-    """Resolve the password reader without storing a method descriptor."""
-
-    def __call__(self, prompt: str) -> str:
-        return getpass.getpass(prompt)
-
-
 class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
     """Support owner for prompt runtime state, logging, and input readers."""
+
+    class FlextCliPromptInputReaderDefault:
+        """Resolve the built-in input reader without storing a method descriptor."""
+
+        def __call__(self, prompt: str) -> str:
+            return input(prompt)
+
+    class PromptPasswordReaderDefault:
+        """Resolve the password reader without storing a method descriptor."""
+
+        def __call__(self, prompt: str) -> str:
+            return getpass.getpass(prompt)
 
     state: Annotated[
         m.Cli.PromptRuntimeState,
@@ -57,7 +55,7 @@ class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
             ),
             exclude=True,
         ),
-    ] = m.Field(default_factory=_PromptPasswordReaderDefault, validate_default=True)
+    ] = m.Field(default_factory=PromptPasswordReaderDefault, validate_default=True)
 
     def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
         """Replace prompt runtime state using the canonical CLI model.

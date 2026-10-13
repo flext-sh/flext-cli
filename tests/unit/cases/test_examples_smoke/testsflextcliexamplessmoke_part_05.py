@@ -8,16 +8,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from examples import ExamplesFlextCliSettings, c, m, t
-from examples.ex_12_pydantic_driven_cli import (
-    convert_and_validate_with_pydantic,
-    create_database_config_from_cli,
-    perform_connection_test,
-    validate_business_rules,
-    validate_required_fields,
-)
+from examples import ExamplesFlextCliSettings
+from examples.ex_12_pydantic_driven_cli import ExamplesFlextCliPydanticDrivenCli
 
-from tests import tm
+from tests import c, m, t, tm
 
 
 class TestsFlextCliExamplesSmokePart05:
@@ -43,7 +37,9 @@ class TestsFlextCliExamplesSmokePart05:
         tm.that(settings_result.value["services_initialized"], eq=True)
         tm.that(Path(str(settings_result.value["temp_dir"])).exists(), eq=True)
 
-        database_result = create_database_config_from_cli()
+        database_result = (
+            ExamplesFlextCliPydanticDrivenCli.create_database_config_from_cli()
+        )
         tm.ok(database_result)
         tm.that(database_result.value.port, eq=5433)
         tm.that(database_result.value.ssl_enabled, eq=True)
@@ -54,43 +50,55 @@ class TestsFlextCliExamplesSmokePart05:
         None
     ):
         """Fail a Pydantic-driven example through its public railway steps."""
-        missing_fields = validate_required_fields({"host": "db.example.com"})
+        missing_fields = ExamplesFlextCliPydanticDrivenCli.validate_required_fields({
+            "host": "db.example.com"
+        })
         tm.fail(missing_fields)
 
-        invalid_model = convert_and_validate_with_pydantic(
-            t.Cli.JSON_MAPPING_ADAPTER.validate_python({
-                "host": "db.example.com",
-                "port": "bad-port",
-                "name": "prod",
-                "username": "user",
-                "password": "secret",
-                "ssl_enabled": True,
-                "connection_pool": 10,
-            }),
+        invalid_model = (
+            ExamplesFlextCliPydanticDrivenCli.convert_and_validate_with_pydantic(
+                t.Cli.JSON_MAPPING_ADAPTER.validate_python({
+                    "host": "db.example.com",
+                    "port": "bad-port",
+                    "name": "prod",
+                    "username": "user",
+                    "password": "secret",
+                    "ssl_enabled": True,
+                    "connection_pool": 10,
+                }),
+            )
         )
         tm.fail(invalid_model)
 
-        base_config = convert_and_validate_with_pydantic(
-            t.Cli.JSON_MAPPING_ADAPTER.validate_python({
-                "host": "db.example.com",
-                "port": 5432,
-                "name": "prod",
-                "username": "user",
-                "password": "p" + "3" * 10,
-                "ssl_enabled": False,
-                "connection_pool": 10,
-            }),
+        base_config = (
+            ExamplesFlextCliPydanticDrivenCli.convert_and_validate_with_pydantic(
+                t.Cli.JSON_MAPPING_ADAPTER.validate_python({
+                    "host": "db.example.com",
+                    "port": 5432,
+                    "name": "prod",
+                    "username": "user",
+                    "password": "p" + "3" * 10,
+                    "ssl_enabled": False,
+                    "connection_pool": 10,
+                }),
+            )
         )
         tm.ok(base_config)
 
         oversized_localhost = base_config.value.model_copy(
             update={"host": "localhost", "connection_pool": 60},
         )
-        business_rule_result = validate_business_rules(oversized_localhost)
+        business_rule_result = (
+            ExamplesFlextCliPydanticDrivenCli.validate_business_rules(
+                oversized_localhost
+            )
+        )
         tm.fail(business_rule_result)
 
         failing_connection = base_config.value.model_copy(
             update={"host": "fail-db.example.com"},
         )
-        connection_result = perform_connection_test(failing_connection)
+        connection_result = ExamplesFlextCliPydanticDrivenCli.perform_connection_test(
+            failing_connection
+        )
         tm.fail(connection_result)

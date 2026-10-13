@@ -8,8 +8,7 @@ from __future__ import annotations
 
 from flext_tests import m
 
-from tests.models_parts.tests_cli import TestsFlextCliModelsCli
-from tests.models_parts.tests_runtime import TestsFlextCliModelsRuntime
+from tests.models_parts import TestsFlextCliModelsCli, TestsFlextCliModelsRuntime
 
 
 class TestsFlextCliModelsPart01:

@@ -9,12 +9,10 @@ from __future__ import annotations
 import re
 from enum import StrEnum, unique
 from types import MappingProxyType
-from typing import TYPE_CHECKING, ClassVar
+from typing import ClassVar
 
 from flext_cli import c
-
-if TYPE_CHECKING:
-    from tests import t
+from tests import t
 
 
 class TestsFlextCliConstantsCore:

@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from examples import ExamplesFlextCliGettingStarted
-from examples.ex_02_output_formatting import export_report
+from examples.ex_02_output_formatting import ExamplesFlextCliOutputFormatting
 from examples.ex_04_file_operations import (
     load_deployment_config,
     load_user_preferences,
@@ -53,7 +53,7 @@ class TestsFlextCliExamplesSmokePart01:
             m.Tests.ReportRow(id=1, name="Alice", status="active"),
             m.Tests.ReportRow(id=2, name="Bob", status="inactive"),
         )
-        report_result = export_report(
+        report_result = ExamplesFlextCliOutputFormatting.export_report(
             tuple(row.model_dump(mode="json") for row in report_rows),
         )
         tm.ok(report_result)

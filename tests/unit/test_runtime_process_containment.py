@@ -113,6 +113,8 @@ def _timed_out_failure(result: p.Result[p.Cli.CommandOutput]) -> None:
 
 
 class TestsFlextCliInterruptingCommand(UserList[str]):
+    """Command sequence that raises SIGTERM when iterated by the process runner."""
+
     @override
     def __iter__(self) -> Iterator[str]:
         signal.raise_signal(signal.SIGTERM)

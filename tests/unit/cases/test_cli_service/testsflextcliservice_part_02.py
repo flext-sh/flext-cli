@@ -6,15 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import MutableSequence
 
 from flext_cli import cli
-from tests import c, m, tm, u
-
-if TYPE_CHECKING:
-    from collections.abc import MutableSequence
-
-    from tests import t
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliServicePart02:

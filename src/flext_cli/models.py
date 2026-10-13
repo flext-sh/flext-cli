@@ -19,6 +19,7 @@ from flext_cli._models import (
     FlextCliModelsPipeline,
     FlextCliModelsPptx,
     FlextCliModelsPptxPresentation,
+    FlextCliModelsProcess,
     FlextCliModelsRules,
     FlextCliModelsTemplate,
     FlextCliModelsXlsx,
@@ -27,9 +28,6 @@ from flext_core import FlextModels
 
 if TYPE_CHECKING:
     from flext_cli import t
-
-
-from flext_cli._models import FlextCliModelsProcess
 
 
 class FlextCliModels(FlextModels):

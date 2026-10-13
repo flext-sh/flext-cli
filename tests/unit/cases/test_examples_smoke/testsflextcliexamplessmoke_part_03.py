@@ -10,10 +10,10 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import pytest
-from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings, c
+from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings
 
 from flext_cli import cli, settings
-from tests import tm
+from tests import c, tm
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

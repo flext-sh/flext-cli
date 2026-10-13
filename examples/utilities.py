@@ -11,13 +11,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import MutableSequence
 
 from examples import c, m, t
 from flext_cli import FlextCliUtilities, cli
-
-if TYPE_CHECKING:
-    from collections.abc import MutableSequence
 
 
 class ExamplesFlextCliUtilities(FlextCliUtilities):

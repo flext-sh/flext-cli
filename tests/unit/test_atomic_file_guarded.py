@@ -13,7 +13,7 @@ from tests import tm, u
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from flext_cli import m
+    from tests import m
 
 
 class TestsFlextCliAtomicFileGuarded:

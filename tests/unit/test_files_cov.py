@@ -17,12 +17,10 @@ from typing import TYPE_CHECKING
 import pytest
 
 from flext_cli import cli
-from tests import c, m, tm, u
+from tests import c, m, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    from tests import t
 
 
 class TestsFlextCliFilesCov:

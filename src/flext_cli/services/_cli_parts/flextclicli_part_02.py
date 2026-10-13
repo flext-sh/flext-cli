@@ -40,7 +40,7 @@ class FlextCliCliPart02(FlextCliCliPart01):
             field_names if field_names is not None else tuple(model_cls.model_fields)
         )
         options = cls._model_option_routes(model_cls, selected)
-        values: dict[str, t.JsonValue] = {}
+        values: t.JsonDict = {}
         index = 0
         while index < len(arguments):
             argument = arguments[index]
@@ -79,7 +79,7 @@ class FlextCliCliPart02(FlextCliCliPart01):
         cls,
         model_cls: t.ModelClass[t.Cli.ModelLike],
         selected: t.StrSequence,
-    ) -> dict[str, tuple[str, bool, bool, bool]]:
+    ) -> t.MappingKV[str, tuple[str, bool, bool, bool]]:
         """Classify declarations using the same option specification as Typer.
 
         Returns:
@@ -89,7 +89,7 @@ class FlextCliCliPart02(FlextCliCliPart01):
             TypeError: If a required field is excluded from the CLI.
 
         """
-        options: dict[str, tuple[str, bool, bool, bool]] = {}
+        options: t.MutableMappingKV[str, tuple[str, bool, bool, bool]] = {}
         for field_name in selected:
             field = model_cls.model_fields[field_name]
             if field.exclude is True:
@@ -118,7 +118,7 @@ class FlextCliCliPart02(FlextCliCliPart01):
         *,
         index: int,
         options: t.MappingKV[str, tuple[str, bool, bool, bool]],
-        values: dict[str, t.JsonValue],
+        values: t.JsonDict,
     ) -> int:
         """Consume one declared option and its value before inspecting more tokens.
 
@@ -164,7 +164,7 @@ class FlextCliCliPart02(FlextCliCliPart01):
 
     @staticmethod
     def _store_model_option_value(
-        values: dict[str, t.JsonValue],
+        values: t.JsonDict,
         *,
         field_name: str,
         value: str,
@@ -222,7 +222,7 @@ class FlextCliCliPart02(FlextCliCliPart01):
         # field-level diff drives ``update_global`` directly.
         if updated_settings is settings:
             return
-        overrides: dict[str, t.SettingsOverride | None] = {}
+        overrides: t.MutableMappingKV[str, t.SettingsOverride | None] = {}
         if updated_settings.debug != settings.debug:
             overrides["debug"] = updated_settings.debug
         if updated_settings.trace != settings.trace:

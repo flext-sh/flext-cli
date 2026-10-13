@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, m, r
-from tests import c, p, tm
+from flext_cli import cli
+from tests import c, m, p, r, tm
 
 if TYPE_CHECKING:
     from pathlib import Path

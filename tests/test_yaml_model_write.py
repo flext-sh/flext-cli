@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli, m
-from tests import tm
+from flext_cli import cli
+from tests import m, tm
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -17,19 +17,23 @@ if TYPE_CHECKING:
     from tests import t
 
 
-def test_write_yaml_model_round_trips_the_same_model_contract(tmp_path: Path) -> None:
-    """The only owned payload is a validated model on both sides of YAML."""
-    source = m.Cli.XlsxCellAddress(row=7, column=9)
-    target = tmp_path / "address.yaml"
+class TestsFlextCliYamlModelWrite:
+    """Behavioral contract validated by this module."""
 
-    written = cli.write_yaml_model(target, source)
-    loaded = cli.read_yaml_model(target, m.Cli.XlsxCellAddress)
+    @staticmethod
+    def test_write_yaml_model_round_trips_the_same_model_contract(
+        tmp_path: Path,
+    ) -> None:
+        """The only owned payload is a validated model on both sides of YAML."""
+        source = m.Cli.XlsxCellAddress(row=7, column=9)
+        target = tmp_path / "address.yaml"
 
-    tm.that(written.success, eq=True)
-    tm.that(loaded.success, eq=True)
-    tm.that(loaded.value, eq=source)
+        written = cli.write_yaml_model(target, source)
+        loaded = cli.read_yaml_model(target, m.Cli.XlsxCellAddress)
+
+        tm.that(written.success, eq=True)
+        tm.that(loaded.success, eq=True)
+        tm.that(loaded.value, eq=source)
 
 
-__all__: t.VariadicTuple[str] = (
-    "test_write_yaml_model_round_trips_the_same_model_contract",
-)
+__all__: t.VariadicTuple[str] = ()

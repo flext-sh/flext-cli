@@ -7,15 +7,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import TYPE_CHECKING, TypeIs, cast
+from typing import TypeIs, cast
 
 import tomlkit
 from tomlkit.container import OutOfOrderTableProxy
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-if TYPE_CHECKING:
-    from flext_cli import t
+from flext_cli import t
 
 
 class FlextCliUtilitiesTomlPart02:

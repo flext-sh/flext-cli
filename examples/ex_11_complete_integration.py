@@ -28,9 +28,8 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from examples import c
-from flext_cli import cli, m, t
-from flext_core import p, r
+from examples import c, m, p, r, t
+from flext_cli import cli
 
 
 class ExamplesFlextCliDataManager:

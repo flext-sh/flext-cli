@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import examples
 import pytest
-from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings, p
+from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings
 from examples.ex_04_file_operations import (
     load_deployment_config,
     load_user_preferences,
@@ -20,7 +20,7 @@ from examples.ex_04_file_operations import (
 )
 
 from flext_cli import cli, settings
-from tests import c, tm
+from tests import c, p, tm
 
 if TYPE_CHECKING:
     from collections.abc import Iterator

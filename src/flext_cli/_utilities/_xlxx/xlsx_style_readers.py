@@ -16,7 +16,7 @@ from openpyxl.styles.styleable import StyleableObject
 
 from flext_cli import m, p, r, t
 
-_XlsxUnderlineStyle = Literal[
+type _XlsxUnderlineStyle = Literal[
     "single",
     "double",
     "singleAccounting",

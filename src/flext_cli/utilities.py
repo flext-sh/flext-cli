@@ -29,4 +29,4 @@ class FlextCliUtilities(FlextUtilities):
 
 u = FlextCliUtilities
 
-__all__: list[str] = ["FlextCliUtilities", "u"]
+__all__: list[str] = ["FlextCliUtilities", "FlextCliUtilitiesCli", "u"]

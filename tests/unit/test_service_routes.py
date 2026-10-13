@@ -12,8 +12,8 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli import cli, s
-from tests import m, p, r, t, tm, u
+from flext_cli import cli
+from tests import m, p, r, s, t, tm, u
 
 
 class TestsFlextCliServiceRoutes:

@@ -11,8 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import m
-from tests import tm, u
+from tests import m, tm, u
 
 
 class TestsFlextCliAtomicFileIdentity:

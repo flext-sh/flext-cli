@@ -20,8 +20,7 @@ from __future__ import annotations
 
 import pytest
 
-from flext_cli import r
-from tests import c, t, tm, u
+from tests import c, r, t, tm, u
 
 
 class TestsFlextCliCommands:

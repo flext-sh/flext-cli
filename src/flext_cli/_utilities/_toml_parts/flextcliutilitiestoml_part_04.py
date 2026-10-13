@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from flext_cli import t
 from flext_cli._utilities._toml_parts import (
     FlextCliUtilitiesTomlPart01,
     FlextCliUtilitiesTomlPart03,
@@ -17,8 +18,6 @@ from flext_core import u
 if TYPE_CHECKING:
     from tomlkit.items import Table
     from tomlkit.toml_document import TOMLDocument
-
-    from flext_cli import t
 
 
 class FlextCliUtilitiesTomlPart04:

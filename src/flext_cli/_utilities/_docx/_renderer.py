@@ -25,12 +25,11 @@ if TYPE_CHECKING:
     from docx.text.parfmt import ParagraphFormat
 
 
-_HEX_COLOR_WITH_ALPHA_LENGTH = 8
-_ZIP_EPOCH_FLOOR_YEAR = 1980
-
-
 class FlextCliUtilitiesDocxRenderer:
     """Render one immutable document plan into DOCX bytes."""
+
+    _HEX_COLOR_WITH_ALPHA_LENGTH = 8
+    _ZIP_EPOCH_FLOOR_YEAR = 1980
 
     # NOTE (multi-agent, mro-j2yt.1): python-docx objects stay inside this
     # module; consumers exchange only validated plans and bytes.
@@ -176,7 +175,9 @@ class FlextCliUtilitiesDocxRenderer:
         source_date_epoch: int,
     ) -> tuple[int, int, int, int, int, int]:
         moment = datetime.fromtimestamp(source_date_epoch, tz=UTC)
-        zip_floor = datetime(_ZIP_EPOCH_FLOOR_YEAR, 1, 1, tzinfo=UTC)
+        zip_floor = datetime(
+            FlextCliUtilitiesDocxRenderer._ZIP_EPOCH_FLOOR_YEAR, 1, 1, tzinfo=UTC
+        )
         stamped = max(moment, zip_floor)
         return (
             stamped.year,
@@ -388,11 +389,11 @@ class FlextCliUtilitiesDocxRenderer:
             if section_plan.bottom_margin is not None:
                 section.bottom_margin = Inches(section_plan.bottom_margin / 914400)
 
-    @staticmethod
-    def _color_value(color: m.Cli.DocxColor) -> RGBColor:
+    @classmethod
+    def _color_value(cls, color: m.Cli.DocxColor) -> RGBColor:
         if color.kind == "rgb":
             value = color.value
-            if len(value) == _HEX_COLOR_WITH_ALPHA_LENGTH:
+            if len(value) == cls._HEX_COLOR_WITH_ALPHA_LENGTH:
                 value = value[2:]
             return RGBColor.from_string(value)
         if color.kind == "theme":

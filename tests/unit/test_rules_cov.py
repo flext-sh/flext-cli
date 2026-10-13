@@ -16,12 +16,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, tm, u
+from tests import c, p, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    from tests import p, t
 
 
 class TestsFlextCliRulesCov:

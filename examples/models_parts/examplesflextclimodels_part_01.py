@@ -6,11 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from examples.models_parts.examples_advanced import (
+from examples.models_parts import (
     ExamplesFlextCliModelsExamplesAdvanced,
-)
-from examples.models_parts.examples_common import ExamplesFlextCliModelsExamplesCommon
-from examples.models_parts.examples_database import (
+    ExamplesFlextCliModelsExamplesCommon,
     ExamplesFlextCliModelsExamplesDatabase,
 )
 
