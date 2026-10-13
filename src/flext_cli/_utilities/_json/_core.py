@@ -99,7 +99,7 @@ class FlextCliUtilitiesJsonCoreMixin:
 
         def _object_pairs_hook(
             pairs: t.SequenceOf[t.Pair[str, t.JsonValue]],
-        ) -> dict[str, t.JsonValue]:
+        ) -> t.JsonDict:
             obj = dict(pairs)
             seen: set[str] = set()
             for key, _ in pairs:
@@ -110,7 +110,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             return obj
 
         root: t.JsonValue = json.loads(raw, object_pairs_hook=_object_pairs_hook)
-        paths: dict[int, str] = {}
+        paths: t.MutableMappingKV[int, str] = {}
         stack: list[tuple[t.JsonValue, str]] = [(root, "$")]
         while stack:
             node, path = stack.pop()

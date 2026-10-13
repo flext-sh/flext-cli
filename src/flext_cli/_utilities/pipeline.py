@@ -46,7 +46,9 @@ class FlextCliUtilitiesPipeline:
             )
 
         # Build stage lookup and dependency graph.
-        stage_map: dict[str, m.Cli.PipelineStageSpec] = {s.stage_id: s for s in stages}
+        stage_map: t.MutableMappingKV[str, m.Cli.PipelineStageSpec] = {
+            s.stage_id: s for s in stages
+        }
 
         # Build TopologicalSorter graph.
         sorter: TopologicalSorter[str] = TopologicalSorter()
@@ -67,7 +69,7 @@ class FlextCliUtilitiesPipeline:
         # after every dependency completed. A strictly linear pipeline yields
         # waves of width one and therefore behaves exactly as before.
         failed = False
-        completed: dict[str, m.Cli.PipelineStageResult] = {}
+        completed: t.MutableMappingKV[str, m.Cli.PipelineStageResult] = {}
         while sorter.is_active():
             wave = tuple(sorter.get_ready())
             if not wave:
@@ -122,7 +124,7 @@ class FlextCliUtilitiesPipeline:
     @staticmethod
     def _retire_unknown_stages(
         wave: t.VariadicTuple[str],
-        stage_map: dict[str, m.Cli.PipelineStageSpec],
+        stage_map: t.MappingKV[str, m.Cli.PipelineStageSpec],
         sorter: TopologicalSorter[str],
     ) -> t.VariadicTuple[str]:
         """Retire undeclared dependencies while retaining ready-stage order.
@@ -140,7 +142,7 @@ class FlextCliUtilitiesPipeline:
     @staticmethod
     def _skip_failed_wave(
         known: t.VariadicTuple[str],
-        completed: dict[str, m.Cli.PipelineStageResult],
+        completed: t.MutableMappingKV[str, m.Cli.PipelineStageResult],
         sorter: TopologicalSorter[str],
     ) -> None:
         """Record skipped stages and advance the graph after a prior failure."""
@@ -155,10 +157,10 @@ class FlextCliUtilitiesPipeline:
     @staticmethod
     def _execute_ready_wave(
         known: t.VariadicTuple[str],
-        stage_map: dict[str, m.Cli.PipelineStageSpec],
+        stage_map: t.MappingKV[str, m.Cli.PipelineStageSpec],
         context: m.Cli.PipelineStageContext,
         log: p.Logger,
-        completed: dict[str, m.Cli.PipelineStageResult],
+        completed: t.MutableMappingKV[str, m.Cli.PipelineStageResult],
     ) -> None:
         """Run ready stages and collect futures in submission order before retiring."""
         if len(known) == 1:

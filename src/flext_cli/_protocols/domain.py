@@ -23,7 +23,7 @@ class FlextCliProtocolsDomain:
     class JsonValueProcessor(Protocol):
         """Protocol for JSON-compatible value processors."""
 
-        def __call__(self, value: t.JsonValue) -> t.JsonValue:
+        def __call__(self, value: object) -> t.JsonValue:
             """Transform one JSON-compatible value."""
             ...
 

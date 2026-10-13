@@ -49,7 +49,7 @@ class FlextCliUtilitiesFileTestHelpersMixinPart01:
 
         """
         base_dir = directory or Path(tempfile.mkdtemp())
-        created: dict[str, Path] = {}
+        created: t.MutableMappingKV[str, Path] = {}
         try:
             for name, raw in content.items():
                 file_name = f"{name}{ext or ''}"

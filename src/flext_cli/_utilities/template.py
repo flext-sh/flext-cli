@@ -62,7 +62,7 @@ class FlextCliUtilitiesTemplate:
 
         def __init__(self, search_path: Path) -> None:
             self.search_path = search_path
-            self.source_states: dict[Path, m.Cli.AtomicFileState] = {}
+            self.source_states: t.MutableMappingKV[Path, m.Cli.AtomicFileState] = {}
             self.failure: str | None = None
 
         @override

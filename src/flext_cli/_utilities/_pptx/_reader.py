@@ -58,7 +58,7 @@ class FlextCliUtilitiesPptxReader:
             )
             for slide in presentation.slides
         )
-        properties: dict[str, str] = {}
+        properties: t.StrDict = {}
         core_props = presentation.core_properties
         for key in ("author", "title", "subject", "keywords", "comments", "category"):
             value = getattr(core_props, key, None)

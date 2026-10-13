@@ -40,6 +40,10 @@ class FlextCliTypesBase:
     type CliValue = t.Scalar | t.StrSequence | DefaultMapping
     type CliDefaultSource = CliValue | t.SequenceOf[str | int] | Path
     type CliAnnotations = MutableMapping[str, type | GenericAlias]
+    # The canonical opaque-value vocabulary: third-party surfaces (ruamel,
+    # openpyxl, python-docx) whose stubs leave members untyped pin their
+    # contract as this alias; call sites narrow to the real runtime types.
+    type OpaqueValue = object  # ast-grep-ignore: ban-broad-annotation
     type TomlDocument = TOMLDocument
     type TomlTable = Table
     type TomlItem = Item

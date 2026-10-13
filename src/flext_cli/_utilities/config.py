@@ -98,7 +98,7 @@ class FlextCliUtilitiesConfig:
                 f"{c.ERR_CONFIG_READ_FAILED}: {config_dir}",
             )
         schemas_dir = config_dir.parent / c.CONFIG_SCHEMAS_DIR_NAME
-        documents: dict[str, m.ConfigDocument] = {}
+        documents: t.MutableMappingKV[str, m.ConfigDocument] = {}
         for source in sorted(config_dir.glob(f"*{c.CONFIG_YAML_SUFFIX}")):
             schema = schemas_dir / f"{source.stem}{c.CONFIG_SCHEMA_SUFFIX}"
             loaded = FlextCliUtilitiesConfig.config_load(

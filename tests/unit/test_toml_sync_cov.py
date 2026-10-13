@@ -234,11 +234,11 @@ class TestsFlextCliTomlSyncCoverage:
 
     @staticmethod
     @pytest.fixture
-    def payload() -> dict[str, t.JsonValue]:
+    def payload() -> t.JsonDict:
         """Fresh plain pyproject-style mapping.
 
         Returns:
-            The resulting ``dict[str, t.JsonValue]``.
+            The resulting ``t.JsonDict``.
 
         """
         return {"project": {"name": "demo"}, "obsolete": True}

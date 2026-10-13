@@ -187,7 +187,7 @@ class TestsFlextCliTomlUtilities:
     def test_write_mapping_renders_nested_tables_to_disk(tmp_path: Path) -> None:
         """Verify that write mapping renders nested tables to disk."""
         toml_file = tmp_path / "pyproject.toml"
-        payload: dict[str, t.JsonValue] = {
+        payload: t.JsonDict = {
             "project": {"name": "demo"},
             "tool": {"uv": {"sources": {"flext-core": {"workspace": True}}}},
         }
@@ -342,7 +342,7 @@ class TestsFlextCliTomlUtilities:
     @staticmethod
     def test_mapping_sync_helpers_report_and_apply_changes() -> None:
         """Verify that mapping sync helpers report and apply changes."""
-        payload: dict[str, t.JsonValue] = {
+        payload: t.JsonDict = {
             "tool": {"uv": {"sources": {"stale": {"workspace": True}}}},
         }
         changes: list[str] = []

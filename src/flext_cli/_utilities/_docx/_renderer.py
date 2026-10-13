@@ -34,7 +34,7 @@ class FlextCliUtilitiesDocxRenderer:
     # NOTE (multi-agent, mro-j2yt.1): python-docx objects stay inside this
     # module; consumers exchange only validated plans and bytes.
 
-    _ALIGNMENT_MAP: ClassVar[dict[str, WD_ALIGN_PARAGRAPH]] = {
+    _ALIGNMENT_MAP: ClassVar[t.MappingKV[str, WD_ALIGN_PARAGRAPH]] = {
         "left": WD_ALIGN_PARAGRAPH.LEFT,
         "center": WD_ALIGN_PARAGRAPH.CENTER,
         "right": WD_ALIGN_PARAGRAPH.RIGHT,
@@ -42,14 +42,14 @@ class FlextCliUtilitiesDocxRenderer:
         "distribute": WD_ALIGN_PARAGRAPH.DISTRIBUTE,
     }
 
-    _UNDERLINE_MAP: ClassVar[dict[str, WD_UNDERLINE | None]] = {
+    _UNDERLINE_MAP: ClassVar[t.MappingKV[str, WD_UNDERLINE | None]] = {
         "single": WD_UNDERLINE.SINGLE,
         "double": WD_UNDERLINE.DOUBLE,
         "singleAccounting": WD_UNDERLINE(9),
         "doubleAccounting": WD_UNDERLINE(11),
     }
 
-    _HIGHLIGHT_MAP: ClassVar[dict[str, WD_COLOR_INDEX | None]] = {
+    _HIGHLIGHT_MAP: ClassVar[t.MappingKV[str, WD_COLOR_INDEX | None]] = {
         name: getattr(WD_COLOR_INDEX, name.upper(), None)
         for name in (
             "yellow",

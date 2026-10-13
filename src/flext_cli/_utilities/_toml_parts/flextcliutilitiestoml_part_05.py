@@ -38,7 +38,7 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``bool``.
 
         """
-        container_view = cast("Mapping[str, object]", container)
+        container_view = cast("t.JsonMapping", container)
         existing = cast("t.Cli.TomlRuntimeSource | None", container_view.get(key))
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing
@@ -56,7 +56,7 @@ class FlextCliUtilitiesTomlPart05:
         if current == normalized_expected:
             return False
         table = FlextCliUtilitiesTomlPart02.toml_ensure_table(container, key)
-        table_view = cast("Mapping[str, object]", table)
+        table_view = cast("t.JsonMapping", table)
         for existing_key in list(table_view):
             if existing_key not in normalized_expected:
                 del table[existing_key]
@@ -103,7 +103,7 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``bool``.
 
         """
-        container_view = cast("Mapping[str, object]", container)
+        container_view = cast("t.JsonMapping", container)
         existing = cast("t.Cli.TomlRuntimeSource | None", container_view.get(key))
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing if isinstance(existing, Mapping) else None,

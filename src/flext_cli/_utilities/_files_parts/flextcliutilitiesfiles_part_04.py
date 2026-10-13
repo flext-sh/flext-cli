@@ -45,7 +45,7 @@ class FlextCliUtilitiesFilesPart04:
         | m.ConfigMap
         | m.Dict
         | p.Model
-        | Mapping[str, object]
+        | t.JsonMapping
         | t.SequenceOf[t.StrSequence],
         name: str,
         fmt: str = c.Cli.FILE_FORMAT_AUTO,

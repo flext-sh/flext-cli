@@ -32,7 +32,7 @@ class FlextCliUtilitiesRuntime(
         *,
         overrides: t.StrMapping | None = None,
         remove_keys: t.StrSequence = (),
-    ) -> dict[str, str]:
+    ) -> t.StrDict:
         """Return one inherited process environment with optional overrides.
 
         Returns:
@@ -50,7 +50,7 @@ class FlextCliUtilitiesRuntime(
     def _resolved_env(
         env: t.StrMapping | None,
         remove_env_keys: t.StrSequence = (),
-    ) -> dict[str, str] | None:
+    ) -> t.StrDict | None:
         """Resolve the child environment from overrides and removals.
 
         ``env`` is an OVERLAY applied on top of the current process environment,
@@ -63,7 +63,7 @@ class FlextCliUtilitiesRuntime(
         expressed exclusively through ``remove_env_keys`` (mro-wt8qp).
 
         Returns:
-            The resulting ``dict[str, str] | None``.
+            The resulting ``t.StrDict | None``.
 
         """
         if env is None and not remove_env_keys:

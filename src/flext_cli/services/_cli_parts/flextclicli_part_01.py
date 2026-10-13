@@ -130,7 +130,7 @@ class FlextCliCliPart01:
         """
         extra_option_names: list[str] = []
         validation_alias = getattr(field_info, "validation_alias", None)
-        choices: tuple[object, ...] | None = getattr(
+        choices: tuple[t.JsonValue, ...] | None = getattr(
             validation_alias,
             "choices",
             None,

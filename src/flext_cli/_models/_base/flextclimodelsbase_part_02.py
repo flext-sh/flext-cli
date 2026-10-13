@@ -219,15 +219,15 @@ class FlextCliModelsBasePart02:
 
         @u.computed_field
         @property
-        def resolved(self) -> dict[str, str]:
+        def resolved(self) -> t.StrDict:
             """Resolved environment mapping after removals and overrides."""
             return self.resolve()
 
-        def resolve(self) -> dict[str, str]:
+        def resolve(self) -> t.StrDict:
             """Type-safe accessor for the computed environment mapping.
 
             Returns:
-                The resulting ``dict[str, str]``.
+                The resulting ``t.StrDict``.
 
             """
             remove_keys = frozenset(self.remove_keys)

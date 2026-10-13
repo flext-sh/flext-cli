@@ -113,7 +113,7 @@ class TestsFlextCliAuthUtilsCov:
         # Arrange
         """Verify that extract token returns token from mapping."""
         token = "t" + "1" * 12
-        payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_LOGIN_FIELD: token}
+        payload: t.JsonDict = {c.Cli.DICT_KEY_LOGIN_FIELD: token}
 
         # Act
         result = u.Cli.auth_extract_token(payload)
@@ -157,7 +157,7 @@ class TestsFlextCliAuthUtilsCov:
     def test_extract_token_success_chains_through_map() -> None:
         # Behavioral: a successful result composes with r[T] combinators
         """Verify that extract token success chains through map."""
-        payload: dict[str, t.JsonValue] = {c.Cli.DICT_KEY_LOGIN_FIELD: "abc"}
+        payload: t.JsonDict = {c.Cli.DICT_KEY_LOGIN_FIELD: "abc"}
         length = u.Cli.auth_extract_token(payload).map(len)
         tm.ok(length)
         tm.that(length.unwrap(), eq=3)
