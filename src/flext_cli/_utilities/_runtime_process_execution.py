@@ -99,11 +99,16 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         if state.received_signals:
             state.wake.set()
             return
-        if request.output_path is not None:
-            request.output_path.parent.mkdir(parents=True, exist_ok=True)
-            state.durable_log = state.stack.enter_context(
-                request.output_path.open("wb", buffering=0),
-            )
+        destinations = (request.output_path, request.stderr_path)
+        for destination in destinations:
+            if destination is not None:
+                destination.parent.mkdir(parents=True, exist_ok=True)
+        state.durable_log, state.durable_stderr = (
+            state.stack.enter_context(destination.open("wb", buffering=0))
+            if destination is not None
+            else None
+            for destination in destinations
+        )
         stdin_result = cls._prepare_streamed_stdin(state.stack, request.input_data)
         live_result = cls._prepare_live_descriptor(state.stack, live=request.live)
         if stdin_result.failure:
@@ -124,7 +129,9 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                     capture_output=(
                         request.output_path is not None or request.capture_output
                     ),
-                    combine_output=request.output_path is not None,
+                    combine_output=(
+                        request.output_path is not None and request.stderr_path is None
+                    ),
                 ),
             )
             if start_result.failure:
@@ -137,7 +144,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                     request,
                     state,
                     stdin_result.unwrap(),
-                    live_result.value[0],
+                    live_result.value,
                 )
                 state.timed_out, state.final_deadline = cls._monitor_process(
                     owned_process,
@@ -156,7 +163,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         request: m.Cli.RuntimeProcessRequest,
         state: m.Cli.RuntimeProcessState,
         stdin: t.Triple[BinaryIO | None, BinaryIO | None, bytes],
-        live_fd: int | None,
+        live_fds: t.Pair[int | None, int | None],
     ) -> threading.Thread:
         """Attach child I/O without losing ownership on a partial failure.
 
@@ -190,7 +197,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             cls._start_process_output(
                 process,
                 state,
-                live_fd,
+                live_fds,
                 capture_output=request.capture_output,
             ),
         )
@@ -216,8 +223,9 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 state.waiter,
                 state,
             )
-        if state.durable_log is not None:
-            state.cleanup_errors.extend(cls._flush_durable_log(state.durable_log))
+        for stream in (state.durable_log, state.durable_stderr):
+            if stream is not None:
+                state.cleanup_errors.extend(cls._flush_durable_log(stream))
         close_error = cls._windows_job_close(state.job_handle)
         if close_error is not None:
             state.cleanup_errors.append(close_error)

@@ -26,45 +26,50 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
         cls,
         process: p.Cli.ProcessHandle,
         state: m.Cli.RuntimeProcessState,
-        live_fd: int | None,
+        live_fds: t.Pair[int | None, int | None],
         *,
         capture_output: bool,
     ) -> t.VariadicTuple[t.Pair[threading.Thread, IO[bytes]]]:
-        combine_output = state.durable_log is not None
-        pipe_output = combine_output or capture_output
+        combine_output = state.durable_log is not None and state.durable_stderr is None
         pump_streams: list[tuple[threading.Thread, IO[bytes]]] = []
-        stdout_source = process.stdout
-        if pipe_output and stdout_source is None:
-            state.failures.append("process stdout is not available")
-        elif stdout_source is not None:
-            state.stack.callback(stdout_source.close)
-            stdout_pump = cls._start_output_pump(
-                stdout_source,
-                m.Cli.RuntimeOutputTarget(
-                    durable_log=state.durable_log,
-                    captured_output=state.stdout_output if capture_output else None,
-                    live_fd=live_fd,
-                ),
-                state,
-                thread_name=(
-                    "flext-cli-process-output"
-                    if combine_output
-                    else "flext-cli-process-stdout"
-                ),
+        for source, sink, captured, live_fd, channel in (
+            (
+                process.stdout,
+                state.durable_log,
+                state.stdout_output,
+                live_fds[0],
+                "stdout",
+            ),
+            (
+                process.stderr,
+                state.durable_stderr,
+                state.stderr_output,
+                live_fds[1],
+                "stderr",
+            ),
+        ):
+            required = sink is not None or (
+                capture_output and not (combine_output and channel == "stderr")
             )
-            pump_streams.append((stdout_pump, stdout_source))
-        stderr_source = process.stderr
-        if capture_output and stderr_source is None:
-            state.failures.append("process stderr is not available")
-        elif stderr_source is not None:
-            state.stack.callback(stderr_source.close)
-            stderr_pump = cls._start_output_pump(
-                stderr_source,
-                m.Cli.RuntimeOutputTarget(captured_output=state.stderr_output),
-                state,
-                thread_name="flext-cli-process-stderr",
-            )
-            pump_streams.append((stderr_pump, stderr_source))
+            if required and source is None:
+                state.failures.append(f"process {channel} is not available")
+            elif source is not None:
+                state.stack.callback(source.close)
+                pump = cls._start_output_pump(
+                    source,
+                    m.Cli.RuntimeOutputTarget(
+                        durable_log=sink,
+                        captured_output=captured if capture_output else None,
+                        live_fd=live_fd,
+                    ),
+                    state,
+                    thread_name=(
+                        "flext-cli-process-output"
+                        if combine_output and channel == "stdout"
+                        else f"flext-cli-process-{channel}"
+                    ),
+                )
+                pump_streams.append((pump, source))
         return tuple(pump_streams)
 
 

@@ -60,7 +60,11 @@ class FlextCliModelsProcess:
         )
         output_path: Path | None = m.Field(
             default=None,
-            description="Destination for the durable combined output log.",
+            description="Durable stdout destination, combined when stderr has no sink.",
+        )
+        stderr_path: Path | None = m.Field(
+            default=None,
+            description="Separate durable stderr destination.",
         )
         cwd: t.Cli.TextPath | None = m.Field(
             default=None,
@@ -112,7 +116,11 @@ class FlextCliModelsProcess:
         )
         durable_log: p.Cli.RuntimeBinaryStream | None = m.Field(
             default=None,
-            description="Owned stream for durable combined child output.",
+            description="Owned stream for durable stdout or combined child output.",
+        )
+        durable_stderr: p.Cli.RuntimeBinaryStream | None = m.Field(
+            default=None,
+            description="Owned stream for separate durable child stderr.",
         )
         job_handle: int = m.Field(
             default=0,

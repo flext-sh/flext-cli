@@ -17,6 +17,13 @@ from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
 class FlextCliUtilitiesAtomicFileRead:
     """Canonical namespace owner."""
 
+    READ_FLAGS = (
+        os.O_RDONLY
+        | getattr(os, "O_NONBLOCK", 0)
+        | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_BINARY", 0)
+    )
+
     @staticmethod
     def read_descriptor_bytes(
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
@@ -29,17 +36,16 @@ class FlextCliUtilitiesAtomicFileRead:
             The resulting ``bytes``.
 
         """
-        flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
         descriptor = FlextCliUtilitiesAtomicFileDescriptor.open_entry(
             parent,
             path,
-            flags,
+            FlextCliUtilitiesAtomicFileRead.READ_FLAGS,
         )
         try:
-            content = FlextCliUtilitiesAtomicFileRead._read_stable_descriptor(
-                descriptor,
-                path,
-                expected,
+            content = b"".join(
+                FlextCliUtilitiesAtomicFileRead.descriptor_chunks(
+                    descriptor, path, expected
+                )
             )
         except BaseException as operation_error:
             FlextCliUtilitiesAtomicFileDescriptor.close_after_failure(
@@ -75,23 +81,22 @@ class FlextCliUtilitiesAtomicFileRead:
         )
 
     @staticmethod
-    def _read_stable_descriptor(
+    def descriptor_chunks(
         descriptor: int,
         path: Path,
         expected: os.stat_result,
-    ) -> bytes:
+    ) -> t.IterableOf[bytes]:
+        """Consume exact chunks between checks of the authenticated file version."""
         if FlextCliUtilitiesAtomicFileRead.state_key(
             os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             FlextCliUtilitiesAtomicFileRead._raise_changed(path)
-        chunks: list[bytes] = []
         while chunk := os.read(descriptor, 1024 * 1024):
-            chunks.append(chunk)
+            yield chunk
         if FlextCliUtilitiesAtomicFileRead.state_key(
             os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             FlextCliUtilitiesAtomicFileRead._raise_changed(path)
-        return b"".join(chunks)
 
     @staticmethod
     def _raise_changed(path: Path) -> None:

@@ -76,6 +76,21 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
             )
         elif request.capture_output and request.output_path is not None:
             error = "captured and durable output are mutually exclusive"
+        elif request.stderr_path is not None and request.output_path is None:
+            error = "Separate stderr requires a durable stdout destination"
+        elif (
+            request.output_path is not None
+            and request.stderr_path is not None
+            and (
+                request.output_path.resolve() == request.stderr_path.resolve()
+                or (
+                    request.output_path.exists()
+                    and request.stderr_path.exists()
+                    and request.output_path.samefile(request.stderr_path)
+                )
+            )
+        ):
+            error = "Process stdout and stderr destinations must be distinct"
         elif (request.live or request.deadline is not None) and not on_main_thread:
             error = (
                 "live/deadline process execution requires the main interpreter thread"

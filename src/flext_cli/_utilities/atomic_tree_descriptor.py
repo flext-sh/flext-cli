@@ -26,13 +26,6 @@ from flext_cli._utilities import (
 class FlextCliUtilitiesAtomicTreeDescriptor:
     """Canonical namespace owner."""
 
-    _FILE_FLAGS = (
-        os.O_RDONLY
-        | getattr(os, "O_NONBLOCK", 0)
-        | getattr(os, "O_CLOEXEC", 0)
-        | getattr(os, "O_BINARY", 0)
-    )
-
     @staticmethod
     def measure_authenticated_file(
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
@@ -52,26 +45,18 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
             parent,
             path,
-            FlextCliUtilitiesAtomicTreeDescriptor._FILE_FLAGS,
+            FlextCliUtilitiesAtomicFileRead.READ_FLAGS,
         ) as descriptor:
-            FlextCliUtilitiesAtomicTreeDescriptor._require_file_state(
-                descriptor,
-                path,
-                expected,
-            )
             FlextCliUtilitiesAtomicTreeDescriptor.require_mount(
                 path,
                 required_mount_id,
                 FlextCliUtilitiesAtomicTreeDescriptor.mount_id(descriptor, path),
             )
-            while chunk := os.read(descriptor, 1024 * 1024):
+            for chunk in FlextCliUtilitiesAtomicFileRead.descriptor_chunks(
+                descriptor, path, expected
+            ):
                 size += len(chunk)
                 digest.update(chunk)
-            FlextCliUtilitiesAtomicTreeDescriptor._require_file_state(
-                descriptor,
-                path,
-                expected,
-            )
         FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
             path,
             expected,
@@ -175,17 +160,6 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         observed = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
         if FlextCliUtilitiesAtomicFileRead.state_key(
             observed,
-        ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
-            FlextCliUtilitiesAtomicTreeDescriptor._raise_changed(path)
-
-    @staticmethod
-    def _require_file_state(
-        descriptor: int,
-        path: Path,
-        expected: os.stat_result,
-    ) -> None:
-        if FlextCliUtilitiesAtomicFileRead.state_key(
-            os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             FlextCliUtilitiesAtomicTreeDescriptor._raise_changed(path)
 

@@ -99,8 +99,9 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             *,
             options: p.Cli.ProcessOptions | None = None,
+            stderr_file: t.Cli.TextPath | None = None,
         ) -> p.Result[p.Cli.ProcessOutcome]:
-            """Execute once with byte-identical combined live and durable output."""
+            """Execute once with exact combined or separate durable output."""
             ...
 
     @runtime_checkable
