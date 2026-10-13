@@ -35,8 +35,9 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         timeout: int | None = None,
         *,
         options: p.Cli.ProcessOptions | None = None,
+        stderr_file: t.Cli.TextPath | None = None,
     ) -> p.Result[p.Cli.ProcessOutcome]:
-        """Stream combined bytes live and durably under one absolute deadline.
+        """Stream exact bytes to combined or separate durable destinations.
 
         Containment owns the inherited POSIX process group or Windows Job
         Object. Trusted project tools remain inside that boundary; deliberate
@@ -54,6 +55,7 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
             m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
                 output_path=Path(output_file),
+                stderr_path=Path(stderr_file) if stderr_file is not None else None,
                 cwd=cwd,
                 env=cls._resolved_env(launch.env, launch.remove_env_keys),
                 input_data=launch.input_data,

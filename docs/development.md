@@ -264,6 +264,15 @@ The lifecycle witnesses `m.Cli.RuntimeProcessRequest`, `m.Cli.RuntimeProcessStat
 ownership; they are not a second public launch-options model. Subprocess execution, signals,
 deadlines, environment validation and descriptor forwarding retain their existing
 behavior.
+`run_to_file` accepts `stderr_file=` when the consumer needs separate native
+streams. `output_file` then receives stdout and `stderr_file` receives stderr;
+both are drained, flushed and synchronized by the same contained lifecycle,
+without retaining their contents in memory. Live mirroring uses the corresponding
+stdout/stderr descriptors. Without `stderr_file`, the existing combined-stream
+operation remains available. Destinations identifying the same physical file are
+rejected before either is opened or the child starts. A completed nonzero child
+exit or timeout remains visible in `ProcessOutcome`; transport completion alone
+does not establish `process_succeeded`.
 The durable sink follows Python's raw-I/O contract: `write` accepts a positional
 buffer and returns `int | None`. Partial writes are retried; `None` or non-positive
 progress produces the existing durable-write failure rather than losing output.

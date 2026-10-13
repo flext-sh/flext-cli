@@ -83,6 +83,161 @@ class TestsFlextCliRuntimeStreamedProcess:
             eq=False,
         )
 
+    @pytest.mark.parametrize("live", [False, True])
+    def test_separate_output_drains_parallel_binary_streams(
+        self,
+        tmp_path: Path,
+        capfd: pytest.CaptureFixture[str],
+        live: bool,
+    ) -> None:
+        """Keep concurrent native pipes distinct without decoding their bytes."""
+        stdout_file = tmp_path / "stdout.bin"
+        stderr_file = tmp_path / "stderr.bin"
+        payload = b"native-\x00\xff-\xc3\xa9\n" * 65_536
+        script = (
+            "import sys, threading\n"
+            "payload = sys.stdin.buffer.read()\n"
+            "threads = [\n"
+            "    threading.Thread(target=stream.write, args=(data,))\n"
+            "    for stream, data in (\n"
+            "        (sys.stdout.buffer, payload),\n"
+            "        (sys.stderr.buffer, payload[::-1]),\n"
+            "    )\n"
+            "]\n"
+            "for thread in threads: thread.start()\n"
+            "for thread in threads: thread.join()\n"
+        )
+        threads_before = self._live_threads()
+        outcome = tm.ok(
+            u.Cli().run_to_file(
+                [sys.executable, "-c", script],
+                stdout_file,
+                stderr_file=stderr_file,
+                options=m.Cli.ProcessOptions(
+                    input_data=payload,
+                    live=live,
+                    deadline=_deadline(seconds=5.0, grace=1.0),
+                ),
+            ),
+        )
+        captured = capfd.readouterr()
+        tm.that(u.Cli.process_succeeded(outcome), eq=True)
+        tm.that(stdout_file.read_bytes(), eq=payload)
+        tm.that(stderr_file.read_bytes(), eq=payload[::-1])
+        if live:
+            tm.that(captured.out, eq=payload.decode(errors="replace"))
+            tm.that(captured.err, eq=payload[::-1].decode(errors="replace"))
+        else:
+            tm.that(captured.out, eq="")
+            tm.that(captured.err, eq="")
+        tm.that(self._live_threads() - threads_before, empty=True)
+
+    @staticmethod
+    @pytest.mark.parametrize("alias", ["identical", "relative", "hardlink"])
+    def test_output_aliases_are_rejected_before_effects(
+        tmp_path: Path,
+        alias: str,
+    ) -> None:
+        """A shared physical destination cannot destroy its earlier contents."""
+        stdout_file = tmp_path / "stdout.bin"
+        stderr_file = stdout_file
+        before = b"preserved native output"
+        stdout_file.write_bytes(before)
+        if alias == "relative":
+            stderr_file = tmp_path / "." / stdout_file.name
+        elif alias == "hardlink":
+            stderr_file = tmp_path / "stderr.bin"
+            os.link(stdout_file, stderr_file)
+        marker = tmp_path / "child-started"
+        result = u.Cli().run_to_file(
+            [
+                sys.executable,
+                "-c",
+                "from pathlib import Path; import sys; Path(sys.argv[1]).touch()",
+                str(marker),
+            ],
+            stdout_file,
+            stderr_file=stderr_file,
+        )
+        tm.that(result.failure, eq=True)
+        tm.that(stdout_file.read_bytes(), eq=before)
+        tm.that(marker.exists(), eq=False)
+
+    @staticmethod
+    def test_separate_output_preserves_nonzero_exit(tmp_path: Path) -> None:
+        """Transport success retains the child's nonzero outcome and both streams."""
+        stdout_file = tmp_path / "stdout.bin"
+        stderr_file = tmp_path / "stderr.bin"
+        outcome = tm.ok(
+            u.Cli().run_to_file(
+                [
+                    sys.executable,
+                    "-c",
+                    (
+                        "import os; os.write(1, b'out\\x00'); "
+                        "os.write(2, b'err\\xff'); raise SystemExit(37)"
+                    ),
+                ],
+                stdout_file,
+                stderr_file=stderr_file,
+            ),
+        )
+        tm.that(outcome.raw_return_code, eq=37)
+        tm.that(u.Cli.process_succeeded(outcome), eq=False)
+        tm.that(stdout_file.read_bytes(), eq=b"out\x00")
+        tm.that(stderr_file.read_bytes(), eq=b"err\xff")
+
+    def test_separate_output_timeout_drains_both_streams(self, tmp_path: Path) -> None:
+        """A deadline stops the child and retains its already-emitted native bytes."""
+        stdout_file = tmp_path / "stdout.bin"
+        stderr_file = tmp_path / "stderr.bin"
+        threads_before = self._live_threads()
+        result = u.Cli().run_to_file(
+            [
+                sys.executable,
+                "-c",
+                (
+                    "import os, time; os.write(1, b'out\\x00'); "
+                    "os.write(2, b'err\\xff'); time.sleep(30)"
+                ),
+            ],
+            stdout_file,
+            stderr_file=stderr_file,
+            options=m.Cli.ProcessOptions(
+                deadline=_deadline(seconds=1.0, grace=0.4),
+            ),
+        )
+        outcome = tm.ok(result)
+        tm.that(outcome.timed_out, eq=True)
+        tm.that(u.Cli.process_succeeded(outcome), eq=False)
+        tm.that(stdout_file.read_bytes(), eq=b"out\x00")
+        stderr = stderr_file.read_bytes()
+        tm.that(stderr.startswith(b"err\xff"), eq=True)
+        tm.that(stderr.count(b"err\xff"), eq=1)
+        tm.that(self._live_threads() - threads_before, empty=True)
+
+    def test_invalid_stderr_sink_fails_before_spawn(self, tmp_path: Path) -> None:
+        """Close the first sink when the second destination cannot be opened."""
+        stdout_file = tmp_path / "stdout.bin"
+        stderr_directory = tmp_path / "stderr-directory"
+        stderr_directory.mkdir()
+        marker = tmp_path / "child-started"
+        threads_before = self._live_threads()
+        result = u.Cli().run_to_file(
+            [
+                sys.executable,
+                "-c",
+                "from pathlib import Path; import sys; Path(sys.argv[1]).touch()",
+                str(marker),
+            ],
+            stdout_file,
+            stderr_file=stderr_directory,
+        )
+        tm.that(result.failure, eq=True)
+        tm.that(marker.exists(), eq=False)
+        tm.that(self._live_threads() - threads_before, empty=True)
+        stdout_file.unlink()
+
     @staticmethod
     def test_silent_live_process_emits_progress_only_to_stderr(
         tmp_path: Path,
