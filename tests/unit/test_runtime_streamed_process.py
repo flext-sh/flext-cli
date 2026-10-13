@@ -173,8 +173,10 @@ class TestsFlextCliRuntimeStreamedProcess:
                 [
                     sys.executable,
                     "-c",
-                    "import os; os.write(1, b'out\\x00'); "
-                    "os.write(2, b'err\\xff'); raise SystemExit(37)",
+                    (
+                        "import os; os.write(1, b'out\\x00'); "
+                        "os.write(2, b'err\\xff'); raise SystemExit(37)"
+                    ),
                 ],
                 stdout_file,
                 stderr_file=stderr_file,
@@ -194,8 +196,10 @@ class TestsFlextCliRuntimeStreamedProcess:
             [
                 sys.executable,
                 "-c",
-                "import os, time; os.write(1, b'out\\x00'); "
-                "os.write(2, b'err\\xff'); time.sleep(30)",
+                (
+                    "import os, time; os.write(1, b'out\\x00'); "
+                    "os.write(2, b'err\\xff'); time.sleep(30)"
+                ),
             ],
             stdout_file,
             stderr_file=stderr_file,
