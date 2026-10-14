@@ -26,7 +26,9 @@ int main(int argc, char **argv)
     if (argc == 1) {
         uint32_t architecture = seccomp_arch_native();
         if (architecture == SCMP_ARCH_NATIVE) {
-            return report_failure("seccomp_arch_native", architecture);
+            fprintf(stderr, "seccomp_arch_native: unresolved token=%" PRIu32 "\n",
+                    architecture);
+            return EXIT_FAILURE;
         }
         if (printf("%" PRIu32 "\n", architecture) < 0 ||
             fflush(stdout) == EOF) {
