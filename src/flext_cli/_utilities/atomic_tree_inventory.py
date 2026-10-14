@@ -194,13 +194,14 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     ),
                     (*outer_parent.lineage, outer_parent.descriptor),
                 )
-                yield root, root_parent
-                FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
-                    descriptor,
-                    root_path,
-                    root_state,
-                )
-            try:
+                try:
+                    yield root, root_parent
+                finally:
+                    FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
+                        descriptor,
+                        root_path,
+                        root_state,
+                    )
                 FlextCliUtilitiesAtomicTreeDescriptor.require_entry_state(
                     outer_parent,
                     root_path,
@@ -208,12 +209,6 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 )
                 FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(
                     outer_parent
-                )
-            finally:
-                FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
-                    descriptor,
-                    root_path,
-                    root_state,
                 )
 
     @staticmethod
