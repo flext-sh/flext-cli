@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import errno
 import os
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -51,13 +53,42 @@ class FlextCliUtilitiesAtomicFileSnapshot:
             FileNotFoundError: If ``required``.
 
         """
+        with FlextCliUtilitiesAtomicFileSnapshot.authenticated_entry(
+            path, required=required, owner_uid=owner_uid, max_bytes=max_bytes
+        ) as (parent, state):
+            if parent is None or state is None:
+                return None if parent is None else parent.state, None, None
+            content = FlextCliUtilitiesAtomicFileState.read_authenticated_bytes(
+                path, state, parent=parent
+            )
+            FlextCliUtilitiesAtomicFileSnapshot._require_size(
+                path, len(content), max_bytes
+            )
+            return parent.state, state, content
+
+    @staticmethod
+    @contextmanager
+    def authenticated_entry(
+        path: Path,
+        *,
+        required: bool,
+        owner_uid: int | None = None,
+        max_bytes: int | None = None,
+    ) -> Iterator[
+        tuple[
+            FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor | None,
+            os.stat_result | None,
+        ]
+    ]:
+        """Retain one checked parent and leaf for the complete read operation."""
         validated = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         if (
             not required
             and FlextCliUtilitiesAtomicFilePath.resolve_parent_path(validated.parent)[0]
             is None
         ):
-            return None, None, None
+            yield None, None
+            return
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
             validated,
         ) as parent:
@@ -74,29 +105,18 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                 if required:
                     message = f"required atomic file is missing: {validated}"
                     raise FileNotFoundError(errno.ENOENT, message, validated)
-                FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
-                return parent.state, None, None
-            FlextCliUtilitiesAtomicFileSnapshot._require_owner(
-                validated,
-                state,
-                owner_uid,
+            else:
+                FlextCliUtilitiesAtomicFileSnapshot._require_owner(
+                    validated, state, owner_uid
+                )
+                FlextCliUtilitiesAtomicFileSnapshot._require_size(
+                    validated, state.st_size, max_bytes
+                )
+            yield parent, state
+            FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
+                validated, state, parent=parent
             )
-            FlextCliUtilitiesAtomicFileSnapshot._require_size(
-                validated,
-                state.st_size,
-                max_bytes,
-            )
-            content = FlextCliUtilitiesAtomicFileState.read_authenticated_bytes(
-                validated,
-                state,
-                parent=parent,
-            )
-            FlextCliUtilitiesAtomicFileSnapshot._require_size(
-                validated,
-                len(content),
-                max_bytes,
-            )
-            return parent.state, state, content
+            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
 
     @staticmethod
     def _require_owner(

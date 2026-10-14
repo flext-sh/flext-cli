@@ -77,7 +77,7 @@ class FlextCliUtilitiesAtomicFileModel:
             raise OSError(errno.ESTALE, message, target)
 
     @staticmethod
-    def require_parent(state: m.Cli.AtomicFileState, observed: os.stat_result) -> None:
+    def require_parent(state: m.Cli.AtomicFileIdentity, observed: os.stat_result) -> None:
         """Require the authenticated parent to equal the snapshot parent identity.
 
         Raises:

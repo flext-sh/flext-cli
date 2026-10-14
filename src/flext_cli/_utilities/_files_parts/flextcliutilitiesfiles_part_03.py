@@ -12,7 +12,8 @@ import hashlib
 import os
 import shutil
 import stat
-from collections.abc import Generator
+from collections.abc import Generator, Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
@@ -29,6 +30,49 @@ from flext_cli._utilities._files_parts import FlextCliUtilitiesFilesPart02
 
 class FlextCliUtilitiesFilesPart03:
     """Implementation part for FlextCliUtilitiesFilesPart03."""
+
+    @staticmethod
+    def atomic_read_binary_file_receipt(
+        file_path: t.Cli.TextPath,
+        *,
+        required: bool = False,
+        owner_uid: int | None = None,
+        max_bytes: int | None = None,
+    ) -> p.Result[m.Cli.AtomicFileReceipt]:
+        """Return the authenticated identity and digest without buffering payload."""
+        try:
+            receipt = FlextCliUtilitiesAtomicFileRead.read_receipt(
+                Path(file_path),
+                required=required,
+                owner_uid=owner_uid,
+                max_bytes=max_bytes,
+            )
+        except OSError as exc:
+            return r[m.Cli.AtomicFileReceipt].fail(
+                c.Cli.ERR_BINARY_READ_FAILED.format(error=exc)
+            )
+        return r[m.Cli.AtomicFileReceipt].ok(receipt)
+
+    @staticmethod
+    @contextmanager
+    def atomic_binary_file_reader(
+        receipt: m.Cli.AtomicFileReceipt,
+    ) -> Iterator[p.Cli.AtomicFileReader]:
+        """Retain one authenticated descriptor for repeated exact range reads."""
+        with FlextCliUtilitiesAtomicFileRead.receipt_reader(receipt) as reader:
+            yield reader
+
+    @staticmethod
+    def atomic_read_binary_file_range(
+        receipt: m.Cli.AtomicFileReceipt, offset: int, length: int
+    ) -> p.Result[bytes]:
+        """Read an exact range through the canonical scoped descriptor owner."""
+        try:
+            with FlextCliUtilitiesAtomicFileRead.receipt_reader(receipt) as reader:
+                content = reader.read_range(offset, length)
+        except OSError as exc:
+            return r[bytes].fail(c.Cli.ERR_BINARY_READ_FAILED.format(error=exc))
+        return r[bytes].ok(content)
 
     @staticmethod
     def files_read_csv_with_headers(
