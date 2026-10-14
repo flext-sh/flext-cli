@@ -6,8 +6,8 @@ the isolated child; its deadline, byte streams, signals, cleanup and
 `ProcessOutcome` retain the ordinary runtime contract.
 
 `m.Cli.ProcessReadOnlyIsolation` is an immutable request. The caller supplies the
-qualified Linux platform and filter architecture, authenticated Bubblewrap
-launcher, the bootstrap-qualified static policy compiler, captured source/resource/metadata files,
+qualified Linux platform and filter architecture, the bootstrap-qualified static
+Bubblewrap launcher and policy compiler, captured source/resource/metadata files,
 authenticated runtime trees and files, and the complete child environment as
 immutable name/value pairs. `ProcessNativeToolEvidence` is serialized inside the
 existing bootstrap `WorkspaceOperationReceipt.native_tool_qualifications`; it
@@ -20,16 +20,21 @@ Every required syscall must have been attempted once and returned `EACCES`.
 Missing observations, a changed policy hash or an absent native provider is red.
 An arbitrary file receipt or successful process exit alone is not qualification.
 
-The compiler must be native ELF with no interpreter and no `DT_NEEDED` libraries,
+Both tools must be native ELF with no interpreter and no `DT_NEEDED` libraries,
 matching the declared interpreter ABI. The execution owner invokes its sealed
 bytes through the same public `run_bytes` port with the original absolute deadline
-and an empty replacement environment. Stdin is
-`ProcessNativePolicyRequest.model_dump_json()`; stdout is the native SDK-generated
-BPF, which the owner seals and passes directly to Bubblewrap. Compiler failure
+and an empty replacement environment. Each source-owned symbolic syscall is one
+argv item; stdout is native SDK-generated BPF, which the owner seals and passes
+directly to Bubblewrap. With no arguments the static compiler emits the decimal
+`seccomp_arch_native()` token and a newline for its SDK ABI probe. That probe is
+distinct from the native denial observations. The policy identity hashes the
+NUL-terminated ASCII argv vector; bootstrap and execution use
+`u.Cli.native_process_policy_identity()` and
+`u.Cli.native_process_policy_arguments()`. Compiler failure
 retains the original process outcome and output. Caller-supplied raw BPF has no
 request field or admission route.
 
-`config/process.yaml` owns the required symbolic network and `io_uring` syscall
+`src/flext_cli/config/process.yaml` owns the required symbolic network and `io_uring` syscall
 denials. The typed schema preserves those immutable external syscall obligations;
 they cannot be removed by configuration. The native compiler uses libseccomp's
 architecture-aware symbolic rule API, including multiplexed syscall rewriting,

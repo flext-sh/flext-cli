@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import hashlib
 import platform
 import sys
 from pathlib import Path
@@ -64,14 +63,7 @@ class TestsFlextCliRuntimeProcessIsolation:
             native_policy_probe_outcome=outcome,
             native_policy_probes=(),
             probe_compiler_receipt=artifact_receipt,
-            policy_sha256=hashlib.sha256(
-                m.Cli
-                .ProcessNativePolicyRequest(
-                    denied_syscalls=config.ProcessIsolation.denied_syscalls
-                )
-                .model_dump_json()
-                .encode("utf-8")
-            ).hexdigest(),
+            policy_sha256=u.Cli.native_process_policy_identity(),
             abi_reference=artifact_receipt,
             architecture=platform.machine(),
         )
