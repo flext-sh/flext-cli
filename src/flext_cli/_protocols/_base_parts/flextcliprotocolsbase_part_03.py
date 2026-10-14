@@ -100,7 +100,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             *,
             options: p.Cli.ProcessOptions | None = None,
         ) -> p.Result[p.Cli.ProcessOutcome]:
-            """Execute once with byte-identical combined live and durable output."""
+            """Execute once with exact combined or separate durable output."""
             ...
 
     @runtime_checkable

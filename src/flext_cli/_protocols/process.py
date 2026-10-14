@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 if TYPE_CHECKING:
     from collections.abc import Buffer
 
+    from flext_cli._models.process import FlextCliModelsProcess
     from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart02
     from flext_core import t
 
@@ -57,6 +58,11 @@ class FlextCliProtocolsProcess:
             ...
 
         @property
+        def inherit_environment(self) -> bool:
+            """Whether execution overlays the inherited host environment."""
+            ...
+
+        @property
         def input_data(self) -> str | bytes | None:
             """Text or byte payload supplied to child stdin."""
             ...
@@ -79,6 +85,16 @@ class FlextCliProtocolsProcess:
         @property
         def pass_fds(self) -> t.SequenceOf[int]:
             """File descriptors inherited by the child process."""
+            ...
+
+        @property
+        def stderr_file(self) -> t.Cli.TextPath | None:
+            """Separate durable stderr destination for durable output."""
+            ...
+
+        @property
+        def isolation(self) -> FlextCliModelsProcess.ProcessReadOnlyIsolation | None:
+            """Qualified immutable native confinement inputs."""
             ...
 
 

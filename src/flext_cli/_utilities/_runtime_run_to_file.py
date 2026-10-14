@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli import m, p, settings, t
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessExecutionMixin
+from flext_cli._utilities._runtime_process_execution import (
+    FlextCliUtilitiesRuntimeProcessExecutionMixin,
+)
 
 
 class FlextCliUtilitiesRuntimeRunToFileMixin(
@@ -24,6 +26,8 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         def _resolved_env(
             env: t.StrMapping | None,
             remove_env_keys: t.StrSequence = (),
+            *,
+            inherit_environment: bool = True,
         ) -> t.StrDict | None: ...
 
     @classmethod
@@ -36,14 +40,14 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         *,
         options: p.Cli.ProcessOptions | None = None,
     ) -> p.Result[p.Cli.ProcessOutcome]:
-        """Stream combined bytes live and durably under one absolute deadline.
+        """Stream exact bytes to combined or separate durable destinations.
 
         Containment owns the inherited POSIX process group or Windows Job
         Object. Trusted project tools remain inside that boundary; deliberate
         POSIX ``setsid()`` escape is outside this contract. The deadline covers
         child execution, termination, reaping, stream drain, and durable flush.
         An outer caller wall remains responsible for an OS syscall that becomes
-        uninterruptible.
+        uninterruptible. Separate stderr durability rides on ``options``.
 
         Returns:
             The resulting ``p.Result[p.Cli.ProcessOutcome]``.
@@ -54,8 +58,15 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
             m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
                 output_path=Path(output_file),
+                stderr_path=(
+                    Path(launch.stderr_file) if launch.stderr_file is not None else None
+                ),
                 cwd=cwd,
-                env=cls._resolved_env(launch.env, launch.remove_env_keys),
+                env=cls._resolved_env(
+                    launch.env,
+                    launch.remove_env_keys,
+                    inherit_environment=launch.inherit_environment,
+                ),
                 input_data=launch.input_data,
                 capture_output=False,
                 live=launch.live,
@@ -66,6 +77,8 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
                 ),
                 timeout=timeout,
                 deadline=launch.deadline,
+                isolation=launch.isolation,
+                pass_fds=tuple(launch.pass_fds),
             ),
         ).map(lambda output: output.outcome)
 

@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from flext_cli._protocols._base_parts.flextcliprotocolsbase_part_05 import (
         FlextCliProtocolsBasePart05,
     )
+    from flext_cli._protocols.atomic_file import FlextCliProtocolsAtomicFile
     from flext_cli._protocols.base import FlextCliProtocolsBase
     from flext_cli._protocols.config import FlextCliProtocolsConfig
     from flext_cli._protocols.docx import FlextCliProtocolsDocx
@@ -47,6 +48,7 @@ if TYPE_CHECKING:
 
 
 __all__: tuple[str, ...] = (
+    "FlextCliProtocolsAtomicFile",
     "FlextCliProtocolsBase",
     "FlextCliProtocolsBasePart01",
     "FlextCliProtocolsBasePart02",
@@ -72,6 +74,7 @@ install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
+        "FlextCliProtocolsAtomicFile": ".atomic_file",
         "FlextCliProtocolsBase": ".base",
         "FlextCliProtocolsBasePart01": "._base_parts.flextcliprotocolsbase_part_01",
         "FlextCliProtocolsBasePart02": "._base_parts.flextcliprotocolsbase_part_02",

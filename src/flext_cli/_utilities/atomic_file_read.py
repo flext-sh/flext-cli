@@ -11,11 +11,75 @@ import os
 from pathlib import Path
 
 from flext_cli import t
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from flext_cli._utilities.atomic_file_descriptor import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+)
 
 
 class FlextCliUtilitiesAtomicFileRead:
     """Canonical namespace owner."""
+
+    READ_FLAGS = (
+        os.O_RDONLY
+        | getattr(os, "O_NONBLOCK", 0)
+        | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_BINARY", 0)
+    )
+
+    class Reader:
+        """One scoped descriptor serving ranges of an authenticated version."""
+
+        def __init__(
+            self, descriptor: int, path: Path, expected: os.stat_result
+        ) -> None:
+            self.descriptor = descriptor
+            self.path = path
+            self.expected = expected
+            self.version_key = FlextCliUtilitiesAtomicFileRead.state_key(expected)
+
+        def read_range(self, offset: int, length: int) -> bytes:
+            """Read the complete requested range, refusing mutation or short reads.
+
+            Returns:
+                The exact bytes of the requested range from the authenticated
+                version.
+
+            Raises:
+                ValueError: If the requested range lies outside the
+                    authenticated file.
+
+            """
+            if (
+                isinstance(offset, bool)
+                or isinstance(length, bool)
+                or not isinstance(offset, int)
+                or not isinstance(length, int)
+                or offset < 0
+                or length < 0
+                or offset + length > self.expected.st_size
+            ):
+                msg = "atomic range lies outside the authenticated file"
+                raise ValueError(msg)
+            if (
+                FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(self.descriptor))
+                != self.version_key
+            ):
+                FlextCliUtilitiesAtomicFileRead.raise_changed(self.path)
+            os.lseek(self.descriptor, offset, os.SEEK_SET)
+            remaining = length
+            chunks: list[bytes] = []
+            while remaining:
+                chunk = os.read(self.descriptor, min(remaining, 1024 * 1024))
+                if not chunk:
+                    FlextCliUtilitiesAtomicFileRead.raise_changed(self.path)
+                chunks.append(chunk)
+                remaining -= len(chunk)
+            if (
+                FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(self.descriptor))
+                != self.version_key
+            ):
+                FlextCliUtilitiesAtomicFileRead.raise_changed(self.path)
+            return b"".join(chunks)
 
     @staticmethod
     def read_descriptor_bytes(
@@ -29,17 +93,16 @@ class FlextCliUtilitiesAtomicFileRead:
             The resulting ``bytes``.
 
         """
-        flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NONBLOCK", 0)
         descriptor = FlextCliUtilitiesAtomicFileDescriptor.open_entry(
             parent,
             path,
-            flags,
+            FlextCliUtilitiesAtomicFileRead.READ_FLAGS,
         )
         try:
-            content = FlextCliUtilitiesAtomicFileRead._read_stable_descriptor(
-                descriptor,
-                path,
-                expected,
+            content = b"".join(
+                FlextCliUtilitiesAtomicFileRead.descriptor_chunks(
+                    descriptor, path, expected
+                )
             )
         except BaseException as operation_error:
             FlextCliUtilitiesAtomicFileDescriptor.close_after_failure(
@@ -75,26 +138,37 @@ class FlextCliUtilitiesAtomicFileRead:
         )
 
     @staticmethod
-    def _read_stable_descriptor(
+    def descriptor_chunks(
         descriptor: int,
         path: Path,
         expected: os.stat_result,
-    ) -> bytes:
+    ) -> t.IterableOf[bytes]:
+        """Consume exact chunks between checks of the authenticated file version.
+
+        Yields:
+            Each ``bytes`` chunk read from the authenticated descriptor.
+
+        """
         if FlextCliUtilitiesAtomicFileRead.state_key(
             os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
-            FlextCliUtilitiesAtomicFileRead._raise_changed(path)
-        chunks: list[bytes] = []
+            FlextCliUtilitiesAtomicFileRead.raise_changed(path)
         while chunk := os.read(descriptor, 1024 * 1024):
-            chunks.append(chunk)
+            yield chunk
         if FlextCliUtilitiesAtomicFileRead.state_key(
             os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
-            FlextCliUtilitiesAtomicFileRead._raise_changed(path)
-        return b"".join(chunks)
+            FlextCliUtilitiesAtomicFileRead.raise_changed(path)
 
     @staticmethod
-    def _raise_changed(path: Path) -> None:
+    def raise_changed(path: Path) -> None:
+        """Reject a changed authenticated version at the read boundary.
+
+        Raises:
+            OSError: Unconditionally, with ``errno.ESTALE`` naming the changed
+                authenticated destination.
+
+        """
         message = f"atomic destination changed during authenticated read: {path}"
         raise OSError(errno.ESTALE, message, path)
 

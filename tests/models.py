@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from typing import Annotated
 
+from examples import ExamplesFlextCliModels
 from flext_tests import FlextTestsModels
 
-from examples import ExamplesFlextCliModels
 from flext_cli import FlextCliModels
 from tests.models_parts import TestsFlextCliModelsPart01
 

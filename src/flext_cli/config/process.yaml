@@ -1,0 +1,18 @@
+ProcessIsolation:
+  denied_syscalls:
+    - socket
+    - socketpair
+    - connect
+    - bind
+    - listen
+    - accept
+    - accept4
+    - sendto
+    - recvfrom
+    - sendmsg
+    - recvmsg
+    - sendmmsg
+    - recvmmsg
+    - io_uring_setup
+    - io_uring_enter
+    - io_uring_register

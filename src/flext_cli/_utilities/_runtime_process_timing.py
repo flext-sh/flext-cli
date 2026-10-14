@@ -57,6 +57,26 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
         return r[tuple[float | None, float]].ok((absolute_deadline, grace_seconds))
 
     @staticmethod
+    def _shares_output_destination(
+        request: m.Cli.RuntimeProcessRequest,
+    ) -> bool:
+        """Report whether stdout and stderr resolve to one filesystem leaf.
+
+        Returns:
+            Whether both destinations exist and resolve to the same leaf.
+
+        """
+        if request.output_path is None or request.stderr_path is None:
+            return False
+        if request.output_path.resolve() == request.stderr_path.resolve():
+            return True
+        return (
+            request.output_path.exists()
+            and request.stderr_path.exists()
+            and request.output_path.samefile(request.stderr_path)
+        )
+
+    @staticmethod
     def _process_output_policy_error(
         request: m.Cli.RuntimeProcessRequest,
         *,
@@ -76,6 +96,12 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
             )
         elif request.capture_output and request.output_path is not None:
             error = "captured and durable output are mutually exclusive"
+        elif request.stderr_path is not None and request.output_path is None:
+            error = "Separate stderr requires a durable stdout destination"
+        elif FlextCliUtilitiesRuntimeProcessTimingMixin._shares_output_destination(
+            request,
+        ):
+            error = "Process stdout and stderr destinations must be distinct"
         elif (request.live or request.deadline is not None) and not on_main_thread:
             error = (
                 "live/deadline process execution requires the main interpreter thread"

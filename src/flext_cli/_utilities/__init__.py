@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         _xlxx,
         _yaml,
     )
+    from flext_cli._utilities._atomic_models import FlextCliUtilitiesAtomicModels
     from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
     from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
     from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
@@ -357,6 +358,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesAtomicFileSnapshot",
     "FlextCliUtilitiesAtomicFileState",
     "FlextCliUtilitiesAtomicFileTemporary",
+    "FlextCliUtilitiesAtomicModels",
     "FlextCliUtilitiesAtomicParentDescriptor",
     "FlextCliUtilitiesAtomicParentFailure",
     "FlextCliUtilitiesAtomicSymlinkPublish",
@@ -515,6 +517,7 @@ install_lazy_exports(
         "FlextCliUtilitiesAtomicFileSnapshot": ".atomic_file_snapshot",
         "FlextCliUtilitiesAtomicFileState": ".atomic_file_state",
         "FlextCliUtilitiesAtomicFileTemporary": ".atomic_file_temporary",
+        "FlextCliUtilitiesAtomicModels": "._atomic_models",
         "FlextCliUtilitiesAtomicParentDescriptor": ".atomic_parent_descriptor",
         "FlextCliUtilitiesAtomicParentFailure": ".atomic_parent_failure",
         "FlextCliUtilitiesAtomicSymlinkPublish": ".atomic_symlink_publish",

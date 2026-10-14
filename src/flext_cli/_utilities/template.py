@@ -14,7 +14,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import ClassVar, cast, override
 
-from jinja2 import BaseLoader, Environment, StrictUndefined
+from jinja2 import BaseLoader, Environment, StrictUndefined, meta
 from jinja2.exceptions import TemplateError, TemplateNotFound
 from jinja2.loaders import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
@@ -60,9 +60,16 @@ class FlextCliUtilitiesTemplate:
     class _AuthenticatedLoader(BaseLoader):
         """Load every Jinja source once from descriptor-authenticated bytes."""
 
-        def __init__(self, search_path: Path) -> None:
+        def __init__(
+            self,
+            search_path: Path,
+            source_states: t.SequenceOf[m.Cli.AtomicFileState] | None = None,
+        ) -> None:
             self.search_path = search_path
-            self.source_states: t.MutableMappingKV[Path, m.Cli.AtomicFileState] = {}
+            self.source_states: t.MutableMappingKV[Path, m.Cli.AtomicFileState] = {
+                state.path: state for state in source_states or ()
+            }
+            self.captured = source_states is not None
             self.failure: str | None = None
 
         @override
@@ -95,6 +102,11 @@ class FlextCliUtilitiesTemplate:
                 raise TemplateNotFound(template)
             existing = self.source_states.get(source)
             if existing is None:
+                if self.captured:
+                    self.failure = (
+                        f"template source is outside captured inputs: {source}"
+                    )
+                    raise TemplateNotFound(template)
                 snapshot = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
                     source,
                     required=True,
@@ -173,9 +185,53 @@ class FlextCliUtilitiesTemplate:
         return r[str].ok(rendered.value)
 
     @staticmethod
+    def template_capture_sources(
+        paths: t.SequenceOf[Path],
+    ) -> p.Result[t.VariadicTuple[m.Cli.AtomicFileState]]:
+        """Capture declared Jinja imports through the existing native loader.
+
+        Returns:
+            Every descriptor-authenticated input of the declared templates.
+        """
+
+        def capture() -> t.VariadicTuple[m.Cli.AtomicFileState]:
+            states: t.MutableMappingKV[Path, m.Cli.AtomicFileState] = {}
+            for path in paths:
+                source = path.expanduser().absolute()
+                loader = FlextCliUtilitiesTemplate._AuthenticatedLoader(source.parent)
+                environment = FlextCliUtilitiesTemplate.template_environment(
+                    source.parent,
+                )
+                pending = [source.name]
+                while pending:
+                    name = pending.pop()
+                    if source.parent / name in loader.source_states:
+                        continue
+                    content, _, _ = loader.get_source(environment, name)
+                    for dependency in meta.find_referenced_templates(
+                        environment.parse(content),
+                    ):
+                        if dependency is None:
+                            msg = f"template input is not statically declared: {name}"
+                            raise ValueError(
+                                msg,
+                            )
+                        pending.append(dependency)
+                states.update(loader.source_states)
+            return tuple(states.values())
+
+        return u.try_(
+            capture,
+            catch=(TemplateError, OSError, ValueError),
+            op_name="template_capture_sources",
+        )
+
+    @staticmethod
     def template_render_authenticated(
         path: Path,
         context: p.Model,
+        *,
+        source_states: t.SequenceOf[m.Cli.AtomicFileState] | None = None,
     ) -> p.Result[m.Cli.AuthenticatedTemplateRender]:
         """Render only descriptor-authenticated bytes and return all source states.
 
@@ -184,7 +240,10 @@ class FlextCliUtilitiesTemplate:
 
         """
         source = path.expanduser().absolute()
-        loader = FlextCliUtilitiesTemplate._AuthenticatedLoader(source.parent)
+        loader = FlextCliUtilitiesTemplate._AuthenticatedLoader(
+            source.parent,
+            source_states,
+        )
         environment = SandboxedEnvironment(
             loader=loader,
             undefined=StrictUndefined,
@@ -194,12 +253,11 @@ class FlextCliUtilitiesTemplate:
             autoescape=select_autoescape(),
             auto_reload=False,
         )
-        template = cast(
-            "p.Cli.JinjaTemplateRenderer",
-            environment.get_template(source.name),
-        )
         rendered = u.try_(
-            lambda: template.render(context.model_dump(mode="json")),
+            lambda: cast(
+                "p.Cli.JinjaTemplateRenderer",
+                environment.get_template(source.name),
+            ).render(context.model_dump(mode="json")),
             catch=(TemplateError, OSError),
             op_name="template_render_authenticated",
         )
@@ -208,6 +266,9 @@ class FlextCliUtilitiesTemplate:
                 loader.failure
                 or rendered.error
                 or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {source}",
+                exception=rendered.exception,
+                error_code=rendered.error_code,
+                error_data=rendered.error_data,
             )
         return r[m.Cli.AuthenticatedTemplateRender].ok(
             m.Cli.AuthenticatedTemplateRender(

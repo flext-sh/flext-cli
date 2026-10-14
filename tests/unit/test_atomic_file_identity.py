@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import hashlib
 import sys
 from pathlib import Path
 
@@ -16,6 +17,191 @@ from tests import m, tm, u
 
 class TestsFlextCliAtomicFileIdentity:
     """Prove callers cannot authorize effects with only matching content."""
+
+    @staticmethod
+    def test_receipt_publication_retains_bytes_and_consumes_stage(
+        tmp_path: Path,
+    ) -> None:
+        """Publication accepts complete receipts without loading payload bytes."""
+        destination = tmp_path / "live.bin"
+        staged = tmp_path / "staged.bin"
+        payload = bytes(range(256)) * 16_385
+        staged.write_bytes(payload)
+        before = tm.ok(u.Cli.atomic_read_binary_file_receipt(destination))
+        replacement = tm.ok(
+            u.Cli.atomic_read_binary_file_receipt(staged, required=True)
+        )
+        published = tm.ok(
+            u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, replacement)
+        )
+        tm.that(staged.exists(), eq=False)
+        tm.that(destination.read_bytes(), eq=payload)
+        tm.that(published.sha256, eq=replacement.sha256)
+        with u.Cli.atomic_binary_file_reader(published) as reader:
+            tm.that(reader.read_range(len(payload) - 17, 17), eq=payload[-17:])
+
+    @staticmethod
+    @pytest.mark.parametrize("mutation", ["destination", "staged", "digest"])
+    def test_receipt_publication_refuses_drift_before_replacement(
+        tmp_path: Path, mutation: str
+    ) -> None:
+        """Every changed destination, staging version, or digest remains a failure."""
+        destination = tmp_path / "live.bin"
+        staged = tmp_path / "staged.bin"
+        destination.write_bytes(b"original")
+        staged.write_bytes(b"replacement")
+        before = tm.ok(
+            u.Cli.atomic_read_binary_file_receipt(destination, required=True)
+        )
+        replacement = tm.ok(
+            u.Cli.atomic_read_binary_file_receipt(staged, required=True)
+        )
+        if mutation == "destination":
+            destination.write_bytes(b"changed")
+        elif mutation == "staged":
+            staged.write_bytes(b"changed")
+        else:
+            replacement = m.Cli.AtomicFileReceipt.model_validate({
+                **replacement.model_dump(),
+                "sha256": u.Cli.sha256_bytes(b"foreign"),
+            })
+        tm.fail(
+            u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, replacement)
+        )
+        tm.that(staged.exists(), eq=True)
+        tm.that(
+            destination.read_bytes(),
+            eq=b"changed" if mutation == "destination" else b"original",
+        )
+
+    @staticmethod
+    def test_receipt_optional_absence_and_required_size_guard(tmp_path: Path) -> None:
+        """Byte-free capture retains explicit absence and rejects oversized input."""
+        missing = tmp_path / "unmaterialized" / "missing.bin"
+        receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(missing))
+        tm.that(receipt.device, eq=None)
+        tm.that(receipt.sha256, eq=None)
+        tm.fail(u.Cli.atomic_read_binary_file_receipt(missing, required=True))
+        path = tmp_path / "receipt.bin"
+        path.write_bytes(b"larger")
+        failed = u.Cli.atomic_read_binary_file_receipt(path, required=True, max_bytes=1)
+        tm.fail(failed)
+        tm.that(failed.exception, is_=OSError)
+
+    @staticmethod
+    def test_shallow_inventory_captures_namespace_without_child_payloads(
+        tmp_path: Path,
+    ) -> None:
+        """Immediate elections include empty folders, files, and literal symlinks."""
+        root = tmp_path / "namespace"
+        root.mkdir()
+        (root / "empty").mkdir()
+        (root / "module.py").write_bytes(b"value = 1")
+        (root / "alias.py").symlink_to("module.py")
+        inventory = tm.ok(u.Cli.atomic_inventory_physical_directory(root))
+        tm.that(
+            tuple((entry.name, entry.kind) for entry in inventory.entries),
+            eq=(("alias.py", "symlink"), ("empty", "directory"), ("module.py", "file")),
+        )
+        tm.that(inventory.entries[0].link_target, eq="module.py")
+
+    @staticmethod
+    def test_receipt_and_scoped_ranges_match_authenticated_state(
+        tmp_path: Path,
+    ) -> None:
+        """Receipt capture and repeated ranges retain the public snapshot contract."""
+        path = tmp_path / "receipt.bin"
+        payload = bytes(range(256))
+        path.write_bytes(payload)
+        receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(path, required=True))
+        snapshot = tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True))
+        tm.that(receipt.device, eq=snapshot.device)
+        tm.that(receipt.inode, eq=snapshot.inode)
+        tm.that(receipt.parent_inode, eq=snapshot.parent_inode)
+        tm.that(receipt.size, eq=len(payload))
+        tm.that(receipt.sha256, eq=u.Cli.sha256_bytes(payload))
+        with u.Cli.atomic_binary_file_reader(receipt) as reader:
+            tm.that(reader.read_range(0, len(payload)), eq=payload)
+            tm.that(reader.read_range(17, 31), eq=payload[17:48])
+        tm.that(
+            tm.ok(u.Cli.atomic_read_binary_file_range(receipt, 17, 31)),
+            eq=payload[17:48],
+        )
+
+    @staticmethod
+    @pytest.mark.parametrize("mutation", ["content", "identity"])
+    def test_receipt_reader_rejects_change_during_consumption(
+        tmp_path: Path, mutation: str
+    ) -> None:
+        """Scoped receipt reads reject content mutation and pathname replacement."""
+        path = tmp_path / "receipt.bin"
+        payload = bytes(range(256))
+        path.write_bytes(payload)
+        receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(path, required=True))
+
+        def mutate_during_consumption() -> None:
+            """Read one authenticated range, then change the captured receipt."""
+            with u.Cli.atomic_binary_file_reader(receipt) as reader:
+                tm.that(reader.read_range(0, len(payload)), eq=payload)
+                if mutation == "content":
+                    path.write_bytes(b"changed")
+                else:
+                    replacement = tmp_path / "replacement.bin"
+                    replacement.write_bytes(payload)
+                    replacement.replace(path)
+
+        with pytest.raises(OSError, match="changed"):
+            mutate_during_consumption()
+
+    @staticmethod
+    def test_authenticated_stream_retains_every_binary_byte(tmp_path: Path) -> None:
+        """A fully consumed public stream agrees with the authenticated snapshot."""
+        path = tmp_path / "stream.bin"
+        payload = bytes(range(256)) * 16_385
+        path.write_bytes(payload)
+        digest = hashlib.sha256()
+        size = 0
+        for chunk in u.Cli.atomic_iter_binary_file(path):
+            size += len(chunk)
+            digest.update(chunk)
+        tm.that(size, eq=len(payload))
+        tm.that(digest.hexdigest(), eq=u.Cli.sha256_bytes(payload))
+        tm.that(
+            tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True)).content,
+            eq=payload,
+        )
+
+    @staticmethod
+    @pytest.mark.parametrize("mutation", ["content", "identity"])
+    def test_authenticated_stream_rejects_change_during_consumption(
+        tmp_path: Path, mutation: str
+    ) -> None:
+        """Neither a changed inode nor changed bytes can complete authentication."""
+        path = tmp_path / "stream.bin"
+        path.write_bytes(bytes(range(256)) * 16_385)
+        stream = iter(u.Cli.atomic_iter_binary_file(path))
+        tm.that(bool(next(stream)))
+        if mutation == "content":
+            path.write_bytes(b"changed")
+        else:
+            replacement = tmp_path / "replacement.bin"
+            replacement.write_bytes(b"another inode")
+            replacement.replace(path)
+        with pytest.raises(OSError, match="changed"):
+            tuple(stream)
+
+    @staticmethod
+    def test_authenticated_stream_rejects_absence_and_symlink(tmp_path: Path) -> None:
+        """Required streamed input cannot be missing or alias a foreign leaf."""
+        path = tmp_path / "stream.bin"
+        with pytest.raises(FileNotFoundError):
+            tuple(u.Cli.atomic_iter_binary_file(path))
+        target = tmp_path / "target.bin"
+        target.write_bytes(b"foreign input")
+        path.symlink_to(target)
+        with pytest.raises(OSError, match="atomic destination changed"):
+            tuple(u.Cli.atomic_iter_binary_file(path))
+        tm.that(target.read_bytes(), eq=b"foreign input")
 
     @staticmethod
     @pytest.mark.parametrize("operation", ["write", "delete"])

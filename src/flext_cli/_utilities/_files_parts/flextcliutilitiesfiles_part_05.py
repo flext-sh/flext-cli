@@ -176,6 +176,29 @@ class FlextCliUtilitiesFilesPart05:
         return r[m.Cli.AtomicDirectoryState].ok(published)
 
     @staticmethod
+    def atomic_inventory_physical_directory(
+        root_path: t.Cli.TextPath,
+    ) -> p.Result[m.Cli.AtomicDirectoryInventory]:
+        """Capture immediate namespace elections without reading descendant bytes.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicDirectoryInventory]``.
+
+        """
+        try:
+            inventory = (
+                FlextCliUtilitiesAtomicTreeInventory.inventory_physical_directory(
+                    Path(root_path)
+                )
+            )
+        except OSError as exc:
+            return r[m.Cli.AtomicDirectoryInventory].fail(
+                c.Cli.ERR_ATOMIC_PHYSICAL_TREE_INVENTORY_FAILED.format(error=exc),
+                exception=exc,
+            )
+        return r[m.Cli.AtomicDirectoryInventory].ok(inventory)
+
+    @staticmethod
     def atomic_inventory_physical_tree(
         root_path: t.Cli.TextPath,
     ) -> p.Result[m.Cli.AtomicPhysicalTreeManifest]:

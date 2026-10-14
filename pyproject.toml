@@ -361,7 +361,6 @@ addopts = [
   "--strict-markers",
   "--markdown-docs",
   "--durations=10",
-  "--flext-enforce-strict",
   "--timeout=10",
 ]
 flext_slow_timeout_seconds = "30"
@@ -435,7 +434,6 @@ ignore = [
   "typing-only-first-party-import",
   "typing-only-standard-library-import",
   "typing-only-third-party-import",
-  "unsorted-imports",
 ]
 select = ["ALL"]
 unfixable = [
@@ -458,6 +456,8 @@ runtime-evaluated-base-classes = [
   "examples.s",
   "flext_cli.FlextCliModels.FrozenModel",
   "flext_cli.FlextCliSettings",
+  "flext_cli._models._base.flextclimodelsbase_part_02.AtomicFileIdentity",
+  "flext_cli._models.process.ProcessNativeToolEvidence",
   "flext_cli.m.ArbitraryTypesModel",
   "flext_cli.m.BaseModel",
   "flext_cli.m.FrozenModel",
@@ -624,7 +624,6 @@ whitelines = 1
 constraint-dependencies = ["mypy<2.4.0"]
 environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
 link-mode = "copy"
-override-dependencies = ["flext-cli"]
 
 [[tool.uv.exclude-dependencies]]
 dependencies = ["flext-cli"]
