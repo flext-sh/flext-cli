@@ -103,6 +103,51 @@ class TestsFlextCliConfigEngine:
         )
 
     @staticmethod
+    def test_captured_template_render_uses_original_dependency_bytes(
+        tmp_path: Path,
+    ) -> None:
+        """Serve the admitted main template and import from one captured readset."""
+        template = tmp_path / "greeting.j2"
+        dependency = tmp_path / "included.j2"
+        template.write_text('{% include "included.j2" %}', encoding="utf-8")
+        dependency.write_text("port={{ server.port }}\n", encoding="utf-8")
+        captured = u.Cli.template_capture_sources((template,))
+        tm.ok(captured)
+        template.write_text("replacement\n", encoding="utf-8")
+        dependency.write_text("changed\n", encoding="utf-8")
+        context = m.Tests.TemplateServerContext(server=m.Tests.TemplateServer(port=42))
+
+        rendered = u.Cli.template_render_authenticated(
+            template, context, source_states=captured.value
+        )
+
+        tm.ok(rendered)
+        tm.that(rendered.value.rendered, eq="port=42\n")
+
+    @staticmethod
+    def test_captured_template_render_rejects_missing_dependency(
+        tmp_path: Path,
+    ) -> None:
+        """An incomplete readset fails even when the live dependency exists."""
+        template = tmp_path / "greeting.j2"
+        dependency = tmp_path / "included.j2"
+        template.write_text('{% include "included.j2" %}', encoding="utf-8")
+        dependency.write_text("live content\n", encoding="utf-8")
+        captured = u.Cli.template_capture_sources((template,))
+        tm.ok(captured)
+
+        rendered = u.Cli.template_render_authenticated(
+            template,
+            m.Tests.TemplateEmpty(),
+            source_states=tuple(
+                state for state in captured.value if state.path == template
+            ),
+        )
+
+        tm.fail(rendered)
+        tm.that(rendered.exception is not None, eq=True)
+
+    @staticmethod
     def test_template_render_strict_undefined_fails(tmp_path: Path) -> None:
         """Verify that template render strict undefined fails."""
         tpl = tmp_path / "greeting.j2"

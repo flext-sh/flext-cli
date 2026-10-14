@@ -50,6 +50,10 @@ class FlextCliModelsProcess:
             default=(),
             description="File descriptors inherited by the child process.",
         )
+        stderr_file: t.Cli.TextPath | None = m.Field(
+            default=None,
+            description="Separate durable stderr destination for durable output.",
+        )
 
     class RuntimeProcessRequest(m.ArbitraryTypesModel):
         """Resolved launch inputs shared by preparation and process creation."""

@@ -86,7 +86,12 @@ class FlextCliUtilitiesAtomicFileRead:
         path: Path,
         expected: os.stat_result,
     ) -> t.IterableOf[bytes]:
-        """Consume exact chunks between checks of the authenticated file version."""
+        """Consume exact chunks between checks of the authenticated file version.
+
+        Yields:
+            Each ``bytes`` chunk read from the authenticated descriptor.
+
+        """
         if FlextCliUtilitiesAtomicFileRead.state_key(
             os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
