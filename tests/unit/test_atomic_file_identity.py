@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import hashlib
 import sys
 from pathlib import Path
 
@@ -16,6 +17,56 @@ from tests import m, tm, u
 
 class TestsFlextCliAtomicFileIdentity:
     """Prove callers cannot authorize effects with only matching content."""
+
+    @staticmethod
+    def test_authenticated_stream_retains_every_binary_byte(tmp_path: Path) -> None:
+        """A fully consumed public stream agrees with the authenticated snapshot."""
+        path = tmp_path / "stream.bin"
+        payload = bytes(range(256)) * 16_385
+        path.write_bytes(payload)
+        digest = hashlib.sha256()
+        size = 0
+        for chunk in u.Cli.atomic_iter_binary_file(path):
+            size += len(chunk)
+            digest.update(chunk)
+        tm.that(size, eq=len(payload))
+        tm.that(digest.hexdigest(), eq=u.Cli.sha256_bytes(payload))
+        tm.that(
+            tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True)).content,
+            eq=payload,
+        )
+
+    @staticmethod
+    @pytest.mark.parametrize("mutation", ["content", "identity"])
+    def test_authenticated_stream_rejects_change_during_consumption(
+        tmp_path: Path, mutation: str
+    ) -> None:
+        """Neither a changed inode nor changed bytes can complete authentication."""
+        path = tmp_path / "stream.bin"
+        path.write_bytes(bytes(range(256)) * 16_385)
+        stream = iter(u.Cli.atomic_iter_binary_file(path))
+        tm.that(bool(next(stream)))
+        if mutation == "content":
+            path.write_bytes(b"changed")
+        else:
+            replacement = tmp_path / "replacement.bin"
+            replacement.write_bytes(b"another inode")
+            replacement.replace(path)
+        with pytest.raises(OSError, match="changed"):
+            tuple(stream)
+
+    @staticmethod
+    def test_authenticated_stream_rejects_absence_and_symlink(tmp_path: Path) -> None:
+        """Required streamed input cannot be missing or alias a foreign leaf."""
+        path = tmp_path / "stream.bin"
+        with pytest.raises(FileNotFoundError):
+            tuple(u.Cli.atomic_iter_binary_file(path))
+        target = tmp_path / "target.bin"
+        target.write_bytes(b"foreign input")
+        path.symlink_to(target)
+        with pytest.raises(OSError):
+            tuple(u.Cli.atomic_iter_binary_file(path))
+        tm.that(target.read_bytes(), eq=b"foreign input")
 
     @staticmethod
     @pytest.mark.parametrize("operation", ["write", "delete"])
