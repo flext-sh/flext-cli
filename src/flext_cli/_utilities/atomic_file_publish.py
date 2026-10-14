@@ -53,44 +53,18 @@ class FlextCliUtilitiesAtomicFilePublish:
             OSError: If ``destination == staged_path``.
 
         """
-        destination = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(
-            destination_before.path,
+        destination, staged_path = FlextCliUtilitiesAtomicFilePublish._validated_paths(
+            destination_before,
+            staged,
         )
-        staged_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(staged.path)
-        if destination == staged_path:
-            message = "staged file and atomic destination must differ"
-            raise OSError(errno.EINVAL, message, destination)
-        staged_payload: bytes | m.Cli.AtomicFileReceipt
-        staged_proof: FlextCliUtilitiesAtomicModels.StagedFile | m.Cli.AtomicFileReceipt
-        if isinstance(staged, m.Cli.AtomicFileReceipt):
-            if staged.mode is None or staged.device is None or staged.inode is None:
-                raise FileNotFoundError(
-                    errno.ENOENT, "staged receipt is absent", staged_path
-                )
-            staged_payload = staged
-            staged_mode = staged.mode
-            staged_identity = (staged.device, staged.inode)
-            staged_proof = staged
-        else:
-            staged_bytes, staged_mode, staged_identity = (
-                FlextCliUtilitiesAtomicFileModel.require_existing(
-                    staged, purpose="staged"
-                )
+        staged_payload, staged_mode, staged_identity, staged_proof = (
+            FlextCliUtilitiesAtomicFilePublish._resolve_staged(staged_path, staged)
+        )
+        destination_payload = (
+            FlextCliUtilitiesAtomicFilePublish._resolve_destination_payload(
+                destination_before,
             )
-            staged_payload = staged_bytes
-            staged_proof = FlextCliUtilitiesAtomicModels.StagedFile(
-                path=staged_path,
-                content=staged_bytes,
-                mode=staged_mode,
-                identity=staged_identity,
-            )
-        destination_payload: bytes | m.Cli.AtomicFileReceipt | None
-        if isinstance(destination_before, m.Cli.AtomicFileReceipt):
-            destination_payload = (
-                destination_before if destination_before.device is not None else None
-            )
-        else:
-            destination_payload = destination_before.content
+        )
         FlextCliUtilitiesAtomicFileMode.validate_guarded_mode_tuple(
             destination,
             destination_payload,
@@ -209,6 +183,86 @@ class FlextCliUtilitiesAtomicFilePublish:
                 path=destination,
             )
             return published
+
+    @staticmethod
+    def _validated_paths(
+        destination_before: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
+        staged: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
+    ) -> t.Pair[Path, Path]:
+        """Validate both atomic paths and require a distinct staged destination.
+
+        Returns:
+            The validated ``(destination, staged_path)`` pair.
+
+        Raises:
+            OSError: If the staged path equals the atomic destination.
+
+        """
+        destination = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(
+            destination_before.path,
+        )
+        staged_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(staged.path)
+        if destination == staged_path:
+            message = "staged file and atomic destination must differ"
+            raise OSError(errno.EINVAL, message, destination)
+        return (destination, staged_path)
+
+    @staticmethod
+    def _resolve_staged(
+        staged_path: Path,
+        staged: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
+    ) -> t.Quad[
+        bytes | m.Cli.AtomicFileReceipt,
+        int,
+        t.Pair[int, int],
+        FlextCliUtilitiesAtomicModels.StagedFile | m.Cli.AtomicFileReceipt,
+    ]:
+        """Resolve the staged payload, mode, identity, and publication proof.
+
+        Returns:
+            The resulting ``(payload, mode, identity, proof)`` quadruple.
+
+        Raises:
+            FileNotFoundError: If the staged receipt metadata is absent.
+
+        """
+        if isinstance(staged, m.Cli.AtomicFileReceipt):
+            if staged.mode is None or staged.device is None or staged.inode is None:
+                raise FileNotFoundError(
+                    errno.ENOENT, "staged receipt is absent", staged_path
+                )
+            return (staged, staged.mode, (staged.device, staged.inode), staged)
+        staged_bytes, staged_mode, staged_identity = (
+            FlextCliUtilitiesAtomicFileModel.require_existing(
+                staged,
+                purpose="staged",
+            )
+        )
+        return (
+            staged_bytes,
+            staged_mode,
+            staged_identity,
+            FlextCliUtilitiesAtomicModels.StagedFile(
+                path=staged_path,
+                content=staged_bytes,
+                mode=staged_mode,
+                identity=staged_identity,
+            ),
+        )
+
+    @staticmethod
+    def _resolve_destination_payload(
+        destination_before: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
+    ) -> bytes | m.Cli.AtomicFileReceipt | None:
+        """Resolve the guarded destination payload from the before-state.
+
+        Returns:
+            The destination payload bytes, receipt, or ``None`` when absent.
+
+        """
+        if isinstance(destination_before, m.Cli.AtomicFileReceipt):
+            return destination_before if destination_before.device is not None else None
+        return destination_before.content
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicFilePublish"]
