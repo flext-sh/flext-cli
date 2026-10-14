@@ -49,7 +49,7 @@ class FlextCliUtilitiesFilesPart03:
             )
         except OSError as exc:
             return r[m.Cli.AtomicFileReceipt].fail(
-                c.Cli.ERR_BINARY_READ_FAILED.format(error=exc)
+                c.Cli.ERR_BINARY_READ_FAILED.format(error=exc), exception=exc
             )
         return r[m.Cli.AtomicFileReceipt].ok(receipt)
 
@@ -71,7 +71,9 @@ class FlextCliUtilitiesFilesPart03:
             with FlextCliUtilitiesAtomicFileSnapshot.receipt_reader(receipt) as reader:
                 content = reader.read_range(offset, length)
         except OSError as exc:
-            return r[bytes].fail(c.Cli.ERR_BINARY_READ_FAILED.format(error=exc))
+            return r[bytes].fail(
+                c.Cli.ERR_BINARY_READ_FAILED.format(error=exc), exception=exc
+            )
         return r[bytes].ok(content)
 
     @staticmethod
@@ -86,7 +88,7 @@ class FlextCliUtilitiesFilesPart03:
             )
         except OSError as exc:
             return r[m.Cli.AtomicFileReceipt].fail(
-                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc)
+                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc), exception=exc
             )
         return r[m.Cli.AtomicFileReceipt].ok(
             m.Cli.AtomicFileReceipt(
