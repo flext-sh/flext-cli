@@ -18,7 +18,13 @@ class TestsFlextCliRuntimeProcessIsolation:
 
     @staticmethod
     def _request(tmp_path: Path) -> m.Cli.ProcessReadOnlyIsolation:
-        """Capture real local files for negative pre-execution contracts."""
+        """Capture real local files for negative pre-execution contracts.
+
+        Returns:
+            The captured isolation declaration holding real local launcher,
+            filter, and source file states.
+
+        """
         source = tmp_path / "source.py"
         source.write_text('"""Captured source."""\n', encoding="utf-8")
         policy = tmp_path / "invalid-filter"

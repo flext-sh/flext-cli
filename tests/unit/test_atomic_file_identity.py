@@ -22,7 +22,7 @@ class TestsFlextCliAtomicFileIdentity:
     def test_receipt_publication_retains_bytes_and_consumes_stage(
         tmp_path: Path,
     ) -> None:
-        """Publication accepts complete receipts without loading the payload into state."""
+        """Publication accepts complete receipts without loading payload bytes."""
         destination = tmp_path / "live.bin"
         staged = tmp_path / "staged.bin"
         payload = bytes(range(256)) * 16_385
@@ -138,7 +138,9 @@ class TestsFlextCliAtomicFileIdentity:
         payload = bytes(range(256))
         path.write_bytes(payload)
         receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(path, required=True))
-        with pytest.raises(OSError, match="changed"):
+
+        def mutate_during_consumption() -> None:
+            """Read one authenticated range, then change the captured receipt."""
             with u.Cli.atomic_binary_file_reader(receipt) as reader:
                 tm.that(reader.read_range(0, len(payload)), eq=payload)
                 if mutation == "content":
@@ -147,6 +149,9 @@ class TestsFlextCliAtomicFileIdentity:
                     replacement = tmp_path / "replacement.bin"
                     replacement.write_bytes(payload)
                     replacement.replace(path)
+
+        with pytest.raises(OSError, match="changed"):
+            mutate_during_consumption()
 
     @staticmethod
     def test_authenticated_stream_retains_every_binary_byte(tmp_path: Path) -> None:

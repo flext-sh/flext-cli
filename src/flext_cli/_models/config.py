@@ -57,6 +57,11 @@ class FlextCliConfigModels:
         model_config = m.ConfigDict(frozen=True, extra="ignore")
 
         Cli: FlextCliConfigModels.Cli
+
+    class ProcessRoot(m.BaseModel):
+        """Native process policy slice of the same configuration owner."""
+
+        model_config = m.ConfigDict(frozen=True, extra="ignore")
         ProcessIsolation: FlextCliConfigModels.ProcessIsolation
 
 

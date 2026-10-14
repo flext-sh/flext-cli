@@ -38,7 +38,17 @@ class FlextCliUtilitiesAtomicFileRead:
             self.version_key = FlextCliUtilitiesAtomicFileRead.state_key(expected)
 
         def read_range(self, offset: int, length: int) -> bytes:
-            """Read the complete requested range, refusing mutation or short reads."""
+            """Read the complete requested range, refusing mutation or short reads.
+
+            Returns:
+                The exact bytes of the requested range from the authenticated
+                version.
+
+            Raises:
+                ValueError: If the requested range lies outside the
+                    authenticated file.
+
+            """
             if (
                 isinstance(offset, bool)
                 or isinstance(length, bool)
@@ -152,7 +162,13 @@ class FlextCliUtilitiesAtomicFileRead:
 
     @staticmethod
     def raise_changed(path: Path) -> None:
-        """Reject a changed authenticated version at the read boundary."""
+        """Reject a changed authenticated version at the read boundary.
+
+        Raises:
+            OSError: Unconditionally, with ``errno.ESTALE`` naming the changed
+                authenticated destination.
+
+        """
         message = f"atomic destination changed during authenticated read: {path}"
         raise OSError(errno.ESTALE, message, path)
 

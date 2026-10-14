@@ -50,6 +50,8 @@ class FlextCliUtilitiesRuntime(
     def _resolved_env(
         env: t.StrMapping | None,
         remove_env_keys: t.StrSequence = (),
+        *,
+        inherit_environment: bool = True,
     ) -> t.StrDict | None:
         """Resolve the child environment from overrides and removals.
 
@@ -66,6 +68,12 @@ class FlextCliUtilitiesRuntime(
             The resulting ``t.StrDict | None``.
 
         """
+        if not inherit_environment:
+            return {
+                key: value
+                for key, value in (() if env is None else env.items())
+                if key not in remove_env_keys
+            }
         if env is None and not remove_env_keys:
             return None
         return FlextCliUtilitiesRuntime.process_env(
@@ -190,6 +198,7 @@ class FlextCliUtilitiesRuntime(
             launch = m.Cli.ProcessOptions(
                 env=resolved_env,
                 remove_env_keys=resolved_remove,
+                inherit_environment=launch.inherit_environment,
                 input_data=launch.input_data,
                 live=launch.live,
                 heartbeat_seconds=launch.heartbeat_seconds,
@@ -202,7 +211,11 @@ class FlextCliUtilitiesRuntime(
             m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
                 cwd=cwd,
-                env=cls._resolved_env(launch.env, launch.remove_env_keys),
+                env=cls._resolved_env(
+                    launch.env,
+                    launch.remove_env_keys,
+                    inherit_environment=launch.inherit_environment,
+                ),
                 input_data=launch.input_data,
                 capture_output=capture,
                 timeout=timeout,
@@ -234,7 +247,11 @@ class FlextCliUtilitiesRuntime(
             m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
                 cwd=cwd,
-                env=cls._resolved_env(launch.env, launch.remove_env_keys),
+                env=cls._resolved_env(
+                    launch.env,
+                    launch.remove_env_keys,
+                    inherit_environment=launch.inherit_environment,
+                ),
                 input_data=launch.input_data,
                 timeout=timeout,
                 deadline=launch.deadline,

@@ -45,7 +45,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
     @staticmethod
     def inventory_physical_directory(root_path: Path) -> m.Cli.AtomicDirectoryInventory:
-        """Capture immediate elections without descending or hashing child payloads."""
+        """Capture immediate elections without descending or hashing child payloads.
+
+        Returns:
+            The inventory of the immediate child names with their
+            authenticated kinds and version keys.
+
+        """
         with FlextCliUtilitiesAtomicTreeInventory._opened_root(root_path) as (
             root,
             parent,
@@ -89,11 +95,11 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest:
         """Inventory one exact tree through non-aliased directory descriptors.
 
+        The shared root acquisition rejects a missing physical-tree root with
+        ``FileNotFoundError`` before any descendant is read.
+
         Returns:
             The resulting ``m.Cli.AtomicPhysicalTreeManifest``.
-
-        Raises:
-            FileNotFoundError: If ``root_state is None``.
 
         """
         entries: list[m.Cli.AtomicPhysicalTreeEntry] = []
@@ -123,7 +129,16 @@ class FlextCliUtilitiesAtomicTreeInventory:
             FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         ]
     ]:
-        """Retain one shared root acquisition for shallow and recursive inventories."""
+        """Retain one shared root acquisition for shallow and recursive inventories.
+
+        Yields:
+            The authenticated root entry and its retained parent descriptor
+            for the duration of the inventory.
+
+        Raises:
+            FileNotFoundError: If the required physical-tree root is missing.
+
+        """
         root_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(root_path)
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(root_path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(

@@ -39,7 +39,13 @@ class FlextCliUtilitiesAtomicFileSnapshot:
         owner_uid: int | None = None,
         max_bytes: int | None = None,
     ) -> m.Cli.AtomicFileReceipt:
-        """Measure exact bytes once while retaining descriptor and parent identity."""
+        """Measure exact bytes once while retaining descriptor and parent identity.
+
+        Returns:
+            The receipt of the authenticated bytes, reduced to parent and path
+            identity when the read resolves to exact absence.
+
+        """
         with FlextCliUtilitiesAtomicFileSnapshot.authenticated_entry(
             path, required=required, owner_uid=owner_uid, max_bytes=max_bytes
         ) as (parent, state):
@@ -79,7 +85,16 @@ class FlextCliUtilitiesAtomicFileSnapshot:
     def receipt_reader(
         receipt: m.Cli.AtomicFileReceipt,
     ) -> Generator[p.Cli.AtomicFileReader]:
-        """Authenticate a receipt once and retain one descriptor for all ranges."""
+        """Authenticate a receipt once and retain one descriptor for all ranges.
+
+        Yields:
+            The reader bound to the retained descriptor of the authenticated
+            version.
+
+        Raises:
+            FileNotFoundError: If the receipt file is absent.
+
+        """
         with FlextCliUtilitiesAtomicFileSnapshot.authenticated_entry(
             receipt.path, required=True
         ) as (parent, state):
@@ -134,13 +149,11 @@ class FlextCliUtilitiesAtomicFileSnapshot:
         absence, not failure: the caller declared that absence is acceptable and no
         parent exists to authenticate, so the parent identity is absent too. A
         required read, and every write owner, still demand one physical, non-aliased
-        parent directory.
+        parent directory. A required read of a missing leaf is rejected with
+        ``FileNotFoundError`` by the retained authenticated entry.
 
         Returns:
             One physical regular-file state or exact absence.
-
-        Raises:
-            FileNotFoundError: If ``required``.
 
         """
         with FlextCliUtilitiesAtomicFileSnapshot.authenticated_entry(
@@ -170,7 +183,16 @@ class FlextCliUtilitiesAtomicFileSnapshot:
             os.stat_result | None,
         ]
     ]:
-        """Retain one checked parent and leaf for the complete read operation."""
+        """Retain one checked parent and leaf for the complete read operation.
+
+        Yields:
+            The checked parent and leaf states, both absent for an optional
+            read of an unmaterialized directory chain.
+
+        Raises:
+            FileNotFoundError: If a required read finds the leaf missing.
+
+        """
         validated = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         if (
             not required

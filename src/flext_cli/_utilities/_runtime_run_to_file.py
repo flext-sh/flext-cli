@@ -26,6 +26,8 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         def _resolved_env(
             env: t.StrMapping | None,
             remove_env_keys: t.StrSequence = (),
+            *,
+            inherit_environment: bool = True,
         ) -> t.StrDict | None: ...
 
     @classmethod
@@ -60,7 +62,11 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
                     Path(launch.stderr_file) if launch.stderr_file is not None else None
                 ),
                 cwd=cwd,
-                env=cls._resolved_env(launch.env, launch.remove_env_keys),
+                env=cls._resolved_env(
+                    launch.env,
+                    launch.remove_env_keys,
+                    inherit_environment=launch.inherit_environment,
+                ),
                 input_data=launch.input_data,
                 capture_output=False,
                 live=launch.live,

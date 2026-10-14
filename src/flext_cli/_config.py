@@ -43,7 +43,9 @@ class FlextCliConfig(FlextConfig):
     @cached_property
     def ProcessIsolation(self) -> FlextCliProtocolsConfig.ProcessIsolation:
         """Validated native read-only reference process policy."""
-        root = FlextCliConfigModels.Root.model_validate(dict(self.model_extra or {}))
+        root = FlextCliConfigModels.ProcessRoot.model_validate(
+            dict(self.model_extra or {})
+        )
         return root.ProcessIsolation
 
 

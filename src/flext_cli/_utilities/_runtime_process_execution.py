@@ -6,19 +6,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import hashlib
 import os
 import platform
 import signal
+import struct
 import sys
 import threading
 import time
 from pathlib import Path
-from typing import BinaryIO
+from typing import TYPE_CHECKING, BinaryIO
 
 if sys.platform == "linux":
     import fcntl
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, config, m, p, r, t
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFilesPart03,
 )
@@ -43,6 +45,9 @@ from flext_cli._utilities._runtime_process_start import (
 from flext_cli._utilities._runtime_process_timing import (
     FlextCliUtilitiesRuntimeProcessTimingMixin,
 )
+from flext_cli._utilities.atomic_file_snapshot import (
+    FlextCliUtilitiesAtomicFileSnapshot,
+)
 from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
 )
@@ -57,6 +62,18 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
     FlextCliUtilitiesRuntimeProcessTimingMixin,
 ):
     """Own one child process and its streaming resources."""
+
+    if TYPE_CHECKING:
+
+        @classmethod
+        def run_bytes(
+            cls,
+            cmd: t.StrSequence,
+            cwd: t.Cli.TextPath | None = None,
+            timeout: int | None = None,
+            *,
+            options: p.Cli.ProcessOptions | None = None,
+        ) -> p.Result[p.Cli.CommandBytesOutput]: ...
 
     @classmethod
     def _execute_streamed_process(
@@ -125,9 +142,12 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         if state.received_signals:
             state.wake.set()
             return
-        prepared_cmd, child_env, inherited = cls._prepare_process_isolation(
-            request, state, prepared_cmd
+        isolated = cls._prepare_process_isolation(
+            request, state, prepared_cmd, grace_seconds
         )
+        if isolated is None:
+            return
+        prepared_cmd, child_env, inherited = isolated
         destinations = (request.output_path, request.stderr_path)
         for destination in destinations:
             if destination is not None:
@@ -192,8 +212,26 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         request: m.Cli.RuntimeProcessRequest,
         state: m.Cli.RuntimeProcessState,
         command: tuple[str, ...],
-    ) -> tuple[tuple[str, ...], t.StrMapping | None, tuple[int, ...]]:
-        """Prepare explicit native confinement inside the existing lifecycle."""
+        grace_seconds: float,
+    ) -> tuple[tuple[str, ...], t.StrMapping | None, tuple[int, ...]] | None:
+        """Prepare explicit native confinement inside the existing lifecycle.
+
+        Returns:
+            The effective command, environment, and inherited descriptor
+            numbers: the caller's declaration when isolation is not requested,
+            otherwise the confined launcher argv with a cleared environment
+            and the sealed input and runtime-root descriptors.
+
+        Raises:
+            ValueError: If the isolation declaration cannot be confined
+                natively, for example a platform mismatch, inherited caller
+                descriptors, invalid environment names, non-absolute
+                executable or working directory, competing or overlapping
+                runtime roots, an unexecutable or set-id launcher, an
+                incomplete seccomp filter, an input changed since capture,
+                or an escaping link, executable, or working directory.
+
+        """
         isolation = request.isolation
         if isolation is None:
             return command, request.env, request.pass_fds
@@ -222,7 +260,9 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         roots = tuple(tree.root.path for tree in isolation.runtime_trees)
         files = (
             isolation.launcher,
-            isolation.seccomp_filter,
+            isolation.policy_compiler.artifact,
+            isolation.policy_compiler.issuer_receipt,
+            isolation.compiler_declaration,
             *isolation.sources,
             *isolation.runtime_files,
         )
@@ -246,10 +286,6 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             raise ValueError(msg)
         if isolation.launcher.mode & 0o6000:
             msg = "isolated process launcher cannot carry set-id privileges"
-            raise ValueError(msg)
-        filter_bytes = isolation.seccomp_filter.content
-        if not filter_bytes or len(filter_bytes) % 8:
-            msg = "isolated process requires a complete native seccomp BPF filter"
             raise ValueError(msg)
         for captured in files:
             current = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
@@ -313,7 +349,10 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             msg = "isolated working directory is outside its declared source closure"
             raise ValueError(msg)
         launcher = cls._sealed_process_input(state, isolation.launcher)
-        policy = cls._sealed_process_input(state, isolation.seccomp_filter)
+        cls._qualify_policy_compiler(isolation)
+        policy = cls._compile_process_policy(request, state, grace_seconds)
+        if policy is None:
+            return None
         inherited = [launcher, policy]
         arguments = [
             f"/proc/self/fd/{launcher}",
@@ -365,27 +404,271 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         arguments.extend(("--chdir", str(working), "--remount-ro", "/", "--", *command))
         return tuple(arguments), {}, tuple(inherited)
 
+    @classmethod
+    def _qualify_policy_compiler(
+        cls, isolation: m.Cli.ProcessReadOnlyIsolation
+    ) -> None:
+        """Bind the compiler to an actual current bootstrap evidence row.
+
+        Raises:
+            ValueError: If the qualification evidence is missing, changed,
+                unqualified, or inconsistent with the declared isolation.
+
+        """
+        qualification = isolation.policy_compiler
+        if qualification.issuer_receipt.content is None:
+            msg = "native policy compiler has no original bootstrap issuer bytes"
+            raise ValueError(msg)
+        report = m.Cli.ProcessNativeQualificationReport.model_validate_json(
+            qualification.issuer_receipt.content
+        )
+        evidence = m.Cli.ProcessNativeToolEvidence.model_validate(
+            qualification.model_dump(exclude={"issuer_receipt", "artifact"})
+        )
+        matches = tuple(
+            item
+            for receipt in report.receipts
+            for item in receipt.native_tool_qualifications
+            if item == evidence
+        )
+        if len(matches) != 1:
+            msg = (
+                "native policy compiler lacks one original bootstrap qualification row"
+            )
+            raise ValueError(msg)
+        if not cls.process_succeeded(qualification.native_build_outcome) or not (
+            cls.process_succeeded(qualification.native_abi_probe_outcome)
+        ):
+            msg = "native policy compiler build or ABI qualification failed"
+            raise ValueError(msg)
+        if qualification.architecture != isolation.architecture:
+            msg = "native policy compiler qualification has a different ABI"
+            raise ValueError(msg)
+        declared = FlextCliUtilitiesAtomicFileSnapshot.read_receipt(
+            isolation.compiler_declaration.path, required=True
+        )
+        if declared not in qualification.declaration_inputs:
+            msg = "native policy compiler differs from the independently elected declaration"
+            raise ValueError(msg)
+        for receipt in (
+            qualification.artifact_receipt,
+            qualification.abi_reference,
+            *qualification.declaration_inputs,
+            *qualification.installation_inputs,
+            *qualification.source_inputs,
+        ):
+            current = FlextCliUtilitiesAtomicFileSnapshot.read_receipt(
+                receipt.path, required=True
+            )
+            if current != receipt:
+                msg = f"native policy compiler qualification input changed: {receipt.path}"
+                raise ValueError(msg)
+        artifact = qualification.artifact
+        if (
+            artifact.path != qualification.artifact_receipt.path
+            or artifact.content is None
+            or hashlib.sha256(artifact.content).hexdigest()
+            != qualification.artifact_receipt.sha256
+        ):
+            msg = "native policy compiler bytes differ from the installed artifact receipt"
+            raise ValueError(msg)
+        reference = qualification.abi_reference
+        if reference.size is None:
+            msg = "native policy compiler has no captured interpreter ABI"
+            raise ValueError(msg)
+        with FlextCliUtilitiesAtomicFileSnapshot.receipt_reader(reference) as reader:
+            reference_bytes = reader.read_range(0, reference.size)
+        if cls._elf_identity(
+            artifact.content, require_static=True
+        ) != cls._elf_identity(reference_bytes, require_static=False):
+            msg = "native policy compiler ELF ABI differs from the declared interpreter"
+            raise ValueError(msg)
+
+    @staticmethod
+    def _elf_identity(content: bytes, *, require_static: bool) -> tuple[int, int, int]:
+        """Read the immutable ELF ABI and reject dynamic native compiler loading.
+
+        Returns:
+            The ELF class, data encoding, and machine identifiers read from
+            the immutable header bytes.
+
+        Raises:
+            ValueError: If the ELF header is absent or unsupported, the
+                static program table is incomplete, or a required static
+                binary carries an interpreter or shared-library dependency.
+
+        """
+        if len(content) < 64 or content[:4] != b"\x7fELF":
+            msg = "native policy compiler/reference has no complete ELF header"
+            raise ValueError(msg)
+        elf_class, encoding = content[4], content[5]
+        if elf_class not in {1, 2} or encoding not in {1, 2} or content[6] != 1:
+            msg = "native policy compiler/reference ELF ABI is unsupported"
+            raise ValueError(msg)
+        order = "<" if encoding == 1 else ">"
+        machine = int(struct.unpack_from(f"{order}H", content, 18)[0])
+        if not require_static:
+            return elf_class, encoding, machine
+        wide = elf_class == 2
+        table = int(
+            struct.unpack_from(
+                f"{order}{'Q' if wide else 'I'}", content, 32 if wide else 28
+            )[0]
+        )
+        stride, count = (
+            int(value)
+            for value in struct.unpack_from(f"{order}HH", content, 54 if wide else 42)
+        )
+        minimum = 56 if wide else 32
+        if not count or stride < minimum or table + stride * count > len(content):
+            msg = "native policy compiler ELF program table is incomplete"
+            raise ValueError(msg)
+        for index in range(count):
+            offset = table + index * stride
+            kind = int(struct.unpack_from(f"{order}I", content, offset)[0])
+            if kind == 3:  # PT_INTERP, immutable System V ELF protocol.
+                msg = "native policy compiler has an ambient ELF interpreter"
+                raise ValueError(msg)
+            if kind != 2:  # PT_DYNAMIC.
+                continue
+            payload = int(
+                struct.unpack_from(
+                    f"{order}{'Q' if wide else 'I'}",
+                    content,
+                    offset + (8 if wide else 4),
+                )[0]
+            )
+            size = int(
+                struct.unpack_from(
+                    f"{order}{'Q' if wide else 'I'}",
+                    content,
+                    offset + (32 if wide else 16),
+                )[0]
+            )
+            entry_size = 16 if wide else 8
+            if payload + size > len(content) or size % entry_size:
+                msg = "native policy compiler ELF dynamic table is incomplete"
+                raise ValueError(msg)
+            for position in range(payload, payload + size, entry_size):
+                tag = int(
+                    struct.unpack_from(
+                        f"{order}{'q' if wide else 'i'}", content, position
+                    )[0]
+                )
+                if tag == 1:  # DT_NEEDED.
+                    msg = (
+                        "native policy compiler has ambient shared-library dependencies"
+                    )
+                    raise ValueError(msg)
+                if tag == 0:  # DT_NULL.
+                    break
+        return elf_class, encoding, machine
+
+    @classmethod
+    def _compile_process_policy(
+        cls,
+        request: m.Cli.RuntimeProcessRequest,
+        state: m.Cli.RuntimeProcessState,
+        grace_seconds: float,
+    ) -> int | None:
+        """Run the qualified static SDK compiler through the same public process port.
+
+        Returns:
+            The sealed descriptor number of the compiled policy bytes, or
+            ``None`` when the compiler outcome failed and was recorded in
+            the lifecycle state.
+
+        Raises:
+            ValueError: If the bounded isolation lifecycle is missing or
+                the compiler emitted incomplete BPF bytes.
+
+        """
+        isolation = request.isolation
+        if isolation is None or state.final_deadline is None:
+            msg = "native policy compilation requires its bounded isolation lifecycle"
+            raise ValueError(msg)
+        compiler = cls._sealed_process_input(state, isolation.policy_compiler.artifact)
+        policy = m.Cli.ProcessNativePolicyRequest(
+            denied_syscalls=config.ProcessIsolation.denied_syscalls
+        )
+        compiled = cls.run_bytes(
+            (f"/proc/self/fd/{compiler}",),
+            cwd=request.cwd,
+            options=m.Cli.ProcessOptions(
+                input_data=policy.model_dump_json(),
+                env={},
+                inherit_environment=False,
+                pass_fds=(compiler,),
+                deadline=m.Cli.ProcessDeadline(
+                    expires_at_monotonic=state.final_deadline,
+                    termination_grace_seconds=grace_seconds,
+                ),
+            ),
+        ).unwrap()
+        if not cls.process_succeeded(compiled.outcome):
+            state.return_code = compiled.outcome.raw_return_code
+            state.timed_out = compiled.outcome.timed_out
+            if compiled.outcome.forwarded_signal is not None:
+                state.received_signals.append(compiled.outcome.forwarded_signal)
+            state.stdout_output.extend(compiled.stdout)
+            state.stderr_output.extend(compiled.stderr)
+            return None
+        if not compiled.stdout or len(compiled.stdout) % 8:
+            msg = "qualified native SDK compiler emitted incomplete BPF"
+            raise ValueError(msg)
+        return cls._sealed_process_bytes(
+            state, "native-readonly-policy", compiled.stdout, 0o400
+        )
+
     @staticmethod
     def _sealed_process_input(
         state: m.Cli.RuntimeProcessState,
         captured: m.Cli.AtomicFileState,
     ) -> int:
-        """Retain exact captured bytes in an immutable anonymous native file."""
+        """Retain exact captured bytes in an immutable anonymous native file.
+
+        Returns:
+            The descriptor number of the sealed anonymous file carrying the
+            exact captured bytes and mode.
+
+        Raises:
+            ValueError: If the captured input lacks bytes or a captured
+                mode. The sealed-byte write underneath can still fail with
+                ``OSError``.
+
+        """
         if captured.content is None or captured.mode is None:
             msg = f"isolated process input has no captured bytes: {captured.path}"
             raise ValueError(msg)
-        descriptor = os.memfd_create(
-            captured.path.name, os.MFD_CLOEXEC | os.MFD_ALLOW_SEALING
+        return FlextCliUtilitiesRuntimeProcessExecutionMixin._sealed_process_bytes(
+            state, captured.path.name, captured.content, captured.mode
         )
+
+    @staticmethod
+    def _sealed_process_bytes(
+        state: m.Cli.RuntimeProcessState, name: str, content: bytes, mode: int
+    ) -> int:
+        """Seal exact process-owner bytes in an anonymous descriptor.
+
+        Returns:
+            The descriptor number of the sealed anonymous file carrying the
+            exact bytes and mode.
+
+        Raises:
+            OSError: If the anonymous file cannot be created, a write makes
+                no progress, or sealing fails.
+
+        """
+        descriptor = os.memfd_create(name, os.MFD_CLOEXEC | os.MFD_ALLOW_SEALING)
         state.stack.callback(os.close, descriptor)
-        remaining = memoryview(captured.content)
+        remaining = memoryview(content)
         while remaining:
             count = os.write(descriptor, remaining)
             if count <= 0:
-                msg = f"isolated process input write made no progress: {captured.path}"
+                msg = f"isolated process input write made no progress: {name}"
                 raise OSError(msg)
             remaining = remaining[count:]
-        os.fchmod(descriptor, captured.mode & 0o777)
+        os.fchmod(descriptor, mode & 0o777)
         os.lseek(descriptor, 0, os.SEEK_SET)
         fcntl.fcntl(
             descriptor,

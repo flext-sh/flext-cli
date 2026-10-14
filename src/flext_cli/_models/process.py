@@ -22,28 +22,74 @@ from flext_core import m
 class FlextCliModelsProcess:
     """Process input declarations exposed through ``m.Cli``."""
 
-    class ProcessNativeToolQualification(m.ArbitraryTypesModel):
-        """Immutable projection of the existing bootstrap qualification receipt."""
+    class ProcessNativeToolEvidence(m.ArbitraryTypesModel):
+        """Native tool row serialized by the existing bootstrap receipt owner."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True, frozen=True, extra="forbid"
         )
-        issuer_receipt: FlextCliModelsBasePart02.AtomicFileState
-        artifact: FlextCliModelsBasePart02.AtomicFileState
-        artifact_receipt: FlextCliModelsBasePart02.AtomicFileReceipt
-        declaration_inputs: tuple[FlextCliModelsBasePart02.AtomicFileState, ...] = (
-            m.Field(min_length=1)
+        artifact_receipt: FlextCliModelsBasePart02.AtomicFileReceipt = m.Field(
+            description="Immutable receipt for the qualified native executable",
         )
-        installation_inputs: tuple[FlextCliModelsBasePart02.AtomicFileState, ...] = (
-            m.Field(min_length=1)
+        declaration_inputs: tuple[FlextCliModelsBasePart02.AtomicFileReceipt, ...] = (
+            m.Field(min_length=1, description="Captured qualification declarations")
         )
-        source_inputs: tuple[FlextCliModelsBasePart02.AtomicFileState, ...] = (
-            m.Field(min_length=1)
+        installation_inputs: tuple[FlextCliModelsBasePart02.AtomicFileReceipt, ...] = (
+            m.Field(min_length=1, description="Captured native installation inputs")
         )
-        native_build_outcome: FlextCliModelsBasePart01.ProcessOutcome
-        native_abi_probe_outcome: FlextCliModelsBasePart01.ProcessOutcome
-        abi_reference: FlextCliModelsBasePart02.AtomicFileState
-        architecture: str = m.Field(min_length=1)
+        source_inputs: tuple[FlextCliModelsBasePart02.AtomicFileReceipt, ...] = m.Field(
+            min_length=1,
+            description="Captured source inputs for native qualification",
+        )
+        native_build_outcome: FlextCliModelsBasePart01.ProcessOutcome = m.Field(
+            description="Causal outcome of the native compiler build",
+        )
+        native_abi_probe_outcome: FlextCliModelsBasePart01.ProcessOutcome = m.Field(
+            description="Causal outcome of the native ABI qualification probe",
+        )
+        abi_reference: FlextCliModelsBasePart02.AtomicFileReceipt = m.Field(
+            description="Captured independently elected native ABI reference",
+        )
+        architecture: str = m.Field(
+            min_length=1,
+            description="Qualified native executable architecture",
+        )
+
+    class ProcessNativeToolQualification(ProcessNativeToolEvidence):
+        """Caller-bound projection over one current native bootstrap report row."""
+
+        issuer_receipt: FlextCliModelsBasePart02.AtomicFileState = m.Field(
+            description="Exact existing bootstrap report containing this evidence row"
+        )
+        artifact: FlextCliModelsBasePart02.AtomicFileState = m.Field(
+            description="Captured exact compiler bytes matching the installed receipt"
+        )
+
+    class ProcessNativeQualificationReceipt(m.BaseModel):
+        """Minimal typed projection of one existing workspace operation receipt."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="ignore")
+        native_tool_qualifications: tuple[
+            FlextCliModelsProcess.ProcessNativeToolEvidence, ...
+        ] = m.Field(
+            default=(), description="Native tool evidence in the original receipt"
+        )
+
+    class ProcessNativeQualificationReport(m.BaseModel):
+        """Minimal typed projection of the existing bootstrap report."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="ignore")
+        receipts: tuple[
+            FlextCliModelsProcess.ProcessNativeQualificationReceipt, ...
+        ] = m.Field(description="Original workspace operation receipts")
+
+    class ProcessNativePolicyRequest(m.BaseModel):
+        """Canonical stdin protocol for the qualified static policy compiler."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="forbid")
+        denied_syscalls: tuple[str, ...] = m.Field(
+            min_length=1, description="Symbolic syscall obligations from process config"
+        )
 
     class ProcessReadOnlyIsolation(m.ArbitraryTypesModel):
         """Qualified Linux confinement inputs consumed by the process owner."""
@@ -85,6 +131,9 @@ class FlextCliModelsProcess:
         remove_env_keys: t.StrSequence = m.Field(
             default=(),
             description="Environment keys to remove before child execution.",
+        )
+        inherit_environment: bool = m.Field(
+            default=True, description="Overlay the caller environment or replace it"
         )
         input_data: str | bytes | None = m.Field(
             default=None,

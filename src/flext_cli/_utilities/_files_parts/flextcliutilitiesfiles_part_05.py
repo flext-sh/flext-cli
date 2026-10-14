@@ -179,7 +179,12 @@ class FlextCliUtilitiesFilesPart05:
     def atomic_inventory_physical_directory(
         root_path: t.Cli.TextPath,
     ) -> p.Result[m.Cli.AtomicDirectoryInventory]:
-        """Capture immediate namespace elections without reading descendant bytes."""
+        """Capture immediate namespace elections without reading descendant bytes.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicDirectoryInventory]``.
+
+        """
         try:
             inventory = (
                 FlextCliUtilitiesAtomicTreeInventory.inventory_physical_directory(

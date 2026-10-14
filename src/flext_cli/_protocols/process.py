@@ -58,6 +58,11 @@ class FlextCliProtocolsProcess:
             ...
 
         @property
+        def inherit_environment(self) -> bool:
+            """Whether execution overlays the inherited host environment."""
+            ...
+
+        @property
         def input_data(self) -> str | bytes | None:
             """Text or byte payload supplied to child stdin."""
             ...
