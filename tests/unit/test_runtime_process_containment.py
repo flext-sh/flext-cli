@@ -108,7 +108,7 @@ def _timed_out_outcome[Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput)]
 
 
 def _timed_out_failure(result: p.Result[p.Cli.CommandOutput]) -> None:
-    """The checked runner refuses a timed-out child as a failure."""
+    """Refuse a timed-out child as a failure through the checked runner."""
     tm.fail(result, has="timed_out=True")
 
 

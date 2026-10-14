@@ -28,6 +28,10 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
     def validate_credentials(username: str, password: str) -> p.Result[bool]:
         """Validate direct username/password credentials.
 
+        Args:
+            username: Username to validate.
+            password: Password paired with the username.
+
         Returns:
             The resulting ``p.Result[bool]``.
 
@@ -37,6 +41,9 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
     @staticmethod
     def save_auth_token(token: str) -> p.Result[bool]:
         """Persist an authentication token using the public file facade.
+
+        Args:
+            token: Authentication token to persist.
 
         Returns:
             The resulting ``p.Result[bool]``.
@@ -67,6 +74,9 @@ class FlextCliAuth(s[m.Cli.RuntimeStatus]):
 
     def authenticate(self, credentials: t.StrMapping) -> p.Result[str]:
         """Authenticate with a token or username/password and persist the token.
+
+        Args:
+            credentials: Mapping holding a token or username/password pair.
 
         Returns:
             The resulting ``p.Result[str]``.
