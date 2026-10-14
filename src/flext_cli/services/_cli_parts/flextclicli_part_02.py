@@ -32,6 +32,13 @@ class FlextCliCliPart02(FlextCliCliPart01):
         invalid repeated values. Token consumption propagates ValueError for
         undeclared or duplicated options and invalid flag/value arity.
 
+        Args:
+            model_cls: Request model whose fields declare the options.
+            arguments: Raw command-line tokens to parse.
+            field_names: Optional subset of fields to parse; all fields apply
+                when omitted.
+            stop_at_positional: Whether to stop at the first positional token.
+
         Returns:
             The resulting ``p.Cli.ParsedOptionTokens``.
 
@@ -250,6 +257,11 @@ class FlextCliCliPart02(FlextCliCliPart01):
     ) -> p.Cli.Application:
         """Create a Typer app with the shared global FLEXT CLI parameters.
 
+        Args:
+            name: Application name shown in help output.
+            help_text: Application help text.
+            add_completion: Whether the completion command is registered.
+
         Returns:
             The resulting ``p.Cli.Application``.
 
@@ -261,6 +273,12 @@ class FlextCliCliPart02(FlextCliCliPart01):
         )
 
         def apply_common_params(params: m.Cli.CliParamsConfig) -> bool:
+            """Apply parsed global parameters to the shared settings.
+
+            Returns:
+                Whether the application succeeded.
+
+            """
             self._apply_common_params_to_config(params=params)
             return True
 
@@ -293,12 +311,23 @@ class FlextCliCliPart02(FlextCliCliPart01):
         name: str,
         group: p.Cli.Application,
     ) -> None:
-        """Attach a subcommand group to an application."""
+        """Attach a subcommand group to an application.
+
+        Args:
+            app: Application receiving the group.
+            name: Name the group registers under.
+            group: Group application to attach.
+
+        """
         u.Cli.framework_add_group(app, name=name, group=group)
 
     @staticmethod
     def create_group(*, help_text: str, name: str | None = None) -> p.Cli.Application:
         """Create a Typer command group without re-registering global params.
+
+        Args:
+            help_text: Group help text.
+            name: Optional group name.
 
         Returns:
             The resulting ``p.Cli.Application``.

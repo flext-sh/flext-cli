@@ -30,6 +30,10 @@ class FlextCliCliPart06(FlextCliCliPart05):
         result value is rendered; rejected input renders its cause on stdout
         and exits non-zero with the ``ValidationError`` as the failure cause.
 
+        Args:
+            service_type: Core service class whose operations become routes.
+            provide: Callable building the service instance at execution time.
+
         Returns:
             The resulting ``tuple[m.Cli.ResultCommandRoute, ...]``.
 

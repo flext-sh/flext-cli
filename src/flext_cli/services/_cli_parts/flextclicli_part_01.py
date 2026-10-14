@@ -80,6 +80,11 @@ class FlextCliCliPart01:
     ) -> t.Pair[m.Cli.OptionSpec, type | GenericAlias]:
         """Build the public CLI option specification of a Pydantic field.
 
+        Args:
+            field_name: Declared name of the Pydantic field.
+            field_info: Field metadata driving option name, help, and default.
+            settings: Optional model instance supplying current field values.
+
         Returns:
             The resulting ``t.Pair[m.Cli.OptionSpec, type | GenericAlias]``.
 

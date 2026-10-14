@@ -21,7 +21,14 @@ class FlextCliCliPart05(FlextCliCliPart04):
         route: p.Cli.ResultCommandRoute,
         settings: t.Cli.ModelLike | None = None,
     ) -> None:
-        """Register one model/result handler as the application root callback."""
+        """Register one model/result handler as the application root callback.
+
+        Args:
+            app: Application receiving the callback.
+            route: Result route describing the model and handler.
+            settings: Optional model instance supplying current field values.
+
+        """
         execute = cls._build_route_executor(route)
         cls.register_callback(
             app,
@@ -41,7 +48,14 @@ class FlextCliCliPart05(FlextCliCliPart04):
         route: p.Cli.ResultCommandRoute,
         settings: t.Cli.ModelLike | None = None,
     ) -> None:
-        """Register a model command that normalizes `r[...]` CLI handling."""
+        """Register a model command that normalizes `r[...]` CLI handling.
+
+        Args:
+            app: Application receiving the command.
+            route: Result route describing the model and handler.
+            settings: Optional model instance supplying current field values.
+
+        """
         execute = cls._build_route_executor(route)
         cls.register_command(
             app,
@@ -94,7 +108,13 @@ class FlextCliCliPart05(FlextCliCliPart04):
         *,
         route: p.Cli.ResultCommandRoute,
     ) -> None:
-        """Register a declarative result route on a Typer app."""
+        """Register a declarative result route on a Typer app.
+
+        Args:
+            app: Application receiving the route.
+            route: Result route describing the model and handler.
+
+        """
         cls.register_result_command(app, route=route)
 
     @classmethod
@@ -128,7 +148,13 @@ class FlextCliCliPart05(FlextCliCliPart04):
         app: p.Cli.Application,
         routes: t.SequenceOf[p.Cli.ResultCommandRoute],
     ) -> None:
-        """Register multiple heterogeneous result routes in one call."""
+        """Register multiple heterogeneous result routes in one call.
+
+        Args:
+            app: Application receiving the routes.
+            routes: Ordered result routes to register.
+
+        """
         for route in routes:
             cls.register_result_route(app, route=route)
 
@@ -139,6 +165,10 @@ class FlextCliCliPart05(FlextCliCliPart04):
         failure_exit_code: int = c.Cli.EXIT_CODE_FAILURE,
     ) -> int:
         """Finalize one public CLI Result into output/logging and an exit code.
+
+        Args:
+            result: Result whose failure renders through the error boundary.
+            failure_exit_code: Exit code returned on failure.
 
         Returns:
             The resulting ``int``.
