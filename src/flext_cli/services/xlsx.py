@@ -24,7 +24,12 @@ class FlextCliXlsx(s[m.Cli.RuntimeStatus]):
         def xlsx_recalc(
             request: m.Cli.XlsxRecalcRequest,
         ) -> p.Result[m.Cli.XlsxRecalcResult]:
-            """Recalculate workbook bytes through the inherited XLSX owner."""
+            """Recalculate workbook bytes through the inherited XLSX owner.
+
+            Args:
+                request: Recalculation request holding the workbook bytes.
+
+            """
             ...
 
         @staticmethod
@@ -32,7 +37,12 @@ class FlextCliXlsx(s[m.Cli.RuntimeStatus]):
         def xlsx_recalc_parity(
             request: m.Cli.XlsxRecalcParityRequest,
         ) -> p.Result[m.Cli.XlsxRecalcParityReport]:
-            """Validate recalculation parity through the inherited XLSX owner."""
+            """Validate recalculation parity through the inherited XLSX owner.
+
+            Args:
+                request: Parity request holding the compared workbook inputs.
+
+            """
             ...
 
     # NOTE (multi-agent, mro-j2yt.1): this service contains no document or
