@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import csv
+import errno
 import hashlib
 import os
 import shutil
@@ -15,8 +16,12 @@ from pathlib import Path
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFilePublish,
+    FlextCliUtilitiesAtomicFileRead,
     FlextCliUtilitiesAtomicFileSnapshot,
+    FlextCliUtilitiesAtomicFileState,
 )
 from flext_cli._utilities._files_parts import FlextCliUtilitiesFilesPart02
 
@@ -117,6 +122,30 @@ class FlextCliUtilitiesFilesPart03:
                 ),
             ),
         )
+
+    @staticmethod
+    def atomic_iter_binary_file(
+        file_path: t.Cli.TextPath,
+    ) -> t.IterableOf[bytes]:
+        """Yield bytes from one authenticated descriptor without buffering the file."""
+        path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(Path(file_path))
+        with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
+            state = FlextCliUtilitiesAtomicFileState.destination_state(
+                path, parent=parent
+            )
+            if state is None:
+                message = f"required atomic file is missing: {path}"
+                raise FileNotFoundError(errno.ENOENT, message, path)
+            with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
+                parent, path, FlextCliUtilitiesAtomicFileRead.READ_FLAGS
+            ) as descriptor:
+                yield from FlextCliUtilitiesAtomicFileRead.descriptor_chunks(
+                    descriptor, path, state
+                )
+                FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
+                    path, state, parent=parent
+                )
+            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
 
     @staticmethod
     def atomic_publish_staged_binary_file_guarded(

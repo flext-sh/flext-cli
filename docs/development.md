@@ -277,6 +277,12 @@ The durable sink follows Python's raw-I/O contract: `write` accepts a positional
 buffer and returns `int | None`. Partial writes are retried; `None` or non-positive
 progress produces the existing durable-write failure rather than losing output.
 
+`atomic_iter_binary_file` consumes a required regular file through the existing
+physical-parent and descriptor guards. It yields byte blocks without buffering
+the whole file, rejects symlinks, and checks the descriptor version and pathname
+after complete consumption. A changed input cannot complete authentication.
+Consumers must exhaust the iterator before accepting a streamed report.
+
 The DOCX renderer consumes only the writable capabilities it needs:
 `p.Cli.DocxFontVariants` covers superscript, subscript, all-caps and small-caps;
 `p.Cli.DocxParagraphPagination` covers the four pagination flags. Each property
