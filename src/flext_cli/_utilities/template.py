@@ -192,6 +192,7 @@ class FlextCliUtilitiesTemplate:
 
         Returns:
             Every descriptor-authenticated input of the declared templates.
+
         """
 
         def capture() -> t.VariadicTuple[m.Cli.AtomicFileState]:

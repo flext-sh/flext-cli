@@ -96,6 +96,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
         Returns:
             Every validated document in stream order, or the first failure.
+
         """
         loaded = FlextCliUtilitiesYaml.yaml_roundtrip_load_all_text(text)
         if loaded.failure:

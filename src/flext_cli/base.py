@@ -36,6 +36,7 @@ class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
 
         Raises:
             TypeError: If runtime settings do not satisfy the CLI settings contract.
+
         """
         resolved = super().settings
         if not isinstance(resolved, p.Cli.Settings):
