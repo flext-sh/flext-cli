@@ -129,18 +129,21 @@ class TestsFlextCliRuntimeProcessIsolation:
         qualification = TestsFlextCliRuntimeProcessIsolation._request(
             tmp_path
         ).policy_compiler
-        evidence = m.Cli.ProcessNativeToolEvidence.model_validate(
-            qualification.model_dump(exclude={"issuer_receipt", "artifact"})
-        )
         restored = m.Cli.ProcessNativeToolEvidence.model_validate_json(
-            evidence.model_dump_json()
+            qualification.model_dump_json(exclude={"issuer_receipt", "artifact"})
         )
 
-        tm.that(restored.model_dump(), eq=evidence.model_dump())
+        tm.that(
+            restored.model_dump(),
+            eq=qualification.model_dump(exclude={"issuer_receipt", "artifact"}),
+        )
         for before, after in (
-            (evidence.native_build_outcome, restored.native_build_outcome),
-            (evidence.native_abi_probe_outcome, restored.native_abi_probe_outcome),
-            (evidence.native_policy_probe_outcome, restored.native_policy_probe_outcome),
+            (qualification.native_build_outcome, restored.native_build_outcome),
+            (qualification.native_abi_probe_outcome, restored.native_abi_probe_outcome),
+            (
+                qualification.native_policy_probe_outcome,
+                restored.native_policy_probe_outcome,
+            ),
         ):
             tm.that(after.raw_return_code, eq=before.raw_return_code)
             tm.that(after.timed_out, eq=before.timed_out)

@@ -22,10 +22,9 @@ from flext_core import m
 class FlextCliModelsProcess:
     """Process input declarations exposed through ``m.Cli``."""
 
-    class ProcessNativePolicyProbe(m.BaseModel):
+    class ProcessNativePolicyProbe(m.Value):
         """One original native denial observation in the bootstrap receipt."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="forbid")
         syscall: str = m.Field(
             min_length=1, description="Declared symbolic syscall actually attempted"
         )
@@ -33,12 +32,9 @@ class FlextCliModelsProcess:
             ge=0, description="Original errno returned by the denied native syscall"
         )
 
-    class ProcessNativeToolEvidence(m.BaseModel):
+    class ProcessNativeToolEvidence(m.ContractModel):
         """Native tool row serialized by the existing bootstrap receipt owner."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            frozen=True, extra="forbid"
-        )
         role: Literal["isolation-launcher", "policy-compiler"] = m.Field(
             description="Declared native capability qualified by this bootstrap row"
         )
@@ -94,30 +90,25 @@ class FlextCliModelsProcess:
             description="Captured exact compiler bytes matching the installed receipt"
         )
 
-    class ProcessNativeQualificationReceipt(m.BaseModel):
+    class ProcessNativeQualificationReceipt(m.ContractModel):
         """Minimal typed projection of one existing workspace operation receipt."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="ignore")
         native_tool_qualifications: tuple[
             FlextCliModelsProcess.ProcessNativeToolEvidence, ...
         ] = m.Field(
             default=(), description="Native tool evidence in the original receipt"
         )
 
-    class ProcessNativeQualificationReport(m.BaseModel):
+    class ProcessNativeQualificationReport(m.ContractModel):
         """Minimal typed projection of the existing bootstrap report."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="ignore")
         receipts: tuple[
             FlextCliModelsProcess.ProcessNativeQualificationReceipt, ...
         ] = m.Field(description="Original workspace operation receipts")
 
-    class ProcessReadOnlyIsolation(m.ArbitraryTypesModel):
+    class ProcessReadOnlyIsolation(m.ContractModel):
         """Qualified Linux confinement inputs consumed by the process owner."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            arbitrary_types_allowed=True, frozen=True, extra="forbid"
-        )
         platform: Literal["linux"] = m.Field(description="Declared native capability")
         architecture: str = m.Field(min_length=1, description="Qualified filter ABI")
         launcher: FlextCliModelsProcess.ProcessNativeToolQualification = m.Field(

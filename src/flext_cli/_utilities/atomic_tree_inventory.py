@@ -207,9 +207,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 root_path,
                 root_state,
             )
-            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(
-                outer_parent
-            )
+            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(outer_parent)
 
     @staticmethod
     def _inventory_directory(

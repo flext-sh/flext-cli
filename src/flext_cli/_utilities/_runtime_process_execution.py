@@ -22,6 +22,7 @@ if sys.platform == "linux":
     import fcntl
 
 from flext_cli import c, config, m, p, r, t
+from flext_core import u as core_u
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFilesPart03,
 )
@@ -686,14 +687,15 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         report = m.Cli.ProcessNativeQualificationReport.model_validate_json(
             qualification.issuer_receipt.content
         )
-        evidence = m.Cli.ProcessNativeToolEvidence.model_validate(
-            qualification.model_dump(exclude={"issuer_receipt", "artifact"})
+        evidence = core_u.model.dump(
+            qualification,
+            options=m.ModelDumpOptions(exclude={"issuer_receipt", "artifact"}),
         )
         matches = tuple(
             item
             for receipt in report.receipts
             for item in receipt.native_tool_qualifications
-            if item == evidence
+            if core_u.model.dump(item) == evidence
         )
         if len(matches) != 1:
             msg = (

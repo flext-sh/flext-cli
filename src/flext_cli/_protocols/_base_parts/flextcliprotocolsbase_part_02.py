@@ -6,10 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import IO, Protocol, runtime_checkable
+from typing import IO, TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart01
 from flext_core import p
+
+if TYPE_CHECKING:
+    from flext_cli._models._base.flextclimodelsbase_part_01 import (
+        FlextCliModelsBasePart01,
+    )
 
 
 class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
@@ -74,7 +79,7 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
             ...
 
         @property
-        def outcome(self) -> FlextCliProtocolsBasePart02.ProcessOutcome:
+        def outcome(self) -> FlextCliModelsBasePart01.ProcessOutcome:
             """Causal process completion state."""
             ...
 
@@ -104,7 +109,7 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
             ...
 
         @property
-        def outcome(self) -> FlextCliProtocolsBasePart02.ProcessOutcome:
+        def outcome(self) -> FlextCliModelsBasePart01.ProcessOutcome:
             """Causal process completion state."""
             ...
 
