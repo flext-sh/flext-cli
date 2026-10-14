@@ -20,6 +20,14 @@ Every required syscall must have been attempted once and returned `EACCES`.
 Missing observations, a changed policy hash or an absent native provider is red.
 An arbitrary file receipt or successful process exit alone is not qualification.
 
+The existing operation report and receipt share the generic
+`ProcessNativeQualificationReport` and `ProcessNativeQualificationReceipt`
+declarations. Infra specializes their context, findings and outcome fields with
+its domain models. The process consumer parses the original full report bytes
+once, retaining foreign domain fields through the canonical JSON-value type.
+Root, scope, candidate, stage, execution, exit codes, applicability, paths and
+findings remain in that report; no field-dropping projection establishes trust.
+
 Both tools must be native ELF with no interpreter and no `DT_NEEDED` libraries,
 matching the declared interpreter ABI. The execution owner invokes its sealed
 bytes through the same public `run_bytes` port with the original absolute deadline

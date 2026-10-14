@@ -31,7 +31,12 @@ class TestsFlextCliRuntimeProcessIsolation:
         source.write_text('"""Captured source."""\n', encoding="utf-8")
         issuer = tmp_path / "unqualified-bootstrap.json"
         issuer.write_text(
-            m.Cli.ProcessNativeQualificationReport(receipts=()).model_dump_json(),
+            m.Cli.ProcessNativeQualificationReport(
+                root=tmp_path,
+                operation="bootstrap",
+                scope=(tmp_path,),
+                receipts=(),
+            ).model_dump_json(),
             encoding="utf-8",
         )
         interpreter = Path(sys.executable).resolve()

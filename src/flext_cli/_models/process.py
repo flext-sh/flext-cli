@@ -90,8 +90,38 @@ class FlextCliModelsProcess:
             description="Captured exact compiler bytes matching the installed receipt"
         )
 
-    class ProcessNativeQualificationReceipt(m.ContractModel):
-        """Minimal typed projection of one existing workspace operation receipt."""
+    class ProcessNativeQualificationReceipt[ContextT, IssueT, OutcomeT](
+        m.ContractModel
+    ):
+        """Original operation receipt shared with its issuing domain."""
+
+        runtime_context: ContextT | None = m.Field(
+            default=None,
+            description="Authenticated installed association retained across failure",
+        )
+        root: Path = m.Field(description="Repository actually attempted")
+        executed: bool = m.Field(description="Original operation was invoked")
+        outcome: OutcomeT | None = m.Field(
+            description="Native outcome independent of report transport"
+        )
+        native_exit_code: int | None = m.Field(
+            default=None, description="Original native shell exit status"
+        )
+        stage: t.NonEmptyStr | None = m.Field(
+            default=None, description="Original bootstrap stage reached"
+        )
+        completed: bool | None = m.Field(
+            default=None, description="Original bootstrap reached its final stage"
+        )
+        applicability: str = m.Field(
+            default="", description="Declaration policy preventing execution"
+        )
+        files: tuple[Path, ...] = m.Field(
+            default=(), description="Paths returned by the original operation owner"
+        )
+        issues: tuple[IssueT, ...] = m.Field(
+            default=(), description="Native findings retained from the issuing domain"
+        )
 
         native_tool_qualifications: tuple[
             FlextCliModelsProcess.ProcessNativeToolEvidence, ...
@@ -99,11 +129,26 @@ class FlextCliModelsProcess:
             default=(), description="Native tool evidence in the original receipt"
         )
 
-    class ProcessNativeQualificationReport(m.ContractModel):
-        """Minimal typed projection of the existing bootstrap report."""
+    class ProcessNativeQualificationReport[ContextT, IssueT, OutcomeT](m.ContractModel):
+        """Declared scope and original receipts shared with the issuing domain."""
+
+        root: Path = m.Field(description="Invoking repository root")
+        operation: t.NonEmptyStr = m.Field(description="Public operation name")
+        scope: tuple[Path, ...] = m.Field(
+            description="Roots discovered once before the original batch"
+        )
+        candidate_sha: str | None = m.Field(
+            default=None, description="Original Git candidate when available"
+        )
+        candidate_read_exit_code: int | None = m.Field(
+            default=None, description="Original Git metadata read status"
+        )
 
         receipts: tuple[
-            FlextCliModelsProcess.ProcessNativeQualificationReceipt, ...
+            FlextCliModelsProcess.ProcessNativeQualificationReceipt[
+                ContextT, IssueT, OutcomeT
+            ],
+            ...,
         ] = m.Field(description="Original workspace operation receipts")
 
     class ProcessReadOnlyIsolation(m.ContractModel):

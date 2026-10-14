@@ -22,7 +22,6 @@ if sys.platform == "linux":
     import fcntl
 
 from flext_cli import c, config, m, p, r, t
-from flext_core import u as core_u
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFilesPart03,
 )
@@ -53,6 +52,7 @@ from flext_cli._utilities.atomic_file_snapshot import (
 from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
 )
+from flext_core import u as core_u
 
 _ELF_HEADER_BYTES = 64
 _ELFCLASS64 = 2
@@ -684,9 +684,9 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         if qualification.issuer_receipt.content is None:
             msg = "native policy compiler has no original bootstrap issuer bytes"
             raise ValueError(msg)
-        report = m.Cli.ProcessNativeQualificationReport.model_validate_json(
-            qualification.issuer_receipt.content
-        )
+        report = m.Cli.ProcessNativeQualificationReport[
+            t.JsonValue, t.JsonValue, t.JsonValue
+        ].model_validate_json(qualification.issuer_receipt.content)
         evidence = core_u.model.dump(
             qualification,
             options=m.ModelDumpOptions(exclude={"issuer_receipt", "artifact"}),
