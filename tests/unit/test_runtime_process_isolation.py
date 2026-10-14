@@ -122,6 +122,31 @@ class TestsFlextCliRuntimeProcessIsolation:
         tm.that(result.error or "", has=expected)
 
     @staticmethod
+    def test_native_evidence_round_trips_original_process_outcomes(
+        tmp_path: Path,
+    ) -> None:
+        """Persist real native outcomes through the canonical bootstrap wire model."""
+        qualification = TestsFlextCliRuntimeProcessIsolation._request(
+            tmp_path
+        ).policy_compiler
+        evidence = m.Cli.ProcessNativeToolEvidence.model_validate(
+            qualification.model_dump(exclude={"issuer_receipt", "artifact"})
+        )
+        restored = m.Cli.ProcessNativeToolEvidence.model_validate_json(
+            evidence.model_dump_json()
+        )
+
+        tm.that(restored.model_dump(), eq=evidence.model_dump())
+        for before, after in (
+            (evidence.native_build_outcome, restored.native_build_outcome),
+            (evidence.native_abi_probe_outcome, restored.native_abi_probe_outcome),
+            (evidence.native_policy_probe_outcome, restored.native_policy_probe_outcome),
+        ):
+            tm.that(after.raw_return_code, eq=before.raw_return_code)
+            tm.that(after.timed_out, eq=before.timed_out)
+            tm.that(after.forwarded_signal, eq=before.forwarded_signal)
+
+    @staticmethod
     def test_unqualified_compiler_does_not_create_durable_output(
         tmp_path: Path,
     ) -> None:
