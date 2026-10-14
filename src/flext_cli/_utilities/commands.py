@@ -10,7 +10,7 @@ import traceback
 from typing import TYPE_CHECKING
 
 from flext_cli import c, r, t
-from flext_cli._utilities import FlextCliUtilitiesOutput
+from flext_cli._utilities.output import FlextCliUtilitiesOutput
 from flext_core import u
 
 if TYPE_CHECKING:

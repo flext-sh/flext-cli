@@ -15,10 +15,10 @@ from collections.abc import Mapping, MutableMapping
 from typing import TYPE_CHECKING
 
 from flext_cli import c, p, r
-from flext_cli._utilities import FlextCliUtilitiesFiles
 from flext_cli._utilities._file_test_helper_parts import (
     FlextCliUtilitiesFileTestHelpersMixinPart04,
 )
+from flext_cli._utilities.files import FlextCliUtilitiesFiles
 
 if TYPE_CHECKING:
     from pathlib import Path

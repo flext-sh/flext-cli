@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli import m, p, settings, t
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessExecutionMixin
+from flext_cli._utilities._runtime_process_execution import (
+    FlextCliUtilitiesRuntimeProcessExecutionMixin,
+)
 
 
 class FlextCliUtilitiesRuntimeRunToFileMixin(
@@ -24,6 +26,8 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         def _resolved_env(
             env: t.StrMapping | None,
             remove_env_keys: t.StrSequence = (),
+            *,
+            inherit_environment: bool = True,
         ) -> t.StrDict | None: ...
 
     @classmethod
@@ -58,7 +62,11 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
                     Path(launch.stderr_file) if launch.stderr_file is not None else None
                 ),
                 cwd=cwd,
-                env=cls._resolved_env(launch.env, launch.remove_env_keys),
+                env=cls._resolved_env(
+                    launch.env,
+                    launch.remove_env_keys,
+                    inherit_environment=launch.inherit_environment,
+                ),
                 input_data=launch.input_data,
                 capture_output=False,
                 live=launch.live,
@@ -69,6 +77,8 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
                 ),
                 timeout=timeout,
                 deadline=launch.deadline,
+                isolation=launch.isolation,
+                pass_fds=tuple(launch.pass_fds),
             ),
         ).map(lambda output: output.outcome)
 
