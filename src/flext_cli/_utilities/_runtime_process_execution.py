@@ -479,15 +479,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         ):
             msg = "native policy compiler build, ABI or denial qualification failed"
             raise ValueError(msg)
-        policy = (
-            m.Cli
-            .ProcessNativePolicyRequest(
-                denied_syscalls=config.ProcessIsolation.denied_syscalls
-            )
-            .model_dump_json()
-            .encode("utf-8")
-        )
-        if hashlib.sha256(policy).hexdigest() != qualification.policy_sha256:
+        if cls.native_process_policy_identity() != qualification.policy_sha256:
             msg = (
                 "native denial qualification differs from the canonical process policy"
             )
@@ -546,6 +538,18 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         ) != cls.native_binary_identity(reference_bytes, require_static=False):
             msg = "native policy compiler ELF ABI differs from the declared interpreter"
             raise ValueError(msg)
+
+    @staticmethod
+    def native_process_policy_arguments() -> tuple[str, ...]:
+        """Return the source-owned symbolic native denial obligations."""
+        return config.ProcessIsolation.denied_syscalls
+
+    @staticmethod
+    def native_process_policy_identity() -> str:
+        """Fingerprint the exact NUL-terminated native policy argument vector."""
+        arguments = FlextCliUtilitiesRuntimeProcessExecutionMixin.native_process_policy_arguments()
+        content = b"\0".join(name.encode("ascii") for name in arguments) + b"\0"
+        return hashlib.sha256(content).hexdigest()
 
     @staticmethod
     def native_binary_identity(
@@ -653,14 +657,10 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             msg = "native policy compilation requires its bounded isolation lifecycle"
             raise ValueError(msg)
         compiler = cls._sealed_process_input(state, isolation.policy_compiler.artifact)
-        policy = m.Cli.ProcessNativePolicyRequest(
-            denied_syscalls=config.ProcessIsolation.denied_syscalls
-        )
         compiled = cls.run_bytes(
-            (f"/proc/self/fd/{compiler}",),
+            (f"/proc/self/fd/{compiler}", *cls.native_process_policy_arguments()),
             cwd=request.cwd,
             options=m.Cli.ProcessOptions(
-                input_data=policy.model_dump_json(),
                 env={},
                 inherit_environment=False,
                 pass_fds=(compiler,),

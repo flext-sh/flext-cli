@@ -112,14 +112,6 @@ class FlextCliModelsProcess:
             FlextCliModelsProcess.ProcessNativeQualificationReceipt, ...
         ] = m.Field(description="Original workspace operation receipts")
 
-    class ProcessNativePolicyRequest(m.BaseModel):
-        """Canonical stdin protocol for the qualified static policy compiler."""
-
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="forbid")
-        denied_syscalls: tuple[str, ...] = m.Field(
-            min_length=1, description="Symbolic syscall obligations from process config"
-        )
-
     class ProcessReadOnlyIsolation(m.ArbitraryTypesModel):
         """Qualified Linux confinement inputs consumed by the process owner."""
 
