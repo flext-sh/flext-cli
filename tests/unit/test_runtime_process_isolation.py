@@ -7,9 +7,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import platform
+import hashlib
 import sys
 from pathlib import Path
 
+import pytest
+
+from flext_cli import config
 from tests import m, tm, u
 
 
@@ -21,28 +25,60 @@ class TestsFlextCliRuntimeProcessIsolation:
         """Capture real local files for negative pre-execution contracts.
 
         Returns:
-            The captured isolation declaration holding real local launcher,
-            filter, and source file states.
+            Requested file states with no matching native bootstrap evidence.
 
         """
         source = tmp_path / "source.py"
         source.write_text('"""Captured source."""\n', encoding="utf-8")
-        policy = tmp_path / "invalid-filter"
-        policy.write_bytes(b"invalid")
+        issuer = tmp_path / "unqualified-bootstrap.json"
+        issuer.write_text(
+            m.Cli.ProcessNativeQualificationReport(receipts=()).model_dump_json(),
+            encoding="utf-8",
+        )
+        interpreter = Path(sys.executable).resolve()
+        artifact = tm.ok(
+            u.Cli.atomic_read_binary_file_state(interpreter, required=True)
+        )
+        artifact_receipt = tm.ok(
+            u.Cli.atomic_read_binary_file_receipt(interpreter, required=True)
+        )
+        source_state = tm.ok(
+            u.Cli.atomic_read_binary_file_state(source, required=True)
+        )
+        source_receipt = tm.ok(
+            u.Cli.atomic_read_binary_file_receipt(source, required=True)
+        )
+        # A real interpreter outcome cannot attest a policy compiler: the
+        # original bootstrap report has no corresponding native tool row.
+        outcome = tm.ok(u.Cli.run_bytes((sys.executable, "--version"))).outcome
+        compiler = m.Cli.ProcessNativeToolQualification(
+            issuer_receipt=tm.ok(
+                u.Cli.atomic_read_binary_file_state(issuer, required=True)
+            ),
+            artifact=artifact,
+            artifact_receipt=artifact_receipt,
+            declaration_inputs=(source_receipt,),
+            installation_inputs=(source_receipt,),
+            source_inputs=(source_receipt,),
+            native_build_outcome=outcome,
+            native_abi_probe_outcome=outcome,
+            native_policy_probe_outcome=outcome,
+            native_policy_probes=(),
+            policy_sha256=hashlib.sha256(
+                m.Cli.ProcessNativePolicyRequest(
+                    denied_syscalls=config.ProcessIsolation.denied_syscalls
+                ).model_dump_json().encode("utf-8")
+            ).hexdigest(),
+            abi_reference=artifact_receipt,
+            architecture=platform.machine(),
+        )
         return m.Cli.ProcessReadOnlyIsolation(
             platform="linux",
             architecture=platform.machine(),
-            launcher=tm.ok(
-                u.Cli.atomic_read_binary_file_state(
-                    Path(sys.executable).resolve(), required=True
-                )
-            ),
-            seccomp_filter=tm.ok(
-                u.Cli.atomic_read_binary_file_state(policy, required=True)
-            ),
-            sources=(
-                tm.ok(u.Cli.atomic_read_binary_file_state(source, required=True)),
-            ),
+            launcher=artifact,
+            policy_compiler=compiler,
+            compiler_declaration=source_state,
+            sources=(source_state,),
             runtime_trees=(),
             runtime_files=(),
             environment=(),
@@ -90,10 +126,10 @@ class TestsFlextCliRuntimeProcessIsolation:
         tm.that(result.error or "", has=expected)
 
     @staticmethod
-    def test_invalid_filter_does_not_create_durable_output(
+    def test_unqualified_compiler_does_not_create_durable_output(
         tmp_path: Path,
     ) -> None:
-        """A malformed policy fails before even parent output preparation."""
+        """File identity cannot replace the original bootstrap qualification."""
         isolation = TestsFlextCliRuntimeProcessIsolation._request(tmp_path)
         output = tmp_path / "output" / "raw.log"
         result = u.Cli.run_to_file(
@@ -105,9 +141,27 @@ class TestsFlextCliRuntimeProcessIsolation:
 
         tm.fail(result)
         expected = (
-            "complete native seccomp BPF filter"
+            "one original bootstrap qualification row"
             if sys.platform == "linux"
             else "no qualified native platform capability"
         )
         tm.that(result.error or "", has=expected)
         tm.that(output.parent.exists(), eq=False)
+
+    @staticmethod
+    def test_network_policy_cannot_remove_a_required_syscall() -> None:
+        """Native reference imports cannot weaken the external syscall contract."""
+        policy = config.ProcessIsolation.denied_syscalls
+
+        with pytest.raises(ValueError):
+            m.Cli.ProcessIsolation.model_validate({"denied_syscalls": policy[1:]})
+
+    @staticmethod
+    def test_raw_filter_is_not_a_qualification_input(tmp_path: Path) -> None:
+        """An arbitrary allow-all BPF field has no admission route."""
+        isolation = TestsFlextCliRuntimeProcessIsolation._request(tmp_path)
+        payload = isolation.model_dump()
+        payload["seccomp_filter"] = isolation.sources[0]
+
+        with pytest.raises(ValueError):
+            m.Cli.ProcessReadOnlyIsolation.model_validate(payload)

@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import hashlib
+import errno
 import os
 import platform
 import signal
@@ -266,8 +267,14 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             *isolation.sources,
             *isolation.runtime_files,
         )
-        paths = tuple(item.path for item in files)
-        if len(paths) != len(set(paths)) or len(roots) != len(set(roots)):
+        captured_by_path: dict[Path, m.Cli.AtomicFileState] = {}
+        for captured in files:
+            if captured_by_path.setdefault(captured.path, captured) != captured:
+                msg = f"isolated input has competing physical states: {captured.path}"
+                raise ValueError(msg)
+        files = tuple(captured_by_path.values())
+        paths = tuple(captured_by_path)
+        if len(roots) != len(set(roots)):
             msg = "isolated process inputs have competing physical owners"
             raise ValueError(msg)
         if any(root == Path(root.anchor) for root in roots):
@@ -436,10 +443,27 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 "native policy compiler lacks one original bootstrap qualification row"
             )
             raise ValueError(msg)
-        if not cls.process_succeeded(qualification.native_build_outcome) or not (
-            cls.process_succeeded(qualification.native_abi_probe_outcome)
+        if not all(cls.process_succeeded(outcome) for outcome in (
+            qualification.native_build_outcome,
+            qualification.native_abi_probe_outcome,
+            qualification.native_policy_probe_outcome,
+        )):
+            msg = "native policy compiler build, ABI or denial qualification failed"
+            raise ValueError(msg)
+        policy = m.Cli.ProcessNativePolicyRequest(
+            denied_syscalls=config.ProcessIsolation.denied_syscalls
+        ).model_dump_json().encode("utf-8")
+        if hashlib.sha256(policy).hexdigest() != qualification.policy_sha256:
+            msg = "native denial qualification differs from the canonical process policy"
+            raise ValueError(msg)
+        observed = tuple(probe.syscall for probe in qualification.native_policy_probes)
+        if len(observed) != len(set(observed)) or set(observed) != set(
+            config.ProcessIsolation.denied_syscalls
+        ) or any(
+            probe.observed_errno != errno.EACCES
+            for probe in qualification.native_policy_probes
         ):
-            msg = "native policy compiler build or ABI qualification failed"
+            msg = "native policy qualification lacks complete original denial observations"
             raise ValueError(msg)
         if qualification.architecture != isolation.architecture:
             msg = "native policy compiler qualification has a different ABI"

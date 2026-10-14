@@ -22,6 +22,17 @@ from flext_core import m
 class FlextCliModelsProcess:
     """Process input declarations exposed through ``m.Cli``."""
 
+    class ProcessNativePolicyProbe(m.BaseModel):
+        """One original native denial observation in the bootstrap receipt."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="forbid")
+        syscall: str = m.Field(
+            min_length=1, description="Declared symbolic syscall actually attempted"
+        )
+        observed_errno: int = m.Field(
+            ge=0, description="Original errno returned by the denied native syscall"
+        )
+
     class ProcessNativeToolEvidence(m.ArbitraryTypesModel):
         """Native tool row serialized by the existing bootstrap receipt owner."""
 
@@ -47,6 +58,16 @@ class FlextCliModelsProcess:
         native_abi_probe_outcome: FlextCliModelsBasePart01.ProcessOutcome = m.Field(
             description="Causal outcome of the native ABI qualification probe",
         )
+        native_policy_probe_outcome: FlextCliModelsBasePart01.ProcessOutcome = m.Field(
+            description="Original native socket and io_uring denial probe outcome",
+        )
+        policy_sha256: str = m.Field(
+            pattern=r"^[0-9a-f]{64}$",
+            description="Exact process-owner policy request proven by native probes",
+        )
+        native_policy_probes: tuple[
+            FlextCliModelsProcess.ProcessNativePolicyProbe, ...
+        ] = m.Field(description="Original attempted syscall observations, never inferred")
         abi_reference: FlextCliModelsBasePart02.AtomicFileReceipt = m.Field(
             description="Captured independently elected native ABI reference",
         )
