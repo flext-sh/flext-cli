@@ -7,15 +7,36 @@ the isolated child; its deadline, byte streams, signals, cleanup and
 
 `m.Cli.ProcessReadOnlyIsolation` is an immutable request. The caller supplies the
 qualified Linux platform and filter architecture, authenticated Bubblewrap
-launcher and seccomp policy bytes, captured source/resource/metadata files,
+launcher, the bootstrap-qualified static policy compiler, captured source/resource/metadata files,
 authenticated runtime trees and files, and the complete child environment as
-immutable name/value pairs. Tool qualification and the meaning of the native
-filter remain the supplying bootstrap owner's responsibility. The filter must
-deny socket creation and network operations for its declared architecture.
-An arbitrary file receipt alone is not tool or policy qualification.
+immutable name/value pairs. `ProcessNativeToolEvidence` is serialized inside the
+existing bootstrap `WorkspaceOperationReceipt.native_tool_qualifications`; it
+does not create an installation ledger. Its wrapper adds the current issuer
+report snapshot and captured compiler bytes. The process owner requires exactly
+one matching original evidence row, its independently elected compiler
+declaration, unchanged source/installation/artifact receipts, successful native
+build and ABI outcomes, and complete original syscall-denial observations.
+Every required syscall must have been attempted once and returned `EACCES`.
+Missing observations, a changed policy hash or an absent native provider is red.
+An arbitrary file receipt or successful process exit alone is not qualification.
+
+The compiler must be native ELF with no interpreter and no `DT_NEEDED` libraries,
+matching the declared interpreter ABI. The execution owner invokes its sealed
+bytes through the same public `run_bytes` port with the original absolute deadline
+and an empty replacement environment. Stdin is
+`ProcessNativePolicyRequest.model_dump_json()`; stdout is the native SDK-generated
+BPF, which the owner seals and passes directly to Bubblewrap. Compiler failure
+retains the original process outcome and output. Caller-supplied raw BPF has no
+request field or admission route.
+
+`config/process.yaml` owns the required symbolic network and `io_uring` syscall
+denials. The typed schema preserves those immutable external syscall obligations;
+they cannot be removed by configuration. The native compiler uses libseccomp's
+architecture-aware symbolic rule API, including multiplexed syscall rewriting,
+and never relies on a handwritten numeric syscall table.
 
 The runtime reauthenticates the supplied physical identities before spawning.
-Source files, runtime files, the launcher and the filter are copied into sealed
+Source files, runtime files, the launcher and the compiled filter use sealed
 anonymous descriptors. Bubblewrap mounts those exact file bytes read-only at
 their original absolute paths. Runtime trees use authenticated physical
 directory descriptors and read-only mounts; they retain live backing and must
@@ -32,9 +53,11 @@ mount, and no host device or socket mount. The executable and working directory
 must belong to the declared closure. Standard input and captured output remain
 the explicit process protocol.
 
-This implementation selects Linux only. An unsupported platform, changed input,
-invalid request, unavailable kernel capability, rejected namespace or invalid
-seccomp policy fails without an alternate executor or unenforced import.
+This implementation selects Linux only. The managed native compiler provider
+and its real host-escape acceptance remain required before positive isolation
+can be accepted. An unsupported platform, changed input, invalid request,
+unavailable kernel capability, rejected namespace or invalid seccomp policy
+fails without an alternate executor or unenforced import.
 Namespace isolation alone does not deny socket creation; the seccomp policy is
 required. Positive acceptance must exercise the qualified launcher and policy
 through the public runtime and show that filesystem, network, IPC and signal
@@ -43,3 +66,6 @@ escape attempts cannot affect the host.
 The native option and descriptor contracts come from the
 [Bubblewrap upstream source](https://github.com/containers/bubblewrap/blob/main/bubblewrap.c)
 and its [security guidance](https://github.com/containers/bubblewrap/blob/main/README.md).
+The compiler follows the
+[libseccomp rule API](https://github.com/seccomp/libseccomp/blob/main/doc/man/man3/seccomp_rule_add.3)
+and [native BPF export contract](https://github.com/seccomp/libseccomp/blob/main/doc/man/man3/seccomp_export_bpf.3).

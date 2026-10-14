@@ -6,8 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import platform
 import hashlib
+import platform
 import sys
 from pathlib import Path
 
@@ -42,9 +42,7 @@ class TestsFlextCliRuntimeProcessIsolation:
         artifact_receipt = tm.ok(
             u.Cli.atomic_read_binary_file_receipt(interpreter, required=True)
         )
-        source_state = tm.ok(
-            u.Cli.atomic_read_binary_file_state(source, required=True)
-        )
+        source_state = tm.ok(u.Cli.atomic_read_binary_file_state(source, required=True))
         source_receipt = tm.ok(
             u.Cli.atomic_read_binary_file_receipt(source, required=True)
         )
@@ -52,6 +50,7 @@ class TestsFlextCliRuntimeProcessIsolation:
         # original bootstrap report has no corresponding native tool row.
         outcome = tm.ok(u.Cli.run_bytes((sys.executable, "--version"))).outcome
         compiler = m.Cli.ProcessNativeToolQualification(
+            role="policy-compiler",
             issuer_receipt=tm.ok(
                 u.Cli.atomic_read_binary_file_state(issuer, required=True)
             ),
@@ -64,10 +63,14 @@ class TestsFlextCliRuntimeProcessIsolation:
             native_abi_probe_outcome=outcome,
             native_policy_probe_outcome=outcome,
             native_policy_probes=(),
+            probe_compiler_receipt=artifact_receipt,
             policy_sha256=hashlib.sha256(
-                m.Cli.ProcessNativePolicyRequest(
+                m.Cli
+                .ProcessNativePolicyRequest(
                     denied_syscalls=config.ProcessIsolation.denied_syscalls
-                ).model_dump_json().encode("utf-8")
+                )
+                .model_dump_json()
+                .encode("utf-8")
             ).hexdigest(),
             abi_reference=artifact_receipt,
             architecture=platform.machine(),
@@ -75,7 +78,8 @@ class TestsFlextCliRuntimeProcessIsolation:
         return m.Cli.ProcessReadOnlyIsolation(
             platform="linux",
             architecture=platform.machine(),
-            launcher=artifact,
+            launcher=compiler,
+            launcher_declaration=source_state,
             policy_compiler=compiler,
             compiler_declaration=source_state,
             sources=(source_state,),

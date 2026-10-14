@@ -39,6 +39,9 @@ class FlextCliModelsProcess:
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True, frozen=True, extra="forbid"
         )
+        role: Literal["isolation-launcher", "policy-compiler"] = m.Field(
+            description="Declared native capability qualified by this bootstrap row"
+        )
         artifact_receipt: FlextCliModelsBasePart02.AtomicFileReceipt = m.Field(
             description="Immutable receipt for the qualified native executable",
         )
@@ -67,7 +70,12 @@ class FlextCliModelsProcess:
         )
         native_policy_probes: tuple[
             FlextCliModelsProcess.ProcessNativePolicyProbe, ...
-        ] = m.Field(description="Original attempted syscall observations, never inferred")
+        ] = m.Field(
+            description="Original attempted syscall observations, never inferred"
+        )
+        probe_compiler_receipt: FlextCliModelsBasePart02.AtomicFileReceipt = m.Field(
+            description="Exact compiler whose filter supplied the native denial probes"
+        )
         abi_reference: FlextCliModelsBasePart02.AtomicFileReceipt = m.Field(
             description="Captured independently elected native ABI reference",
         )
@@ -120,8 +128,11 @@ class FlextCliModelsProcess:
         )
         platform: Literal["linux"] = m.Field(description="Declared native capability")
         architecture: str = m.Field(min_length=1, description="Qualified filter ABI")
-        launcher: FlextCliModelsBasePart02.AtomicFileState = m.Field(
-            description="Authenticated Bubblewrap executable bytes and identity"
+        launcher: FlextCliModelsProcess.ProcessNativeToolQualification = m.Field(
+            description="Bootstrap-qualified static native Bubblewrap launcher"
+        )
+        launcher_declaration: FlextCliModelsBasePart02.AtomicFileState = m.Field(
+            description="Independently elected canonical launcher declaration"
         )
         policy_compiler: FlextCliModelsProcess.ProcessNativeToolQualification = m.Field(
             description="Bootstrap-qualified static native libseccomp policy compiler"

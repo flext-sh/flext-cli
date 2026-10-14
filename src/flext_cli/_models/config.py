@@ -49,7 +49,7 @@ class FlextCliConfigModels:
             Literal["io_uring_setup"],
             Literal["io_uring_enter"],
             Literal["io_uring_register"],
-        ]
+        ] = m.Field(description="Required symbolic native network and io_uring denials")
 
     class Root(m.BaseModel):
         """Root flext-cli runtime config validated from ``config/*.yaml``."""
@@ -58,11 +58,9 @@ class FlextCliConfigModels:
 
         Cli: FlextCliConfigModels.Cli
 
-    class ProcessRoot(m.BaseModel):
-        """Native process policy slice of the same configuration owner."""
-
-        model_config = m.ConfigDict(frozen=True, extra="ignore")
-        ProcessIsolation: FlextCliConfigModels.ProcessIsolation
+        ProcessIsolation: FlextCliConfigModels.ProcessIsolation = m.Field(
+            description="Native read-only reference import policy"
+        )
 
 
 __all__: list[str] = ["FlextCliConfigModels"]

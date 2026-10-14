@@ -6,8 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import hashlib
 import errno
+import hashlib
 import os
 import platform
 import signal
@@ -16,7 +16,7 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, BinaryIO
+from typing import TYPE_CHECKING, BinaryIO, Literal
 
 if sys.platform == "linux":
     import fcntl
@@ -259,8 +259,11 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             msg = "isolated process requires an absolute declared working directory"
             raise ValueError(msg)
         roots = tuple(tree.root.path for tree in isolation.runtime_trees)
+        launcher_artifact = isolation.launcher.artifact
         files = (
-            isolation.launcher,
+            launcher_artifact,
+            isolation.launcher.issuer_receipt,
+            isolation.launcher_declaration,
             isolation.policy_compiler.artifact,
             isolation.policy_compiler.issuer_receipt,
             isolation.compiler_declaration,
@@ -288,10 +291,10 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         ):
             msg = "isolated process runtime roots overlap"
             raise ValueError(msg)
-        if isolation.launcher.mode is None or not isolation.launcher.mode & 0o111:
+        if launcher_artifact.mode is None or not launcher_artifact.mode & 0o111:
             msg = "isolated process launcher is not an authenticated executable"
             raise ValueError(msg)
-        if isolation.launcher.mode & 0o6000:
+        if launcher_artifact.mode & 0o6000:
             msg = "isolated process launcher cannot carry set-id privileges"
             raise ValueError(msg)
         for captured in files:
@@ -355,8 +358,21 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         ):
             msg = "isolated working directory is outside its declared source closure"
             raise ValueError(msg)
-        launcher = cls._sealed_process_input(state, isolation.launcher)
-        cls._qualify_policy_compiler(isolation)
+        cls._qualify_native_tool(
+            isolation.launcher,
+            isolation.launcher_declaration,
+            isolation.architecture,
+            "isolation-launcher",
+            isolation.policy_compiler.artifact_receipt,
+        )
+        cls._qualify_native_tool(
+            isolation.policy_compiler,
+            isolation.compiler_declaration,
+            isolation.architecture,
+            "policy-compiler",
+            isolation.policy_compiler.artifact_receipt,
+        )
+        launcher = cls._sealed_process_input(state, launcher_artifact)
         policy = cls._compile_process_policy(request, state, grace_seconds)
         if policy is None:
             return None
@@ -383,7 +399,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             inherited.append(descriptor)
             arguments.extend(("--ro-bind-fd", str(descriptor), str(root)))
         for captured in (
-            isolation.launcher,
+            launcher_artifact,
             *isolation.sources,
             *isolation.runtime_files,
         ):
@@ -391,7 +407,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 continue
             descriptor = (
                 launcher
-                if captured is isolation.launcher
+                if captured is launcher_artifact
                 else (cls._sealed_process_input(state, captured))
             )
             if descriptor != launcher:
@@ -412,8 +428,13 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         return tuple(arguments), {}, tuple(inherited)
 
     @classmethod
-    def _qualify_policy_compiler(
-        cls, isolation: m.Cli.ProcessReadOnlyIsolation
+    def _qualify_native_tool(
+        cls,
+        qualification: m.Cli.ProcessNativeToolQualification,
+        declaration: m.Cli.AtomicFileState,
+        architecture: str,
+        role: Literal["isolation-launcher", "policy-compiler"],
+        compiler_receipt: m.Cli.AtomicFileReceipt,
     ) -> None:
         """Bind the compiler to an actual current bootstrap evidence row.
 
@@ -422,7 +443,6 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 unqualified, or inconsistent with the declared isolation.
 
         """
-        qualification = isolation.policy_compiler
         if qualification.issuer_receipt.content is None:
             msg = "native policy compiler has no original bootstrap issuer bytes"
             raise ValueError(msg)
@@ -443,33 +463,51 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 "native policy compiler lacks one original bootstrap qualification row"
             )
             raise ValueError(msg)
-        if not all(cls.process_succeeded(outcome) for outcome in (
-            qualification.native_build_outcome,
-            qualification.native_abi_probe_outcome,
-            qualification.native_policy_probe_outcome,
-        )):
+        if qualification.role != role:
+            msg = "native tool qualification names a different execution capability"
+            raise ValueError(msg)
+        if qualification.probe_compiler_receipt != compiler_receipt:
+            msg = "native tool denial probes used a different policy compiler"
+            raise ValueError(msg)
+        if not all(
+            cls.process_succeeded(outcome)
+            for outcome in (
+                qualification.native_build_outcome,
+                qualification.native_abi_probe_outcome,
+                qualification.native_policy_probe_outcome,
+            )
+        ):
             msg = "native policy compiler build, ABI or denial qualification failed"
             raise ValueError(msg)
-        policy = m.Cli.ProcessNativePolicyRequest(
-            denied_syscalls=config.ProcessIsolation.denied_syscalls
-        ).model_dump_json().encode("utf-8")
+        policy = (
+            m.Cli
+            .ProcessNativePolicyRequest(
+                denied_syscalls=config.ProcessIsolation.denied_syscalls
+            )
+            .model_dump_json()
+            .encode("utf-8")
+        )
         if hashlib.sha256(policy).hexdigest() != qualification.policy_sha256:
-            msg = "native denial qualification differs from the canonical process policy"
+            msg = (
+                "native denial qualification differs from the canonical process policy"
+            )
             raise ValueError(msg)
         observed = tuple(probe.syscall for probe in qualification.native_policy_probes)
-        if len(observed) != len(set(observed)) or set(observed) != set(
-            config.ProcessIsolation.denied_syscalls
-        ) or any(
-            probe.observed_errno != errno.EACCES
-            for probe in qualification.native_policy_probes
+        if (
+            len(observed) != len(set(observed))
+            or set(observed) != set(config.ProcessIsolation.denied_syscalls)
+            or any(
+                probe.observed_errno != errno.EACCES
+                for probe in qualification.native_policy_probes
+            )
         ):
             msg = "native policy qualification lacks complete original denial observations"
             raise ValueError(msg)
-        if qualification.architecture != isolation.architecture:
+        if qualification.architecture != architecture:
             msg = "native policy compiler qualification has a different ABI"
             raise ValueError(msg)
         declared = FlextCliUtilitiesAtomicFileSnapshot.read_receipt(
-            isolation.compiler_declaration.path, required=True
+            declaration.path, required=True
         )
         if declared not in qualification.declaration_inputs:
             msg = "native policy compiler differs from the independently elected declaration"
@@ -477,6 +515,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         for receipt in (
             qualification.artifact_receipt,
             qualification.abi_reference,
+            qualification.probe_compiler_receipt,
             *qualification.declaration_inputs,
             *qualification.installation_inputs,
             *qualification.source_inputs,
@@ -502,14 +541,16 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             raise ValueError(msg)
         with FlextCliUtilitiesAtomicFileSnapshot.receipt_reader(reference) as reader:
             reference_bytes = reader.read_range(0, reference.size)
-        if cls._elf_identity(
+        if cls.native_binary_identity(
             artifact.content, require_static=True
-        ) != cls._elf_identity(reference_bytes, require_static=False):
+        ) != cls.native_binary_identity(reference_bytes, require_static=False):
             msg = "native policy compiler ELF ABI differs from the declared interpreter"
             raise ValueError(msg)
 
     @staticmethod
-    def _elf_identity(content: bytes, *, require_static: bool) -> tuple[int, int, int]:
+    def native_binary_identity(
+        content: bytes, *, require_static: bool
+    ) -> tuple[int, int, int]:
         """Read the immutable ELF ABI and reject dynamic native compiler loading.
 
         Returns:
