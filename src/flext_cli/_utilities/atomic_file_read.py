@@ -15,12 +15,9 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from flext_cli import m, p, t
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileModel
-from flext_cli._utilities.atomic_file_snapshot import (
-    FlextCliUtilitiesAtomicFileSnapshot,
+    FlextCliUtilitiesAtomicFileModel,
 )
 
 
@@ -83,6 +80,10 @@ class FlextCliUtilitiesAtomicFileRead:
         max_bytes: int | None = None,
     ) -> m.Cli.AtomicFileReceipt:
         """Measure exact bytes once while retaining descriptor and parent identity."""
+        from flext_cli._utilities.atomic_file_snapshot import (
+            FlextCliUtilitiesAtomicFileSnapshot,
+        )
+
         with FlextCliUtilitiesAtomicFileSnapshot.authenticated_entry(
             path, required=required, owner_uid=owner_uid, max_bytes=max_bytes
         ) as (parent, state):
@@ -123,6 +124,10 @@ class FlextCliUtilitiesAtomicFileRead:
         receipt: m.Cli.AtomicFileReceipt,
     ) -> Generator[p.Cli.AtomicFileReader]:
         """Authenticate a receipt once and retain one descriptor for all ranges."""
+        from flext_cli._utilities.atomic_file_snapshot import (
+            FlextCliUtilitiesAtomicFileSnapshot,
+        )
+
         with FlextCliUtilitiesAtomicFileSnapshot.authenticated_entry(
             receipt.path, required=True
         ) as (parent, state):
