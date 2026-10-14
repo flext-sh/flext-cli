@@ -224,10 +224,12 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                 FlextCliUtilitiesAtomicFileSnapshot._require_size(
                     validated, state.st_size, max_bytes
                 )
-            yield parent, state
-            FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
-                validated, state, parent=parent
-            )
+            try:
+                yield parent, state
+            finally:
+                FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
+                    validated, state, parent=parent
+                )
             FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
 
     @staticmethod
