@@ -158,7 +158,15 @@ class FlextCliModelsBasePart02:
 
         @u.model_validator(mode="after")
         def _validate_content_presence(self) -> Self:
-            """Require exact bytes if and only if the physical file exists."""
+            """Require exact bytes if and only if the physical file exists.
+
+            Returns:
+                The validated model instance.
+
+            Raises:
+                ValueError: If content presence and physical presence disagree.
+
+            """
             if (self.content is not None) != (self.device is not None):
                 msg = "atomic file content and physical presence must agree"
                 raise ValueError(msg)
@@ -185,7 +193,15 @@ class FlextCliModelsBasePart02:
 
         @u.model_validator(mode="after")
         def _validate_receipt_presence(self) -> Self:
-            """Require complete measurements if and only if the file exists."""
+            """Require complete measurements if and only if the file exists.
+
+            Returns:
+                The validated model instance.
+
+            Raises:
+                ValueError: If receipt measurements and physical presence disagree.
+
+            """
             measured = (
                 self.size is not None,
                 self.sha256 is not None,

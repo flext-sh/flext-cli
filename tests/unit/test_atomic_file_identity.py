@@ -19,7 +19,96 @@ class TestsFlextCliAtomicFileIdentity:
     """Prove callers cannot authorize effects with only matching content."""
 
     @staticmethod
-    def test_receipt_and_scoped_ranges_match_authenticated_state(tmp_path: Path) -> None:
+    def test_receipt_publication_retains_bytes_and_consumes_stage(
+        tmp_path: Path,
+    ) -> None:
+        """Publication accepts complete receipts without loading the payload into state."""
+        destination = tmp_path / "live.bin"
+        staged = tmp_path / "staged.bin"
+        payload = bytes(range(256)) * 16_385
+        staged.write_bytes(payload)
+        before = tm.ok(u.Cli.atomic_read_binary_file_receipt(destination))
+        replacement = tm.ok(
+            u.Cli.atomic_read_binary_file_receipt(staged, required=True)
+        )
+        published = tm.ok(
+            u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, replacement)
+        )
+        tm.that(staged.exists(), eq=False)
+        tm.that(destination.read_bytes(), eq=payload)
+        tm.that(published.sha256, eq=replacement.sha256)
+        with u.Cli.atomic_binary_file_reader(published) as reader:
+            tm.that(reader.read_range(len(payload) - 17, 17), eq=payload[-17:])
+
+    @staticmethod
+    @pytest.mark.parametrize("mutation", ["destination", "staged", "digest"])
+    def test_receipt_publication_refuses_drift_before_replacement(
+        tmp_path: Path, mutation: str
+    ) -> None:
+        """Every changed destination, staging version, or digest remains a failure."""
+        destination = tmp_path / "live.bin"
+        staged = tmp_path / "staged.bin"
+        destination.write_bytes(b"original")
+        staged.write_bytes(b"replacement")
+        before = tm.ok(
+            u.Cli.atomic_read_binary_file_receipt(destination, required=True)
+        )
+        replacement = tm.ok(
+            u.Cli.atomic_read_binary_file_receipt(staged, required=True)
+        )
+        if mutation == "destination":
+            destination.write_bytes(b"changed")
+        elif mutation == "staged":
+            staged.write_bytes(b"changed")
+        else:
+            replacement = m.Cli.AtomicFileReceipt.model_validate({
+                **replacement.model_dump(),
+                "sha256": u.Cli.sha256_bytes(b"foreign"),
+            })
+        tm.fail(
+            u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, replacement)
+        )
+        tm.that(staged.exists(), eq=True)
+        tm.that(
+            destination.read_bytes(),
+            eq=b"changed" if mutation == "destination" else b"original",
+        )
+
+    @staticmethod
+    def test_receipt_optional_absence_and_required_size_guard(tmp_path: Path) -> None:
+        """Byte-free capture retains explicit absence and rejects oversized input."""
+        missing = tmp_path / "unmaterialized" / "missing.bin"
+        receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(missing))
+        tm.that(receipt.device, eq=None)
+        tm.that(receipt.sha256, eq=None)
+        tm.fail(u.Cli.atomic_read_binary_file_receipt(missing, required=True))
+        path = tmp_path / "receipt.bin"
+        path.write_bytes(b"larger")
+        failed = u.Cli.atomic_read_binary_file_receipt(path, required=True, max_bytes=1)
+        tm.fail(failed)
+        tm.that(failed.exception, is_=OSError)
+
+    @staticmethod
+    def test_shallow_inventory_captures_namespace_without_child_payloads(
+        tmp_path: Path,
+    ) -> None:
+        """Immediate elections include empty folders, files, and literal symlinks."""
+        root = tmp_path / "namespace"
+        root.mkdir()
+        (root / "empty").mkdir()
+        (root / "module.py").write_bytes(b"value = 1")
+        (root / "alias.py").symlink_to("module.py")
+        inventory = tm.ok(u.Cli.atomic_inventory_physical_directory(root))
+        tm.that(
+            tuple((entry.name, entry.kind) for entry in inventory.entries),
+            eq=(("alias.py", "symlink"), ("empty", "directory"), ("module.py", "file")),
+        )
+        tm.that(inventory.entries[0].link_target, eq="module.py")
+
+    @staticmethod
+    def test_receipt_and_scoped_ranges_match_authenticated_state(
+        tmp_path: Path,
+    ) -> None:
         """Receipt capture and repeated ranges retain the public snapshot contract."""
         path = tmp_path / "receipt.bin"
         payload = bytes(range(256))

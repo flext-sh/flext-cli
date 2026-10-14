@@ -155,9 +155,11 @@ class FlextCliModelsBasePart09:
         @u.model_validator(mode="after")
         def _validate_leaf(self) -> Self:
             if self.name in {".", ".."} or Path(self.name).name != self.name:
-                raise ValueError("atomic directory child must be one lexical name")
+                msg = "atomic directory child must be one lexical name"
+                raise ValueError(msg)
             if (self.kind == "symlink") != (self.link_target is not None):
-                raise ValueError("atomic directory symlink must carry its literal target")
+                msg = "atomic directory symlink must carry its literal target"
+                raise ValueError(msg)
             return self
 
     class AtomicDirectoryInventory(m.BaseModel):
@@ -171,7 +173,8 @@ class FlextCliModelsBasePart09:
         def _validate_names(self) -> Self:
             names = tuple(entry.name for entry in self.entries)
             if self.root.kind != "directory" or names != tuple(sorted(set(names))):
-                raise ValueError("atomic directory inventory requires ordered unique children")
+                msg = "atomic directory inventory requires ordered unique children"
+                raise ValueError(msg)
             return self
 
     class AtomicPhysicalTreeManifest(m.BaseModel):

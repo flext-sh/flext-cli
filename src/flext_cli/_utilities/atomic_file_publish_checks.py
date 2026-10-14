@@ -176,7 +176,12 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         state: os.stat_result | None,
         expected: bytes | m.Cli.AtomicFileReceipt | None,
     ) -> None:
-        """Authenticate either exact owned bytes or a streamed content receipt."""
+        """Authenticate either exact owned bytes or a streamed content receipt.
+
+        Raises:
+            OSError: If the receipt size or content bytes differ from the state.
+
+        """
         if not isinstance(expected, m.Cli.AtomicFileReceipt):
             FlextCliUtilitiesAtomicFileState.validate_precondition(
                 path, state, expected, enabled=True, parent=parent
