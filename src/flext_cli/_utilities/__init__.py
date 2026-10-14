@@ -493,7 +493,6 @@ install_lazy_exports(
     globals(),
     MappingProxyType({
         "FlextCliAtomicTreeDarwin": ".atomic_tree_darwin",
-        "FlextCliUtilitiesAtomicModels": "._atomic_models",
         "FlextCliUtilitiesAtomicDirectoryChain": ".atomic_directory_chain",
         "FlextCliUtilitiesAtomicDirectoryCleanup": ".atomic_directory_cleanup",
         "FlextCliUtilitiesAtomicDirectoryCreate": ".atomic_directory_create",
@@ -518,6 +517,7 @@ install_lazy_exports(
         "FlextCliUtilitiesAtomicFileSnapshot": ".atomic_file_snapshot",
         "FlextCliUtilitiesAtomicFileState": ".atomic_file_state",
         "FlextCliUtilitiesAtomicFileTemporary": ".atomic_file_temporary",
+        "FlextCliUtilitiesAtomicModels": "._atomic_models",
         "FlextCliUtilitiesAtomicParentDescriptor": ".atomic_parent_descriptor",
         "FlextCliUtilitiesAtomicParentFailure": ".atomic_parent_failure",
         "FlextCliUtilitiesAtomicSymlinkPublish": ".atomic_symlink_publish",

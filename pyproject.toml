@@ -2,7 +2,7 @@
 # @flext-owner: flext-infra/config/codegen.yaml + flext-infra/src/flext_infra/templates/project/base/pyproject.toml.j2
 # @flext-adjust: MANAGED=conflict_sections + overwrite_project_keys. CUSTOM=preserve_project_keys and [tool.*] outside conflict_sections. Never edit this projection.
 # @flext-regenerate: make gen
-# @flext-rendered-by: flext-infra 0.12.0
+
 [build-system]
 build-backend = "hatchling.build"
 requires = ["hatchling"]
@@ -156,9 +156,6 @@ pep621_dev_dependency_groups = ["dev"]
 
 [tool.flext.docs]
 package_name = "flext_cli"
-
-[tool.flext.namespace]
-scan_dirs = ["src"]
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -364,7 +361,7 @@ addopts = [
   "--strict-markers",
   "--markdown-docs",
   "--durations=10",
-  "--flext-enforce-strict",
+  "--timeout=10",
 ]
 flext_slow_timeout_seconds = "30"
 asyncio_default_fixture_loop_scope = "function"
@@ -459,6 +456,8 @@ runtime-evaluated-base-classes = [
   "examples.s",
   "flext_cli.FlextCliModels.FrozenModel",
   "flext_cli.FlextCliSettings",
+  "flext_cli._models._base.flextclimodelsbase_part_02.AtomicFileIdentity",
+  "flext_cli._models.process.ProcessNativeToolEvidence",
   "flext_cli.m.ArbitraryTypesModel",
   "flext_cli.m.BaseModel",
   "flext_cli.m.FrozenModel",
@@ -625,3 +624,21 @@ whitelines = 1
 constraint-dependencies = ["mypy<2.4.0"]
 environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
 link-mode = "copy"
+
+[[tool.uv.exclude-dependencies]]
+dependencies = ["flext-cli"]
+
+[tool.uv.exclude-dependencies.package]
+name = "flext-infra"
+
+[[tool.uv.exclude-dependencies]]
+dependencies = ["flext-cli"]
+
+[tool.uv.exclude-dependencies.package]
+name = "flext-core"
+
+[[tool.uv.exclude-dependencies]]
+dependencies = ["flext-cli"]
+
+[tool.uv.exclude-dependencies.package]
+name = "flext-tests"

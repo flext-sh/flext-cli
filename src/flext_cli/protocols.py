@@ -18,6 +18,7 @@ from flext_cli._protocols import (
 )
 from flext_cli._protocols.atomic_file import FlextCliProtocolsAtomicFile
 from flext_core import FlextProtocols
+from flext_cli._protocols.atomic_file import FlextCliProtocolsAtomicFile
 
 
 class FlextCliProtocols(FlextProtocols):
@@ -37,6 +38,7 @@ class FlextCliProtocols(FlextProtocols):
         FlextCliProtocolsProcess,
         FlextCliProtocolsAtomicFile,
         FlextCliProtocolsDocx,
+        FlextCliProtocolsAtomicFile,
     ):
         """Unified CLI protocol namespace."""
 
