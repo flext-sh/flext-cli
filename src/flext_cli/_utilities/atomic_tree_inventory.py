@@ -200,12 +200,21 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     root_path,
                     root_state,
                 )
-            FlextCliUtilitiesAtomicTreeDescriptor.require_entry_state(
-                outer_parent,
-                root_path,
-                root_state,
-            )
-            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(outer_parent)
+            try:
+                FlextCliUtilitiesAtomicTreeDescriptor.require_entry_state(
+                    outer_parent,
+                    root_path,
+                    root_state,
+                )
+                FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(
+                    outer_parent
+                )
+            finally:
+                FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
+                    descriptor,
+                    root_path,
+                    root_state,
+                )
 
     @staticmethod
     def _inventory_directory(

@@ -34,7 +34,9 @@ class FlextCliConfigModels:
         model_config = m.ConfigDict(frozen=True, extra="forbid")
         compiler_resource_parts: tuple[str, ...] = m.Field(
             min_length=1,
-            description="Exact relative parts elected in the declared distribution RECORD",
+            description=(
+                "Exact relative parts elected in the declared distribution RECORD"
+            ),
         )
         denied_syscalls: tuple[
             Literal["socket"],

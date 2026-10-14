@@ -76,7 +76,7 @@ class TestsFlextCliRuntimeProcessIsolation:
             compiler_declaration=source_state,
             sources=(source_state,),
             runtime_trees=(),
-            runtime_files=(),
+            runtime_files=(artifact,),
             environment=(),
         )
 
@@ -129,7 +129,11 @@ class TestsFlextCliRuntimeProcessIsolation:
         isolation = TestsFlextCliRuntimeProcessIsolation._request(tmp_path)
         output = tmp_path / "output" / "raw.log"
         result = u.Cli.run_to_file(
-            [sys.executable, "-c", "raise SystemExit(71)"],
+            [
+                str(isolation.policy_compiler.abi_reference.path),
+                "-c",
+                "raise SystemExit(71)",
+            ],
             output,
             cwd=tmp_path,
             options=m.Cli.ProcessOptions(isolation=isolation),
@@ -151,7 +155,9 @@ class TestsFlextCliRuntimeProcessIsolation:
 
         with pytest.raises(ValueError, match="denied_syscalls"):
             m.Cli.ProcessIsolation.model_validate({
-                "compiler_resource_parts": config.ProcessIsolation.compiler_resource_parts,
+                "compiler_resource_parts": (
+                    config.ProcessIsolation.compiler_resource_parts
+                ),
                 "denied_syscalls": policy[1:],
             })
 

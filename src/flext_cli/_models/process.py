@@ -33,11 +33,11 @@ class FlextCliModelsProcess:
             ge=0, description="Original errno returned by the denied native syscall"
         )
 
-    class ProcessNativeToolEvidence(m.ArbitraryTypesModel):
+    class ProcessNativeToolEvidence(m.BaseModel):
         """Native tool row serialized by the existing bootstrap receipt owner."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            arbitrary_types_allowed=True, frozen=True, extra="forbid"
+            frozen=True, extra="forbid"
         )
         role: Literal["isolation-launcher", "policy-compiler"] = m.Field(
             description="Declared native capability qualified by this bootstrap row"

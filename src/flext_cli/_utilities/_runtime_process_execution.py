@@ -329,7 +329,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         if request.cwd is None or not Path(request.cwd).is_absolute():
             msg = "isolated process requires an absolute declared working directory"
             raise ValueError(msg)
-        return request.cwd
+        return Path(request.cwd)
 
     @classmethod
     def _ensure_isolation_inputs_unique(

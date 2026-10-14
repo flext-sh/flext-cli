@@ -49,12 +49,7 @@ class FlextCliUtilitiesAtomicFileRead:
                     authenticated file.
 
             """
-            integral = (
-                not isinstance(offset, bool)
-                and not isinstance(length, bool)
-                and isinstance(offset, int)
-                and isinstance(length, int)
-            )
+            integral = not isinstance(offset, bool) and not isinstance(length, bool)
             if (
                 not integral
                 or offset < 0
