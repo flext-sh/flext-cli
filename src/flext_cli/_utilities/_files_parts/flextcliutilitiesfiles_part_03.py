@@ -12,7 +12,7 @@ import hashlib
 import os
 import shutil
 import stat
-from collections.abc import Generator, Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -57,7 +57,7 @@ class FlextCliUtilitiesFilesPart03:
     @contextmanager
     def atomic_binary_file_reader(
         receipt: m.Cli.AtomicFileReceipt,
-    ) -> Iterator[p.Cli.AtomicFileReader]:
+    ) -> Generator[p.Cli.AtomicFileReader]:
         """Retain one authenticated descriptor for repeated exact range reads."""
         with FlextCliUtilitiesAtomicFileRead.receipt_reader(receipt) as reader:
             yield reader
@@ -73,6 +73,32 @@ class FlextCliUtilitiesFilesPart03:
         except OSError as exc:
             return r[bytes].fail(c.Cli.ERR_BINARY_READ_FAILED.format(error=exc))
         return r[bytes].ok(content)
+
+    @staticmethod
+    def atomic_publish_staged_binary_file_receipt_guarded(
+        destination_before: m.Cli.AtomicFileReceipt,
+        staged: m.Cli.AtomicFileReceipt,
+    ) -> p.Result[m.Cli.AtomicFileReceipt]:
+        """Consume a streamed staged artifact under exact destination ownership."""
+        try:
+            published = FlextCliUtilitiesAtomicFilePublish.publish_guarded_staged_file(
+                destination_before, staged
+            )
+        except OSError as exc:
+            return r[m.Cli.AtomicFileReceipt].fail(
+                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc)
+            )
+        return r[m.Cli.AtomicFileReceipt].ok(
+            m.Cli.AtomicFileReceipt(
+                **staged.model_dump(
+                    exclude={"path", "parent_device", "parent_inode", "version_key"}
+                ),
+                path=destination_before.path,
+                parent_device=destination_before.parent_device,
+                parent_inode=destination_before.parent_inode,
+                version_key=FlextCliUtilitiesAtomicFileRead.state_key(published),
+            )
+        )
 
     @staticmethod
     def files_read_csv_with_headers(

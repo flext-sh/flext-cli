@@ -13,15 +13,21 @@ from pathlib import Path
 from typing import Never
 
 from flext_cli import m, t
-from flext_cli._utilities import (
+from flext_cli._utilities._atomic_models import FlextCliUtilitiesAtomicModels
+from flext_cli._utilities.atomic_directory_descriptor import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
+)
+from flext_cli._utilities.atomic_directory_state import (
     FlextCliUtilitiesAtomicDirectoryState,
+)
+from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
-    FlextCliUtilitiesAtomicFilePath,
-    FlextCliUtilitiesAtomicFileState,
+)
+from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+from flext_cli._utilities.atomic_tree_descriptor import (
     FlextCliUtilitiesAtomicTreeDescriptor,
 )
-from flext_cli._utilities._atomic_models import FlextCliAtomicModels
 
 
 class FlextCliUtilitiesAtomicTreeInventory:
@@ -85,7 +91,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     root_path,
                     outer_parent.state,
                     root_state,
-                    FlextCliAtomicModels.TreeEntryDetails(
+                    FlextCliUtilitiesAtomicModels.TreeEntryDetails(
                         kind="directory",
                         parent_mount_id=parent_mount_id,
                         mount_id=root_mount_id,
@@ -182,7 +188,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                             path,
                             parent.state,
                             observed,
-                            FlextCliAtomicModels.TreeEntryDetails(
+                            FlextCliUtilitiesAtomicModels.TreeEntryDetails(
                                 kind="directory",
                                 parent_mount_id=parent_mount_id,
                                 mount_id=mount_id,
@@ -242,7 +248,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                         path,
                         parent.state,
                         authenticated,
-                        FlextCliAtomicModels.TreeEntryDetails(
+                        FlextCliUtilitiesAtomicModels.TreeEntryDetails(
                             kind="file",
                             parent_mount_id=parent_mount_id,
                             size=size,
@@ -270,7 +276,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                         path,
                         parent.state,
                         observed,
-                        FlextCliAtomicModels.TreeEntryDetails(
+                        FlextCliUtilitiesAtomicModels.TreeEntryDetails(
                             kind="symlink",
                             parent_mount_id=parent_mount_id,
                             mount_id=parent_mount_id,
@@ -299,7 +305,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         path: Path,
         parent: os.stat_result,
         observed: os.stat_result,
-        details: FlextCliAtomicModels.TreeEntryDetails,
+        details: FlextCliUtilitiesAtomicModels.TreeEntryDetails,
     ) -> m.Cli.AtomicPhysicalTreeEntry:
         if details.kind == "file" and observed.st_nlink > 1:
             # Cleanup authority is per pathname; a second physical name sharing

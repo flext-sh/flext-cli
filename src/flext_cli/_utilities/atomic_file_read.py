@@ -10,14 +10,16 @@ import errno
 import hashlib
 import os
 import stat
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
 from flext_cli import m, p, t
-from flext_cli._utilities import (
+from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
-    FlextCliUtilitiesAtomicFileModel,
+)
+from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileModel
+from flext_cli._utilities.atomic_file_snapshot import (
     FlextCliUtilitiesAtomicFileSnapshot,
 )
 
@@ -51,7 +53,8 @@ class FlextCliUtilitiesAtomicFileRead:
                 or length < 0
                 or offset + length > self.expected.st_size
             ):
-                raise ValueError("atomic range lies outside the authenticated file")
+                msg = "atomic range lies outside the authenticated file"
+                raise ValueError(msg)
             if FlextCliUtilitiesAtomicFileRead.state_key(
                 os.fstat(self.descriptor)
             ) != FlextCliUtilitiesAtomicFileRead.state_key(self.expected):
@@ -116,13 +119,17 @@ class FlextCliUtilitiesAtomicFileRead:
 
     @staticmethod
     @contextmanager
-    def receipt_reader(receipt: m.Cli.AtomicFileReceipt) -> Iterator[p.Cli.AtomicFileReader]:
+    def receipt_reader(
+        receipt: m.Cli.AtomicFileReceipt,
+    ) -> Generator[p.Cli.AtomicFileReader]:
         """Authenticate a receipt once and retain one descriptor for all ranges."""
         with FlextCliUtilitiesAtomicFileSnapshot.authenticated_entry(
             receipt.path, required=True
         ) as (parent, state):
             if parent is None or state is None:
-                raise FileNotFoundError(errno.ENOENT, "missing receipt file", receipt.path)
+                raise FileNotFoundError(
+                    errno.ENOENT, "missing receipt file", receipt.path
+                )
             FlextCliUtilitiesAtomicFileModel.require_parent(receipt, parent.state)
             if (
                 receipt.version_key != FlextCliUtilitiesAtomicFileRead.state_key(state)
@@ -139,10 +146,13 @@ class FlextCliUtilitiesAtomicFileRead:
                     digest.update(chunk)
                 if digest.hexdigest() != receipt.sha256:
                     FlextCliUtilitiesAtomicFileRead._raise_changed(receipt.path)
-                yield FlextCliUtilitiesAtomicFileRead.Reader(descriptor, receipt.path, state)
-                if FlextCliUtilitiesAtomicFileRead.state_key(
-                    os.fstat(descriptor)
-                ) != receipt.version_key:
+                yield FlextCliUtilitiesAtomicFileRead.Reader(
+                    descriptor, receipt.path, state
+                )
+                if (
+                    FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(descriptor))
+                    != receipt.version_key
+                ):
                     FlextCliUtilitiesAtomicFileRead._raise_changed(receipt.path)
 
     @staticmethod

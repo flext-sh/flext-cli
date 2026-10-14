@@ -10,12 +10,18 @@ import errno
 from pathlib import Path
 
 from flext_cli import m, t
-from flext_cli._utilities import (
-    FlextCliUtilitiesAtomicDirectoryCreate,
+from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryCreate
+from flext_cli._utilities.atomic_directory_delete import (
     FlextCliUtilitiesAtomicDirectoryDelete,
+)
+from flext_cli._utilities.atomic_directory_descriptor import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
+)
+from flext_cli._utilities.atomic_directory_snapshot import (
     FlextCliUtilitiesAtomicDirectorySnapshot,
-    FlextCliUtilitiesAtomicFileMode,
+)
+from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
+from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
 )
 

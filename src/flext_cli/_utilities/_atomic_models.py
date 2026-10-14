@@ -13,7 +13,7 @@ from typing import ClassVar, Literal
 from flext_core import m, t
 
 
-class FlextCliAtomicModels:
+class FlextCliUtilitiesAtomicModels:
     """Value-only contexts; live descriptor ownership stays with the utilities."""
 
     class StagedFile(m.ImmutableValueModel):
@@ -63,3 +63,6 @@ class FlextCliAtomicModels:
             default=None,
             description="Literal target of a symbolic link entry.",
         )
+
+
+__all__ = ["FlextCliUtilitiesAtomicModels"]

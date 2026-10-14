@@ -8,16 +8,15 @@ from __future__ import annotations
 
 import errno
 import os
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import (
+from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
-    FlextCliUtilitiesAtomicFilePath,
-    FlextCliUtilitiesAtomicFileState,
 )
+from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -58,6 +57,10 @@ class FlextCliUtilitiesAtomicFileSnapshot:
         ) as (parent, state):
             if parent is None or state is None:
                 return None if parent is None else parent.state, None, None
+            from flext_cli._utilities.atomic_file_state import (
+                FlextCliUtilitiesAtomicFileState,
+            )
+
             content = FlextCliUtilitiesAtomicFileState.read_authenticated_bytes(
                 path, state, parent=parent
             )
@@ -74,7 +77,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
         required: bool,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> Iterator[
+    ) -> Generator[
         tuple[
             FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor | None,
             os.stat_result | None,
@@ -97,6 +100,10 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                 parent.state,
                 owner_uid,
             )
+            from flext_cli._utilities.atomic_file_state import (
+                FlextCliUtilitiesAtomicFileState,
+            )
+
             state = FlextCliUtilitiesAtomicFileState.destination_state(
                 validated,
                 parent=parent,

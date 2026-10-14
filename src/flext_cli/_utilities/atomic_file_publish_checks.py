@@ -7,17 +7,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import errno
+import hashlib
 import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli import c
-from flext_cli._utilities import (
+from flext_cli import c, m
+from flext_cli._utilities._atomic_models import FlextCliUtilitiesAtomicModels
+from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
-    FlextCliUtilitiesAtomicFileMode,
-    FlextCliUtilitiesAtomicFileState,
 )
-from flext_cli._utilities._atomic_models import FlextCliAtomicModels
+from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
+from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
+from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -90,7 +92,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination_state: os.stat_result | None,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged: FlextCliAtomicModels.ObservedFile,
+        staged: FlextCliUtilitiesAtomicModels.ObservedFile,
     ) -> None:
         """Require both entries and parents to occupy one filesystem.
 
@@ -116,7 +118,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged: FlextCliAtomicModels.StagedFile,
+        staged: FlextCliUtilitiesAtomicModels.StagedFile | m.Cli.AtomicFileReceipt,
     ) -> os.stat_result:
         """Prove replacement consumed the staged name and retained its exact state.
 
@@ -143,28 +145,60 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
             destination,
             parent=destination_parent,
         )
+        staged_identity = (
+            (staged.device, staged.inode)
+            if isinstance(staged, m.Cli.AtomicFileReceipt)
+            else staged.identity
+        )
         if (
             published is None
-            or FlextCliUtilitiesAtomicFileState.identity(published) != staged.identity
+            or FlextCliUtilitiesAtomicFileState.identity(published) != staged_identity
         ):
             message = f"published atomic file has another identity: {destination}"
             raise OSError(errno.ESTALE, message, destination)
-        if (
-            FlextCliUtilitiesAtomicFileState.read_authenticated_bytes(
-                destination,
-                published,
-                parent=destination_parent,
-            )
-            != staged.content
-        ):
-            message = f"published atomic file bytes differ: {destination}"
-            raise OSError(errno.ESTALE, message, destination)
+        FlextCliUtilitiesAtomicFilePublishChecks.validate_payload(
+            destination_parent,
+            destination,
+            published,
+            staged if isinstance(staged, m.Cli.AtomicFileReceipt) else staged.content,
+        )
         FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
             destination,
             published,
             staged.mode,
         )
         return published
+
+    @staticmethod
+    def validate_payload(
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        path: Path,
+        state: os.stat_result | None,
+        expected: bytes | m.Cli.AtomicFileReceipt | None,
+    ) -> None:
+        """Authenticate either exact owned bytes or a streamed content receipt."""
+        if not isinstance(expected, m.Cli.AtomicFileReceipt):
+            FlextCliUtilitiesAtomicFileState.validate_precondition(
+                path, state, expected, enabled=True, parent=parent
+            )
+            return
+        if state is None or state.st_size != expected.size:
+            message = f"atomic receipt size differs: {path}"
+            raise OSError(errno.ESTALE, message, path)
+        with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
+            parent, path, FlextCliUtilitiesAtomicFileRead.READ_FLAGS
+        ) as descriptor:
+            digest = hashlib.sha256()
+            for chunk in FlextCliUtilitiesAtomicFileRead.descriptor_chunks(
+                descriptor, path, state
+            ):
+                digest.update(chunk)
+            if digest.hexdigest() != expected.sha256:
+                message = f"atomic receipt bytes differ: {path}"
+                raise OSError(errno.ESTALE, message, path)
+        FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
+            path, state, parent=parent
+        )
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicFilePublishChecks"]
