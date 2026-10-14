@@ -26,6 +26,7 @@ if TYPE_CHECKING:
         _xlxx,
         _yaml,
     )
+    from flext_cli._utilities._atomic_models import FlextCliUtilitiesAtomicModels
     from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
     from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
     from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
@@ -357,6 +358,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesAtomicFileSnapshot",
     "FlextCliUtilitiesAtomicFileState",
     "FlextCliUtilitiesAtomicFileTemporary",
+    "FlextCliUtilitiesAtomicModels",
     "FlextCliUtilitiesAtomicParentDescriptor",
     "FlextCliUtilitiesAtomicParentFailure",
     "FlextCliUtilitiesAtomicSymlinkPublish",
@@ -491,6 +493,7 @@ install_lazy_exports(
     globals(),
     MappingProxyType({
         "FlextCliAtomicTreeDarwin": ".atomic_tree_darwin",
+        "FlextCliUtilitiesAtomicModels": "._atomic_models",
         "FlextCliUtilitiesAtomicDirectoryChain": ".atomic_directory_chain",
         "FlextCliUtilitiesAtomicDirectoryCleanup": ".atomic_directory_cleanup",
         "FlextCliUtilitiesAtomicDirectoryCreate": ".atomic_directory_create",

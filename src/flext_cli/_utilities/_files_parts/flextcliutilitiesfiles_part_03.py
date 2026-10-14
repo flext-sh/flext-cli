@@ -41,7 +41,7 @@ class FlextCliUtilitiesFilesPart03:
     ) -> p.Result[m.Cli.AtomicFileReceipt]:
         """Return the authenticated identity and digest without buffering payload."""
         try:
-            receipt = FlextCliUtilitiesAtomicFileRead.read_receipt(
+            receipt = FlextCliUtilitiesAtomicFileSnapshot.read_receipt(
                 Path(file_path),
                 required=required,
                 owner_uid=owner_uid,
@@ -59,7 +59,7 @@ class FlextCliUtilitiesFilesPart03:
         receipt: m.Cli.AtomicFileReceipt,
     ) -> Generator[p.Cli.AtomicFileReader]:
         """Retain one authenticated descriptor for repeated exact range reads."""
-        with FlextCliUtilitiesAtomicFileRead.receipt_reader(receipt) as reader:
+        with FlextCliUtilitiesAtomicFileSnapshot.receipt_reader(receipt) as reader:
             yield reader
 
     @staticmethod
@@ -68,7 +68,7 @@ class FlextCliUtilitiesFilesPart03:
     ) -> p.Result[bytes]:
         """Read an exact range through the canonical scoped descriptor owner."""
         try:
-            with FlextCliUtilitiesAtomicFileRead.receipt_reader(receipt) as reader:
+            with FlextCliUtilitiesAtomicFileSnapshot.receipt_reader(receipt) as reader:
                 content = reader.read_range(offset, length)
         except OSError as exc:
             return r[bytes].fail(c.Cli.ERR_BINARY_READ_FAILED.format(error=exc))

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import errno
 import os
+from typing import TYPE_CHECKING
 
 from flext_cli import m
 from flext_cli._utilities import (
@@ -21,6 +22,11 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileState,
     FlextCliUtilitiesAtomicModels,
 )
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicFilePublish:
@@ -55,7 +61,7 @@ class FlextCliUtilitiesAtomicFilePublish:
             message = "staged file and atomic destination must differ"
             raise OSError(errno.EINVAL, message, destination)
         staged_payload: bytes | m.Cli.AtomicFileReceipt
-        staged_proof: FlextCliAtomicModels.StagedFile | m.Cli.AtomicFileReceipt
+        staged_proof: FlextCliUtilitiesAtomicModels.StagedFile | m.Cli.AtomicFileReceipt
         if isinstance(staged, m.Cli.AtomicFileReceipt):
             if staged.mode is None or staged.device is None or staged.inode is None:
                 raise FileNotFoundError(

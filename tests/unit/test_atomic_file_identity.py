@@ -19,6 +19,47 @@ class TestsFlextCliAtomicFileIdentity:
     """Prove callers cannot authorize effects with only matching content."""
 
     @staticmethod
+    def test_receipt_and_scoped_ranges_match_authenticated_state(tmp_path: Path) -> None:
+        """Receipt capture and repeated ranges retain the public snapshot contract."""
+        path = tmp_path / "receipt.bin"
+        payload = bytes(range(256))
+        path.write_bytes(payload)
+        receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(path, required=True))
+        snapshot = tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True))
+        tm.that(receipt.device, eq=snapshot.device)
+        tm.that(receipt.inode, eq=snapshot.inode)
+        tm.that(receipt.parent_inode, eq=snapshot.parent_inode)
+        tm.that(receipt.size, eq=len(payload))
+        tm.that(receipt.sha256, eq=u.Cli.sha256_bytes(payload))
+        with u.Cli.atomic_binary_file_reader(receipt) as reader:
+            tm.that(reader.read_range(0, len(payload)), eq=payload)
+            tm.that(reader.read_range(17, 31), eq=payload[17:48])
+        tm.that(
+            tm.ok(u.Cli.atomic_read_binary_file_range(receipt, 17, 31)),
+            eq=payload[17:48],
+        )
+
+    @staticmethod
+    @pytest.mark.parametrize("mutation", ["content", "identity"])
+    def test_receipt_reader_rejects_change_during_consumption(
+        tmp_path: Path, mutation: str
+    ) -> None:
+        """Scoped receipt reads reject content mutation and pathname replacement."""
+        path = tmp_path / "receipt.bin"
+        payload = bytes(range(256))
+        path.write_bytes(payload)
+        receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(path, required=True))
+        with pytest.raises(OSError, match="changed"):
+            with u.Cli.atomic_binary_file_reader(receipt) as reader:
+                tm.that(reader.read_range(0, len(payload)), eq=payload)
+                if mutation == "content":
+                    path.write_bytes(b"changed")
+                else:
+                    replacement = tmp_path / "replacement.bin"
+                    replacement.write_bytes(payload)
+                    replacement.replace(path)
+
+    @staticmethod
     def test_authenticated_stream_retains_every_binary_byte(tmp_path: Path) -> None:
         """A fully consumed public stream agrees with the authenticated snapshot."""
         path = tmp_path / "stream.bin"
