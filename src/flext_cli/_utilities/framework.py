@@ -196,8 +196,13 @@ class FlextCliUtilitiesFramework:
     ) -> p.Cli.Application:
         """Create one private Typer application behind the neutral protocol.
 
+        Args:
+            name: Application name shown in CLI help; None keeps the default.
+            help_text: Application description shown in CLI help.
+            add_completion: Whether the CLI exposes shell completion support.
+
         Returns:
-            The resulting ``p.Cli.Application``.
+            The created neutral application wrapper.
 
         """
         return FlextCliUtilitiesFramework.TyperApplication(
@@ -213,7 +218,14 @@ class FlextCliUtilitiesFramework:
         name: str,
         group: p.Cli.Application,
     ) -> None:
-        """Attach one private application group."""
+        """Attach one private application group.
+
+        Args:
+            application: Parent application receiving the group.
+            name: Group name used to invoke the attached commands.
+            group: Child application mounted as the named group.
+
+        """
         cls._unwrap(application).add_typer(group, name=name)
 
     @classmethod
@@ -222,7 +234,13 @@ class FlextCliUtilitiesFramework:
         application: p.Cli.Application,
         callback: t.Cli.CliCommand,
     ) -> None:
-        """Register one application callback."""
+        """Register one application callback.
+
+        Args:
+            application: Application owning the callback.
+            callback: Callback invoked before command dispatch.
+
+        """
         _ = cls._unwrap(application).callback()(callback)
 
     @classmethod
@@ -234,7 +252,15 @@ class FlextCliUtilitiesFramework:
         help_text: str,
         command: t.Cli.CliCommand,
     ) -> None:
-        """Register one named command."""
+        """Register one named command.
+
+        Args:
+            application: Application owning the command.
+            name: Command name used on the command line.
+            help_text: Command description shown in CLI help.
+            command: Command handler registered under the name.
+
+        """
         _ = cls._unwrap(application).command(name, help_text=help_text)(command)
 
     @staticmethod
@@ -253,7 +279,7 @@ class FlextCliUtilitiesFramework:
         The adapter is built only on parse; rendering help never builds it.
 
         Returns:
-            The resulting ``Parameter``.
+            The built parameter carrying the private option default.
 
         """
         option_default: t.Cli.CliValue | EllipsisType | None = (
