@@ -23,6 +23,11 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
     ) -> m.Cli.PipelineStageContext:
         """Build one validated stage context from the public DSL.
 
+        Args:
+            repository_root: Repository root the stages operate within.
+            shared: Optional mutable mapping shared across stages.
+            settings: Optional read-only settings mapping for stages.
+
         Returns:
             The resulting ``m.Cli.PipelineStageContext``.
 
@@ -42,6 +47,13 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
         skip_if: p.Cli.PipelineSkipPredicate | None = None,
     ) -> m.Cli.PipelineStageSpec:
         """Build one declarative stage spec from the public DSL.
+
+        Args:
+            stage_id: Unique identifier of the stage.
+            handler: Callable that executes the stage.
+            depends_on: Identifiers of stages that must complete first.
+            skip_if: Optional predicate that skips the stage when it returns
+                true.
 
         Returns:
             The resulting ``m.Cli.PipelineStageSpec``.
@@ -65,6 +77,13 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
     ) -> m.Cli.PipelineStageResult:
         """Build one typed stage result payload.
 
+        Args:
+            stage_id: Identifier of the stage that produced the result.
+            status: Stage outcome status; defaults to the OK status.
+            output: Optional JSON mapping produced by the stage.
+            duration_ms: Stage execution duration in milliseconds.
+            error: Optional error message when the stage failed.
+
         Returns:
             The resulting ``m.Cli.PipelineStageResult``.
 
@@ -86,6 +105,11 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
         duration_ms: float = 0.0,
     ) -> p.Result[m.Cli.PipelineStageResult]:
         """Return one successful stage result via the canonical ``r`` API.
+
+        Args:
+            stage_id: Identifier of the successful stage.
+            output: Optional JSON mapping produced by the stage.
+            duration_ms: Stage execution duration in milliseconds.
 
         Returns:
             One successful stage result via the canonical ``r`` API.
@@ -109,6 +133,12 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
         skip_by_stage: t.MappingKV[str, p.Cli.PipelineSkipPredicate] | None = None,
     ) -> t.SequenceOf[m.Cli.PipelineStageSpec]:
         """Build a linear dependency chain from ordered stage handlers.
+
+        Args:
+            stage_order: Ordered stage identifiers forming the chain.
+            handlers: Mapping of stage identifier to its handler.
+            skip_by_stage: Optional mapping of stage identifier to its skip
+                predicate.
 
         Returns:
             The resulting ``t.SequenceOf[m.Cli.PipelineStageSpec]``.
@@ -139,6 +169,11 @@ class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
         logger: p.Logger | None = None,
     ) -> p.Result[m.Cli.PipelineResult]:
         """Execute a pipeline through the public CLI DSL surface.
+
+        Args:
+            stages: Ordered stage specifications to execute.
+            context: Validated context shared by the stages.
+            logger: Optional logger; the service logger applies when omitted.
 
         Returns:
             The resulting ``p.Result[m.Cli.PipelineResult]``.
