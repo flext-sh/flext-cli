@@ -81,5 +81,10 @@ class FlextCliProtocolsProcess:
             """File descriptors inherited by the child process."""
             ...
 
+        @property
+        def stderr_file(self) -> t.Cli.TextPath | None:
+            """Separate durable stderr destination for durable output."""
+            ...
+
 
 __all__: list[str] = ["FlextCliProtocolsProcess"]

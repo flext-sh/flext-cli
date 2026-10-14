@@ -112,11 +112,11 @@ class TestsFlextCliRuntimeStreamedProcess:
             u.Cli().run_to_file(
                 [sys.executable, "-c", script],
                 stdout_file,
-                stderr_file=stderr_file,
                 options=m.Cli.ProcessOptions(
                     input_data=payload,
                     live=live,
                     deadline=_deadline(seconds=5.0, grace=1.0),
+                    stderr_file=stderr_file,
                 ),
             ),
         )
@@ -157,7 +157,7 @@ class TestsFlextCliRuntimeStreamedProcess:
                 str(marker),
             ],
             stdout_file,
-            stderr_file=stderr_file,
+            options=m.Cli.ProcessOptions(stderr_file=stderr_file),
         )
         tm.that(result.failure, eq=True)
         tm.that(stdout_file.read_bytes(), eq=before)
@@ -179,7 +179,7 @@ class TestsFlextCliRuntimeStreamedProcess:
                     ),
                 ],
                 stdout_file,
-                stderr_file=stderr_file,
+                options=m.Cli.ProcessOptions(stderr_file=stderr_file),
             ),
         )
         tm.that(outcome.raw_return_code, eq=37)
@@ -202,9 +202,9 @@ class TestsFlextCliRuntimeStreamedProcess:
                 ),
             ],
             stdout_file,
-            stderr_file=stderr_file,
             options=m.Cli.ProcessOptions(
                 deadline=_deadline(seconds=1.0, grace=0.4),
+                stderr_file=stderr_file,
             ),
         )
         outcome = tm.ok(result)
@@ -231,7 +231,7 @@ class TestsFlextCliRuntimeStreamedProcess:
                 str(marker),
             ],
             stdout_file,
-            stderr_file=stderr_directory,
+            options=m.Cli.ProcessOptions(stderr_file=stderr_directory),
         )
         tm.that(result.failure, eq=True)
         tm.that(marker.exists(), eq=False)

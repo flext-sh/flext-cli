@@ -64,7 +64,7 @@ class TestsFlextCliAtomicFileIdentity:
         target = tmp_path / "target.bin"
         target.write_bytes(b"foreign input")
         path.symlink_to(target)
-        with pytest.raises(OSError):
+        with pytest.raises(OSError, match="atomic destination changed"):
             tuple(u.Cli.atomic_iter_binary_file(path))
         tm.that(target.read_bytes(), eq=b"foreign input")
 

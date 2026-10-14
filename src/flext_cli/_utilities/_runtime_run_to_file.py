@@ -35,7 +35,6 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         timeout: int | None = None,
         *,
         options: p.Cli.ProcessOptions | None = None,
-        stderr_file: t.Cli.TextPath | None = None,
     ) -> p.Result[p.Cli.ProcessOutcome]:
         """Stream exact bytes to combined or separate durable destinations.
 
@@ -44,7 +43,7 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         POSIX ``setsid()`` escape is outside this contract. The deadline covers
         child execution, termination, reaping, stream drain, and durable flush.
         An outer caller wall remains responsible for an OS syscall that becomes
-        uninterruptible.
+        uninterruptible. Separate stderr durability rides on ``options``.
 
         Returns:
             The resulting ``p.Result[p.Cli.ProcessOutcome]``.
@@ -55,7 +54,9 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
             m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
                 output_path=Path(output_file),
-                stderr_path=Path(stderr_file) if stderr_file is not None else None,
+                stderr_path=(
+                    Path(launch.stderr_file) if launch.stderr_file is not None else None
+                ),
                 cwd=cwd,
                 env=cls._resolved_env(launch.env, launch.remove_env_keys),
                 input_data=launch.input_data,
