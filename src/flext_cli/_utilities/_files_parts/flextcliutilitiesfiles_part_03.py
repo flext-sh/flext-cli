@@ -12,6 +12,7 @@ import hashlib
 import os
 import shutil
 import stat
+from collections.abc import Generator
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
@@ -126,7 +127,7 @@ class FlextCliUtilitiesFilesPart03:
     @staticmethod
     def atomic_iter_binary_file(
         file_path: t.Cli.TextPath,
-    ) -> t.IterableOf[bytes]:
+    ) -> Generator[bytes]:
         """Yield bytes from one authenticated descriptor without buffering the file."""
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(Path(file_path))
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
