@@ -6,12 +6,25 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
+import platform
 import signal
+import sys
 import threading
 import time
+from pathlib import Path
 from typing import BinaryIO
 
+if sys.platform == "linux":
+    import fcntl
+
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
+    FlextCliUtilitiesFilesPart03,
+)
+from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_05 import (
+    FlextCliUtilitiesFilesPart05,
+)
 from flext_cli._utilities._runtime_process_cleanup import (
     FlextCliUtilitiesRuntimeProcessCleanupMixin,
 )
@@ -29,6 +42,9 @@ from flext_cli._utilities._runtime_process_start import (
 )
 from flext_cli._utilities._runtime_process_timing import (
     FlextCliUtilitiesRuntimeProcessTimingMixin,
+)
+from flext_cli._utilities.atomic_parent_descriptor import (
+    FlextCliUtilitiesAtomicParentDescriptor,
 )
 
 
@@ -109,6 +125,9 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         if state.received_signals:
             state.wake.set()
             return
+        prepared_cmd, child_env, inherited = cls._prepare_process_isolation(
+            request, state, prepared_cmd
+        )
         destinations = (request.output_path, request.stderr_path)
         for destination in destinations:
             if destination is not None:
@@ -133,7 +152,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             start_result = cls._start_contained_process(
                 prepared_cmd,
                 request.cwd,
-                request.env,
+                child_env,
                 stdin_result.value[0],
                 options=m.Cli.RuntimeSpawnOptions(
                     capture_output=(
@@ -142,6 +161,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                     combine_output=(
                         request.output_path is not None and request.stderr_path is None
                     ),
+                    pass_fds=inherited,
                 ),
             )
             if start_result.failure:
@@ -165,6 +185,217 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 )
                 state.return_code = cls._reap_and_drain(owned_process, waiter, state)
                 state.cleanup_complete = True
+
+    @classmethod
+    def _prepare_process_isolation(
+        cls,
+        request: m.Cli.RuntimeProcessRequest,
+        state: m.Cli.RuntimeProcessState,
+        command: tuple[str, ...],
+    ) -> tuple[tuple[str, ...], t.StrMapping | None, tuple[int, ...]]:
+        """Prepare explicit native confinement inside the existing lifecycle."""
+        isolation = request.isolation
+        if isolation is None:
+            return command, request.env, request.pass_fds
+        if (
+            sys.platform != isolation.platform
+            or platform.machine() != isolation.architecture
+        ):
+            msg = "read-only process isolation has no qualified native platform capability"
+            raise ValueError(msg)
+        if request.pass_fds:
+            msg = "isolated processes cannot inherit caller file descriptors"
+            raise ValueError(msg)
+        environment_names = tuple(name for name, _value in isolation.environment)
+        if len(set(environment_names)) != len(environment_names) or any(
+            not name or "=" in name or "\0" in name or "\0" in value
+            for name, value in isolation.environment
+        ):
+            msg = "isolated process environment has invalid or competing declarations"
+            raise ValueError(msg)
+        if not command or not Path(command[0]).is_absolute():
+            msg = "isolated process requires an absolute declared executable"
+            raise ValueError(msg)
+        if request.cwd is None or not Path(request.cwd).is_absolute():
+            msg = "isolated process requires an absolute declared working directory"
+            raise ValueError(msg)
+        roots = tuple(tree.root.path for tree in isolation.runtime_trees)
+        files = (
+            isolation.launcher,
+            isolation.seccomp_filter,
+            *isolation.sources,
+            *isolation.runtime_files,
+        )
+        paths = tuple(item.path for item in files)
+        if len(paths) != len(set(paths)) or len(roots) != len(set(roots)):
+            msg = "isolated process inputs have competing physical owners"
+            raise ValueError(msg)
+        if any(root == Path(root.anchor) for root in roots):
+            msg = "isolated process cannot expose the host filesystem root"
+            raise ValueError(msg)
+        if any(
+            root.is_relative_to(other)
+            for root in roots
+            for other in roots
+            if root != other
+        ):
+            msg = "isolated process runtime roots overlap"
+            raise ValueError(msg)
+        if isolation.launcher.mode is None or not isolation.launcher.mode & 0o111:
+            msg = "isolated process launcher is not an authenticated executable"
+            raise ValueError(msg)
+        if isolation.launcher.mode & 0o6000:
+            msg = "isolated process launcher cannot carry set-id privileges"
+            raise ValueError(msg)
+        filter_bytes = isolation.seccomp_filter.content
+        if not filter_bytes or len(filter_bytes) % 8:
+            msg = "isolated process requires a complete native seccomp BPF filter"
+            raise ValueError(msg)
+        for captured in files:
+            current = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
+                captured.path, required=captured.content is not None
+            ).unwrap()
+            if current != captured:
+                msg = f"isolated process input changed: {captured.path}"
+                raise ValueError(msg)
+        runtime_descriptors: list[tuple[int, Path]] = []
+        for tree in isolation.runtime_trees:
+            current = FlextCliUtilitiesFilesPart05.atomic_inventory_physical_tree(
+                tree.root.path
+            ).unwrap()
+            if current != tree:
+                msg = f"isolated process runtime tree changed: {tree.root.path}"
+                raise ValueError(msg)
+            for entry in tree.entries:
+                if entry.kind != "symlink":
+                    continue
+                if entry.link_target is None:
+                    msg = f"isolated runtime link has no captured target: {entry.path}"
+                    raise ValueError(msg)
+                target = Path(entry.link_target)
+                target = Path(
+                    os.path.normpath(
+                        target if target.is_absolute() else entry.path.parent / target
+                    )
+                )
+                if not any(target.is_relative_to(root) for root in roots) and (
+                    target not in paths
+                ):
+                    msg = f"isolated runtime link escapes its declared closure: {entry.path}"
+                    raise ValueError(msg)
+            opened = state.stack.enter_context(
+                FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
+                    tree.root.path
+                )
+            )
+            if (opened.state.st_dev, opened.state.st_ino) != (
+                tree.root.device,
+                tree.root.inode,
+            ):
+                msg = f"isolated runtime root identity changed: {tree.root.path}"
+                raise ValueError(msg)
+            runtime_descriptors.append((opened.descriptor, tree.root.path))
+        exposed = tuple(
+            item.path
+            for item in (*isolation.sources, *isolation.runtime_files)
+            if item.content is not None
+        )
+        executable = Path(command[0])
+        working = Path(request.cwd)
+        if not any(executable.is_relative_to(root) for root in roots) and (
+            executable not in exposed
+        ):
+            msg = "isolated executable is outside its declared runtime closure"
+            raise ValueError(msg)
+        if not any(working.is_relative_to(root) for root in roots) and not any(
+            working == path.parent or working in path.parents for path in exposed
+        ):
+            msg = "isolated working directory is outside its declared source closure"
+            raise ValueError(msg)
+        launcher = cls._sealed_process_input(state, isolation.launcher)
+        policy = cls._sealed_process_input(state, isolation.seccomp_filter)
+        inherited = [launcher, policy]
+        arguments = [
+            f"/proc/self/fd/{launcher}",
+            "--unshare-user",
+            "--unshare-ipc",
+            "--unshare-pid",
+            "--unshare-net",
+            "--unshare-uts",
+            "--unshare-cgroup",
+            "--disable-userns",
+            "--assert-userns-disabled",
+            "--new-session",
+            "--die-with-parent",
+            "--cap-drop",
+            "ALL",
+            "--clearenv",
+            "--seccomp",
+            str(policy),
+        ]
+        for descriptor, root in runtime_descriptors:
+            inherited.append(descriptor)
+            arguments.extend(("--ro-bind-fd", str(descriptor), str(root)))
+        for captured in (
+            isolation.launcher,
+            *isolation.sources,
+            *isolation.runtime_files,
+        ):
+            if captured.content is None:
+                continue
+            descriptor = (
+                launcher
+                if captured is isolation.launcher
+                else (cls._sealed_process_input(state, captured))
+            )
+            if descriptor != launcher:
+                inherited.append(descriptor)
+            if captured.mode is None:
+                msg = f"isolated process input has no captured mode: {captured.path}"
+                raise ValueError(msg)
+            arguments.extend((
+                "--perms",
+                format(captured.mode, "o"),
+                "--ro-bind-data",
+                str(descriptor),
+                str(captured.path),
+            ))
+        for name, value in isolation.environment:
+            arguments.extend(("--setenv", name, value))
+        arguments.extend(("--chdir", str(working), "--remount-ro", "/", "--", *command))
+        return tuple(arguments), {}, tuple(inherited)
+
+    @staticmethod
+    def _sealed_process_input(
+        state: m.Cli.RuntimeProcessState,
+        captured: m.Cli.AtomicFileState,
+    ) -> int:
+        """Retain exact captured bytes in an immutable anonymous native file."""
+        if captured.content is None or captured.mode is None:
+            msg = f"isolated process input has no captured bytes: {captured.path}"
+            raise ValueError(msg)
+        descriptor = os.memfd_create(
+            captured.path.name, os.MFD_CLOEXEC | os.MFD_ALLOW_SEALING
+        )
+        state.stack.callback(os.close, descriptor)
+        remaining = memoryview(captured.content)
+        while remaining:
+            count = os.write(descriptor, remaining)
+            if count <= 0:
+                msg = f"isolated process input write made no progress: {captured.path}"
+                raise OSError(msg)
+            remaining = remaining[count:]
+        os.fchmod(descriptor, captured.mode & 0o777)
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        fcntl.fcntl(
+            descriptor,
+            fcntl.F_ADD_SEALS,
+            fcntl.F_SEAL_WRITE
+            | fcntl.F_SEAL_GROW
+            | fcntl.F_SEAL_SHRINK
+            | fcntl.F_SEAL_SEAL,
+        )
+        return descriptor
 
     @classmethod
     def _attach_process_streams(

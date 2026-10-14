@@ -10,14 +10,70 @@ import contextlib
 import threading
 from collections.abc import Callable
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, Literal
 
 from flext_cli import p, t
+from flext_cli._models._base.flextclimodelsbase_part_01 import FlextCliModelsBasePart01
+from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
+from flext_cli._models._base.flextclimodelsbase_part_09 import FlextCliModelsBasePart09
 from flext_core import m
 
 
 class FlextCliModelsProcess:
     """Process input declarations exposed through ``m.Cli``."""
+
+    class ProcessNativeToolQualification(m.ArbitraryTypesModel):
+        """Immutable projection of the existing bootstrap qualification receipt."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            arbitrary_types_allowed=True, frozen=True, extra="forbid"
+        )
+        issuer_receipt: FlextCliModelsBasePart02.AtomicFileState
+        artifact: FlextCliModelsBasePart02.AtomicFileState
+        artifact_receipt: FlextCliModelsBasePart02.AtomicFileReceipt
+        declaration_inputs: tuple[FlextCliModelsBasePart02.AtomicFileState, ...] = (
+            m.Field(min_length=1)
+        )
+        installation_inputs: tuple[FlextCliModelsBasePart02.AtomicFileState, ...] = (
+            m.Field(min_length=1)
+        )
+        source_inputs: tuple[FlextCliModelsBasePart02.AtomicFileState, ...] = (
+            m.Field(min_length=1)
+        )
+        native_build_outcome: FlextCliModelsBasePart01.ProcessOutcome
+        native_abi_probe_outcome: FlextCliModelsBasePart01.ProcessOutcome
+        abi_reference: FlextCliModelsBasePart02.AtomicFileState
+        architecture: str = m.Field(min_length=1)
+
+    class ProcessReadOnlyIsolation(m.ArbitraryTypesModel):
+        """Qualified Linux confinement inputs consumed by the process owner."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+            arbitrary_types_allowed=True, frozen=True, extra="forbid"
+        )
+        platform: Literal["linux"] = m.Field(description="Declared native capability")
+        architecture: str = m.Field(min_length=1, description="Qualified filter ABI")
+        launcher: FlextCliModelsBasePart02.AtomicFileState = m.Field(
+            description="Authenticated Bubblewrap executable bytes and identity"
+        )
+        policy_compiler: FlextCliModelsProcess.ProcessNativeToolQualification = m.Field(
+            description="Bootstrap-qualified static native libseccomp policy compiler"
+        )
+        compiler_declaration: FlextCliModelsBasePart02.AtomicFileState = m.Field(
+            description="Independently elected canonical compiler declaration"
+        )
+        sources: tuple[FlextCliModelsBasePart02.AtomicFileState, ...] = m.Field(
+            min_length=1, description="Captured source, metadata and resource bytes"
+        )
+        runtime_trees: tuple[
+            FlextCliModelsBasePart09.AtomicPhysicalTreeManifest, ...
+        ] = m.Field(description="Authenticated read-only interpreter and system roots")
+        runtime_files: tuple[FlextCliModelsBasePart02.AtomicFileState, ...] = m.Field(
+            description="Authenticated read-only runtime files outside those roots"
+        )
+        environment: tuple[tuple[str, str], ...] = m.Field(
+            description="Complete child environment, without inherited host variables"
+        )
 
     class ProcessOptions(m.ArbitraryTypesModel):
         """Child input, environment, and durable-output execution options."""
@@ -53,6 +109,9 @@ class FlextCliModelsProcess:
         stderr_file: t.Cli.TextPath | None = m.Field(
             default=None,
             description="Separate durable stderr destination for durable output.",
+        )
+        isolation: FlextCliModelsProcess.ProcessReadOnlyIsolation | None = m.Field(
+            default=None, description="Explicit native read-only confinement request"
         )
 
     class RuntimeProcessRequest(m.ArbitraryTypesModel):
@@ -101,6 +160,13 @@ class FlextCliModelsProcess:
         deadline: p.Cli.ProcessDeadline | None = m.Field(
             default=None,
             description="Absolute deadline and termination grace policy.",
+        )
+        isolation: FlextCliModelsProcess.ProcessReadOnlyIsolation | None = m.Field(
+            default=None, description="Immutable native confinement inputs"
+        )
+        pass_fds: tuple[int, ...] = m.Field(
+            default=(),
+            description="Explicit descriptors inherited by an ordinary child",
         )
 
     class RuntimeProcessState(m.ArbitraryTypesModel):
@@ -239,6 +305,9 @@ class FlextCliModelsProcess:
         creation_flags: int = m.Field(
             default=0,
             description="Platform flags used when creating the child process.",
+        )
+        pass_fds: tuple[int, ...] = m.Field(
+            default=(), description="Process-owner descriptors consumed by confinement"
         )
 
 

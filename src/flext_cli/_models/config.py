@@ -12,6 +12,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import Literal
+
 from flext_core import m
 
 
@@ -26,12 +28,36 @@ class FlextCliConfigModels:
         name: str
         version: str
 
+    class ProcessIsolation(m.BaseModel):
+        """Immutable syscall obligations of native read-only reference imports."""
+
+        model_config = m.ConfigDict(frozen=True, extra="forbid")
+        denied_syscalls: tuple[
+            Literal["socket"],
+            Literal["socketpair"],
+            Literal["connect"],
+            Literal["bind"],
+            Literal["listen"],
+            Literal["accept"],
+            Literal["accept4"],
+            Literal["sendto"],
+            Literal["recvfrom"],
+            Literal["sendmsg"],
+            Literal["recvmsg"],
+            Literal["sendmmsg"],
+            Literal["recvmmsg"],
+            Literal["io_uring_setup"],
+            Literal["io_uring_enter"],
+            Literal["io_uring_register"],
+        ]
+
     class Root(m.BaseModel):
         """Root flext-cli runtime config validated from ``config/*.yaml``."""
 
         model_config = m.ConfigDict(frozen=True, extra="ignore")
 
         Cli: FlextCliConfigModels.Cli
+        ProcessIsolation: FlextCliConfigModels.ProcessIsolation
 
 
 __all__: list[str] = ["FlextCliConfigModels"]

@@ -26,5 +26,12 @@ class FlextCliProtocolsConfig:
         @property
         def version(self) -> str: ...
 
+    @runtime_checkable
+    class ProcessIsolation(Protocol):
+        """Source-owned immutable syscall obligations."""
+
+        @property
+        def denied_syscalls(self) -> tuple[str, ...]: ...
+
 
 __all__: list[str] = ["FlextCliProtocolsConfig"]

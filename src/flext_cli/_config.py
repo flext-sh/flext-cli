@@ -40,6 +40,12 @@ class FlextCliConfig(FlextConfig):
         root = FlextCliConfigModels.Root.model_validate(dict(self.model_extra or {}))
         return root.Cli
 
+    @cached_property
+    def ProcessIsolation(self) -> FlextCliProtocolsConfig.ProcessIsolation:
+        """Validated native read-only reference process policy."""
+        root = FlextCliConfigModels.Root.model_validate(dict(self.model_extra or {}))
+        return root.ProcessIsolation
+
 
 config: FlextCliConfig = FlextCliConfig.fetch_global()
 """Pre-instantiated frozen config singleton — ``from flext_cli import config``."""

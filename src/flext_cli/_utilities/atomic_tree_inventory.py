@@ -9,6 +9,8 @@ from __future__ import annotations
 import errno
 import os
 import stat
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Literal, Never
 
@@ -44,95 +46,43 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @staticmethod
     def inventory_physical_directory(root_path: Path) -> m.Cli.AtomicDirectoryInventory:
         """Capture immediate elections without descending or hashing child payloads."""
-        root_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(root_path)
-        FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(root_path)
-        with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-            root_path
-        ) as parent:
-            state = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                root_path, parent=parent
+        with FlextCliUtilitiesAtomicTreeInventory._opened_root(root_path) as (
+            root,
+            parent,
+        ):
+            names = FlextCliUtilitiesAtomicTreeInventory._directory_names(
+                parent.descriptor
             )
-            if state is None:
-                raise FileNotFoundError(errno.ENOENT, "missing directory", root_path)
-            with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
-                parent, root_path, FlextCliUtilitiesAtomicTreeInventory._DIRECTORY_FLAGS
-            ) as descriptor:
-                FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
-                    descriptor, root_path, state
-                )
-                parent_mount = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
-                    parent.descriptor, parent.path
-                )
-                mount = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
-                    descriptor, root_path
-                )
-                FlextCliUtilitiesAtomicTreeDescriptor.require_mount(
-                    root_path, parent_mount, mount
-                )
-                root = FlextCliUtilitiesAtomicTreeInventory._entry(
-                    root_path,
-                    parent.state,
-                    state,
-                    FlextCliUtilitiesAtomicModels.TreeEntryDetails(
-                        kind="directory", parent_mount_id=parent_mount, mount_id=mount
-                    ),
-                )
-                captured_parent = (
-                    FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor(
-                        root_path,
-                        descriptor,
-                        state,
-                        (
-                            *parent.ancestry,
-                            FlextCliUtilitiesAtomicFilePath.identity(state),
-                        ),
-                        (*parent.lineage, parent.descriptor),
+            entries: list[m.Cli.AtomicDirectoryName] = []
+            for name in names:
+                path = root.path / name
+                child = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
+                kind: Literal["directory", "file", "symlink", "other"]
+                if stat.S_ISDIR(child.st_mode):
+                    kind = "directory"
+                elif stat.S_ISREG(child.st_mode):
+                    kind = "file"
+                elif stat.S_ISLNK(child.st_mode):
+                    kind = "symlink"
+                else:
+                    kind = "other"
+                entries.append(
+                    m.Cli.AtomicDirectoryName(
+                        name=name,
+                        kind=kind,
+                        version_key=FlextCliUtilitiesAtomicFileRead.state_key(child),
+                        link_target=os.readlink(name, dir_fd=parent.descriptor)
+                        if kind == "symlink"
+                        else None,
                     )
                 )
-                names = FlextCliUtilitiesAtomicTreeInventory._directory_names(
-                    descriptor
+                FlextCliUtilitiesAtomicTreeDescriptor.require_entry_state(
+                    parent, path, child
                 )
-                entries: list[m.Cli.AtomicDirectoryName] = []
-                for name in names:
-                    path = root_path / name
-                    child = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(
-                        captured_parent, path
-                    )
-                    kind: Literal["directory", "file", "symlink", "other"]
-                    if stat.S_ISDIR(child.st_mode):
-                        kind = "directory"
-                    elif stat.S_ISREG(child.st_mode):
-                        kind = "file"
-                    elif stat.S_ISLNK(child.st_mode):
-                        kind = "symlink"
-                    else:
-                        kind = "other"
-                    entries.append(
-                        m.Cli.AtomicDirectoryName(
-                            name=name,
-                            kind=kind,
-                            version_key=FlextCliUtilitiesAtomicFileRead.state_key(
-                                child
-                            ),
-                            link_target=os.readlink(name, dir_fd=descriptor)
-                            if kind == "symlink"
-                            else None,
-                        )
-                    )
-                    FlextCliUtilitiesAtomicTreeDescriptor.require_entry_state(
-                        captured_parent, path, child
-                    )
-                if names != FlextCliUtilitiesAtomicTreeInventory._directory_names(
-                    descriptor
-                ):
-                    FlextCliUtilitiesAtomicTreeInventory._raise_changed(root_path)
-                FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
-                    descriptor, root_path, state
-                )
-            FlextCliUtilitiesAtomicTreeDescriptor.require_entry_state(
-                parent, root_path, state
-            )
-            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
+            if names != FlextCliUtilitiesAtomicTreeInventory._directory_names(
+                parent.descriptor
+            ):
+                FlextCliUtilitiesAtomicTreeInventory._raise_changed(root.path)
         return m.Cli.AtomicDirectoryInventory(root=root, entries=tuple(entries))
 
     @staticmethod
@@ -146,6 +96,34 @@ class FlextCliUtilitiesAtomicTreeInventory:
             FileNotFoundError: If ``root_state is None``.
 
         """
+        entries: list[m.Cli.AtomicPhysicalTreeEntry] = []
+        with FlextCliUtilitiesAtomicTreeInventory._opened_root(root_path) as (
+            root,
+            parent,
+        ):
+            FlextCliUtilitiesAtomicTreeInventory._inventory_directory(
+                parent, root.mount_id, entries, {(root.device, root.inode)}
+            )
+        return m.Cli.AtomicPhysicalTreeManifest(
+            root=root,
+            entries=tuple(
+                sorted(
+                    entries, key=FlextCliUtilitiesAtomicTreeInventory._entry_path_key
+                )
+            ),
+        )
+
+    @staticmethod
+    @contextmanager
+    def _opened_root(
+        root_path: Path,
+    ) -> Generator[
+        t.Pair[
+            m.Cli.AtomicPhysicalTreeEntry,
+            FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        ]
+    ]:
+        """Retain one shared root acquisition for shallow and recursive inventories."""
         root_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(root_path)
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(root_path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
@@ -162,7 +140,6 @@ class FlextCliUtilitiesAtomicTreeInventory:
             if root_state is None:
                 message = f"required atomic physical-tree root is missing: {root_path}"
                 raise FileNotFoundError(errno.ENOENT, message, root_path)
-            entries: list[m.Cli.AtomicPhysicalTreeEntry] = []
             with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
                 outer_parent,
                 root_path,
@@ -202,15 +179,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     ),
                     (*outer_parent.lineage, outer_parent.descriptor),
                 )
-                directory_identities = {
-                    FlextCliUtilitiesAtomicFilePath.identity(root_state),
-                }
-                FlextCliUtilitiesAtomicTreeInventory._inventory_directory(
-                    root_parent,
-                    root_mount_id,
-                    entries,
-                    directory_identities,
-                )
+                yield root, root_parent
                 FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
                     descriptor,
                     root_path,
@@ -221,15 +190,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 root_path,
                 root_state,
             )
-        return m.Cli.AtomicPhysicalTreeManifest(
-            root=root,
-            entries=tuple(
-                sorted(
-                    entries,
-                    key=FlextCliUtilitiesAtomicTreeInventory._entry_path_key,
-                ),
-            ),
-        )
+            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(outer_parent)
 
     @staticmethod
     def _inventory_directory(

@@ -106,6 +106,7 @@ class FlextCliUtilitiesRuntime(
             env=env,
             start_new_session=os.name != "nt",
             creationflags=options.creation_flags,
+            pass_fds=options.pass_fds,
         )
 
     @staticmethod
@@ -194,6 +195,8 @@ class FlextCliUtilitiesRuntime(
                 heartbeat_seconds=launch.heartbeat_seconds,
                 deadline=launch.deadline,
                 pass_fds=launch.pass_fds,
+                stderr_file=launch.stderr_file,
+                isolation=launch.isolation,
             )
         return cls._execute_streamed_process(
             m.Cli.RuntimeProcessRequest(
@@ -203,6 +206,11 @@ class FlextCliUtilitiesRuntime(
                 input_data=launch.input_data,
                 capture_output=capture,
                 timeout=timeout,
+                deadline=launch.deadline,
+                live=launch.live,
+                heartbeat_seconds=launch.heartbeat_seconds,
+                isolation=launch.isolation,
+                pass_fds=tuple(launch.pass_fds),
             ),
         ).flat_map(decode_output)
 
@@ -229,6 +237,11 @@ class FlextCliUtilitiesRuntime(
                 env=cls._resolved_env(launch.env, launch.remove_env_keys),
                 input_data=launch.input_data,
                 timeout=timeout,
+                deadline=launch.deadline,
+                live=launch.live,
+                heartbeat_seconds=launch.heartbeat_seconds,
+                isolation=launch.isolation,
+                pass_fds=tuple(launch.pass_fds),
             ),
         )
 
