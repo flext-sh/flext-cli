@@ -149,7 +149,7 @@ class TestsFlextCliRuntimeProcessIsolation:
         """Native reference imports cannot weaken the external syscall contract."""
         policy = config.ProcessIsolation.denied_syscalls
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="denied_syscalls"):
             m.Cli.ProcessIsolation.model_validate({"denied_syscalls": policy[1:]})
 
     @staticmethod
@@ -159,5 +159,5 @@ class TestsFlextCliRuntimeProcessIsolation:
         payload = isolation.model_dump()
         payload["seccomp_filter"] = isolation.sources[0]
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="seccomp_filter"):
             m.Cli.ProcessReadOnlyIsolation.model_validate(payload)
