@@ -66,7 +66,9 @@ class FlextCliConfigModels:
                 or "\0" in part
                 for part in value
             ):
-                msg = "native compiler resource parts must be lexical relative components"
+                msg = (
+                    "native compiler resource parts must be lexical relative components"
+                )
                 raise ValueError(msg)
             return value
 

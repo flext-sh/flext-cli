@@ -150,7 +150,19 @@ class TestsFlextCliRuntimeProcessIsolation:
         policy = config.ProcessIsolation.denied_syscalls
 
         with pytest.raises(ValueError, match="denied_syscalls"):
-            m.Cli.ProcessIsolation.model_validate({"denied_syscalls": policy[1:]})
+            m.Cli.ProcessIsolation.model_validate({
+                "compiler_resource_parts": config.ProcessIsolation.compiler_resource_parts,
+                "denied_syscalls": policy[1:],
+            })
+
+    @staticmethod
+    def test_resource_declaration_refuses_parent_escape() -> None:
+        """The source locator must remain inside the selected installed package."""
+        with pytest.raises(ValueError, match="compiler_resource_parts"):
+            m.Cli.ProcessIsolation.model_validate({
+                "compiler_resource_parts": ("..",),
+                "denied_syscalls": config.ProcessIsolation.denied_syscalls,
+            })
 
     @staticmethod
     def test_raw_filter_is_not_a_qualification_input(tmp_path: Path) -> None:
