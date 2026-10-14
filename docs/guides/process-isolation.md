@@ -40,6 +40,14 @@ they cannot be removed by configuration. The native compiler uses libseccomp's
 architecture-aware symbolic rule API, including multiplexed syscall rewriting,
 and never relies on a handwritten numeric syscall table.
 
+The same config declares `compiler_resource_parts` once. Bootstrap resolves those
+relative parts against the original installed RECORD of `config.Cli.name`;
+it does not infer a Python package name from that distribution name or consume
+a checkout path. Exactly one original resource entry with verified bytes is
+required. An editable installation without that resource in its RECORD is not
+packaged-resource proof. The generic resource owner and the actual package
+build/RECORD validation remain required before native source qualification.
+
 The runtime reauthenticates the supplied physical identities before spawning.
 Source files, runtime files, the launcher and the compiled filter use sealed
 anonymous descriptors. Bubblewrap mounts those exact file bytes read-only at

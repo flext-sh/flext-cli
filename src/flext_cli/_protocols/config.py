@@ -31,6 +31,9 @@ class FlextCliProtocolsConfig:
         """Source-owned immutable syscall obligations."""
 
         @property
+        def compiler_resource_parts(self) -> tuple[str, ...]: ...
+
+        @property
         def denied_syscalls(self) -> tuple[str, ...]: ...
 
 
