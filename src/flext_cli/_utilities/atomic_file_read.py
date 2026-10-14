@@ -11,7 +11,9 @@ import os
 from pathlib import Path
 
 from flext_cli import t
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from flext_cli._utilities.atomic_file_descriptor import (
+    FlextCliUtilitiesAtomicFileDescriptor,
+)
 
 
 class FlextCliUtilitiesAtomicFileRead:
@@ -33,21 +35,25 @@ class FlextCliUtilitiesAtomicFileRead:
             self.descriptor = descriptor
             self.path = path
             self.expected = expected
+            self.version_key = FlextCliUtilitiesAtomicFileRead.state_key(expected)
 
         def read_range(self, offset: int, length: int) -> bytes:
             """Read the complete requested range, refusing mutation or short reads."""
             if (
                 isinstance(offset, bool)
                 or isinstance(length, bool)
+                or not isinstance(offset, int)
+                or not isinstance(length, int)
                 or offset < 0
                 or length < 0
                 or offset + length > self.expected.st_size
             ):
                 msg = "atomic range lies outside the authenticated file"
                 raise ValueError(msg)
-            if FlextCliUtilitiesAtomicFileRead.state_key(
-                os.fstat(self.descriptor)
-            ) != FlextCliUtilitiesAtomicFileRead.state_key(self.expected):
+            if (
+                FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(self.descriptor))
+                != self.version_key
+            ):
                 FlextCliUtilitiesAtomicFileRead.raise_changed(self.path)
             os.lseek(self.descriptor, offset, os.SEEK_SET)
             remaining = length
@@ -58,9 +64,10 @@ class FlextCliUtilitiesAtomicFileRead:
                     FlextCliUtilitiesAtomicFileRead.raise_changed(self.path)
                 chunks.append(chunk)
                 remaining -= len(chunk)
-            if FlextCliUtilitiesAtomicFileRead.state_key(
-                os.fstat(self.descriptor)
-            ) != FlextCliUtilitiesAtomicFileRead.state_key(self.expected):
+            if (
+                FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(self.descriptor))
+                != self.version_key
+            ):
                 FlextCliUtilitiesAtomicFileRead.raise_changed(self.path)
             return b"".join(chunks)
 

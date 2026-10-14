@@ -18,7 +18,7 @@ import fnmatch
 from collections.abc import Mapping, MutableSequence
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import FlextCliUtilitiesJson
+from flext_cli._utilities.json import FlextCliUtilitiesJson
 
 if TYPE_CHECKING:
     from pathlib import Path

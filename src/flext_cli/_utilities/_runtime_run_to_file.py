@@ -10,7 +10,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli import m, p, settings, t
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessExecutionMixin
+from flext_cli._utilities._runtime_process_execution import (
+    FlextCliUtilitiesRuntimeProcessExecutionMixin,
+)
 
 
 class FlextCliUtilitiesRuntimeRunToFileMixin(

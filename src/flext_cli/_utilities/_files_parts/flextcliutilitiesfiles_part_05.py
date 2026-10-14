@@ -181,8 +181,10 @@ class FlextCliUtilitiesFilesPart05:
     ) -> p.Result[m.Cli.AtomicDirectoryInventory]:
         """Capture immediate namespace elections without reading descendant bytes."""
         try:
-            inventory = FlextCliUtilitiesAtomicTreeInventory.inventory_physical_directory(
-                Path(root_path)
+            inventory = (
+                FlextCliUtilitiesAtomicTreeInventory.inventory_physical_directory(
+                    Path(root_path)
+                )
             )
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryInventory].fail(

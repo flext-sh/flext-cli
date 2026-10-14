@@ -16,13 +16,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli import m
-from flext_cli._utilities import (
+from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
-    FlextCliUtilitiesAtomicFileModel,
-    FlextCliUtilitiesAtomicFilePath,
-    FlextCliUtilitiesAtomicFileRead,
-    FlextCliUtilitiesAtomicFileState,
 )
+from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileModel
+from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
+from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
 
 if TYPE_CHECKING:
     from flext_cli import p, t
@@ -103,14 +103,18 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                     digest.update(chunk)
                 if digest.hexdigest() != receipt.sha256:
                     FlextCliUtilitiesAtomicFileRead.raise_changed(receipt.path)
-                yield FlextCliUtilitiesAtomicFileRead.Reader(
+                reader = FlextCliUtilitiesAtomicFileRead.Reader(
                     descriptor, receipt.path, state
                 )
-                if (
-                    FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(descriptor))
-                    != receipt.version_key
-                ):
-                    FlextCliUtilitiesAtomicFileRead.raise_changed(receipt.path)
+                try:
+                    yield reader
+                    if (
+                        FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(descriptor))
+                        != receipt.version_key
+                    ):
+                        FlextCliUtilitiesAtomicFileRead.raise_changed(receipt.path)
+                finally:
+                    reader.descriptor = -1
 
     @staticmethod
     def read_authenticated_state(

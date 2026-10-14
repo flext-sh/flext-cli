@@ -58,7 +58,12 @@ class FlextCliUtilitiesFilesPart03:
     def atomic_binary_file_reader(
         receipt: m.Cli.AtomicFileReceipt,
     ) -> Generator[p.Cli.AtomicFileReader]:
-        """Retain one authenticated descriptor for repeated exact range reads."""
+        """Retain one authenticated descriptor for repeated exact range reads.
+
+        Yields:
+            The authenticated scoped reader for the receipt.
+
+        """
         with FlextCliUtilitiesAtomicFileSnapshot.receipt_reader(receipt) as reader:
             yield reader
 
@@ -66,7 +71,12 @@ class FlextCliUtilitiesFilesPart03:
     def atomic_read_binary_file_range(
         receipt: m.Cli.AtomicFileReceipt, offset: int, length: int
     ) -> p.Result[bytes]:
-        """Read an exact range through the canonical scoped descriptor owner."""
+        """Read an exact range through the canonical scoped descriptor owner.
+
+        Returns:
+            The resulting ``p.Result[bytes]``.
+
+        """
         try:
             with FlextCliUtilitiesAtomicFileSnapshot.receipt_reader(receipt) as reader:
                 content = reader.read_range(offset, length)
@@ -81,7 +91,12 @@ class FlextCliUtilitiesFilesPart03:
         destination_before: m.Cli.AtomicFileReceipt,
         staged: m.Cli.AtomicFileReceipt,
     ) -> p.Result[m.Cli.AtomicFileReceipt]:
-        """Consume a streamed staged artifact under exact destination ownership."""
+        """Consume a streamed staged artifact under exact destination ownership.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.AtomicFileReceipt]``.
+
+        """
         try:
             published = FlextCliUtilitiesAtomicFilePublish.publish_guarded_staged_file(
                 destination_before, staged
