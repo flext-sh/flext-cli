@@ -50,7 +50,7 @@ class FlextCliUtilitiesAtomicFileModel:
 
     @staticmethod
     def require_observed(
-        planned: m.Cli.AtomicFileState,
+        planned: m.Cli.AtomicFileIdentity,
         observed: os.stat_result | None,
         *,
         path: Path | None = None,
@@ -63,7 +63,7 @@ class FlextCliUtilitiesAtomicFileModel:
 
         """
         target = planned.path if path is None else path
-        if planned.content is None:
+        if planned.device is None:
             if observed is not None:
                 message = f"atomic file appeared after absent snapshot: {target}"
                 raise OSError(errno.ESTALE, message, target)
@@ -77,7 +77,9 @@ class FlextCliUtilitiesAtomicFileModel:
             raise OSError(errno.ESTALE, message, target)
 
     @staticmethod
-    def require_parent(state: m.Cli.AtomicFileState, observed: os.stat_result) -> None:
+    def require_parent(
+        state: m.Cli.AtomicFileIdentity, observed: os.stat_result
+    ) -> None:
         """Require the authenticated parent to equal the snapshot parent identity.
 
         Raises:
@@ -114,7 +116,7 @@ class FlextCliUtilitiesAtomicFileModel:
         )
 
     @staticmethod
-    def _planned_physical_state(state: m.Cli.AtomicFileState) -> PhysicalState:
+    def _planned_physical_state(state: m.Cli.AtomicFileIdentity) -> PhysicalState:
         if state.device is None or state.inode is None or state.link_count is None:
             message = (
                 f"existing atomic file state lacks physical identity: {state.path}"

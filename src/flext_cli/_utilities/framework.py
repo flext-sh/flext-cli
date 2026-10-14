@@ -19,7 +19,7 @@ from typer.models import OptionInfo
 from typer.testing import CliRunner
 
 from flext_cli import c, e, m, p, r, settings, t
-from flext_cli._utilities import FlextCliUtilitiesCommands
+from flext_cli._utilities.commands import FlextCliUtilitiesCommands
 from flext_core import u
 
 # typer ships a vendored click, so the exceptions it raises are NOT instances

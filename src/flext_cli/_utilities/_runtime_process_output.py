@@ -10,7 +10,9 @@ import threading
 from typing import IO, TYPE_CHECKING
 
 from flext_cli import m
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessThreadsMixin
+from flext_cli._utilities._runtime_process_threads import (
+    FlextCliUtilitiesRuntimeProcessThreadsMixin,
+)
 
 if TYPE_CHECKING:
     from flext_cli import p, t

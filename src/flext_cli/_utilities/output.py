@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import ClassVar
 
 from flext_cli import c, p
-from flext_cli._utilities import FlextCliUtilitiesOutputPayloads
+from flext_cli._utilities.output_payloads import FlextCliUtilitiesOutputPayloads
 
 
 class FlextCliUtilitiesOutput(FlextCliUtilitiesOutputPayloads):
