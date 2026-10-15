@@ -20,7 +20,7 @@ from flext_cli.__version__ import (
     __version__,
     __version_info__,
 )
-from flext_core import install_lazy_exports
+from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli import services
