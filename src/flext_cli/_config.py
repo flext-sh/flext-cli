@@ -15,9 +15,10 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING
 
+from flext_core import FlextConfig
+
 from flext_cli._constants.base import FlextCliConstantsBase
 from flext_cli._models.config import FlextCliConfigModels
-from flext_core import FlextConfig
 
 if TYPE_CHECKING:
     # NOTE (multi-agent): accessor typed by PROTOCOL (p), never the model

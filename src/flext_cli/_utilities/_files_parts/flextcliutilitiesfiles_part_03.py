@@ -224,6 +224,7 @@ class FlextCliUtilitiesFilesPart03:
 
         Raises:
             FileNotFoundError: If the required file is missing.
+
         """
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(Path(file_path))
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:

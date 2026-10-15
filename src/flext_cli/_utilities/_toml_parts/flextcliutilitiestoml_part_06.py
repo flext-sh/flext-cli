@@ -9,12 +9,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import tomlkit
+from flext_core import u
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c, e, p, r, t
 from flext_cli._utilities._toml_parts import FlextCliUtilitiesTomlPart01
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
-from flext_core import u
 
 if TYPE_CHECKING:
     from pathlib import Path

@@ -1,4 +1,7 @@
 ProcessIsolation:
+  compiler_resource_parts:
+    - _utilities
+    - native_policy_compiler.c
   denied_syscalls:
     - socket
     - socketpair

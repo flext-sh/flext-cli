@@ -9,9 +9,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
+from flext_core import m, u
+
 from flext_cli import c, t
 from flext_cli._models import FlextCliModelsAtomicState
-from flext_core import m, u
 
 
 class FlextCliModelsBasePart02:
@@ -24,6 +25,8 @@ class FlextCliModelsBasePart02:
             extra="forbid",
             frozen=True,
             arbitrary_types_allowed=True,
+            ser_json_bytes="base64",
+            val_json_bytes="base64",
         )
         path: Annotated[Path, m.Field(description="Absolute file path")]
         parent_device: Annotated[

@@ -10,8 +10,9 @@ import os
 from pathlib import Path
 from typing import overload
 
-from flext_cli import c, m, p, t
 from flext_core import u
+
+from flext_cli import c, m, p, t
 
 
 class FlextCliUtilitiesSettings:

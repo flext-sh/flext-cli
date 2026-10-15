@@ -9,9 +9,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
+from flext_core import m, u
+
 from flext_cli import t
 from flext_cli._models import FlextCliModelsAtomicState
-from flext_core import m, u
 
 
 class FlextCliModelsBasePart08:

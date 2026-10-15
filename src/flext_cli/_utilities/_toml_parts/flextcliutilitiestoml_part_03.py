@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections.abc import MutableMapping
 
+from flext_core import u
 from tomlkit.items import Table
 from tomlkit.toml_document import TOMLDocument
 
@@ -16,7 +17,6 @@ from flext_cli._utilities._toml_parts import (
     FlextCliUtilitiesTomlPart01,
     FlextCliUtilitiesTomlPart02,
 )
-from flext_core import u
 
 
 class FlextCliUtilitiesTomlPart03:

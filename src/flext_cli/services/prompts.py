@@ -28,6 +28,10 @@ class FlextCliPrompts(FlextCliPromptsSupport):
     def confirm(self, message: str, *, default: bool = False) -> p.Result[bool]:
         """Read a yes/no confirmation or return the configured default.
 
+        Args:
+            message: Confirmation question shown to the user.
+            default: Value returned when input is unavailable or empty.
+
         Returns:
             The resulting ``p.Result[bool]``.
 
@@ -45,6 +49,10 @@ class FlextCliPrompts(FlextCliPromptsSupport):
     def prompt(self, message: str, default: str = "") -> p.Result[str]:
         """Read one text value or return the configured default.
 
+        Args:
+            message: Prompt text shown to the user.
+            default: Value returned when input is unavailable or empty.
+
         Returns:
             The resulting ``p.Result[str]``.
 
@@ -59,6 +67,10 @@ class FlextCliPrompts(FlextCliPromptsSupport):
         default: str | None = None,
     ) -> p.Result[str]:
         """Resolve one value constrained to the supplied choices.
+
+        Args:
+            choices: Allowed values the answer must match.
+            default: Preselected choice used when input is unavailable.
 
         Returns:
             The resulting ``p.Result[str]``.
@@ -77,6 +89,10 @@ class FlextCliPrompts(FlextCliPromptsSupport):
     ) -> p.Result[str]:
         """Read a password and enforce the minimum length.
 
+        Args:
+            message: Prompt text shown before reading the password.
+            min_length: Minimum accepted password length.
+
         Returns:
             The resulting ``p.Result[str]``.
 
@@ -91,6 +107,9 @@ class FlextCliPrompts(FlextCliPromptsSupport):
     def print_error(self, message: str) -> p.Result[bool]:
         """Render an error message through the canonical prompt output path.
 
+        Args:
+            message: Message to render.
+
         Returns:
             The resulting ``p.Result[bool]``.
 
@@ -100,6 +119,9 @@ class FlextCliPrompts(FlextCliPromptsSupport):
     def print_success(self, message: str) -> p.Result[bool]:
         """Render a success message through the canonical prompt output path.
 
+        Args:
+            message: Message to render.
+
         Returns:
             The resulting ``p.Result[bool]``.
 
@@ -108,6 +130,9 @@ class FlextCliPrompts(FlextCliPromptsSupport):
 
     def print_warning(self, message: str) -> p.Result[bool]:
         """Render a warning message through the canonical prompt output path.
+
+        Args:
+            message: Message to render.
 
         Returns:
             The resulting ``p.Result[bool]``.

@@ -21,6 +21,22 @@ class TestsFlextCliAtomicFileContract:
     """Observable atomic-write behavior shared by text and binary APIs."""
 
     @staticmethod
+    @pytest.mark.parametrize("content", [b"", bytes(range(256))])
+    def test_binary_snapshot_json_roundtrip_preserves_exact_state(
+        tmp_path: Path, content: bytes
+    ) -> None:
+        """Native binary snapshots survive JSON transport without UTF-8 coercion."""
+        path = tmp_path / "snapshot.bin"
+        path.write_bytes(content)
+        state = tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True))
+
+        restored = type(state).model_validate_json(state.model_dump_json())
+
+        tm.that(restored, eq=state)
+        tm.that(restored.content, eq=content)
+        tm.ok(u.Cli.atomic_verify_binary_file_states((restored,)))
+
+    @staticmethod
     def test_text_write_persists_content(tmp_path: Path) -> None:
         """Keep the unconditional text facade on the strict atomic owner."""
         path = tmp_path / "atomic.txt"

@@ -9,11 +9,11 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
+from flext_core import u
 from typing_extensions import TypeForm
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._tables_parts import FlextCliUtilitiesTablesRenderer
-from flext_core import u
 
 
 class FlextCliUtilitiesTables:

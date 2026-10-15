@@ -11,13 +11,12 @@ from pathlib import Path
 from types import FrameType, GenericAlias
 from typing import ClassVar
 
+from flext_core import t, u
 from jinja2.sandbox import SandboxedEnvironment
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 from typing_extensions import TypeForm
-
-from flext_core import t, u
 
 
 class FlextCliTypesBase:

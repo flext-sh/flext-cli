@@ -107,7 +107,8 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         """Create each planned directory, advancing the expected identity.
 
         Returns:
-            The resulting ``list[m.Cli.AtomicDirectoryState]``.
+            The created directory states in plan order.
+
         """
         for directory in plan.directories:
             snapshot = FlextCliUtilitiesAtomicDirectorySnapshot

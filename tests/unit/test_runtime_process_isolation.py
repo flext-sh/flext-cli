@@ -31,7 +31,12 @@ class TestsFlextCliRuntimeProcessIsolation:
         source.write_text('"""Captured source."""\n', encoding="utf-8")
         issuer = tmp_path / "unqualified-bootstrap.json"
         issuer.write_text(
-            m.Cli.ProcessNativeQualificationReport(receipts=()).model_dump_json(),
+            m.Cli.ProcessNativeQualificationReport(
+                root=tmp_path,
+                operation="bootstrap",
+                scope=(tmp_path,),
+                receipts=(),
+            ).model_dump_json(),
             encoding="utf-8",
         )
         interpreter = Path(sys.executable).resolve()
@@ -76,7 +81,7 @@ class TestsFlextCliRuntimeProcessIsolation:
             compiler_declaration=source_state,
             sources=(source_state,),
             runtime_trees=(),
-            runtime_files=(),
+            runtime_files=(artifact,),
             environment=(),
         )
 
@@ -122,6 +127,34 @@ class TestsFlextCliRuntimeProcessIsolation:
         tm.that(result.error or "", has=expected)
 
     @staticmethod
+    def test_native_evidence_round_trips_original_process_outcomes(
+        tmp_path: Path,
+    ) -> None:
+        """Persist real native outcomes through the canonical bootstrap wire model."""
+        qualification = TestsFlextCliRuntimeProcessIsolation._request(
+            tmp_path
+        ).policy_compiler
+        restored = m.Cli.ProcessNativeToolEvidence.model_validate_json(
+            qualification.model_dump_json(exclude={"issuer_receipt", "artifact"})
+        )
+
+        tm.that(
+            restored.model_dump(),
+            eq=qualification.model_dump(exclude={"issuer_receipt", "artifact"}),
+        )
+        for before, after in (
+            (qualification.native_build_outcome, restored.native_build_outcome),
+            (qualification.native_abi_probe_outcome, restored.native_abi_probe_outcome),
+            (
+                qualification.native_policy_probe_outcome,
+                restored.native_policy_probe_outcome,
+            ),
+        ):
+            tm.that(after.raw_return_code, eq=before.raw_return_code)
+            tm.that(after.timed_out, eq=before.timed_out)
+            tm.that(after.forwarded_signal, eq=before.forwarded_signal)
+
+    @staticmethod
     def test_unqualified_compiler_does_not_create_durable_output(
         tmp_path: Path,
     ) -> None:
@@ -129,7 +162,11 @@ class TestsFlextCliRuntimeProcessIsolation:
         isolation = TestsFlextCliRuntimeProcessIsolation._request(tmp_path)
         output = tmp_path / "output" / "raw.log"
         result = u.Cli.run_to_file(
-            [sys.executable, "-c", "raise SystemExit(71)"],
+            [
+                str(isolation.policy_compiler.abi_reference.path),
+                "-c",
+                "raise SystemExit(71)",
+            ],
             output,
             cwd=tmp_path,
             options=m.Cli.ProcessOptions(isolation=isolation),
@@ -149,8 +186,22 @@ class TestsFlextCliRuntimeProcessIsolation:
         """Native reference imports cannot weaken the external syscall contract."""
         policy = config.ProcessIsolation.denied_syscalls
 
-        with pytest.raises(ValueError):
-            m.Cli.ProcessIsolation.model_validate({"denied_syscalls": policy[1:]})
+        with pytest.raises(ValueError, match="denied_syscalls"):
+            m.Cli.ProcessIsolation.model_validate({
+                "compiler_resource_parts": (
+                    config.ProcessIsolation.compiler_resource_parts
+                ),
+                "denied_syscalls": policy[1:],
+            })
+
+    @staticmethod
+    def test_resource_declaration_refuses_parent_escape() -> None:
+        """The source locator must remain inside the selected installed package."""
+        with pytest.raises(ValueError, match="compiler_resource_parts"):
+            m.Cli.ProcessIsolation.model_validate({
+                "compiler_resource_parts": ("..",),
+                "denied_syscalls": config.ProcessIsolation.denied_syscalls,
+            })
 
     @staticmethod
     def test_raw_filter_is_not_a_qualification_input(tmp_path: Path) -> None:
@@ -159,5 +210,5 @@ class TestsFlextCliRuntimeProcessIsolation:
         payload = isolation.model_dump()
         payload["seccomp_filter"] = isolation.sources[0]
 
-        with pytest.raises(ValueError):
+        with pytest.raises(ValueError, match="seccomp_filter"):
             m.Cli.ProcessReadOnlyIsolation.model_validate(payload)

@@ -12,20 +12,20 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import ClassVar, Literal
 
+from flext_core import m
+
 from flext_cli import p, t
 from flext_cli._models._base.flextclimodelsbase_part_01 import FlextCliModelsBasePart01
 from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
 from flext_cli._models._base.flextclimodelsbase_part_09 import FlextCliModelsBasePart09
-from flext_core import m
 
 
 class FlextCliModelsProcess:
     """Process input declarations exposed through ``m.Cli``."""
 
-    class ProcessNativePolicyProbe(m.BaseModel):
+    class ProcessNativePolicyProbe(m.Value):
         """One original native denial observation in the bootstrap receipt."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="forbid")
         syscall: str = m.Field(
             min_length=1, description="Declared symbolic syscall actually attempted"
         )
@@ -33,12 +33,9 @@ class FlextCliModelsProcess:
             ge=0, description="Original errno returned by the denied native syscall"
         )
 
-    class ProcessNativeToolEvidence(m.ArbitraryTypesModel):
+    class ProcessNativeToolEvidence(m.ContractModel):
         """Native tool row serialized by the existing bootstrap receipt owner."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            arbitrary_types_allowed=True, frozen=True, extra="forbid"
-        )
         role: Literal["isolation-launcher", "policy-compiler"] = m.Field(
             description="Declared native capability qualified by this bootstrap row"
         )
@@ -94,30 +91,70 @@ class FlextCliModelsProcess:
             description="Captured exact compiler bytes matching the installed receipt"
         )
 
-    class ProcessNativeQualificationReceipt(m.BaseModel):
-        """Minimal typed projection of one existing workspace operation receipt."""
+    class ProcessNativeQualificationReceipt[ContextT, IssueT, OutcomeT](
+        m.ContractModel
+    ):
+        """Original operation receipt shared with its issuing domain."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="ignore")
+        runtime_context: ContextT | None = m.Field(
+            default=None,
+            description="Authenticated installed association retained across failure",
+        )
+        root: Path = m.Field(description="Repository actually attempted")
+        executed: bool = m.Field(description="Original operation was invoked")
+        outcome: OutcomeT | None = m.Field(
+            description="Native outcome independent of report transport"
+        )
+        native_exit_code: int | None = m.Field(
+            default=None, description="Original native shell exit status"
+        )
+        stage: t.NonEmptyStr | None = m.Field(
+            default=None, description="Original bootstrap stage reached"
+        )
+        completed: bool | None = m.Field(
+            default=None, description="Original bootstrap reached its final stage"
+        )
+        applicability: str = m.Field(
+            default="", description="Declaration policy preventing execution"
+        )
+        files: tuple[Path, ...] = m.Field(
+            default=(), description="Paths returned by the original operation owner"
+        )
+        issues: tuple[IssueT, ...] = m.Field(
+            default=(), description="Native findings retained from the issuing domain"
+        )
+
         native_tool_qualifications: tuple[
             FlextCliModelsProcess.ProcessNativeToolEvidence, ...
         ] = m.Field(
             default=(), description="Native tool evidence in the original receipt"
         )
 
-    class ProcessNativeQualificationReport(m.BaseModel):
-        """Minimal typed projection of the existing bootstrap report."""
+    class ProcessNativeQualificationReport[ContextT, IssueT, OutcomeT](m.ContractModel):
+        """Declared scope and original receipts shared with the issuing domain."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, extra="ignore")
+        root: Path = m.Field(description="Invoking repository root")
+        operation: t.NonEmptyStr = m.Field(description="Public operation name")
+        scope: tuple[Path, ...] = m.Field(
+            description="Roots discovered once before the original batch"
+        )
+        candidate_sha: str | None = m.Field(
+            default=None, description="Original Git candidate when available"
+        )
+        candidate_read_exit_code: int | None = m.Field(
+            default=None, description="Original Git metadata read status"
+        )
+
         receipts: tuple[
-            FlextCliModelsProcess.ProcessNativeQualificationReceipt, ...
+            FlextCliModelsProcess.ProcessNativeQualificationReceipt[
+                ContextT, IssueT, OutcomeT
+            ],
+            ...,
         ] = m.Field(description="Original workspace operation receipts")
 
-    class ProcessReadOnlyIsolation(m.ArbitraryTypesModel):
+    class ProcessReadOnlyIsolation(m.ContractModel):
         """Qualified Linux confinement inputs consumed by the process owner."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            arbitrary_types_allowed=True, frozen=True, extra="forbid"
-        )
         platform: Literal["linux"] = m.Field(description="Declared native capability")
         architecture: str = m.Field(min_length=1, description="Qualified filter ABI")
         launcher: FlextCliModelsProcess.ProcessNativeToolQualification = m.Field(

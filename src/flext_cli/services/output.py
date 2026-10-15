@@ -28,7 +28,13 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
 
     @staticmethod
     def emit_stdout(text: str, *, end: str = "\n") -> None:
-        """Emit exact machine-readable text without Rich interpretation."""
+        """Emit exact machine-readable text without Rich interpretation.
+
+        Args:
+            text: Raw text to write to stdout.
+            end: Trailing text appended after the payload.
+
+        """
         _ = sys.stdout.write(f"{text}{end}")
 
     @staticmethod
@@ -52,7 +58,14 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
 
     @staticmethod
     def display_text(text: str, *, style: str | None = None) -> None:
-        """Display text with optional style. Delegates to print_message."""
+        """Display text with optional style. Delegates to print_message.
+
+        Args:
+            text: Text to display.
+            style: Optional Rich style name; the default style applies when
+                omitted.
+
+        """
         FlextCliOutput.print_message(text, style=style)
 
     @staticmethod
@@ -83,13 +96,25 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
 
     @staticmethod
     def print_message(message: str, style: str | None = None) -> None:
-        """Print a message using FlextCliFormatters."""
+        """Print a message using FlextCliFormatters.
+
+        Args:
+            message: Message to print.
+            style: Optional Rich style name; the default style applies when
+                omitted.
+
+        """
         validated_style = u.Cli.output_resolve_style(style)
         FlextCliFormatters.print(message, style=validated_style)
 
     @staticmethod
     def display_header(text: str) -> None:
-        """Display a section header via Rich rule."""
+        """Display a section header via Rich rule.
+
+        Args:
+            text: Header text to render.
+
+        """
         FlextCliFormatters.render_rule(text)
 
     @staticmethod
@@ -100,7 +125,15 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
         *,
         detail: str = "",
     ) -> None:
-        """Display progress indicator [current/total] label detail."""
+        """Display progress indicator [current/total] label detail.
+
+        Args:
+            current: Completed step count.
+            total: Total step count.
+            label: Short label describing the work in progress.
+            detail: Optional trailing detail appended to the line.
+
+        """
         FlextCliFormatters.print(
             u.Cli.output_progress_line(current, total, label, detail=detail),
         )
@@ -113,7 +146,15 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
         success: bool,
         elapsed: float | None = None,
     ) -> None:
-        """Display a pass/fail status line."""
+        """Display a pass/fail status line.
+
+        Args:
+            label: Short label naming the checked item.
+            detail: Descriptive detail rendered after the label.
+            success: Whether the status renders as passed or failed.
+            elapsed: Optional elapsed seconds appended to the line.
+
+        """
         line, style = u.Cli.output_status_line(
             label,
             detail,
@@ -131,7 +172,16 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
         failed: int,
         skipped: int = 0,
     ) -> None:
-        """Display a summary panel."""
+        """Display a summary panel.
+
+        Args:
+            title: Panel title.
+            total: Total number of processed items.
+            success: Number of successfully processed items.
+            failed: Number of failed items.
+            skipped: Number of skipped items.
+
+        """
         content = u.Cli.output_summary_content(
             total=total,
             success=success,
@@ -142,19 +192,37 @@ class FlextCliOutput(s[m.Cli.RuntimeStatus]):
 
     @staticmethod
     def display_gate(name: str, *, passed: bool, message: str = "") -> None:
-        """Display a quality gate result."""
+        """Display a quality gate result.
+
+        Args:
+            name: Gate name.
+            passed: Whether the gate passed.
+            message: Optional explanatory message appended to the line.
+
+        """
         line, style = u.Cli.output_gate_line(name, passed=passed, message=message)
         FlextCliFormatters.print(line, style=style)
 
     @staticmethod
     def display_metrics(metrics: t.ConfigValueMapping) -> None:
-        """Display key=value metric pairs."""
+        """Display key=value metric pairs.
+
+        Args:
+            metrics: Mapping of metric names to their values.
+
+        """
         for key, value in metrics.items():
             FlextCliFormatters.print(f"{key}={value}")
 
     @staticmethod
     def display_debug(message: str, *, verbose: bool = False) -> None:
-        """Display debug message (no-op unless verbose)."""
+        """Display debug message (no-op unless verbose).
+
+        Args:
+            message: Debug message to display.
+            verbose: Whether debug output is enabled.
+
+        """
         if not verbose:
             return
         line, style = u.Cli.output_debug_line(message)
