@@ -24,6 +24,8 @@ class FlextCliModelsBasePart02:
             extra="forbid",
             frozen=True,
             arbitrary_types_allowed=True,
+            ser_json_bytes="base64",
+            val_json_bytes="base64",
         )
         path: Annotated[Path, m.Field(description="Absolute file path")]
         parent_device: Annotated[
