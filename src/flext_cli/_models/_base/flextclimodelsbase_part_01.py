@@ -9,8 +9,9 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Annotated, ClassVar
 
-from flext_cli import c, t
 from flext_core import m, u
+
+from flext_cli import c, t
 
 
 class FlextCliModelsBasePart01:

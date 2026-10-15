@@ -9,8 +9,9 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli._constants import FlextCliConstantsEnums
 from flext_core import c, t
+
+from flext_cli._constants import FlextCliConstantsEnums
 
 
 class FlextCliConstantsSettings:

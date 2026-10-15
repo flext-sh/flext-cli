@@ -146,6 +146,7 @@ class FlextCliUtilitiesTomlPart02:
         Raises:
             TypeError: If the field is not an array or a slot is not an item.
             ValueError: If serialization duplicates or loses an occurrence.
+
         """
         source = FlextCliUtilitiesTomlPart02.toml_item_child(container, key)
         if not isinstance(source, Array):

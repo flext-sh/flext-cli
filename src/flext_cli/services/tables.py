@@ -25,6 +25,11 @@ class FlextCliTables(s[m.Cli.RuntimeStatus]):
     ) -> p.Result[str]:
         """Format table data to a string using the public CLI API.
 
+        Args:
+            data: Table source data to format.
+            settings: Optional table configuration; defaults apply when omitted.
+            config_kwargs: Individual configuration values keyed by name.
+
         Returns:
             The resulting ``p.Result[str]``.
 
@@ -41,7 +46,14 @@ class FlextCliTables(s[m.Cli.RuntimeStatus]):
         settings: m.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> None:
-        """Render and display a formatted table on the console."""
+        """Render and display a formatted table on the console.
+
+        Args:
+            data: Table source data to render.
+            settings: Optional table configuration; defaults apply when omitted.
+            config_kwargs: Individual configuration values keyed by name.
+
+        """
 
         def _render_with_title(rendered: str, title: str | None = None) -> str:
             if title:

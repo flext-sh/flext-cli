@@ -13,10 +13,11 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesJson
-from flext_cli._utilities._yaml import FlextCliUtilitiesYamlEditingMixin
 from flext_core import u
+
+from flext_cli import c, p, r, t
+from flext_cli._utilities._yaml import FlextCliUtilitiesYamlEditingMixin
+from flext_cli._utilities.json import FlextCliUtilitiesJson
 
 
 class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
@@ -96,6 +97,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
         Returns:
             Every validated document in stream order, or the first failure.
+
         """
         loaded = FlextCliUtilitiesYaml.yaml_roundtrip_load_all_text(text)
         if loaded.failure:

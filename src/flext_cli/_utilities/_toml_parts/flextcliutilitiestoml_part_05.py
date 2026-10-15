@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import cast
 
+from flext_core import u
 from tomlkit.items import Item, Table
 from tomlkit.toml_document import TOMLDocument
 
@@ -18,7 +19,6 @@ from flext_cli._utilities._toml_parts import (
     FlextCliUtilitiesTomlPart02,
     FlextCliUtilitiesTomlPart03,
 )
-from flext_core import u
 
 
 class FlextCliUtilitiesTomlPart05:

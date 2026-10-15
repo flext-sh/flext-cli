@@ -6,9 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import s
+
 from flext_cli import m, p, t, u
 from flext_cli.services._cli_parts import FlextCliCliPart05
-from flext_core import s
 
 
 class FlextCliCliPart06(FlextCliCliPart05):
@@ -29,6 +30,10 @@ class FlextCliCliPart06(FlextCliCliPart05):
         a command executes, so ``--help`` constructs no adapter. A successful
         result value is rendered; rejected input renders its cause on stdout
         and exits non-zero with the ``ValidationError`` as the failure cause.
+
+        Args:
+            service_type: Core service class whose operations become routes.
+            provide: Callable building the service instance at execution time.
 
         Returns:
             The resulting ``tuple[m.Cli.ResultCommandRoute, ...]``.

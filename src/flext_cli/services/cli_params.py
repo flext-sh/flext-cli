@@ -36,6 +36,11 @@ class FlextCliCommonParams(s[m.Cli.RuntimeStatus]):
         the result carries the ``ValidationError``; every other exception
         escapes.
 
+        Args:
+            settings: Settings instance that receives the parameter values.
+            params: Optional resolved parameter model; defaults apply when omitted.
+            kwargs: Individual parameter values keyed by parameter name.
+
         Returns:
             The resulting ``p.Result[p.Cli.Settings]``.
 
@@ -52,6 +57,9 @@ class FlextCliCommonParams(s[m.Cli.RuntimeStatus]):
     @classmethod
     def create_option(cls, field_name: str) -> m.Cli.OptionSpec:
         """Create one validated framework-neutral option model.
+
+        Args:
+            field_name: Registered parameter name to build the option for.
 
         Returns:
             The resulting ``m.Cli.OptionSpec``.

@@ -15,9 +15,10 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING
 
+from flext_core import FlextConfig
+
 from flext_cli._constants.base import FlextCliConstantsBase
 from flext_cli._models.config import FlextCliConfigModels
-from flext_core import FlextConfig
 
 if TYPE_CHECKING:
     # NOTE (multi-agent): accessor typed by PROTOCOL (p), never the model
@@ -39,6 +40,12 @@ class FlextCliConfig(FlextConfig):
         """Validated ``Cli`` config domain (name/version identity metadata)."""
         root = FlextCliConfigModels.Root.model_validate(dict(self.model_extra or {}))
         return root.Cli
+
+    @cached_property
+    def ProcessIsolation(self) -> FlextCliProtocolsConfig.ProcessIsolation:
+        """Validated native read-only reference process policy."""
+        root = FlextCliConfigModels.Root.model_validate(dict(self.model_extra or {}))
+        return root.ProcessIsolation
 
 
 config: FlextCliConfig = FlextCliConfig.fetch_global()

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from flext_core import FlextConstants
+
 from flext_cli._constants import (
     FlextCliConstantsBase,
     FlextCliConstantsConfig,
@@ -22,7 +24,6 @@ from flext_cli._constants import (
     FlextCliConstantsXlsx,
     FlextCliConstantsXlsxFutureFunctions,
 )
-from flext_core import FlextConstants
 
 if TYPE_CHECKING:
     from flext_cli import t

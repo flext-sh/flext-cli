@@ -9,10 +9,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import ClassVar
 
+from flext_core import u
 from typing_extensions import TypeForm
 
 from flext_cli import FlextCli, FlextCliTypes
-from flext_core import u
 
 
 class ExamplesFlextCliTypes(FlextCliTypes):

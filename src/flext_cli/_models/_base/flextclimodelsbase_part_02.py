@@ -9,16 +9,17 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
+from flext_core import m, u
+
 from flext_cli import c, t
 from flext_cli._models import FlextCliModelsAtomicState
-from flext_core import m, u
 
 
 class FlextCliModelsBasePart02:
     """Implementation part for FlextCliModelsBasePart02."""
 
-    class AtomicFileState(m.BaseModel):
-        """Exact content and physical identity for one regular file version."""
+    class AtomicFileIdentity(m.BaseModel):
+        """Shared physical identity of an existing or absent regular file."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             extra="forbid",
@@ -43,10 +44,6 @@ class FlextCliModelsBasePart02:
                 strict=True,
                 description="Physical parent inode, or None when the chain is absent",
             ),
-        ] = None
-        content: Annotated[
-            bytes | None,
-            m.Field(strict=True, description="Exact bytes, or None when absent"),
         ] = None
         mode: Annotated[
             int | None,
@@ -124,7 +121,6 @@ class FlextCliModelsBasePart02:
             presence = tuple(
                 value is not None
                 for value in (
-                    self.content,
                     self.mode,
                     self.device,
                     self.inode,
@@ -133,11 +129,11 @@ class FlextCliModelsBasePart02:
             )
             if any(presence) != all(presence):
                 msg = (
-                    "atomic file state must contain bytes, mode, device, inode, and "
+                    "atomic file identity must contain mode, device, inode, and "
                     "link count, or none of them"
                 )
                 raise ValueError(msg)
-            if self.content is None and (
+            if self.device is None and (
                 self.file_attributes is not None or self.reparse_tag is not None
             ):
                 msg = "absent atomic file state cannot contain host metadata"
@@ -145,7 +141,7 @@ class FlextCliModelsBasePart02:
             FlextCliModelsAtomicState.validate_parent_identity(
                 self.parent_device,
                 self.parent_inode,
-                present=self.content is not None,
+                present=self.device is not None,
                 label="atomic file state",
             )
             FlextCliModelsAtomicState.validate_non_reparse_state(
@@ -153,6 +149,72 @@ class FlextCliModelsBasePart02:
                 self.reparse_tag,
                 label="atomic file state",
             )
+            return self
+
+    class AtomicFileState(AtomicFileIdentity):
+        """Exact content and physical identity for one regular file version."""
+
+        content: Annotated[
+            bytes | None,
+            m.Field(strict=True, description="Exact bytes, or None when absent"),
+        ] = None
+
+        @u.model_validator(mode="after")
+        def _validate_content_presence(self) -> Self:
+            """Require exact bytes if and only if the physical file exists.
+
+            Returns:
+                The validated model instance.
+
+            Raises:
+                ValueError: If content presence and physical presence disagree.
+
+            """
+            if (self.content is not None) != (self.device is not None):
+                msg = "atomic file content and physical presence must agree"
+                raise ValueError(msg)
+            return self
+
+    class AtomicFileReceipt(AtomicFileIdentity):
+        """Authenticated file version and digest without a buffered payload."""
+
+        size: Annotated[
+            int | None, m.Field(ge=0, strict=True, description="Exact byte length")
+        ] = None
+        sha256: Annotated[
+            str | None,
+            m.Field(
+                pattern=r"^[0-9a-f]{64}$",
+                strict=True,
+                description="Digest of the complete authenticated descriptor",
+            ),
+        ] = None
+        version_key: Annotated[
+            t.VariadicTuple[int] | None,
+            m.Field(description="Native descriptor version used for guarded reads"),
+        ] = None
+
+        @u.model_validator(mode="after")
+        def _validate_receipt_presence(self) -> Self:
+            """Require complete measurements if and only if the file exists.
+
+            Returns:
+                The validated model instance.
+
+            Raises:
+                ValueError: If receipt measurements and physical presence disagree.
+
+            """
+            measured = (
+                self.size is not None,
+                self.sha256 is not None,
+                self.version_key is not None,
+            )
+            if any(measured) != all(measured) or all(measured) != (
+                self.device is not None
+            ):
+                msg = "atomic receipt measurements and physical presence must agree"
+                raise ValueError(msg)
             return self
 
     class PromptRuntimeState(m.FlexibleInternalModel):

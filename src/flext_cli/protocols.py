@@ -6,7 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import FlextProtocols
+
 from flext_cli._protocols import (
+    FlextCliProtocolsAtomicFile,
     FlextCliProtocolsBase,
     FlextCliProtocolsConfig,
     FlextCliProtocolsDocx,
@@ -16,7 +19,6 @@ from flext_cli._protocols import (
     FlextCliProtocolsProcess,
     FlextCliProtocolsXlsx,
 )
-from flext_core import FlextProtocols
 
 
 class FlextCliProtocols(FlextProtocols):
@@ -34,6 +36,7 @@ class FlextCliProtocols(FlextProtocols):
         FlextCliProtocolsConfig,
         FlextCliProtocolsXlsx,
         FlextCliProtocolsProcess,
+        FlextCliProtocolsAtomicFile,
         FlextCliProtocolsDocx,
     ):
         """Unified CLI protocol namespace."""

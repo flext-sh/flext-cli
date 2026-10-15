@@ -16,12 +16,15 @@ import os
 from pathlib import Path
 from typing import cast
 
+from flext_core import u
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesJson, FlextCliUtilitiesTomlPart06
-from flext_core import u
+from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06 import (
+    FlextCliUtilitiesTomlPart06,
+)
+from flext_cli._utilities.json import FlextCliUtilitiesJson
 
 
 class FlextCliUtilitiesConfig:

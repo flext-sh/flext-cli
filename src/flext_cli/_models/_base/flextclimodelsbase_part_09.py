@@ -9,9 +9,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Literal, Self
 
+from flext_core import m, u
+
 from flext_cli import t
 from flext_cli._models import FlextCliModelsAtomicState
-from flext_core import m, u
 
 
 class FlextCliModelsBasePart09:
@@ -140,6 +141,40 @@ class FlextCliModelsBasePart09:
                 or self.link_target is not None
             ):
                 msg = "atomic physical-tree directory cannot contain file content state"
+                raise ValueError(msg)
+            return self
+
+    class AtomicDirectoryName(m.BaseModel):
+        """One captured directory election without reading any child payload."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        name: Annotated[str, m.Field(min_length=1, strict=True)]
+        kind: Literal["directory", "file", "symlink", "other"]
+        version_key: t.VariadicTuple[int]
+        link_target: str | None = None
+
+        @u.model_validator(mode="after")
+        def _validate_leaf(self) -> Self:
+            if self.name in {".", ".."} or Path(self.name).name != self.name:
+                msg = "atomic directory child must be one lexical name"
+                raise ValueError(msg)
+            if (self.kind == "symlink") != (self.link_target is not None):
+                msg = "atomic directory symlink must carry its literal target"
+                raise ValueError(msg)
+            return self
+
+    class AtomicDirectoryInventory(m.BaseModel):
+        """One physical directory and its complete immediate child elections."""
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        root: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry
+        entries: t.VariadicTuple[FlextCliModelsBasePart09.AtomicDirectoryName] = ()
+
+        @u.model_validator(mode="after")
+        def _validate_names(self) -> Self:
+            names = tuple(entry.name for entry in self.entries)
+            if self.root.kind != "directory" or names != tuple(sorted(set(names))):
+                msg = "atomic directory inventory requires ordered unique children"
                 raise ValueError(msg)
             return self
 

@@ -11,12 +11,13 @@ import shlex
 import subprocess
 from typing import BinaryIO, ClassVar, override
 
+from flext_core import u as core_u
+
 from flext_cli import m, p, r, t
-from flext_cli._utilities import (
-    FlextCliUtilitiesRuntimeCommandsMixin,
+from flext_cli._utilities._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
+from flext_cli._utilities._runtime_run_to_file import (
     FlextCliUtilitiesRuntimeRunToFileMixin,
 )
-from flext_core import u as core_u
 
 
 class FlextCliUtilitiesRuntime(
@@ -50,6 +51,8 @@ class FlextCliUtilitiesRuntime(
     def _resolved_env(
         env: t.StrMapping | None,
         remove_env_keys: t.StrSequence = (),
+        *,
+        inherit_environment: bool = True,
     ) -> t.StrDict | None:
         """Resolve the child environment from overrides and removals.
 
@@ -66,6 +69,12 @@ class FlextCliUtilitiesRuntime(
             The resulting ``t.StrDict | None``.
 
         """
+        if not inherit_environment:
+            return {
+                key: value
+                for key, value in (() if env is None else env.items())
+                if key not in remove_env_keys
+            }
         if env is None and not remove_env_keys:
             return None
         return FlextCliUtilitiesRuntime.process_env(
@@ -106,6 +115,7 @@ class FlextCliUtilitiesRuntime(
             env=env,
             start_new_session=os.name != "nt",
             creationflags=options.creation_flags,
+            pass_fds=options.pass_fds,
         )
 
     @staticmethod
@@ -189,20 +199,32 @@ class FlextCliUtilitiesRuntime(
             launch = m.Cli.ProcessOptions(
                 env=resolved_env,
                 remove_env_keys=resolved_remove,
+                inherit_environment=launch.inherit_environment,
                 input_data=launch.input_data,
                 live=launch.live,
                 heartbeat_seconds=launch.heartbeat_seconds,
                 deadline=launch.deadline,
                 pass_fds=launch.pass_fds,
+                stderr_file=launch.stderr_file,
+                isolation=launch.isolation,
             )
         return cls._execute_streamed_process(
             m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
                 cwd=cwd,
-                env=cls._resolved_env(launch.env, launch.remove_env_keys),
+                env=cls._resolved_env(
+                    launch.env,
+                    launch.remove_env_keys,
+                    inherit_environment=launch.inherit_environment,
+                ),
                 input_data=launch.input_data,
                 capture_output=capture,
                 timeout=timeout,
+                deadline=launch.deadline,
+                live=launch.live,
+                heartbeat_seconds=launch.heartbeat_seconds,
+                isolation=launch.isolation,
+                pass_fds=tuple(launch.pass_fds),
             ),
         ).flat_map(decode_output)
 
@@ -226,9 +248,18 @@ class FlextCliUtilitiesRuntime(
             m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
                 cwd=cwd,
-                env=cls._resolved_env(launch.env, launch.remove_env_keys),
+                env=cls._resolved_env(
+                    launch.env,
+                    launch.remove_env_keys,
+                    inherit_environment=launch.inherit_environment,
+                ),
                 input_data=launch.input_data,
                 timeout=timeout,
+                deadline=launch.deadline,
+                live=launch.live,
+                heartbeat_seconds=launch.heartbeat_seconds,
+                isolation=launch.isolation,
+                pass_fds=tuple(launch.pass_fds),
             ),
         )
 

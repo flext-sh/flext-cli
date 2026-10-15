@@ -120,6 +120,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
 
         Returns:
             The complete document sequence, or the original parsing failure.
+
         """
         try:
             engine = FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml()

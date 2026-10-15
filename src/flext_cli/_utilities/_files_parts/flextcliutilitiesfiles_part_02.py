@@ -129,7 +129,7 @@ class FlextCliUtilitiesFilesPart02:
         before: m.Cli.AtomicFileState,
         data: bytes,
         *,
-        permission_mode: int,
+        permission_mode: int | None,
     ) -> p.Result[bool]:
         """Publish bytes and mode from one complete physical-state precondition.
 

@@ -9,7 +9,8 @@ from __future__ import annotations
 from typing import Final
 
 from flext_cli import c, m, t
-from flext_cli._utilities import FlextCliUtilitiesOutput, FlextCliUtilitiesTables
+from flext_cli._utilities.output import FlextCliUtilitiesOutput
+from flext_cli._utilities.tables import FlextCliUtilitiesTables
 
 
 class FlextCliUtilitiesFormatters:
@@ -51,7 +52,14 @@ class FlextCliUtilitiesFormatters:
         *,
         error: bool = False,
     ) -> None:
-        """Print one message with the optional canonical style."""
+        """Print one message with the optional canonical style.
+
+        Args:
+            message: Message text printed as one complete line.
+            style: Optional canonical style name applying the matched ANSI wrap.
+            error: Route the line to stderr instead of stdout.
+
+        """
         FlextCliUtilitiesOutput.emit_raw(
             f"{cls._styled(message, style)}\n",
             error=error,
@@ -59,7 +67,12 @@ class FlextCliUtilitiesFormatters:
 
     @classmethod
     def formatters_render_rule(cls, text: str) -> None:
-        """Render one horizontal rule with the label centered between glyph runs."""
+        """Render one horizontal rule with the label centered between glyph runs.
+
+        Args:
+            text: Label text surrounded by spaces inside the glyph runs.
+
+        """
         glyphs = (
             FlextCliUtilitiesFormatters._PANEL_GLYPH
             * FlextCliUtilitiesFormatters._RULE_GLYPH_RUN
@@ -69,7 +82,13 @@ class FlextCliUtilitiesFormatters:
 
     @classmethod
     def formatters_render_panel(cls, content: str, *, title: str = "") -> None:
-        """Render one bordered panel with an optional title line."""
+        """Render one bordered panel with an optional title line.
+
+        Args:
+            content: Panel body rendered between the border lines.
+            title: Optional bold title rendered in the top border.
+
+        """
         border = FlextCliUtilitiesFormatters._PANEL_GLYPH * 4
         if title:
             header = f"{border} {title} {border}"
@@ -83,7 +102,12 @@ class FlextCliUtilitiesFormatters:
 
     @classmethod
     def formatters_render_table(cls, request: m.Cli.TableRenderRequest) -> None:
-        """Render one table from the validated render request."""
+        """Render one table from the validated render request.
+
+        Args:
+            request: Typed rows, columns, and optional table title.
+
+        """
         rendered = FlextCliUtilitiesTables.tables_render(
             request.rows,
             m.Cli.TableConfig(

@@ -13,9 +13,11 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesJson, FlextCliUtilitiesToml
 from flext_core import u
+
+from flext_cli import c, p, r, t
+from flext_cli._utilities.json import FlextCliUtilitiesJson
+from flext_cli._utilities.toml import FlextCliUtilitiesToml
 
 if TYPE_CHECKING:
     from pathlib import Path

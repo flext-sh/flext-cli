@@ -13,9 +13,10 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated
 
+from flext_core import m
+
 from flext_cli import t
 from flext_cli._models import FlextCliModelsBase
-from flext_core import m
 
 
 class FlextCliModelsTemplate:

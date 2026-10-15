@@ -9,6 +9,25 @@ staging and publication. An interruption after authentication removes only the m
 staged inode. The original exception escapes with its original traceback. A real cleanup
 failure retains both causes through the existing cleanup error contract.
 
+`u.Cli.atomic_read_binary_file_receipt` records physical identity, byte length,
+SHA-256, and native version without storing the payload. Optional absence retains
+the same parent and owner contract as a byte snapshot. The scoped
+`u.Cli.atomic_binary_file_reader(receipt)` verifies the complete digest once on
+acquisition and serves repeated `read_range(offset, length)` calls through that
+descriptor. Each range rejects changed metadata and short reads; completion checks
+the path and parent again. The reader becomes unusable when its context closes.
+`u.Cli.atomic_read_binary_file_range` provides the same contract for one range.
+
+`u.Cli.atomic_publish_staged_binary_file_receipt_guarded` uses the existing guarded
+replacement and durability owners. It verifies the destination and staged receipts,
+consumes the staged name, streams the published digest, and returns the published
+version. It never constructs a payload-sized `AtomicFileState`.
+
+`u.Cli.atomic_inventory_physical_directory` captures one authenticated directory and
+its immediate names, kinds, versions, and literal symlink targets. It does not
+descend or read child payloads. Its complete election set can prove an absent name;
+file-content and recursive cleanup authority remain separate contracts.
+
 An exception can also interrupt the return from the operating system's `open` before
 Python stores the descriptor. In that window the operation cannot authenticate the
 directory entry, and therefore leaves it untouched. The original interruption still

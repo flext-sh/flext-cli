@@ -11,8 +11,9 @@ from concurrent.futures import ThreadPoolExecutor
 from graphlib import CycleError, TopologicalSorter
 from typing import ClassVar
 
-from flext_cli import c, m, p, r, settings, t
 from flext_core import u
+
+from flext_cli import c, m, p, r, settings, t
 
 
 class FlextCliUtilitiesPipeline:

@@ -31,6 +31,13 @@ class FlextCliCliPart03(FlextCliCliPart02):
         ``result_border`` turns rejected input into ``e.fail_validation`` with a
         non-zero exit instead of raising the ``ValidationError``.
 
+        Args:
+            model_cls: Request model whose fields declare the options.
+            handler: Callable receiving the parsed request model.
+            settings: Optional model instance supplying current field values.
+            result_border: Whether rejected input exits non-zero instead of
+                raising the validation error.
+
         Returns:
             The resulting ``t.Cli.CliCommand``.
 
@@ -79,6 +86,12 @@ class FlextCliCliPart03(FlextCliCliPart02):
 
         A foreign application or an invalid runner argument is a caller defect
         and raises; the command outcome travels in the invocation result.
+
+        Args:
+            app: Application to invoke.
+            args: Optional command-line tokens passed to the application.
+            charset: Encoding used to decode the command output.
+            env: Optional environment mapping for the invocation.
 
         Returns:
             The resulting ``p.Result[m.Cli.InvocationResult]``.

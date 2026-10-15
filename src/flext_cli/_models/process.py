@@ -10,14 +10,177 @@ import contextlib
 import threading
 from collections.abc import Callable
 from pathlib import Path
-from typing import ClassVar
+from typing import ClassVar, Literal
+
+from flext_core import m
 
 from flext_cli import p, t
-from flext_core import m
+from flext_cli._models._base.flextclimodelsbase_part_01 import FlextCliModelsBasePart01
+from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
+from flext_cli._models._base.flextclimodelsbase_part_09 import FlextCliModelsBasePart09
 
 
 class FlextCliModelsProcess:
     """Process input declarations exposed through ``m.Cli``."""
+
+    class ProcessNativePolicyProbe(m.Value):
+        """One original native denial observation in the bootstrap receipt."""
+
+        syscall: str = m.Field(
+            min_length=1, description="Declared symbolic syscall actually attempted"
+        )
+        observed_errno: int = m.Field(
+            ge=0, description="Original errno returned by the denied native syscall"
+        )
+
+    class ProcessNativeToolEvidence(m.ContractModel):
+        """Native tool row serialized by the existing bootstrap receipt owner."""
+
+        role: Literal["isolation-launcher", "policy-compiler"] = m.Field(
+            description="Declared native capability qualified by this bootstrap row"
+        )
+        artifact_receipt: FlextCliModelsBasePart02.AtomicFileReceipt = m.Field(
+            description="Immutable receipt for the qualified native executable",
+        )
+        declaration_inputs: tuple[FlextCliModelsBasePart02.AtomicFileReceipt, ...] = (
+            m.Field(min_length=1, description="Captured qualification declarations")
+        )
+        installation_inputs: tuple[FlextCliModelsBasePart02.AtomicFileReceipt, ...] = (
+            m.Field(min_length=1, description="Captured native installation inputs")
+        )
+        source_inputs: tuple[FlextCliModelsBasePart02.AtomicFileReceipt, ...] = m.Field(
+            min_length=1,
+            description="Captured source inputs for native qualification",
+        )
+        native_build_outcome: FlextCliModelsBasePart01.ProcessOutcome = m.Field(
+            description="Causal outcome of the native compiler build",
+        )
+        native_abi_probe_outcome: FlextCliModelsBasePart01.ProcessOutcome = m.Field(
+            description="Causal outcome of the native ABI qualification probe",
+        )
+        native_policy_probe_outcome: FlextCliModelsBasePart01.ProcessOutcome = m.Field(
+            description="Original native socket and io_uring denial probe outcome",
+        )
+        policy_sha256: str = m.Field(
+            pattern=r"^[0-9a-f]{64}$",
+            description="Exact process-owner policy request proven by native probes",
+        )
+        native_policy_probes: tuple[
+            FlextCliModelsProcess.ProcessNativePolicyProbe, ...
+        ] = m.Field(
+            description="Original attempted syscall observations, never inferred"
+        )
+        probe_compiler_receipt: FlextCliModelsBasePart02.AtomicFileReceipt = m.Field(
+            description="Exact compiler whose filter supplied the native denial probes"
+        )
+        abi_reference: FlextCliModelsBasePart02.AtomicFileReceipt = m.Field(
+            description="Captured independently elected native ABI reference",
+        )
+        architecture: str = m.Field(
+            min_length=1,
+            description="Qualified native executable architecture",
+        )
+
+    class ProcessNativeToolQualification(ProcessNativeToolEvidence):
+        """Caller-bound projection over one current native bootstrap report row."""
+
+        issuer_receipt: FlextCliModelsBasePart02.AtomicFileState = m.Field(
+            description="Exact existing bootstrap report containing this evidence row"
+        )
+        artifact: FlextCliModelsBasePart02.AtomicFileState = m.Field(
+            description="Captured exact compiler bytes matching the installed receipt"
+        )
+
+    class ProcessNativeQualificationReceipt[ContextT, IssueT, OutcomeT](
+        m.ContractModel
+    ):
+        """Original operation receipt shared with its issuing domain."""
+
+        runtime_context: ContextT | None = m.Field(
+            default=None,
+            description="Authenticated installed association retained across failure",
+        )
+        root: Path = m.Field(description="Repository actually attempted")
+        executed: bool = m.Field(description="Original operation was invoked")
+        outcome: OutcomeT | None = m.Field(
+            description="Native outcome independent of report transport"
+        )
+        native_exit_code: int | None = m.Field(
+            default=None, description="Original native shell exit status"
+        )
+        stage: t.NonEmptyStr | None = m.Field(
+            default=None, description="Original bootstrap stage reached"
+        )
+        completed: bool | None = m.Field(
+            default=None, description="Original bootstrap reached its final stage"
+        )
+        applicability: str = m.Field(
+            default="", description="Declaration policy preventing execution"
+        )
+        files: tuple[Path, ...] = m.Field(
+            default=(), description="Paths returned by the original operation owner"
+        )
+        issues: tuple[IssueT, ...] = m.Field(
+            default=(), description="Native findings retained from the issuing domain"
+        )
+
+        native_tool_qualifications: tuple[
+            FlextCliModelsProcess.ProcessNativeToolEvidence, ...
+        ] = m.Field(
+            default=(), description="Native tool evidence in the original receipt"
+        )
+
+    class ProcessNativeQualificationReport[ContextT, IssueT, OutcomeT](m.ContractModel):
+        """Declared scope and original receipts shared with the issuing domain."""
+
+        root: Path = m.Field(description="Invoking repository root")
+        operation: t.NonEmptyStr = m.Field(description="Public operation name")
+        scope: tuple[Path, ...] = m.Field(
+            description="Roots discovered once before the original batch"
+        )
+        candidate_sha: str | None = m.Field(
+            default=None, description="Original Git candidate when available"
+        )
+        candidate_read_exit_code: int | None = m.Field(
+            default=None, description="Original Git metadata read status"
+        )
+
+        receipts: tuple[
+            FlextCliModelsProcess.ProcessNativeQualificationReceipt[
+                ContextT, IssueT, OutcomeT
+            ],
+            ...,
+        ] = m.Field(description="Original workspace operation receipts")
+
+    class ProcessReadOnlyIsolation(m.ContractModel):
+        """Qualified Linux confinement inputs consumed by the process owner."""
+
+        platform: Literal["linux"] = m.Field(description="Declared native capability")
+        architecture: str = m.Field(min_length=1, description="Qualified filter ABI")
+        launcher: FlextCliModelsProcess.ProcessNativeToolQualification = m.Field(
+            description="Bootstrap-qualified static native Bubblewrap launcher"
+        )
+        launcher_declaration: FlextCliModelsBasePart02.AtomicFileState = m.Field(
+            description="Independently elected canonical launcher declaration"
+        )
+        policy_compiler: FlextCliModelsProcess.ProcessNativeToolQualification = m.Field(
+            description="Bootstrap-qualified static native libseccomp policy compiler"
+        )
+        compiler_declaration: FlextCliModelsBasePart02.AtomicFileState = m.Field(
+            description="Independently elected canonical compiler declaration"
+        )
+        sources: tuple[FlextCliModelsBasePart02.AtomicFileState, ...] = m.Field(
+            min_length=1, description="Captured source, metadata and resource bytes"
+        )
+        runtime_trees: tuple[
+            FlextCliModelsBasePart09.AtomicPhysicalTreeManifest, ...
+        ] = m.Field(description="Authenticated read-only interpreter and system roots")
+        runtime_files: tuple[FlextCliModelsBasePart02.AtomicFileState, ...] = m.Field(
+            description="Authenticated read-only runtime files outside those roots"
+        )
+        environment: tuple[tuple[str, str], ...] = m.Field(
+            description="Complete child environment, without inherited host variables"
+        )
 
     class ProcessOptions(m.ArbitraryTypesModel):
         """Child input, environment, and durable-output execution options."""
@@ -29,6 +192,9 @@ class FlextCliModelsProcess:
         remove_env_keys: t.StrSequence = m.Field(
             default=(),
             description="Environment keys to remove before child execution.",
+        )
+        inherit_environment: bool = m.Field(
+            default=True, description="Overlay the caller environment or replace it"
         )
         input_data: str | bytes | None = m.Field(
             default=None,
@@ -53,6 +219,9 @@ class FlextCliModelsProcess:
         stderr_file: t.Cli.TextPath | None = m.Field(
             default=None,
             description="Separate durable stderr destination for durable output.",
+        )
+        isolation: FlextCliModelsProcess.ProcessReadOnlyIsolation | None = m.Field(
+            default=None, description="Explicit native read-only confinement request"
         )
 
     class RuntimeProcessRequest(m.ArbitraryTypesModel):
@@ -101,6 +270,13 @@ class FlextCliModelsProcess:
         deadline: p.Cli.ProcessDeadline | None = m.Field(
             default=None,
             description="Absolute deadline and termination grace policy.",
+        )
+        isolation: FlextCliModelsProcess.ProcessReadOnlyIsolation | None = m.Field(
+            default=None, description="Immutable native confinement inputs"
+        )
+        pass_fds: tuple[int, ...] = m.Field(
+            default=(),
+            description="Explicit descriptors inherited by an ordinary child",
         )
 
     class RuntimeProcessState(m.ArbitraryTypesModel):
@@ -239,6 +415,9 @@ class FlextCliModelsProcess:
         creation_flags: int = m.Field(
             default=0,
             description="Platform flags used when creating the child process.",
+        )
+        pass_fds: tuple[int, ...] = m.Field(
+            default=(), description="Process-owner descriptors consumed by confinement"
         )
 
 

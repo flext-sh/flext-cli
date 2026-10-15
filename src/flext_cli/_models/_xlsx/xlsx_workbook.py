@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import Annotated
 
+from flext_core import m
+
 from flext_cli import t
 from flext_cli._models._xlsx import (
     FlextCliModelsXlsxCells,
@@ -16,7 +18,6 @@ from flext_cli._models._xlsx import (
     FlextCliModelsXlsxStyles,
     FlextCliModelsXlsxTables,
 )
-from flext_core import m
 
 
 class FlextCliModelsXlsxWorkbook:
