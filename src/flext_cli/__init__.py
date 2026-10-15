@@ -10,10 +10,13 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_cli.__version__ import __version__
 from flext_core.lazy import install_lazy_exports
 
+from flext_cli.__version__ import __version__
+
 if TYPE_CHECKING:
+    from flext_core import d, e, h, r, x
+
     from flext_cli import (
         _constants,
         _models,
@@ -42,7 +45,6 @@ if TYPE_CHECKING:
     from flext_cli.protocols import FlextCliProtocols, p
     from flext_cli.typings import FlextCliTypes, t
     from flext_cli.utilities import FlextCliUtilities, FlextCliUtilitiesCli, u
-    from flext_core import d, e, h, r, x
 
 
 __all__: tuple[str, ...] = (

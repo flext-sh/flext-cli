@@ -13,6 +13,8 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
+    from flext_core import d, e, h, r, x
+
     from examples.constants import ExamplesFlextCliConstants, c
     from examples.ex_01_getting_started import ExamplesFlextCliGettingStarted
     from examples.ex_05_authentication import ExamplesFlextCliAuthentication
@@ -23,7 +25,6 @@ if TYPE_CHECKING:
     from examples.typings import ExamplesFlextCliTypes, t
     from examples.utilities import ExamplesFlextCliUtilities, u
     from flext_cli import s
-    from flext_core import d, e, h, r, x
 
 
 __all__: tuple[str, ...] = (
