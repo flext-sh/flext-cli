@@ -62,6 +62,8 @@ flext-cli = "flext_cli.cli:main"
 Documentation = "https://github.com/flext-sh/flext-cli/blob/main/README.md"
 Homepage = "https://github.com/flext-sh/flext-cli"
 
+[project.optional-dependencies]
+
 [dependency-groups]
 dev = [
   "actionlint-py>=1.7.12.24",
