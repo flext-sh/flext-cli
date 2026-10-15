@@ -130,12 +130,13 @@ class FlextCliUtilitiesFilesPart03:
     ) -> Generator[bytes]:
         """Yield bytes from one authenticated descriptor without buffering the file.
 
+        Physical path and version failures propagate from the descriptor owners.
+
         Yields:
             Complete byte blocks from the required physical file.
 
         Raises:
             FileNotFoundError: If the required file is missing.
-            OSError: If its physical identity changes or its path is not authorized.
         """
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(Path(file_path))
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
