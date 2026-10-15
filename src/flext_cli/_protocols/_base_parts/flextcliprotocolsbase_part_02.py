@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from typing import IO, TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart01
 from flext_core import p
+
+from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart01
 
 if TYPE_CHECKING:
     from flext_cli._models._base.flextclimodelsbase_part_01 import (

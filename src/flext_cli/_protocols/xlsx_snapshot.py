@@ -12,8 +12,9 @@ from flext_cli._protocols import FlextCliProtocolsXlsxSnapshotStructure
 
 if TYPE_CHECKING:
     # mro-j47u (codex): p -> m stays type-only through the canonical facade.
-    from flext_cli import m
     from flext_core import p, t
+
+    from flext_cli import m
 
 
 class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):

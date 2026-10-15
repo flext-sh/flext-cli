@@ -19,12 +19,12 @@ import copy
 from collections.abc import Mapping
 from typing import ClassVar, cast
 
+from flext_core import u
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.tokens import CommentToken as RuamelCommentToken
 
 from flext_cli import p, t
 from flext_cli._utilities._yaml import FlextCliUtilitiesYamlEngineMixin
-from flext_core import u
 
 
 class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):

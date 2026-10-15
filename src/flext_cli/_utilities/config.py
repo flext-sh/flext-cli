@@ -16,6 +16,7 @@ import os
 from pathlib import Path
 from typing import cast
 
+from flext_core import u
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
@@ -24,7 +25,6 @@ from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06 import (
     FlextCliUtilitiesTomlPart06,
 )
 from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_core import u
 
 
 class FlextCliUtilitiesConfig:

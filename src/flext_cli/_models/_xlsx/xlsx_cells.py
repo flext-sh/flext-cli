@@ -10,8 +10,9 @@ import datetime as dt
 from decimal import Decimal
 from typing import Annotated, Literal
 
-from flext_cli import t
 from flext_core import m
+
+from flext_cli import t
 
 
 class FlextCliModelsXlsxCells:

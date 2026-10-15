@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli import c, m, p, r, t
 from flext_core import u
+
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesConversion:

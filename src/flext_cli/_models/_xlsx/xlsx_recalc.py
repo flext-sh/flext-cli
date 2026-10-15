@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from flext_cli import t
 from flext_core import m
+
+from flext_cli import t
 
 
 class FlextCliModelsXlsxRecalc:

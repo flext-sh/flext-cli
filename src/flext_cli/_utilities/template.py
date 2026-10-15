@@ -14,6 +14,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import ClassVar, cast, override
 
+from flext_core import u
 from jinja2 import BaseLoader, Environment, StrictUndefined, meta
 from jinja2.exceptions import TemplateError, TemplateNotFound
 from jinja2.loaders import FileSystemLoader
@@ -22,7 +23,6 @@ from jinja2.utils import select_autoescape
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._files_parts import FlextCliUtilitiesFilesPart03
-from flext_core import u
 
 
 class FlextCliUtilitiesTemplate:

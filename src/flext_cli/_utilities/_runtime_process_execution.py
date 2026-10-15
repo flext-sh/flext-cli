@@ -21,6 +21,8 @@ from typing import TYPE_CHECKING, BinaryIO, Literal
 if sys.platform == "linux":
     import fcntl
 
+from flext_core import u as core_u
+
 from flext_cli import c, config, m, p, r, t
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFilesPart03,
@@ -52,7 +54,6 @@ from flext_cli._utilities.atomic_file_snapshot import (
 from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
 )
-from flext_core import u as core_u
 
 _ELF_HEADER_BYTES = 64
 _ELFCLASS64 = 2

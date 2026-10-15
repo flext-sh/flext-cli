@@ -20,8 +20,9 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import c, m, p, r, t
 from flext_core import u
+
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesJsonCoreMixin:

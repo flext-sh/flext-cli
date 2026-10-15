@@ -11,12 +11,13 @@ import shlex
 import subprocess
 from typing import BinaryIO, ClassVar, override
 
+from flext_core import u as core_u
+
 from flext_cli import m, p, r, t
 from flext_cli._utilities._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
 from flext_cli._utilities._runtime_run_to_file import (
     FlextCliUtilitiesRuntimeRunToFileMixin,
 )
-from flext_core import u as core_u
 
 
 class FlextCliUtilitiesRuntime(
