@@ -63,3 +63,6 @@ class FlextCliAtomicModels:
             default=None,
             description="Literal target of a symbolic link entry.",
         )
+
+
+__all__: list[str] = ["FlextCliAtomicModels"]

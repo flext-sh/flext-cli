@@ -10,7 +10,7 @@ from __future__ import annotations
 import sys
 
 from flext_cli import c, m, s, t, u
-from flext_cli.services.formatters import FlextCliFormatters
+from flext_cli.services import FlextCliFormatters
 
 
 class FlextCliOutput(s[m.Cli.RuntimeStatus]):

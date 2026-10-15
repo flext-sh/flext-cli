@@ -18,7 +18,8 @@ import typer
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
-from flext_cli import c, e, r, t
+from flext_cli import c, e, m, r, settings, t
+from flext_core import u
 
 # mro-j47u (codex): consume every public facade through the package root.
 
@@ -147,9 +148,8 @@ class FlextCliUtilitiesFramework:
         # every service layer keeps the canonical Result intact up to here.
         if not cls._active_execution.get():
             return False
-        from flext_cli import settings, u
 
-        u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)
+        cls.commands_emit_result_error(result, verbose=settings.cli_verbose)
         cls._active_failure.set(r[t.Cli.ResultValue].from_failure(result))
         return cls.framework_exit(code=c.Cli.EXIT_CODE_FAILURE)
 
@@ -291,7 +291,6 @@ class FlextCliUtilitiesFramework:
             The resulting parse hook carrying the declared annotation.
 
         """
-        from flext_core import u
 
         def parse(raw: str) -> t.JsonPayload:
             adapter: t.ValueAdapter[t.JsonPayload] = u.type_adapter(annotation)
@@ -445,7 +444,6 @@ class FlextCliUtilitiesFramework:
             The resulting ``m.Cli.InvocationResult``.
 
         """
-        from flext_cli import m
 
         runner_env: dict[str, str | None] = {
             "NO_COLOR": "1",
