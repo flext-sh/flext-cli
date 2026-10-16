@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 
 class FlextCliProtocolsProcess:
-    """Structural process input declarations exposed through ``p.Cli``."""
+    """Structural launch and managed-child contracts exposed through ``p.Cli``."""
 
     @runtime_checkable
     class ManagedProcess(Protocol):
