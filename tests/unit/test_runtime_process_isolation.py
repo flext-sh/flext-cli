@@ -195,6 +195,29 @@ class TestsFlextCliRuntimeProcessIsolation:
             })
 
     @staticmethod
+    def test_native_policy_reads_the_config_singleton_in_any_import_order(
+        tmp_path: Path,
+    ) -> None:
+        """The denial policy reads the singleton even when the submodule loads first.
+
+        Importing ``flext_cli.config`` as a module rebinds the package attribute
+        of the same name, so a later ``from flext_cli import config`` would bind
+        the module and ``config.ProcessIsolation`` would not exist.
+        """
+        script = (
+            "import importlib\n"
+            "importlib.import_module('flext_cli.config')\n"
+            "from flext_cli import u\n"
+            "policy = u.Cli.native_process_policy_arguments()\n"
+            "raise SystemExit(0 if policy else 1)\n"
+        )
+
+        result = u.Cli.run_raw((sys.executable, "-c", script), cwd=tmp_path)
+
+        tm.ok(result)
+        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
+
+    @staticmethod
     def test_resource_declaration_refuses_parent_escape() -> None:
         """The source locator must remain inside the selected installed package."""
         with pytest.raises(ValueError, match="compiler_resource_parts"):
