@@ -16,8 +16,9 @@ import tomllib
 from pathlib import Path
 
 import pytest
+from tomlkit.exceptions import ParseError
 
-from tests import t, tm, u
+from tests import c, t, tm, u
 
 
 class TestsFlextCliTomlUtilities:
@@ -70,21 +71,24 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_value(section, "number"), eq=42)
 
     @staticmethod
-    @pytest.mark.parametrize(
-        ("filename", "contents"),
-        [("missing.toml", None), ("invalid.toml", "[invalid\nkey = value")],
-    )
-    def test_read_returns_none_for_missing_or_invalid_file(
-        tmp_path: Path,
-        filename: str,
-        contents: str | None,
-    ) -> None:
-        """Verify that read returns none for missing or invalid file."""
-        toml_file = tmp_path / filename
-        if contents is not None:
-            toml_file.write_text(contents, encoding="utf-8")
+    def test_read_returns_none_for_missing_file(tmp_path: Path) -> None:
+        """A path that does not exist reads as ``None``."""
+        tm.that(u.Cli.toml_read(tmp_path / "missing.toml"), none=True)
 
-        tm.that(u.Cli.toml_read(toml_file), none=True)
+    @staticmethod
+    def test_read_raises_parse_error_for_invalid_file(tmp_path: Path) -> None:
+        """Invalid TOML propagates the native ``tomlkit`` parse error."""
+        toml_file = tmp_path / "invalid.toml"
+        toml_file.write_text(c.Tests.TOML_INVALID_CONTENT, encoding="utf-8")
+
+        with pytest.raises(ParseError):
+            u.Cli.toml_read(toml_file)
+
+    @staticmethod
+    def test_read_raises_os_error_for_unreadable_path(tmp_path: Path) -> None:
+        """An existing path that cannot be read propagates the native error."""
+        with pytest.raises(IsADirectoryError):
+            u.Cli.toml_read(tmp_path)
 
     @staticmethod
     def test_read_document_succeeds_and_preserves_values(tmp_path: Path) -> None:
@@ -105,6 +109,29 @@ class TestsFlextCliTomlUtilities:
     ) -> None:
         """Verify that read document fails with not found for missing file."""
         tm.fail(u.Cli.toml_read_document(tmp_path / "missing.toml"), has="not found")
+
+    @staticmethod
+    def test_read_document_fails_with_parse_cause_for_invalid_file(
+        tmp_path: Path,
+    ) -> None:
+        """Invalid TOML fails at the typed boundary and keeps the parse error."""
+        toml_file = tmp_path / "invalid.toml"
+        toml_file.write_text(c.Tests.TOML_INVALID_CONTENT, encoding="utf-8")
+
+        result = u.Cli.toml_read_document(toml_file)
+
+        tm.fail(result, has="TOML parse failed")
+        tm.that(result.exception, is_=ParseError)
+
+    @staticmethod
+    def test_read_document_fails_with_read_cause_for_unreadable_path(
+        tmp_path: Path,
+    ) -> None:
+        """An unreadable existing path fails as a read operation with its cause."""
+        result = u.Cli.toml_read_document(tmp_path)
+
+        tm.fail(result, has="read TOML")
+        tm.that(result.exception, is_=IsADirectoryError)
 
     @staticmethod
     def test_read_json_round_trips_document_to_mapping(tmp_path: Path) -> None:

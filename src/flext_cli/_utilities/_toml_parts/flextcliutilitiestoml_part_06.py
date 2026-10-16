@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING
 
 import tomlkit
 from flext_core import u
+from tomlkit.exceptions import ParseError
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c, e, p, r, t
@@ -27,10 +28,15 @@ class FlextCliUtilitiesTomlPart06:
     def toml_read(path: Path) -> TOMLDocument | None:
         """Read a TOML document, returning ``None`` only when the file is missing.
 
-        Read and parse exceptions propagate unchanged.
+        A path for which ``Path.exists()`` is false returns ``None``. Read and
+        parse exceptions propagate unchanged.
 
         Returns:
-            The resulting ``TOMLDocument | None``.
+            The parsed ``TOMLDocument``, or ``None`` when the path does not exist.
+
+        Raises:
+            OSError: The existing path cannot be read (for example a directory).
+            ParseError: The file content is not valid TOML.
 
         """
         if not path.exists():
@@ -39,20 +45,30 @@ class FlextCliUtilitiesTomlPart06:
 
     @staticmethod
     def toml_read_document(path: Path) -> p.Result[TOMLDocument]:
-        """Read a TOML document with ``r`` semantics.
+        """Read a TOML document at the typed ``r`` boundary.
+
+        ``toml_read`` owns reading and parsing. This boundary carries its
+        outcomes as typed failures that retain the native exception: a missing
+        file fails as not found, an ``OSError`` as a failed read operation, and
+        a ``tomlkit`` ``ParseError`` as a validation failure. Any other
+        exception propagates unchanged.
 
         Returns:
-            The resulting ``p.Result[TOMLDocument]``.
+            The parsed document, or the typed failure carrying the native cause.
 
         """
-        if not path.exists():
-            return e.fail_not_found("TOML file", str(path), result_type=r[TOMLDocument])
-        doc = FlextCliUtilitiesTomlPart06.toml_read(path)
-        if doc is None:
+        try:
+            doc = FlextCliUtilitiesTomlPart06.toml_read(path)
+        except OSError as exc:
+            return e.fail_operation("read TOML", exc, result_type=r[TOMLDocument])
+        except ParseError as exc:
             return e.fail_validation(
                 f"TOML parse failed for: {path}",
+                error=exc,
                 result_type=r[TOMLDocument],
             )
+        if doc is None:
+            return e.fail_not_found("TOML file", str(path), result_type=r[TOMLDocument])
         return r[TOMLDocument].ok(doc)
 
     @staticmethod
