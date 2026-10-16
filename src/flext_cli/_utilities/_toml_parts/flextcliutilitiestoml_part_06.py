@@ -34,10 +34,6 @@ class FlextCliUtilitiesTomlPart06:
         Returns:
             The parsed ``TOMLDocument``, or ``None`` when the path does not exist.
 
-        Raises:
-            OSError: The existing path cannot be read (for example a directory).
-            ParseError: The file content is not valid TOML.
-
         """
         if not path.exists():
             return None
