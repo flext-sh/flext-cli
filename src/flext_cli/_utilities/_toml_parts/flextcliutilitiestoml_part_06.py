@@ -25,7 +25,9 @@ class FlextCliUtilitiesTomlPart06:
 
     @staticmethod
     def toml_read(path: Path) -> TOMLDocument | None:
-        """Read a TOML document, returning ``None`` on missing or invalid files.
+        """Read a TOML document, returning ``None`` only when the file is missing.
+
+        Read and parse exceptions propagate unchanged.
 
         Returns:
             The resulting ``TOMLDocument | None``.
@@ -33,18 +35,7 @@ class FlextCliUtilitiesTomlPart06:
         """
         if not path.exists():
             return None
-        parsed: TOMLDocument | None
-        try:
-            parsed = tomlkit.parse(path.read_text(encoding=c.DEFAULT_ENCODING))
-        except c.EXC_OS_VALUE as exc:
-            u.fetch_logger(__name__).warning(
-                "Failed to read or parse TOML document",
-                path=str(path),
-                error=str(exc),
-                error_type=type(exc).__name__,
-            )
-            parsed = None
-        return parsed
+        return tomlkit.parse(path.read_text(encoding=c.DEFAULT_ENCODING))
 
     @staticmethod
     def toml_read_document(path: Path) -> p.Result[TOMLDocument]:
