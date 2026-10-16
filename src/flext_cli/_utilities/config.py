@@ -19,9 +19,12 @@ from typing import cast
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
-from flext_cli import c, m, p, r, t
 from flext_cli._utilities import FlextCliUtilitiesJson, FlextCliUtilitiesTomlPart06
-from flext_core import u
+from flext_cli.constants import FlextCliConstants as c
+from flext_cli.models import FlextCliModels as m
+from flext_cli.protocols import FlextCliProtocols as p
+from flext_cli.typings import FlextCliTypes as t
+from flext_core import r, u
 
 
 class FlextCliUtilitiesConfig:

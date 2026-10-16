@@ -10,7 +10,10 @@ import os
 from pathlib import Path
 from typing import overload
 
-from flext_cli import c, m, p, t
+from flext_cli.constants import FlextCliConstants as c
+from flext_cli.models import FlextCliModels as m
+from flext_cli.protocols import FlextCliProtocols as p
+from flext_cli.typings import FlextCliTypes as t
 from flext_core import u
 
 
