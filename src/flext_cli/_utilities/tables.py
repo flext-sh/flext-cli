@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
-from flext_core import u
+from flext_core import FlextRuntime, u
 from typing_extensions import TypeForm
 
 from flext_cli import c, m, p, r, t
@@ -33,7 +33,10 @@ class FlextCliUtilitiesTables:
             The resulting ``t.Cli.TableMappingRow``.
 
         """
-        return {key: u.normalize_to_json_value(value) for key, value in row.items()}
+        return {
+            key: FlextRuntime.normalize_to_json_value(value)
+            for key, value in row.items()
+        }
 
     @staticmethod
     def tables_normalize_sequence_row(
@@ -45,7 +48,7 @@ class FlextCliUtilitiesTables:
             The resulting ``t.Cli.TableSequenceRow``.
 
         """
-        return [u.normalize_to_json_value(value) for value in row]
+        return [FlextRuntime.normalize_to_json_value(value) for value in row]
 
     @staticmethod
     def tables_resolve_config(
@@ -100,7 +103,7 @@ class FlextCliUtilitiesTables:
         if isinstance(validated_data, Mapping):
             validated_mapping = validated_data
             return r[Sequence[t.Cli.TableRow]].ok([
-                {"Key": key, "Value": u.normalize_to_json_value(value)}
+                {"Key": key, "Value": FlextRuntime.normalize_to_json_value(value)}
                 for key, value in validated_mapping.items()
             ])
 

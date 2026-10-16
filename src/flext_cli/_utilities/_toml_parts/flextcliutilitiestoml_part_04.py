@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core import u
+from flext_core import FlextRuntime
 from tomlkit.items import Array
 
 from flext_cli import t
@@ -127,8 +127,10 @@ class FlextCliUtilitiesTomlPart04:
             The resulting ``bool``.
 
         """
-        current: t.JsonValue = u.normalize_to_json_value(container.get(key, None))
-        normalized_expected: t.JsonValue = u.normalize_to_json_value(expected)
+        current: t.JsonValue = FlextRuntime.normalize_to_json_value(
+            container.get(key, None)
+        )
+        normalized_expected: t.JsonValue = FlextRuntime.normalize_to_json_value(expected)
         if current == normalized_expected:
             return False
         container[key] = normalized_expected

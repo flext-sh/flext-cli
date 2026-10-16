@@ -11,7 +11,7 @@ from collections.abc import Mapping, Sequence
 from typing import ClassVar
 
 import tomlkit
-from flext_core import u
+from flext_core import FlextRuntime, u
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
@@ -50,11 +50,11 @@ class FlextCliUtilitiesTomlPart01:
         if value is None:
             return None
         if isinstance(value, Mapping) and not isinstance(value, TOMLDocument | Item):
-            return u.normalize_to_json_value(value)
+            return FlextRuntime.normalize_to_json_value(value)
         normalized = value.unwrap() if isinstance(value, TOMLDocument | Item) else value
         if isinstance(normalized, Item):
             return None
-        return u.normalize_to_json_value(normalized)
+        return FlextRuntime.normalize_to_json_value(normalized)
 
     @staticmethod
     def toml_as_string_list(value: t.Cli.TomlStringListSource | None) -> t.StrSequence:
