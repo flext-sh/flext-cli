@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """FLEXT CLI utility facade.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -9,7 +10,7 @@ from __future__ import annotations
 from flext_core import FlextUtilities
 
 from flext_cli import m
-from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
+from flext_cli._utilities import FlextCliUtilitiesCli
 
 
 class FlextCliUtilities(FlextUtilities):
