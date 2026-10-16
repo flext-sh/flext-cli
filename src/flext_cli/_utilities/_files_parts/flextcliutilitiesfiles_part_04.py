@@ -104,7 +104,7 @@ class FlextCliUtilitiesFilesPart04:
         if path.suffix.lower() == ".json":
             read_result = FlextCliUtilitiesJson.json_read(path)
         elif path.suffix.lower() in {".yaml", ".yml"}:
-            read_result = u.Config.Yaml.yaml_safe_load(path)
+            read_result = u.Yaml.yaml_safe_load(path)
         else:
             return r[t.JsonMapping].fail(
                 f"Unsupported format: {path.suffix or '<none>'}",

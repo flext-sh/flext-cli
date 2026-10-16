@@ -147,7 +147,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
         """
         raw = path.read_text(encoding=c.DEFAULT_ENCODING)
-        parsed = u.Config.Yaml.safe_load(raw)
+        parsed = u.Yaml.safe_load(raw)
         if not isinstance(parsed, list):
             msg = f"YAML content is not a list: {type(parsed).__name__}"
             raise TypeError(msg)
@@ -172,7 +172,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             return FlextCliUtilitiesYaml._EMPTY_JSON_SEQUENCE
         return u.try_(
             lambda: FlextCliUtilitiesYaml._yaml_parse_list(path),
-            catch=(OSError, u.Config.Yaml.YAMLError, TypeError, c.ValidationError),
+            catch=(OSError, u.Yaml.YAMLError, TypeError, c.ValidationError),
             op_name="yaml_load_list",
         ).unwrap_or(FlextCliUtilitiesYaml._EMPTY_JSON_SEQUENCE)
 
@@ -203,7 +203,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
             validated = FlextCliUtilitiesJson.normalize_json_value(data)
-            serialized: str = u.Config.Yaml.safe_dump(
+            serialized: str = u.Yaml.safe_dump(
                 validated,
                 default_flow_style=False,
                 sort_keys=sort_keys,
@@ -213,7 +213,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             with path.open("w", encoding=c.DEFAULT_ENCODING) as fh:
                 fh.write(serialized)
             return r[bool].ok(value=True)
-        except (OSError, u.Config.Yaml.YAMLError, ValueError, TypeError) as exc:
+        except (OSError, u.Yaml.YAMLError, ValueError, TypeError) as exc:
             return r[bool].fail(f"YAML write error: {exc}", exception=exc)
 
     @staticmethod
@@ -236,7 +236,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
         """
         validated = FlextCliUtilitiesJson.normalize_json_value(data)
-        serialized: str = u.Config.Yaml.safe_dump(
+        serialized: str = u.Yaml.safe_dump(
             validated,
             default_flow_style=False,
             sort_keys=sort_keys,
