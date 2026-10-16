@@ -688,7 +688,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         report = m.Cli.ProcessNativeQualificationReport[
             t.JsonValue, t.JsonValue, t.JsonValue
         ].model_validate_json(qualification.issuer_receipt.content)
-        evidence = core_u.model.dump(
+        evidence = core_u.dump(
             qualification,
             options=m.ModelDumpOptions(exclude={"issuer_receipt", "artifact"}),
         )
@@ -696,7 +696,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             item
             for receipt in report.receipts
             for item in receipt.native_tool_qualifications
-            if core_u.model.dump(item) == evidence
+            if core_u.dump(item) == evidence
         )
         if len(matches) != 1:
             msg = (

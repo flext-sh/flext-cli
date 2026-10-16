@@ -229,6 +229,7 @@ class FlextCliUtilitiesRuntime(
         ).flat_map(decode_output)
 
     @classmethod
+    @override
     def run_bytes(
         cls,
         cmd: t.StrSequence,
