@@ -234,7 +234,12 @@ class TestsFlextCliJsonCov:
     @staticmethod
     @pytest.mark.parametrize(
         ("keys", "raw"),
-        [(("a", "missing", "c"), '{"a": {}}'), ((), '{"a": 1}')],
+        [
+            (("a", "missing", "c"), '{"a": {}}'),
+            (("a", "b"), '{"a": 1}'),
+            (("a", "b"), '{"a": {"b": null}}'),
+            ((), '{"a": 1}'),
+        ],
     )
     def test_json_walk_path_returns_none_when_unreachable(
         keys: t.VariadicTuple[str],
