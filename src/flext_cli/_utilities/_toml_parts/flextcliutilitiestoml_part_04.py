@@ -130,7 +130,9 @@ class FlextCliUtilitiesTomlPart04:
         current: t.JsonValue = FlextRuntime.normalize_to_json_value(
             container.get(key, None)
         )
-        normalized_expected: t.JsonValue = FlextRuntime.normalize_to_json_value(expected)
+        normalized_expected: t.JsonValue = FlextRuntime.normalize_to_json_value(
+            expected
+        )
         if current == normalized_expected:
             return False
         container[key] = normalized_expected

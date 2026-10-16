@@ -45,7 +45,9 @@ class FlextCliUtilitiesCommands:
         if success_formatter is not None:
             formatted: str = success_formatter(result_value)
             return formatted
-        normalized_value: t.JsonValue = FlextRuntime.normalize_to_json_value(result_value)
+        normalized_value: t.JsonValue = FlextRuntime.normalize_to_json_value(
+            result_value
+        )
         match normalized_value:
             case {c.Cli.DICT_KEY_MESSAGE: str() as candidate} if candidate:
                 return candidate
