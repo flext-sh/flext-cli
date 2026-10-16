@@ -23,7 +23,8 @@ if sys.platform == "linux":
 
 from flext_core import u as core_u
 
-from flext_cli import c, config, m, p, r, t
+from flext_cli import c, m, p, r, t
+from flext_cli._config import config
 from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFilesPart03,
 )
