@@ -9,7 +9,7 @@ from __future__ import annotations
 import signal
 from typing import TYPE_CHECKING, BinaryIO
 
-from flext_cli import m, p, r, t
+from .. import m, p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessStartMixin:

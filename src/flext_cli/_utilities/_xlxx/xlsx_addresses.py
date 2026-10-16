@@ -13,7 +13,7 @@ from openpyxl.utils.cell import (
     range_boundaries,
 )
 
-from flext_cli import c, m, p, r, t
+from ... import c, m, p, r, t
 
 
 class FlextCliUtilitiesXlsxAddresses:

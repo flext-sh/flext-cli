@@ -12,8 +12,8 @@ import stat
 from pathlib import Path
 from typing import Never
 
-from flext_cli import m, t
-from flext_cli._utilities import (
+from .. import m, t
+from .._utilities import (
     FlextCliUtilitiesAtomicDirectoryDelete,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectorySnapshot,

@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, s, t, u
+from .. import m, s, t, u
 
 
 class FlextCliFormatters(s[m.Cli.RuntimeStatus]):

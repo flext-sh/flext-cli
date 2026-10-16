@@ -20,8 +20,8 @@ from jinja2.loaders import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesFilesPart03
+from .. import c, m, p, r, t
+from .._utilities import FlextCliUtilitiesFilesPart03
 from flext_core import u
 
 

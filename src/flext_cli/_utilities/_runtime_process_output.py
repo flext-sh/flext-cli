@@ -9,8 +9,8 @@ from __future__ import annotations
 import threading
 from typing import IO, TYPE_CHECKING
 
-from flext_cli import m
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessThreadsMixin
+from .. import m
+from .._utilities import FlextCliUtilitiesRuntimeProcessThreadsMixin
 
 if TYPE_CHECKING:
     from flext_cli import p, t

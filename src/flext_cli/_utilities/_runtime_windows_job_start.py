@@ -11,7 +11,7 @@ import os
 from ctypes import wintypes
 from typing import Final
 
-from flext_cli import p, r
+from .. import p, r
 
 _RESUME_THREAD_FAILED: Final[int] = 0xFFFFFFFF
 

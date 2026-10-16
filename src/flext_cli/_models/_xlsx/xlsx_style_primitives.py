@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Annotated, Literal
 
-from flext_cli import t
+from ... import t
 from flext_core import m
 
 

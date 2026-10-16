@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping, Sequence
 
-from flext_cli import c, p, r, t
+from .. import c, p, r, t
 
 
 class FlextCliUtilitiesEnv:

@@ -9,9 +9,9 @@ from __future__ import annotations
 from inspect import Parameter
 from typing import get_origin
 
-from flext_cli import c, m, p, r, settings, t, u
-from flext_cli.services._cli_parts.flextclicli_part_01 import FlextCliCliPart01
-from flext_cli.services.cli_params import FlextCliCommonParams
+from ... import c, m, p, r, settings, t, u
+from ...services._cli_parts.flextclicli_part_01 import FlextCliCliPart01
+from ...services.cli_params import FlextCliCommonParams
 
 
 class FlextCliCliPart02(FlextCliCliPart01):

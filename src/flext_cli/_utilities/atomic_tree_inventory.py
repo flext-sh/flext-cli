@@ -12,8 +12,8 @@ import stat
 from pathlib import Path
 from typing import Never
 
-from flext_cli import m, t
-from flext_cli._utilities import (
+from .. import m, t
+from .._utilities import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectoryState,
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -21,7 +21,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileState,
     FlextCliUtilitiesAtomicTreeDescriptor,
 )
-from flext_cli._utilities._atomic_models import FlextCliAtomicModels
+from .._utilities._atomic_models import FlextCliAtomicModels
 
 
 class FlextCliUtilitiesAtomicTreeInventory:

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from flext_cli import c, m, p, r, s, t, u
+from .. import c, m, p, r, s, t, u
 
 
 class FlextCliPipeline(s[m.Cli.RuntimeStatus]):

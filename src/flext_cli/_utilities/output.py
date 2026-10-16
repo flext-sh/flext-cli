@@ -11,8 +11,8 @@ import threading
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli import c, p
-from flext_cli._utilities.output_payloads import FlextCliUtilitiesOutputPayloads
+from .. import c, p
+from .._utilities.output_payloads import FlextCliUtilitiesOutputPayloads
 
 
 class FlextCliUtilitiesOutput(FlextCliUtilitiesOutputPayloads):

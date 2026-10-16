@@ -10,8 +10,8 @@ from openpyxl.cell.cell import Cell
 from openpyxl.comments import Comment
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesXlsxAddresses
+from ... import c, m, p, r, t
+from ..._utilities import FlextCliUtilitiesXlsxAddresses
 
 
 class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):

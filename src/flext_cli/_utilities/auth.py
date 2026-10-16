@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_cli import c, m, p, r, t
+from .. import c, m, p, r, t
 
 
 class FlextCliUtilitiesAuth:

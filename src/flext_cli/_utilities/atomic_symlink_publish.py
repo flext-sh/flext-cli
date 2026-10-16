@@ -11,7 +11,7 @@ import os
 import uuid
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import (
+from .._utilities import (
     FlextCliUtilitiesAtomicDirectoryNoreplace,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,

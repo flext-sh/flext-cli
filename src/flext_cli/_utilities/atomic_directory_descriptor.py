@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar
 
-from flext_cli._utilities import (
+from .._utilities import (
     FlextCliUtilitiesAtomicDirectoryNoreplace,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicParentDescriptor,

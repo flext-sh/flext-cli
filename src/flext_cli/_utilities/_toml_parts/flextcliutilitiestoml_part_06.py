@@ -11,8 +11,8 @@ from typing import TYPE_CHECKING
 import tomlkit
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c, e, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesRuntime, FlextCliUtilitiesTomlPart01
+from ... import c, e, p, r, t
+from ..._utilities import FlextCliUtilitiesRuntime, FlextCliUtilitiesTomlPart01
 from flext_core import u
 
 if TYPE_CHECKING:

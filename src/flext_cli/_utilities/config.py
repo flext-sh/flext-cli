@@ -19,8 +19,8 @@ from typing import cast
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesJson, FlextCliUtilitiesTomlPart06
+from .. import c, m, p, r, t
+from .._utilities import FlextCliUtilitiesJson, FlextCliUtilitiesTomlPart06
 from flext_core import u
 
 

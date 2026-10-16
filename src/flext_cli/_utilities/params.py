@@ -7,8 +7,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 # mro-j47u (kimi): utilities consume local facades only, never flext_core p/r.
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesValidation
+from .. import c, m, p, r, t
+from .._utilities import FlextCliUtilitiesValidation
 
 
 class FlextCliUtilitiesParams:

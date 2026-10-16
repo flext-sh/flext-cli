@@ -18,8 +18,8 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import cast
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesFiles, FlextCliUtilitiesJson
+from ... import c, p, r, t
+from ..._utilities import FlextCliUtilitiesFiles, FlextCliUtilitiesJson
 from flext_core import u
 
 

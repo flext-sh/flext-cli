@@ -10,7 +10,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, ClassVar
 
-from flext_cli import c, p, t
+from .. import c, p, t
 from flext_core import m, u
 
 

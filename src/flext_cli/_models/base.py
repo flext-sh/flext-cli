@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli._models import (
+from .._models import (
     FlextCliModelsAtomicSymlink,
     FlextCliModelsBasePart01,
     FlextCliModelsBasePart02,

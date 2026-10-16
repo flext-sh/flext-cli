@@ -12,7 +12,7 @@ from __future__ import annotations
 import getpass
 from typing import Annotated, Self
 
-from flext_cli import c, m, p, r, s, settings, t, u
+from .. import c, m, p, r, s, settings, t, u
 
 
 class _PromptInputReaderDefault:

@@ -10,7 +10,7 @@ import os
 import threading
 from typing import IO, BinaryIO, ClassVar
 
-from flext_cli import m, p, r, t
+from .. import m, p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessStreamMixin:

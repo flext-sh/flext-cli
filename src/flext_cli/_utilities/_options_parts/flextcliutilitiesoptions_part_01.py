@@ -11,7 +11,7 @@ from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import Annotated, TypeAliasType, get_args, get_origin
 
-from flext_cli import c, m, t
+from ... import c, m, t
 
 
 class FlextCliUtilitiesOptionsPart01:

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli._models import (
+from ._models import (
     FlextCliModelsBase,
     FlextCliModelsDocx,
     FlextCliModelsPipeline,
@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-from flext_cli._models.process import FlextCliModelsProcess
+from ._models.process import FlextCliModelsProcess
 
 
 class FlextCliModels(FlextModels):

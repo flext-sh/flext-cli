@@ -11,7 +11,7 @@ from inspect import Parameter, Signature
 from types import GenericAlias
 from typing import Never, cast
 
-from flext_cli import c, e, m, p, r, settings, t, u
+from ... import c, e, m, p, r, settings, t, u
 
 
 class FlextCliCliPart01:

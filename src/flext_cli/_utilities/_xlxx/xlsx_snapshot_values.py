@@ -13,7 +13,7 @@ from typing import cast
 from openpyxl.cell.cell import Cell, MergedCell
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from ... import c, m, p, r, t
 
 
 class FlextCliUtilitiesXlsxSnapshotValues:

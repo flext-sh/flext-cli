@@ -13,8 +13,8 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import c, p, r, t
-from flext_cli._utilities import (
+from .. import c, p, r, t
+from .._utilities import (
     FlextCliUtilitiesJson,
     FlextCliUtilitiesYamlEditingMixin,
 )

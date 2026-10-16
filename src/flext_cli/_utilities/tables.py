@@ -9,8 +9,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Annotated, ClassVar
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesTablesRenderer
+from .. import c, m, p, r, t
+from .._utilities import FlextCliUtilitiesTablesRenderer
 from flext_core import u
 
 

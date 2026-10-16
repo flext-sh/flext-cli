@@ -17,7 +17,7 @@ from docx.enum.section import WD_ORIENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX, WD_UNDERLINE
 from docx.shared import Inches, Pt, RGBColor
 
-from flext_cli import c, m, p, r, t
+from ... import c, m, p, r, t
 
 if TYPE_CHECKING:
     from docx.text.font import Font

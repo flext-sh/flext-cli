@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli._protocols import (
+from .._protocols import (
     FlextCliProtocolsXlsxArchive,
     FlextCliProtocolsXlsxRules,
     FlextCliProtocolsXlsxSnapshot,

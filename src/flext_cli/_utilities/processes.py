@@ -16,8 +16,8 @@ from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import (
+from .. import c, m, p, r, t
+from .._utilities import (
     FlextCliUtilitiesRuntime,
     FlextCliUtilitiesRuntimeProcessGroupMixin,
 )

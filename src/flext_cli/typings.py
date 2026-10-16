@@ -11,7 +11,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TypeVar
 
-from flext_cli._typings import (
+from ._typings import (
     FlextCliTypesBase,
     FlextCliTypesDomain,
     FlextCliTypesPipeline,

@@ -9,7 +9,7 @@ from __future__ import annotations
 from defusedxml import ElementTree as DefusedET
 from defusedxml.common import DefusedXmlException
 
-from flext_cli import c, m, p, r, t
+from ... import c, m, p, r, t
 
 
 class FlextCliUtilitiesXlsxArchiveChecks:

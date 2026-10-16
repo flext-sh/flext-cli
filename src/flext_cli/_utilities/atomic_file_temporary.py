@@ -13,7 +13,7 @@ import stat
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli._utilities import (
+from .._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileMode,
 )

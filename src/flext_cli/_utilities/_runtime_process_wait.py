@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import threading
 
-from flext_cli import c, p, t
+from .. import c, p, t
 
 
 class FlextCliUtilitiesRuntimeProcessWaitMixin:

@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import Final
 
-from flext_cli import c, m
-from flext_cli._utilities import FlextCliUtilitiesOutput, FlextCliUtilitiesTables
+from .. import c, m
+from .._utilities import FlextCliUtilitiesOutput, FlextCliUtilitiesTables
 
 
 class FlextCliUtilitiesFormatters:

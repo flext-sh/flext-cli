@@ -10,8 +10,8 @@ from collections.abc import Callable, Iterator, Mapping, MutableMapping, Sequenc
 from pathlib import Path
 from typing import Protocol, TextIO, runtime_checkable
 
-from flext_cli import t
-from flext_cli._protocols import FlextCliProtocolsBase
+from .. import t
+from .._protocols import FlextCliProtocolsBase
 
 
 class FlextCliProtocolsDomain:

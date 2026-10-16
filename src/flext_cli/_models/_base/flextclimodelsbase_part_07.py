@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Annotated, ClassVar
 
-from flext_cli import c, t
+from ... import c, t
 from flext_core import m, u
 
 _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})

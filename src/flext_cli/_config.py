@@ -15,8 +15,8 @@ from __future__ import annotations
 from functools import cached_property
 from typing import TYPE_CHECKING
 
-from flext_cli._constants import FlextCliConstantsBase
-from flext_cli._models import FlextCliConfigModels
+from ._constants import FlextCliConstantsBase
+from ._models import FlextCliConfigModels
 from flext_core import FlextConfig
 
 if TYPE_CHECKING:

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import os
 
-from flext_cli._utilities import (
+from .._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFilePath,
 )

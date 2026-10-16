@@ -9,7 +9,7 @@ from __future__ import annotations
 import threading
 from typing import IO, TYPE_CHECKING, BinaryIO
 
-from flext_cli._utilities import (
+from .._utilities import (
     FlextCliUtilitiesRuntimeProcessStreamMixin,
     FlextCliUtilitiesRuntimeProcessWaitMixin,
 )

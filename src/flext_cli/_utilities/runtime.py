@@ -11,8 +11,8 @@ import shlex
 import subprocess
 from typing import BinaryIO, ClassVar, override
 
-from flext_cli import m, p, r, t
-from flext_cli._utilities import (
+from .. import m, p, r, t
+from .._utilities import (
     FlextCliUtilitiesRuntimeCommandsMixin,
     FlextCliUtilitiesRuntimeRunToFileMixin,
 )

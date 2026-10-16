@@ -12,7 +12,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli import p, t
+from .. import p, t
 from flext_core import m
 
 

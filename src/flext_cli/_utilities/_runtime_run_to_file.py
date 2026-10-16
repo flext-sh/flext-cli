@@ -9,8 +9,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli import m, p, settings, t
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessExecutionMixin
+from .. import m, p, settings, t
+from .._utilities import FlextCliUtilitiesRuntimeProcessExecutionMixin
 
 
 class FlextCliUtilitiesRuntimeRunToFileMixin(

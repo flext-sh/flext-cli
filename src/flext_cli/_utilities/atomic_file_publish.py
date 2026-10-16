@@ -10,7 +10,7 @@ import errno
 import os
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import (
+from .._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
     FlextCliUtilitiesAtomicFileMode,
@@ -19,7 +19,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFilePublishChecks,
     FlextCliUtilitiesAtomicFileState,
 )
-from flext_cli._utilities._atomic_models import FlextCliAtomicModels
+from .._utilities._atomic_models import FlextCliAtomicModels
 
 if TYPE_CHECKING:
     from flext_cli import m

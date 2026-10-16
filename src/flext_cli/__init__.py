@@ -10,7 +10,7 @@ from __future__ import annotations
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
-from flext_cli.__version__ import (
+from .__version__ import (
     __author__,
     __author_email__,
     __description__,

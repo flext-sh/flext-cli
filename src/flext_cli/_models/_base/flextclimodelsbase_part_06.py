@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar
 
-from flext_cli import t
-from flext_cli._models import FlextCliModelsBasePart01
+from ... import t
+from ..._models import FlextCliModelsBasePart01
 from flext_core import m
 
 

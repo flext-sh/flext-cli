@@ -14,7 +14,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from ... import c, m, p, r, t
 
 # Why: tier-whitelist forbids bare pydantic imports outside flext-core;
 # route through the c facade re-export (matches conversion.py/tables.py/yaml.py).

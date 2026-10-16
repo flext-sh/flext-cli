@@ -11,8 +11,8 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import (
+from ... import c, m, p, r, t
+from ..._utilities import (
     FlextCliUtilitiesXlsxAddresses,
     FlextCliUtilitiesXlsxFormulaCodec,
 )

@@ -10,7 +10,7 @@ import ctypes
 import os
 from ctypes import wintypes
 
-from flext_cli import p, r
+from .. import p, r
 
 
 class FlextCliUtilitiesRuntimeWindowsJobStateMixin:

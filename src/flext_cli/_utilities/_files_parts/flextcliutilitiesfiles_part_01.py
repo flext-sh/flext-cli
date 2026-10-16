@@ -11,8 +11,8 @@ import shutil
 from pathlib import Path
 
 import flext_core
-from flext_cli import c, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesFilesPart02
+from ... import c, p, r, t
+from ..._utilities import FlextCliUtilitiesFilesPart02
 from flext_core import u
 
 

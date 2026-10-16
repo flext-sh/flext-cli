@@ -11,13 +11,13 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli import c
-from flext_cli._utilities import (
+from .. import c
+from .._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileMode,
     FlextCliUtilitiesAtomicFileState,
 )
-from flext_cli._utilities._atomic_models import FlextCliAtomicModels
+from .._utilities._atomic_models import FlextCliAtomicModels
 
 if TYPE_CHECKING:
     from flext_cli import t

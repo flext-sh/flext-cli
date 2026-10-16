@@ -14,7 +14,7 @@ from openpyxl.styles.borders import Side
 from openpyxl.styles.fills import Fill, PatternFill, Stop
 from openpyxl.styles.styleable import StyleableObject
 
-from flext_cli import m, p, r, t
+from ... import m, p, r, t
 
 _XlsxUnderlineStyle = Literal[
     "single",

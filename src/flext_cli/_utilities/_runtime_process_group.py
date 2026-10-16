@@ -10,8 +10,8 @@ import os
 import platform
 import signal
 
-from flext_cli import p, r
-from flext_cli._utilities import (
+from .. import p, r
+from .._utilities import (
     FlextCliUtilitiesRuntimeDarwinProcessGroupMixin,
     FlextCliUtilitiesRuntimeWindowsJobStartMixin,
     FlextCliUtilitiesRuntimeWindowsJobStateMixin,

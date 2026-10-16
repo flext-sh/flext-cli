@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from typing import Final
 
-from flext_cli import c, m, t
+from ... import c, m, t
 
 _EMPTY: Final[str] = ""
 _GAP: Final[str] = "  "

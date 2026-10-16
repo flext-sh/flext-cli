@@ -11,8 +11,8 @@ from collections.abc import MutableMapping
 from tomlkit.items import Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import t
-from flext_cli._utilities import (
+from ... import t
+from ..._utilities import (
     FlextCliUtilitiesTomlPart01,
     FlextCliUtilitiesTomlPart02,
 )

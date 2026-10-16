@@ -9,7 +9,7 @@ from __future__ import annotations
 from io import BytesIO
 from typing import TYPE_CHECKING
 
-from flext_cli import c, p, r
+from ... import c, p, r
 
 if TYPE_CHECKING:
     from pptx.presentation import Presentation as PresentationType

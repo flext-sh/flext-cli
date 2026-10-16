@@ -10,8 +10,8 @@ from openpyxl.cell.cell import Cell
 from openpyxl.utils.exceptions import IllegalCharacterError
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesXlsxFormulaCodec
+from ... import c, m, p, r, t
+from ..._utilities import FlextCliUtilitiesXlsxFormulaCodec
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
 

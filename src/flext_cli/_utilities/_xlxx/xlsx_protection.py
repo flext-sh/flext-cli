@@ -9,7 +9,7 @@ from __future__ import annotations
 from openpyxl.styles import Protection
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from ... import c, m, p, r, t
 
 
 class FlextCliUtilitiesXlsxProtection:

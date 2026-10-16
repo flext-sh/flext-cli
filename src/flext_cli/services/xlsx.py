@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
-from flext_cli import m, s
+from .. import m, s
 
 if TYPE_CHECKING:
     from flext_cli import p, t

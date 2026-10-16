@@ -14,7 +14,7 @@ from pptx import Presentation
 from pptx.exc import PackageNotFoundError
 from pptx.presentation import Presentation as PresentationType
 
-from flext_cli import c, m, p, r, t
+from ... import c, m, p, r, t
 
 
 class FlextCliUtilitiesPptxReader:

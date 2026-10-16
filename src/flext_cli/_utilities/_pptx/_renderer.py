@@ -11,8 +11,8 @@ from io import BytesIO
 from pptx import Presentation
 from pptx.presentation import Presentation as PresentationType
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesPptxSerializer
+from ... import c, m, p, r, t
+from ..._utilities import FlextCliUtilitiesPptxSerializer
 
 
 class FlextCliUtilitiesPptxRenderer:

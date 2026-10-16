@@ -15,7 +15,7 @@ from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_UNDERLINE
 from docx.table import Table
 
-from flext_cli import c, m, p, r, t
+from ... import c, m, p, r, t
 
 if TYPE_CHECKING:
     from docx.document import Document as DocumentType

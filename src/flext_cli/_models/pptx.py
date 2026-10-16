@@ -6,8 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import t
-from flext_cli._models import FlextCliModelsPptxPresentation
+from .. import t
+from .._models import FlextCliModelsPptxPresentation
 
 
 class FlextCliModelsPptx(FlextCliModelsPptxPresentation):

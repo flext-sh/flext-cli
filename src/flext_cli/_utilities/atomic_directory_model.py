@@ -11,8 +11,8 @@ import os
 import stat
 from pathlib import Path
 
-from flext_cli import m
-from flext_cli.typings import DirectoryPhysicalState
+from .. import m
+from ..typings import DirectoryPhysicalState
 
 
 class FlextCliUtilitiesAtomicDirectoryModel:

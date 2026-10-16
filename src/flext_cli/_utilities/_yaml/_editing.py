@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, ClassVar, cast
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.tokens import CommentToken as RuamelCommentToken
 
-from flext_cli._utilities import FlextCliUtilitiesYamlEngineMixin
+from ..._utilities import FlextCliUtilitiesYamlEngineMixin
 from flext_core import u
 
 if TYPE_CHECKING:

@@ -12,8 +12,8 @@ from zipfile import BadZipFile
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesXlsxArchive
+from ... import c, m, p, r, t
+from ..._utilities import FlextCliUtilitiesXlsxArchive
 
 
 class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):

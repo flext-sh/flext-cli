@@ -10,8 +10,8 @@ import traceback
 from typing import TYPE_CHECKING
 
 # mro-j47u (codex): formatter contracts are owned once by the t facade.
-from flext_cli import c, r, t
-from flext_cli._utilities import FlextCliUtilitiesOutput
+from .. import c, r, t
+from .._utilities import FlextCliUtilitiesOutput
 from flext_core import u
 
 if TYPE_CHECKING:

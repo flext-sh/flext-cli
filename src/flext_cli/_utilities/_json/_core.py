@@ -20,7 +20,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import c, m, p, r, t
+from ... import c, m, p, r, t
 from flext_core import u
 
 _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})

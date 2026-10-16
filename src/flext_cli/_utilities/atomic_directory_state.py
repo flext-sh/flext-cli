@@ -11,8 +11,8 @@ import os
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli import t
-from flext_cli._utilities import (
+from .. import t
+from .._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileMode,
     FlextCliUtilitiesAtomicFilePath,

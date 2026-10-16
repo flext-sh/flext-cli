@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, cast
 from tomlkit.items import Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli._utilities import (
+from ..._utilities import (
     FlextCliUtilitiesTomlPart01,
     FlextCliUtilitiesTomlPart02,
     FlextCliUtilitiesTomlPart03,

@@ -10,8 +10,8 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import m, t
-from flext_cli._utilities import (
+from .. import m, t
+from .._utilities import (
     FlextCliUtilitiesAtomicDirectoryCleanup,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectoryModel,

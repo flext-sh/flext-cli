@@ -11,8 +11,8 @@ import os
 import stat
 from pathlib import Path
 
-from flext_cli import t
-from flext_cli._utilities import (
+from .. import t
+from .._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileRead,

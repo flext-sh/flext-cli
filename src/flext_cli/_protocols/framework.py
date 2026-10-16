@@ -10,7 +10,7 @@ from collections.abc import Callable
 from typing import Protocol, runtime_checkable
 
 # mro-j47u (codex): consume the earlier local t facade through the package root.
-from flext_cli import t
+from .. import t
 
 
 class FlextCliProtocolsFramework:

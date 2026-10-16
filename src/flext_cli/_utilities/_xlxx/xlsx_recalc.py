@@ -9,8 +9,8 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import (
+from ... import c, m, p, r, t
+from ..._utilities import (
     FlextCliUtilitiesProcesses,
     FlextCliUtilitiesXlsxRecalcEvidence,
     FlextCliUtilitiesXlsxSnapshot,

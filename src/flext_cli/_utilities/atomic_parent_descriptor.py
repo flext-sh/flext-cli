@@ -14,9 +14,9 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from flext_cli import t
-from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
-from flext_cli.typings import DirectoryChainInspection
+from .. import t
+from .._utilities import FlextCliUtilitiesAtomicFilePath
+from ..typings import DirectoryChainInspection
 
 
 class FlextCliUtilitiesAtomicParentDescriptor:

@@ -10,8 +10,8 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import t
-from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
+from .. import t
+from .._utilities import FlextCliUtilitiesAtomicFileDescriptor
 
 
 class FlextCliUtilitiesAtomicFileRead:

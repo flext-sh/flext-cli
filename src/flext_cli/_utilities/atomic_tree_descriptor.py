@@ -13,8 +13,8 @@ import sys
 from pathlib import Path
 from typing import Never
 
-from flext_cli import t
-from flext_cli._utilities import (
+from .. import t
+from .._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileRead,

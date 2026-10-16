@@ -9,7 +9,7 @@ from __future__ import annotations
 import errno
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import (
+from .._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
     FlextCliUtilitiesAtomicFileMode,

@@ -9,8 +9,8 @@ from __future__ import annotations
 import shlex
 from typing import TYPE_CHECKING
 
-from flext_cli import p, r, t
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessOutcomeMixin
+from .. import p, r, t
+from .._utilities import FlextCliUtilitiesRuntimeProcessOutcomeMixin
 
 
 class FlextCliUtilitiesRuntimeCommandsMixin(

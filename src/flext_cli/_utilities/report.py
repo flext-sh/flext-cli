@@ -11,8 +11,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, m, p, r
-from flext_cli._utilities import FlextCliUtilitiesOutput, FlextCliUtilitiesTables
+from .. import c, m, p, r
+from .._utilities import FlextCliUtilitiesOutput, FlextCliUtilitiesTables
 
 
 class FlextCliUtilitiesReport:

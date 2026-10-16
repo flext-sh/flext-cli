@@ -9,8 +9,8 @@ from __future__ import annotations
 import errno
 from pathlib import Path
 
-from flext_cli import m, t
-from flext_cli._utilities import (
+from .. import m, t
+from .._utilities import (
     FlextCliUtilitiesAtomicDirectoryCreate,
     FlextCliUtilitiesAtomicDirectoryDelete,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
