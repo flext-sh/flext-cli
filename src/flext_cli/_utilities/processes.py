@@ -248,7 +248,7 @@ class FlextCliUtilitiesProcesses:
         options: p.Cli.ProcessOptions | None = None,
         capture: bool = True,
         start_new_session: bool = False,
-    ) -> p.Result[FlextCliUtilitiesProcesses.ManagedProcess]:
+    ) -> p.Result[p.Cli.ManagedProcess]:
         """Start a managed child with captured or inherited standard streams.
 
         Capture preserves interactive pipes by default. Disabling it inherits
@@ -259,7 +259,7 @@ class FlextCliUtilitiesProcesses:
         for reaping.
 
         Returns:
-            The resulting ``p.Result[FlextCliUtilitiesProcesses.ManagedProcess]``.
+            The existing managed child through its public ``p.Cli`` contract.
 
         """
         launch = options if options is not None else m.Cli.ProcessOptions()
