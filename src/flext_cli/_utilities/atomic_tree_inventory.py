@@ -488,9 +488,6 @@ class FlextCliUtilitiesAtomicTreeInventory:
             The authenticated root entry and its retained parent descriptor
             for the duration of the inventory.
 
-        Raises:
-            FileNotFoundError: If the required physical-tree root is missing.
-
         """
         root_path = FlextCliUtilitiesAtomicFilePath.validate_directory_path(root_path)
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_read_capabilities(root_path)

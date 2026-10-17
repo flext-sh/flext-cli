@@ -255,7 +255,7 @@ class TestsFlextCliDocxRender:
         read_result = cli.docx_read(result.value.content)
         tm.that(read_result.success, eq=True, msg=read_result.error)
         font = read_result.value.paragraphs[0].runs[0].style.font
-        assert font is not None
+        tm.that(font, ne=None)
         tm.that(font.underline, eq="singleAccounting")
 
     @staticmethod

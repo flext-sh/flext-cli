@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from flext_core import p
 
     from flext_cli import t
-    from flext_cli._protocols.process import FlextCliProtocolsProcess
+    from flext_cli._models.process import FlextCliModelsProcess
 
 
 class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
@@ -102,7 +102,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             *,
             options: FlextCliProtocolsProcess.ProcessOptions | None = None,
-        ) -> p.Result[p.Cli.ProcessOutcome]:
+        ) -> p.Result[FlextCliModelsProcess.ProcessOutcome]:
             """Execute once with exact combined or separate durable output."""
             ...
 

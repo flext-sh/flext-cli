@@ -96,7 +96,7 @@ class TestsFlextCliExamplesSmokePart05:
                     "port": "bad-port",
                     "name": "prod",
                     "username": "user",
-                    "password": "secret",
+                    "password": c.Tests.CREDENTIAL_SAMPLE_VALUE,
                     "ssl_enabled": True,
                     "connection_pool": 10,
                 }),
