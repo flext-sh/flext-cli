@@ -197,7 +197,15 @@ class FlextCliUtilitiesAtomicTreeInventory:
                         for _before, after in publications
                     )
                 ):
-                    cls._published_directory_current(expected.root.path / name, created)
+                    # A directory the preimage already held needs no creation
+                    # receipt for publications beneath it; only an own creation
+                    # or a directory the preimage lacked must bind to one.
+                    if expected.root.path / name in created or not (
+                        cls.directory_query_value(expected, name, "isdir")
+                    ):
+                        cls._published_directory_current(
+                            expected.root.path / name, created
+                        )
                     value = True
                 if value != cls.directory_query_value(observed, name, predicate):
                     msg = (
@@ -328,7 +336,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     members[after.path.name] = "file"
             elif after.content is not None and after.path.is_relative_to(root):
                 child = root / after.path.relative_to(root).parts[0]
-                cls._published_directory_current(child, created)
+                if child in created or members.get(child.name) != "directory":
+                    cls._published_directory_current(child, created)
                 members[child.name] = "directory"
         if members != {item.name: item.kind for item in observed.entries}:
             msg = f"source directory membership changed: {root}"
