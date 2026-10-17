@@ -66,6 +66,7 @@ Homepage = "https://github.com/flext-sh/flext-cli"
 
 [dependency-groups]
 dev = [
+  "mkdocstrings-python>=2.0.9",
   "actionlint-py>=1.7.12.24",
   "bandit>=1.9.4",
   "deptry",
@@ -166,7 +167,7 @@ scan_dirs = ["src"]
 allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
-include = ["/src/flext_cli/**"]
+only-include = ["src/flext_cli"]
 
 [tool.hatch.build.targets.wheel.sources]
 "src/flext_cli" = "flext_cli"
@@ -175,7 +176,7 @@ include = ["/src/flext_cli/**"]
 "pyproject.toml" = "flext_cli/pyproject.toml"
 
 [tool.hatch.build.targets.sdist]
-include = ["/src/flext_cli/**"]
+only-include = ["src/flext_cli"]
 
 [tool.hatch.build.targets.sdist.force-include]
 "pyproject.toml" = "pyproject.toml"
