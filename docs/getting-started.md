@@ -172,6 +172,13 @@ cli.show_table(users, title="Users")
 
 ### 📁 File Operations
 
+JSON writes serialize before publication and atomically replace the destination,
+preserving an existing file's permissions. A failure after replacement is reported
+without rolling back the published document or claiming confirmed durability.
+Use `cli.read_json_model(path, model_type)` for a known domain contract: it validates
+JSON directly with the model's declared strictness, rather than coercing through an
+intermediate dictionary. Failed reads retain the native exception in their result.
+
 ```text
 from flext_cli import cli
 

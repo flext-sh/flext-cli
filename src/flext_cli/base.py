@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-class FlextCliServiceBase[TDomainResult: p.Base = m.Cli.RuntimeStatus](
+class FlextCliServiceBase[TDomainResult: p.Base](
     FlextService[TDomainResult],
     FlextCliUtilitiesCli,
 ):

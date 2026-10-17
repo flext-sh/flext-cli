@@ -27,13 +27,13 @@ from __future__ import annotations
 from examples import c, p, r, u
 from flext_cli import cli, settings
 
-# mro-p68a.9.3 (agent: claude): named threshold keeps the example Ruff-clean
-# (no magic value) and documents the minimum valid token length.
-_MIN_VALID_TOKEN_LENGTH = 20
-
 
 class ExamplesFlextCliAuthentication:
     """Public authentication example for flext-cli consumers."""
+
+    # Named threshold keeps the example Ruff-clean (no magic value) and
+    # documents the minimum valid token length.
+    _MIN_VALID_TOKEN_LENGTH = 20
 
     @staticmethod
     def login_to_service(username: str, password: str) -> p.Result[bool]:
@@ -88,7 +88,7 @@ class ExamplesFlextCliAuthentication:
             cli.print("⚠️  No token found", style=c.Cli.MessageStyles.YELLOW)
             return r[bool].from_failure(token_result)
         token = token_result.value
-        if len(token) < _MIN_VALID_TOKEN_LENGTH:
+        if len(token) < ExamplesFlextCliAuthentication._MIN_VALID_TOKEN_LENGTH:
             cli.print("❌ Invalid token format", style=c.Cli.MessageStyles.BOLD_RED)
             return r[bool].fail("Invalid token format")
         token_file_path = u.Cli.auth_token_file_path(settings.cli_token_file)

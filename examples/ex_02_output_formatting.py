@@ -37,3 +37,6 @@ class ExamplesFlextCliOutputFormatting:
 
         """
         return cli.format_table(list(data) if data else [], table_format=format_type)
+
+
+__all__: list[str] = ["ExamplesFlextCliOutputFormatting"]

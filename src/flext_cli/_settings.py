@@ -16,52 +16,44 @@ from typing import Annotated, ClassVar
 
 from flext_core import FlextSettings, m
 
-from flext_cli._constants.settings import FlextCliConstantsSettings
-
 
 class FlextCliSettings(FlextSettings):
     """CLI settings: flat scalars under the ``FLEXT_CLI_`` env prefix."""
+
+    CLI_PROCESS_HEARTBEAT_MAX_SECONDS: ClassVar[float] = 60.0
 
     model_config: ClassVar[m.SettingsConfigDict] = m.SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
         extra="ignore",
     )
 
-    cli_verbose: Annotated[bool, m.Field(description="Verbose output")] = (
-        FlextCliConstantsSettings.CLI_DEFAULT_VERBOSE
-    )
-    cli_quiet: Annotated[bool, m.Field(description="Quiet output")] = (
-        FlextCliConstantsSettings.CLI_DEFAULT_QUIET
-    )
+    cli_verbose: Annotated[bool, m.Field(description="Verbose output")] = False
+    cli_quiet: Annotated[bool, m.Field(description="Quiet output")] = False
     cli_app_name: Annotated[str, m.Field(description="CLI application name")] = (
-        FlextCliConstantsSettings.FLEXT_CLI
+        "flext-cli"
     )
     cli_log_verbosity: Annotated[
         str,
         m.Field(description="Log format (compact, detailed, full)"),
-    ] = FlextCliConstantsSettings.CLI_DEFAULT_LOG_VERBOSITY
-    cli_log_level: Annotated[str, m.Field(description="CLI log level")] = (
-        FlextCliConstantsSettings.CLI_DEFAULT_LOG_LEVEL
-    )
-    cli_no_color: Annotated[bool, m.Field(description="Disable colored output")] = (
-        FlextCliConstantsSettings.CLI_DEFAULT_NO_COLOR
-    )
+    ] = "compact"
+    cli_log_level: Annotated[str, m.Field(description="CLI log level")] = "INFO"
+    cli_no_color: Annotated[bool, m.Field(description="Disable colored output")] = False
     cli_output_format: Annotated[
         str,
         m.Field(description="Output format (table, json, yaml, csv, plain)"),
-    ] = FlextCliConstantsSettings.CLI_DEFAULT_OUTPUT_FORMAT
+    ] = "table"
     cli_process_heartbeat_seconds: Annotated[
         float,
         m.Field(
             gt=0,
-            lt=FlextCliConstantsSettings.CLI_PROCESS_HEARTBEAT_MAX_SECONDS,
+            lt=CLI_PROCESS_HEARTBEAT_MAX_SECONDS,
             description="Progress heartbeat interval for live child processes",
         ),
-    ] = FlextCliConstantsSettings.CLI_PROCESS_HEARTBEAT_SECONDS
+    ] = 30.0
     cli_pipeline_max_workers: Annotated[
         int,
         m.Field(ge=1, description="Maximum concurrent stages in one pipeline wave"),
-    ] = FlextCliConstantsSettings.CLI_PIPELINE_MAX_WORKERS
+    ] = 4
     cli_config_file: Annotated[
         str | None,
         m.Field(description="Path to settings file"),

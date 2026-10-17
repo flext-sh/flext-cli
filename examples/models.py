@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from examples.models_parts import ExamplesFlextCliModelsPart01
+from examples._models import ExamplesFlextCliModelsPart01
 from flext_cli import FlextCliModels
 
 

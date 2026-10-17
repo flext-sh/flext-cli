@@ -1,5 +1,8 @@
 """FLEXT CLI Test Configuration.
 
+Registers the project fixture plugins and owns the suite-wide collection hook.
+Fixture implementations live exclusively in ``tests/fixtures/``.
+
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -12,6 +15,8 @@ import pytest
 
 if TYPE_CHECKING:
     from tests import t
+
+pytest_plugins = ["tests.fixtures.prompts"]
 
 
 def pytest_collection_modifyitems(

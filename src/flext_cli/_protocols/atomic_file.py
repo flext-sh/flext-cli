@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
     from flext_core import t
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 class FlextCliProtocolsAtomicFile:
     """Binary artifact contracts independent of descriptor implementation."""
 
+    @runtime_checkable
     class AtomicFileReader(Protocol):
         """Reader usable only inside its authenticated descriptor context."""
 

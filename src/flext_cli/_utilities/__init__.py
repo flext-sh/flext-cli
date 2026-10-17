@@ -14,68 +14,52 @@ from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities import (
-        _docx,
-        _file_test_helper_parts,
-        _files_parts,
-        _json,
-        _options_parts,
-        _pptx,
-        _rules,
-        _tables_parts,
-        _toml_parts,
-        _xlxx,
-        _yaml,
+        _docx as _docx,
+        _file_test_helper as _file_test_helper,
+        _files as _files,
+        _json as _json,
+        _options as _options,
+        _pptx as _pptx,
+        _rules as _rules,
+        _tables as _tables,
+        _toml as _toml,
+        _xlsx as _xlsx,
+        _yaml as _yaml,
     )
-    from flext_cli._utilities._atomic_models import FlextCliUtilitiesAtomicModels
-    from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
-    from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
-    from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
-    from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_01 import (
+    from flext_cli._utilities._docx import (
+        FlextCliUtilitiesDocxReader,
+        FlextCliUtilitiesDocxRenderer,
+    )
+    from flext_cli._utilities._file_test_helper import (
         FlextCliUtilitiesFileTestHelpersMixinPart01,
-    )
-    from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_02 import (
         FlextCliUtilitiesFileTestHelpersMixinPart02,
-    )
-    from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_03 import (
         FlextCliUtilitiesFileTestHelpersMixinPart03,
-    )
-    from flext_cli._utilities._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04 import (
         FlextCliUtilitiesFileTestHelpersMixinPart04,
     )
-    from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_01 import (
+    from flext_cli._utilities._files import (
         FlextCliUtilitiesFilesPart01,
-    )
-    from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_02 import (
         FlextCliUtilitiesFilesPart02,
-    )
-    from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
         FlextCliUtilitiesFilesPart03,
-    )
-    from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_04 import (
         FlextCliUtilitiesFilesPart04,
-    )
-    from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_05 import (
         FlextCliUtilitiesFilesPart05,
-    )
-    from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_06 import (
         FlextCliUtilitiesFilesPart06,
     )
-    from flext_cli._utilities._json._core import FlextCliUtilitiesJsonCoreMixin
-    from flext_cli._utilities._json._navigate import FlextCliUtilitiesJsonNavigateMixin
-    from flext_cli._utilities._options_parts.flextcliutilitiesoptionbuilder_part_01 import (
+    from flext_cli._utilities._json import (
+        FlextCliUtilitiesJsonCoreMixin,
+        FlextCliUtilitiesJsonNavigateMixin,
+    )
+    from flext_cli._utilities._options import (
         FlextCliUtilitiesOptionBuilder,
-    )
-    from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_01 import (
         FlextCliUtilitiesOptionsPart01,
-    )
-    from flext_cli._utilities._options_parts.flextcliutilitiesoptions_part_02 import (
         FlextCliUtilitiesOptionsPart02,
     )
-    from flext_cli._utilities._pptx._reader import FlextCliUtilitiesPptxReader
-    from flext_cli._utilities._pptx._renderer import FlextCliUtilitiesPptxRenderer
-    from flext_cli._utilities._pptx._serializer import FlextCliUtilitiesPptxSerializer
-    from flext_cli._utilities._rules._loaders import FlextCliUtilitiesRulesLoadersMixin
-    from flext_cli._utilities._rules._matchers import (
+    from flext_cli._utilities._pptx import (
+        FlextCliUtilitiesPptxReader,
+        FlextCliUtilitiesPptxRenderer,
+        FlextCliUtilitiesPptxSerializer,
+    )
+    from flext_cli._utilities._rules import (
+        FlextCliUtilitiesRulesLoadersMixin,
         FlextCliUtilitiesRulesMatchersMixin,
     )
     from flext_cli._utilities._runtime_commands import (
@@ -129,90 +113,48 @@ if TYPE_CHECKING:
     from flext_cli._utilities._runtime_windows_job_state import (
         FlextCliUtilitiesRuntimeWindowsJobStateMixin,
     )
-    from flext_cli._utilities._tables_parts.flextcliutilitiestablesrenderer_part_01 import (
-        FlextCliUtilitiesTablesRenderer,
-    )
-    from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_01 import (
+    from flext_cli._utilities._tables import FlextCliUtilitiesTablesRenderer
+    from flext_cli._utilities._toml import (
         FlextCliUtilitiesTomlPart01,
-    )
-    from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_02 import (
         FlextCliUtilitiesTomlPart02,
-    )
-    from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_03 import (
         FlextCliUtilitiesTomlPart03,
-    )
-    from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_04 import (
         FlextCliUtilitiesTomlPart04,
-    )
-    from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_05 import (
         FlextCliUtilitiesTomlPart05,
-    )
-    from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06 import (
         FlextCliUtilitiesTomlPart06,
-    )
-    from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_07 import (
         FlextCliUtilitiesTomlPart07,
     )
-    from flext_cli._utilities._xlxx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
-    from flext_cli._utilities._xlxx.xlsx_archive import FlextCliUtilitiesXlsxArchive
-    from flext_cli._utilities._xlxx.xlsx_archive_checks import (
+    from flext_cli._utilities._xlsx import (
+        FlextCliUtilitiesXlsxAddresses,
+        FlextCliUtilitiesXlsxArchive,
         FlextCliUtilitiesXlsxArchiveChecks,
-    )
-    from flext_cli._utilities._xlxx.xlsx_cells import FlextCliUtilitiesXlsxCells
-    from flext_cli._utilities._xlxx.xlsx_conditional import (
+        FlextCliUtilitiesXlsxCells,
         FlextCliUtilitiesXlsxConditional,
-    )
-    from flext_cli._utilities._xlxx.xlsx_defined_name_values import (
         FlextCliUtilitiesXlsxDefinedNameValues,
-    )
-    from flext_cli._utilities._xlxx.xlsx_formula_codec import (
         FlextCliUtilitiesXlsxFormulaCodec,
-    )
-    from flext_cli._utilities._xlxx.xlsx_layout import FlextCliUtilitiesXlsxLayout
-    from flext_cli._utilities._xlxx.xlsx_protection import (
+        FlextCliUtilitiesXlsxLayout,
         FlextCliUtilitiesXlsxProtection,
-    )
-    from flext_cli._utilities._xlxx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
-    from flext_cli._utilities._xlxx.xlsx_recalc_evidence import (
+        FlextCliUtilitiesXlsxRecalc,
         FlextCliUtilitiesXlsxRecalcEvidence,
-    )
-    from flext_cli._utilities._xlxx.xlsx_renderer import FlextCliUtilitiesXlsxRenderer
-    from flext_cli._utilities._xlxx.xlsx_rules import FlextCliUtilitiesXlsxRules
-    from flext_cli._utilities._xlxx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
-    from flext_cli._utilities._xlxx.xlsx_snapshot_sheet import (
+        FlextCliUtilitiesXlsxRenderer,
+        FlextCliUtilitiesXlsxRules,
+        FlextCliUtilitiesXlsxSnapshot,
         FlextCliUtilitiesXlsxSnapshotSheet,
-    )
-    from flext_cli._utilities._xlxx.xlsx_snapshot_structure import (
         FlextCliUtilitiesXlsxSnapshotStructure,
-    )
-    from flext_cli._utilities._xlxx.xlsx_snapshot_values import (
         FlextCliUtilitiesXlsxSnapshotValues,
-    )
-    from flext_cli._utilities._xlxx.xlsx_style_builders import (
         FlextCliUtilitiesXlsxStyleBuilders,
-    )
-    from flext_cli._utilities._xlxx.xlsx_style_catalog import (
         FlextCliUtilitiesXlsxStyleCatalog,
-    )
-    from flext_cli._utilities._xlxx.xlsx_style_codec import (
         FlextCliUtilitiesXlsxStyleCodec,
-    )
-    from flext_cli._utilities._xlxx.xlsx_style_readers import (
         FlextCliUtilitiesXlsxStyleReaders,
-    )
-    from flext_cli._utilities._xlxx.xlsx_tables import FlextCliUtilitiesXlsxTables
-    from flext_cli._utilities._xlxx.xlsx_validations import (
+        FlextCliUtilitiesXlsxTables,
         FlextCliUtilitiesXlsxValidations,
-    )
-    from flext_cli._utilities._xlxx.xlsx_workbook_io import (
         FlextCliUtilitiesXlsxWorkbookIo,
-    )
-    from flext_cli._utilities._xlxx.xlsx_workbook_plan import (
         FlextCliUtilitiesXlsxWorkbookPlan,
     )
-    from flext_cli._utilities._yaml._convert import FlextCliUtilitiesYamlConvertMixin
-    from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
-    from flext_cli._utilities._yaml._engine import FlextCliUtilitiesYamlEngineMixin
+    from flext_cli._utilities._yaml import (
+        FlextCliUtilitiesYamlConvertMixin,
+        FlextCliUtilitiesYamlEditingMixin,
+        FlextCliUtilitiesYamlEngineMixin,
+    )
     from flext_cli._utilities.atomic_directory_chain import (
         FlextCliUtilitiesAtomicDirectoryChain,
     )
@@ -273,6 +215,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities.atomic_file_temporary import (
         FlextCliUtilitiesAtomicFileTemporary,
     )
+    from flext_cli._utilities.atomic_models import FlextCliUtilitiesAtomicModels
     from flext_cli._utilities.atomic_parent_descriptor import (
         FlextCliUtilitiesAtomicParentDescriptor,
     )
@@ -297,6 +240,10 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth
     from flext_cli._utilities.base import FlextCliUtilitiesBase
+    from flext_cli._utilities.cli_namespace import (
+        FlextCliUtilitiesCli,
+        FlextCliUtilitiesModelConfig,
+    )
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
     from flext_cli._utilities.commands import FlextCliUtilitiesCommands
     from flext_cli._utilities.config import FlextCliUtilitiesConfig
@@ -395,6 +342,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesJsonCoreMixin",
     "FlextCliUtilitiesJsonNavigateMixin",
     "FlextCliUtilitiesMatching",
+    "FlextCliUtilitiesModelConfig",
     "FlextCliUtilitiesOptionBuilder",
     "FlextCliUtilitiesOptionsPart01",
     "FlextCliUtilitiesOptionsPart02",
@@ -476,15 +424,15 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlEngineMixin",
     "FlextCliUtilitiesYamlModel",
     "_docx",
-    "_file_test_helper_parts",
-    "_files_parts",
+    "_file_test_helper",
+    "_files",
     "_json",
-    "_options_parts",
+    "_options",
     "_pptx",
     "_rules",
-    "_tables_parts",
-    "_toml_parts",
-    "_xlxx",
+    "_tables",
+    "_toml",
+    "_xlsx",
     "_yaml",
 )
 
@@ -517,7 +465,7 @@ install_lazy_exports(
         "FlextCliUtilitiesAtomicFileSnapshot": ".atomic_file_snapshot",
         "FlextCliUtilitiesAtomicFileState": ".atomic_file_state",
         "FlextCliUtilitiesAtomicFileTemporary": ".atomic_file_temporary",
-        "FlextCliUtilitiesAtomicModels": "._atomic_models",
+        "FlextCliUtilitiesAtomicModels": ".atomic_models",
         "FlextCliUtilitiesAtomicParentDescriptor": ".atomic_parent_descriptor",
         "FlextCliUtilitiesAtomicParentFailure": ".atomic_parent_failure",
         "FlextCliUtilitiesAtomicSymlinkPublish": ".atomic_symlink_publish",
@@ -527,7 +475,7 @@ install_lazy_exports(
         "FlextCliUtilitiesAtomicTreeInventory": ".atomic_tree_inventory",
         "FlextCliUtilitiesAuth": ".auth",
         "FlextCliUtilitiesBase": ".base",
-        "FlextCliUtilitiesCli": "._cli_namespace",
+        "FlextCliUtilitiesCli": ".cli_namespace",
         "FlextCliUtilitiesCmd": ".cmd",
         "FlextCliUtilitiesCommands": ".commands",
         "FlextCliUtilitiesConfig": ".config",
@@ -538,38 +486,39 @@ install_lazy_exports(
         "FlextCliUtilitiesEnv": ".env",
         "FlextCliUtilitiesFileTestHelpersMixin": ".file_test_helpers",
         "FlextCliUtilitiesFileTestHelpersMixinPart01": (
-            "._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_01"
+            "._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_01"
         ),
         "FlextCliUtilitiesFileTestHelpersMixinPart02": (
-            "._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_02"
+            "._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_02"
         ),
         "FlextCliUtilitiesFileTestHelpersMixinPart03": (
-            "._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_03"
+            "._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_03"
         ),
         "FlextCliUtilitiesFileTestHelpersMixinPart04": (
-            "._file_test_helper_parts.flextcliutilitiesfiletesthelpersmixin_part_04"
+            "._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_04"
         ),
         "FlextCliUtilitiesFiles": ".files",
-        "FlextCliUtilitiesFilesPart01": "._files_parts.flextcliutilitiesfiles_part_01",
-        "FlextCliUtilitiesFilesPart02": "._files_parts.flextcliutilitiesfiles_part_02",
-        "FlextCliUtilitiesFilesPart03": "._files_parts.flextcliutilitiesfiles_part_03",
-        "FlextCliUtilitiesFilesPart04": "._files_parts.flextcliutilitiesfiles_part_04",
-        "FlextCliUtilitiesFilesPart05": "._files_parts.flextcliutilitiesfiles_part_05",
-        "FlextCliUtilitiesFilesPart06": "._files_parts.flextcliutilitiesfiles_part_06",
+        "FlextCliUtilitiesFilesPart01": "._files.flextcliutilitiesfiles_part_01",
+        "FlextCliUtilitiesFilesPart02": "._files.flextcliutilitiesfiles_part_02",
+        "FlextCliUtilitiesFilesPart03": "._files.flextcliutilitiesfiles_part_03",
+        "FlextCliUtilitiesFilesPart04": "._files.flextcliutilitiesfiles_part_04",
+        "FlextCliUtilitiesFilesPart05": "._files.flextcliutilitiesfiles_part_05",
+        "FlextCliUtilitiesFilesPart06": "._files.flextcliutilitiesfiles_part_06",
         "FlextCliUtilitiesFormatters": ".formatters",
         "FlextCliUtilitiesFramework": ".framework",
         "FlextCliUtilitiesJson": ".json",
         "FlextCliUtilitiesJsonCoreMixin": "._json._core",
         "FlextCliUtilitiesJsonNavigateMixin": "._json._navigate",
         "FlextCliUtilitiesMatching": ".matching",
+        "FlextCliUtilitiesModelConfig": ".cli_namespace",
         "FlextCliUtilitiesOptionBuilder": (
-            "._options_parts.flextcliutilitiesoptionbuilder_part_01"
+            "._options.flextcliutilitiesoptionbuilder_part_01"
         ),
         "FlextCliUtilitiesOptionsPart01": (
-            "._options_parts.flextcliutilitiesoptions_part_01"
+            "._options.flextcliutilitiesoptions_part_01"
         ),
         "FlextCliUtilitiesOptionsPart02": (
-            "._options_parts.flextcliutilitiesoptions_part_02"
+            "._options.flextcliutilitiesoptions_part_02"
         ),
         "FlextCliUtilitiesOutput": ".output",
         "FlextCliUtilitiesOutputPayloads": ".output_payloads",
@@ -609,59 +558,59 @@ install_lazy_exports(
         "FlextCliUtilitiesSymlink": ".symlink",
         "FlextCliUtilitiesTables": ".tables",
         "FlextCliUtilitiesTablesRenderer": (
-            "._tables_parts.flextcliutilitiestablesrenderer_part_01"
+            "._tables.flextcliutilitiestablesrenderer_part_01"
         ),
         "FlextCliUtilitiesTemplate": ".template",
         "FlextCliUtilitiesToml": ".toml",
-        "FlextCliUtilitiesTomlPart01": "._toml_parts.flextcliutilitiestoml_part_01",
-        "FlextCliUtilitiesTomlPart02": "._toml_parts.flextcliutilitiestoml_part_02",
-        "FlextCliUtilitiesTomlPart03": "._toml_parts.flextcliutilitiestoml_part_03",
-        "FlextCliUtilitiesTomlPart04": "._toml_parts.flextcliutilitiestoml_part_04",
-        "FlextCliUtilitiesTomlPart05": "._toml_parts.flextcliutilitiestoml_part_05",
-        "FlextCliUtilitiesTomlPart06": "._toml_parts.flextcliutilitiestoml_part_06",
-        "FlextCliUtilitiesTomlPart07": "._toml_parts.flextcliutilitiestoml_part_07",
+        "FlextCliUtilitiesTomlPart01": "._toml.flextcliutilitiestoml_part_01",
+        "FlextCliUtilitiesTomlPart02": "._toml.flextcliutilitiestoml_part_02",
+        "FlextCliUtilitiesTomlPart03": "._toml.flextcliutilitiestoml_part_03",
+        "FlextCliUtilitiesTomlPart04": "._toml.flextcliutilitiestoml_part_04",
+        "FlextCliUtilitiesTomlPart05": "._toml.flextcliutilitiestoml_part_05",
+        "FlextCliUtilitiesTomlPart06": "._toml.flextcliutilitiestoml_part_06",
+        "FlextCliUtilitiesTomlPart07": "._toml.flextcliutilitiestoml_part_07",
         "FlextCliUtilitiesValidation": ".validation",
         "FlextCliUtilitiesXlsx": ".xlsx",
-        "FlextCliUtilitiesXlsxAddresses": "._xlxx.xlsx_addresses",
-        "FlextCliUtilitiesXlsxArchive": "._xlxx.xlsx_archive",
-        "FlextCliUtilitiesXlsxArchiveChecks": "._xlxx.xlsx_archive_checks",
-        "FlextCliUtilitiesXlsxCells": "._xlxx.xlsx_cells",
-        "FlextCliUtilitiesXlsxConditional": "._xlxx.xlsx_conditional",
-        "FlextCliUtilitiesXlsxDefinedNameValues": "._xlxx.xlsx_defined_name_values",
-        "FlextCliUtilitiesXlsxFormulaCodec": "._xlxx.xlsx_formula_codec",
-        "FlextCliUtilitiesXlsxLayout": "._xlxx.xlsx_layout",
-        "FlextCliUtilitiesXlsxProtection": "._xlxx.xlsx_protection",
-        "FlextCliUtilitiesXlsxRecalc": "._xlxx.xlsx_recalc",
-        "FlextCliUtilitiesXlsxRecalcEvidence": "._xlxx.xlsx_recalc_evidence",
-        "FlextCliUtilitiesXlsxRenderer": "._xlxx.xlsx_renderer",
-        "FlextCliUtilitiesXlsxRules": "._xlxx.xlsx_rules",
-        "FlextCliUtilitiesXlsxSnapshot": "._xlxx.xlsx_snapshot",
-        "FlextCliUtilitiesXlsxSnapshotSheet": "._xlxx.xlsx_snapshot_sheet",
-        "FlextCliUtilitiesXlsxSnapshotStructure": "._xlxx.xlsx_snapshot_structure",
-        "FlextCliUtilitiesXlsxSnapshotValues": "._xlxx.xlsx_snapshot_values",
-        "FlextCliUtilitiesXlsxStyleBuilders": "._xlxx.xlsx_style_builders",
-        "FlextCliUtilitiesXlsxStyleCatalog": "._xlxx.xlsx_style_catalog",
-        "FlextCliUtilitiesXlsxStyleCodec": "._xlxx.xlsx_style_codec",
-        "FlextCliUtilitiesXlsxStyleReaders": "._xlxx.xlsx_style_readers",
-        "FlextCliUtilitiesXlsxTables": "._xlxx.xlsx_tables",
-        "FlextCliUtilitiesXlsxValidations": "._xlxx.xlsx_validations",
-        "FlextCliUtilitiesXlsxWorkbookIo": "._xlxx.xlsx_workbook_io",
-        "FlextCliUtilitiesXlsxWorkbookPlan": "._xlxx.xlsx_workbook_plan",
+        "FlextCliUtilitiesXlsxAddresses": "._xlsx.xlsx_addresses",
+        "FlextCliUtilitiesXlsxArchive": "._xlsx.xlsx_archive",
+        "FlextCliUtilitiesXlsxArchiveChecks": "._xlsx.xlsx_archive_checks",
+        "FlextCliUtilitiesXlsxCells": "._xlsx.xlsx_cells",
+        "FlextCliUtilitiesXlsxConditional": "._xlsx.xlsx_conditional",
+        "FlextCliUtilitiesXlsxDefinedNameValues": "._xlsx.xlsx_defined_name_values",
+        "FlextCliUtilitiesXlsxFormulaCodec": "._xlsx.xlsx_formula_codec",
+        "FlextCliUtilitiesXlsxLayout": "._xlsx.xlsx_layout",
+        "FlextCliUtilitiesXlsxProtection": "._xlsx.xlsx_protection",
+        "FlextCliUtilitiesXlsxRecalc": "._xlsx.xlsx_recalc",
+        "FlextCliUtilitiesXlsxRecalcEvidence": "._xlsx.xlsx_recalc_evidence",
+        "FlextCliUtilitiesXlsxRenderer": "._xlsx.xlsx_renderer",
+        "FlextCliUtilitiesXlsxRules": "._xlsx.xlsx_rules",
+        "FlextCliUtilitiesXlsxSnapshot": "._xlsx.xlsx_snapshot",
+        "FlextCliUtilitiesXlsxSnapshotSheet": "._xlsx.xlsx_snapshot_sheet",
+        "FlextCliUtilitiesXlsxSnapshotStructure": "._xlsx.xlsx_snapshot_structure",
+        "FlextCliUtilitiesXlsxSnapshotValues": "._xlsx.xlsx_snapshot_values",
+        "FlextCliUtilitiesXlsxStyleBuilders": "._xlsx.xlsx_style_builders",
+        "FlextCliUtilitiesXlsxStyleCatalog": "._xlsx.xlsx_style_catalog",
+        "FlextCliUtilitiesXlsxStyleCodec": "._xlsx.xlsx_style_codec",
+        "FlextCliUtilitiesXlsxStyleReaders": "._xlsx.xlsx_style_readers",
+        "FlextCliUtilitiesXlsxTables": "._xlsx.xlsx_tables",
+        "FlextCliUtilitiesXlsxValidations": "._xlsx.xlsx_validations",
+        "FlextCliUtilitiesXlsxWorkbookIo": "._xlsx.xlsx_workbook_io",
+        "FlextCliUtilitiesXlsxWorkbookPlan": "._xlsx.xlsx_workbook_plan",
         "FlextCliUtilitiesYaml": ".yaml",
         "FlextCliUtilitiesYamlConvertMixin": "._yaml._convert",
         "FlextCliUtilitiesYamlEditingMixin": "._yaml._editing",
         "FlextCliUtilitiesYamlEngineMixin": "._yaml._engine",
         "FlextCliUtilitiesYamlModel": ".yaml_model",
         "_docx": "._docx",
-        "_file_test_helper_parts": "._file_test_helper_parts",
-        "_files_parts": "._files_parts",
+        "_file_test_helper": "._file_test_helper",
+        "_files": "._files",
         "_json": "._json",
-        "_options_parts": "._options_parts",
+        "_options": "._options",
         "_pptx": "._pptx",
         "_rules": "._rules",
-        "_tables_parts": "._tables_parts",
-        "_toml_parts": "._toml_parts",
-        "_xlxx": "._xlxx",
+        "_tables": "._tables",
+        "_toml": "._toml",
+        "_xlsx": "._xlsx",
         "_yaml": "._yaml",
     }),
     public_exports=__all__,

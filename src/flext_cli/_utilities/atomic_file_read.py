@@ -10,7 +10,7 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import t
+from flext_cli import c, t
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
@@ -18,13 +18,6 @@ from flext_cli._utilities.atomic_file_descriptor import (
 
 class FlextCliUtilitiesAtomicFileRead:
     """Canonical namespace owner."""
-
-    READ_FLAGS = (
-        os.O_RDONLY
-        | getattr(os, "O_NONBLOCK", 0)
-        | getattr(os, "O_CLOEXEC", 0)
-        | getattr(os, "O_BINARY", 0)
-    )
 
     class Reader:
         """One scoped descriptor serving ranges of an authenticated version."""
@@ -94,7 +87,7 @@ class FlextCliUtilitiesAtomicFileRead:
         descriptor = FlextCliUtilitiesAtomicFileDescriptor.open_entry(
             parent,
             path,
-            FlextCliUtilitiesAtomicFileRead.READ_FLAGS,
+            c.Cli.READ_FLAGS,
         )
         try:
             content = b"".join(

@@ -136,7 +136,7 @@ com justificativa) / `risco-aceito`. Priorizar high com confidence=high.
 ### 5 · 🟡 MEDIUM · conf low · `python.django.security.audit.unvalidated-password.unvalidated-password`
 
 **Classe**: Improper Authentication · **Local**:
-`src/flext_cli/_utilities/_xlxx/xlsx_protection.py:65`
+`src/flext_cli/_utilities/_xlsx/xlsx_protection.py:65`
 
 > The password on 'protection' is being set without validating the password. Call
 > django.contrib.auth.password_validation.validate_password() with validation functions

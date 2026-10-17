@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from tests.models import TestsFlextCliModels, m
     from tests.protocols import TestsFlextCliProtocols, p
     from tests.settings import TestsFlextCliSettings
+    from tests.test_pptx_render import TestsFlextCliPptxRender
+    from tests.test_xlsx_archive import TestsFlextCliXlsxArchive
     from tests.typings import TestsFlextCliTypes, t
     from tests.utilities import TestsFlextCliUtilities, u
 
@@ -28,11 +30,13 @@ if TYPE_CHECKING:
 __all__: tuple[str, ...] = (
     "TestsFlextCliConstants",
     "TestsFlextCliModels",
+    "TestsFlextCliPptxRender",
     "TestsFlextCliProtocols",
     "TestsFlextCliServiceBase",
     "TestsFlextCliSettings",
     "TestsFlextCliTypes",
     "TestsFlextCliUtilities",
+    "TestsFlextCliXlsxArchive",
     "api",
     "c",
     "d",
@@ -57,11 +61,13 @@ install_lazy_exports(
     MappingProxyType({
         "TestsFlextCliConstants": ".constants",
         "TestsFlextCliModels": ".models",
+        "TestsFlextCliPptxRender": ".test_pptx_render",
         "TestsFlextCliProtocols": ".protocols",
         "TestsFlextCliServiceBase": ".base",
         "TestsFlextCliSettings": ".settings",
         "TestsFlextCliTypes": ".typings",
         "TestsFlextCliUtilities": ".utilities",
+        "TestsFlextCliXlsxArchive": ".test_xlsx_archive",
         "api": "flext_tests",
         "c": ".constants",
         "d": "flext_core",

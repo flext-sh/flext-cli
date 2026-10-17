@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli import c, t
-from flext_cli._utilities._atomic_models import FlextCliUtilitiesAtomicModels
 from flext_cli._utilities.atomic_file_cleanup import FlextCliUtilitiesAtomicFileCleanup
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -31,6 +30,7 @@ from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileSt
 from flext_cli._utilities.atomic_file_temporary import (
     FlextCliUtilitiesAtomicFileTemporary,
 )
+from flext_cli._utilities.atomic_models import FlextCliUtilitiesAtomicModels
 
 if TYPE_CHECKING:
     from flext_cli import m

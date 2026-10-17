@@ -63,20 +63,8 @@ class FlextCliModelsXlsxStyleCatalog:
             ),
         ]
 
-    class XlsxStyleTemplateRequest(m.FrozenModel):
-        source: Annotated[
-            bytes,
-            m.Field(min_length=1, description="Source workbook bytes."),
-        ]
-        style_name_prefix: Annotated[
-            str,
-            m.Field(
-                min_length=1,
-                max_length=64,
-                pattern=r"^[A-Za-z][A-Za-z0-9_.-]*$",
-                description="Generated style-name prefix.",
-            ),
-        ]
+    class XlsxStyleTemplateRequest(XlsxStyleCatalogRequest):
+        """Format-template request sharing the exact catalog request contract."""
 
     class XlsxStyleTemplateResult(m.FrozenModel):
         content: Annotated[

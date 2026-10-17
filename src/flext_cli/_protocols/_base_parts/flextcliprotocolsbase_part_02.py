@@ -66,8 +66,8 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
             ...
 
     @runtime_checkable
-    class CommandOutput(Protocol):
-        """Minimal external command execution output contract."""
+    class CommandOutputEnvelope(Protocol):
+        """Causal envelope contract shared by command output contracts."""
 
         @property
         def duration(self) -> float:
@@ -83,6 +83,10 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
         def outcome(self) -> FlextCliModelsBasePart01.ProcessOutcome:
             """Causal process completion state."""
             ...
+
+    @runtime_checkable
+    class CommandOutput(CommandOutputEnvelope, Protocol):
+        """Minimal external command execution output contract."""
 
         @property
         def stderr(self) -> str:
@@ -96,23 +100,8 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
 
     # mro-zf1s: binary command consumers type against p, never the model owner.
     @runtime_checkable
-    class CommandBytesOutput(Protocol):
+    class CommandBytesOutput(CommandOutputEnvelope, Protocol):
         """Byte-exact external command execution output contract."""
-
-        @property
-        def duration(self) -> float:
-            """Command duration in seconds."""
-            ...
-
-        @property
-        def exit_code(self) -> int:
-            """Raw process return code, derived from the completion outcome."""
-            ...
-
-        @property
-        def outcome(self) -> FlextCliModelsBasePart01.ProcessOutcome:
-            """Causal process completion state."""
-            ...
 
         @property
         def stderr(self) -> bytes:

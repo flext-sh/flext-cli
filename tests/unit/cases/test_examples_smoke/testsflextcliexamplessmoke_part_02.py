@@ -12,12 +12,7 @@ from typing import TYPE_CHECKING
 import examples
 import pytest
 from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings
-from examples.ex_04_file_operations import (
-    load_deployment_config,
-    load_user_preferences,
-    save_user_preferences,
-    validate_and_import_data,
-)
+from examples.ex_04_file_operations import ExamplesFlextCliFileOperations
 
 from flext_cli import cli, settings
 from tests import c, p, tm
@@ -47,9 +42,15 @@ class TestsFlextCliExamplesSmokePart02:
         """File examples must report invalid filesystem and payload failures."""
         broken_config_root = tmp_path / "broken-config-root"
         broken_config_root.write_text("not-a-directory", encoding="utf-8")
-        tm.fail(save_user_preferences({"theme": "dark"}, broken_config_root))
+        tm.fail(
+            ExamplesFlextCliFileOperations.save_user_preferences(
+                {"theme": "dark"}, broken_config_root
+            )
+        )
 
-        missing_preferences = load_user_preferences(tmp_path / "missing-config")
+        missing_preferences = ExamplesFlextCliFileOperations.load_user_preferences(
+            tmp_path / "missing-config"
+        )
         tm.fail(missing_preferences)
 
         invalid_preferences_dir = tmp_path / "invalid-preferences"
@@ -58,15 +59,21 @@ class TestsFlextCliExamplesSmokePart02:
             '["a", "b"]',
             encoding="utf-8",
         )
-        invalid_preferences = load_user_preferences(invalid_preferences_dir)
+        invalid_preferences = ExamplesFlextCliFileOperations.load_user_preferences(
+            invalid_preferences_dir
+        )
         tm.fail(invalid_preferences)
 
         invalid_deployment_file = tmp_path / "invalid-deployment.yaml"
         invalid_deployment_file.write_text("- bad\n- config\n", encoding="utf-8")
-        invalid_deployment = load_deployment_config(invalid_deployment_file)
+        invalid_deployment = ExamplesFlextCliFileOperations.load_deployment_config(
+            invalid_deployment_file
+        )
         tm.fail(invalid_deployment)
 
-        missing_import = validate_and_import_data(tmp_path / "missing-record.json")
+        missing_import = ExamplesFlextCliFileOperations.validate_and_import_data(
+            tmp_path / "missing-record.json"
+        )
         tm.fail(missing_import)
 
         incomplete_import_file = tmp_path / "incomplete-record.json"
@@ -74,7 +81,9 @@ class TestsFlextCliExamplesSmokePart02:
             '{"id": 1, "name": "Alice"}',
             encoding="utf-8",
         )
-        incomplete_import = validate_and_import_data(incomplete_import_file)
+        incomplete_import = ExamplesFlextCliFileOperations.validate_and_import_data(
+            incomplete_import_file
+        )
         tm.fail(incomplete_import)
 
     @staticmethod
