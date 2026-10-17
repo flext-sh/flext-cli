@@ -225,7 +225,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
     ) -> str:
         """Serialize *data* to a YAML string.
 
-        Returns empty string on serialization failure.
+        Validation and serialization exceptions propagate unchanged.
 
         Example::
 
@@ -235,24 +235,15 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             The resulting ``str``.
 
         """
-        try:
-            validated = FlextCliUtilitiesJson.normalize_json_value(data)
-            serialized: str = u.Yaml.safe_dump(
-                validated,
-                default_flow_style=False,
-                sort_keys=sort_keys,
-                allow_unicode=True,
-                indent=indent,
-            )
-        except (u.Yaml.YAMLError, ValueError, TypeError) as exc:
-            u.fetch_logger(__name__).warning(
-                "YAML serialization failed",
-                error=r[str].fail(str(exc), exception=exc).error or str(exc),
-                error_type=type(exc).__name__,
-            )
-            return ""
-        else:
-            return serialized
+        validated = FlextCliUtilitiesJson.normalize_json_value(data)
+        serialized: str = u.Yaml.safe_dump(
+            validated,
+            default_flow_style=False,
+            sort_keys=sort_keys,
+            allow_unicode=True,
+            indent=indent,
+        )
+        return serialized
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesYaml"]

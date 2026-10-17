@@ -16,6 +16,9 @@ from typing import Literal, Never
 
 from flext_cli import m, t
 from flext_cli._utilities._atomic_models import FlextCliUtilitiesAtomicModels
+from flext_cli._utilities.atomic_directory_chain import (
+    FlextCliUtilitiesAtomicDirectoryChain,
+)
 from flext_cli._utilities.atomic_directory_descriptor import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
 )
@@ -42,6 +45,265 @@ class FlextCliUtilitiesAtomicTreeInventory:
         | getattr(os, "O_CLOEXEC", 0)
         | getattr(os, "O_BINARY", 0)
     )
+
+    @staticmethod
+    def directory_query_value(
+        inventory: m.Cli.AtomicDirectoryInventory,
+        name: str,
+        predicate: Literal["exists", "isfile", "isdir"],
+    ) -> bool:
+        """Evaluate one native predicate from its physical directory receipt."""
+        entry = next((item for item in inventory.entries if item.name == name), None)
+        if entry is not None and entry.kind == "symlink":
+            raise OSError(
+                errno.ELOOP,
+                "atomic directory query encountered a physical alias",
+                inventory.root.path / name,
+            )
+        return entry is not None and (
+            predicate == "exists"
+            or entry.kind == ("file" if predicate == "isfile" else "directory")
+        )
+
+    @classmethod
+    def merge_directory_query_receipts(
+        cls,
+        inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
+        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+    ) -> t.Pair[
+        t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
+        t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+    ]:
+        """Union selectors only when every original native observation agrees."""
+        directories: dict[Path, m.Cli.AtomicDirectoryInventory] = {}
+        chains: dict[Path, m.Cli.AtomicDirectoryChainPlan] = {}
+        for incoming in inventories:
+            path = incoming.root.path
+            previous = directories.get(path)
+            if previous is None:
+                directories[path] = incoming
+                continue
+            mutable_membership = {"mtime_ns", "ctime_ns", "link_count"}
+            if previous.root.model_dump(
+                exclude=mutable_membership
+            ) != incoming.root.model_dump(exclude=mutable_membership) or any(
+                cls.directory_query_value(previous, name, predicate)
+                != cls.directory_query_value(incoming, name, predicate)
+                for name, predicate in (*previous.queries, *incoming.queries)
+            ):
+                msg = f"source directory query epochs disagree: {path}"
+                raise ValueError(msg)
+            if (previous.membership_queried or incoming.membership_queried) and tuple(
+                (item.name, item.kind) for item in previous.entries
+            ) != tuple((item.name, item.kind) for item in incoming.entries):
+                msg = f"source directory membership epochs disagree: {path}"
+                raise ValueError(msg)
+            directories[path] = previous.model_copy(
+                update={
+                    "queries": tuple(sorted({*previous.queries, *incoming.queries})),
+                    "membership_queried": (
+                        previous.membership_queried or incoming.membership_queried
+                    ),
+                }
+            )
+        for incoming in topology:
+            previous = chains.get(incoming.target)
+            if previous is None:
+                chains[incoming.target] = incoming
+                continue
+            if previous.model_dump(
+                exclude={"queries", "membership_queried"}
+            ) != incoming.model_dump(exclude={"queries", "membership_queried"}):
+                msg = f"source directory ancestry epochs disagree: {incoming.target}"
+                raise ValueError(msg)
+            chains[incoming.target] = previous.model_copy(
+                update={
+                    "queries": tuple(sorted({*previous.queries, *incoming.queries})),
+                    "membership_queried": (
+                        previous.membership_queried or incoming.membership_queried
+                    ),
+                }
+            )
+        return tuple(directories.values()), tuple(chains.values())
+
+    @classmethod
+    def verify_directory_queries(
+        cls,
+        inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
+        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        publications: t.VariadicTuple[
+            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
+        ] = (),
+        directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
+    ) -> bool:
+        """Reprove consumed elections, allowing only supplied physical own effects."""
+        published = {before.path: (before, after) for before, after in publications}
+        created = {item.path: item for item in directory_publications}
+        if len(published) != len(publications) or any(
+            before.path != after.path for before, after in publications
+        ):
+            msg = "directory query publication identities disagree"
+            raise ValueError(msg)
+        for witness in topology:
+            observed = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(
+                witness.target
+            )
+            unchanged = observed.model_dump(
+                exclude={"queries", "membership_queried"}
+            ) == witness.model_dump(exclude={"queries", "membership_queried"})
+            count = len(witness.directories) - len(observed.directories)
+            gained = witness.directories[:count] if count > 0 else ()
+            ancestry = dict(
+                zip(
+                    reversed((observed.anchor_path, *observed.anchor_path.parents)),
+                    observed.anchor_ancestry,
+                    strict=True,
+                )
+            )
+            if not unchanged and not (
+                gained
+                and observed.anchor_path == gained[-1]
+                and observed.directories == witness.directories[count:]
+                and observed.anchor_ancestry[: len(witness.anchor_ancestry)]
+                == witness.anchor_ancestry
+                and all(
+                    path in created
+                    and created[path].exists
+                    and ancestry.get(path)
+                    == (created[path].device, created[path].inode)
+                    and ancestry.get(path.parent)
+                    == (created[path].parent_device, created[path].parent_inode)
+                    for path in gained
+                )
+            ):
+                msg = f"source directory ancestry changed: {witness.target}"
+                raise ValueError(msg)
+            if (
+                witness.queries or witness.membership_queried
+            ) and not observed.directories:
+                inventory = cls.inventory_physical_directory(witness.target)
+                for name, predicate in witness.queries:
+                    path = witness.target / name
+                    effect = published.get(path)
+                    value = (
+                        effect[1].content is not None and predicate != "isdir"
+                        if effect is not None
+                        else predicate != "isfile"
+                        and any(
+                            after.content is not None
+                            and after.path.is_relative_to(path)
+                            for _before, after in publications
+                        )
+                    )
+                    if predicate != "isfile" and path in created:
+                        cls._published_directory_current(path, created)
+                        value = True
+                    if value and effect is None:
+                        cls._published_directory_current(path, created)
+                    if value != cls.directory_query_value(inventory, name, predicate):
+                        msg = f"absent source candidate changed: {path}"
+                        raise ValueError(msg)
+                if witness.membership_queried:
+                    cls._verify_query_membership(inventory, {}, publications, created)
+        for expected in inventories:
+            observed = cls.inventory_physical_directory(expected.root.path)
+            mutable_membership = {"mtime_ns", "ctime_ns", "link_count"}
+            if expected.root.model_dump(
+                exclude=mutable_membership
+            ) != observed.root.model_dump(exclude=mutable_membership):
+                msg = (
+                    f"source directory physical identity changed: {expected.root.path}"
+                )
+                raise ValueError(msg)
+            for name, predicate in expected.queries:
+                value = cls.directory_query_value(expected, name, predicate)
+                effect = published.get(expected.root.path / name)
+                if effect is not None:
+                    before, after = effect
+                    before_value = before.content is not None and predicate != "isdir"
+                    if value != before_value:
+                        msg = f"source query preimage changed: {before.path}"
+                        raise ValueError(msg)
+                    value = after.content is not None and predicate != "isdir"
+                elif predicate != "isfile" and (
+                    expected.root.path / name in created
+                    or any(
+                        after.content is not None
+                        and after.path.is_relative_to(expected.root.path / name)
+                        for _before, after in publications
+                    )
+                ):
+                    cls._published_directory_current(expected.root.path / name, created)
+                    value = True
+                if value != cls.directory_query_value(observed, name, predicate):
+                    msg = (
+                        f"source directory query changed: "
+                        f"{expected.root.path / name}; predicate={predicate}"
+                    )
+                    raise ValueError(msg)
+            if expected.membership_queried:
+                cls._verify_query_membership(
+                    observed,
+                    {item.name: item.kind for item in expected.entries},
+                    publications,
+                    created,
+                )
+        return True
+
+    @classmethod
+    def _verify_query_membership(
+        cls,
+        observed: m.Cli.AtomicDirectoryInventory,
+        members: t.MutableMappingKV[
+            str, Literal["directory", "file", "symlink", "other"]
+        ],
+        publications: t.VariadicTuple[
+            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
+        ],
+        created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
+    ) -> None:
+        """Reprove direct membership with only original native publication effects."""
+        root = observed.root.path
+        for path in created:
+            if path.parent == root:
+                cls._published_directory_current(path, created)
+                if members.get(path.name) not in {None, "directory"}:
+                    msg = f"source directory kind changed: {path}"
+                    raise ValueError(msg)
+                members[path.name] = "directory"
+        for _before, after in publications:
+            if after.path.parent == root:
+                if after.content is None:
+                    members.pop(after.path.name, None)
+                else:
+                    members[after.path.name] = "file"
+            elif after.content is not None and after.path.is_relative_to(root):
+                child = root / after.path.relative_to(root).parts[0]
+                cls._published_directory_current(child, created)
+                members[child.name] = "directory"
+        if members != {item.name: item.kind for item in observed.entries}:
+            msg = f"source directory membership changed: {root}"
+            raise ValueError(msg)
+
+    @staticmethod
+    def _published_directory_current(
+        path: Path,
+        created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
+    ) -> None:
+        """Bind an elected own directory to the publisher's original inode."""
+        receipt = created.get(path)
+        observed = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(path)
+        if (
+            receipt is None
+            or not receipt.exists
+            or observed.directories
+            or (observed.anchor_device, observed.anchor_inode)
+            != (receipt.device, receipt.inode)
+            or observed.anchor_ancestry[-2]
+            != (receipt.parent_device, receipt.parent_inode)
+        ):
+            msg = f"source directory lacks its original publication: {path}"
+            raise ValueError(msg)
 
     @staticmethod
     def inventory_physical_directory(root_path: Path) -> m.Cli.AtomicDirectoryInventory:

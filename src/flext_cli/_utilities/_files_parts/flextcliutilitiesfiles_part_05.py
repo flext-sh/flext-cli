@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities import (
@@ -43,6 +44,7 @@ class FlextCliUtilitiesFilesPart05:
         except OSError as exc:
             return r[m.Cli.AtomicDirectoryChainPlan].fail(
                 c.Cli.ERR_ATOMIC_DIRECTORY_PLAN_FAILED.format(error=exc),
+                exception=exc,
             )
         return r[m.Cli.AtomicDirectoryChainPlan].ok(plan)
 
@@ -174,6 +176,47 @@ class FlextCliUtilitiesFilesPart05:
                 c.Cli.ERR_ATOMIC_DIRECTORY_PUBLISH_FAILED.format(error=exc),
             )
         return r[m.Cli.AtomicDirectoryState].ok(published)
+
+    @staticmethod
+    def atomic_merge_directory_query_receipts(
+        inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
+        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+    ) -> t.Pair[
+        t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
+        t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+    ]:
+        """Keep original native query epochs while uniting consumed selectors."""
+        return FlextCliUtilitiesAtomicTreeInventory.merge_directory_query_receipts(
+            inventories, topology
+        )
+
+    @staticmethod
+    def atomic_directory_query_value(
+        inventory: m.Cli.AtomicDirectoryInventory,
+        name: str,
+        predicate: Literal["exists", "isfile", "isdir"],
+    ) -> bool:
+        """Read one native filesystem predicate from its captured receipt."""
+        return FlextCliUtilitiesAtomicTreeInventory.directory_query_value(
+            inventory, name, predicate
+        )
+
+    @staticmethod
+    def atomic_verify_directory_queries(
+        inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
+        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        *,
+        publications: t.VariadicTuple[
+            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
+        ] = (),
+        directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
+    ) -> p.Result[bool]:
+        """Verify native source queries without authorizing publication effects."""
+        return r[bool].ok(
+            FlextCliUtilitiesAtomicTreeInventory.verify_directory_queries(
+                inventories, topology, publications, directory_publications
+            )
+        )
 
     @staticmethod
     def atomic_inventory_physical_directory(

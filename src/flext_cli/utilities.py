@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """FLEXT CLI utility facade.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -8,8 +9,10 @@ from __future__ import annotations
 
 from flext_core import FlextUtilities
 
-from flext_cli import m
-from flext_cli._utilities._cli_namespace import FlextCliUtilitiesCli
+from flext_cli._utilities._cli_namespace import (
+    FlextCliUtilitiesCli,
+    FlextCliUtilitiesModelConfig,
+)
 
 
 class FlextCliUtilities(FlextUtilities):
@@ -18,7 +21,10 @@ class FlextCliUtilities(FlextUtilities):
     # Why (multi-agent): the pydantic metaclass strips class-typed attributes
     # from the namespace; the CLI namespace class is the canonical facade
     # surface consumed as u.Cli fleet-wide and must survive model construction.
-    model_config = m.ConfigDict(ignored_types=(type(FlextCliUtilitiesCli),))
+    # The ConfigDict is owned by FlextCliUtilitiesModelConfig beside the
+    # namespace class it protects; this identity alias keeps the config in
+    # the facade body where pydantic reads it.
+    model_config = FlextCliUtilitiesModelConfig.model_config
 
     # NOTE (multi-agent): mro-wkii.17.17 publishes the canonical class directly.
     # Unannotated single bind: pyright resolves the member as a type alias so

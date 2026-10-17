@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import s
+from flext_core import FlextRuntime, s
 
 from flext_cli import m, p, t, u
 from flext_cli.services._cli_parts import FlextCliCliPart05
@@ -79,7 +79,7 @@ class FlextCliCliPart06(FlextCliCliPart05):
             The resulting ``str``.
 
         """
-        normalized = u.normalize_to_json_value(value)
+        normalized = FlextRuntime.normalize_to_json_value(value)
         if isinstance(normalized, str):
             return normalized
         return u.to_json(normalized).decode()

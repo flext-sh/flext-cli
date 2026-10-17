@@ -20,7 +20,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_core import u
+from flext_core import FlextRuntime, u
 
 from flext_cli import c, m, p, r, t
 
@@ -176,7 +176,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             The resulting ``t.JsonValue``.
 
         """
-        return u.normalize_to_json_value(item)
+        return FlextRuntime.normalize_to_json_value(item)
 
     @staticmethod
     def _json_write_content(
@@ -289,7 +289,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         """
         if value is None:
             return FlextCliUtilitiesJsonCoreMixin._EMPTY_JSON_MAPPING
-        normalized: t.JsonValue = u.normalize_to_json_value(value)
+        normalized: t.JsonValue = FlextRuntime.normalize_to_json_value(value)
         if not isinstance(normalized, Mapping):
             return FlextCliUtilitiesJsonCoreMixin._EMPTY_JSON_MAPPING
         return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
@@ -306,7 +306,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         """
         if value is None:
             return FlextCliUtilitiesJsonCoreMixin._EMPTY_JSON_SEQUENCE
-        normalized: t.JsonValue = u.normalize_to_json_value(value)
+        normalized: t.JsonValue = FlextRuntime.normalize_to_json_value(value)
         if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
             return FlextCliUtilitiesJsonCoreMixin._EMPTY_JSON_SEQUENCE
         return t.Cli.JSON_LIST_ADAPTER.validate_python(normalized)

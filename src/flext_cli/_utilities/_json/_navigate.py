@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from flext_core import u
 
 from flext_cli import t
@@ -40,27 +42,22 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
 
     @staticmethod
     def json_walk_path(data: t.JsonMapping, keys: t.StrSequence) -> t.JsonValue | None:
-        """Walk a path over nested mappings and return the leaf value.
+        """Walk validated JSON mappings and validate only the selected leaf.
 
         Returns:
             The resulting ``t.JsonValue | None``.
 
         """
-        current: t.JsonMapping = data
-        for key in keys[:-1]:
-            raw = current.get(key, None)
-            if raw is None:
-                return None
-            nested = FlextCliUtilitiesJsonNavigateMixin.json_as_mapping(raw)
-            if not nested:
-                return None
-            current = nested
         if not keys:
             return None
-        leaf = current.get(keys[-1], None)
-        if leaf is None:
-            return None
-        return u.normalize_to_json_value(leaf)
+        current: t.JsonMapping = data
+        for key in keys[:-1]:
+            raw = current.get(key)
+            if not isinstance(raw, Mapping):
+                return None
+            current = raw
+        leaf = current.get(keys[-1])
+        return None if leaf is None else t.Cli.JSON_VALUE_ADAPTER.validate_python(leaf)
 
     @staticmethod
     def json_deep_mapping(data: t.JsonMapping, *keys: str) -> t.JsonMapping:

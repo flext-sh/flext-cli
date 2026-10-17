@@ -248,7 +248,7 @@ class FlextCliUtilitiesProcesses:
         options: p.Cli.ProcessOptions | None = None,
         capture: bool = True,
         start_new_session: bool = False,
-    ) -> p.Result[FlextCliUtilitiesProcesses.ManagedProcess]:
+    ) -> p.Result[p.Cli.ManagedProcess]:
         """Start a managed child with captured or inherited standard streams.
 
         Capture preserves interactive pipes by default. Disabling it inherits
@@ -259,7 +259,7 @@ class FlextCliUtilitiesProcesses:
         for reaping.
 
         Returns:
-            The resulting ``p.Result[FlextCliUtilitiesProcesses.ManagedProcess]``.
+            The existing managed child through its public ``p.Cli`` contract.
 
         """
         launch = options if options is not None else m.Cli.ProcessOptions()
@@ -268,11 +268,11 @@ class FlextCliUtilitiesProcesses:
             isinstance(file_descriptor, bool) or file_descriptor < 0
             for file_descriptor in forwarded_fds
         ):
-            return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
+            return r[p.Cli.ManagedProcess].fail(
                 "process pass_fds must contain non-negative file descriptors",
             )
         if os.name == "nt" and forwarded_fds:
-            return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
+            return r[p.Cli.ManagedProcess].fail(
                 "process pass_fds is unsupported on Windows",
             )
         resolved_env = None
@@ -295,11 +295,11 @@ class FlextCliUtilitiesProcesses:
                 start_new_session=start_new_session,
             )
         except c.EXC_OS_VALUE as exc:
-            return r[FlextCliUtilitiesProcesses.ManagedProcess].fail(
+            return r[p.Cli.ManagedProcess].fail(
                 f"execution error: {shlex.join(list(cmd))}: {exc}",
                 exception=exc,
             )
-        return r[FlextCliUtilitiesProcesses.ManagedProcess].ok(
+        return r[p.Cli.ManagedProcess].ok(
             FlextCliUtilitiesProcesses.ManagedProcess(
                 process,
                 cwd=cwd,
