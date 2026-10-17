@@ -23,6 +23,7 @@ from typing import ClassVar
 from flext_core import FlextRuntime, u
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities.atomic_file import FlextCliUtilitiesAtomicFile
 
 
 class FlextCliUtilitiesJsonCoreMixin:
@@ -235,7 +236,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         payload: t.JsonValue | t.JsonPayload,
         options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
-        """Write any Pydantic-serializable payload to a JSON file.
+        """Atomically publish a Pydantic-serializable payload as a JSON file.
 
         Returns:
             The resulting ``p.Result[bool]``.
@@ -244,9 +245,11 @@ class FlextCliUtilitiesJsonCoreMixin:
         opts = options or m.Cli.JsonWriteOptions()
 
         def _write() -> bool:
-            path.parent.mkdir(parents=True, exist_ok=True)
             content = FlextCliUtilitiesJsonCoreMixin._json_write_content(payload, opts)
-            _ = path.write_text(content, encoding=c.DEFAULT_ENCODING)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+                path.absolute(), content.encode(c.DEFAULT_ENCODING)
+            )
             return True
 
         written = u.try_(_write, catch=c.EXC_OS_VALIDATION, op_name="json_write")

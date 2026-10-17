@@ -20,21 +20,15 @@ from flext_cli import FlextCliUtilities, cli
 class ExamplesFlextCliUtilities(FlextCliUtilities):
     """Public examples utility facade extending flext-cli utilities."""
 
-    @classmethod
-    def to_json_dict(cls, data: t.JsonMapping) -> m.Cli.DisplayData:
-        """Normalize settings/mapping to DisplayData for the table renderers.
+    @staticmethod
+    def to_json_dict(data: t.JsonMapping) -> m.Cli.DisplayData:
+        """Wrap a JSON mapping in DisplayData for the table renderers.
 
         Returns:
             The resulting ``m.Cli.DisplayData``.
 
         """
-        json_value: t.JsonValue = t.Cli.JSON_VALUE_ADAPTER.validate_python(
-            cls.normalize_to_json_value(data),
-        )
-        normalized = m.Cli.CliNormalizedJson(json_value).root
-        resolved = m.Cli.NormalizedJsonList(value=normalized, default={}).resolved
-        result_dict = dict(resolved.items())
-        return m.Cli.DisplayData(data=result_dict)
+        return m.Cli.DisplayData(data=data)
 
     @staticmethod
     def print_demo_completion(

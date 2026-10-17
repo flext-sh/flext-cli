@@ -155,6 +155,11 @@ class TestsFlextCliExampleModelsUtilitiesCov:
             ({"workers": 4, "enabled": True}, "workers", 4),
             ({"workers": 4, "enabled": True}, "enabled", True),
             ({"name": "demo"}, "name", "demo"),
+            (
+                {"nested": {"items": [1, None, False]}},
+                "nested",
+                {"items": [1, None, False]},
+            ),
         ],
     )
     def test_to_json_dict_preserves_values(

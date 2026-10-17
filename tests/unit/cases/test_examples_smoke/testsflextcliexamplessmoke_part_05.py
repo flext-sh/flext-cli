@@ -85,6 +85,13 @@ class TestsFlextCliExamplesSmokePart05:
         )
         tm.ok(base_config)
 
+        payload = base_config.value.model_dump(mode="json")
+        required_fields = ExamplesFlextCliPydanticDrivenCli.validate_required_fields(
+            payload,
+        )
+        tm.ok(required_fields)
+        tm.that(required_fields.value, eq=payload)
+
         oversized_localhost = base_config.value.model_copy(
             update={"host": "localhost", "connection_pool": 60},
         )

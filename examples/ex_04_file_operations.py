@@ -10,7 +10,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
-from examples import c, m, p, r, t, u
+from examples import c, m, p, r, t
 from flext_cli import cli
 
 if TYPE_CHECKING:
@@ -37,10 +37,7 @@ def save_user_preferences(
     """
     config_file = config_dir / "preferences.json"
 
-    write_result = cli.write_json_file(
-        config_file,
-        u.normalize_to_json_value(preferences),
-    )
+    write_result = cli.write_json_file(config_file, preferences)
 
     if write_result.failure:
         cli.print(
@@ -100,8 +97,7 @@ def save_deployment_config(
         The resulting ``p.Result[bool]``.
 
     """
-    # Normalize the mapping into the CLI JSON contract before writing YAML.
-    write_result = cli.write_yaml_file(config_file, u.normalize_to_json_value(settings))
+    write_result = cli.write_yaml_file(config_file, settings)
 
     if write_result.failure:
         cli.print(

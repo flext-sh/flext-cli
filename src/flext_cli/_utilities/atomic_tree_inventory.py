@@ -52,7 +52,15 @@ class FlextCliUtilitiesAtomicTreeInventory:
         name: str,
         predicate: Literal["exists", "isfile", "isdir"],
     ) -> bool:
-        """Evaluate one native predicate from its physical directory receipt."""
+        """Evaluate one native predicate from its physical directory receipt.
+
+        Returns:
+            Whether the captured child satisfies the native predicate.
+
+        Raises:
+            OSError: If the queried child is a physical alias.
+
+        """
         entry = next((item for item in inventory.entries if item.name == name), None)
         if entry is not None and entry.kind == "symlink":
             raise OSError(
@@ -74,7 +82,15 @@ class FlextCliUtilitiesAtomicTreeInventory:
         t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
         t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
     ]:
-        """Union selectors only when every original native observation agrees."""
+        """Union selectors only when every original native observation agrees.
+
+        Returns:
+            The directory inventories and ancestry plans with united selectors.
+
+        Raises:
+            ValueError: If original identity, query, or membership epochs disagree.
+
+        """
         directories: dict[Path, m.Cli.AtomicDirectoryInventory] = {}
         chains: dict[Path, m.Cli.AtomicDirectoryChainPlan] = {}
         for incoming in inventories:
@@ -136,7 +152,15 @@ class FlextCliUtilitiesAtomicTreeInventory:
         ] = (),
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
     ) -> bool:
-        """Reprove consumed elections, allowing only supplied physical own effects."""
+        """Reprove consumed elections, allowing only supplied physical own effects.
+
+        Returns:
+            True when every consumed query and physical identity still agrees.
+
+        Raises:
+            ValueError: If receipts disagree or an unaccounted change is observed.
+
+        """
         published = {before.path: (before, after) for before, after in publications}
         created = {item.path: item for item in directory_publications}
         if len(published) != len(publications) or any(
@@ -144,67 +168,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         ):
             msg = "directory query publication identities disagree"
             raise ValueError(msg)
-        for witness in topology:
-            observed = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(
-                witness.target
-            )
-            unchanged = observed.model_dump(
-                exclude={"queries", "membership_queried"}
-            ) == witness.model_dump(exclude={"queries", "membership_queried"})
-            count = len(witness.directories) - len(observed.directories)
-            gained = witness.directories[:count] if count > 0 else ()
-            ancestry = dict(
-                zip(
-                    reversed((observed.anchor_path, *observed.anchor_path.parents)),
-                    observed.anchor_ancestry,
-                    strict=True,
-                )
-            )
-            if not unchanged and not (
-                gained
-                and observed.anchor_path == gained[-1]
-                and observed.directories == witness.directories[count:]
-                and observed.anchor_ancestry[: len(witness.anchor_ancestry)]
-                == witness.anchor_ancestry
-                and all(
-                    path in created
-                    and created[path].exists
-                    and ancestry.get(path)
-                    == (created[path].device, created[path].inode)
-                    and ancestry.get(path.parent)
-                    == (created[path].parent_device, created[path].parent_inode)
-                    for path in gained
-                )
-            ):
-                msg = f"source directory ancestry changed: {witness.target}"
-                raise ValueError(msg)
-            if (
-                witness.queries or witness.membership_queried
-            ) and not observed.directories:
-                inventory = cls.inventory_physical_directory(witness.target)
-                for name, predicate in witness.queries:
-                    path = witness.target / name
-                    effect = published.get(path)
-                    value = (
-                        effect[1].content is not None and predicate != "isdir"
-                        if effect is not None
-                        else predicate != "isfile"
-                        and any(
-                            after.content is not None
-                            and after.path.is_relative_to(path)
-                            for _before, after in publications
-                        )
-                    )
-                    if predicate != "isfile" and path in created:
-                        cls._published_directory_current(path, created)
-                        value = True
-                    if value and effect is None:
-                        cls._published_directory_current(path, created)
-                    if value != cls.directory_query_value(inventory, name, predicate):
-                        msg = f"absent source candidate changed: {path}"
-                        raise ValueError(msg)
-                if witness.membership_queried:
-                    cls._verify_query_membership(inventory, {}, publications, created)
+        cls._verify_query_topology(topology, publications, published, created)
         for expected in inventories:
             observed = cls.inventory_physical_directory(expected.root.path)
             mutable_membership = {"mtime_ns", "ctime_ns", "link_count"}
@@ -251,6 +215,86 @@ class FlextCliUtilitiesAtomicTreeInventory:
         return True
 
     @classmethod
+    def _verify_query_topology(
+        cls,
+        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        publications: t.VariadicTuple[
+            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
+        ],
+        published: t.MappingKV[
+            Path, t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
+        ],
+        created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
+    ) -> None:
+        """Reprove absent-parent elections against the original native ancestry.
+
+        Raises:
+            ValueError: If ancestry or an absent candidate changed unexpectedly.
+
+        """
+        for witness in topology:
+            observed = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(
+                witness.target
+            )
+            gained = witness.directories[
+                : max(0, len(witness.directories) - len(observed.directories))
+            ]
+            ancestry = dict(
+                zip(
+                    reversed((observed.anchor_path, *observed.anchor_path.parents)),
+                    observed.anchor_ancestry,
+                    strict=True,
+                )
+            )
+            if observed.model_dump(
+                exclude={"queries", "membership_queried"}
+            ) != witness.model_dump(exclude={"queries", "membership_queried"}) and not (
+                gained
+                and observed.anchor_path == gained[-1]
+                and observed.directories == witness.directories[len(gained) :]
+                and observed.anchor_ancestry[: len(witness.anchor_ancestry)]
+                == witness.anchor_ancestry
+                and all(
+                    path in created
+                    and created[path].exists
+                    and ancestry.get(path)
+                    == (created[path].device, created[path].inode)
+                    and ancestry.get(path.parent)
+                    == (created[path].parent_device, created[path].parent_inode)
+                    for path in gained
+                )
+            ):
+                msg = f"source directory ancestry changed: {witness.target}"
+                raise ValueError(msg)
+            if (
+                witness.queries or witness.membership_queried
+            ) and not observed.directories:
+                inventory = cls.inventory_physical_directory(witness.target)
+                for name, predicate in witness.queries:
+                    path = witness.target / name
+                    effect = published.get(path)
+                    value = (
+                        effect[1].content is not None and predicate != "isdir"
+                        if effect is not None
+                        else predicate != "isfile"
+                        and any(
+                            after.content is not None
+                            and after.path.is_relative_to(path)
+                            for _before, after in publications
+                        )
+                    )
+                    if predicate != "isfile" and path in created:
+                        cls._published_directory_current(path, created)
+                        value = True
+                    if value and effect is None:
+                        cls._published_directory_current(path, created)
+                    if value != cls.directory_query_value(inventory, name, predicate):
+                        msg = f"absent source candidate changed: {path}"
+                        raise ValueError(msg)
+                if witness.membership_queried:
+                    cls._verify_query_membership(inventory, {}, publications, created)
+
+    @classmethod
     def _verify_query_membership(
         cls,
         observed: m.Cli.AtomicDirectoryInventory,
@@ -262,7 +306,12 @@ class FlextCliUtilitiesAtomicTreeInventory:
         ],
         created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
     ) -> None:
-        """Reprove direct membership with only original native publication effects."""
+        """Reprove direct membership with only original native publication effects.
+
+        Raises:
+            ValueError: If direct membership or a published directory kind changed.
+
+        """
         root = observed.root.path
         for path in created:
             if path.parent == root:
@@ -290,7 +339,12 @@ class FlextCliUtilitiesAtomicTreeInventory:
         path: Path,
         created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
     ) -> None:
-        """Bind an elected own directory to the publisher's original inode."""
+        """Bind an elected own directory to the publisher's original inode.
+
+        Raises:
+            ValueError: If the original directory or parent inode no longer agrees.
+
+        """
         receipt = created.get(path)
         observed = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(path)
         if (

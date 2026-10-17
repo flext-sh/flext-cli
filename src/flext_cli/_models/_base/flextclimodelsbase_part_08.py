@@ -51,7 +51,9 @@ class FlextCliModelsBasePart08:
         membership_queried: bool = m.Field(
             default=False,
             strict=True,
-            description="Whether native planning consumed the absent parent's membership",
+            description=(
+                "Whether native planning consumed the absent parent's membership"
+            ),
         )
 
         @u.field_validator("target", "anchor_path")

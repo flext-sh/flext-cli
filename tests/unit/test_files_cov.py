@@ -93,6 +93,28 @@ class TestsFlextCliFilesCov:
         tm.that(result.value.sort_keys, eq=True)
 
     @staticmethod
+    @pytest.mark.parametrize(
+        ("content", "valid"),
+        [
+            ('{"host": "localhost", "port": 5432}', True),
+            ('{"host": "localhost", "port": "5432"}', False),
+            ('{"host": "localhost", "port": true}', False),
+            ('{"host": "localhost"}', False),
+            ('{"host":', False),
+        ],
+    )
+    def test_read_json_model_respects_declared_strictness(
+        tmp_path: Path, content: str, *, valid: bool
+    ) -> None:
+        """The file transport must not relax the consumer model's contract."""
+        path = tmp_path / "service.json"
+        path.write_text(content, encoding="utf-8")
+        result = cli.read_json_model(path, m.Tests.YamlService)
+        tm.that(result.success, eq=valid)
+        if valid:
+            tm.that(result.value, eq=m.Tests.YamlService.model_validate_json(content))
+
+    @staticmethod
     def test_write_then_read_yaml_round_trips(tmp_path: Path) -> None:
         """Verify that write then read yaml round trips."""
         path = tmp_path / "data.yaml"
