@@ -24,9 +24,8 @@ class FlextCliProtocolsXlsxSnapshotStructure:
         def legacy_password_hash(self) -> str | None: ...
 
     @runtime_checkable
-    class XlsxRowDimensionSnapshot(Protocol):
-        @property
-        def position(self) -> int: ...
+    class XlsxDimensionSnapshot(Protocol):
+        """Shared layout-state evidence retained for one worksheet dimension."""
 
         @property
         def size(self) -> float | None: ...
@@ -38,7 +37,12 @@ class FlextCliProtocolsXlsxSnapshotStructure:
         def outline_level(self) -> int | None: ...
 
     @runtime_checkable
-    class XlsxColumnDimensionSnapshot(Protocol):
+    class XlsxRowDimensionSnapshot(XlsxDimensionSnapshot, Protocol):
+        @property
+        def position(self) -> int: ...
+
+    @runtime_checkable
+    class XlsxColumnDimensionSnapshot(XlsxDimensionSnapshot, Protocol):
         @property
         def name(self) -> str: ...
 
@@ -47,15 +51,6 @@ class FlextCliProtocolsXlsxSnapshotStructure:
 
         @property
         def last(self) -> int: ...
-
-        @property
-        def size(self) -> float | None: ...
-
-        @property
-        def hidden(self) -> bool: ...
-
-        @property
-        def outline_level(self) -> int | None: ...
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsxSnapshotStructure",)

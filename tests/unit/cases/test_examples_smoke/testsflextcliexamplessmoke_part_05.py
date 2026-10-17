@@ -18,6 +18,40 @@ class TestsFlextCliExamplesSmokePart05:
     """Implementation part for TestsFlextCliExamplesSmokePart05."""
 
     @staticmethod
+    def test_business_rules_preserve_input_and_validate_subclass_constraints() -> None:
+        """Port replacement respects consumer constraints and frozen inputs."""
+        restricted = m.Tests.RestrictedDatabaseConfig(
+            host="db.example.com",
+            port=5432,
+            name="prod",
+            username="user",
+            password="p" + "3" * 10,
+            ssl_enabled=True,
+            connection_pool=10,
+        )
+        original = restricted.model_dump()
+        rejected = ExamplesFlextCliPydanticDrivenCli.validate_business_rules(
+            restricted,
+        )
+        tm.fail(rejected)
+        tm.that(rejected.exception, is_=c.ValidationError)
+        tm.that(restricted.model_dump(), eq=original)
+
+        unrestricted = m.Examples.AdvancedDatabaseConfig.model_validate(original)
+        accepted = ExamplesFlextCliPydanticDrivenCli.validate_business_rules(
+            unrestricted,
+        )
+        tm.ok(accepted)
+        tm.that(accepted.value.port, eq=5433)
+        tm.that(unrestricted.model_dump(), eq=original)
+
+        unchanged = ExamplesFlextCliPydanticDrivenCli.validate_business_rules(
+            accepted.value,
+        )
+        tm.ok(unchanged)
+        tm.that(unchanged.value is accepted.value, eq=True)
+
+    @staticmethod
     def test_settings_and_pydantic_examples_validate_production_flow(
         tmp_path: Path,
     ) -> None:

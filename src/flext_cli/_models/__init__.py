@@ -13,54 +13,34 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._models import _base, _xlsx
-    from flext_cli._models._base.flextclimodelsbase_part_01 import (
+    from flext_cli._models import _base as _base, _xlsx as _xlsx
+    from flext_cli._models._base import (
         FlextCliModelsBasePart01,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_02 import (
         FlextCliModelsBasePart02,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_03 import (
         FlextCliModelsBasePart03,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_04 import (
         FlextCliModelsBasePart04,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_05 import (
         FlextCliModelsBasePart05,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_06 import (
         FlextCliModelsBasePart06,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_07 import (
         FlextCliModelsBasePart07,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_08 import (
         FlextCliModelsBasePart08,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_09 import (
         FlextCliModelsBasePart09,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_10 import (
         FlextCliModelsBasePart10,
     )
-    from flext_cli._models._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
-    from flext_cli._models._xlsx.xlsx_cells import FlextCliModelsXlsxCells
-    from flext_cli._models._xlsx.xlsx_layout import FlextCliModelsXlsxLayout
-    from flext_cli._models._xlsx.xlsx_recalc import FlextCliModelsXlsxRecalc
-    from flext_cli._models._xlsx.xlsx_rules import FlextCliModelsXlsxRules
-    from flext_cli._models._xlsx.xlsx_snapshot import FlextCliModelsXlsxSnapshot
-    from flext_cli._models._xlsx.xlsx_style_catalog import (
+    from flext_cli._models._xlsx import (
+        FlextCliModelsXlsxArchive,
+        FlextCliModelsXlsxCells,
+        FlextCliModelsXlsxLayout,
+        FlextCliModelsXlsxRecalc,
+        FlextCliModelsXlsxRules,
+        FlextCliModelsXlsxSnapshot,
         FlextCliModelsXlsxStyleCatalog,
-    )
-    from flext_cli._models._xlsx.xlsx_style_fills import FlextCliModelsXlsxStyleFills
-    from flext_cli._models._xlsx.xlsx_style_primitives import (
+        FlextCliModelsXlsxStyleFills,
         FlextCliModelsXlsxStylePrimitives,
+        FlextCliModelsXlsxStyles,
+        FlextCliModelsXlsxTables,
+        FlextCliModelsXlsxValidation,
+        FlextCliModelsXlsxWorkbook,
     )
-    from flext_cli._models._xlsx.xlsx_styles import FlextCliModelsXlsxStyles
-    from flext_cli._models._xlsx.xlsx_tables import FlextCliModelsXlsxTables
-    from flext_cli._models._xlsx.xlsx_validation import FlextCliModelsXlsxValidation
-    from flext_cli._models._xlsx.xlsx_workbook import FlextCliModelsXlsxWorkbook
     from flext_cli._models.atomic_state import FlextCliModelsAtomicState
     from flext_cli._models.atomic_symlink import FlextCliModelsAtomicSymlink
     from flext_cli._models.base import FlextCliModelsBase

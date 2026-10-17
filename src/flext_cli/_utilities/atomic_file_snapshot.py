@@ -15,7 +15,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli import m
+from flext_cli import c, m
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
@@ -56,7 +56,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                     parent_inode=None if parent is None else parent.state.st_ino,
                 )
             with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
-                parent, path, FlextCliUtilitiesAtomicFileRead.READ_FLAGS
+                parent, path, c.Cli.READ_FLAGS
             ) as descriptor:
                 digest = hashlib.sha256()
                 size = 0
@@ -109,7 +109,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
             ):
                 FlextCliUtilitiesAtomicFileRead.raise_changed(receipt.path)
             with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
-                parent, receipt.path, FlextCliUtilitiesAtomicFileRead.READ_FLAGS
+                parent, receipt.path, c.Cli.READ_FLAGS
             ) as descriptor:
                 digest = hashlib.sha256()
                 for chunk in FlextCliUtilitiesAtomicFileRead.descriptor_chunks(

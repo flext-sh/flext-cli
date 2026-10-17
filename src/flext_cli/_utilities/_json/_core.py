@@ -24,6 +24,10 @@ from flext_core import FlextRuntime, u
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities.atomic_file import FlextCliUtilitiesAtomicFile
+from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities.atomic_parent_descriptor import (
+    FlextCliUtilitiesAtomicParentDescriptor,
+)
 
 
 class FlextCliUtilitiesJsonCoreMixin:
@@ -246,9 +250,15 @@ class FlextCliUtilitiesJsonCoreMixin:
 
         def _write() -> bool:
             content = FlextCliUtilitiesJsonCoreMixin._json_write_content(payload, opts)
-            path.parent.mkdir(parents=True, exist_ok=True)
+            destination = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(
+                path.absolute(),
+            )
+            FlextCliUtilitiesAtomicParentDescriptor.inspect_directory_chain(
+                destination.parent,
+            )
+            destination.parent.mkdir(parents=True, exist_ok=True)
             FlextCliUtilitiesAtomicFile.write_atomic_bytes(
-                path.absolute(), content.encode(c.DEFAULT_ENCODING)
+                destination, content.encode(c.DEFAULT_ENCODING)
             )
             return True
 

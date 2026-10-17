@@ -91,18 +91,20 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ValueError: If original identity, query, or membership epochs disagree.
 
         """
-        directories: dict[Path, m.Cli.AtomicDirectoryInventory] = {}
-        chains: dict[Path, m.Cli.AtomicDirectoryChainPlan] = {}
+        directories: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        chains: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan] = {}
         for incoming in inventories:
             path = incoming.root.path
             previous = directories.get(path)
             if previous is None:
                 directories[path] = incoming
                 continue
-            mutable_membership = {"mtime_ns", "ctime_ns", "link_count"}
-            if previous.root.model_dump(
-                exclude=mutable_membership
-            ) != incoming.root.model_dump(exclude=mutable_membership) or any(
+            cls._require_directory_identity(
+                previous.root,
+                incoming.root,
+                f"source directory query epochs disagree: {path}",
+            )
+            if any(
                 cls.directory_query_value(previous, name, predicate)
                 != cls.directory_query_value(incoming, name, predicate)
                 for name, predicate in (*previous.queries, *incoming.queries)
@@ -142,6 +144,25 @@ class FlextCliUtilitiesAtomicTreeInventory:
             )
         return tuple(directories.values()), tuple(chains.values())
 
+    @staticmethod
+    def _require_directory_identity(
+        expected: m.Cli.AtomicPhysicalTreeEntry,
+        observed: m.Cli.AtomicPhysicalTreeEntry,
+        diagnostic: str,
+    ) -> None:
+        """Reject changed physical identity without freezing child membership.
+
+        Raises:
+            ValueError: If any original field except membership timestamps and
+                link count differs.
+
+        """
+        mutable_membership = {"mtime_ns", "ctime_ns", "link_count"}
+        if expected.model_dump(exclude=mutable_membership) != observed.model_dump(
+            exclude=mutable_membership
+        ):
+            raise ValueError(diagnostic)
+
     @classmethod
     def verify_directory_queries(
         cls,
@@ -168,17 +189,22 @@ class FlextCliUtilitiesAtomicTreeInventory:
         ):
             msg = "directory query publication identities disagree"
             raise ValueError(msg)
-        cls._verify_query_topology(topology, publications, published, created)
+        ancestors = dict.fromkeys(
+            path
+            for _before, after in publications
+            if after.content is not None
+            for path in (after.path, *after.path.parents)
+        )
+        cls._verify_query_topology(
+            topology, publications, published, created, ancestors
+        )
         for expected in inventories:
             observed = cls.inventory_physical_directory(expected.root.path)
-            mutable_membership = {"mtime_ns", "ctime_ns", "link_count"}
-            if expected.root.model_dump(
-                exclude=mutable_membership
-            ) != observed.root.model_dump(exclude=mutable_membership):
-                msg = (
-                    f"source directory physical identity changed: {expected.root.path}"
-                )
-                raise ValueError(msg)
+            cls._require_directory_identity(
+                expected.root,
+                observed.root,
+                f"source directory physical identity changed: {expected.root.path}",
+            )
             for name, predicate in expected.queries:
                 value = cls.directory_query_value(expected, name, predicate)
                 effect = published.get(expected.root.path / name)
@@ -191,11 +217,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     value = after.content is not None and predicate != "isdir"
                 elif predicate != "isfile" and (
                     expected.root.path / name in created
-                    or any(
-                        after.content is not None
-                        and after.path.is_relative_to(expected.root.path / name)
-                        for _before, after in publications
-                    )
+                    or expected.root.path / name in ancestors
                 ):
                     # A directory the preimage already held needs no creation
                     # receipt for publications beneath it; only an own creation
@@ -233,6 +255,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             Path, t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
         ],
         created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
+        ancestors: t.MappingKV[Path, None],
     ) -> None:
         """Reprove absent-parent elections against the original native ancestry.
 
@@ -284,12 +307,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     value = (
                         effect[1].content is not None and predicate != "isdir"
                         if effect is not None
-                        else predicate != "isfile"
-                        and any(
-                            after.content is not None
-                            and after.path.is_relative_to(path)
-                            for _before, after in publications
-                        )
+                        else predicate != "isfile" and path in ancestors
                     )
                     if predicate != "isfile" and path in created:
                         cls._published_directory_current(path, created)

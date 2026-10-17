@@ -175,14 +175,11 @@ class FlextCliUtilitiesTemplate:
             return r[str].fail(f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {path}")
         env = FlextCliUtilitiesTemplate.template_environment(path.parent)
         template = cast("p.Cli.JinjaTemplateRenderer", env.get_template(path.name))
-        rendered = u.try_(
+        return u.try_(
             lambda: template.render(context.model_dump(mode="json")),
             catch=(TemplateError, OSError),
             op_name="template_render",
         )
-        if rendered.failure:
-            return r[str].from_failure(rendered)
-        return r[str].ok(rendered.value)
 
     @staticmethod
     def template_capture_sources(

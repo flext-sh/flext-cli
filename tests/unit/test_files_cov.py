@@ -15,6 +15,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
+from pydantic import ValidationError
 
 from flext_cli import cli
 from tests import c, m, t, tm, u
@@ -113,6 +114,24 @@ class TestsFlextCliFilesCov:
         tm.that(result.success, eq=valid)
         if valid:
             tm.that(result.value, eq=m.Tests.YamlService.model_validate_json(content))
+        else:
+            assert isinstance(result.exception, ValidationError)
+            with pytest.raises(RuntimeError) as raised:
+                _ = result.value
+            assert raised.value.__cause__ is result.exception
+
+    @staticmethod
+    def test_read_json_model_retains_missing_file_cause(tmp_path: Path) -> None:
+        """A typed JSON read retains the native filesystem failure and cause."""
+        path = tmp_path / "missing.json"
+        result = cli.read_json_model(path, m.Tests.YamlService)
+        tm.fail(result)
+        exception = result.exception
+        assert isinstance(exception, FileNotFoundError)
+        tm.that(exception.filename, eq=str(path))
+        with pytest.raises(RuntimeError) as raised:
+            _ = result.value
+        assert raised.value.__cause__ is exception
 
     @staticmethod
     def test_write_then_read_yaml_round_trips(tmp_path: Path) -> None:
