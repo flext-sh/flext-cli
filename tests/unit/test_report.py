@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests import m, u
+from tests import m, tm, u
 
 
 class TestsFlextCliDataReport:
@@ -21,16 +21,16 @@ class TestsFlextCliDataReport:
             title="wip next",
         )
         rendered = u.Cli.report_render(request)
-        assert rendered.success
-        assert "bead" in rendered.value
-        assert "aihub-1" in rendered.value
-        assert "clean" in rendered.value
+        tm.that(rendered.success, truth=True)
+        tm.that("bead" in rendered.value, truth=True)
+        tm.that("aihub-1" in rendered.value, truth=True)
+        tm.that("clean" in rendered.value, truth=True)
 
     @staticmethod
     def test_report_render_accepts_an_empty_report() -> None:
         """An empty report renders deterministically without failing."""
         rendered = u.Cli.report_render(m.Cli.DataReportRequest(columns=(), rows=()))
-        assert rendered.success
+        tm.that(rendered.success, truth=True)
 
     @staticmethod
     def test_report_emit_json_returns_success() -> None:
@@ -39,7 +39,7 @@ class TestsFlextCliDataReport:
             m.Cli.DataReportRequest(columns=("a",), rows=[["b"]]),
             json_output=True,
         )
-        assert emitted.success
+        tm.that(emitted.success, truth=True)
 
     @staticmethod
     def test_report_emit_table_returns_success() -> None:
@@ -48,4 +48,4 @@ class TestsFlextCliDataReport:
             m.Cli.DataReportRequest(columns=("a",), rows=[["b"]], message="verdict"),
             json_output=False,
         )
-        assert emitted.success
+        tm.that(emitted.success, truth=True)

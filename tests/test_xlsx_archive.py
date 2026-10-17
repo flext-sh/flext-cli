@@ -62,3 +62,6 @@ class TestsFlextCliXlsxArchive:
 
         tm.that(result.failure, eq=True)
         tm.that("xlsx_archive_invalid" in (result.error or ""), eq=True)
+
+
+__all__: list[str] = ["TestsFlextCliXlsxArchive"]

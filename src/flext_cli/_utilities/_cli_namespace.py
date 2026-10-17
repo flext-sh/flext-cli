@@ -6,8 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import m
-
+from flext_cli._utilities._model_config import FlextCliUtilitiesModelConfig
 from flext_cli._utilities._options_parts import FlextCliUtilitiesOptionsPart02
 from flext_cli._utilities.auth import FlextCliUtilitiesAuth
 from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
@@ -75,18 +74,6 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesYamlModel,
 ):
     """Compose utilities; document adapters load only during their operation."""
-
-
-class FlextCliUtilitiesModelConfig:
-    """Pydantic model configuration owner for the CLI utilities facade.
-
-    The facade binds this ``model_config`` through an identity alias so the
-    class-typed ``Cli`` namespace attribute survives pydantic model
-    construction through ``ignored_types`` while the authored ConfigDict
-    statement stays out of the generated facade body.
-    """
-
-    model_config = m.ConfigDict(ignored_types=(type(FlextCliUtilitiesCli),))
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesCli", "FlextCliUtilitiesModelConfig")

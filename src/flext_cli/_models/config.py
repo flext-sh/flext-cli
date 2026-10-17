@@ -17,9 +17,9 @@ from flext_cli import FlextCliConfig
 class FlextCliConfigModels:
     """Namespace of typed flext-cli config models (m facade)."""
 
-    Cli = FlextCliConfig.Models.Cli
-    ProcessIsolation = FlextCliConfig.Models.ProcessIsolation
-    Root = FlextCliConfig.Models.Root
+    Cli = FlextCliConfig.CliModel
+    ProcessIsolation = FlextCliConfig.ProcessIsolationModel
+    Root = FlextCliConfig.Root
 
 
 __all__: list[str] = ["FlextCliConfigModels"]

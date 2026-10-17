@@ -69,3 +69,6 @@ class TestsFlextCliPptxRender:
         result = cli.pptx_read(b"not a pptx")
         tm.that(result.success, eq=False)
         tm.that(result.error, ne=None)
+
+
+__all__: list[str] = ["TestsFlextCliPptxRender"]

@@ -29,45 +29,45 @@ from __future__ import annotations
 from examples import c, m, p, r, t, u
 from flext_cli import cli
 
-# NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): the example enters
-# the railway as one validated model and retains that object through services.
-# mro-p68a.9.3 (agent: claude): example-only demo constants keep the walkthrough
-# instructional and Ruff-clean (no magic values, no inline credential literal).
-# A real CLI must source this from settings/env, never a literal (see the
-# ban-hardcoded-credential-kwarg codemod rule); the example uses a named
-# non-credential placeholder to stay honest and lint-clean.
-_DEMO_DB_PLACEHOLDER = "example_password"
-_DEFAULT_POSTGRES_PORT = 5432
-_SSL_POSTGRES_PORT = 5433
-_MAX_LOCALHOST_CONNECTION_POOL = 50
-
-
-def _report_step_success[T](value: T, message: str) -> T:
-    """Emit a success message while preserving the pipeline value.
-
-    Returns:
-        The resulting ``T``.
-
-    """
-    cli.print(message, style=c.Cli.MessageStyles.GREEN)
-    return value
-
-
-def _finish_database_config(
-    settings: m.Examples.AdvancedDatabaseConfig,
-) -> m.Examples.AdvancedDatabaseConfig:
-    """Emit the final success summary and preserve the validated settings.
-
-    Returns:
-        The resulting ``m.Examples.AdvancedDatabaseConfig``.
-
-    """
-    u.display_success_summary("Database configuration")
-    return settings
-
 
 class ExamplesFlextCliPydanticDrivenCli:
     """Pydantic-driven CLI example: build type-safe CLIs from models."""
+
+    # The example enters the railway as one validated model and retains that
+    # object through services. Example-only demo constants keep the
+    # walkthrough instructional and Ruff-clean (no magic values, no inline
+    # credential literal). A real CLI must source this from settings/env,
+    # never a literal (see the ban-hardcoded-credential-kwarg codemod rule);
+    # the example uses a named non-credential placeholder to stay honest and
+    # lint-clean.
+    _DEMO_DB_PLACEHOLDER = "example_password"
+    _DEFAULT_POSTGRES_PORT = 5432
+    _SSL_POSTGRES_PORT = 5433
+    _MAX_LOCALHOST_CONNECTION_POOL = 50
+
+    @staticmethod
+    def _report_step_success[T](value: T, message: str) -> T:
+        """Emit a success message while preserving the pipeline value.
+
+        Returns:
+            The resulting ``T``.
+
+        """
+        cli.print(message, style=c.Cli.MessageStyles.GREEN)
+        return value
+
+    @staticmethod
+    def _finish_database_config(
+        settings: m.Examples.AdvancedDatabaseConfig,
+    ) -> m.Examples.AdvancedDatabaseConfig:
+        """Emit the final success summary and preserve the validated settings.
+
+        Returns:
+            The resulting ``m.Examples.AdvancedDatabaseConfig``.
+
+        """
+        u.display_success_summary("Database configuration")
+        return settings
 
     @staticmethod
     def create_database_config_from_cli() -> p.Result[
@@ -85,10 +85,10 @@ class ExamplesFlextCliPydanticDrivenCli:
         )
         cli_args = m.Examples.AdvancedDatabaseConfig(
             host="db.example.com",
-            port=_DEFAULT_POSTGRES_PORT,
+            port=ExamplesFlextCliPydanticDrivenCli._DEFAULT_POSTGRES_PORT,
             name="production_db",
             username="example_user",
-            password=_DEMO_DB_PLACEHOLDER,
+            password=ExamplesFlextCliPydanticDrivenCli._DEMO_DB_PLACEHOLDER,
             ssl_enabled=True,
             connection_pool=20,
         )
@@ -96,32 +96,32 @@ class ExamplesFlextCliPydanticDrivenCli:
             r[m.Examples.AdvancedDatabaseConfig]
             .ok(cli_args)
             .map(
-                lambda settings: _report_step_success(
+                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
                     settings,
                     "✅ Required fields validated",
                 ),
             )
             .map(
-                lambda settings: _report_step_success(
+                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
                     settings,
                     "✅ Pydantic validation passed",
                 ),
             )
             .flat_map(ExamplesFlextCliPydanticDrivenCli.validate_business_rules)
             .map(
-                lambda settings: _report_step_success(
+                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
                     settings,
                     "✅ Business rules validated",
                 ),
             )
             .flat_map(ExamplesFlextCliPydanticDrivenCli.perform_connection_test)
             .map(
-                lambda settings: _report_step_success(
+                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
                     settings,
                     "✅ Connection test passed",
                 ),
             )
-            .map(_finish_database_config)
+            .map(ExamplesFlextCliPydanticDrivenCli._finish_database_config)
         )
 
     @staticmethod
@@ -173,10 +173,12 @@ class ExamplesFlextCliPydanticDrivenCli:
             The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
 
         """
-        if settings.ssl_enabled and settings.port == _DEFAULT_POSTGRES_PORT:
+        default_port = ExamplesFlextCliPydanticDrivenCli._DEFAULT_POSTGRES_PORT
+        if settings.ssl_enabled and settings.port == default_port:
             try:
                 settings = type(settings).model_validate(
-                    settings.model_dump() | {"port": _SSL_POSTGRES_PORT},
+                    settings.model_dump()
+                    | {"port": ExamplesFlextCliPydanticDrivenCli._SSL_POSTGRES_PORT},
                 )
             except c.ValidationError as error:
                 return r[m.Examples.AdvancedDatabaseConfig].fail(
@@ -184,7 +186,8 @@ class ExamplesFlextCliPydanticDrivenCli:
                     exception=error,
                 )
         if (
-            settings.connection_pool > _MAX_LOCALHOST_CONNECTION_POOL
+            settings.connection_pool
+            > ExamplesFlextCliPydanticDrivenCli._MAX_LOCALHOST_CONNECTION_POOL
             and settings.host == "localhost"
         ):
             return r[m.Examples.AdvancedDatabaseConfig].fail(
@@ -205,3 +208,6 @@ class ExamplesFlextCliPydanticDrivenCli:
         if "fail" in settings.host:
             return r[m.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
         return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
+
+
+__all__: list[str] = ["ExamplesFlextCliPydanticDrivenCli"]

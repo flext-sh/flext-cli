@@ -15,7 +15,6 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-from pydantic import ValidationError
 
 from flext_cli import cli
 from tests import c, m, t, tm, u
@@ -115,7 +114,7 @@ class TestsFlextCliFilesCov:
         if valid:
             tm.that(result.value, eq=m.Tests.YamlService.model_validate_json(content))
         else:
-            assert isinstance(result.exception, ValidationError)
+            assert isinstance(result.exception, m.ValidationError)
             with pytest.raises(RuntimeError) as raised:
                 _ = result.value
             assert raised.value.__cause__ is result.exception

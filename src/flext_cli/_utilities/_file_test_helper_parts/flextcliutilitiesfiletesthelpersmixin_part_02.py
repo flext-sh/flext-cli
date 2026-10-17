@@ -23,6 +23,8 @@ if TYPE_CHECKING:
 class FlextCliUtilitiesFileTestHelpersMixinPart02:
     """Implementation part for FlextCliUtilitiesFileTestHelpersMixinPart02."""
 
+    FileAssertionOptions = FlextCliModelsFiles.FileAssertionOptions
+
     @staticmethod
     def files_assert_exists(
         path: Path,
