@@ -11,9 +11,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, get_args
 
 from flext_core import m
+from pydantic import TypeAdapter
 
 if TYPE_CHECKING:
     from flext_core import t
@@ -45,20 +46,23 @@ class FlextCliConfigModels:
     class Cli(m.FrozenModel):
         """CLI identity metadata from ``config/cli.yaml``."""
 
-        name: str = m.Field(description="Configured CLI application name.")
-        version: str = m.Field(description="Configured CLI application version.")
+        name: str = m.Field(
+            min_length=1, description="Configured CLI application name."
+        )
+        version: str = m.Field(
+            min_length=1, description="Configured CLI application version."
+        )
 
     class ProcessIsolation(m.FrozenModel):
         """Immutable syscall obligations of native read-only reference imports."""
 
         compiler_resource_parts: tuple[str, ...] = m.Field(
-            default=(),
+            min_length=1,
             description=(
                 "Exact relative parts elected in the declared distribution RECORD"
             ),
         )
         denied_syscalls: tuple[DeniedSyscallName, ...] = m.Field(
-            default=(),
             description="Symbolic native network and io_uring denials",
         )
 
@@ -108,6 +112,32 @@ class FlextCliConfigModels:
             ):
                 msg = (
                     "native compiler resource parts must be lexical relative components"
+                )
+                raise ValueError(msg)
+            return value
+
+        @m.field_validator("denied_syscalls")
+        @classmethod
+        def _validate_policy_floor(
+            cls,
+            value: tuple[DeniedSyscallName, ...],
+        ) -> tuple[DeniedSyscallName, ...]:
+            """Require every native syscall obligation exactly once.
+
+            Returns:
+                The declared order of the complete native policy.
+
+            Raises:
+                ValueError: If a required syscall is missing or duplicated.
+
+            """
+            required = TypeAdapter[tuple[DeniedSyscallName, ...]](
+                tuple[DeniedSyscallName, ...]
+            ).validate_python(get_args(DeniedSyscallName.__value__), strict=True)
+            if len(value) != len(required) or set(value) != set(required):
+                msg = (
+                    "denied_syscalls must contain every native syscall obligation "
+                    "exactly once"
                 )
                 raise ValueError(msg)
             return value

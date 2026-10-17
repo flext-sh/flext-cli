@@ -24,12 +24,12 @@ class FlextCliConfig(FlextConfig):
     Cli: Annotated[
         FlextCliConfigModels.Cli,
         m.Field(description="CLI identity metadata from ``config/cli.yaml``."),
-    ] = FlextCliConfigModels.Cli(name="", version="")
+    ]
 
     ProcessIsolation: Annotated[
         FlextCliConfigModels.ProcessIsolation,
         m.Field(description="Native read-only reference import policy."),
-    ] = FlextCliConfigModels.ProcessIsolation()
+    ]
 
 
 config: FlextCliConfig = FlextCliConfig.fetch_global()
