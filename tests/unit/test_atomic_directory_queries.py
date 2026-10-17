@@ -6,16 +6,150 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Literal
 
 import pytest
 
-from tests import m, t, tm, u
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliAtomicDirectoryQueries:
     """Reprove a queried directory only where its existence depends on a receipt."""
+
+    @staticmethod
+    def test_filesystem_root_is_a_directory_not_a_file(tmp_path: Path) -> None:
+        """Directory election authenticates anchors without authorizing file IO."""
+        root = Path(tmp_path.anchor)
+        inventory = tm.ok(u.Cli.atomic_inventory_physical_directory(root))
+
+        tm.that(inventory.root.path, eq=root)
+        tm.that(inventory.root.kind, eq="directory")
+        tm.that(
+            (inventory.root.parent_device, inventory.root.parent_inode),
+            eq=(inventory.root.device, inventory.root.inode),
+        )
+        tm.that(
+            u.Cli.atomic_directory_query_value(inventory, tmp_path.parts[1], "exists"),
+            eq=True,
+        )
+        tm.that(
+            u.Cli.atomic_read_binary_file_state(root, required=True).failure, eq=True
+        )
+        tm.that(u.Cli.atomic_inventory_physical_tree(root).failure, eq=True)
+        with pytest.raises(ValueError, match="manifest root path"):
+            m.Cli.AtomicPhysicalTreeManifest(root=inventory.root)
+
+    @staticmethod
+    @pytest.mark.parametrize("kind", ["file", "symlink"])
+    def test_filesystem_anchor_cannot_be_a_leaf(
+        tmp_path: Path, kind: Literal["file", "symlink"]
+    ) -> None:
+        """Allowing physical directory anchors never admits invented leaf states."""
+        inventory = tm.ok(
+            u.Cli.atomic_inventory_physical_directory(Path(tmp_path.anchor))
+        )
+        with pytest.raises(ValueError, match="path must be absolute and normalized"):
+            m.Cli.AtomicPhysicalTreeEntry.model_validate(
+                inventory.root.model_dump() | {"kind": kind}
+            )
+
+    @staticmethod
+    def test_directory_elections_authenticate_mounted_ancestors(tmp_path: Path) -> None:
+        """Read-only ancestry election records mount facts, never cleanup authority."""
+        directory = next(
+            (
+                candidate
+                for candidate in (tmp_path, *tmp_path.parents)
+                if candidate.stat().st_dev != candidate.parent.stat().st_dev
+            ),
+            tmp_path,
+        )
+        inventory = tm.ok(u.Cli.atomic_inventory_physical_directory(directory))
+        observed = directory.stat()
+        tm.that(inventory.root.device, eq=observed.st_dev)
+        tm.that(inventory.root.inode, eq=observed.st_ino)
+        tm.that(inventory.root.parent_device, eq=directory.parent.stat().st_dev)
+        if observed.st_dev != inventory.root.parent_device:
+            tm.that(u.Cli.atomic_inventory_physical_tree(directory).failure, eq=True)
+
+    @staticmethod
+    @pytest.mark.parametrize("boundary", ["device", "mount"])
+    def test_directory_election_cannot_become_cross_boundary_cleanup(
+        tmp_path: Path, boundary: Literal["device", "mount"]
+    ) -> None:
+        """Physical facts can describe a mount without authorizing its destruction."""
+        inventory = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        transition = (
+            {"parent_device": inventory.root.device + 1}
+            if boundary == "device"
+            else {"parent_mount_id": inventory.root.mount_id + 1}
+        )
+        root = m.Cli.AtomicPhysicalTreeEntry.model_validate(
+            inventory.root.model_dump() | transition
+        )
+        tm.that(m.Cli.AtomicDirectoryInventory(root=root).root, eq=root)
+        with pytest.raises(ValueError, match=f"parent {boundary}"):
+            m.Cli.AtomicPhysicalTreeManifest(root=root)
+
+    @staticmethod
+    @pytest.mark.parametrize("failure", ["io", "interrupt"])
+    def test_inventory_and_lineage_failures_keep_their_causes(
+        tmp_path: Path, failure: Literal["io", "interrupt"]
+    ) -> None:
+        """A real parent move must not replace an operation error or cancellation."""
+        script = tmp_path / "consumer.py"
+        script.write_text(
+            "import errno\n"
+            "import os\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "from flext_cli import u\n"
+            "root = Path(sys.argv[1])\n"
+            "parent = root / 'parent'\n"
+            "parent.mkdir()\n"
+            "directory = parent / 'inventory'\n"
+            "directory.mkdir()\n"
+            "expected = directory.stat()\n"
+            "armed = True\n"
+            "def fail_inventory(event, args):\n"
+            "    global armed\n"
+            "    if event == 'os.scandir' and armed and isinstance(args[0], int):\n"
+            "        observed = os.fstat(args[0])\n"
+            "        if (observed.st_dev, observed.st_ino) != "
+            "(expected.st_dev, expected.st_ino):\n"
+            "            return\n"
+            "        armed = False\n"
+            "        parent.rename(root / 'moved')\n"
+            "        if sys.argv[2] == 'interrupt':\n"
+            "            raise KeyboardInterrupt('inventory cancelled')\n"
+            "        raise OSError(errno.EIO, 'inventory failed')\n"
+            "sys.addaudithook(fail_inventory)\n"
+            "if sys.argv[2] == 'interrupt':\n"
+            "    try:\n"
+            "        u.Cli.atomic_inventory_physical_directory(directory)\n"
+            "    except BaseExceptionGroup as error:\n"
+            "        assert isinstance(error.exceptions[0], KeyboardInterrupt)\n"
+            "        assert isinstance(error.exceptions[1], OSError)\n"
+            "    else:\n"
+            "        raise AssertionError('cancellation was normalized')\n"
+            "else:\n"
+            "    result = u.Cli.atomic_inventory_physical_directory(directory)\n"
+            "    assert result.failure\n"
+            "    error = result.exception\n"
+            "    assert isinstance(error, OSError)\n"
+            "    assert error.errno == errno.ESTALE\n"
+            "    assert isinstance(error.__cause__, ExceptionGroup)\n"
+            "    assert error.__cause__.exceptions[0].errno == errno.EIO\n"
+            "    assert isinstance(error.__cause__.exceptions[1], OSError)\n",
+            encoding=c.DEFAULT_ENCODING,
+        )
+        outcome = tm.ok(
+            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path), failure)),
+        )
+        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
+        tm.that(outcome.stderr, eq="")
 
     @staticmethod
     def _queried(root: Path, name: str) -> m.Cli.AtomicDirectoryInventory:

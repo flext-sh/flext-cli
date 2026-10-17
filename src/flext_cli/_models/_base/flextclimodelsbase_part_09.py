@@ -94,25 +94,22 @@ class FlextCliModelsBasePart09:
             ),
         ] = None
 
-        @u.field_validator("path")
-        @classmethod
-        def _validate_path(cls, value: Path) -> Path:
-            return FlextCliModelsAtomicState.validate_atomic_state_path(
-                value,
-                label="atomic physical-tree entry",
-            )
-
         @u.model_validator(mode="after")
         def _validate_kind_state(self) -> Self:
+            FlextCliModelsAtomicState.validate_atomic_state_path(
+                self.path,
+                label="atomic physical-tree entry",
+                allow_root=self.kind == "directory",
+            )
             FlextCliModelsAtomicState.validate_non_reparse_state(
                 self.file_attributes,
                 self.reparse_tag,
                 label="atomic physical-tree entry",
             )
-            if self.device != self.parent_device:
+            if self.kind != "directory" and self.device != self.parent_device:
                 msg = "atomic physical-tree entry crosses its parent device"
                 raise ValueError(msg)
-            if self.mount_id != self.parent_mount_id:
+            if self.kind != "directory" and self.mount_id != self.parent_mount_id:
                 msg = "atomic physical-tree entry crosses its parent mount"
                 raise ValueError(msg)
             if self.kind == "file":
@@ -222,6 +219,17 @@ class FlextCliModelsBasePart09:
 
         @u.model_validator(mode="after")
         def _validate_root_and_order(self) -> Self:
+            FlextCliModelsAtomicState.validate_atomic_state_path(
+                self.root.path,
+                label="atomic physical-tree manifest root",
+            )
+            for entry in (self.root, *self.entries):
+                if entry.device != entry.parent_device:
+                    msg = "atomic physical-tree entry must share its parent device"
+                    raise ValueError(msg)
+                if entry.mount_id != entry.parent_mount_id:
+                    msg = "atomic physical-tree entry must share its parent mount"
+                    raise ValueError(msg)
             if self.root.kind != "directory":
                 msg = "atomic physical-tree root must be a directory"
                 raise ValueError(msg)

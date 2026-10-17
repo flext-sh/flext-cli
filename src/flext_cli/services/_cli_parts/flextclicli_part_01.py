@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from inspect import Parameter, Signature
 from types import GenericAlias
-from typing import Never, cast
+from typing import Never, cast, get_origin
 
 from flext_cli import c, e, m, p, r, settings, t, u
 
@@ -45,13 +45,32 @@ class FlextCliCliPart01:
             self._model_cls = model_cls
             self._result_border = result_border
 
+        @staticmethod
+        def _tuple_annotated(annotation: object) -> bool:
+            origin = get_origin(annotation)
+            if origin is None:
+                return False
+            if origin is tuple:
+                return True
+            value = getattr(origin, "__value__", None)
+            return value is not None and get_origin(value) is tuple
+
         def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
             # Typer passes each option under its parameter (field) name, so an
             # aliased field must validate by name as well as by alias. A result
             # border turns rejected input into ``e.fail_validation`` carrying
             # the ValidationError and exits non-zero; a plain command raises it.
+            fields = self._model_cls.model_fields
+            values = {
+                key: tuple(value)
+                if isinstance(value, list)
+                and (field := fields.get(key)) is not None
+                and self._tuple_annotated(u.Cli.field_annotation(key, field))
+                else value
+                for key, value in kwargs.items()
+            }
             try:
-                model = self._model_cls.model_validate(kwargs, by_name=True)
+                model = self._model_cls.model_validate(values, by_name=True)
             except m.ValidationError as exc:
                 if not self._result_border:
                     raise
