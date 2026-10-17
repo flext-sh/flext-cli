@@ -215,7 +215,10 @@ class FlextCliUtilitiesFilesPart02:
         try:
             return r[T].ok(operation_func())
         except c.EXC_BROAD_RUNTIME_OS as exc:
-            return r[T].fail(error_template.format(error=exc, **format_kwargs))
+            return r[T].fail(
+                error_template.format(error=exc, **format_kwargs),
+                exception=exc,
+            )
 
     @staticmethod
     def files_execute_bool[T](

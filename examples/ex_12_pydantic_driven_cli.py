@@ -174,7 +174,15 @@ class ExamplesFlextCliPydanticDrivenCli:
 
         """
         if settings.ssl_enabled and settings.port == _DEFAULT_POSTGRES_PORT:
-            settings = settings.model_copy(update={"port": _SSL_POSTGRES_PORT})
+            try:
+                settings = type(settings).model_validate(
+                    settings.model_dump() | {"port": _SSL_POSTGRES_PORT},
+                )
+            except c.ValidationError as error:
+                return r[m.Examples.AdvancedDatabaseConfig].fail(
+                    f"Business rule validation failed: {error}",
+                    exception=error,
+                )
         if (
             settings.connection_pool > _MAX_LOCALHOST_CONNECTION_POOL
             and settings.host == "localhost"

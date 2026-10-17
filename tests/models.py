@@ -26,6 +26,13 @@ class TestsFlextCliModels(
     class Tests(TestsFlextCliModelsPart01.Tests):
         """Consumer-owned records used to exercise typed YAML ingress."""
 
+        class RestrictedDatabaseConfig(
+            ExamplesFlextCliModels.Examples.AdvancedDatabaseConfig
+        ):
+            """Database consumer that disallows the example's SSL port rewrite."""
+
+            port: Annotated[int, FlextCliModels.Field(ge=1, le=5432)]
+
         class YamlService(FlextCliModels.FrozenModel):
             """Strict service endpoint loaded from external YAML."""
 

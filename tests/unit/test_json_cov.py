@@ -69,13 +69,49 @@ class TestsFlextCliJsonCov:
     @staticmethod
     def test_json_write_then_read_roundtrips_payload(tmp_path: Path) -> None:
         """Verify that json write then read roundtrips payload."""
-        path = tmp_path / "out.json"
+        path = tmp_path / "missing" / "nested" / "out.json"
         write_result = u.Cli.json_write(path, {"a": 1, "b": [1, 2]})
         tm.ok(write_result)
         read_result = u.Cli.json_read(path)
         tm.ok(read_result)
         expected: t.JsonMapping = {"a": 1, "b": [1, 2]}
         tm.that(read_result.value, eq=expected)
+
+    @staticmethod
+    @pytest.mark.parametrize("path_kind", ["symlink-ancestor", "lexical-traversal"])
+    def test_json_write_rejects_path_before_creating_directories(
+        tmp_path: Path,
+        path_kind: str,
+    ) -> None:
+        """Reject unsafe destinations without mutating their parent or foreign tree."""
+        foreign = tmp_path / "foreign"
+        foreign.mkdir()
+        sentinel = foreign / "owned.bin"
+        sentinel.write_bytes(b"unchanged")
+        if path_kind == "symlink-ancestor":
+            alias = tmp_path / "alias"
+            alias.symlink_to(foreign, target_is_directory=True)
+            destination = alias / "missing" / "nested" / "out.json"
+        else:
+            destination = (
+                tmp_path / "missing" / ".." / foreign.name / "nested" / "out.json"
+            )
+        entries = tuple(sorted(tmp_path.rglob("*")))
+        parent_before = tmp_path.stat()
+        foreign_before = foreign.stat()
+        payload: t.JsonMapping = {"version": 1}
+
+        result = u.Cli.json_write(
+            destination,
+            payload,
+            options=m.Cli.JsonWriteOptions(),
+        )
+
+        tm.fail(result, has="json_write")
+        tm.that(tuple(sorted(tmp_path.rglob("*"))), eq=entries)
+        tm.that(tmp_path.stat().st_mtime_ns, eq=parent_before.st_mtime_ns)
+        tm.that(foreign.stat().st_mtime_ns, eq=foreign_before.st_mtime_ns)
+        tm.that(sentinel.read_bytes(), eq=b"unchanged")
 
     @staticmethod
     def test_json_write_sort_keys_orders_nested_keys(tmp_path: Path) -> None:
