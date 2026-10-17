@@ -144,14 +144,21 @@ class FlextCliModelsBasePart09:
                 raise ValueError(msg)
             return self
 
-    class AtomicDirectoryName(m.BaseModel):
+    class AtomicDirectoryName(m.ContractModel):
         """One captured directory election without reading any child payload."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
-        name: Annotated[str, m.Field(min_length=1, strict=True)]
-        kind: Literal["directory", "file", "symlink", "other"]
-        version_key: t.VariadicTuple[int]
-        link_target: str | None = None
+        name: Annotated[
+            str, m.Field(min_length=1, strict=True, description="Lexical child name")
+        ]
+        kind: Literal["directory", "file", "symlink", "other"] = m.Field(
+            description="Native physical entry kind"
+        )
+        version_key: t.VariadicTuple[int] = m.Field(
+            description="Descriptor-authenticated native entry version"
+        )
+        link_target: str | None = m.Field(
+            default=None, description="Literal target of a physical symlink"
+        )
 
         @u.model_validator(mode="after")
         def _validate_leaf(self) -> Self:
@@ -163,18 +170,36 @@ class FlextCliModelsBasePart09:
                 raise ValueError(msg)
             return self
 
-    class AtomicDirectoryInventory(m.BaseModel):
+    class AtomicDirectoryInventory(m.ContractModel):
         """One physical directory and its complete immediate child elections."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
-        root: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry
-        entries: t.VariadicTuple[FlextCliModelsBasePart09.AtomicDirectoryName] = ()
+        root: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry = m.Field(
+            description="Descriptor-authenticated physical directory identity"
+        )
+        entries: t.VariadicTuple[FlextCliModelsBasePart09.AtomicDirectoryName] = (
+            m.Field(
+                default=(), description="Complete ordered immediate physical children"
+            )
+        )
+        queries: t.VariadicTuple[t.Pair[str, Literal["exists", "isfile", "isdir"]]] = (
+            m.Field(default=(), description="Consumed native candidate predicates")
+        )
+        membership_queried: bool = m.Field(
+            default=False,
+            description="Whether native planning consumed direct membership",
+        )
 
         @u.model_validator(mode="after")
         def _validate_names(self) -> Self:
             names = tuple(entry.name for entry in self.entries)
             if self.root.kind != "directory" or names != tuple(sorted(set(names))):
                 msg = "atomic directory inventory requires ordered unique children"
+                raise ValueError(msg)
+            if self.queries != tuple(sorted(set(self.queries))) or any(
+                name in {"", ".", ".."} or Path(name).name != name
+                for name, _predicate in self.queries
+            ):
+                msg = "atomic directory queries require ordered lexical child names"
                 raise ValueError(msg)
             return self
 

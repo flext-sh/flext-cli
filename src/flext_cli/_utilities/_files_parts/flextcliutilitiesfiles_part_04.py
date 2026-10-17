@@ -13,10 +13,10 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_core import FlextRuntime, u
+from flext_core import FlextRuntime
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesJson
+from flext_cli._utilities import FlextCliUtilitiesJson, FlextCliUtilitiesYaml
 from flext_cli._utilities._files_parts import FlextCliUtilitiesFilesPart02
 
 
@@ -104,7 +104,7 @@ class FlextCliUtilitiesFilesPart04:
         if path.suffix.lower() == ".json":
             read_result = FlextCliUtilitiesJson.json_read(path)
         elif path.suffix.lower() in {".yaml", ".yml"}:
-            read_result = u.Yaml.yaml_safe_load(path)
+            read_result = FlextCliUtilitiesYaml.yaml_safe_load(path)
         else:
             return r[t.JsonMapping].fail(
                 f"Unsupported format: {path.suffix or '<none>'}",

@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, ClassVar, Self
+from typing import Annotated, Literal, Self
 
 from flext_core import m, u
 
@@ -18,14 +18,9 @@ from flext_cli._models import FlextCliModelsAtomicState
 class FlextCliModelsBasePart08:
     """Implementation part for FlextCliModelsBasePart08."""
 
-    class AtomicDirectoryChainPlan(m.BaseModel):
+    class AtomicDirectoryChainPlan(m.ContractModel):
         """Exact existing anchor plus contiguous directories observed absent."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            frozen=True,
-            arbitrary_types_allowed=True,
-        )
         target: Annotated[Path, m.Field(description="Requested directory path")]
         anchor_path: Annotated[
             Path,
@@ -47,6 +42,17 @@ class FlextCliModelsBasePart08:
             t.VariadicTuple[Path],
             m.Field(description="Ordered contiguous paths observed absent"),
         ] = ()
+        queries: t.VariadicTuple[t.Pair[str, Literal["exists", "isfile", "isdir"]]] = (
+            m.Field(
+                default=(),
+                description="Native candidate queries beneath an absent parent",
+            )
+        )
+        membership_queried: bool = m.Field(
+            default=False,
+            strict=True,
+            description="Whether native planning consumed the absent parent's membership",
+        )
 
         @u.field_validator("target", "anchor_path")
         @classmethod
@@ -73,6 +79,12 @@ class FlextCliModelsBasePart08:
 
         @u.model_validator(mode="after")
         def _validate_topology(self) -> Self:
+            if self.queries != tuple(sorted(set(self.queries))) or any(
+                name in {"", ".", ".."} or Path(name).name != name
+                for name, _predicate in self.queries
+            ):
+                msg = "atomic directory-chain queries require lexical unique children"
+                raise ValueError(msg)
             if self.anchor_ancestry[-1] != (
                 self.anchor_device,
                 self.anchor_inode,
