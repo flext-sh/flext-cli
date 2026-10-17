@@ -117,6 +117,23 @@ class TestsFlextCliJsonCov:
     # ----- json_parse (fallible) -------------------------------------------
 
     @staticmethod
+    def test_json_write_replaces_only_destination_and_preserves_mode(
+        tmp_path: Path,
+    ) -> None:
+        """Publishing JSON must not truncate another hardlink to the old document."""
+        path = tmp_path / "document.json"
+        tm.ok(u.Cli.json_write(path, {"version": 1}))
+        path.chmod(0o640)
+        sibling = tmp_path / "previous.json"
+        sibling.hardlink_to(path)
+        before = path.stat()
+        tm.ok(u.Cli.json_write(path, {"version": 2}))
+        tm.that(path.stat().st_ino == before.st_ino, eq=False)
+        tm.that(path.stat().st_mode, eq=before.st_mode)
+        tm.that(u.Cli.json_read(path).value, eq={"version": 2})
+        tm.that(u.Cli.json_read(sibling).value, eq={"version": 1})
+
+    @staticmethod
     def test_json_parse_valid_text_succeeds() -> None:
         """Verify that json parse valid text succeeds."""
         result = u.Cli.json_parse('{"x": 1}')

@@ -185,7 +185,12 @@ class FlextCliUtilitiesFilesPart05:
         t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
         t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
     ]:
-        """Keep original native query epochs while uniting consumed selectors."""
+        """Keep original native query epochs while uniting consumed selectors.
+
+        Returns:
+            The directory inventories and ancestry plans with united selectors.
+
+        """
         return FlextCliUtilitiesAtomicTreeInventory.merge_directory_query_receipts(
             inventories, topology
         )
@@ -196,7 +201,12 @@ class FlextCliUtilitiesFilesPart05:
         name: str,
         predicate: Literal["exists", "isfile", "isdir"],
     ) -> bool:
-        """Read one native filesystem predicate from its captured receipt."""
+        """Read one native filesystem predicate from its captured receipt.
+
+        Returns:
+            Whether the captured child satisfies the native predicate.
+
+        """
         return FlextCliUtilitiesAtomicTreeInventory.directory_query_value(
             inventory, name, predicate
         )
@@ -211,7 +221,12 @@ class FlextCliUtilitiesFilesPart05:
         ] = (),
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
     ) -> p.Result[bool]:
-        """Verify native source queries without authorizing publication effects."""
+        """Verify native source queries without authorizing publication effects.
+
+        Returns:
+            A successful result when all consumed native queries still agree.
+
+        """
         return r[bool].ok(
             FlextCliUtilitiesAtomicTreeInventory.verify_directory_queries(
                 inventories, topology, publications, directory_publications

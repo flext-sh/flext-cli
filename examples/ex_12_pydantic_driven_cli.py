@@ -139,7 +139,7 @@ class ExamplesFlextCliPydanticDrivenCli:
         if missing:
             return r[t.JsonMapping].fail(f"Missing required fields: {missing}")
         normalized_data = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-            u.normalize_to_json_value(data),
+            u.Cli.normalize_json_value(data),
         )
         return r[t.JsonMapping].ok(normalized_data)
 

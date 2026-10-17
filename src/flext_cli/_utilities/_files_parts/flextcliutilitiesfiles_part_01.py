@@ -108,7 +108,7 @@ class FlextCliUtilitiesFilesPart01:
 
         def _load() -> M:
             raw = Path(file_path).read_bytes()
-            loaded: M = model_type.model_validate_json(raw, strict=False)
+            loaded: M = model_type.model_validate_json(raw)
             return loaded
 
         return FlextCliUtilitiesFilesPart02.files_execute(
