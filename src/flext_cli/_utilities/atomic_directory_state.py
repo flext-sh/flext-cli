@@ -62,7 +62,12 @@ class FlextCliUtilitiesAtomicDirectoryState:
         path: Path,
         expected: os.stat_result,
     ) -> Generator[int]:
-        """Open one directory-entry FD and prove it matches and stays empty."""
+        """Open one directory-entry FD and prove it matches and stays empty.
+
+        Yields:
+            The authenticated empty directory-entry file descriptor.
+
+        """
         flags = (
             os.O_RDONLY
             | getattr(os, "O_DIRECTORY", 0)

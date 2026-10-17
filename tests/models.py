@@ -12,7 +12,7 @@ from examples import ExamplesFlextCliModels, c
 from flext_tests import FlextTestsModels
 
 from flext_cli import FlextCliModels
-from tests.models_parts import TestsFlextCliModelsPart01
+from tests._models import TestsFlextCliModelsPart01
 
 
 class TestsFlextCliModels(

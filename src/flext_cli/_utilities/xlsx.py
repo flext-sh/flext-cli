@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import m, p, t
-from flext_cli._utilities._xlxx import (
+from flext_cli._utilities._xlsx import (
     FlextCliUtilitiesXlsxAddresses,
     FlextCliUtilitiesXlsxArchive,
     FlextCliUtilitiesXlsxDefinedNameValues,

@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Literal, Never
 
 from flext_cli import m, t
-from flext_cli._utilities._atomic_models import FlextCliUtilitiesAtomicModels
 from flext_cli._utilities.atomic_directory_chain import (
     FlextCliUtilitiesAtomicDirectoryChain,
 )
@@ -31,6 +30,7 @@ from flext_cli._utilities.atomic_file_descriptor import (
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
 from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+from flext_cli._utilities.atomic_models import FlextCliUtilitiesAtomicModels
 from flext_cli._utilities.atomic_tree_descriptor import (
     FlextCliUtilitiesAtomicTreeDescriptor,
 )

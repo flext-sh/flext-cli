@@ -23,7 +23,9 @@ from jinja2.utils import select_autoescape
 
 from flext_cli import c, m, p, r, t
 from flext_cli._models.template import FlextCliModelsTemplate
-from flext_cli._utilities._files_parts import FlextCliUtilitiesFilesPart03
+from flext_cli._utilities._files.flextcliutilitiesfiles_part_03 import (
+    FlextCliUtilitiesFilesPart03,
+)
 
 
 class FlextCliUtilitiesTemplate:

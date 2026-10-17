@@ -41,6 +41,7 @@ if TYPE_CHECKING:
         FlextCliModelsXlsxValidation,
         FlextCliModelsXlsxWorkbook,
     )
+    from flext_cli._models.atomic_publication import FlextCliModelsAtomicPublication
     from flext_cli._models.atomic_state import FlextCliModelsAtomicState
     from flext_cli._models.atomic_symlink import FlextCliModelsAtomicSymlink
     from flext_cli._models.base import FlextCliModelsBase
@@ -48,6 +49,7 @@ if TYPE_CHECKING:
     from flext_cli._models.docx import FlextCliModelsDocx
     from flext_cli._models.docx_document import FlextCliModelsDocxDocument
     from flext_cli._models.docx_styles import FlextCliModelsDocxStyles
+    from flext_cli._models.files import FlextCliModelsFiles
     from flext_cli._models.pipeline import FlextCliModelsPipeline
     from flext_cli._models.pptx import FlextCliModelsPptx
     from flext_cli._models.pptx_presentation import FlextCliModelsPptxPresentation
@@ -59,6 +61,7 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     "FlextCliConfigModels",
+    "FlextCliModelsAtomicPublication",
     "FlextCliModelsAtomicState",
     "FlextCliModelsAtomicSymlink",
     "FlextCliModelsBase",
@@ -75,6 +78,7 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
     "FlextCliModelsDocxStyles",
+    "FlextCliModelsFiles",
     "FlextCliModelsPipeline",
     "FlextCliModelsPptx",
     "FlextCliModelsPptxPresentation",
@@ -104,6 +108,7 @@ install_lazy_exports(
     globals(),
     MappingProxyType({
         "FlextCliConfigModels": ".config",
+        "FlextCliModelsAtomicPublication": ".atomic_publication",
         "FlextCliModelsAtomicState": ".atomic_state",
         "FlextCliModelsAtomicSymlink": ".atomic_symlink",
         "FlextCliModelsBase": ".base",
@@ -120,6 +125,7 @@ install_lazy_exports(
         "FlextCliModelsDocx": ".docx",
         "FlextCliModelsDocxDocument": ".docx_document",
         "FlextCliModelsDocxStyles": ".docx_styles",
+        "FlextCliModelsFiles": ".files",
         "FlextCliModelsPipeline": ".pipeline",
         "FlextCliModelsPptx": ".pptx",
         "FlextCliModelsPptxPresentation": ".pptx_presentation",

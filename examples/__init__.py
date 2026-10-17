@@ -17,9 +17,12 @@ if TYPE_CHECKING:
 
     from examples.constants import ExamplesFlextCliConstants, c
     from examples.ex_01_getting_started import ExamplesFlextCliGettingStarted
+    from examples.ex_02_output_formatting import ExamplesFlextCliOutputFormatting
+    from examples.ex_04_file_operations import ExamplesFlextCliFileOperations
     from examples.ex_05_authentication import ExamplesFlextCliAuthentication
     from examples.ex_06_settings import ExamplesFlextCliSettings
     from examples.ex_11_complete_integration import ExamplesFlextCliDataManager
+    from examples.ex_12_pydantic_driven_cli import ExamplesFlextCliPydanticDrivenCli
     from examples.models import ExamplesFlextCliModels, m
     from examples.protocols import ExamplesFlextCliProtocols, p
     from examples.typings import ExamplesFlextCliTypes, t
@@ -31,9 +34,12 @@ __all__: tuple[str, ...] = (
     "ExamplesFlextCliAuthentication",
     "ExamplesFlextCliConstants",
     "ExamplesFlextCliDataManager",
+    "ExamplesFlextCliFileOperations",
     "ExamplesFlextCliGettingStarted",
     "ExamplesFlextCliModels",
+    "ExamplesFlextCliOutputFormatting",
     "ExamplesFlextCliProtocols",
+    "ExamplesFlextCliPydanticDrivenCli",
     "ExamplesFlextCliSettings",
     "ExamplesFlextCliTypes",
     "ExamplesFlextCliUtilities",
@@ -57,9 +63,12 @@ install_lazy_exports(
         "ExamplesFlextCliAuthentication": ".ex_05_authentication",
         "ExamplesFlextCliConstants": ".constants",
         "ExamplesFlextCliDataManager": ".ex_11_complete_integration",
+        "ExamplesFlextCliFileOperations": ".ex_04_file_operations",
         "ExamplesFlextCliGettingStarted": ".ex_01_getting_started",
         "ExamplesFlextCliModels": ".models",
+        "ExamplesFlextCliOutputFormatting": ".ex_02_output_formatting",
         "ExamplesFlextCliProtocols": ".protocols",
+        "ExamplesFlextCliPydanticDrivenCli": ".ex_12_pydantic_driven_cli",
         "ExamplesFlextCliSettings": ".ex_06_settings",
         "ExamplesFlextCliTypes": ".typings",
         "ExamplesFlextCliUtilities": ".utilities",

@@ -55,7 +55,12 @@ def _start_session_descendant(
     sentinel: Path,
     mode: str,
 ) -> tuple[p.Cli.ManagedProcess, int]:
-    """Start one session-leader descendant and await its recorded pid."""
+    """Start one session-leader descendant and await its recorded pid.
+
+    Returns:
+        The started process and its recorded positive descendant pid.
+
+    """
     result = runner.process_start(
         [
             sys.executable,
@@ -108,7 +113,12 @@ class TestsFlextCliRuntimeUtilitiesCore:
         result: p.Result[p.Cli.CommandOutput],
         case: m.Tests.RuntimeCommandCase,
     ) -> m.Cli.CommandOutput:
-        """Validate one successful case result and its stdout expectation."""
+        """Validate one successful case result and its stdout expectation.
+
+        Returns:
+            The validated command output for the declared case.
+
+        """
         output = m.Cli.CommandOutput.model_validate(tm.ok(result))
         if case.stdout_has:
             tm.that(output.stdout, has=case.stdout_has)

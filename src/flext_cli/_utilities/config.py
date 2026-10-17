@@ -21,7 +21,7 @@ from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
 from flext_cli import c, m, r, t
-from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06 import (
+from flext_cli._utilities._toml.flextcliutilitiestoml_part_06 import (
     FlextCliUtilitiesTomlPart06,
 )
 from flext_cli._utilities.json import FlextCliUtilitiesJson

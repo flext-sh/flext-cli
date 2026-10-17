@@ -54,7 +54,7 @@ class ExamplesFlextCliFileOperations:
 
     @staticmethod
     def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
-        """Load user preferences from JSON in YOUR app. Returns r[LoadedConfig]; no None.
+        """Load user preferences from JSON in YOUR app: r[LoadedConfig], no None.
 
         Returns:
             The resulting ``p.Result[m.Cli.LoadedConfig]``.
@@ -130,7 +130,7 @@ class ExamplesFlextCliFileOperations:
 
     @staticmethod
     def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
-        """Validate and import data in YOUR ETL pipeline. Returns r[LoadedConfig]; no None.
+        """Validate and import data in YOUR ETL pipeline: r[LoadedConfig], no None.
 
         Returns:
             The resulting ``p.Result[m.Cli.LoadedConfig]``.
