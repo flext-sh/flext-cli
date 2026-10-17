@@ -16,145 +16,145 @@ from flext_cli import cli
 if TYPE_CHECKING:
     from pathlib import Path
 
-_EXAMPLE_REQUIRED_DATA_FIELDS: t.VariadicTuple[str] = ("id", "name", "value")
 
-# ============================================================================
-# PATTERN 1: JSON settings files in YOUR application
-# ============================================================================
+class ExamplesFlextCliFileOperations:
+    """Public file-operations example for flext-cli consumers."""
 
+    _EXAMPLE_REQUIRED_DATA_FIELDS: t.VariadicTuple[str] = ("id", "name", "value")
 
-def save_user_preferences(
-    preferences: t.MappingKV[str, t.JsonPayloadCollectionValue],
-    config_dir: Path,
-) -> p.Result[bool]:
-    """Save user preferences to JSON in YOUR app.
+    @staticmethod
+    def save_user_preferences(
+        preferences: t.MappingKV[str, t.JsonPayloadCollectionValue],
+        config_dir: Path,
+    ) -> p.Result[bool]:
+        """Save user preferences to JSON in YOUR app.
 
-    Returns r[bool]; no bare bool sentinel.
+        Returns r[bool]; no bare bool sentinel.
 
-    Returns:
-        The resulting ``p.Result[bool]``.
+        Returns:
+            The resulting ``p.Result[bool]``.
 
-    """
-    config_file = config_dir / "preferences.json"
+        """
+        config_file = config_dir / "preferences.json"
 
-    write_result = cli.write_json_file(config_file, preferences)
+        write_result = cli.write_json_file(config_file, preferences)
 
-    if write_result.failure:
+        if write_result.failure:
+            cli.print(
+                f"❌ Failed to save: {write_result.error}",
+                style=c.Cli.MessageStyles.BOLD_RED,
+            )
+            return r[bool].from_failure(write_result)
+
         cli.print(
-            f"❌ Failed to save: {write_result.error}",
-            style=c.Cli.MessageStyles.BOLD_RED,
+            f"✅ Saved preferences to {config_file.name}",
+            style=c.Cli.MessageStyles.GREEN,
         )
-        return r[bool].from_failure(write_result)
+        return r[bool].ok(value=True)
 
-    cli.print(
-        f"✅ Saved preferences to {config_file.name}",
-        style=c.Cli.MessageStyles.GREEN,
-    )
-    return r[bool].ok(value=True)
+    @staticmethod
+    def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
+        """Load user preferences from JSON in YOUR app: r[LoadedConfig], no None.
 
+        Returns:
+            The resulting ``p.Result[m.Cli.LoadedConfig]``.
 
-def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
-    """Load user preferences from JSON in YOUR app. Returns r[LoadedConfig]; no None.
+        """
+        config_file = config_dir / "preferences.json"
 
-    Returns:
-        The resulting ``p.Result[m.Cli.LoadedConfig]``.
+        read_result = cli.read_json_file(config_file)
 
-    """
-    config_file = config_dir / "preferences.json"
+        if read_result.failure:
+            cli.print(
+                f"⚠️  Could not load: {read_result.error}",
+                style=c.Cli.MessageStyles.YELLOW,
+            )
+            return r[m.Cli.LoadedConfig].from_failure(read_result)
+        if not isinstance(read_result.value, Mapping):
+            return r[m.Cli.LoadedConfig].fail("Preferences content must be a mapping")
 
-    read_result = cli.read_json_file(config_file)
-
-    if read_result.failure:
         cli.print(
-            f"⚠️  Could not load: {read_result.error}",
-            style=c.Cli.MessageStyles.YELLOW,
+            f"✅ Loaded preferences from {config_file.name}",
+            style=c.Cli.MessageStyles.GREEN,
         )
-        return r[m.Cli.LoadedConfig].from_failure(read_result)
-    if not isinstance(read_result.value, Mapping):
-        return r[m.Cli.LoadedConfig].fail("Preferences content must be a mapping")
-
-    cli.print(
-        f"✅ Loaded preferences from {config_file.name}",
-        style=c.Cli.MessageStyles.GREEN,
-    )
-    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=dict(read_result.value)))
-
-
-# ============================================================================
-# PATTERN 2: YAML configuration in YOUR deployment tool
-# ============================================================================
-
-
-def save_deployment_config(
-    settings: t.MappingKV[str, t.JsonPayloadCollectionValue],
-    config_file: Path,
-) -> p.Result[bool]:
-    """Save deployment settings to YAML in YOUR tool.
-
-    Returns r[bool]; no bare bool sentinel.
-
-    Returns:
-        The resulting ``p.Result[bool]``.
-
-    """
-    write_result = cli.write_yaml_file(config_file, settings)
-
-    if write_result.failure:
-        cli.print(
-            f"❌ Config save failed: {write_result.error}",
-            style=c.Cli.MessageStyles.BOLD_RED,
+        return r[m.Cli.LoadedConfig].ok(
+            m.Cli.LoadedConfig(content=dict(read_result.value)),
         )
-        return r[bool].from_failure(write_result)
 
-    cli.print("✅ Saved deployment settings", style=c.Cli.MessageStyles.GREEN)
-    return r[bool].ok(value=True)
+    @staticmethod
+    def save_deployment_config(
+        settings: t.MappingKV[str, t.JsonPayloadCollectionValue],
+        config_file: Path,
+    ) -> p.Result[bool]:
+        """Save deployment settings to YAML in YOUR tool.
+
+        Returns r[bool]; no bare bool sentinel.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
+        write_result = cli.write_yaml_file(config_file, settings)
+
+        if write_result.failure:
+            cli.print(
+                f"❌ Config save failed: {write_result.error}",
+                style=c.Cli.MessageStyles.BOLD_RED,
+            )
+            return r[bool].from_failure(write_result)
+
+        cli.print("✅ Saved deployment settings", style=c.Cli.MessageStyles.GREEN)
+        return r[bool].ok(value=True)
+
+    @staticmethod
+    def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
+        """Load deployment settings from YAML in YOUR tool.
+
+        Returns r[LoadedConfig]; no None.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.LoadedConfig]``.
+
+        """
+        load_result = cli.load_file_auto_dict(config_file)
+
+        if load_result.failure:
+            cli.print(
+                f"❌ Config load failed: {load_result.error}",
+                style=c.Cli.MessageStyles.BOLD_RED,
+            )
+            return r[m.Cli.LoadedConfig].from_failure(load_result)
+
+        cli.print("✅ Loaded deployment settings", style=c.Cli.MessageStyles.GREEN)
+        return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=load_result.value))
+
+    @staticmethod
+    def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
+        """Validate and import data in YOUR ETL pipeline: r[LoadedConfig], no None.
+
+        Returns:
+            The resulting ``p.Result[m.Cli.LoadedConfig]``.
+
+        """
+        read_result = cli.read_json_file(input_file)
+
+        if read_result.failure:
+            cli.print(
+                f"❌ Read failed: {read_result.error}",
+                style=c.Cli.MessageStyles.BOLD_RED,
+            )
+            return r[m.Cli.LoadedConfig].from_failure(read_result)
+
+        data = read_result.value
+        if not isinstance(data, Mapping):
+            return r[m.Cli.LoadedConfig].fail("Input data must be a mapping")
+
+        for field in ExamplesFlextCliFileOperations._EXAMPLE_REQUIRED_DATA_FIELDS:
+            if field not in data:
+                return r[m.Cli.LoadedConfig].fail(f"Missing required field: {field}")
+
+        cli.print("✅ Data validated successfully", style=c.Cli.MessageStyles.GREEN)
+        return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=data))
 
 
-def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
-    """Load deployment settings from YAML in YOUR tool.
-
-    Returns r[LoadedConfig]; no None.
-
-    Returns:
-        The resulting ``p.Result[m.Cli.LoadedConfig]``.
-
-    """
-    load_result = cli.load_file_auto_dict(config_file)
-
-    if load_result.failure:
-        cli.print(
-            f"❌ Config load failed: {load_result.error}",
-            style=c.Cli.MessageStyles.BOLD_RED,
-        )
-        return r[m.Cli.LoadedConfig].from_failure(load_result)
-
-    cli.print("✅ Loaded deployment settings", style=c.Cli.MessageStyles.GREEN)
-    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=load_result.value))
-
-
-def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
-    """Validate and import data in YOUR ETL pipeline. Returns r[LoadedConfig]; no None.
-
-    Returns:
-        The resulting ``p.Result[m.Cli.LoadedConfig]``.
-
-    """
-    read_result = cli.read_json_file(input_file)
-
-    if read_result.failure:
-        cli.print(
-            f"❌ Read failed: {read_result.error}",
-            style=c.Cli.MessageStyles.BOLD_RED,
-        )
-        return r[m.Cli.LoadedConfig].from_failure(read_result)
-
-    data = read_result.value
-    if not isinstance(data, Mapping):
-        return r[m.Cli.LoadedConfig].fail("Input data must be a mapping")
-
-    for field in _EXAMPLE_REQUIRED_DATA_FIELDS:
-        if field not in data:
-            return r[m.Cli.LoadedConfig].fail(f"Missing required field: {field}")
-
-    cli.print("✅ Data validated successfully", style=c.Cli.MessageStyles.GREEN)
-    return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=data))
+__all__: list[str] = ["ExamplesFlextCliFileOperations"]

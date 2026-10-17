@@ -9,6 +9,8 @@ from __future__ import annotations
 import errno
 import os
 import stat
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Never
 
@@ -123,7 +125,16 @@ class FlextCliUtilitiesAtomicTreeCleanup:
                 FlextCliUtilitiesAtomicFileDurability.sync_parent(authenticated)
 
     @staticmethod
-    def _delete_file(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
+    @contextmanager
+    def _authenticated_parent(
+        entry: m.Cli.AtomicPhysicalTreeEntry,
+    ) -> Generator[FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor]:
+        """Open the unlink parent and authenticate it against one manifest entry.
+
+        Yields:
+            The authenticated parent descriptor.
+
+        """
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
             entry.path,
             unlink=True,
@@ -139,6 +150,11 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             )
             if parent_mount_id != entry.parent_mount_id:
                 FlextCliUtilitiesAtomicTreeCleanup._raise_changed(parent.path)
+            yield parent
+
+    @staticmethod
+    def _delete_file(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
+        with FlextCliUtilitiesAtomicTreeCleanup._authenticated_parent(entry) as parent:
             observed = FlextCliUtilitiesAtomicFileState.destination_state(
                 entry.path,
                 parent=parent,
@@ -177,21 +193,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
 
     @staticmethod
     def _delete_symlink(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
-        with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-            entry.path,
-            unlink=True,
-        ) as parent:
-            FlextCliUtilitiesAtomicTreeCleanup._require_parent(
-                entry,
-                parent.state.st_dev,
-                parent.state.st_ino,
-            )
-            parent_mount_id = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
-                parent.descriptor,
-                parent.path,
-            )
-            if parent_mount_id != entry.parent_mount_id:
-                FlextCliUtilitiesAtomicTreeCleanup._raise_changed(parent.path)
+        with FlextCliUtilitiesAtomicTreeCleanup._authenticated_parent(entry) as parent:
             observed = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(
                 parent,
                 entry.path,

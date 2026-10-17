@@ -33,7 +33,24 @@ class FlextCliModelsBasePart01:
             m.Field(description="First operator signal forwarded to the process"),
         ]
 
-    class CommandOutput(m.Value):
+    class CommandOutputEnvelope(m.Value):
+        """Causal envelope shared by textual and byte-exact command payloads."""
+
+        outcome: Annotated[
+            FlextCliModelsBasePart01.ProcessOutcome,
+            m.Field(description="Causal process completion state"),
+        ]
+        duration: Annotated[
+            t.NonNegativeFloat,
+            m.Field(0.0, description="Duration in seconds"),
+        ] = 0.0
+
+        @property
+        def exit_code(self) -> int:
+            """Expose the process return code without duplicating stored state."""
+            return self.outcome.raw_return_code
+
+    class CommandOutput(CommandOutputEnvelope):
         """Standardized external command execution payload. Use m.Cli.CommandOutput."""
 
         stdout: Annotated[
@@ -46,21 +63,8 @@ class FlextCliModelsBasePart01:
             t.StringConstraints(strip_whitespace=False),
             m.Field("", description="Captured standard error"),
         ] = ""
-        outcome: Annotated[
-            FlextCliModelsBasePart01.ProcessOutcome,
-            m.Field(description="Causal process completion state"),
-        ]
-        duration: Annotated[
-            t.NonNegativeFloat,
-            m.Field(0.0, description="Duration in seconds"),
-        ] = 0.0
 
-        @property
-        def exit_code(self) -> int:
-            """Expose the process return code without duplicating stored state."""
-            return self.outcome.raw_return_code
-
-    class CommandBytesOutput(m.Value):
+    class CommandBytesOutput(CommandOutputEnvelope):
         """Byte-exact external command payload. Use m.Cli.CommandBytesOutput."""
 
         stdout: Annotated[
@@ -71,19 +75,6 @@ class FlextCliModelsBasePart01:
             bytes,
             m.Field(b"", description="Captured standard error as raw bytes"),
         ] = b""
-        outcome: Annotated[
-            FlextCliModelsBasePart01.ProcessOutcome,
-            m.Field(description="Causal process completion state"),
-        ]
-        duration: Annotated[
-            t.NonNegativeFloat,
-            m.Field(0.0, description="Duration in seconds"),
-        ] = 0.0
-
-        @property
-        def exit_code(self) -> int:
-            """Expose the process return code without duplicating stored state."""
-            return self.outcome.raw_return_code
 
     class ProcessDeadline(m.Value):
         """Absolute monotonic process deadline. Use m.Cli.ProcessDeadline."""

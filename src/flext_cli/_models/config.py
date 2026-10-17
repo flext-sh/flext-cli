@@ -1,10 +1,9 @@
-"""Flext-cli config models (m facade; no project-specific imports).
+"""Flext-cli config models (m facade).
 
-Typed, frozen shapes for the ``config/*.yaml`` business-rule SSOT. This module
-imports only the ``flext_core.m`` facade — the ``_config.py`` facade validates the
-model-less YAML slices into these classes and exposes the ready objects under
-``config.Cli``. Adding a new config domain = add a nested model here and a
-validated field on ``Root`` (§2.0b reference: cosmos-main ``_models/config.py``).
+Typed, frozen shapes for the ``config/*.yaml`` business-rule SSOT (§2.0b).
+Each model owns one declared top-level YAML namespace and is validated at
+``FlextCliConfig.fetch_global`` construction. The config facade
+``flext_cli.config`` composes them as typed namespace fields.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -12,54 +11,97 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal, get_args
 
 from flext_core import m
+from pydantic import TypeAdapter
+
+if TYPE_CHECKING:
+    from flext_core import t
+
+type DeniedSyscallName = Literal[
+    "socket",
+    "socketpair",
+    "connect",
+    "bind",
+    "listen",
+    "accept",
+    "accept4",
+    "sendto",
+    "recvfrom",
+    "sendmsg",
+    "recvmsg",
+    "sendmmsg",
+    "recvmmsg",
+    "io_uring_setup",
+    "io_uring_enter",
+    "io_uring_register",
+]
+"""Closed vocabulary of symbolic syscalls the native policy may deny."""
 
 
 class FlextCliConfigModels:
-    """Namespace of typed flext-cli config models (m facade)."""
+    """Native owner of the typed ``config/*.yaml`` models for flext-cli."""
 
-    class Cli(m.BaseModel):
+    class Cli(m.FrozenModel):
         """CLI identity metadata from ``config/cli.yaml``."""
 
-        model_config = m.ConfigDict(frozen=True, extra="forbid")
+        name: str = m.Field(
+            min_length=1, description="Configured CLI application name."
+        )
+        version: str = m.Field(
+            min_length=1, description="Configured CLI application version."
+        )
 
-        name: str
-        version: str
-
-    class ProcessIsolation(m.BaseModel):
+    class ProcessIsolation(m.FrozenModel):
         """Immutable syscall obligations of native read-only reference imports."""
 
-        model_config = m.ConfigDict(frozen=True, extra="forbid")
         compiler_resource_parts: tuple[str, ...] = m.Field(
             min_length=1,
             description=(
                 "Exact relative parts elected in the declared distribution RECORD"
             ),
         )
-        denied_syscalls: tuple[
-            Literal["socket"],
-            Literal["socketpair"],
-            Literal["connect"],
-            Literal["bind"],
-            Literal["listen"],
-            Literal["accept"],
-            Literal["accept4"],
-            Literal["sendto"],
-            Literal["recvfrom"],
-            Literal["sendmsg"],
-            Literal["recvmsg"],
-            Literal["sendmmsg"],
-            Literal["recvmmsg"],
-            Literal["io_uring_setup"],
-            Literal["io_uring_enter"],
-            Literal["io_uring_register"],
-        ] = m.Field(description="Required symbolic native network and io_uring denials")
+        denied_syscalls: tuple[DeniedSyscallName, ...] = m.Field(
+            description="Symbolic native network and io_uring denials",
+        )
+
+        @m.field_validator(
+            "compiler_resource_parts",
+            "denied_syscalls",
+            mode="before",
+        )
+        @classmethod
+        def _coerce_yaml_sequences(cls, value: object) -> object:
+            """Coerce declared YAML sequences into the strict tuple form.
+
+            Args:
+                value: The raw declared value.
+
+            Returns:
+                The coerced tuple.
+
+            """
+            return tuple(value) if isinstance(value, list) else value
 
         @m.field_validator("compiler_resource_parts")
         @classmethod
-        def _validate_resource_parts(cls, value: tuple[str, ...]) -> tuple[str, ...]:
+        def _validate_resource_parts(
+            cls,
+            value: tuple[str, ...],
+        ) -> tuple[str, ...]:
+            """Reject any part escaping one lexical relative component.
+
+            Args:
+                value: The declared relative parts.
+
+            Returns:
+                The validated parts.
+
+            Raises:
+                ValueError: If any part is empty, dotted, or path-carrying.
+
+            """
             if any(
                 not part
                 or part in {".", ".."}
@@ -74,16 +116,31 @@ class FlextCliConfigModels:
                 raise ValueError(msg)
             return value
 
-    class Root(m.BaseModel):
-        """Root flext-cli runtime config validated from ``config/*.yaml``."""
+        @m.field_validator("denied_syscalls")
+        @classmethod
+        def _validate_policy_floor(
+            cls,
+            value: tuple[DeniedSyscallName, ...],
+        ) -> tuple[DeniedSyscallName, ...]:
+            """Require every native syscall obligation exactly once.
 
-        model_config = m.ConfigDict(frozen=True, extra="ignore")
+            Returns:
+                The declared order of the complete native policy.
 
-        Cli: FlextCliConfigModels.Cli
+            Raises:
+                ValueError: If a required syscall is missing or duplicated.
 
-        ProcessIsolation: FlextCliConfigModels.ProcessIsolation = m.Field(
-            description="Native read-only reference import policy"
-        )
+            """
+            required = TypeAdapter[tuple[DeniedSyscallName, ...]](
+                tuple[DeniedSyscallName, ...]
+            ).validate_python(get_args(DeniedSyscallName.__value__), strict=True)
+            if len(value) != len(required) or set(value) != set(required):
+                msg = (
+                    "denied_syscalls must contain every native syscall obligation "
+                    "exactly once"
+                )
+                raise ValueError(msg)
+            return value
 
 
-__all__: list[str] = ["FlextCliConfigModels"]
+__all__: t.VariadicTuple[str] = ("FlextCliConfigModels",)

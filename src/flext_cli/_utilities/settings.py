@@ -8,11 +8,14 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import overload
+from typing import TYPE_CHECKING, overload
 
 from flext_core import u
 
-from flext_cli import c, m, p, t
+from flext_cli import c, m, t
+
+if TYPE_CHECKING:
+    from flext_cli import p
 
 
 class FlextCliUtilitiesSettings:

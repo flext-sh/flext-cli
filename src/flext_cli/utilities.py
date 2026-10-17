@@ -9,10 +9,7 @@ from __future__ import annotations
 
 from flext_core import FlextUtilities
 
-from flext_cli._utilities._cli_namespace import (
-    FlextCliUtilitiesCli,
-    FlextCliUtilitiesModelConfig,
-)
+from flext_cli._utilities import FlextCliUtilitiesCli, FlextCliUtilitiesModelConfig
 
 
 class FlextCliUtilities(FlextUtilities):

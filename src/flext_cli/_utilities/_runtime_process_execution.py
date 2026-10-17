@@ -16,19 +16,18 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import TYPE_CHECKING, BinaryIO, Literal
+from typing import TYPE_CHECKING, BinaryIO, ClassVar, Literal
 
 if sys.platform == "linux":
     import fcntl
 
 from flext_core import u as core_u
 
-from flext_cli import c, m, p, r, t
-from flext_cli._config import config
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_03 import (
+from flext_cli import c, config, m, p, r, t
+from flext_cli._utilities._files.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFilesPart03,
 )
-from flext_cli._utilities._files_parts.flextcliutilitiesfiles_part_05 import (
+from flext_cli._utilities._files.flextcliutilitiesfiles_part_05 import (
     FlextCliUtilitiesFilesPart05,
 )
 from flext_cli._utilities._runtime_process_cleanup import (
@@ -56,11 +55,6 @@ from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
 )
 
-_ELF_HEADER_BYTES = 64
-_ELFCLASS64 = 2
-_PT_INTERP = 3
-_PT_DYNAMIC = 2
-
 
 class FlextCliUtilitiesRuntimeProcessExecutionMixin(
     FlextCliUtilitiesRuntimeProcessCleanupMixin,
@@ -71,6 +65,11 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
     FlextCliUtilitiesRuntimeProcessTimingMixin,
 ):
     """Own one child process and its streaming resources."""
+
+    _ELF_HEADER_BYTES: ClassVar[int] = 64
+    _ELFCLASS64: ClassVar[int] = 2
+    _PT_INTERP: ClassVar[int] = 3
+    _PT_DYNAMIC: ClassVar[int] = 2
 
     if TYPE_CHECKING:
 
@@ -366,7 +365,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             *isolation.sources,
             *isolation.runtime_files,
         )
-        captured_by_path: dict[Path, m.Cli.AtomicFileState] = {}
+        captured_by_path: t.MutableMappingKV[Path, m.Cli.AtomicFileState] = {}
         for captured in files:
             if captured_by_path.setdefault(captured.path, captured) != captured:
                 msg = f"isolated input has competing physical states: {captured.path}"
@@ -870,8 +869,8 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         )
         return elf_class, encoding, machine
 
-    @staticmethod
-    def _native_elf_header_identity(content: bytes) -> tuple[int, int, int]:
+    @classmethod
+    def _native_elf_header_identity(cls, content: bytes) -> tuple[int, int, int]:
         """Read and validate the immutable ELF header identity bytes.
 
         Returns:
@@ -882,7 +881,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             ValueError: If the ELF header is absent or unsupported.
 
         """
-        if len(content) < _ELF_HEADER_BYTES or content[:4] != b"\x7fELF":
+        if len(content) < cls._ELF_HEADER_BYTES or content[:4] != b"\x7fELF":
             msg = "native policy compiler/reference has no complete ELF header"
             raise ValueError(msg)
         elf_class, encoding = content[4], content[5]
@@ -904,7 +903,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 binary carries an ambient interpreter.
 
         """
-        wide = elf_class == _ELFCLASS64
+        wide = elf_class == cls._ELFCLASS64
         table = int(
             struct.unpack_from(
                 f"{order}{'Q' if wide else 'I'}", content, 32 if wide else 28
@@ -921,10 +920,10 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         for index in range(count):
             offset = table + index * stride
             kind = int(struct.unpack_from(f"{order}I", content, offset)[0])
-            if kind == _PT_INTERP:  # Immutable System V ELF protocol.
+            if kind == cls._PT_INTERP:  # Immutable System V ELF protocol.
                 msg = "native policy compiler has an ambient ELF interpreter"
                 raise ValueError(msg)
-            if kind != _PT_DYNAMIC:  # Only dynamic tables carry dependencies.
+            if kind != cls._PT_DYNAMIC:  # Only dynamic tables carry dependencies.
                 continue
             cls._reject_native_elf_needed(order, content, offset, wide=wide)
 

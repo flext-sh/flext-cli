@@ -195,6 +195,24 @@ class TestsFlextCliRuntimeProcessIsolation:
             })
 
     @staticmethod
+    @pytest.mark.parametrize("field", ["compiler_resource_parts", "denied_syscalls"])
+    @pytest.mark.parametrize("missing", [False, True])
+    def test_native_policy_requires_nonempty_declared_yaml_fields(
+        field: str,
+        *,
+        missing: bool,
+    ) -> None:
+        """Missing YAML policy cannot construct an empty successful namespace."""
+        payload = config.ProcessIsolation.model_dump()
+        if missing:
+            del payload[field]
+        else:
+            payload[field] = ()
+
+        with pytest.raises(ValueError, match=field):
+            m.Cli.ProcessIsolation.model_validate(payload)
+
+    @staticmethod
     def test_native_policy_reads_the_config_singleton_in_any_import_order(
         tmp_path: Path,
     ) -> None:
@@ -215,7 +233,11 @@ class TestsFlextCliRuntimeProcessIsolation:
         result = u.Cli.run_raw((sys.executable, "-c", script), cwd=tmp_path)
 
         tm.ok(result)
-        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
+        tm.that(
+            u.Cli.process_succeeded(result.value.outcome),
+            eq=True,
+            msg=result.value.stderr,
+        )
 
     @staticmethod
     def test_resource_declaration_refuses_parent_escape() -> None:

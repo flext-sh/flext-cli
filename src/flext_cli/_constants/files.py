@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
 from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import ClassVar
@@ -21,6 +22,14 @@ class FlextCliConstantsFiles:
 
     IDENTITY_COMPONENT_COUNT: ClassVar[int] = 2
     "A strict file identity is one non-negative device and inode pair."
+
+    READ_FLAGS: ClassVar[int] = (
+        os.O_RDONLY
+        | getattr(os, "O_NONBLOCK", 0)
+        | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_BINARY", 0)
+    )
+    "Open flags for authenticated read-only descriptors of atomic files."
 
     @unique
     class WriteDurability(StrEnum):
@@ -58,26 +67,26 @@ class FlextCliConstantsFiles:
     FILE_FORMAT_UNKNOWN: ClassVar[FileFormat] = FileFormat.UNKNOWN
 
     KNOWN_FORMATS: ClassVar[frozenset[str]] = frozenset({
-        "auto",
-        "text",
-        "bin",
-        "json",
-        "yaml",
-        "csv",
+        FileFormat.AUTO,
+        FileFormat.TEXT,
+        FileFormat.BIN,
+        FileFormat.JSON,
+        FileFormat.YAML,
+        FileFormat.CSV,
     })
 
     EXT_TO_FMT: ClassVar[t.StrMapping] = MappingProxyType({
-        ".txt": "text",
-        ".log": "text",
-        ".md": "text",
-        ".rst": "text",
-        ".bin": "bin",
-        ".dat": "bin",
-        ".json": "json",
-        ".yaml": "yaml",
-        ".yml": "yaml",
-        ".csv": "csv",
-        ".tsv": "csv",
+        ".txt": FileFormat.TEXT,
+        ".log": FileFormat.TEXT,
+        ".md": FileFormat.TEXT,
+        ".rst": FileFormat.TEXT,
+        ".bin": FileFormat.BIN,
+        ".dat": FileFormat.BIN,
+        ".json": FileFormat.JSON,
+        ".yaml": FileFormat.YAML,
+        ".yml": FileFormat.YAML,
+        ".csv": FileFormat.CSV,
+        ".tsv": FileFormat.CSV,
     })
 
     DEFAULT_FILENAME: ClassVar[str] = "file"
@@ -113,11 +122,11 @@ class FlextCliConstantsFiles:
             extension: File extension, e.g. ``".json"``.
 
         Returns:
-            Format label or ``"text"`` as the default.
+            Format label or ``c.Cli.FileFormat.TEXT`` as the default.
 
         """
         format_name = cls.EXT_TO_FMT.get(extension.lower())
-        return format_name if isinstance(format_name, str) else "text"
+        return format_name if isinstance(format_name, str) else cls.FileFormat.TEXT
 
 
 __all__: list[str] = ["FlextCliConstantsFiles"]

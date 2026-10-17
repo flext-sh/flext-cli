@@ -45,13 +45,21 @@ class TestsFlextCliOptionsUtilsCov:
                 model_cls.model_fields[field_name],
                 None,
             )
-            assert {
-                option
-                for declaration in spec.declarations
-                for option in declaration.split("/")
-            } == expected
-        assert set(c.Cli.CLI_GLOBAL_PARAM_FIELDS) <= set(
-            m.Cli.CliParamsConfig.model_fields,
+            tm.that(
+                {
+                    option
+                    for declaration in spec.declarations
+                    for option in declaration.split("/")
+                }
+                == expected,
+                truth=True,
+            )
+        tm.that(
+            set(c.Cli.CLI_GLOBAL_PARAM_FIELDS)
+            <= set(
+                m.Cli.CliParamsConfig.model_fields,
+            ),
+            truth=True,
         )
 
     def test_parse_only_route_distinguishes_help_from_option_values(self) -> None:
@@ -60,7 +68,7 @@ class TestsFlextCliOptionsUtilsCov:
             self.CustomDeclModel,
             ("--projects", "--help"),
         )
-        assert parsed.values["custom_name"] == "--help"
+        tm.that(parsed.values["custom_name"] == "--help", truth=True)
         assert parsed.help_requested is False
         help_route = cli.parse_model_options(self.CustomDeclModel, ("--help",))
         assert help_route.help_requested is True
@@ -79,8 +87,8 @@ class TestsFlextCliOptionsUtilsCov:
             field_names=c.Cli.CLI_GLOBAL_PARAM_FIELDS,
             stop_at_positional=True,
         )
-        assert parsed.values == {"debug": True, "log_level": "INFO"}
-        assert parsed.remaining == ("wip", "start")
+        tm.that(parsed.values == {"debug": True, "log_level": "INFO"}, truth=True)
+        tm.that(parsed.remaining == ("wip", "start"), truth=True)
 
     def test_parse_only_repeated_options_match_registered_command(self) -> None:
         """Sequence options retain every token accepted by the real CLI."""
@@ -88,7 +96,7 @@ class TestsFlextCliOptionsUtilsCov:
         parsed = cli.parse_model_options(self.ListAnnotationModel, arguments)
         invocation, received = self._run(self.ListAnnotationModel, arguments)
         tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
-        assert parsed.values["value"] == received[0].value
+        tm.that(parsed.values["value"] == received[0].value, truth=True)
 
     @pytest.mark.parametrize(("option", "expected"), [("--off", True), ("--on", False)])
     def test_parse_only_bool_polarity_matches_registered_command(

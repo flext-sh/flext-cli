@@ -18,38 +18,6 @@ class ExamplesFlextCliProtocols(FlextCliProtocols):
     """Public examples protocol facade extending flext-cli protocols."""
 
     @runtime_checkable
-    class CliMainWithGroups(Protocol):
-        """Protocol for a CLI entrypoint with group and command decorators.
-
-        Business Rule:
-        ──────────────
-        Typer CLI applications provide group() and command() decorators for
-        organizing commands. This protocol defines the interface needed by plugins.
-
-        Audit Implications:
-        ───────────────────
-        - Plugins must check hasattr() before calling group()/command()
-        - Runtime protocol checks keep the plugin contract independent
-          from Typer internals
-        """
-
-        def command(
-            self,
-            *args: str,
-            **kwargs: str,
-        ) -> Callable[[Callable[..., None]], Callable[..., None]]:
-            """Create a command decorator."""
-            ...
-
-        def group(
-            self,
-            *args: str,
-            **kwargs: str,
-        ) -> Callable[[Callable[..., None]], Callable[..., None]]:
-            """Create a command group decorator."""
-            ...
-
-    @runtime_checkable
     class GroupWithCommands(Protocol):
         """Protocol for command group objects with command decorator.
 
@@ -70,6 +38,30 @@ class ExamplesFlextCliProtocols(FlextCliProtocols):
             **kwargs: str,
         ) -> Callable[[Callable[..., None]], Callable[..., None]]:
             """Create a command decorator."""
+            ...
+
+    @runtime_checkable
+    class CliMainWithGroups(GroupWithCommands, Protocol):
+        """Protocol for a CLI entrypoint with group and command decorators.
+
+        Business Rule:
+        ──────────────
+        Typer CLI applications provide group() and command() decorators for
+        organizing commands. This protocol defines the interface needed by plugins.
+
+        Audit Implications:
+        ───────────────────
+        - Plugins must check hasattr() before calling group()/command()
+        - Runtime protocol checks keep the plugin contract independent
+          from Typer internals
+        """
+
+        def group(
+            self,
+            *args: str,
+            **kwargs: str,
+        ) -> Callable[[Callable[..., None]], Callable[..., None]]:
+            """Create a command group decorator."""
             ...
 
 

@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import sys
 
+from flext_cli import settings
 from tests import c, tm, u
 
 
@@ -36,7 +37,7 @@ def _loaded_heavy_modules(import_statement: str) -> frozenset[str]:
     reported = tm.ok(
         u.Cli.capture(
             [sys.executable, "-c", code],
-            timeout=int(c.Cli.CLI_PROCESS_HEARTBEAT_SECONDS),
+            timeout=int(settings.cli_process_heartbeat_seconds),
         ),
     )
     return frozenset(reported.split(",")) if reported else frozenset()
