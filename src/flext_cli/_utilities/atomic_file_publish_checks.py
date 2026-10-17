@@ -191,7 +191,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
             message = f"atomic receipt size differs: {path}"
             raise OSError(errno.ESTALE, message, path)
         with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
-            parent, path, FlextCliUtilitiesAtomicFileRead.READ_FLAGS
+            parent, path, c.Cli.READ_FLAGS
         ) as descriptor:
             digest = hashlib.sha256()
             for chunk in FlextCliUtilitiesAtomicFileRead.descriptor_chunks(

@@ -235,7 +235,7 @@ class FlextCliUtilitiesFilesPart03:
                 message = f"required atomic file is missing: {path}"
                 raise FileNotFoundError(errno.ENOENT, message, path)
             with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
-                parent, path, FlextCliUtilitiesAtomicFileRead.READ_FLAGS
+                parent, path, c.Cli.READ_FLAGS
             ) as descriptor:
                 yield from FlextCliUtilitiesAtomicFileRead.descriptor_chunks(
                     descriptor, path, state

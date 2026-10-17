@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 from typing import Never
 
-from flext_cli import t
+from flext_cli import c, t
 from flext_cli._utilities import atomic_tree_darwin
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -45,7 +45,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
             parent,
             path,
-            FlextCliUtilitiesAtomicFileRead.READ_FLAGS,
+            c.Cli.READ_FLAGS,
         ) as descriptor:
             FlextCliUtilitiesAtomicTreeDescriptor.require_mount(
                 path,
