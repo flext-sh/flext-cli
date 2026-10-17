@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from examples import ExamplesFlextCliModels
+from examples import ExamplesFlextCliModels, c
 from flext_tests import FlextTestsModels
 
 from flext_cli import FlextCliModels
@@ -31,7 +31,10 @@ class TestsFlextCliModels(
         ):
             """Database consumer that disallows the example's SSL port rewrite."""
 
-            port: Annotated[int, FlextCliModels.Field(ge=1, le=5432)]
+            port: Annotated[
+                int,
+                FlextCliModels.Field(ge=1, le=5432),
+            ] = c.EXAMPLE_DEFAULT_DB_PORT
 
         class YamlService(FlextCliModels.FrozenModel):
             """Strict service endpoint loaded from external YAML."""
