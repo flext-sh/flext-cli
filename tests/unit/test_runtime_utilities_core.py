@@ -19,6 +19,12 @@ import pytest
 from flext_cli import FlextCliUtilitiesCli
 from tests import c, m, p, tm, u
 
+_OUTPUT_CASES = pytest.mark.parametrize(
+    "case",
+    m.Tests.RuntimeCommandCase.output_cases(),
+    ids=m.Tests.RuntimeCommandCase.id_for,
+)
+
 
 def fixtures_path(name: str) -> str:
     """Return the absolute path of one tests/fixtures helper script.
@@ -41,6 +47,30 @@ def read_recorded_pid(pid_file: Path) -> int:
     while not pid_file.exists() and time.monotonic() < deadline:
         time.sleep(0.05)
     return int(pid_file.read_text(encoding="utf-8").strip())
+
+
+def _start_session_descendant(
+    runner: FlextCliUtilitiesCli,
+    pid_file: Path,
+    sentinel: Path,
+    mode: str,
+) -> tuple[p.Cli.ManagedProcess, int]:
+    """Start one session-leader descendant and await its recorded pid."""
+    result = runner.process_start(
+        [
+            sys.executable,
+            fixtures_path("process_session_descendant.py"),
+            str(sentinel),
+            mode,
+            str(pid_file),
+        ],
+        start_new_session=True,
+    )
+    process = tm.ok(result)
+    tm.ok(process.wait(timeout=10))
+    descendant_pid = read_recorded_pid(pid_file)
+    tm.that(descendant_pid > 0, eq=True)
+    return process, descendant_pid
 
 
 class TestsFlextCliRuntimeUtilitiesCore:
@@ -74,6 +104,17 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(output.stdout, eq="missing")
 
     @staticmethod
+    def _case_output(
+        result: p.Result[p.Cli.CommandOutput],
+        case: m.Tests.RuntimeCommandCase,
+    ) -> m.Cli.CommandOutput:
+        """Validate one successful case result and its stdout expectation."""
+        output = m.Cli.CommandOutput.model_validate(tm.ok(result))
+        if case.stdout_has:
+            tm.that(output.stdout, has=case.stdout_has)
+        return output
+
+    @staticmethod
     @pytest.mark.parametrize(
         "case",
         m.Tests.RuntimeCommandCase.run_raw_cases(),
@@ -93,9 +134,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             options=m.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
         )
         if case.expect_success:
-            output = m.Cli.CommandOutput.model_validate(tm.ok(result))
-            if case.stdout_has:
-                tm.that(output.stdout, has=case.stdout_has)
+            output = TestsFlextCliRuntimeUtilitiesCore._case_output(result, case)
             if case.stderr_has:
                 tm.that(output.stderr, has=case.stderr_has)
             if case.use_tmp_path:
@@ -114,11 +153,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.fail(result, has=case.error_has)
 
     @staticmethod
-    @pytest.mark.parametrize(
-        "case",
-        m.Tests.RuntimeCommandCase.output_cases(),
-        ids=m.Tests.RuntimeCommandCase.id_for,
-    )
+    @_OUTPUT_CASES
     def test_run_cases(
         runner: FlextCliUtilitiesCli,
         tmp_path: Path,
@@ -133,9 +168,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             options=m.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
         )
         if case.expect_success:
-            output = m.Cli.CommandOutput.model_validate(tm.ok(result))
-            if case.stdout_has:
-                tm.that(output.stdout, has=case.stdout_has)
+            output = TestsFlextCliRuntimeUtilitiesCore._case_output(result, case)
             if case.use_tmp_path:
                 tm.that(output.stdout.strip(), eq=str(tmp_path))
             tm.that(output.outcome.timed_out, eq=case.timed_out)
@@ -143,11 +176,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.fail(result, has=case.error_has)
 
     @staticmethod
-    @pytest.mark.parametrize(
-        "case",
-        m.Tests.RuntimeCommandCase.output_cases(),
-        ids=m.Tests.RuntimeCommandCase.id_for,
-    )
+    @_OUTPUT_CASES
     def test_capture_cases(
         runner: FlextCliUtilitiesCli,
         tmp_path: Path,
@@ -470,22 +499,13 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Verify session-leader terminate reaches descendants after leader exit."""
         sentinel = tmp_path / "terminated"
         pid_file = tmp_path / "descendant.pid"
-        result = runner.process_start(
-            [
-                sys.executable,
-                fixtures_path("process_session_descendant.py"),
-                str(sentinel),
-                "terminate",
-                str(pid_file),
-            ],
-            start_new_session=True,
+        process, _descendant_pid = _start_session_descendant(
+            runner,
+            pid_file,
+            sentinel,
+            "terminate",
         )
-        tm.ok(result)
-        process = result.value
 
-        tm.ok(process.wait(timeout=10))
-        descendant_pid = read_recorded_pid(pid_file)
-        tm.that(descendant_pid > 0, eq=True)
         tm.ok(process.terminate())
 
         deadline = time.monotonic() + 10
@@ -501,22 +521,13 @@ class TestsFlextCliRuntimeUtilitiesCore:
     ) -> None:
         """Verify session-leader kill stops descendants after leader exit."""
         pid_file = tmp_path / "descendant.pid"
-        result = runner.process_start(
-            [
-                sys.executable,
-                fixtures_path("process_session_descendant.py"),
-                str(tmp_path / "unused"),
-                "sleep",
-                str(pid_file),
-            ],
-            start_new_session=True,
+        process, descendant_pid = _start_session_descendant(
+            runner,
+            pid_file,
+            tmp_path / "unused",
+            "sleep",
         )
-        tm.ok(result)
-        process = result.value
 
-        tm.ok(process.wait(timeout=10))
-        descendant_pid = read_recorded_pid(pid_file)
-        tm.that(descendant_pid > 0, eq=True)
         tm.ok(process.kill())
 
         deadline = time.monotonic() + 10

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import errno
 import os
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 from typing import ClassVar
 
@@ -54,17 +56,13 @@ class FlextCliUtilitiesAtomicDirectoryState:
         return state
 
     @staticmethod
-    def read_empty_state(
+    @contextmanager
+    def _open_authenticated_empty_entry(
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
         expected: os.stat_result,
-    ) -> os.stat_result:
-        """Prove one exact directory version remains empty through an FD read.
-
-        Returns:
-            The resulting ``os.stat_result``.
-
-        """
+    ) -> Generator[int]:
+        """Open one directory-entry FD and prove it matches and stays empty."""
         flags = (
             os.O_RDONLY
             | getattr(os, "O_DIRECTORY", 0)
@@ -82,6 +80,25 @@ class FlextCliUtilitiesAtomicDirectoryState:
                 expected,
             )
             FlextCliUtilitiesAtomicDirectoryState._require_empty(descriptor, path)
+            yield descriptor
+
+    @staticmethod
+    def read_empty_state(
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        path: Path,
+        expected: os.stat_result,
+    ) -> os.stat_result:
+        """Prove one exact directory version remains empty through an FD read.
+
+        Returns:
+            The resulting ``os.stat_result``.
+
+        """
+        with FlextCliUtilitiesAtomicDirectoryState._open_authenticated_empty_entry(
+            parent,
+            path,
+            expected,
+        ) as descriptor:
             FlextCliUtilitiesAtomicDirectoryState._require_descriptor_state(
                 descriptor,
                 path,
@@ -106,23 +123,11 @@ class FlextCliUtilitiesAtomicDirectoryState:
             The resulting ``os.stat_result``.
 
         """
-        flags = (
-            os.O_RDONLY
-            | getattr(os, "O_DIRECTORY", 0)
-            | getattr(os, "O_CLOEXEC", 0)
-            | getattr(os, "O_BINARY", 0)
-        )
-        with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
+        with FlextCliUtilitiesAtomicDirectoryState._open_authenticated_empty_entry(
             parent,
             path,
-            flags,
+            expected,
         ) as descriptor:
-            FlextCliUtilitiesAtomicDirectoryState._require_descriptor_state(
-                descriptor,
-                path,
-                expected,
-            )
-            FlextCliUtilitiesAtomicDirectoryState._require_empty(descriptor, path)
             os.fchmod(descriptor, permission_mode)
             FlextCliUtilitiesAtomicFileMode.assert_observed_mode(
                 path,

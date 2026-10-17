@@ -14,7 +14,7 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
 
-from flext_core import m
+from flext_cli._models.files import FlextCliModelsFiles
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -23,36 +23,11 @@ if TYPE_CHECKING:
 class FlextCliUtilitiesFileTestHelpersMixinPart02:
     """Implementation part for FlextCliUtilitiesFileTestHelpersMixinPart02."""
 
-    class FileAssertionOptions(m.FrozenModel):
-        """Typed filesystem predicates, with None leaving each check unselected."""
-
-        is_file: bool | None = m.Field(
-            default=None,
-            description="Require or reject a regular file; None leaves it unchecked.",
-        )
-        is_dir: bool | None = m.Field(
-            default=None,
-            description="Require or reject a directory; None leaves it unchecked.",
-        )
-        not_empty: bool | None = m.Field(
-            default=None,
-            description="Require non-empty file or directory contents when True.",
-        )
-        readable: bool | None = m.Field(
-            default=None,
-            description="Require read access to the path when True.",
-        )
-        writable: bool | None = m.Field(
-            default=None,
-            description="Require write access to the path when True.",
-        )
-
     @staticmethod
     def files_assert_exists(
         path: Path,
         *,
-        options: FlextCliUtilitiesFileTestHelpersMixinPart02.FileAssertionOptions
-        | None = None,
+        options: FlextCliModelsFiles.FileAssertionOptions | None = None,
     ) -> Path:
         """Assert file-system properties on ``path``.
 
@@ -71,7 +46,7 @@ class FlextCliUtilitiesFileTestHelpersMixinPart02:
         predicates = (
             options
             if options is not None
-            else FlextCliUtilitiesFileTestHelpersMixinPart02.FileAssertionOptions()
+            else FlextCliModelsFiles.FileAssertionOptions()
         )
         if predicates.is_file is True and not path.is_file():
             msg = f"Expected file: {path}"

@@ -10,11 +10,9 @@ import shutil
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import (
-    FlextCliUtilitiesAtomicFile,
-    FlextCliUtilitiesAtomicFileDelete,
-    FlextCliUtilitiesAtomicFilePath,
-)
+from flext_cli._utilities.atomic_file import FlextCliUtilitiesAtomicFile
+from flext_cli._utilities.atomic_file_delete import FlextCliUtilitiesAtomicFileDelete
+from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 
 
 class FlextCliUtilitiesFilesPart02:
@@ -39,23 +37,12 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
-        path = Path(file_path)
-        try:
-            FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
-        except OSError as exc:
-            return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
-        ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(path.parent)
-        if ensure_result.failure:
-            return r[bool].from_failure(ensure_result)
-        try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
-                path,
-                data,
-                durability=durability,
-            )
-        except OSError as exc:
-            return r[bool].fail(c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc))
-        return r[bool].ok(value=True)
+        return FlextCliUtilitiesFilesPart02._validated_atomic_write(
+            file_path,
+            data,
+            c.Cli.ERR_BINARY_WRITE_FAILED,
+            durability=durability,
+        )
 
     @staticmethod
     def atomic_write_text_file(
@@ -72,27 +59,49 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
+        return FlextCliUtilitiesFilesPart02._validated_atomic_write(
+            file_path,
+            content.encode(c.DEFAULT_ENCODING),
+            c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED,
+            durability=durability,
+        )
+
+    @staticmethod
+    def _validated_atomic_write(
+        file_path: t.Cli.TextPath,
+        data: bytes,
+        error_template: str,
+        *,
+        durability: c.Cli.WriteDurability,
+    ) -> p.Result[bool]:
+        """Validate one write target and publish its bytes atomically.
+
+        Args:
+            file_path: The target file path for the atomic write.
+            data: The byte content to write.
+            error_template: Template for error messages.
+            durability: Write durability declaration.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
         path = Path(file_path)
         try:
             FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         except OSError as exc:
-            return r[bool].fail(
-                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
-                exception=exc,
-            )
+            return r[bool].fail(error_template.format(error=exc), exception=exc)
         ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(path.parent)
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
         try:
             FlextCliUtilitiesAtomicFile.write_atomic_bytes(
                 path,
-                content.encode(c.DEFAULT_ENCODING),
+                data,
                 durability=durability,
             )
         except OSError as exc:
-            return r[bool].fail(
-                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
-            )
+            return r[bool].fail(error_template.format(error=exc), exception=exc)
         return r[bool].ok(value=True)
 
     @staticmethod

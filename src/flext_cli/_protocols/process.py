@@ -12,7 +12,9 @@ if TYPE_CHECKING:
     from collections.abc import Buffer
     from pathlib import Path
 
-    from flext_cli import p, t
+    from flext_core import p
+
+    from flext_cli import t
     from flext_cli._models.process import FlextCliModelsProcess
     from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart02
 

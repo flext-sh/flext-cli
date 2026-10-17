@@ -15,12 +15,24 @@ from typing import Annotated
 
 from flext_core import m
 
-from flext_cli import t
+from flext_cli import c, t
 from flext_cli._models import FlextCliModelsBase
 
 
 class FlextCliModelsTemplate:
     """Generic template-engine models, flat in ``m.Cli.*``."""
+
+    class TemplateRenderOptions(m.ArbitraryTypesModel):
+        """Directory-render suffix and destination overwrite policy."""
+
+        strip_suffix: str = m.Field(
+            default=c.Cli.TEMPLATE_SUFFIX,
+            description="Template suffix removed from rendered destination names.",
+        )
+        overwrite: bool = m.Field(
+            default=False,
+            description="Whether directory rendering may replace existing files.",
+        )
 
     class TemplateRenderEntry(m.ArbitraryTypesModel):
         """One template file to render into a mirrored output path."""

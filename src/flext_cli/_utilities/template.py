@@ -22,23 +22,12 @@ from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
 from flext_cli import c, m, p, r, t
+from flext_cli._models.template import FlextCliModelsTemplate
 from flext_cli._utilities._files_parts import FlextCliUtilitiesFilesPart03
 
 
 class FlextCliUtilitiesTemplate:
     """Generic Jinja2 render helpers (ADR-005 template SSOT)."""
-
-    class TemplateRenderOptions(m.ArbitraryTypesModel):
-        """Directory-render suffix and destination overwrite policy."""
-
-        strip_suffix: str = m.Field(
-            default=c.Cli.TEMPLATE_SUFFIX,
-            description="Template suffix removed from rendered destination names.",
-        )
-        overwrite: bool = m.Field(
-            default=False,
-            description="Whether directory rendering may replace existing files.",
-        )
 
     class _ContentLoader(FileSystemLoader):
         """Keep compiled templates only while their source content is unchanged."""
@@ -299,7 +288,7 @@ class FlextCliUtilitiesTemplate:
         context: p.Model,
         entries: t.SequenceOf[m.Cli.TemplateRenderEntry],
         *,
-        options: FlextCliUtilitiesTemplate.TemplateRenderOptions | None = None,
+        options: FlextCliModelsTemplate.TemplateRenderOptions | None = None,
     ) -> p.Result[m.Cli.TemplateRenderReport]:
         """Render every entry from ``templates_root`` into ``output_root``.
 
@@ -324,7 +313,7 @@ class FlextCliUtilitiesTemplate:
             return r[m.Cli.TemplateRenderReport].fail(
                 f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}",
             )
-        render_options = options or FlextCliUtilitiesTemplate.TemplateRenderOptions()
+        render_options = options or FlextCliModelsTemplate.TemplateRenderOptions()
         root = output_root.resolve()
         created: list[Path] = []
         skipped: list[Path] = []

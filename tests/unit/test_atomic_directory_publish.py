@@ -8,11 +8,25 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tests import tm, u
+from tests import m, tm, u
 
 
 class TestsFlextCliAtomicDirectoryPublish:
     """Prove staged directory publication preserves identities and names."""
+
+    @staticmethod
+    def _rejected_publication(
+        destination: m.Cli.AtomicDirectoryState,
+        staged: m.Cli.AtomicDirectoryState,
+    ) -> None:
+        """Publish staged and require rejection preserving both directories."""
+        result = u.Cli.atomic_publish_staged_empty_directory_guarded(
+            destination,
+            staged,
+        )
+        tm.fail(result)
+        tm.that(destination.path.exists(), eq=False)
+        tm.that(staged.path.is_dir(), eq=True)
 
     @staticmethod
     def test_publish_preserves_late_empty_destination(tmp_path: Path) -> None:
@@ -94,14 +108,11 @@ class TestsFlextCliAtomicDirectoryPublish:
             raise AssertionError(message)
         staged_path.chmod(staged.mode)
 
-        result = u.Cli.atomic_publish_staged_empty_directory_guarded(
+        TestsFlextCliAtomicDirectoryPublish._rejected_publication(
             destination,
             staged,
         )
 
-        tm.fail(result)
-        tm.that(destination_path.exists(), eq=False)
-        tm.that(staged_path.is_dir(), eq=True)
         tm.that(original_path.is_dir(), eq=True)
 
     @staticmethod
@@ -115,12 +126,9 @@ class TestsFlextCliAtomicDirectoryPublish:
         child = staged_path / "late"
         child.write_bytes(b"content")
 
-        result = u.Cli.atomic_publish_staged_empty_directory_guarded(
+        TestsFlextCliAtomicDirectoryPublish._rejected_publication(
             destination,
             staged,
         )
 
-        tm.fail(result)
-        tm.that(destination_path.exists(), eq=False)
-        tm.that(staged_path.is_dir(), eq=True)
         tm.that(child.read_bytes(), eq=b"content")

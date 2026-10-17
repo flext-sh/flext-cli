@@ -41,6 +41,31 @@ class TestsFlextCliRulesCov:
         config_path.write_text("project: test\n")
         return config_path
 
+    @staticmethod
+    def _load_basic_rules(
+        config_path: Path,
+        tmp_path: Path,
+    ) -> p.Result[t.Cli.RuleLoadResult[str, str]]:
+        """Load the seeded basic catalog with no filters and return the result.
+
+        Args:
+            config_path: The path to the configuration file.
+            tmp_path: The temporary directory containing the rules.
+
+        Returns:
+            The resulting ``p.Result[t.Cli.RuleLoadResult[str, str]]``.
+
+        """
+        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
+            u.Cli.rules_load_local_definitions(
+                config_path,
+                package_rules_dir=tmp_path / "rules",
+                rule_filters=(),
+                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
+            )
+        )
+        return result
+
     # ------------------------------------------------------------------ scope
 
     @staticmethod
@@ -176,14 +201,7 @@ class TestsFlextCliRulesCov:
     def test_load_local_definitions_loads_matching_rule(self, tmp_path: Path) -> None:
         """Verify that load local definitions loads matching rule."""
         config_path = self._seed(tmp_path, {"test-rule.yml": c.Tests.RULES_FILE_YAML})
-        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
-            u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=tmp_path / "rules",
-                rule_filters=(),
-                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
-            )
-        )
+        result = self._load_basic_rules(config_path, tmp_path)
         tm.ok(result)
         loaded_rules, loaded_file_rules = result.value
         tm.that(loaded_file_rules, eq=[])
@@ -239,14 +257,7 @@ class TestsFlextCliRulesCov:
                 "empty.yml": c.Tests.RULES_FILE_NO_MATCHER_KEYS_YAML,
             },
         )
-        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
-            u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=tmp_path / "rules",
-                rule_filters=(),
-                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
-            )
-        )
+        result = self._load_basic_rules(config_path, tmp_path)
         tm.ok(result)
         expected: tuple[list[str], list[str]] = ([], [])
         tm.that(result.value, eq=expected)
@@ -257,14 +268,7 @@ class TestsFlextCliRulesCov:
             tmp_path,
             {"unknown.yml": c.Tests.RULES_FILE_UNKNOWN_YAML},
         )
-        result: p.Result[t.Cli.RuleLoadResult[str, str]] = (
-            u.Cli.rules_load_local_definitions(
-                config_path,
-                package_rules_dir=tmp_path / "rules",
-                rule_filters=(),
-                rule_catalog=c.Tests.RULES_CATALOG_BASIC,
-            )
-        )
+        result = self._load_basic_rules(config_path, tmp_path)
         tm.fail(result)
         tm.that((result.error or ""), has="rule-unknown")
 

@@ -14,13 +14,13 @@ from pathlib import Path
 from typing import Never
 
 from flext_cli import c, t
-from flext_cli._utilities import atomic_tree_darwin
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
 from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+from flext_cli._utilities.atomic_tree_darwin import FlextCliAtomicTreeDarwin
 
 
 class FlextCliUtilitiesAtomicTreeDescriptor:
@@ -79,7 +79,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         """
         platform_name = FlextCliUtilitiesAtomicTreeDescriptor._runtime_platform()
         if platform_name == "darwin":
-            return atomic_tree_darwin.FlextCliAtomicTreeDarwin.mount_id(
+            return FlextCliAtomicTreeDarwin.mount_id(
                 descriptor,
                 path,
             )

@@ -14,17 +14,20 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from flext_core import u
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, r, t
 from flext_cli._utilities._toml_parts.flextcliutilitiestoml_part_06 import (
     FlextCliUtilitiesTomlPart06,
 )
 from flext_cli._utilities.json import FlextCliUtilitiesJson
+
+if TYPE_CHECKING:
+    from flext_cli import p
 
 
 class FlextCliUtilitiesConfig:
