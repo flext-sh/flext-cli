@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Literal, Never
 
 from flext_cli import m, t
-from flext_cli._models.atomic_publication import FlextCliModelsAtomicPublication
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryChain,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -500,7 +499,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 root_path,
                 parent_state,
                 opened.state,
-                FlextCliModelsAtomicPublication.TreeEntryDetails(
+                m.Cli.TreeEntryDetails(
                     kind="directory",
                     parent_mount_id=parent_mount_id,
                     mount_id=root_mount_id,
@@ -585,7 +584,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                             path,
                             parent.state,
                             observed,
-                            FlextCliModelsAtomicPublication.TreeEntryDetails(
+                            m.Cli.TreeEntryDetails(
                                 kind="directory",
                                 parent_mount_id=parent_mount_id,
                                 mount_id=mount_id,
@@ -645,7 +644,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                         path,
                         parent.state,
                         authenticated,
-                        FlextCliModelsAtomicPublication.TreeEntryDetails(
+                        m.Cli.TreeEntryDetails(
                             kind="file",
                             parent_mount_id=parent_mount_id,
                             size=size,
@@ -673,7 +672,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                         path,
                         parent.state,
                         observed,
-                        FlextCliModelsAtomicPublication.TreeEntryDetails(
+                        m.Cli.TreeEntryDetails(
                             kind="symlink",
                             parent_mount_id=parent_mount_id,
                             mount_id=parent_mount_id,

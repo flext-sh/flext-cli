@@ -19,9 +19,11 @@ from flext_cli._models import (
     FlextCliModelsBasePart09,
     FlextCliModelsBasePart10,
 )
+from flext_cli._models.atomic_publication import FlextCliModelsAtomicPublication
 
 
 class FlextCliModelsBase(
+    FlextCliModelsAtomicPublication,
     FlextCliModelsAtomicSymlink,
     FlextCliModelsBasePart01,
     FlextCliModelsBasePart02,

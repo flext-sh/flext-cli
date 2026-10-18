@@ -12,7 +12,6 @@ import signal
 from pathlib import Path
 
 from flext_cli import c, m, t
-from flext_cli._models.atomic_publication import FlextCliModelsAtomicPublication
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileCleanup,
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -233,7 +232,7 @@ class FlextCliUtilitiesAtomicFile:
             if self.identity is None or self.mode is None:
                 message = "atomic staging must be written before publication"
                 raise RuntimeError(message)
-            staged = FlextCliModelsAtomicPublication.StagedFile(
+            staged = m.Cli.StagedFile(
                 path=self.temporary,
                 content=content,
                 mode=self.mode,
@@ -299,9 +298,7 @@ class FlextCliUtilitiesAtomicFile:
             parent,
             expected,
             parent,
-            FlextCliModelsAtomicPublication.ObservedFile(
-                path=staged.path, state=staged_state
-            ),
+            m.Cli.ObservedFile(path=staged.path, state=staged_state),
         )
         FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
             destination,

@@ -11,7 +11,6 @@ import os
 from typing import TYPE_CHECKING
 
 from flext_cli import m
-from flext_cli._models.atomic_publication import FlextCliModelsAtomicPublication
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
@@ -139,9 +138,7 @@ class FlextCliUtilitiesAtomicFilePublish:
                 destination_parent,
                 destination_state,
                 staged_parent,
-                FlextCliModelsAtomicPublication.ObservedFile(
-                    path=staged_path, state=staged_state
-                ),
+                m.Cli.ObservedFile(path=staged_path, state=staged_state),
             )
             FlextCliUtilitiesAtomicFilePublishChecks.validate_payload(
                 staged_parent, staged_path, staged_state, staged_payload
@@ -242,7 +239,7 @@ class FlextCliUtilitiesAtomicFilePublish:
             staged_bytes,
             staged_mode,
             staged_identity,
-            FlextCliModelsAtomicPublication.StagedFile(
+            m.Cli.StagedFile(
                 path=staged_path,
                 content=staged_bytes,
                 mode=staged_mode,

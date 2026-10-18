@@ -96,7 +96,7 @@ class FlextCliUtilitiesRuntime(
         stdin_handle: BinaryIO | None,
         *,
         options: m.Cli.RuntimeSpawnOptions,
-    ) -> p.Cli.ProcessHandle:
+    ) -> subprocess.Popen[bytes]:
         """Create the package's single raw child through the audited engine port.
 
         The engine owns the strictest superset of every public spawn family:
@@ -107,7 +107,7 @@ class FlextCliUtilitiesRuntime(
         boundaries and never construct a native child themselves.
 
         Returns:
-            The resulting ``p.Cli.ProcessHandle``.
+            The resulting ``subprocess.Popen[bytes]``.
 
         """
         return subprocess.Popen(
