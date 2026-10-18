@@ -63,6 +63,9 @@ class FlextCliUtilitiesParams:
         Returns:
             The resulting ``p.Result[p.Cli.Settings]``.
 
+        Raises:
+            TypeError: If the resolved settings break the CLI settings contract.
+
         """
         try:
             resolved = u.resolve_logging_settings(

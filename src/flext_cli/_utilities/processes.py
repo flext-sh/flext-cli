@@ -19,9 +19,13 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
+from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities import FlextCliUtilitiesRuntime
+
+if TYPE_CHECKING:
+    import subprocess
 from flext_cli._utilities._runtime_process_group import (
     FlextCliUtilitiesRuntimeProcessGroupMixin,
 )
@@ -39,15 +43,13 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
 
         def __init__(
             self,
-            process: p.Cli.ProcessHandle,
+            process: subprocess.Popen[bytes],
             *,
-            communicate: p.Cli.ProcessCommunicator,
             cwd: t.Cli.TextPath | None,
             env: t.StrMapping | None,
             session_leader: bool = False,
         ) -> None:
             self._process = process
-            self._communicate = communicate
             self._cwd = Path(cwd) if cwd is not None else None
             self._env = dict(env) if env is not None else None
             self._session_leader = session_leader and os.name == "posix"
@@ -131,7 +133,7 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
         def wait(self, timeout: float | None = None) -> p.Result[int]:
             if self._communicated:
                 return r[int].ok(self._process.poll() or 0)
-            communicated = self._communicate(
+            communicated = FlextCliUtilitiesRuntime.child_communicate(
                 self._process,
                 timeout=timeout,
             )
@@ -309,7 +311,6 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
         return r[p.Cli.ManagedProcess].ok(
             cls.ManagedProcess(
                 process,
-                communicate=cls._child_communicate,
                 cwd=cwd,
                 env=resolved_env,
                 session_leader=start_new_session,

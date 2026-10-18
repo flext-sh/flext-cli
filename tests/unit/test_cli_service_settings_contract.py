@@ -47,18 +47,20 @@ class TestsFlextCliServiceSettingsContract:
         tm.that(status.components, is_=p.Cli.RuntimeComponents)
 
     @staticmethod
-    def test_cli_severity_updates_preserve_selected_native_composition_and_di() -> None:
-        """Two native sinks share one stage and keep context and scoped providers."""
-        singleton_before = settings.model_dump()
-        native_json = StringIO()
-        native_console = StringIO()
-        json_handler = u.create_logging_handler(stream=native_json)
-        console_handler = u.create_logging_handler(
-            stream=native_console,
-            console_renderer=True,
-        )
-        records: t.MutableSequenceOf[p.LoggingRecord] = []
-        stages: t.MutableSequenceOf[str] = []
+    def _elected_native_composition(
+        native_json: StringIO,
+        native_console: StringIO,
+        records: t.MutableSequenceOf[p.LoggingRecord],
+        stages: t.MutableSequenceOf[str],
+        exception: BaseException,
+        initial_context: FlextContext | None = None,
+    ) -> tuple[m.StructlogOptions, FlextCli, p.Cli.Application]:
+        """Build a real service electing two native sinks sharing one stage.
+
+        Returns:
+            The elected options, the service, and its registered Typer app.
+
+        """
 
         def enrich(
             logger: p.OutputLogger,
@@ -71,32 +73,38 @@ class TestsFlextCliServiceSettingsContract:
                 event_dict["application_stage"] = "selected"
             return event_dict
 
-        observer: p.LoggingObserver = records.append
+        def observe(event: p.LoggingRecord) -> None:
+            records.append(event)
+
         options = m.StructlogOptions(
             log_level=u.level_number(c.LogLevel.WARNING),
-            handlers=(json_handler, console_handler),
+            handlers=(
+                u.create_logging_handler(stream=native_json),
+                u.create_logging_handler(
+                    stream=native_console,
+                    console_renderer=True,
+                ),
+            ),
             processing_stages=(enrich,),
-            observers=(observer,),
+            observers=(observe,),
         )
-        original_context = FlextContext.create()
         service = FlextCli(
             runtime_settings=settings.clone(
                 log_level=c.LogLevel.WARNING,
                 debug=False,
                 trace=False,
             ),
-            initial_context=original_context,
+            initial_context=initial_context,
             logging_options=options,
         )
-        selected_provider = m.ConfigMap(root={"application": "selected"})
-        _ = service.container.bind("application-provider", selected_provider)
-        original_dispatcher = tm.ok(service.container.dispatcher())
-        original_exception = ValueError("selected cause")
-        app = service.create_app_with_common_params(name="native", help_text="Native")
+        app = service.create_app_with_common_params(
+            name="native",
+            help_text="Native",
+        )
 
         def emit() -> bool:
             u.debug("cli-native-debug")
-            u.failure("cli-native-event", exception=original_exception)
+            u.failure("cli-native-event", exception=exception)
             u.Cli.commands_emit_success_message(
                 '{"actual":"result"}',
                 c.Cli.MessageTypes.SUCCESS,
@@ -104,6 +112,22 @@ class TestsFlextCliServiceSettingsContract:
             return True
 
         service.register_command(app, name="emit", help_text="Emit", command=emit)
+        return options, service, app
+
+    def test_cli_severity_updates_flow_through_selected_native_sinks(self) -> None:
+        """Severity updates keep both native sinks fed by one shared stage."""
+        native_json = StringIO()
+        native_console = StringIO()
+        records: t.MutableSequenceOf[p.LoggingRecord] = []
+        stages: t.MutableSequenceOf[str] = []
+        original_exception = ValueError("selected cause")
+        _options, service, app = self._elected_native_composition(
+            native_json,
+            native_console,
+            records,
+            stages,
+            exception=original_exception,
+        )
         with bound_contextvars(correlation_id="cli-contract"):
             first = tm.ok(service.invoke_app(app, args=["--debug", "emit"]))
             second = tm.ok(
@@ -138,10 +162,46 @@ class TestsFlextCliServiceSettingsContract:
             eq=len(emitted),
         )
         tm.that(native_console.getvalue().count("cli-native-event"), eq=len(emitted))
-        tm.that(u.logging_options().handlers[0] is json_handler, eq=True)
-        tm.that(u.logging_options().handlers[1] is console_handler, eq=True)
-        tm.that(u.logging_options().processing_stages[0] is enrich, eq=True)
-        tm.that(u.logging_options().observers[0] is observer, eq=True)
+
+    def test_cli_severity_updates_preserve_selected_composition_and_di(self) -> None:
+        """Executed invocations keep the elected composition and DI bindings."""
+        singleton_before = settings.model_dump()
+        native_json = StringIO()
+        native_console = StringIO()
+        records: t.MutableSequenceOf[p.LoggingRecord] = []
+        stages: t.MutableSequenceOf[str] = []
+        original_exception = ValueError("selected cause")
+        original_context = FlextContext.create()
+        options, service, app = self._elected_native_composition(
+            native_json,
+            native_console,
+            records,
+            stages,
+            exception=original_exception,
+            initial_context=original_context,
+        )
+        selected_provider = m.ConfigMap(root={"application": "selected"})
+        _ = service.container.bind("application-provider", selected_provider)
+        original_dispatcher = tm.ok(service.container.dispatcher())
+        with bound_contextvars(correlation_id="cli-contract"):
+            invocation = tm.ok(service.invoke_app(app, args=["--debug", "emit"]))
+
+        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.that(
+            m.ConfigMap.model_validate_json(invocation.stdout).root,
+            eq={"actual": "result"},
+        )
+        emitted = [record for record in records if record.message == "cli-native-event"]
+        tm.that(len(emitted), eq=1)
+        tm.that(stages, eq=["processed"])
+        tm.that(emitted[0].exception is original_exception, eq=True)
+        tm.that(u.logging_options().handlers[0] is options.handlers[0], eq=True)
+        tm.that(u.logging_options().handlers[1] is options.handlers[1], eq=True)
+        tm.that(
+            u.logging_options().processing_stages[0] is options.processing_stages[0],
+            eq=True,
+        )
+        tm.that(u.logging_options().observers[0] is options.observers[0], eq=True)
         tm.that(service.logging_options is options, eq=True)
         tm.that("logging_options" in service.model_dump(), eq=False)
         tm.that(
@@ -188,7 +248,12 @@ class TestsFlextCliServiceSettingsContract:
         *,
         trace: bool,
     ) -> None:
-        """Explicit severity wins shorthand while trace controls failure detail."""
+        """Explicit severity wins shorthand while trace controls failure detail.
+
+        Raises:
+            ValueError: The original CLI cause routed through the failed route.
+
+        """
         service = FlextCli.with_settings(
             settings.clone(
                 log_level=initial_level,
@@ -198,15 +263,17 @@ class TestsFlextCliServiceSettingsContract:
             ),
         )
         records: t.MutableSequenceOf[p.LoggingRecord] = []
+
+        def observe(event: p.LoggingRecord) -> None:
+            records.append(event)
+
         u.configure_structlog(
-            settings=m.StructlogOptions(
-                async_logging=False, observers=(records.append,)
-            ),
+            settings=m.StructlogOptions(async_logging=False, observers=(observe,)),
             runtime_settings=service.settings,
         )
-        with pytest.raises(ValueError) as caught:
-            msg = "original CLI cause"
-            raise ValueError(msg)
+        original_cause = ValueError("original CLI cause")
+        with pytest.raises(ValueError, match="original CLI cause") as caught:
+            raise original_cause
         failed = r[t.JsonPayload].fail(
             "cli-original-failure",
             exception=caught.value,

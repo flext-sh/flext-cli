@@ -143,8 +143,8 @@ class FlextCliUtilitiesRuntime(
         )
 
     @staticmethod
-    def _child_communicate(
-        process: p.Cli.ProcessHandle,
+    def child_communicate(
+        process: subprocess.Popen[bytes],
         *,
         timeout: float | None,
     ) -> p.Result[t.Pair[bytes, bytes]]:

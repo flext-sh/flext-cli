@@ -26,7 +26,9 @@ class FlextCliModelsBasePart07:
         logging_options: t.Port[p.StructlogOptions | None] = m.Field(
             default=None,
             exclude=True,
-            description="Optional native Core logging composition for this application.",
+            description=(
+                "Optional native Core logging composition for this application."
+            ),
         )
 
     class TypedExtract(m.BaseModel):

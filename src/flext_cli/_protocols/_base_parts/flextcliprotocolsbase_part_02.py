@@ -13,8 +13,6 @@ from flext_core import p
 from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart01
 
 if TYPE_CHECKING:
-    from flext_core import t
-
     from flext_cli._models._base.flextclimodelsbase_part_01 import (
         FlextCliModelsBasePart01,
     )
@@ -171,19 +169,6 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
 
         def wait(self) -> int:
             """Block until the root process is reaped and return its exit code."""
-            ...
-
-    @runtime_checkable
-    class ProcessCommunicator(Protocol):
-        """Drain a raw process through the elected runtime error boundary."""
-
-        def __call__(
-            self,
-            process: FlextCliProtocolsBasePart02.ProcessHandle,
-            *,
-            timeout: float | None,
-        ) -> p.Result[t.Pair[bytes, bytes]]:
-            """Return the remaining byte streams or the native failure cause."""
             ...
 
 

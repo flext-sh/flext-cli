@@ -68,14 +68,25 @@ class TestsFlextCliServicePart03:
             help_text="Identity app",
         )
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
-        shared_flags = {"debug", "trace", "cli_verbose", "cli_quiet", "log_level"}
-        flags_before = cli.settings.model_dump(include=shared_flags)
+        shared_flags = ("debug", "trace", "cli_verbose", "cli_quiet", "log_level")
+        flags_before = {
+            name: value
+            for name, value in cli.settings.model_dump().items()
+            if name in shared_flags
+        }
 
         invoke_result = cli.invoke_app(app, args=["ok"])
 
         tm.ok(invoke_result)
         tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=True)
-        tm.that(cli.settings.model_dump(include=shared_flags), eq=flags_before)
+        tm.that(
+            {
+                name: value
+                for name, value in cli.settings.model_dump().items()
+                if name in shared_flags
+            },
+            eq=flags_before,
+        )
 
     @staticmethod
     def test_execute_app_propagates_unexpected_exception() -> None:

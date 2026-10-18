@@ -212,10 +212,14 @@ class TestsFlextCliCommands:
         original_exception = caught.value
         native_stream = StringIO()
         records: t.MutableSequenceOf[p.LoggingRecord] = []
+
+        def observe(event: p.LoggingRecord) -> None:
+            records.append(event)
+
         u.configure_structlog(
             settings=m.StructlogOptions(
                 handlers=(u.create_logging_handler(stream=native_stream),),
-                observers=(records.append,),
+                observers=(observe,),
             ),
             runtime_settings=u.logging_settings().clone(
                 log_level=c.LogLevel.ERROR,

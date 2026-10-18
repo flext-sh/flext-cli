@@ -85,7 +85,12 @@ class TestsFlextCliServiceRoutes:
 
         @override
         def greet_all(self, request: p.Tests.ServiceGreeting) -> p.Result[str]:
-            """Expose a different implementation under the same method name."""
+            """Expose a different implementation under the same method name.
+
+            Returns:
+                The resulting ``p.Result[str]``.
+
+            """
             return r[str].ok(f"replacement {request.name}")
 
     @staticmethod

@@ -60,7 +60,12 @@ class FlextCliCliPart06(FlextCliCliPart05):
         provide: t.Cli.NullaryOperation[p.Service[R]],
         params: t.Cli.ModelLike,
     ) -> p.Result[t.Cli.ResultValue]:
-        """Invoke the catalogued function without a late method-name lookup."""
+        """Invoke the catalogued function without a late method-name lookup.
+
+        Returns:
+            The resulting ``p.Result[t.Cli.ResultValue]``.
+
+        """
         service = provide()
         return (
             operation.handler(service)

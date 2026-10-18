@@ -26,16 +26,37 @@ class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
             """Read-only greeting capabilities consumed by the service."""
 
             @property
-            def name(self) -> str: ...
+            def name(self) -> str:
+                """Greeting target name.
+
+                Returns:
+                    The configured greeting target name.
+
+                """
+                ...
 
             @property
-            def times(self) -> int: ...
+            def times(self) -> int:
+                """Greeting repeat count.
+
+                Returns:
+                    The configured number of greeting repeats.
+
+                """
+                ...
 
         class ServiceStatus(Protocol):
             """Read-only result capability of the service."""
 
             @property
-            def ready(self) -> int: ...
+            def ready(self) -> int:
+                """Service readiness indicator.
+
+                Returns:
+                    The configured readiness indicator.
+
+                """
+                ...
 
         class Prompts(Protocol):
             """Public prompt service surface exercised by the prompt tests."""

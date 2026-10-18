@@ -15,11 +15,29 @@ from pathlib import Path
 
 import pytest
 
+from flext_cli import config
 from tests import c, m, tm, u
 
 
 class TestsFlextCliConfigEngine:
     """Group the TestsFlextCliConfigEngine test behavior."""
+
+    @staticmethod
+    def test_process_isolation_yaml_arrays_validate_against_current_owner() -> None:
+        """Native YAML lists become strict tuples without parameterized isinstance."""
+        current = config.ProcessIsolation
+        restored = type(config).model_validate({
+            **config.model_dump(),
+            "ProcessIsolation": {
+                "compiler_resource_parts": list(current.compiler_resource_parts),
+                "denied_syscalls": list(current.denied_syscalls),
+            },
+        })
+        tm.that(
+            restored.ProcessIsolation.compiler_resource_parts,
+            eq=current.compiler_resource_parts,
+        )
+        tm.that(restored.ProcessIsolation.denied_syscalls, eq=current.denied_syscalls)
 
     @staticmethod
     def test_template_render_ok(tmp_path: Path) -> None:
