@@ -52,7 +52,6 @@ class TestsFlextCliSettingsUnit:
             ("cli_no_color", False),
             ("cli_app_name", c.Cli.FLEXT_CLI),
             ("cli_log_verbosity", c.Cli.LogVerbosity.COMPACT.value),
-            ("cli_log_level", c.LogLevel.INFO.value),
             ("cli_output_format", c.Cli.OUTPUT_DEFAULT_FORMAT_TYPE.value),
             ("cli_ci", False),
             ("cli_config_file", None),
@@ -68,9 +67,12 @@ class TestsFlextCliSettingsUnit:
         tm.that(getattr(built, field_name), eq=expected)
 
     @staticmethod
-    def test_top_level_debug_default_is_false() -> None:
-        """The inherited top-level debug flag defaults to disabled."""
-        tm.that(FlextCliSettings.model_validate({}).debug, eq=False)
+    def test_top_level_debug_uses_declared_default() -> None:
+        """The inherited flag follows its declared settings owner."""
+        tm.that(
+            FlextCliSettings.model_validate({}).debug,
+            eq=FlextCliSettings.model_fields["debug"].default,
+        )
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -102,10 +104,10 @@ class TestsFlextCliSettingsUnit:
 
     @staticmethod
     @pytest.mark.parametrize("level", list(c.LogLevel))
-    def test_cli_log_level_preserves_each_level(level: c.LogLevel) -> None:
-        """Every log level round-trips through the cli_log_level field."""
-        built = FlextCliSettings.model_validate({"cli_log_level": level.value})
-        tm.that(built.cli_log_level, eq=level.value)
+    def test_inherited_log_level_preserves_each_level(level: c.LogLevel) -> None:
+        """Every level round-trips through the inherited Core setting."""
+        built = settings.clone(log_level=level.value)
+        tm.that(built.log_level, eq=level.value)
 
     @staticmethod
     @pytest.mark.parametrize("verbosity", list(c.Cli.LogVerbosity))
@@ -140,7 +142,7 @@ class TestsFlextCliSettingsUnit:
         dumped = FlextCliSettings.model_validate({}).model_dump()
         tm.that(dumped, is_=dict)
         tm.that(dumped, has="cli_verbose")
-        tm.that(dumped, has="cli_log_level")
+        tm.that(dumped, has="log_level")
         tm.that(dumped, has="cli_output_format")
         tm.that("Cli" in dumped, eq=False)
 

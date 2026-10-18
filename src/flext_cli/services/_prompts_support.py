@@ -15,7 +15,7 @@ from typing import Annotated, Self
 from flext_cli import c, m, p, r, s, settings, t, u
 
 
-class FlextCliPromptsSupport(s[m.Cli.RuntimeStatus]):
+class FlextCliPromptsSupport(s[p.Cli.RuntimeStatus]):
     """Support owner for prompt runtime state, logging, and input readers."""
 
     class FlextCliPromptInputReaderDefault:

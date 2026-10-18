@@ -71,9 +71,6 @@ class FlextCliConstantsErrors:
     ERR_INVALID_OUTPUT_FORMAT: ClassVar[str] = "Invalid output format: {format}"
     ERR_SETTINGS_INFO_FAILED: ClassVar[str] = "Settings info failed: {error}"
 
-    CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG: ClassVar[str] = (
-        "Trace mode requires debug mode to be enabled"
-    )
     CLI_PARAM_ERR_FIELD_NOT_FOUND_FMT: ClassVar[str] = (
         "Field '{field_name}' not found in CLI parameter registry"
     )

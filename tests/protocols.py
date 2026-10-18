@@ -13,7 +13,7 @@ from flext_tests import FlextTestsProtocols
 from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
-    from tests import m, t
+    from tests import t
 
 
 class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
@@ -25,7 +25,7 @@ class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
         class Prompts(Protocol):
             """Public prompt service surface exercised by the prompt tests."""
 
-            def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
+            def execute(self) -> p.Result[p.Cli.RuntimeStatus]:
                 """Define the execute test contract."""
                 ...
 

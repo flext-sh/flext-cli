@@ -11,7 +11,7 @@ from inspect import Parameter, Signature
 from types import GenericAlias
 from typing import Never, cast, get_origin
 
-from flext_cli import c, e, m, p, r, settings, t, u
+from flext_cli import c, e, m, p, r, t, u
 
 
 class FlextCliCliPart01:
@@ -87,7 +87,7 @@ class FlextCliCliPart01:
     def _exit_failure[TResult](result: p.Result[TResult]) -> Never:
         """Expose a failed Result once at the CLI border and exit non-zero."""
         u.Cli.framework_exit_result(result)
-        u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)
+        u.Cli.commands_emit_result_error(result)
         u.Cli.framework_exit(c.Cli.EXIT_CODE_FAILURE)
 
     @classmethod

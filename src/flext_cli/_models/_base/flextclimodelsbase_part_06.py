@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar
 
-from flext_core import m
+from flext_core import FlextSettings, m
 
 from flext_cli import t
 from flext_cli._models import FlextCliModelsBasePart01
@@ -35,15 +35,15 @@ class FlextCliModelsBasePart06:
         ] = None
         debug: Annotated[
             bool | None,
-            m.Field(None, description="Enable debug mode"),
+            m.Field(None, description=FlextSettings.model_fields["debug"].description),
         ] = None
         trace: Annotated[
             bool | None,
-            m.Field(description="Enable trace logging (requires debug)"),
+            m.Field(description=FlextSettings.model_fields["trace"].description),
         ] = None
         log_level: Annotated[
             str | None,
-            m.Field(description="Log level (DEBUG, INFO, WARNING, ERROR)"),
+            m.Field(description=FlextSettings.model_fields["log_level"].description),
         ] = None
         log_format: Annotated[
             str | None,

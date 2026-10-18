@@ -222,7 +222,7 @@ class TestsFlextCliOptionsUtilsCov:
     class ImmutableMappingDefaultModel(m.BaseModel):
         """An immutable default retains the field's declared mapping contract."""
 
-        bindings: t.MappingKV[str, t.StrSequence] = m.Field(
+        bindings: t.MappingKV[str, tuple[str, ...]] = m.Field(
             default_factory=lambda: MappingProxyType({"owner": ("first", "second")}),
             description="Declared symbol owner bindings.",
         )

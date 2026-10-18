@@ -11,21 +11,17 @@ import os
 from typing import TYPE_CHECKING
 
 from flext_cli import m
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._models.atomic_publication import FlextCliModelsAtomicPublication
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_durability import (
     FlextCliUtilitiesAtomicFileDurability,
-)
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileModel
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_publish_checks import (
+    FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFileModel,
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFilePublishChecks,
+    FlextCliUtilitiesAtomicFileRead,
+    FlextCliUtilitiesAtomicFileState,
 )
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
-from flext_cli._utilities.atomic_models import FlextCliUtilitiesAtomicModels
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -143,7 +139,7 @@ class FlextCliUtilitiesAtomicFilePublish:
                 destination_parent,
                 destination_state,
                 staged_parent,
-                FlextCliUtilitiesAtomicModels.ObservedFile(
+                FlextCliModelsAtomicPublication.ObservedFile(
                     path=staged_path, state=staged_state
                 ),
             )
@@ -219,7 +215,7 @@ class FlextCliUtilitiesAtomicFilePublish:
         bytes | m.Cli.AtomicFileReceipt,
         int,
         t.Pair[int, int],
-        FlextCliUtilitiesAtomicModels.StagedFile | m.Cli.AtomicFileReceipt,
+        m.Cli.StagedFile | m.Cli.AtomicFileReceipt,
     ]:
         """Resolve the staged payload, mode, identity, and publication proof.
 
@@ -246,7 +242,7 @@ class FlextCliUtilitiesAtomicFilePublish:
             staged_bytes,
             staged_mode,
             staged_identity,
-            FlextCliUtilitiesAtomicModels.StagedFile(
+            FlextCliModelsAtomicPublication.StagedFile(
                 path=staged_path,
                 content=staged_bytes,
                 mode=staged_mode,

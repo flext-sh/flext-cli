@@ -6,10 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, s, t
+from flext_cli import p, s, t
 
 
-class FlextCliYamlModel(s[m.Cli.RuntimeStatus]):
+class FlextCliYamlModel(s[p.Cli.RuntimeStatus]):
     """Expose model-only YAML egress for public API composition."""
 
     # NOTE (multi-agent, mro-j2yt.1): public API MRO composition is deferred

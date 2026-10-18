@@ -126,8 +126,9 @@ class TestsFlextCliFilesCov:
         result = cli.read_json_model(path, m.Tests.YamlService)
         tm.fail(result)
         exception = result.exception
-        tm.matches_runtime_type(exception, FileNotFoundError)
-        tm.that(exception.filename, eq=str(path))
+        tm.that(exception, is_=FileNotFoundError)
+        if isinstance(exception, FileNotFoundError):
+            tm.that(exception.filename, eq=str(path))
         with pytest.raises(RuntimeError) as raised:
             _ = result.value
         tm.that(raised.value.__cause__, eq=exception)

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_cli import c, m, p, r, t, u
+from flext_cli import c, p, r, t, u
 from flext_cli.services import FlextCliPromptsSupport
 
 
@@ -16,14 +16,14 @@ class FlextCliPrompts(FlextCliPromptsSupport):
     """Interactive CLI prompt surface exposed through the CLI service runtime."""
 
     @override
-    def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
+    def execute(self) -> p.Result[p.Cli.RuntimeStatus]:
         """Return the current CLI runtime status.
 
         Returns:
             The current CLI runtime status.
 
         """
-        return r[m.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
+        return r[p.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
 
     def confirm(self, message: str, *, default: bool = False) -> p.Result[bool]:
         """Read a yes/no confirmation or return the configured default.

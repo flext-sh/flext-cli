@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tests import c, m, r, t, tm
+from tests import c, m, r, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -98,7 +98,10 @@ class TestsFlextCliPublicContractsCoveragePart02:
         tm.that(table.table_backend_format, eq=c.Cli.TabularFormat.SIMPLE)
         tm.that(snapshot.settings_exists, eq=True)
         tm.that(option.default, eq=True)
-        tm.that(m.Cli.LogLevelResolved(raw=" debug ").resolved, eq=c.LogLevel.DEBUG)
+        tm.that(
+            u.resolve_logging_settings(log_level=" debug ").log_level,
+            eq=c.LogLevel.DEBUG,
+        )
         tm.that(
             m.Cli.TypedExtract(
                 type_kind=c.Cli.TypeKind.STR,

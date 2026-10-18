@@ -14,7 +14,7 @@ from flext_cli import c, m, p, s, t, u
 from flext_cli.services import FlextCliFormatters
 
 
-class FlextCliTables(s[m.Cli.RuntimeStatus]):
+class FlextCliTables(s[p.Cli.RuntimeStatus]):
     """Tabulate integration for lightweight ASCII tables."""
 
     @staticmethod

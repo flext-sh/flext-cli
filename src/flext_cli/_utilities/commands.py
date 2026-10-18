@@ -6,13 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import traceback
 from typing import TYPE_CHECKING
 
 from flext_core import FlextRuntime, u
 
 from flext_cli import c, r, t
-from flext_cli._utilities.output import FlextCliUtilitiesOutput
+from flext_cli._utilities import FlextCliUtilitiesOutput
 
 if TYPE_CHECKING:
     from flext_cli import p
@@ -84,14 +83,7 @@ class FlextCliUtilitiesCommands:
     def commands_emit_failure_cause[TResult](
         result: p.Result[TResult],
     ) -> None:
-        """Render one rejected input's cause on the command's output surface.
-
-        Result commands render outcomes on stdout: the value when the command
-        succeeds, the validation cause when the input is rejected at the
-        result border. A failed handler execution keeps stdout clean and is
-        finalized by the CLI border's ``commands_emit_result_error``.
-
-        """
+        """Render rejected-input diagnostics without contaminating result stdout."""
         error = r.require_error(result)
         FlextCliUtilitiesOutput.emit_raw(
             "{}\n".format(
@@ -100,38 +92,28 @@ class FlextCliUtilitiesCommands:
                     c.Cli.MessageTypes.ERROR,
                 )[0],
             ),
+            error=True,
         )
 
     @staticmethod
     def commands_emit_result_error[TResult](
         result: p.Result[TResult],
-        *,
-        verbose: bool = False,
     ) -> None:
         """Finalize one failed Result through structured logging and CLI output.
 
         Args:
             result: Failed result whose error is logged and rendered.
-            verbose: Append the full exception traceback to the error stream.
 
         """
         # NOTE (multi-agent): keep the canonical Result intact through every
         # service layer; only this outer CLI boundary exposes its failure state.
         error = r.require_error(result)
-        logger = u.fetch_logger(__name__)
-        if isinstance(result.exception, Exception):
-            logger.error(
-                error,
-                error_code=result.error_code,
-                error_data=result.error_data,
-                exc_info=result.exception,
-            )
-        else:
-            logger.error(
-                error,
-                error_code=result.error_code,
-                error_data=result.error_data,
-            )
+        u.failure(
+            error,
+            exception=result.exception,
+            error_code=result.error_code,
+            error_data=result.error_data,
+        )
         FlextCliUtilitiesOutput.emit_raw(
             "{}\n".format(
                 FlextCliUtilitiesOutput.output_message_payload(
@@ -143,18 +125,6 @@ class FlextCliUtilitiesCommands:
         )
         if result.error_code:
             FlextCliUtilitiesOutput.emit_raw(f"   [{result.error_code}]\n", error=True)
-        if verbose and result.exception is not None:
-            detail = "".join(
-                traceback.format_exception(
-                    type(result.exception),
-                    result.exception,
-                    result.exception.__traceback__,
-                ),
-            )
-            FlextCliUtilitiesOutput.emit_raw(
-                detail if detail.endswith("\n") else f"{detail}\n",
-                error=True,
-            )
 
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]

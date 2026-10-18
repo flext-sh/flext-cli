@@ -10,30 +10,20 @@ import errno
 import os
 import signal
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-from flext_cli import c, t
-from flext_cli._utilities.atomic_file_cleanup import FlextCliUtilitiesAtomicFileCleanup
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli import c, m, t
+from flext_cli._models.atomic_publication import FlextCliModelsAtomicPublication
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileCleanup,
     FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_durability import (
     FlextCliUtilitiesAtomicFileDurability,
-)
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileModel
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_publish_checks import (
+    FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFileModel,
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFilePublishChecks,
-)
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
-from flext_cli._utilities.atomic_file_temporary import (
+    FlextCliUtilitiesAtomicFileState,
     FlextCliUtilitiesAtomicFileTemporary,
 )
-from flext_cli._utilities.atomic_models import FlextCliUtilitiesAtomicModels
-
-if TYPE_CHECKING:
-    from flext_cli import m
 
 
 class FlextCliUtilitiesAtomicFile:
@@ -243,7 +233,7 @@ class FlextCliUtilitiesAtomicFile:
             if self.identity is None or self.mode is None:
                 message = "atomic staging must be written before publication"
                 raise RuntimeError(message)
-            staged = FlextCliUtilitiesAtomicModels.StagedFile(
+            staged = FlextCliModelsAtomicPublication.StagedFile(
                 path=self.temporary,
                 content=content,
                 mode=self.mode,
@@ -290,7 +280,7 @@ class FlextCliUtilitiesAtomicFile:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         destination: Path,
         expected: os.stat_result | None,
-        staged: FlextCliUtilitiesAtomicModels.StagedFile,
+        staged: m.Cli.StagedFile,
     ) -> None:
         staged_state = FlextCliUtilitiesAtomicFile._validate_staged(
             parent,
@@ -309,7 +299,7 @@ class FlextCliUtilitiesAtomicFile:
             parent,
             expected,
             parent,
-            FlextCliUtilitiesAtomicModels.ObservedFile(
+            FlextCliModelsAtomicPublication.ObservedFile(
                 path=staged.path, state=staged_state
             ),
         )

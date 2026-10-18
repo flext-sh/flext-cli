@@ -10,10 +10,8 @@ from typing import Annotated
 
 import pytest
 
-from flext_cli import cli, settings
+from flext_cli import FlextCli, cli
 from tests import m, tm, u
-
-# NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
 
 class TestsFlextCliServicePart03:
@@ -47,18 +45,20 @@ class TestsFlextCliServicePart03:
         tm.that("--hidden" in help_result.value.stdout, eq=False)
 
     @staticmethod
-    def test_create_app_with_common_params_rejects_trace_without_debug() -> None:
-        """Fail the invocation when shared flags cannot apply to the settings."""
-        app = cli.create_app_with_common_params(name="warn-app", help_text="Warn app")
-        cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
-        trace_before = settings.trace
+    def test_create_app_with_common_params_accepts_trace_without_debug() -> None:
+        """Trace adds diagnostic detail without requiring debug mode."""
+        service = FlextCli.with_settings(cli.settings.clone(debug=False))
+        app = service.create_app_with_common_params(
+            name="trace-app", help_text="Trace app"
+        )
+        service.register_command(app, name="ok", help_text="OK", command=lambda: True)
 
-        invoke_result = cli.invoke_app(app, args=["--trace", "ok"])
+        invoke_result = service.invoke_app(app, args=["--trace", "ok"])
 
         tm.ok(invoke_result)
-        tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=False)
-        tm.that(invoke_result.value.stderr, has="debug")
-        tm.that(settings.trace, eq=trace_before)
+        tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=True)
+        tm.that(service.settings.trace, eq=True)
+        tm.that(service.settings.debug, eq=False)
 
     @staticmethod
     def test_create_app_with_common_params_no_flags_keeps_settings() -> None:
@@ -68,14 +68,14 @@ class TestsFlextCliServicePart03:
             help_text="Identity app",
         )
         cli.register_command(app, name="ok", help_text="OK", command=lambda: True)
-        shared_flags = {"debug", "trace", "verbose", "quiet", "log_level"}
-        flags_before = settings.model_dump(include=shared_flags)
+        shared_flags = {"debug", "trace", "cli_verbose", "cli_quiet", "log_level"}
+        flags_before = cli.settings.model_dump(include=shared_flags)
 
         invoke_result = cli.invoke_app(app, args=["ok"])
 
         tm.ok(invoke_result)
         tm.that(u.Cli.process_succeeded(invoke_result.value.outcome), eq=True)
-        tm.that(settings.model_dump(include=shared_flags), eq=flags_before)
+        tm.that(cli.settings.model_dump(include=shared_flags), eq=flags_before)
 
     @staticmethod
     def test_execute_app_propagates_unexpected_exception() -> None:

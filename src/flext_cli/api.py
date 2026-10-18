@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_cli import m, p, r, t, u
+from flext_cli import p, r, t, u
 from flext_cli.services import (
     FlextCliAuth,
     FlextCliCli,
@@ -50,17 +50,17 @@ class FlextCli(
     """Coordinate CLI operations through one explicit service composition root."""
 
     @override
-    def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
+    def execute(self) -> p.Result[p.Cli.RuntimeStatus]:
         """Report the public CLI runtime surface state.
 
         Returns:
-            The resulting ``p.Result[m.Cli.RuntimeStatus]``.
+            The resulting ``p.Result[p.Cli.RuntimeStatus]``.
 
         """
-        return r[m.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
+        return r[p.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
 
 
-cli: FlextCli = FlextCli.fetch_global()
+cli = FlextCli.fetch_global()
 """Process-wide ``FlextCli`` facade singleton exposing every CLI service via MRO."""
 
 

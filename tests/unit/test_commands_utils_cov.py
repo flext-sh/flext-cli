@@ -10,7 +10,7 @@ Public contract under test (``flext_cli._utilities.commands`` via ``u.Cli``):
 - ``commands_emit_result_error`` finalizes the complete failed Result state
   and a trailing newline.
 
-Assertions target observable return values and emitted stdout only.
+Assertions target returned values, stdout results, and stderr diagnostics.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -18,13 +18,37 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from io import StringIO
+
 import pytest
 
-from tests import c, r, t, tm, u
+from tests import c, m, p, r, t, tm, u
 
 
 class TestsFlextCliCommands:
     """Behavioral contract for the ``u.Cli`` command messaging helpers."""
+
+    @pytest.fixture(autouse=True)
+    def preserve_logging(
+        self,
+        capsys: pytest.CaptureFixture[str],
+    ) -> Iterator[None]:
+        """Restore the elected provider and composition after each test."""
+        original_settings = u.logging_settings()
+        original_options = u.logging_options()
+        u.configure_structlog(
+            settings=m.StructlogOptions(async_logging=False),
+            runtime_settings=original_settings.clone(async_logging=False, trace=False),
+        )
+        try:
+            yield
+        finally:
+            _ = capsys.readouterr()
+            u.configure_structlog(
+                settings=original_options,
+                runtime_settings=original_settings,
+            )
 
     @staticmethod
     def test_formatter_result_wins_over_all_fallbacks() -> None:
@@ -159,7 +183,7 @@ class TestsFlextCliCommands:
             error_code="missing_config",
             exception=FileNotFoundError("nope"),
         )
-        u.Cli.commands_emit_result_error(result, verbose=False)
+        u.Cli.commands_emit_result_error(result)
 
         # Assert
         captured = capsys.readouterr()
@@ -167,48 +191,56 @@ class TestsFlextCliCommands:
         tm.that(out, has="proposal config ausente: /x.yaml")
         tm.that(out, has="missing_config")
         tm.that("Traceback" not in out, eq=True)
-        tm.that("FileNotFoundError" not in out, eq=True)
+        tm.that("stack_trace" not in out, eq=True)
         tm.that(captured.out, eq="")
 
     @staticmethod
-    def test_error_message_adds_traceback_in_verbose_mode(
+    @pytest.mark.parametrize("trace", [False, True])
+    @pytest.mark.parametrize(
+        "exception",
+        [FileNotFoundError("missing source.py"), KeyboardInterrupt("cancelled")],
+    )
+    def test_error_message_uses_core_detail_and_original_cause(
         capsys: pytest.CaptureFixture[str],
+        exception: BaseException,
+        *,
+        trace: bool,
     ) -> None:
-        # Arrange
-        """Verify that error message adds traceback in verbose mode."""
-
-        def _raise_missing_config() -> None:
-            """Raise the error this test needs a real traceback for.
-
-            Raises:
-                FileNotFoundError: If nope.
-
-            """
-            error_message = "nope"
-            raise FileNotFoundError(error_message)
-
-        captured_exception: BaseException = RuntimeError("never raised")
-        try:
-            _raise_missing_config()
-        except FileNotFoundError as exc:
-            captured_exception = exc
-
-        # Act
-        result = r[str].fail(
-            "proposal config ausente: /x.yaml",
-            error_code="missing_config",
-            exception=captured_exception,
+        """Core renders detail once and observers receive the original cause."""
+        with pytest.raises(type(exception)) as caught:
+            raise exception
+        original_exception = caught.value
+        native_stream = StringIO()
+        records: t.MutableSequenceOf[p.LoggingRecord] = []
+        u.configure_structlog(
+            settings=m.StructlogOptions(
+                handlers=(u.create_logging_handler(stream=native_stream),),
+                observers=(records.append,),
+            ),
+            runtime_settings=u.logging_settings().clone(
+                log_level=c.LogLevel.ERROR,
+                debug=False,
+                trace=trace,
+                async_logging=False,
+            ),
         )
-        u.Cli.commands_emit_result_error(result, verbose=True)
+        result = r[str].fail(
+            "source read failed",
+            error_code="missing_config",
+            exception=original_exception,
+        )
+        u.Cli.commands_emit_result_error(result)
 
-        # Assert
         captured = capsys.readouterr()
-        out = captured.err
-        tm.that(out, has="missing_config")
-        tm.that(out, has="FileNotFoundError")
-        tm.that(out, has="Traceback (most recent call last)")
-        # The function never writes CLI payloads to stdout. (Under pytest the
-        # logging plugin routes exc_info records through its own report
-        # writer onto stdout, so a strict emptiness assertion would test the
-        # harness, not the function.)
-        tm.that("❌" not in captured.out, eq=True)
+        tm.that(captured.out, eq="")
+        tm.that(captured.err, has="missing_config")
+        tm.that(len(records), eq=1)
+        tm.that(records[0].exception is original_exception, eq=True)
+        tm.that("stack_trace" in records[0].context, eq=trace)
+        native_event = m.ConfigMap.model_validate_json(native_stream.getvalue()).root
+        tm.that(native_event["event"], eq=result.error)
+        tm.that(native_event["exception_type"], eq=type(original_exception).__name__)
+        tm.that("stack_trace" in native_event, eq=trace)
+        serialized = m.LoggingRecord.model_validate(records[0], from_attributes=True)
+        tm.that("exception" in serialized.model_dump(), eq=False)
+        tm.that(result.exception is original_exception, eq=True)

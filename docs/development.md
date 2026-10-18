@@ -256,6 +256,12 @@ tests compare that model's defaults with omitted-option behavior rather than
 freezing configured values. Namespace/facade and model-protocol generation must
 publish the model and protocol together before public-runtime validation.
 
+Managed launches use the same environment resolver as Run. With
+`inherit_environment=False`, the child receives only declared overrides, minus
+`remove_env_keys`; the host environment is not copied. The process family composes
+the runtime through MRO, and each managed handle receives its communication
+capability through `p.Cli.ProcessCommunicator`, not a concrete engine class.
+
 The lifecycle witnesses `m.Cli.RuntimeProcessRequest`, `m.Cli.RuntimeProcessState`,
 `m.Cli.RuntimeOutputTarget`, and `m.Cli.RuntimeSpawnOptions` live beside
 `ProcessOptions` in the `_models/process.py` family, and the owned-stream protocols

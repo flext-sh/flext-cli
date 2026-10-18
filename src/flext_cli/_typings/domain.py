@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
+from inspect import Parameter
 from pathlib import Path
 
 from flext_core import p, t
@@ -69,6 +70,7 @@ class FlextCliTypesDomain:
     type TableHeaders = str | t.StrSequence
     type IntTextValue = int | str
     type MessageType = c.Cli.MessageTypes
+    type CommandParameter = Parameter
     type ModelLike = t.BaseModel
     type OptionRegistry = t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]
     type NullaryOperation[T] = Callable[[], T]

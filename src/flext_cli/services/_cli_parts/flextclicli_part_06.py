@@ -6,9 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextRuntime
+from flext_core import FlextRuntime, FlextService
 
-from flext_cli import m, p, s, t, u
+from flext_cli import m, p, t, u
 from flext_cli.services._cli_parts import FlextCliCliPart05
 
 
@@ -18,9 +18,9 @@ class FlextCliCliPart06(FlextCliCliPart05):
     @classmethod
     def service_routes[R: p.Base](
         cls,
-        service_type: type[s[R]],
+        service_type: type[FlextService[R]],
         *,
-        provide: t.Cli.NullaryOperation[s[R]],
+        provide: t.Cli.NullaryOperation[FlextService[R]],
     ) -> tuple[m.Cli.ResultCommandRoute, ...]:
         """Derive one result route per operation of a core service class.
 
@@ -30,6 +30,8 @@ class FlextCliCliPart06(FlextCliCliPart05):
         a command executes, so ``--help`` constructs no adapter. A successful
         result value is rendered; rejected input renders its cause on stdout
         and exits non-zero with the ``ValidationError`` as the failure cause.
+        Any ``FlextService`` subclass conforms, including sibling service
+        hierarchies that share the core contract without the CLI base.
 
         Args:
             service_type: Core service class whose operations become routes.
@@ -53,7 +55,7 @@ class FlextCliCliPart06(FlextCliCliPart05):
     @staticmethod
     def _operation_handler[R: p.Base](
         operation: m.ServiceOperation,
-        provide: t.Cli.NullaryOperation[s[R]],
+        provide: t.Cli.NullaryOperation[FlextService[R]],
     ) -> p.Cli.ResultRouteHandler:
         """Bind one operation to the service instance built at execution.
 

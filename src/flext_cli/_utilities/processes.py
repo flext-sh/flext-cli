@@ -1,5 +1,10 @@
 """Managed process primitives shared through ``u.Cli``.
 
+The managed family owns no native spawn path: every child comes from the
+single audited spawn engine on the runtime owner, composed through MRO.
+Handles receive only the communication capability they need; the public
+``p.Cli.ManagedProcess`` contract is adapted at this boundary alone.
+
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -10,20 +15,19 @@ import os
 import select
 import shlex
 import signal
-import subprocess
 import time
 from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesRuntime
 from flext_cli._utilities._runtime_process_group import (
     FlextCliUtilitiesRuntimeProcessGroupMixin,
 )
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
 
-class FlextCliUtilitiesProcesses:
+class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
     """Runtime helpers for managed external processes."""
 
     class ManagedProcess(FlextCliUtilitiesRuntimeProcessGroupMixin):
@@ -35,13 +39,15 @@ class FlextCliUtilitiesProcesses:
 
         def __init__(
             self,
-            process: subprocess.Popen[bytes],
+            process: p.Cli.ProcessHandle,
             *,
+            communicate: p.Cli.ProcessCommunicator,
             cwd: t.Cli.TextPath | None,
             env: t.StrMapping | None,
             session_leader: bool = False,
         ) -> None:
             self._process = process
+            self._communicate = communicate
             self._cwd = Path(cwd) if cwd is not None else None
             self._env = dict(env) if env is not None else None
             self._session_leader = session_leader and os.name == "posix"
@@ -56,7 +62,7 @@ class FlextCliUtilitiesProcesses:
 
         @property
         def returncode(self) -> int | None:
-            return self._process.returncode
+            return self._process.poll()
 
         @property
         def cwd(self) -> Path | None:
@@ -114,10 +120,7 @@ class FlextCliUtilitiesProcesses:
             if self.poll() is not None:
                 return r[bool].ok(value=True)
             try:
-                if force:
-                    self._process.kill()
-                else:
-                    self._process.terminate()
+                self._process.send_signal(signal.SIGKILL if force else signal_number)
             except c.EXC_OS_VALUE as exc:
                 return r[bool].fail(
                     f"process {'kill' if force else 'terminate'} error: {exc}",
@@ -127,19 +130,20 @@ class FlextCliUtilitiesProcesses:
 
         def wait(self, timeout: float | None = None) -> p.Result[int]:
             if self._communicated:
-                return r[int].ok(self._process.returncode or 0)
+                return r[int].ok(self._process.poll() or 0)
+            communicated = self._communicate(
+                self._process,
+                timeout=timeout,
+            )
+            if communicated.failure:
+                return r[int].from_failure(communicated)
+            stdout, stderr = communicated.unwrap()
             try:
-                stdout, stderr = self._process.communicate(timeout=timeout)
-            except subprocess.TimeoutExpired as exc:
-                return r[int].fail(f"timeout {exc.timeout}s: pid {self.pid}")
-            except c.EXC_OS_VALUE as exc:
-                return r[int].fail(f"process wait error: {exc}", exception=exc)
-            try:
-                self._stdout = (bytes(self._stdout_buffer) + (stdout or b"")).decode(
+                self._stdout = (bytes(self._stdout_buffer) + stdout).decode(
                     c.DEFAULT_ENCODING,
                     errors="strict",
                 )
-                self._stderr = (stderr or b"").decode(
+                self._stderr = stderr.decode(
                     c.DEFAULT_ENCODING,
                     errors="strict",
                 )
@@ -150,7 +154,7 @@ class FlextCliUtilitiesProcesses:
                 )
             self._stdout_buffer.clear()
             self._communicated = True
-            return r[int].ok(self._process.returncode or 0)
+            return r[int].ok(self._process.poll() or 0)
 
         def stdin_write(self, content: bytes) -> p.Result[bool]:
             """Write and flush exact bytes to the managed child stdin.
@@ -240,8 +244,9 @@ class FlextCliUtilitiesProcesses:
             self._stdout_buffer.extend(content)
             return r[bool].ok(value=True)
 
-    @staticmethod
+    @classmethod
     def process_start(
+        cls,
         cmd: t.StrSequence,
         cwd: t.Cli.TextPath | None = None,
         *,
@@ -256,7 +261,9 @@ class FlextCliUtilitiesProcesses:
         A new POSIX session gives the returned handle ownership of the child's
         process group: ``terminate`` and ``kill`` signal every descendant,
         including ones that outlive the leader; the caller stays responsible
-        for reaping.
+        for reaping. The child is always spawned by the single audited engine
+        owner composed through MRO; the handle receives its communication
+        capability through the public protocol.
 
         Returns:
             The existing managed child through its public ``p.Cli`` contract.
@@ -275,24 +282,24 @@ class FlextCliUtilitiesProcesses:
             return r[p.Cli.ManagedProcess].fail(
                 "process pass_fds is unsupported on Windows",
             )
-        resolved_env = None
-        if launch.env is not None or launch.remove_env_keys:
-            resolved_env = FlextCliUtilitiesRuntime.process_env(
-                overrides=launch.env,
-                remove_keys=launch.remove_env_keys,
-            )
+        resolved_env = cls._resolved_env(
+            launch.env,
+            launch.remove_env_keys,
+            inherit_environment=launch.inherit_environment,
+        )
         try:
-            process = subprocess.Popen(
+            process = cls._spawn_streamed_process(
                 list(cmd),
-                cwd=cwd,
-                stdin=subprocess.PIPE if capture else None,
-                stdout=subprocess.PIPE if capture else None,
-                stderr=subprocess.PIPE if capture else None,
-                text=False,
-                bufsize=0,
-                env=resolved_env,
-                pass_fds=forwarded_fds,
-                start_new_session=start_new_session,
+                cwd,
+                resolved_env,
+                None,
+                options=m.Cli.RuntimeSpawnOptions(
+                    capture_output=capture,
+                    combine_output=False,
+                    stdin_mode="pipe" if capture else "inherit",
+                    start_new_session=start_new_session,
+                    pass_fds=forwarded_fds,
+                ),
             )
         except c.EXC_OS_VALUE as exc:
             return r[p.Cli.ManagedProcess].fail(
@@ -300,8 +307,9 @@ class FlextCliUtilitiesProcesses:
                 exception=exc,
             )
         return r[p.Cli.ManagedProcess].ok(
-            FlextCliUtilitiesProcesses.ManagedProcess(
+            cls.ManagedProcess(
                 process,
+                communicate=cls._child_communicate,
                 cwd=cwd,
                 env=resolved_env,
                 session_leader=start_new_session,

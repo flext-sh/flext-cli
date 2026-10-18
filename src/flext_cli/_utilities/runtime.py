@@ -1,5 +1,10 @@
 """Generic external process runtime shared through ``u.Cli``.
 
+Sole native spawn owner of the package: this module hosts the single
+audited spawn engine, its stdin/session policy, and the native child
+timeout translation; every public process family consumes them through
+injected engine ports and adapts its contract at its own boundary.
+
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -13,7 +18,7 @@ from typing import BinaryIO, ClassVar, override
 
 from flext_core import u as core_u
 
-from flext_cli import m, p, r, t
+from flext_cli import c, m, p, r, t
 from flext_cli._utilities._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
 from flext_cli._utilities._runtime_run_to_file import (
     FlextCliUtilitiesRuntimeRunToFileMixin,
@@ -92,7 +97,14 @@ class FlextCliUtilitiesRuntime(
         *,
         options: m.Cli.RuntimeSpawnOptions,
     ) -> p.Cli.ProcessHandle:
-        """Create the sole raw child owned by the streamed lifecycle.
+        """Create the package's single raw child through the audited engine port.
+
+        The engine owns the strictest superset of every public spawn family:
+        explicit stdin policy (an explicit handle wins, otherwise the declared
+        ``stdin_mode``), session ownership falling back to the platform
+        containment default, platform creation flags, and inherited
+        descriptors. Facades adapt their public contracts at their own
+        boundaries and never construct a native child themselves.
 
         Returns:
             The resulting ``p.Cli.ProcessHandle``.
@@ -101,7 +113,15 @@ class FlextCliUtilitiesRuntime(
         return subprocess.Popen(
             list(cmd),
             cwd=cwd,
-            stdin=subprocess.DEVNULL if stdin_handle is None else stdin_handle,
+            stdin=(
+                stdin_handle
+                if stdin_handle is not None
+                else subprocess.PIPE
+                if options.stdin_mode == "pipe"
+                else subprocess.DEVNULL
+                if options.stdin_mode == "devnull"
+                else None
+            ),
             stdout=subprocess.PIPE if options.capture_output else None,
             stderr=(
                 subprocess.STDOUT
@@ -113,10 +133,39 @@ class FlextCliUtilitiesRuntime(
             text=False,
             bufsize=0,
             env=env,
-            start_new_session=os.name != "nt",
+            start_new_session=(
+                os.name != "nt"
+                if options.start_new_session is None
+                else options.start_new_session
+            ),
             creationflags=options.creation_flags,
             pass_fds=options.pass_fds,
         )
+
+    @staticmethod
+    def _child_communicate(
+        process: p.Cli.ProcessHandle,
+        *,
+        timeout: float | None,
+    ) -> p.Result[t.Pair[bytes, bytes]]:
+        """Drain the raw child pipes once, owning the native timeout translation.
+
+        Returns:
+            The remaining child stdout and stderr bytes exactly once.
+
+        """
+        try:
+            stdout, stderr = process.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired as exc:
+            return r[tuple[bytes, bytes]].fail(
+                f"timeout {exc.timeout}s: pid {process.pid}",
+            )
+        except c.EXC_OS_VALUE as exc:
+            return r[tuple[bytes, bytes]].fail(
+                f"process wait error: {exc}",
+                exception=exc,
+            )
+        return r[tuple[bytes, bytes]].ok((stdout or b"", stderr or b""))
 
     @staticmethod
     @override

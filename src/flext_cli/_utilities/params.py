@@ -6,7 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-# mro-j47u (kimi): utilities consume local facades only, never flext_core p/r.
+from flext_core import u
+
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities.validation import FlextCliUtilitiesValidation
 
@@ -37,61 +38,45 @@ class FlextCliUtilitiesParams:
         settings: p.Cli.Settings,
         params: p.Cli.CliParamsConfig,
     ) -> p.Result[p.Cli.Settings]:
-        """Set boolean parameters through validated model_copy updates.
+        """Apply Core policy and the independent CLI display booleans.
 
         Returns:
             The resulting ``p.Result[p.Cli.Settings]``.
 
         """
-        if params.trace is not None and params.trace:
-            will_be_debug = params.debug if params.debug is not None else settings.debug
-            if not will_be_debug:
-                return r[p.Cli.Settings].fail(c.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG)
-        root_update: t.MutableBoolMapping = {}
-        for field in ("debug", "trace"):
-            value = getattr(params, field, None)
-            if value is not None:
-                root_update[field] = value
-        # NOTE (multi-agent): settings are flat scalars (§2.6) — the removed
-        # nested ``Cli`` branch fields map to ``cli_*`` root fields.
         cli_update: t.MutableBoolMapping = {}
         for field in ("verbose", "quiet", "no_color"):
             value = getattr(params, field, None)
             if value is not None:
                 cli_update[f"cli_{field}"] = value
-        if not root_update and not cli_update:
-            return r[p.Cli.Settings].ok(settings)
-        return r[p.Cli.Settings].ok(settings.clone(**root_update, **cli_update))
+        return FlextCliUtilitiesParams.params_set_log_level(settings, params).map(
+            lambda resolved: resolved.clone(**cli_update) if cli_update else resolved,
+        )
 
     @staticmethod
     def params_set_log_level(
         settings: p.Cli.Settings,
         params: p.Cli.CliParamsConfig,
     ) -> p.Result[p.Cli.Settings]:
-        """Set CLI log level with enum conversion/validation.
+        """Resolve optional logging flags through the canonical Core policy.
 
         Returns:
             The resulting ``p.Result[p.Cli.Settings]``.
 
         """
-        if params.log_level is None:
-            return r[p.Cli.Settings].ok(settings)
         try:
-            resolved_level = m.Cli.LogLevelResolved(
-                raw=params.log_level,
-                default=c.LogLevel.INFO,
-            ).resolved
-            next_level = type(c.LogLevel.INFO)(resolved_level)
-            return r[p.Cli.Settings].ok(settings.clone(cli_log_level=str(next_level)))
-        except ValueError:
-            valid = ", ".join(c.Cli.LOG_LEVELS)
-            return r[p.Cli.Settings].fail(
-                c.Cli.CLI_PARAM_ERR_INVALID_WITH_OPTIONS_FMT.format(
-                    field_label="log level",
-                    field_value=params.log_level,
-                    valid_values=valid,
-                ),
+            resolved = u.resolve_logging_settings(
+                runtime_settings=settings,
+                log_level=params.log_level,
+                debug=params.debug,
+                trace=params.trace,
             )
+        except (c.ValidationError, ValueError) as exc:
+            return r[p.Cli.Settings].fail(str(exc), exception=exc)
+        if not isinstance(resolved, p.Cli.Settings):
+            msg = "Resolved logging settings do not satisfy the CLI settings contract"
+            raise TypeError(msg)
+        return r[p.Cli.Settings].ok(resolved)
 
     @staticmethod
     def params_set_format(
@@ -145,22 +130,11 @@ class FlextCliUtilitiesParams:
             The resulting ``p.Result[p.Cli.Settings]``.
 
         """
-        return (
-            FlextCliUtilitiesParams
-            .params_set_bool(settings, params)
-            .map_error(lambda error: error or "Boolean parameter setting failed")
-            .flat_map(
-                lambda updated_config: FlextCliUtilitiesParams.params_set_log_level(
-                    updated_config,
-                    params,
-                ),
-            )
-            .flat_map(
-                lambda updated_config: FlextCliUtilitiesParams.params_set_format(
-                    updated_config,
-                    params,
-                ),
-            )
+        return FlextCliUtilitiesParams.params_set_bool(settings, params).flat_map(
+            lambda updated_config: FlextCliUtilitiesParams.params_set_format(
+                updated_config,
+                params,
+            ),
         )
 
 

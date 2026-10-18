@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import pytest
 
-import tests
 from flext_cli import settings
 from tests import c, m, p, tm, u
 
@@ -75,13 +74,14 @@ class TestsFlextCliParams:
         tm.that(updated.cli_no_color, eq=True)
 
     @staticmethod
-    def test_set_bool_trace_without_debug_fails() -> None:
-        """Verify that set bool trace without debug fails."""
-        current = settings.clone()
+    def test_set_bool_trace_without_debug_is_independent() -> None:
+        """Enable detail without changing the independent debug flag."""
+        current = settings.clone(debug=False)
         params = m.Cli.CliParamsConfig(trace=True)
         result = u.Cli.params_set_bool(current, params)
-        tm.fail(result)
-        tm.that(result.error, eq=tests.c.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG)
+        tm.ok(result)
+        tm.that(result.value.trace, eq=True)
+        tm.that(result.value.debug, eq=current.debug)
 
     @staticmethod
     def test_set_bool_no_flags_returns_settings_unchanged() -> None:
@@ -95,14 +95,14 @@ class TestsFlextCliParams:
     # -- params_set_log_level ----------------------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize("level", ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"])
-    def test_set_log_level_applies_valid_level(level: str) -> None:
+    @pytest.mark.parametrize("level", list(c.LogLevel))
+    def test_set_log_level_applies_valid_level(level: c.LogLevel) -> None:
         """Verify that set log level applies valid level."""
         current = settings.clone()
         params = m.Cli.CliParamsConfig(log_level=level)
         result = u.Cli.params_set_log_level(current, params)
         tm.ok(result)
-        tm.that(result.value.cli_log_level, eq=level)
+        tm.that(result.value.log_level, eq=level)
 
     @staticmethod
     def test_set_log_level_none_returns_settings_unchanged() -> None:
@@ -110,21 +110,18 @@ class TestsFlextCliParams:
         current = settings.clone()
         result = u.Cli.params_set_log_level(current, m.Cli.CliParamsConfig())
         tm.ok(result)
-        tm.that(result.value.cli_log_level, eq=current.cli_log_level)
+        expected = u.resolve_logging_settings(runtime_settings=current)
+        tm.that(result.value.log_level, eq=expected.log_level)
 
     @staticmethod
-    def test_set_log_level_invalid_fails_with_options_message() -> None:
-        """Verify that set log level invalid fails with options message."""
+    def test_set_log_level_invalid_retains_canonical_cause() -> None:
+        """Invalid logging input preserves the Core validation failure."""
         current = settings.clone()
         params = m.Cli.CliParamsConfig(log_level="BOGUS")
         result = u.Cli.params_set_log_level(current, params)
         tm.fail(result)
-        expected = c.Cli.CLI_PARAM_ERR_INVALID_WITH_OPTIONS_FMT.format(
-            field_label="log level",
-            field_value="BOGUS",
-            valid_values=", ".join(c.Cli.LOG_LEVELS),
-        )
-        tm.that(result.error, eq=expected)
+        tm.that(result.exception, is_=ValueError)
+        tm.that(result.error, eq=str(result.exception))
 
     # -- params_set_format --------------------------------------------------
 
@@ -204,7 +201,7 @@ class TestsFlextCliParams:
         tm.ok(result)
         updated = result.value
         tm.that(updated.debug, eq=True)
-        tm.that(updated.cli_log_level, eq="INFO")
+        tm.that(updated.log_level, eq=params.log_level)
         tm.that(updated.cli_output_format, eq="yaml")
         tm.that(updated.cli_log_verbosity, eq="detailed")
 
@@ -212,10 +209,12 @@ class TestsFlextCliParams:
     def test_apply_short_circuits_on_first_stage_failure() -> None:
         """Verify that apply short circuits on first stage failure."""
         current = settings.clone()
-        params = m.Cli.CliParamsConfig(trace=True)
+        before = current.model_dump()
+        params = m.Cli.CliParamsConfig(log_level="INVALID", verbose=True)
         result = u.Cli.params_apply(current, params)
         tm.fail(result)
-        tm.that(result.error, eq=tests.c.Cli.CLI_PARAM_ERR_TRACE_REQUIRES_DEBUG)
+        tm.that(result.exception, is_=ValueError)
+        tm.that(current.model_dump(), eq=before)
 
     @staticmethod
     def test_apply_returns_result_type() -> None:

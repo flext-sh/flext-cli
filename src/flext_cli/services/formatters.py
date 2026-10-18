@@ -8,10 +8,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, s, t, u
+from flext_cli import m, p, s, t, u
 
 
-class FlextCliFormatters(s[m.Cli.RuntimeStatus]):
+class FlextCliFormatters(s[p.Cli.RuntimeStatus]):
     """Plain-text formatters facade for the CLI command surface."""
 
     @classmethod

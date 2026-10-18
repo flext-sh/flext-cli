@@ -9,10 +9,8 @@ from __future__ import annotations
 from collections.abc import MutableSequence
 from typing import TYPE_CHECKING
 
-from flext_cli import cli
+from flext_cli import FlextCli, cli
 from tests import c, m, tm, u
-
-# NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
 
 if TYPE_CHECKING:
     from tests import p, t
@@ -46,17 +44,18 @@ class TestsFlextCliServicePart01:
             The resulting ``p.Result[m.Cli.InvocationResult]``.
 
         """
-        app = cli.create_app_with_common_params(
+        service = FlextCli.with_settings(cli.settings.clone())
+        app = service.create_app_with_common_params(
             name="sample",
             help_text="Sample application",
         )
-        cli.register_command(
+        service.register_command(
             app,
             name="inspect",
             help_text="Inspect settings",
             command=lambda: True,
         )
-        return cli.invoke_app(app, args=args)
+        return service.invoke_app(app, args=args)
 
     @staticmethod
     def test_create_app_with_common_params_applies_settings() -> None:

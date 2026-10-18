@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 import pytest
 
 from flext_cli import cli
@@ -18,6 +20,19 @@ from tests import m, p, r, s, t, tm, u
 
 class TestsFlextCliServiceRoutes:
     """Behavioral contract of service-derived CLI routes."""
+
+    @pytest.fixture(autouse=True)
+    def preserve_logging(self) -> Iterator[None]:
+        """Restore the actual application composition after each real route."""
+        original_settings = u.logging_settings()
+        original_options = u.logging_options()
+        try:
+            yield
+        finally:
+            u.configure_structlog(
+                settings=original_options,
+                runtime_settings=original_settings,
+            )
 
     class Greeting(m.BaseModel):
         """Request of the greet operation."""
@@ -31,7 +46,13 @@ class TestsFlextCliServiceRoutes:
         ready: int
 
     class Greeter(s[Status]):
-        """Service whose public operations are the CLI."""
+        """Service whose public operations are the CLI.
+
+        The service extends the tests sibling hierarchy, not
+        ``FlextCliServiceBase``: ``cli.service_routes`` accepts any core
+        ``FlextService`` subclass, so this keeps the contract honest for
+        conforming services outside the CLI base.
+        """
 
         # Operations are plain public instance methods below FlextService:
         # the discovery scanner counts instance functions only, so these
@@ -104,7 +125,8 @@ class TestsFlextCliServiceRoutes:
         )
 
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=False)
-        tm.that(outcome.stdout, has=["Greeting", "greater than or equal to 1"])
+        tm.that(outcome.stdout, eq="")
+        tm.that(outcome.stderr, has=["Greeting", "greater than or equal to 1"])
 
     def test_input_less_operation_renders_json(self) -> None:
         """An operation without a request model runs with no options."""

@@ -12,7 +12,7 @@ from pathlib import Path
 from flext_cli import c, m, p, r, s, t, u
 
 
-class FlextCliFileTools(s[m.Cli.RuntimeStatus]):
+class FlextCliFileTools(s[p.Cli.RuntimeStatus]):
     """File operations with r."""
 
     @staticmethod

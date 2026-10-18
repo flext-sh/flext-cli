@@ -13,13 +13,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli import c, m
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFileRead,
+    FlextCliUtilitiesAtomicFileState,
 )
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
-from flext_cli._utilities.atomic_models import FlextCliUtilitiesAtomicModels
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -92,7 +91,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination_state: os.stat_result | None,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged: FlextCliUtilitiesAtomicModels.ObservedFile,
+        staged: m.Cli.ObservedFile,
     ) -> None:
         """Require both entries and parents to occupy one filesystem.
 
@@ -118,7 +117,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged: FlextCliUtilitiesAtomicModels.StagedFile | m.Cli.AtomicFileReceipt,
+        staged: m.Cli.StagedFile | m.Cli.AtomicFileReceipt,
     ) -> os.stat_result:
         """Prove replacement consumed the staged name and retained its exact state.
 

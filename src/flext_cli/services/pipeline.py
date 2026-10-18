@@ -11,7 +11,7 @@ from pathlib import Path
 from flext_cli import c, m, p, r, s, t, u
 
 
-class FlextCliPipeline(s[m.Cli.RuntimeStatus]):
+class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
     """Expose the canonical pipeline DSL through the service layer."""
 
     @staticmethod

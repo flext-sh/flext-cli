@@ -8,9 +8,46 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from flext_core import p
+
 
 class FlextCliProtocolsBasePart01:
     """Implementation part for FlextCliProtocolsBasePart01."""
+
+    @runtime_checkable
+    class RuntimeComponents(p.Base, Protocol):
+        """Public availability state of the canonical CLI components."""
+
+        @property
+        def settings(self) -> str: ...
+
+        @property
+        def formatters(self) -> str: ...
+
+        @property
+        def prompts(self) -> str: ...
+
+        @property
+        def rules(self) -> str: ...
+
+    @runtime_checkable
+    class RuntimeStatus(p.Base, Protocol):
+        """Complete public status payload returned by CLI service handlers."""
+
+        @property
+        def status(self) -> str: ...
+
+        @property
+        def service(self) -> str: ...
+
+        @property
+        def timestamp(self) -> str: ...
+
+        @property
+        def version(self) -> str: ...
+
+        @property
+        def components(self) -> FlextCliProtocolsBasePart01.RuntimeComponents: ...
 
     @runtime_checkable
     class CliSettings(Protocol):
@@ -28,11 +65,6 @@ class FlextCliProtocolsBasePart01:
         @property
         def cli_app_name(self) -> str:
             """CLI application name."""
-            ...
-
-        @property
-        def cli_log_level(self) -> str:
-            """CLI log level."""
             ...
 
         @property

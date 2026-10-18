@@ -45,7 +45,7 @@ class ExamplesFlextCliSettings:
         cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
         cli.print(f"   Debug Mode: {settings.debug}", style=c.Cli.MessageStyles.CYAN)
         cli.print(
-            f"   Log Level: {settings.cli_log_level}",
+            f"   Log Level: {settings.log_level}",
             style=c.Cli.MessageStyles.CYAN,
         )
         cli.print(

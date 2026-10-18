@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
 import pytest
 
 from flext_cli import cli
@@ -18,6 +20,19 @@ from tests import c, p, t, tm, u
 
 class TestsFlextCliCliParams:
     """Behavioral tests for FlextCliCommonParams public contract."""
+
+    @pytest.fixture(autouse=True)
+    def preserve_logging(self) -> Iterator[None]:
+        """Keep command invocations from replacing another app's logging policy."""
+        original_settings = u.logging_settings()
+        original_options = u.logging_options()
+        try:
+            yield
+        finally:
+            u.configure_structlog(
+                settings=original_options,
+                runtime_settings=original_settings,
+            )
 
     @staticmethod
     @pytest.fixture
@@ -68,7 +83,7 @@ class TestsFlextCliCliParams:
         updated = result.value
         tm.that(updated.cli_verbose is True, eq=True)
         tm.that(updated.debug is True, eq=True)
-        tm.that(updated.cli_log_level, eq=c.LogLevel.DEBUG)
+        tm.that(updated.log_level, eq=c.LogLevel.DEBUG)
 
     @staticmethod
     def test_apply_to_config_trace_with_debug_enables_trace(
@@ -96,19 +111,22 @@ class TestsFlextCliCliParams:
         )
         tm.ok(second)
         tm.that(second.value.cli_verbose is True, eq=True)
-        tm.that(second.value.cli_log_level, eq=c.LogLevel.DEBUG)
+        tm.that(second.value.log_level, eq=c.LogLevel.DEBUG)
 
     # ── apply_to_config: failure paths ───────────────────────────────
 
     @staticmethod
-    def test_apply_to_config_trace_without_debug_fails(
+    def test_apply_to_config_trace_without_debug_preserves_severity(
         settings: p.Cli.Settings,
     ) -> None:
-        """Trace without debug fails with a message explaining the dependency."""
-        result = cli.apply_to_config(settings, trace=True)
+        """Diagnostic detail does not require debug or lower an explicit level."""
+        current = settings.clone(log_level=c.LogLevel.ERROR, debug=False)
+        result = cli.apply_to_config(current, trace=True)
 
-        tm.fail(result)
-        tm.that((result.error or "").lower(), has="trace mode requires debug mode")
+        tm.ok(result)
+        tm.that(result.value.trace, eq=True)
+        tm.that(result.value.debug, eq=current.debug)
+        tm.that(result.value.log_level, eq=current.log_level)
 
     @staticmethod
     def test_apply_to_config_unknown_parameter_fails_carrying_validation_error(
@@ -125,7 +143,7 @@ class TestsFlextCliCliParams:
     @pytest.mark.parametrize(
         ("field_name", "expected_fragments"),
         [
-            ("log_level", ("invalid", "log level")),
+            ("log_level", ("invalid", "log")),
             ("log_format", ("invalid", "log format")),
             ("output_format", ("invalid", "output format")),
         ],

@@ -13,6 +13,8 @@ from flext_core import p
 from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart01
 
 if TYPE_CHECKING:
+    from flext_core import t
+
     from flext_cli._models._base.flextclimodelsbase_part_01 import (
         FlextCliModelsBasePart01,
     )
@@ -22,7 +24,11 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
     """Implementation part for FlextCliProtocolsBasePart02."""
 
     @runtime_checkable
-    class Settings(p.Settings, FlextCliProtocolsBasePart01.CliSettings, Protocol):
+    class Settings(
+        p.LoggingSettings,
+        FlextCliProtocolsBasePart01.CliSettings,
+        Protocol,
+    ):
         """Protocol for CLI runtime settings consumed by the public services.
 
         NOTE (multi-agent): settings are flat ``cli_*`` scalars (§2.6); the
@@ -30,16 +36,6 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
         removed with it. The flat field contract comes from
         ``CliSettings`` (part_01) via protocol composition.
         """
-
-        @property
-        def debug(self) -> bool:
-            """Whether debug mode is enabled."""
-            ...
-
-        @property
-        def trace(self) -> bool:
-            """Whether trace mode is enabled."""
-            ...
 
         @classmethod
         def reset_for_testing(cls) -> None:
@@ -129,7 +125,13 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
 
     @runtime_checkable
     class ProcessHandle(Protocol):
-        """Restrictive process handle consumed by portable lifecycle utilities."""
+        """Raw child handle owned by the single spawn engine.
+
+        The engine owner returns exactly one native child through this
+        contract; portable lifecycle utilities and the managed facade each
+        consume the declared members they need and adapt their public
+        contracts at their own boundaries.
+        """
 
         @property
         def pid(self) -> int:
@@ -146,6 +148,15 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
             """Binary standard-error pipe when requested separately."""
             ...
 
+        @property
+        def stdin(self) -> IO[bytes] | None:
+            """Binary standard-input pipe when requested."""
+            ...
+
+        def communicate(self, timeout: float | None = None) -> tuple[bytes, bytes]:
+            """Drain the child pipes once and return their remaining bytes."""
+            ...
+
         def kill(self) -> None:
             """Force termination of the root process."""
             ...
@@ -160,6 +171,19 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
 
         def wait(self) -> int:
             """Block until the root process is reaped and return its exit code."""
+            ...
+
+    @runtime_checkable
+    class ProcessCommunicator(Protocol):
+        """Drain a raw process through the elected runtime error boundary."""
+
+        def __call__(
+            self,
+            process: FlextCliProtocolsBasePart02.ProcessHandle,
+            *,
+            timeout: float | None,
+        ) -> p.Result[t.Pair[bytes, bytes]]:
+            """Return the remaining byte streams or the native failure cause."""
             ...
 
 

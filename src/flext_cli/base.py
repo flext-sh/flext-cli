@@ -22,12 +22,13 @@ if TYPE_CHECKING:
 
 class FlextCliServiceBase[TDomainResult: p.Base](
     FlextService[TDomainResult],
+    m.Cli.ServiceOptions,
     FlextCliUtilitiesCli,
 ):
     """Base class for flext-cli services with typed configuration access.
 
-    Note: This is an abstract base class. Subclasses must implement the
-    `execute` method from FlextService.
+    Native collaborator fields come from the shared CLI service-options model;
+    concrete services expose their domain handlers through the API MRO.
     """
 
     @property
@@ -46,7 +47,7 @@ class FlextCliServiceBase[TDomainResult: p.Base](
         return resolved
 
     @classmethod
-    def runtime_bootstrap_options(cls) -> m.RuntimeBootstrapOptions:
+    def runtime_bootstrap_options(cls) -> p.RuntimeBootstrapOptions:
         """Return runtime bootstrap options binding the CLI settings class."""
         return m.RuntimeBootstrapOptions(settings_type=FlextCliSettings)
 

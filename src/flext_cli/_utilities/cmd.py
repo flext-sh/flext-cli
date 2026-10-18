@@ -9,14 +9,14 @@ from __future__ import annotations
 from flext_core import u
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.settings import FlextCliUtilitiesSettings
+from flext_cli._utilities import FlextCliUtilitiesSettings
 
 
 class FlextCliUtilitiesCmd:
     """Utility helpers for FlextCliCmd service orchestration."""
 
     @staticmethod
-    def cmd_status() -> m.Cli.RuntimeStatus:
+    def cmd_status() -> p.Cli.RuntimeStatus:
         """Return the canonical public CLI runtime status model.
 
         Returns:

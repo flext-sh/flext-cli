@@ -256,7 +256,8 @@ class TestsFlextCliDocxRender:
         tm.that(read_result.success, eq=True, msg=read_result.error)
         font = read_result.value.paragraphs[0].runs[0].style.font
         tm.that(font, ne=None)
-        tm.that(font.underline, eq="singleAccounting")
+        if font is not None:
+            tm.that(font.underline, eq="singleAccounting")
 
     @staticmethod
     def test_docx_read_round_trip() -> None:
