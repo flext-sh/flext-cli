@@ -23,6 +23,23 @@ from flext_cli._models._base.flextclimodelsbase_part_09 import FlextCliModelsBas
 class FlextCliModelsProcess:
     """Process input declarations exposed through ``m.Cli``."""
 
+    class PythonScriptExecution(m.FrozenModel):
+        """Source execution metadata consumed by a script invocation producer."""
+
+        module: str = m.Field(
+            pattern=r"^[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*$",
+            description="Native declaring module of the script entrypoint",
+        )
+        role: Literal["isolated-stdlib"] = m.Field(
+            description="Entrypoint cannot import framework or site dependencies",
+        )
+
+        @m.computed_field
+        @property
+        def python_flags(self) -> tuple[Literal["-I"], Literal["-S"]]:
+            """Derive the interpreter protocol from the isolated stdlib role."""
+            return ("-I", "-S")
+
     class ProcessNativePolicyProbe(m.Value):
         """One original native denial observation in the bootstrap receipt."""
 
@@ -404,7 +421,7 @@ class FlextCliModelsProcess:
         )
 
     class RuntimeSpawnOptions(m.ArbitraryTypesModel):
-        """Pipe and platform creation policy for one child."""
+        """Pipe, stdin, session, and platform creation policy for one child."""
 
         capture_output: bool = m.Field(
             description="Create pipes for capturing child output.",
@@ -418,6 +435,20 @@ class FlextCliModelsProcess:
         )
         pass_fds: tuple[int, ...] = m.Field(
             default=(), description="Process-owner descriptors consumed by confinement"
+        )
+        start_new_session: bool | None = m.Field(
+            default=None,
+            description=(
+                "Explicit child session ownership; absent applies the engine's"
+                " platform containment default (a new session on POSIX)."
+            ),
+        )
+        stdin_mode: Literal["devnull", "inherit", "pipe"] = m.Field(
+            default="devnull",
+            description=(
+                "Child stdin policy when no explicit handle is supplied:"
+                " a captured pipe, the inherited parent stdin, or the null device."
+            ),
         )
 
 

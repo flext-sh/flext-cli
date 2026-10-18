@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import shlex
 
-from flext_cli import FlextCliSettings, m, p, r, t
+from flext_cli import c, m, p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessTimingMixin:
@@ -88,13 +88,11 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
         elif request.heartbeat_seconds is not None and not request.live:
             error = "process heartbeat requires live output"
         elif request.heartbeat_seconds is not None and not (
-            0
-            < request.heartbeat_seconds
-            < FlextCliSettings.CLI_PROCESS_HEARTBEAT_MAX_SECONDS
+            0 < request.heartbeat_seconds < c.Cli.CLI_PROCESS_HEARTBEAT_MAX_SECONDS
         ):
             error = (
                 "process heartbeat interval must be greater than zero and below "
-                f"{FlextCliSettings.CLI_PROCESS_HEARTBEAT_MAX_SECONDS:g} seconds"
+                f"{c.Cli.CLI_PROCESS_HEARTBEAT_MAX_SECONDS:g} seconds"
             )
         elif request.capture_output and request.output_path is not None:
             error = "captured and durable output are mutually exclusive"

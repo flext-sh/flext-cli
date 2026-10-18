@@ -26,6 +26,21 @@ class TestsFlextCliModels(
     class Tests(TestsFlextCliModelsPart01.Tests):
         """Consumer-owned records used to exercise typed YAML ingress."""
 
+        class ServiceGreeting(FlextCliModels.FrozenModel):
+            """Concrete validation model declared once on the greeting operation."""
+
+            name: str = FlextCliModels.Field(description="Name to greet.")
+            times: int = FlextCliModels.Field(
+                default=1,
+                ge=1,
+                description="Number of greetings.",
+            )
+
+        class ServiceStatus(FlextCliModels.FrozenModel):
+            """Owned result payload rendered by the service CLI."""
+
+            ready: int = FlextCliModels.Field(description="Readiness indicator.")
+
         class RestrictedDatabaseConfig(
             ExamplesFlextCliModels.Examples.AdvancedDatabaseConfig
         ):

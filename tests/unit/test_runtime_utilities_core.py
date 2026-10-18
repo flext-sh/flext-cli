@@ -16,7 +16,7 @@ from typing import cast
 
 import pytest
 
-from flext_cli import FlextCliUtilitiesCli
+from flext_cli import FlextCliUtilitiesCli, cli
 from tests import c, m, p, tm, u
 
 _OUTPUT_CASES = pytest.mark.parametrize(
@@ -319,8 +319,8 @@ class TestsFlextCliRuntimeUtilitiesCore:
     def test_process_start_inherits_streams(runner: FlextCliUtilitiesCli) -> None:
         """A supervised child consumes inherited input and forwards both outputs."""
         script = (
-            "import sys; from flext_cli import u; "
-            "child = FlextCliUtilitiesCli.process_start("
+            "import sys; from flext_cli import cli; "
+            "child = cli.process_start("
             "[sys.executable, '-c', "
             '"import sys; print(sys.stdin.readline().strip()); '
             "print('inherited-error', file=sys.stderr)\"], "
@@ -337,6 +337,36 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(FlextCliUtilitiesCli.process_succeeded(output.outcome), eq=True)
         tm.that(output.stdout.splitlines(), eq=["inherited-input", "'' ''"])
         tm.that(output.stderr.strip(), eq="inherited-error")
+
+    @staticmethod
+    @pytest.mark.parametrize("inherit_environment", [False, True])
+    def test_process_start_respects_environment_inheritance(
+        *, inherit_environment: bool
+    ) -> None:
+        """A real managed child receives only the elected environment sources."""
+        script = (
+            "import sys; from flext_cli import cli, m; "
+            "child = cli.process_start("
+            "[sys.executable, '-c', "
+            "\"import os; print(os.environ.get('FLEXT_PARENT_ONLY', 'absent')); "
+            "print(os.environ['FLEXT_CHILD_ONLY'])\"], "
+            "options=m.Cli.ProcessOptions("
+            "inherit_environment=sys.argv[1] == 'True', "
+            "env={'FLEXT_CHILD_ONLY': 'child'})).unwrap(); "
+            "status = child.wait(timeout=5).unwrap(); "
+            "print(child.stdout, end=''); sys.exit(status)"
+        )
+        output = tm.ok(
+            cli.run_raw(
+                [sys.executable, "-c", script, str(inherit_environment)],
+                options=m.Cli.ProcessOptions(env={"FLEXT_PARENT_ONLY": "parent"}),
+            ),
+        )
+        tm.that(FlextCliUtilitiesCli.process_succeeded(output.outcome), eq=True)
+        tm.that(
+            output.stdout.splitlines(),
+            eq=["parent" if inherit_environment else "absent", "child"],
+        )
 
     @staticmethod
     @pytest.mark.parametrize("start_new_session", [False, True])

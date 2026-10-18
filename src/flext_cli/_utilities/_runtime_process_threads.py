@@ -17,7 +17,9 @@ from flext_cli._utilities._runtime_process_wait import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli import m, p, t
+    import subprocess
+
+    from flext_cli import m, t
 
 
 class FlextCliUtilitiesRuntimeProcessThreadsMixin(
@@ -52,7 +54,7 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     @classmethod
     def _start_root_waiter(
         cls,
-        process: p.Cli.ProcessHandle,
+        process: subprocess.Popen[bytes],
         return_codes: t.MutableSequenceOf[int],
         failures: t.MutableSequenceOf[str],
         process_done: threading.Event,

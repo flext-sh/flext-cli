@@ -6,10 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, s, t
+from flext_cli import p, s, t
 
 
-class FlextCliRules(s[m.Cli.RuntimeStatus]):
+class FlextCliRules(s[p.Cli.RuntimeStatus]):
     """Expose the generic rule-loading DSL through ``cli`` and ``u.Cli``."""
 
 

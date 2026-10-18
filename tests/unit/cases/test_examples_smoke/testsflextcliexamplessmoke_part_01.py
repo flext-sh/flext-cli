@@ -10,13 +10,7 @@ from typing import TYPE_CHECKING
 
 from examples import ExamplesFlextCliGettingStarted
 from examples.ex_02_output_formatting import ExamplesFlextCliOutputFormatting
-from examples.ex_04_file_operations import (
-    load_deployment_config,
-    load_user_preferences,
-    save_deployment_config,
-    save_user_preferences,
-    validate_and_import_data,
-)
+from examples.ex_04_file_operations import ExamplesFlextCliFileOperations
 
 from flext_cli import cli
 from tests import m, tm
@@ -67,14 +61,16 @@ class TestsFlextCliExamplesSmokePart01:
         config_dir.mkdir()
         preferences = m.Tests.UserPreferences(theme="dark", notifications=True)
 
-        save_preferences_result = save_user_preferences(
+        save_preferences_result = ExamplesFlextCliFileOperations.save_user_preferences(
             preferences.model_dump(mode="json"),
             config_dir,
         )
         tm.ok(save_preferences_result)
         tm.that(save_preferences_result.value, eq=True)
 
-        preferences_result = load_user_preferences(config_dir)
+        preferences_result = ExamplesFlextCliFileOperations.load_user_preferences(
+            config_dir
+        )
         tm.ok(preferences_result)
         loaded_preferences = m.Tests.UserPreferences.model_validate(
             preferences_result.value.content,
@@ -83,14 +79,16 @@ class TestsFlextCliExamplesSmokePart01:
 
         deployment_file = tmp_path / "deployment.yaml"
         deployment_config = m.Tests.DeploymentConfig(environment="dev", replicas=2)
-        save_deployment_result = save_deployment_config(
+        save_deployment_result = ExamplesFlextCliFileOperations.save_deployment_config(
             deployment_config.model_dump(mode="json"),
             deployment_file,
         )
         tm.ok(save_deployment_result)
         tm.that(save_deployment_result.value, eq=True)
 
-        deployment_result = load_deployment_config(deployment_file)
+        deployment_result = ExamplesFlextCliFileOperations.load_deployment_config(
+            deployment_file
+        )
         tm.ok(deployment_result)
         loaded_deployment = m.Tests.DeploymentConfig.model_validate(
             deployment_result.value.content,
@@ -101,7 +99,9 @@ class TestsFlextCliExamplesSmokePart01:
         record = m.Tests.ImportRecord(id=1, name="Alice", value="ok")
         write_result = cli.write_json_file(import_file, record.model_dump(mode="json"))
         tm.ok(write_result)
-        validation_result = validate_and_import_data(import_file)
+        validation_result = ExamplesFlextCliFileOperations.validate_and_import_data(
+            import_file
+        )
         tm.ok(validation_result)
         loaded_record = m.Tests.ImportRecord.model_validate(
             validation_result.value.content,

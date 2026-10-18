@@ -31,6 +31,7 @@ class FlextCliConstantsSettings:
     )
 
     CLI_PROCESS_HEARTBEAT_MESSAGE: ClassVar[str] = "flext-cli: process still running"
+    CLI_PROCESS_HEARTBEAT_MAX_SECONDS: ClassVar[float] = 60.0
     ENV_DEFAULT_CI: ClassVar[bool] = False
     ENV_VAR_HOME: ClassVar[str] = "HOME"
     ENV_VAR_CI: ClassVar[str] = "CI"
@@ -98,12 +99,11 @@ class FlextCliConstantsSettings:
             CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_TRACE,
             CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_TRACE,
         },
-        "cli_log_level": {
+        "log_level": {
             CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_LOG_LEVEL,
             CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_LOG_LEVEL,
             CLI_PARAM_KEY_CHOICES: LOG_LEVELS,
             CLI_PARAM_KEY_CASE_SENSITIVE: CLI_PARAM_CASE_INSENSITIVE,
-            CLI_PARAM_KEY_FIELD_NAME_OVERRIDE: "log_level",
         },
         "log_verbosity": {
             CLI_PARAM_KEY_PRIORITY: CLI_PARAM_PRIORITY_LOG_FORMAT,

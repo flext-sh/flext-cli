@@ -69,9 +69,9 @@ class TestsFlextCliOptionsUtilsCov:
             ("--projects", "--help"),
         )
         tm.that(parsed.values["custom_name"] == "--help", truth=True)
-        assert parsed.help_requested is False
+        tm.that(parsed.help_requested, eq=False)
         help_route = cli.parse_model_options(self.CustomDeclModel, ("--help",))
-        assert help_route.help_requested is True
+        tm.that(help_route.help_requested, eq=True)
         with pytest.raises(ValueError, match="duplicated"):
             cli.parse_model_options(
                 self.CustomDeclModel,
@@ -109,8 +109,8 @@ class TestsFlextCliOptionsUtilsCov:
         parsed = cli.parse_model_options(self.ReverseToggleModel, (option,))
         invocation, received = self._run(self.ReverseToggleModel, [option])
         tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
-        assert parsed.values["enabled"] is expected
-        assert received[0].enabled is expected
+        tm.that(parsed.values["enabled"], eq=expected)
+        tm.that(received[0].enabled, eq=expected)
 
     class StringAnnotationModel(m.BaseModel):
         """Group the StringAnnotationModel test behavior."""
@@ -222,7 +222,7 @@ class TestsFlextCliOptionsUtilsCov:
     class ImmutableMappingDefaultModel(m.BaseModel):
         """An immutable default retains the field's declared mapping contract."""
 
-        bindings: t.MappingKV[str, t.StrSequence] = m.Field(
+        bindings: t.MappingKV[str, tuple[str, ...]] = m.Field(
             default_factory=lambda: MappingProxyType({"owner": ("first", "second")}),
             description="Declared symbol owner bindings.",
         )

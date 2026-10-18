@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, p, r, settings, t, u
+from flext_cli import c, p, r, t, u
 from flext_cli.services._cli_parts import FlextCliCliPart04
 
 
@@ -176,7 +176,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
         """
         if result.success:
             return c.Cli.EXIT_CODE_SUCCESS
-        u.Cli.commands_emit_result_error(result, verbose=settings.cli_verbose)
+        u.Cli.commands_emit_result_error(result)
         # NOTE (multi-agent): the outermost CLI owns its process contract while
         # FlextCliCliPart05 remains the single error-emission boundary.
         return failure_exit_code

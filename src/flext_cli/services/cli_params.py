@@ -6,10 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, m, p, r, s, t, u
+from flext_cli import c, p, r, s, t, u
 
 
-class FlextCliCommonParams(s[m.Cli.RuntimeStatus]):
+class FlextCliCommonParams(s[p.Cli.RuntimeStatus]):
     """Common CLI parameters auto-generated from FlextSettings field metadata.
 
     Business Rules:
@@ -31,7 +31,7 @@ class FlextCliCommonParams(s[m.Cli.RuntimeStatus]):
         """Apply CLI parameter values to FlextSettings using Pydantic validation.
 
         Business Rule: Applies CLI parameter values with Pydantic validation.
-        Trace mode requires debug mode to be enabled. Parameter values the
+        Core owns severity and diagnostic-detail policy. Parameter values the
         ``CliParamsConfig`` model rejects are the declared failure outcome and
         the result carries the ``ValidationError``; every other exception
         escapes.
@@ -55,14 +55,14 @@ class FlextCliCommonParams(s[m.Cli.RuntimeStatus]):
         return u.Cli.params_apply(settings, params_to_use)
 
     @classmethod
-    def create_option(cls, field_name: str) -> m.Cli.OptionSpec:
+    def create_option(cls, field_name: str) -> p.Cli.CliOptionSpec:
         """Create one validated framework-neutral option model.
 
         Args:
             field_name: Registered parameter name to build the option for.
 
         Returns:
-            The resulting ``m.Cli.OptionSpec``.
+            The resulting ``p.Cli.CliOptionSpec``.
 
         Raises:
             ValueError: If ``field_name not in c.Cli.CLI_PARAM_REGISTRY``.

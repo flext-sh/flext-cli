@@ -6,10 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, s, t
+from flext_cli import p, s, t
 
 
-class FlextCliRuntime(s[m.Cli.RuntimeStatus]):
+class FlextCliRuntime(s[p.Cli.RuntimeStatus]):
     """Expose process execution helpers through ``cli`` and ``FlextCli``."""
 
 

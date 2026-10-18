@@ -22,7 +22,11 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
     """Implementation part for FlextCliProtocolsBasePart02."""
 
     @runtime_checkable
-    class Settings(p.Settings, FlextCliProtocolsBasePart01.CliSettings, Protocol):
+    class Settings(
+        p.LoggingSettings,
+        FlextCliProtocolsBasePart01.CliSettings,
+        Protocol,
+    ):
         """Protocol for CLI runtime settings consumed by the public services.
 
         NOTE (multi-agent): settings are flat ``cli_*`` scalars (§2.6); the
@@ -30,16 +34,6 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
         removed with it. The flat field contract comes from
         ``CliSettings`` (part_01) via protocol composition.
         """
-
-        @property
-        def debug(self) -> bool:
-            """Whether debug mode is enabled."""
-            ...
-
-        @property
-        def trace(self) -> bool:
-            """Whether trace mode is enabled."""
-            ...
 
         @classmethod
         def reset_for_testing(cls) -> None:
@@ -129,7 +123,13 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
 
     @runtime_checkable
     class ProcessHandle(Protocol):
-        """Restrictive process handle consumed by portable lifecycle utilities."""
+        """Raw child handle owned by the single spawn engine.
+
+        The engine owner returns exactly one native child through this
+        contract; portable lifecycle utilities and the managed facade each
+        consume the declared members they need and adapt their public
+        contracts at their own boundaries.
+        """
 
         @property
         def pid(self) -> int:
@@ -144,6 +144,15 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
         @property
         def stderr(self) -> IO[bytes] | None:
             """Binary standard-error pipe when requested separately."""
+            ...
+
+        @property
+        def stdin(self) -> IO[bytes] | None:
+            """Binary standard-input pipe when requested."""
+            ...
+
+        def communicate(self, timeout: float | None = None) -> tuple[bytes, bytes]:
+            """Drain the child pipes once and return their remaining bytes."""
             ...
 
         def kill(self) -> None:

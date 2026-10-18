@@ -35,19 +35,20 @@ class TestsFlextCliCmd:
     @staticmethod
     def test_execute_reports_operational_runtime_payload() -> None:
         """execute() must succeed and expose the canonical status payload."""
-        data = m.Cli.RuntimeStatus.model_validate(tm.ok(cli.execute()))
+        data = tm.ok(cli.execute())
 
+        tm.that(data, is_=p.Cli.RuntimeStatus)
         tm.that(data.status, eq=c.Cli.ServiceStatus.OPERATIONAL)
         tm.that(data.service, eq=c.Cli.FLEXT_CLI)
         tm.that(data.version, eq=c.Cli.CLI_VERSION)
         tm.that(data.timestamp, is_=str)
-        tm.that(data.components, is_=m.Cli.RuntimeComponents)
+        tm.that(data.components, is_=p.Cli.RuntimeComponents)
 
     @staticmethod
     def test_execute_is_deterministic_across_calls() -> None:
         """Repeated execute() calls must report identical stable identity fields."""
-        first: m.Cli.RuntimeStatus = tm.ok(cli.execute())
-        second: m.Cli.RuntimeStatus = tm.ok(cli.execute())
+        first: p.Cli.RuntimeStatus = tm.ok(cli.execute())
+        second: p.Cli.RuntimeStatus = tm.ok(cli.execute())
 
         tm.that(first.status, eq=second.status)
         tm.that(first.service, eq=second.service)

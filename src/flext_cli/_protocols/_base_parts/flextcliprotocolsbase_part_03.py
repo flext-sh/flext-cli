@@ -102,7 +102,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             *,
             options: FlextCliProtocolsProcess.ProcessOptions | None = None,
-        ) -> p.Result[p.Cli.ProcessOutcome]:
+        ) -> p.Result[FlextCliProtocolsBasePart02.ProcessOutcome]:
             """Execute once with exact combined or separate durable output."""
             ...
 

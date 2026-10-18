@@ -13,7 +13,7 @@ from flext_tests import FlextTestsProtocols
 from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
-    from tests import m, t
+    from tests import t
 
 
 class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
@@ -22,10 +22,46 @@ class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
     class Tests(FlextTestsProtocols.Tests):
         """Test-specific protocols."""
 
+        class ServiceGreeting(Protocol):
+            """Read-only greeting capabilities consumed by the service."""
+
+            @property
+            def name(self) -> str:
+                """Greeting target name.
+
+                Returns:
+                    The configured greeting target name.
+
+                """
+                ...
+
+            @property
+            def times(self) -> int:
+                """Greeting repeat count.
+
+                Returns:
+                    The configured number of greeting repeats.
+
+                """
+                ...
+
+        class ServiceStatus(Protocol):
+            """Read-only result capability of the service."""
+
+            @property
+            def ready(self) -> int:
+                """Service readiness indicator.
+
+                Returns:
+                    The configured readiness indicator.
+
+                """
+                ...
+
         class Prompts(Protocol):
             """Public prompt service surface exercised by the prompt tests."""
 
-            def execute(self) -> p.Result[m.Cli.RuntimeStatus]:
+            def execute(self) -> p.Result[p.Cli.RuntimeStatus]:
                 """Define the execute test contract."""
                 ...
 

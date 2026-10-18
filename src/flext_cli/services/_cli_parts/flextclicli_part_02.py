@@ -6,11 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from inspect import Parameter
 from typing import get_origin
 
-from flext_cli import c, m, p, r, settings, t, u
-from flext_cli.services import FlextCliCommonParams
+from flext_cli import c, m, p, t, u
 from flext_cli.services._cli_parts import FlextCliCliPart01
 
 
@@ -194,115 +192,6 @@ class FlextCliCliPart02(FlextCliCliPart01):
         else:
             msg = f"CLI repeated option has an invalid value: {field_name}"
             raise TypeError(msg)
-
-    def _apply_common_params_to_config(self, *, params: m.Cli.CliParamsConfig) -> None:
-        """Apply global CLI flags to the shared settings singleton."""
-        resolved_log_level: str = (
-            params.log_level if params.log_level is not None else settings.cli_log_level
-        )
-        next_params = m.Cli.CliParamsConfig.model_validate({
-            **params.model_dump(),
-            "log_level": resolved_log_level,
-        })
-        applied = FlextCliCommonParams.apply_to_config(settings, params=next_params)
-        if applied.failure:
-            self._exit_failure(r[bool].from_failure(applied))
-        self._apply_updated_settings(applied.value)
-        if any(
-            flag is not None for flag in (params.log_level, params.debug, params.trace)
-        ):
-            # Explicit operator flags win over the application settings the
-            # process entry applied before options were parsed.
-            u.apply_log_level(
-                log_level=applied.value.cli_log_level,
-                debug=applied.value.debug,
-                trace=applied.value.trace,
-            )
-
-    @staticmethod
-    def _apply_updated_settings(updated_settings: p.Cli.Settings) -> None:
-        """Diff resolved settings against the singleton and update overrides."""
-        # NOTE (multi-agent): the ``settings`` singleton is always the
-        # concrete FlextCliSettings, which provably satisfies the Settings
-        # protocol — the old isinstance guard was dead code (pyright
-        # reportUnnecessaryIsInstance). Settings are flat scalars (§2.6):
-        # field-level diff drives ``update_global`` directly.
-        if updated_settings is settings:
-            return
-        overrides: t.MutableMappingKV[str, t.SettingsOverride | None] = {}
-        if updated_settings.debug != settings.debug:
-            overrides["debug"] = updated_settings.debug
-        if updated_settings.trace != settings.trace:
-            overrides["trace"] = updated_settings.trace
-        for field in (
-            "cli_verbose",
-            "cli_quiet",
-            "cli_no_color",
-            "cli_log_level",
-            "cli_log_verbosity",
-            "cli_output_format",
-        ):
-            updated_value = getattr(updated_settings, field)
-            if updated_value != getattr(settings, field):
-                overrides[field] = updated_value
-        if overrides:
-            settings.update_global(**overrides)
-
-    def create_app_with_common_params(
-        self,
-        *,
-        name: str,
-        help_text: str,
-        add_completion: bool = True,
-    ) -> p.Cli.Application:
-        """Create a Typer app with the shared global FLEXT CLI parameters.
-
-        Args:
-            name: Application name shown in help output.
-            help_text: Application help text.
-            add_completion: Whether the completion command is registered.
-
-        Returns:
-            The resulting ``p.Cli.Application``.
-
-        """
-        app = u.Cli.framework_create_app(
-            name=name,
-            help_text=help_text,
-            add_completion=add_completion,
-        )
-
-        def apply_common_params(params: m.Cli.CliParamsConfig) -> bool:
-            """Apply parsed global parameters to the shared settings.
-
-            Returns:
-                Whether the application succeeded.
-
-            """
-            self._apply_common_params_to_config(params=params)
-            return True
-
-        parameters: t.MutableSequenceOf[Parameter] = []
-        annotations: t.Cli.CliAnnotations = {"return": bool}
-        for field_name in c.Cli.CLI_GLOBAL_PARAM_FIELDS:
-            parameter, annotation = self._build_model_parameter(
-                field_name,
-                m.Cli.CliParamsConfig.model_fields[field_name],
-                None,
-            )
-            parameters.append(parameter)
-            annotations[field_name] = annotation
-        global_callback: FlextCliCliPart02._ModelCommand[m.Cli.CliParamsConfig] = (
-            self._ModelCommand(
-                handler=apply_common_params,
-                model_cls=m.Cli.CliParamsConfig,
-                parameters=parameters,
-                result_border=True,
-            )
-        )
-        global_callback.__annotations__ = dict(annotations)
-        u.Cli.framework_register_callback(app, global_callback)
-        return app
 
     @staticmethod
     def add_group(

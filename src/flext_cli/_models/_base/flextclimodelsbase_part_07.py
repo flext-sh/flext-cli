@@ -10,7 +10,7 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Annotated, ClassVar
 
-from flext_core import m, u
+from flext_core import m, p, u
 
 from flext_cli import c, t
 
@@ -20,34 +20,16 @@ class FlextCliModelsBasePart07:
 
     _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 
-    class LogLevelResolved(m.BaseModel):
-        """Single contract for log level string."""
+    class ServiceOptions(m.ArbitraryTypesModel):
+        """Caller-selected native collaborators shared by CLI service instances."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
-        raw: Annotated[
-            str | None,
-            m.Field(description="Raw log level input string"),
-        ] = None
-        default: Annotated[
-            str,
-            m.Field(description="Default log level when raw is absent"),
-        ] = c.LogLevel.INFO
-
-        @u.computed_field
-        @property
-        def resolved(self) -> str:
-            """Resolved log level value."""
-            return self.resolve()
-
-        def resolve(self) -> str:
-            """Type-safe accessor (bypasses pyrefly computed_field limitation).
-
-            Returns:
-                The resulting ``str``.
-
-            """
-            normalized = (self.raw or self.default).strip().upper()
-            return normalized or self.default
+        logging_options: t.Port[p.StructlogOptions | None] = m.Field(
+            default=None,
+            exclude=True,
+            description=(
+                "Optional native Core logging composition for this application."
+            ),
+        )
 
     class TypedExtract(m.BaseModel):
         """Single contract for typed value extraction (str | bool | dict)."""

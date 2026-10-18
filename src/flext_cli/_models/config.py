@@ -13,8 +13,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Literal, get_args
 
-from flext_core import m
-from pydantic import TypeAdapter
+from flext_core import m, u
 
 if TYPE_CHECKING:
     from flext_core import t
@@ -131,9 +130,9 @@ class FlextCliConfigModels:
                 ValueError: If a required syscall is missing or duplicated.
 
             """
-            required = TypeAdapter[tuple[DeniedSyscallName, ...]](
-                tuple[DeniedSyscallName, ...]
-            ).validate_python(get_args(DeniedSyscallName.__value__), strict=True)
+            required = u.type_adapter(tuple[DeniedSyscallName, ...]).validate_python(
+                get_args(DeniedSyscallName.__value__), strict=True
+            )
             if len(value) != len(required) or set(value) != set(required):
                 msg = (
                     "denied_syscalls must contain every native syscall obligation "

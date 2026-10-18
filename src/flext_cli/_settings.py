@@ -16,11 +16,11 @@ from typing import Annotated, ClassVar
 
 from flext_core import FlextSettings, m
 
+from flext_cli._constants import FlextCliConstantsSettings
+
 
 class FlextCliSettings(FlextSettings):
     """CLI settings: flat scalars under the ``FLEXT_CLI_`` env prefix."""
-
-    CLI_PROCESS_HEARTBEAT_MAX_SECONDS: ClassVar[float] = 60.0
 
     model_config: ClassVar[m.SettingsConfigDict] = m.SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
@@ -36,7 +36,6 @@ class FlextCliSettings(FlextSettings):
         str,
         m.Field(description="Log format (compact, detailed, full)"),
     ] = "compact"
-    cli_log_level: Annotated[str, m.Field(description="CLI log level")] = "INFO"
     cli_no_color: Annotated[bool, m.Field(description="Disable colored output")] = False
     cli_output_format: Annotated[
         str,
@@ -46,7 +45,7 @@ class FlextCliSettings(FlextSettings):
         float,
         m.Field(
             gt=0,
-            lt=CLI_PROCESS_HEARTBEAT_MAX_SECONDS,
+            lt=FlextCliConstantsSettings.CLI_PROCESS_HEARTBEAT_MAX_SECONDS,
             description="Progress heartbeat interval for live child processes",
         ),
     ] = 30.0

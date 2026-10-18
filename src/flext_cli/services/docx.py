@@ -6,10 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, s, t
+from flext_cli import p, s, t
 
 
-class FlextCliDocx(s[m.Cli.RuntimeStatus]):
+class FlextCliDocx(s[p.Cli.RuntimeStatus]):
     """Expose byte-only DOCX operations for later public API composition."""
 
     # NOTE (multi-agent, mro-j2yt.1): this service contains no document or

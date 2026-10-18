@@ -70,7 +70,7 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
         cli.print("\n1. Setup via s/base.py", style=c.Cli.MessageStyles.BOLD_CYAN)
         runtime_snapshot: t.JsonMapping = {
             "output_format": settings.cli_output_format,
-            "cli_log_level": settings.cli_log_level,
+            "log_level": settings.log_level,
             "verbose": settings.cli_verbose,
             "quiet": settings.cli_quiet,
         }

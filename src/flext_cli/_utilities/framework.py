@@ -19,7 +19,7 @@ from flext_core import u
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
-from flext_cli import c, e, m, p, r, settings, t
+from flext_cli import c, e, m, p, r, t
 from flext_cli._utilities.commands import FlextCliUtilitiesCommands
 
 # typer ships a vendored click, so the exceptions it raises are NOT instances
@@ -145,10 +145,7 @@ class FlextCliUtilitiesFramework:
         if not cls._active_execution.get():
             return False
 
-        FlextCliUtilitiesCommands.commands_emit_result_error(
-            result,
-            verbose=settings.cli_verbose,
-        )
+        FlextCliUtilitiesCommands.commands_emit_result_error(result)
         cls._active_failure.set(r[t.Cli.ResultValue].from_failure(result))
         return cls.framework_exit(code=c.Cli.EXIT_CODE_FAILURE)
 

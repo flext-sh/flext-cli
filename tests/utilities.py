@@ -67,7 +67,6 @@ class TestsFlextCliUtilities(
                 The resulting ``p.Result[p.Cli.Application]``.
 
             """
-            # NOTE (multi-agent, mro-wkii.19.4): the CLI owns global settings.
             return r[p.Cli.Application].ok(
                 cli.create_app_with_common_params(
                     name="tests-cli",
@@ -90,11 +89,11 @@ class TestsFlextCliUtilities(
             def command(
                 *,
                 verbose: Annotated[bool, cli.create_option("verbose")] = False,
-                debug: Annotated[bool, cli.create_option("debug")] = False,
+                debug: Annotated[bool | None, cli.create_option("debug")] = None,
                 log_level: Annotated[
-                    str,
-                    cli.create_option("cli_log_level"),
-                ] = c.LogLevel.INFO,
+                    str | None,
+                    cli.create_option("log_level"),
+                ] = None,
                 output_format: Annotated[
                     str,
                     cli.create_option("output_format"),
@@ -105,7 +104,12 @@ class TestsFlextCliUtilities(
                     cli.print("Verbose: enabled")
                 if debug:
                     cli.print("Debug: enabled")
-                cli.print(f"Log level: {log_level}")
+                policy = FlextCliUtilities.resolve_logging_settings(
+                    runtime_settings=cli.settings,
+                    log_level=log_level,
+                    debug=debug,
+                )
+                cli.print(f"Log level: {policy.log_level}")
                 cli.print(f"Output format: {output_format}")
 
             cli.register_command(

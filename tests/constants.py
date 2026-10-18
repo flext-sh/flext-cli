@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from examples.constants import ExamplesFlextCliConstants
 from flext_tests import FlextTestsConstants
 
 from flext_cli import FlextCliConstants
@@ -21,6 +22,7 @@ from tests._constants import TestsFlextCliConstantsPart01
 
 class TestsFlextCliConstants(
     TestsFlextCliConstantsPart01,
+    ExamplesFlextCliConstants,
     FlextTestsConstants,
     FlextCliConstants,
 ):

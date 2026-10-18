@@ -215,7 +215,6 @@ if TYPE_CHECKING:
     from flext_cli._utilities.atomic_file_temporary import (
         FlextCliUtilitiesAtomicFileTemporary,
     )
-    from flext_cli._utilities.atomic_models import FlextCliUtilitiesAtomicModels
     from flext_cli._utilities.atomic_parent_descriptor import (
         FlextCliUtilitiesAtomicParentDescriptor,
     )
@@ -305,7 +304,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesAtomicFileSnapshot",
     "FlextCliUtilitiesAtomicFileState",
     "FlextCliUtilitiesAtomicFileTemporary",
-    "FlextCliUtilitiesAtomicModels",
     "FlextCliUtilitiesAtomicParentDescriptor",
     "FlextCliUtilitiesAtomicParentFailure",
     "FlextCliUtilitiesAtomicSymlinkPublish",
@@ -465,7 +463,6 @@ install_lazy_exports(
         "FlextCliUtilitiesAtomicFileSnapshot": ".atomic_file_snapshot",
         "FlextCliUtilitiesAtomicFileState": ".atomic_file_state",
         "FlextCliUtilitiesAtomicFileTemporary": ".atomic_file_temporary",
-        "FlextCliUtilitiesAtomicModels": ".atomic_models",
         "FlextCliUtilitiesAtomicParentDescriptor": ".atomic_parent_descriptor",
         "FlextCliUtilitiesAtomicParentFailure": ".atomic_parent_failure",
         "FlextCliUtilitiesAtomicSymlinkPublish": ".atomic_symlink_publish",

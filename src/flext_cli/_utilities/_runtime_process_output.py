@@ -15,7 +15,9 @@ from flext_cli._utilities._runtime_process_threads import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli import p, t
+    import subprocess
+
+    from flext_cli import t
 
 
 class FlextCliUtilitiesRuntimeProcessOutputMixin(
@@ -26,7 +28,7 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
     @classmethod
     def _start_process_output(
         cls,
-        process: p.Cli.ProcessHandle,
+        process: subprocess.Popen[bytes],
         state: m.Cli.RuntimeProcessState,
         live_fds: t.Pair[int | None, int | None],
         *,
