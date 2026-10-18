@@ -22,6 +22,21 @@ class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
     class Tests(FlextTestsProtocols.Tests):
         """Test-specific protocols."""
 
+        class ServiceGreeting(Protocol):
+            """Read-only greeting capabilities consumed by the service."""
+
+            @property
+            def name(self) -> str: ...
+
+            @property
+            def times(self) -> int: ...
+
+        class ServiceStatus(Protocol):
+            """Read-only result capability of the service."""
+
+            @property
+            def ready(self) -> int: ...
+
         class Prompts(Protocol):
             """Public prompt service surface exercised by the prompt tests."""
 

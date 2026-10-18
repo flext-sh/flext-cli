@@ -6,7 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextRuntime, FlextService
+from functools import partial
+
+from flext_core import FlextRuntime
 
 from flext_cli import m, p, t, u
 from flext_cli.services._cli_parts import FlextCliCliPart05
@@ -18,10 +20,10 @@ class FlextCliCliPart06(FlextCliCliPart05):
     @classmethod
     def service_routes[R: p.Base](
         cls,
-        service_type: type[FlextService[R]],
+        service_type: type[p.Service[R]],
         *,
-        provide: t.Cli.NullaryOperation[FlextService[R]],
-    ) -> tuple[m.Cli.ResultCommandRoute, ...]:
+        provide: t.Cli.NullaryOperation[p.Service[R]],
+    ) -> tuple[p.Cli.ResultCommandRoute, ...]:
         """Derive one result route per operation of a core service class.
 
         Routes come from ``u.service_operations(service_type)``: the kebab-case
@@ -38,7 +40,7 @@ class FlextCliCliPart06(FlextCliCliPart05):
             provide: Callable building the service instance at execution time.
 
         Returns:
-            The resulting ``tuple[m.Cli.ResultCommandRoute, ...]``.
+            The resulting ``tuple[p.Cli.ResultCommandRoute, ...]``.
 
         """
         return tuple(
@@ -46,32 +48,25 @@ class FlextCliCliPart06(FlextCliCliPart05):
                 name=operation.name.replace("_", "-"),
                 help_text=operation.summary,
                 model_cls=operation.request or m.Cli.EmptyRequest,
-                handler=cls._operation_handler(operation, provide),
+                handler=partial(cls._execute_operation, operation, provide),
                 success_formatter=cls._render_result_value,
             )
             for operation in u.service_operations(service_type)
         )
 
     @staticmethod
-    def _operation_handler[R: p.Base](
-        operation: m.ServiceOperation,
-        provide: t.Cli.NullaryOperation[FlextService[R]],
-    ) -> p.Cli.ResultRouteHandler:
-        """Bind one operation to the service instance built at execution.
-
-        Returns:
-            The resulting ``p.Cli.ResultRouteHandler``.
-
-        """
-
-        def handle(params: t.Cli.ModelLike) -> p.Result[t.Cli.ResultValue]:
-            run = getattr(provide(), operation.name)
-            result: p.Result[t.Cli.ResultValue] = (
-                run() if operation.request is None else run(params)
-            )
-            return result
-
-        return handle
+    def _execute_operation[R: p.Base](
+        operation: p.ServiceOperation,
+        provide: t.Cli.NullaryOperation[p.Service[R]],
+        params: t.Cli.ModelLike,
+    ) -> p.Result[t.Cli.ResultValue]:
+        """Invoke the catalogued function without a late method-name lookup."""
+        service = provide()
+        return (
+            operation.handler(service)
+            if operation.request is None
+            else operation.handler(service, params)
+        )
 
     @staticmethod
     def _render_result_value(value: t.Cli.ResultValue) -> str:
