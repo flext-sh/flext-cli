@@ -349,8 +349,19 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 if child in created or members.get(child.name) != "directory":
                     cls._published_directory_current(child, created)
                 members[child.name] = "directory"
-        if members != {item.name: item.kind for item in observed.entries}:
-            msg = f"source directory membership changed: {root}"
+        actual = {item.name: item.kind for item in observed.entries}
+        if members != actual:
+            added = sorted(actual.keys() - members.keys())
+            removed = sorted(members.keys() - actual.keys())
+            changed = [
+                (name, members[name], actual[name])
+                for name in sorted(members.keys() & actual.keys())
+                if members[name] != actual[name]
+            ]
+            msg = (
+                f"source directory membership changed: {root}; "
+                f"added={added!r}; removed={removed!r}; kind_changed={changed!r}"
+            )
             raise ValueError(msg)
 
     @staticmethod
