@@ -19,6 +19,47 @@ class TestsFlextCliAtomicDirectoryQueries:
     """Reprove a queried directory only where its existence depends on a receipt."""
 
     @staticmethod
+    @pytest.mark.parametrize("shared", [False, True])
+    def test_merged_queries_preserve_each_original_predicate(
+        tmp_path: Path, *, shared: bool
+    ) -> None:
+        """Shared and independently captured inventories merge the same selectors."""
+        (tmp_path / "source").mkdir()
+        (tmp_path / "module.py").write_text("", encoding=c.DEFAULT_ENCODING)
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        incoming = (
+            original
+            if shared
+            else tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        )
+        previous = original.model_copy(update={"queries": (("source", "isdir"),)})
+        following = incoming.model_copy(
+            update={"queries": (("module.py", "isfile"), ("missing", "exists"))}
+        )
+        directories, topology = u.Cli.atomic_merge_directory_query_receipts(
+            (previous, following), ()
+        )
+        tm.that(topology, empty=True)
+        tm.that(
+            directories[0].queries,
+            eq=tuple(sorted({*previous.queries, *following.queries})),
+        )
+        tm.that(
+            tm.ok(u.Cli.atomic_verify_directory_queries(directories, topology)),
+            eq=True,
+        )
+
+    @staticmethod
+    def test_shared_inventory_still_rejects_a_queried_alias(tmp_path: Path) -> None:
+        """Sharing an inventory never authorizes querying a physical alias."""
+        (tmp_path / "target").mkdir()
+        (tmp_path / "alias").symlink_to(tmp_path / "target", target_is_directory=True)
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        queried = original.model_copy(update={"queries": (("alias", "isdir"),)})
+        with pytest.raises(OSError, match="physical alias"):
+            u.Cli.atomic_merge_directory_query_receipts((queried, queried), ())
+
+    @staticmethod
     def test_filesystem_root_is_a_directory_not_a_file(tmp_path: Path) -> None:
         """Directory election authenticates anchors without authorizing file IO."""
         root = Path(tmp_path.anchor)
