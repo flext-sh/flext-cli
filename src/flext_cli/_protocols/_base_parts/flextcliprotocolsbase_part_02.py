@@ -153,7 +153,8 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
 
         def communicate(
             self,
-            input: bytes | None = None,
+            input_data: bytes | None = None,
+            /,
             timeout: float | None = None,
         ) -> tuple[bytes | None, bytes | None]:
             """Send binary input and drain pipes; inherited streams return None."""
