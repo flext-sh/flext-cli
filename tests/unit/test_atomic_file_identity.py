@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import errno
 import hashlib
 import sys
 from pathlib import Path
@@ -199,8 +200,10 @@ class TestsFlextCliAtomicFileIdentity:
         target = tmp_path / "target.bin"
         target.write_bytes(b"foreign input")
         path.symlink_to(target)
-        with pytest.raises(OSError, match="atomic destination changed"):
+        with pytest.raises(OSError) as rejected:
             tuple(u.Cli.atomic_iter_binary_file(path))
+        tm.that(rejected.value.errno, eq=errno.EINVAL)
+        tm.that(path.is_symlink(), eq=True)
         tm.that(target.read_bytes(), eq=b"foreign input")
 
     @staticmethod
