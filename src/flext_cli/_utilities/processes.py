@@ -19,13 +19,9 @@ import time
 from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
-from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities import FlextCliUtilitiesRuntime
-
-if TYPE_CHECKING:
-    import subprocess
 from flext_cli._utilities._runtime_process_group import (
     FlextCliUtilitiesRuntimeProcessGroupMixin,
 )
@@ -43,7 +39,7 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
 
         def __init__(
             self,
-            process: subprocess.Popen[bytes],
+            process: p.Cli.ProcessHandle,
             *,
             cwd: t.Cli.TextPath | None,
             env: t.StrMapping | None,

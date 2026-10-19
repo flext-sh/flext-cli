@@ -151,8 +151,12 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
             """Binary standard-input pipe when requested."""
             ...
 
-        def communicate(self, timeout: float | None = None) -> tuple[bytes, bytes]:
-            """Drain the child pipes once and return their remaining bytes."""
+        def communicate(
+            self,
+            input: bytes | None = None,
+            timeout: float | None = None,
+        ) -> tuple[bytes | None, bytes | None]:
+            """Send binary input and drain pipes; inherited streams return None."""
             ...
 
         def kill(self) -> None:

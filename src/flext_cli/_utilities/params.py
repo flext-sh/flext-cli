@@ -9,7 +9,7 @@ from __future__ import annotations
 from flext_core import u
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.validation import FlextCliUtilitiesValidation
+from flext_cli._utilities import FlextCliUtilitiesValidation
 
 
 class FlextCliUtilitiesParams:

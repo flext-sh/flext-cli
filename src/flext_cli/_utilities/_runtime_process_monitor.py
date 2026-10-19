@@ -11,9 +11,7 @@ import signal
 import time
 
 from flext_cli import c, m, p, t
-from flext_cli._utilities._runtime_process_group import (
-    FlextCliUtilitiesRuntimeProcessGroupMixin,
-)
+from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessGroupMixin
 
 
 class FlextCliUtilitiesRuntimeProcessMonitorMixin(

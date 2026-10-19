@@ -97,6 +97,7 @@ class FlextCliUtilitiesConversion:
             case c.Cli.TypeKind.BOOL:
                 return bool(value)
             case c.Cli.TypeKind.DICT:
+                adapter = FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER
                 source_mapping = (
                     value
                     if isinstance(value, Mapping)
@@ -106,9 +107,7 @@ class FlextCliUtilitiesConversion:
                 )
                 return (
                     {
-                        key: FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python(
-                            item
-                        )
+                        key: adapter.validate_python(item)
                         for key, item in source_mapping.items()
                     }
                     if source_mapping is not None

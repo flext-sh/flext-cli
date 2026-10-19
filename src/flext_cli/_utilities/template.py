@@ -22,10 +22,7 @@ from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
 from flext_cli import c, m, p, r, t
-from flext_cli._models.template import FlextCliModelsTemplate
-from flext_cli._utilities._files.flextcliutilitiesfiles_part_03 import (
-    FlextCliUtilitiesFilesPart03,
-)
+from flext_cli._utilities._files import FlextCliUtilitiesFilesPart03
 
 
 class FlextCliUtilitiesTemplate:
@@ -290,7 +287,7 @@ class FlextCliUtilitiesTemplate:
         context: p.Model,
         entries: t.SequenceOf[m.Cli.TemplateRenderEntry],
         *,
-        options: FlextCliModelsTemplate.TemplateRenderOptions | None = None,
+        options: m.Cli.TemplateRenderOptions | None = None,
     ) -> p.Result[m.Cli.TemplateRenderReport]:
         """Render every entry from ``templates_root`` into ``output_root``.
 
@@ -315,7 +312,7 @@ class FlextCliUtilitiesTemplate:
             return r[m.Cli.TemplateRenderReport].fail(
                 f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}",
             )
-        render_options = options or FlextCliModelsTemplate.TemplateRenderOptions()
+        render_options = options or m.Cli.TemplateRenderOptions()
         root = output_root.resolve()
         created: list[Path] = []
         skipped: list[Path] = []

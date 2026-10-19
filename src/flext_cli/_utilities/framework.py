@@ -21,10 +21,7 @@ from typer.testing import CliRunner
 
 import flext_cli
 from flext_cli import c, e, m, p, r, t
-from flext_cli._utilities.commands import FlextCliUtilitiesCommands
-
-# typer ships a vendored click, so the exceptions it raises are NOT instances
-# of the top-level `click` package's classes. `typer.BadParameter` is exported
+from flext_cli._utilities import FlextCliUtilitiesCommands
 
 
 class FlextCliUtilitiesFramework:

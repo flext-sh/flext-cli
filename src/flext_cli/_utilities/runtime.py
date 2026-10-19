@@ -16,7 +16,7 @@ import shlex
 import subprocess
 from typing import BinaryIO, ClassVar, override
 
-from flext_core import u as core_u
+from flext_core import u
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
@@ -31,7 +31,7 @@ class FlextCliUtilitiesRuntime(
 ):
     """Runtime helpers for external command execution."""
 
-    _module_logger: ClassVar[p.Logger] = core_u.fetch_logger(__name__)
+    _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
     @staticmethod
     def process_env(
@@ -96,7 +96,7 @@ class FlextCliUtilitiesRuntime(
         stdin_handle: BinaryIO | None,
         *,
         options: m.Cli.RuntimeSpawnOptions,
-    ) -> subprocess.Popen[bytes]:
+    ) -> p.Cli.ProcessHandle:
         """Create the package's single raw child through the audited engine port.
 
         The engine owns the strictest superset of every public spawn family:
@@ -107,7 +107,7 @@ class FlextCliUtilitiesRuntime(
         boundaries and never construct a native child themselves.
 
         Returns:
-            The resulting ``subprocess.Popen[bytes]``.
+            The native binary child through ``p.Cli.ProcessHandle``.
 
         """
         return subprocess.Popen(
@@ -144,7 +144,7 @@ class FlextCliUtilitiesRuntime(
 
     @staticmethod
     def child_communicate(
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         *,
         timeout: float | None,
     ) -> p.Result[t.Pair[bytes, bytes]]:
