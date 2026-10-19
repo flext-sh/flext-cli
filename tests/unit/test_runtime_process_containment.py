@@ -112,17 +112,16 @@ def _timed_out_failure(result: p.Result[p.Cli.CommandOutput]) -> None:
     tm.fail(result, has="timed_out=True")
 
 
-class TestsFlextCliInterruptingCommand(UserList[str]):
-    """Command sequence that raises SIGTERM when iterated by the process runner."""
-
-    @override
-    def __iter__(self) -> Iterator[str]:
-        signal.raise_signal(signal.SIGTERM)
-        return super().__iter__()
-
-
 class TestsFlextCliRuntimeProcessContainment:
     """Prove pre-spawn signals, deadline escalation, and empty boundaries."""
+
+    class InterruptingCommand(UserList[str]):
+        """Raise SIGTERM when the native process runner iterates the command."""
+
+        @override
+        def __iter__(self) -> Iterator[str]:
+            signal.raise_signal(signal.SIGTERM)
+            return super().__iter__()
 
     @staticmethod
     def test_run_raw_timeout_leaves_no_descendant(tmp_path: Path) -> None:
@@ -240,7 +239,7 @@ class TestsFlextCliRuntimeProcessContainment:
         """Test pre spawn signal is captured before command materialization."""
         marker = tmp_path / "must-not-spawn"
         result = u.Cli().run_to_file(
-            TestsFlextCliInterruptingCommand([
+            TestsFlextCliRuntimeProcessContainment.InterruptingCommand([
                 sys.executable,
                 "-c",
                 "import pathlib,sys;pathlib.Path(sys.argv[1]).touch()",

@@ -71,7 +71,9 @@ class FlextCliConfigModels:
             mode="before",
         )
         @classmethod
-        def _coerce_yaml_sequences(cls, value: object) -> object:
+        def _coerce_yaml_sequences(
+            cls, value: t.JsonValue | t.StrTuple
+        ) -> t.JsonValue | t.VariadicTuple[t.JsonValue]:
             """Coerce declared YAML sequences into the strict tuple form.
 
             Args:

@@ -52,7 +52,7 @@ class TestsFlextCliServiceSettingsContract:
         records: t.MutableSequenceOf[p.LoggingRecord],
         stages: t.MutableSequenceOf[str],
         exception: BaseException,
-        initial_context: FlextContext | None = None,
+        initial_context: p.Context | None = None,
     ) -> tuple[m.StructlogOptions, FlextCli, p.Cli.Application]:
         """Build a real service electing two native sinks sharing one stage.
 
@@ -65,8 +65,8 @@ class TestsFlextCliServiceSettingsContract:
         def enrich(
             logger: p.OutputLogger,
             method_name: str,
-            event_dict: t.LoggingEvent,
-        ) -> t.LoggingEvent:
+            event_dict: p.LoggingEvent,
+        ) -> p.LoggingEvent:
             _ = logger, method_name
             if event_dict["event"] == "cli-native-event":
                 stages.append("processed")
@@ -203,7 +203,8 @@ class TestsFlextCliServiceSettingsContract:
         tm.that(service.logging_options is options, eq=True)
         tm.that("logging_options" in service.model_dump(), eq=False)
         tm.that(
-            "logging_options" in u.to_json(service.model_json_schema()).decode(),
+            "logging_options"
+            in service.model_json_schema(mode="serialization")["properties"],
             eq=False,
         )
         tm.that(u.logging_settings() is service.settings, eq=True)
