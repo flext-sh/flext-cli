@@ -195,8 +195,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
         cls._verify_query_topology(
             topology, publications, published, created, ancestors
         )
+        observations: dict[Path, m.Cli.AtomicDirectoryInventory] = {}
         for expected in inventories:
-            observed = cls.inventory_physical_directory(expected.root.path)
+            if expected.root.path not in observations:
+                observations[expected.root.path] = cls.inventory_physical_directory(
+                    expected.root.path
+                )
+            observed = observations[expected.root.path]
             cls._require_directory_identity(
                 expected.root,
                 observed.root,

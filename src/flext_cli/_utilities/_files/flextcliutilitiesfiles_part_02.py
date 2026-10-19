@@ -264,7 +264,10 @@ class FlextCliUtilitiesFilesPart02:
         try:
             target.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
-            return r[Path].fail(c.Cli.ERR_ENSURE_DIR_FAILED.format(error=exc))
+            return r[Path].fail(
+                c.Cli.ERR_ENSURE_DIR_FAILED.format(error=exc),
+                exception=exc,
+            )
         return r[Path].ok(target)
 
 
