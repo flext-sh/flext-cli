@@ -96,7 +96,12 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 incoming.root,
                 f"source directory query epochs disagree: {path}",
             )
-            if any(
+            # Copies of one immutable receipt share their exact child inventory.
+            # Queried aliases must still take the native rejection path below.
+            shared_entries = previous.entries is incoming.entries and all(
+                item.kind != "symlink" for item in previous.entries
+            )
+            if not shared_entries and any(
                 cls.directory_query_value(previous, name, predicate)
                 != cls.directory_query_value(incoming, name, predicate)
                 for name, predicate in (*previous.queries, *incoming.queries)
