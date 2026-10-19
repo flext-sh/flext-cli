@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING
 
 from flext_core import u
 
+import flext_cli
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._rules import FlextCliUtilitiesRulesMatchersMixin
 from flext_cli._utilities.json import FlextCliUtilitiesJson
@@ -45,7 +46,7 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
         normalized = FlextCliUtilitiesJson.json_as_mapping(settings)
         scope_raw = normalized.get(scope_key)
         scope_map = FlextCliUtilitiesJson.json_as_mapping(scope_raw)
-        return t.Cli.JSON_MAPPING_ADAPTER.validate_python({
+        return flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python({
             key: value for key, value in scope_map.items() if key in allowed_keys
         })
 
@@ -62,7 +63,7 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
             The resulting ``p.Result[t.JsonMapping]``.
 
         """
-        normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
+        normalized = flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(
             u.Yaml.safe_load_file(config_path),
         )
         normalized_scope = FlextCliUtilitiesRulesLoadersMixin.rules_resolve_scope(
@@ -72,7 +73,9 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
         )
         payload = dict(normalized)
         payload[scope_key] = dict(normalized_scope)
-        return r[t.JsonMapping].ok(t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload))
+        return r[t.JsonMapping].ok(
+            flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
+        )
 
     @staticmethod
     def rules_load_registry(
@@ -102,7 +105,7 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
         for registry_path in candidates:
             if not registry_path.is_file():
                 continue
-            normalized = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
+            normalized = flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(
                 u.Yaml.safe_load_file(registry_path),
             )
             return r[t.JsonMapping].ok(normalized)
@@ -155,7 +158,7 @@ class FlextCliUtilitiesRulesLoadersMixin(FlextCliUtilitiesRulesMatchersMixin):
         for rule_file in sorted(rules_dir.glob("*.yml")):
             if rule_file.name == options.registry_filename:
                 continue
-            rule_config = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
+            rule_config = flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(
                 u.Yaml.safe_load_file(rule_file),
             )
             typed_rules = FlextCliUtilitiesJson.json_as_mapping_list(

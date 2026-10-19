@@ -1,10 +1,10 @@
 """FLEXT CLI Typings Tests - public type-facade contract.
 
-Modules tested: flext_cli.typings.FlextCliTypes (via the tests `t` facade).
+Modules tested: public CLI type aliases and ``u.Cli`` conversion adapters.
 
 These tests assert the OBSERVABLE contract of the CLI type facade: the
 runtime-validatable behaviour of its published type aliases and the public
-type-tuple ClassVars exposed on ``t.Cli``. No private
+conversion adapters exposed on ``u.Cli``. No private
 attributes, internal collaborators, or implementation structure are touched.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -37,7 +37,7 @@ class TestsFlextCliTypings:
         expected: t.SequenceOf[str],
     ) -> None:
         """STR_SEQUENCE_ADAPTER validates string sequences to a list."""
-        result = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
+        result = u.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
         tm.that(list(result), eq=expected)
 
     @staticmethod
@@ -46,11 +46,11 @@ class TestsFlextCliTypings:
         [123, "not-a-sequence-of-str-only", [1, 2, 3], {"k": "v"}],
     )
     def test_str_sequence_adapter_rejects_non_string_sequences(
-        payload: object,  # ast-grep-ignore: ban-broad-annotation
+        payload: t.JsonValue,
     ) -> None:
         """STR_SEQUENCE_ADAPTER raises ValidationError on invalid input."""
         with pytest.raises(m.ValidationError):
-            t.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
+            u.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -61,17 +61,17 @@ class TestsFlextCliTypings:
         payload: t.MappingKV[str, t.JsonValue],
     ) -> None:
         """JSON_MAPPING_ADAPTER validates JSON object mappings unchanged."""
-        result = t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
+        result = u.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
         tm.that(result == payload, eq=True)
 
     @staticmethod
     @pytest.mark.parametrize("payload", [["a", "list"], "string", 42, True])
     def test_json_mapping_adapter_rejects_non_mappings(
-        payload: object,  # ast-grep-ignore: ban-broad-annotation
+        payload: t.JsonValue,
     ) -> None:
         """JSON_MAPPING_ADAPTER raises ValidationError for non-object input."""
         with pytest.raises(m.ValidationError):
-            t.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
+            u.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -82,7 +82,7 @@ class TestsFlextCliTypings:
         payload: t.SequenceOf[t.JsonValue],
     ) -> None:
         """JSON_LIST_ADAPTER validates JSON arrays unchanged."""
-        result = t.Cli.JSON_LIST_ADAPTER.validate_python(payload)
+        result = u.Cli.JSON_LIST_ADAPTER.validate_python(payload)
         tm.that(result == payload, eq=True)
 
     @staticmethod
@@ -97,12 +97,27 @@ class TestsFlextCliTypings:
         ],
     )
     def test_cli_default_source_adapter_accepts_cli_value_kinds(
-        payload: object,  # ast-grep-ignore: ban-broad-annotation
-        expected: object,  # ast-grep-ignore: ban-broad-annotation
+        payload: t.Cli.CliDefaultSource,
+        expected: t.Cli.CliDefaultSource,
     ) -> None:
         """The CLI default-source adapter accepts scalars, sequences, and paths."""
-        result = t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)
+        result = u.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)
         tm.that(result == expected, eq=True)
+
+    @staticmethod
+    def test_json_value_adapter_round_trips_serialized_payload() -> None:
+        """The utility adapter preserves nested JSON through its wire format."""
+        payload: t.JsonValue = {"items": ["alpha", 7, True, None]}
+        encoded = u.Cli.JSON_VALUE_ADAPTER.dump_json(payload)
+        tm.that(u.Cli.JSON_VALUE_ADAPTER.validate_json(encoded), eq=payload)
+
+    @staticmethod
+    def test_yaml_adapters_validate_mapping_and_sequence_payloads() -> None:
+        """YAML utility adapters preserve JSON-compatible containers."""
+        mapping: t.JsonMapping = {"items": [1, "alpha", None]}
+        sequence: t.JsonList = [mapping, False]
+        tm.that(u.Cli.YAML_DICT_ADAPTER.validate_python(mapping), eq=mapping)
+        tm.that(u.Cli.YAML_SEQ_ADAPTER.validate_python(sequence), eq=sequence)
 
     # --- Published type-tuple ClassVars ---------------------------------
 
@@ -124,7 +139,7 @@ class TestsFlextCliTypings:
     @staticmethod
     def test_scalar_alias_validates_each_primitive() -> None:
         """The Scalar alias round-trips every primitive value."""
-        adapter: m.TypeAdapter[t.Scalar] = u.type_adapter(TypeForm(t.Scalar))
+        adapter: t.ValueAdapter[t.Scalar] = u.type_adapter(TypeForm(t.Scalar))
         tm.that(adapter.validate_python("value"), eq="value")
         bool_input = True
         tm.that(adapter.validate_python(bool_input), eq=True)
@@ -133,7 +148,7 @@ class TestsFlextCliTypings:
     @staticmethod
     def test_optional_str_sequence_alias_accepts_value_and_none() -> None:
         """A ``StrSequence | None`` alias accepts both a sequence and None."""
-        adapter: m.TypeAdapter[t.StrSequence | None] = u.type_adapter(
+        adapter: t.ValueAdapter[t.StrSequence | None] = u.type_adapter(
             TypeForm(t.StrSequence | None),
         )
         tm.that(adapter.validate_python(["alpha", "beta"]), eq=["alpha", "beta"])
@@ -142,7 +157,7 @@ class TestsFlextCliTypings:
     @staticmethod
     def test_mapping_alias_validates_sequence_of_typed_mappings() -> None:
         """MappingKV composes into a validatable sequence-of-mappings alias."""
-        adapter: m.TypeAdapter[Sequence[t.MappingKV[str, str | int]]] = u.type_adapter(
+        adapter: t.ValueAdapter[Sequence[t.MappingKV[str, str | int]]] = u.type_adapter(
             Sequence[t.MappingKV[str, str | int]],
         )
         validated = adapter.validate_python([{"name": "entry", "count": 1}])

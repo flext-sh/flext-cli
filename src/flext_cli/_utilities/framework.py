@@ -19,6 +19,7 @@ from flext_core import u
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
+import flext_cli
 from flext_cli import c, e, m, p, r, t
 from flext_cli._utilities.commands import FlextCliUtilitiesCommands
 
@@ -117,7 +118,7 @@ class FlextCliUtilitiesFramework:
                 prog_name=prog_name,
                 standalone_mode=standalone_mode,
             )
-            return t.Cli.JSON_VALUE_ADAPTER.validate_python(result)
+            return flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(result)
 
     _active_execution: ContextVar[bool] = ContextVar(
         "flext_cli_active_execution",

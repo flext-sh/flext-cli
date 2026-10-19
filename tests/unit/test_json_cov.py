@@ -118,8 +118,8 @@ class TestsFlextCliJsonCov:
         """Verify that json write sort keys orders nested keys."""
         path = tmp_path / "sorted.json"
         payload: t.JsonPayload = {
-            "z": t.Cli.JSON_MAPPING_ADAPTER.validate_python({"b": 2, "a": 1}),
-            "a": t.Cli.JSON_LIST_ADAPTER.validate_python([{"y": 1, "x": 0}]),
+            "z": u.Cli.JSON_MAPPING_ADAPTER.validate_python({"b": 2, "a": 1}),
+            "a": u.Cli.JSON_LIST_ADAPTER.validate_python([{"y": 1, "x": 0}]),
         }
         result = u.Cli.json_write(
             path,
@@ -130,9 +130,9 @@ class TestsFlextCliJsonCov:
         data_result = u.Cli.json_loads(path.read_text())
         tm.ok(data_result)
         data = u.Cli.json_as_mapping(data_result.value)
-        sorted_mapping = t.Cli.JSON_MAPPING_ADAPTER.validate_python(data["z"])
-        first_item = t.Cli.JSON_MAPPING_ADAPTER.validate_python(
-            t.Cli.JSON_LIST_ADAPTER.validate_python(data["a"])[0],
+        sorted_mapping = u.Cli.JSON_MAPPING_ADAPTER.validate_python(data["z"])
+        first_item = u.Cli.JSON_MAPPING_ADAPTER.validate_python(
+            u.Cli.JSON_LIST_ADAPTER.validate_python(data["a"])[0],
         )
         tm.that(list(data.keys()), eq=["a", "z"])
         tm.that(list(sorted_mapping.keys()), eq=["a", "b"])

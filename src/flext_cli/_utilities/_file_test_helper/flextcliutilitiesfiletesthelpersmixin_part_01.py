@@ -20,6 +20,7 @@ from typing import cast
 
 from flext_core import u
 
+import flext_cli
 from flext_cli import c, p, r, t
 from flext_cli._utilities.files import FlextCliUtilitiesFiles
 from flext_cli._utilities.json import FlextCliUtilitiesJson
@@ -109,7 +110,7 @@ class FlextCliUtilitiesFileTestHelpersMixinPart01:
             The resulting ``p.Result[bool]``.
 
         """
-        validated = t.Cli.JSON_VALUE_ADAPTER.validate_python(data)
+        validated = flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(data)
         if fmt == c.Cli.FILE_FORMAT_YAML:
             dumped = u.Yaml.safe_dump(validated)
             return FlextCliUtilitiesFiles.files_write_text(path, dumped)

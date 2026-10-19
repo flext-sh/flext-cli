@@ -11,7 +11,7 @@ from pathlib import Path
 from examples import ExamplesFlextCliSettings
 from examples.ex_12_pydantic_driven_cli import ExamplesFlextCliPydanticDrivenCli
 
-from tests import c, m, t, tm
+from tests import c, m, tm, u
 
 
 class TestsFlextCliExamplesSmokePart05:
@@ -91,7 +91,7 @@ class TestsFlextCliExamplesSmokePart05:
 
         invalid_model = (
             ExamplesFlextCliPydanticDrivenCli.convert_and_validate_with_pydantic(
-                t.Cli.JSON_MAPPING_ADAPTER.validate_python({
+                u.Cli.JSON_MAPPING_ADAPTER.validate_python({
                     "host": "db.example.com",
                     "port": "bad-port",
                     "name": "prod",
@@ -106,7 +106,7 @@ class TestsFlextCliExamplesSmokePart05:
 
         base_config = (
             ExamplesFlextCliPydanticDrivenCli.convert_and_validate_with_pydantic(
-                t.Cli.JSON_MAPPING_ADAPTER.validate_python({
+                u.Cli.JSON_MAPPING_ADAPTER.validate_python({
                     "host": "db.example.com",
                     "port": 5432,
                     "name": "prod",

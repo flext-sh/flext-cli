@@ -10,6 +10,7 @@ from pathlib import Path
 
 from flext_core import u
 
+import flext_cli
 from flext_cli import c, p, r, t
 
 
@@ -29,7 +30,7 @@ class FlextCliUtilitiesYamlModel:
         try:
             return u.Yaml.yaml_dump(
                 Path(file_path),
-                t.Cli.JSON_MAPPING_ADAPTER.validate_python(
+                flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(
                     model.model_dump(mode="json"),
                 ),
             )

@@ -9,7 +9,6 @@ from __future__ import annotations
 import os
 import platform
 import signal
-import subprocess
 
 from flext_cli import p, r
 from flext_cli._utilities._runtime_darwin_process_group import (
@@ -61,7 +60,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
     @classmethod
     def _signal_process_tree_windows(
         cls,
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         signal_number: int,
         job_handle: int,
         *,
@@ -87,7 +86,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
     @classmethod
     def _signal_permission_result(
         cls,
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         error: PermissionError,
     ) -> p.Result[bool]:
         """Check Darwin's zombie-only group before reporting a signal denial.
@@ -112,7 +111,7 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
     @classmethod
     def _signal_process_tree(
         cls,
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         signal_number: int,
         job_handle: int,
         *,

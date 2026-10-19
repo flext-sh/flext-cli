@@ -28,7 +28,7 @@ import tempfile
 from collections.abc import Mapping
 from pathlib import Path
 
-from examples import c, m, p, r, t
+from examples import c, m, p, r, t, u
 from flext_cli import cli
 
 
@@ -58,7 +58,7 @@ class ExamplesFlextCliDataManager:
         value = value_result.value
         cli.print(f"✅ Created entry: {key} = {value}", style=c.Cli.MessageStyles.GREEN)
         return r[t.JsonMapping].ok(
-            t.Cli.JSON_MAPPING_ADAPTER.validate_python({key: value}),
+            u.Cli.JSON_MAPPING_ADAPTER.validate_python({key: value}),
         )
 
     def load_data(self) -> p.Result[t.JsonMapping]:

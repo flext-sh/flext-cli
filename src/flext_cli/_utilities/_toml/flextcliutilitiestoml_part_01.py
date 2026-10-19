@@ -15,6 +15,7 @@ from flext_core import FlextRuntime, u
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
+import flext_cli
 from flext_cli import c, p, r, t
 from flext_cli._utilities._toml.flextcliutilitiestoml_part_02 import (
     FlextCliUtilitiesTomlPart02,
@@ -37,7 +38,7 @@ class FlextCliUtilitiesTomlPart01:
         normalized = FlextCliUtilitiesTomlPart01.toml_unwrap_item(value)
         if normalized is None or not u.mapping(normalized):
             return None
-        return t.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
+        return flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
 
     @staticmethod
     def toml_unwrap_item(
@@ -168,7 +169,7 @@ class FlextCliUtilitiesTomlPart01:
         except tomllib.TOMLDecodeError as exc:
             return r[t.JsonMapping].fail(str(exc), exception=exc)
         return r[t.JsonMapping].ok(
-            t.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded),
+            flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded),
         )
 
     @staticmethod

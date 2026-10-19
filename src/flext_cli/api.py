@@ -6,9 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import override
-
-from flext_cli import p, r, t, u
+from flext_cli import t
 from flext_cli.services import (
     FlextCliAuth,
     FlextCliCli,
@@ -49,18 +47,8 @@ class FlextCli(
 ):
     """Coordinate CLI operations through one explicit service composition root."""
 
-    @override
-    def execute(self) -> p.Result[p.Cli.RuntimeStatus]:
-        """Report the public CLI runtime surface state.
 
-        Returns:
-            The resulting ``p.Result[p.Cli.RuntimeStatus]``.
-
-        """
-        return r[p.Cli.RuntimeStatus].ok(u.Cli.cmd_status())
-
-
-cli = FlextCli.fetch_global()
+cli: FlextCli = FlextCli.fetch_global()
 """Process-wide ``FlextCli`` facade singleton exposing every CLI service via MRO."""
 
 

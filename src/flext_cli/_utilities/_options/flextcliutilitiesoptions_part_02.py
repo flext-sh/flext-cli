@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from flext_core import u
 
+import flext_cli
 from flext_cli import c, m, t
 from flext_cli._utilities._options.flextcliutilitiesoptionbuilder_part_01 import (
     FlextCliUtilitiesOptionBuilder,
@@ -78,7 +79,7 @@ class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
                 c.DEFAULT_ENCODING,
             )
         normalized_atom = cls.normalize_cli_atom(
-            t.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value),
+            flext_cli.u.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value),
         )
         if normalized_atom is None:
             raise TypeError(

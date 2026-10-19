@@ -6,19 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from types import MappingProxyType
 from typing import Annotated, ClassVar
 
-from flext_core import m, p, u
+from flext_core import m, p
 
 from flext_cli import c, t
 
 
 class FlextCliModelsBasePart07:
     """Implementation part for FlextCliModelsBasePart07."""
-
-    _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
 
     class ServiceOptions(m.ArbitraryTypesModel):
         """Caller-selected native collaborators shared by CLI service instances."""
@@ -45,82 +41,20 @@ class FlextCliModelsBasePart07:
             m.Field(description="Fallback value when extraction fails"),
         ] = None
 
-        @u.computed_field
-        @property
-        def resolved(self) -> t.Cli.TypedExtractValue:
-            """Value coerced to type_kind, or default."""
-            return self.resolve()
-
-        def resolve(self) -> t.Cli.TypedExtractValue:
-            """Type-safe accessor (bypasses pyrefly computed_field limitation).
-
-            Returns:
-                The resulting ``t.Cli.TypedExtractValue``.
-
-            """
-            default_value = self._default_for_kind()
-            if self.value is None:
-                return default_value
-            resolved_value: t.Cli.TypedExtractValue = default_value
-            match self.type_kind:
-                case c.Cli.TypeKind.STR:
-                    resolved_str = str(self.value).strip() if self.value else ""
-                    resolved_value = resolved_str or (
-                        self.default if isinstance(self.default, str) else ""
-                    )
-                case c.Cli.TypeKind.BOOL:
-                    resolved_value = bool(self.value)
-                case c.Cli.TypeKind.DICT:
-                    source_mapping = (
-                        self.value
-                        if isinstance(self.value, Mapping)
-                        else self.default
-                        if isinstance(self.default, Mapping)
-                        else None
-                    )
-                    resolved_value = (
-                        {
-                            k: t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
-                            for k, vv in source_mapping.items()
-                        }
-                        if source_mapping is not None
-                        else FlextCliModelsBasePart07._EMPTY_JSON_MAPPING
-                    )
-            return resolved_value
-
-        def _default_for_kind(self) -> t.Cli.TypedExtractValue:
-            """Return default typed value for the requested kind.
-
-            Returns:
-                Default typed value for the requested kind.
-
-            """
-            if self.type_kind == c.Cli.TypeKind.STR:
-                return self.default if isinstance(self.default, str) else ""
-            if self.type_kind == c.Cli.TypeKind.BOOL:
-                return self.default if isinstance(self.default, bool) else False
-            if isinstance(self.default, Mapping):
-                return {
-                    k: t.Cli.JSON_VALUE_ADAPTER.validate_python(vv)
-                    for k, vv in self.default.items()
-                }
-            # NOTE (multi-agent): Empty mapping is immutable and typed once.
-            return FlextCliModelsBasePart07._EMPTY_JSON_MAPPING
-
     class JsonWriteOptions(m.BaseModel):
         """Options for JSON file write operations."""
 
-        indent: int = u.Field(
+        indent: int = m.Field(
             2,
             description="JSON indentation level",
             validate_default=True,
         )
-        sort_keys: bool = u.Field(
+        sort_keys: bool = m.Field(
             default=False,
             description="Sort JSON keys",
             validate_default=True,
         )
-        ensure_ascii: bool = u.Field(
+        ensure_ascii: bool = m.Field(
             default=False,
             description="Escape non-ASCII chars",
             validate_default=True,
