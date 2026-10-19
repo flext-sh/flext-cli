@@ -169,8 +169,15 @@ class FlextCliUtilitiesAtomicTreeInventory:
             t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
         ] = (),
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
+        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
+        | None = None,
     ) -> bool:
         """Reprove consumed elections, allowing only supplied physical own effects.
+
+        One verification boundary may share one native observation per physical
+        directory through ``observations``. The boundary captures each directory
+        exactly once, and the store never outlives the boundary, so no receipt is
+        replayed across boundaries.
 
         Returns:
             True when every consumed query and physical identity still agrees.
@@ -179,6 +186,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ValueError: If receipts disagree or an unaccounted change is observed.
 
         """
+        boundary: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = (
+            {} if observations is None else observations
+        )
         published = {before.path: (before, after) for before, after in publications}
         created = {item.path: item for item in directory_publications}
         if len(published) != len(publications) or any(
@@ -186,22 +196,10 @@ class FlextCliUtilitiesAtomicTreeInventory:
         ):
             msg = "directory query publication identities disagree"
             raise ValueError(msg)
-        ancestors = dict.fromkeys(
-            path
-            for _before, after in publications
-            if after.content is not None
-            for path in (after.path, *after.path.parents)
-        )
-        cls._verify_query_topology(
-            topology, publications, published, created, ancestors
-        )
-        observations: dict[Path, m.Cli.AtomicDirectoryInventory] = {}
+        ancestors = cls._published_ancestors(publications)
+        cls._verify_query_topology(topology, publications, published, created, boundary)
         for expected in inventories:
-            if expected.root.path not in observations:
-                observations[expected.root.path] = cls.inventory_physical_directory(
-                    expected.root.path
-                )
-            observed = observations[expected.root.path]
+            observed = cls._observe_physical_directory(boundary, expected.root.path)
             cls._require_directory_identity(
                 expected.root,
                 observed.root,
@@ -231,10 +229,12 @@ class FlextCliUtilitiesAtomicTreeInventory:
                             expected.root.path / name, created
                         )
                     value = True
-                if value != cls.directory_query_value(observed, name, predicate):
+                observed_value = cls.directory_query_value(observed, name, predicate)
+                if value != observed_value:
                     msg = (
                         f"source directory query changed: "
-                        f"{expected.root.path / name}; predicate={predicate}"
+                        f"{expected.root.path / name}; predicate={predicate}; "
+                        f"expected={value}; observed={observed_value}"
                     )
                     raise ValueError(msg)
             if expected.membership_queried:
@@ -245,6 +245,25 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     created,
                 )
         return True
+
+    @staticmethod
+    def _published_ancestors(
+        publications: t.VariadicTuple[
+            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
+        ],
+    ) -> t.MappingKV[Path, None]:
+        """Return every ancestor path already held by a published file.
+
+        Returns:
+            The ancestor path membership.
+
+        """
+        return dict.fromkeys(
+            path
+            for _before, after in publications
+            if after.content is not None
+            for path in (after.path, *after.path.parents)
+        )
 
     @classmethod
     def _verify_query_topology(
@@ -257,7 +276,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             Path, t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
         ],
         created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
-        ancestors: t.MappingKV[Path, None],
+        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory],
     ) -> None:
         """Reprove absent-parent elections against the original native ancestry.
 
@@ -265,6 +284,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ValueError: If ancestry or an absent candidate changed unexpectedly.
 
         """
+        ancestors = cls._published_ancestors(publications)
         for witness in topology:
             observed = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(
                 witness.target
@@ -302,7 +322,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
             if (
                 witness.queries or witness.membership_queried
             ) and not observed.directories:
-                inventory = cls.inventory_physical_directory(witness.target)
+                inventory = cls._observe_physical_directory(
+                    observations, witness.target
+                )
                 for name, predicate in witness.queries:
                     path = witness.target / name
                     effect = published.get(path)
@@ -398,6 +420,29 @@ class FlextCliUtilitiesAtomicTreeInventory:
         ):
             msg = f"source directory lacks its original publication: {path}"
             raise ValueError(msg)
+
+    @classmethod
+    def _observe_physical_directory(
+        cls,
+        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory],
+        root_path: Path,
+    ) -> m.Cli.AtomicDirectoryInventory:
+        """Return one boundary-scoped native observation of a physical directory.
+
+        The first request inside a verification boundary takes the fresh native
+        inventory; later requests for the same path in that boundary reuse that
+        one observation. The store is owned by the caller and never outlives the
+        boundary, so no receipt is replayed across boundaries.
+
+        Returns:
+            The boundary-scoped native observation of the directory.
+
+        """
+        observed = observations.get(root_path)
+        if observed is None:
+            observed = cls.inventory_physical_directory(root_path)
+            observations[root_path] = observed
+        return observed
 
     @staticmethod
     def inventory_physical_directory(root_path: Path) -> m.Cli.AtomicDirectoryInventory:
