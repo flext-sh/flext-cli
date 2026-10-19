@@ -1,4 +1,4 @@
-"""CLI base type aliases and adapters.
+"""CLI base type aliases.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,9 +9,8 @@ from __future__ import annotations
 from collections.abc import Callable, MutableMapping
 from pathlib import Path
 from types import FrameType, GenericAlias
-from typing import ClassVar
 
-from flext_core import t, u
+from flext_core import t
 from jinja2.sandbox import SandboxedEnvironment
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
@@ -50,28 +49,6 @@ class FlextCliTypesBase:
     type RuntimeAnnotation = TypeForm
     type SignalHandler = int | Callable[[int, FrameType | None], None] | None
     type TemplateEnvironmentCache = MutableMapping[str, SandboxedEnvironment]
-
-    STR_SEQUENCE_ADAPTER: ClassVar[t.ValueAdapter[t.StrSequence]] = u.type_adapter(
-        TypeForm(t.StrSequence)
-    )
-    JSON_VALUE_ADAPTER: ClassVar[t.ValueAdapter[t.JsonValue]] = u.type_adapter(
-        TypeForm(t.JsonValue)
-    )
-    JSON_MAPPING_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = u.type_adapter(
-        TypeForm(t.JsonMapping)
-    )
-    JSON_LIST_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = u.type_adapter(
-        TypeForm(t.JsonList)
-    )
-    YAML_DICT_ADAPTER: ClassVar[t.ValueAdapter[t.JsonMapping]] = u.type_adapter(
-        TypeForm(t.JsonMapping)
-    )
-    YAML_SEQ_ADAPTER: ClassVar[t.ValueAdapter[t.JsonList]] = u.type_adapter(
-        TypeForm(t.JsonList)
-    )
-    CLI_DEFAULT_SOURCE_ADAPTER: ClassVar[t.ValueAdapter[CliDefaultSource]] = (
-        u.type_adapter(TypeForm(CliDefaultSource))
-    )
 
 
 __all__: list[str] = ["FlextCliTypesBase"]

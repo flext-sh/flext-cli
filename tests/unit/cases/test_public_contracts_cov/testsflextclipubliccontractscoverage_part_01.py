@@ -6,12 +6,42 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import FlextCliSettings, cli, settings
-from tests import c, p, tm, u
+from flext_cli import FlextCliModels, FlextCliSettings, cli, settings
+from tests import c, m, p, tm, u
 
 
 class TestsFlextCliPublicContractsCoveragePart01:
     """Implementation part for TestsFlextCliPublicContractsCoveragePart01."""
+
+    @staticmethod
+    def test_inherited_settings_preset_validates_and_round_trips() -> None:
+        """The CLI model facade inherits a functioning settings preset."""
+        instance = FlextCliModels.BaseSettings()
+        adapter = u.type_adapter(FlextCliModels.PydanticBaseSettings)
+        tm.that(adapter.validate_python(instance) is instance, eq=True)
+        restored = FlextCliModels.BaseSettings.model_validate_json(
+            instance.model_dump_json()
+        )
+        tm.that(restored.model_dump(), eq=instance.model_dump())
+
+    @staticmethod
+    def test_inherited_settings_config_controls_environment_resolution() -> None:
+        """Native settings configuration governs field resolution and overrides."""
+        prefix = m.Tests.InheritedSettings.model_config["env_prefix"]
+        case_sensitive = m.Tests.InheritedSettings.model_config["case_sensitive"]
+        with u.Tests.env_vars_context(
+            env_vars={
+                f"{prefix}topic": "from-environment",
+                f"{prefix}TOPIC": "from-uppercase",
+            },
+        ):
+            resolved = m.Tests.InheritedSettings()
+            explicit = m.Tests.InheritedSettings(topic="from-constructor")
+        tm.that(
+            resolved.topic,
+            eq="from-environment" if case_sensitive else "from-uppercase",
+        )
+        tm.that(explicit.topic, eq="from-constructor")
 
     @staticmethod
     def test_public_facade_and_settings_contract() -> None:

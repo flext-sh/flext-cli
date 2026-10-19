@@ -15,9 +15,10 @@ from typing import ClassVar
 
 from flext_core import u
 
+import flext_cli
 from flext_cli import c, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesJson
 from flext_cli._utilities._yaml import FlextCliUtilitiesYamlEditingMixin
-from flext_cli._utilities.json import FlextCliUtilitiesJson
 
 
 class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
@@ -86,7 +87,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             )
         parsed = FlextCliUtilitiesYaml.yaml_to_plain(loaded.value)
         try:
-            validated = t.Cli.YAML_DICT_ADAPTER.validate_python(parsed)
+            validated = flext_cli.u.Cli.YAML_DICT_ADAPTER.validate_python(parsed)
         except c.ValidationError as exc:
             return r[t.JsonMapping].fail(f"YAML validation error: {exc}", exception=exc)
         return r[t.JsonMapping].ok(validated)
@@ -104,7 +105,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             return r[t.SequenceOf[t.JsonMapping]].from_failure(loaded)
         try:
             documents = tuple(
-                t.Cli.YAML_DICT_ADAPTER.validate_python(
+                flext_cli.u.Cli.YAML_DICT_ADAPTER.validate_python(
                     FlextCliUtilitiesYaml.yaml_to_plain(node)
                 )
                 for node in loaded.value
@@ -151,8 +152,8 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
         if not isinstance(parsed, list):
             msg = f"YAML content is not a list: {type(parsed).__name__}"
             raise TypeError(msg)
-        validated: t.SequenceOf[t.JsonValue] = t.Cli.YAML_SEQ_ADAPTER.validate_python(
-            parsed,
+        validated: t.SequenceOf[t.JsonValue] = (
+            flext_cli.u.Cli.YAML_SEQ_ADAPTER.validate_python(parsed)
         )
         return validated
 

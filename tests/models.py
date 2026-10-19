@@ -26,6 +26,16 @@ class TestsFlextCliModels(
     class Tests(TestsFlextCliModelsPart01.Tests):
         """Consumer-owned records used to exercise typed YAML ingress."""
 
+        class InheritedSettings(FlextCliModels.BaseSettings):
+            """Consumer-owned settings using the inherited native configuration."""
+
+            model_config = FlextCliModels.SettingsConfigDict(
+                env_prefix="FLEXT_SETTINGS_REGRESSION_",
+                case_sensitive=True,
+            )
+
+            topic: str = "fixture-default"
+
         class ServiceGreeting(FlextCliModels.FrozenModel):
             """Concrete validation model declared once on the greeting operation."""
 

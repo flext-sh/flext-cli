@@ -6,13 +6,56 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import p
+
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliProtocolsBasePart01:
     """Implementation part for FlextCliProtocolsBasePart01."""
+
+    @runtime_checkable
+    class AtomicFileReceipt(p.Model, Protocol):
+        """Read-only source, parent identity and digest of a captured file."""
+
+        @property
+        def path(self) -> t.Cli.TextPath: ...
+
+        @property
+        def version_key(self) -> tuple[int, ...] | None: ...
+
+        @property
+        def size(self) -> int | None: ...
+
+        @property
+        def mode(self) -> int | None: ...
+
+        @property
+        def parent_device(self) -> int: ...
+
+        @property
+        def parent_inode(self) -> int: ...
+
+        @property
+        def sha256(self) -> str | None: ...
+
+        @property
+        def device(self) -> int | None: ...
+
+        @property
+        def inode(self) -> int | None: ...
+
+        @property
+        def link_count(self) -> int | None: ...
+
+        @property
+        def file_attributes(self) -> int | None: ...
+
+        @property
+        def reparse_tag(self) -> int | None: ...
 
     @runtime_checkable
     class RuntimeComponents(p.Base, Protocol):

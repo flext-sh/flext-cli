@@ -13,6 +13,7 @@ from pathlib import Path
 import flext_core
 from flext_core import u
 
+import flext_cli
 from flext_cli import c, p, r, t
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_02 import (
     FlextCliUtilitiesFilesPart02,
@@ -88,7 +89,7 @@ class FlextCliUtilitiesFilesPart01:
 
         def _load() -> t.JsonValue:
             raw = Path(file_path).read_text(encoding=c.DEFAULT_ENCODING)
-            return t.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
+            return flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return FlextCliUtilitiesFilesPart02.files_execute(
             _load,
@@ -127,7 +128,7 @@ class FlextCliUtilitiesFilesPart01:
 
         """
         return u.Yaml.yaml_safe_load(Path(file_path)).map(
-            t.Cli.JSON_VALUE_ADAPTER.validate_python,
+            flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python,
         )
 
     @staticmethod

@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import os
 import signal
-import subprocess
 import threading
 import time
 from collections.abc import Callable
@@ -16,10 +15,8 @@ from functools import partial
 from types import FrameType
 
 from flext_cli import m, p, r, t
-from flext_cli._utilities._runtime_process_monitor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeProcessMonitorMixin,
-)
-from flext_cli._utilities._runtime_process_threads import (
     FlextCliUtilitiesRuntimeProcessThreadsMixin,
 )
 
@@ -107,7 +104,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
     @classmethod
     def _reap_and_drain(
         cls,
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         waiter: threading.Thread,
         state: m.Cli.RuntimeProcessState,
     ) -> int | None:
@@ -174,7 +171,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
     @classmethod
     def _empty_owned_boundary(
         cls,
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         state: m.Cli.RuntimeProcessState,
         cleanup_deadline: float,
     ) -> None:

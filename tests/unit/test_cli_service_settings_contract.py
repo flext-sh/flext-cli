@@ -48,8 +48,7 @@ class TestsFlextCliServiceSettingsContract:
 
     @staticmethod
     def _elected_native_composition(
-        native_json: StringIO,
-        native_console: StringIO,
+        streams: t.Pair[StringIO, StringIO],
         records: t.MutableSequenceOf[p.LoggingRecord],
         stages: t.MutableSequenceOf[str],
         exception: BaseException,
@@ -61,6 +60,7 @@ class TestsFlextCliServiceSettingsContract:
             The elected options, the service, and its registered Typer app.
 
         """
+        native_json, native_console = streams
 
         def enrich(
             logger: p.OutputLogger,
@@ -122,8 +122,7 @@ class TestsFlextCliServiceSettingsContract:
         stages: t.MutableSequenceOf[str] = []
         original_exception = ValueError("selected cause")
         _options, service, app = self._elected_native_composition(
-            native_json,
-            native_console,
+            (native_json, native_console),
             records,
             stages,
             exception=original_exception,
@@ -173,8 +172,7 @@ class TestsFlextCliServiceSettingsContract:
         original_exception = ValueError("selected cause")
         original_context = FlextContext.create()
         options, service, app = self._elected_native_composition(
-            native_json,
-            native_console,
+            (native_json, native_console),
             records,
             stages,
             exception=original_exception,
@@ -248,12 +246,7 @@ class TestsFlextCliServiceSettingsContract:
         *,
         trace: bool,
     ) -> None:
-        """Explicit severity wins shorthand while trace controls failure detail.
-
-        Raises:
-            ValueError: The original CLI cause routed through the failed route.
-
-        """
+        """Explicit severity wins shorthand while trace controls failure detail."""
         service = FlextCli.with_settings(
             settings.clone(
                 log_level=initial_level,

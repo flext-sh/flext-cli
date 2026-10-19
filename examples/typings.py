@@ -7,11 +7,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import ClassVar
 
-from typing_extensions import TypeForm
-
-from flext_cli import FlextCli, FlextCliTypes, u
+from flext_cli import FlextCli, FlextCliTypes
 
 
 class ExamplesFlextCliTypes(FlextCliTypes):
@@ -25,10 +22,6 @@ class ExamplesFlextCliTypes(FlextCliTypes):
     type DataProcessor = Callable[[str], str]
     type ProcessorRegistry = FlextCliTypes.MappingKV[str, DataProcessor]
     type JsonDictAdapter = FlextCliTypes.ValueAdapter[FlextCliTypes.JsonMapping]
-
-    JSON_DICT_ADAPTER: ClassVar[JsonDictAdapter] = u.type_adapter(
-        TypeForm(FlextCliTypes.JsonMapping),
-    )
 
 
 t = ExamplesFlextCliTypes

@@ -10,14 +10,10 @@ import threading
 from typing import IO, TYPE_CHECKING
 
 from flext_cli import m
-from flext_cli._utilities._runtime_process_threads import (
-    FlextCliUtilitiesRuntimeProcessThreadsMixin,
-)
+from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessThreadsMixin
 
 if TYPE_CHECKING:
-    import subprocess
-
-    from flext_cli import t
+    from flext_cli import p, t
 
 
 class FlextCliUtilitiesRuntimeProcessOutputMixin(
@@ -28,7 +24,7 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
     @classmethod
     def _start_process_output(
         cls,
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         state: m.Cli.RuntimeProcessState,
         live_fds: t.Pair[int | None, int | None],
         *,

@@ -9,17 +9,13 @@ from __future__ import annotations
 import threading
 from typing import IO, TYPE_CHECKING, BinaryIO
 
-from flext_cli._utilities._runtime_process_stream import (
+from flext_cli._utilities import (
     FlextCliUtilitiesRuntimeProcessStreamMixin,
-)
-from flext_cli._utilities._runtime_process_wait import (
     FlextCliUtilitiesRuntimeProcessWaitMixin,
 )
 
 if TYPE_CHECKING:
-    import subprocess
-
-    from flext_cli import m, t
+    from flext_cli import m, p, t
 
 
 class FlextCliUtilitiesRuntimeProcessThreadsMixin(
@@ -54,7 +50,7 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
     @classmethod
     def _start_root_waiter(
         cls,
-        process: subprocess.Popen[bytes],
+        process: p.Cli.ProcessHandle,
         return_codes: t.MutableSequenceOf[int],
         failures: t.MutableSequenceOf[str],
         process_done: threading.Event,

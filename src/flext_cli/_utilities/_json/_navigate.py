@@ -17,6 +17,7 @@ from collections.abc import Mapping
 
 from flext_core import u
 
+import flext_cli
 from flext_cli import t
 from flext_cli._utilities._json import FlextCliUtilitiesJsonCoreMixin
 
@@ -57,7 +58,11 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
                 return None
             current = raw
         leaf = current.get(keys[-1])
-        return None if leaf is None else t.Cli.JSON_VALUE_ADAPTER.validate_python(leaf)
+        return (
+            None
+            if leaf is None
+            else flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(leaf)
+        )
 
     @staticmethod
     def json_deep_mapping(data: t.JsonMapping, *keys: str) -> t.JsonMapping:

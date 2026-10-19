@@ -11,6 +11,7 @@ from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import Annotated, TypeAliasType, get_args, get_origin
 
+import flext_cli
 from flext_cli import c, m, t
 
 
@@ -164,7 +165,9 @@ class FlextCliUtilitiesOptionsPart01:
         if isinstance(value, Path):
             return str(value)
         if cls.string_sequence(value):
-            normalized_sequence = t.Cli.STR_SEQUENCE_ADAPTER.validate_python(value)
+            normalized_sequence = flext_cli.u.Cli.STR_SEQUENCE_ADAPTER.validate_python(
+                value
+            )
             return tuple(normalized_sequence)
         return None
 
