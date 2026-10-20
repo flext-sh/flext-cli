@@ -135,14 +135,14 @@ class FlextCliUtilitiesTomlPart01:
         return parsed
 
     @staticmethod
-    def toml_dumps(doc: TOMLDocument, *, sort_keys: bool = False) -> str:
-        """Preserve document layout or sort its native values recursively.
+    def toml_dumps(doc: TOMLDocument) -> str:
+        """Serialize a TOML document to text (round-trip preserving).
 
         Returns:
             The resulting ``str``.
 
         """
-        return tomlkit.dumps(doc.unwrap() if sort_keys else doc, sort_keys=sort_keys)
+        return tomlkit.dumps(doc)
 
     @staticmethod
     def toml_mapping_from_text(text: str) -> t.JsonMapping | None:

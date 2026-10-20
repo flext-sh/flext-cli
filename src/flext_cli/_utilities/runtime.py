@@ -230,11 +230,7 @@ class FlextCliUtilitiesRuntime(
                 m.Cli.CommandOutput(
                     stdout=stdout,
                     stderr=stderr,
-                    outcome=m.Cli.ProcessOutcome(
-                        raw_return_code=output.outcome.raw_return_code,
-                        timed_out=output.outcome.timed_out,
-                        forwarded_signal=output.outcome.forwarded_signal,
-                    ),
+                    outcome=output.outcome,
                     duration=output.duration,
                 ),
             )

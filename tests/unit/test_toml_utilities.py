@@ -13,14 +13,14 @@ from __future__ import annotations
 
 import stat
 import tomllib
+from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-from pydantic import ValidationError
 from tomlkit.exceptions import ParseError
 
-from tests import c, t, tm, u
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliTomlUtilities:
@@ -373,33 +373,30 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_mapping_from_text("[project"), none=True)
 
     @staticmethod
-    def test_sorted_dump_preserves_values_and_original_document() -> None:
-        """Sort native table keys recursively without changing arrays or callers."""
-        source = (
-            "# Preserve the authored document.\n"
-            "[zeta]\n"
-            "z = 1\n"
-            "a = 2\n"
-            "[alpha]\n"
-            "z = 3\n"
-            'ordered = ["last", " first "]\n'
-            "a = 4\n"
-            "[alpha.branch]\n"
-            "z = 5\n"
-            "a = 6\n"
-        )
-        document = tm.not_none(u.Cli.toml_parse_text(source))
-        original = u.Cli.toml_dumps(document)
-        rendered = u.Cli.toml_dumps(document, sort_keys=True)
-        mapping = tm.not_none(u.Cli.toml_mapping_from_text(rendered))
+    def test_sorted_item_preserves_values_and_original_mapping() -> None:
+        """Construct sorted native tables without changing arrays or callers."""
+        payload: t.JsonDict = {
+            "zeta": {"z": 1, "a": 2},
+            "alpha": {
+                "z": 3,
+                "ordered": ["last", " first "],
+                "a": 4,
+                "branch": {"z": 5, "a": 6},
+            },
+        }
+        original = deepcopy(payload)
+        document = u.Cli.toml_document()
+        document["fixture"] = u.Cli.toml_item_from_json_value(payload, sort_keys=True)
+        rendered = tm.not_none(u.Cli.toml_mapping_from_text(u.Cli.toml_dumps(document)))
+        mapping = tm.not_none(u.Cli.toml_mapping_child(rendered, "fixture"))
         alpha = tm.not_none(u.Cli.toml_mapping_child(mapping, "alpha"))
         branch = tm.not_none(u.Cli.toml_mapping_child(alpha, "branch"))
 
         tm.that(list(mapping), eq=sorted(mapping))
         tm.that([key for key in alpha if key != "branch"], eq=["a", "ordered", "z"])
         tm.that(list(branch), eq=sorted(branch))
-        tm.that(mapping, eq=tm.not_none(u.Cli.toml_mapping_from_text(original)))
-        tm.that(u.Cli.toml_dumps(document), eq=original)
+        tm.that(mapping, eq=original)
+        tm.that(payload, eq=original)
 
     @staticmethod
     def test_native_item_rejects_null() -> None:
@@ -424,14 +421,14 @@ class TestsFlextCliTomlUtilities:
         value: t.ScalarMapping,
     ) -> None:
         """Unsupported scalars cannot become strings at the JSON boundary."""
-        with pytest.raises(ValidationError):
+        with pytest.raises(m.ValidationError):
             u.Cli.toml_unwrap_item(value)
 
     @staticmethod
     def test_json_projection_rejects_native_toml_datetime() -> None:
         """A native timestamp remains unsupported by the JSON projection."""
         document = tm.not_none(u.Cli.toml_parse_text("stamp = 2026-01-01T00:00:00\n"))
-        with pytest.raises(ValidationError):
+        with pytest.raises(m.ValidationError):
             u.Cli.toml_as_mapping(document)
 
     @staticmethod
