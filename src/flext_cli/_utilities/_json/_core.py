@@ -186,7 +186,7 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def _json_write_content(
-        payload: t.JsonValue | t.JsonPayload,
+        payload: t.JsonValue | t.JsonPayload | t.JsonMapping,
         options: m.Cli.JsonWriteOptions,
     ) -> str:
         """Serialize a JSON payload using canonical write options.
@@ -238,7 +238,7 @@ class FlextCliUtilitiesJsonCoreMixin:
     @staticmethod
     def json_write(
         path: Path,
-        payload: t.JsonValue | t.JsonPayload,
+        payload: t.JsonValue | t.JsonPayload | t.JsonMapping,
         options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
         """Atomically publish a Pydantic-serializable payload as a JSON file.

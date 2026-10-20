@@ -13,9 +13,11 @@ from __future__ import annotations
 
 import stat
 import tomllib
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
+from pydantic import ValidationError
 from tomlkit.exceptions import ParseError
 
 from tests import c, t, tm, u
@@ -269,7 +271,7 @@ class TestsFlextCliTomlUtilities:
         resolved = u.Cli.toml_table_path(doc, ("tool", "ruff", "lint"))
         resolved = tm.not_none(resolved)
         tm.that(
-            u.Cli.toml_as_string_list(u.Cli.toml_item_child(resolved, "select")),
+            list(u.Cli.toml_as_string_list(u.Cli.toml_item_child(resolved, "select"))),
             eq=["E", "F"],
         )
         tm.that(u.Cli.toml_table_path(doc, ("tool", "mypy")), none=True)
@@ -357,7 +359,11 @@ class TestsFlextCliTomlUtilities:
         project = tm.not_none(project)
         tm.that(u.Cli.toml_value(project, "name"), eq="demo")
         tm.that(
-            u.Cli.toml_as_string_list(u.Cli.toml_item_child(project, "dependencies")),
+            list(
+                u.Cli.toml_as_string_list(
+                    u.Cli.toml_item_child(project, "dependencies")
+                )
+            ),
             eq=["httpx>=0.27"],
         )
 
@@ -365,6 +371,60 @@ class TestsFlextCliTomlUtilities:
     def test_mapping_from_text_rejects_invalid_toml() -> None:
         """Verify that mapping from text rejects invalid toml."""
         tm.that(u.Cli.toml_mapping_from_text("[project"), none=True)
+
+    @staticmethod
+    def test_sorted_dump_preserves_values_and_original_document() -> None:
+        """Sort native table keys recursively without changing arrays or callers."""
+        source = (
+            "# Preserve the authored document.\n"
+            "[zeta]\n"
+            "z = 1\n"
+            "a = 2\n"
+            "[alpha]\n"
+            "z = 3\n"
+            'ordered = ["last", " first "]\n'
+            "a = 4\n"
+            "[alpha.branch]\n"
+            "z = 5\n"
+            "a = 6\n"
+        )
+        document = tm.not_none(u.Cli.toml_parse_text(source))
+        original = u.Cli.toml_dumps(document)
+        rendered = u.Cli.toml_dumps(document, sort_keys=True)
+        mapping = tm.not_none(u.Cli.toml_mapping_from_text(rendered))
+        alpha = tm.not_none(u.Cli.toml_mapping_child(mapping, "alpha"))
+        branch = tm.not_none(u.Cli.toml_mapping_child(alpha, "branch"))
+
+        tm.that(list(mapping), eq=sorted(mapping))
+        tm.that([key for key in alpha if key != "branch"], eq=["a", "ordered", "z"])
+        tm.that(list(branch), eq=sorted(branch))
+        tm.that(mapping, eq=tm.not_none(u.Cli.toml_mapping_from_text(original)))
+        tm.that(u.Cli.toml_dumps(document), eq=original)
+
+    @staticmethod
+    def test_native_item_rejects_null() -> None:
+        """A null cannot silently disappear from native TOML output."""
+        with pytest.raises(TypeError, match="TOML does not support null values"):
+            u.Cli.toml_item_from_json_value(None)
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "value",
+        [{"payload": b"value"}, {"stamp": datetime(2026, 1, 1, tzinfo=UTC)}],
+    )
+    def test_json_projection_rejects_non_json_scalar_mappings(
+        value: t.ScalarMapping,
+    ) -> None:
+        """Unsupported scalars cannot become strings at the JSON boundary."""
+        with pytest.raises(ValidationError):
+            u.Cli.toml_unwrap_item(value)
+
+    @staticmethod
+    def test_json_projection_rejects_native_toml_datetime() -> None:
+        """A native timestamp remains unsupported by the JSON projection."""
+        document = tm.not_none(u.Cli.toml_parse_text("stamp = 2026-01-01T00:00:00\n"))
+        with pytest.raises(ValidationError):
+            u.Cli.toml_as_mapping(document)
 
     @staticmethod
     def test_mapping_sync_helpers_report_and_apply_changes() -> None:

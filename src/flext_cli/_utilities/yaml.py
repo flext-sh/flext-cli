@@ -183,7 +183,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
     @staticmethod
     def yaml_dump(
         path: Path,
-        data: t.JsonValue | t.JsonPayload,
+        data: t.JsonMapping | t.JsonValue | t.JsonPayload,
         *,
         sort_keys: bool = False,
         indent: int = 2,

@@ -9,6 +9,7 @@ from __future__ import annotations
 import fnmatch
 import os
 from pathlib import Path
+from typing import Literal
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_02 import (
@@ -118,18 +119,18 @@ class FlextCliUtilitiesFilesPart06:
     @staticmethod
     def atomic_verify_binary_file_states(
         expected_states: t.SequenceOf[m.Cli.AtomicFileState],
-    ) -> p.Result[bool]:
+    ) -> p.Result[Literal[True]]:
         """Verify one coherent set of physical file states without reread fallback.
 
         Returns:
-            The resulting ``p.Result[bool]``.
+            Exactly ``True`` on successful verification, otherwise a failed result.
 
         """
         by_path: t.MutableMappingKV[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
         for expected in expected_states:
             existing = by_path.get(expected.path)
             if existing is not None and existing != expected:
-                return r[bool].fail(
+                return r[Literal[True]].fail(
                     f"atomic source has conflicting snapshots: {expected.path}",
                 )
             by_path[expected.path] = expected
@@ -138,10 +139,10 @@ class FlextCliUtilitiesFilesPart06:
                 expected.path,
             )
             if observed.failure:
-                return r[bool].from_failure(observed)
+                return r[Literal[True]].from_failure(observed)
             if observed.value != expected:
-                return r[bool].fail(f"atomic source changed: {expected.path}")
-        return r[bool].ok(value=True)
+                return r[Literal[True]].fail(f"atomic source changed: {expected.path}")
+        return r[Literal[True]].ok(value=True)
 
     @staticmethod
     def files_matching(

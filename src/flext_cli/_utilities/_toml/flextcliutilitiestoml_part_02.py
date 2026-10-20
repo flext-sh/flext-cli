@@ -21,11 +21,11 @@ class FlextCliUtilitiesTomlPart02:
     """Implementation part for FlextCliUtilitiesTomlPart02."""
 
     @staticmethod
-    def toml_item_from_json_value(value: t.JsonValue) -> Item | t.JsonValue:
+    def toml_item_from_json_value(value: t.JsonValue) -> Item:
         """Convert one JSON-compatible value into one TOML runtime value.
 
         Returns:
-            The resulting ``Item | t.JsonValue``.
+            The resulting native TOML item.
 
         Raises:
             TypeError: If TOML does not support null values.
@@ -34,10 +34,6 @@ class FlextCliUtilitiesTomlPart02:
         if value is None:
             msg = "TOML does not support null values"
             raise TypeError(msg)
-        if isinstance(value, bool | int | float | str):
-            return tomlkit.item(value)
-        if isinstance(value, list):
-            return tomlkit.item(value)
         return tomlkit.item(value)
 
     @staticmethod

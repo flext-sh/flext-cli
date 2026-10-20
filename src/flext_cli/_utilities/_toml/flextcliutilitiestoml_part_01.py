@@ -7,11 +7,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import tomllib
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from typing import ClassVar
 
 import tomlkit
-from flext_core import FlextRuntime, u
+from flext_core import u
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
@@ -29,35 +29,34 @@ class FlextCliUtilitiesTomlPart01:
 
     @staticmethod
     def toml_as_mapping(value: t.Cli.TomlMappingSource | None) -> t.JsonMapping | None:
-        """Normalize a TOML mapping into a typed plain mapping.
+        """Validate a TOML mapping once and retain its typed plain dictionary.
 
         Returns:
             The resulting ``t.JsonMapping | None``.
 
         """
         normalized = FlextCliUtilitiesTomlPart01.toml_unwrap_item(value)
-        if normalized is None or not u.mapping(normalized):
+        if not isinstance(normalized, dict):
             return None
-        return flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
+        return normalized
 
     @staticmethod
     def toml_unwrap_item(
         value: t.Cli.TomlMappingSource | t.JsonValue | None,
-    ) -> t.JsonValue | None:
-        """Unwrap TOML items and documents to plain Python values.
+    ) -> t.JsonValue:
+        """Unwrap native TOML and validate its exact JSON-compatible value.
+
+        JSON null remains ``None``. Unsupported byte and timestamp values raise
+        Pydantic's ``ValidationError`` instead of being converted to strings.
 
         Returns:
-            The resulting ``t.JsonValue | None``.
+            The resulting JSON-compatible value.
 
         """
-        if value is None:
-            return None
-        if isinstance(value, Mapping) and not isinstance(value, TOMLDocument | Item):
-            return FlextRuntime.normalize_to_json_value(value)
-        normalized = value.unwrap() if isinstance(value, TOMLDocument | Item) else value
-        if isinstance(normalized, Item):
-            return None
-        return FlextRuntime.normalize_to_json_value(normalized)
+        return flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(
+            value.unwrap() if isinstance(value, TOMLDocument | Item) else value,
+            strict=True,
+        )
 
     @staticmethod
     def toml_as_string_list(value: t.Cli.TomlStringListSource | None) -> t.StrSequence:
@@ -136,14 +135,14 @@ class FlextCliUtilitiesTomlPart01:
         return parsed
 
     @staticmethod
-    def toml_dumps(doc: TOMLDocument) -> str:
+    def toml_dumps(doc: TOMLDocument, *, sort_keys: bool = False) -> str:
         """Serialize a TOML document to text (round-trip preserving).
 
         Returns:
             The resulting ``str``.
 
         """
-        return tomlkit.dumps(doc)
+        return tomlkit.dumps(doc, sort_keys=sort_keys)
 
     @staticmethod
     def toml_mapping_from_text(text: str) -> t.JsonMapping | None:
