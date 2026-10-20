@@ -24,7 +24,7 @@ class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
     @staticmethod
     def field_annotation(
         field_name: str,
-        field_info: m.FieldInfo,
+        field_info: t.FieldInfo,
     ) -> t.Cli.RuntimeAnnotation:
         """Return the declared annotation of a CLI field or fail naming the field.
 
@@ -46,7 +46,7 @@ class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
     def field_default(
         cls,
         field_name: str,
-        field_info: m.FieldInfo,
+        field_info: t.FieldInfo,
         settings: t.Cli.ModelLike | None,
     ) -> t.Cli.CliValue | None:
         """Resolve CLI default from settings first, then from model field metadata.

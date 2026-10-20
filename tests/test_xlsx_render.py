@@ -15,8 +15,7 @@ from openpyxl.styles import Font
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import cli
-from tests import m, tm
+from tests import m, tm, u
 
 
 def _defined_name_workbook() -> bytes:
@@ -41,7 +40,7 @@ class TestsFlextCliXlsxRender:
         """Test xlsx defined name values resolves cached scalar."""
         source = _defined_name_workbook()
 
-        result = cli.xlsx_defined_name_values(
+        result = u.Cli.xlsx_defined_name_values(
             m.Cli.XlsxDefinedNameValuesRequest(source=source, name="ScalarValue"),
         )
 
@@ -61,7 +60,7 @@ class TestsFlextCliXlsxRender:
         """Test xlsx defined name values resolves cached range."""
         source = _defined_name_workbook()
 
-        result = cli.xlsx_defined_name_values(
+        result = u.Cli.xlsx_defined_name_values(
             m.Cli.XlsxDefinedNameValuesRequest(source=source, name="RangeValues"),
         )
 
@@ -76,7 +75,7 @@ class TestsFlextCliXlsxRender:
         """Test xlsx defined name values fails when name is missing."""
         source = _defined_name_workbook()
 
-        result = cli.xlsx_defined_name_values(
+        result = u.Cli.xlsx_defined_name_values(
             m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MissingValue"),
         )
 
@@ -88,7 +87,7 @@ class TestsFlextCliXlsxRender:
         """Test xlsx defined name values fails for non range name."""
         source = _defined_name_workbook()
 
-        result = cli.xlsx_defined_name_values(
+        result = u.Cli.xlsx_defined_name_values(
             m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MalformedValue"),
         )
 
@@ -107,7 +106,7 @@ class TestsFlextCliXlsxRender:
         template = _styled_template()
         style_name = template.style_map[0].style_name
         plan = _typed_runtime_plan(style_name)
-        result = cli.xlsx_render(
+        result = u.Cli.xlsx_render(
             m.Cli.XlsxRenderRequest(template=template.content, plan=plan),
         )
         tm.ok(result.success)
@@ -131,7 +130,7 @@ def _styled_template() -> m.Cli.XlsxStyleTemplateResult:
     source_cell.font = Font(name="Aptos", bold=True, color="FFFFFFFF")
     source = BytesIO()
     source_workbook.save(source)
-    template_result = cli.xlsx_style_template(
+    template_result = u.Cli.xlsx_style_template(
         m.Cli.XlsxStyleTemplateRequest(
             source=source.getvalue(),
             style_name_prefix="runtime",
@@ -278,10 +277,10 @@ def _assert_xlsx_snapshot(
     legacy_password: str,
 ) -> None:
     """Assert typed and cached snapshots agree with the rendered workbook."""
-    snapshot = cli.xlsx_snapshot(
+    snapshot = u.Cli.xlsx_snapshot(
         m.Cli.XlsxSnapshotRequest(source=content, data_only=False),
     )
-    cached = cli.xlsx_snapshot(
+    cached = u.Cli.xlsx_snapshot(
         m.Cli.XlsxSnapshotRequest(source=content, data_only=True),
     )
     tm.that(snapshot.success, eq=True, msg=snapshot.error)

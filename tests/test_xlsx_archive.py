@@ -12,8 +12,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Protection
 from openpyxl.workbook.defined_name import DefinedName
 
-from flext_cli import cli
-from tests import m, tm
+from tests import m, tm, u
 
 
 class TestsFlextCliXlsxArchive:
@@ -31,7 +30,7 @@ class TestsFlextCliXlsxArchive:
         stream = BytesIO()
         workbook.save(stream)
 
-        result = cli.xlsx_inspect(
+        result = u.Cli.xlsx_inspect(
             m.Cli.XlsxArchiveInspectionRequest(
                 source=stream.getvalue(),
                 policy=m.Cli.XlsxArchivePolicy(
@@ -53,7 +52,7 @@ class TestsFlextCliXlsxArchive:
     @staticmethod
     def test_xlsx_inspect_rejects_invalid_archive_bytes() -> None:
         """Malformed bytes fail instead of yielding a synthetic inventory."""
-        result = cli.xlsx_inspect(
+        result = u.Cli.xlsx_inspect(
             m.Cli.XlsxArchiveInspectionRequest(
                 source=b"not-an-xlsx",
                 policy=m.Cli.XlsxArchivePolicy(),

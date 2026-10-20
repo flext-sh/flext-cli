@@ -94,7 +94,7 @@ class FlextCliCliPart01:
     def model_option_spec(
         cls,
         field_name: str,
-        field_info: m.FieldInfo,
+        field_info: t.FieldInfo,
         settings: t.Cli.ModelLike | None,
     ) -> t.Pair[m.Cli.OptionSpec, type | GenericAlias]:
         """Build the public CLI option specification of a Pydantic field.
@@ -143,7 +143,7 @@ class FlextCliCliPart01:
 
     @staticmethod
     def _validation_option_names(
-        field_info: m.FieldInfo,
+        field_info: t.FieldInfo,
         option_name: str,
     ) -> list[str]:
         """Collect distinct string validation aliases in declaration order.
@@ -169,7 +169,7 @@ class FlextCliCliPart01:
         return extra_option_names
 
     @staticmethod
-    def _custom_option_declarations(field_info: m.FieldInfo) -> list[str] | None:
+    def _custom_option_declarations(field_info: t.FieldInfo) -> list[str] | None:
         """Read explicit Typer declarations without interpreting their order.
 
         Returns:
@@ -188,7 +188,7 @@ class FlextCliCliPart01:
     def _build_model_parameter(
         cls,
         field_name: str,
-        field_info: m.FieldInfo,
+        field_info: t.FieldInfo,
         settings: t.Cli.ModelLike | None,
     ) -> t.Pair[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from its public specification.

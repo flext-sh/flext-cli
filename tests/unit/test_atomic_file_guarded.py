@@ -29,6 +29,7 @@ class TestsFlextCliAtomicFileGuarded:
             "import sys\n"
             "from pathlib import Path\n"
             "from flext_cli import u\n"
+            "from flext_tests import tm\n"
             "root = Path(sys.argv[1])\n"
             "destination = root / 'atomic.txt'\n"
             "before = u.Cli.atomic_read_binary_file_state(destination).unwrap()\n"
@@ -41,13 +42,12 @@ class TestsFlextCliAtomicFileGuarded:
             "sys.addaudithook(fail_unlink)\n"
             "result = u.Cli.atomic_write_binary_file_guarded(\n"
             "    before, b'published', permission_mode=0o600)\n"
-            "assert not armed\n"
-            "assert result.failure\n"
-            "assert 'staged unlink failed' in result.error\n"
-            "assert destination.read_bytes() == b'published'\n"
-            "assert destination.stat().st_nlink == 1\n"
-            "assert {path.name for path in root.iterdir()} "
-            "== {'consumer.py', 'atomic.txt'}\n",
+            "tm.that(armed, eq=False)\n"
+            "tm.fail(result, has='staged unlink failed')\n"
+            "tm.that(destination.read_bytes(), eq=b'published')\n"
+            "tm.that(destination.stat().st_nlink, eq=1)\n"
+            "tm.that({path.name for path in root.iterdir()}, "
+            "eq={'consumer.py', 'atomic.txt'})\n",
             encoding="utf-8",
         )
         outcome = tm.ok(
@@ -64,6 +64,7 @@ class TestsFlextCliAtomicFileGuarded:
             "import sys\n"
             "from pathlib import Path\n"
             "from flext_cli import u\n"
+            "from flext_tests import tm\n"
             "root = Path(sys.argv[1])\n"
             "destination = root / 'atomic.txt'\n"
             "before = u.Cli.atomic_read_binary_file_state(destination).unwrap()\n"
@@ -77,11 +78,11 @@ class TestsFlextCliAtomicFileGuarded:
             "sys.addaudithook(create_competitor)\n"
             "result = u.Cli.atomic_write_binary_file_guarded(\n"
             "    before, b'replacement', permission_mode=0o600)\n"
-            "assert not armed\n"
-            "assert result.failure\n"
-            "assert destination.read_bytes() == b'concurrent'\n"
-            "assert {path.name for path in root.iterdir()} "
-            "== {'consumer.py', 'atomic.txt'}\n",
+            "tm.that(armed, eq=False)\n"
+            "tm.fail(result)\n"
+            "tm.that(destination.read_bytes(), eq=b'concurrent')\n"
+            "tm.that({path.name for path in root.iterdir()}, "
+            "eq={'consumer.py', 'atomic.txt'})\n",
             encoding="utf-8",
         )
         outcome = tm.ok(

@@ -11,10 +11,7 @@ from io import BytesIO
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, PatternFill, Protection
 
-from flext_cli import cli
-from tests import m, tm
-
-_SOURCE_STYLE_COUNT = 2
+from tests import m, tm, u
 
 
 class TestsFlextCliXlsxStyleCatalog:
@@ -25,7 +22,8 @@ class TestsFlextCliXlsxStyleCatalog:
         """Protection differences never split a visual style signature."""
         workbook = Workbook()
         worksheet = workbook.worksheets[0]
-        for coordinate, locked in (("A1", True), ("B1", False)):
+        cells = (("A1", True), ("B1", False))
+        for coordinate, locked in cells:
             cell = worksheet[coordinate]
             cell.value = coordinate
             cell.font = Font(name="Aptos", size=12, bold=True)
@@ -34,7 +32,7 @@ class TestsFlextCliXlsxStyleCatalog:
         source = BytesIO()
         workbook.save(source)
 
-        result = cli.xlsx_style_template(
+        result = u.Cli.xlsx_style_template(
             m.Cli.XlsxStyleTemplateRequest(
                 source=source.getvalue(),
                 style_name_prefix="visual",
@@ -42,9 +40,9 @@ class TestsFlextCliXlsxStyleCatalog:
         )
 
         tm.ok(result.success)
-        tm.that(len(result.value.style_map), eq=_SOURCE_STYLE_COUNT)
+        tm.that(result.value.style_map, len=len(cells))
         style_names = frozenset(entry.style_name for entry in result.value.style_map)
-        tm.that(len(style_names), eq=1)
+        tm.that(style_names, len=1)
         tm.ok(next(iter(style_names)).startswith("visual_"))
         template = load_workbook(BytesIO(result.value.content))
         tm.that(tuple(template.named_styles), eq=("Normal", next(iter(style_names))))
@@ -53,7 +51,7 @@ class TestsFlextCliXlsxStyleCatalog:
         tm.that(worksheet.max_column, eq=1)
         tm.that(worksheet["A1"].value, eq=None)
 
-        inspection = cli.xlsx_inspect(
+        inspection = u.Cli.xlsx_inspect(
             m.Cli.XlsxArchiveInspectionRequest(
                 source=result.value.content,
                 policy=m.Cli.XlsxArchivePolicy(

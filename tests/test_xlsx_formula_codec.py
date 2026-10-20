@@ -9,8 +9,7 @@ from __future__ import annotations
 import zipfile
 from io import BytesIO
 
-from flext_cli import cli
-from tests import m, tm
+from tests import m, tm, u
 
 
 def _render_formula(formula: str) -> str:
@@ -32,7 +31,7 @@ def _render_formula(formula: str) -> str:
         ),
         defined_names=(),
     )
-    result = cli.xlsx_render(m.Cli.XlsxRenderRequest(template=None, plan=plan))
+    result = u.Cli.xlsx_render(m.Cli.XlsxRenderRequest(template=None, plan=plan))
     tm.that(result.success, eq=True, msg=result.error)
     archive = zipfile.ZipFile(BytesIO(result.value.content))
     return archive.read("xl/worksheets/sheet1.xml").decode("utf-8")

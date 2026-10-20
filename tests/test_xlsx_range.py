@@ -8,8 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_cli import cli
-from tests import m, tm
+from tests import m, tm, u
 
 if TYPE_CHECKING:
     from tests import t
@@ -21,8 +20,8 @@ class TestsFlextCliXlsxRange:
     @staticmethod
     def test_xlsx_parse_range_returns_typed_concrete_bounds() -> None:
         """Absolute and single-cell A1 inputs return canonical range models."""
-        area = cli.xlsx_parse_range(m.Cli.XlsxParseRangeRequest(reference="$B$2:D4"))
-        single = cli.xlsx_parse_range(m.Cli.XlsxParseRangeRequest(reference="A1"))
+        area = u.Cli.xlsx_parse_range(m.Cli.XlsxParseRangeRequest(reference="$B$2:D4"))
+        single = u.Cli.xlsx_parse_range(m.Cli.XlsxParseRangeRequest(reference="A1"))
 
         tm.ok(area.success)
         tm.that(area.value.first.row, eq=2)
@@ -36,7 +35,7 @@ class TestsFlextCliXlsxRange:
     def test_xlsx_parse_range_fails_loud_for_non_concrete_or_inverted_input() -> None:
         """Invalid, whole-column, and inverted references never synthesize bounds."""
         for reference in ("not-a-range", "A:B", "B2:A1"):
-            result = cli.xlsx_parse_range(
+            result = u.Cli.xlsx_parse_range(
                 m.Cli.XlsxParseRangeRequest(reference=reference)
             )
 
@@ -62,8 +61,8 @@ class TestsFlextCliXlsxRange:
             collapse_single_cell=False,
         )
 
-        relative = cli.xlsx_format_reference(relative_request)
-        absolute = cli.xlsx_format_reference(absolute_request)
+        relative = u.Cli.xlsx_format_reference(relative_request)
+        absolute = u.Cli.xlsx_format_reference(absolute_request)
 
         tm.ok(relative.success)
         tm.that(relative.value.reference, eq="B2:D4")
@@ -84,7 +83,7 @@ class TestsFlextCliXlsxRange:
             last=m.Cli.XlsxCellAddress(row=1, column=1),
         )
 
-        collapsed = cli.xlsx_format_reference(
+        collapsed = u.Cli.xlsx_format_reference(
             m.Cli.XlsxFormatReferenceRequest(
                 area=single,
                 sheet="O'Brien",
@@ -92,14 +91,14 @@ class TestsFlextCliXlsxRange:
                 collapse_single_cell=True,
             ),
         )
-        expanded = cli.xlsx_format_reference(
+        expanded = u.Cli.xlsx_format_reference(
             m.Cli.XlsxFormatReferenceRequest(
                 area=single,
                 absolute=False,
                 collapse_single_cell=False,
             ),
         )
-        invalid = cli.xlsx_format_reference(
+        invalid = u.Cli.xlsx_format_reference(
             m.Cli.XlsxFormatReferenceRequest(
                 area=inverted,
                 absolute=False,

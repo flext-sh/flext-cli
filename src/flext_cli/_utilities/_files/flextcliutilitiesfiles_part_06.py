@@ -141,7 +141,13 @@ class FlextCliUtilitiesFilesPart06:
             if observed.failure:
                 return r[Literal[True]].from_failure(observed)
             if observed.value != expected:
-                return r[Literal[True]].fail(f"atomic source changed: {expected.path}")
+                return r[Literal[True]].fail(
+                    f"atomic source changed: {expected.path}; "
+                    f"content_changed={observed.value.content != expected.content}; "
+                    f"same_model_type={type(observed.value) is type(expected)}; "
+                    f"expected={expected.model_dump(exclude={'content'})}; "
+                    f"observed={observed.value.model_dump(exclude={'content'})}"
+                )
         return r[Literal[True]].ok(value=True)
 
     @staticmethod
