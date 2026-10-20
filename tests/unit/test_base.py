@@ -48,14 +48,14 @@ class TestsFlextCliBase:
         """Repeated `settings` reads return the same singleton (idempotent access)."""
         first = facade.settings
         second = facade.settings
-        tm.that(first is second, eq=True)
+        tm.ok(first is second)
 
     @staticmethod
     def test_settings_singleton_shared_across_instances() -> None:
         """Two independent facades observe the same shared settings singleton."""
         service1 = type(cli)()
         service2 = type(cli)()
-        tm.that(service1.settings is service2.settings, eq=True)
+        tm.ok(service1.settings is service2.settings)
 
     @staticmethod
     def test_clone_returns_fresh_typed_instances() -> None:
@@ -64,15 +64,15 @@ class TestsFlextCliBase:
         second = settings.clone()
         tm.that(first, is_=p.Cli.Settings)
         tm.that(second, is_=p.Cli.Settings)
-        tm.that(first is not second, eq=True)
-        tm.that(first is not settings, eq=True)
+        tm.ok(first is not second)
+        tm.ok(first is not settings)
 
     @staticmethod
     def test_validate_settings_reports_success_outcome(facade: FlextCli) -> None:
         """`validate_settings` returns a successful r[bool] carrying True."""
         result = facade.validate_settings()
         tm.ok(result)
-        tm.that(result.unwrap(), eq=True)
+        tm.ok(result.unwrap())
 
     @staticmethod
     def test_settings_snapshot_exposes_public_state(facade: FlextCli) -> None:

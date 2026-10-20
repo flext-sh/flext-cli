@@ -154,7 +154,7 @@ class TestsFlextCliCommands:
         out = capsys.readouterr().out
         tm.that(out, has="all good")
         tm.that(out, ne="all good\n")
-        tm.that(out.endswith("\n"), eq=True)
+        tm.ok(out.endswith("\n"))
 
     @staticmethod
     def test_error_message_is_styled_and_newline_terminated(
@@ -169,7 +169,7 @@ class TestsFlextCliCommands:
         out = captured.err
         tm.that(out, has="boom")
         tm.that(out, ne="boom\n")
-        tm.that(out.endswith("\n"), eq=True)
+        tm.ok(out.endswith("\n"))
         tm.that(captured.out, eq="")
 
     @staticmethod
@@ -190,8 +190,8 @@ class TestsFlextCliCommands:
         out = captured.err
         tm.that(out, has="proposal config ausente: /x.yaml")
         tm.that(out, has="missing_config")
-        tm.that("Traceback" not in out, eq=True)
-        tm.that("stack_trace" not in out, eq=True)
+        tm.ok("Traceback" not in out)
+        tm.ok("stack_trace" not in out)
         tm.that(captured.out, eq="")
 
     @staticmethod
@@ -239,12 +239,12 @@ class TestsFlextCliCommands:
         tm.that(captured.out, eq="")
         tm.that(captured.err, has="missing_config")
         tm.that(len(records), eq=1)
-        tm.that(records[0].exception is original_exception, eq=True)
+        tm.ok(records[0].exception is original_exception)
         tm.that("stack_trace" in records[0].context, eq=trace)
         native_event = m.ConfigMap.model_validate_json(native_stream.getvalue()).root
         tm.that(native_event["event"], eq=result.error)
         tm.that(native_event["exception_type"], eq=type(original_exception).__name__)
         tm.that("stack_trace" in native_event, eq=trace)
         serialized = m.LoggingRecord.model_validate(records[0], from_attributes=True)
-        tm.that("exception" in serialized.model_dump(), eq=False)
-        tm.that(result.exception is original_exception, eq=True)
+        tm.fail("exception" in serialized.model_dump())
+        tm.ok(result.exception is original_exception)

@@ -49,7 +49,7 @@ class TestsFlextCliTables:
             ),
         )
         tm.that(table, has=["row-1", "Alpha"])
-        tm.that("identifier" in table, eq=False)
+        tm.fail("identifier" in table)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -108,7 +108,7 @@ class TestsFlextCliTables:
         second: str = tm.ok(
             cli.format_table(rows, table_format=c.Cli.TabularFormat.GRID),
         )
-        tm.that(first == second, eq=True)
+        tm.ok(first == second)
 
     @staticmethod
     def test_format_table_fails_on_unknown_configuration_kwarg() -> None:
@@ -128,7 +128,7 @@ class TestsFlextCliTables:
         )
         output = capsys.readouterr().out
         tm.that(output, has=["Current State", "service"])
-        tm.that(output.index("Current State") < output.index("service"), eq=True)
+        tm.ok(output.index("Current State") < output.index("service"))
 
     @staticmethod
     def test_show_table_reports_configuration_failure_to_console(

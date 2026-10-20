@@ -89,7 +89,7 @@ class TestsFlextCliUtilitiesCov:
         """Verify that validate not empty succeeds for present values."""
         result = u.Cli.validate_not_empty(value, name="project")
         tm.ok(result)
-        tm.that(result.unwrap(), eq=True)
+        tm.ok(result.unwrap())
 
     @staticmethod
     def test_project_names_flattens_repeated_and_comma_selectors() -> None:

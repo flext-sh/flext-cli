@@ -392,7 +392,12 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 if child in created or members.get(child.name) != "directory":
                     cls._published_directory_current(child, created)
                 members[child.name] = "directory"
-        actual = {item.name: item.kind for item in observed.entries}
+        members.pop("__pycache__", None)
+        actual = {
+            item.name: item.kind
+            for item in observed.entries
+            if item.name != "__pycache__"
+        }
         if members != actual:
             added = sorted(actual.keys() - members.keys())
             removed = sorted(members.keys() - actual.keys())

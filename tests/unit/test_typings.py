@@ -62,7 +62,7 @@ class TestsFlextCliTypings:
     ) -> None:
         """JSON_MAPPING_ADAPTER validates JSON object mappings unchanged."""
         result = u.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
-        tm.that(result == payload, eq=True)
+        tm.ok(result == payload)
 
     @staticmethod
     @pytest.mark.parametrize("payload", [["a", "list"], "string", 42, True])
@@ -83,7 +83,7 @@ class TestsFlextCliTypings:
     ) -> None:
         """JSON_LIST_ADAPTER validates JSON arrays unchanged."""
         result = u.Cli.JSON_LIST_ADAPTER.validate_python(payload)
-        tm.that(result == payload, eq=True)
+        tm.ok(result == payload)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -102,7 +102,7 @@ class TestsFlextCliTypings:
     ) -> None:
         """The CLI default-source adapter accepts scalars, sequences, and paths."""
         result = u.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(payload)
-        tm.that(result == expected, eq=True)
+        tm.ok(result == expected)
 
     @staticmethod
     def test_json_value_adapter_round_trips_serialized_payload() -> None:
@@ -131,8 +131,8 @@ class TestsFlextCliTypings:
         """SCALAR_TYPES includes every primitive plus richer scalar types."""
         primitives = set(c.PRIMITIVES_TYPES)
         scalars = set(c.SCALAR_TYPES)
-        tm.that(primitives.issubset(scalars), eq=True)
-        tm.that(len(scalars) > len(primitives), eq=True)
+        tm.ok(primitives.issubset(scalars))
+        tm.ok(len(scalars) > len(primitives))
 
     # --- Published alias round-trips via TypeAdapter --------------------
 
@@ -142,7 +142,7 @@ class TestsFlextCliTypings:
         adapter: t.ValueAdapter[t.Scalar] = u.type_adapter(TypeForm(t.Scalar))
         tm.that(adapter.validate_python("value"), eq="value")
         bool_input = True
-        tm.that(adapter.validate_python(bool_input), eq=True)
+        tm.ok(adapter.validate_python(bool_input))
         tm.that(adapter.validate_python(3), eq=3)
 
     @staticmethod

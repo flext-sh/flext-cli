@@ -109,7 +109,7 @@ class TestsFlextCliServicePart05:
         tm.fail(fail_result)
         tm.that(fail_result.error, has="Password cannot be resolved")
         tm.that(fail_result.error_code, eq="secret_unavailable")
-        tm.that(fail_result.error_data is not None, eq=True)
+        tm.ok(fail_result.error_data is not None)
         tm.that(tm.not_none(fail_result.error_data)["field"], eq="password")
         tm.that(fail_result.exception, is_=ValueError)
         tm.that(cli.finalize_result(fail_result), eq=c.Cli.EXIT_CODE_FAILURE)

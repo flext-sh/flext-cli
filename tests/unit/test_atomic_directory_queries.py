@@ -350,7 +350,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         tm.that(
             u.Cli.atomic_read_binary_file_state(root, required=True).failure, eq=True
         )
-        tm.that(u.Cli.atomic_inventory_physical_tree(root).failure, eq=True)
+        tm.ok(u.Cli.atomic_inventory_physical_tree(root).failure)
         with pytest.raises(ValueError, match="manifest root path"):
             m.Cli.AtomicPhysicalTreeManifest(root=inventory.root)
 
@@ -385,7 +385,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         tm.that(inventory.root.inode, eq=observed.st_ino)
         tm.that(inventory.root.parent_device, eq=directory.parent.stat().st_dev)
         if observed.st_dev != inventory.root.parent_device:
-            tm.that(u.Cli.atomic_inventory_physical_tree(directory).failure, eq=True)
+            tm.ok(u.Cli.atomic_inventory_physical_tree(directory).failure)
 
     @staticmethod
     @pytest.mark.parametrize("boundary", ["device", "mount"])
@@ -506,7 +506,7 @@ class TestsFlextCliAtomicDirectoryQueries:
             publications=(publication,),
         )
 
-        tm.that(tm.ok(verified), eq=True)
+        tm.ok(tm.ok(verified))
 
     def test_directory_appearing_without_receipt_fails_loud(
         self,
@@ -546,7 +546,7 @@ class TestsFlextCliAtomicDirectoryQueries:
             directory_publications=(created,),
         )
 
-        tm.that(tm.ok(verified), eq=True)
+        tm.ok(tm.ok(verified))
 
     def test_created_directory_replacement_rejects_the_original_receipt(
         self,

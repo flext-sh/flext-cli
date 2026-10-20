@@ -41,7 +41,7 @@ class TestsFlextCliServiceSettingsContract:
         resolved: p.Cli.Settings = service.settings
         tm.that(resolved, is_=p.Cli.Settings)
         tm.that(resolved.model_dump(), eq=supplied.model_dump())
-        tm.that(service.container.settings is resolved, eq=True)
+        tm.ok(service.container.settings is resolved)
         status = tm.ok(service.execute())
         tm.that(status, is_=p.Cli.RuntimeStatus)
         tm.that(status.components, is_=p.Cli.RuntimeComponents)
@@ -134,7 +134,7 @@ class TestsFlextCliServiceSettingsContract:
             )
 
         for invocation in (first, second):
-            tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+            tm.ok(u.Cli.process_succeeded(invocation.outcome))
             tm.that(
                 m.ConfigMap.model_validate_json(invocation.stdout).root,
                 eq={"actual": "result"},
@@ -149,7 +149,7 @@ class TestsFlextCliServiceSettingsContract:
         for record in emitted:
             tm.that(record.context["correlation_id"], eq="cli-contract")
             tm.that(record.context["application_stage"], eq="selected")
-            tm.that(record.exception is original_exception, eq=True)
+            tm.ok(record.exception is original_exception)
         native_events = [
             m.ConfigMap.model_validate_json(line).root
             for line in native_json.getvalue().splitlines()
@@ -184,7 +184,7 @@ class TestsFlextCliServiceSettingsContract:
         with bound_contextvars(correlation_id="cli-contract"):
             invocation = tm.ok(service.invoke_app(app, args=["--debug", "emit"]))
 
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(
             m.ConfigMap.model_validate_json(invocation.stdout).root,
             eq={"actual": "result"},
@@ -192,25 +192,25 @@ class TestsFlextCliServiceSettingsContract:
         emitted = [record for record in records if record.message == "cli-native-event"]
         tm.that(len(emitted), eq=1)
         tm.that(stages, eq=["processed"])
-        tm.that(emitted[0].exception is original_exception, eq=True)
-        tm.that(u.logging_options().handlers[0] is options.handlers[0], eq=True)
-        tm.that(u.logging_options().handlers[1] is options.handlers[1], eq=True)
+        tm.ok(emitted[0].exception is original_exception)
+        tm.ok(u.logging_options().handlers[0] is options.handlers[0])
+        tm.ok(u.logging_options().handlers[1] is options.handlers[1])
         tm.that(
             u.logging_options().processing_stages[0] is options.processing_stages[0],
             eq=True,
         )
-        tm.that(u.logging_options().observers[0] is options.observers[0], eq=True)
-        tm.that(service.logging_options is options, eq=True)
-        tm.that("logging_options" in service.model_dump(), eq=False)
+        tm.ok(u.logging_options().observers[0] is options.observers[0])
+        tm.ok(service.logging_options is options)
+        tm.fail("logging_options" in service.model_dump())
         tm.that(
             "logging_options"
             in service.model_json_schema(mode="serialization")["properties"],
             eq=False,
         )
-        tm.that(u.logging_settings() is service.settings, eq=True)
-        tm.that(service.container.settings is service.settings, eq=True)
-        tm.that(service.context is original_context, eq=True)
-        tm.that(tm.ok(service.container.dispatcher()) is original_dispatcher, eq=True)
+        tm.ok(u.logging_settings() is service.settings)
+        tm.ok(service.container.settings is service.settings)
+        tm.ok(service.context is original_context)
+        tm.ok(tm.ok(service.container.dispatcher()) is original_dispatcher)
         tm.that(
             tm.ok(service.container.resolve("application-provider"))
             is selected_provider,
@@ -296,14 +296,14 @@ class TestsFlextCliServiceSettingsContract:
         )
 
         tm.fail(outcome)
-        tm.that(outcome.exception is caught.value, eq=True)
+        tm.ok(outcome.exception is caught.value)
         tm.that(outcome.error_code, eq=failed.error_code)
         tm.that(outcome.error_data, eq=failed.error_data)
         tm.that(service.settings.log_level, eq=expected_level)
         tm.that(service.settings.trace, eq=trace)
         tm.that(service.settings.cli_verbose, eq="--verbose" in flags)
         if "--trace" in flags and "--debug" not in flags:
-            tm.that(service.settings.debug, eq=False)
+            tm.fail(service.settings.debug)
         debug_events = [
             record for record in records if record.message == "cli-debug-event"
         ]
@@ -312,7 +312,7 @@ class TestsFlextCliServiceSettingsContract:
             record for record in records if record.message == "cli-original-failure"
         ]
         tm.that(len(failure_events), eq=1)
-        tm.that(failure_events[0].exception is caught.value, eq=True)
+        tm.ok(failure_events[0].exception is caught.value)
         tm.that("stack_trace" in failure_events[0].context, eq=trace)
         captured = capsys.readouterr()
         tm.that(captured.out, eq="")
@@ -346,11 +346,11 @@ class TestsFlextCliServiceSettingsContract:
         tm.fail(result)
         tm.that(result.exception, is_=ValueError)
         tm.that(calls, eq=[])
-        tm.that(service.settings is provider, eq=True)
+        tm.ok(service.settings is provider)
         tm.that(service.settings.model_dump(), eq=before)
-        tm.that(service.container is container, eq=True)
-        tm.that(u.logging_settings() is provider, eq=True)
-        tm.that(u.logging_options() is options, eq=True)
+        tm.ok(service.container is container)
+        tm.ok(u.logging_settings() is provider)
+        tm.ok(u.logging_options() is options)
         captured = capsys.readouterr()
         tm.that(captured.out, eq="")
         tm.that(captured.err, has="INVALID")
@@ -397,10 +397,10 @@ class TestsFlextCliServiceSettingsContract:
         service.register_command(app, name="render", help_text="Render", command=render)
         outcome = tm.ok(service.invoke_app(app, args=["render"]))
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
-        tm.that(service.settings is provider, eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
+        tm.ok(service.settings is provider)
         tm.that(service.settings.model_dump(), eq=before)
-        tm.that("cli-only-diagnostic" in outcome.stdout, eq=False)
+        tm.fail("cli-only-diagnostic" in outcome.stdout)
         tm.that(outcome.stderr, has="cli-only-diagnostic")
         if output_format == c.Cli.OutputFormats.JSON:
             tm.that(

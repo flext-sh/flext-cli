@@ -78,7 +78,7 @@ class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
         """Empty pipeline returns ok with no stages."""
         result = cli.pipeline([], context=cli.stage_context(tmp_path))
         tm.ok(result)
-        tm.that(result.value.success, eq=True)
+        tm.ok(result.value.success)
         tm.that(len(result.value.stages), eq=0)
 
     def test_total_duration_tracked(self, tmp_path: Path) -> None:

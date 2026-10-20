@@ -33,7 +33,7 @@ class TestsFlextCliAtomicSymlink:
         after = tm.ok(u.Cli.atomic_read_symlink_state(path, required=True))
         tm.that(after.target, eq="other missing target")
         tm.ok(u.Cli.atomic_delete_symlink_guarded(after))
-        tm.that(path.is_symlink(), eq=False)
+        tm.fail(path.is_symlink())
         tm.that(tuple(tmp_path.iterdir()), eq=())
 
     @staticmethod

@@ -88,16 +88,16 @@ class TestsFlextCliPublicContractsCoveragePart02:
             eq={"fallback": "yes"},
         )
         tm.that(summary.root, eq={"status": "ok"})
-        tm.that(prompt_state.interactive, eq=True)
-        tm.that(prompt_state.quiet, eq=True)
+        tm.ok(prompt_state.interactive)
+        tm.ok(prompt_state.quiet)
         tm.that(auth.token, eq=c.Tests.AUTH_VALUE_SAMPLE)
         tm.that(environment.resolve(), eq={"KEEP": "1", "ADD": "3"})
         tm.that(environment.resolved, eq={"KEEP": "1", "ADD": "3"})
         tm.that(entry.name, eq="inspect")
         tm.that(route.success_type, eq=c.Cli.MessageTypes.SUCCESS)
         tm.that(table.table_backend_format, eq=c.Cli.TabularFormat.SIMPLE)
-        tm.that(snapshot.settings_exists, eq=True)
-        tm.that(option.default, eq=True)
+        tm.ok(snapshot.settings_exists)
+        tm.ok(option.default)
         tm.that(
             u.resolve_logging_settings(log_level=" debug ").log_level,
             eq=c.LogLevel.DEBUG,
@@ -131,5 +131,5 @@ class TestsFlextCliPublicContractsCoveragePart02:
             eq={"fallback": 2},
         )
         tm.that(write_options.indent, eq=4)
-        tm.that(write_options.sort_keys, eq=True)
-        tm.that(write_options.ensure_ascii, eq=True)
+        tm.ok(write_options.sort_keys)
+        tm.ok(write_options.ensure_ascii)

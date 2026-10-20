@@ -49,7 +49,7 @@ class TestsFlextCliExamplesSmokePart05:
             accepted.value,
         )
         tm.ok(unchanged)
-        tm.that(unchanged.value is accepted.value, eq=True)
+        tm.ok(unchanged.value is accepted.value)
 
     @staticmethod
     def test_settings_and_pydantic_examples_validate_production_flow(
@@ -67,16 +67,16 @@ class TestsFlextCliExamplesSmokePart05:
         )
         tm.ok(settings_result)
         tm.that(settings_result.value["max_workers"], eq=20)
-        tm.that(settings_result.value["enable_metrics"], eq=True)
-        tm.that(settings_result.value["services_initialized"], eq=True)
-        tm.that(Path(str(settings_result.value["temp_dir"])).exists(), eq=True)
+        tm.ok(settings_result.value["enable_metrics"])
+        tm.ok(settings_result.value["services_initialized"])
+        tm.ok(Path(str(settings_result.value["temp_dir"])).exists())
 
         database_result = (
             ExamplesFlextCliPydanticDrivenCli.create_database_config_from_cli()
         )
         tm.ok(database_result)
         tm.that(database_result.value.port, eq=5433)
-        tm.that(database_result.value.ssl_enabled, eq=True)
+        tm.ok(database_result.value.ssl_enabled)
         tm.that(database_result.value.connection_pool, eq=20)
 
     @staticmethod

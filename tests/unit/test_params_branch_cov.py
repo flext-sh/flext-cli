@@ -27,22 +27,22 @@ class TestsFlextCliParams:
         params = m.Cli.CliParamsConfig(debug=True)
         resolved = u.Cli.params_resolve(params, {"verbose": True})
         tm.that(resolved, is_=m.Cli.CliParamsConfig)
-        tm.that(resolved.debug, eq=True)
-        tm.that(resolved.verbose, eq=True)
+        tm.ok(resolved.debug)
+        tm.ok(resolved.verbose)
 
     @staticmethod
     def test_resolve_with_none_params_uses_kwargs_only() -> None:
         """Verify that resolve with none params uses kwargs only."""
         resolved = u.Cli.params_resolve(None, {"quiet": True})
         tm.that(resolved, is_=m.Cli.CliParamsConfig)
-        tm.that(resolved.quiet, eq=True)
+        tm.ok(resolved.quiet)
 
     @staticmethod
     def test_resolve_kwargs_override_model_values() -> None:
         """Verify that resolve kwargs override model values."""
         params = m.Cli.CliParamsConfig(debug=True)
         resolved = u.Cli.params_resolve(params, {"debug": False})
-        tm.that(resolved.debug, eq=False)
+        tm.fail(resolved.debug)
 
     @staticmethod
     def test_resolve_is_idempotent_for_same_inputs() -> None:
@@ -68,10 +68,10 @@ class TestsFlextCliParams:
         result = u.Cli.params_set_bool(current, params)
         tm.ok(result)
         updated = result.value
-        tm.that(updated.debug, eq=True)
-        tm.that(updated.cli_verbose, eq=True)
-        tm.that(updated.cli_quiet, eq=True)
-        tm.that(updated.cli_no_color, eq=True)
+        tm.ok(updated.debug)
+        tm.ok(updated.cli_verbose)
+        tm.ok(updated.cli_quiet)
+        tm.ok(updated.cli_no_color)
 
     @staticmethod
     def test_set_bool_trace_without_debug_is_independent() -> None:
@@ -80,7 +80,7 @@ class TestsFlextCliParams:
         params = m.Cli.CliParamsConfig(trace=True)
         result = u.Cli.params_set_bool(current, params)
         tm.ok(result)
-        tm.that(result.value.trace, eq=True)
+        tm.ok(result.value.trace)
         tm.that(result.value.debug, eq=current.debug)
 
     @staticmethod
@@ -89,8 +89,8 @@ class TestsFlextCliParams:
         current = settings.clone()
         result = u.Cli.params_set_bool(current, m.Cli.CliParamsConfig())
         tm.ok(result)
-        tm.that(result.value.debug is current.debug, eq=True)
-        tm.that(result.value.cli_verbose is current.cli_verbose, eq=True)
+        tm.ok(result.value.debug is current.debug)
+        tm.ok(result.value.cli_verbose is current.cli_verbose)
 
     # -- params_set_log_level ----------------------------------------------
 
@@ -200,7 +200,7 @@ class TestsFlextCliParams:
         result = u.Cli.params_apply(current, params)
         tm.ok(result)
         updated = result.value
-        tm.that(updated.debug, eq=True)
+        tm.ok(updated.debug)
         tm.that(updated.log_level, eq=params.log_level)
         tm.that(updated.cli_output_format, eq="yaml")
         tm.that(updated.cli_log_verbosity, eq="detailed")

@@ -81,8 +81,8 @@ class TestsFlextCliCliParams:
 
         tm.ok(result)
         updated = result.value
-        tm.that(updated.cli_verbose is True, eq=True)
-        tm.that(updated.debug is True, eq=True)
+        tm.ok(updated.cli_verbose is True)
+        tm.ok(updated.debug is True)
         tm.that(updated.log_level, eq=c.LogLevel.DEBUG)
 
     @staticmethod
@@ -94,8 +94,8 @@ class TestsFlextCliCliParams:
 
         tm.ok(result)
         updated = result.value
-        tm.that(updated.debug is True, eq=True)
-        tm.that(updated.trace is True, eq=True)
+        tm.ok(updated.debug is True)
+        tm.ok(updated.trace is True)
 
     @staticmethod
     def test_apply_to_config_is_idempotent_for_same_values(
@@ -110,7 +110,7 @@ class TestsFlextCliCliParams:
             log_level=c.LogLevel.DEBUG,
         )
         tm.ok(second)
-        tm.that(second.value.cli_verbose is True, eq=True)
+        tm.ok(second.value.cli_verbose is True)
         tm.that(second.value.log_level, eq=c.LogLevel.DEBUG)
 
     # ── apply_to_config: failure paths ───────────────────────────────
@@ -124,7 +124,7 @@ class TestsFlextCliCliParams:
         result = cli.apply_to_config(current, trace=True)
 
         tm.ok(result)
-        tm.that(result.value.trace, eq=True)
+        tm.ok(result.value.trace)
         tm.that(result.value.debug, eq=current.debug)
         tm.that(result.value.log_level, eq=current.log_level)
 
@@ -190,7 +190,7 @@ class TestsFlextCliCliParams:
         result = cli.invoke_app(app, args=["test", "--help"])
 
         tm.ok(result)
-        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(result.value.outcome))
         for flag in ("--verbose", "--debug", "--log-level", "--output-format"):
             tm.that(result.value.stdout, has=flag)
 
@@ -202,7 +202,7 @@ class TestsFlextCliCliParams:
         result = cli.invoke_app(app, args=["test", "--verbose", "--debug"])
 
         tm.ok(result)
-        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(result.value.outcome))
         tm.that(result.value.stdout, has="Verbose: enabled")
         tm.that(result.value.stdout, has="Debug: enabled")
 
@@ -221,6 +221,6 @@ class TestsFlextCliCliParams:
         )
 
         tm.ok(result)
-        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(result.value.outcome))
         tm.that(result.value.stdout, has="Log level: WARNING")
         tm.that(result.value.stdout, has="Output format: json")

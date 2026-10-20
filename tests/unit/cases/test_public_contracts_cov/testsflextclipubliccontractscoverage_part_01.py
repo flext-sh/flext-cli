@@ -20,7 +20,7 @@ class TestsFlextCliPublicContractsCoveragePart01:
         """The CLI model facade inherits a functioning settings preset."""
         instance = FlextCliModels.BaseSettings()
         adapter = u.type_adapter(TypeForm(FlextCliModels.PydanticBaseSettings))
-        tm.that(adapter.validate_python(instance) is instance, eq=True)
+        tm.ok(adapter.validate_python(instance) is instance)
         restored = FlextCliModels.BaseSettings.model_validate_json(
             instance.model_dump_json()
         )
@@ -58,20 +58,20 @@ class TestsFlextCliPublicContractsCoveragePart01:
 
         fresh_settings = settings.clone()
         tm.that(fresh_settings, is_=p.Cli.Settings)
-        tm.that(u.Cli.cli_test_env(fresh_settings), eq=False)
+        tm.fail(u.Cli.cli_test_env(fresh_settings))
 
         shell_settings = settings.clone(cli_shell_command="pytest -k smoke")
-        tm.that(u.Cli.cli_test_env(shell_settings), eq=True)
+        tm.ok(u.Cli.cli_test_env(shell_settings))
 
         pytest_settings = settings.clone(
             cli_pytest_current_test=(
                 "tests/unit/test_public_contracts_cov.py::test_public_facade"
             ),
         )
-        tm.that(u.Cli.cli_test_env(pytest_settings), eq=True)
+        tm.ok(u.Cli.cli_test_env(pytest_settings))
 
         ci_settings = settings.clone(cli_ci=True)
-        tm.that(u.Cli.cli_test_env(ci_settings), eq=True)
+        tm.ok(u.Cli.cli_test_env(ci_settings))
 
         FlextCliSettings.reset_for_testing()
 

@@ -63,9 +63,9 @@ class TestsFlextCliConfigEngine:
         tm.ok(u.Cli.template_render(tpl, context))
         first = u.Cli.template_environment(tmp_path)
         second = u.Cli.template_environment(tmp_path)
-        tm.that(first is second, eq=True)
+        tm.ok(first is second)
         other = u.Cli.template_environment(tmp_path / "nested")
-        tm.that(first is other, eq=False)
+        tm.fail(first is other)
 
     @staticmethod
     @pytest.mark.parametrize("included", [False, True])
@@ -163,7 +163,7 @@ class TestsFlextCliConfigEngine:
         )
 
         tm.fail(rendered)
-        tm.that(rendered.exception is not None, eq=True)
+        tm.ok(rendered.exception is not None)
 
     @staticmethod
     def test_template_render_strict_undefined_fails(tmp_path: Path) -> None:
@@ -325,7 +325,7 @@ class TestsFlextCliTemplateRenderDir:
         ).unwrap()
         tm.that(len(report.skipped), eq=1)
         tm.that(report.created, empty=True)
-        tm.that((out / "a").exists(), eq=False)
+        tm.fail((out / "a").exists())
 
     @staticmethod
     def test_render_dir_overwrite_policy(tmp_path: Path) -> None:
@@ -387,7 +387,7 @@ class TestsFlextCliTemplateRenderDir:
         ).unwrap()
         tm.that(report.failed, empty=False)
         tm.that(report.failed[0][1], has=c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE)
-        tm.that((tmp_path / "escape").exists(), eq=False)
+        tm.fail((tmp_path / "escape").exists())
 
     @staticmethod
     def test_render_dir_missing_root_fails(tmp_path: Path) -> None:

@@ -96,7 +96,7 @@ class TestsFlextCliRulesCov:
             allowed_keys=allowed_keys,
         )
         tm.that(len(result), eq=expected_len)
-        tm.that(all(key in allowed_keys for key in result), eq=True)
+        tm.ok(all(key in allowed_keys for key in result))
 
     @staticmethod
     def test_load_scoped_config_returns_normalized_scope(tmp_path: Path) -> None:
@@ -338,7 +338,7 @@ class TestsFlextCliRulesCov:
     @staticmethod
     def test_matches_filters_empty_filter_matches_any() -> None:
         """Verify that matches filters empty filter matches any."""
-        tm.that(u.Cli.rules_matches_filters("rule-a", ()), eq=True)
+        tm.ok(u.Cli.rules_matches_filters("rule-a", ()))
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -352,7 +352,7 @@ class TestsFlextCliRulesCov:
         expected: bool,
     ) -> None:
         """Verify that matches filters glob and substring."""
-        tm.that(u.Cli.rules_matches_filters(rule_id, rule_filters) is expected, eq=True)
+        tm.ok(u.Cli.rules_matches_filters(rule_id, rule_filters) is expected)
 
     # ------------------------------------------------------- directory resolve
 

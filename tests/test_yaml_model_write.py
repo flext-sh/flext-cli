@@ -31,8 +31,8 @@ class TestsFlextCliYamlModelWrite:
         written = cli.write_yaml_model(target, source)
         loaded = cli.read_yaml_model(target, m.Cli.XlsxCellAddress)
 
-        tm.that(written.success, eq=True)
-        tm.that(loaded.success, eq=True)
+        tm.ok(written.success)
+        tm.ok(loaded.success)
         tm.that(loaded.value, eq=source)
 
 

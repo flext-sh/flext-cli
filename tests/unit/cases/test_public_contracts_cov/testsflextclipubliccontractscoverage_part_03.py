@@ -55,10 +55,10 @@ class TestsFlextCliPublicContractsCoveragePart03:
 
         tm.that(cli, is_=p.Cli.PipelineService)
         tm.that(context.settings, eq={"mode": "test"})
-        tm.that(pipeline.success, eq=False)
+        tm.fail(pipeline.success)
         tm.that([stage.stage_id for stage in pipeline.failed_stages], eq=["fail"])
         tm.that([stage.stage_id for stage in pipeline.skipped_stages], eq=["skip"])
         tm.ok(stage_result)
         tm.that(stage_result.value.output, eq={"workspace": str(tmp_path)})
         tm.ok(pipeline_run)
-        tm.that(pipeline_run.value.success, eq=True)
+        tm.ok(pipeline_run.value.success)

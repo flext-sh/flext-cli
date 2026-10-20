@@ -70,7 +70,7 @@ class TestsFlextCliAtomicFileGuards:
             ),
         )
 
-        tm.that(path.exists(), eq=False)
+        tm.fail(path.exists())
 
     @staticmethod
     def test_create_rejects_foreign_parent_owner_before_effect(
@@ -88,7 +88,7 @@ class TestsFlextCliAtomicFileGuards:
             ),
         )
 
-        tm.that(path.exists(), eq=False)
+        tm.fail(path.exists())
 
     @staticmethod
     def test_create_publishes_under_satisfied_guards(tmp_path: Path) -> None:

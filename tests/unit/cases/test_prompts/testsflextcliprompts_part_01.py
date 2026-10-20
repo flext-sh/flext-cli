@@ -67,7 +67,7 @@ class TestsFlextCliPromptsPart01:
     ) -> None:
         """Verify that confirm returns defaults when not interactive."""
         quiet_prompts = make_prompts(quiet=True)
-        tm.that(quiet_prompts.confirm("Continue?", default=True).value, eq=True)
+        tm.ok(quiet_prompts.confirm("Continue?", default=True).value)
         non_interactive_prompts = make_prompts(interactive_mode=False)
         tm.that(
             non_interactive_prompts.confirm("Continue?", default=False).value,
@@ -80,12 +80,12 @@ class TestsFlextCliPromptsPart01:
     ) -> None:
         """Verify that confirm accepts yes no default and invalid retry."""
         prompts = make_prompts(inputs=["", "y", "n", "maybe", "yes"])
-        tm.that(prompts.confirm("Continue?", default=True).value, eq=True)
-        tm.that(prompts.confirm("Continue?", default=False).value, eq=True)
-        tm.that(prompts.confirm("Continue?", default=True).value, eq=False)
+        tm.ok(prompts.confirm("Continue?", default=True).value)
+        tm.ok(prompts.confirm("Continue?", default=False).value)
+        tm.fail(prompts.confirm("Continue?", default=True).value)
         retry_result = prompts.confirm("Continue?", default=False)
         tm.ok(retry_result)
-        tm.that(retry_result.value, eq=True)
+        tm.ok(retry_result.value)
 
     @staticmethod
     @pytest.mark.parametrize(

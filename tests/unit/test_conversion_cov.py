@@ -110,7 +110,7 @@ class TestsFlextCliConversion:
         result = u.Cli.cli_args_to_model(m.Tests.SampleInput, {"name": "bob"})
         model: m.Tests.SampleInput = tm.ok(result)
         tm.that(model.count, eq=1)
-        tm.that(model.dry_run, eq=False)
+        tm.fail(model.dry_run)
 
     @staticmethod
     def test_cli_args_to_model_validation_failure_reports_model() -> None:

@@ -80,7 +80,7 @@ class TestsFlextCliServicesAuthCov:
         """Verify that validate credentials reports success per case."""
         result = auth.validate_credentials(username, password)
 
-        tm.that(result.success is expect_ok, eq=True)
+        tm.ok(result.success is expect_ok)
         if expect_ok:
             tm.that(result.value, empty=False)
         else:
@@ -152,7 +152,7 @@ class TestsFlextCliServicesAuthCov:
         """Verify that blank save does not create token file."""
         auth.save_auth_token("")
 
-        tm.that(token_file.exists(), eq=False)
+        tm.fail(token_file.exists())
 
     @staticmethod
     def test_fetch_without_saved_token_fails(
@@ -160,7 +160,7 @@ class TestsFlextCliServicesAuthCov:
         token_file: Path,
     ) -> None:
         """Verify that fetch without saved token fails."""
-        tm.that(token_file.exists(), eq=False)
+        tm.fail(token_file.exists())
 
         result = auth.fetch_auth_token()
 
@@ -229,7 +229,7 @@ class TestsFlextCliServicesAuthCov:
         """Verify that authenticate failure does not persist token."""
         auth.authenticate({})
 
-        tm.that(token_file.exists(), eq=False)
+        tm.fail(token_file.exists())
 
     # ── clear_auth_tokens ─────────────────────────────────────────────
 
@@ -240,12 +240,12 @@ class TestsFlextCliServicesAuthCov:
     ) -> None:
         """Verify that clear removes persisted token file."""
         tm.ok(auth.save_auth_token("clear-me-token"))
-        tm.that(token_file.exists(), eq=True)
+        tm.ok(token_file.exists())
 
         result = auth.clear_auth_tokens()
 
         tm.ok(result)
-        tm.that(token_file.exists(), eq=False)
+        tm.fail(token_file.exists())
 
     @staticmethod
     def test_clear_is_idempotent_when_no_token_file(
@@ -253,7 +253,7 @@ class TestsFlextCliServicesAuthCov:
         token_file: Path,
     ) -> None:
         """Verify that clear is idempotent when no token file."""
-        tm.that(token_file.exists(), eq=False)
+        tm.fail(token_file.exists())
 
         first = auth.clear_auth_tokens()
         second = auth.clear_auth_tokens()

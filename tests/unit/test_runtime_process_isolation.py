@@ -104,7 +104,7 @@ class TestsFlextCliRuntimeProcessIsolation:
 
         tm.fail(result)
         tm.that(result.error or "", has="no qualified native platform capability")
-        tm.that(isinstance(result.exception, ValueError), eq=True)
+        tm.ok(isinstance(result.exception, ValueError))
 
     @staticmethod
     def test_isolation_refuses_inherited_caller_descriptors(
@@ -179,7 +179,7 @@ class TestsFlextCliRuntimeProcessIsolation:
             else "no qualified native platform capability"
         )
         tm.that(result.error or "", has=expected)
-        tm.that(output.parent.exists(), eq=False)
+        tm.fail(output.parent.exists())
 
     @staticmethod
     def test_network_policy_cannot_remove_a_required_syscall() -> None:

@@ -74,7 +74,7 @@ def _start_session_descendant(
     process = tm.ok(result)
     tm.ok(process.wait(timeout=10))
     descendant_pid = read_recorded_pid(pid_file)
-    tm.that(descendant_pid > 0, eq=True)
+    tm.ok(descendant_pid > 0)
     return process, descendant_pid
 
 
@@ -239,7 +239,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
     ) -> None:
         """Public model defaults and omitted options produce equivalent outputs."""
         defaults = m.Cli.ProcessOptions()
-        tm.that(isinstance(cast("object", defaults), p.Cli.ProcessOptions), eq=True)
+        tm.ok(isinstance(cast("object", defaults), p.Cli.ProcessOptions))
         command = (
             sys.executable,
             "-c",
@@ -275,7 +275,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         """Verify run(capture=False) streams live: captured stdout is empty, exit ok."""
         result = runner.run(("sh", "-c", "echo streamed-line"), capture=False)
         output = m.Cli.CommandOutput.model_validate(tm.ok(result))
-        tm.that(FlextCliUtilitiesCli.process_succeeded(output.outcome), eq=True)
+        tm.ok(FlextCliUtilitiesCli.process_succeeded(output.outcome))
         tm.that(output.stdout, eq="")
         tm.that(output.stderr, eq="")
 
@@ -296,7 +296,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         ok_result = runner.run_live(("sh", "-c", "echo live-ok"))
         ok_output = m.Cli.CommandOutput.model_validate(tm.ok(ok_result))
         tm.that(ok_output.stdout, eq="")
-        tm.that(FlextCliUtilitiesCli.process_succeeded(ok_output.outcome), eq=True)
+        tm.ok(FlextCliUtilitiesCli.process_succeeded(ok_output.outcome))
         tm.fail(runner.run_live(("sh", "-c", "exit 7")), has="failed")
 
     @staticmethod
@@ -306,7 +306,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.ok(result)
         process = result.value
 
-        tm.that(process.pid > 0, eq=True)
+        tm.ok(process.pid > 0)
         tm.that(process.poll(), eq=None)
         wait_result = process.wait(timeout=5)
         tm.ok(wait_result)
@@ -334,7 +334,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
                 options=m.Cli.ProcessOptions(input_data="inherited-input\n"),
             ),
         )
-        tm.that(FlextCliUtilitiesCli.process_succeeded(output.outcome), eq=True)
+        tm.ok(FlextCliUtilitiesCli.process_succeeded(output.outcome))
         tm.that(output.stdout.splitlines(), eq=["inherited-input", "'' ''"])
         tm.that(output.stderr.strip(), eq="inherited-error")
 
@@ -362,7 +362,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
                 options=m.Cli.ProcessOptions(env={"FLEXT_PARENT_ONLY": "parent"}),
             ),
         )
-        tm.that(FlextCliUtilitiesCli.process_succeeded(output.outcome), eq=True)
+        tm.ok(FlextCliUtilitiesCli.process_succeeded(output.outcome))
         tm.that(
             output.stdout.splitlines(),
             eq=["parent" if inherit_environment else "absent", "child"],
@@ -513,7 +513,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.ok(process.terminate())
         wait_result = process.wait(timeout=5)
         tm.ok(wait_result)
-        tm.that(process.returncode is not None, eq=True)
+        tm.ok(process.returncode is not None)
 
     @staticmethod
     def test_process_start_kill_lifecycle(runner: FlextCliUtilitiesCli) -> None:
@@ -529,7 +529,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.ok(process.kill())
         wait_result = process.wait(timeout=5)
         tm.ok(wait_result)
-        tm.that(process.returncode is not None, eq=True)
+        tm.ok(process.returncode is not None)
 
     @staticmethod
     def test_process_start_terminate_reaches_leader_exited_descendants(
@@ -551,7 +551,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
         deadline = time.monotonic() + 10
         while not sentinel.exists() and time.monotonic() < deadline:
             time.sleep(0.05)
-        tm.that(sentinel.exists(), eq=True)
+        tm.ok(sentinel.exists())
         tm.ok(process.kill())
 
     @staticmethod
@@ -579,7 +579,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
                 gone = True
                 break
             time.sleep(0.05)
-        tm.that(gone, eq=True)
+        tm.ok(gone)
 
     @staticmethod
     def test_process_start_terminate_without_session_leaves_descendants(
@@ -601,9 +601,9 @@ class TestsFlextCliRuntimeUtilitiesCore:
 
         tm.ok(process.wait(timeout=10))
         descendant_pid = read_recorded_pid(pid_file)
-        tm.that(descendant_pid > 0, eq=True)
+        tm.ok(descendant_pid > 0)
         tm.ok(process.terminate())
 
         time.sleep(0.5)
-        tm.that(sentinel.exists(), eq=False)
+        tm.fail(sentinel.exists())
         os.kill(descendant_pid, signal.SIGKILL)

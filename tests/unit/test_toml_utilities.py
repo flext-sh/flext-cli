@@ -161,7 +161,7 @@ class TestsFlextCliTomlUtilities:
         result = u.Cli.toml_write_document(toml_file, doc)
 
         tm.ok(result)
-        tm.that(toml_file.exists(), eq=True)
+        tm.ok(toml_file.exists())
 
     @staticmethod
     def test_write_document_creates_missing_parent_directories(
@@ -173,7 +173,7 @@ class TestsFlextCliTomlUtilities:
         doc["key"] = "value"
 
         tm.ok(u.Cli.toml_write_document(toml_file, doc))
-        tm.that(toml_file.exists(), eq=True)
+        tm.ok(toml_file.exists())
 
     @staticmethod
     def test_write_pyproject_runs_the_required_real_formatter(
@@ -228,7 +228,7 @@ class TestsFlextCliTomlUtilities:
         sources = tool["uv"]["sources"]
         tm.that(sources, is_=dict)
         tm.that(sources["flext-core"], is_=dict)
-        tm.that(sources["flext-core"]["workspace"], eq=True)
+        tm.ok(sources["flext-core"]["workspace"])
         tm.that(rendered["project"], eq={"name": "demo"})
 
     # -------------------------------------------------------------- builders

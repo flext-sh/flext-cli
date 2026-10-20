@@ -31,5 +31,5 @@ class TestsFlextCliRuntimeProcessCompletion:
 
         outcome = tm.ok(result)
         tm.that(outcome.raw_return_code, eq=0)
-        tm.that(outcome.timed_out, eq=False)
+        tm.fail(outcome.timed_out)
         tm.that((tmp_path / "completion.log").read_text(), eq="complete\n")

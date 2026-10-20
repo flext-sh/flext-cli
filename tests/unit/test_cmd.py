@@ -108,12 +108,12 @@ class TestsFlextCliCmd:
     @staticmethod
     def test_show_settings_succeeds_for_current_home_state() -> None:
         """show_settings() must expose the current settings-dir state."""
-        tm.that(tm.ok(cli.show_settings()), eq=True)
+        tm.ok(tm.ok(cli.show_settings()))
 
     @staticmethod
     def test_validate_settings_succeeds_for_current_home_state() -> None:
         """validate_settings() must report the real current structure."""
-        tm.that(tm.ok(cli.validate_settings()), eq=True)
+        tm.ok(tm.ok(cli.validate_settings()))
 
     @staticmethod
     def _settings_snapshot(home: Path) -> m.Cli.SettingsSnapshot:

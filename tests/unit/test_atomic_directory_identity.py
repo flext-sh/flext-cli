@@ -25,14 +25,14 @@ class TestsFlextCliAtomicDirectoryIdentity:
         target = tmp_path / "state"
         absent = u.atomic_directory_snapshot(target)
         parent_state = tmp_path.lstat()
-        tm.that(absent.exists, eq=False)
+        tm.fail(absent.exists)
         tm.that(absent.parent_device, eq=parent_state.st_dev)
         tm.that(absent.parent_inode, eq=parent_state.st_ino)
 
         target.mkdir()
         present = u.atomic_directory_snapshot(target, required=True)
         host_state = target.lstat()
-        tm.that(present.exists, eq=True)
+        tm.ok(present.exists)
         tm.that(present.mode, eq=stat.S_IMODE(host_state.st_mode))
         tm.that(present.device, eq=host_state.st_dev)
         tm.that(present.inode, eq=host_state.st_ino)
@@ -84,8 +84,8 @@ class TestsFlextCliAtomicDirectoryIdentity:
         )
 
         tm.fail(result)
-        tm.that(target.exists(), eq=False)
-        tm.that((original_parent / target.name).exists(), eq=False)
+        tm.fail(target.exists())
+        tm.fail((original_parent / target.name).exists())
 
     @staticmethod
     def test_delete_rejects_replacement_inode_with_same_mode(
@@ -111,8 +111,8 @@ class TestsFlextCliAtomicDirectoryIdentity:
         result = u.Cli.atomic_delete_empty_directory_guarded(before)
 
         tm.fail(result)
-        tm.that(target.is_dir(), eq=True)
-        tm.that(old.is_dir(), eq=True)
+        tm.ok(target.is_dir())
+        tm.ok(old.is_dir())
 
     @staticmethod
     @pytest.mark.parametrize("entry_kind", ["file", "directory"])
@@ -133,8 +133,8 @@ class TestsFlextCliAtomicDirectoryIdentity:
         result = u.Cli.atomic_delete_empty_directory_guarded(before)
 
         tm.fail(result)
-        tm.that(target.is_dir(), eq=True)
-        tm.that(child.exists(), eq=True)
+        tm.ok(target.is_dir())
+        tm.ok(child.exists())
 
     @staticmethod
     def test_leaf_symlink_is_never_a_directory_state(tmp_path: Path) -> None:
@@ -147,8 +147,8 @@ class TestsFlextCliAtomicDirectoryIdentity:
         result = u.Cli.atomic_read_empty_directory_state(alias, required=True)
 
         tm.fail(result)
-        tm.that(physical.is_dir(), eq=True)
-        tm.that(alias.is_symlink(), eq=True)
+        tm.ok(physical.is_dir())
+        tm.ok(alias.is_symlink())
 
     @staticmethod
     def test_ancestor_symlink_is_never_traversed(tmp_path: Path) -> None:
@@ -162,7 +162,7 @@ class TestsFlextCliAtomicDirectoryIdentity:
         result = u.Cli.atomic_read_empty_directory_state(alias / "empty", required=True)
 
         tm.fail(result)
-        tm.that((physical / "empty").is_dir(), eq=True)
+        tm.ok((physical / "empty").is_dir())
 
     @staticmethod
     def test_state_model_rejects_reparse_identity(tmp_path: Path) -> None:

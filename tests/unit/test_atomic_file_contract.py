@@ -222,7 +222,7 @@ raise SystemExit(0 if result.failure else 2)
             eq=True,
             msg=completed.value.stderr,
         )
-        tm.that(path.exists(), eq=False)
+        tm.fail(path.exists())
         tm.that(tuple(tmp_path.iterdir()), eq=())
 
     @staticmethod

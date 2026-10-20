@@ -117,7 +117,7 @@ class TestsFlextCliServiceRoutes:
             cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "2"]),
         )
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="hello ana hello ana")
 
     def test_invalid_input_exits_non_zero_with_validation_cause(self) -> None:
@@ -128,7 +128,7 @@ class TestsFlextCliServiceRoutes:
             cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "0"]),
         )
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=False)
+        tm.fail(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, eq="")
         tm.that(outcome.stderr, has=["ServiceGreeting", "greater than or equal to 1"])
 
@@ -138,16 +138,16 @@ class TestsFlextCliServiceRoutes:
 
         outcome = tm.ok(cli.invoke_app(app, args=["report"]))
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has='{"ready":1}')
 
     def test_execution_uses_catalogued_function_identity(self) -> None:
         """The provider supplies self, not a late replacement for the operation."""
         app = self._app(self.AlternateGreeter)
         outcome = tm.ok(cli.invoke_app(app, args=["greet-all", "--name", "ana"]))
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="hello ana")
-        tm.that("replacement" not in outcome.stdout, eq=True)
+        tm.ok("replacement" not in outcome.stdout)
 
     def test_invalid_input_never_constructs_the_provider(self) -> None:
         """Ingress rejects the request before the unavailable provider is called."""
@@ -155,7 +155,7 @@ class TestsFlextCliServiceRoutes:
         outcome = tm.ok(
             cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "0"]),
         )
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=False)
+        tm.fail(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stderr, has="greater than or equal to 1")
 
     @pytest.mark.parametrize(
@@ -168,7 +168,7 @@ class TestsFlextCliServiceRoutes:
 
         outcome = tm.ok(cli.invoke_app(app, args=args))
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="Usage")
 
     def test_execution_reaches_the_provider(self) -> None:

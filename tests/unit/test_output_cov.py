@@ -206,7 +206,7 @@ class TestsFlextCliOutputCov:
         captured = capsys.readouterr()
         out = captured.err
         tm.that(out, has="just error")
-        tm.that(out.endswith("  \n"), eq=False)
+        tm.fail(out.endswith("  \n"))
         tm.that(captured.out, eq="")
 
     @staticmethod

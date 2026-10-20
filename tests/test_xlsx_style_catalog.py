@@ -41,11 +41,11 @@ class TestsFlextCliXlsxStyleCatalog:
             ),
         )
 
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
         tm.that(len(result.value.style_map), eq=_SOURCE_STYLE_COUNT)
         style_names = frozenset(entry.style_name for entry in result.value.style_map)
         tm.that(len(style_names), eq=1)
-        tm.that(next(iter(style_names)).startswith("visual_"), eq=True)
+        tm.ok(next(iter(style_names)).startswith("visual_"))
         template = load_workbook(BytesIO(result.value.content))
         tm.that(tuple(template.named_styles), eq=("Normal", next(iter(style_names))))
         worksheet = template.worksheets[0]
@@ -64,5 +64,5 @@ class TestsFlextCliXlsxStyleCatalog:
                 ),
             ),
         )
-        tm.that(inspection.success, eq=True)
-        tm.that(inspection.value.clean, eq=True)
+        tm.ok(inspection.success)
+        tm.ok(inspection.value.clean)

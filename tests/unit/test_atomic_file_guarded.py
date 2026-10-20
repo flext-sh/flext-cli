@@ -95,7 +95,7 @@ class TestsFlextCliAtomicFileGuarded:
         result = u.Cli.atomic_write_text_file_guarded(before, "replacement")
 
         tm.fail(result)
-        tm.that(path.exists(), eq=False)
+        tm.fail(path.exists())
 
     def test_missing_parent_is_not_created(self, tmp_path: Path) -> None:
         """Leave no partial directory tree for a guarded-write failure."""
@@ -108,7 +108,7 @@ class TestsFlextCliAtomicFileGuarded:
         result = u.Cli.atomic_write_text_file_guarded(before, "replacement")
 
         tm.fail(result)
-        tm.that(parent.exists(), eq=False)
+        tm.fail(parent.exists())
 
     def test_absent_snapshot_rejects_replaced_parent(self, tmp_path: Path) -> None:
         """Never create a file under a new parent that reused the planned path."""
@@ -123,8 +123,8 @@ class TestsFlextCliAtomicFileGuarded:
         result = u.Cli.atomic_write_text_file_guarded(before, "replacement")
 
         tm.fail(result)
-        tm.that(path.exists(), eq=False)
-        tm.that((original / path.name).exists(), eq=False)
+        tm.fail(path.exists())
+        tm.fail((original / path.name).exists())
 
     def test_aliased_parent_is_rejected(self, tmp_path: Path) -> None:
         """Do not publish through a parent directory alias."""

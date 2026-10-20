@@ -71,33 +71,33 @@ class TestsFlextCliTomlCov:
     def test_document_constructor_produces_document() -> None:
         """Verify that document constructor produces document."""
         doc = u.Cli.toml_document()
-        tm.that(u.Cli.toml_is_document(doc), eq=True)
+        tm.ok(u.Cli.toml_is_document(doc))
         tm.that(u.Cli.toml_dumps(doc), eq="")
 
     @staticmethod
     def test_table_constructor_is_recognized_as_table() -> None:
         """Verify that table constructor is recognized as table."""
-        tm.that(u.Cli.toml_is_table(u.Cli.toml_table()), eq=True)
+        tm.ok(u.Cli.toml_is_table(u.Cli.toml_table()))
 
     @staticmethod
     def test_aot_constructor_is_recognized_as_aot() -> None:
         """Verify that aot constructor is recognized as aot."""
-        tm.that(u.Cli.toml_is_aot(u.Cli.toml_aot()), eq=True)
+        tm.ok(u.Cli.toml_is_aot(u.Cli.toml_aot()))
 
     @staticmethod
     def test_array_constructor_round_trips_to_string_list() -> None:
         """Verify that array constructor round trips to string list."""
         arr = u.Cli.toml_array(["a", "b", "c"])
-        tm.that(u.Cli.toml_is_item(arr), eq=True)
+        tm.ok(u.Cli.toml_is_item(arr))
         tm.that(list(u.Cli.toml_as_string_list(arr)), eq=["a", "b", "c"])
 
     @staticmethod
     def test_predicates_reject_non_toml_values() -> None:
         """Verify that predicates reject non toml values."""
-        tm.that(u.Cli.toml_is_document("not a toml value"), eq=False)
-        tm.that(u.Cli.toml_is_table("not a toml value"), eq=False)
-        tm.that(u.Cli.toml_is_aot("not a toml value"), eq=False)
-        tm.that(u.Cli.toml_is_item("not a toml value"), eq=False)
+        tm.fail(u.Cli.toml_is_document("not a toml value"))
+        tm.fail(u.Cli.toml_is_table("not a toml value"))
+        tm.fail(u.Cli.toml_is_aot("not a toml value"))
+        tm.fail(u.Cli.toml_is_item("not a toml value"))
 
     @staticmethod
     def test_table_child_reads_out_of_order_fragmented_table() -> None:
@@ -266,7 +266,7 @@ class TestsFlextCliTomlCov:
         """Verify that document from mapping preserves data on round trip."""
         payload = {"name": "flext", "version": c.Tests.VERSION_COMPATIBLE}
         doc = u.Cli.toml_document_from_mapping(payload)
-        tm.that(u.Cli.toml_is_document(doc), eq=True)
+        tm.ok(u.Cli.toml_is_document(doc))
         tm.that(u.Cli.toml_as_mapping(doc), eq=payload)
 
     # ── toml_navigate_path ────────────────────────────────────────────
@@ -276,7 +276,7 @@ class TestsFlextCliTomlCov:
         doc = u.Cli.toml_parse_text(self._VALID_TOML)
         doc = tm.not_none(doc)
         table = u.Cli.toml_navigate_path(doc, ["tool", "flext"])
-        tm.that(u.Cli.toml_is_table(table), eq=True)
+        tm.ok(u.Cli.toml_is_table(table))
         tm.that(
             u.Cli.toml_as_mapping(table),
             eq={"project": "my-project", "version": c.Tests.VERSION_VALID_SEMVER},
@@ -289,7 +289,7 @@ class TestsFlextCliTomlCov:
 
         table = u.Cli.toml_navigate_path(doc, ["created", "nested"])
 
-        tm.that(u.Cli.toml_is_table(table), eq=True)
+        tm.ok(u.Cli.toml_is_table(table))
         tm.that(dict(cast("t.JsonMapping", table)), eq={})
         table["leaf"] = "wired"
         expected: t.JsonMapping = {

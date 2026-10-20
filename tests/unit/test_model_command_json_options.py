@@ -104,7 +104,7 @@ class TestsFlextCliModelCommandJsonOptions:
             self.MappingModel,
             ["--labels", self._json(expected.labels)],
         )
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[expected])
 
     def test_nested_model_options_json_reach_model(self) -> None:
@@ -122,13 +122,13 @@ class TestsFlextCliModelCommandJsonOptions:
                 self._json(expected.others),
             ],
         )
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[expected])
 
     def test_omitted_json_options_deliver_model_defaults(self) -> None:
         """Omitted JSON options deliver the model's own defaults."""
         invocation, received = self._invoke(self.JsonDefaultsModel, [])
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[self.JsonDefaultsModel()])
 
     def test_omitted_json_options_take_settings_values(self) -> None:
@@ -142,7 +142,7 @@ class TestsFlextCliModelCommandJsonOptions:
             [],
             settings=settings,
         )
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[settings])
 
     @pytest.mark.parametrize(
@@ -156,7 +156,7 @@ class TestsFlextCliModelCommandJsonOptions:
     ) -> None:
         """Malformed JSON or a schema mismatch fails before the handler runs."""
         invocation, received = self._invoke(self.MappingModel, ["--labels", raw])
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=False)
+        tm.fail(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, empty=True)
 
         executed: list[TestsFlextCliModelCommandJsonOptions.MappingModel] = []
@@ -172,7 +172,7 @@ class TestsFlextCliModelCommandJsonOptions:
     def test_help_renders_json_options(self) -> None:
         """Help renders every JSON option with the JSON format marker."""
         invocation, received = self._invoke(self.JsonDefaultsModel, ["--help"])
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(invocation.stdout, has=["--labels", "--prefs"])
         tm.that(invocation.stdout, has=c.Cli.CLI_JSON_OPTION_METAVAR)
         tm.that(received, empty=True)
@@ -183,7 +183,7 @@ class TestsFlextCliModelCommandJsonOptions:
             self.OptionalSequenceModel,
             ["--projects", "."],
         )
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[self.OptionalSequenceModel(projects=["."])])
 
     def test_optional_sequence_option_repeats(self) -> None:
@@ -192,5 +192,5 @@ class TestsFlextCliModelCommandJsonOptions:
             self.OptionalSequenceModel,
             ["--projects", "a", "--projects", "b"],
         )
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[self.OptionalSequenceModel(projects=["a", "b"])])

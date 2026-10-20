@@ -27,15 +27,15 @@ class TestsFlextCliYamlModelLoading:
             "service:\n  host: api.internal\n  port: 8443\n"
             "features:\n  enabled: true\n",
         )
-        tm.that(written.success, eq=True)
+        tm.ok(written.success)
 
         result = cli.read_yaml_model(source, m.Tests.YamlConsumerConfig)
 
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
         tm.that(result.value, is_=m.Tests.YamlConsumerConfig)
         tm.that(result.value.service.host, eq="api.internal")
         tm.that(result.value.service.port, eq=8443)
-        tm.that(result.value.features.enabled, eq=True)
+        tm.ok(result.value.features.enabled)
 
     @staticmethod
     def test_chain_deep_merges_before_one_final_validation(
@@ -57,20 +57,20 @@ class TestsFlextCliYamlModelLoading:
             consumer_source,
             "service:\n  host: consumer.internal\nfeatures:\n  enabled: true\n",
         )
-        tm.that(base_written.success, eq=True)
-        tm.that(type_written.success, eq=True)
-        tm.that(consumer_written.success, eq=True)
+        tm.ok(base_written.success)
+        tm.ok(type_written.success)
+        tm.ok(consumer_written.success)
 
         result = cli.read_yaml_model_chain(
             (base_source, type_source, consumer_source),
             m.Tests.YamlConsumerConfig,
         )
 
-        tm.that(result.success, eq=True)
+        tm.ok(result.success)
         tm.that(result.value, is_=m.Tests.YamlConsumerConfig)
         tm.that(result.value.service.host, eq="consumer.internal")
         tm.that(result.value.service.port, eq=443)
-        tm.that(result.value.features.enabled, eq=True)
+        tm.ok(result.value.features.enabled)
 
     @staticmethod
     def test_missing_file_fails_loud(tmp_path: Path) -> None:
@@ -80,7 +80,7 @@ class TestsFlextCliYamlModelLoading:
             m.Tests.YamlConsumerConfig,
         )
 
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
 
     @staticmethod
     def test_malformed_chain_source_fails_loud(tmp_path: Path) -> None:
@@ -96,15 +96,15 @@ class TestsFlextCliYamlModelLoading:
             malformed_source,
             "service:\n  host: [unterminated\n",
         )
-        tm.that(base_written.success, eq=True)
-        tm.that(malformed_written.success, eq=True)
+        tm.ok(base_written.success)
+        tm.ok(malformed_written.success)
 
         result = cli.read_yaml_model_chain(
             (base_source, malformed_source),
             m.Tests.YamlConsumerConfig,
         )
 
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
 
     @staticmethod
     def test_strict_model_rejects_quoted_integer(tmp_path: Path) -> None:
@@ -115,8 +115,8 @@ class TestsFlextCliYamlModelLoading:
             'service:\n  host: api.internal\n  port: "8443"\n'
             "features:\n  enabled: true\n",
         )
-        tm.that(written.success, eq=True)
+        tm.ok(written.success)
 
         result = cli.read_yaml_model(source, m.Tests.YamlConsumerConfig)
 
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)

@@ -235,7 +235,7 @@ class TestsFlextCliYamlCov:
         result = u.Cli.yaml_dump(outfile, data, sort_keys=sort_keys)
 
         tm.that(result.success, eq=expect_ok)
-        tm.that(result.unwrap(), eq=True)
+        tm.ok(result.unwrap())
         # The written file re-parses to exactly the original mapping.
         tm.that(u.Cli.yaml_safe_load(outfile).unwrap(), eq=data)
 
@@ -265,7 +265,7 @@ class TestsFlextCliYamlCov:
         """Verify that yaml dump str sort keys orders output."""
         text = u.Cli.yaml_dump_str({"b": 2, "a": 1}, sort_keys=True)
 
-        tm.that(text.index("a:") < text.index("b:"), eq=True)
+        tm.ok(text.index("a:") < text.index("b:"))
 
     @staticmethod
     def test_yaml_dump_str_empty_mapping_parses_back_to_empty() -> None:

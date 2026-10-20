@@ -40,7 +40,7 @@ class TestsFlextCliTables:
         row: t.Cli.TableMappingRow = {"a": 1, "b": "x"}
         once = u.Cli.tables_normalize_mapping_row(row)
         twice = u.Cli.tables_normalize_mapping_row(once)
-        tm.that(once == twice, eq=True)
+        tm.ok(once == twice)
 
     # ── tables_normalize_sequence_row ─────────────────────────────────
 
@@ -70,7 +70,7 @@ class TestsFlextCliTables:
         """Verify that resolve config returns same instance when only model given."""
         config = m.Cli.TableConfig()
         result = u.Cli.tables_resolve_config(config)
-        tm.that(result.unwrap() is config, eq=True)
+        tm.ok(result.unwrap() is config)
 
     @staticmethod
     def test_resolve_config_applies_kwarg_override() -> None:

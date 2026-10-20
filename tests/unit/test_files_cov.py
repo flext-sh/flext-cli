@@ -90,7 +90,7 @@ class TestsFlextCliFilesCov:
         result = cli.read_json_model(path, m.Cli.JsonWriteOptions)
         tm.ok(result)
         tm.that(result.value.indent, eq=4)
-        tm.that(result.value.sort_keys, eq=True)
+        tm.ok(result.value.sort_keys)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -196,7 +196,7 @@ class TestsFlextCliFilesCov:
         path = tmp_path / "to_delete.txt"
         path.write_text("bye", encoding="utf-8")
         tm.ok(u.Cli.files_delete(path))
-        tm.that(path.exists(), eq=False)
+        tm.fail(path.exists())
 
     @staticmethod
     def test_delete_is_idempotent_for_missing_file(tmp_path: Path) -> None:
@@ -208,7 +208,7 @@ class TestsFlextCliFilesCov:
         """Verify that ensure dir creates nested directories."""
         target = tmp_path / "new" / "subdir"
         tm.ok(u.Cli.ensure_dir(target))
-        tm.that(target.is_dir(), eq=True)
+        tm.ok(target.is_dir())
 
     @staticmethod
     def test_ensure_symlink_creates_link_to_source(tmp_path: Path) -> None:
@@ -217,7 +217,7 @@ class TestsFlextCliFilesCov:
         source.mkdir()
         link = tmp_path / "link_dir"
         tm.ok(u.Cli.ensure_symlink(link, source))
-        tm.that(link.is_symlink(), eq=True)
+        tm.ok(link.is_symlink())
 
     @staticmethod
     def test_ensure_symlink_is_idempotent(tmp_path: Path) -> None:
@@ -312,8 +312,8 @@ class TestsFlextCliFilesCov:
         link = tmp_path / "link_dir"
         tm.ok(u.Cli.ensure_symlink(link, source))
         tm.ok(u.Cli.remove_symlink_target(link))
-        tm.that(link.is_symlink(), eq=False)
-        tm.that(source.is_dir(), eq=True)
+        tm.fail(link.is_symlink())
+        tm.ok(source.is_dir())
 
     @staticmethod
     def test_remove_symlink_target_is_noop_for_absent_path(

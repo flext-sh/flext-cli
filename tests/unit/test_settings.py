@@ -125,16 +125,16 @@ class TestsFlextCliSettingsUnit:
             "cli_verbose": True,
             "cli_ci": True,
         })
-        tm.that(built.cli_verbose, eq=True)
-        tm.that(built.cli_ci, eq=True)
-        tm.that(u.Cli.cli_test_env(built), eq=True)
+        tm.ok(built.cli_verbose)
+        tm.ok(built.cli_ci)
+        tm.ok(u.Cli.cli_test_env(built))
 
     @staticmethod
     def test_model_validate_ignores_unknown_fields() -> None:
         """Unknown keys are ignored (extra=ignore) and defaults survive."""
         built = FlextCliSettings.model_validate({"cli_unknown_field": "x"})
         tm.that(built.cli_app_name, eq=c.Cli.FLEXT_CLI)
-        tm.that(hasattr(built, "cli_unknown_field"), eq=False)
+        tm.fail(hasattr(built, "cli_unknown_field"))
 
     @staticmethod
     def test_model_dump_exposes_flat_scalar_fields() -> None:
@@ -144,15 +144,15 @@ class TestsFlextCliSettingsUnit:
         tm.that(dumped, has="cli_verbose")
         tm.that(dumped, has="log_level")
         tm.that(dumped, has="cli_output_format")
-        tm.that("Cli" in dumped, eq=False)
+        tm.fail("Cli" in dumped)
 
     @staticmethod
     def test_clone_yields_distinct_equal_instance() -> None:
         """Clone produces an independent object equal to its source."""
         source = FlextCliSettings.model_validate({})
         cloned = source.clone()
-        tm.that(cloned == source, eq=True)
-        tm.that(cloned is not source, eq=True)
+        tm.ok(cloned == source)
+        tm.ok(cloned is not source)
 
     @staticmethod
     def test_reset_for_testing_restores_usable_defaults() -> None:
@@ -160,5 +160,5 @@ class TestsFlextCliSettingsUnit:
         FlextCliSettings.reset_for_testing()
         rebuilt = FlextCliSettings.fetch_global()
         rebuilt = tm.not_none(rebuilt)
-        tm.that(rebuilt.cli_verbose, eq=False)
+        tm.fail(rebuilt.cli_verbose)
         tm.that(rebuilt.cli_app_name, eq=c.Cli.FLEXT_CLI)

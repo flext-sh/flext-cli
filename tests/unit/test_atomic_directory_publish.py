@@ -25,8 +25,8 @@ class TestsFlextCliAtomicDirectoryPublish:
             staged,
         )
         tm.fail(result)
-        tm.that(destination.path.exists(), eq=False)
-        tm.that(staged.path.is_dir(), eq=True)
+        tm.fail(destination.path.exists())
+        tm.ok(staged.path.is_dir())
 
     @staticmethod
     def test_publish_preserves_late_empty_destination(tmp_path: Path) -> None:
@@ -84,8 +84,8 @@ class TestsFlextCliAtomicDirectoryPublish:
             "reparse_tag",
         ):
             tm.that(getattr(result.value, field), eq=getattr(staged, field))
-        tm.that(destination_path.is_dir(), eq=True)
-        tm.that(staged_path.exists(), eq=False)
+        tm.ok(destination_path.is_dir())
+        tm.fail(staged_path.exists())
 
     @staticmethod
     def test_publish_rejects_staged_replacement_inode(tmp_path: Path) -> None:
@@ -113,7 +113,7 @@ class TestsFlextCliAtomicDirectoryPublish:
             staged,
         )
 
-        tm.that(original_path.is_dir(), eq=True)
+        tm.ok(original_path.is_dir())
 
     @staticmethod
     def test_publish_rejects_late_staged_content(tmp_path: Path) -> None:

@@ -69,7 +69,7 @@ class TestsFlextCliCmdCov:
         self._make_flext_dir(tmp_path, with_subdirs=with_subdirs)
         with self._home(tmp_path):
             result = cli.validate_settings()
-        tm.that(tm.ok(result), eq=True)
+        tm.ok(tm.ok(result))
 
     def test_validate_settings_succeeds_when_structure_absent(
         self,
@@ -78,7 +78,7 @@ class TestsFlextCliCmdCov:
         """validate_settings is non-fatal on a missing canonical structure."""
         with self._home(tmp_path):
             result = cli.validate_settings()
-        tm.that(tm.ok(result), eq=True)
+        tm.ok(tm.ok(result))
 
     def test_validate_settings_is_idempotent(self, tmp_path: Path) -> None:
         """Repeated validate_settings calls yield the same successful outcome."""
@@ -86,8 +86,8 @@ class TestsFlextCliCmdCov:
         with self._home(tmp_path):
             first = cli.validate_settings()
             second = cli.validate_settings()
-        tm.that(tm.ok(first), eq=True)
-        tm.that(tm.ok(second), eq=True)
+        tm.ok(tm.ok(first))
+        tm.ok(tm.ok(second))
 
     def test_settings_snapshot_reports_existing_directory(self, tmp_path: Path) -> None:
         """settings_snapshot resolves the canonical dir and marks it present."""
@@ -96,9 +96,9 @@ class TestsFlextCliCmdCov:
             result = cli.settings_snapshot()
         snapshot: m.Cli.SettingsSnapshot = tm.ok(result)
         tm.that(snapshot.settings_dir, eq=str(settings_dir))
-        tm.that(snapshot.settings_exists, eq=True)
-        tm.that(snapshot.settings_readable, eq=True)
-        tm.that(snapshot.settings_writable, eq=True)
+        tm.ok(snapshot.settings_exists)
+        tm.ok(snapshot.settings_readable)
+        tm.ok(snapshot.settings_writable)
         tm.that(snapshot.timestamp, empty=False)
 
     def test_settings_snapshot_reports_absent_directory(self, tmp_path: Path) -> None:
@@ -107,9 +107,9 @@ class TestsFlextCliCmdCov:
             result = cli.settings_snapshot()
         snapshot: m.Cli.SettingsSnapshot = tm.ok(result)
         tm.that(snapshot.settings_dir, eq=str(tmp_path / c.Cli.PATH_FLEXT_DIR_NAME))
-        tm.that(snapshot.settings_exists, eq=False)
-        tm.that(snapshot.settings_readable, eq=False)
-        tm.that(snapshot.settings_writable, eq=False)
+        tm.fail(snapshot.settings_exists)
+        tm.fail(snapshot.settings_readable)
+        tm.fail(snapshot.settings_writable)
 
     def test_settings_snapshot_round_trips_through_public_dump(
         self,
@@ -121,7 +121,7 @@ class TestsFlextCliCmdCov:
             result = cli.settings_snapshot()
         dumped: t.JsonDict = tm.ok(result).model_dump()
         tm.that(dumped["settings_dir"], eq=str(settings_dir))
-        tm.that(dumped["settings_exists"], eq=True)
+        tm.ok(dumped["settings_exists"])
         tm.that(
             set(dumped)
             >= {
@@ -142,7 +142,7 @@ class TestsFlextCliCmdCov:
         self._make_flext_dir(tmp_path)
         with self._home(tmp_path):
             result = cli.show_settings()
-        tm.that(tm.ok(result), eq=True)
+        tm.ok(tm.ok(result))
 
     def test_show_settings_succeeds_without_existing_directory(
         self,
@@ -151,4 +151,4 @@ class TestsFlextCliCmdCov:
         """show_settings still succeeds when no settings directory exists."""
         with self._home(tmp_path):
             result = cli.show_settings()
-        tm.that(tm.ok(result), eq=True)
+        tm.ok(tm.ok(result))

@@ -85,10 +85,10 @@ class TestsFlextCliAuthUtilsCov:
         result = u.Cli.auth_validate_credentials(username, password)
 
         # Assert — success iff both fields are non-blank
-        tm.that(result.success is expect_ok, eq=True)
-        tm.that(result.failure is (not expect_ok), eq=True)
+        tm.ok(result.success is expect_ok)
+        tm.ok(result.failure is (not expect_ok))
         if expect_ok:
-            tm.that(result.unwrap(), eq=True)
+            tm.ok(result.unwrap())
 
     @staticmethod
     def test_validate_credentials_reports_empty_username() -> None:

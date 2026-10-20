@@ -262,7 +262,7 @@ class TestsFlextCliServicesAuth:
 
         # Assert
         tm.ok(result)
-        tm.that(result.value, eq=True)
+        tm.ok(result.value)
 
     def test_clear_auth_tokens_removes_persisted_token_and_is_idempotent(
         self,
@@ -281,7 +281,7 @@ class TestsFlextCliServicesAuth:
 
         # Assert
         tm.ok(first_clear)
-        tm.that(first_clear.value, eq=True)
+        tm.ok(first_clear.value)
         tm.fail(fetch_after_clear)
         tm.ok(second_clear)
-        tm.that(second_clear.value, eq=True)
+        tm.ok(second_clear.value)

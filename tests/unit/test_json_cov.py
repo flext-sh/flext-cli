@@ -164,7 +164,7 @@ class TestsFlextCliJsonCov:
         sibling.hardlink_to(path)
         before = path.stat()
         tm.ok(u.Cli.json_write(path, {"version": 2}))
-        tm.that(path.stat().st_ino == before.st_ino, eq=False)
+        tm.fail(path.stat().st_ino == before.st_ino)
         tm.that(path.stat().st_mode, eq=before.st_mode)
         tm.that(u.Cli.json_read(path).value, eq={"version": 2})
         tm.that(u.Cli.json_read(sibling).value, eq={"version": 1})
@@ -382,13 +382,13 @@ class TestsFlextCliJsonCov:
                 ' "s_on": "on", "s_off": "off", "n": 1, "n0": 0, "missing": null}',
             ).value,
         )
-        tm.that(u.Cli.json_pick_bool(data, key) is expected, eq=True)
+        tm.ok(u.Cli.json_pick_bool(data, key) is expected)
 
     @staticmethod
     def test_json_pick_bool_uses_default_for_missing_key() -> None:
         """Verify that json pick bool uses default for missing key."""
         data = u.Cli.json_as_mapping(u.Cli.json_loads('{"missing": null}').value)
-        tm.that(u.Cli.json_pick_bool(data, "missing", default=True), eq=True)
+        tm.ok(u.Cli.json_pick_bool(data, "missing", default=True))
 
     @staticmethod
     def test_json_nested_int_reads_nested_value_or_default() -> None:

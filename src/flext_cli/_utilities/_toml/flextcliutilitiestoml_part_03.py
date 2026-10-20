@@ -98,6 +98,9 @@ class FlextCliUtilitiesTomlPart03:
             normalized_table: t.JsonDict = dict(normalized_mapping)
             parent[key] = normalized_table
             return normalized_table
+        if key in parent:
+            msg = f"TOML table collides with a non-mapping value: {key}"
+            raise TypeError(msg)
         # NOTE (multi-agent): TOML mutation requires this explicitly typed table.
         table: t.JsonDict = {}
         parent[key] = table

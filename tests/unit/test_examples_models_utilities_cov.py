@@ -97,7 +97,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         # Success payload masks the secret and creates the temp directory.
         tm.that(mapping["api_key"], eq="***")
         tm.that(mapping["temp_dir"], eq=str(good_temp_dir))
-        tm.that(good_temp_dir.is_dir(), eq=True)
+        tm.ok(good_temp_dir.is_dir())
 
     # ------------------------------------------------------------------
     # Field validation raises from the model boundary
@@ -170,7 +170,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         """Verify that to json dict preserves values."""
         display = u.to_json_dict(payload)
 
-        tm.that(display.data[key] == expected, eq=True)
+        tm.ok(display.data[key] == expected)
 
     @staticmethod
     def test_public_renderers_do_not_raise() -> None:

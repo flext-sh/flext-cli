@@ -67,9 +67,9 @@ class TestsFlextCliRuntimeStreamedProcess:
         expected = b"stdout-one\nstderr-two\n"
         tm.ok(result)
         outcome = tm.ok(result)
-        tm.that(u.Cli.process_succeeded(outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome))
         tm.that(outcome.raw_return_code, eq=c.Cli.EXIT_CODE_SUCCESS)
-        tm.that(outcome.timed_out, eq=False)
+        tm.fail(outcome.timed_out)
         tm.that(outcome.forwarded_signal, is_=None)
 
         tm.that(output_file.read_bytes(), eq=expected)
@@ -121,7 +121,7 @@ class TestsFlextCliRuntimeStreamedProcess:
             ),
         )
         captured = capfd.readouterr()
-        tm.that(u.Cli.process_succeeded(outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome))
         tm.that(stdout_file.read_bytes(), eq=payload)
         tm.that(stderr_file.read_bytes(), eq=payload[::-1])
         if live:
@@ -159,9 +159,9 @@ class TestsFlextCliRuntimeStreamedProcess:
             stdout_file,
             options=m.Cli.ProcessOptions(stderr_file=stderr_file),
         )
-        tm.that(result.failure, eq=True)
+        tm.ok(result.failure)
         tm.that(stdout_file.read_bytes(), eq=before)
-        tm.that(marker.exists(), eq=False)
+        tm.fail(marker.exists())
 
     @staticmethod
     def test_separate_output_preserves_nonzero_exit(tmp_path: Path) -> None:
@@ -183,7 +183,7 @@ class TestsFlextCliRuntimeStreamedProcess:
             ),
         )
         tm.that(outcome.raw_return_code, eq=37)
-        tm.that(u.Cli.process_succeeded(outcome), eq=False)
+        tm.fail(u.Cli.process_succeeded(outcome))
         tm.that(stdout_file.read_bytes(), eq=b"out\x00")
         tm.that(stderr_file.read_bytes(), eq=b"err\xff")
 
@@ -208,11 +208,11 @@ class TestsFlextCliRuntimeStreamedProcess:
             ),
         )
         outcome = tm.ok(result)
-        tm.that(outcome.timed_out, eq=True)
-        tm.that(u.Cli.process_succeeded(outcome), eq=False)
+        tm.ok(outcome.timed_out)
+        tm.fail(u.Cli.process_succeeded(outcome))
         tm.that(stdout_file.read_bytes(), eq=b"out\x00")
         stderr = stderr_file.read_bytes()
-        tm.that(stderr.startswith(b"err\xff"), eq=True)
+        tm.ok(stderr.startswith(b"err\xff"))
         tm.that(stderr.count(b"err\xff"), eq=1)
         tm.that(self._live_threads() - threads_before, empty=True)
 
@@ -233,8 +233,8 @@ class TestsFlextCliRuntimeStreamedProcess:
             stdout_file,
             options=m.Cli.ProcessOptions(stderr_file=stderr_directory),
         )
-        tm.that(result.failure, eq=True)
-        tm.that(marker.exists(), eq=False)
+        tm.ok(result.failure)
+        tm.fail(marker.exists())
         tm.that(self._live_threads() - threads_before, empty=True)
         stdout_file.unlink()
 
@@ -373,7 +373,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         )
 
         tm.ok(result)
-        tm.that(result.value.timed_out, eq=True)
+        tm.ok(result.value.timed_out)
         tm.that(self._live_threads() - threads_before, empty=True)
 
     @staticmethod
@@ -386,7 +386,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         )
 
         tm.ok(result)
-        tm.that(result.value.timed_out, eq=True)
+        tm.ok(result.value.timed_out)
 
     @staticmethod
     def test_conflicting_deadlines_fail_before_spawn(tmp_path: Path) -> None:
@@ -405,7 +405,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         )
 
         tm.fail(result)
-        tm.that(marker.exists(), eq=False)
+        tm.fail(marker.exists())
 
     @staticmethod
     def test_invalid_durable_sink_fails_before_spawn(tmp_path: Path) -> None:
@@ -425,7 +425,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         )
 
         tm.fail(result)
-        tm.that(marker.exists(), eq=False)
+        tm.fail(marker.exists())
 
     @staticmethod
     def test_broken_live_sink_fails_after_complete_durable_log(

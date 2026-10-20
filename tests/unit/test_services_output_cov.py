@@ -161,7 +161,7 @@ class TestsFlextCliServicesOutputCov:
         cli.display_progress(3, 10, "Steps")
 
         out = capsys.readouterr().out.strip()
-        tm.that(out.endswith("Steps"), eq=True)
+        tm.ok(out.endswith("Steps"))
 
     # ── display_status ────────────────────────────────────────────────
 

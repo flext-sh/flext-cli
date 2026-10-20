@@ -24,12 +24,12 @@ class TestsFlextCliXlsxRange:
         area = cli.xlsx_parse_range(m.Cli.XlsxParseRangeRequest(reference="$B$2:D4"))
         single = cli.xlsx_parse_range(m.Cli.XlsxParseRangeRequest(reference="A1"))
 
-        tm.that(area.success, eq=True)
+        tm.ok(area.success)
         tm.that(area.value.first.row, eq=2)
         tm.that(area.value.first.column, eq=2)
         tm.that(area.value.last.row, eq=4)
         tm.that(area.value.last.column, eq=4)
-        tm.that(single.success, eq=True)
+        tm.ok(single.success)
         tm.that(single.value.first, eq=single.value.last)
 
     @staticmethod
@@ -40,8 +40,8 @@ class TestsFlextCliXlsxRange:
                 m.Cli.XlsxParseRangeRequest(reference=reference)
             )
 
-            tm.that(result.failure, eq=True)
-            tm.that("xlsx_range_invalid" in (result.error or ""), eq=True)
+            tm.ok(result.failure)
+            tm.ok("xlsx_range_invalid" in (result.error or ""))
 
     @staticmethod
     def test_xlsx_format_reference_exposes_every_typed_rendering_mode() -> None:
@@ -65,10 +65,10 @@ class TestsFlextCliXlsxRange:
         relative = cli.xlsx_format_reference(relative_request)
         absolute = cli.xlsx_format_reference(absolute_request)
 
-        tm.that(relative.success, eq=True)
+        tm.ok(relative.success)
         tm.that(relative.value.reference, eq="B2:D4")
         tm.that(absolute.value.reference, eq="'Sales Q1'!$B$2:$D$4")
-        tm.that(absolute.success, eq=True)
+        tm.ok(absolute.success)
 
     @staticmethod
     def test_xlsx_format_reference_collapses_equal_bounds_and_rejects_inversion() -> (
@@ -109,8 +109,8 @@ class TestsFlextCliXlsxRange:
 
         tm.that(collapsed.value.reference, eq="'O''Brien'!$A$1")
         tm.that(expanded.value.reference, eq="A1:A1")
-        tm.that(invalid.failure, eq=True)
-        tm.that("xlsx_range_invalid" in (invalid.error or ""), eq=True)
+        tm.ok(invalid.failure)
+        tm.ok("xlsx_range_invalid" in (invalid.error or ""))
 
 
 __all__: t.VariadicTuple[str] = ()

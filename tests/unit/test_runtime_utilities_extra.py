@@ -68,7 +68,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert
         tm.ok(result)
-        tm.that(result.value, eq=True)
+        tm.ok(result.value)
 
     @staticmethod
     @pytest.mark.parametrize("exit_code", [1, 2, 42])
@@ -94,7 +94,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         # Assert — return value is the return code; file holds the output
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=0)
-        tm.that(output_file.exists(), eq=True)
+        tm.ok(output_file.exists())
         tm.that(output_file.read_text(), has="hello")
 
     @staticmethod
@@ -111,7 +111,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
         # Assert
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=7)
-        tm.that(output_file.exists(), eq=True)
+        tm.ok(output_file.exists())
 
     @staticmethod
     def test_run_to_file_creates_missing_parent_directories(
@@ -126,7 +126,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert
         tm.ok(result)
-        tm.that(output_file.exists(), eq=True)
+        tm.ok(output_file.exists())
         tm.that(output_file.read_text(), has="nested")
 
     @staticmethod
@@ -142,7 +142,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
 
         # Assert
         tm.ok(result)
-        tm.that(result.value.timed_out, eq=True)
+        tm.ok(result.value.timed_out)
 
     @staticmethod
     def test_run_to_file_fails_with_execution_error_on_unwritable_target(

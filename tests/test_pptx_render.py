@@ -67,7 +67,7 @@ class TestsFlextCliPptxRender:
     def test_pptx_read_rejects_invalid_bytes() -> None:
         """Reading invalid bytes returns a failure result."""
         result = cli.pptx_read(b"not a pptx")
-        tm.that(result.success, eq=False)
+        tm.fail(result.success)
         tm.that(result.error, ne=None)
 
 

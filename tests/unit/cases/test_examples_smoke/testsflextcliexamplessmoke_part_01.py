@@ -66,7 +66,7 @@ class TestsFlextCliExamplesSmokePart01:
             config_dir,
         )
         tm.ok(save_preferences_result)
-        tm.that(save_preferences_result.value, eq=True)
+        tm.ok(save_preferences_result.value)
 
         preferences_result = ExamplesFlextCliFileOperations.load_user_preferences(
             config_dir
@@ -84,7 +84,7 @@ class TestsFlextCliExamplesSmokePart01:
             deployment_file,
         )
         tm.ok(save_deployment_result)
-        tm.that(save_deployment_result.value, eq=True)
+        tm.ok(save_deployment_result.value)
 
         deployment_result = ExamplesFlextCliFileOperations.load_deployment_config(
             deployment_file

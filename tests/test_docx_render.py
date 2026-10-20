@@ -88,8 +88,8 @@ class TestsFlextCliDocxRender:
         paragraph = document.paragraphs[0]
         tm.that(paragraph.alignment, eq=1)  # WD_ALIGN_PARAGRAPH.CENTER
         run = paragraph.runs[0]
-        tm.that(run.font.bold, eq=True)
-        tm.that(run.font.italic, eq=True)
+        tm.ok(run.font.bold)
+        tm.ok(run.font.italic)
         tm.that(str(run.font.color.rgb), eq="FF0000")
 
     @staticmethod
@@ -283,7 +283,7 @@ class TestsFlextCliDocxRender:
     def test_docx_read_rejects_invalid_bytes() -> None:
         """Reading invalid bytes returns a failure result."""
         result = u.Cli.docx_read(b"not a docx")
-        tm.that(result.success, eq=False)
+        tm.fail(result.success)
         tm.that(result.error, has=str(c.Cli.DocxError.DOCUMENT_LOAD_FAILED))
 
 

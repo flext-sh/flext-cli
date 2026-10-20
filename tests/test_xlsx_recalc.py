@@ -116,12 +116,12 @@ class TestsFlextCliXlsxRecalc:
         )
         tm.that(report.success, eq=True, msg=report.error)
         evidence = report.value
-        tm.that(evidence.recalculated, eq=True)
+        tm.ok(evidence.recalculated)
         tm.that(evidence.formula_count, eq=2)
         tm.that(evidence.error_cells, eq=())
         tm.that(evidence.uncached_cells, eq=())
         tm.that(evidence.empty_result_cells, eq=("Report!A2",))
-        tm.that(evidence.ok, eq=True)
+        tm.ok(evidence.ok)
         cached_value = _numeric_cell_value(evidence.content, "Report", "A1")
         tm.that(cached_value.value, eq=5)
 
@@ -135,7 +135,7 @@ class TestsFlextCliXlsxRecalc:
         )
         tm.that(report.success, eq=True, msg=report.error)
         tm.that(report.value.formula_count, eq=2)
-        tm.that(report.value.ok, eq=False)
+        tm.fail(report.value.ok)
 
     @staticmethod
     @pytest.mark.slow

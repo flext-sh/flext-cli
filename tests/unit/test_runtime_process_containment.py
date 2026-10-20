@@ -55,7 +55,7 @@ def _assert_owned_descendant_stopped(
     child_survived = _survivor_acknowledged(probe, acknowledgement)
     if child_survived:
         os.kill(int(process_info.read_text(encoding="utf-8")), signal.SIGTERM)
-    tm.that(child_survived, eq=False)
+    tm.fail(child_survived)
 
 
 def _assert_timeout_empties_descendants[
@@ -104,7 +104,7 @@ def _timed_out_outcome[Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput)]
 ) -> None:
     """Raw and byte runners report the timeout as an observed outcome."""
     tm.ok(result)
-    tm.that(result.value.outcome.timed_out, eq=True)
+    tm.ok(result.value.outcome.timed_out)
 
 
 def _timed_out_failure(result: p.Result[p.Cli.CommandOutput]) -> None:
@@ -229,7 +229,7 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=-signal_number)
         tm.that(signaler_errors, eq=[])
-        tm.that(signaler.is_alive(), eq=False)
+        tm.fail(signaler.is_alive())
         tm.that(time.monotonic() - signal_started, lt=6.0)
 
     @staticmethod
@@ -250,7 +250,7 @@ class TestsFlextCliRuntimeProcessContainment:
 
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=-signal.SIGTERM)
-        tm.that(marker.exists(), eq=False)
+        tm.fail(marker.exists())
 
     @staticmethod
     def test_deadline_forwards_interrupt_before_forced_cleanup(
@@ -276,7 +276,7 @@ class TestsFlextCliRuntimeProcessContainment:
 
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=0)
-        tm.that(result.value.timed_out, eq=True)
+        tm.ok(result.value.timed_out)
         tm.that(output_file.read_bytes(), has=b"interrupted")
         tm.that(time.monotonic() - started, lt=1.2)
 
@@ -320,7 +320,7 @@ class TestsFlextCliRuntimeProcessContainment:
 
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=-signal.SIGTERM)
-        tm.that(result.value.timed_out, eq=True)
-        tm.that(process_info.exists(), eq=True)
+        tm.ok(result.value.timed_out)
+        tm.ok(process_info.exists())
         _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
         tm.that(time.monotonic() - started, lt=2.0)

@@ -103,7 +103,7 @@ class TestsFlextCliPromptsCov:
         prompts = make_prompts(inputs=["maybe", "huh", "y"])
         result = prompts.confirm("message", default=False)
         tm.ok(result)
-        tm.that(result.value, eq=True)
+        tm.ok(result.value)
 
     @staticmethod
     @pytest.mark.parametrize("default", [True, False])
@@ -135,7 +135,7 @@ class TestsFlextCliPromptsCov:
         prompts = make_prompts(error=error)
         result = prompts.confirm("message", default=False)
         tm.fail(result, has=expected)
-        tm.that(result.exception is error, eq=True)
+        tm.ok(result.exception is error)
 
     @staticmethod
     def test_confirm_propagates_input_reader_failure(

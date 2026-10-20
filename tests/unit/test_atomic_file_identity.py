@@ -35,7 +35,7 @@ class TestsFlextCliAtomicFileIdentity:
         published = tm.ok(
             u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, replacement)
         )
-        tm.that(staged.exists(), eq=False)
+        tm.fail(staged.exists())
         tm.that(destination.read_bytes(), eq=payload)
         tm.that(published.sha256, eq=replacement.sha256)
         with u.Cli.atomic_binary_file_reader(published) as reader:
@@ -69,7 +69,7 @@ class TestsFlextCliAtomicFileIdentity:
         tm.fail(
             u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, replacement)
         )
-        tm.that(staged.exists(), eq=True)
+        tm.ok(staged.exists())
         tm.that(
             destination.read_bytes(),
             eq=b"changed" if mutation == "destination" else b"original",
@@ -203,7 +203,7 @@ class TestsFlextCliAtomicFileIdentity:
         with pytest.raises(OSError) as rejected:
             tuple(u.Cli.atomic_iter_binary_file(path))
         tm.that(rejected.value.errno, eq=errno.EINVAL)
-        tm.that(path.is_symlink(), eq=True)
+        tm.ok(path.is_symlink())
         tm.that(target.read_bytes(), eq=b"foreign input")
 
     @staticmethod
@@ -238,7 +238,7 @@ class TestsFlextCliAtomicFileIdentity:
         )
 
         tm.fail(result)
-        tm.that(destination.is_symlink(), eq=True)
+        tm.ok(destination.is_symlink())
         tm.that(target.read_bytes(), eq=original)
         tm.that(target.stat().st_mtime_ns, eq=modified_ns)
         tm.that(result.exception, is_=OSError)
@@ -266,7 +266,7 @@ class TestsFlextCliAtomicFileIdentity:
             replacement=replacement.value,
         )
 
-        tm.that(u.Cli.atomic_file_publication_is_unchanged(publication), eq=False)
+        tm.fail(u.Cli.atomic_file_publication_is_unchanged(publication))
 
         staged.chmod(0o600)
         identical = u.Cli.atomic_read_binary_file_state(staged, required=True)
@@ -344,7 +344,7 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(result.value.content, eq=b"after")
         tm.that(result.value.mode, eq=0o640)
         tm.that(destination.read_bytes(), eq=b"after")
-        tm.that(staged.exists(), eq=False)
+        tm.fail(staged.exists())
 
     @staticmethod
     def test_publication_applies_authenticated_tombstone(tmp_path: Path) -> None:
@@ -365,7 +365,7 @@ class TestsFlextCliAtomicFileIdentity:
 
         tm.ok(result)
         tm.that(result.value.content, is_=None)
-        tm.that(destination.exists(), eq=False)
+        tm.fail(destination.exists())
 
     @staticmethod
     def test_relative_write_fails_before_parent_creation(tmp_path: Path) -> None:
@@ -383,8 +383,8 @@ class TestsFlextCliAtomicFileIdentity:
         result = u.Cli.run_raw((sys.executable, "-c", script), cwd=tmp_path)
 
         tm.ok(result)
-        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
-        tm.that((tmp_path / destination.parent).exists(), eq=False)
+        tm.ok(u.Cli.process_succeeded(result.value.outcome))
+        tm.fail((tmp_path / destination.parent).exists())
 
     @staticmethod
     def test_delete_consumes_complete_snapshot(tmp_path: Path) -> None:
@@ -411,7 +411,7 @@ class TestsFlextCliAtomicFileIdentity:
         result = u.Cli.atomic_delete_binary_file_guarded(snapshot)
 
         tm.ok(result)
-        tm.that(destination.exists(), eq=False)
+        tm.fail(destination.exists())
 
     @staticmethod
     def test_delete_rejects_replacement_with_same_bytes_and_mode(
@@ -523,7 +523,7 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(result.value.file_attributes, eq=staged_result.value.file_attributes)
         tm.that(result.value.reparse_tag, eq=staged_result.value.reparse_tag)
         tm.that(destination.read_bytes(), eq=b"content")
-        tm.that(staged.exists(), eq=False)
+        tm.fail(staged.exists())
 
     @staticmethod
     def test_staged_publish_rejects_new_hard_link(tmp_path: Path) -> None:
@@ -544,6 +544,6 @@ class TestsFlextCliAtomicFileIdentity:
         )
 
         tm.fail(result)
-        tm.that(destination.exists(), eq=False)
+        tm.fail(destination.exists())
         tm.that(staged.read_bytes(), eq=b"content")
         tm.that(alias.read_bytes(), eq=b"content")

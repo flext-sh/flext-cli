@@ -53,7 +53,7 @@ class TestsFlextCliTomlSyncCoverage:
         changed = u.Cli.toml_sync_value(project_table, "name", "flext-demo")
 
         # Assert
-        tm.that(changed, eq=True)
+        tm.ok(changed)
         tm.that(u.Cli.toml_value(project_table, "name"), eq="flext-demo")
 
     @staticmethod
@@ -68,7 +68,7 @@ class TestsFlextCliTomlSyncCoverage:
         second = u.Cli.toml_sync_value(project_table, "name", "flext-demo")
 
         # Assert
-        tm.that(second, eq=False)
+        tm.fail(second)
         tm.that(u.Cli.toml_value(project_table, "name"), eq="flext-demo")
 
     @staticmethod
@@ -78,7 +78,7 @@ class TestsFlextCliTomlSyncCoverage:
         changed = u.Cli.toml_sync_value(project_table, "version", "1.2.3")
 
         # Assert
-        tm.that(changed, eq=True)
+        tm.ok(changed)
         tm.that(u.Cli.toml_value(project_table, "version"), eq="1.2.3")
 
     # -- string-list sync ------------------------------------------------
@@ -95,7 +95,7 @@ class TestsFlextCliTomlSyncCoverage:
         )
 
         # Assert
-        tm.that(changed, eq=True)
+        tm.ok(changed)
         tm.that(
             list(u.Cli.toml_as_string_list(project_table["authors"])),
             eq=["anna", "zoe"],
@@ -123,7 +123,7 @@ class TestsFlextCliTomlSyncCoverage:
         )
 
         # Assert
-        tm.that(changed, eq=False)
+        tm.fail(changed)
 
     @staticmethod
     def test_merge_string_list_unions_and_sorts(project_table: Table) -> None:
@@ -135,7 +135,7 @@ class TestsFlextCliTomlSyncCoverage:
         changed = u.Cli.toml_merge_string_list(project_table, "authors", ("marlon",))
 
         # Assert
-        tm.that(changed, eq=True)
+        tm.ok(changed)
         tm.that(
             list(u.Cli.toml_as_string_list(project_table["authors"])),
             eq=["anna", "marlon", "zoe"],
@@ -161,7 +161,7 @@ class TestsFlextCliTomlSyncCoverage:
         )
 
         # Assert
-        tm.that(changed, eq=False)
+        tm.fail(changed)
 
     # -- mapping-table sync ---------------------------------------------
 
@@ -177,7 +177,7 @@ class TestsFlextCliTomlSyncCoverage:
         changed = u.Cli.toml_sync_mapping_table(tool, "lint", expected, sort_keys=True)
 
         # Assert
-        tm.that(changed, eq=True)
+        tm.ok(changed)
         tm.that(u.Cli.toml_as_mapping(tool["lint"]), eq=dict(expected))
 
     @staticmethod
@@ -193,7 +193,7 @@ class TestsFlextCliTomlSyncCoverage:
         second = u.Cli.toml_sync_mapping_table(tool, "lint", expected, sort_keys=True)
 
         # Assert
-        tm.that(second, eq=False)
+        tm.fail(second)
 
     @staticmethod
     def test_sync_mapping_table_drops_stale_keys() -> None:
@@ -207,7 +207,7 @@ class TestsFlextCliTomlSyncCoverage:
         changed = u.Cli.toml_sync_mapping_table(tool, "lint", {"select": ["E", "F"]})
 
         # Assert
-        tm.that(changed, eq=True)
+        tm.ok(changed)
         tm.that(u.Cli.toml_as_mapping(tool["lint"]), eq={"select": ["E", "F"]})
 
     # -- key removal -----------------------------------------------------
@@ -225,8 +225,8 @@ class TestsFlextCliTomlSyncCoverage:
         again = u.Cli.toml_remove_key_if_present(project_table, "obsolete")
 
         # Assert
-        tm.that(removed, eq=True)
-        tm.that(again, eq=False)
+        tm.ok(removed)
+        tm.fail(again)
         tm.that(u.Cli.toml_value(project_table, "obsolete"), none=True)
 
     # -- plain-mapping helpers ------------------------------------------
@@ -252,8 +252,8 @@ class TestsFlextCliTomlSyncCoverage:
         again = u.Cli.toml_mapping_remove_key_if_present(payload, "obsolete")
 
         # Assert
-        tm.that(removed, eq=True)
-        tm.that(again, eq=False)
+        tm.ok(removed)
+        tm.fail(again)
         tm.that(payload, lacks="obsolete")
 
     @staticmethod
@@ -268,7 +268,7 @@ class TestsFlextCliTomlSyncCoverage:
         changed = u.Cli.toml_mapping_sync_value(payload, "build-system", build)
 
         # Assert
-        tm.that(changed, eq=True)
+        tm.ok(changed)
         tm.that(payload["build-system"], eq=build)
 
     @staticmethod
@@ -282,7 +282,7 @@ class TestsFlextCliTomlSyncCoverage:
         second = u.Cli.toml_mapping_sync_value(payload, "build-system", build)
 
         # Assert
-        tm.that(second, eq=False)
+        tm.fail(second)
 
     @staticmethod
     def test_mapping_merge_then_sorted_sync_is_noop(
@@ -305,8 +305,8 @@ class TestsFlextCliTomlSyncCoverage:
         )
 
         # Assert
-        tm.that(changed, eq=True)
-        tm.that(second, eq=False)
+        tm.ok(changed)
+        tm.fail(second)
         tm.that(payload["plugins"], eq=["pytest", "ruff"])
 
     @staticmethod
@@ -332,6 +332,6 @@ class TestsFlextCliTomlSyncCoverage:
         )
 
         # Assert
-        tm.that(changed, eq=True)
-        tm.that(second, eq=False)
+        tm.ok(changed)
+        tm.fail(second)
         tm.that(payload["tool"], eq=dict(expected))

@@ -53,7 +53,7 @@ class TestsFlextCliServicePart02:
         )
 
         tm.ok(exec_result)
-        tm.that(u.Cli.process_succeeded(exec_result.value.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(exec_result.value.outcome))
         tm.that(len(captured), eq=1)
         tm.that(captured[0].make_arg, eq=["FILES=a b c.py", "VERBOSE=1"])
 
@@ -107,5 +107,5 @@ class TestsFlextCliServicePart02:
         help_result = cli.invoke_app(app, args=["run", "--help"])
 
         tm.ok(help_result)
-        tm.that(u.Cli.process_succeeded(help_result.value.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(help_result.value.outcome))
         tm.that(help_result.value.stdout, has="--flaggy")
