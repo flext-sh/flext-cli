@@ -159,14 +159,17 @@ class TestsFlextCliAtomicDirectoryQueries:
             u.Cli.atomic_verify_directory_queries((fragment,), (), observations=fresh)
 
     @staticmethod
-    def test_shared_boundary_detects_membership_change(tmp_path: Path) -> None:
+    @pytest.mark.parametrize("name", ["extra", ".extra", "__pycache__"])
+    def test_shared_boundary_detects_membership_change(
+        tmp_path: Path, name: str
+    ) -> None:
         """A membership change is rejected with the same message in both modes."""
         (tmp_path / "candidate").mkdir()
         original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
         fragment = original.model_copy(
             update={"queries": (("candidate", "isdir"),), "membership_queried": True}
         )
-        (tmp_path / "extra").mkdir()
+        (tmp_path / name).mkdir()
         shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
         with pytest.raises(ValueError, match="source directory membership changed"):
             u.Cli.atomic_verify_directory_queries((fragment,), (), observations=shared)
@@ -267,8 +270,9 @@ class TestsFlextCliAtomicDirectoryQueries:
 
     @staticmethod
     @pytest.mark.parametrize("shared", [False, True])
+    @pytest.mark.parametrize("membership", [False, True])
     def test_merged_queries_preserve_each_original_predicate(
-        tmp_path: Path, *, shared: bool
+        tmp_path: Path, *, shared: bool, membership: bool
     ) -> None:
         """Shared and independently captured inventories merge the same selectors."""
         (tmp_path / "source").mkdir()
@@ -279,7 +283,12 @@ class TestsFlextCliAtomicDirectoryQueries:
             if shared
             else tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
         )
-        previous = original.model_copy(update={"queries": (("source", "isdir"),)})
+        previous = original.model_copy(
+            update={
+                "queries": (("source", "isdir"),),
+                "membership_queried": membership,
+            }
+        )
         following = incoming.model_copy(
             update={"queries": (("module.py", "isfile"), ("missing", "exists"))}
         )
@@ -287,6 +296,7 @@ class TestsFlextCliAtomicDirectoryQueries:
             (previous, following), ()
         )
         tm.that(topology, empty=True)
+        tm.that(directories[0].membership_queried, eq=membership)
         tm.that(
             directories[0].queries,
             eq=tuple(sorted({*previous.queries, *following.queries})),
@@ -295,6 +305,21 @@ class TestsFlextCliAtomicDirectoryQueries:
             tm.ok(u.Cli.atomic_verify_directory_queries(directories, topology)),
             eq=True,
         )
+
+    @staticmethod
+    def test_independent_membership_epochs_still_reject_new_children(
+        tmp_path: Path,
+    ) -> None:
+        """A shared-receipt fast path never excuses independent membership drift."""
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        previous = original.model_copy(update={"membership_queried": True})
+        (tmp_path / "new_child").mkdir()
+        incoming = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        with pytest.raises(ValueError, match="membership epochs disagree"):
+            u.Cli.atomic_merge_directory_query_receipts(
+                (previous, previous, incoming),
+                (),
+            )
 
     @staticmethod
     def test_shared_inventory_still_rejects_a_queried_alias(tmp_path: Path) -> None:

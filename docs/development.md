@@ -511,7 +511,7 @@ def test_cli_api_operation():
 
     result = api.process_command("test")
 
-    assert result is not None
+    tm.not_none(result)
     assert "test" in str(result)
 
 
