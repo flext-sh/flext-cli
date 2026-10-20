@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from flext_cli import cli
-from tests import m, tm, u
+from tests import m, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -17,6 +17,22 @@ if TYPE_CHECKING:
 
 class TestsFlextCliYamlModelLoading:
     """Observable contracts for model-first YAML file ingress."""
+
+    @staticmethod
+    def test_json_writers_preserve_null_order_and_whitespace(tmp_path: Path) -> None:
+        """Both public writers retain nullable JSON metadata and ordered values."""
+        payload: t.JsonDict = {
+            "unset": None,
+            "options": {"enabled": False, "unset": None},
+            "ordered": ["zulu", " alpha ", None, 1.25],
+            "records": [{"name": "second"}, {"name": "first", "value": None}],
+            "spacing": "  value  ",
+        }
+        rendered = u.Cli.yaml_dump_str(payload, sort_keys=True)
+        tm.that(tm.ok(u.Cli.yaml_parse(rendered)), eq=payload)
+        destination = tmp_path / "new-directory" / "metadata.yaml"
+        tm.ok(u.Cli.yaml_dump(destination, payload, sort_keys=True))
+        tm.that(tm.ok(u.Cli.yaml_safe_load(destination)), eq=payload)
 
     @staticmethod
     def test_single_source_returns_requested_model(tmp_path: Path) -> None:
