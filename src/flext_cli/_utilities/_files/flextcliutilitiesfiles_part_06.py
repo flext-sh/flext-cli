@@ -133,6 +133,14 @@ class FlextCliUtilitiesFilesPart06:
                     f"atomic source has conflicting snapshots: {expected.path}",
                 )
             by_path[expected.path] = expected
+        for expected in by_path.values():
+            observed = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
+                expected.path,
+            )
+            if observed.failure:
+                return r[bool].from_failure(observed)
+            if observed.value != expected:
+                return r[bool].fail(f"atomic source changed: {expected.path}")
         return r[bool].ok(value=True)
 
     @staticmethod

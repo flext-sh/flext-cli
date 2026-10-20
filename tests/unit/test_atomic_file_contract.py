@@ -37,6 +37,26 @@ class TestsFlextCliAtomicFileContract:
         tm.ok(u.Cli.atomic_verify_binary_file_states((restored,)))
 
     @staticmethod
+    @pytest.mark.parametrize("change", ["content", "remove", "create"])
+    def test_binary_snapshot_rejects_changed_physical_source(
+        tmp_path: Path, change: str
+    ) -> None:
+        """Detect changed bytes, removed files and invalidated absence witnesses."""
+        path = tmp_path / "snapshot.bin"
+        if change != "create":
+            path.write_bytes(b"before")
+        state = tm.ok(u.Cli.atomic_read_binary_file_state(path))
+        if change == "remove":
+            path.unlink()
+        else:
+            path.write_bytes(b"change")
+
+        tm.fail(
+            u.Cli.atomic_verify_binary_file_states((state,)),
+            has="atomic source changed",
+        )
+
+    @staticmethod
     def test_text_write_persists_content(tmp_path: Path) -> None:
         """Keep the unconditional text facade on the strict atomic owner."""
         path = tmp_path / "atomic.txt"

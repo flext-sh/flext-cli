@@ -109,8 +109,14 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 msg = f"source directory query epochs disagree: {path}"
                 raise ValueError(msg)
             if (previous.membership_queried or incoming.membership_queried) and tuple(
-                (item.name, item.kind) for item in previous.entries
-            ) != tuple((item.name, item.kind) for item in incoming.entries):
+                (item.name, item.kind)
+                for item in previous.entries
+                if item.name != "__pycache__" and not item.name.startswith(".")
+            ) != tuple(
+                (item.name, item.kind)
+                for item in incoming.entries
+                if item.name != "__pycache__" and not item.name.startswith(".")
+            ):
                 msg = f"source directory membership epochs disagree: {path}"
                 raise ValueError(msg)
             directories[path] = previous.model_copy(
@@ -363,7 +369,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
         """
         root = observed.root.path
+        for name in [
+            k for k in list(members) if k == "__pycache__" or k.startswith(".")
+        ]:
+            members.pop(name, None)
         for path in created:
+            if path.name == "__pycache__":
+                continue
             if path.parent == root:
                 cls._published_directory_current(path, created)
                 if members.get(path.name) not in {None, "directory"}:
@@ -371,6 +383,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     raise ValueError(msg)
                 members[path.name] = "directory"
         for _before, after in publications:
+            if after.path.name == "__pycache__" or "__pycache__" in after.path.parts:
+                continue
             if after.path.parent == root:
                 if after.content is None:
                     members.pop(after.path.name, None)
@@ -381,7 +395,11 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 if child in created or members.get(child.name) != "directory":
                     cls._published_directory_current(child, created)
                 members[child.name] = "directory"
-        actual = {item.name: item.kind for item in observed.entries}
+        actual = {
+            item.name: item.kind
+            for item in observed.entries
+            if item.name != "__pycache__" and not item.name.startswith(".")
+        }
         if members != actual:
             added = sorted(actual.keys() - members.keys())
             removed = sorted(members.keys() - actual.keys())
