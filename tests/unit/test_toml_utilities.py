@@ -409,6 +409,14 @@ class TestsFlextCliTomlUtilities:
 
     @staticmethod
     @pytest.mark.parametrize(
+        "value", [None, " value ", [" last ", "first"], {"option": None}]
+    )
+    def test_json_projection_preserves_exact_json_values(value: t.JsonValue) -> None:
+        """The JSON boundary preserves null, whitespace and sequence order."""
+        tm.that(u.Cli.toml_unwrap_item(value), eq=value)
+
+    @staticmethod
+    @pytest.mark.parametrize(
         "value",
         [{"payload": b"value"}, {"stamp": datetime(2026, 1, 1, tzinfo=UTC)}],
     )
