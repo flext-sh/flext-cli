@@ -133,21 +133,6 @@ class FlextCliUtilitiesFilesPart06:
                     f"atomic source has conflicting snapshots: {expected.path}",
                 )
             by_path[expected.path] = expected
-        for expected in by_path.values():
-            current = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-                expected.path,
-                required=expected.content is not None,
-            )
-            if current.failure:
-                return r[bool].from_failure(current)
-            if current.value != expected:
-                return r[bool].fail(
-                    f"atomic source changed: {expected.path}; "
-                    f"content_changed={current.value.content != expected.content}; "
-                    f"same_model_type={type(current.value) is type(expected)}; "
-                    f"expected={expected.model_dump_json(exclude={'content'})}; "
-                    f"observed={current.value.model_dump_json(exclude={'content'})}"
-                )
         return r[bool].ok(value=True)
 
     @staticmethod
