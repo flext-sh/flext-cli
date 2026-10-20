@@ -25,6 +25,34 @@ class FlextCliUtilitiesAtomicFileCleanup:
     """Canonical namespace owner."""
 
     @staticmethod
+    def remove_linked_temporary(
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        temporary: Path,
+        identity: t.Pair[int, int],
+        operation_error: BaseException,
+    ) -> None:
+        """Remove authenticated post-link staging, never the published destination."""
+        cleanup_errors: list[OSError] = []
+        try:
+            state = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, temporary)
+            if FlextCliUtilitiesAtomicFileState.identity(state) != identity:
+                message = f"linked temporary identity changed: {temporary}"
+                raise OSError(errno.ESTALE, message, temporary)
+            FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, temporary)
+        except OSError as cleanup_error:
+            cleanup_errors.append(cleanup_error)
+        try:
+            FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
+        except OSError as cleanup_error:
+            cleanup_errors.append(cleanup_error)
+        if cleanup_errors:
+            FlextCliUtilitiesAtomicFileCleanup._raise_cleanup_failure(
+                temporary,
+                operation_error,
+                cleanup_errors,
+            )
+
+    @staticmethod
     def remove_failed_temporary(
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         temporary: Path,

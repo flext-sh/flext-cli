@@ -182,6 +182,46 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         os.unlink(path.name, dir_fd=parent.descriptor)
 
     @staticmethod
+    def require_create_capabilities(path: Path) -> None:
+        """Require descriptor-bound no-clobber links before staging bytes.
+
+        Raises:
+            OSError: If the runtime cannot publish a no-clobber hard link.
+
+        """
+        if (
+            os.link not in os.supports_dir_fd
+            or os.link not in os.supports_follow_symlinks
+        ):
+            message = "descriptor-bound no-clobber hard links are unsupported"
+            raise OSError(errno.ENOTSUP, message, path)
+
+    @staticmethod
+    def link_entry(
+        source_parent: ParentDescriptor,
+        source: Path,
+        destination_parent: ParentDescriptor,
+        destination: Path,
+    ) -> None:
+        """Publish a new entry without replacing an existing destination."""
+        FlextCliUtilitiesAtomicFileDescriptor.require_entry(source_parent, source)
+        FlextCliUtilitiesAtomicFileDescriptor.require_entry(
+            destination_parent,
+            destination,
+        )
+        FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(source_parent)
+        FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(
+            destination_parent,
+        )
+        os.link(
+            source.name,
+            destination.name,
+            src_dir_fd=source_parent.descriptor,
+            dst_dir_fd=destination_parent.descriptor,
+            follow_symlinks=False,
+        )
+
+    @staticmethod
     def replace_entry(
         source_parent: ParentDescriptor,
         source: Path,

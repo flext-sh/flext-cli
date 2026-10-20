@@ -307,6 +307,34 @@ class TestsFlextCliAtomicDirectoryQueries:
         )
 
     @staticmethod
+    def test_repeated_directory_queries_preserve_the_elected_receipt(
+        tmp_path: Path,
+    ) -> None:
+        """Merging a subset must not replace an unchanged immutable observation."""
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        receipt = original.model_copy(
+            update={"queries": (("source", "isdir"),), "membership_queried": True}
+        )
+        directories, _ = u.Cli.atomic_merge_directory_query_receipts(
+            (receipt, receipt, original), ()
+        )
+        tm.that(directories[0] is receipt, truth=True)
+
+    @staticmethod
+    def test_repeated_ancestry_queries_preserve_the_elected_receipt(
+        tmp_path: Path,
+    ) -> None:
+        """Repeated topology selectors do not allocate replacement chain plans."""
+        original = tm.ok(u.Cli.atomic_plan_directory_chain(tmp_path / "absent"))
+        receipt = original.model_copy(
+            update={"queries": (("source", "isdir"),), "membership_queried": True}
+        )
+        _, topology = u.Cli.atomic_merge_directory_query_receipts(
+            (), (receipt, receipt, original)
+        )
+        tm.that(topology[0] is receipt, truth=True)
+
+    @staticmethod
     def test_independent_membership_epochs_still_reject_new_children(
         tmp_path: Path,
     ) -> None:

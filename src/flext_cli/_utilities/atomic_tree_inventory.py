@@ -111,23 +111,24 @@ class FlextCliUtilitiesAtomicTreeInventory:
             if (
                 previous.entries is not incoming.entries
                 and (previous.membership_queried or incoming.membership_queried)
-                and tuple(
-                    (item.name, item.kind)
-                    for item in previous.entries
-                )
-                != tuple(
-                    (item.name, item.kind)
-                    for item in incoming.entries
-                )
+                and tuple((item.name, item.kind) for item in previous.entries)
+                != tuple((item.name, item.kind) for item in incoming.entries)
             ):
                 msg = f"source directory membership epochs disagree: {path}"
                 raise ValueError(msg)
+            queries = tuple(sorted({*previous.queries, *incoming.queries}))
+            membership_queried = (
+                previous.membership_queried or incoming.membership_queried
+            )
+            if (
+                queries == previous.queries
+                and membership_queried == previous.membership_queried
+            ):
+                continue
             directories[path] = previous.model_copy(
                 update={
-                    "queries": tuple(sorted({*previous.queries, *incoming.queries})),
-                    "membership_queried": (
-                        previous.membership_queried or incoming.membership_queried
-                    ),
+                    "queries": queries,
+                    "membership_queried": membership_queried,
                 }
             )
         for incoming in topology:
@@ -140,12 +141,19 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ) != incoming.model_dump(exclude={"queries", "membership_queried"}):
                 msg = f"source directory ancestry epochs disagree: {incoming.target}"
                 raise ValueError(msg)
+            queries = tuple(sorted({*previous.queries, *incoming.queries}))
+            membership_queried = (
+                previous.membership_queried or incoming.membership_queried
+            )
+            if (
+                queries == previous.queries
+                and membership_queried == previous.membership_queried
+            ):
+                continue
             chains[incoming.target] = previous.model_copy(
                 update={
-                    "queries": tuple(sorted({*previous.queries, *incoming.queries})),
-                    "membership_queried": (
-                        previous.membership_queried or incoming.membership_queried
-                    ),
+                    "queries": queries,
+                    "membership_queried": membership_queried,
                 }
             )
         return tuple(directories.values()), tuple(chains.values())

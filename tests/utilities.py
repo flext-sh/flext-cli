@@ -105,7 +105,6 @@ class TestsFlextCliUtilities(
                 if debug:
                     cli.print("Debug: enabled")
                 policy = FlextCliUtilities.resolve_logging_settings(
-                    runtime_settings=cli.settings,
                     log_level=log_level,
                     debug=debug,
                 )
