@@ -114,12 +114,10 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 and tuple(
                     (item.name, item.kind)
                     for item in previous.entries
-                    if item.name != "__pycache__" and not item.name.startswith(".")
                 )
                 != tuple(
                     (item.name, item.kind)
                     for item in incoming.entries
-                    if item.name != "__pycache__" and not item.name.startswith(".")
                 )
             ):
                 msg = f"source directory membership epochs disagree: {path}"
@@ -392,12 +390,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 if child in created or members.get(child.name) != "directory":
                     cls._published_directory_current(child, created)
                 members[child.name] = "directory"
-        members.pop("__pycache__", None)
-        actual = {
-            item.name: item.kind
-            for item in observed.entries
-            if item.name != "__pycache__"
-        }
+        actual = {item.name: item.kind for item in observed.entries}
         if members != actual:
             added = sorted(actual.keys() - members.keys())
             removed = sorted(members.keys() - actual.keys())
