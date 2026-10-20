@@ -46,7 +46,7 @@ class FlextCliUtilitiesTomlPart05:
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing
             if existing is not None
-            and isinstance(existing, Mapping | TOMLDocument | Item)
+            and isinstance(existing, Mapping[str, t.JsonValue] | TOMLDocument | Item)
             else None,
         )
         normalized_expected = {
