@@ -144,11 +144,9 @@ class TestsFlextCliXlsxRecalc:
         source = _render_workbook()
         request = m.Cli.XlsxRecalcRequest(source=source)
 
-        def recalculate(_index: int) -> p.Result[m.Cli.XlsxRecalcResult]:
-            return cli.xlsx_recalc(request)
-
         with ThreadPoolExecutor(max_workers=3) as executor:
-            results = tuple(executor.map(recalculate, range(3)))
+            futures = tuple(executor.submit(cli.xlsx_recalc, request) for _ in range(3))
+            results = tuple(future.result() for future in futures)
         for result in results:
             tm.that(result.success, eq=True, msg=result.error)
             value = _numeric_cell_value(result.value.content, "Report", "A1")

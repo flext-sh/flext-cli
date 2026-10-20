@@ -10,7 +10,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Annotated, ClassVar
 
-from flext_core import m, u
+from flext_core import m
 
 from flext_cli import c, p, t
 
@@ -122,7 +122,7 @@ class FlextCliModelsPipeline:
             m.Field(description="Total pipeline execution time"),
         ] = 0.0
 
-        @u.computed_field
+        @m.computed_field
         @property
         def success(self) -> bool:
             """True if no stage failed."""
@@ -130,7 +130,7 @@ class FlextCliModelsPipeline:
                 s.status != c.Cli.PipelineStageStatus.FAILED for s in self.stages
             )
 
-        @u.computed_field
+        @m.computed_field
         @property
         def failed_stages(
             self,
@@ -140,7 +140,7 @@ class FlextCliModelsPipeline:
                 s for s in self.stages if s.status == c.Cli.PipelineStageStatus.FAILED
             ]
 
-        @u.computed_field
+        @m.computed_field
         @property
         def skipped_stages(
             self,

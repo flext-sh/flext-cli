@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, Literal, Self
 
-from flext_core import m, u
+from flext_core import m
 
 from flext_cli import t
 from flext_cli._models import FlextCliModelsAtomicState
@@ -56,7 +56,7 @@ class FlextCliModelsBasePart08:
             ),
         )
 
-        @u.field_validator("target", "anchor_path")
+        @m.field_validator("target", "anchor_path")
         @classmethod
         def _validate_paths(cls, value: Path) -> Path:
             return FlextCliModelsAtomicState.validate_atomic_state_path(
@@ -65,7 +65,7 @@ class FlextCliModelsBasePart08:
                 allow_root=True,
             )
 
-        @u.field_validator("directories")
+        @m.field_validator("directories")
         @classmethod
         def _validate_directories(
             cls,
@@ -79,7 +79,7 @@ class FlextCliModelsBasePart08:
                 for path in value
             )
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_topology(self) -> Self:
             if self.queries != tuple(sorted(set(self.queries))) or any(
                 name in {"", ".", ".."} or Path(name).name != name

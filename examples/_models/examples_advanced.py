@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar
 
 from examples import c, p, r, t
-from flext_cli import m, u
+from flext_cli import m
 
 
 class ExamplesFlextCliModelsExamplesAdvanced:
@@ -49,7 +49,7 @@ class ExamplesFlextCliModelsExamplesAdvanced:
             validate_default=True,
         )
 
-        @u.field_validator("database_url")
+        @m.field_validator("database_url")
         @classmethod
         def _validate_database_url(cls, v: str) -> str:
             if not v.startswith(c.EXAMPLE_DB_URL_PREFIXES):
@@ -57,7 +57,7 @@ class ExamplesFlextCliModelsExamplesAdvanced:
                 raise ValueError(msg)
             return v
 
-        @u.field_validator("redis_url")
+        @m.field_validator("redis_url")
         @classmethod
         def _validate_redis_url(cls, v: str) -> str:
             if not v.startswith(c.EXAMPLE_REDIS_URL_PREFIX):
@@ -65,7 +65,7 @@ class ExamplesFlextCliModelsExamplesAdvanced:
                 raise ValueError(msg)
             return v
 
-        @u.field_validator("log_level")
+        @m.field_validator("log_level")
         @classmethod
         def _validate_log_level(cls, v: str) -> str:
             valid: t.StrSequence = c.Cli.LOG_LEVELS

@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Literal, Self
 
-from flext_core import m, u
+from flext_core import m
 
 from flext_cli import t
 from flext_cli._models import FlextCliModelsAtomicState
@@ -94,7 +94,7 @@ class FlextCliModelsBasePart09:
             ),
         ] = None
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_kind_state(self) -> Self:
             FlextCliModelsAtomicState.validate_atomic_state_path(
                 self.path,
@@ -157,7 +157,7 @@ class FlextCliModelsBasePart09:
             default=None, description="Literal target of a physical symlink"
         )
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_leaf(self) -> Self:
             if self.name in {".", ".."} or Path(self.name).name != self.name:
                 msg = "atomic directory child must be one lexical name"
@@ -186,7 +186,7 @@ class FlextCliModelsBasePart09:
             description="Whether native planning consumed direct membership",
         )
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_names(self) -> Self:
             names = tuple(entry.name for entry in self.entries)
             if self.root.kind != "directory" or names != tuple(sorted(set(names))):
@@ -217,7 +217,7 @@ class FlextCliModelsBasePart09:
             m.Field(description="Lexically ordered descendants"),
         ] = ()
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_root_and_order(self) -> Self:
             FlextCliModelsAtomicState.validate_atomic_state_path(
                 self.root.path,
@@ -239,7 +239,7 @@ class FlextCliModelsBasePart09:
                 raise ValueError(msg)
             return self
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_topology(self) -> Self:
             directories = {self.root.path: self.root}
             directory_identities = {(self.root.device, self.root.inode)}

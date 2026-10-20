@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar, Self
 
-from flext_core import m, u
+from flext_core import m
 
 from flext_cli._models import FlextCliModelsBasePart02
 
@@ -33,7 +33,7 @@ class FlextCliModelsBasePart10:
             m.Field(description="Exact caller-owned staged replacement state"),
         ]
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_replacement_state(self) -> Self:
             """Require one complete staged file state or one absent tombstone.
 

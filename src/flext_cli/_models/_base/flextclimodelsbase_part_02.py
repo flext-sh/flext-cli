@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
-from flext_core import m, u
+from flext_core import m
 
 from flext_cli import c, t
 from flext_cli._models import FlextCliModelsAtomicState
@@ -91,7 +91,7 @@ class FlextCliModelsBasePart02:
             m.Field(ge=0, strict=True, description="Host reparse tag when available"),
         ] = None
 
-        @u.field_validator("path")
+        @m.field_validator("path")
         @classmethod
         def _validate_absolute_path(cls, value: Path) -> Path:
             """Reject ambiguous relative identities instead of normalizing them.
@@ -105,7 +105,7 @@ class FlextCliModelsBasePart02:
                 label="atomic file state",
             )
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_presence_tuple(self) -> Self:
             """Require one complete, uniquely owned, non-reparse state.
 
@@ -159,7 +159,7 @@ class FlextCliModelsBasePart02:
             m.Field(strict=True, description="Exact bytes, or None when absent"),
         ] = None
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_content_presence(self) -> Self:
             """Require exact bytes if and only if the physical file exists.
 
@@ -194,7 +194,7 @@ class FlextCliModelsBasePart02:
             m.Field(description="Native descriptor version used for guarded reads"),
         ] = None
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_receipt_presence(self) -> Self:
             """Require complete measurements if and only if the file exists.
 
@@ -281,7 +281,7 @@ class FlextCliModelsBasePart02:
             ),
         ] = m.Field(default_factory=tuple)
 
-        @u.computed_field
+        @m.computed_field
         @property
         def resolved(self) -> t.StrDict:
             """Resolved environment mapping after removals and overrides."""
