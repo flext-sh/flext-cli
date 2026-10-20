@@ -9,8 +9,10 @@ from __future__ import annotations
 import errno
 import os
 import stat
+from bisect import bisect_left
 from collections.abc import Generator
 from contextlib import contextmanager
+from itertools import chain
 from pathlib import Path
 from typing import Literal, Never
 
@@ -53,7 +55,10 @@ class FlextCliUtilitiesAtomicTreeInventory:
             OSError: If the queried child is a physical alias.
 
         """
-        entry = next((item for item in inventory.entries if item.name == name), None)
+        index = bisect_left(inventory.entries, name, key=lambda item: item.name)
+        entry = inventory.entries[index] if index < len(inventory.entries) else None
+        if entry is not None and entry.name != name:
+            entry = None
         if entry is not None and entry.kind == "symlink":
             raise OSError(
                 errno.ELOOP,
@@ -85,11 +90,15 @@ class FlextCliUtilitiesAtomicTreeInventory:
         """
         directories: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
         chains: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan] = {}
+        directory_queries: t.MutableMappingKV[
+            Path, set[t.Pair[str, Literal["exists", "isfile", "isdir"]]]
+        ] = {}
         for incoming in inventories:
             path = incoming.root.path
             previous = directories.get(path)
             if previous is None:
                 directories[path] = incoming
+                directory_queries[path] = set(incoming.queries)
                 continue
             cls._require_directory_identity(
                 previous.root,
@@ -104,7 +113,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             if not shared_entries and any(
                 cls.directory_query_value(previous, name, predicate)
                 != cls.directory_query_value(incoming, name, predicate)
-                for name, predicate in (*previous.queries, *incoming.queries)
+                for name, predicate in chain(directory_queries[path], incoming.queries)
             ):
                 msg = f"source directory query epochs disagree: {path}"
                 raise ValueError(msg)
@@ -116,18 +125,14 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ):
                 msg = f"source directory membership epochs disagree: {path}"
                 raise ValueError(msg)
-            queries = tuple(sorted({*previous.queries, *incoming.queries}))
+            directory_queries[path].update(incoming.queries)
             membership_queried = (
                 previous.membership_queried or incoming.membership_queried
             )
-            if (
-                queries == previous.queries
-                and membership_queried == previous.membership_queried
-            ):
+            if membership_queried == previous.membership_queried:
                 continue
             directories[path] = previous.model_copy(
                 update={
-                    "queries": queries,
                     "membership_queried": membership_queried,
                 }
             )
@@ -156,7 +161,18 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     "membership_queried": membership_queried,
                 }
             )
-        return tuple(directories.values()), tuple(chains.values())
+        # Each selector set only grows from its elected receipt's unique queries.
+        return (
+            tuple(
+                previous
+                if len(directory_queries[path]) == len(previous.queries)
+                else previous.model_copy(
+                    update={"queries": tuple(sorted(directory_queries[path]))}
+                )
+                for path, previous in directories.items()
+            ),
+            tuple(chains.values()),
+        )
 
     @staticmethod
     def _require_directory_identity(

@@ -307,6 +307,38 @@ class TestsFlextCliAtomicDirectoryQueries:
         )
 
     @staticmethod
+    def test_accumulated_queries_reject_a_later_observation(tmp_path: Path) -> None:
+        """Deferred selector union still checks queries added by earlier fragments."""
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        first = original.model_copy(update={"queries": (("first", "exists"),)})
+        second = original.model_copy(update={"queries": (("later", "isdir"),)})
+        (tmp_path / "later").mkdir()
+        incoming = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        with pytest.raises(ValueError, match="query epochs disagree"):
+            u.Cli.atomic_merge_directory_query_receipts((first, second, incoming), ())
+
+    @staticmethod
+    def test_query_union_sorts_once_per_directory(tmp_path: Path) -> None:
+        """A growing selector inventory is materialized once, not for every event."""
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        queries: tuple[t.Pair[str, Literal["exists", "isfile", "isdir"]], ...] = tuple(
+            (f"candidate-{index:03}", "exists") for index in range(128)
+        )
+        fragments = tuple(
+            original.model_copy(update={"queries": (query,)}) for query in queries
+        )
+        with Profile() as profile:
+            directories, _ = u.Cli.atomic_merge_directory_query_receipts(fragments, ())
+        tm.that(directories[0].queries, eq=queries)
+        tm.that(
+            Stats(profile)
+            .get_stats_profile()
+            .func_profiles["<built-in method builtins.sorted>"]
+            .ncalls,
+            eq="1",
+        )
+
+    @staticmethod
     def test_repeated_directory_queries_preserve_the_elected_receipt(
         tmp_path: Path,
     ) -> None:
