@@ -230,8 +230,15 @@ class FlextCliUtilitiesFilesPart05:
             t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
         ] = (),
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
+        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
+        | None = None,
     ) -> p.Result[bool]:
         """Verify native source queries without authorizing publication effects.
+
+        One verification boundary may share one native observation per physical
+        directory through ``observations``. The boundary captures each directory
+        exactly once, and the store never outlives the boundary, so no receipt is
+        replayed across boundaries.
 
         Returns:
             A successful result when all consumed native queries still agree.
@@ -239,7 +246,11 @@ class FlextCliUtilitiesFilesPart05:
         """
         return r[bool].ok(
             FlextCliUtilitiesAtomicTreeInventory.verify_directory_queries(
-                inventories, topology, publications, directory_publications
+                inventories,
+                topology,
+                publications,
+                directory_publications,
+                observations,
             )
         )
 

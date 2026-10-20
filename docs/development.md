@@ -346,7 +346,7 @@ def test_read_json_file():
     # Simple classes use static methods
     result = FlextCliFileTools.read_json_file("test.json")
 
-    assert result.success
+    tm.ok(result.success)
     data = result.unwrap()
     assert isinstance(data, dict)
 
@@ -613,7 +613,7 @@ def test_data_export_command():
     """Test data export functionality."""
     handler = DataCommands()
     result = handler.handle_export(format="json")
-    assert result.success
+    tm.ok(result.success)
 ```
 
 ### Custom Formatters

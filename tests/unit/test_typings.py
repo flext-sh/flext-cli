@@ -114,7 +114,7 @@ class TestsFlextCliTypings:
     @staticmethod
     def test_yaml_adapters_validate_mapping_and_sequence_payloads() -> None:
         """YAML utility adapters preserve JSON-compatible containers."""
-        mapping: t.JsonMapping = {"items": [1, "alpha", None]}
+        mapping: t.JsonDict = {"items": [1, "alpha", None]}
         sequence: t.JsonList = [mapping, False]
         tm.that(u.Cli.YAML_DICT_ADAPTER.validate_python(mapping), eq=mapping)
         tm.that(u.Cli.YAML_SEQ_ADAPTER.validate_python(sequence), eq=sequence)

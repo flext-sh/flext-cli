@@ -45,7 +45,7 @@ class FlextCliModelsBasePart07:
         """Options for JSON file write operations."""
 
         indent: int = m.Field(
-            2,
+            default=2,
             description="JSON indentation level",
             validate_default=True,
         )

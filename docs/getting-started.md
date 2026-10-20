@@ -294,7 +294,7 @@ def test_my_cli_operation():
     # Test file operations (direct access)
     result = cli.read_json_file("test_config.json")
 
-    assert result.success
+    tm.ok(result.success)
     settings = result.unwrap()
     assert "required_field" in settings
 ```

@@ -202,7 +202,9 @@ class TestsFlextCliOptionsUtilsCov:
 
         name: str = "default-name"
         tags: t.StrSequence = ("a", "b")
-        generated: t.StrSequence = m.Field(("gen", "value"), validate_default=True)
+        generated: t.StrSequence = m.Field(
+            default=("gen", "value"), validate_default=True
+        )
 
     class IntSequenceDefaultModel(m.BaseModel):
         """Model whose validated default has no CLI option form."""

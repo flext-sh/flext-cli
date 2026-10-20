@@ -7,7 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
+from cProfile import Profile
 from pathlib import Path
+from pstats import Stats
 from typing import Literal
 
 import pytest
@@ -17,6 +19,251 @@ from tests import c, m, t, tm, u
 
 class TestsFlextCliAtomicDirectoryQueries:
     """Reprove a queried directory only where its existence depends on a receipt."""
+
+    @staticmethod
+    @pytest.mark.parametrize("root_count", [1, 2])
+    def test_fragment_verification_observes_each_root_once_per_invocation(
+        tmp_path: Path, root_count: int
+    ) -> None:
+        """Real profiler records prove reuse without retaining stale observations."""
+        roots = tuple(tmp_path / f"root-{index}" for index in range(root_count))
+        names = tuple(f"candidate-{index}" for index in range(24))
+        predicates: tuple[Literal["exists", "isfile", "isdir"], ...] = (
+            "exists",
+            "isfile",
+            "isdir",
+        )
+        fragments: list[m.Cli.AtomicDirectoryInventory] = []
+        for root in roots:
+            root.mkdir()
+            (root / names[0]).mkdir()
+            (root / names[1]).write_text("fixture", encoding=c.DEFAULT_ENCODING)
+            inventory = tm.ok(u.Cli.atomic_inventory_physical_directory(root))
+            fragments.extend(
+                m.Cli.AtomicDirectoryInventory(
+                    root=inventory.root,
+                    entries=inventory.entries,
+                    queries=((name, predicate),),
+                )
+                for name in names
+                for predicate in predicates
+            )
+        with Profile() as first:
+            tm.that(
+                tm.ok(u.Cli.atomic_verify_directory_queries(tuple(fragments), ())),
+                eq=True,
+            )
+        tm.that(
+            Stats(first)
+            .get_stats_profile()
+            .func_profiles["inventory_physical_directory"]
+            .ncalls,
+            eq=str(len(roots)),
+        )
+
+        (roots[-1] / names[-1]).mkdir()
+        with (
+            Profile() as second,
+            pytest.raises(ValueError, match="source directory query changed"),
+        ):
+            u.Cli.atomic_verify_directory_queries(tuple(fragments), ())
+        tm.that(
+            Stats(second)
+            .get_stats_profile()
+            .func_profiles["inventory_physical_directory"]
+            .ncalls,
+            eq=str(len(roots)),
+        )
+
+    @staticmethod
+    def test_shared_boundary_observes_each_root_once_across_verifications(
+        tmp_path: Path,
+    ) -> None:
+        """One verification boundary lists every physical directory exactly once."""
+        roots = tuple(tmp_path / f"root-{index}" for index in range(2))
+        names = ("alpha", "beta", "gamma")
+        fragments: list[m.Cli.AtomicDirectoryInventory] = []
+        for root in roots:
+            root.mkdir()
+            for name in names:
+                (root / name).mkdir()
+            inventory = tm.ok(u.Cli.atomic_inventory_physical_directory(root))
+            fragments.extend(
+                inventory.model_copy(update={"queries": ((name, "isdir"),)})
+                for name in names
+            )
+        shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        with Profile() as bounded:
+            for fragment in fragments:
+                tm.that(
+                    tm.ok(
+                        u.Cli.atomic_verify_directory_queries(
+                            (fragment,), (), observations=shared
+                        )
+                    ),
+                    eq=True,
+                )
+        tm.that(
+            Stats(bounded)
+            .get_stats_profile()
+            .func_profiles["inventory_physical_directory"]
+            .ncalls,
+            eq=str(len(roots)),
+        )
+        with Profile() as independent:
+            for fragment in fragments:
+                tm.that(
+                    tm.ok(u.Cli.atomic_verify_directory_queries((fragment,), ())),
+                    eq=True,
+                )
+        tm.that(
+            Stats(independent)
+            .get_stats_profile()
+            .func_profiles["inventory_physical_directory"]
+            .ncalls,
+            eq=str(len(roots) * len(names)),
+        )
+
+    @staticmethod
+    def test_boundary_observation_is_fixed_at_its_first_capture(
+        tmp_path: Path,
+    ) -> None:
+        """One boundary observes each physical directory exactly once."""
+        root = tmp_path / "root"
+        root.mkdir()
+        (root / "candidate").mkdir()
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(root))
+        fragment = original.model_copy(
+            update={"queries": (("candidate", "isdir"),), "membership_queried": True}
+        )
+        shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        tm.that(
+            tm.ok(
+                u.Cli.atomic_verify_directory_queries(
+                    (fragment,), (), observations=shared
+                )
+            ),
+            eq=True,
+        )
+        (root / "extra").mkdir()
+        tm.that(
+            tm.ok(
+                u.Cli.atomic_verify_directory_queries(
+                    (fragment,), (), observations=shared
+                )
+            ),
+            eq=True,
+        )
+        fresh: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        with pytest.raises(ValueError, match="source directory membership changed"):
+            u.Cli.atomic_verify_directory_queries((fragment,), (), observations=fresh)
+
+    @staticmethod
+    def test_shared_boundary_detects_membership_change(tmp_path: Path) -> None:
+        """A membership change is rejected with the same message in both modes."""
+        (tmp_path / "candidate").mkdir()
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        fragment = original.model_copy(
+            update={"queries": (("candidate", "isdir"),), "membership_queried": True}
+        )
+        (tmp_path / "extra").mkdir()
+        shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        with pytest.raises(ValueError, match="source directory membership changed"):
+            u.Cli.atomic_verify_directory_queries((fragment,), (), observations=shared)
+        with pytest.raises(ValueError, match="source directory membership changed"):
+            u.Cli.atomic_verify_directory_queries((fragment,), ())
+
+    @staticmethod
+    def test_shared_boundary_detects_replaced_inode(tmp_path: Path) -> None:
+        """A replaced directory keeps the same physical identity failure."""
+        root = tmp_path / "root"
+        root.mkdir()
+        (root / "candidate").mkdir()
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(root))
+        fragment = original.model_copy(update={"queries": (("candidate", "isdir"),)})
+        root.rename(tmp_path / "moved")
+        root.mkdir()
+        (root / "candidate").mkdir()
+        shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        with pytest.raises(
+            ValueError, match="source directory physical identity changed"
+        ):
+            u.Cli.atomic_verify_directory_queries((fragment,), (), observations=shared)
+        with pytest.raises(
+            ValueError, match="source directory physical identity changed"
+        ):
+            u.Cli.atomic_verify_directory_queries((fragment,), ())
+
+    @staticmethod
+    def test_shared_boundary_rejects_symlink_alias(tmp_path: Path) -> None:
+        """A queried physical alias is rejected in both modes."""
+        (tmp_path / "target").mkdir()
+        (tmp_path / "alias").symlink_to(tmp_path / "target", target_is_directory=True)
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        fragment = original.model_copy(update={"queries": (("alias", "isdir"),)})
+        shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        with pytest.raises(OSError, match="physical alias"):
+            u.Cli.atomic_verify_directory_queries((fragment,), (), observations=shared)
+        with pytest.raises(OSError, match="physical alias"):
+            u.Cli.atomic_verify_directory_queries((fragment,), ())
+
+    @staticmethod
+    def _verification_outcome(
+        fragment: m.Cli.AtomicDirectoryInventory,
+        *,
+        shared: bool,
+    ) -> t.Pair[str, str]:
+        """Return the verification outcome kind and its diagnostic message.
+
+        Returns:
+            The outcome kind and the message it carries.
+
+        """
+        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        try:
+            verified = u.Cli.atomic_verify_directory_queries(
+                (fragment,), (), observations=observations if shared else None
+            )
+        except (OSError, ValueError) as exc:
+            return type(exc).__name__, str(exc)
+        return "ok", str(tm.ok(verified))
+
+    def test_shared_boundary_matches_independent_verification(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        """One boundary and independent verifications agree on every outcome."""
+        (tmp_path / "candidate").mkdir()
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        clean = original.model_copy(
+            update={"queries": (("candidate", "isdir"),), "membership_queried": True}
+        )
+        (tmp_path / "extra").mkdir()
+        drifted = original.model_copy(
+            update={"queries": (("candidate", "isdir"),), "membership_queried": True}
+        )
+        for fragment in (clean, drifted):
+            tm.that(
+                self._verification_outcome(fragment, shared=True),
+                eq=self._verification_outcome(fragment, shared=False),
+            )
+
+    @staticmethod
+    def test_later_conflicting_fragment_cannot_be_masked(tmp_path: Path) -> None:
+        """An agreeing first receipt cannot excuse a later negative election."""
+        name = "candidate"
+        absent = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        negative = m.Cli.AtomicDirectoryInventory(
+            root=absent.root, entries=absent.entries, queries=((name, "isdir"),)
+        )
+        (tmp_path / name).mkdir()
+        present = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        positive = m.Cli.AtomicDirectoryInventory(
+            root=present.root, entries=present.entries, queries=((name, "isdir"),)
+        )
+
+        with pytest.raises(ValueError, match="source directory query changed"):
+            u.Cli.atomic_verify_directory_queries((positive, positive, negative), ())
 
     @staticmethod
     @pytest.mark.parametrize("shared", [False, True])
