@@ -17,7 +17,6 @@ from flext_core import u
 
 import flext_cli
 from flext_cli import c, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesJson
 from flext_cli._utilities._yaml import FlextCliUtilitiesYamlEditingMixin
 
 
@@ -202,8 +201,9 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
         """
         try:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            validated = FlextCliUtilitiesJson.normalize_json_value(data)
+            validated = flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(
+                data, strict=True
+            )
             serialized: str = u.Yaml.safe_dump(
                 validated,
                 default_flow_style=False,
@@ -211,6 +211,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
                 allow_unicode=True,
                 indent=indent,
             )
+            path.parent.mkdir(parents=True, exist_ok=True)
             with path.open("w", encoding=c.DEFAULT_ENCODING) as fh:
                 fh.write(serialized)
             return r[bool].ok(value=True)
@@ -236,7 +237,9 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             The resulting ``str``.
 
         """
-        validated = FlextCliUtilitiesJson.normalize_json_value(data)
+        validated = flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(
+            data, strict=True
+        )
         serialized: str = u.Yaml.safe_dump(
             validated,
             default_flow_style=False,
