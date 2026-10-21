@@ -250,19 +250,40 @@ class FlextCliUtilitiesAtomicFile:
                 staged,
             )
             if expected is None:
-                FlextCliUtilitiesAtomicFileDescriptor.link_entry(
-                    self.parent,
-                    self.temporary,
-                    self.parent,
-                    destination,
+                publication_signals = {
+                    candidate
+                    for name in (
+                        "SIGINT",
+                        "SIGTERM",
+                        "SIGHUP",
+                        "SIGALRM",
+                        "SIGVTALRM",
+                        "SIGPROF",
+                    )
+                    if (candidate := getattr(signal, name, None)) is not None
+                }
+                previous_mask = (
+                    signal.pthread_sigmask(signal.SIG_BLOCK, publication_signals)
+                    if publication_signals and hasattr(signal, "pthread_sigmask")
+                    else None
                 )
-                self.replacement_completed = True
-                self.linked_temporary = True
-                FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(
-                    self.parent,
-                    self.temporary,
-                )
-                self.linked_temporary = False
+                try:
+                    FlextCliUtilitiesAtomicFileDescriptor.link_entry(
+                        self.parent,
+                        self.temporary,
+                        self.parent,
+                        destination,
+                    )
+                    self.replacement_completed = True
+                    self.linked_temporary = True
+                    FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(
+                        self.parent,
+                        self.temporary,
+                    )
+                    self.linked_temporary = False
+                finally:
+                    if previous_mask is not None:
+                        signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
             else:
                 FlextCliUtilitiesAtomicFileDescriptor.replace_entry(
                     self.parent,

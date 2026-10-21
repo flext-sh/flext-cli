@@ -809,7 +809,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
             # refusal owns the cleanup verb only.
             message = (
                 f"cleanup authority refused: {path} has {observed.st_nlink} hard"
-                " links (another physical name owns the same inode)"
+                " links (another physical name owns the same inode); "
+                f"device={observed.st_dev} inode={observed.st_ino}"
             )
             raise OSError(errno.EMLINK, message, path)
         return m.Cli.AtomicPhysicalTreeEntry(
