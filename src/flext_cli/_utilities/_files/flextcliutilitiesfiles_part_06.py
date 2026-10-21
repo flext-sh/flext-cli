@@ -119,8 +119,14 @@ class FlextCliUtilitiesFilesPart06:
     @staticmethod
     def atomic_verify_binary_file_states(
         expected_states: t.SequenceOf[m.Cli.AtomicFileState],
+        *,
+        nonsecret_source_paths: t.SequenceOf[Path] = (),
     ) -> p.Result[Literal[True]]:
         """Verify one coherent set of physical file states without reread fallback.
+
+        Callers may explicitly attest nonsecret Python source paths for byte
+        type, length and SHA256 failure diagnostics. Other files never expose
+        payloads or digests, even if included in that allowlist.
 
         Returns:
             Exactly ``True`` on successful verification, otherwise a failed result.
@@ -141,12 +147,34 @@ class FlextCliUtilitiesFilesPart06:
             if observed.failure:
                 return r[Literal[True]].from_failure(observed)
             if observed.value != expected:
+                diagnostics = ""
+                source_path = Path(expected.path)
+                if source_path in nonsecret_source_paths and source_path.suffix in {
+                    ".py",
+                    ".pyi",
+                }:
+                    for label, content in (
+                        ("expected", expected.content),
+                        ("observed", observed.value.content),
+                    ):
+                        digest = (
+                            FlextCliUtilitiesFilesPart03.sha256_bytes(content)
+                            if content is not None
+                            else None
+                        )
+                        diagnostics += (
+                            f"; {label}_content_type={type(content).__name__}"
+                            f"; {label}_content_length="
+                            f"{len(content) if content is not None else None}"
+                            f"; {label}_content_sha256={digest}"
+                        )
                 return r[Literal[True]].fail(
                     f"atomic source changed: {expected.path}; "
                     f"content_changed={observed.value.content != expected.content}; "
                     f"same_model_type={type(observed.value) is type(expected)}; "
                     f"expected={expected.model_dump(exclude={'content'})}; "
                     f"observed={observed.value.model_dump(exclude={'content'})}"
+                    f"{diagnostics}"
                 )
         return r[Literal[True]].ok(value=True)
 
