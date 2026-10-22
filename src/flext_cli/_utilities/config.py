@@ -85,36 +85,6 @@ class FlextCliUtilitiesConfig:
         )
 
     @staticmethod
-    def config_load_dir(
-        config_dir: Path,
-    ) -> p.Result[t.MappingKV[str, m.ConfigDocument]]:
-        """Load every ``config/*.yaml`` file, pairing each with its ``schemas/`` schema.
-
-        The schema for ``config/<name>.yaml`` is
-        ``<config_dir>/../schemas/<name>.schema.json`` when present.
-
-        Returns:
-            The resulting ``p.Result[t.MappingKV[str, m.ConfigDocument]]``.
-
-        """
-        if not config_dir.is_dir():
-            return r[t.MappingKV[str, m.ConfigDocument]].fail(
-                f"{c.ERR_CONFIG_READ_FAILED}: {config_dir}",
-            )
-        schemas_dir = config_dir.parent / c.CONFIG_SCHEMAS_DIR_NAME
-        documents: t.MutableMappingKV[str, m.ConfigDocument] = {}
-        for source in sorted(config_dir.glob(f"*{c.CONFIG_YAML_SUFFIX}")):
-            schema = schemas_dir / f"{source.stem}{c.CONFIG_SCHEMA_SUFFIX}"
-            loaded = FlextCliUtilitiesConfig.config_load(
-                source,
-                schema_path=schema if schema.is_file() else None,
-            )
-            if loaded.failure:
-                return r[t.MappingKV[str, m.ConfigDocument]].from_failure(loaded)
-            documents[source.stem] = loaded.value
-        return r[t.MappingKV[str, m.ConfigDocument]].ok(documents)
-
-    @staticmethod
     def schema_validate(data: t.JsonMapping, schema_path: Path) -> p.Result[bool]:
         """Validate ``data`` against the JSON Schema at ``schema_path`` → ``r[bool]``.
 

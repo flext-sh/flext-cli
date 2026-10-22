@@ -173,24 +173,6 @@ class FlextCliUtilitiesYamlConvertMixin:
         return isinstance(value, (CommentedSeq, list))
 
     @staticmethod
-    def yaml_normalize_scalar(value: t.Cli.YamlValue) -> t.Cli.YamlValue:
-        """Normalize ruamel scalar wrappers to plain Python scalars.
-
-        Returns:
-            The resulting ``t.Cli.YamlValue``.
-
-        """
-        if isinstance(value, str):
-            return FlextCliUtilitiesYamlConvertMixin.yaml_plain_str(value)
-        if isinstance(value, bool):
-            return FlextCliUtilitiesYamlConvertMixin.yaml_plain_bool(value)
-        if isinstance(value, int):
-            return FlextCliUtilitiesYamlConvertMixin.yaml_plain_int(value)
-        if isinstance(value, float):
-            return FlextCliUtilitiesYamlConvertMixin.yaml_plain_float(value)
-        return value
-
-    @staticmethod
     def yaml_plain_str(value: t.Cli.YamlScalar) -> str:
         """Return *value* as a plain builtin str (unwrap ruamel subclasses).
 

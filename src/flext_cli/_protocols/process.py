@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
     from flext_cli import t
     from flext_cli._models.process import FlextCliModelsProcess
-    from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart02
+    from flext_cli._protocols._base import FlextCliProtocolsBasePart02
 
 
 class FlextCliProtocolsProcess:
@@ -70,23 +70,6 @@ class FlextCliProtocolsProcess:
 
         def wait(self, timeout: float | None = None) -> p.Result[int]:
             """Reap the child and preserve its output and exit code."""
-            ...
-
-        def stdin_write(self, content: bytes) -> p.Result[bool]:
-            """Write exact bytes to the child input."""
-            ...
-
-        def stdout_read_until(
-            self,
-            delimiter: bytes,
-            *,
-            timeout: float,
-        ) -> p.Result[bytes]:
-            """Read through the delimiter within the supplied deadline."""
-            ...
-
-        def stdout_read_exact(self, size: int, *, timeout: float) -> p.Result[bytes]:
-            """Read the declared number of bytes within the supplied deadline."""
             ...
 
     @runtime_checkable

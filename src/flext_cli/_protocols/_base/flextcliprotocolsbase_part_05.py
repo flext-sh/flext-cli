@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart04
+from flext_cli._protocols._base import FlextCliProtocolsBasePart04
 
 if TYPE_CHECKING:
     # Why (multi-agent): defer flext_cli import to break the __init__-time

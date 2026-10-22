@@ -163,29 +163,6 @@ class FlextCliUtilitiesOutput(FlextCliUtilitiesOutputPayloads):
         symbol = c.Cli.OUTPUT_STATUS_OK if passed else c.Cli.OUTPUT_STATUS_FAIL
         cls.emit_raw(f"    {symbol} {gate:<10} {count:>5} errors  ({elapsed:.2f}s)\n")
 
-    @classmethod
-    def project_failure(cls, info: p.Cli.ProjectFailureInfo) -> None:
-        """Emit one canonical per-project failure diagnostic from typed info.
-
-        Args:
-            info: Typed failure summary, error lines, and log location.
-
-        """
-        count_label = (
-            f"  [{info.error_count} errors]"
-            if info.error_count > 0
-            else c.DEFAULT_EMPTY_STRING
-        )
-        cls.emit_raw(
-            f"  {c.Cli.OUTPUT_STATUS_FAIL} {info.project} completed in "
-            f"{info.elapsed}s{count_label}  ({info.log_path})\n",
-        )
-        for line in info.errors[: info.max_show]:
-            cls.emit_raw(f"      {line}\n")
-        remaining = info.error_count - info.max_show
-        if remaining > 0:
-            cls.emit_raw(f"      ... and {remaining} more (see log)\n")
-
     @staticmethod
     def resolve_report_dir(repository_root: Path | str, scope: str, verb: str) -> Path:
         """Resolve the standardized report directory for one scope and verb.

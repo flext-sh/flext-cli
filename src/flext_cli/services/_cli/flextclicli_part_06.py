@@ -11,7 +11,7 @@ from functools import partial
 from flext_core import FlextRuntime
 
 from flext_cli import m, p, t, u
-from flext_cli.services._cli_parts import FlextCliCliPart05
+from flext_cli.services._cli import FlextCliCliPart05
 
 
 class FlextCliCliPart06(FlextCliCliPart05):

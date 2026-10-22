@@ -9,8 +9,6 @@ from __future__ import annotations
 import csv
 import errno
 import hashlib
-import os
-import shutil
 import stat
 from collections.abc import Generator
 from contextlib import contextmanager
@@ -307,79 +305,6 @@ class FlextCliUtilitiesFilesPart03:
             _list,
             c.Cli.ERR_TEXT_READ_FAILED,
         )
-
-    @staticmethod
-    def ensure_symlink(
-        target: t.Cli.TextPath,
-        source: t.Cli.TextPath,
-    ) -> p.Result[bool]:
-        """Ensure target points to source via directory symlink.
-
-        Returns:
-            The resulting ``p.Result[bool]``.
-
-        """
-        target_path = Path(target)
-        source_path = Path(source).resolve()
-        ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(target_path.parent)
-        if ensure_result.failure:
-            return r[bool].from_failure(ensure_result)
-        if target_path.is_symlink() and target_path.resolve() == source_path:
-            return r[bool].ok(value=True)
-        if target_path.exists() or target_path.is_symlink():
-            return r[bool].fail(
-                f"symlink destination already exists with a different"
-                f" identity: {target_path}",
-            )
-        relative_source = os.path.relpath(source_path, target_path.parent.resolve())
-        try:
-            target_path.symlink_to(relative_source, target_is_directory=True)
-        except OSError as exc:
-            return r[bool].fail(
-                c.Cli.ERR_ENSURE_SYMLINK_FAILED.format(
-                    target_path=target_path,
-                    error=exc,
-                ),
-            )
-        return r[bool].ok(value=True)
-
-    @staticmethod
-    def read_symlink_target(target: t.Cli.TextPath) -> p.Result[t.Cli.TextPath]:
-        """Return the resolved destination of the symlink at ``target``.
-
-        Bounded read primitive for canonical WIP capture: a path that is not a
-        symlink fails with a typed error instead of silently returning itself.
-
-        Returns:
-            The resolved destination of the symlink at ``target``.
-
-        """
-        target_path = Path(target)
-        if not target_path.is_symlink():
-            return r[t.Cli.TextPath].fail(
-                c.Cli.ERR_READ_SYMLINK_FAILED.format(target_path=target_path),
-            )
-        return r[t.Cli.TextPath].ok(target_path.resolve().as_posix())
-
-    @staticmethod
-    def remove_symlink_target(target: t.Cli.TextPath) -> p.Result[bool]:
-        """Remove an existing file, directory, or symlink at ``target``.
-
-        Bounded delete primitive for canonical WIP capture; removing an absent
-        target is a successful no-op so callers need no pre-check race.
-
-        Returns:
-            The resulting ``p.Result[bool]``.
-
-        """
-        target_path = Path(target)
-        if not target_path.exists() and not target_path.is_symlink():
-            return r[bool].ok(value=True)
-        if target_path.is_dir() and not target_path.is_symlink():
-            shutil.rmtree(target_path)
-        else:
-            target_path.unlink()
-        return r[bool].ok(value=True)
 
     @staticmethod
     def sha256_content(content: str) -> str:

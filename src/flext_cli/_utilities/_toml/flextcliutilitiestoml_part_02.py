@@ -39,16 +39,6 @@ class FlextCliUtilitiesTomlPart02:
         return tomlkit.item(value, _sort_keys=sort_keys)
 
     @staticmethod
-    def toml_is_document(value: t.Cli.TomlRuntimeSource) -> TypeIs[TOMLDocument]:
-        """Return True when the value is a TOML document.
-
-        Returns:
-            True when the value is a TOML document.
-
-        """
-        return isinstance(value, TOMLDocument)
-
-    @staticmethod
     def toml_is_table(value: t.Cli.TomlRuntimeSource) -> TypeIs[Table]:
         """Return True when the value is an explicit TOML table.
 

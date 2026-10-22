@@ -92,16 +92,6 @@ class FlextCliPromptsSupport(s[p.Cli.RuntimeStatus]):
             case _:
                 self.logger.info(message, **context)
 
-    def _print_message(
-        self,
-        message: str,
-        log_level: str,
-        message_format: str,
-    ) -> p.Result[bool]:
-        # Fail loud: a logger failure propagates with its cause.
-        self._log(log_level, message_format.format(message=message))
-        return r[bool].ok(value=True)
-
     def _read_confirmation_input(
         self,
         message: str,

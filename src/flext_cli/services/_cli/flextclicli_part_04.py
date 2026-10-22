@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import p, t, u
-from flext_cli.services._cli_parts import FlextCliCliPart03
+from flext_cli.services._cli import FlextCliCliPart03
 
 
 class FlextCliCliPart04(FlextCliCliPart03):
@@ -52,19 +52,6 @@ class FlextCliCliPart04(FlextCliCliPart03):
 
         """
         return u.Cli.framework_execute_external(command, prog_name=prog_name, args=args)
-
-    @staticmethod
-    def external_command(app: p.Cli.Application) -> p.Cli.ExternalCommand:
-        """Expose one adapter-owned application as an external command.
-
-        Args:
-            app: Application adapted into the external command.
-
-        Returns:
-            The resulting ``p.Cli.ExternalCommand``.
-
-        """
-        return u.Cli.framework_external_command(app)
 
     @staticmethod
     def register_callback(app: p.Cli.Application, *, command: t.Cli.CliCommand) -> None:

@@ -111,18 +111,5 @@ class FlextCliAuth(s[p.Cli.RuntimeStatus]):
             .map(lambda _ok: token)
         )
 
-    @staticmethod
-    def clear_auth_tokens() -> p.Result[bool]:
-        """Delete the configured authentication token file if present.
-
-        Returns:
-            The resulting ``p.Result[bool]``.
-
-        """
-        token_file = u.Cli.auth_token_file_path(settings.cli_token_file)
-        if not token_file.exists():
-            return r[bool].ok(value=True)
-        return u.Cli.files_delete(token_file)
-
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliAuth"]

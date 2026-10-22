@@ -9,7 +9,7 @@ from __future__ import annotations
 from inspect import Parameter
 
 from flext_cli import c, m, p, r, t, u
-from flext_cli.services._cli_parts import FlextCliCliPart01, FlextCliCliPart02
+from flext_cli.services._cli import FlextCliCliPart01, FlextCliCliPart02
 
 
 class FlextCliCliPart03(FlextCliCliPart02):

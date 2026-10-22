@@ -25,21 +25,6 @@ class FlextCliUtilitiesFilesPart06:
     """Implementation part for FlextCliUtilitiesFilesPart06."""
 
     @staticmethod
-    def atomic_file_publication_is_unchanged(
-        publication: m.Cli.AtomicFilePublication,
-    ) -> bool:
-        """Return whether staged bytes and permissions equal the live state.
-
-        Returns:
-            Whether staged bytes and permissions equal the live state.
-
-        """
-        return (
-            publication.before.content == publication.replacement.content
-            and publication.before.mode == publication.replacement.mode
-        )
-
-    @staticmethod
     def atomic_create_binary_file_guarded(
         file_path: t.Cli.TextPath,
         data: bytes,
@@ -85,35 +70,6 @@ class FlextCliUtilitiesFilesPart06:
             required=True,
             owner_uid=owner_uid,
             max_bytes=max_bytes,
-        )
-
-    @staticmethod
-    def atomic_apply_file_publication_guarded(
-        publication: m.Cli.AtomicFilePublication,
-    ) -> p.Result[m.Cli.AtomicFileState]:
-        """Apply one exact staged replacement or tombstone under caller lock.
-
-        Returns:
-            The resulting ``p.Result[m.Cli.AtomicFileState]``.
-
-        """
-        before = publication.before
-        replacement = publication.replacement
-        if replacement.content is None:
-            if before.content is None:
-                return r[m.Cli.AtomicFileState].ok(before)
-            removed = FlextCliUtilitiesFilesPart02.atomic_delete_binary_file_guarded(
-                before,
-            )
-            if removed.failure:
-                return r[m.Cli.AtomicFileState].from_failure(removed)
-            return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-                before.path,
-                required=False,
-            )
-        return FlextCliUtilitiesFilesPart03.atomic_publish_staged_binary_file_guarded(
-            before,
-            replacement,
         )
 
     @staticmethod

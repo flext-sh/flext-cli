@@ -15,7 +15,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import copy
 from collections.abc import Mapping
 from typing import ClassVar, cast
 
@@ -84,18 +83,6 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
                         item,
                         dst_seq[index],
                     )
-
-    @staticmethod
-    def yaml_copy_key_comment(
-        parent: CommentedMap,
-        key: str,
-        target: CommentedMap,
-    ) -> None:
-        """Copy ruamel pre-key comments for one key between two maps."""
-        parent_ca = cast("p.Cli.YamlCommentCarrier", parent).ca
-        target_ca = cast("p.Cli.YamlCommentCarrier", target).ca
-        if key in parent_ca.items:
-            target_ca.items[key] = copy.deepcopy(parent_ca.items[key])
 
     @staticmethod
     def yaml_pre_key_tokens(node: CommentedMap, key: str) -> list[RuamelCommentToken]:

@@ -19,9 +19,6 @@ from flext_cli._utilities.atomic_directory_create import (
 from flext_cli._utilities.atomic_directory_delete import (
     FlextCliUtilitiesAtomicDirectoryDelete,
 )
-from flext_cli._utilities.atomic_directory_publish import (
-    FlextCliUtilitiesAtomicDirectoryPublish,
-)
 from flext_cli._utilities.atomic_directory_snapshot import (
     FlextCliUtilitiesAtomicDirectorySnapshot,
 )
@@ -160,32 +157,6 @@ class FlextCliUtilitiesFilesPart05:
                 c.Cli.ERR_ATOMIC_DIRECTORY_DELETE_FAILED.format(error=exc),
             )
         return r[bool].ok(value=True)
-
-    @staticmethod
-    def atomic_publish_staged_empty_directory_guarded(
-        destination_before: m.Cli.AtomicDirectoryState,
-        staged: m.Cli.AtomicDirectoryState,
-    ) -> p.Result[m.Cli.AtomicDirectoryState]:
-        """Publish one staged empty directory without clobbering a destination.
-
-        The destination must be an authenticated absent state. Linux uses
-        ``renameat2(RENAME_NOREPLACE)``; unsupported hosts fail before effects.
-
-        Returns:
-            The resulting ``p.Result[m.Cli.AtomicDirectoryState]``.
-
-        """
-        try:
-            publish = FlextCliUtilitiesAtomicDirectoryPublish
-            published = publish.publish_guarded_staged_empty_directory(
-                destination_before,
-                staged,
-            )
-        except OSError as exc:
-            return r[m.Cli.AtomicDirectoryState].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_PUBLISH_FAILED.format(error=exc),
-            )
-        return r[m.Cli.AtomicDirectoryState].ok(published)
 
     @staticmethod
     def atomic_merge_directory_query_receipts(

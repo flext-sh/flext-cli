@@ -7,38 +7,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import c, p, r, t, u
-from flext_cli.services._cli_parts import FlextCliCliPart04
+from flext_cli.services._cli import FlextCliCliPart04
 
 
 class FlextCliCliPart05(FlextCliCliPart04):
     """Implementation part for FlextCliCliPart05."""
-
-    @classmethod
-    def register_result_callback(
-        cls,
-        app: p.Cli.Application,
-        *,
-        route: p.Cli.ResultCommandRoute,
-        settings: t.Cli.ModelLike | None = None,
-    ) -> None:
-        """Register one model/result handler as the application root callback.
-
-        Args:
-            app: Application receiving the callback.
-            route: Result route describing the model and handler.
-            settings: Optional model instance supplying current field values.
-
-        """
-        execute = cls._build_route_executor(route)
-        cls.register_callback(
-            app,
-            command=cls.model_command(
-                route.model_cls,
-                execute,
-                settings=settings,
-                result_border=True,
-            ),
-        )
 
     @classmethod
     def register_result_command(

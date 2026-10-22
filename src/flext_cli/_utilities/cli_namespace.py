@@ -28,7 +28,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesProcesses,
     FlextCliUtilitiesPrompts,
     FlextCliUtilitiesReport,
-    FlextCliUtilitiesRules,
     FlextCliUtilitiesRuntime,
     FlextCliUtilitiesSettings,
     FlextCliUtilitiesTables,
@@ -37,7 +36,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesValidation,
     FlextCliUtilitiesXlsx,
     FlextCliUtilitiesYaml,
-    FlextCliUtilitiesYamlModel,
 )
 from flext_cli._utilities._options.flextcliutilitiesoptions_part_02 import (
     FlextCliUtilitiesOptionsPart02,
@@ -65,7 +63,6 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesPrompts,
     FlextCliUtilitiesReport,
     FlextCliUtilitiesProcesses,
-    FlextCliUtilitiesRules,
     FlextCliUtilitiesRuntime,
     FlextCliUtilitiesSettings,
     FlextCliUtilitiesTables,
@@ -75,7 +72,6 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesDocx,
     FlextCliUtilitiesPptx,
     FlextCliUtilitiesYaml,
-    FlextCliUtilitiesYamlModel,
 ):
     """Compose utilities; document adapters load only during their operation."""
 
