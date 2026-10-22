@@ -13,12 +13,14 @@ from flext_core import FlextModels
 
 from flext_cli._models import (
     FlextCliConfigModels,
+    FlextCliModelsAtomicPublication,
     FlextCliModelsAtomicState,
     FlextCliModelsAtomicSymlink,
     FlextCliModelsBase,
     FlextCliModelsDocx,
     FlextCliModelsDocxDocument,
     FlextCliModelsDocxStyles,
+    FlextCliModelsFiles,
     FlextCliModelsPipeline,
     FlextCliModelsPptx,
     FlextCliModelsPptxPresentation,
@@ -38,11 +40,13 @@ class FlextCliModels(FlextModels):
     class Cli(
         FlextCliModelsAtomicState,
         FlextCliModelsBase,
+        FlextCliModelsAtomicPublication,
         FlextCliModelsAtomicSymlink,
         FlextCliConfigModels,
         FlextCliModelsDocx,
         FlextCliModelsDocxDocument,
         FlextCliModelsDocxStyles,
+        FlextCliModelsFiles,
         FlextCliModelsPipeline,
         FlextCliModelsPptx,
         FlextCliModelsPptxPresentation,

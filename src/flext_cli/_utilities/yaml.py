@@ -201,9 +201,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
         """
         try:
-            validated = flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(
-                data, strict=True
-            )
+            validated = flext_cli.u.Cli.normalize_json_value(data)
             serialized: str = u.Yaml.safe_dump(
                 validated,
                 default_flow_style=False,
@@ -237,9 +235,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             The resulting ``str``.
 
         """
-        validated = flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(
-            data, strict=True
-        )
+        validated = flext_cli.u.Cli.normalize_json_value(data)
         serialized: str = u.Yaml.safe_dump(
             validated,
             default_flow_style=False,

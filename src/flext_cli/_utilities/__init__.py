@@ -239,10 +239,7 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth
     from flext_cli._utilities.base import FlextCliUtilitiesBase
-    from flext_cli._utilities.cli_namespace import (
-        FlextCliUtilitiesCli,
-        FlextCliUtilitiesModelConfig,
-    )
+    from flext_cli._utilities.cli_namespace import FlextCliUtilitiesCli
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
     from flext_cli._utilities.commands import FlextCliUtilitiesCommands
     from flext_cli._utilities.config import FlextCliUtilitiesConfig
@@ -340,7 +337,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesJsonCoreMixin",
     "FlextCliUtilitiesJsonNavigateMixin",
     "FlextCliUtilitiesMatching",
-    "FlextCliUtilitiesModelConfig",
     "FlextCliUtilitiesOptionBuilder",
     "FlextCliUtilitiesOptionsPart01",
     "FlextCliUtilitiesOptionsPart02",
@@ -507,16 +503,11 @@ install_lazy_exports(
         "FlextCliUtilitiesJsonCoreMixin": "._json._core",
         "FlextCliUtilitiesJsonNavigateMixin": "._json._navigate",
         "FlextCliUtilitiesMatching": ".matching",
-        "FlextCliUtilitiesModelConfig": ".cli_namespace",
         "FlextCliUtilitiesOptionBuilder": (
             "._options.flextcliutilitiesoptionbuilder_part_01"
         ),
-        "FlextCliUtilitiesOptionsPart01": (
-            "._options.flextcliutilitiesoptions_part_01"
-        ),
-        "FlextCliUtilitiesOptionsPart02": (
-            "._options.flextcliutilitiesoptions_part_02"
-        ),
+        "FlextCliUtilitiesOptionsPart01": "._options.flextcliutilitiesoptions_part_01",
+        "FlextCliUtilitiesOptionsPart02": "._options.flextcliutilitiesoptions_part_02",
         "FlextCliUtilitiesOutput": ".output",
         "FlextCliUtilitiesOutputPayloads": ".output_payloads",
         "FlextCliUtilitiesParams": ".params",

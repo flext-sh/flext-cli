@@ -54,7 +54,7 @@ from flext_cli._utilities.atomic_file_snapshot import (
 from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
 )
-from flext_cli.config import config
+from flext_cli._config import config
 
 
 class FlextCliUtilitiesRuntimeProcessExecutionMixin(

@@ -242,9 +242,9 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(target.read_bytes(), eq=original)
         tm.that(target.stat().st_mtime_ns, eq=modified_ns)
         tm.that(result.exception, is_=OSError)
-        with pytest.raises(RuntimeError) as raised:
+        with pytest.raises(OSError) as raised:
             result.unwrap()
-        tm.that(raised.value.__cause__, eq=result.exception)
+        tm.ok(raised.value is result.exception)
 
     @staticmethod
     def test_publication_unchanged_requires_equal_bytes_and_mode(

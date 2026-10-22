@@ -147,27 +147,18 @@ class FlextCliUtilitiesFilesPart06:
             if observed.failure:
                 return r[Literal[True]].from_failure(observed)
             if observed.value != expected:
-                diagnostics = ""
                 source_path = Path(expected.path)
-                if source_path in nonsecret_source_paths and source_path.suffix in {
-                    ".py",
-                    ".pyi",
-                }:
-                    for label, content in (
-                        ("expected", expected.content),
-                        ("observed", observed.value.content),
-                    ):
-                        digest = (
-                            FlextCliUtilitiesFilesPart03.sha256_bytes(content)
-                            if content is not None
-                            else None
-                        )
-                        diagnostics += (
-                            f"; {label}_content_type={type(content).__name__}"
-                            f"; {label}_content_length="
-                            f"{len(content) if content is not None else None}"
-                            f"; {label}_content_sha256={digest}"
-                        )
+                diagnostics = (
+                    FlextCliUtilitiesFilesPart06._content_diagnostic(
+                        "expected", expected.content
+                    )
+                    + FlextCliUtilitiesFilesPart06._content_diagnostic(
+                        "observed", observed.value.content
+                    )
+                    if source_path in nonsecret_source_paths
+                    and source_path.suffix in {".py", ".pyi"}
+                    else ""
+                )
                 return r[Literal[True]].fail(
                     f"atomic source changed: {expected.path}; "
                     f"content_changed={observed.value.content != expected.content}; "
@@ -177,6 +168,26 @@ class FlextCliUtilitiesFilesPart06:
                     f"{diagnostics}"
                 )
         return r[Literal[True]].ok(value=True)
+
+    @staticmethod
+    def _content_diagnostic(label: str, content: bytes | None) -> str:
+        """Describe one attested source payload by type, length and digest only.
+
+        Returns:
+            The diagnostic suffix for ``label``.
+
+        """
+        digest = (
+            FlextCliUtilitiesFilesPart03.sha256_bytes(content)
+            if content is not None
+            else None
+        )
+        length = len(content) if content is not None else None
+        return (
+            f"; {label}_content_type={type(content).__name__}"
+            f"; {label}_content_length={length}"
+            f"; {label}_content_sha256={digest}"
+        )
 
     @staticmethod
     def files_matching(

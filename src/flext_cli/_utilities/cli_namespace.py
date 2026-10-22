@@ -44,12 +44,6 @@ from flext_cli._utilities._options.flextcliutilitiesoptions_part_02 import (
 )
 
 
-class FlextCliUtilitiesModelConfig:
-    """Native configuration owned beside the namespace it protects."""
-
-    model_config = m.ConfigDict(ignored_types=(type,))
-
-
 class FlextCliUtilitiesCli(
     FlextCliUtilitiesAuth,
     FlextCliUtilitiesCmd,
@@ -85,5 +79,7 @@ class FlextCliUtilitiesCli(
 ):
     """Compose utilities; document adapters load only during their operation."""
 
+    model_config = m.ConfigDict(ignored_types=(type,))
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesCli", "FlextCliUtilitiesModelConfig")
+
+__all__: tuple[str, ...] = ("FlextCliUtilitiesCli",)

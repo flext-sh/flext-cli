@@ -115,9 +115,9 @@ class TestsFlextCliFilesCov:
             tm.that(result.value, eq=m.Tests.YamlService.model_validate_json(content))
         else:
             tm.matches_runtime_type(result.exception, m.ValidationError)
-            with pytest.raises(RuntimeError) as raised:
+            with pytest.raises(m.ValidationError) as raised:
                 _ = result.value
-            tm.that(raised.value.__cause__, eq=result.exception)
+            tm.ok(raised.value is result.exception)
 
     @staticmethod
     def test_read_json_model_retains_missing_file_cause(tmp_path: Path) -> None:
@@ -129,9 +129,9 @@ class TestsFlextCliFilesCov:
         tm.that(exception, is_=FileNotFoundError)
         if isinstance(exception, FileNotFoundError):
             tm.that(exception.filename, eq=str(path))
-        with pytest.raises(RuntimeError) as raised:
+        with pytest.raises(FileNotFoundError) as raised:
             _ = result.value
-        tm.that(raised.value.__cause__, eq=exception)
+        tm.ok(raised.value is exception)
 
     @staticmethod
     def test_write_then_read_yaml_round_trips(tmp_path: Path) -> None:
