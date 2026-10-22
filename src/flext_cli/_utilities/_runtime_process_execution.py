@@ -24,6 +24,7 @@ if sys.platform == "linux":
 from flext_core import u as core_u
 
 from flext_cli import c, m, p, r, t
+from flext_cli._config import config
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFilesPart03,
 )
@@ -54,7 +55,6 @@ from flext_cli._utilities.atomic_file_snapshot import (
 from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
 )
-from flext_cli._config import config
 
 
 class FlextCliUtilitiesRuntimeProcessExecutionMixin(
