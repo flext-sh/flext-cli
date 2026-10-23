@@ -49,8 +49,7 @@ class TestsFlextCliFileDerivedContracts:
 
         result = cli.load_file_auto_dict(path)
 
-        tm.ok(result)
-        tm.that(result.value, eq={"a": 1})
+        tm.ok(result, eq={"a": 1})
 
     @staticmethod
     def test_load_file_auto_dict_rejects_unsupported_extension(

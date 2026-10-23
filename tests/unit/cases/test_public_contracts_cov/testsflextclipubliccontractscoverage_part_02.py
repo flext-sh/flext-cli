@@ -8,12 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tests import c, m, r, t, tm, u
+from tests import c, m, p, r, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    from tests import p
 
 
 class TestsFlextCliPublicContractsCoveragePart02:

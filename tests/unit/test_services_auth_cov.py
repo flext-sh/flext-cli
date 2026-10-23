@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
-    from tests import t
+from tests import t
 
 
 class TestsFlextCliServicesAuthCov:
@@ -121,8 +121,7 @@ class TestsFlextCliServicesAuthCov:
 
         fetch_result = auth.fetch_auth_token()
 
-        tm.ok(fetch_result)
-        tm.that(fetch_result.value, eq="valid-token-abc123")
+        tm.ok(fetch_result, eq="valid-token-abc123")
 
     @staticmethod
     def test_save_overwrites_previous_token(auth: FlextCliAuth) -> None:

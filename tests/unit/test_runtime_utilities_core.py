@@ -313,8 +313,7 @@ class TestsFlextCliManagedProcesses:
         tm.ok(process.pid > 0)
         tm.that(process.poll(), eq=None)
         wait_result = process.wait(timeout=5)
-        tm.ok(wait_result)
-        tm.that(wait_result.value, eq=0)
+        tm.ok(wait_result, eq=0)
         tm.that(process.returncode, eq=0)
         tm.that(process.stdout.strip(), eq="managed-ok")
         tm.that(process.stderr, eq="")
@@ -413,8 +412,7 @@ class TestsFlextCliManagedProcesses:
             parent_end.settimeout(5)
             tm.that(parent_end.recv(16), eq=b"ready")
             wait_result = process.wait(timeout=5)
-            tm.ok(wait_result)
-            tm.that(wait_result.value, eq=0)
+            tm.ok(wait_result, eq=0)
         finally:
             parent_end.close()
 

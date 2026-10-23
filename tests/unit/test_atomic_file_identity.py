@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import m, tm, u
+from tests import c, m, tm, u
 
 
 class TestsFlextCliAtomicFileIdentity:
@@ -207,7 +207,7 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(target.read_bytes(), eq=b"foreign input")
 
     @staticmethod
-    @pytest.mark.parametrize("operation", ["write", "delete"])
+    @pytest.mark.parametrize(c.ContextScope.OPERATION, ["write", "delete"])
     def test_guarded_symlink_failure_preserves_original_exception(
         tmp_path: Path,
         operation: str,
@@ -331,12 +331,7 @@ class TestsFlextCliAtomicFileIdentity:
     def test_delete_rejects_replacement_with_same_bytes_and_mode(
         tmp_path: Path,
     ) -> None:
-        """Treat a new inode as stale even when bytes and mode are unchanged.
-
-        Raises:
-            AssertionError: If required atomic snapshot was absent.
-
-        """
+        """Treat a new inode as stale even when bytes and mode are unchanged."""
         destination = tmp_path / "atomic.bin"
         destination.write_bytes(b"content")
         snapshot_result = u.Cli.atomic_read_binary_file_state(
@@ -347,7 +342,7 @@ class TestsFlextCliAtomicFileIdentity:
         snapshot = snapshot_result.value
         if snapshot.content is None or snapshot.mode is None:
             message = "required atomic snapshot was absent"
-            raise AssertionError(message)
+            tm.reject(message)
         replacement = tmp_path / "replacement.bin"
         replacement.write_bytes(snapshot.content)
         replacement.chmod(snapshot.mode)
@@ -383,12 +378,7 @@ class TestsFlextCliAtomicFileIdentity:
     def test_guarded_write_rejects_link_count_changed_after_snapshot(
         tmp_path: Path,
     ) -> None:
-        """Require unique ownership from plan through binary publication.
-
-        Raises:
-            AssertionError: If required atomic snapshot was absent.
-
-        """
+        """Require unique ownership from plan through binary publication."""
         destination = tmp_path / "atomic.bin"
         destination.write_bytes(b"before")
         snapshot_result = u.Cli.atomic_read_binary_file_state(
@@ -399,7 +389,7 @@ class TestsFlextCliAtomicFileIdentity:
         snapshot = snapshot_result.value
         if snapshot.mode is None:
             message = "required atomic snapshot was absent"
-            raise AssertionError(message)
+            tm.reject(message)
         alias = tmp_path / "alias.bin"
         alias.hardlink_to(destination)
 

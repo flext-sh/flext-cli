@@ -22,7 +22,7 @@ from tests import m, p, tm, u
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import t
+from tests import t
 
 
 def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:

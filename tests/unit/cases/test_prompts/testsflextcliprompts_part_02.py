@@ -10,13 +10,10 @@ import time
 from typing import TYPE_CHECKING
 
 import pytest
-
-from tests import c, tm
+from tests import c, p, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from tests import p
 
 
 class TestsFlextCliPromptsPart02:
@@ -31,8 +28,7 @@ class TestsFlextCliPromptsPart02:
         """Verify that prompt accepts edge case messages."""
         prompts = make_prompts(interactive_mode=False)
         result = prompts.prompt(message, default="text")
-        tm.ok(result)
-        tm.that(result.value, eq="text")
+        tm.ok(result, eq="text")
 
     @staticmethod
     def test_repeated_prompt_operations_remain_fast(
@@ -43,6 +39,5 @@ class TestsFlextCliPromptsPart02:
         started_at = time.time()
         for index in range(100):
             result = prompts.prompt(f"Prompt {index}", default="text")
-            tm.ok(result)
-            tm.that(result.value, eq="text")
+            tm.ok(result, eq="text")
         tm.that(time.time() - started_at, lt=0.5)

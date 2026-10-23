@@ -87,9 +87,9 @@ def _numeric_cell_value(
                 if isinstance(value, m.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue):
                     return value
                 msg = f"Cell {sheet_name}!{coordinate} is not numeric: {value.kind}"
-                raise AssertionError(msg)
+                tm.reject(msg)
     msg = f"Cell {sheet_name}!{coordinate} not found in snapshot"
-    raise AssertionError(msg)
+    return tm.reject(msg)
 
 
 class TestsFlextCliXlsxRecalc:

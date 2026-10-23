@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
-    from tests import t
+from tests import t
 
 
 class TestsFlextCliServicesAuth:
@@ -80,7 +80,7 @@ class TestsFlextCliServicesAuth:
 
         # Act
         authenticated = service.authenticate({
-            c.Cli.DICT_KEY_USERNAME: "user",
+            c.Cli.DICT_KEY_USERNAME: c.ContextScope.USER,
             c.Cli.DICT_KEY_LOGIN_VALUE: "s" + "0" * 9,
         })
 
@@ -123,7 +123,7 @@ class TestsFlextCliServicesAuth:
         [
             pytest.param({}, "username", id="empty-payload"),
             pytest.param(
-                {c.Cli.DICT_KEY_USERNAME: "user"},
+                {c.Cli.DICT_KEY_USERNAME: c.ContextScope.USER},
                 "password",
                 id="username-only",
             ),
@@ -159,7 +159,7 @@ class TestsFlextCliServicesAuth:
             pytest.param({c.Cli.DICT_KEY_LOGIN_FIELD: "t" + "0" * 9}, id="token"),
             pytest.param(
                 {
-                    c.Cli.DICT_KEY_USERNAME: "user",
+                    c.Cli.DICT_KEY_USERNAME: c.ContextScope.USER,
                     c.Cli.DICT_KEY_LOGIN_VALUE: "s" + "0" * 9,
                 },
                 id="username-password",
@@ -208,7 +208,7 @@ class TestsFlextCliServicesAuth:
     ) -> None:
         # Act
         """Verify that validate credentials rejects empty password."""
-        result = service.validate_credentials("user", "")
+        result = service.validate_credentials(c.ContextScope.USER, "")
 
         # Assert
         tm.fail(result)

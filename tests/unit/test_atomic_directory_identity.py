@@ -91,12 +91,7 @@ class TestsFlextCliAtomicDirectoryIdentity:
     def test_delete_rejects_replacement_inode_with_same_mode(
         tmp_path: Path,
     ) -> None:
-        """Do not remove a new empty inode that merely matches visible mode.
-
-        Raises:
-            AssertionError: If required directory snapshot unexpectedly absent.
-
-        """
+        """Do not remove a new empty inode that merely matches visible mode."""
         target = tmp_path / "empty"
         target.mkdir(mode=0o750)
         before = u.atomic_directory_snapshot(target, required=True)
@@ -105,7 +100,7 @@ class TestsFlextCliAtomicDirectoryIdentity:
         target.mkdir()
         if before.mode is None:
             message = "required directory snapshot unexpectedly absent"
-            raise AssertionError(message)
+            tm.reject(message)
         target.chmod(before.mode)
 
         result = u.Cli.atomic_delete_empty_directory_guarded(before)

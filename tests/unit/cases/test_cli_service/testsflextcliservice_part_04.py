@@ -6,15 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_cli import cli
-from tests import m, tm
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
-
-if TYPE_CHECKING:
-    from tests import t
+from tests import m, t, tm
 
 
 class TestsFlextCliServicePart04:

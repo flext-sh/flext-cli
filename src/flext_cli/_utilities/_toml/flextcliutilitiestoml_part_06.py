@@ -118,7 +118,7 @@ class FlextCliUtilitiesTomlPart06:
             The resulting ``p.Result[bool]``.
 
         """
-        if path.name != "pyproject.toml":
+        if path.name != c.PYPROJECT_FILENAME:
             return r[bool].ok(value=False)
         command = ["taplo", "format"]
         config_path = FlextCliUtilitiesTomlPart06._resolve_taplo_config(path)

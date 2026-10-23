@@ -64,8 +64,7 @@ class TestsFlextCliJsonCov:
         path = tmp_path / "data.json"
         path.write_text('{"key": "value"}', encoding="utf-8")
         result = u.Cli.json_read(path)
-        tm.ok(result)
-        tm.that(result.value, eq={"key": "value"})
+        tm.ok(result, eq={"key": "value"})
 
     @staticmethod
     @pytest.mark.parametrize(

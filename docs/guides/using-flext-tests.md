@@ -151,7 +151,8 @@ For a standalone test without the settings plugin, keep the reset on both sides 
 mutation, including assertion failure:
 
 ```python
-from tests import tm
+from tests import c, r
+from tests import c, tm
 
 from flext_core import FlextSettings
 

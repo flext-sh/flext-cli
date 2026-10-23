@@ -19,7 +19,7 @@ from tests.unit.cases.test_pipeline.testsflextclipipelinehandlers import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import p
+from tests import p
 
 
 class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):

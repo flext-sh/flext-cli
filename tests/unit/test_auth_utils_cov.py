@@ -125,7 +125,7 @@ class TestsFlextCliAuthUtilsCov:
     @staticmethod
     @pytest.mark.parametrize(
         "payload",
-        [{"user": "admin"}, {c.Cli.DICT_KEY_LOGIN_FIELD: ""}],
+        [{c.ContextScope.USER: "admin"}, {c.Cli.DICT_KEY_LOGIN_FIELD: ""}],
     )
     def test_extract_token_fails_when_no_usable_token(
         payload: t.JsonValue,

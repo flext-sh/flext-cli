@@ -134,7 +134,7 @@ class TestsFlextCliServiceSettingsContract:
             eq=1,
         )
         for record in emitted:
-            tm.that(record.context["correlation_id"], eq="cli-contract")
+            tm.that(record.context[c.ContextKey.CORRELATION_ID], eq="cli-contract")
             tm.that(record.context["application_stage"], eq="selected")
             tm.ok(record.exception is original_exception)
         native_events = [
@@ -165,7 +165,7 @@ class TestsFlextCliServiceSettingsContract:
             exception=original_exception,
             initial_context=original_context,
         )
-        selected_provider = m.ConfigMap(root={"application": "selected"})
+        selected_provider = m.ConfigMap(root={c.ContextScope.APPLICATION: "selected"})
         _ = service.container.bind("application-provider", selected_provider)
         original_dispatcher = tm.ok(service.container.dispatcher())
         with bound_contextvars(correlation_id="cli-contract"):

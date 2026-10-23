@@ -20,7 +20,7 @@ classifiers = [
 dependencies = [
   "click>=8.5.0",
   "defusedxml>=0.7.1",
-  "flext-core @ git+https://github.com/flext-sh/flext-core.git@f98efceb2b4d6221e8e6aeaf478ab8ecf1f8e55e",
+  "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
   "jinja2>=3.1.6",
   "jsonschema>=4.26.0",
   "openpyxl>=3.1.5",
@@ -58,13 +58,13 @@ Homepage = "https://github.com/flext-sh/flext-cli"
 
 [dependency-groups]
 dev = [
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@ac27fc75942a78e4787a74fc64f8a2b7db2a172d",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0.12.0-dev",
   "mkdocstrings-python>=2.0.9",
   "actionlint-py>=1.7.12.24",
   "bandit>=1.9.4",
   "deptry",
   "editables>=0.6",
-  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@4ddd702da483f0b03a247e6282916a343c60276a",
+  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@0.12.0-dev",
   "hypothesis",
   "mkdocs",
   "mkdocs-autorefs",
@@ -120,7 +120,7 @@ dev = [
   "yamlfix>=1.19.1",
 ]
 codegen = [
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@ac27fc75942a78e4787a74fc64f8a2b7db2a172d",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0.12.0-dev",
 ]
 
 [tool.flext.docs]
@@ -645,7 +645,4 @@ environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
 link-mode = "copy"
 override-dependencies = [
   "rope @ git+https://github.com/marlon-costa-dc/rope.git@2bf3ad55a32cc117f5321e1467695eba540be97b",
-  "flext-core @ git+https://github.com/flext-sh/flext-core.git@f98efceb2b4d6221e8e6aeaf478ab8ecf1f8e55e",
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@ac27fc75942a78e4787a74fc64f8a2b7db2a172d",
-  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@4ddd702da483f0b03a247e6282916a343c60276a",
 ]

@@ -15,12 +15,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, tm
+from tests import c, p, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from tests import p
 
 
 class TestsFlextCliPromptsCov:
@@ -45,8 +43,7 @@ class TestsFlextCliPromptsCov:
         """Verify that prompt normalizes input and falls back to default."""
         prompts = make_prompts(inputs=[raw_input])
         result = prompts.prompt("message", default=default)
-        tm.ok(result)
-        tm.that(result.value, eq=expected)
+        tm.ok(result, eq=expected)
 
     @staticmethod
     @pytest.mark.parametrize("quiet", [True, False])
@@ -58,8 +55,7 @@ class TestsFlextCliPromptsCov:
         """Verify that prompt returns default when non interactive."""
         prompts = make_prompts(interactive_mode=False, quiet=quiet)
         result = prompts.prompt("message", default="fallback")
-        tm.ok(result)
-        tm.that(result.value, eq="fallback")
+        tm.ok(result, eq="fallback")
 
     @staticmethod
     def test_prompt_propagates_input_reader_failure(
@@ -92,8 +88,7 @@ class TestsFlextCliPromptsCov:
         """Verify that confirm parses yes no and default."""
         prompts = make_prompts(inputs=[answer])
         result = prompts.confirm("message", default=default)
-        tm.ok(result)
-        tm.that(result.value, eq=expected)
+        tm.ok(result, eq=expected, is_=bool)
 
     @staticmethod
     def test_confirm_retries_past_invalid_input_until_valid(
@@ -102,8 +97,7 @@ class TestsFlextCliPromptsCov:
         """Verify that confirm retries past invalid input until valid."""
         prompts = make_prompts(inputs=["maybe", "huh", "y"])
         result = prompts.confirm("message", default=False)
-        tm.ok(result)
-        tm.ok(result.value)
+        tm.ok(result, eq=True, is_=bool)
 
     @staticmethod
     @pytest.mark.parametrize("default", [True, False])
@@ -115,8 +109,7 @@ class TestsFlextCliPromptsCov:
         """Verify that confirm returns default when non interactive."""
         prompts = make_prompts(interactive_mode=False)
         result = prompts.confirm("message", default=default)
-        tm.ok(result)
-        tm.that(result.value, eq=default)
+        tm.ok(result, eq=default, is_=bool)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -135,7 +128,7 @@ class TestsFlextCliPromptsCov:
         prompts = make_prompts(error=error)
         result = prompts.confirm("message", default=False)
         tm.fail(result, has=expected)
-        tm.ok(result.exception is error)
+        tm.that(result.exception is error, truth=True)
 
     @staticmethod
     def test_confirm_propagates_input_reader_failure(
@@ -155,8 +148,7 @@ class TestsFlextCliPromptsCov:
         _, secret = scripted_password_pair()
         prompts = make_prompts(password=secret)
         result = prompts.prompt_password("Password:", min_length=len(secret))
-        tm.ok(result)
-        tm.that(result.value, eq=secret)
+        tm.ok(result, eq=secret)
 
     @staticmethod
     def test_prompt_password_fails_when_too_short(

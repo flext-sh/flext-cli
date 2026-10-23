@@ -10,7 +10,6 @@ from pathlib import Path
 
 from examples import ExamplesFlextCliSettings
 from examples.ex_12_pydantic_driven_cli import ExamplesFlextCliPydanticDrivenCli
-
 from tests import c, m, tm, u
 
 
@@ -24,7 +23,7 @@ class TestsFlextCliExamplesSmokePart05:
             host="db.example.com",
             port=5432,
             name="prod",
-            username="user",
+            username=c.ContextScope.USER,
             password="p" + "3" * 10,
             ssl_enabled=True,
             connection_pool=10,
@@ -95,7 +94,7 @@ class TestsFlextCliExamplesSmokePart05:
                     "host": "db.example.com",
                     "port": "bad-port",
                     "name": "prod",
-                    "username": "user",
+                    "username": c.ContextScope.USER,
                     "password": c.Tests.CREDENTIAL_SAMPLE_VALUE,
                     "ssl_enabled": True,
                     "connection_pool": 10,
@@ -110,7 +109,7 @@ class TestsFlextCliExamplesSmokePart05:
                     "host": "db.example.com",
                     "port": 5432,
                     "name": "prod",
-                    "username": "user",
+                    "username": c.ContextScope.USER,
                     "password": "p" + "3" * 10,
                     "ssl_enabled": False,
                     "connection_pool": 10,
@@ -123,8 +122,7 @@ class TestsFlextCliExamplesSmokePart05:
         required_fields = ExamplesFlextCliPydanticDrivenCli.validate_required_fields(
             payload,
         )
-        tm.ok(required_fields)
-        tm.that(required_fields.value, eq=payload)
+        tm.ok(required_fields, eq=payload)
 
         oversized_localhost = base_config.value.model_copy(
             update={"host": "localhost", "connection_pool": 60},

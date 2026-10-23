@@ -138,7 +138,7 @@ class TestsFlextCliTomlUtilities:
     @staticmethod
     def test_read_json_round_trips_document_to_mapping(tmp_path: Path) -> None:
         """Verify that read json round trips document to mapping."""
-        toml_file = tmp_path / "pyproject.toml"
+        toml_file = tmp_path / c.PYPROJECT_FILENAME
         toml_file.write_text(
             '[project]\nname = "demo"\ndependencies = ["httpx>=0.27"]\n',
             encoding="utf-8",
@@ -182,7 +182,7 @@ class TestsFlextCliTomlUtilities:
         tmp_path: Path,
     ) -> None:
         """Format a real pyproject through the public TOML facade."""
-        pyproject = tmp_path / "pyproject.toml"
+        pyproject = tmp_path / c.PYPROJECT_FILENAME
         taplo_config = tmp_path / ".taplo.toml"
         taplo_config.write_text("", encoding="utf-8")
         doc = u.Cli.toml_document()
@@ -215,7 +215,7 @@ class TestsFlextCliTomlUtilities:
     @staticmethod
     def test_write_mapping_renders_nested_tables_to_disk(tmp_path: Path) -> None:
         """Verify that write mapping renders nested tables to disk."""
-        toml_file = tmp_path / "pyproject.toml"
+        toml_file = tmp_path / c.PYPROJECT_FILENAME
         payload: t.JsonDict = {
             "project": {"name": "demo"},
             "tool": {"uv": {"sources": {"flext-core": {"workspace": True}}}},

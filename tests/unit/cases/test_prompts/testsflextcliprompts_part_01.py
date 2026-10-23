@@ -9,13 +9,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import pytest
-
 from tests import c, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tests import p
+from tests import p
 
 
 class TestsFlextCliPromptsPart01:
@@ -55,11 +54,9 @@ class TestsFlextCliPromptsPart01:
         """Verify that prompt reads input and uses default for empty text."""
         prompts = make_prompts(inputs=[" typed ", ""])
         typed_result = prompts.prompt("Enter value")
-        tm.ok(typed_result)
-        tm.that(typed_result.value, eq="typed")
+        tm.ok(typed_result, eq="typed")
         default_result = prompts.prompt("Enter value", default="default")
-        tm.ok(default_result)
-        tm.that(default_result.value, eq="default")
+        tm.ok(default_result, eq="default")
 
     @staticmethod
     def test_confirm_returns_defaults_when_not_interactive(
@@ -121,5 +118,4 @@ class TestsFlextCliPromptsPart01:
         tm.fail(short_result)
         valid_prompts = make_prompts(password=valid_secret)
         valid_result = valid_prompts.prompt_password("Password:", min_length=8)
-        tm.ok(valid_result)
-        tm.that(valid_result.value, eq=valid_secret)
+        tm.ok(valid_result, eq=valid_secret)

@@ -32,8 +32,7 @@ class TestsFlextCliFilesCov:
         path = tmp_path / "test.txt"
         tm.ok(u.Cli.files_write_text(path, "hello world"))
         read_result = u.Cli.files_read_text(path)
-        tm.ok(read_result)
-        tm.that(read_result.value, eq="hello world")
+        tm.ok(read_result, eq="hello world")
 
     @staticmethod
     def test_read_text_fails_for_missing_file(tmp_path: Path) -> None:
@@ -51,8 +50,7 @@ class TestsFlextCliFilesCov:
         path = tmp_path / "data.json"
         tm.ok(cli.write_json_file(path, {"key": "value"}))
         read_result = cli.read_json_file(path)
-        tm.ok(read_result)
-        tm.that(read_result.value, eq={"key": "value"})
+        tm.ok(read_result, eq={"key": "value"})
 
     @staticmethod
     def test_read_json_fails_for_missing_file(tmp_path: Path) -> None:

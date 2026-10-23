@@ -6,12 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from tests import m, tm, u
-
-if TYPE_CHECKING:
-    from tests import t
+from tests import m, t, tm, u
 
 
 class TestsFlextCliXlsxRange:

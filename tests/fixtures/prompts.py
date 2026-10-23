@@ -17,7 +17,7 @@ from tests import c, m
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tests import p, t
+from tests import p, t
 
 
 def _scripted_reader(

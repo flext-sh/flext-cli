@@ -14,7 +14,7 @@ from tests import tm, u
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import m
+from tests import m
 
 
 class TestsFlextCliAtomicFileGuarded:

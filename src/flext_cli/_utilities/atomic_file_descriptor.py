@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from flext_cli import t
+from flext_cli import c, t
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
@@ -169,7 +169,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
                 descriptor,
                 path,
                 operation_error,
-                label="operation",
+                label=c.ContextScope.OPERATION,
             )
             raise
         os.close(descriptor)
