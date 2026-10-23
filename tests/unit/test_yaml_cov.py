@@ -215,7 +215,9 @@ class TestsFlextCliYamlCov:
 
         tm.that(list(result), eq=[])
 
-    # ── yaml_dump ────────────────────────────────────────────────────
+
+class TestsFlextCliYamlSerialization:
+    """YAML file and string serialization through the public facade."""
 
     @staticmethod
     @pytest.mark.parametrize(

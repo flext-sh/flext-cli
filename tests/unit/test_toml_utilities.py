@@ -233,7 +233,9 @@ class TestsFlextCliTomlUtilities:
         tm.ok(sources["flext-core"]["workspace"])
         tm.that(rendered["project"], eq={"name": "demo"})
 
-    # -------------------------------------------------------------- builders
+
+class TestsFlextCliTomlValues:
+    """Native TOML construction, navigation and JSON projection contracts."""
 
     @staticmethod
     def test_array_serializes_all_elements() -> None:

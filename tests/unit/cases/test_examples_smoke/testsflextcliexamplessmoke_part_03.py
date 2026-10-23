@@ -120,7 +120,7 @@ class TestsFlextCliExamplesSmokePart03:
             c.DeploymentEnvironment.TESTING,
         )
         tm.that(testing_settings["max_workers"], eq=1)
-        tm.fail(testing_settings["enable_metrics"])
+        tm.that(testing_settings["enable_metrics"], eq=False)
 
         with pytest.raises(TypeError):
             ExamplesFlextCliSettings.apply_environment_overrides(

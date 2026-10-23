@@ -21,21 +21,21 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
-    """Build an absolute deadline with a bounded cleanup reserve.
-
-    Returns:
-        The resulting ``m.Cli.ProcessDeadline``.
-
-    """
-    return m.Cli.ProcessDeadline(
-        expires_at_monotonic=time.monotonic() + seconds,
-        termination_grace_seconds=grace,
-    )
-
-
 class TestsFlextCliRuntimeStreamedProcess:
     """Prove streaming, deadlines, exact exits, and descendant cleanup."""
+
+    @staticmethod
+    def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
+        """Build an absolute deadline with a bounded cleanup reserve.
+
+        Returns:
+            The resulting ``m.Cli.ProcessDeadline``.
+
+        """
+        return m.Cli.ProcessDeadline(
+            expires_at_monotonic=time.monotonic() + seconds,
+            termination_grace_seconds=grace,
+        )
 
     @staticmethod
     def _live_threads() -> frozenset[threading.Thread]:
@@ -46,6 +46,22 @@ class TestsFlextCliRuntimeStreamedProcess:
 
         """
         return frozenset(threading.enumerate())
+
+    @staticmethod
+    def test_command_arguments_are_not_shell_interpreted(tmp_path: Path) -> None:
+        """Shell syntax stays one literal argument at the public process boundary."""
+        marker = tmp_path / "must-not-exist"
+        argument = f"literal; echo injected > {marker}"
+        output = tm.ok(
+            u.Cli.run_raw(
+                [sys.executable, "-c", "import sys; print(sys.argv[1])", argument],
+                cwd=tmp_path,
+            ),
+        )
+        tm.ok(u.Cli.process_succeeded(output.outcome))
+        tm.that(output.stdout, eq=f"{argument}\n")
+        tm.that(output.stderr, eq="")
+        tm.fail(marker.exists())
 
     @staticmethod
     def test_combined_output_is_byte_exact_and_live(
@@ -88,6 +104,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         self,
         tmp_path: Path,
         capfd: pytest.CaptureFixture[str],
+        *,
         live: bool,
     ) -> None:
         """Keep concurrent native pipes distinct without decoding their bytes."""
@@ -115,7 +132,9 @@ class TestsFlextCliRuntimeStreamedProcess:
                 options=m.Cli.ProcessOptions(
                     input_data=payload,
                     live=live,
-                    deadline=_deadline(seconds=5.0, grace=1.0),
+                    deadline=TestsFlextCliRuntimeStreamedProcess._deadline(
+                        seconds=5.0, grace=1.0
+                    ),
                     stderr_file=stderr_file,
                 ),
             ),
@@ -203,7 +222,9 @@ class TestsFlextCliRuntimeStreamedProcess:
             ],
             stdout_file,
             options=m.Cli.ProcessOptions(
-                deadline=_deadline(seconds=1.0, grace=0.4),
+                deadline=TestsFlextCliRuntimeStreamedProcess._deadline(
+                    seconds=1.0, grace=0.4
+                ),
                 stderr_file=stderr_file,
             ),
         )
@@ -318,7 +339,9 @@ class TestsFlextCliRuntimeStreamedProcess:
             output_file,
             options=m.Cli.ProcessOptions(
                 input_data=payload,
-                deadline=_deadline(seconds=5.0, grace=1.0),
+                deadline=TestsFlextCliRuntimeStreamedProcess._deadline(
+                    seconds=5.0, grace=1.0
+                ),
             ),
         )
 
@@ -401,7 +424,11 @@ class TestsFlextCliRuntimeStreamedProcess:
             ],
             tmp_path / "conflict.log",
             timeout=1,
-            options=m.Cli.ProcessOptions(deadline=_deadline(seconds=2.0, grace=0.5)),
+            options=m.Cli.ProcessOptions(
+                deadline=TestsFlextCliRuntimeStreamedProcess._deadline(
+                    seconds=2.0, grace=0.5
+                )
+            ),
         )
 
         tm.fail(result)

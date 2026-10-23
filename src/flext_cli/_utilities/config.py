@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from flext_core import u
 from jsonschema import Draft202012Validator
@@ -96,22 +96,23 @@ class FlextCliUtilitiesConfig:
         if schema_read.failure:
             return r[bool].from_failure(schema_read)
         return u.try_(
-            lambda: FlextCliUtilitiesConfig._run_validator(schema_read.value, data),
+            lambda: FlextCliUtilitiesConfig._run_validator(
+                Draft202012Validator(dict(schema_read.value)), data
+            ),
             catch=(ValidationError, SchemaError),
             op_name="schema_validate",
         )
 
     @staticmethod
-    def _run_validator(schema: t.JsonMapping, data: t.JsonMapping) -> bool:
+    def _run_validator(
+        validator: p.Cli.JsonSchemaValidator, data: t.JsonMapping
+    ) -> bool:
         """Run a Draft 2020-12 validator; raise on first violation, else ``True``.
 
         Returns:
             The resulting ``bool``.
 
         """
-        validator = cast(
-            "p.Cli.JsonSchemaValidator", Draft202012Validator(dict(schema))
-        )
         validator.validate(dict(data))
         return True
 

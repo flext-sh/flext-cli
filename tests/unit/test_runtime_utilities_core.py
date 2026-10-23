@@ -78,19 +78,19 @@ def _start_session_descendant(
     return process, descendant_pid
 
 
+@pytest.fixture
+def runner() -> FlextCliUtilitiesCli:
+    """Provide the public process facade to synchronous and managed consumers.
+
+    Returns:
+        The public CLI process utility instance.
+
+    """
+    return FlextCliUtilitiesCli()
+
+
 class TestsFlextCliRuntimeUtilitiesCore:
-    """Behavior contract for test_runtime_utilities_core."""
-
-    @pytest.fixture
-    @staticmethod
-    def runner() -> FlextCliUtilitiesCli:
-        """Define the runner test contract.
-
-        Returns:
-            The resulting ``FlextCliUtilitiesCli``.
-
-        """
-        return FlextCliUtilitiesCli()
+    """Synchronous run and capture behavior through the public process facade."""
 
     @staticmethod
     def test_run_raw_remove_env_keys_strips_inherited_values(
@@ -298,6 +298,10 @@ class TestsFlextCliRuntimeUtilitiesCore:
         tm.that(ok_output.stdout, eq="")
         tm.ok(FlextCliUtilitiesCli.process_succeeded(ok_output.outcome))
         tm.fail(runner.run_live(("sh", "-c", "exit 7")), has="failed")
+
+
+class TestsFlextCliManagedProcesses:
+    """Managed process streams, descriptor inheritance and lifecycle operations."""
 
     @staticmethod
     def test_process_start_wait_captures_stdout(runner: FlextCliUtilitiesCli) -> None:

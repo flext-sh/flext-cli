@@ -391,6 +391,10 @@ class TestsFlextCliAtomicDirectoryQueries:
         with pytest.raises(OSError, match="physical alias"):
             u.Cli.atomic_merge_directory_query_receipts((queried, queried), ())
 
+
+class TestsFlextCliAtomicDirectoryPhysicalBoundaries:
+    """Authenticate directory anchors, mounted ancestry and causal IO failures."""
+
     @staticmethod
     def test_filesystem_root_is_a_directory_not_a_file(tmp_path: Path) -> None:
         """Directory election authenticates anchors without authorizing file IO."""
@@ -523,6 +527,57 @@ class TestsFlextCliAtomicDirectoryQueries:
         )
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
         tm.that(outcome.stderr, eq="")
+
+
+class TestsFlextCliAtomicDirectoryPublicationQueries:
+    """Bind consumed directory queries to real publication receipts."""
+
+    @staticmethod
+    def test_declared_membership_selection_preserves_full_query_authority(
+        tmp_path: Path,
+    ) -> None:
+        """Selected membership ignores only its declared names, never another query."""
+        physical = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        selected = physical.model_copy(update={"membership_queries": (("outside",),)})
+        (tmp_path / "outside").mkdir()
+        observed = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        selected_after = observed.model_copy(
+            update={"membership_queries": (("outside",),)}
+        )
+        merged, _ = u.Cli.atomic_merge_directory_query_receipts(
+            (selected, selected_after), ()
+        )
+        authority = m.Cli.AtomicDirectoryQueryEffects(membership_policy=("outside",))
+        tm.ok(u.Cli.atomic_verify_directory_queries(merged, (), publications=authority))
+        with pytest.raises(ValueError, match="differs from admitted policy"):
+            u.Cli.atomic_verify_directory_queries(merged, ())
+        with pytest.raises(ValueError, match="differs from admitted policy"):
+            u.Cli.atomic_verify_directory_queries(
+                (
+                    selected.model_copy(
+                        update={"membership_queries": (("admitted.py", "outside"),)}
+                    ),
+                ),
+                (),
+                publications=authority,
+            )
+        with pytest.raises(ValueError, match="membership epochs disagree"):
+            u.Cli.atomic_merge_directory_query_receipts(
+                (
+                    physical.model_copy(update={"membership_queried": True}),
+                    selected_after,
+                ),
+                (),
+            )
+        with pytest.raises(ValueError, match="membership changed"):
+            u.Cli.atomic_verify_directory_queries(
+                (selected.model_copy(update={"membership_queried": True}),),
+                (),
+                publications=authority,
+            )
+        (tmp_path / "admitted.py").write_text("", encoding=c.DEFAULT_ENCODING)
+        with pytest.raises(ValueError, match="membership changed"):
+            u.Cli.atomic_verify_directory_queries(merged, (), publications=authority)
 
     @staticmethod
     def _queried(root: Path, name: str) -> m.Cli.AtomicDirectoryInventory:

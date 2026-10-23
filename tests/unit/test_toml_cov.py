@@ -65,74 +65,6 @@ class TestsFlextCliTomlCov:
         """Verify that mapping from text returns none on invalid content."""
         tm.that(u.Cli.toml_mapping_from_text(self._INVALID_TOML), none=True)
 
-    # ── constructors + runtime predicates ─────────────────────────────
-
-    @staticmethod
-    def test_document_constructor_produces_document() -> None:
-        """Verify that document constructor produces document."""
-        doc = u.Cli.toml_document()
-        tm.that(u.Cli.toml_dumps(doc), eq="")
-
-    @staticmethod
-    def test_table_constructor_is_recognized_as_table() -> None:
-        """Verify that table constructor is recognized as table."""
-        tm.ok(u.Cli.toml_is_table(u.Cli.toml_table()))
-
-    @staticmethod
-    def test_aot_constructor_is_recognized_as_aot() -> None:
-        """Verify that aot constructor is recognized as aot."""
-        tm.ok(u.Cli.toml_is_aot(u.Cli.toml_aot()))
-
-    @staticmethod
-    def test_array_constructor_round_trips_to_string_list() -> None:
-        """Verify that array constructor round trips to string list."""
-        arr = u.Cli.toml_array(["a", "b", "c"])
-        tm.ok(u.Cli.toml_is_item(arr))
-        tm.that(list(u.Cli.toml_as_string_list(arr)), eq=["a", "b", "c"])
-
-    @staticmethod
-    def test_predicates_reject_non_toml_values() -> None:
-        """Verify that predicates reject non toml values."""
-        tm.fail(u.Cli.toml_is_table("not a toml value"))
-        tm.fail(u.Cli.toml_is_aot("not a toml value"))
-        tm.fail(u.Cli.toml_is_item("not a toml value"))
-
-    @staticmethod
-    def test_table_child_reads_out_of_order_fragmented_table() -> None:
-        """Consolidate a fragmented (out-of-order) table child on read."""
-        # A [project] table split by an intervening top-level table is valid
-        # TOML; tomlkit represents it as an OutOfOrderTableProxy. toml_table_child
-        # must consolidate it into a normal, fully readable table.
-        fragmented = (
-            '[project]\nname = "demo"\n\n'
-            '[build-system]\nrequires = ["hatchling"]\n\n'
-            '[project.optional-dependencies]\nextra = ["pkg"]\n'
-        )
-        doc = tm.not_none(u.Cli.toml_parse_text(fragmented))
-        project = tm.not_none(u.Cli.toml_table_child(doc, "project"))
-        tm.that(u.Cli.toml_value(project, "name"), eq="demo")
-        extras = tm.not_none(u.Cli.toml_table_child(project, "optional-dependencies"))
-        tm.that(list(u.Cli.toml_as_string_list(extras["extra"])), eq=["pkg"])
-
-    @staticmethod
-    def test_ensure_table_consolidates_out_of_order_table_without_data_loss() -> None:
-        """Consolidate a fragmented table instead of overwriting it empty."""
-        # toml_ensure_table targets a section for mutation. When that section is
-        # fragmented (out-of-order), it must keep every existing entry rather
-        # than replace the proxy with a fresh empty table (silent data loss).
-        fragmented = (
-            f'[project]\nname = "demo"\nversion = "{c.Tests.VERSION_VALID_SEMVER}"\n\n'
-            '[build-system]\nrequires = ["hatchling"]\n\n'
-            '[project.optional-dependencies]\nextra = ["pkg"]\n'
-        )
-        doc = tm.not_none(u.Cli.toml_parse_text(fragmented))
-        table = u.Cli.toml_ensure_table(doc, "project")
-        tm.that(u.Cli.toml_value(table, "name"), eq="demo")
-        tm.that(u.Cli.toml_value(table, "version"), eq=c.Tests.VERSION_VALID_SEMVER)
-        rendered = tm.not_none(u.Cli.toml_parse_text(u.Cli.toml_dumps(doc)))
-        preserved = tm.not_none(u.Cli.toml_table_child(rendered, "project"))
-        tm.that(u.Cli.toml_value(preserved, "name"), eq="demo")
-
     # ── toml_as_mapping ───────────────────────────────────────────────
 
     def test_as_mapping_unwraps_document_to_expected_dict(self) -> None:
@@ -265,3 +197,73 @@ class TestsFlextCliTomlCov:
         payload = {"name": "flext", "version": c.Tests.VERSION_COMPATIBLE}
         doc = u.Cli.toml_document_from_mapping(payload)
         tm.that(u.Cli.toml_as_mapping(doc), eq=payload)
+
+
+class TestsFlextCliTomlConstruction:
+    """Native constructors, predicates and fragmented table preservation."""
+
+    @staticmethod
+    def test_document_constructor_produces_document() -> None:
+        """Verify that document constructor produces document."""
+        doc = u.Cli.toml_document()
+        tm.that(u.Cli.toml_dumps(doc), eq="")
+
+    @staticmethod
+    def test_table_constructor_is_recognized_as_table() -> None:
+        """Verify that table constructor is recognized as table."""
+        tm.ok(u.Cli.toml_is_table(u.Cli.toml_table()))
+
+    @staticmethod
+    def test_aot_constructor_is_recognized_as_aot() -> None:
+        """Verify that aot constructor is recognized as aot."""
+        tm.ok(u.Cli.toml_is_aot(u.Cli.toml_aot()))
+
+    @staticmethod
+    def test_array_constructor_round_trips_to_string_list() -> None:
+        """Verify that array constructor round trips to string list."""
+        arr = u.Cli.toml_array(["a", "b", "c"])
+        tm.ok(u.Cli.toml_is_item(arr))
+        tm.that(list(u.Cli.toml_as_string_list(arr)), eq=["a", "b", "c"])
+
+    @staticmethod
+    def test_predicates_reject_non_toml_values() -> None:
+        """Verify that predicates reject non toml values."""
+        tm.fail(u.Cli.toml_is_table("not a toml value"))
+        tm.fail(u.Cli.toml_is_aot("not a toml value"))
+        tm.fail(u.Cli.toml_is_item("not a toml value"))
+
+    @staticmethod
+    def test_table_child_reads_out_of_order_fragmented_table() -> None:
+        """Consolidate a fragmented (out-of-order) table child on read."""
+        # A [project] table split by an intervening top-level table is valid
+        # TOML; tomlkit represents it as an OutOfOrderTableProxy. toml_table_child
+        # must consolidate it into a normal, fully readable table.
+        fragmented = (
+            '[project]\nname = "demo"\n\n'
+            '[build-system]\nrequires = ["hatchling"]\n\n'
+            '[project.optional-dependencies]\nextra = ["pkg"]\n'
+        )
+        doc = tm.not_none(u.Cli.toml_parse_text(fragmented))
+        project = tm.not_none(u.Cli.toml_table_child(doc, "project"))
+        tm.that(u.Cli.toml_value(project, "name"), eq="demo")
+        extras = tm.not_none(u.Cli.toml_table_child(project, "optional-dependencies"))
+        tm.that(list(u.Cli.toml_as_string_list(extras["extra"])), eq=["pkg"])
+
+    @staticmethod
+    def test_ensure_table_consolidates_out_of_order_table_without_data_loss() -> None:
+        """Consolidate a fragmented table instead of overwriting it empty."""
+        # toml_ensure_table targets a section for mutation. When that section is
+        # fragmented (out-of-order), it must keep every existing entry rather
+        # than replace the proxy with a fresh empty table (silent data loss).
+        fragmented = (
+            f'[project]\nname = "demo"\nversion = "{c.Tests.VERSION_VALID_SEMVER}"\n\n'
+            '[build-system]\nrequires = ["hatchling"]\n\n'
+            '[project.optional-dependencies]\nextra = ["pkg"]\n'
+        )
+        doc = tm.not_none(u.Cli.toml_parse_text(fragmented))
+        table = u.Cli.toml_ensure_table(doc, "project")
+        tm.that(u.Cli.toml_value(table, "name"), eq="demo")
+        tm.that(u.Cli.toml_value(table, "version"), eq=c.Tests.VERSION_VALID_SEMVER)
+        rendered = tm.not_none(u.Cli.toml_parse_text(u.Cli.toml_dumps(doc)))
+        preserved = tm.not_none(u.Cli.toml_table_child(rendered, "project"))
+        tm.that(u.Cli.toml_value(preserved, "name"), eq="demo")

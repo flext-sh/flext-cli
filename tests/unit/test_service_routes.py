@@ -31,9 +31,9 @@ class TestsFlextCliServiceRoutes:
         conforming services outside the CLI base.
         """
 
-        # Operations are plain public instance methods below FlextService:
-        # the discovery scanner counts instance functions only, so these
-        # deliberately keep ``self`` even where a staticmethod would do.
+        greeting: str = "hello"
+        ready: int = 1
+
         def greet_default(self) -> p.Result[p.Tests.ServiceStatus]:
             """Run the default service action.
 
@@ -54,7 +54,9 @@ class TestsFlextCliServiceRoutes:
                 The resulting ``p.Result[str]``.
 
             """
-            return r[str].ok(" ".join([f"hello {request.name}"] * request.times))
+            return r[str].ok(
+                " ".join([f"{self.greeting} {request.name}"] * request.times)
+            )
 
         def report(self) -> p.Result[p.Tests.ServiceStatus]:
             """Report the service status.
@@ -64,7 +66,7 @@ class TestsFlextCliServiceRoutes:
 
             """
             return r[p.Tests.ServiceStatus].ok(
-                m.Tests.ServiceStatus(ready=1),
+                m.Tests.ServiceStatus(ready=self.ready),
             )
 
     class AlternateGreeter(Greeter):

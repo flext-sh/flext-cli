@@ -67,8 +67,8 @@ class TestsFlextCliExamplesSmokePart05:
         )
         tm.ok(settings_result)
         tm.that(settings_result.value["max_workers"], eq=20)
-        tm.ok(settings_result.value["enable_metrics"])
-        tm.ok(settings_result.value["services_initialized"])
+        tm.that(settings_result.value["enable_metrics"], eq=True)
+        tm.that(settings_result.value["services_initialized"], eq=True)
         tm.ok(Path(str(settings_result.value["temp_dir"])).exists())
 
         database_result = (

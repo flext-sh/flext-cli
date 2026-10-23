@@ -1,5 +1,15 @@
 Infra:
   codegen:
     repository:
+      candidate_dependencies:
+      - distribution: flext-core
+        url: https://github.com/flext-sh/flext-core.git
+        commit: 3399772c38b0fb430da5097afbab17ebbf1113ac
+      - distribution: flext-tests
+        url: https://github.com/flext-sh/flext-tests.git
+        commit: 3bdcd2d1c47a34484be5aa9e1be1f7935b91c5d5
+      - distribution: flext-infra
+        url: https://github.com/flext-sh/flext-infra.git
+        commit: 162a825ab78af36cc65f6aeb026fb0febd1c8f61
       namespace_scan_dirs:
       - src

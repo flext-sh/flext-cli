@@ -41,6 +41,23 @@ class FlextCliUtilitiesAtomicTreeInventory:
     )
 
     @staticmethod
+    def directory_membership_value(
+        inventory: m.Cli.AtomicDirectoryInventory,
+        excluded_names: t.StrTuple,
+    ) -> t.MappingKV[str, Literal["directory", "file", "symlink", "other"]]:
+        """Evaluate the declared direct-child selection on a physical receipt.
+
+        Returns:
+            Selected child names and physical kinds.
+
+        """
+        return {
+            item.name: item.kind
+            for item in inventory.entries
+            if item.name not in excluded_names
+        }
+
+    @staticmethod
     def directory_query_value(
         inventory: m.Cli.AtomicDirectoryInventory,
         name: str,
@@ -117,11 +134,18 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ):
                 msg = f"source directory query epochs disagree: {path}"
                 raise ValueError(msg)
-            if (
-                previous.entries is not incoming.entries
-                and (previous.membership_queried or incoming.membership_queried)
-                and tuple((item.name, item.kind) for item in previous.entries)
-                != tuple((item.name, item.kind) for item in incoming.entries)
+            if previous.entries is not incoming.entries and any(
+                cls.directory_membership_value(previous, selection)
+                != cls.directory_membership_value(incoming, selection)
+                for selection in (
+                    *(
+                        ((),)
+                        if previous.membership_queried or incoming.membership_queried
+                        else ()
+                    ),
+                    *previous.membership_queries,
+                    *incoming.membership_queries,
+                )
             ):
                 msg = f"source directory membership epochs disagree: {path}"
                 raise ValueError(msg)
@@ -129,11 +153,22 @@ class FlextCliUtilitiesAtomicTreeInventory:
             membership_queried = (
                 previous.membership_queried or incoming.membership_queried
             )
-            if membership_queried == previous.membership_queried:
+            membership_queries = (
+                previous.membership_queries
+                if incoming.membership_queries == previous.membership_queries
+                else tuple(
+                    sorted({*previous.membership_queries, *incoming.membership_queries})
+                )
+            )
+            if (
+                membership_queried == previous.membership_queried
+                and membership_queries == previous.membership_queries
+            ):
                 continue
             directories[path] = previous.model_copy(
                 update={
                     "membership_queried": membership_queried,
+                    "membership_queries": membership_queries,
                 }
             )
         for incoming in topology:
@@ -142,23 +177,30 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 chains[incoming.target] = incoming
                 continue
             if previous.model_dump(
-                exclude={"queries", "membership_queried"}
-            ) != incoming.model_dump(exclude={"queries", "membership_queried"}):
+                exclude={"queries", "membership_queried", "membership_queries"}
+            ) != incoming.model_dump(
+                exclude={"queries", "membership_queried", "membership_queries"}
+            ):
                 msg = f"source directory ancestry epochs disagree: {incoming.target}"
                 raise ValueError(msg)
             queries = tuple(sorted({*previous.queries, *incoming.queries}))
             membership_queried = (
                 previous.membership_queried or incoming.membership_queried
             )
+            membership_queries = tuple(
+                sorted({*previous.membership_queries, *incoming.membership_queries})
+            )
             if (
                 queries == previous.queries
                 and membership_queried == previous.membership_queried
+                and membership_queries == previous.membership_queries
             ):
                 continue
             chains[incoming.target] = previous.model_copy(
                 update={
                     "queries": queries,
                     "membership_queried": membership_queried,
+                    "membership_queries": membership_queries,
                 }
             )
         # Each selector set only grows from its elected receipt's unique queries.
@@ -200,7 +242,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
         topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
         publications: t.VariadicTuple[
             t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
-        ] = (),
+        ]
+        | m.Cli.AtomicDirectoryQueryEffects = (),
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
         observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
         | None = None,
@@ -219,6 +262,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ValueError: If receipts disagree or an unaccounted change is observed.
 
         """
+        publications = cls._require_membership_policy(
+            inventories, topology, publications
+        )
         boundary: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = (
             {} if observations is None else observations
         )
@@ -270,12 +316,16 @@ class FlextCliUtilitiesAtomicTreeInventory:
                         f"expected={value}; observed={observed_value}"
                     )
                     raise ValueError(msg)
-            if expected.membership_queried:
+            for selection in (
+                *(((),) if expected.membership_queried else ()),
+                *expected.membership_queries,
+            ):
                 cls._verify_query_membership(
                     observed,
-                    {item.name: item.kind for item in expected.entries},
+                    dict(cls.directory_membership_value(expected, selection)),
                     publications,
                     created,
+                    selection,
                 )
         return True
 
@@ -296,6 +346,45 @@ class FlextCliUtilitiesAtomicTreeInventory:
             for _before, after in publications
             if after.content is not None
             for path in (after.path, *after.path.parents)
+        )
+
+    @staticmethod
+    def _require_membership_policy(
+        inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
+        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        publications: t.VariadicTuple[
+            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
+        ]
+        | m.Cli.AtomicDirectoryQueryEffects,
+    ) -> t.VariadicTuple[t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]]:
+        """Reject receipt-selected authority before observing native dependencies.
+
+        Returns:
+            Native publication effects after independent authority election.
+
+        Raises:
+            ValueError: If a receipt selects authority not elected by the caller.
+
+        """
+        membership_policy = (
+            publications.membership_policy
+            if isinstance(publications, m.Cli.AtomicDirectoryQueryEffects)
+            else None
+        )
+        if any(
+            selection != membership_policy
+            for queries in chain(
+                (receipt.membership_queries for receipt in inventories),
+                (receipt.membership_queries for receipt in topology),
+            )
+            for selection in queries
+        ):
+            msg = "source membership selection differs from admitted policy"
+            raise ValueError(msg)
+        return (
+            publications.files
+            if isinstance(publications, m.Cli.AtomicDirectoryQueryEffects)
+            else publications
         )
 
     @classmethod
@@ -333,8 +422,10 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 )
             )
             if observed.model_dump(
-                exclude={"queries", "membership_queried"}
-            ) != witness.model_dump(exclude={"queries", "membership_queried"}) and not (
+                exclude={"queries", "membership_queried", "membership_queries"}
+            ) != witness.model_dump(
+                exclude={"queries", "membership_queried", "membership_queries"}
+            ) and not (
                 gained
                 and observed.anchor_path == gained[-1]
                 and observed.directories == witness.directories[len(gained) :]
@@ -353,7 +444,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 msg = f"source directory ancestry changed: {witness.target}"
                 raise ValueError(msg)
             if (
-                witness.queries or witness.membership_queried
+                witness.queries
+                or witness.membership_queried
+                or witness.membership_queries
             ) and not observed.directories:
                 inventory = cls._observe_physical_directory(
                     observations, witness.target
@@ -376,6 +469,10 @@ class FlextCliUtilitiesAtomicTreeInventory:
                         raise ValueError(msg)
                 if witness.membership_queried:
                     cls._verify_query_membership(inventory, {}, publications, created)
+                for selection in witness.membership_queries:
+                    cls._verify_query_membership(
+                        inventory, {}, publications, created, selection
+                    )
 
     @classmethod
     def _verify_query_membership(
@@ -388,6 +485,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
         ],
         created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
+        excluded_names: t.StrTuple = (),
     ) -> None:
         """Reprove direct membership with only original native publication effects.
 
@@ -414,7 +512,10 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 if child in created or members.get(child.name) != "directory":
                     cls._published_directory_current(child, created)
                 members[child.name] = "directory"
-        actual = {item.name: item.kind for item in observed.entries}
+        members = {
+            name: kind for name, kind in members.items() if name not in excluded_names
+        }
+        actual = cls.directory_membership_value(observed, excluded_names)
         if members != actual:
             added = sorted(actual.keys() - members.keys())
             removed = sorted(members.keys() - actual.keys())

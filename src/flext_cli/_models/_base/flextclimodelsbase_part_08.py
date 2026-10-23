@@ -55,6 +55,10 @@ class FlextCliModelsBasePart08:
                 "Whether native planning consumed the absent parent's membership"
             ),
         )
+        membership_queries: t.VariadicTuple[t.StrTuple] = m.Field(
+            default=(),
+            description="Consumed absent-parent membership selections",
+        )
 
         @m.field_validator("target", "anchor_path")
         @classmethod
@@ -81,6 +85,18 @@ class FlextCliModelsBasePart08:
 
         @m.model_validator(mode="after")
         def _validate_topology(self) -> Self:
+            if self.membership_queries != tuple(
+                sorted(set(self.membership_queries))
+            ) or any(
+                selection != tuple(sorted(set(selection)))
+                or any(
+                    name in {"", ".", ".."} or Path(name).name != name
+                    for name in selection
+                )
+                for selection in self.membership_queries
+            ):
+                msg = "atomic membership selections require ordered lexical exclusions"
+                raise ValueError(msg)
             if self.queries != tuple(sorted(set(self.queries))) or any(
                 name in {"", ".", ".."} or Path(name).name != name
                 for name, _predicate in self.queries

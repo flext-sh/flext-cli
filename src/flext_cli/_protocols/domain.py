@@ -162,7 +162,7 @@ class FlextCliProtocolsDomain:
 
         def validate(
             self,
-            instance: object,  # ast-grep-ignore: ban-broad-annotation
+            instance: t.JsonMapping,
         ) -> None:
             """Validate one instance; raise on the first violation."""
             ...
@@ -210,7 +210,9 @@ class FlextCliProtocolsDomain:
         widow_control: object  # ast-grep-ignore: ban-broad-annotation
 
     @runtime_checkable
-    class ModelCommandHandler[TParams: t.Cli.ModelLike, TResult: t.JsonPayload](Protocol):
+    class ModelCommandHandler[TParams: t.Cli.ModelLike, TResult: t.JsonPayload](
+        Protocol
+    ):
         """Protocol for model-driven CLI command execution."""
 
         def __call__(self, params: TParams, /) -> TResult:

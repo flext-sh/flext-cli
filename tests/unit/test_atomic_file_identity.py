@@ -200,7 +200,7 @@ class TestsFlextCliAtomicFileIdentity:
         target = tmp_path / "target.bin"
         target.write_bytes(b"foreign input")
         path.symlink_to(target)
-        with pytest.raises(OSError) as rejected:
+        with pytest.raises(OSError, match="not a regular file") as rejected:
             tuple(u.Cli.atomic_iter_binary_file(path))
         tm.that(rejected.value.errno, eq=errno.EINVAL)
         tm.ok(path.is_symlink())
@@ -242,7 +242,7 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(target.read_bytes(), eq=original)
         tm.that(target.stat().st_mtime_ns, eq=modified_ns)
         tm.that(result.exception, is_=OSError)
-        with pytest.raises(OSError) as raised:
+        with pytest.raises(OSError, match="not a regular file") as raised:
             result.unwrap()
         tm.ok(raised.value is result.exception)
 

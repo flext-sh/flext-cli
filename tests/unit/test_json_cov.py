@@ -26,6 +26,27 @@ class TestsFlextCliJsonCov:
         """Verify that normalize json value preserves mapping."""
         tm.that(u.Cli.normalize_json_value({"key": "value"}), eq={"key": "value"})
 
+    @staticmethod
+    def test_json_dict_adapter_preserves_validated_nested_payload() -> None:
+        """Concrete object admission preserves the mapping adapter's JSON values."""
+        source: t.JsonDict = {"active": True, "values": [None, {"name": "native"}]}
+        mapping = u.Cli.JSON_MAPPING_ADAPTER.validate_python(source)
+        concrete: t.JsonDict = u.json_dict_adapter().validate_python(source)
+        tm.that(concrete, eq=mapping)
+        tm.that(
+            u.normalize_to_json_value({"metadata": concrete}),
+            eq={"metadata": source},
+        )
+
+    @staticmethod
+    @pytest.mark.parametrize("source", [None, "invalid", ["not", "an object"]])
+    def test_json_object_adapters_reject_non_mapping_input(source: t.JsonValue) -> None:
+        """Object admission does not widen into an arbitrary JSON value schema."""
+        with pytest.raises(m.ValidationError):
+            u.Cli.JSON_MAPPING_ADAPTER.validate_python(source)
+        with pytest.raises(m.ValidationError):
+            u.json_dict_adapter().validate_python(source)
+
     # ----- json_read (fallible, r[JsonMapping]) ----------------------------
 
     @staticmethod
@@ -118,8 +139,8 @@ class TestsFlextCliJsonCov:
         """Verify that json write sort keys orders nested keys."""
         path = tmp_path / "sorted.json"
         payload: t.JsonPayload = {
-            "z": u.Cli.JSON_MAPPING_ADAPTER.validate_python({"b": 2, "a": 1}),
-            "a": u.Cli.JSON_LIST_ADAPTER.validate_python([{"y": 1, "x": 0}]),
+            "z": {"b": 2, "a": 1},
+            "a": [{"y": 1, "x": 0}],
         }
         result = u.Cli.json_write(
             path,
@@ -238,7 +259,9 @@ class TestsFlextCliJsonCov:
         expected: t.JsonValue = {"x": 1}
         tm.that(result.value, eq=expected)
 
-    # ----- coercion helpers: mapping / sequence ----------------------------
+
+class TestsFlextCliJsonNavigation:
+    """Coercion, navigation and scalar extraction through the public JSON facade."""
 
     @staticmethod
     @pytest.mark.parametrize(

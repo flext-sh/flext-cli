@@ -102,7 +102,7 @@ class TestsFlextCliAtomicFileContract:
         [("credentials.env", False), ("credentials.env", True), ("source.py", False)],
     )
     def test_snapshot_diagnostics_do_not_disclose_arbitrary_payloads(
-        tmp_path: Path, name: str, attested: bool
+        tmp_path: Path, name: str, *, attested: bool
     ) -> None:
         """Keep generic and non-source receipts private even with an allowlist."""
         path = tmp_path / name

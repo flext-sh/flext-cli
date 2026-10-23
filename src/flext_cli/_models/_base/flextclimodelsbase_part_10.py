@@ -10,11 +10,27 @@ from typing import Annotated, ClassVar, Self
 
 from flext_core import m
 
+from flext_cli import t
 from flext_cli._models import FlextCliModelsBasePart02
 
 
 class FlextCliModelsBasePart10:
     """Implementation part for FlextCliModelsBasePart10."""
+
+    class AtomicDirectoryQueryEffects(m.BaseModel):
+        """Caller-elected query authority and authenticated publication effects."""
+
+        files: t.VariadicTuple[
+            t.Pair[
+                FlextCliModelsBasePart02.AtomicFileState,
+                FlextCliModelsBasePart02.AtomicFileState,
+            ]
+        ] = m.Field(
+            default=(), description="Authenticated file effects in this boundary"
+        )
+        membership_policy: t.StrTuple = m.Field(
+            description="Canonical membership policy elected independently of receipts"
+        )
 
     class AtomicFilePublication(m.BaseModel):
         """One guarded live state and its caller-owned staged replacement."""

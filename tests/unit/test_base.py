@@ -2,8 +2,8 @@
 
 Exercises the OBSERVABLE public contract of the ``cli`` facade
 (``flext_cli.api.FlextCli``): the canonical settings singleton contract,
-fresh-instance creation via ``clone``, and the ``r[T]`` outcomes of the
-settings validation / snapshot operations.
+fresh-instance creation via ``clone``, and the public ``u.Cli`` settings
+structure diagnostics and snapshot operations.
 
 Modules tested: flext_cli.api (public ``cli`` facade)
 Scope: Public base-service behavior — no private attributes, no internal spies.
@@ -15,9 +15,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
-from flext_cli import FlextCli, cli, settings
+from flext_cli import FlextCli, c, cli, settings, u
 from tests import p, tm
 
 
@@ -68,18 +70,30 @@ class TestsFlextCliBase:
         tm.ok(first is not settings)
 
     @staticmethod
-    def test_validate_settings_reports_success_outcome(facade: FlextCli) -> None:
-        """`validate_settings` returns a successful r[bool] carrying True."""
-        result = facade.validate_settings()
-        tm.ok(result)
-        tm.ok(result.unwrap())
+    def test_settings_structure_reports_current_paths() -> None:
+        """Structure diagnostics describe the configured paths as they exist."""
+        base = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
+        diagnostics = u.Cli.validate_settings_structure()
+        symbol = (
+            c.Cli.SYMBOL_SUCCESS_MARK if base.exists() else c.Cli.SYMBOL_FAILURE_MARK
+        )
+        state = "exists" if base.exists() else "missing"
+        tm.that(diagnostics[0], eq=f"{symbol} Settings directory {state}")
+        tm.that(len(diagnostics), eq=1 + len(c.Cli.STANDARD_SUBDIRS))
+        for diagnostic, subdir in zip(
+            diagnostics[1:],
+            c.Cli.STANDARD_SUBDIRS,
+            strict=True,
+        ):
+            exists = (base / subdir).exists()
+            template = c.Cli.MSG_SUBDIR_EXISTS if exists else c.Cli.MSG_SUBDIR_MISSING
+            symbol = c.Cli.SYMBOL_SUCCESS_MARK if exists else c.Cli.SYMBOL_FAILURE_MARK
+            tm.that(diagnostic, eq=template.format(symbol=symbol, subdir=subdir))
 
     @staticmethod
-    def test_settings_snapshot_exposes_public_state(facade: FlextCli) -> None:
-        """`settings_snapshot` returns r[Snapshot] whose public fields are populated."""
-        result = facade.settings_snapshot()
-        tm.ok(result)
-        snapshot = result.unwrap()
+    def test_settings_snapshot_exposes_public_state() -> None:
+        """The public snapshot model exposes the current settings state."""
+        snapshot = u.Cli.settings_snapshot_model()
         dumped = snapshot.model_dump()
         tm.that(
             set(dumped)
@@ -97,8 +111,9 @@ class TestsFlextCliBase:
         tm.that(snapshot.settings_dir, empty=False)
 
     @staticmethod
-    def test_snapshot_map_composes_over_success(facade: FlextCli) -> None:
-        """The r[T] snapshot value flows through `map` without losing success."""
-        directory = facade.settings_snapshot().map(lambda snap: snap.settings_dir)
-        tm.ok(directory)
-        tm.that(directory.unwrap(), eq=facade.settings_snapshot().unwrap().settings_dir)
+    def test_snapshot_directory_matches_configured_path() -> None:
+        """The snapshot identifies the canonical configured settings directory."""
+        snapshot = u.Cli.settings_snapshot_model()
+        directory = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
+        tm.that(snapshot.settings_dir, eq=str(directory))
+        tm.that(snapshot.settings_exists, eq=directory.exists())

@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFilePublishChecks,
     FlextCliUtilitiesAtomicFileState,
 )
 
@@ -34,11 +35,13 @@ class FlextCliUtilitiesAtomicFileCleanup:
         """Remove authenticated post-link staging, never the published destination."""
         cleanup_errors: list[OSError] = []
         try:
-            FlextCliUtilitiesAtomicFileState.assert_temporary_owned(
+            # Publication adds a second link to this authenticated staging inode.
+            FlextCliUtilitiesAtomicFilePublishChecks.require_identity(
                 temporary,
+                FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, temporary),
                 identity,
-                parent=parent,
             )
+            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, temporary)
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)

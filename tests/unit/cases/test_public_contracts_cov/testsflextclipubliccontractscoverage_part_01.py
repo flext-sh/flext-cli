@@ -30,10 +30,10 @@ class TestsFlextCliPublicContractsCoveragePart01:
     def test_inherited_settings_config_controls_environment_resolution() -> None:
         """Native settings configuration governs field resolution and overrides."""
         settings_config = m.Tests.InheritedSettings.model_config
-        assert "env_prefix" in settings_config
-        assert "case_sensitive" in settings_config
-        prefix = settings_config["env_prefix"]
-        case_sensitive = settings_config["case_sensitive"]
+        prefix = settings_config.get("env_prefix")
+        case_sensitive = settings_config.get("case_sensitive")
+        prefix = tm.not_none(prefix)
+        case_sensitive = tm.not_none(case_sensitive)
         with u.Tests.env_vars_context(
             env_vars={
                 f"{prefix}topic": "from-environment",

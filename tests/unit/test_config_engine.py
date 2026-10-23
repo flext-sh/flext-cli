@@ -12,11 +12,12 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from types import MappingProxyType
 
 import pytest
 
 from flext_cli import config
-from tests import c, m, tm, u
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliConfigEngine:
@@ -226,7 +227,10 @@ class TestsFlextCliConfigEngine:
         tm.that((result.error or ""), has=c.Cli.ERR_CONFIG_UNSUPPORTED_FORMAT)
 
     @staticmethod
-    def test_schema_validate_valid_and_invalid(tmp_path: Path) -> None:
+    @pytest.mark.parametrize("read_only", [False, True])
+    def test_schema_validate_valid_and_invalid(
+        tmp_path: Path, *, read_only: bool
+    ) -> None:
         """Verify that schema validate valid and invalid."""
         schema = tmp_path / "s.schema.json"
         schema.write_text(
@@ -234,8 +238,15 @@ class TestsFlextCliConfigEngine:
             '"properties":{"port":{"type":"integer"}}}',
             encoding="utf-8",
         )
-        tm.ok(u.Cli.schema_validate({"port": 8080}, schema))
-        tm.fail(u.Cli.schema_validate({"port": "x"}, schema))
+        valid: t.JsonMapping = {"port": 8080}
+        invalid: t.JsonMapping = {"port": "x"}
+        if read_only:
+            valid = MappingProxyType(valid)
+            invalid = MappingProxyType(invalid)
+        tm.ok(u.Cli.schema_validate(valid, schema))
+        tm.fail(u.Cli.schema_validate(invalid, schema))
+        tm.that(valid["port"], eq=8080)
+        tm.that(invalid["port"], eq="x")
 
     @staticmethod
     def test_config_load_with_schema_pairs(tmp_path: Path) -> None:

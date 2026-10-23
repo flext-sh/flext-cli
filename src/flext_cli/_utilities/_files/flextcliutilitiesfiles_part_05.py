@@ -177,6 +177,21 @@ class FlextCliUtilitiesFilesPart05:
         )
 
     @staticmethod
+    def atomic_directory_membership_value(
+        inventory: m.Cli.AtomicDirectoryInventory,
+        excluded_names: t.StrTuple,
+    ) -> t.MappingKV[str, Literal["directory", "file", "symlink", "other"]]:
+        """Evaluate a declared membership selection on its physical receipt.
+
+        Returns:
+            Selected child names and physical kinds.
+
+        """
+        return FlextCliUtilitiesAtomicTreeInventory.directory_membership_value(
+            inventory, excluded_names
+        )
+
+    @staticmethod
     def atomic_directory_query_value(
         inventory: m.Cli.AtomicDirectoryInventory,
         name: str,
@@ -199,7 +214,8 @@ class FlextCliUtilitiesFilesPart05:
         *,
         publications: t.VariadicTuple[
             t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
-        ] = (),
+        ]
+        | m.Cli.AtomicDirectoryQueryEffects = (),
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
         observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
         | None = None,

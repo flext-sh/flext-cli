@@ -165,7 +165,9 @@ class TestsFlextCliOutputCov:
         line, _style = u.Cli.output_table_error(None)
         tm.that(line, has=c.Cli.ERR_UNKNOWN_ERROR)
 
-    # ---- stdout emitters ------------------------------------------------
+
+class TestsFlextCliOutputEmission:
+    """Observable output emission and report destinations."""
 
     @staticmethod
     def test_emit_raw_writes_text_verbatim(

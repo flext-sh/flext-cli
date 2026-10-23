@@ -185,9 +185,25 @@ class FlextCliModelsBasePart09:
             default=False,
             description="Whether native planning consumed direct membership",
         )
+        membership_queries: t.VariadicTuple[t.StrTuple] = m.Field(
+            default=(),
+            description="Consumed membership selections, each excluding named children",
+        )
 
         @m.model_validator(mode="after")
         def _validate_names(self) -> Self:
+            if self.membership_queries != tuple(
+                sorted(set(self.membership_queries))
+            ) or any(
+                selection != tuple(sorted(set(selection)))
+                or any(
+                    name in {"", ".", ".."} or Path(name).name != name
+                    for name in selection
+                )
+                for selection in self.membership_queries
+            ):
+                msg = "atomic membership selections require ordered lexical exclusions"
+                raise ValueError(msg)
             names = tuple(entry.name for entry in self.entries)
             if self.root.kind != "directory" or names != tuple(sorted(set(names))):
                 msg = "atomic directory inventory requires ordered unique children"

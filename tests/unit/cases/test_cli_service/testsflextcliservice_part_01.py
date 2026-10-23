@@ -28,7 +28,7 @@ class TestsFlextCliServicePart01:
 
         settings = RuntimeSettings()
 
-        def handle(params: m.Cli.CliParamsConfig) -> t.JsonValue:
+        def handle(params: m.Cli.CliParamsConfig) -> bool:
             return params.debug is True
 
         command = cli.model_command(m.Cli.CliParamsConfig, handle, settings=settings)

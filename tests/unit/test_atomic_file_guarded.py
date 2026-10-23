@@ -22,7 +22,7 @@ class TestsFlextCliAtomicFileGuarded:
 
     @staticmethod
     def test_post_link_unlink_failure_cleans_owned_stage(tmp_path: Path) -> None:
-        """Retain the first unlink failure without leaving a published hard-link alias."""
+        """Preserve the unlink failure and remove the published staging alias."""
         script = tmp_path / "consumer.py"
         script.write_text(
             "import errno\n"
