@@ -10,6 +10,6 @@ Infra:
         commit: 4ddd702da483f0b03a247e6282916a343c60276a
       - distribution: flext-infra
         url: https://github.com/flext-sh/flext-infra.git
-        commit: 0672aed5d5153bf26abf86388c05b74feeac997d
+        commit: ac27fc75942a78e4787a74fc64f8a2b7db2a172d
       namespace_scan_dirs:
       - src

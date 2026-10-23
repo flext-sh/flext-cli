@@ -5,7 +5,7 @@
 # @flext-rendered-by: flext-infra 0.12.0
 [dependency-groups]
 dev = [
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0672aed5d5153bf26abf86388c05b74feeac997d",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@ac27fc75942a78e4787a74fc64f8a2b7db2a172d",
   "mkdocstrings-python>=2.0.9",
   "actionlint-py>=1.7.12.24",
   "bandit>=1.9.4",
@@ -67,7 +67,7 @@ dev = [
   "yamlfix>=1.19.1",
 ]
 codegen = [
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0672aed5d5153bf26abf86388c05b74feeac997d",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@ac27fc75942a78e4787a74fc64f8a2b7db2a172d",
 ]
 
 [tool.uv]
@@ -76,7 +76,7 @@ link-mode = "copy"
 override-dependencies = [
   "rope @ git+https://github.com/marlon-costa-dc/rope.git@2bf3ad55a32cc117f5321e1467695eba540be97b",
   "flext-core @ git+https://github.com/flext-sh/flext-core.git@f98efceb2b4d6221e8e6aeaf478ab8ecf1f8e55e",
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0672aed5d5153bf26abf86388c05b74feeac997d",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@ac27fc75942a78e4787a74fc64f8a2b7db2a172d",
   "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@4ddd702da483f0b03a247e6282916a343c60276a",
   "flext-cli",
 ]
