@@ -14,18 +14,18 @@ from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._file_test_helper import (
-        flextcliutilitiesfiletesthelpersmixin_part_02 as _owner_1,
+        flextcliutilitiesfiletesthelpersmixin_part_02 as _owner_0,
     )
 
     FlextCliUtilitiesFileTestHelpersMixinPart02 = (
-        _owner_1.FlextCliUtilitiesFileTestHelpersMixinPart02
+        _owner_0.FlextCliUtilitiesFileTestHelpersMixinPart02
     )
     from flext_cli._utilities._file_test_helper import (
-        flextcliutilitiesfiletesthelpersmixin_part_04 as _owner_3,
+        flextcliutilitiesfiletesthelpersmixin_part_04 as _owner_2,
     )
 
     FlextCliUtilitiesFileTestHelpersMixinPart04 = (
-        _owner_3.FlextCliUtilitiesFileTestHelpersMixinPart04
+        _owner_2.FlextCliUtilitiesFileTestHelpersMixinPart04
     )
 
 

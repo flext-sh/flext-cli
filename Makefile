@@ -452,8 +452,8 @@ endif
 # === SECTION: verb dispatch (managed) ===
 # Source: config:make.verbs and the canonical gate vocabulary. A verb exists
 # only in the profiles it declares (make.verbs[].profiles).
-PUBLIC_VERBS := help setup pre-commit upg upg-sources validate-lifecycle build examples check check-pyright census census-constants smells test tests test-full test-file file-gate profile-test profile-test-report profile-docs profile-docs-report profile-environment profile-environment-report profile-lanes profile-lanes-report profile-mod profile-mod-report profile-mod-rules profile-mod-rules-report profile-codemod profile-codemod-report fmt fix fix-namespace fix-accessors fix-toolchain audit status verify-clean docs clean bootstrap-candidate release-plan release-version release-tag release-build publication gen gen-footprint gen-pyproject typings gen-editor initialize project-new mod mod-types mod-rules mod-text mod-text-candidate mod-snapshots waza duplication sonarcloud-sync sonarcloud-issues
-BUILTIN_VERBS := help setup pre-commit upg upg-sources validate-lifecycle build examples check check-pyright census census-constants smells test tests test-full test-file file-gate profile-test profile-test-report profile-docs profile-docs-report profile-environment profile-environment-report profile-lanes profile-lanes-report profile-mod profile-mod-report profile-mod-rules profile-mod-rules-report profile-codemod profile-codemod-report fmt fix fix-namespace fix-accessors fix-toolchain audit status verify-clean docs clean bootstrap-candidate release-plan release-version release-tag release-build publication gen gen-footprint gen-pyproject typings gen-editor initialize project-new mod mod-types mod-rules mod-text mod-text-candidate mod-snapshots waza duplication sonarcloud-sync sonarcloud-issues
+PUBLIC_VERBS := help setup pre-commit upg upg-sources validate-lifecycle build examples check check-pyright census census-constants smells test tests test-full test-file file-gate profile-test profile-test-report profile-docs profile-docs-report profile-environment profile-environment-report profile-lanes profile-lanes-report profile-mod profile-mod-report profile-mod-rules profile-mod-rules-report profile-codemod profile-codemod-report fmt fix fix-namespace fix-accessors fix-toolchain audit status verify-clean docs clean bootstrap-candidate release-plan release-version release-tag release-build publication gen gen-footprint gen-pyproject gen-editor initialize project-new mod mod-types mod-rules mod-text mod-text-candidate mod-snapshots waza duplication sonarcloud-sync sonarcloud-issues
+BUILTIN_VERBS := help setup pre-commit upg upg-sources validate-lifecycle build examples check check-pyright census census-constants smells test tests test-full test-file file-gate profile-test profile-test-report profile-docs profile-docs-report profile-environment profile-environment-report profile-lanes profile-lanes-report profile-mod profile-mod-report profile-mod-rules profile-mod-rules-report profile-codemod profile-codemod-report fmt fix fix-namespace fix-accessors fix-toolchain audit status verify-clean docs clean bootstrap-candidate release-plan release-version release-tag release-build publication gen gen-footprint gen-pyproject gen-editor initialize project-new mod mod-types mod-rules mod-text mod-text-candidate mod-snapshots waza duplication sonarcloud-sync sonarcloud-issues
 SCRIPT_VERBS :=
 
 CUSTOM_MAKEFILE := $(MAKEFILE_ROOT)/custom.mk
@@ -1057,8 +1057,6 @@ VERB_DESCRIPTION_gen-footprint := Inspect the pending generation journal and phy
 
 VERB_DESCRIPTION_gen-pyproject := Regenerate this project'"'"'s analyzer and dependency metadata through guarded publication.
 
-VERB_DESCRIPTION_typings := Detect published typing dependencies and generate, package, and install missing third-party stubs through native Pyright and UV.
-
 VERB_DESCRIPTION_gen-editor := Project editor settings, analyzer configuration, and Git ignores without generating Python facades.
 
 VERB_DESCRIPTION_initialize := Bootstrap this target'"'"'s own declaration and canonical Makefile.
@@ -1093,7 +1091,7 @@ VERB_CONTRACT := $(filter 1 TRUE Y YES true y yes True Yes,$(OPTIONS) $(HELP))
 ifeq ($(VERB_CONTRACT),)
 PROFILE_VERBS_PLAIN := gen gen-footprint gen-pyproject gen-editor project-new
 PROFILE_VERBS_DISPATCH := help clean
-PROFILE_VERBS_ACTIVATED := pre-commit upg-sources validate-lifecycle build examples check check-pyright census census-constants smells test tests test-full test-file file-gate profile-test profile-test-report profile-docs profile-docs-report profile-environment profile-environment-report profile-lanes profile-lanes-report profile-mod profile-mod-report profile-mod-rules profile-mod-rules-report profile-codemod profile-codemod-report fmt fix fix-namespace fix-accessors fix-toolchain audit status verify-clean docs bootstrap-candidate release-plan release-version release-tag release-build publication typings initialize mod mod-types mod-rules mod-text mod-text-candidate mod-snapshots waza duplication sonarcloud-sync sonarcloud-issues
+PROFILE_VERBS_ACTIVATED := pre-commit upg-sources validate-lifecycle build examples check check-pyright census census-constants smells test tests test-full test-file file-gate profile-test profile-test-report profile-docs profile-docs-report profile-environment profile-environment-report profile-lanes profile-lanes-report profile-mod profile-mod-report profile-mod-rules profile-mod-rules-report profile-codemod profile-codemod-report fmt fix fix-namespace fix-accessors fix-toolchain audit status verify-clean docs bootstrap-candidate release-plan release-version release-tag release-build publication initialize mod mod-types mod-rules mod-text mod-text-candidate mod-snapshots waza duplication sonarcloud-sync sonarcloud-issues
 PROFILE_VERBS_INTERPRETER := profile-environment profile-environment-report status initialize
 PROFILE_VERBS_HOOKED := $(foreach v,$(filter-out $(PROFILE_VERBS_INTERPRETER),$(PROFILE_VERBS_ACTIVATED)),$(if $(filter pre-$(v) _custom-$(v) post-$(v),$(CUSTOM_DECLARED_TARGETS)),$(v)))
 PROFILE_VERBS_DIRECT := $(filter-out $(PROFILE_VERBS_HOOKED) $(PROFILE_VERBS_INTERPRETER),$(PROFILE_VERBS_ACTIVATED))
@@ -1555,8 +1553,6 @@ ifneq ($(EDITABLE_SUPPLIER_ACTIVE),)
 	+@$(SELF_MAKE) _upg_resolve_locks
 	@$(SELF_MAKE) _upg_install_runtime
 	@$(PROJECT_FLEXT_INFRA) codegen generate --root "$(PROJECT_ROOT)" --what pyproject --scope self
-	@$(SELF_MAKE) _builtin_typings_prepare
-	@$(PROJECT_FLEXT_INFRA) codegen generate --root "$(PROJECT_ROOT)" --what pyproject --scope self
 	@$(SELF_MAKE) _upg_reconcile_locks
 	@$(SELF_MAKE) _upg_install_runtime
 	@$(PROJECT_FLEXT_INFRA) workspace verify-environment --repository-root "$(RUNTIME_ROOT)"
@@ -1611,7 +1607,6 @@ _upg_refresh_member_locks:
 # current Makefile selects the new recipes without restarting the upgrade or
 # repeating generation and installation.
 _upg_converge:
-	@$(SELF_MAKE) _builtin_typings_prepare
 	@$(PROJECT_FLEXT_INFRA) codegen generate --root "$(PROJECT_ROOT)" --what pyproject --scope all
 	@$(SELF_MAKE) _upg_reconcile_locks
 	+@set -eu; \
@@ -2125,16 +2120,6 @@ _builtin-gen-footprint: _builtin_require_interpreter
 
 _builtin-gen-pyproject: _builtin_require_interpreter
 	@$(PROJECT_FLEXT_INFRA) codegen generate --root "$(PROJECT_ROOT)" --what pyproject --scope self
-
-_builtin_typings_prepare: _builtin_require_interpreter
-	@$(PROJECT_FLEXT_INFRA) deps detect --repository-root "$(PROJECT_ROOT)" --apply --apply-typings
-
-_builtin-typings: _builtin_require_environment
-	+@$(SELF_MAKE) _builtin_typings_prepare
-	@$(PROJECT_FLEXT_INFRA) codegen generate --root "$(RUNTIME_ROOT)" --what pyproject --scope self
-	+@"$(SELF_MAKE_EXECUTABLE)" --no-print-directory -C "$(RUNTIME_ROOT)" -f "$(RUNTIME_ROOT)/Makefile" _upg_reconcile_locks
-	+@"$(SELF_MAKE_EXECUTABLE)" --no-print-directory -C "$(RUNTIME_ROOT)" -f "$(RUNTIME_ROOT)/Makefile" _builtin_setup_environment
-	@$(PROJECT_FLEXT_INFRA) workspace verify-environment --repository-root "$(RUNTIME_ROOT)"
 
 _builtin-gen-editor: _builtin_require_interpreter
 	@set -eu; \

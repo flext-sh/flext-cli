@@ -257,7 +257,6 @@ project-excludes = [
   "**/site-packages/**",
   "**/site/**",
   "**/target/**",
-  "**/typings/**",
   "**/venv/**",
 ]
 project-includes = ["examples/**/*.py*", "src/**/*.py*", "tests/**/*.py*"]
@@ -413,6 +412,7 @@ reportIncompatibleMethodOverride = "error"
 reportInconsistentConstructor = "error"
 reportMissingImports = "error"
 reportMissingModuleSource = "error"
+reportMissingTypeStubs = "none"
 reportPrivateUsage = "error"
 reportUnnecessaryCast = "error"
 reportUnnecessaryComparison = "error"
@@ -613,7 +613,6 @@ runtime-evaluated-base-classes = [
   "flext_cli.s",
   "flext_cli.services.FlextCliAuth",
   "flext_cli.services.FlextCliCli",
-  "flext_cli.services.FlextCliCmd",
   "flext_cli.services.FlextCliCommonParams",
   "flext_cli.services.FlextCliDocx",
   "flext_cli.services.FlextCliFileTools",
@@ -623,11 +622,9 @@ runtime-evaluated-base-classes = [
   "flext_cli.services.FlextCliPptx",
   "flext_cli.services.FlextCliPrompts",
   "flext_cli.services.FlextCliPromptsSupport",
-  "flext_cli.services.FlextCliRules",
   "flext_cli.services.FlextCliRuntime",
   "flext_cli.services.FlextCliTables",
   "flext_cli.services.FlextCliXlsx",
-  "flext_cli.services.FlextCliYamlModel",
   "flext_core.FlextConfig",
   "flext_core.FlextModels",
   "flext_core.FlextSettings",
