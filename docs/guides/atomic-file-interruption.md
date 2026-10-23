@@ -9,6 +9,13 @@ staging and publication. An interruption after authentication removes only the m
 staged inode. The original exception escapes with its original traceback. A real cleanup
 failure retains both causes through the existing cleanup error contract.
 
+An authenticated read can fail before its final pathname or parent validation.
+That read failure remains the primary exception with its original traceback and
+errno even if final validation also fails. Retain later validation failures as
+secondary diagnostics; never replace the operation's cause, select another read
+path or publish success. If the operation succeeded, a failed final validation is
+itself the native failure. The active work item owns acceptance of this correction.
+
 `u.Cli.atomic_read_binary_file_receipt` records physical identity, byte length,
 SHA-256, and native version without storing the payload. Optional absence retains
 the same parent and owner contract as a byte snapshot. The scoped

@@ -224,13 +224,26 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                 FlextCliUtilitiesAtomicFileSnapshot._require_size(
                     validated, state.st_size, max_bytes
                 )
+            operation_error: BaseException | None = None
             try:
                 yield parent, state
+            except BaseException as exc:
+                operation_error = exc
+                raise
             finally:
-                FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
-                    validated, state, parent=parent
-                )
-            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
+                try:
+                    FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
+                        validated, state, parent=parent
+                    )
+                    FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(
+                        parent
+                    )
+                except BaseException as validation_error:
+                    if operation_error is None:
+                        raise
+                    operation_error.add_note(
+                        f"Atomic read final validation also failed: {validation_error!r}"
+                    )
 
     @staticmethod
     def _require_owner(
