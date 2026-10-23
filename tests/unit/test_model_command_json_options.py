@@ -94,7 +94,9 @@ class TestsFlextCliModelCommandJsonOptions:
         return invocation.value, received
 
     @staticmethod
-    def _json(value: t.JsonPayload) -> str:
+    def _json(
+        value: t.JsonMapping | t.Cli.ModelLike | t.SequenceOf[t.Cli.ModelLike],
+    ) -> str:
         return u.to_json(value).decode()
 
     def test_mapping_option_json_reaches_model(self) -> None:
