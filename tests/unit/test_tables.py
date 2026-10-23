@@ -211,7 +211,7 @@ class TestsFlextCliTables:
         """A keyword field and an explicit config model produce the same output."""
         data = {"name": "Alice", "age": 30}
         config = m.Cli.TableConfig(table_format=c.Cli.TabularFormat.GRID)
-        via_kwarg = tm.ok(cli.format_table(data, table_format=config.table_format))
+        via_kwarg = tm.ok(cli.format_table(data, table_format=c.Cli.TabularFormat.GRID))
         tm.that(via_kwarg, eq=tm.ok(cli.format_table(data, config)))
 
     @staticmethod
