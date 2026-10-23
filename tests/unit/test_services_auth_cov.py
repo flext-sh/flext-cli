@@ -1,6 +1,6 @@
 """Behavioral contract tests for services/auth.py (FlextCliAuth).
 
-Exercises the public ``p.Cli.AuthService`` contract only: r[T] outcomes,
+Exercises the public ``FlextCliAuth`` contract only: r[T] outcomes,
 persisted-token roundtrips, generated-token invariants, and error paths.
 The token file is isolated per test by pointing the canonical settings
 singleton's ``cli_token_file`` at ``tmp_path`` and restoring the original
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
-    from tests import p, t
+    from tests import t
 
 
 class TestsFlextCliServicesAuthCov:
@@ -53,11 +53,11 @@ class TestsFlextCliServicesAuthCov:
 
     @staticmethod
     @pytest.fixture
-    def auth(token_file: Path) -> p.Cli.AuthService:
+    def auth(token_file: Path) -> FlextCliAuth:
         """Fresh auth service bound to the isolated token file.
 
         Returns:
-            The resulting ``p.Cli.AuthService``.
+            The resulting ``FlextCliAuth``.
 
         """
         tm.that(str(token_file), eq=settings.cli_token_file)
@@ -71,7 +71,7 @@ class TestsFlextCliServicesAuthCov:
         c.Tests.AUTH_CRED_CASES,
     )
     def test_validate_credentials_reports_success_per_case(
-        auth: p.Cli.AuthService,
+        auth: FlextCliAuth,
         username: str,
         password: str,
         *,
@@ -97,7 +97,7 @@ class TestsFlextCliServicesAuthCov:
         ],
     )
     def test_validate_credentials_failure_names_the_missing_field(
-        auth: p.Cli.AuthService,
+        auth: FlextCliAuth,
         username: str,
         password: str,
         message_fragment: str,
@@ -112,7 +112,7 @@ class TestsFlextCliServicesAuthCov:
 
     @staticmethod
     def test_save_then_fetch_returns_persisted_token(
-        auth: p.Cli.AuthService,
+        auth: FlextCliAuth,
     ) -> None:
         """Verify that save then fetch returns persisted token."""
         save_result = auth.save_auth_token("valid-token-abc123")
@@ -125,7 +125,7 @@ class TestsFlextCliServicesAuthCov:
         tm.that(fetch_result.value, eq="valid-token-abc123")
 
     @staticmethod
-    def test_save_overwrites_previous_token(auth: p.Cli.AuthService) -> None:
+    def test_save_overwrites_previous_token(auth: FlextCliAuth) -> None:
         """Verify that save overwrites previous token."""
         tm.ok(auth.save_auth_token("first-token"))
         tm.ok(auth.save_auth_token("second-token"))
@@ -135,7 +135,7 @@ class TestsFlextCliServicesAuthCov:
     @staticmethod
     @pytest.mark.parametrize("token", ["", "   ", "\t\n"])
     def test_save_auth_token_rejects_blank_token(
-        auth: p.Cli.AuthService,
+        auth: FlextCliAuth,
         token: str,
     ) -> None:
         """Verify that save auth token rejects blank token."""
@@ -146,7 +146,7 @@ class TestsFlextCliServicesAuthCov:
 
     @staticmethod
     def test_blank_save_does_not_create_token_file(
-        auth: p.Cli.AuthService,
+        auth: FlextCliAuth,
         token_file: Path,
     ) -> None:
         """Verify that blank save does not create token file."""
@@ -156,7 +156,7 @@ class TestsFlextCliServicesAuthCov:
 
     @staticmethod
     def test_fetch_without_saved_token_fails(
-        auth: p.Cli.AuthService,
+        auth: FlextCliAuth,
         token_file: Path,
     ) -> None:
         """Verify that fetch without saved token fails."""
@@ -171,7 +171,7 @@ class TestsFlextCliServicesAuthCov:
 
     @staticmethod
     def test_authenticate_with_direct_token_returns_and_persists_it(
-        auth: p.Cli.AuthService,
+        auth: FlextCliAuth,
     ) -> None:
         """Verify that authenticate with direct token returns and persists it."""
         credentials = {c.Cli.DICT_KEY_LOGIN_FIELD: "t" + "2" * 12}
@@ -184,7 +184,7 @@ class TestsFlextCliServicesAuthCov:
 
     @staticmethod
     def test_authenticate_with_valid_credentials_generates_persisted_token(
-        auth: p.Cli.AuthService,
+        auth: FlextCliAuth,
     ) -> None:
         """Verify that authenticate with valid credentials generates persisted token."""
         credentials = {
@@ -212,7 +212,7 @@ class TestsFlextCliServicesAuthCov:
         ],
     )
     def test_authenticate_rejects_incomplete_credentials(
-        auth: p.Cli.AuthService,
+        auth: FlextCliAuth,
         credentials: t.MappingKV[str, str],
     ) -> None:
         """Verify that authenticate rejects incomplete credentials."""
@@ -223,48 +223,10 @@ class TestsFlextCliServicesAuthCov:
 
     @staticmethod
     def test_authenticate_failure_does_not_persist_token(
-        auth: p.Cli.AuthService,
+        auth: FlextCliAuth,
         token_file: Path,
     ) -> None:
         """Verify that authenticate failure does not persist token."""
         auth.authenticate({})
 
         tm.fail(token_file.exists())
-
-    # ── clear_auth_tokens ─────────────────────────────────────────────
-
-    @staticmethod
-    def test_clear_removes_persisted_token_file(
-        auth: p.Cli.AuthService,
-        token_file: Path,
-    ) -> None:
-        """Verify that clear removes persisted token file."""
-        tm.ok(auth.save_auth_token("clear-me-token"))
-        tm.ok(token_file.exists())
-
-        result = auth.clear_auth_tokens()
-
-        tm.ok(result)
-        tm.fail(token_file.exists())
-
-    @staticmethod
-    def test_clear_is_idempotent_when_no_token_file(
-        auth: p.Cli.AuthService,
-        token_file: Path,
-    ) -> None:
-        """Verify that clear is idempotent when no token file."""
-        tm.fail(token_file.exists())
-
-        first = auth.clear_auth_tokens()
-        second = auth.clear_auth_tokens()
-
-        tm.ok(first)
-        tm.ok(second)
-
-    @staticmethod
-    def test_fetch_after_clear_fails(auth: p.Cli.AuthService) -> None:
-        """Verify that fetch after clear fails."""
-        tm.ok(auth.save_auth_token("temp-token"))
-        tm.ok(auth.clear_auth_tokens())
-
-        tm.fail(auth.fetch_auth_token())

@@ -84,24 +84,21 @@ decisions.
 - ✅ Class needs **lifecycle management** (startup, shutdown, cleanup)
 - ✅ Class has **complex initialization** with external dependencies
 
-**Example - FlextCliCmd (Stateful Service)**:
+**Example - FlextCliPrompts (Stateful Service)**:
 
 ```text
-from flext_core import s
+from flext_cli import m, p, s
 
-class FlextCliCmd(s[CliDataDict]):
-    """Core service managing commands and sessions."""
+class FlextCliPromptsSupport(s[p.Cli.RuntimeStatus]):
+    """Prompt runtime state plus injected input ports."""
 
-    def __init__(self):
-        super().__init__()
-        self._commands: t.MappingKV[str, Command] = {}  # MUTABLE STATE
-        self._sessions: t.MappingKV[str, Session] = {}  # MUTABLE STATE
-        self.config: FlextCliSettings = ...       # MANAGED STATE
+    state: m.Cli.PromptRuntimeState                # MANAGED STATE
+    input_reader: t.Cli.PromptTextReader           # INJECTED PORT
 
-    def register_command(self, name: str, command: Command) -> p.Result[bool]:
-        """Register command - modifies internal state."""
-        self._commands[name] = command
-        return r[bool].ok(value=True)
+    def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
+        """Replace prompt runtime state - modifies internal state."""
+        self.state = state
+        return self
 ```
 
 **When NOT to use**:
@@ -174,7 +171,7 @@ class FlextCliFileTools:
 ```
 Does the class manage mutable state?
 ├─ YES → Use s
-│        Examples: FlextCliCmd, cli
+│        Examples: FlextCliPrompts, cli
 │
 └─ NO → Does it have behavior (business logic)?
     ├─ YES → Is it stateless utility functions?
@@ -199,9 +196,8 @@ Follow the v0.12.0-dev module organization:
 src/flext_cli/
 ├── api.py                # FlextCli facade (MRO composition) + singleton `cli`
 ├── base.py               # FlextCliServiceBase
-├── services/             # 16 services composed via MRO
+├── services/             # 13 services composed via MRO
 │   ├── cli.py            # FlextCliCli — Typer/Click boundary
-│   ├── cmd.py            # FlextCliCmd — stateful command/config management
 │   ├── auth.py           # FlextCliAuth — keyring auth
 │   ├── file_tools.py     # FlextCliFileTools — file I/O
 │   ├── formatters.py     # FlextCliFormatters — Rich/text rendering
@@ -209,12 +205,10 @@ src/flext_cli/
 │   ├── prompts.py        # FlextCliPrompts — user interaction
 │   ├── tables.py         # FlextCliTables — ASCII table generation
 │   ├── pipeline.py       # FlextCliPipeline — workflow orchestration
-│   ├── rules.py          # FlextCliRules — business rule validation
 │   ├── runtime.py        # FlextCliRuntime — runtime status
 │   ├── docx.py           # FlextCliDocx — Word document operations
 │   ├── pptx.py           # FlextCliPptx — PowerPoint operations
 │   ├── xlsx.py           # FlextCliXlsx — Excel operations
-│   ├── yaml_model.py     # FlextCliYamlModel — YAML schema validation
 │   └── cli_params.py     # FlextCliCommonParams — shared CLI params
 ├── _utilities/           # Domain engines (toml/yaml/template/…)
 ├── _constants/           # Validated constants (c.Cli.*)

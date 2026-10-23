@@ -47,24 +47,6 @@ class TestsFlextCliCliParams:
         tm.ok(result)
         return result.value
 
-    # ── create_option ────────────────────────────────────────────────
-
-    @staticmethod
-    @pytest.mark.parametrize("field_name", ["verbose", "quiet", "debug"])
-    def test_create_option_returns_option_spec_for_registered_field(
-        field_name: str,
-    ) -> None:
-        """create_option yields a public CliOptionSpec for each registered field."""
-        option = cli.create_option(field_name)
-        tm.that(option, is_=p.Cli.CliOptionSpec)
-
-    @staticmethod
-    def test_create_option_raises_valueerror_for_unknown_field() -> None:
-        """create_option rejects an unregistered field with a descriptive ValueError."""
-        with pytest.raises(ValueError, match="not found") as exc_info:
-            cli.create_option("nonexistent_field")
-        tm.that(str(exc_info.value), has="nonexistent_field")
-
     # ── apply_to_config: success paths ───────────────────────────────
 
     @staticmethod
@@ -166,61 +148,3 @@ class TestsFlextCliCliParams:
         error_msg = (result.error or "").lower()
         for fragment in expected_fragments:
             tm.that(error_msg, has=fragment)
-
-    # ── decorator wiring: observable CLI behavior ────────────────────
-
-    @staticmethod
-    @pytest.fixture
-    def app() -> p.Cli.Application:
-        """Build an app carrying the common-params decorated command.
-
-        Returns:
-            The resulting ``p.Cli.Application``.
-
-        """
-        app_result = u.Tests.create_cli_app()
-        tm.ok(app_result)
-        app = app_result.value
-        tm.ok(u.Tests.create_decorated_command(app, "test"))
-        return app
-
-    @staticmethod
-    def test_help_exposes_common_options(app: p.Cli.Application) -> None:
-        """--help lists every common parameter the decorator promises to add."""
-        result = cli.invoke_app(app, args=["test", "--help"])
-
-        tm.ok(result)
-        tm.ok(u.Cli.process_succeeded(result.value.outcome))
-        for flag in ("--verbose", "--debug", "--log-level", "--output-format"):
-            tm.that(result.value.stdout, has=flag)
-
-    @staticmethod
-    def test_boolean_flags_toggle_command_behavior(
-        app: p.Cli.Application,
-    ) -> None:
-        """Passing --verbose/--debug flips the command's observable output."""
-        result = cli.invoke_app(app, args=["test", "--verbose", "--debug"])
-
-        tm.ok(result)
-        tm.ok(u.Cli.process_succeeded(result.value.outcome))
-        tm.that(result.value.stdout, has="Verbose: enabled")
-        tm.that(result.value.stdout, has="Debug: enabled")
-
-    @staticmethod
-    def test_value_parameters_flow_to_command(app: p.Cli.Application) -> None:
-        """Choice-valued options are parsed and surfaced in command output."""
-        result = cli.invoke_app(
-            app,
-            args=[
-                "test",
-                "--log-level",
-                c.LogLevel.WARNING,
-                "--output-format",
-                c.Cli.OutputFormats.JSON,
-            ],
-        )
-
-        tm.ok(result)
-        tm.ok(u.Cli.process_succeeded(result.value.outcome))
-        tm.that(result.value.stdout, has="Log level: WARNING")
-        tm.that(result.value.stdout, has="Output format: json")

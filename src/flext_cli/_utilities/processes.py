@@ -12,8 +12,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+import select
 import shlex
 import signal
+import time
 from collections.abc import Mapping
 from pathlib import Path
 from types import MappingProxyType
@@ -49,6 +51,7 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
             self._session_leader = session_leader and os.name == "posix"
             self._stdout = ""
             self._stderr = ""
+            self._stdout_buffer = bytearray()
             self._communicated = False
 
         @property
@@ -134,7 +137,10 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
                 return r[int].from_failure(communicated)
             stdout, stderr = communicated.unwrap()
             try:
-                self._stdout = stdout.decode(c.DEFAULT_ENCODING, errors="strict")
+                self._stdout = (bytes(self._stdout_buffer) + stdout).decode(
+                    c.DEFAULT_ENCODING,
+                    errors="strict",
+                )
                 self._stderr = stderr.decode(
                     c.DEFAULT_ENCODING,
                     errors="strict",
@@ -144,8 +150,60 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
                     f"process output is not valid UTF-8: {exc}",
                     exception=exc,
                 )
+            self._stdout_buffer.clear()
             self._communicated = True
             return r[int].ok(self._process.poll() or 0)
+
+        def stdout_read_until(
+            self,
+            delimiter: bytes,
+            *,
+            timeout: float,
+        ) -> p.Result[bytes]:
+            """Read through one exact delimiter within the supplied deadline.
+
+            Returns:
+                The resulting ``p.Result[bytes]``.
+
+            """
+            if not delimiter:
+                return r[bytes].fail("stdout delimiter must not be empty")
+            deadline = time.monotonic() + timeout
+            while True:
+                position = self._stdout_buffer.find(delimiter)
+                if position >= 0:
+                    end = position + len(delimiter)
+                    content = bytes(self._stdout_buffer[:end])
+                    del self._stdout_buffer[:end]
+                    return r[bytes].ok(content)
+                read = self._read_stdout(deadline)
+                if read.failure:
+                    return r[bytes].from_failure(read)
+
+        def _read_stdout(self, deadline: float) -> p.Result[bool]:
+            """Append one available binary stdout chunk before ``deadline``.
+
+            Returns:
+                The resulting ``p.Result[bool]``.
+
+            """
+            stream = self._process.stdout
+            if stream is None:
+                return r[bool].fail(f"process stdout is unavailable: pid {self.pid}")
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                return r[bool].fail(f"process stdout timeout: pid {self.pid}")
+            try:
+                ready, _, _ = select.select((stream.fileno(),), (), (), remaining)
+                if not ready:
+                    return r[bool].fail(f"process stdout timeout: pid {self.pid}")
+                content = os.read(stream.fileno(), 65536)
+            except c.EXC_OS_VALUE as exc:
+                return r[bool].fail(f"process stdout read error: {exc}", exception=exc)
+            if not content:
+                return r[bool].fail(f"process stdout closed: pid {self.pid}")
+            self._stdout_buffer.extend(content)
+            return r[bool].ok(value=True)
 
     @classmethod
     def process_start(

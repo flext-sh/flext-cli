@@ -72,6 +72,15 @@ class FlextCliProtocolsProcess:
             """Reap the child and preserve its output and exit code."""
             ...
 
+        def stdout_read_until(
+            self,
+            delimiter: bytes,
+            *,
+            timeout: float,
+        ) -> p.Result[bytes]:
+            """Read through the delimiter within the supplied deadline."""
+            ...
+
     @runtime_checkable
     class RuntimeClosableStream(Protocol):
         """The cleanup capability shared by owned input and output streams."""

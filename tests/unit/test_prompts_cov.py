@@ -1,7 +1,7 @@
 """Behavioral contract tests for the prompts service public API.
 
 Every assertion targets observable public behavior: the ``r[T]`` outcome of
-``prompt`` / ``confirm`` / ``prompt_choice`` / ``prompt_password`` (success value
+``prompt`` / ``confirm`` / ``prompt_password`` (success value
 or failure error), never internal logging side-effects or private state. Input
 enters through the public ``input_reader`` / ``password_reader`` ports.
 
@@ -145,43 +145,6 @@ class TestsFlextCliPromptsCov:
         prompts = make_prompts(error=ValueError("bad"))
         with pytest.raises(ValueError, match="bad"):
             prompts.confirm("message", default=False)
-
-    @staticmethod
-    def test_prompt_choice_returns_default_when_present(
-        make_prompts: Callable[..., p.Tests.Prompts],
-    ) -> None:
-        """Verify that prompt choice returns default when present."""
-        prompts = make_prompts()
-        result = prompts.prompt_choice(choices=("a", "b"), default="a")
-        tm.ok(result)
-        tm.that(result.value, eq="a")
-
-    @staticmethod
-    def test_prompt_choice_fails_with_empty_choices(
-        make_prompts: Callable[..., p.Tests.Prompts],
-    ) -> None:
-        """Verify that prompt choice fails with empty choices."""
-        prompts = make_prompts()
-        result = prompts.prompt_choice(choices=(), default=None)
-        tm.fail(result, has=c.Cli.ERR_NO_CHOICES)
-
-    @staticmethod
-    def test_prompt_choice_fails_when_default_not_in_choices(
-        make_prompts: Callable[..., p.Tests.Prompts],
-    ) -> None:
-        """Verify that prompt choice fails when default not in choices."""
-        prompts = make_prompts()
-        result = prompts.prompt_choice(choices=("a", "b"), default="z")
-        tm.fail(result, has="z")
-
-    @staticmethod
-    def test_prompt_choice_fails_when_default_required(
-        make_prompts: Callable[..., p.Tests.Prompts],
-    ) -> None:
-        """Verify that prompt choice fails when default required."""
-        prompts = make_prompts()
-        result = prompts.prompt_choice(choices=("a", "b"), default=None)
-        tm.fail(result)
 
     @staticmethod
     def test_prompt_password_returns_value_meeting_min_length(

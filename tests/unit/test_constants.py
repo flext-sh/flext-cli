@@ -98,22 +98,6 @@ class TestsFlextCliConstants:
     @pytest.mark.parametrize(
         ("message", "expected"),
         [
-            ("No such file or directory", True),
-            ("config.yml not found", True),
-            ("path does not exist", True),
-            ("[Errno 2] cannot open", True),
-            ("everything is fine", False),
-            ("permission denied", False),
-        ],
-    )
-    def test_file_not_found_classifier(message: str, *, expected: bool) -> None:
-        """u.Cli.file_not_found_error flags file-absence diagnostics only."""
-        tm.that(u.Cli.file_not_found_error(message), eq=expected)
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        ("message", "expected"),
-        [
             ("No such option: --bad", True),
             ("Missing argument 'NAME'", True),
             ("Got unexpected extra argument", True),

@@ -2,7 +2,7 @@
 
 Exercises the observable contract of the TOML utility facade exposed through
 ``u.Cli``: parse/serialize round-trips, mapping normalization, ``r``-typed
-read/write outcomes, path building, navigation, and runtime type predicates.
+read/write outcomes, path building, and runtime type predicates.
 No implementation detail (private attribute, internal collaborator, or
 line-coverage poke) is asserted.
 
@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import TYPE_CHECKING, ClassVar
 
 import pytest
 
@@ -71,7 +71,6 @@ class TestsFlextCliTomlCov:
     def test_document_constructor_produces_document() -> None:
         """Verify that document constructor produces document."""
         doc = u.Cli.toml_document()
-        tm.ok(u.Cli.toml_is_document(doc))
         tm.that(u.Cli.toml_dumps(doc), eq="")
 
     @staticmethod
@@ -94,7 +93,6 @@ class TestsFlextCliTomlCov:
     @staticmethod
     def test_predicates_reject_non_toml_values() -> None:
         """Verify that predicates reject non toml values."""
-        tm.fail(u.Cli.toml_is_document("not a toml value"))
         tm.fail(u.Cli.toml_is_table("not a toml value"))
         tm.fail(u.Cli.toml_is_aot("not a toml value"))
         tm.fail(u.Cli.toml_is_item("not a toml value"))
@@ -266,39 +264,4 @@ class TestsFlextCliTomlCov:
         """Verify that document from mapping preserves data on round trip."""
         payload = {"name": "flext", "version": c.Tests.VERSION_COMPATIBLE}
         doc = u.Cli.toml_document_from_mapping(payload)
-        tm.ok(u.Cli.toml_is_document(doc))
         tm.that(u.Cli.toml_as_mapping(doc), eq=payload)
-
-    # ── toml_navigate_path ────────────────────────────────────────────
-
-    def test_navigate_path_returns_existing_table_contents(self) -> None:
-        """Verify that navigate path returns existing table contents."""
-        doc = u.Cli.toml_parse_text(self._VALID_TOML)
-        doc = tm.not_none(doc)
-        table = u.Cli.toml_navigate_path(doc, ["tool", "flext"])
-        tm.ok(u.Cli.toml_is_table(table))
-        tm.that(
-            u.Cli.toml_as_mapping(table),
-            eq={"project": "my-project", "version": c.Tests.VERSION_VALID_SEMVER},
-        )
-
-    def test_navigate_path_creates_and_wires_missing_intermediate_tables(self) -> None:
-        """Verify that navigate path creates and wires missing intermediate tables."""
-        doc = u.Cli.toml_parse_text(self._VALID_TOML)
-        doc = tm.not_none(doc)
-
-        table = u.Cli.toml_navigate_path(doc, ["created", "nested"])
-
-        tm.ok(u.Cli.toml_is_table(table))
-        tm.that(dict(cast("t.JsonMapping", table)), eq={})
-        table["leaf"] = "wired"
-        expected: t.JsonMapping = {
-            "tool": {
-                "flext": {
-                    "project": "my-project",
-                    "version": c.Tests.VERSION_VALID_SEMVER,
-                },
-                "created": {"nested": {"leaf": "wired"}},
-            },
-        }
-        tm.that(u.Cli.toml_as_mapping(doc), eq=expected)

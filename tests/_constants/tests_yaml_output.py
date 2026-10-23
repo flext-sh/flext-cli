@@ -54,14 +54,6 @@ class TestsFlextCliConstantsYamlOutput:
         ("", ("any",), False),
     )
 
-    # file_not_found_error(msg) → (msg, expected)
-    FILE_NOT_FOUND_MATCH_CASES: ClassVar[t.VariadicTuple[t.Pair[str, bool]]] = (
-        ("No such file or directory: '/tmp/missing.yml'", True),
-        ("FileNotFoundError: [Errno 2]", True),
-        ("connection refused", False),
-        ("invalid syntax", False),
-    )
-
     # cli_usage_error(msg) → (msg, expected)
     CLI_USAGE_ERROR_MATCH_CASES: ClassVar[t.VariadicTuple[t.Pair[str, bool]]] = (
         ("Missing option '--project'", True),
@@ -106,9 +98,7 @@ class TestsFlextCliConstantsYamlOutput:
         (10, 10),
     )
 
-    # header / text display
-    OUTPUT_HEADER_LABELS: ClassVar[t.StrSequence] = ("Section Start", "Processing", "")
-
+    # text display
     OUTPUT_TEXT_CASES: ClassVar[t.VariadicTuple[t.Pair[str, str | None]]] = (
         ("plain text", None),
         ("styled text", "bold blue"),

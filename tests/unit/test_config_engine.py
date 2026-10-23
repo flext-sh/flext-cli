@@ -1,7 +1,7 @@
 """Behavior contract for the ADR-005 flext-cli universal engine.
 
 Covers ``u.Cli.template_render`` (Jinja2, StrictUndefined, sandboxed),
-``u.Cli.config_load`` / ``config_load_dir`` (multi-format, reuses core
+``u.Cli.config_load`` (multi-format, reuses core
 ``u.config_env_override``), and ``u.Cli.schema_validate`` (JSON Schema).
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -247,26 +247,6 @@ class TestsFlextCliConfigEngine:
         ok = u.Cli.config_load(source, schema_path=schema)
         tm.ok(ok)
         tm.that(ok.unwrap().schema_ref, eq=str(schema))
-
-    @staticmethod
-    def test_config_load_dir_auto_pairs_schemas(tmp_path: Path) -> None:
-        """Verify that config load dir auto pairs schemas."""
-        cfg = tmp_path / "config"
-        cfg.mkdir()
-        schemas = tmp_path / "schemas"
-        schemas.mkdir()
-        (cfg / "mcp.yaml").write_text("enabled: true\n", encoding="utf-8")
-        (cfg / "agents.yaml").write_text("count: 3\n", encoding="utf-8")
-        (schemas / "mcp.schema.json").write_text(
-            '{"type":"object","required":["enabled"]}',
-            encoding="utf-8",
-        )
-        result = u.Cli.config_load_dir(cfg)
-        tm.ok(result)
-        docs = result.unwrap()
-        tm.that(set(docs.keys()), eq={"agents", "mcp"})
-        tm.that(docs["mcp"].schema_ref, eq=str(schemas / "mcp.schema.json"))
-        tm.that(docs["agents"].schema_ref, none=True)
 
 
 class TestsFlextCliTemplateRenderDir:

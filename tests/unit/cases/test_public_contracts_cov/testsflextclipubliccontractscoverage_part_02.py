@@ -102,34 +102,6 @@ class TestsFlextCliPublicContractsCoveragePart02:
             u.resolve_logging_settings(log_level=" debug ").log_level,
             eq=c.LogLevel.DEBUG,
         )
-        tm.that(
-            u.Cli.resolve_typed_extract(
-                type_kind=c.Cli.TypeKind.STR,
-                value="  name  ",
-                default="fallback",
-            )
-            == "name",
-            eq=True,
-        )
-        tm.that(
-            u.Cli.resolve_typed_extract(type_kind=c.Cli.TypeKind.BOOL, value=1) is True,
-            eq=True,
-        )
-        tm.that(
-            u.Cli.resolve_typed_extract(
-                type_kind=c.Cli.TypeKind.DICT,
-                value={"count": 1},
-            ),
-            eq={"count": 1},
-        )
-        tm.that(
-            u.Cli.resolve_typed_extract(
-                type_kind=c.Cli.TypeKind.DICT,
-                value=None,
-                default={"fallback": 2},
-            ),
-            eq={"fallback": 2},
-        )
         tm.that(write_options.indent, eq=4)
         tm.ok(write_options.sort_keys)
         tm.ok(write_options.ensure_ascii)

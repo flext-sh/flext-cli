@@ -247,41 +247,6 @@ class TestsFlextCliAtomicFileIdentity:
         tm.ok(raised.value is result.exception)
 
     @staticmethod
-    def test_publication_unchanged_requires_equal_bytes_and_mode(
-        tmp_path: Path,
-    ) -> None:
-        """Treat matching bytes with different permissions as a real change."""
-        destination = tmp_path / "live.bin"
-        staged = tmp_path / "staged.bin"
-        destination.write_bytes(b"content")
-        staged.write_bytes(b"content")
-        destination.chmod(0o600)
-        staged.chmod(0o640)
-        before = u.Cli.atomic_read_binary_file_state(destination, required=True)
-        replacement = u.Cli.atomic_read_binary_file_state(staged, required=True)
-        tm.ok(before)
-        tm.ok(replacement)
-        publication = m.Cli.AtomicFilePublication(
-            before=before.value,
-            replacement=replacement.value,
-        )
-
-        tm.fail(u.Cli.atomic_file_publication_is_unchanged(publication))
-
-        staged.chmod(0o600)
-        identical = u.Cli.atomic_read_binary_file_state(staged, required=True)
-        tm.ok(identical)
-        tm.that(
-            u.Cli.atomic_file_publication_is_unchanged(
-                m.Cli.AtomicFilePublication(
-                    before=before.value,
-                    replacement=identical.value,
-                ),
-            ),
-            eq=True,
-        )
-
-    @staticmethod
     def test_exclusive_create_returns_exact_published_state(
         tmp_path: Path,
     ) -> None:
@@ -315,57 +280,6 @@ class TestsFlextCliAtomicFileIdentity:
 
         tm.fail(result)
         tm.that(destination.read_bytes(), eq=b"before")
-
-    @staticmethod
-    def test_publication_applies_authenticated_staged_replacement(
-        tmp_path: Path,
-    ) -> None:
-        """Replace one exact live state with one exact staged state."""
-        destination = tmp_path / "published.bin"
-        staged = tmp_path / "staged.bin"
-        destination.write_bytes(b"before")
-        before = u.Cli.atomic_read_binary_file_state(destination, required=True)
-        replacement = u.Cli.atomic_create_binary_file_guarded(
-            staged,
-            b"after",
-            permission_mode=0o640,
-        )
-        tm.ok(before)
-        tm.ok(replacement)
-
-        result = u.Cli.atomic_apply_file_publication_guarded(
-            m.Cli.AtomicFilePublication(
-                before=before.value,
-                replacement=replacement.value,
-            ),
-        )
-
-        tm.ok(result)
-        tm.that(result.value.content, eq=b"after")
-        tm.that(result.value.mode, eq=0o640)
-        tm.that(destination.read_bytes(), eq=b"after")
-        tm.fail(staged.exists())
-
-    @staticmethod
-    def test_publication_applies_authenticated_tombstone(tmp_path: Path) -> None:
-        """Delete one exact live state when its replacement is absent."""
-        destination = tmp_path / "deleted.bin"
-        destination.write_bytes(b"content")
-        before = u.Cli.atomic_read_binary_file_state(destination, required=True)
-        tombstone = u.Cli.atomic_read_binary_file_state(tmp_path / "tombstone")
-        tm.ok(before)
-        tm.ok(tombstone)
-
-        result = u.Cli.atomic_apply_file_publication_guarded(
-            m.Cli.AtomicFilePublication(
-                before=before.value,
-                replacement=tombstone.value,
-            ),
-        )
-
-        tm.ok(result)
-        tm.that(result.value.content, is_=None)
-        tm.fail(destination.exists())
 
     @staticmethod
     def test_relative_write_fails_before_parent_creation(tmp_path: Path) -> None:

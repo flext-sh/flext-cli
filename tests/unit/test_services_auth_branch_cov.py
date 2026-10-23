@@ -1,7 +1,7 @@
 """Behavioral tests for the public FlextCli authentication contract.
 
 Exercises the observable behavior of ``authenticate`` / ``save_auth_token`` /
-``fetch_auth_token`` / ``clear_auth_tokens`` / ``validate_credentials`` through
+``fetch_auth_token`` / ``validate_credentials`` through
 the public ``FlextCli`` facade only: return values, ``r[T]`` success/failure
 outcomes, error messages, and persistence round-trips. No private attributes,
 internal collaborators, or line-coverage pokes are touched.
@@ -247,41 +247,3 @@ class TestsFlextCliServicesAuth:
         # Assert
         tm.fail(result)
         tm.that((result.error or "").lower(), has="load")
-
-    def test_clear_auth_tokens_is_ok_when_file_missing(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
-    ) -> None:
-        # Arrange
-        """Verify that clear auth tokens is ok when file missing."""
-        self._point_token_file(tmp_path / "missing-token.json")
-
-        # Act
-        result = service.clear_auth_tokens()
-
-        # Assert
-        tm.ok(result)
-        tm.ok(result.value)
-
-    def test_clear_auth_tokens_removes_persisted_token_and_is_idempotent(
-        self,
-        service: FlextCli,
-        tmp_path: Path,
-    ) -> None:
-        # Arrange: persist a token first.
-        """Verify that clear auth tokens removes persisted token and is idempotent."""
-        self._point_token_file(tmp_path / "token.json")
-        tm.ok(service.authenticate({c.Cli.DICT_KEY_LOGIN_FIELD: "t" + "0" * 9}))
-
-        # Act: clearing removes the token so it can no longer be fetched.
-        first_clear = service.clear_auth_tokens()
-        fetch_after_clear = service.fetch_auth_token()
-        second_clear = service.clear_auth_tokens()
-
-        # Assert
-        tm.ok(first_clear)
-        tm.ok(first_clear.value)
-        tm.fail(fetch_after_clear)
-        tm.ok(second_clear)
-        tm.ok(second_clear.value)

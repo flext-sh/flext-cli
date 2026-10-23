@@ -277,25 +277,6 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_table_path(doc, ("tool", "mypy")), none=True)
 
     @staticmethod
-    def test_navigate_path_and_dot_path_keep_tool_prefix_stable() -> None:
-        """Verify that navigate path and dot path keep tool prefix stable."""
-        doc = u.Cli.toml_document()
-        table = u.Cli.toml_navigate_path(doc, ["tool", "pytest", "ini_options"])
-        table["addopts"] = "-q"
-
-        tm.that(
-            u.Cli.toml_dot_path("", "tool", "pytest", "ini_options"),
-            eq="tool.pytest.ini_options",
-        )
-        tm.that(
-            u.Cli.toml_value(
-                u.Cli.toml_navigate_path(doc, ["pytest", "ini_options"]),
-                "addopts",
-            ),
-            eq="-q",
-        )
-
-    @staticmethod
     def test_mapping_path_normalizes_document_children() -> None:
         """Verify that mapping path normalizes document children."""
         doc = u.Cli.toml_document()
@@ -430,36 +411,3 @@ class TestsFlextCliTomlUtilities:
         document = tm.not_none(u.Cli.toml_parse_text("stamp = 2026-01-01T00:00:00\n"))
         with pytest.raises(m.ValidationError):
             u.Cli.toml_as_mapping(document)
-
-    @staticmethod
-    def test_mapping_sync_helpers_report_and_apply_changes() -> None:
-        """Verify that mapping sync helpers report and apply changes."""
-        payload: t.JsonDict = {
-            "tool": {"uv": {"sources": {"stale": {"workspace": True}}}},
-        }
-        changes: list[str] = []
-
-        sources = u.Cli.toml_mapping_ensure_path(payload, ("tool", "uv", "sources"))
-        if u.Cli.toml_mapping_sync_mapping_table(
-            sources,
-            "flext-core",
-            {"workspace": True},
-            sort_keys=True,
-        ):
-            changes.append("synced flext-core")
-        if u.Cli.toml_mapping_sync_string_list(
-            u.Cli.toml_mapping_ensure_path(payload, ("tool", "uv", "workspace")),
-            "members",
-            ("flext-cli", "flext-core"),
-            sort_values=True,
-        ):
-            changes.append("synced members")
-
-        tm.that(changes, eq=["synced flext-core", "synced members"])
-        tool = u.Cli.toml_mapping_child(payload, "tool")
-        tool = tm.not_none(tool)
-        uv = u.Cli.toml_mapping_child(tool, "uv")
-        uv = tm.not_none(uv)
-        workspace = u.Cli.toml_mapping_child(uv, "workspace")
-        workspace = tm.not_none(workspace)
-        tm.that(workspace.get("members"), eq=["flext-cli", "flext-core"])

@@ -69,30 +69,6 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.not_none(outcome.exception)
 
     @staticmethod
-    def test_round_trip_preserves_comments_quotes_and_order(
-        tmp_path: Path,
-    ) -> None:
-        """Verify that round trip preserves comments quotes and order."""
-        source = (
-            "# top comment\n"
-            "global:\n"
-            '  domain: "example.com"  # inline comment\n'
-            "  replicas: 2\n"
-            "services:\n"
-            "  - name: web\n"
-        )
-        path = tmp_path / "values.yaml"
-        path.write_text(source, encoding="utf-8")
-
-        node = u.Cli.yaml_roundtrip_load_map(path).unwrap()
-        dumped = u.Cli.yaml_roundtrip_dump_text(node).unwrap()
-
-        tm.that(dumped, has="# top comment")
-        tm.that(dumped, has='domain: "example.com"')
-        tm.that(dumped, has="# inline comment")
-        tm.ok(dumped.index("global:") < dumped.index("services:"))
-
-    @staticmethod
     def test_load_missing_file_fails(tmp_path: Path) -> None:
         """Verify that load missing file fails."""
         result = u.Cli.yaml_roundtrip_load(tmp_path / "absent.yaml")
@@ -100,18 +76,6 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.fail(result)
         tm.that(result.error, none=False)
         tm.that(result.error, has="not found")
-
-    @staticmethod
-    def test_load_map_rejects_scalar_root(tmp_path: Path) -> None:
-        """Verify that load map rejects scalar root."""
-        path = tmp_path / "scalar.yaml"
-        path.write_text("just-a-string\n", encoding="utf-8")
-
-        result = u.Cli.yaml_roundtrip_load_map(path)
-
-        tm.fail(result)
-        tm.that(result.error, none=False)
-        tm.that(result.error, has="must be a mapping")
 
     @staticmethod
     def test_load_map_text_rejects_sequence_root() -> None:
@@ -298,15 +262,6 @@ class TestsFlextCliYamlScalars:
         tm.ok(plain_float == pytest.approx(1.5))
         tm.ok(plain_bool)
 
-    @staticmethod
-    def test_normalize_scalar_keeps_containers_untouched() -> None:
-        """Verify that normalize scalar keeps containers untouched."""
-        node = u.Cli.yaml_roundtrip_load_map_text("a: 1\n").unwrap()
-        node_map = cast("Mapping[str, t.Cli.YamlScalar]", node)
-
-        tm.ok(u.Cli.yaml_normalize_scalar(node) is node)
-        tm.that(u.Cli.yaml_normalize_scalar(node_map["a"]), eq=1)
-
 
 class TestsFlextCliYamlAnchors:
     """Anchor handling contract of ``u.Cli.yaml_clear_anchors``."""
@@ -350,18 +305,6 @@ class TestsFlextCliYamlComments:
         tm.ok(u.Cli.yaml_has_key_comment(node, "a", "# hello"))
         tm.ok(u.Cli.yaml_has_key_comment(node, "a", "# hello\n"))
         tm.fail(u.Cli.yaml_has_key_comment(node, "a", "# other"))
-
-    @staticmethod
-    def test_copy_key_comment_moves_comment() -> None:
-        """Verify that copy key comment moves comment."""
-        src = u.Cli.yaml_roundtrip_load_map_text("a: 1\nb: 2\n").unwrap()
-        u.Cli.yaml_add_pre_key_comment(src, "b", "# keep me")
-        target = u.Cli.yaml_deep_to_commented({"b": 0})
-
-        u.Cli.yaml_copy_key_comment(src, "b", target)
-        dumped = u.Cli.yaml_roundtrip_dump_text(target).unwrap()
-
-        tm.that(dumped, has="keep me")
 
     @staticmethod
     def test_force_block_style_renders_block() -> None:

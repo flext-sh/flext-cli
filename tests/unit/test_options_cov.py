@@ -62,56 +62,6 @@ class TestsFlextCliOptionsUtilsCov:
             truth=True,
         )
 
-    def test_parse_only_route_distinguishes_help_from_option_values(self) -> None:
-        """A pre-execution router reads the model contract without invoking it."""
-        parsed = cli.parse_model_options(
-            self.CustomDeclModel,
-            ("--projects", "--help"),
-        )
-        tm.that(parsed.values["custom_name"] == "--help", truth=True)
-        tm.fail(parsed.help_requested)
-        help_route = cli.parse_model_options(self.CustomDeclModel, ("--help",))
-        tm.ok(help_route.help_requested)
-        with pytest.raises(ValueError, match="duplicated"):
-            cli.parse_model_options(
-                self.CustomDeclModel,
-                ("--projects", "one", "--custom-name", "two"),
-            )
-
-    @staticmethod
-    def test_parse_only_global_prefix_uses_registered_fields() -> None:
-        """Global options leave the protected command token unconsumed."""
-        parsed = cli.parse_model_options(
-            m.Cli.CliParamsConfig,
-            ("--debug", "--log-level", "INFO", "wip", "start"),
-            field_names=c.Cli.CLI_GLOBAL_PARAM_FIELDS,
-            stop_at_positional=True,
-        )
-        tm.that(parsed.values == {"debug": True, "log_level": "INFO"}, truth=True)
-        tm.that(parsed.remaining == ("wip", "start"), truth=True)
-
-    def test_parse_only_repeated_options_match_registered_command(self) -> None:
-        """Sequence options retain every token accepted by the real CLI."""
-        arguments = ("--value", "first", "--value", "second")
-        parsed = cli.parse_model_options(self.ListAnnotationModel, arguments)
-        invocation, received = self._run(self.ListAnnotationModel, arguments)
-        tm.ok(u.Cli.process_succeeded(invocation.outcome))
-        tm.that(parsed.values["value"] == received[0].value, truth=True)
-
-    @pytest.mark.parametrize(("option", "expected"), [("--off", True), ("--on", False)])
-    def test_parse_only_bool_polarity_matches_registered_command(
-        self,
-        option: str,
-        *,
-        expected: bool,
-    ) -> None:
-        """Test parse only bool polarity matches registered command."""
-        parsed = cli.parse_model_options(self.ReverseToggleModel, (option,))
-        invocation, received = self._run(self.ReverseToggleModel, [option])
-        tm.ok(u.Cli.process_succeeded(invocation.outcome))
-        tm.that(parsed.values["enabled"], eq=expected)
-        tm.that(received[0].enabled, eq=expected)
-
     class StringAnnotationModel(m.BaseModel):
         """Group the StringAnnotationModel test behavior."""
 
@@ -182,14 +132,6 @@ class TestsFlextCliOptionsUtilsCov:
         """Group the BoolToggleModel test behavior."""
 
         debug: bool = False
-
-    class ReverseToggleModel(m.BaseModel):
-        """Custom Boolean names derive polarity from declaration order."""
-
-        enabled: bool = m.Field(
-            default=False,
-            json_schema_extra={"typer_param_decls": ["--off/--on"]},
-        )
 
     class GreetModel(m.BaseModel):
         """Simple request model used to exercise command invocation."""

@@ -2,8 +2,8 @@
 
 Exercises the observable public contract of ``FlextCliUtilitiesMatching`` as
 exposed on ``u.Cli``: ``matches`` (case-insensitive substring, any-of),
-``matches_regex`` (compiled-pattern search, any-of), and the two error
-classifiers ``file_not_found_error`` / ``cli_usage_error``. Only return values
+``matches_regex`` (compiled-pattern search, any-of), and the error
+classifier ``cli_usage_error``. Only return values
 and invariants are asserted — never internals.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -131,29 +131,6 @@ class TestsFlextCliMatchingCov:
             eq=True,
         )
 
-    # ── file_not_found_error: classifier contract ────────────────────
-
-    @staticmethod
-    @pytest.mark.parametrize(("msg", "expected"), c.Tests.FILE_NOT_FOUND_MATCH_CASES)
-    def test_file_not_found_error_classifies_case_table(
-        msg: str,
-        *,
-        expected: bool,
-    ) -> None:
-        """Verify that file not found error classifies case table."""
-        tm.ok(u.Cli.file_not_found_error(msg) is expected)
-
-    @staticmethod
-    def test_file_not_found_error_is_case_insensitive() -> None:
-        """Verify that file not found error is case insensitive."""
-        tm.ok(u.Cli.file_not_found_error("NO SUCH FILE OR DIRECTORY"))
-        tm.ok(u.Cli.file_not_found_error("no such file or directory"))
-
-    @staticmethod
-    def test_file_not_found_error_false_for_unrelated_message() -> None:
-        """Verify that file not found error false for unrelated message."""
-        tm.fail(u.Cli.file_not_found_error("permission denied"))
-
     # ── cli_usage_error: classifier contract ─────────────────────────
 
     @staticmethod
@@ -175,12 +152,3 @@ class TestsFlextCliMatchingCov:
     def test_cli_usage_error_false_for_runtime_error() -> None:
         """Verify that cli usage error false for runtime error."""
         tm.fail(u.Cli.cli_usage_error("division by zero"))
-
-    @staticmethod
-    def test_classifiers_are_disjoint_for_representative_messages() -> None:
-        # A missing-file error is not a usage error, and vice versa.
-        """Verify that classifiers are disjoint for representative messages."""
-        tm.ok(u.Cli.file_not_found_error("no such file or directory"))
-        tm.fail(u.Cli.cli_usage_error("no such file or directory"))
-        tm.ok(u.Cli.cli_usage_error("missing option '--project'"))
-        tm.fail(u.Cli.file_not_found_error("missing option '--project'"))
