@@ -10,6 +10,7 @@ from pathlib import Path
 
 from examples import ExamplesFlextCliSettings
 from examples.ex_12_pydantic_driven_cli import ExamplesFlextCliPydanticDrivenCli
+
 from tests import c, m, tm, u
 
 
