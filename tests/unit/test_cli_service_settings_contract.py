@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from io import StringIO
 
 import pytest
@@ -17,21 +16,9 @@ from flext_cli import FlextCli, settings
 from tests import c, m, p, r, t, tm, u
 
 
+@pytest.mark.usefixtures("preserve_logging")
 class TestsFlextCliServiceSettingsContract:
     """A real CLI elects its injected Core policy without losing DI bindings."""
-
-    @pytest.fixture(autouse=True)
-    def preserve_logging(self) -> Iterator[None]:
-        """Restore actual application-selected bindings, not guessed defaults."""
-        original_settings = u.logging_settings()
-        original_options = u.logging_options()
-        try:
-            yield
-        finally:
-            u.configure_structlog(
-                settings=original_options,
-                runtime_settings=original_settings,
-            )
 
     @staticmethod
     def test_service_settings_satisfy_cli_settings() -> None:

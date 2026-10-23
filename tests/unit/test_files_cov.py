@@ -91,7 +91,7 @@ class TestsFlextCliFilesCov:
         if valid:
             tm.that(result.value, eq=m.Tests.YamlService.model_validate_json(content))
         else:
-            tm.matches_runtime_type(result.exception, m.ValidationError)
+            tm.that(result.exception, is_=m.ValidationError)
             with pytest.raises(m.ValidationError) as raised:
                 _ = result.value
             tm.ok(raised.value is result.exception)

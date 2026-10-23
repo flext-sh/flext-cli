@@ -142,7 +142,7 @@ class TestsFlextCliTypings:
         adapter: t.ValueAdapter[t.Scalar] = u.type_adapter(TypeForm(t.Scalar))
         tm.that(adapter.validate_python("value"), eq="value")
         bool_input = True
-        tm.ok(adapter.validate_python(bool_input))
+        tm.that(adapter.validate_python(bool_input), eq=bool_input)
         tm.that(adapter.validate_python(3), eq=3)
 
     @staticmethod

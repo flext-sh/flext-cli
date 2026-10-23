@@ -88,8 +88,8 @@ class TestsFlextCliDocxRender:
         paragraph = document.paragraphs[0]
         tm.that(paragraph.alignment, eq=1)  # WD_ALIGN_PARAGRAPH.CENTER
         run = paragraph.runs[0]
-        tm.ok(run.font.bold)
-        tm.ok(run.font.italic)
+        tm.that(run.font.bold, eq=True)
+        tm.that(run.font.italic, eq=True)
         tm.that(str(run.font.color.rgb), eq="FF0000")
 
     @staticmethod

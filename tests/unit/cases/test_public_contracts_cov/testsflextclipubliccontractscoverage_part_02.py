@@ -97,7 +97,7 @@ class TestsFlextCliPublicContractsCoveragePart02:
         tm.that(route.success_type, eq=c.Cli.MessageTypes.SUCCESS)
         tm.that(table.table_backend_format, eq=c.Cli.TabularFormat.SIMPLE)
         tm.ok(snapshot.settings_exists)
-        tm.ok(option.default)
+        tm.that(option.default, eq=True)
         tm.that(
             u.resolve_logging_settings(log_level=" debug ").log_level,
             eq=c.LogLevel.DEBUG,

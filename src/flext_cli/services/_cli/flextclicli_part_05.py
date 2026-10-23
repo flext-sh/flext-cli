@@ -50,15 +50,15 @@ class FlextCliCliPart05(FlextCliCliPart04):
         success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None = None,
         success_message: str | None = None,
         success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
-    ) -> p.Cli.ModelCommandHandler[M]:
+    ) -> p.Cli.ModelCommandHandler[M, bool]:
         """Build the shared executor used by single and batched route registration.
 
         Returns:
-            The resulting ``p.Cli.ModelCommandHandler[M]``.
+            The resulting ``p.Cli.ModelCommandHandler[M, bool]``.
 
         """
 
-        def execute(params: M) -> t.JsonValue:
+        def execute(params: M) -> bool:
             result: p.Result[TResult] = handler(params)
             if result.failure:
                 cls._exit_failure(result)
@@ -94,7 +94,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
     def _build_route_executor(
         cls,
         route: p.Cli.ResultCommandRoute,
-    ) -> p.Cli.ModelCommandHandler[t.Cli.ModelLike]:
+    ) -> p.Cli.ModelCommandHandler[t.Cli.ModelLike, bool]:
         """Adapt the existing heterogeneous route contract to the result executor.
 
         Returns:

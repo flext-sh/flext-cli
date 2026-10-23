@@ -27,22 +27,22 @@ class TestsFlextCliParams:
         params = m.Cli.CliParamsConfig(debug=True)
         resolved = u.Cli.params_resolve(params, {"verbose": True})
         tm.that(resolved, is_=m.Cli.CliParamsConfig)
-        tm.ok(resolved.debug)
-        tm.ok(resolved.verbose)
+        tm.that(resolved.debug, eq=True)
+        tm.that(resolved.verbose, eq=True)
 
     @staticmethod
     def test_resolve_with_none_params_uses_kwargs_only() -> None:
         """Verify that resolve with none params uses kwargs only."""
         resolved = u.Cli.params_resolve(None, {"quiet": True})
         tm.that(resolved, is_=m.Cli.CliParamsConfig)
-        tm.ok(resolved.quiet)
+        tm.that(resolved.quiet, eq=True)
 
     @staticmethod
     def test_resolve_kwargs_override_model_values() -> None:
         """Verify that resolve kwargs override model values."""
         params = m.Cli.CliParamsConfig(debug=True)
         resolved = u.Cli.params_resolve(params, {"debug": False})
-        tm.fail(resolved.debug)
+        tm.that(resolved.debug, eq=False)
 
     @staticmethod
     def test_resolve_is_idempotent_for_same_inputs() -> None:

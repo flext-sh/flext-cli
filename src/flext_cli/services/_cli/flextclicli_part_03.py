@@ -16,14 +16,14 @@ class FlextCliCliPart03(FlextCliCliPart02):
     """Implementation part for FlextCliCliPart03."""
 
     @classmethod
-    def model_command[M: t.Cli.ModelLike](
+    def model_command[M: t.Cli.ModelLike, TResult: t.JsonPayload](
         cls,
         model_cls: t.ModelClass[M],
-        handler: p.Cli.ModelCommandHandler[M],
+        handler: p.Cli.ModelCommandHandler[M, TResult],
         settings: t.Cli.ModelLike | None = None,
         *,
         result_border: bool = False,
-    ) -> t.Cli.CliCommand:
+    ) -> t.Cli.CliCommand[TResult]:
         """Build a Typer command directly from a Pydantic request model.
 
         A field marked ``exclude=True`` gets no option, so it must carry a
@@ -39,7 +39,7 @@ class FlextCliCliPart03(FlextCliCliPart02):
                 raising the validation error.
 
         Returns:
-            The resulting ``t.Cli.CliCommand``.
+            The command preserving the handler's return type.
 
         Raises:
             TypeError: If ``field_info.is_required()``.
@@ -65,7 +65,7 @@ class FlextCliCliPart03(FlextCliCliPart02):
             )
             parameters.append(parameter)
             annotations[field_name] = annotation
-        command: FlextCliCliPart01._ModelCommand[M] = cls._ModelCommand(
+        command: FlextCliCliPart01._ModelCommand[M, TResult] = cls._ModelCommand(
             handler=handler,
             model_cls=model_cls,
             parameters=parameters,

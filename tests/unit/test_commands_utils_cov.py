@@ -26,12 +26,13 @@ import pytest
 from tests import c, m, p, r, t, tm, u
 
 
+@pytest.mark.usefixtures("synchronous_logging")
 class TestsFlextCliCommands:
     """Behavioral contract for the ``u.Cli`` command messaging helpers."""
 
-    @pytest.fixture(autouse=True)
-    def preserve_logging(
-        self,
+    @staticmethod
+    @pytest.fixture
+    def synchronous_logging(
         capsys: pytest.CaptureFixture[str],
     ) -> Iterator[None]:
         """Restore the elected provider and composition after each test."""

@@ -34,10 +34,11 @@ class FlextCliUtilitiesAtomicFileCleanup:
         """Remove authenticated post-link staging, never the published destination."""
         cleanup_errors: list[OSError] = []
         try:
-            state = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, temporary)
-            if FlextCliUtilitiesAtomicFileState.identity(state) != identity:
-                message = f"linked temporary identity changed: {temporary}"
-                raise OSError(errno.ESTALE, message, temporary)
+            FlextCliUtilitiesAtomicFileState.assert_temporary_owned(
+                temporary,
+                identity,
+                parent=parent,
+            )
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, temporary)
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)

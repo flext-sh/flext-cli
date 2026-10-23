@@ -63,7 +63,7 @@ class TestsFlextCliUtilitiesCov:
         result = u.process([1, 0, 5], _tracking_raise_on_zero)
         tm.fail(result)
         tm.that(visited, eq=[1, 0])
-        tm.matches_runtime_type(result.exception, ValueError)
+        tm.that(result.exception, is_=ValueError)
         tm.that(str(result.exception), eq="div zero")
 
     @staticmethod

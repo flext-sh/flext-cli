@@ -144,8 +144,15 @@ class FlextCliUtilitiesAtomicFileRead:
             os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
             FlextCliUtilitiesAtomicFileRead.raise_changed(path)
+        os.lseek(descriptor, 0, os.SEEK_SET)
+        size = 0
         while chunk := os.read(descriptor, 1024 * 1024):
+            size += len(chunk)
+            if size > expected.st_size:
+                FlextCliUtilitiesAtomicFileRead.raise_changed(path)
             yield chunk
+        if size != expected.st_size:
+            FlextCliUtilitiesAtomicFileRead.raise_changed(path)
         if FlextCliUtilitiesAtomicFileRead.state_key(
             os.fstat(descriptor),
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):

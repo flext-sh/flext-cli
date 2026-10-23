@@ -425,7 +425,7 @@ typeCheckingMode = "strict"
 useLibraryCodeForTypes = true
 
 [[tool.pyright.executionEnvironments]]
-extraPaths = ["src"]
+extraPaths = ["src", "."]
 reportPrivateUsage = "error"
 root = "src"
 
@@ -592,62 +592,6 @@ msg = "Use cli.render_table from flext_cli."
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api.typer]
 msg = "Use cli.create_app_with_common_params / cli.register_command from flext_cli."
-
-[tool.ruff.lint.flake8-type-checking]
-runtime-evaluated-base-classes = [
-  "examples.ExamplesFlextCliModels",
-  "examples.ExamplesFlextCliModels.Examples.AdvancedDatabaseConfig",
-  "examples.s",
-  "flext_cli.FlextCliModels",
-  "flext_cli.FlextCliModels.BaseSettings",
-  "flext_cli.FlextCliModels.FrozenModel",
-  "flext_cli.FlextCliSettings",
-  "flext_cli._models._base.flextclimodelsbase_part_01.CommandOutputEnvelope",
-  "flext_cli._models._base.flextclimodelsbase_part_02.AtomicFileIdentity",
-  "flext_cli._models._xlsx.xlsx_style_catalog.XlsxStyleCatalogRequest",
-  "flext_cli._models.process.ProcessNativeToolEvidence",
-  "flext_cli.m.BaseModel",
-  "flext_cli.m.Cli.ServiceOptions",
-  "flext_cli.m.FrozenModel",
-  "flext_cli.m.Value",
-  "flext_cli.s",
-  "flext_cli.services.FlextCliAuth",
-  "flext_cli.services.FlextCliCli",
-  "flext_cli.services.FlextCliCommonParams",
-  "flext_cli.services.FlextCliDocx",
-  "flext_cli.services.FlextCliFileTools",
-  "flext_cli.services.FlextCliFormatters",
-  "flext_cli.services.FlextCliOutput",
-  "flext_cli.services.FlextCliPipeline",
-  "flext_cli.services.FlextCliPptx",
-  "flext_cli.services.FlextCliPrompts",
-  "flext_cli.services.FlextCliPromptsSupport",
-  "flext_cli.services.FlextCliRuntime",
-  "flext_cli.services.FlextCliTables",
-  "flext_cli.services.FlextCliXlsx",
-  "flext_core.FlextConfig",
-  "flext_core.FlextModels",
-  "flext_core.FlextSettings",
-  "flext_core.m.ArbitraryTypesModel",
-  "flext_core.m.BaseModel",
-  "flext_core.m.ContractModel",
-  "flext_core.m.FlexibleInternalModel",
-  "flext_core.m.FrozenModel",
-  "flext_core.m.ImmutableValueModel",
-  "flext_core.m.RootModel",
-  "flext_core.m.StrictModel",
-  "flext_core.m.Value",
-  "flext_core.s",
-  "flext_tests.FlextTestsModels",
-  "flext_tests.FlextTestsServiceBase",
-  "flext_tests.FlextTestsSettings",
-  "flext_tests.m.Tests",
-  "pydantic.BaseModel",
-  "tests._models.TestsFlextCliModelsPart01.Tests",
-  "tests.m.BaseModel",
-  "tests.s",
-  "tests.unit.test_service_routes.Greeter",
-]
 
 [tool.ruff.lint.isort]
 combine-as-imports = true

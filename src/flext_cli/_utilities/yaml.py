@@ -218,7 +218,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
     @staticmethod
     def yaml_dump_str(
-        data: t.JsonValue | t.JsonPayload,
+        data: t.Cli.JsonWriteData,
         *,
         sort_keys: bool = False,
         indent: int = 2,

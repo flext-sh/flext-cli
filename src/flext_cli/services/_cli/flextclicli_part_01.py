@@ -17,7 +17,7 @@ from flext_cli import c, e, m, p, r, t, u
 class FlextCliCliPart01:
     """Implementation part for FlextCliCliPart01."""
 
-    class _ModelCommand[M: t.Cli.ModelLike]:
+    class _ModelCommand[M: t.Cli.ModelLike, TResult: t.JsonPayload]:
         """Callable wrapper with explicit signature for Typer introspection.
 
         Note: __annotations__ uses MutableMapping[str, type] because Typer reads
@@ -27,14 +27,14 @@ class FlextCliCliPart01:
 
         __name__: str
         __signature__: Signature
-        _handler: p.Cli.ModelCommandHandler[M]
+        _handler: p.Cli.ModelCommandHandler[M, TResult]
         _model_cls: t.ModelClass[M]
         _result_border: bool
 
         def __init__(
             self,
             *,
-            handler: p.Cli.ModelCommandHandler[M],
+            handler: p.Cli.ModelCommandHandler[M, TResult],
             model_cls: t.ModelClass[M],
             parameters: t.SequenceOf[Parameter],
             result_border: bool,
@@ -55,7 +55,7 @@ class FlextCliCliPart01:
             value = getattr(origin, "__value__", None)
             return value is not None and get_origin(value) is tuple
 
-        def __call__(self, **kwargs: t.Cli.CliValue) -> t.JsonValue:
+        def __call__(self, **kwargs: t.Cli.CliValue) -> TResult:
             # Typer passes each option under its parameter (field) name, so an
             # aliased field must validate by name as well as by alias. A result
             # border turns rejected input into ``e.fail_validation`` carrying

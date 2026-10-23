@@ -10,29 +10,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-
 import pytest
 
 from flext_cli import cli
 from tests import c, p, t, tm, u
 
 
+@pytest.mark.usefixtures("preserve_logging")
 class TestsFlextCliCliParams:
     """Behavioral tests for FlextCliCommonParams public contract."""
-
-    @pytest.fixture(autouse=True)
-    def preserve_logging(self) -> Iterator[None]:
-        """Keep command invocations from replacing another app's logging policy."""
-        original_settings = u.logging_settings()
-        original_options = u.logging_options()
-        try:
-            yield
-        finally:
-            u.configure_structlog(
-                settings=original_options,
-                runtime_settings=original_settings,
-            )
 
     @staticmethod
     @pytest.fixture

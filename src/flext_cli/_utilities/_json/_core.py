@@ -175,7 +175,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         return data
 
     @staticmethod
-    def normalize_json_value(item: t.JsonValue | t.JsonPayload) -> t.JsonValue:
+    def normalize_json_value(item: t.Cli.JsonWriteData) -> t.JsonValue:
         """Normalize any runtime value to JSON-compatible output (Pydantic-native).
 
         Returns:
@@ -294,7 +294,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         )
 
     @staticmethod
-    def json_as_mapping(value: t.JsonValue | t.JsonPayload | None) -> t.JsonMapping:
+    def json_as_mapping(value: t.Cli.JsonWriteData) -> t.JsonMapping:
         """Normalize any JSON-compatible value into a mapping.
 
         Returns:

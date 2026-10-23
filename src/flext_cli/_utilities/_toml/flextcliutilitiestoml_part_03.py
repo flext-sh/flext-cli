@@ -89,6 +89,9 @@ class FlextCliUtilitiesTomlPart03:
         Returns:
             One mutable plain mapping child, creating it when missing.
 
+        Raises:
+            TypeError: If ``key`` already holds a non-mapping value.
+
         """
         existing = parent.get(key, None)
         if isinstance(existing, dict):

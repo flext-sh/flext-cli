@@ -210,11 +210,11 @@ class FlextCliProtocolsDomain:
         widow_control: object  # ast-grep-ignore: ban-broad-annotation
 
     @runtime_checkable
-    class ModelCommandHandler[TParams: t.Cli.ModelLike](Protocol):
+    class ModelCommandHandler[TParams: t.Cli.ModelLike, TResult: t.JsonPayload](Protocol):
         """Protocol for model-driven CLI command execution."""
 
-        def __call__(self, params: TParams, /) -> t.JsonValue:
-            """Execute one model-backed CLI command and return its normalized value."""
+        def __call__(self, params: TParams, /) -> TResult:
+            """Execute one model-backed CLI command and return its value unchanged."""
             ...
 
     @runtime_checkable

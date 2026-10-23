@@ -10,7 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from typing import override
 
 import pytest
@@ -19,21 +18,9 @@ from flext_cli import cli
 from tests import h, m, p, r, s, t, tm, u
 
 
+@pytest.mark.usefixtures("preserve_logging")
 class TestsFlextCliServiceRoutes:
     """Behavioral contract of service-derived CLI routes."""
-
-    @pytest.fixture(autouse=True)
-    def preserve_logging(self) -> Iterator[None]:
-        """Restore the actual application composition after each real route."""
-        original_settings = u.logging_settings()
-        original_options = u.logging_options()
-        try:
-            yield
-        finally:
-            u.configure_structlog(
-                settings=original_options,
-                runtime_settings=original_settings,
-            )
 
     class Greeter(s[p.Tests.ServiceStatus]):
         """Service whose public operations are the CLI.
