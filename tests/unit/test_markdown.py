@@ -92,7 +92,7 @@ class TestsFlextCliMarkdown:
         nested = u.Cli.markdown_fences(document)[0]
         rewritten = u.Cli.markdown_rewrite_fences(
             document,
-            {nested: (nested.info, "value = 2\n\nother = 3")},
+            dict.fromkeys([nested], (nested.info, "value = 2\n\nother = 3")),
         )
         tm.that(
             rewritten,
@@ -104,7 +104,10 @@ class TestsFlextCliMarkdown:
         """Quote markers are re-applied to every rewritten body line."""
         document = "> ```py\n> a\n> ```\n"
         (fence,) = u.Cli.markdown_fences(document)
-        rewritten = u.Cli.markdown_rewrite_fences(document, {fence: ("python", "b\n")})
+        rewritten = u.Cli.markdown_rewrite_fences(
+            document,
+            dict.fromkeys([fence], ("python", "b\n")),
+        )
         tm.that(rewritten, eq="> ```python\n> b\n> ```\n")
 
     @staticmethod
@@ -114,7 +117,7 @@ class TestsFlextCliMarkdown:
         (fence,) = u.Cli.markdown_fences(document)
         rewritten = u.Cli.markdown_rewrite_fences(
             document,
-            {fence: (fence.info, "x = 1\n")},
+            dict.fromkeys([fence], (fence.info, "x = 1\n")),
         )
         tm.that(rewritten, eq="text\n\n```python\nx = 1\n```\n")
 
