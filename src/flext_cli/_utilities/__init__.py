@@ -239,10 +239,10 @@ if TYPE_CHECKING:
     from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
     from flext_cli._utilities.docx import FlextCliUtilitiesDocx
     from flext_cli._utilities.env import FlextCliUtilitiesEnv
+    from flext_cli._utilities.file_changes import FlextCliUtilitiesFileChanges
     from flext_cli._utilities.file_test_helpers import (
         FlextCliUtilitiesFileTestHelpersMixin,
     )
-    from flext_cli._utilities.file_changes import FlextCliUtilitiesFileChanges
     from flext_cli._utilities.files import FlextCliUtilitiesFiles
     from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
     from flext_cli._utilities.framework import FlextCliUtilitiesFramework
@@ -311,10 +311,10 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesDocxReader",
     "FlextCliUtilitiesDocxRenderer",
     "FlextCliUtilitiesEnv",
+    "FlextCliUtilitiesFileChanges",
     "FlextCliUtilitiesFileTestHelpersMixin",
     "FlextCliUtilitiesFileTestHelpersMixinPart02",
     "FlextCliUtilitiesFileTestHelpersMixinPart04",
-    "FlextCliUtilitiesFileChanges",
     "FlextCliUtilitiesFiles",
     "FlextCliUtilitiesFilesPart01",
     "FlextCliUtilitiesFilesPart02",
