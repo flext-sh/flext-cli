@@ -23,6 +23,7 @@ from jinja2.utils import select_autoescape
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._files import FlextCliUtilitiesFilesPart03
+from flext_cli._utilities.markdown import FlextCliUtilitiesMarkdown
 
 
 class FlextCliUtilitiesTemplate:
@@ -145,6 +146,9 @@ class FlextCliUtilitiesTemplate:
             autoescape=select_autoescape(),
             auto_reload=True,
         )
+        environment.filters[c.Cli.TEMPLATE_FILTER_MARKDOWN_WRAP] = (
+            FlextCliUtilitiesMarkdown.markdown_wrap
+        )
         cls._environments[key] = environment
         return environment
 
@@ -238,6 +242,9 @@ class FlextCliUtilitiesTemplate:
             keep_trailing_newline=c.Cli.TEMPLATE_KEEP_TRAILING_NEWLINE,
             autoescape=select_autoescape(),
             auto_reload=False,
+        )
+        environment.filters[c.Cli.TEMPLATE_FILTER_MARKDOWN_WRAP] = (
+            FlextCliUtilitiesMarkdown.markdown_wrap
         )
         rendered = u.try_(
             lambda: cast(

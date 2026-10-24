@@ -144,6 +144,26 @@ class TestsFlextCliConfigEngine:
         tm.that(rendered.value.rendered, eq="port=42\n")
 
     @staticmethod
+    def test_template_markdown_wrap_filter_wraps_to_context_width(
+        tmp_path: Path,
+    ) -> None:
+        """The template owner exposes ``markdown_wrap`` bound to a context width."""
+        template = tmp_path / "page.md.j2"
+        template.write_text(
+            "{% filter markdown_wrap(width) -%}\n"
+            "- one two three four five six\n"
+            "{% endfilter -%}",
+            encoding="utf-8",
+        )
+
+        rendered = u.Cli.template_render_authenticated(
+            template, m.Tests.TemplateWidthContext(width=16)
+        )
+
+        tm.ok(rendered)
+        tm.that(rendered.value.rendered, eq="- one two three\n  four five six\n")
+
+    @staticmethod
     def test_captured_template_render_rejects_missing_dependency(
         tmp_path: Path,
     ) -> None:

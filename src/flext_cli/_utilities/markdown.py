@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import itertools
+import textwrap
 from collections.abc import Callable
 from functools import cache
 from typing import TYPE_CHECKING, override
@@ -285,6 +286,72 @@ class FlextCliUtilitiesMarkdown:
             for opening, inline in itertools.pairwise(tokens)
             if opening.type == c.Cli.MarkdownTokenType.HEADING_OPEN
             and opening.map is not None
+        )
+
+    @staticmethod
+    def _markdown_wrap_line(line: str, width: int) -> t.StrSequence:
+        """Wrap one prose line without changing its Markdown structure.
+
+        Returns:
+            The wrapped lines; structural or short lines stay untouched.
+
+        """
+        stripped = line.lstrip()
+        if (
+            len(line) <= width
+            or not stripped
+            or stripped != line
+            or stripped.startswith(tuple(c.Cli.MARKDOWN_WRAP_STRUCTURAL_PREFIXES))
+        ):
+            return (line,)
+        prefix = ""
+        body = line
+        if line.startswith((
+            *c.Cli.MARKDOWN_WRAP_BULLET_MARKERS,
+            c.Cli.MARKDOWN_WRAP_QUOTE_MARKER,
+        )):
+            prefix, body = line[:2], line[2:]
+        else:
+            marker, separator, remainder = line.partition(" ")
+            if separator and marker.endswith(".") and marker[:-1].isdigit():
+                prefix, body = f"{marker} ", remainder
+        indent = (
+            prefix if prefix == c.Cli.MARKDOWN_WRAP_QUOTE_MARKER else " " * len(prefix)
+        )
+        wrapper = textwrap.TextWrapper(
+            width=width,
+            initial_indent=prefix,
+            subsequent_indent=indent,
+            break_long_words=False,
+            break_on_hyphens=False,
+        )
+        return tuple(wrapper.wrap(body)) or (line,)
+
+    @staticmethod
+    def markdown_wrap(
+        value: str, width: int = c.Cli.MARKDOWN_WRAP_DEFAULT_WIDTH
+    ) -> str:
+        """Wrap prose lines to ``width`` while keeping fenced code verbatim.
+
+        Registered as the ``markdown_wrap`` Jinja filter of the template owner.
+
+        Returns:
+            The document with overlong prose lines reflowed.
+
+        """
+        verbatim = frozenset(
+            number
+            for fence in FlextCliUtilitiesMarkdown.markdown_fences(value)
+            for number in range(fence.opening_line, fence.closing_line + 1)
+        )
+        return "\n".join(
+            wrapped
+            for number, line in enumerate(value.split("\n"), start=1)
+            for wrapped in (
+                (line,)
+                if number in verbatim
+                else FlextCliUtilitiesMarkdown._markdown_wrap_line(line, width)
+            )
         )
 
     @staticmethod

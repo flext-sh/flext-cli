@@ -141,3 +141,42 @@ class TestsFlextCliMarkdown:
             lambda link: not link.image and not link.target.startswith("https:"),
         )
         tm.that(rewritten, eq="See the `guide`, [web](https://x.io) ![i](a.png)\n")
+
+    @staticmethod
+    def test_wrap_reflows_prose_and_keeps_structure_and_fences() -> None:
+        """Long prose wraps with hanging indents; headings, tables and fences stay."""
+        long_line = "alpha beta gamma delta epsilon zeta eta theta iota kappa"
+        document = (
+            f"# {long_line}\n"
+            f"{long_line}\n"
+            f"- {long_line}\n"
+            f"> {long_line}\n"
+            f"1. {long_line}\n"
+            f"| {long_line} |\n"
+            f"```text\n{long_line}\n```\n"
+        )
+        width = 24
+
+        wrapped = u.Cli.markdown_wrap(document, width)
+
+        tm.that(
+            wrapped,
+            eq=(
+                f"# {long_line}\n"
+                "alpha beta gamma delta\n"
+                "epsilon zeta eta theta\n"
+                "iota kappa\n"
+                "- alpha beta gamma delta\n"
+                "  epsilon zeta eta theta\n"
+                "  iota kappa\n"
+                "> alpha beta gamma delta\n"
+                "> epsilon zeta eta theta\n"
+                "> iota kappa\n"
+                "1. alpha beta gamma\n"
+                "   delta epsilon zeta\n"
+                "   eta theta iota kappa\n"
+                f"| {long_line} |\n"
+                f"```text\n{long_line}\n```\n"
+            ),
+        )
+        tm.that(u.Cli.markdown_wrap(wrapped, width), eq=wrapped)

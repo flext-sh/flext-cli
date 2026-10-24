@@ -97,6 +97,11 @@ class TestsFlextCliModels(
                 int, FlextCliModels.Field(description="Server port number.")
             ]
 
+        class TemplateWidthContext(FlextCliModels.FrozenModel):
+            """Template render context exposing a Markdown wrap ``width``."""
+
+            width: Annotated[int, FlextCliModels.Field(description="Wrap width.")]
+
         class TemplateServerContext(FlextCliModels.FrozenModel):
             """Template render context exposing a nested ``server`` field."""
 

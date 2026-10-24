@@ -46,6 +46,20 @@ class FlextCliConstantsMarkdown:
     "Opening sequences of CommonMark code fences."
     MARKDOWN_CONTAINER_CHARS: ClassVar[str] = " \t>"
     "Characters that form list-indentation and block-quote container prefixes."
+    MARKDOWN_WRAP_DEFAULT_WIDTH: ClassVar[int] = 80
+    "Prose width used when a caller does not declare one."
+    MARKDOWN_WRAP_STRUCTURAL_PREFIXES: ClassVar[t.StrSequence] = (
+        "#",
+        "|",
+        ":::",
+        "```",
+        "<",
+    )
+    "Line openings that carry Markdown structure and are never reflowed."
+    MARKDOWN_WRAP_BULLET_MARKERS: ClassVar[t.StrSequence] = ("- ", "* ", "+ ")
+    "Unordered list markers whose continuation lines align under the text."
+    MARKDOWN_WRAP_QUOTE_MARKER: ClassVar[str] = "> "
+    "Block-quote marker repeated on every continuation line."
 
 
 __all__: t.StrSequence = ("FlextCliConstantsMarkdown",)
