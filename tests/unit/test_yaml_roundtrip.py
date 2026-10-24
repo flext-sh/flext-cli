@@ -207,7 +207,7 @@ class TestsFlextCliYamlRoundtripConvert:
 
         dumped = u.Cli.yaml_roundtrip_dump_text(node).unwrap()
 
-        tm.that(dumped, has="flag: c.ParserBooleanToken.YES")
+        tm.that(dumped, has=f'flag: "{c.ParserBooleanToken.YES}"')
         tm.that(dumped, has="name: web")
 
     @staticmethod
