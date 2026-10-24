@@ -26,11 +26,25 @@ class FlextCliUtilitiesFileChanges:
     """Apply ``m.Cli.FileChange`` batches under one exclusive lock."""
 
     @staticmethod
+    def file_changes_lock(lock_path: Path) -> FileLock:
+        """Return the reentrant exclusive lock shared by every writer of one scope.
+
+        Returns:
+            The per-path singleton ``filelock`` context manager.
+
+        """
+        lock_path.parent.mkdir(parents=True, exist_ok=True)
+        return FileLock(
+            lock_path,
+            timeout=c.Cli.FILE_CHANGES_LOCK_TIMEOUT_SECONDS,
+            is_singleton=True,
+        )
+
+    @staticmethod
     def publish_file_changes(
         changes: t.SequenceOf[m.Cli.FileChange],
         *,
         lock_path: Path,
-        lock_timeout: float = c.Cli.FILE_CHANGES_LOCK_TIMEOUT_SECONDS,
     ) -> p.Result[t.VariadicTuple[Path]]:
         """Verify every observed state, then write or delete each changed file.
 
@@ -51,8 +65,7 @@ class FlextCliUtilitiesFileChanges:
                 and change.desired_mode != change.before.mode
             )
         )
-        lock_path.parent.mkdir(parents=True, exist_ok=True)
-        with FileLock(lock_path, timeout=lock_timeout):
+        with FlextCliUtilitiesFileChanges.file_changes_lock(lock_path):
             verified = FlextCliUtilitiesFilesPart06.atomic_verify_binary_file_states(
                 tuple(change.before for change in pending),
             )
