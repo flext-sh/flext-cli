@@ -225,7 +225,7 @@ class FlextCliModelsProcess:
             default=None,
             description="Interval between live progress heartbeats.",
         )
-        deadline: p.Cli.ProcessDeadline | None = m.Field(
+        deadline: t.Port[p.Cli.ProcessDeadline] | None = m.Field(
             default=None,
             description="Absolute deadline and termination grace policy.",
         )
@@ -284,7 +284,7 @@ class FlextCliModelsProcess:
             default=None,
             description="Relative child execution timeout in seconds.",
         )
-        deadline: p.Cli.ProcessDeadline | None = m.Field(
+        deadline: t.Port[p.Cli.ProcessDeadline] | None = m.Field(
             default=None,
             description="Absolute deadline and termination grace policy.",
         )
@@ -303,7 +303,7 @@ class FlextCliModelsProcess:
             arbitrary_types_allowed=True,
             validate_assignment=False,
         )
-        process: p.Cli.ProcessHandle | None = m.Field(
+        process: t.Port[p.Cli.ProcessHandle] | None = m.Field(
             default=None,
             description="Owned root child process handle.",
         )
@@ -311,11 +311,11 @@ class FlextCliModelsProcess:
             default=None,
             description="Thread responsible for reaping the root child.",
         )
-        durable_log: p.Cli.RuntimeBinaryStream | None = m.Field(
+        durable_log: t.Port[p.Cli.RuntimeBinaryStream] | None = m.Field(
             default=None,
             description="Owned stream for durable stdout or combined child output.",
         )
-        durable_stderr: p.Cli.RuntimeBinaryStream | None = m.Field(
+        durable_stderr: t.Port[p.Cli.RuntimeBinaryStream] | None = m.Field(
             default=None,
             description="Owned stream for separate durable child stderr.",
         )
@@ -407,11 +407,11 @@ class FlextCliModelsProcess:
     class RuntimeOutputTarget(m.ArbitraryTypesModel):
         """Destinations for one byte-exact output pump."""
 
-        durable_log: p.Cli.RuntimeBinaryStream | None = m.Field(
+        durable_log: t.Port[p.Cli.RuntimeBinaryStream] | None = m.Field(
             default=None,
             description="Durable sink receiving byte-exact child output.",
         )
-        captured_output: bytearray | None = m.Field(
+        captured_output: t.Port[bytearray] | None = m.Field(
             default=None,
             description="Mutable buffer retaining captured child output.",
         )
