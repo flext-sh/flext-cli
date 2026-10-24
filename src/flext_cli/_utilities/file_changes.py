@@ -41,6 +41,26 @@ class FlextCliUtilitiesFileChanges:
         )
 
     @staticmethod
+    def pending_file_changes(
+        changes: t.SequenceOf[m.Cli.FileChange],
+    ) -> t.VariadicTuple[m.Cli.FileChange]:
+        """Select the changes whose bytes or mode differ from the observed state.
+
+        Returns:
+            The changes publication would apply, in input order.
+
+        """
+        return tuple(
+            change
+            for change in changes
+            if change.desired_content != change.before.content
+            or (
+                change.desired_mode is not None
+                and change.desired_mode != change.before.mode
+            )
+        )
+
+    @staticmethod
     def publish_file_changes(
         changes: t.SequenceOf[m.Cli.FileChange],
         *,
@@ -58,15 +78,7 @@ class FlextCliUtilitiesFileChanges:
 
         """
         result_type = r[tuple[Path, ...]]
-        pending = tuple(
-            change
-            for change in changes
-            if change.desired_content != change.before.content
-            or (
-                change.desired_mode is not None
-                and change.desired_mode != change.before.mode
-            )
-        )
+        pending = FlextCliUtilitiesFileChanges.pending_file_changes(changes)
         with FlextCliUtilitiesFileChanges.file_changes_lock(lock_path):
             verified = FlextCliUtilitiesFilesPart06.atomic_verify_binary_file_states(
                 tuple(change.before for change in pending),
