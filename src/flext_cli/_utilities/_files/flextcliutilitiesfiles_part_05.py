@@ -223,9 +223,10 @@ class FlextCliUtilitiesFilesPart05:
         """Verify native source queries without authorizing publication effects.
 
         One verification boundary may share one native observation per physical
-        directory through ``observations``. The boundary captures each directory
-        exactly once, and the store never outlives the boundary, so no receipt is
-        replayed across boundaries.
+        directory through ``observations``. Successful inventories are shared only
+        within that boundary; a failed capture remains a native exception, never
+        an empty substitute. The store never outlives the boundary, so no receipt
+        is replayed across boundaries.
 
         Returns:
             A successful result when all consumed native queries still agree.

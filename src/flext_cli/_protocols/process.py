@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from types import FrameType
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
@@ -21,6 +22,14 @@ if TYPE_CHECKING:
 
 class FlextCliProtocolsProcess:
     """Structural launch and managed-child contracts exposed through ``p.Cli``."""
+
+    @runtime_checkable
+    class ParentSignalObserver(Protocol):
+        """Observe interruption without taking over the owned child lifecycle."""
+
+        def on_operator_signal(self, signum: int, frame: FrameType | None) -> None:
+            """Capture signal evidence without invoking a terminating action."""
+            ...
 
     @runtime_checkable
     class ManagedProcess(Protocol):

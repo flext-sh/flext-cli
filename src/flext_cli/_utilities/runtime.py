@@ -1,9 +1,9 @@
 """Generic external process runtime shared through ``u.Cli``.
 
-Sole native spawn owner of the package: this module hosts the single
-audited spawn engine, its stdin/session policy, and the native child
-timeout translation; every public process family consumes them through
-injected engine ports and adapts its contract at its own boundary.
+Typed frontend for the single stdlib-only native spawn owner in
+``native_runtime.py``. This module delegates child creation and retains native
+timeout translation; every public process family consumes the same engine
+through injected ports and adapts its contract at its own boundary.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import os
 import shlex
-import subprocess
 from typing import BinaryIO, ClassVar, override
 
 from flext_core import u
@@ -22,6 +21,11 @@ from flext_cli import c, m, p, r, t
 from flext_cli._utilities._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
 from flext_cli._utilities._runtime_run_to_file import (
     FlextCliUtilitiesRuntimeRunToFileMixin,
+)
+from flext_cli._utilities.native_runtime import (
+    TimeoutExpired,
+    spawn_streamed_process,
+    streamed_creation_flags,
 )
 
 
@@ -110,36 +114,12 @@ class FlextCliUtilitiesRuntime(
             The native binary child through ``p.Cli.ProcessHandle``.
 
         """
-        return subprocess.Popen(
-            list(cmd),
+        return spawn_streamed_process(
+            cmd,
             cwd=cwd,
-            stdin=(
-                stdin_handle
-                if stdin_handle is not None
-                else subprocess.PIPE
-                if options.stdin_mode == "pipe"
-                else subprocess.DEVNULL
-                if options.stdin_mode == "devnull"
-                else None
-            ),
-            stdout=subprocess.PIPE if options.capture_output else None,
-            stderr=(
-                subprocess.STDOUT
-                if options.combine_output
-                else subprocess.PIPE
-                if options.capture_output
-                else None
-            ),
-            text=False,
-            bufsize=0,
             env=env,
-            start_new_session=(
-                os.name != "nt"
-                if options.start_new_session is None
-                else options.start_new_session
-            ),
-            creationflags=options.creation_flags,
-            pass_fds=options.pass_fds,
+            stdin_handle=stdin_handle,
+            options=options,
         )
 
     @staticmethod
@@ -156,7 +136,7 @@ class FlextCliUtilitiesRuntime(
         """
         try:
             stdout, stderr = process.communicate(timeout=timeout)
-        except subprocess.TimeoutExpired as exc:
+        except TimeoutExpired as exc:
             return r[tuple[bytes, bytes]].fail(
                 f"timeout {exc.timeout}s: pid {process.pid}",
             )
@@ -176,11 +156,7 @@ class FlextCliUtilitiesRuntime(
             Platform creation flags for pre-execution containment.
 
         """
-        if os.name != "nt":
-            return 0
-        return int(getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)) | int(
-            getattr(subprocess, "CREATE_SUSPENDED", 0x00000004),
-        )
+        return streamed_creation_flags()
 
     @classmethod
     @override

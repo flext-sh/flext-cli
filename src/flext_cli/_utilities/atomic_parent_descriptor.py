@@ -13,10 +13,12 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from typing import TYPE_CHECKING
 
-from flext_cli import t
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli.typings import DirectoryChainInspection
+
+if TYPE_CHECKING:
+    from flext_cli.typings import DirectoryChainInspection
 
 
 class FlextCliUtilitiesAtomicParentDescriptor:
@@ -33,8 +35,8 @@ class FlextCliUtilitiesAtomicParentDescriptor:
 
         descriptor: int
         state: os.stat_result
-        ancestry: t.VariadicTuple[t.Pair[int, int]]
-        lineage: t.VariadicTuple[int]
+        ancestry: tuple[tuple[int, int], ...]
+        lineage: tuple[int, ...]
 
     @staticmethod
     @contextmanager
@@ -89,8 +91,8 @@ class FlextCliUtilitiesAtomicParentDescriptor:
     @staticmethod
     def verify_lineage(
         path: Path,
-        lineage: t.VariadicTuple[int],
-        ancestry: t.VariadicTuple[t.Pair[int, int]],
+        lineage: tuple[int, ...],
+        ancestry: tuple[tuple[int, int], ...],
     ) -> None:
         """Prove ``path`` still resolves, component by component, to ``ancestry``.
 
@@ -219,7 +221,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
         descriptors: list[int],
         *,
         stop_at_missing: bool,
-    ) -> t.Quad[int, os.stat_result, t.VariadicTuple[t.Pair[int, int]], int]:
+    ) -> tuple[int, os.stat_result, tuple[tuple[int, int], ...], int]:
         flags = (
             os.O_RDONLY
             | getattr(os, "O_DIRECTORY", 0)
@@ -278,8 +280,8 @@ class FlextCliUtilitiesAtomicParentDescriptor:
     @staticmethod
     def _missing_paths(
         anchor: Path,
-        parts: t.VariadicTuple[str],
-    ) -> t.VariadicTuple[Path]:
+        parts: tuple[str, ...],
+    ) -> tuple[Path, ...]:
         missing: list[Path] = []
         current = anchor
         for component in parts:

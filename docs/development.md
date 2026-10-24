@@ -190,6 +190,11 @@ Does the class manage mutable state?
 
 ### Module Structure
 
+Authored private-family ancestry imports the canonical declaration module, not a
+parent package's generated reexport. Private-child export retirement and these
+consumer rewrites form one cutover: generation must not recover old umbrella
+bindings or synthesize aliases to conceal an unresolved source dependency.
+
 Follow the v0.12.0-dev module organization:
 
 ```
@@ -264,6 +269,29 @@ The lifecycle witnesses `m.Cli.RuntimeProcessRequest`, `m.Cli.RuntimeProcessStat
 ownership; they are not a second public launch-options model. Subprocess execution, signals,
 deadlines, environment validation and descriptor forwarding retain their existing
 behavior.
+
+The single native spawn owner is `_utilities/native_runtime.py`. This original
+package asset imports only the Python standard library and can be loaded directly
+by a cold worker before the CLI/Core SDK is admitted. Its
+`spawn_streamed_process` accepts resolved command, working directory, environment,
+explicit binary stdin handle and a required structural `RuntimeSpawnOptions`
+protocol. The protocol declares the six existing spawn fields as read-only
+properties, with no policy defaults or second launch-options model; the ordinary
+`m.Cli.RuntimeSpawnOptions` satisfies it directly.
+
+The primitive returns the actual binary `subprocess.Popen` handle, never a JSON
+result or a wait/reap wrapper. An explicit stdin handle wins over pipe, devnull or
+inherit mode. Capture/combined streams, unbuffered binary I/O, environment,
+platform-default session ownership, creation flags and forwarded descriptors keep
+their existing semantics. Cold consumers own wait/reap at their boundary. The
+typed `_utilities/runtime.py` delegates to this same primitive and retains the
+ordinary timeout translation, redaction and streaming lifecycle. Native timeout
+identity and platform creation-flag calculation also belong to the stdlib owner;
+there is no alternate executor or compatibility path. Its Ruff permission is the
+existing audited native-owner declaration moved from `runtime.py`, not an added
+exemption. Consumers must authenticate and load the original package asset, not
+copy its body into another execution engine.
+
 `run_to_file` accepts `stderr_file=` when the consumer needs separate native
 streams. `output_file` then receives stdout and `stderr_file` receives stderr;
 both are drained, flushed and synchronized by the same contained lifecycle,

@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import errno
 import os
+from collections.abc import Iterable
 from pathlib import Path
+from typing import ClassVar
 
-from flext_cli import c, t
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
@@ -18,6 +19,13 @@ from flext_cli._utilities.atomic_file_descriptor import (
 
 class FlextCliUtilitiesAtomicFileRead:
     """Canonical namespace owner."""
+
+    READ_FLAGS: ClassVar[int] = (
+        os.O_RDONLY
+        | getattr(os, "O_NONBLOCK", 0)
+        | getattr(os, "O_CLOEXEC", 0)
+        | getattr(os, "O_BINARY", 0)
+    )
 
     class Reader:
         """One scoped descriptor serving ranges of an authenticated version."""
@@ -87,7 +95,7 @@ class FlextCliUtilitiesAtomicFileRead:
         descriptor = FlextCliUtilitiesAtomicFileDescriptor.open_entry(
             parent,
             path,
-            c.Cli.READ_FLAGS,
+            FlextCliUtilitiesAtomicFileRead.READ_FLAGS,
         )
         try:
             content = b"".join(
@@ -107,7 +115,7 @@ class FlextCliUtilitiesAtomicFileRead:
         return content
 
     @staticmethod
-    def state_key(state: os.stat_result) -> t.VariadicTuple[int]:
+    def state_key(state: os.stat_result) -> tuple[int, ...]:
         """Return fields that identify one authorized regular-file version.
 
         Returns:
@@ -133,7 +141,7 @@ class FlextCliUtilitiesAtomicFileRead:
         descriptor: int,
         path: Path,
         expected: os.stat_result,
-    ) -> t.IterableOf[bytes]:
+    ) -> Iterable[bytes]:
         """Consume exact chunks between checks of the authenticated file version.
 
         Yields:

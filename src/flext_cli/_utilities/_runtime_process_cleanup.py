@@ -46,9 +46,15 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         """
         restore_handlers: t.MutableSequenceOf[Callable[[], None]] = []
 
-        def forward(signal_number: int, _frame: FrameType | None) -> None:
+        def forward(
+            previous: t.Cli.SignalHandler,
+            signal_number: int,
+            frame: FrameType | None,
+        ) -> None:
             received_signals.append(signal_number)
             wake.set()
+            if isinstance(previous, p.Cli.ParentSignalObserver):
+                previous.on_operator_signal(signal_number, frame)
 
         forwarded = (signal.SIGINT, signal.SIGTERM)
         if os.name != "nt" and hasattr(signal, "SIGHUP"):
@@ -56,7 +62,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         try:
             for signal_number in forwarded:
                 previous: t.Cli.SignalHandler = signal.getsignal(signal_number)
-                signal.signal(signal_number, forward)
+                signal.signal(signal_number, partial(forward, previous))
                 forwarded_signals.append(int(signal_number))
                 restore_handlers.append(
                     partial(cls._restore_signal_handler, int(signal_number), previous),

@@ -13,7 +13,6 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
-from flext_cli import c, t
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
@@ -33,8 +32,8 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         path: Path
         descriptor: int
         state: os.stat_result
-        ancestry: t.VariadicTuple[t.Pair[int, int]]
-        lineage: t.VariadicTuple[int]
+        ancestry: tuple[tuple[int, int], ...]
+        lineage: tuple[int, ...]
 
     @staticmethod
     @contextmanager
@@ -169,7 +168,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
                 descriptor,
                 path,
                 operation_error,
-                label=c.ContextScope.OPERATION,
+                label="operation",
             )
             raise
         os.close(descriptor)

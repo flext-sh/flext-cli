@@ -5,6 +5,16 @@
 the isolated child; its deadline, byte streams, signals, cleanup and
 `ProcessOutcome` retain the ordinary runtime contract.
 
+While native capture owns interruption, each signal forwarder first records the
+actual signal and wakes cleanup, then calls `p.Cli.ParentSignalObserver.on_operator_signal`
+only when that signal's previous handler implements the method-only observer port.
+It never invokes the previous handler's terminating action before owned children
+are reaped. Non-observing, default and ignored handlers retain the same forwarding
+and restoration behavior, and interruption reasons and negative-signal metadata
+are unchanged. A profiler observer captures at most once per registration and
+defers publication failures to its existing teardown after child cleanup, without
+masking the original command failure.
+
 `m.Cli.ProcessReadOnlyIsolation` is an immutable request. The caller supplies the
 qualified Linux platform and filter architecture, the bootstrap-qualified static
 Bubblewrap launcher and policy compiler, captured source/resource/metadata files,

@@ -16,6 +16,28 @@ secondary diagnostics; never replace the operation's cause, select another read
 path or publish success. If the operation succeeded, a failed final validation is
 itself the native failure. The active work item owns acceptance of this correction.
 
+For `flext-2e7wy.1` phase 1, the existing `atomic_file_state` owner also owns
+`read_authenticated_state` and the retained `authenticated_entry` context. Its
+native capture is the original parent stat, leaf stat and bytes, not a model
+reconstructed by reopening the path. The shipped `atomic_file_snapshot` methods
+remain typed SDK wrappers; file and process consumers retain their public APIs.
+Receipt construction likewise uses the original retained native state and stream.
+
+The cold source closure is `atomic_file_state`, `atomic_file_read`,
+`atomic_file_descriptor`, `atomic_parent_descriptor`, `atomic_parent_failure` and
+`atomic_file_path`. These sources depend at runtime only on stdlib and each other,
+with relative imports retaining descriptor-class identity inside each loading
+namespace. The native read primitive owns its open flags; the public constants
+surface projects them, not the reverse. Ordinary SDK imports retain their normal
+package initialization. A cold consumer may load an explicitly source-published
+bootstrap namespace containing this complete declared closure without executing or
+fabricating `flext_cli` or `_utilities` package initializers. That projection is
+maintained by the resource publisher, never a second implementation of atomic IO.
+
+This extraction does not establish supplier election or operation lifetime. The
+root's pending lifetime binding must span the actual reaped UV process through the
+final save; a serialized receipt or permission flag cannot establish that binding.
+
 `u.Cli.atomic_read_binary_file_receipt` records physical identity, byte length,
 SHA-256, and native version without storing the payload. Optional absence retains
 the same parent and owner contract as a byte snapshot. The scoped
@@ -35,6 +57,16 @@ its immediate names, kinds, versions, and literal symlink targets. It does not
 descend or read child payloads. Its complete election set can prove an absent name;
 file-content and recursive cleanup authority remain separate contracts.
 
+Directory child names and query exclusions are native lexical leaves. Reject
+empty names, dot and parent entries, and embedded native path separators before
+descriptor lookup. Preserve ordered uniqueness, root identity, versions, literal
+symlink targets and query predicates. Leaf validation uses native basename
+semantics without constructing a `Path` for every already-lexical name; it never
+resolves a name against the working directory or substitutes another entry.
+The topology proof remains fresh for every original witness. Reusing a completed
+directory inventory does not authorize caching lineage verification or skipping
+descriptor, parent-entry, no-follow or anchor rechecks.
+
 An exception can also interrupt the return from the operating system's `open` before
 Python stores the descriptor. In that window the operation cannot authenticate the
 directory entry, and therefore leaves it untouched. The original interruption still
@@ -52,4 +84,4 @@ and [Linux signal delivery](https://man7.org/linux/man-pages/man7/signal.7.html)
 The public tests exercise actual timer delivery and deterministic audit boundaries. They
 require authenticated staging to be removed, unknown entries to retain their inode and
 bytes, the destination to remain unpublished, and the identical original exception to
-propagate. Run these contracts through the repository-root `make test`.
+propagate. Run these contracts through the repository-root `make tests`.

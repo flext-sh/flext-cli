@@ -11,7 +11,7 @@ from typing import Annotated, ClassVar
 from flext_core import FlextSettings, m
 
 from flext_cli import t
-from flext_cli._models import FlextCliModelsBasePart01
+from flext_cli._models._base.flextclimodelsbase_part_01 import FlextCliModelsBasePart01
 
 
 class FlextCliModelsBasePart06:
