@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Constants for flext-cli tests.
 
 Provides TestsFlextCliConstants, extending FlextTestsConstants with flext-cli-specific
@@ -17,10 +18,18 @@ from examples.constants import ExamplesFlextCliConstants
 from flext_tests import FlextTestsConstants
 
 from flext_cli import FlextCliConstants
-from tests._constants import TestsFlextCliConstantsPart01
+from tests._constants import (
+    TestsFlextCliConstantsCore,
+    TestsFlextCliConstantsPart01,
+    TestsFlextCliConstantsRulesOptions,
+    TestsFlextCliConstantsYamlOutput,
+)
 
 
 class TestsFlextCliConstants(
+    TestsFlextCliConstantsCore,
+    TestsFlextCliConstantsRulesOptions,
+    TestsFlextCliConstantsYamlOutput,
     TestsFlextCliConstantsPart01,
     ExamplesFlextCliConstants,
     FlextTestsConstants,

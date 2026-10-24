@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Pydantic models for flext-cli examples only.
 
 All example-domain models live here; examples MUST NOT define models inline.
@@ -10,11 +11,22 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from examples._models import ExamplesFlextCliModelsPart01
+from examples._models import (
+    ExamplesFlextCliModelsExamplesAdvanced,
+    ExamplesFlextCliModelsExamplesCommon,
+    ExamplesFlextCliModelsExamplesDatabase,
+    ExamplesFlextCliModelsPart01,
+)
 from flext_cli import FlextCliModels
 
 
-class ExamplesFlextCliModels(ExamplesFlextCliModelsPart01, FlextCliModels):
+class ExamplesFlextCliModels(
+    ExamplesFlextCliModelsExamplesAdvanced,
+    ExamplesFlextCliModelsExamplesCommon,
+    ExamplesFlextCliModelsExamplesDatabase,
+    ExamplesFlextCliModelsPart01,
+    FlextCliModels,
+):
     """Public facade for ExamplesFlextCliModels."""
 
 

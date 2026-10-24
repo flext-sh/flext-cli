@@ -250,6 +250,12 @@ if TYPE_CHECKING:
     from flext_cli._utilities.json import FlextCliUtilitiesJson
     from flext_cli._utilities.markdown import FlextCliUtilitiesMarkdown
     from flext_cli._utilities.matching import FlextCliUtilitiesMatching
+    from flext_cli._utilities.native_runtime import (
+        RuntimeSpawnOptions,
+        TimeoutExpired,
+        spawn_streamed_process,
+        streamed_creation_flags,
+    )
     from flext_cli._utilities.output import FlextCliUtilitiesOutput
     from flext_cli._utilities.output_payloads import FlextCliUtilitiesOutputPayloads
     from flext_cli._utilities.params import FlextCliUtilitiesParams
@@ -406,6 +412,8 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlConvertMixin",
     "FlextCliUtilitiesYamlEditingMixin",
     "FlextCliUtilitiesYamlEngineMixin",
+    "RuntimeSpawnOptions",
+    "TimeoutExpired",
     "_docx",
     "_file_test_helper",
     "_files",
@@ -416,6 +424,8 @@ __all__: tuple[str, ...] = (
     "_toml",
     "_xlsx",
     "_yaml",
+    "spawn_streamed_process",
+    "streamed_creation_flags",
 )
 
 install_lazy_exports(
@@ -466,6 +476,7 @@ install_lazy_exports(
         "FlextCliUtilitiesDocxReader": "._docx._reader",
         "FlextCliUtilitiesDocxRenderer": "._docx._renderer",
         "FlextCliUtilitiesEnv": ".env",
+        "FlextCliUtilitiesFileChanges": ".file_changes",
         "FlextCliUtilitiesFileTestHelpersMixin": ".file_test_helpers",
         "FlextCliUtilitiesFileTestHelpersMixinPart02": (
             "._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_02"
@@ -473,7 +484,6 @@ install_lazy_exports(
         "FlextCliUtilitiesFileTestHelpersMixinPart04": (
             "._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_04"
         ),
-        "FlextCliUtilitiesFileChanges": ".file_changes",
         "FlextCliUtilitiesFiles": ".files",
         "FlextCliUtilitiesFilesPart01": "._files.flextcliutilitiesfiles_part_01",
         "FlextCliUtilitiesFilesPart02": "._files.flextcliutilitiesfiles_part_02",
@@ -569,6 +579,8 @@ install_lazy_exports(
         "FlextCliUtilitiesYamlConvertMixin": "._yaml._convert",
         "FlextCliUtilitiesYamlEditingMixin": "._yaml._editing",
         "FlextCliUtilitiesYamlEngineMixin": "._yaml._engine",
+        "RuntimeSpawnOptions": ".native_runtime",
+        "TimeoutExpired": ".native_runtime",
         "_docx": "._docx",
         "_file_test_helper": "._file_test_helper",
         "_files": "._files",
@@ -579,6 +591,8 @@ install_lazy_exports(
         "_toml": "._toml",
         "_xlsx": "._xlsx",
         "_yaml": "._yaml",
+        "spawn_streamed_process": ".native_runtime",
+        "streamed_creation_flags": ".native_runtime",
     }),
     public_exports=__all__,
 )

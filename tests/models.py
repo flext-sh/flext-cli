@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Declarative consumer models for flext-cli public contract tests.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -12,7 +13,11 @@ from examples import ExamplesFlextCliModels, c
 from flext_tests import FlextTestsModels
 
 from flext_cli import FlextCliModels
-from tests._models import TestsFlextCliModelsPart01
+from tests._models import (
+    TestsFlextCliModelsCli,
+    TestsFlextCliModelsPart01,
+    TestsFlextCliModelsRuntime,
+)
 
 
 class TestsFlextCliModels(
@@ -23,7 +28,13 @@ class TestsFlextCliModels(
 ):
     """Test model facade composed from canonical FLEXT model owners."""
 
-    class Tests(TestsFlextCliModelsPart01.Tests):
+    class Tests(
+        TestsFlextCliModelsPart01,
+        TestsFlextCliModelsPart01.Tests,
+        TestsFlextCliModelsRuntime,
+        TestsFlextCliModelsCli,
+        FlextTestsModels.Tests,
+    ):
         """Consumer-owned records used to exercise typed YAML ingress."""
 
         class InheritedSettings(FlextCliModels.BaseSettings):

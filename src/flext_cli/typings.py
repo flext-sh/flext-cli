@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """CLI type facade.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -25,9 +26,9 @@ class FlextCliTypes(FlextTypes):
     """CLI type definitions extending flext-core FlextTypes via inheritance."""
 
     class Cli(
-        FlextCliTypesPipeline,
-        FlextCliTypesDomain,
         FlextCliTypesBase,
+        FlextCliTypesDomain,
+        FlextCliTypesPipeline,
         FlextCliTypesXlsx,
     ):
         """CLI types namespace for cross-project access."""

@@ -250,6 +250,18 @@ jobs:
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
+      # Why: a failed gate's job log prints only counts; its raw receipts under
+      # the declared gate receipts directory are the evidence, so every job
+      # publishes them when it fails.
+      - name: Upload gate receipts on failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: flext-gate-receipts-${{ github.job }}-${{ github.run_id }}
+          path: .reports/gates/**
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
       # Completed failing tests may save; cancelled/incomplete/corrupt runs cannot.
       - name: Save testmon database
         if: >-

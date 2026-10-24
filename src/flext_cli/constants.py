@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Flext CLI constants — flat MRO facade.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -37,13 +38,13 @@ class FlextCliConstants(FlextConstants):
         FlextCliConstantsBase,
         FlextCliConstantsConfig,
         FlextCliConstantsDefaults,
+        FlextCliConstantsDocx,
         FlextCliConstantsEnums,
         FlextCliConstantsErrors,
-        FlextCliConstantsDocx,
-        FlextCliConstantsPptx,
         FlextCliConstantsFiles,
         FlextCliConstantsMarkdown,
         FlextCliConstantsOutput,
+        FlextCliConstantsPptx,
         FlextCliConstantsSettings,
         FlextCliConstantsXlsx,
         FlextCliConstantsXlsxFutureFunctions,
