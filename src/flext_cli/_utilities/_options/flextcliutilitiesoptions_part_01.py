@@ -160,7 +160,7 @@ class FlextCliUtilitiesOptionsPart01:
             The resulting ``t.Cli.DefaultAtom | None``.
 
         """
-        if isinstance(value, c.Cli.CLI_SCALAR_TYPES_TUPLE):
+        if isinstance(value, c.PRIMITIVES_TYPES):
             return value
         if isinstance(value, Path):
             return str(value)
