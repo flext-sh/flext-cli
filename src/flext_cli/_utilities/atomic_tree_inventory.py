@@ -96,18 +96,23 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 incoming.root,
                 f"source directory query epochs disagree: {path}",
             )
-            if any(
-                cls.directory_query_value(previous, name, predicate)
-                != cls.directory_query_value(incoming, name, predicate)
-                for name, predicate in (*previous.queries, *incoming.queries)
-            ):
-                msg = f"source directory query epochs disagree: {path}"
-                raise ValueError(msg)
-            if (previous.membership_queried or incoming.membership_queried) and tuple(
-                (item.name, item.kind) for item in previous.entries
-            ) != tuple((item.name, item.kind) for item in incoming.entries):
-                msg = f"source directory membership epochs disagree: {path}"
-                raise ValueError(msg)
+            # Query receipts of one pinned inventory share its immutable entries.
+            # Compare membership only when another observation supplied the entries.
+            if previous.entries is not incoming.entries:
+                if any(
+                    cls.directory_query_value(previous, name, predicate)
+                    != cls.directory_query_value(incoming, name, predicate)
+                    for name, predicate in (*previous.queries, *incoming.queries)
+                ):
+                    msg = f"source directory query epochs disagree: {path}"
+                    raise ValueError(msg)
+                if (
+                    previous.membership_queried or incoming.membership_queried
+                ) and tuple((item.name, item.kind) for item in previous.entries) != tuple(
+                    (item.name, item.kind) for item in incoming.entries
+                ):
+                    msg = f"source directory membership epochs disagree: {path}"
+                    raise ValueError(msg)
             directories[path] = previous.model_copy(
                 update={
                     "queries": tuple(sorted({*previous.queries, *incoming.queries})),
@@ -149,6 +154,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 link count differs.
 
         """
+        if expected is observed:
+            return
         mutable_membership = {"mtime_ns", "ctime_ns", "link_count"}
         if expected.model_dump(exclude=mutable_membership) != observed.model_dump(
             exclude=mutable_membership

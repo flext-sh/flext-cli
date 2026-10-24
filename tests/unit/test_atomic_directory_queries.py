@@ -19,6 +19,44 @@ class TestsFlextCliAtomicDirectoryQueries:
     """Reprove a queried directory only where its existence depends on a receipt."""
 
     @staticmethod
+    @pytest.mark.parametrize("recapture", [False, True])
+    def test_repeated_directory_observations_preserve_consumed_selectors(
+        tmp_path: Path, recapture: bool
+    ) -> None:
+        """Pinned and independently captured inventories retain the same queries."""
+        (tmp_path / "module.py").write_text("VALUE = 1\n", encoding=c.DEFAULT_ENCODING)
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        observed = (
+            tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+            if recapture
+            else original
+        )
+        first = original.model_copy(update={"queries": (("module.py", "isfile"),)})
+        second = observed.model_copy(update={"queries": (("missing.py", "exists"),)})
+
+        inventories, topology = u.Cli.atomic_merge_directory_query_receipts(
+            (first, second, first, second), ()
+        )
+
+        tm.that(len(inventories), eq=1)
+        tm.that(
+            inventories[0].queries,
+            eq=(("missing.py", "exists"), ("module.py", "isfile")),
+        )
+        tm.that(topology, eq=())
+
+    @staticmethod
+    def test_directory_merge_rejects_changed_query_observations(tmp_path: Path) -> None:
+        """A later inventory cannot reuse a query whose original answer changed."""
+        original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+        queried = original.model_copy(update={"queries": (("module.py", "isfile"),)})
+        (tmp_path / "module.py").write_text("VALUE = 1\n", encoding=c.DEFAULT_ENCODING)
+        changed = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
+
+        with pytest.raises(ValueError, match="source directory query epochs disagree"):
+            u.Cli.atomic_merge_directory_query_receipts((queried, changed), ())
+
+    @staticmethod
     def test_filesystem_root_is_a_directory_not_a_file(tmp_path: Path) -> None:
         """Directory election authenticates anchors without authorizing file IO."""
         root = Path(tmp_path.anchor)
