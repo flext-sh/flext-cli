@@ -6,15 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_cli import cli
-from tests import m, tm
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
-
-if TYPE_CHECKING:
-    from tests import t
+from tests import m, t, tm
 
 
 class TestsFlextCliServicePart04:
@@ -124,25 +119,3 @@ class TestsFlextCliServicePart04:
 
         tm.fail(result)
         tm.that(result.error, has="No such command 'missing-command'")
-
-    @staticmethod
-    def test_execute_external_command_accepts_public_sequence() -> None:
-        """External commands receive a list at the private framework boundary."""
-        app = cli.create_app_with_common_params(
-            name="external-app",
-            help_text="External command application",
-        )
-        cli.register_command(
-            app,
-            name="ok",
-            help_text="Successful external command",
-            command=lambda: True,
-        )
-
-        result = cli.execute_external_command(
-            cli.external_command(app),
-            prog_name="external-app",
-            args=("ok",),
-        )
-
-        tm.ok(result)

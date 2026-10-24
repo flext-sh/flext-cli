@@ -51,12 +51,12 @@ class TestsFlextCliAtomicPhysicalTree:
         first = self._inventory(root)
         second = self._inventory(root)
 
-        tm.that(first.root.mount_id > 0, eq=True)
+        tm.ok(first.root.mount_id > 0)
         tm.that(second.root.mount_id, eq=first.root.mount_id)
         tm.that(first.entries[0].mount_id, eq=first.root.mount_id)
         tm.that(second.entries[0].mount_id, eq=first.entries[0].mount_id)
         tm.ok(u.Cli.atomic_cleanup_physical_tree_guarded(second))
-        tm.that(root.exists(), eq=False)
+        tm.fail(root.exists())
 
     @staticmethod
     def test_inventory_records_ordered_parent_bound_physical_state(
@@ -104,7 +104,7 @@ class TestsFlextCliAtomicPhysicalTree:
         result = u.Cli.atomic_cleanup_physical_tree_guarded(manifest)
 
         tm.ok(result)
-        tm.that(root.exists(), eq=False)
+        tm.fail(root.exists())
 
     @pytest.mark.parametrize("drift", ["unknown", "missing", "content", "metadata"])
     def test_manifest_drift_fails_before_any_effect(
@@ -176,7 +176,7 @@ class TestsFlextCliAtomicPhysicalTree:
         tm.that(result.value.entries[0].kind, eq="symlink")
         tm.that(result.value.entries[0].link_target, eq=str(target))
         tm.ok(u.Cli.atomic_cleanup_physical_tree_guarded(result.value))
-        tm.that(root.exists(), eq=False)
+        tm.fail(root.exists())
         tm.that((target / "owned.txt").read_text(encoding="utf-8"), eq="owned")
 
     @staticmethod
@@ -208,7 +208,7 @@ class TestsFlextCliAtomicPhysicalTree:
         tm.fail(result)
         tm.that(result.exception, is_=OSError)
         tm.that(result.error, has="not regular or a directory")
-        tm.that(special.exists(), eq=True)
+        tm.ok(special.exists())
 
     def test_model_rejects_forged_topology(self, tmp_path: Path) -> None:
         """Keep outside paths, bind aliases, and device crossings unrepresentable."""

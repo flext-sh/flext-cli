@@ -141,6 +141,10 @@ class FlextCliUtilitiesAtomicFile:
         target_mode: int | None,
     ) -> None:
         """Retain the staging owner through acquisition, publication and cleanup."""
+        if expected is None:
+            FlextCliUtilitiesAtomicFileDescriptor.require_create_capabilities(
+                destination
+            )
         try:
             stage.acquire()
             stage.write(content, target_mode)
@@ -165,6 +169,7 @@ class FlextCliUtilitiesAtomicFile:
             self.identity: t.Pair[int, int] | None = None
             self.mode: int | None = None
             self.replacement_completed = False
+            self.linked_temporary = False
 
         def acquire(self) -> None:
             """Authenticate the descriptor before restoring pending timer delivery."""
@@ -244,12 +249,48 @@ class FlextCliUtilitiesAtomicFile:
                 expected,
                 staged,
             )
-            FlextCliUtilitiesAtomicFileDescriptor.replace_entry(
-                self.parent,
-                self.temporary,
-                self.parent,
-                destination,
-            )
+            if expected is None:
+                publication_signals = {
+                    candidate
+                    for name in (
+                        "SIGINT",
+                        "SIGTERM",
+                        "SIGHUP",
+                        "SIGALRM",
+                        "SIGVTALRM",
+                        "SIGPROF",
+                    )
+                    if (candidate := getattr(signal, name, None)) is not None
+                }
+                previous_mask = (
+                    signal.pthread_sigmask(signal.SIG_BLOCK, publication_signals)
+                    if publication_signals and hasattr(signal, "pthread_sigmask")
+                    else None
+                )
+                try:
+                    FlextCliUtilitiesAtomicFileDescriptor.link_entry(
+                        self.parent,
+                        self.temporary,
+                        self.parent,
+                        destination,
+                    )
+                    self.replacement_completed = True
+                    self.linked_temporary = True
+                    FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(
+                        self.parent,
+                        self.temporary,
+                    )
+                    self.linked_temporary = False
+                finally:
+                    if previous_mask is not None:
+                        signal.pthread_sigmask(signal.SIG_SETMASK, previous_mask)
+            else:
+                FlextCliUtilitiesAtomicFileDescriptor.replace_entry(
+                    self.parent,
+                    self.temporary,
+                    self.parent,
+                    destination,
+                )
             self.replacement_completed = True
             if self.durable:
                 FlextCliUtilitiesAtomicFileDurability.sync_replacement(
@@ -265,7 +306,14 @@ class FlextCliUtilitiesAtomicFile:
 
         def cleanup(self, operation_error: BaseException) -> None:
             """Remove only authenticated staging while preserving the first cause."""
-            if not self.replacement_completed:
+            if self.linked_temporary and self.identity is not None:
+                FlextCliUtilitiesAtomicFileCleanup.remove_linked_temporary(
+                    self.parent,
+                    self.temporary,
+                    self.identity,
+                    operation_error,
+                )
+            elif not self.replacement_completed:
                 FlextCliUtilitiesAtomicFileCleanup.remove_failed_temporary(
                     self.parent,
                     self.temporary,

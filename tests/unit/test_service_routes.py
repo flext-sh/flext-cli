@@ -10,30 +10,17 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from typing import override
 
 import pytest
 
 from flext_cli import cli
-from tests import h, m, p, r, s, t, tm, u
+from tests import c, h, m, p, r, s, t, tm, u
 
 
+@pytest.mark.usefixtures("preserve_logging")
 class TestsFlextCliServiceRoutes:
     """Behavioral contract of service-derived CLI routes."""
-
-    @pytest.fixture(autouse=True)
-    def preserve_logging(self) -> Iterator[None]:
-        """Restore the actual application composition after each real route."""
-        original_settings = u.logging_settings()
-        original_options = u.logging_options()
-        try:
-            yield
-        finally:
-            u.configure_structlog(
-                settings=original_options,
-                runtime_settings=original_settings,
-            )
 
     class Greeter(s[p.Tests.ServiceStatus]):
         """Service whose public operations are the CLI.
@@ -44,9 +31,9 @@ class TestsFlextCliServiceRoutes:
         conforming services outside the CLI base.
         """
 
-        # Operations are plain public instance methods below FlextService:
-        # the discovery scanner counts instance functions only, so these
-        # deliberately keep ``self`` even where a staticmethod would do.
+        greeting: str = "hello"
+        ready: int = 1
+
         def greet_default(self) -> p.Result[p.Tests.ServiceStatus]:
             """Run the default service action.
 
@@ -67,7 +54,9 @@ class TestsFlextCliServiceRoutes:
                 The resulting ``p.Result[str]``.
 
             """
-            return r[str].ok(" ".join([f"hello {request.name}"] * request.times))
+            return r[str].ok(
+                " ".join([f"{self.greeting} {request.name}"] * request.times)
+            )
 
         def report(self) -> p.Result[p.Tests.ServiceStatus]:
             """Report the service status.
@@ -77,7 +66,7 @@ class TestsFlextCliServiceRoutes:
 
             """
             return r[p.Tests.ServiceStatus].ok(
-                m.Tests.ServiceStatus(ready=1),
+                m.Tests.ServiceStatus(ready=self.ready),
             )
 
     class AlternateGreeter(Greeter):
@@ -117,7 +106,7 @@ class TestsFlextCliServiceRoutes:
             cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "2"]),
         )
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="hello ana hello ana")
 
     def test_invalid_input_exits_non_zero_with_validation_cause(self) -> None:
@@ -125,10 +114,19 @@ class TestsFlextCliServiceRoutes:
         app = self._app(self.Greeter)
 
         outcome = tm.ok(
-            cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "0"]),
+            cli.invoke_app(
+                app,
+                args=[
+                    "greet-all",
+                    "--name",
+                    "ana",
+                    "--times",
+                    c.ParserBooleanToken.ZERO,
+                ],
+            ),
         )
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=False)
+        tm.fail(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, eq="")
         tm.that(outcome.stderr, has=["ServiceGreeting", "greater than or equal to 1"])
 
@@ -138,24 +136,33 @@ class TestsFlextCliServiceRoutes:
 
         outcome = tm.ok(cli.invoke_app(app, args=["report"]))
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has='{"ready":1}')
 
     def test_execution_uses_catalogued_function_identity(self) -> None:
         """The provider supplies self, not a late replacement for the operation."""
         app = self._app(self.AlternateGreeter)
         outcome = tm.ok(cli.invoke_app(app, args=["greet-all", "--name", "ana"]))
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="hello ana")
-        tm.that("replacement" not in outcome.stdout, eq=True)
+        tm.ok("replacement" not in outcome.stdout)
 
     def test_invalid_input_never_constructs_the_provider(self) -> None:
         """Ingress rejects the request before the unavailable provider is called."""
         app = self._app(self._unconfigured)
         outcome = tm.ok(
-            cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "0"]),
+            cli.invoke_app(
+                app,
+                args=[
+                    "greet-all",
+                    "--name",
+                    "ana",
+                    "--times",
+                    c.ParserBooleanToken.ZERO,
+                ],
+            ),
         )
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=False)
+        tm.fail(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stderr, has="greater than or equal to 1")
 
     @pytest.mark.parametrize(
@@ -168,7 +175,7 @@ class TestsFlextCliServiceRoutes:
 
         outcome = tm.ok(cli.invoke_app(app, args=args))
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="Usage")
 
     def test_execution_reaches_the_provider(self) -> None:

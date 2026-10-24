@@ -11,61 +11,14 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, tm
+from tests import c, p, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tests import p
-
 
 class TestsFlextCliPromptsPart02:
     """Implementation part for TestsFlextCliPromptsPart02."""
-
-    @staticmethod
-    def test_prompt_choice_paths(
-        make_prompts: Callable[..., p.Tests.Prompts],
-    ) -> None:
-        """Verify that prompt choice paths."""
-        quiet_prompts = make_prompts(interactive_mode=False)
-        tm.fail(
-            quiet_prompts.prompt_choice(choices=[], default=None),
-            has=c.Cli.ERR_NO_CHOICES,
-        )
-        tm.fail(
-            quiet_prompts.prompt_choice(choices=["a", "b"], default=None),
-            has=c.Cli.ERR_INTERACTIVE_CHOICE_DISABLED,
-        )
-        valid_default = quiet_prompts.prompt_choice(choices=["a", "b"], default="a")
-        tm.ok(valid_default)
-        tm.that(valid_default.value, eq="a")
-        interactive_prompts = make_prompts()
-        required = interactive_prompts.prompt_choice(
-            choices=["alpha", "beta"],
-            default=None,
-        )
-        tm.fail(required, has="alpha")
-        tm.fail(required, has="beta")
-        tm.fail(
-            interactive_prompts.prompt_choice(choices=["a", "b"], default="c"),
-            has=c.Cli.ERR_INVALID_CHOICE_FMT.format(choice="c"),
-        )
-        selected = interactive_prompts.prompt_choice(
-            choices=["simple", "complex", "advanced"],
-            default="simple",
-        )
-        tm.ok(selected)
-        tm.that(selected.value, eq="simple")
-
-    @staticmethod
-    def test_print_helpers_paths(
-        make_prompts: Callable[..., p.Tests.Prompts],
-    ) -> None:
-        """Verify that print helpers paths."""
-        prompts = make_prompts()
-        tm.ok(prompts.print_success("simple"))
-        tm.ok(prompts.print_error("simple"))
-        tm.ok(prompts.print_warning("simple"))
 
     @staticmethod
     @pytest.mark.parametrize("message", c.Tests.PROMPT_EDGE_MESSAGES)
@@ -76,8 +29,7 @@ class TestsFlextCliPromptsPart02:
         """Verify that prompt accepts edge case messages."""
         prompts = make_prompts(interactive_mode=False)
         result = prompts.prompt(message, default="text")
-        tm.ok(result)
-        tm.that(result.value, eq="text")
+        tm.ok(result, eq="text")
 
     @staticmethod
     def test_repeated_prompt_operations_remain_fast(
@@ -88,6 +40,5 @@ class TestsFlextCliPromptsPart02:
         started_at = time.time()
         for index in range(100):
             result = prompts.prompt(f"Prompt {index}", default="text")
-            tm.ok(result)
-            tm.that(result.value, eq="text")
+            tm.ok(result, eq="text")
         tm.that(time.time() - started_at, lt=0.5)

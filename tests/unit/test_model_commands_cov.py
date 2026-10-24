@@ -15,7 +15,7 @@ from __future__ import annotations
 import pytest
 
 from flext_cli import cli
-from tests import m, tm
+from tests import c, m, tm
 
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): model-command
 # coverage consumes the owning field-only test models directly.
@@ -71,9 +71,9 @@ class TestsFlextCliModelCommandsCov:
             return model.name
 
         cmd = cli.model_command(m.Tests.ModelCommandSample, handler, settings=settings)
-        result = cmd(name="override", value=1)
+        result = cmd(name=c.MergeStrategy.OVERRIDE, value=1)
 
-        tm.that(result, eq="override")
+        tm.that(result, eq=c.MergeStrategy.OVERRIDE)
         tm.that(settings.name, eq="from_settings")
         tm.that(settings.value, eq=0)
 

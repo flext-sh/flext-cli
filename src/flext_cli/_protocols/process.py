@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from types import FrameType
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
@@ -16,11 +17,19 @@ if TYPE_CHECKING:
 
     from flext_cli import t
     from flext_cli._models.process import FlextCliModelsProcess
-    from flext_cli._protocols._base_parts import FlextCliProtocolsBasePart02
+    from flext_cli._protocols._base import FlextCliProtocolsBasePart02
 
 
 class FlextCliProtocolsProcess:
     """Structural launch and managed-child contracts exposed through ``p.Cli``."""
+
+    @runtime_checkable
+    class ParentSignalObserver(Protocol):
+        """Observe interruption without taking over the owned child lifecycle."""
+
+        def on_operator_signal(self, signum: int, frame: FrameType | None) -> None:
+            """Capture signal evidence without invoking a terminating action."""
+            ...
 
     @runtime_checkable
     class ManagedProcess(Protocol):
@@ -72,10 +81,6 @@ class FlextCliProtocolsProcess:
             """Reap the child and preserve its output and exit code."""
             ...
 
-        def stdin_write(self, content: bytes) -> p.Result[bool]:
-            """Write exact bytes to the child input."""
-            ...
-
         def stdout_read_until(
             self,
             delimiter: bytes,
@@ -83,10 +88,6 @@ class FlextCliProtocolsProcess:
             timeout: float,
         ) -> p.Result[bytes]:
             """Read through the delimiter within the supplied deadline."""
-            ...
-
-        def stdout_read_exact(self, size: int, *, timeout: float) -> p.Result[bytes]:
-            """Read the declared number of bytes within the supplied deadline."""
             ...
 
     @runtime_checkable

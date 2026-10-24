@@ -65,7 +65,7 @@ class TestsFlextCliExamplesSmokePart03:
         settings.cli_token_file = str(broken_token_path)
         directory_logout = ExamplesFlextCliAuthentication.logout()
         tm.fail(directory_logout)
-        tm.that(broken_token_path.exists(), eq=True)
+        tm.ok(broken_token_path.exists())
 
     @staticmethod
     @pytest.mark.usefixtures("restore_token_file")
@@ -91,7 +91,7 @@ class TestsFlextCliExamplesSmokePart03:
         finally:
             token_dir.chmod(0o755)
         tm.fail(logout_result)
-        tm.that(token_path.exists(), eq=True)
+        tm.ok(token_path.exists())
 
     @staticmethod
     def test_settings_example_surfaces_profile_and_override_branches(

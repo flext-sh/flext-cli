@@ -13,43 +13,11 @@ from __future__ import annotations
 
 import pytest
 
-from tests import c, m, t, tm, u
+from tests import c, t, tm, u
 
 
 class TestsFlextCliCmdRuntimeValidationBranchCov:
     """Public-contract behavior of cmd, runtime, and validation helpers."""
-
-    # ----------------------------------------------------------------- cmd
-    @staticmethod
-    def test_cmd_settings_snapshot_returns_populated_snapshot_model() -> None:
-        """Verify that cmd settings snapshot returns populated snapshot model."""
-        result = u.Cli.cmd_settings_snapshot()
-
-        tm.ok(result)
-        snapshot = result.unwrap()
-        tm.that(snapshot, is_=m.Cli.SettingsSnapshot)
-        dumped = snapshot.model_dump()
-        tm.that(
-            set(dumped),
-            eq={
-                "settings_dir",
-                "settings_exists",
-                "settings_readable",
-                "settings_writable",
-                "timestamp",
-            },
-        )
-        tm.that(snapshot.settings_exists, is_=bool)
-
-    @staticmethod
-    def test_cmd_settings_snapshot_is_idempotent_in_shape() -> None:
-        """Verify that cmd settings snapshot is idempotent in shape."""
-        first = u.Cli.cmd_settings_snapshot()
-        second = u.Cli.cmd_settings_snapshot()
-
-        tm.ok(first)
-        tm.ok(second)
-        tm.that(set(first.unwrap().model_dump()), eq=set(second.unwrap().model_dump()))
 
     # ------------------------------------------------------------- runtime
     @staticmethod
@@ -116,7 +84,7 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
         result = u.Cli.validate_not_empty(value, name="field")
 
         tm.ok(result)
-        tm.that(result.unwrap(), eq=True)
+        tm.ok(result.unwrap())
 
     @staticmethod
     @pytest.mark.parametrize("value", [None, "", "   "])

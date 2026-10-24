@@ -465,7 +465,7 @@ class FlextCliUtilitiesFramework:
 
         """
         runner_env: t.MutableMappingKV[str, str | None] = {
-            "NO_COLOR": "1",
+            "NO_COLOR": c.ParserBooleanToken.ONE,
             "GITHUB_ACTIONS": "",
             "FORCE_COLOR": "",
             "PY_COLORS": "",

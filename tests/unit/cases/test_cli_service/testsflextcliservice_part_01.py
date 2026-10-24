@@ -7,13 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import MutableSequence
-from typing import TYPE_CHECKING
 
 from flext_cli import FlextCli, cli
-from tests import c, m, tm, u
-
-if TYPE_CHECKING:
-    from tests import p, t
+from tests import c, m, p, t, tm, u
 
 
 class TestsFlextCliServicePart01:
@@ -28,13 +24,13 @@ class TestsFlextCliServicePart01:
 
         settings = RuntimeSettings()
 
-        def handle(params: m.Cli.CliParamsConfig) -> t.JsonValue:
+        def handle(params: m.Cli.CliParamsConfig) -> bool:
             return params.debug is True
 
         command = cli.model_command(m.Cli.CliParamsConfig, handle, settings=settings)
         result = command(debug=True)
 
-        tm.that(result, eq=True)
+        tm.ok(result)
 
     @staticmethod
     def _invoke_common_app(args: t.StrSequence) -> p.Result[m.Cli.InvocationResult]:
@@ -63,7 +59,7 @@ class TestsFlextCliServicePart01:
         result = TestsFlextCliServicePart01._invoke_common_app(["--debug", "inspect"])
 
         tm.ok(result)
-        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(result.value.outcome))
 
     @staticmethod
     def test_create_app_with_common_params_applies_log_level() -> None:
@@ -73,7 +69,7 @@ class TestsFlextCliServicePart01:
         )
 
         tm.ok(result)
-        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(result.value.outcome))
 
     @staticmethod
     def test_model_command_generates_real_typer_options() -> None:
@@ -115,12 +111,12 @@ class TestsFlextCliServicePart01:
 
         tm.ok(help_result)
         tm.ok(exec_result)
-        tm.that(u.Cli.process_succeeded(help_result.value.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(help_result.value.outcome))
         tm.that(help_result.value.stdout, has="Target name")
         tm.that(help_result.value.stdout, has="Dry-run mode")
-        tm.that(u.Cli.process_succeeded(exec_result.value.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(exec_result.value.outcome))
         tm.that(len(captured), eq=1)
         tm.that(captured[0].name, eq="alice")
         tm.that(captured[0].count, eq=3)
-        tm.that(captured[0].dry_run, eq=True)
+        tm.ok(captured[0].dry_run)
         tm.that(captured[0].output_format, eq=c.Cli.OutputFormats.JSON)

@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests import t, tm, u
+from tests import c, t, tm, u
 
 
 def _raise_on_zero(value: int) -> int:
@@ -49,7 +49,7 @@ class TestsFlextCliUtilitiesCov:
         """Verify that process fails when processor raises."""
         result = u.process([1, 0], _raise_on_zero)
         tm.fail(result)
-        tm.that(result.error or "", has="0")
+        tm.that(result.error or "", has=c.ParserBooleanToken.ZERO)
 
     @staticmethod
     def test_process_fails_loud_stops_at_first_failure() -> None:
@@ -63,7 +63,7 @@ class TestsFlextCliUtilitiesCov:
         result = u.process([1, 0, 5], _tracking_raise_on_zero)
         tm.fail(result)
         tm.that(visited, eq=[1, 0])
-        tm.matches_runtime_type(result.exception, ValueError)
+        tm.that(result.exception, is_=ValueError)
         tm.that(str(result.exception), eq="div zero")
 
     @staticmethod
@@ -89,7 +89,7 @@ class TestsFlextCliUtilitiesCov:
         """Verify that validate not empty succeeds for present values."""
         result = u.Cli.validate_not_empty(value, name="project")
         tm.ok(result)
-        tm.that(result.unwrap(), eq=True)
+        tm.ok(result.unwrap())
 
     @staticmethod
     def test_project_names_flattens_repeated_and_comma_selectors() -> None:

@@ -17,7 +17,7 @@ from flext_cli.__version__ import __version__
 if TYPE_CHECKING:
     from flext_core import d, e, h, r, x
 
-    from flext_cli import services as services
+    from flext_cli import services as services, vendor as vendor
     from flext_cli.__version__ import (
         FlextCliVersion,
         __author__,
@@ -28,11 +28,11 @@ if TYPE_CHECKING:
         __url__,
         __version_info__,
     )
+    from flext_cli._config import FlextCliConfig, config
     from flext_cli._settings import FlextCliSettings, settings
     from flext_cli.api import FlextCli, cli
     from flext_cli.base import FlextCliServiceBase, s
     from flext_cli.cli import main
-    from flext_cli.config import FlextCliConfig, config
     from flext_cli.constants import FlextCliConstants, c
     from flext_cli.models import FlextCliModels, m
     from flext_cli.protocols import FlextCliProtocols, p
@@ -75,6 +75,7 @@ __all__: tuple[str, ...] = (
     "settings",
     "t",
     "u",
+    "vendor",
     "x",
 )
 
@@ -83,7 +84,7 @@ install_lazy_exports(
     globals(),
     MappingProxyType({
         "FlextCli": ".api",
-        "FlextCliConfig": ".config",
+        "FlextCliConfig": "._config",
         "FlextCliConstants": ".constants",
         "FlextCliModels": ".models",
         "FlextCliProtocols": ".protocols",
@@ -102,7 +103,7 @@ install_lazy_exports(
         "__version_info__": ".__version__",
         "c": ".constants",
         "cli": ".api",
-        "config": ".config",
+        "config": "._config",
         "d": "flext_core",
         "e": "flext_core",
         "h": "flext_core",
@@ -115,6 +116,7 @@ install_lazy_exports(
         "settings": "._settings",
         "t": ".typings",
         "u": ".utilities",
+        "vendor": ".vendor",
         "x": "flext_core",
     }),
     public_exports=__all__,

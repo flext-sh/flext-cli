@@ -9,9 +9,10 @@ from __future__ import annotations
 import errno
 import os
 import stat
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 
-from flext_cli import t
 from flext_cli._utilities.atomic_file_descriptor import (
     FlextCliUtilitiesAtomicFileDescriptor,
 )
@@ -21,6 +22,141 @@ from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRea
 
 class FlextCliUtilitiesAtomicFileState:
     """Canonical namespace owner."""
+
+    @staticmethod
+    def read_authenticated_state(
+        path: Path,
+        *,
+        required: bool,
+        owner_uid: int | None = None,
+        max_bytes: int | None = None,
+    ) -> tuple[os.stat_result | None, os.stat_result | None, bytes | None]:
+        """Read original authenticated parent, leaf and bytes, or exact absence.
+
+        Optional reads accept an unmaterialized parent; required reads demand a
+        physical parent and leaf. Ownership and size are checked before reading,
+        then size and descriptor-bound currentness are checked after reading.
+
+        Returns:
+            The original parent state, leaf state and bytes, or exact absence.
+
+        """
+        with FlextCliUtilitiesAtomicFileState.authenticated_entry(
+            path, required=required, owner_uid=owner_uid, max_bytes=max_bytes
+        ) as (parent, state):
+            if parent is None or state is None:
+                return None if parent is None else parent.state, None, None
+            content = FlextCliUtilitiesAtomicFileState.read_authenticated_bytes(
+                path, state, parent=parent
+            )
+            FlextCliUtilitiesAtomicFileState._require_size(
+                path, len(content), max_bytes
+            )
+            return parent.state, state, content
+
+    @staticmethod
+    @contextmanager
+    def authenticated_entry(
+        path: Path,
+        *,
+        required: bool,
+        owner_uid: int | None = None,
+        max_bytes: int | None = None,
+    ) -> Generator[
+        tuple[
+            FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor | None,
+            os.stat_result | None,
+        ]
+    ]:
+        """Retain one checked parent and leaf for the complete read operation.
+
+        Yields:
+            Checked parent and leaf, both absent for an optional missing parent.
+
+        Raises:
+            FileNotFoundError: If a required read finds the leaf missing.
+
+        """
+        validated = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
+        if (
+            not required
+            and FlextCliUtilitiesAtomicFilePath.resolve_parent_path(validated.parent)[0]
+            is None
+        ):
+            yield None, None
+            return
+        with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+            validated,
+        ) as parent:
+            FlextCliUtilitiesAtomicFileState._require_owner(
+                validated.parent,
+                parent.state,
+                owner_uid,
+            )
+            state = FlextCliUtilitiesAtomicFileState.destination_state(
+                validated,
+                parent=parent,
+            )
+            if state is None:
+                if required:
+                    message = f"required atomic file is missing: {validated}"
+                    raise FileNotFoundError(errno.ENOENT, message, validated)
+            else:
+                FlextCliUtilitiesAtomicFileState._require_owner(
+                    validated, state, owner_uid
+                )
+                FlextCliUtilitiesAtomicFileState._require_size(
+                    validated, state.st_size, max_bytes
+                )
+            operation_error: BaseException | None = None
+            try:
+                yield parent, state
+            except BaseException as exc:
+                operation_error = exc
+                raise
+            finally:
+                try:
+                    FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
+                        validated, state, parent=parent
+                    )
+                    FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(
+                        parent
+                    )
+                except BaseException as validation_error:
+                    if operation_error is None:
+                        raise
+                    operation_error.add_note(
+                        "Atomic read final validation also failed: "
+                        f"{validation_error!r}"
+                    )
+
+    @staticmethod
+    def _require_owner(
+        path: Path,
+        state: os.stat_result,
+        owner_uid: int | None,
+    ) -> None:
+        """Reject one authenticated entry owned by another uid.
+
+        Raises:
+            PermissionError: If the authenticated owner differs from the required uid.
+
+        """
+        if owner_uid is not None and state.st_uid != owner_uid:
+            message = f"atomic path owner {state.st_uid} is not {owner_uid}: {path}"
+            raise PermissionError(errno.EPERM, message, path)
+
+    @staticmethod
+    def _require_size(path: Path, size: int, max_bytes: int | None) -> None:
+        """Reject one leaf larger than the declared bound.
+
+        Raises:
+            OSError: If the authenticated size exceeds the declared bound.
+
+        """
+        if max_bytes is not None and size > max_bytes:
+            message = f"atomic file exceeds {max_bytes} bytes: {path}"
+            raise OSError(errno.EFBIG, message, path)
 
     @staticmethod
     def destination_state(
@@ -95,7 +231,7 @@ class FlextCliUtilitiesAtomicFileState:
     @staticmethod
     def assert_temporary_owned(
         temporary: Path,
-        expected_identity: t.Pair[int, int],
+        expected_identity: tuple[int, int],
         *,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor | None = None,
     ) -> None:
@@ -173,7 +309,7 @@ class FlextCliUtilitiesAtomicFileState:
         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
 
     @staticmethod
-    def identity(state: os.stat_result) -> t.Pair[int, int]:
+    def identity(state: os.stat_result) -> tuple[int, int]:
         """Return the filesystem identity shared by descriptor and pathname stats.
 
         Returns:

@@ -85,10 +85,10 @@ class TestsFlextCliAuthUtilsCov:
         result = u.Cli.auth_validate_credentials(username, password)
 
         # Assert — success iff both fields are non-blank
-        tm.that(result.success is expect_ok, eq=True)
-        tm.that(result.failure is (not expect_ok), eq=True)
+        tm.ok(result.success is expect_ok)
+        tm.ok(result.failure is (not expect_ok))
         if expect_ok:
-            tm.that(result.unwrap(), eq=True)
+            tm.ok(result.unwrap())
 
     @staticmethod
     def test_validate_credentials_reports_empty_username() -> None:
@@ -112,7 +112,7 @@ class TestsFlextCliAuthUtilsCov:
     def test_extract_token_returns_token_from_mapping() -> None:
         # Arrange
         """Verify that extract token returns token from mapping."""
-        token = "t" + "1" * 12
+        token = "t" + c.ParserBooleanToken.ONE * 12
         payload: t.JsonDict = {c.Cli.DICT_KEY_LOGIN_FIELD: token}
 
         # Act
@@ -125,7 +125,7 @@ class TestsFlextCliAuthUtilsCov:
     @staticmethod
     @pytest.mark.parametrize(
         "payload",
-        [{"user": "admin"}, {c.Cli.DICT_KEY_LOGIN_FIELD: ""}],
+        [{c.ContextScope.USER: "admin"}, {c.Cli.DICT_KEY_LOGIN_FIELD: ""}],
     )
     def test_extract_token_fails_when_no_usable_token(
         payload: t.JsonValue,

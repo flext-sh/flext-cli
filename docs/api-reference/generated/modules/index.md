@@ -11,7 +11,6 @@ These pages are generated from public modules and their docstrings.
 - [flext_cli.api](api.md)
 - [flext_cli.base](base.md)
 - [flext_cli.cli](cli.md)
-- [flext_cli.config](config.md)
 - [flext_cli.constants](constants.md)
 - [flext_cli.models](models.md)
 - [flext_cli.protocols](protocols.md)

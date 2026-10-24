@@ -15,11 +15,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-
 import pytest
 
-from tests import u
 from tests.unit.cases.test_cli_service.testsflextcliservice_part_01 import (
     TestsFlextCliServicePart01,
 )
@@ -37,6 +34,7 @@ from tests.unit.cases.test_cli_service.testsflextcliservice_part_05 import (
 )
 
 
+@pytest.mark.usefixtures("preserve_logging")
 class TestsFlextCliService(
     TestsFlextCliServicePart01,
     TestsFlextCliServicePart02,
@@ -45,16 +43,3 @@ class TestsFlextCliService(
     TestsFlextCliServicePart05,
 ):
     """Public behavioral suite for the flext-cli CLI facade."""
-
-    @pytest.fixture(autouse=True)
-    def preserve_logging(self) -> Iterator[None]:
-        """Restore the real composition rather than a hardcoded severity."""
-        original_settings = u.logging_settings()
-        original_options = u.logging_options()
-        try:
-            yield
-        finally:
-            u.configure_structlog(
-                settings=original_options,
-                runtime_settings=original_settings,
-            )

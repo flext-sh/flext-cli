@@ -11,12 +11,11 @@ import time
 from typing import TYPE_CHECKING
 
 from flext_cli import cli, settings
-from tests import tm
+from tests import m, p, tm
 
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import m, p
 
 # ── Fixtures ────────────────────────────────────────────────────────
 

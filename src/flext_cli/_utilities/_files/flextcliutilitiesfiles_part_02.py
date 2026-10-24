@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import shutil
+from collections.abc import Callable
+from io import BytesIO
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
@@ -21,6 +23,28 @@ class FlextCliUtilitiesFilesPart02:
     Guarded atomic operations retain the native filesystem exception as the
     result's cause when physical identity validation rejects a write or deletion.
     """
+
+    @staticmethod
+    def files_save_bytes(
+        save: Callable[[BytesIO], None],
+        error: str,
+        *,
+        catch: tuple[type[Exception], ...] = (OSError, TypeError, ValueError),
+    ) -> p.Result[bytes]:
+        """Serialize a native document into nonempty bytes without copying it.
+
+        Returns:
+            Serialized bytes or the caller's format-specific failure.
+
+        """
+        target = BytesIO()
+        try:
+            save(target)
+        except catch as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[bytes].fail(f"{error}: {detail}")
+        content = target.getvalue()
+        return r[bytes].ok(content) if content else r[bytes].fail(error)
 
     @staticmethod
     def files_write_binary(

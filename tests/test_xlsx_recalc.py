@@ -11,8 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
-from flext_cli import cli
-from tests import c, m, p, tm
+from tests import c, m, p, tm, u
 
 pytestmark = pytest.mark.skipif(
     shutil.which(c.Cli.XLSX_RECALC_COMMAND[0]) is None,
@@ -62,7 +61,7 @@ def _render_workbook() -> bytes:
         ),
         defined_names=(),
     )
-    result: p.Result[m.Cli.XlsxRenderResult] = cli.xlsx_render(
+    result: p.Result[m.Cli.XlsxRenderResult] = u.Cli.xlsx_render(
         m.Cli.XlsxRenderRequest(template=None, plan=plan),
     )
     tm.that(result.success, eq=True, msg=result.error)
@@ -75,7 +74,7 @@ def _numeric_cell_value(
     sheet_name: str,
     coordinate: str,
 ) -> m.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
-    snapshot = cli.xlsx_snapshot(
+    snapshot = u.Cli.xlsx_snapshot(
         m.Cli.XlsxSnapshotRequest(source=source, data_only=True),
     )
     tm.that(snapshot.success, eq=True, msg=snapshot.error)
@@ -88,9 +87,9 @@ def _numeric_cell_value(
                 if isinstance(value, m.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue):
                     return value
                 msg = f"Cell {sheet_name}!{coordinate} is not numeric: {value.kind}"
-                raise AssertionError(msg)
+                tm.reject(msg)
     msg = f"Cell {sheet_name}!{coordinate} not found in snapshot"
-    raise AssertionError(msg)
+    return tm.reject(msg)
 
 
 class TestsFlextCliXlsxRecalc:
@@ -101,7 +100,7 @@ class TestsFlextCliXlsxRecalc:
     def test_xlsx_recalc_refreshes_formula_cache() -> None:
         """Recalculated bytes carry engine-computed cached values."""
         source = _render_workbook()
-        recalculated = cli.xlsx_recalc(m.Cli.XlsxRecalcRequest(source=source))
+        recalculated = u.Cli.xlsx_recalc(m.Cli.XlsxRecalcRequest(source=source))
         tm.that(recalculated.success, eq=True, msg=recalculated.error)
         value = _numeric_cell_value(recalculated.value.content, "Report", "A1")
         tm.that(value.value, eq=5)
@@ -111,17 +110,17 @@ class TestsFlextCliXlsxRecalc:
     def test_xlsx_recalc_parity_returns_validated_recalculated_content() -> None:
         """Public parity content carries the caches described by its evidence."""
         source = _render_workbook()
-        report = cli.xlsx_recalc_parity(
+        report = u.Cli.xlsx_recalc_parity(
             m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=2),
         )
         tm.that(report.success, eq=True, msg=report.error)
         evidence = report.value
-        tm.that(evidence.recalculated, eq=True)
+        tm.ok(evidence.recalculated)
         tm.that(evidence.formula_count, eq=2)
         tm.that(evidence.error_cells, eq=())
         tm.that(evidence.uncached_cells, eq=())
         tm.that(evidence.empty_result_cells, eq=("Report!A2",))
-        tm.that(evidence.ok, eq=True)
+        tm.ok(evidence.ok)
         cached_value = _numeric_cell_value(evidence.content, "Report", "A1")
         tm.that(cached_value.value, eq=5)
 
@@ -130,12 +129,12 @@ class TestsFlextCliXlsxRecalc:
     def test_xlsx_recalc_parity_detects_count_mismatch() -> None:
         """A wrong expected formula count flips the stored verdict."""
         source = _render_workbook()
-        report = cli.xlsx_recalc_parity(
+        report = u.Cli.xlsx_recalc_parity(
             m.Cli.XlsxRecalcParityRequest(source=source, expected_formula_count=9),
         )
         tm.that(report.success, eq=True, msg=report.error)
         tm.that(report.value.formula_count, eq=2)
-        tm.that(report.value.ok, eq=False)
+        tm.fail(report.value.ok)
 
     @staticmethod
     @pytest.mark.slow
@@ -144,11 +143,11 @@ class TestsFlextCliXlsxRecalc:
         source = _render_workbook()
         request = m.Cli.XlsxRecalcRequest(source=source)
 
-        def recalculate(_index: int) -> p.Result[m.Cli.XlsxRecalcResult]:
-            return cli.xlsx_recalc(request)
-
         with ThreadPoolExecutor(max_workers=3) as executor:
-            results = tuple(executor.map(recalculate, range(3)))
+            futures = tuple(
+                executor.submit(u.Cli.xlsx_recalc, request) for _ in range(3)
+            )
+            results = tuple(future.result() for future in futures)
         for result in results:
             tm.that(result.success, eq=True, msg=result.error)
             value = _numeric_cell_value(result.value.content, "Report", "A1")

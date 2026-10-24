@@ -126,7 +126,7 @@ class ExamplesFlextCliPydanticDrivenCli:
 
     @staticmethod
     def validate_required_fields(
-        data: t.MappingKV[str, t.JsonPayloadCollectionValue],
+        data: t.JsonMapping,
     ) -> p.Result[t.JsonMapping]:
         """Validate that all required fields are present.
 
@@ -134,14 +134,14 @@ class ExamplesFlextCliPydanticDrivenCli:
             The resulting ``p.Result[t.JsonMapping]``.
 
         """
-        required = list(c.EXAMPLE_DATABASE_REQUIRED_FIELDS)
-        missing = [field for field in required if field not in data or not data[field]]
+        missing = [
+            field
+            for field in c.EXAMPLE_DATABASE_REQUIRED_FIELDS
+            if field not in data or not data[field]
+        ]
         if missing:
             return r[t.JsonMapping].fail(f"Missing required fields: {missing}")
-        normalized_data = u.Cli.JSON_MAPPING_ADAPTER.validate_python(
-            u.Cli.normalize_json_value(data),
-        )
-        return r[t.JsonMapping].ok(normalized_data)
+        return r[t.JsonMapping].ok(data)
 
     @staticmethod
     def convert_and_validate_with_pydantic(

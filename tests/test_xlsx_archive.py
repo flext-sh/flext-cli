@@ -12,8 +12,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Protection
 from openpyxl.workbook.defined_name import DefinedName
 
-from flext_cli import cli
-from tests import m, tm
+from tests import m, tm, u
 
 
 class TestsFlextCliXlsxArchive:
@@ -31,7 +30,7 @@ class TestsFlextCliXlsxArchive:
         stream = BytesIO()
         workbook.save(stream)
 
-        result = cli.xlsx_inspect(
+        result = u.Cli.xlsx_inspect(
             m.Cli.XlsxArchiveInspectionRequest(
                 source=stream.getvalue(),
                 policy=m.Cli.XlsxArchivePolicy(
@@ -43,25 +42,25 @@ class TestsFlextCliXlsxArchive:
             ),
         )
 
-        tm.that(result.success, eq=True)
-        tm.that(result.value.clean, eq=False)
+        tm.ok(result.success)
+        tm.fail(result.value.clean)
         kinds = frozenset(violation.kind for violation in result.value.violations)
-        tm.that("worksheet_tag" in kinds, eq=True)
-        tm.that("defined_name" in kinds, eq=True)
-        tm.that("style_protection" in kinds, eq=True)
+        tm.ok("worksheet_tag" in kinds)
+        tm.ok("defined_name" in kinds)
+        tm.ok("style_protection" in kinds)
 
     @staticmethod
     def test_xlsx_inspect_rejects_invalid_archive_bytes() -> None:
         """Malformed bytes fail instead of yielding a synthetic inventory."""
-        result = cli.xlsx_inspect(
+        result = u.Cli.xlsx_inspect(
             m.Cli.XlsxArchiveInspectionRequest(
                 source=b"not-an-xlsx",
                 policy=m.Cli.XlsxArchivePolicy(),
             ),
         )
 
-        tm.that(result.failure, eq=True)
-        tm.that("xlsx_archive_invalid" in (result.error or ""), eq=True)
+        tm.ok(result.failure)
+        tm.ok("xlsx_archive_invalid" in (result.error or ""))
 
 
 __all__: list[str] = ["TestsFlextCliXlsxArchive"]

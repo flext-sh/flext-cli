@@ -139,25 +139,6 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
         return r[t.SequenceOf[t.Cli.YamlNode]].ok(nodes)
 
     @staticmethod
-    def yaml_roundtrip_load_map(path: Path) -> p.Result[CommentedMap]:
-        """Load a YAML file and require a mapping root -> ``r[CommentedMap]``.
-
-        Returns:
-            The resulting ``p.Result[CommentedMap]``.
-
-        """
-        loaded = FlextCliUtilitiesYamlEngineMixin.yaml_roundtrip_load(path)
-        if not loaded.success:
-            message = (
-                loaded.error if loaded.error is not None else f"YAML load error: {path}"
-            )
-            return r[CommentedMap].fail(message)
-        node = loaded.unwrap()
-        if not isinstance(node, CommentedMap):
-            return r[CommentedMap].fail(f"{path}: YAML document must be a mapping")
-        return r[CommentedMap].ok(node)
-
-    @staticmethod
     def yaml_roundtrip_load_map_text(text: str) -> p.Result[CommentedMap]:
         """Parse YAML text and require a mapping root -> ``r[CommentedMap]``.
 

@@ -36,7 +36,10 @@ type DeniedSyscallName = Literal[
     "io_uring_enter",
     "io_uring_register",
 ]
-"""Closed vocabulary of symbolic syscalls the native policy may deny."""
+"""Closed vocabulary of complete symbolic syscalls the native policy may deny.
+
+Names such as ``listen`` are syscall identifiers, not CQRS action prefixes.
+"""
 
 
 class FlextCliConfigModels:

@@ -38,7 +38,7 @@ class TestsFlextCliOptions:
         expected: type,
     ) -> None:
         """Verify that resolve typer annotation maps scalars unions and collections."""
-        tm.that(u.Cli.resolve_typer_annotation(annotation) is expected, eq=True)
+        tm.ok(u.Cli.resolve_typer_annotation(annotation) is expected)
 
     @staticmethod
     @pytest.mark.parametrize("annotation", [t.StrSequence, set[str], frozenset[str]])
@@ -88,7 +88,7 @@ class TestsFlextCliOptions:
         expected: bool,
     ) -> None:
         """Verify that is string sequence recognizes only str sequences."""
-        tm.that(u.Cli.string_sequence(value) is expected, eq=True)
+        tm.ok(u.Cli.string_sequence(value) is expected)
 
     def test_field_default_prefers_settings_scalar_over_field_metadata(self) -> None:
         """Verify that field default prefers settings scalar over field metadata."""
@@ -118,7 +118,7 @@ class TestsFlextCliOptions:
 
         default = u.Cli.field_default("flags", fields["flags"], settings)
 
-        tm.that(isinstance(default, str), eq=True)
+        tm.ok(isinstance(default, str))
         tm.that(u.Cli.JSON_VALUE_ADAPTER.validate_json(str(default)), eq=settings.flags)
 
     def test_field_default_falls_back_to_field_metadata_without_settings(self) -> None:

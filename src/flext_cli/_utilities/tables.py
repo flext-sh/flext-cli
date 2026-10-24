@@ -126,32 +126,6 @@ class FlextCliUtilitiesTables:
         return r[Sequence[t.Cli.TableRow]].ok(normalized_rows)
 
     @staticmethod
-    def tables_tabulate_payload(
-        rows: t.SequenceOf[t.Cli.TableRow],
-        headers: str | t.StrSequence,
-    ) -> t.Pair[
-        t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow],
-        str | t.StrSequence,
-    ]:
-        """Build table data/header values accepted by the renderer.
-
-        Returns:
-            The resulting ``t.Pair[t.SequenceOf[t.Cli.TableRow] |
-                t.SequenceOf[t.Cli.TableSequenceRow], str | t.StrSequence]``.
-
-        """
-        table_data: (
-            t.SequenceOf[t.Cli.TableRow] | t.SequenceOf[t.Cli.TableSequenceRow]
-        ) = rows
-        table_headers: str | t.StrSequence = headers
-        if rows and isinstance(rows[0], Mapping) and not isinstance(headers, str):
-            table_data = [
-                list(row.values()) for row in rows if isinstance(row, Mapping)
-            ]
-            table_headers = list(headers)
-        return table_data, table_headers
-
-    @staticmethod
     def tables_render(
         rows: t.SequenceOf[t.Cli.TableRow],
         settings: m.Cli.TableConfig,

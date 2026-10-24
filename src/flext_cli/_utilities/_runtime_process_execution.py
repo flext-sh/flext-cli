@@ -21,9 +21,11 @@ from typing import TYPE_CHECKING, BinaryIO, ClassVar, Literal
 if sys.platform == "linux":
     import fcntl
 
-from flext_core import u as core_u
 
-from flext_cli import c, config, m, p, r, t
+from flext_core import u
+
+from flext_cli import c, m, p, r, t
+from flext_cli._config import config
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_03 import (
     FlextCliUtilitiesFilesPart03,
 )
@@ -104,6 +106,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             return r[p.Cli.CommandBytesOutput].from_failure(timing_result)
         absolute_deadline, grace_seconds = timing_result.unwrap()
         state = m.Cli.RuntimeProcessState(final_deadline=absolute_deadline)
+        interrupted: BaseException | None = None
         try:
             cls._execute_lifecycle(request, state, absolute_deadline, grace_seconds)
         except (OSError, TypeError, ValueError) as exc:
@@ -118,8 +121,20 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 )
                 if signal_result.failure:
                     exc.add_note(signal_result.error or "process signal failed")
+        except BaseException as exc:
+            interrupted = exc
+            raise
         finally:
-            cls._finalize_lifecycle(state)
+            try:
+                cls._finalize_lifecycle(state, interrupted=interrupted)
+            except BaseException as cleanup_exception:
+                if interrupted is None:
+                    raise
+                interrupted.add_note(
+                    f"process cleanup failed: {cleanup_exception}; "
+                    f"execution errors={state.failures}; "
+                    f"cleanup errors={state.cleanup_errors}"
+                )
         if state.primary_error is not None:
             return r[p.Cli.CommandBytesOutput].fail(
                 f"{c.Cli.OUTPUT_EXECUTION_ERROR}: {state.primary_error}",
@@ -688,7 +703,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         report = m.Cli.ProcessNativeQualificationReport[
             t.JsonValue, t.JsonValue, t.JsonValue
         ].model_validate_json(qualification.issuer_receipt.content)
-        evidence = core_u.dump(
+        evidence = u.dump(
             qualification,
             options=m.ModelDumpOptions(exclude={"issuer_receipt", "artifact"}),
         )
@@ -696,7 +711,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             item
             for receipt in report.receipts
             for item in receipt.native_tool_qualifications
-            if core_u.dump(item) == evidence
+            if u.dump(item) == evidence
         )
         if len(matches) != 1:
             msg = (
@@ -1136,7 +1151,12 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         return waiter
 
     @classmethod
-    def _finalize_lifecycle(cls, state: m.Cli.RuntimeProcessState) -> None:
+    def _finalize_lifecycle(
+        cls,
+        state: m.Cli.RuntimeProcessState,
+        *,
+        interrupted: BaseException | None = None,
+    ) -> None:
         if (
             state.process is not None
             and state.waiter is not None
@@ -1157,9 +1177,10 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         state.cleanup_errors.extend(
             cls._restore_forwarding_handlers(state.restore_handlers),
         )
-        if state.primary_error is not None:
-            for cleanup_error in state.cleanup_errors:
-                state.primary_error.add_note(cleanup_error)
+        primary_error = interrupted if interrupted is not None else state.primary_error
+        if primary_error is not None:
+            for diagnostic in (*state.failures, *state.cleanup_errors):
+                primary_error.add_note(diagnostic)
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessExecutionMixin"]

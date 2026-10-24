@@ -17,7 +17,7 @@ from tests import c, m
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tests import p, t
+from tests import p, t
 
 
 def _scripted_reader(
@@ -81,5 +81,7 @@ def scripted_password_pair() -> Callable[[], tuple[str, str]]:
     """
     return lambda: (
         os.environ.get(c.Tests.PROMPT_SHORT_ENV_NAME, "short"),
-        os.environ.get(c.Tests.PROMPT_VALID_ENV_NAME, "v" + "0" * 15),
+        os.environ.get(
+            c.Tests.PROMPT_VALID_ENV_NAME, "v" + c.ParserBooleanToken.ZERO * 15
+        ),
     )

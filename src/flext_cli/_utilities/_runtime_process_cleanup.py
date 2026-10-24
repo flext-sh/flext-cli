@@ -46,9 +46,15 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         """
         restore_handlers: t.MutableSequenceOf[Callable[[], None]] = []
 
-        def forward(signal_number: int, _frame: FrameType | None) -> None:
+        def forward(
+            previous: t.Cli.SignalHandler | p.Cli.ParentSignalObserver,
+            signal_number: int,
+            frame: FrameType | None,
+        ) -> None:
             received_signals.append(signal_number)
             wake.set()
+            if isinstance(previous, p.Cli.ParentSignalObserver):
+                previous.on_operator_signal(signal_number, frame)
 
         forwarded = (signal.SIGINT, signal.SIGTERM)
         if os.name != "nt" and hasattr(signal, "SIGHUP"):
@@ -56,7 +62,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         try:
             for signal_number in forwarded:
                 previous: t.Cli.SignalHandler = signal.getsignal(signal_number)
-                signal.signal(signal_number, forward)
+                signal.signal(signal_number, partial(forward, previous))
                 forwarded_signals.append(int(signal_number))
                 restore_handlers.append(
                     partial(cls._restore_signal_handler, int(signal_number), previous),
@@ -128,45 +134,52 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         if waiter.is_alive():
             state.cleanup_errors.append("process deadline expired before root reaping")
         if state.input_pump is not None:
-            cls._drain_input(
+            cls._drain_stream(
                 state.input_pump[0],
                 state.input_pump[1],
-                state.cleanup_errors,
+                state,
                 cleanup_deadline,
+                direction="input",
             )
         for pump, source in tuple(state.pump_streams):
-            cls._drain_output(
+            cls._drain_stream(
                 pump,
-                state.pump_stop,
                 source,
-                state.cleanup_errors,
+                state,
                 cleanup_deadline,
+                direction="output",
             )
         return state.return_codes[0] if state.return_codes else process.poll()
 
     @classmethod
-    def _drain_input(
+    def _drain_stream(
         cls,
         pump: threading.Thread,
-        sink: p.Cli.RuntimeClosableStream,
-        cleanup_errors: t.MutableSequenceOf[str],
+        stream: p.Cli.RuntimeClosableStream,
+        state: m.Cli.RuntimeProcessState,
         cleanup_deadline: float,
+        *,
+        direction: str,
     ) -> None:
-        """Join the input writer after the child boundary has lost every reader."""
+        """Join a pipe pump, close a blocked stream, and preserve causal errors."""
         pump.join(cls._remaining(cleanup_deadline))
         if pump.is_alive():
+            if direction == "output":
+                state.pump_stop.set()
             try:
-                sink.close()
+                stream.close()
             except (OSError, ValueError) as exc:
-                cleanup_errors.append(
+                state.cleanup_errors.append(
                     r[str]
-                    .fail(f"process input close error: {exc}", exception=exc)
+                    .fail(f"process {direction} close error: {exc}", exception=exc)
                     .error
                     or str(exc),
                 )
             pump.join(cls._remaining(cleanup_deadline))
         if pump.is_alive():
-            cleanup_errors.append("process deadline expired before input drain")
+            state.cleanup_errors.append(
+                f"process deadline expired before {direction} drain",
+            )
 
     @classmethod
     def _empty_owned_boundary(
@@ -215,31 +228,6 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
             state.cleanup_errors.append(
                 "owned process boundary was not empty before return",
             )
-
-    @classmethod
-    def _drain_output(
-        cls,
-        pump: threading.Thread,
-        stop: threading.Event,
-        source: p.Cli.RuntimeClosableStream,
-        cleanup_errors: t.MutableSequenceOf[str],
-        cleanup_deadline: float,
-    ) -> None:
-        pump.join(cls._remaining(cleanup_deadline))
-        if pump.is_alive():
-            stop.set()
-            try:
-                source.close()
-            except (OSError, ValueError) as exc:
-                cleanup_errors.append(
-                    r[str]
-                    .fail(f"process output close error: {exc}", exception=exc)
-                    .error
-                    or str(exc),
-                )
-            pump.join(cls._remaining(cleanup_deadline))
-        if pump.is_alive():
-            cleanup_errors.append("process deadline expired before output drain")
 
     @staticmethod
     def _append_signal_error(

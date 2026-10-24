@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import override
 
-from flext_cli import c, p, r, t, u
+from flext_cli import c, p, r, u
 from flext_cli.services import FlextCliPromptsSupport
 
 
@@ -61,27 +61,6 @@ class FlextCliPrompts(FlextCliPromptsSupport):
             return r[str].ok(default)
         return r[str].ok(self._read_prompt_value(message, default))
 
-    def prompt_choice(
-        self,
-        choices: t.StrSequence,
-        default: str | None = None,
-    ) -> p.Result[str]:
-        """Resolve one value constrained to the supplied choices.
-
-        Args:
-            choices: Allowed values the answer must match.
-            default: Preselected choice used when input is unavailable.
-
-        Returns:
-            The resulting ``p.Result[str]``.
-
-        """
-        return u.Cli.prompts_choice_result(
-            interactive=self.state.interactive,
-            choices=choices,
-            default=default,
-        )
-
     def prompt_password(
         self,
         message: str = "Password:",
@@ -102,46 +81,6 @@ class FlextCliPrompts(FlextCliPromptsSupport):
         return u.Cli.prompts_password_result(
             self.password_reader(f"{message}{c.Cli.PROMPT_SPACE}"),
             min_length=min_length,
-        )
-
-    def print_error(self, message: str) -> p.Result[bool]:
-        """Render an error message through the canonical prompt output path.
-
-        Args:
-            message: Message to render.
-
-        Returns:
-            The resulting ``p.Result[bool]``.
-
-        """
-        return self._print_message(message, c.LogLevel.ERROR, c.Cli.PROMPT_ERROR_FMT)
-
-    def print_success(self, message: str) -> p.Result[bool]:
-        """Render a success message through the canonical prompt output path.
-
-        Args:
-            message: Message to render.
-
-        Returns:
-            The resulting ``p.Result[bool]``.
-
-        """
-        return self._print_message(message, c.LogLevel.INFO, c.Cli.PROMPT_SUCCESS_FMT)
-
-    def print_warning(self, message: str) -> p.Result[bool]:
-        """Render a warning message through the canonical prompt output path.
-
-        Args:
-            message: Message to render.
-
-        Returns:
-            The resulting ``p.Result[bool]``.
-
-        """
-        return self._print_message(
-            message,
-            c.LogLevel.WARNING,
-            c.Cli.PROMPT_WARNING_FMT,
         )
 
     def _read_prompt_value(self, message: str, default: str) -> str:

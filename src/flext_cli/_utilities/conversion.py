@@ -14,7 +14,7 @@ from typing import ClassVar
 from flext_core import u
 from typing_extensions import TypeForm
 
-from flext_cli import c, p, r, t
+from flext_cli import c, t
 
 
 class FlextCliUtilitiesConversion:
@@ -67,74 +67,6 @@ class FlextCliUtilitiesConversion:
                 for key, value in default.items()
             }
         return FlextCliUtilitiesConversion._EMPTY_JSON_MAPPING
-
-    @staticmethod
-    def resolve_typed_extract(
-        type_kind: t.Cli.TypeKind,
-        value: t.JsonValue | None = None,
-        default: t.JsonValue | None = None,
-    ) -> t.Cli.TypedExtractValue:
-        """Resolve a typed CLI value using the requested kind and its default.
-
-        Args:
-            type_kind: The kind of CLI type to resolve.
-            value: The value to resolve.
-            default: The default value to use if the value is None.
-
-        Returns:
-            The resolved typed extract value.
-
-        """
-        default_value = FlextCliUtilitiesConversion.default_for_type_kind(
-            type_kind, default
-        )
-        if value is None:
-            return default_value
-        match type_kind:
-            case c.Cli.TypeKind.STR:
-                resolved_str = str(value).strip() if value else ""
-                return resolved_str or (default if isinstance(default, str) else "")
-            case c.Cli.TypeKind.BOOL:
-                return bool(value)
-            case c.Cli.TypeKind.DICT:
-                adapter = FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER
-                source_mapping = (
-                    value
-                    if isinstance(value, Mapping)
-                    else default
-                    if isinstance(default, Mapping)
-                    else None
-                )
-                return (
-                    {
-                        key: adapter.validate_python(item)
-                        for key, item in source_mapping.items()
-                    }
-                    if source_mapping is not None
-                    else FlextCliUtilitiesConversion._EMPTY_JSON_MAPPING
-                )
-        return default_value
-
-    @staticmethod
-    def cli_args_to_model[M: t.Cli.ModelLike](
-        model_class: t.ModelClass[M],
-        cli_args: t.JsonMapping,
-    ) -> p.Result[M]:
-        """Convert a CLI args mapping into a validated Pydantic model.
-
-        Returns:
-            The resulting ``p.Result[M]``.
-
-        """
-        # NOTE (multi-agent): Keep one model-class protocol across CLI utilities.
-        try:
-            instance: M = model_class.model_validate(cli_args)
-            return r[M].ok(instance)
-        except c.ValidationError as exc:
-            return r[M].fail(
-                f"Validation error for {model_class.__name__}: {exc}",
-                exception=exc,
-            )
 
     @staticmethod
     def resolve_optional_path(value: t.Cli.TextPath | None, *, default: Path) -> Path:

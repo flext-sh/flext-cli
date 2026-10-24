@@ -1,4 +1,7 @@
-"""Typed descriptor-authenticated physical tree manifest models.
+"""Frozen descriptor-authenticated snapshots, separate from working selectors.
+
+Physical tree records use the upstream arbitrary-types preset with frozen fields;
+mutable query selection belongs to the invocation's utilities, not these models.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -9,7 +12,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Literal, Self
 
-from flext_core import m, u
+from flext_core import m
 
 from flext_cli import t
 from flext_cli._models import FlextCliModelsAtomicState
@@ -18,14 +21,11 @@ from flext_cli._models import FlextCliModelsAtomicState
 class FlextCliModelsBasePart09:
     """Implementation part for FlextCliModelsBasePart09."""
 
-    class AtomicPhysicalTreeEntry(m.BaseModel):
+    class AtomicPhysicalTreeEntry(m.ArbitraryTypesModel):
         """One exact regular file, symlink leaf, or physical directory."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            frozen=True,
-            arbitrary_types_allowed=True,
-        )
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+
         path: Annotated[Path, m.Field(description="Absolute entry path")]
         kind: Annotated[
             Literal["directory", "file", "symlink"],
@@ -94,7 +94,7 @@ class FlextCliModelsBasePart09:
             ),
         ] = None
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_kind_state(self) -> Self:
             FlextCliModelsAtomicState.validate_atomic_state_path(
                 self.path,
@@ -157,9 +157,9 @@ class FlextCliModelsBasePart09:
             default=None, description="Literal target of a physical symlink"
         )
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_leaf(self) -> Self:
-            if self.name in {".", ".."} or Path(self.name).name != self.name:
+            if self.name in {".", ".."} or "/" in self.name:
                 msg = "atomic directory child must be one lexical name"
                 raise ValueError(msg)
             if (self.kind == "symlink") != (self.link_target is not None):
@@ -185,29 +185,39 @@ class FlextCliModelsBasePart09:
             default=False,
             description="Whether native planning consumed direct membership",
         )
+        membership_queries: t.VariadicTuple[t.StrTuple] = m.Field(
+            default=(),
+            description="Consumed membership selections, each excluding named children",
+        )
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_names(self) -> Self:
+            if self.membership_queries != tuple(
+                sorted(set(self.membership_queries))
+            ) or any(
+                selection != tuple(sorted(set(selection)))
+                or any(name in {"", ".", ".."} or "/" in name for name in selection)
+                for selection in self.membership_queries
+            ):
+                msg = "atomic membership selections require ordered lexical exclusions"
+                raise ValueError(msg)
             names = tuple(entry.name for entry in self.entries)
             if self.root.kind != "directory" or names != tuple(sorted(set(names))):
                 msg = "atomic directory inventory requires ordered unique children"
                 raise ValueError(msg)
             if self.queries != tuple(sorted(set(self.queries))) or any(
-                name in {"", ".", ".."} or Path(name).name != name
+                name in {"", ".", ".."} or "/" in name
                 for name, _predicate in self.queries
             ):
                 msg = "atomic directory queries require ordered lexical child names"
                 raise ValueError(msg)
             return self
 
-    class AtomicPhysicalTreeManifest(m.BaseModel):
+    class AtomicPhysicalTreeManifest(m.ArbitraryTypesModel):
         """Exact root identity plus its ordered descriptor-authenticated entries."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            frozen=True,
-            arbitrary_types_allowed=True,
-        )
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+
         root: Annotated[
             FlextCliModelsBasePart09.AtomicPhysicalTreeEntry,
             m.Field(description="Physical tree root"),
@@ -217,7 +227,7 @@ class FlextCliModelsBasePart09:
             m.Field(description="Lexically ordered descendants"),
         ] = ()
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_root_and_order(self) -> Self:
             FlextCliModelsAtomicState.validate_atomic_state_path(
                 self.root.path,
@@ -239,7 +249,7 @@ class FlextCliModelsBasePart09:
                 raise ValueError(msg)
             return self
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_topology(self) -> Self:
             directories = {self.root.path: self.root}
             directory_identities = {(self.root.device, self.root.inode)}

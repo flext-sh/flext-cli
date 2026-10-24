@@ -1,5 +1,7 @@
 """Typed data-validation declarations for XLSX rendering.
 
+Validation discriminators retain the XLSX vocabulary, not CQRS action values.
+
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """

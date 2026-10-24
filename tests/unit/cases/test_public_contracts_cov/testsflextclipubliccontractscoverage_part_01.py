@@ -20,7 +20,7 @@ class TestsFlextCliPublicContractsCoveragePart01:
         """The CLI model facade inherits a functioning settings preset."""
         instance = FlextCliModels.BaseSettings()
         adapter = u.type_adapter(TypeForm(FlextCliModels.PydanticBaseSettings))
-        tm.that(adapter.validate_python(instance) is instance, eq=True)
+        tm.ok(adapter.validate_python(instance) is instance)
         restored = FlextCliModels.BaseSettings.model_validate_json(
             instance.model_dump_json()
         )
@@ -30,10 +30,10 @@ class TestsFlextCliPublicContractsCoveragePart01:
     def test_inherited_settings_config_controls_environment_resolution() -> None:
         """Native settings configuration governs field resolution and overrides."""
         settings_config = m.Tests.InheritedSettings.model_config
-        assert "env_prefix" in settings_config
-        assert "case_sensitive" in settings_config
-        prefix = settings_config["env_prefix"]
-        case_sensitive = settings_config["case_sensitive"]
+        prefix = settings_config.get("env_prefix")
+        case_sensitive = settings_config.get("case_sensitive")
+        prefix = tm.not_none(prefix)
+        case_sensitive = tm.not_none(case_sensitive)
         with u.Tests.env_vars_context(
             env_vars={
                 f"{prefix}topic": "from-environment",
@@ -58,20 +58,20 @@ class TestsFlextCliPublicContractsCoveragePart01:
 
         fresh_settings = settings.clone()
         tm.that(fresh_settings, is_=p.Cli.Settings)
-        tm.that(u.Cli.cli_test_env(fresh_settings), eq=False)
+        tm.fail(u.Cli.cli_test_env(fresh_settings))
 
         shell_settings = settings.clone(cli_shell_command="pytest -k smoke")
-        tm.that(u.Cli.cli_test_env(shell_settings), eq=True)
+        tm.ok(u.Cli.cli_test_env(shell_settings))
 
         pytest_settings = settings.clone(
             cli_pytest_current_test=(
                 "tests/unit/test_public_contracts_cov.py::test_public_facade"
             ),
         )
-        tm.that(u.Cli.cli_test_env(pytest_settings), eq=True)
+        tm.ok(u.Cli.cli_test_env(pytest_settings))
 
         ci_settings = settings.clone(cli_ci=True)
-        tm.that(u.Cli.cli_test_env(ci_settings), eq=True)
+        tm.ok(u.Cli.cli_test_env(ci_settings))
 
         FlextCliSettings.reset_for_testing()
 

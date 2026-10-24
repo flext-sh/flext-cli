@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import m, tm, u
+from tests import c, m, tm, u
 
 
 class TestsFlextCliAtomicFileIdentity:
@@ -35,7 +35,7 @@ class TestsFlextCliAtomicFileIdentity:
         published = tm.ok(
             u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, replacement)
         )
-        tm.that(staged.exists(), eq=False)
+        tm.fail(staged.exists())
         tm.that(destination.read_bytes(), eq=payload)
         tm.that(published.sha256, eq=replacement.sha256)
         with u.Cli.atomic_binary_file_reader(published) as reader:
@@ -69,7 +69,7 @@ class TestsFlextCliAtomicFileIdentity:
         tm.fail(
             u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, replacement)
         )
-        tm.that(staged.exists(), eq=True)
+        tm.ok(staged.exists())
         tm.that(
             destination.read_bytes(),
             eq=b"changed" if mutation == "destination" else b"original",
@@ -200,14 +200,14 @@ class TestsFlextCliAtomicFileIdentity:
         target = tmp_path / "target.bin"
         target.write_bytes(b"foreign input")
         path.symlink_to(target)
-        with pytest.raises(OSError) as rejected:
+        with pytest.raises(OSError, match="not a regular file") as rejected:
             tuple(u.Cli.atomic_iter_binary_file(path))
         tm.that(rejected.value.errno, eq=errno.EINVAL)
-        tm.that(path.is_symlink(), eq=True)
+        tm.ok(path.is_symlink())
         tm.that(target.read_bytes(), eq=b"foreign input")
 
     @staticmethod
-    @pytest.mark.parametrize("operation", ["write", "delete"])
+    @pytest.mark.parametrize(c.ContextScope.OPERATION, ["write", "delete"])
     def test_guarded_symlink_failure_preserves_original_exception(
         tmp_path: Path,
         operation: str,
@@ -238,48 +238,13 @@ class TestsFlextCliAtomicFileIdentity:
         )
 
         tm.fail(result)
-        tm.that(destination.is_symlink(), eq=True)
+        tm.ok(destination.is_symlink())
         tm.that(target.read_bytes(), eq=original)
         tm.that(target.stat().st_mtime_ns, eq=modified_ns)
         tm.that(result.exception, is_=OSError)
-        with pytest.raises(RuntimeError) as raised:
+        with pytest.raises(OSError, match="not a regular file") as raised:
             result.unwrap()
-        tm.that(raised.value.__cause__, eq=result.exception)
-
-    @staticmethod
-    def test_publication_unchanged_requires_equal_bytes_and_mode(
-        tmp_path: Path,
-    ) -> None:
-        """Treat matching bytes with different permissions as a real change."""
-        destination = tmp_path / "live.bin"
-        staged = tmp_path / "staged.bin"
-        destination.write_bytes(b"content")
-        staged.write_bytes(b"content")
-        destination.chmod(0o600)
-        staged.chmod(0o640)
-        before = u.Cli.atomic_read_binary_file_state(destination, required=True)
-        replacement = u.Cli.atomic_read_binary_file_state(staged, required=True)
-        tm.ok(before)
-        tm.ok(replacement)
-        publication = m.Cli.AtomicFilePublication(
-            before=before.value,
-            replacement=replacement.value,
-        )
-
-        tm.that(u.Cli.atomic_file_publication_is_unchanged(publication), eq=False)
-
-        staged.chmod(0o600)
-        identical = u.Cli.atomic_read_binary_file_state(staged, required=True)
-        tm.ok(identical)
-        tm.that(
-            u.Cli.atomic_file_publication_is_unchanged(
-                m.Cli.AtomicFilePublication(
-                    before=before.value,
-                    replacement=identical.value,
-                ),
-            ),
-            eq=True,
-        )
+        tm.ok(raised.value is result.exception)
 
     @staticmethod
     def test_exclusive_create_returns_exact_published_state(
@@ -317,57 +282,6 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(destination.read_bytes(), eq=b"before")
 
     @staticmethod
-    def test_publication_applies_authenticated_staged_replacement(
-        tmp_path: Path,
-    ) -> None:
-        """Replace one exact live state with one exact staged state."""
-        destination = tmp_path / "published.bin"
-        staged = tmp_path / "staged.bin"
-        destination.write_bytes(b"before")
-        before = u.Cli.atomic_read_binary_file_state(destination, required=True)
-        replacement = u.Cli.atomic_create_binary_file_guarded(
-            staged,
-            b"after",
-            permission_mode=0o640,
-        )
-        tm.ok(before)
-        tm.ok(replacement)
-
-        result = u.Cli.atomic_apply_file_publication_guarded(
-            m.Cli.AtomicFilePublication(
-                before=before.value,
-                replacement=replacement.value,
-            ),
-        )
-
-        tm.ok(result)
-        tm.that(result.value.content, eq=b"after")
-        tm.that(result.value.mode, eq=0o640)
-        tm.that(destination.read_bytes(), eq=b"after")
-        tm.that(staged.exists(), eq=False)
-
-    @staticmethod
-    def test_publication_applies_authenticated_tombstone(tmp_path: Path) -> None:
-        """Delete one exact live state when its replacement is absent."""
-        destination = tmp_path / "deleted.bin"
-        destination.write_bytes(b"content")
-        before = u.Cli.atomic_read_binary_file_state(destination, required=True)
-        tombstone = u.Cli.atomic_read_binary_file_state(tmp_path / "tombstone")
-        tm.ok(before)
-        tm.ok(tombstone)
-
-        result = u.Cli.atomic_apply_file_publication_guarded(
-            m.Cli.AtomicFilePublication(
-                before=before.value,
-                replacement=tombstone.value,
-            ),
-        )
-
-        tm.ok(result)
-        tm.that(result.value.content, is_=None)
-        tm.that(destination.exists(), eq=False)
-
-    @staticmethod
     def test_relative_write_fails_before_parent_creation(tmp_path: Path) -> None:
         """Reject a relative identity without creating its directory tree."""
         destination = Path("relative") / "atomic.txt"
@@ -383,8 +297,8 @@ class TestsFlextCliAtomicFileIdentity:
         result = u.Cli.run_raw((sys.executable, "-c", script), cwd=tmp_path)
 
         tm.ok(result)
-        tm.that(u.Cli.process_succeeded(result.value.outcome), eq=True)
-        tm.that((tmp_path / destination.parent).exists(), eq=False)
+        tm.ok(u.Cli.process_succeeded(result.value.outcome))
+        tm.fail((tmp_path / destination.parent).exists())
 
     @staticmethod
     def test_delete_consumes_complete_snapshot(tmp_path: Path) -> None:
@@ -411,18 +325,13 @@ class TestsFlextCliAtomicFileIdentity:
         result = u.Cli.atomic_delete_binary_file_guarded(snapshot)
 
         tm.ok(result)
-        tm.that(destination.exists(), eq=False)
+        tm.fail(destination.exists())
 
     @staticmethod
     def test_delete_rejects_replacement_with_same_bytes_and_mode(
         tmp_path: Path,
     ) -> None:
-        """Treat a new inode as stale even when bytes and mode are unchanged.
-
-        Raises:
-            AssertionError: If required atomic snapshot was absent.
-
-        """
+        """Treat a new inode as stale even when bytes and mode are unchanged."""
         destination = tmp_path / "atomic.bin"
         destination.write_bytes(b"content")
         snapshot_result = u.Cli.atomic_read_binary_file_state(
@@ -433,7 +342,7 @@ class TestsFlextCliAtomicFileIdentity:
         snapshot = snapshot_result.value
         if snapshot.content is None or snapshot.mode is None:
             message = "required atomic snapshot was absent"
-            raise AssertionError(message)
+            tm.reject(message)
         replacement = tmp_path / "replacement.bin"
         replacement.write_bytes(snapshot.content)
         replacement.chmod(snapshot.mode)
@@ -469,12 +378,7 @@ class TestsFlextCliAtomicFileIdentity:
     def test_guarded_write_rejects_link_count_changed_after_snapshot(
         tmp_path: Path,
     ) -> None:
-        """Require unique ownership from plan through binary publication.
-
-        Raises:
-            AssertionError: If required atomic snapshot was absent.
-
-        """
+        """Require unique ownership from plan through binary publication."""
         destination = tmp_path / "atomic.bin"
         destination.write_bytes(b"before")
         snapshot_result = u.Cli.atomic_read_binary_file_state(
@@ -485,7 +389,7 @@ class TestsFlextCliAtomicFileIdentity:
         snapshot = snapshot_result.value
         if snapshot.mode is None:
             message = "required atomic snapshot was absent"
-            raise AssertionError(message)
+            tm.reject(message)
         alias = tmp_path / "alias.bin"
         alias.hardlink_to(destination)
 
@@ -523,7 +427,7 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(result.value.file_attributes, eq=staged_result.value.file_attributes)
         tm.that(result.value.reparse_tag, eq=staged_result.value.reparse_tag)
         tm.that(destination.read_bytes(), eq=b"content")
-        tm.that(staged.exists(), eq=False)
+        tm.fail(staged.exists())
 
     @staticmethod
     def test_staged_publish_rejects_new_hard_link(tmp_path: Path) -> None:
@@ -544,6 +448,6 @@ class TestsFlextCliAtomicFileIdentity:
         )
 
         tm.fail(result)
-        tm.that(destination.exists(), eq=False)
+        tm.fail(destination.exists())
         tm.that(staged.read_bytes(), eq=b"content")
         tm.that(alias.read_bytes(), eq=b"content")

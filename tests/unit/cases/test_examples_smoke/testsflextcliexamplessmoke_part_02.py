@@ -101,7 +101,7 @@ class TestsFlextCliExamplesSmokePart02:
 
         token_result = ExamplesFlextCliAuthentication.fetch_saved_token()
         tm.ok(token_result)
-        tm.that(len(token_result.value) >= c.Tests.AUTH_TOKEN_MIN_LENGTH, eq=True)
+        tm.ok(len(token_result.value) >= c.Tests.AUTH_TOKEN_MIN_LENGTH)
         validation_result = ExamplesFlextCliAuthentication.validate_current_token()
         tm.ok(validation_result)
 
@@ -113,7 +113,7 @@ class TestsFlextCliExamplesSmokePart02:
             examples.c.DeploymentEnvironment.DEVELOPMENT,
         )
         tm.ok(profile_result)
-        tm.that(profile_result.value.debug, eq=True)
+        tm.ok(profile_result.value.debug)
         tm.that(
             profile_result.value.cli_output_format,
             eq=examples.c.Cli.OutputFormats.TABLE,

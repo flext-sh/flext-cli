@@ -9,14 +9,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import pytest
 
-if TYPE_CHECKING:
-    from tests import t
+from tests import t
 
-pytest_plugins = ["tests.fixtures.prompts"]
+pytest_plugins = ["tests.fixtures.logging_policy", "tests.fixtures.prompts"]
 
 
 def pytest_collection_modifyitems(

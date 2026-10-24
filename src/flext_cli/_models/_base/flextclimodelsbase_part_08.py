@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, Literal, Self
 
-from flext_core import m, u
+from flext_core import m
 
 from flext_cli import t
 from flext_cli._models import FlextCliModelsAtomicState
@@ -55,8 +55,12 @@ class FlextCliModelsBasePart08:
                 "Whether native planning consumed the absent parent's membership"
             ),
         )
+        membership_queries: t.VariadicTuple[t.StrTuple] = m.Field(
+            default=(),
+            description="Consumed absent-parent membership selections",
+        )
 
-        @u.field_validator("target", "anchor_path")
+        @m.field_validator("target", "anchor_path")
         @classmethod
         def _validate_paths(cls, value: Path) -> Path:
             return FlextCliModelsAtomicState.validate_atomic_state_path(
@@ -65,7 +69,7 @@ class FlextCliModelsBasePart08:
                 allow_root=True,
             )
 
-        @u.field_validator("directories")
+        @m.field_validator("directories")
         @classmethod
         def _validate_directories(
             cls,
@@ -79,8 +83,20 @@ class FlextCliModelsBasePart08:
                 for path in value
             )
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_topology(self) -> Self:
+            if self.membership_queries != tuple(
+                sorted(set(self.membership_queries))
+            ) or any(
+                selection != tuple(sorted(set(selection)))
+                or any(
+                    name in {"", ".", ".."} or Path(name).name != name
+                    for name in selection
+                )
+                for selection in self.membership_queries
+            ):
+                msg = "atomic membership selections require ordered lexical exclusions"
+                raise ValueError(msg)
             if self.queries != tuple(sorted(set(self.queries))) or any(
                 name in {"", ".", ".."} or Path(name).name != name
                 for name, _predicate in self.queries

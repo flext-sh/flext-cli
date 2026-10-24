@@ -62,56 +62,6 @@ class TestsFlextCliOptionsUtilsCov:
             truth=True,
         )
 
-    def test_parse_only_route_distinguishes_help_from_option_values(self) -> None:
-        """A pre-execution router reads the model contract without invoking it."""
-        parsed = cli.parse_model_options(
-            self.CustomDeclModel,
-            ("--projects", "--help"),
-        )
-        tm.that(parsed.values["custom_name"] == "--help", truth=True)
-        tm.that(parsed.help_requested, eq=False)
-        help_route = cli.parse_model_options(self.CustomDeclModel, ("--help",))
-        tm.that(help_route.help_requested, eq=True)
-        with pytest.raises(ValueError, match="duplicated"):
-            cli.parse_model_options(
-                self.CustomDeclModel,
-                ("--projects", "one", "--custom-name", "two"),
-            )
-
-    @staticmethod
-    def test_parse_only_global_prefix_uses_registered_fields() -> None:
-        """Global options leave the protected command token unconsumed."""
-        parsed = cli.parse_model_options(
-            m.Cli.CliParamsConfig,
-            ("--debug", "--log-level", "INFO", "wip", "start"),
-            field_names=c.Cli.CLI_GLOBAL_PARAM_FIELDS,
-            stop_at_positional=True,
-        )
-        tm.that(parsed.values == {"debug": True, "log_level": "INFO"}, truth=True)
-        tm.that(parsed.remaining == ("wip", "start"), truth=True)
-
-    def test_parse_only_repeated_options_match_registered_command(self) -> None:
-        """Sequence options retain every token accepted by the real CLI."""
-        arguments = ("--value", "first", "--value", "second")
-        parsed = cli.parse_model_options(self.ListAnnotationModel, arguments)
-        invocation, received = self._run(self.ListAnnotationModel, arguments)
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
-        tm.that(parsed.values["value"] == received[0].value, truth=True)
-
-    @pytest.mark.parametrize(("option", "expected"), [("--off", True), ("--on", False)])
-    def test_parse_only_bool_polarity_matches_registered_command(
-        self,
-        option: str,
-        *,
-        expected: bool,
-    ) -> None:
-        """Test parse only bool polarity matches registered command."""
-        parsed = cli.parse_model_options(self.ReverseToggleModel, (option,))
-        invocation, received = self._run(self.ReverseToggleModel, [option])
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
-        tm.that(parsed.values["enabled"], eq=expected)
-        tm.that(received[0].enabled, eq=expected)
-
     class StringAnnotationModel(m.BaseModel):
         """Group the StringAnnotationModel test behavior."""
 
@@ -182,14 +132,6 @@ class TestsFlextCliOptionsUtilsCov:
         """Group the BoolToggleModel test behavior."""
 
         debug: bool = False
-
-    class ReverseToggleModel(m.BaseModel):
-        """Custom Boolean names derive polarity from declaration order."""
-
-        enabled: bool = m.Field(
-            default=False,
-            json_schema_extra={"typer_param_decls": ["--off/--on"]},
-        )
 
     class GreetModel(m.BaseModel):
         """Simple request model used to exercise command invocation."""
@@ -298,7 +240,7 @@ class TestsFlextCliOptionsUtilsCov:
     def test_immutable_mapping_default_reaches_real_cli_handler(self) -> None:
         """Omitted JSON options validate immutable metadata through their schema."""
         outcome, received = self._run(self.ImmutableMappingDefaultModel, ())
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(len(received), eq=1)
         expected = self.ImmutableMappingDefaultModel()
         tm.that(received[0].bindings, eq=expected.bindings)
@@ -310,7 +252,7 @@ class TestsFlextCliOptionsUtilsCov:
             self.ImmutableMappingDefaultModel,
             ("--bindings", payload),
         )
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         expected = self.ImmutableMappingDefaultModel.model_validate_json(
             '{"bindings":' + payload + "}",
         )
@@ -326,7 +268,7 @@ class TestsFlextCliOptionsUtilsCov:
             (),
             settings=settings,
         )
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(received[0].bindings, eq=settings.bindings)
 
     def test_invalid_structured_default_keeps_field_validation_failure(self) -> None:
@@ -337,14 +279,14 @@ class TestsFlextCliOptionsUtilsCov:
     def test_model_command_uses_field_alias_as_option_name(self) -> None:
         """The field alias is the option name the CLI accepts."""
         invocation, received = self._run(self.AliasOptionsModel, ["--project", "p1"])
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received[0].project_name, eq="p1")
 
     @pytest.mark.parametrize("option", ["--custom-name", "--projects"])
     def test_model_command_honors_custom_param_decls(self, option: str) -> None:
         """Every custom declaration is accepted as the field's option."""
         invocation, received = self._run(self.CustomDeclModel, [option, "v"])
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received[0].custom_name, eq="v")
 
     @pytest.mark.parametrize(
@@ -359,7 +301,7 @@ class TestsFlextCliOptionsUtilsCov:
     ) -> None:
         """A bool field is driven by an on/off toggle pair."""
         invocation, received = self._run(self.BoolToggleModel, [option])
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received[0].debug, eq=expected)
 
     @pytest.mark.parametrize(("args", "expected"), _INVOCATION_CASES)
@@ -370,13 +312,13 @@ class TestsFlextCliOptionsUtilsCov:
     ) -> None:
         """Command-line values build the same model as direct construction."""
         invocation, received = self._run(type(expected), args)
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[expected])
 
     def test_model_command_rejects_missing_required_option(self) -> None:
         """A required field without its option is a usage failure; no handler call."""
         invocation, received = self._run(self.AliasOptionsModel, [])
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=False)
+        tm.fail(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, empty=True)
 
     def test_model_command_rejects_default_without_cli_form_at_build(self) -> None:
@@ -402,13 +344,13 @@ class TestsFlextCliOptionsUtilsCov:
             [],
             settings=settings,
         )
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received[0].name, eq="override-name")
 
     def test_field_defaults_reach_handler_when_options_omitted(self) -> None:
         """Omitted options deliver the model defaults to the handler."""
         invocation, received = self._run(self.OptionsDefaultsModel, [])
-        tm.that(u.Cli.process_succeeded(invocation.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(invocation.outcome))
         expected = self.OptionsDefaultsModel()
         tm.that(received[0].name, eq=expected.name)
         tm.that(tuple(received[0].tags), eq=tuple(expected.tags))
@@ -429,7 +371,7 @@ class TestsFlextCliOptionsUtilsCov:
 
         tm.that(result, eq="handled:ada")
         tm.that(received["model"].name, eq="ada")
-        tm.that(received["model"].shout, eq=True)
+        tm.ok(received["model"].shout)
 
     def test_invoking_command_coerces_raw_values_through_model_validation(self) -> None:
         """Verify that invoking command coerces raw values through model validation."""
@@ -438,9 +380,9 @@ class TestsFlextCliOptionsUtilsCov:
             return params.shout
 
         command = cli.model_command(self.GreetModel, _handler)
-        result = command(name="grace", shout="true")
+        result = command(name="grace", shout=c.ParserBooleanToken.TRUE)
 
-        tm.that(result, eq=True)
+        tm.ok(result)
 
     def test_invoking_command_rejects_missing_required_field(self) -> None:
         """Verify that invoking command rejects missing required field."""

@@ -165,7 +165,9 @@ class TestsFlextCliOutputCov:
         line, _style = u.Cli.output_table_error(None)
         tm.that(line, has=c.Cli.ERR_UNKNOWN_ERROR)
 
-    # ---- stdout emitters ------------------------------------------------
+
+class TestsFlextCliOutputEmission:
+    """Observable output emission and report destinations."""
 
     @staticmethod
     def test_emit_raw_writes_text_verbatim(
@@ -206,7 +208,7 @@ class TestsFlextCliOutputCov:
         captured = capsys.readouterr()
         out = captured.err
         tm.that(out, has="just error")
-        tm.that(out.endswith("  \n"), eq=False)
+        tm.fail(out.endswith("  \n"))
         tm.that(captured.out, eq="")
 
     @staticmethod
@@ -294,28 +296,6 @@ class TestsFlextCliOutputCov:
         out = capsys.readouterr().out
         tm.that(out, has="check")
         tm.that(out, has="Total: 5")
-
-    @staticmethod
-    def test_project_failure_lists_errors_and_truncation_notice(
-        capsys: pytest.CaptureFixture[str],
-    ) -> None:
-        """Verify that project failure lists errors and truncation notice."""
-        u.Cli.project_failure(
-            m.Tests.ProjectFailureInfo(
-                project="flext-cli",
-                elapsed=3.0,
-                error_count=2,
-                log_path=Path("log.txt"),
-                max_show=1,
-                errors=("error line 1", "error line 2"),
-            ),
-        )
-        out = capsys.readouterr().out
-        tm.that(out, has="flext-cli")
-        tm.that(out, has="error line 1")
-        # max_show=1 with error_count=2 -> one line shown, remainder summarized.
-        tm.that(out, lacks="error line 2")
-        tm.that(out, has="1 more")
 
     # ---- report path resolution ----------------------------------------
 

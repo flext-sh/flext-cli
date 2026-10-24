@@ -10,7 +10,7 @@ from ipaddress import ip_address
 from typing import Annotated, ClassVar
 
 from examples import c
-from flext_cli import m, u
+from flext_cli import m
 
 
 class ExamplesFlextCliModelsExamplesDatabase:
@@ -73,7 +73,7 @@ class ExamplesFlextCliModelsExamplesDatabase:
             validate_default=True,
         )
 
-        @u.field_validator("host")
+        @m.field_validator("host")
         @classmethod
         def validate_host(cls, v: str) -> str:
             """Ensure host looks like a hostname or IP.

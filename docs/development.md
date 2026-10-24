@@ -49,6 +49,13 @@
 
 **Contributing guidelines and development workflow for flext-cli.**
 
+Native directory-query verification may share fresh physical directory and
+ancestry observations within one caller-owned verification boundary. The caller
+must own and discard both stores at that boundary; neither store authenticates
+an original receipt. Every supplied receipt still undergoes its original native
+identity, negative-query, membership and publication-effect comparisons. Failed
+native observations are propagated, not stored as substitute receipts.
+
 **Last Updated**: 2026-09-17 | **Version**: 0.12.0
 
 ---
@@ -84,24 +91,21 @@ decisions.
 - ✅ Class needs **lifecycle management** (startup, shutdown, cleanup)
 - ✅ Class has **complex initialization** with external dependencies
 
-**Example - FlextCliCmd (Stateful Service)**:
+**Example - FlextCliPrompts (Stateful Service)**:
 
 ```text
-from flext_core import s
+from flext_cli import m, p, s
 
-class FlextCliCmd(s[CliDataDict]):
-    """Core service managing commands and sessions."""
+class FlextCliPromptsSupport(s[p.Cli.RuntimeStatus]):
+    """Prompt runtime state plus injected input ports."""
 
-    def __init__(self):
-        super().__init__()
-        self._commands: t.MappingKV[str, Command] = {}  # MUTABLE STATE
-        self._sessions: t.MappingKV[str, Session] = {}  # MUTABLE STATE
-        self.config: FlextCliSettings = ...       # MANAGED STATE
+    state: m.Cli.PromptRuntimeState                # MANAGED STATE
+    input_reader: t.Cli.PromptTextReader           # INJECTED PORT
 
-    def register_command(self, name: str, command: Command) -> p.Result[bool]:
-        """Register command - modifies internal state."""
-        self._commands[name] = command
-        return r[bool].ok(value=True)
+    def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
+        """Replace prompt runtime state - modifies internal state."""
+        self.state = state
+        return self
 ```
 
 **When NOT to use**:
@@ -174,7 +178,7 @@ class FlextCliFileTools:
 ```
 Does the class manage mutable state?
 ├─ YES → Use s
-│        Examples: FlextCliCmd, cli
+│        Examples: FlextCliPrompts, cli
 │
 └─ NO → Does it have behavior (business logic)?
     ├─ YES → Is it stateless utility functions?
@@ -193,15 +197,19 @@ Does the class manage mutable state?
 
 ### Module Structure
 
+Authored private-family ancestry imports the canonical declaration module, not a
+parent package's generated reexport. Private-child export retirement and these
+consumer rewrites form one cutover: generation must not recover old umbrella
+bindings or synthesize aliases to conceal an unresolved source dependency.
+
 Follow the v0.12.0-dev module organization:
 
 ```
 src/flext_cli/
 ├── api.py                # FlextCli facade (MRO composition) + singleton `cli`
 ├── base.py               # FlextCliServiceBase
-├── services/             # 16 services composed via MRO
+├── services/             # 13 services composed via MRO
 │   ├── cli.py            # FlextCliCli — Typer/Click boundary
-│   ├── cmd.py            # FlextCliCmd — stateful command/config management
 │   ├── auth.py           # FlextCliAuth — keyring auth
 │   ├── file_tools.py     # FlextCliFileTools — file I/O
 │   ├── formatters.py     # FlextCliFormatters — Rich/text rendering
@@ -209,12 +217,10 @@ src/flext_cli/
 │   ├── prompts.py        # FlextCliPrompts — user interaction
 │   ├── tables.py         # FlextCliTables — ASCII table generation
 │   ├── pipeline.py       # FlextCliPipeline — workflow orchestration
-│   ├── rules.py          # FlextCliRules — business rule validation
 │   ├── runtime.py        # FlextCliRuntime — runtime status
 │   ├── docx.py           # FlextCliDocx — Word document operations
 │   ├── pptx.py           # FlextCliPptx — PowerPoint operations
 │   ├── xlsx.py           # FlextCliXlsx — Excel operations
-│   ├── yaml_model.py     # FlextCliYamlModel — YAML schema validation
 │   └── cli_params.py     # FlextCliCommonParams — shared CLI params
 ├── _utilities/           # Domain engines (toml/yaml/template/…)
 ├── _constants/           # Validated constants (c.Cli.*)
@@ -270,6 +276,29 @@ The lifecycle witnesses `m.Cli.RuntimeProcessRequest`, `m.Cli.RuntimeProcessStat
 ownership; they are not a second public launch-options model. Subprocess execution, signals,
 deadlines, environment validation and descriptor forwarding retain their existing
 behavior.
+
+The single native spawn owner is `_utilities/native_runtime.py`. This original
+package asset imports only the Python standard library and can be loaded directly
+by a cold worker before the CLI/Core SDK is admitted. Its
+`spawn_streamed_process` accepts resolved command, working directory, environment,
+explicit binary stdin handle and a required structural `RuntimeSpawnOptions`
+protocol. The protocol declares the six existing spawn fields as read-only
+properties, with no policy defaults or second launch-options model; the ordinary
+`m.Cli.RuntimeSpawnOptions` satisfies it directly.
+
+The primitive returns the actual binary `subprocess.Popen` handle, never a JSON
+result or a wait/reap wrapper. An explicit stdin handle wins over pipe, devnull or
+inherit mode. Capture/combined streams, unbuffered binary I/O, environment,
+platform-default session ownership, creation flags and forwarded descriptors keep
+their existing semantics. Cold consumers own wait/reap at their boundary. The
+typed `_utilities/runtime.py` delegates to this same primitive and retains the
+ordinary timeout translation, redaction and streaming lifecycle. Native timeout
+identity and platform creation-flag calculation also belong to the stdlib owner;
+there is no alternate executor or compatibility path. Its Ruff permission is the
+existing audited native-owner declaration moved from `runtime.py`, not an added
+exemption. Consumers must authenticate and load the original package asset, not
+copy its body into another execution engine.
+
 `run_to_file` accepts `stderr_file=` when the consumer needs separate native
 streams. `output_file` then receives stdout and `stderr_file` receives stderr;
 both are drained, flushed and synchronized by the same contained lifecycle,
@@ -511,7 +540,7 @@ def test_cli_api_operation():
 
     result = api.process_command("test")
 
-    assert result is not None
+    tm.not_none(result)
     assert "test" in str(result)
 
 

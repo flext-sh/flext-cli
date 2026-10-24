@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from flext_core import u
 from jsonschema import Draft202012Validator
@@ -85,36 +85,6 @@ class FlextCliUtilitiesConfig:
         )
 
     @staticmethod
-    def config_load_dir(
-        config_dir: Path,
-    ) -> p.Result[t.MappingKV[str, m.ConfigDocument]]:
-        """Load every ``config/*.yaml`` file, pairing each with its ``schemas/`` schema.
-
-        The schema for ``config/<name>.yaml`` is
-        ``<config_dir>/../schemas/<name>.schema.json`` when present.
-
-        Returns:
-            The resulting ``p.Result[t.MappingKV[str, m.ConfigDocument]]``.
-
-        """
-        if not config_dir.is_dir():
-            return r[t.MappingKV[str, m.ConfigDocument]].fail(
-                f"{c.ERR_CONFIG_READ_FAILED}: {config_dir}",
-            )
-        schemas_dir = config_dir.parent / c.CONFIG_SCHEMAS_DIR_NAME
-        documents: t.MutableMappingKV[str, m.ConfigDocument] = {}
-        for source in sorted(config_dir.glob(f"*{c.CONFIG_YAML_SUFFIX}")):
-            schema = schemas_dir / f"{source.stem}{c.CONFIG_SCHEMA_SUFFIX}"
-            loaded = FlextCliUtilitiesConfig.config_load(
-                source,
-                schema_path=schema if schema.is_file() else None,
-            )
-            if loaded.failure:
-                return r[t.MappingKV[str, m.ConfigDocument]].from_failure(loaded)
-            documents[source.stem] = loaded.value
-        return r[t.MappingKV[str, m.ConfigDocument]].ok(documents)
-
-    @staticmethod
     def schema_validate(data: t.JsonMapping, schema_path: Path) -> p.Result[bool]:
         """Validate ``data`` against the JSON Schema at ``schema_path`` → ``r[bool]``.
 
@@ -126,22 +96,23 @@ class FlextCliUtilitiesConfig:
         if schema_read.failure:
             return r[bool].from_failure(schema_read)
         return u.try_(
-            lambda: FlextCliUtilitiesConfig._run_validator(schema_read.value, data),
+            lambda: FlextCliUtilitiesConfig._run_validator(
+                Draft202012Validator(dict(schema_read.value)), data
+            ),
             catch=(ValidationError, SchemaError),
             op_name="schema_validate",
         )
 
     @staticmethod
-    def _run_validator(schema: t.JsonMapping, data: t.JsonMapping) -> bool:
+    def _run_validator(
+        validator: p.Cli.JsonSchemaValidator, data: t.JsonMapping
+    ) -> bool:
         """Run a Draft 2020-12 validator; raise on first violation, else ``True``.
 
         Returns:
             The resulting ``bool``.
 
         """
-        validator = cast(
-            "p.Cli.JsonSchemaValidator", Draft202012Validator(dict(schema))
-        )
         validator.validate(dict(data))
         return True
 

@@ -9,14 +9,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Annotated
+from typing import TYPE_CHECKING
 
 from examples import ExamplesFlextCliUtilities
 from flext_tests import FlextTestsUtilities
 
 from flext_cli import FlextCliUtilities, cli
-from tests import TestsFlextCliSettings, c, m, p, r, tm
+from tests import TestsFlextCliSettings, m, p, r, tm
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -73,52 +72,6 @@ class TestsFlextCliUtilities(
                     help_text="Test CLI app",
                 ),
             )
-
-        @staticmethod
-        def create_decorated_command(
-            app: p.Cli.Application,
-            command_name: str = "test",
-        ) -> p.Result[Callable[..., None]]:
-            """Register a real flag-driven command on ``app`` for tests.
-
-            Returns:
-                The resulting ``p.Result[Callable[..., None]]``.
-
-            """
-
-            def command(
-                *,
-                verbose: Annotated[bool, cli.create_option("verbose")] = False,
-                debug: Annotated[bool | None, cli.create_option("debug")] = None,
-                log_level: Annotated[
-                    str | None,
-                    cli.create_option("log_level"),
-                ] = None,
-                output_format: Annotated[
-                    str,
-                    cli.create_option("output_format"),
-                ] = c.Cli.OutputFormats.TABLE,
-            ) -> None:
-                cli.print(f"Command: {command_name}")
-                if verbose:
-                    cli.print("Verbose: enabled")
-                if debug:
-                    cli.print("Debug: enabled")
-                policy = FlextCliUtilities.resolve_logging_settings(
-                    runtime_settings=cli.settings,
-                    log_level=log_level,
-                    debug=debug,
-                )
-                cli.print(f"Log level: {policy.log_level}")
-                cli.print(f"Output format: {output_format}")
-
-            cli.register_command(
-                app,
-                name=command_name,
-                help_text=f"Run {command_name}",
-                command=command,
-            )
-            return r[Callable[..., None]].ok(command)
 
 
 u = TestsFlextCliUtilities

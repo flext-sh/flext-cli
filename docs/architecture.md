@@ -33,11 +33,10 @@ Panorama da arquitetura implementada no **flext-cli** 0.12.0, conforme o código
 src/flext_cli/
 ├── api.py                # Facade FlextCli (composição MRO) + singleton `cli`
 ├── base.py               # FlextCliServiceBase (base de serviços)
-├── services/             # 16 serviços que compõem a facade via MRO
+├── services/             # 13 serviços que compõem a facade via MRO
 │   ├── auth.py           # FlextCliAuth — auth via keyring
 │   ├── cli.py            # FlextCliCli — fronteira Typer/Click
 │   ├── cli_params.py     # FlextCliCommonParams — parâmetros reutilizáveis
-│   ├── cmd.py            # FlextCliCmd — configuração persistida e comandos
 │   ├── docx.py           # FlextCliDocx — manipulação de documentos Word
 │   ├── file_tools.py     # FlextCliFileTools — file I/O (text, JSON, YAML, CSV, zip)
 │   ├── formatters.py     # FlextCliFormatters — saída Rich, print, render_table
@@ -45,11 +44,9 @@ src/flext_cli/
 │   ├── pipeline.py       # FlextCliPipeline — orquestração de workflows
 │   ├── prompts.py        # FlextCliPrompts — interação com usuário (prompt/confirm/select)
 │   ├── pptx.py           # FlextCliPptx — manipulação de apresentações PowerPoint
-│   ├── rules.py          # FlextCliRules — validação de regras de negócio
 │   ├── runtime.py        # FlextCliRuntime — status e monitoramento de runtime
 │   ├── tables.py         # FlextCliTables — geração de tabelas ASCII via Tabulate
-│   ├── xlsx.py           # FlextCliXlsx — manipulação de planilhas Excel
-│   └── yaml_model.py     # FlextCliYamlModel — validação de YAML contra schemas
+│   └── xlsx.py           # FlextCliXlsx — manipulação de planilhas Excel
 ├── _utilities/           # Engenhos de domínio (toml/yaml/template/xlsx/…)
 ├── _constants/           # Família de declarações: constantes validadas
 ├── _models/              # Família de declarações: modelos Pydantic validados
@@ -67,12 +64,11 @@ src/flext_cli/
 ## Fluxo em tempo de execução
 
 1. **Bootstrap**: `cli` (singleton `FlextCli`) é carregado via `fetch_global()`; todos
-   os 16 serviços estão disponíveis via MRO.
+   os 13 serviços estão disponíveis via MRO.
 1. **Entrada do usuário**: `services/cli.py` (`FlextCliCli`) é a única fronteira com
    Typer/Click; despacha para comandos registrados.
 1. **Execução**: `FlextCli.execute()` relata o status do runtime via
-   `u.Cli.cmd_status()`. Comandos específicos (`FlextCliCmd`) operam sobre configuração
-   persistida.
+   `u.Cli.cmd_status()`.
 1. **Entrada/Saída**: `services/prompts.py` coleta entrada; `services/output.py`,
    `services/formatters.py` e `services/tables.py` geram saídas em
    Rich/ASCII/JSON/YAML/CSV sem expor o Rich diretamente.

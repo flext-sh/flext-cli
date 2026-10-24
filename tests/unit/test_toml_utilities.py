@@ -13,12 +13,14 @@ from __future__ import annotations
 
 import stat
 import tomllib
+from copy import deepcopy
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 from tomlkit.exceptions import ParseError
 
-from tests import c, t, tm, u
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliTomlUtilities:
@@ -136,7 +138,7 @@ class TestsFlextCliTomlUtilities:
     @staticmethod
     def test_read_json_round_trips_document_to_mapping(tmp_path: Path) -> None:
         """Verify that read json round trips document to mapping."""
-        toml_file = tmp_path / "pyproject.toml"
+        toml_file = tmp_path / c.PYPROJECT_FILENAME
         toml_file.write_text(
             '[project]\nname = "demo"\ndependencies = ["httpx>=0.27"]\n',
             encoding="utf-8",
@@ -161,26 +163,26 @@ class TestsFlextCliTomlUtilities:
         result = u.Cli.toml_write_document(toml_file, doc)
 
         tm.ok(result)
-        tm.that(toml_file.exists(), eq=True)
+        tm.ok(toml_file.exists())
 
     @staticmethod
     def test_write_document_creates_missing_parent_directories(
         tmp_path: Path,
     ) -> None:
         """Verify that write document creates missing parent directories."""
-        toml_file = tmp_path / "nested" / "deep" / "file.toml"
+        toml_file = tmp_path / "nested" / c.MergeStrategy.DEEP / "file.toml"
         doc = u.Cli.toml_document()
         doc["key"] = "value"
 
         tm.ok(u.Cli.toml_write_document(toml_file, doc))
-        tm.that(toml_file.exists(), eq=True)
+        tm.ok(toml_file.exists())
 
     @staticmethod
     def test_write_pyproject_runs_the_required_real_formatter(
         tmp_path: Path,
     ) -> None:
         """Format a real pyproject through the public TOML facade."""
-        pyproject = tmp_path / "pyproject.toml"
+        pyproject = tmp_path / c.PYPROJECT_FILENAME
         taplo_config = tmp_path / ".taplo.toml"
         taplo_config.write_text("", encoding="utf-8")
         doc = u.Cli.toml_document()
@@ -213,7 +215,7 @@ class TestsFlextCliTomlUtilities:
     @staticmethod
     def test_write_mapping_renders_nested_tables_to_disk(tmp_path: Path) -> None:
         """Verify that write mapping renders nested tables to disk."""
-        toml_file = tmp_path / "pyproject.toml"
+        toml_file = tmp_path / c.PYPROJECT_FILENAME
         payload: t.JsonDict = {
             "project": {"name": "demo"},
             "tool": {"uv": {"sources": {"flext-core": {"workspace": True}}}},
@@ -228,10 +230,12 @@ class TestsFlextCliTomlUtilities:
         sources = tool["uv"]["sources"]
         tm.that(sources, is_=dict)
         tm.that(sources["flext-core"], is_=dict)
-        tm.that(sources["flext-core"]["workspace"], eq=True)
+        tm.ok(sources["flext-core"]["workspace"])
         tm.that(rendered["project"], eq={"name": "demo"})
 
-    # -------------------------------------------------------------- builders
+
+class TestsFlextCliTomlValues:
+    """Native TOML construction, navigation and JSON projection contracts."""
 
     @staticmethod
     def test_array_serializes_all_elements() -> None:
@@ -269,29 +273,10 @@ class TestsFlextCliTomlUtilities:
         resolved = u.Cli.toml_table_path(doc, ("tool", "ruff", "lint"))
         resolved = tm.not_none(resolved)
         tm.that(
-            u.Cli.toml_as_string_list(u.Cli.toml_item_child(resolved, "select")),
+            list(u.Cli.toml_as_string_list(u.Cli.toml_item_child(resolved, "select"))),
             eq=["E", "F"],
         )
         tm.that(u.Cli.toml_table_path(doc, ("tool", "mypy")), none=True)
-
-    @staticmethod
-    def test_navigate_path_and_dot_path_keep_tool_prefix_stable() -> None:
-        """Verify that navigate path and dot path keep tool prefix stable."""
-        doc = u.Cli.toml_document()
-        table = u.Cli.toml_navigate_path(doc, ["tool", "pytest", "ini_options"])
-        table["addopts"] = "-q"
-
-        tm.that(
-            u.Cli.toml_dot_path("", "tool", "pytest", "ini_options"),
-            eq="tool.pytest.ini_options",
-        )
-        tm.that(
-            u.Cli.toml_value(
-                u.Cli.toml_navigate_path(doc, ["pytest", "ini_options"]),
-                "addopts",
-            ),
-            eq="-q",
-        )
 
     @staticmethod
     def test_mapping_path_normalizes_document_children() -> None:
@@ -357,7 +342,11 @@ class TestsFlextCliTomlUtilities:
         project = tm.not_none(project)
         tm.that(u.Cli.toml_value(project, "name"), eq="demo")
         tm.that(
-            u.Cli.toml_as_string_list(u.Cli.toml_item_child(project, "dependencies")),
+            list(
+                u.Cli.toml_as_string_list(
+                    u.Cli.toml_item_child(project, "dependencies")
+                )
+            ),
             eq=["httpx>=0.27"],
         )
 
@@ -367,34 +356,60 @@ class TestsFlextCliTomlUtilities:
         tm.that(u.Cli.toml_mapping_from_text("[project"), none=True)
 
     @staticmethod
-    def test_mapping_sync_helpers_report_and_apply_changes() -> None:
-        """Verify that mapping sync helpers report and apply changes."""
+    def test_sorted_item_preserves_values_and_original_mapping() -> None:
+        """Construct sorted native tables without changing arrays or callers."""
         payload: t.JsonDict = {
-            "tool": {"uv": {"sources": {"stale": {"workspace": True}}}},
+            "zeta": {"z": 1, "a": 2},
+            "alpha": {
+                "z": 3,
+                "ordered": ["last", " first "],
+                "a": 4,
+                "branch": {"z": 5, "a": 6},
+            },
         }
-        changes: list[str] = []
+        original = deepcopy(payload)
+        document = u.Cli.toml_document()
+        document["fixture"] = u.Cli.toml_item_from_json_value(payload, sort_keys=True)
+        rendered = tm.not_none(u.Cli.toml_mapping_from_text(u.Cli.toml_dumps(document)))
+        mapping = tm.not_none(u.Cli.toml_mapping_child(rendered, "fixture"))
+        alpha = tm.not_none(u.Cli.toml_mapping_child(mapping, "alpha"))
+        branch = tm.not_none(u.Cli.toml_mapping_child(alpha, "branch"))
 
-        sources = u.Cli.toml_mapping_ensure_path(payload, ("tool", "uv", "sources"))
-        if u.Cli.toml_mapping_sync_mapping_table(
-            sources,
-            "flext-core",
-            {"workspace": True},
-            sort_keys=True,
-        ):
-            changes.append("synced flext-core")
-        if u.Cli.toml_mapping_sync_string_list(
-            u.Cli.toml_mapping_ensure_path(payload, ("tool", "uv", "workspace")),
-            "members",
-            ("flext-cli", "flext-core"),
-            sort_values=True,
-        ):
-            changes.append("synced members")
+        tm.that(list(mapping), eq=sorted(mapping))
+        tm.that([key for key in alpha if key != "branch"], eq=["a", "ordered", "z"])
+        tm.that(list(branch), eq=sorted(branch))
+        tm.that(mapping, eq=original)
+        tm.that(payload, eq=original)
 
-        tm.that(changes, eq=["synced flext-core", "synced members"])
-        tool = u.Cli.toml_mapping_child(payload, "tool")
-        tool = tm.not_none(tool)
-        uv = u.Cli.toml_mapping_child(tool, "uv")
-        uv = tm.not_none(uv)
-        workspace = u.Cli.toml_mapping_child(uv, "workspace")
-        workspace = tm.not_none(workspace)
-        tm.that(workspace.get("members"), eq=["flext-cli", "flext-core"])
+    @staticmethod
+    def test_native_item_rejects_null() -> None:
+        """A null cannot silently disappear from native TOML output."""
+        with pytest.raises(TypeError, match="TOML does not support null values"):
+            u.Cli.toml_item_from_json_value(None)
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "value", [None, " value ", [" last ", "first"], {"option": None}]
+    )
+    def test_json_projection_preserves_exact_json_values(value: t.JsonValue) -> None:
+        """The JSON boundary preserves null, whitespace and sequence order."""
+        tm.that(u.Cli.toml_unwrap_item(value), eq=value)
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "value",
+        [{"payload": b"value"}, {"stamp": datetime(2026, 1, 1, tzinfo=UTC)}],
+    )
+    def test_json_projection_rejects_non_json_scalar_mappings(
+        value: t.ScalarMapping,
+    ) -> None:
+        """Unsupported scalars cannot become strings at the JSON boundary."""
+        with pytest.raises(m.ValidationError):
+            u.Cli.toml_unwrap_item(value)
+
+    @staticmethod
+    def test_json_projection_rejects_native_toml_datetime() -> None:
+        """A native timestamp remains unsupported by the JSON projection."""
+        document = tm.not_none(u.Cli.toml_parse_text("stamp = 2026-01-01T00:00:00\n"))
+        with pytest.raises(m.ValidationError):
+            u.Cli.toml_as_mapping(document)

@@ -154,25 +154,6 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
             self._communicated = True
             return r[int].ok(self._process.poll() or 0)
 
-        def stdin_write(self, content: bytes) -> p.Result[bool]:
-            """Write and flush exact bytes to the managed child stdin.
-
-            Returns:
-                The resulting ``p.Result[bool]``.
-
-            """
-            if self.poll() is not None:
-                return r[bool].fail(f"process already exited: pid {self.pid}")
-            stream = self._process.stdin
-            if stream is None:
-                return r[bool].fail(f"process stdin is unavailable: pid {self.pid}")
-            try:
-                stream.write(content)
-                stream.flush()
-            except c.EXC_OS_VALUE as exc:
-                return r[bool].fail(f"process stdin write error: {exc}", exception=exc)
-            return r[bool].ok(value=True)
-
         def stdout_read_until(
             self,
             delimiter: bytes,
@@ -198,24 +179,6 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
                 read = self._read_stdout(deadline)
                 if read.failure:
                     return r[bytes].from_failure(read)
-
-        def stdout_read_exact(self, size: int, *, timeout: float) -> p.Result[bytes]:
-            """Read exactly ``size`` bytes within the supplied deadline.
-
-            Returns:
-                The resulting ``p.Result[bytes]``.
-
-            """
-            if size < 0:
-                return r[bytes].fail("stdout byte count must be non-negative")
-            deadline = time.monotonic() + timeout
-            while len(self._stdout_buffer) < size:
-                read = self._read_stdout(deadline)
-                if read.failure:
-                    return r[bytes].from_failure(read)
-            content = bytes(self._stdout_buffer[:size])
-            del self._stdout_buffer[:size]
-            return r[bytes].ok(content)
 
         def _read_stdout(self, deadline: float) -> p.Result[bool]:
             """Append one available binary stdout chunk before ``deadline``.

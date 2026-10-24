@@ -37,6 +37,121 @@ class TestsFlextCliAtomicFileContract:
         tm.ok(u.Cli.atomic_verify_binary_file_states((restored,)))
 
     @staticmethod
+    @pytest.mark.parametrize("change", ["content", "remove", "create"])
+    def test_binary_snapshot_rejects_changed_physical_source(
+        tmp_path: Path, change: str
+    ) -> None:
+        """Detect changed bytes, removed files and invalidated absence witnesses."""
+        path = tmp_path / "snapshot.bin"
+        if change != "create":
+            path.write_bytes(b"before")
+        state = tm.ok(u.Cli.atomic_read_binary_file_state(path))
+        if change == "remove":
+            path.unlink()
+        else:
+            path.write_bytes(b"change")
+
+        tm.fail(
+            u.Cli.atomic_verify_binary_file_states((state,)),
+            has="atomic source changed",
+        )
+
+    @staticmethod
+    @pytest.mark.parametrize("suffix", [".py", ".pyi"])
+    @pytest.mark.parametrize("change", ["content", "remove", "create"])
+    def test_source_snapshot_failure_reports_exact_nonsecret_bytes(
+        tmp_path: Path, suffix: str, change: str
+    ) -> None:
+        """Describe only attested source receipts without changing their bytes."""
+        path = tmp_path / f"source{suffix}"
+        before = None if change == "create" else b"before\r\n"
+        after = None if change == "remove" else b"change\n"
+        if before is not None:
+            path.write_bytes(before)
+        state = tm.ok(u.Cli.atomic_read_binary_file_state(path))
+        if after is None:
+            path.unlink()
+        else:
+            path.write_bytes(after)
+
+        result = u.Cli.atomic_verify_binary_file_states(
+            (state,), nonsecret_source_paths=(path,)
+        )
+
+        tm.fail(result, has="atomic source changed")
+        for label, content in (("expected", before), ("observed", after)):
+            tm.that(
+                result.error or "",
+                has=f"{label}_content_type={type(content).__name__}",
+            )
+            tm.that(
+                result.error or "",
+                has=f"{label}_content_length="
+                f"{len(content) if content is not None else None}",
+            )
+            digest = u.Cli.sha256_bytes(content) if content is not None else None
+            tm.that(result.error or "", has=f"{label}_content_sha256={digest}")
+        tm.that(state.content, eq=before)
+        tm.that(path.read_bytes() if path.exists() else None, eq=after)
+        tm.fail("before" in (result.error or ""))
+        tm.fail("change\\n" in (result.error or ""))
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        ("name", "attested"),
+        [("credentials.env", False), ("credentials.env", True), ("source.py", False)],
+    )
+    def test_snapshot_diagnostics_do_not_disclose_arbitrary_payloads(
+        tmp_path: Path, name: str, *, attested: bool
+    ) -> None:
+        """Keep generic and non-source receipts private even with an allowlist."""
+        path = tmp_path / name
+        before = b"private-original"
+        after = b"private-replacement"
+        path.write_bytes(before)
+        state = tm.ok(u.Cli.atomic_read_binary_file_state(path))
+        path.write_bytes(after)
+
+        result = u.Cli.atomic_verify_binary_file_states(
+            (state,), nonsecret_source_paths=(path,) if attested else ()
+        )
+
+        tm.fail(result, has="atomic source changed")
+        for content in (before, after):
+            tm.fail(content.decode() in (result.error or ""))
+            tm.fail(u.Cli.sha256_bytes(content) in (result.error or ""))
+        tm.fail("content_sha256=" in (result.error or ""))
+        tm.that(path.read_bytes(), eq=after)
+
+    @staticmethod
+    def test_source_diagnostics_preserve_conflict_and_link_guards(
+        tmp_path: Path,
+    ) -> None:
+        """An attested source never bypasses conflicting receipts or symlinks."""
+        path = tmp_path / "source.py"
+        path.write_bytes(b"original")
+        original = tm.ok(u.Cli.atomic_read_binary_file_state(path))
+        path.write_bytes(b"replacement")
+        replacement = tm.ok(u.Cli.atomic_read_binary_file_state(path))
+        tm.fail(
+            u.Cli.atomic_verify_binary_file_states(
+                (original, replacement), nonsecret_source_paths=(path,)
+            ),
+            has="conflicting snapshots",
+        )
+        path.unlink()
+        target = tmp_path / "target.py"
+        target.write_bytes(b"original")
+        path.symlink_to(target)
+        tm.fail(
+            u.Cli.atomic_verify_binary_file_states(
+                (original,), nonsecret_source_paths=(path,)
+            ),
+            has="not a regular file",
+        )
+        tm.that(target.read_bytes(), eq=b"original")
+
+    @staticmethod
     def test_text_write_persists_content(tmp_path: Path) -> None:
         """Keep the unconditional text facade on the strict atomic owner."""
         path = tmp_path / "atomic.txt"
@@ -202,7 +317,7 @@ raise SystemExit(0 if result.failure else 2)
             eq=True,
             msg=completed.value.stderr,
         )
-        tm.that(path.exists(), eq=False)
+        tm.fail(path.exists())
         tm.that(tuple(tmp_path.iterdir()), eq=())
 
     @staticmethod

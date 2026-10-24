@@ -28,7 +28,7 @@ def main(args: t.StrSequence | None = None) -> int:
         The resulting exit code.
 
     """
-    application = api.cli.framework_create_app(
+    application = api.cli.create_app_with_common_params(
         name="flext-cli",
         help_text="FLEXT developer CLI and SSOT for CLI-adjacent domains.",
     )

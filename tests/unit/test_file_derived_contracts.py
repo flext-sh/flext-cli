@@ -49,8 +49,7 @@ class TestsFlextCliFileDerivedContracts:
 
         result = cli.load_file_auto_dict(path)
 
-        tm.ok(result)
-        tm.that(result.value, eq={"a": 1})
+        tm.ok(result, eq={"a": 1})
 
     @staticmethod
     def test_load_file_auto_dict_rejects_unsupported_extension(
@@ -81,10 +80,10 @@ class TestsFlextCliFileDerivedContracts:
         )
 
         tm.ok(result)
-        tm.that(result.value.is_dir(), eq=True)
+        tm.ok(result.value.is_dir())
         tm.that(result.value.parent, eq=tmp_path)
         tm.ok(u.Cli.files_remove_directory(result.value))
-        tm.that(result.value.exists(), eq=False)
+        tm.fail(result.value.exists())
 
     @staticmethod
     def test_copy_directory_respects_dirs_exist_ok(tmp_path: Path) -> None:
@@ -108,4 +107,4 @@ class TestsFlextCliFileDerivedContracts:
         path.write_text("content", encoding="utf-8")
 
         tm.fail(u.Cli.files_remove_directory(path))
-        tm.that(path.exists(), eq=True)
+        tm.ok(path.exists())

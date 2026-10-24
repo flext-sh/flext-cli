@@ -75,7 +75,7 @@ class FlextCliTypesDomain:
     type OptionRegistry = t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]
     type NullaryOperation[T] = Callable[[], T]
     type PromptTextReader = Callable[[str], str]
-    type CliCommand = Callable[..., t.JsonPayload]
+    type CliCommand[TResult: t.JsonPayload = t.JsonPayload] = Callable[..., TResult]
     type DirFdOperation = Callable[..., None]
     # mro-j47u (codex): one generic alias owns formatter data and call contracts.
     type JsonCommandFn = Callable[..., p.Result[t.JsonPayload]]
@@ -104,7 +104,7 @@ class FlextCliTypesDomain:
     type TypedExtractValue = str | bool | t.JsonMapping
     type TableDataSource = FlextCliTypesBase.TabularData | t.SequenceOf[t.JsonMapping]
     type TextPath = str | Path
-    type JsonWriteData = t.JsonPayload
+    type JsonWriteData = t.JsonPayload | t.JsonMapping
 
 
 __all__: list[str] = ["FlextCliTypesDomain"]

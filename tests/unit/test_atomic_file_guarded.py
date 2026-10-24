@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
 from typing import TYPE_CHECKING
 
 from tests import tm, u
@@ -13,11 +14,82 @@ from tests import tm, u
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import m
+from tests import m
 
 
 class TestsFlextCliAtomicFileGuarded:
     """Observable guarded-write behavior through public Flext CLI surfaces."""
+
+    @staticmethod
+    def test_post_link_unlink_failure_cleans_owned_stage(tmp_path: Path) -> None:
+        """Preserve the unlink failure and remove the published staging alias."""
+        script = tmp_path / "consumer.py"
+        script.write_text(
+            "import errno\n"
+            "import sys\n"
+            "from pathlib import Path\n"
+            "from flext_cli import u\n"
+            "from flext_tests import tm\n"
+            "root = Path(sys.argv[1])\n"
+            "destination = root / 'atomic.txt'\n"
+            "before = u.Cli.atomic_read_binary_file_state(destination).unwrap()\n"
+            "armed = True\n"
+            "def fail_unlink(event, args):\n"
+            "    global armed\n"
+            "    if armed and event == 'os.remove' and destination.exists():\n"
+            "        armed = False\n"
+            "        raise OSError(errno.EIO, 'staged unlink failed')\n"
+            "sys.addaudithook(fail_unlink)\n"
+            "result = u.Cli.atomic_write_binary_file_guarded(\n"
+            "    before, b'published', permission_mode=0o600)\n"
+            "tm.that(armed, eq=False)\n"
+            "tm.fail(result, has='staged unlink failed')\n"
+            "tm.that(destination.read_bytes(), eq=b'published')\n"
+            "tm.that(destination.stat().st_nlink, eq=1)\n"
+            "tm.that({path.name for path in root.iterdir()}, "
+            "eq={'consumer.py', 'atomic.txt'})\n",
+            encoding="utf-8",
+        )
+        outcome = tm.ok(
+            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path))),
+        )
+        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
+        tm.that(outcome.stderr, eq="")
+
+    @staticmethod
+    def test_competing_creation_after_validation_is_preserved(tmp_path: Path) -> None:
+        """Refuse a real competing write at the publication system-call boundary."""
+        script = tmp_path / "consumer.py"
+        script.write_text(
+            "import sys\n"
+            "from pathlib import Path\n"
+            "from flext_cli import u\n"
+            "from flext_tests import tm\n"
+            "root = Path(sys.argv[1])\n"
+            "destination = root / 'atomic.txt'\n"
+            "before = u.Cli.atomic_read_binary_file_state(destination).unwrap()\n"
+            "armed = True\n"
+            "def create_competitor(event, args):\n"
+            "    global armed\n"
+            "    if armed and event in {'os.link', 'os.rename'} "
+            "and args[1] == destination.name:\n"
+            "        armed = False\n"
+            "        destination.write_bytes(b'concurrent')\n"
+            "sys.addaudithook(create_competitor)\n"
+            "result = u.Cli.atomic_write_binary_file_guarded(\n"
+            "    before, b'replacement', permission_mode=0o600)\n"
+            "tm.that(armed, eq=False)\n"
+            "tm.fail(result)\n"
+            "tm.that(destination.read_bytes(), eq=b'concurrent')\n"
+            "tm.that({path.name for path in root.iterdir()}, "
+            "eq={'consumer.py', 'atomic.txt'})\n",
+            encoding="utf-8",
+        )
+        outcome = tm.ok(
+            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path))),
+        )
+        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
+        tm.that(outcome.stderr, eq="")
 
     def test_matching_content_is_replaced(self, tmp_path: Path) -> None:
         """Publish when the complete physical version matches."""
@@ -95,7 +167,7 @@ class TestsFlextCliAtomicFileGuarded:
         result = u.Cli.atomic_write_text_file_guarded(before, "replacement")
 
         tm.fail(result)
-        tm.that(path.exists(), eq=False)
+        tm.fail(path.exists())
 
     def test_missing_parent_is_not_created(self, tmp_path: Path) -> None:
         """Leave no partial directory tree for a guarded-write failure."""
@@ -108,7 +180,7 @@ class TestsFlextCliAtomicFileGuarded:
         result = u.Cli.atomic_write_text_file_guarded(before, "replacement")
 
         tm.fail(result)
-        tm.that(parent.exists(), eq=False)
+        tm.fail(parent.exists())
 
     def test_absent_snapshot_rejects_replaced_parent(self, tmp_path: Path) -> None:
         """Never create a file under a new parent that reused the planned path."""
@@ -123,8 +195,8 @@ class TestsFlextCliAtomicFileGuarded:
         result = u.Cli.atomic_write_text_file_guarded(before, "replacement")
 
         tm.fail(result)
-        tm.that(path.exists(), eq=False)
-        tm.that((original / path.name).exists(), eq=False)
+        tm.fail(path.exists())
+        tm.fail((original / path.name).exists())
 
     def test_aliased_parent_is_rejected(self, tmp_path: Path) -> None:
         """Do not publish through a parent directory alias."""

@@ -78,23 +78,6 @@ class FlextCliUtilitiesAtomicFilePath:
         return state, parent
 
     @staticmethod
-    def validate_parent_path(parent: Path) -> os.stat_result:
-        """Return a physical parent only when every path component is non-aliased.
-
-        Returns:
-            A physical parent only when every path component is non-aliased.
-
-        Raises:
-            FileNotFoundError: If ``state is None``.
-
-        """
-        state, component = FlextCliUtilitiesAtomicFilePath.resolve_parent_path(parent)
-        if state is None:
-            message = f"atomic destination parent is missing: {component}"
-            raise FileNotFoundError(errno.ENOENT, message, component)
-        return state
-
-    @staticmethod
     def validate_directory_state(path: Path, state: os.stat_result) -> None:
         """Require one non-reparse physical directory state.
 

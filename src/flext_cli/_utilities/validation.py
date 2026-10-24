@@ -52,39 +52,5 @@ class FlextCliUtilitiesValidation:
             )
         return r[str].ok(fmt)
 
-    @staticmethod
-    def format_validation_errors(
-        exc: t.ValidationError,
-        *,
-        command: str,
-        model: str,
-    ) -> str:
-        """Render pydantic errors as located command/model/field lines.
-
-        Returns:
-            The resulting ``str``.
-
-        """
-        lines: list[str] = []
-        for error in exc.errors():
-            loc = ".".join(str(part) for part in error.get("loc", ()) if part != "body")
-            field = loc or "<input>"
-            message = error.get("msg", "invalid value")
-            lines.append(
-                c.Cli.ERR_CLI_DEFINITION_FIELD.format(
-                    command=command,
-                    model=model,
-                    field=field,
-                    reason=message,
-                ),
-            )
-        if lines:
-            return "\n".join(lines)
-        return c.Cli.ERR_CLI_DEFINITION_INVALID_MODEL.format(
-            command=command,
-            model=model,
-            reason="validation failed",
-        )
-
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesValidation"]

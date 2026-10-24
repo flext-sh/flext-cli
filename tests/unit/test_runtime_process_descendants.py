@@ -80,7 +80,7 @@ class TestsFlextCliRuntimeProcessDescendants:
         child_pid, process_group = (
             int(value) for value in process_info.read_text().split()
         )
-        tm.that(_process_exists(child_pid), eq=False)
+        tm.fail(_process_exists(child_pid))
         if os.name != "nt":
             with pytest.raises(ProcessLookupError):
                 os.killpg(process_group, 0)
@@ -101,13 +101,13 @@ class TestsFlextCliRuntimeProcessDescendants:
         )
 
         tm.ok(result)
-        tm.that(result.value.timed_out, eq=True)
+        tm.ok(result.value.timed_out)
         tm.that(result.value.raw_return_code, lt=0)
         if os.name == "nt":
             tm.that(TestsFlextCliObservedWindowsCli.active_counts, empty=False)
             tm.that(TestsFlextCliObservedWindowsCli.active_counts[-1], eq=0)
             return
         active_count = FlextCliUtilitiesCli.windows_job_active_count(0)
-        tm.that(active_count.success, eq=True)
+        tm.ok(active_count.success)
         tm.that(active_count.value, eq=0)
         tm.that(TestsFlextCliObservedWindowsCli.active_counts, empty=True)

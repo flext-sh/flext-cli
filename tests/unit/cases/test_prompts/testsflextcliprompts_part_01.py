@@ -15,7 +15,7 @@ from tests import c, tm
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from tests import p
+from tests import p
 
 
 class TestsFlextCliPromptsPart01:
@@ -55,11 +55,9 @@ class TestsFlextCliPromptsPart01:
         """Verify that prompt reads input and uses default for empty text."""
         prompts = make_prompts(inputs=[" typed ", ""])
         typed_result = prompts.prompt("Enter value")
-        tm.ok(typed_result)
-        tm.that(typed_result.value, eq="typed")
+        tm.ok(typed_result, eq="typed")
         default_result = prompts.prompt("Enter value", default="default")
-        tm.ok(default_result)
-        tm.that(default_result.value, eq="default")
+        tm.ok(default_result, eq="default")
 
     @staticmethod
     def test_confirm_returns_defaults_when_not_interactive(
@@ -67,7 +65,7 @@ class TestsFlextCliPromptsPart01:
     ) -> None:
         """Verify that confirm returns defaults when not interactive."""
         quiet_prompts = make_prompts(quiet=True)
-        tm.that(quiet_prompts.confirm("Continue?", default=True).value, eq=True)
+        tm.ok(quiet_prompts.confirm("Continue?", default=True).value)
         non_interactive_prompts = make_prompts(interactive_mode=False)
         tm.that(
             non_interactive_prompts.confirm("Continue?", default=False).value,
@@ -79,13 +77,13 @@ class TestsFlextCliPromptsPart01:
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that confirm accepts yes no default and invalid retry."""
-        prompts = make_prompts(inputs=["", "y", "n", "maybe", "yes"])
-        tm.that(prompts.confirm("Continue?", default=True).value, eq=True)
-        tm.that(prompts.confirm("Continue?", default=False).value, eq=True)
-        tm.that(prompts.confirm("Continue?", default=True).value, eq=False)
+        prompts = make_prompts(inputs=["", "y", "n", "maybe", c.ParserBooleanToken.YES])
+        tm.ok(prompts.confirm("Continue?", default=True).value)
+        tm.ok(prompts.confirm("Continue?", default=False).value)
+        tm.fail(prompts.confirm("Continue?", default=True).value)
         retry_result = prompts.confirm("Continue?", default=False)
         tm.ok(retry_result)
-        tm.that(retry_result.value, eq=True)
+        tm.ok(retry_result.value)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -121,5 +119,4 @@ class TestsFlextCliPromptsPart01:
         tm.fail(short_result)
         valid_prompts = make_prompts(password=valid_secret)
         valid_result = valid_prompts.prompt_password("Password:", min_length=8)
-        tm.ok(valid_result)
-        tm.that(valid_result.value, eq=valid_secret)
+        tm.ok(valid_result, eq=valid_secret)
