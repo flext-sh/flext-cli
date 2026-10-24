@@ -200,11 +200,14 @@ class TestsFlextCliYamlRoundtripConvert:
     @staticmethod
     def test_deep_to_commented_quotes_yaml_11_tokens() -> None:
         """Verify that deep to commented quotes yaml 11 tokens."""
-        node = u.Cli.yaml_deep_to_commented({"flag": "yes", "name": "web"})
+        node = u.Cli.yaml_deep_to_commented({
+            "flag": c.ParserBooleanToken.YES,
+            "name": "web",
+        })
 
         dumped = u.Cli.yaml_roundtrip_dump_text(node).unwrap()
 
-        tm.that(dumped, has='flag: "yes"')
+        tm.that(dumped, has="flag: c.ParserBooleanToken.YES")
         tm.that(dumped, has="name: web")
 
     @staticmethod

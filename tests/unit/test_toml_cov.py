@@ -181,7 +181,7 @@ class TestsFlextCliTomlCov:
     @staticmethod
     def test_write_mapping_round_trips_through_read(tmp_path: Path) -> None:
         """Verify that write mapping round trips through read."""
-        payload: t.JsonMapping = {"key": "value", "count": 7}
+        payload: t.JsonMapping = {"key": "value", c.Aggregation.COUNT: 7}
         path = tmp_path / "out.toml"
 
         result = u.Cli.toml_write_mapping(path, payload)

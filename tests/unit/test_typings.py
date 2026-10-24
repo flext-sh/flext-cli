@@ -65,7 +65,7 @@ class TestsFlextCliTypings:
         tm.ok(result == payload)
 
     @staticmethod
-    @pytest.mark.parametrize("payload", [["a", "list"], "string", 42, True])
+    @pytest.mark.parametrize("payload", [["a", c.Action.LIST], "string", 42, True])
     def test_json_mapping_adapter_rejects_non_mappings(
         payload: t.JsonValue,
     ) -> None:
@@ -160,6 +160,8 @@ class TestsFlextCliTypings:
         adapter: t.ValueAdapter[Sequence[t.MappingKV[str, str | int]]] = u.type_adapter(
             Sequence[t.MappingKV[str, str | int]],
         )
-        validated = adapter.validate_python([{"name": "entry", "count": 1}])
-        expected: list[t.MappingKV[str, str | int]] = [{"name": "entry", "count": 1}]
+        validated = adapter.validate_python([{"name": "entry", c.Aggregation.COUNT: 1}])
+        expected: list[t.MappingKV[str, str | int]] = [
+            {"name": "entry", c.Aggregation.COUNT: 1}
+        ]
         tm.that(validated, eq=expected)

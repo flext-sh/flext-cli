@@ -67,7 +67,7 @@ class TestsFlextCliConstantsYamlOutput:
         t.VariadicTuple[t.Triple[t.StrSequence, t.VariadicTuple[t.StrSequence], str]]
     ] = (
         (("Name", "Value"), (("foo", "bar"), ("baz", "qux")), "My Table"),
-        (("A",), (("1",),), ""),
+        (("A",), ((c.ParserBooleanToken.ONE,),), ""),
         (("X", "Y", "Z"), (), "Empty"),
     )
 

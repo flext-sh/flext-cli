@@ -16,7 +16,7 @@ import os
 import sys
 from collections.abc import Mapping, Sequence
 
-from tests import m, tm, u
+from tests import c, m, tm, u
 
 _MARKER = "FLEXT_CLI_CHILD_ENV_PROBE"
 _ECHO = "import os,sys; sys.stdout.write(os.environ.get(sys.argv[1], '<unset>'))"
@@ -96,7 +96,10 @@ class TestsFlextCliRuntimeChildEnvironment:
         """Test removal wins over an inherited value with overrides present."""
         probe = TestsFlextCliRuntimeChildEnvironment._echo(
             _MARKER,
-            env={_MARKER: "inherited", "FLEXT_CLI_CHILD_ENV_OTHER": "1"},
+            env={
+                _MARKER: "inherited",
+                "FLEXT_CLI_CHILD_ENV_OTHER": c.ParserBooleanToken.ONE,
+            },
             remove_env_keys=(_MARKER,),
         )
 

@@ -15,7 +15,7 @@ from typing import override
 import pytest
 
 from flext_cli import cli
-from tests import h, m, p, r, s, t, tm, u
+from tests import c, h, m, p, r, s, t, tm, u
 
 
 @pytest.mark.usefixtures("preserve_logging")
@@ -114,7 +114,16 @@ class TestsFlextCliServiceRoutes:
         app = self._app(self.Greeter)
 
         outcome = tm.ok(
-            cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "0"]),
+            cli.invoke_app(
+                app,
+                args=[
+                    "greet-all",
+                    "--name",
+                    "ana",
+                    "--times",
+                    c.ParserBooleanToken.ZERO,
+                ],
+            ),
         )
 
         tm.fail(u.Cli.process_succeeded(outcome.outcome))
@@ -142,7 +151,16 @@ class TestsFlextCliServiceRoutes:
         """Ingress rejects the request before the unavailable provider is called."""
         app = self._app(self._unconfigured)
         outcome = tm.ok(
-            cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "0"]),
+            cli.invoke_app(
+                app,
+                args=[
+                    "greet-all",
+                    "--name",
+                    "ana",
+                    "--times",
+                    c.ParserBooleanToken.ZERO,
+                ],
+            ),
         )
         tm.fail(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stderr, has="greater than or equal to 1")

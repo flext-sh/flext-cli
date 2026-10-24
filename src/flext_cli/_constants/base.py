@@ -14,7 +14,7 @@ import re
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_core import t
+from flext_core import c, t
 
 
 class FlextCliConstantsBase:
@@ -62,7 +62,7 @@ class FlextCliConstantsBase:
     PATH_FLEXT_DIR_NAME: ClassVar[str] = ".flext"
 
     DICT_KEY_STATUS: ClassVar[str] = "status"
-    DICT_KEY_COMMAND: ClassVar[str] = "command"
+    DICT_KEY_COMMAND: ClassVar[str] = c.HandlerType.COMMAND
     DICT_KEY_MESSAGE: ClassVar[str] = "message"
     DICT_KEY_APP_NAME: ClassVar[str] = "app_name"
     DICT_KEY_INITIALIZED: ClassVar[str] = "initialized"

@@ -77,7 +77,7 @@ class TestsFlextCliPromptsPart01:
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that confirm accepts yes no default and invalid retry."""
-        prompts = make_prompts(inputs=["", "y", "n", "maybe", "yes"])
+        prompts = make_prompts(inputs=["", "y", "n", "maybe", c.ParserBooleanToken.YES])
         tm.ok(prompts.confirm("Continue?", default=True).value)
         tm.ok(prompts.confirm("Continue?", default=False).value)
         tm.fail(prompts.confirm("Continue?", default=True).value)

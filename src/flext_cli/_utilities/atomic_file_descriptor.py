@@ -13,6 +13,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 
+from flext_core import c
+
 from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
 from flext_cli._utilities.atomic_parent_descriptor import (
     FlextCliUtilitiesAtomicParentDescriptor,
@@ -168,7 +170,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
                 descriptor,
                 path,
                 operation_error,
-                label="operation",
+                label=c.HandlerType.OPERATION,
             )
             raise
         os.close(descriptor)
@@ -254,7 +256,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
             # CPython exposes ``src_dir_fd``/``dst_dir_fd`` on ``os.replace`` via
             # the same renameat primitive as ``os.rename``, but records only
             # ``os.rename`` in ``supports_dir_fd`` on supported POSIX runtimes.
-            operations.append(("replace", os.rename))
+            operations.append((c.MergeStrategy.REPLACE, os.rename))
         if unlink:
             operations.append(("unlink", os.unlink))
         missing = [

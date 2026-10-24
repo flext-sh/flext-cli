@@ -1,5 +1,7 @@
 """Strict scalar aliases for the generic XLSX boundary.
 
+Validation types retain the XLSX wire vocabulary, independent of CQRS actions.
+
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """

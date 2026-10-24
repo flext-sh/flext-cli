@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import m, tm, u
+from tests import c, m, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -119,7 +119,7 @@ class TestsFlextCliRuntimeUtilitiesExtra:
     ) -> None:
         # Arrange — nested path whose parents do not yet exist
         """Verify that run to file creates missing parent directories."""
-        output_file = tmp_path / "nested" / "deep" / "output.txt"
+        output_file = tmp_path / "nested" / c.MergeStrategy.DEEP / "output.txt"
 
         # Act
         result = u.Cli().run_to_file(["echo", "nested"], output_file)

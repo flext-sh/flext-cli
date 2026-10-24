@@ -30,14 +30,14 @@ class TestsFlextCliPublicContractsCoveragePart02:
             ),
             duration=0.25,
         )
-        display = m.Cli.DisplayData(data={"name": "flext", "count": 1})
+        display = m.Cli.DisplayData(data={"name": "flext", c.Aggregation.COUNT: 1})
         loaded = m.Cli.LoadedConfig(content={"debug": True})
         normalized = m.Cli.CliNormalizedJson({"name": "flext"})
         summary = m.Cli.SuccessSummaryDetails({"status": "ok"})
         prompt_state = m.Cli.PromptRuntimeState(quiet=True)
         auth = m.Cli.AuthCredentialsPayload(token=c.Tests.AUTH_VALUE_SAMPLE)
         environment = m.Cli.ProcessEnvironmentSpec(
-            base_env={"KEEP": "1", "DROP": "2"},
+            base_env={"KEEP": c.ParserBooleanToken.ONE, "DROP": "2"},
             overrides={"ADD": "3"},
             remove_keys=("DROP",),
         )
@@ -73,7 +73,7 @@ class TestsFlextCliPublicContractsCoveragePart02:
             abs(output.duration - 0.25) < c.Tests.COMMAND_DURATION_TOLERANCE,
             eq=True,
         )
-        expected_display: t.JsonMapping = {"name": "flext", "count": 1}
+        expected_display: t.JsonMapping = {"name": "flext", c.Aggregation.COUNT: 1}
         tm.that(display.model_dump(), eq=expected_display)
         tm.that(loaded.content, eq={"debug": True})
         tm.that(normalized.model_dump(), eq={"name": "flext"})
@@ -81,16 +81,18 @@ class TestsFlextCliPublicContractsCoveragePart02:
         tm.that(
             m.Cli.NormalizedJsonList(
                 value="plain-text",
-                default={"fallback": "yes"},
+                default={"fallback": c.ParserBooleanToken.YES},
             ).resolved,
-            eq={"fallback": "yes"},
+            eq={"fallback": c.ParserBooleanToken.YES},
         )
         tm.that(summary.root, eq={"status": "ok"})
         tm.ok(prompt_state.interactive)
         tm.ok(prompt_state.quiet)
         tm.that(auth.token, eq=c.Tests.AUTH_VALUE_SAMPLE)
-        tm.that(environment.resolve(), eq={"KEEP": "1", "ADD": "3"})
-        tm.that(environment.resolved, eq={"KEEP": "1", "ADD": "3"})
+        tm.that(
+            environment.resolve(), eq={"KEEP": c.ParserBooleanToken.ONE, "ADD": "3"}
+        )
+        tm.that(environment.resolved, eq={"KEEP": c.ParserBooleanToken.ONE, "ADD": "3"})
         tm.that(entry.name, eq="inspect")
         tm.that(route.success_type, eq=c.Cli.MessageTypes.SUCCESS)
         tm.that(table.table_backend_format, eq=c.Cli.TabularFormat.SIMPLE)

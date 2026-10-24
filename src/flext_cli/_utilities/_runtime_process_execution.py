@@ -21,7 +21,6 @@ from typing import TYPE_CHECKING, BinaryIO, ClassVar, Literal
 if sys.platform == "linux":
     import fcntl
 
-from flext_core import u as core_u
 
 from flext_cli import c, m, p, r, t
 from flext_cli._config import config
@@ -702,7 +701,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         report = m.Cli.ProcessNativeQualificationReport[
             t.JsonValue, t.JsonValue, t.JsonValue
         ].model_validate_json(qualification.issuer_receipt.content)
-        evidence = core_u.dump(
+        evidence = u.dump(
             qualification,
             options=m.ModelDumpOptions(exclude={"issuer_receipt", "artifact"}),
         )
@@ -710,7 +709,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             item
             for receipt in report.receipts
             for item in receipt.native_tool_qualifications
-            if core_u.dump(item) == evidence
+            if u.dump(item) == evidence
         )
         if len(matches) != 1:
             msg = (

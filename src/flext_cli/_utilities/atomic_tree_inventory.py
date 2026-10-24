@@ -10,7 +10,7 @@ import errno
 import os
 import stat
 from bisect import bisect_left
-from collections.abc import Generator
+from collections.abc import Generator, Iterable
 from contextlib import contextmanager
 from itertools import chain
 from pathlib import Path
@@ -44,7 +44,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def directory_membership_value(
         inventory: m.Cli.AtomicDirectoryInventory,
         excluded_names: t.StrTuple,
-    ) -> t.MappingKV[str, Literal["directory", "file", "symlink", "other"]]:
+    ) -> t.MutableMappingKV[str, Literal["directory", "file", "symlink", "other"]]:
         """Evaluate the declared direct-child selection on a physical receipt.
 
         Returns:
@@ -105,116 +105,103 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ValueError: If original identity, query, or membership epochs disagree.
 
         """
-        directories: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
-        chains: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan] = {}
-        directory_queries: t.MutableMappingKV[
-            Path, set[t.Pair[str, Literal["exists", "isfile", "isdir"]]]
-        ] = {}
+        directories: t.MutableMappingKV[Path, list[m.Cli.AtomicDirectoryInventory]] = {}
+        chains: t.MutableMappingKV[Path, list[m.Cli.AtomicDirectoryChainPlan]] = {}
         for incoming in inventories:
-            path = incoming.root.path
-            previous = directories.get(path)
-            if previous is None:
-                directories[path] = incoming
-                directory_queries[path] = set(incoming.queries)
-                continue
-            cls._require_directory_identity(
-                previous.root,
-                incoming.root,
-                f"source directory query epochs disagree: {path}",
-            )
-            # Copies of one immutable receipt share their exact child inventory.
-            # Queried aliases must still take the native rejection path below.
-            shared_entries = previous.entries is incoming.entries and all(
-                item.kind != "symlink" for item in previous.entries
-            )
-            if not shared_entries and any(
-                cls.directory_query_value(previous, name, predicate)
-                != cls.directory_query_value(incoming, name, predicate)
-                for name, predicate in chain(directory_queries[path], incoming.queries)
-            ):
-                msg = f"source directory query epochs disagree: {path}"
-                raise ValueError(msg)
-            if previous.entries is not incoming.entries and any(
-                cls.directory_membership_value(previous, selection)
-                != cls.directory_membership_value(incoming, selection)
-                for selection in (
-                    *(
-                        ((),)
-                        if previous.membership_queried or incoming.membership_queried
-                        else ()
-                    ),
-                    *previous.membership_queries,
-                    *incoming.membership_queries,
-                )
-            ):
-                msg = f"source directory membership epochs disagree: {path}"
-                raise ValueError(msg)
-            directory_queries[path].update(incoming.queries)
-            membership_queried = (
-                previous.membership_queried or incoming.membership_queried
-            )
-            membership_queries = (
-                previous.membership_queries
-                if incoming.membership_queries == previous.membership_queries
-                else tuple(
-                    sorted({*previous.membership_queries, *incoming.membership_queries})
-                )
-            )
-            if (
-                membership_queried == previous.membership_queried
-                and membership_queries == previous.membership_queries
-            ):
-                continue
-            directories[path] = previous.model_copy(
-                update={
-                    "membership_queried": membership_queried,
-                    "membership_queries": membership_queries,
-                }
-            )
+            directories.setdefault(incoming.root.path, []).append(incoming)
         for incoming in topology:
-            previous = chains.get(incoming.target)
-            if previous is None:
-                chains[incoming.target] = incoming
-                continue
-            if previous.model_dump(
-                exclude={"queries", "membership_queried", "membership_queries"}
-            ) != incoming.model_dump(
-                exclude={"queries", "membership_queried", "membership_queries"}
-            ):
-                msg = f"source directory ancestry epochs disagree: {incoming.target}"
-                raise ValueError(msg)
-            queries = tuple(sorted({*previous.queries, *incoming.queries}))
-            membership_queried = (
-                previous.membership_queried or incoming.membership_queried
+            chains.setdefault(incoming.target, []).append(incoming)
+        directory_receipts: list[m.Cli.AtomicDirectoryInventory] = []
+        for path, originals in directories.items():
+            previous = originals[0]
+            queries = tuple(
+                sorted({query for item in originals for query in item.queries})
             )
+            membership_queried = any(item.membership_queried for item in originals)
             membership_queries = tuple(
-                sorted({*previous.membership_queries, *incoming.membership_queries})
+                sorted({
+                    selection
+                    for item in originals
+                    for selection in item.membership_queries
+                })
             )
-            if (
-                queries == previous.queries
+            selections = (*(((),) if membership_queried else ()), *membership_queries)
+            for incoming in originals:
+                cls._require_directory_identity(
+                    previous.root,
+                    incoming.root,
+                    f"source directory query epochs disagree: {path}",
+                )
+                if any(
+                    cls.directory_query_value(previous, name, predicate)
+                    != cls.directory_query_value(incoming, name, predicate)
+                    for name, predicate in queries
+                ):
+                    msg = f"source directory query epochs disagree: {path}"
+                    raise ValueError(msg)
+                if any(
+                    cls.directory_membership_value(previous, selection)
+                    != cls.directory_membership_value(incoming, selection)
+                    for selection in selections
+                ):
+                    msg = f"source directory membership epochs disagree: {path}"
+                    raise ValueError(msg)
+            directory_receipts.append(
+                previous
+                if queries == previous.queries
                 and membership_queried == previous.membership_queried
                 and membership_queries == previous.membership_queries
-            ):
-                continue
-            chains[incoming.target] = previous.model_copy(
-                update={
-                    "queries": queries,
-                    "membership_queried": membership_queried,
-                    "membership_queries": membership_queries,
-                }
-            )
-        # Each selector set only grows from its elected receipt's unique queries.
-        return (
-            tuple(
-                previous
-                if len(directory_queries[path]) == len(previous.queries)
-                else previous.model_copy(
-                    update={"queries": tuple(sorted(directory_queries[path]))}
+                else m.Cli.AtomicDirectoryInventory(
+                    root=previous.root,
+                    entries=previous.entries,
+                    queries=queries,
+                    membership_queried=membership_queried,
+                    membership_queries=membership_queries,
                 )
-                for path, previous in directories.items()
-            ),
-            tuple(chains.values()),
-        )
+            )
+        topology_receipts: list[m.Cli.AtomicDirectoryChainPlan] = []
+        for target, witnesses in chains.items():
+            previous = witnesses[0]
+            if any(
+                previous.target != incoming.target
+                or previous.anchor_path != incoming.anchor_path
+                or previous.anchor_device != incoming.anchor_device
+                or previous.anchor_inode != incoming.anchor_inode
+                or previous.anchor_ancestry != incoming.anchor_ancestry
+                or previous.directories != incoming.directories
+                for incoming in witnesses
+            ):
+                msg = f"source directory ancestry epochs disagree: {target}"
+                raise ValueError(msg)
+            queries = tuple(
+                sorted({query for item in witnesses for query in item.queries})
+            )
+            membership_queried = any(item.membership_queried for item in witnesses)
+            membership_queries = tuple(
+                sorted({
+                    selection
+                    for item in witnesses
+                    for selection in item.membership_queries
+                })
+            )
+            topology_receipts.append(
+                previous
+                if queries == previous.queries
+                and membership_queried == previous.membership_queried
+                and membership_queries == previous.membership_queries
+                else m.Cli.AtomicDirectoryChainPlan(
+                    target=previous.target,
+                    anchor_path=previous.anchor_path,
+                    anchor_device=previous.anchor_device,
+                    anchor_inode=previous.anchor_inode,
+                    anchor_ancestry=previous.anchor_ancestry,
+                    directories=previous.directories,
+                    queries=queries,
+                    membership_queried=membership_queried,
+                    membership_queries=membership_queries,
+                )
+            )
+        return tuple(directory_receipts), tuple(topology_receipts)
 
     @staticmethod
     def _require_directory_identity(
@@ -247,13 +234,15 @@ class FlextCliUtilitiesAtomicTreeInventory:
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
         observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
         | None = None,
+        topology_observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan]
+        | None = None,
     ) -> bool:
         """Reprove consumed elections, allowing only supplied physical own effects.
 
         One verification boundary may share one native observation per physical
-        directory through ``observations``. The boundary captures each directory
-        exactly once, and the store never outlives the boundary, so no receipt is
-        replayed across boundaries.
+        directory through ``observations`` and one native ancestry observation per
+        target through ``topology_observations``. Neither store outlives that
+        boundary. Every original receipt is compared, including shared targets.
 
         Returns:
             True when every consumed query and physical identity still agrees.
@@ -268,6 +257,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
         boundary: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = (
             {} if observations is None else observations
         )
+        topology_boundary: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan] = (
+            {} if topology_observations is None else topology_observations
+        )
         published = {before.path: (before, after) for before, after in publications}
         created = {item.path: item for item in directory_publications}
         if len(published) != len(publications) or any(
@@ -276,7 +268,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
             msg = "directory query publication identities disagree"
             raise ValueError(msg)
         ancestors = cls._published_ancestors(publications)
-        cls._verify_query_topology(topology, publications, published, created, boundary)
+        cls._verify_query_topology(
+            topology, published, created, boundary, topology_boundary
+        )
         for expected in inventories:
             observed = cls._observe_physical_directory(boundary, expected.root.path)
             cls._require_directory_identity(
@@ -322,7 +316,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ):
                 cls._verify_query_membership(
                     observed,
-                    dict(cls.directory_membership_value(expected, selection)),
+                    cls.directory_membership_value(expected, selection),
                     publications,
                     created,
                     selection,
@@ -331,9 +325,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
     @staticmethod
     def _published_ancestors(
-        publications: t.VariadicTuple[
-            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
-        ],
+        publications: Iterable[t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]],
     ) -> t.MappingKV[Path, None]:
         """Return every ancestor path already held by a published file.
 
@@ -391,26 +383,31 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def _verify_query_topology(
         cls,
         topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
-        publications: t.VariadicTuple[
-            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
-        ],
         published: t.MappingKV[
             Path, t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
         ],
         created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
         observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory],
+        topology_observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan],
     ) -> None:
         """Reprove absent-parent elections against the original native ancestry.
+
+        The authenticated publication index supplies both file effects and their
+        ancestors; no parallel transport of the same effects is needed.
 
         Raises:
             ValueError: If ancestry or an absent candidate changed unexpectedly.
 
         """
+        publications = published.values()
         ancestors = cls._published_ancestors(publications)
         for witness in topology:
-            observed = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(
-                witness.target
-            )
+            observed = topology_observations.get(witness.target)
+            if observed is None:
+                observed = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(
+                    witness.target
+                )
+                topology_observations[witness.target] = observed
             gained = witness.directories[
                 : max(0, len(witness.directories) - len(observed.directories))
             ]
@@ -467,9 +464,10 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     if value != cls.directory_query_value(inventory, name, predicate):
                         msg = f"absent source candidate changed: {path}"
                         raise ValueError(msg)
-                if witness.membership_queried:
-                    cls._verify_query_membership(inventory, {}, publications, created)
-                for selection in witness.membership_queries:
+                for selection in (
+                    *(((),) if witness.membership_queried else ()),
+                    *witness.membership_queries,
+                ):
                     cls._verify_query_membership(
                         inventory, {}, publications, created, selection
                     )
@@ -481,9 +479,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         members: t.MutableMappingKV[
             str, Literal["directory", "file", "symlink", "other"]
         ],
-        publications: t.VariadicTuple[
-            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
-        ],
+        publications: Iterable[t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]],
         created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
         excluded_names: t.StrTuple = (),
     ) -> None:

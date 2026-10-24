@@ -15,7 +15,7 @@ from openpyxl.styles import Font
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.worksheet import Worksheet
 
-from tests import m, tm, u
+from tests import c, m, tm, u
 
 
 def _defined_name_workbook() -> bytes:
@@ -200,7 +200,9 @@ def _typed_runtime_plan(style_name: str) -> m.Cli.XlsxWorkbookPlan:
                     validations=(
                         m.Cli.XlsxListValidationPlan(
                             area=value_area,
-                            source=m.Cli.XlsxInlineListSource(values=("1", "2")),
+                            source=m.Cli.XlsxInlineListSource(
+                                values=(c.ParserBooleanToken.ONE, "2")
+                            ),
                             messages=m.Cli.XlsxValidationMessages(),
                         ),
                     ),

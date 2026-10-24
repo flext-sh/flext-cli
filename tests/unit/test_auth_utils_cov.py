@@ -112,7 +112,7 @@ class TestsFlextCliAuthUtilsCov:
     def test_extract_token_returns_token_from_mapping() -> None:
         # Arrange
         """Verify that extract token returns token from mapping."""
-        token = "t" + "1" * 12
+        token = "t" + c.ParserBooleanToken.ONE * 12
         payload: t.JsonDict = {c.Cli.DICT_KEY_LOGIN_FIELD: token}
 
         # Act

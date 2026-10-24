@@ -256,7 +256,7 @@ class TestsFlextCliYamlSerialization:
     @staticmethod
     def test_yaml_dump_str_roundtrips_through_parse() -> None:
         """Verify that yaml dump str roundtrips through parse."""
-        payload: t.JsonMapping = {"hello": "world", "count": 3}
+        payload: t.JsonMapping = {"hello": "world", c.Aggregation.COUNT: 3}
 
         text = u.Cli.yaml_dump_str(payload)
 

@@ -49,6 +49,13 @@
 
 **Contributing guidelines and development workflow for flext-cli.**
 
+Native directory-query verification may share fresh physical directory and
+ancestry observations within one caller-owned verification boundary. The caller
+must own and discard both stores at that boundary; neither store authenticates
+an original receipt. Every supplied receipt still undergoes its original native
+identity, negative-query, membership and publication-effect comparisons. Failed
+native observations are propagated, not stored as substitute receipts.
+
 **Last Updated**: 2026-09-17 | **Version**: 0.12.0
 
 ---

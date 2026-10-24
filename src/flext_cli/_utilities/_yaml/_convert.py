@@ -2,6 +2,7 @@
 
 Plain<->commented conversions and ruamel scalar normalization. Composed into
 ``FlextCliUtilitiesYaml`` via MRO in ``yaml.py``.
+Boolean token reuse depends on the public upstream Core constants owner.
 
 NOTE (multi-agent): mro-i6nq.13 — extracted from the removed
 ``_yaml_roundtrip_parts/..._part_01`` (conversion half). The engine +
@@ -24,6 +25,7 @@ from typing import (
     overload,
 )
 
+from flext_core import c
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString, LiteralScalarString
 
@@ -41,13 +43,13 @@ class FlextCliUtilitiesYamlConvertMixin:
 
     _YAML_1_1_IMPLICIT_STRING_VALUES = frozenset({
         "y",
-        "yes",
+        c.ParserBooleanToken.YES,
         "n",
-        "no",
-        "true",
-        "false",
-        "on",
-        "off",
+        c.ParserBooleanToken.NO,
+        c.ParserBooleanToken.TRUE,
+        c.ParserBooleanToken.FALSE,
+        c.ParserBooleanToken.ON,
+        c.ParserBooleanToken.OFF,
         "null",
         "~",
     })

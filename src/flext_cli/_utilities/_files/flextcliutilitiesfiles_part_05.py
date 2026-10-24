@@ -219,14 +219,16 @@ class FlextCliUtilitiesFilesPart05:
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
         observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
         | None = None,
+        topology_observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan]
+        | None = None,
     ) -> p.Result[bool]:
         """Verify native source queries without authorizing publication effects.
 
         One verification boundary may share one native observation per physical
-        directory through ``observations``. Successful inventories are shared only
+        directory through ``observations`` and one ancestry observation per target
+        through ``topology_observations``. Successful observations are shared only
         within that boundary; a failed capture remains a native exception, never
-        an empty substitute. The store never outlives the boundary, so no receipt
-        is replayed across boundaries.
+        an empty substitute. Neither store outlives the boundary.
 
         Returns:
             A successful result when all consumed native queries still agree.
@@ -239,6 +241,7 @@ class FlextCliUtilitiesFilesPart05:
                 publications,
                 directory_publications,
                 observations,
+                topology_observations,
             )
         )
 

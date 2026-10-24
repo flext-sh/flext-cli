@@ -31,7 +31,16 @@ class FlextCliUtilitiesAtomicFileState:
         owner_uid: int | None = None,
         max_bytes: int | None = None,
     ) -> tuple[os.stat_result | None, os.stat_result | None, bytes | None]:
-        """Return the original authenticated parent, leaf and bytes or exact absence."""
+        """Read original authenticated parent, leaf and bytes, or exact absence.
+
+        Optional reads accept an unmaterialized parent; required reads demand a
+        physical parent and leaf. Ownership and size are checked before reading,
+        then size and descriptor-bound currentness are checked after reading.
+
+        Returns:
+            The original parent state, leaf state and bytes, or exact absence.
+
+        """
         with FlextCliUtilitiesAtomicFileState.authenticated_entry(
             path, required=required, owner_uid=owner_uid, max_bytes=max_bytes
         ) as (parent, state):
@@ -59,7 +68,15 @@ class FlextCliUtilitiesAtomicFileState:
             os.stat_result | None,
         ]
     ]:
-        """Retain one checked parent and leaf for the complete read operation."""
+        """Retain one checked parent and leaf for the complete read operation.
+
+        Yields:
+            Checked parent and leaf, both absent for an optional missing parent.
+
+        Raises:
+            FileNotFoundError: If a required read finds the leaf missing.
+
+        """
         validated = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         if (
             not required
@@ -118,14 +135,24 @@ class FlextCliUtilitiesAtomicFileState:
         state: os.stat_result,
         owner_uid: int | None,
     ) -> None:
-        """Reject one authenticated entry owned by another uid."""
+        """Reject one authenticated entry owned by another uid.
+
+        Raises:
+            PermissionError: If the authenticated owner differs from the required uid.
+
+        """
         if owner_uid is not None and state.st_uid != owner_uid:
             message = f"atomic path owner {state.st_uid} is not {owner_uid}: {path}"
             raise PermissionError(errno.EPERM, message, path)
 
     @staticmethod
     def _require_size(path: Path, size: int, max_bytes: int | None) -> None:
-        """Reject one leaf larger than the declared bound."""
+        """Reject one leaf larger than the declared bound.
+
+        Raises:
+            OSError: If the authenticated size exceeds the declared bound.
+
+        """
         if max_bytes is not None and size > max_bytes:
             message = f"atomic file exceeds {max_bytes} bytes: {path}"
             raise OSError(errno.EFBIG, message, path)

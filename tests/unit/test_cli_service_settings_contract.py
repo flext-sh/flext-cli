@@ -55,7 +55,7 @@ class TestsFlextCliServiceSettingsContract:
             event_dict: p.LoggingEvent,
         ) -> p.LoggingEvent:
             _ = logger, method_name
-            if event_dict["event"] == "cli-native-event":
+            if event_dict[c.HandlerType.EVENT] == "cli-native-event":
                 stages.append("processed")
                 event_dict["application_stage"] = "selected"
             return event_dict
@@ -143,7 +143,9 @@ class TestsFlextCliServiceSettingsContract:
         ]
         tm.that(
             len([
-                event for event in native_events if event["event"] == "cli-native-event"
+                event
+                for event in native_events
+                if event[c.HandlerType.EVENT] == "cli-native-event"
             ]),
             eq=len(emitted),
         )
@@ -398,4 +400,4 @@ class TestsFlextCliServiceSettingsContract:
             tm.that(outcome.stdout, has=["actual", "result"])
         if profile == "json":
             diagnostic = m.ConfigMap.model_validate_json(outcome.stderr).root
-            tm.that(diagnostic["event"], eq="cli-only-diagnostic")
+            tm.that(diagnostic[c.HandlerType.EVENT], eq="cli-only-diagnostic")

@@ -41,7 +41,11 @@ class TestsFlextCliTables:
                 ("col", "val1", "val2"),
                 id="mapping-rows",
             ),
-            pytest.param({"a": 1, "b": 2}, ("a", "1", "b", "2"), id="mapping"),
+            pytest.param(
+                {"a": 1, "b": 2},
+                ("a", c.ParserBooleanToken.ONE, "b", "2"),
+                id="mapping",
+            ),
             pytest.param(
                 [["col1", "col2"], ["a", "b"]],
                 ("col1", "col2", "a", "b"),
@@ -63,7 +67,7 @@ class TestsFlextCliTables:
         """A single mapping plus list-based settings kwargs render successfully."""
         table: str = tm.ok(
             cli.format_table(
-                {"status": "ok", "count": 2},
+                {"status": "ok", c.Aggregation.COUNT: 2},
                 headers=["Field", "Value"],
                 colalign=["left", "right"],
                 table_format=c.Cli.TabularFormat.GRID,
@@ -283,13 +287,17 @@ class TestsFlextCliTables:
                 id="configured-title",
             ),
             pytest.param(
-                {"a": 1, "b": 2}, None, "keyword", ("a", "1"), id="mapping-output"
+                {"a": 1, "b": 2},
+                None,
+                "keyword",
+                ("a", c.ParserBooleanToken.ONE),
+                id="mapping-output",
             ),
             pytest.param(
                 {"a": 1, "b": 2},
                 "My Title",
                 "keyword",
-                ("My Title", "a", "1"),
+                ("My Title", "a", c.ParserBooleanToken.ONE),
                 id="keyword-title",
             ),
             pytest.param(

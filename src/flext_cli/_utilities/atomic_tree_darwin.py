@@ -1,4 +1,4 @@
-"""Descriptor-bound Darwin filesystem identity using the complete fsid_t.
+"""Descriptor-bound Darwin filesystem identity using the complete t.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

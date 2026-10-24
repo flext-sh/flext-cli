@@ -71,9 +71,9 @@ class TestsFlextCliPromptsCov:
         ("answer", "default", "expected"),
         [
             ("y", False, True),
-            ("yes", False, True),
+            (c.ParserBooleanToken.YES, False, True),
             ("n", True, False),
-            ("no", True, False),
+            (c.ParserBooleanToken.NO, True, False),
             ("", True, True),
             ("", False, False),
         ],

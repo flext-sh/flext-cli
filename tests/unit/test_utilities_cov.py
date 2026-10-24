@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import pytest
 
-from tests import t, tm, u
+from tests import c, t, tm, u
 
 
 def _raise_on_zero(value: int) -> int:
@@ -49,7 +49,7 @@ class TestsFlextCliUtilitiesCov:
         """Verify that process fails when processor raises."""
         result = u.process([1, 0], _raise_on_zero)
         tm.fail(result)
-        tm.that(result.error or "", has="0")
+        tm.that(result.error or "", has=c.ParserBooleanToken.ZERO)
 
     @staticmethod
     def test_process_fails_loud_stops_at_first_failure() -> None:

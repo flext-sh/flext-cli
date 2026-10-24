@@ -243,7 +243,7 @@ class TestsFlextCliCommands:
         tm.ok(records[0].exception is original_exception)
         tm.that("stack_trace" in records[0].context, eq=trace)
         native_event = m.ConfigMap.model_validate_json(native_stream.getvalue()).root
-        tm.that(native_event["event"], eq=result.error)
+        tm.that(native_event[c.HandlerType.EVENT], eq=result.error)
         tm.that(native_event["exception_type"], eq=type(original_exception).__name__)
         tm.that("stack_trace" in native_event, eq=trace)
         serialized = m.LoggingRecord.model_validate(records[0], from_attributes=True)

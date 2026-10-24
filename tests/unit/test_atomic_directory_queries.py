@@ -335,7 +335,7 @@ class TestsFlextCliAtomicDirectoryQueries:
             .get_stats_profile()
             .func_profiles["<built-in method builtins.sorted>"]
             .ncalls,
-            eq="1",
+            eq=c.ParserBooleanToken.ONE,
         )
 
     @staticmethod

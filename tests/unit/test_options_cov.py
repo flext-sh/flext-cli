@@ -380,7 +380,7 @@ class TestsFlextCliOptionsUtilsCov:
             return params.shout
 
         command = cli.model_command(self.GreetModel, _handler)
-        result = command(name="grace", shout="true")
+        result = command(name="grace", shout=c.ParserBooleanToken.TRUE)
 
         tm.ok(result)
 

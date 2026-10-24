@@ -170,7 +170,7 @@ class TestsFlextCliTomlUtilities:
         tmp_path: Path,
     ) -> None:
         """Verify that write document creates missing parent directories."""
-        toml_file = tmp_path / "nested" / "deep" / "file.toml"
+        toml_file = tmp_path / "nested" / c.MergeStrategy.DEEP / "file.toml"
         doc = u.Cli.toml_document()
         doc["key"] = "value"
 

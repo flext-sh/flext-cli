@@ -144,8 +144,10 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(stdout_file.read_bytes(), eq=payload)
         tm.that(stderr_file.read_bytes(), eq=payload[::-1])
         if live:
-            tm.that(captured.out, eq=payload.decode(errors="replace"))
-            tm.that(captured.err, eq=payload[::-1].decode(errors="replace"))
+            tm.that(captured.out, eq=payload.decode(errors=c.MergeStrategy.REPLACE))
+            tm.that(
+                captured.err, eq=payload[::-1].decode(errors=c.MergeStrategy.REPLACE)
+            )
         else:
             tm.that(captured.out, eq="")
             tm.that(captured.err, eq="")
@@ -366,7 +368,7 @@ class TestsFlextCliRuntimeStreamedProcess:
 
         tm.ok(result)
         tm.that(result.value.raw_return_code, eq=0)
-        tm.that(output_file.read_text(encoding="utf-8"), eq="0")
+        tm.that(output_file.read_text(encoding="utf-8"), eq=c.ParserBooleanToken.ZERO)
         tm.that(self._live_threads() - threads_before, empty=True)
 
     def test_child_early_exit_preserves_its_exact_status(self, tmp_path: Path) -> None:

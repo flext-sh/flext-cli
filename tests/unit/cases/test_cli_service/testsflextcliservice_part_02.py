@@ -64,7 +64,7 @@ class TestsFlextCliServicePart02:
         def handle(params: m.Tests.SampleInput) -> t.JsonValue:
             return {
                 "name": params.name,
-                "count": params.count,
+                c.Aggregation.COUNT: params.count,
                 "dry_run": params.dry_run,
                 "output_format": params.output_format,
             }
@@ -79,7 +79,7 @@ class TestsFlextCliServicePart02:
 
         expected: t.JsonMapping = {
             "name": "alice",
-            "count": 3,
+            c.Aggregation.COUNT: 3,
             "dry_run": True,
             "output_format": c.Cli.OutputFormats.JSON,
         }

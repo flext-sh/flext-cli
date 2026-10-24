@@ -42,6 +42,7 @@ from flext_cli._utilities import (
 from flext_cli._utilities._options.flextcliutilitiesoptions_part_02 import (
     FlextCliUtilitiesOptionsPart02,
 )
+from flext_cli._utilities.markdown import FlextCliUtilitiesMarkdown
 
 
 class FlextCliUtilitiesCli(
@@ -57,6 +58,7 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesFormatters,
     FlextCliUtilitiesFramework,
     FlextCliUtilitiesJson,
+    FlextCliUtilitiesMarkdown,
     FlextCliUtilitiesMatching,
     FlextCliUtilitiesOptionsPart02,
     FlextCliUtilitiesOutput,

@@ -42,8 +42,14 @@ class FlextCliConstantsOutput:
     PROMPT_SEP: ClassVar[str] = ": "
     PROMPT_LOG_FMT: ClassVar[str] = "User input for '{message}': {input}"
     PROMPT_SPACE: ClassVar[str] = " "
-    PROMPT_YES_VALUES: ClassVar[frozenset[str]] = frozenset({"y", "yes"})
-    PROMPT_NO_VALUES: ClassVar[frozenset[str]] = frozenset({"n", "no"})
+    PROMPT_YES_VALUES: ClassVar[frozenset[str]] = frozenset({
+        "y",
+        c.ParserBooleanToken.YES,
+    })
+    PROMPT_NO_VALUES: ClassVar[frozenset[str]] = frozenset({
+        "n",
+        c.ParserBooleanToken.NO,
+    })
 
     OUTPUT_EMPTY_STYLE: ClassVar[str] = ""
     OUTPUT_DEFAULT_MESSAGE_TYPE: ClassVar[FlextCliConstantsEnums.MessageTypes] = (
@@ -62,7 +68,7 @@ class FlextCliConstantsOutput:
     OUTPUT_SCOPE_WORKSPACE: ClassVar[str] = "workspace"
     OUTPUT_STATUS_FAIL: ClassVar[str] = "[FAIL]"
     OUTPUT_STATUS_OK: ClassVar[str] = "[OK]"
-    OUTPUT_SUMMARY_DEFAULT_VERB: ClassVar[str] = "summary"
+    OUTPUT_SUMMARY_DEFAULT_VERB: ClassVar[str] = c.MetricType.SUMMARY
     OUTPUT_EXECUTION_ERROR: ClassVar[str] = "execution error"
     OUTPUT_TABLE_ERROR_LABEL: ClassVar[str] = "[table error]"
     OUTPUT_TABLE_CONFIG_INVALID: ClassVar[str] = "Invalid table configuration"

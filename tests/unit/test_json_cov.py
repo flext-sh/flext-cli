@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import m, t, tm, u
+from tests import c, m, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -397,12 +397,23 @@ class TestsFlextCliJsonNavigation:
         expected: bool,
     ) -> None:
         """Verify that json pick bool coerces truthy variants."""
+        source: t.JsonDict = {
+            "t": True,
+            "f": False,
+            "s_true": c.ParserBooleanToken.TRUE,
+            "s_false": c.ParserBooleanToken.FALSE,
+            "s_yes": c.ParserBooleanToken.YES,
+            "s_no": c.ParserBooleanToken.NO,
+            "s_1": c.ParserBooleanToken.ONE,
+            "s_0": c.ParserBooleanToken.ZERO,
+            "s_on": c.ParserBooleanToken.ON,
+            "s_off": c.ParserBooleanToken.OFF,
+            "n": 1,
+            "n0": 0,
+            "missing": None,
+        }
         data = u.Cli.json_as_mapping(
-            u.Cli.json_loads(
-                '{"t": true, "f": false, "s_true": "true", "s_false": "false",'
-                ' "s_yes": "yes", "s_no": "no", "s_1": "1", "s_0": "0",'
-                ' "s_on": "on", "s_off": "off", "n": 1, "n0": 0, "missing": null}',
-            ).value,
+            u.Cli.json_loads(u.Cli.json_dumps(source).value).value,
         )
         tm.ok(u.Cli.json_pick_bool(data, key) is expected)
 
