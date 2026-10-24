@@ -142,7 +142,7 @@ class FlextCliModelsBasePart03:
             m.Field(..., description="Pydantic input model class"),
         ]
         handler: Annotated[
-            p.Cli.ResultRouteHandler,
+            t.Port[p.Cli.ResultRouteHandler],
             m.Field(..., description="Command handler returning r[...]"),
         ]
         success_message: Annotated[

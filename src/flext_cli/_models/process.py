@@ -356,16 +356,16 @@ class FlextCliModelsProcess:
             description="Mutable byte-exact captured stderr buffer.",
         )
         pump_streams: t.MutableSequenceOf[
-            t.Pair[threading.Thread, p.Cli.RuntimeClosableStream]
+            t.Pair[threading.Thread, t.Port[p.Cli.RuntimeClosableStream]]
         ] = m.Field(
             default_factory=list[t.Pair[threading.Thread, p.Cli.RuntimeClosableStream]],
             description="Owned output pump threads paired with their source streams.",
         )
-        input_pump: tuple[threading.Thread, p.Cli.RuntimeClosableStream] | None = (
-            m.Field(
-                default=None,
-                description="Owned stdin pump thread paired with its sink stream.",
-            )
+        input_pump: (
+            tuple[threading.Thread, t.Port[p.Cli.RuntimeClosableStream]] | None
+        ) = m.Field(
+            default=None,
+            description="Owned stdin pump thread paired with its sink stream.",
         )
         pump_stop: threading.Event = m.Field(
             default_factory=threading.Event,
