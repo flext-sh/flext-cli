@@ -7,10 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import m, p, t
-from flext_cli._utilities._pptx import (
-    FlextCliUtilitiesPptxReader,
-    FlextCliUtilitiesPptxRenderer,
-)
+from flext_cli._utilities import _pptx
 
 
 class FlextCliUtilitiesPptx:
@@ -24,7 +21,7 @@ class FlextCliUtilitiesPptx:
             The resulting ``p.Result[m.Cli.PptxPresentationPlan]``.
 
         """
-        return FlextCliUtilitiesPptxReader.read_presentation(source)
+        return _pptx.FlextCliUtilitiesPptxReader.read_presentation(source)
 
     @staticmethod
     def pptx_render(
@@ -36,7 +33,7 @@ class FlextCliUtilitiesPptx:
             The resulting ``p.Result[m.Cli.PptxRenderResult]``.
 
         """
-        return FlextCliUtilitiesPptxRenderer.render_presentation(request)
+        return _pptx.FlextCliUtilitiesPptxRenderer.render_presentation(request)
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesPptx",)

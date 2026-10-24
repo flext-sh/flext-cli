@@ -27,6 +27,9 @@ class FlextCliConstantsFiles:
     READ_FLAGS: ClassVar[int] = FlextCliUtilitiesAtomicFileRead.READ_FLAGS
     "Open flags for authenticated read-only descriptors of atomic files."
 
+    FILE_CHANGES_LOCK_TIMEOUT_SECONDS: ClassVar[float] = 1800.0
+    "Bounded wait for the exclusive lock serializing one file-change publication."
+
     @unique
     class WriteDurability(StrEnum):
         """Caller-declared durability of one atomic file publication.

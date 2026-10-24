@@ -49,6 +49,7 @@ if TYPE_CHECKING:
     from flext_cli._models.docx import FlextCliModelsDocx
     from flext_cli._models.docx_document import FlextCliModelsDocxDocument
     from flext_cli._models.docx_styles import FlextCliModelsDocxStyles
+    from flext_cli._models.file_change import FlextCliModelsFileChange
     from flext_cli._models.files import FlextCliModelsFiles
     from flext_cli._models.markdown import FlextCliModelsMarkdown
     from flext_cli._models.pipeline import FlextCliModelsPipeline
@@ -79,6 +80,7 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
     "FlextCliModelsDocxStyles",
+    "FlextCliModelsFileChange",
     "FlextCliModelsFiles",
     "FlextCliModelsMarkdown",
     "FlextCliModelsPipeline",
@@ -127,6 +129,7 @@ install_lazy_exports(
         "FlextCliModelsDocx": ".docx",
         "FlextCliModelsDocxDocument": ".docx_document",
         "FlextCliModelsDocxStyles": ".docx_styles",
+        "FlextCliModelsFileChange": ".file_change",
         "FlextCliModelsFiles": ".files",
         "FlextCliModelsMarkdown": ".markdown",
         "FlextCliModelsPipeline": ".pipeline",

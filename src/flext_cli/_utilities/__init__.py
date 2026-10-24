@@ -242,6 +242,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities.file_test_helpers import (
         FlextCliUtilitiesFileTestHelpersMixin,
     )
+    from flext_cli._utilities.file_changes import FlextCliUtilitiesFileChanges
     from flext_cli._utilities.files import FlextCliUtilitiesFiles
     from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
     from flext_cli._utilities.framework import FlextCliUtilitiesFramework
@@ -313,6 +314,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesFileTestHelpersMixin",
     "FlextCliUtilitiesFileTestHelpersMixinPart02",
     "FlextCliUtilitiesFileTestHelpersMixinPart04",
+    "FlextCliUtilitiesFileChanges",
     "FlextCliUtilitiesFiles",
     "FlextCliUtilitiesFilesPart01",
     "FlextCliUtilitiesFilesPart02",
@@ -468,6 +470,7 @@ install_lazy_exports(
         "FlextCliUtilitiesFileTestHelpersMixinPart04": (
             "._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_04"
         ),
+        "FlextCliUtilitiesFileChanges": ".file_changes",
         "FlextCliUtilitiesFiles": ".files",
         "FlextCliUtilitiesFilesPart01": "._files.flextcliutilitiesfiles_part_01",
         "FlextCliUtilitiesFilesPart02": "._files.flextcliutilitiesfiles_part_02",
