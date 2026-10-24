@@ -237,6 +237,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities.commands import FlextCliUtilitiesCommands
     from flext_cli._utilities.config import FlextCliUtilitiesConfig
     from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
+    from flext_cli._utilities.dag import FlextCliUtilitiesDag
     from flext_cli._utilities.docx import FlextCliUtilitiesDocx
     from flext_cli._utilities.env import FlextCliUtilitiesEnv
     from flext_cli._utilities.file_changes import FlextCliUtilitiesFileChanges
@@ -307,6 +308,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesCommands",
     "FlextCliUtilitiesConfig",
     "FlextCliUtilitiesConversion",
+    "FlextCliUtilitiesDag",
     "FlextCliUtilitiesDocx",
     "FlextCliUtilitiesDocxReader",
     "FlextCliUtilitiesDocxRenderer",
@@ -459,6 +461,7 @@ install_lazy_exports(
         "FlextCliUtilitiesCommands": ".commands",
         "FlextCliUtilitiesConfig": ".config",
         "FlextCliUtilitiesConversion": ".conversion",
+        "FlextCliUtilitiesDag": ".dag",
         "FlextCliUtilitiesDocx": ".docx",
         "FlextCliUtilitiesDocxReader": "._docx._reader",
         "FlextCliUtilitiesDocxRenderer": "._docx._renderer",
