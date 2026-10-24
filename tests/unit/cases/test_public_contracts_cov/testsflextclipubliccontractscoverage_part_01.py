@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing_extensions import TypeForm
+
 from flext_cli import FlextCliModels, FlextCliSettings, cli, settings
 from tests import c, m, p, tm, u
 
@@ -17,7 +19,7 @@ class TestsFlextCliPublicContractsCoveragePart01:
     def test_inherited_settings_preset_validates_and_round_trips() -> None:
         """The CLI model facade inherits a functioning settings preset."""
         instance = FlextCliModels.BaseSettings()
-        adapter = u.type_adapter(FlextCliModels.PydanticBaseSettings)
+        adapter = u.type_adapter(TypeForm(FlextCliModels.PydanticBaseSettings))
         tm.that(adapter.validate_python(instance) is instance, eq=True)
         restored = FlextCliModels.BaseSettings.model_validate_json(
             instance.model_dump_json()
@@ -27,8 +29,11 @@ class TestsFlextCliPublicContractsCoveragePart01:
     @staticmethod
     def test_inherited_settings_config_controls_environment_resolution() -> None:
         """Native settings configuration governs field resolution and overrides."""
-        prefix = m.Tests.InheritedSettings.model_config["env_prefix"]
-        case_sensitive = m.Tests.InheritedSettings.model_config["case_sensitive"]
+        settings_config = m.Tests.InheritedSettings.model_config
+        assert "env_prefix" in settings_config
+        assert "case_sensitive" in settings_config
+        prefix = settings_config["env_prefix"]
+        case_sensitive = settings_config["case_sensitive"]
         with u.Tests.env_vars_context(
             env_vars={
                 f"{prefix}topic": "from-environment",

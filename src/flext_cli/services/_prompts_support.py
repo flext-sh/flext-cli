@@ -33,10 +33,10 @@ class FlextCliPromptsSupport(s[p.Cli.RuntimeStatus]):
     state: Annotated[
         m.Cli.PromptRuntimeState,
         m.Field(description="Prompt runtime state for interaction behavior."),
-    ] = m.Field(m.Cli.PromptRuntimeState(), validate_default=True)
+    ] = m.Field(default_factory=m.Cli.PromptRuntimeState, validate_default=True)
 
     input_reader: Annotated[
-        t.Cli.PromptTextReader,
+        t.SkipJsonSchema[t.Cli.PromptTextReader],
         m.Field(
             description=(
                 "Text input port; reads the process stdin unless the embedding "
@@ -47,7 +47,7 @@ class FlextCliPromptsSupport(s[p.Cli.RuntimeStatus]):
     ] = m.Field(default_factory=FlextCliPromptInputReaderDefault, validate_default=True)
 
     password_reader: Annotated[
-        t.Cli.PromptTextReader,
+        t.SkipJsonSchema[t.Cli.PromptTextReader],
         m.Field(
             description=(
                 "Secret input port; reads the terminal without echo unless the "
@@ -81,7 +81,7 @@ class FlextCliPromptsSupport(s[p.Cli.RuntimeStatus]):
         """
         return u.Cli.cli_test_env(settings)
 
-    def _log(self, log_level: str, message: str, **context: t.LogValue) -> None:
+    def _log(self, log_level: str, message: str, **context: p.LogValue) -> None:
         match log_level:
             case c.LogLevel.DEBUG:
                 self.logger.debug(message, **context)
