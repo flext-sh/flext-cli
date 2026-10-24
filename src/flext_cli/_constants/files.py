@@ -30,6 +30,9 @@ class FlextCliConstantsFiles:
     FILE_CHANGES_LOCK_TIMEOUT_SECONDS: ClassVar[float] = 1800.0
     "Bounded wait for the exclusive lock serializing one file-change publication."
 
+    FILE_CHANGES_DIRECTORY_MODE: ClassVar[int] = 0o755
+    "Exact mode of parent directories a file-change publication creates."
+
     @unique
     class WriteDurability(StrEnum):
         """Caller-declared durability of one atomic file publication.

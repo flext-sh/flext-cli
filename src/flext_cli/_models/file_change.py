@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, Self
+from typing import Annotated, ClassVar, Self
 
 from flext_core import m
 
@@ -23,6 +23,8 @@ class FlextCliModelsFileChange:
         ``desired_content`` of ``None`` deletes the file; publication fails
         when the destination no longer matches ``before``.
         """
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
 
         path: Annotated[Path, m.Field(description="Absolute destination path")]
         before: Annotated[
