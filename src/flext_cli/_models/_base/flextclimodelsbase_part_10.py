@@ -27,17 +27,17 @@ class FlextCliModelsBasePart10:
         one instance and discards it when the boundary ends.
         """
 
-        directories: dict[Path, FlextCliModelsBasePart09.AtomicDirectoryInventory] = (
-            m.Field(
-                default_factory=dict,
-                description="One physical directory inventory per observed path",
-            )
+        directories: t.MutableMappingKV[
+            Path, FlextCliModelsBasePart09.AtomicDirectoryInventory
+        ] = m.Field(
+            default_factory=dict,
+            description="One physical directory inventory per observed path",
         )
-        topology: dict[Path, FlextCliModelsBasePart08.AtomicDirectoryChainPlan] = (
-            m.Field(
-                default_factory=dict,
-                description="One ancestry plan per observed target",
-            )
+        topology: t.MutableMappingKV[
+            Path, FlextCliModelsBasePart08.AtomicDirectoryChainPlan
+        ] = m.Field(
+            default_factory=dict,
+            description="One ancestry plan per observed target",
         )
 
     class AtomicDirectoryQueryEffects(m.BaseModel):

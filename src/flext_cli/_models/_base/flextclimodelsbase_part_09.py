@@ -159,7 +159,7 @@ class FlextCliModelsBasePart09:
 
         @m.model_validator(mode="after")
         def _validate_leaf(self) -> Self:
-            if self.name in {".", ".."} or Path(self.name).name != self.name:
+            if self.name in {".", ".."} or "/" in self.name:
                 msg = "atomic directory child must be one lexical name"
                 raise ValueError(msg)
             if (self.kind == "symlink") != (self.link_target is not None):
@@ -196,10 +196,7 @@ class FlextCliModelsBasePart09:
                 sorted(set(self.membership_queries))
             ) or any(
                 selection != tuple(sorted(set(selection)))
-                or any(
-                    name in {"", ".", ".."} or Path(name).name != name
-                    for name in selection
-                )
+                or any(name in {"", ".", ".."} or "/" in name for name in selection)
                 for selection in self.membership_queries
             ):
                 msg = "atomic membership selections require ordered lexical exclusions"
@@ -209,7 +206,7 @@ class FlextCliModelsBasePart09:
                 msg = "atomic directory inventory requires ordered unique children"
                 raise ValueError(msg)
             if self.queries != tuple(sorted(set(self.queries))) or any(
-                name in {"", ".", ".."} or Path(name).name != name
+                name in {"", ".", ".."} or "/" in name
                 for name, _predicate in self.queries
             ):
                 msg = "atomic directory queries require ordered lexical child names"

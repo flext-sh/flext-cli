@@ -143,7 +143,11 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 })
             )
             selections = (*(((),) if membership_queried else ()), *selected_membership)
-            for incoming in originals:
+            # Witnesses sharing one physical entry tuple answer every query
+            # identically; only distinct observations need comparison.
+            for incoming in {id(item.entries): item for item in originals}.values():
+                if incoming.entries is previous.entries:
+                    continue
                 cls._require_directory_identity(
                     previous.root,
                     incoming.root,
@@ -294,7 +298,15 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 observed.root,
                 f"source directory physical identity changed: {expected.root.path}",
             )
-            for name, predicate in expected.queries:
+            unchanged = (
+                not published
+                and not created
+                and observed.entries == expected.entries
+                and all(entry.kind != "symlink" for entry in expected.entries)
+            )
+            # An unchanged alias-free membership answers every query exactly as
+            # originally observed; no per-query evaluation is needed.
+            for name, predicate in () if unchanged else expected.queries:
                 value = cls.directory_query_value(expected, name, predicate)
                 effect = published.get(expected.root.path / name)
                 if effect is not None:
@@ -327,8 +339,12 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     )
                     raise ValueError(msg)
             for selection in (
-                *(((),) if expected.membership_queried else ()),
-                *expected.membership_queries,
+                ()
+                if unchanged
+                else (
+                    *(((),) if expected.membership_queried else ()),
+                    *expected.membership_queries,
+                )
             ):
                 cls._verify_query_membership(
                     observed,

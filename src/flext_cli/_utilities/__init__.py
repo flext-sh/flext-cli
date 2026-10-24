@@ -246,6 +246,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
     from flext_cli._utilities.framework import FlextCliUtilitiesFramework
     from flext_cli._utilities.json import FlextCliUtilitiesJson
+    from flext_cli._utilities.markdown import FlextCliUtilitiesMarkdown
     from flext_cli._utilities.matching import FlextCliUtilitiesMatching
     from flext_cli._utilities.output import FlextCliUtilitiesOutput
     from flext_cli._utilities.output_payloads import FlextCliUtilitiesOutputPayloads
@@ -324,6 +325,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesJson",
     "FlextCliUtilitiesJsonCoreMixin",
     "FlextCliUtilitiesJsonNavigateMixin",
+    "FlextCliUtilitiesMarkdown",
     "FlextCliUtilitiesMatching",
     "FlextCliUtilitiesOptionBuilder",
     "FlextCliUtilitiesOptionsPart01",
@@ -478,6 +480,7 @@ install_lazy_exports(
         "FlextCliUtilitiesJson": ".json",
         "FlextCliUtilitiesJsonCoreMixin": "._json._core",
         "FlextCliUtilitiesJsonNavigateMixin": "._json._navigate",
+        "FlextCliUtilitiesMarkdown": ".markdown",
         "FlextCliUtilitiesMatching": ".matching",
         "FlextCliUtilitiesOptionBuilder": (
             "._options.flextcliutilitiesoptionbuilder_part_01"
