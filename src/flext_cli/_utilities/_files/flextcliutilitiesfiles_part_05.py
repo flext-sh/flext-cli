@@ -226,16 +226,14 @@ class FlextCliUtilitiesFilesPart05:
         ]
         | m.Cli.AtomicDirectoryQueryEffects = (),
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
-        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
-        | None = None,
+        observations: m.Cli.AtomicDirectoryObservations | None = None,
     ) -> p.Result[bool]:
         """Verify native source queries without authorizing publication effects.
 
-        One verification boundary may share one native observation per physical
-        directory through ``observations``; each call observes ancestry once per
-        target. Successful observations are shared only within that boundary; a
-        failed capture remains a native exception, never an empty substitute.
-        Neither store outlives the boundary.
+        One verification boundary shares its directory and ancestry observations
+        through one ``observations`` instance passed by reference. Successful
+        observations are shared only within that boundary; a failed capture
+        remains a native exception, never an empty substitute.
 
         Returns:
             A successful result when all consumed native queries still agree.

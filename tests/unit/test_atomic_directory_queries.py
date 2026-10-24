@@ -92,7 +92,7 @@ class TestsFlextCliAtomicDirectoryQueries:
                 inventory.model_copy(update={"queries": ((name, "isdir"),)})
                 for name in names
             )
-        shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        shared = m.Cli.AtomicDirectoryObservations()
         with Profile() as bounded:
             for fragment in fragments:
                 tm.that(
@@ -136,7 +136,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         fragment = original.model_copy(
             update={"queries": (("candidate", "isdir"),), "membership_queried": True}
         )
-        shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        shared = m.Cli.AtomicDirectoryObservations()
         tm.that(
             tm.ok(
                 u.Cli.atomic_verify_directory_queries(
@@ -154,7 +154,7 @@ class TestsFlextCliAtomicDirectoryQueries:
             ),
             eq=True,
         )
-        fresh: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        fresh = m.Cli.AtomicDirectoryObservations()
         with pytest.raises(ValueError, match="source directory membership changed"):
             u.Cli.atomic_verify_directory_queries((fragment,), (), observations=fresh)
 
@@ -170,7 +170,7 @@ class TestsFlextCliAtomicDirectoryQueries:
             update={"queries": (("candidate", "isdir"),), "membership_queried": True}
         )
         (tmp_path / name).mkdir()
-        shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        shared = m.Cli.AtomicDirectoryObservations()
         with pytest.raises(ValueError, match="source directory membership changed"):
             u.Cli.atomic_verify_directory_queries((fragment,), (), observations=shared)
         with pytest.raises(ValueError, match="source directory membership changed"):
@@ -187,7 +187,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         root.rename(tmp_path / "moved")
         root.mkdir()
         (root / "candidate").mkdir()
-        shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        shared = m.Cli.AtomicDirectoryObservations()
         with pytest.raises(
             ValueError, match="source directory physical identity changed"
         ):
@@ -204,7 +204,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         (tmp_path / "alias").symlink_to(tmp_path / "target", target_is_directory=True)
         original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
         fragment = original.model_copy(update={"queries": (("alias", "isdir"),)})
-        shared: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        shared = m.Cli.AtomicDirectoryObservations()
         with pytest.raises(OSError, match="physical alias"):
             u.Cli.atomic_verify_directory_queries((fragment,), (), observations=shared)
         with pytest.raises(OSError, match="physical alias"):
@@ -222,7 +222,7 @@ class TestsFlextCliAtomicDirectoryQueries:
             The outcome kind and the message it carries.
 
         """
-        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = {}
+        observations = m.Cli.AtomicDirectoryObservations()
         try:
             verified = u.Cli.atomic_verify_directory_queries(
                 (fragment,), (), observations=observations if shared else None

@@ -274,10 +274,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
         publications = cls._require_membership_policy(
             inventories, topology, publications
         )
-        boundary: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = (
-            {} if observations is None else observations
-        )
-        topology_boundary: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan] = {}
+        shared = observations or m.Cli.AtomicDirectoryObservations()
+        boundary = shared.directories
         published = {before.path: (before, after) for before, after in publications}
         created = {item.path: item for item in directory_publications}
         if len(published) != len(publications) or any(
@@ -287,7 +285,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             raise ValueError(msg)
         ancestors = cls._published_ancestors(publications)
         cls._verify_query_topology(
-            topology, published, created, boundary, topology_boundary
+            topology, published, created, boundary, shared.topology
         )
         for expected in inventories:
             observed = cls._observe_physical_directory(boundary, expected.root.path)
