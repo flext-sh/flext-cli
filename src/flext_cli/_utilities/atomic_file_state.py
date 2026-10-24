@@ -126,7 +126,8 @@ class FlextCliUtilitiesAtomicFileState:
                     if operation_error is None:
                         raise
                     operation_error.add_note(
-                        f"Atomic read final validation also failed: {validation_error!r}"
+                        "Atomic read final validation also failed: "
+                        f"{validation_error!r}"
                     )
 
     @staticmethod

@@ -14,6 +14,7 @@ from collections.abc import Generator, Iterable
 from contextlib import contextmanager
 from itertools import chain
 from pathlib import Path
+from types import MappingProxyType
 from typing import Literal, Never
 
 from flext_cli import m, t
@@ -92,11 +93,21 @@ class FlextCliUtilitiesAtomicTreeInventory:
         cls,
         inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
         topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        *,
+        queries: t.MappingKV[
+            int, set[t.Pair[str, Literal["exists", "isfile", "isdir"]]]
+        ] = MappingProxyType({}),
+        membership_queries: t.MappingKV[int, set[t.StrTuple]] = MappingProxyType({}),
     ) -> t.Pair[
         t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
         t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
     ]:
-        """Union selectors only when every original native observation agrees.
+        """Finalize working selectors once over agreeing original native witnesses.
+
+        Optional selector maps are invocation-local working state indexed by
+        witness identity, never mutable fields on frozen physical inventories.
+        Every selected query crosses alias validation even for one original;
+        unchanged finalized receipts retain their original model identities.
 
         Returns:
             The directory inventories and ancestry plans with united selectors.
@@ -114,18 +125,24 @@ class FlextCliUtilitiesAtomicTreeInventory:
         directory_receipts: list[m.Cli.AtomicDirectoryInventory] = []
         for path, originals in directories.items():
             previous = originals[0]
-            queries = tuple(
-                sorted({query for item in originals for query in item.queries})
+            selected_queries = tuple(
+                sorted({
+                    query
+                    for item in originals
+                    for query in chain(item.queries, queries.get(id(item), ()))
+                })
             )
             membership_queried = any(item.membership_queried for item in originals)
-            membership_queries = tuple(
+            selected_membership = tuple(
                 sorted({
                     selection
                     for item in originals
-                    for selection in item.membership_queries
+                    for selection in chain(
+                        item.membership_queries, membership_queries.get(id(item), ())
+                    )
                 })
             )
-            selections = (*(((),) if membership_queried else ()), *membership_queries)
+            selections = (*(((),) if membership_queried else ()), *selected_membership)
             for incoming in originals:
                 cls._require_directory_identity(
                     previous.root,
@@ -135,7 +152,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 if any(
                     cls.directory_query_value(previous, name, predicate)
                     != cls.directory_query_value(incoming, name, predicate)
-                    for name, predicate in queries
+                    for name, predicate in selected_queries
                 ):
                     msg = f"source directory query epochs disagree: {path}"
                     raise ValueError(msg)
@@ -148,15 +165,15 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     raise ValueError(msg)
             directory_receipts.append(
                 previous
-                if queries == previous.queries
+                if selected_queries == previous.queries
                 and membership_queried == previous.membership_queried
-                and membership_queries == previous.membership_queries
+                and selected_membership == previous.membership_queries
                 else m.Cli.AtomicDirectoryInventory(
                     root=previous.root,
                     entries=previous.entries,
-                    queries=queries,
+                    queries=selected_queries,
                     membership_queried=membership_queried,
-                    membership_queries=membership_queries,
+                    membership_queries=selected_membership,
                 )
             )
         topology_receipts: list[m.Cli.AtomicDirectoryChainPlan] = []
@@ -173,22 +190,28 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ):
                 msg = f"source directory ancestry epochs disagree: {target}"
                 raise ValueError(msg)
-            queries = tuple(
-                sorted({query for item in witnesses for query in item.queries})
+            selected_queries = tuple(
+                sorted({
+                    query
+                    for item in witnesses
+                    for query in chain(item.queries, queries.get(id(item), ()))
+                })
             )
             membership_queried = any(item.membership_queried for item in witnesses)
-            membership_queries = tuple(
+            selected_membership = tuple(
                 sorted({
                     selection
                     for item in witnesses
-                    for selection in item.membership_queries
+                    for selection in chain(
+                        item.membership_queries, membership_queries.get(id(item), ())
+                    )
                 })
             )
             topology_receipts.append(
                 previous
-                if queries == previous.queries
+                if selected_queries == previous.queries
                 and membership_queried == previous.membership_queried
-                and membership_queries == previous.membership_queries
+                and selected_membership == previous.membership_queries
                 else m.Cli.AtomicDirectoryChainPlan(
                     target=previous.target,
                     anchor_path=previous.anchor_path,
@@ -196,9 +219,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     anchor_inode=previous.anchor_inode,
                     anchor_ancestry=previous.anchor_ancestry,
                     directories=previous.directories,
-                    queries=queries,
+                    queries=selected_queries,
                     membership_queried=membership_queried,
-                    membership_queries=membership_queries,
+                    membership_queries=selected_membership,
                 )
             )
         return tuple(directory_receipts), tuple(topology_receipts)
@@ -234,15 +257,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
         observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
         | None = None,
-        topology_observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan]
-        | None = None,
     ) -> bool:
         """Reprove consumed elections, allowing only supplied physical own effects.
 
         One verification boundary may share one native observation per physical
-        directory through ``observations`` and one native ancestry observation per
-        target through ``topology_observations``. Neither store outlives that
-        boundary. Every original receipt is compared, including shared targets.
+        directory through ``observations``; each call observes native ancestry once
+        per target. Neither store outlives that boundary. Every original receipt is
+        compared, including shared targets.
 
         Returns:
             True when every consumed query and physical identity still agrees.
@@ -257,9 +278,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         boundary: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory] = (
             {} if observations is None else observations
         )
-        topology_boundary: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan] = (
-            {} if topology_observations is None else topology_observations
-        )
+        topology_boundary: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan] = {}
         published = {before.path: (before, after) for before, after in publications}
         created = {item.path: item for item in directory_publications}
         if len(published) != len(publications) or any(

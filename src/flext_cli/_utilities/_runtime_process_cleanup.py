@@ -47,7 +47,7 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         restore_handlers: t.MutableSequenceOf[Callable[[], None]] = []
 
         def forward(
-            previous: t.Cli.SignalHandler,
+            previous: t.Cli.SignalHandler | p.Cli.ParentSignalObserver,
             signal_number: int,
             frame: FrameType | None,
         ) -> None:

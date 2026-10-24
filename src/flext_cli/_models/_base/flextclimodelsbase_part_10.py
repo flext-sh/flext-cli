@@ -6,16 +6,39 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_core import m
 
 from flext_cli import t
 from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
+from flext_cli._models._base.flextclimodelsbase_part_08 import FlextCliModelsBasePart08
+from flext_cli._models._base.flextclimodelsbase_part_09 import FlextCliModelsBasePart09
 
 
 class FlextCliModelsBasePart10:
     """Implementation part for FlextCliModelsBasePart10."""
+
+    class AtomicDirectoryObservations(m.ArbitraryTypesModel):
+        """Native observations shared by reference within one verification boundary.
+
+        The maps are filled in place by the verifier; the boundary owner keeps
+        one instance and discards it when the boundary ends.
+        """
+
+        directories: dict[Path, FlextCliModelsBasePart09.AtomicDirectoryInventory] = (
+            m.Field(
+                default_factory=dict,
+                description="One physical directory inventory per observed path",
+            )
+        )
+        topology: dict[Path, FlextCliModelsBasePart08.AtomicDirectoryChainPlan] = (
+            m.Field(
+                default_factory=dict,
+                description="One ancestry plan per observed target",
+            )
+        )
 
     class AtomicDirectoryQueryEffects(m.BaseModel):
         """Caller-elected query authority and authenticated publication effects."""

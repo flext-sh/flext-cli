@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
+from types import MappingProxyType
 from typing import Literal
 
 from flext_cli import c, m, p, r, t
@@ -162,18 +163,26 @@ class FlextCliUtilitiesFilesPart05:
     def atomic_merge_directory_query_receipts(
         inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
         topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        *,
+        queries: t.MappingKV[
+            int, set[t.Pair[str, Literal["exists", "isfile", "isdir"]]]
+        ] = MappingProxyType({}),
+        membership_queries: t.MappingKV[int, set[t.StrTuple]] = MappingProxyType({}),
     ) -> t.Pair[
         t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
         t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
     ]:
-        """Keep original native query epochs while uniting consumed selectors.
+        """Forward original epochs and working selectors to their sole merge owner.
 
         Returns:
             The directory inventories and ancestry plans with united selectors.
 
         """
         return FlextCliUtilitiesAtomicTreeInventory.merge_directory_query_receipts(
-            inventories, topology
+            inventories,
+            topology,
+            queries=queries,
+            membership_queries=membership_queries,
         )
 
     @staticmethod
@@ -219,16 +228,14 @@ class FlextCliUtilitiesFilesPart05:
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
         observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
         | None = None,
-        topology_observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan]
-        | None = None,
     ) -> p.Result[bool]:
         """Verify native source queries without authorizing publication effects.
 
         One verification boundary may share one native observation per physical
-        directory through ``observations`` and one ancestry observation per target
-        through ``topology_observations``. Successful observations are shared only
-        within that boundary; a failed capture remains a native exception, never
-        an empty substitute. Neither store outlives the boundary.
+        directory through ``observations``; each call observes ancestry once per
+        target. Successful observations are shared only within that boundary; a
+        failed capture remains a native exception, never an empty substitute.
+        Neither store outlives the boundary.
 
         Returns:
             A successful result when all consumed native queries still agree.
@@ -241,7 +248,6 @@ class FlextCliUtilitiesFilesPart05:
                 publications,
                 directory_publications,
                 observations,
-                topology_observations,
             )
         )
 

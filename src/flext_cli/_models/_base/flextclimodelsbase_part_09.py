@@ -1,4 +1,7 @@
-"""Typed descriptor-authenticated physical tree manifest models.
+"""Frozen descriptor-authenticated snapshots, separate from working selectors.
+
+Physical tree records use the upstream arbitrary-types preset with frozen fields;
+mutable query selection belongs to the invocation's utilities, not these models.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -18,14 +21,11 @@ from flext_cli._models import FlextCliModelsAtomicState
 class FlextCliModelsBasePart09:
     """Implementation part for FlextCliModelsBasePart09."""
 
-    class AtomicPhysicalTreeEntry(m.BaseModel):
+    class AtomicPhysicalTreeEntry(m.ArbitraryTypesModel):
         """One exact regular file, symlink leaf, or physical directory."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            frozen=True,
-            arbitrary_types_allowed=True,
-        )
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+
         path: Annotated[Path, m.Field(description="Absolute entry path")]
         kind: Annotated[
             Literal["directory", "file", "symlink"],
@@ -216,14 +216,11 @@ class FlextCliModelsBasePart09:
                 raise ValueError(msg)
             return self
 
-    class AtomicPhysicalTreeManifest(m.BaseModel):
+    class AtomicPhysicalTreeManifest(m.ArbitraryTypesModel):
         """Exact root identity plus its ordered descriptor-authenticated entries."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            frozen=True,
-            arbitrary_types_allowed=True,
-        )
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+
         root: Annotated[
             FlextCliModelsBasePart09.AtomicPhysicalTreeEntry,
             m.Field(description="Physical tree root"),
