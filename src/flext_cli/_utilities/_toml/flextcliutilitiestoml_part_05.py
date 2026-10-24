@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import cast
 
-from flext_core import u
 from tomlkit.items import Item, Table
 from tomlkit.toml_document import TOMLDocument
 
@@ -47,10 +46,7 @@ class FlextCliUtilitiesTomlPart05:
         current = FlextCliUtilitiesTomlPart01.toml_as_mapping(
             existing
             if existing is not None
-            and (
-                u.mapping(cast("t.GuardInput", existing))
-                or isinstance(existing, TOMLDocument | Item)
-            )
+            and isinstance(existing, Mapping | TOMLDocument | Item)
             else None,
         )
         normalized_expected = {

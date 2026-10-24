@@ -27,7 +27,7 @@ class ExamplesFlextCliModelsExamplesDatabase:
             str, m.Field(..., description="Database host", validate_default=True)
         ]
         port: int = m.Field(
-            c.EXAMPLE_DEFAULT_DB_PORT,
+            default=c.EXAMPLE_DEFAULT_DB_PORT,
             description="Database port",
             ge=c.EXAMPLE_MIN_PORT,
             le=c.EXAMPLE_MAX_PORT,
@@ -66,7 +66,7 @@ class ExamplesFlextCliModelsExamplesDatabase:
             validate_default=True,
         )
         connection_pool: int = m.Field(
-            c.EXAMPLE_DEFAULT_CONNECTION_POOL,
+            default=c.EXAMPLE_DEFAULT_CONNECTION_POOL,
             description="Connection pool size",
             ge=1,
             le=c.EXAMPLE_MAX_CONNECTION_POOL,

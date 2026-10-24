@@ -7,10 +7,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import m, p, t
-from flext_cli._utilities._pptx import (
-    FlextCliUtilitiesPptxReader,
-    FlextCliUtilitiesPptxRenderer,
-)
 
 
 class FlextCliUtilitiesPptx:
@@ -24,6 +20,8 @@ class FlextCliUtilitiesPptx:
             The resulting ``p.Result[m.Cli.PptxPresentationPlan]``.
 
         """
+        from flext_cli._utilities._pptx import FlextCliUtilitiesPptxReader
+
         return FlextCliUtilitiesPptxReader.read_presentation(source)
 
     @staticmethod
@@ -36,6 +34,8 @@ class FlextCliUtilitiesPptx:
             The resulting ``p.Result[m.Cli.PptxRenderResult]``.
 
         """
+        from flext_cli._utilities._pptx import FlextCliUtilitiesPptxRenderer
+
         return FlextCliUtilitiesPptxRenderer.render_presentation(request)
 
 
