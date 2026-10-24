@@ -255,15 +255,14 @@ class FlextCliUtilitiesAtomicTreeInventory:
         ]
         | m.Cli.AtomicDirectoryQueryEffects = (),
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
-        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
-        | None = None,
+        observations: m.Cli.AtomicDirectoryObservations | None = None,
     ) -> bool:
         """Reprove consumed elections, allowing only supplied physical own effects.
 
-        One verification boundary may share one native observation per physical
-        directory through ``observations``; each call observes native ancestry once
-        per target. Neither store outlives that boundary. Every original receipt is
-        compared, including shared targets.
+        One verification boundary shares one native observation per physical
+        directory and one ancestry observation per target through
+        ``observations``, passed by reference. It never outlives that boundary.
+        Every original receipt is compared, including shared targets.
 
         Returns:
             True when every consumed query and physical identity still agrees.
