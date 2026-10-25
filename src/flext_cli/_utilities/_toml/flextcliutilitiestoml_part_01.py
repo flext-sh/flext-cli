@@ -15,11 +15,9 @@ from flext_core import u
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-import flext_cli
 from flext_cli import c, p, r, t
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_02 import (
-    FlextCliUtilitiesTomlPart02,
-)
+from flext_cli._utilities import FlextCliUtilitiesConversion
+from flext_cli._utilities._toml import FlextCliUtilitiesTomlPart02
 
 
 class FlextCliUtilitiesTomlPart01:
@@ -53,7 +51,7 @@ class FlextCliUtilitiesTomlPart01:
             The resulting JSON-compatible value.
 
         """
-        return flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(
+        return FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python(
             value.unwrap() if isinstance(value, TOMLDocument | Item) else value,
             strict=True,
         )
@@ -168,7 +166,7 @@ class FlextCliUtilitiesTomlPart01:
         except tomllib.TOMLDecodeError as exc:
             return r[t.JsonMapping].fail(str(exc), exception=exc)
         return r[t.JsonMapping].ok(
-            flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded),
+            FlextCliUtilitiesConversion.JSON_MAPPING_ADAPTER.validate_python(loaded),
         )
 
     @staticmethod

@@ -12,12 +12,10 @@ from flext_core import u
 from tomlkit.items import Table
 from tomlkit.toml_document import TOMLDocument
 
-import flext_cli
 from flext_cli import t
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
+from flext_cli._utilities import FlextCliUtilitiesConversion
+from flext_cli._utilities._toml import (
     FlextCliUtilitiesTomlPart01,
-)
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_02 import (
     FlextCliUtilitiesTomlPart02,
 )
 
@@ -80,7 +78,7 @@ class FlextCliUtilitiesTomlPart03:
         value = container.get(key, None)
         if not u.mapping(value):
             return None
-        return flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(value)
+        return FlextCliUtilitiesConversion.JSON_MAPPING_ADAPTER.validate_python(value)
 
     @staticmethod
     def toml_mapping_ensure_table(parent: t.MutableJsonMapping, key: str) -> t.JsonDict:
