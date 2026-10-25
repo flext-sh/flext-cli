@@ -13,9 +13,7 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._utilities._tables.flextcliutilitiestablesrenderer_part_01 import (
-        FlextCliUtilitiesTablesRenderer,
-    )
+    from flext_cli._utilities._tables.renderer import FlextCliUtilitiesTablesRenderer
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesTablesRenderer",)
@@ -23,8 +21,6 @@ __all__: tuple[str, ...] = ("FlextCliUtilitiesTablesRenderer",)
 install_lazy_exports(
     __name__,
     globals(),
-    MappingProxyType({
-        "FlextCliUtilitiesTablesRenderer": ".flextcliutilitiestablesrenderer_part_01",
-    }),
+    MappingProxyType({"FlextCliUtilitiesTablesRenderer": ".renderer"}),
     public_exports=__all__,
 )

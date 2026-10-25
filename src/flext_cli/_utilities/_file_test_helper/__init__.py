@@ -13,29 +13,25 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._utilities._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_02 import (
-        FlextCliUtilitiesFileTestHelpersMixinPart02,
+    from flext_cli._utilities._file_test_helper.assertions import (
+        FlextCliUtilitiesFileTestHelpersAssertions,
     )
-    from flext_cli._utilities._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_04 import (
-        FlextCliUtilitiesFileTestHelpersMixinPart04,
+    from flext_cli._utilities._file_test_helper.parsing import (
+        FlextCliUtilitiesFileTestHelpersParsing,
     )
 
 
 __all__: tuple[str, ...] = (
-    "FlextCliUtilitiesFileTestHelpersMixinPart02",
-    "FlextCliUtilitiesFileTestHelpersMixinPart04",
+    "FlextCliUtilitiesFileTestHelpersAssertions",
+    "FlextCliUtilitiesFileTestHelpersParsing",
 )
 
 install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "FlextCliUtilitiesFileTestHelpersMixinPart02": (
-            ".flextcliutilitiesfiletesthelpersmixin_part_02"
-        ),
-        "FlextCliUtilitiesFileTestHelpersMixinPart04": (
-            ".flextcliutilitiesfiletesthelpersmixin_part_04"
-        ),
+        "FlextCliUtilitiesFileTestHelpersAssertions": ".assertions",
+        "FlextCliUtilitiesFileTestHelpersParsing": ".parsing",
     }),
     public_exports=__all__,
 )

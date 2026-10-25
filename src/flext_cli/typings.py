@@ -53,5 +53,4 @@ type DirectoryChainInspection = tuple[
     tuple[tuple[int, int], ...],
     t.VariadicTuple[Path],
 ]
-
 __all__: list[str] = ["FlextCliTypes", "t"]

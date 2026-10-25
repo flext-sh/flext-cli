@@ -13,30 +13,28 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._utilities._options.flextcliutilitiesoptionbuilder_part_01 import (
+    from flext_cli._utilities._options.annotations import (
+        FlextCliUtilitiesOptionsAnnotations,
+    )
+    from flext_cli._utilities._options.fields import FlextCliUtilitiesOptionsFields
+    from flext_cli._utilities._options.option_builder import (
         FlextCliUtilitiesOptionBuilder,
-    )
-    from flext_cli._utilities._options.flextcliutilitiesoptions_part_01 import (
-        FlextCliUtilitiesOptionsPart01,
-    )
-    from flext_cli._utilities._options.flextcliutilitiesoptions_part_02 import (
-        FlextCliUtilitiesOptionsPart02,
     )
 
 
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesOptionBuilder",
-    "FlextCliUtilitiesOptionsPart01",
-    "FlextCliUtilitiesOptionsPart02",
+    "FlextCliUtilitiesOptionsAnnotations",
+    "FlextCliUtilitiesOptionsFields",
 )
 
 install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "FlextCliUtilitiesOptionBuilder": ".flextcliutilitiesoptionbuilder_part_01",
-        "FlextCliUtilitiesOptionsPart01": ".flextcliutilitiesoptions_part_01",
-        "FlextCliUtilitiesOptionsPart02": ".flextcliutilitiesoptions_part_02",
+        "FlextCliUtilitiesOptionBuilder": ".option_builder",
+        "FlextCliUtilitiesOptionsAnnotations": ".annotations",
+        "FlextCliUtilitiesOptionsFields": ".fields",
     }),
     public_exports=__all__,
 )

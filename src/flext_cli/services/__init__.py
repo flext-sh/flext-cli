@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli.services import _cli as _cli
     from flext_cli.services._cli import (
         FlextCliCliPart01,
         FlextCliCliPart02,
@@ -59,7 +58,6 @@ __all__: tuple[str, ...] = (
     "FlextCliRuntime",
     "FlextCliTables",
     "FlextCliXlsx",
-    "_cli",
 )
 
 install_lazy_exports(
@@ -86,7 +84,6 @@ install_lazy_exports(
         "FlextCliRuntime": ".runtime",
         "FlextCliTables": ".tables",
         "FlextCliXlsx": ".xlsx",
-        "_cli": "._cli",
     }),
     public_exports=__all__,
 )

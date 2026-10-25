@@ -103,8 +103,11 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
         ):
             error = "Process stdout and stderr destinations must be distinct"
         elif (request.live or request.deadline is not None) and not on_main_thread:
+            # ``on_main_thread`` is true on the main thread and inside a
+            # process signal wave, the two owners of operator-signal forwarding.
             error = (
-                "live/deadline process execution requires the main interpreter thread"
+                "live/deadline process execution requires the main interpreter "
+                "thread or an active process signal wave"
             )
         return error
 

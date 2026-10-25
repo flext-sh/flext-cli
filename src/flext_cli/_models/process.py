@@ -240,6 +240,10 @@ class FlextCliModelsProcess:
         isolation: FlextCliModelsProcess.ProcessReadOnlyIsolation | None = m.Field(
             default=None, description="Explicit native read-only confinement request"
         )
+        signal_wave: t.Port[p.Cli.SignalWave] | None = m.Field(
+            default=None,
+            description="Signal wave a worker-thread lifecycle subscribes to.",
+        )
 
     class RuntimeProcessRequest(m.ArbitraryTypesModel):
         """Resolved launch inputs shared by preparation and process creation."""
@@ -294,6 +298,10 @@ class FlextCliModelsProcess:
         pass_fds: tuple[int, ...] = m.Field(
             default=(),
             description="Explicit descriptors inherited by an ordinary child",
+        )
+        signal_wave: t.Port[p.Cli.SignalWave] | None = m.Field(
+            default=None,
+            description="Signal wave a worker-thread lifecycle subscribes to.",
         )
 
     class RuntimeProcessState(m.ArbitraryTypesModel):

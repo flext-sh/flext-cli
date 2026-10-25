@@ -1,5 +1,9 @@
 # Read-only native process isolation
 
+<!-- TOC START -->
+
+<!-- TOC END -->
+
 `u.Cli.run_raw`, `run_bytes` and `run_to_file` accept an optional
 `m.Cli.ProcessOptions.isolation`. The existing process owner prepares and starts
 the isolated child; its deadline, byte streams, signals, cleanup and

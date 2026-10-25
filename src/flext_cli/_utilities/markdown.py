@@ -59,8 +59,30 @@ class FlextCliUtilitiesMarkdown:
         return FlextCliUtilitiesMarkdown._markdown_parser().parse(text)
 
     @staticmethod
+    @cache
+    def _markdown_block_parser() -> MarkdownIt:
+        """Return the shared parser restricted to the block structure.
+
+        Fences are block tokens: the core ``inline`` stage never contributes
+        to them, so a fence inventory parses only the block structure.
+
+        Returns:
+            The cached block-only ``MarkdownIt`` instance.
+
+        """
+        parser = FlextCliUtilitiesMarkdown._VerbatimMarkdownIt(
+            c.Cli.MARKDOWN_PARSER_PRESET,
+        )
+        parser.enable(list(c.Cli.MARKDOWN_PARSER_RULES))
+        parser.core.ruler.disable(c.Cli.MARKDOWN_INLINE_CORE_RULE)
+        return parser
+
+    @staticmethod
     def markdown_fences(text: str) -> t.SequenceOf[m.Cli.MarkdownFence]:
         """Return every fenced code block in document order.
+
+        Only the block structure is parsed; inline content plays no part in
+        a fence.
 
         Returns:
             The located fences.
@@ -75,7 +97,7 @@ class FlextCliUtilitiesMarkdown:
                 closing_line=token.map[1],
                 nested=token.level > 0,
             )
-            for token in FlextCliUtilitiesMarkdown._markdown_tokens(text)
+            for token in FlextCliUtilitiesMarkdown._markdown_block_parser().parse(text)
             if token.type == c.Cli.MarkdownTokenType.FENCE and token.map is not None
         )
 

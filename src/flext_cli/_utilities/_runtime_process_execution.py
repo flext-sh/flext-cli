@@ -26,9 +26,7 @@ from flext_core import u
 
 from flext_cli import c, m, p, r, t
 from flext_cli._config import config
-from flext_cli._utilities._files.flextcliutilitiesfiles_part_03 import (
-    FlextCliUtilitiesFilesPart03,
-)
+from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_05 import (
     FlextCliUtilitiesFilesPart05,
 )
@@ -100,7 +98,10 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         timing_result = cls._resolve_process_timing(
             request,
             started,
-            on_main_thread=threading.current_thread() is threading.main_thread(),
+            on_main_thread=(
+                threading.current_thread() is threading.main_thread()
+                or request.signal_wave is not None
+            ),
         )
         if timing_result.failure:
             return r[p.Cli.CommandBytesOutput].from_failure(timing_result)
@@ -160,6 +161,10 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                     state.forwarded_signals,
                     state.wake,
                 ),
+            )
+        elif request.signal_wave is not None:
+            state.restore_handlers.append(
+                request.signal_wave.subscribe(state.received_signals, state.wake),
             )
         prepared_cmd = tuple(request.cmd)
         if state.received_signals:

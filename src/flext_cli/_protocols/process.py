@@ -10,7 +10,8 @@ from types import FrameType
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
-    from collections.abc import Buffer
+    import threading
+    from collections.abc import Buffer, Callable
     from pathlib import Path
 
     from flext_core import p
@@ -115,6 +116,18 @@ class FlextCliProtocolsProcess:
             ...
 
     @runtime_checkable
+    class SignalWave(Protocol):
+        """Operator-signal forwarding owned by the main thread for worker lifecycles."""
+
+        def subscribe(
+            self,
+            received_signals: t.MutableSequenceOf[int],
+            wake: threading.Event,
+        ) -> Callable[[], None]:
+            """Deliver each received signal to one lifecycle until unsubscribed."""
+            ...
+
+    @runtime_checkable
     class ProcessOptions(Protocol):
         """Read-only child input, environment, and durable-output options."""
 
@@ -166,6 +179,11 @@ class FlextCliProtocolsProcess:
         @property
         def isolation(self) -> FlextCliModelsProcess.ProcessReadOnlyIsolation | None:
             """Qualified immutable native confinement inputs."""
+            ...
+
+        @property
+        def signal_wave(self) -> FlextCliProtocolsProcess.SignalWave | None:
+            """Signal wave a worker-thread lifecycle subscribes to."""
             ...
 
 

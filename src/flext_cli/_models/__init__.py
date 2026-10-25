@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._models import _base as _base, _xlsx as _xlsx
     from flext_cli._models._base import (
         FlextCliModelsBasePart01,
         FlextCliModelsBasePart02,
@@ -103,8 +102,6 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsXlsxTables",
     "FlextCliModelsXlsxValidation",
     "FlextCliModelsXlsxWorkbook",
-    "_base",
-    "_xlsx",
 )
 
 install_lazy_exports(
@@ -152,8 +149,6 @@ install_lazy_exports(
         "FlextCliModelsXlsxTables": "._xlsx.xlsx_tables",
         "FlextCliModelsXlsxValidation": "._xlsx.xlsx_validation",
         "FlextCliModelsXlsxWorkbook": "._xlsx.xlsx_workbook",
-        "_base": "._base",
-        "_xlsx": "._xlsx",
     }),
     public_exports=__all__,
 )

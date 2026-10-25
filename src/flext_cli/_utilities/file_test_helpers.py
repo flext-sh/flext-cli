@@ -12,14 +12,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli._utilities._file_test_helper import (
-    FlextCliUtilitiesFileTestHelpersMixinPart02,
-    FlextCliUtilitiesFileTestHelpersMixinPart04,
+    FlextCliUtilitiesFileTestHelpersAssertions,
+    FlextCliUtilitiesFileTestHelpersParsing,
 )
 
 
 class FlextCliUtilitiesFileTestHelpersMixin(
-    FlextCliUtilitiesFileTestHelpersMixinPart02,
-    FlextCliUtilitiesFileTestHelpersMixinPart04,
+    FlextCliUtilitiesFileTestHelpersAssertions,
+    FlextCliUtilitiesFileTestHelpersParsing,
 ):
     """Public facade for FlextCliUtilitiesFileTestHelpersMixin."""
 

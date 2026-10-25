@@ -39,5 +39,4 @@ class TestsFlextCliConstants(
 
 
 c = TestsFlextCliConstants
-
 __all__: list[str] = ["TestsFlextCliConstants", "c"]

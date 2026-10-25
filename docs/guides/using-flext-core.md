@@ -13,6 +13,9 @@
 - [Container](#container)
 - [Logging](#logging)
 - [Service runtime](#service-runtime)
+- [Ports and composition](#ports-and-composition)
+- [Need -> capability -> benefit](#need-capability-benefit)
+- [What flext-core must not absorb](#what-flext-core-must-not-absorb)
 - [Good practices](#good-practices)
 - [Bad practices](#bad-practices)
 - [Related](#related)
@@ -151,6 +154,40 @@ if not result.success or result.value != expected_greeting:
     message = "Expected the greeting service to succeed"
     raise RuntimeError(message)
 ```
+
+## Ports and composition
+
+An application composition root constructs adapters and passes them to its
+services. A dependency uses `t.Port[p.X]`, with a runtime-checkable protocol and an
+excluded field declaration, so service construction validates the supplied
+collaborator without serializing it into the request or response.
+
+Service `execute()` returns `p.Result[T]`. Project-specific bases add their own
+settings and options through MRO; inheriting directly from `s` does not replace
+those local specializations. `fetch_global()` builds the service without
+arguments and is not a way to supply required ports. `with_settings()` creates an
+isolated settings snapshot; it does not retain an injected settings object by
+reference.
+
+## Need -> capability -> benefit
+
+| Need               | Capability                                           | Benefit                                                     |
+| ------------------ | ---------------------------------------------------- | ----------------------------------------------------------- |
+| Service foundation | `s[T]` / `FlextService[T]`                           | Shared validation and lifecycle; `T` is the result payload  |
+| Railway results    | `r[T]` / `FlextResult[T]`                            | One failure-preserving result implementation                |
+| Typed ports        | `t.Port[p.X]`                                        | Constructor-level dependency injection, no service locator  |
+| Data validation    | `m` presets and `u.validate_value`                   | Shared typed boundaries; strict presets for strict ingress  |
+| Configuration      | `FlextConfig`, `FlextSettings`, `config`, `settings` | Shared contracts; application objects stay consumer-owned   |
+| Handlers           | `h` / `FlextHandlers`                                | Typed operation metadata and registration                   |
+| Lazy exports       | Declared root exports                                | Components load on first access through the generated init  |
+
+## What flext-core must not absorb
+
+- CLI frameworks and command rendering belong to `flext-cli`.
+- Code generation, AST/Rope analysis, locks and Git belong to `flext-infra`.
+- Pytest fixtures and matchers belong to `flext-tests`.
+- Domain adapters and LDAP/LDIF/Meltano semantics belong to their packages.
+- Application authorization and use cases belong to the application.
 
 ## Good practices
 

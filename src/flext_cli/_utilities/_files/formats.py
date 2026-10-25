@@ -16,9 +16,7 @@ from pathlib import Path
 from flext_core import FlextRuntime
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._files.flextcliutilitiesfiles_part_02 import (
-    FlextCliUtilitiesFilesPart02,
-)
+from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
 from flext_cli._utilities.json import FlextCliUtilitiesJson
 from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 

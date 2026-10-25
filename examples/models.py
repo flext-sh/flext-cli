@@ -31,5 +31,4 @@ class ExamplesFlextCliModels(
 
 
 m = ExamplesFlextCliModels
-
 __all__: list[str] = ["ExamplesFlextCliModels", "m"]

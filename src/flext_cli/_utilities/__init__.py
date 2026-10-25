@@ -13,25 +13,13 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._utilities import (
-        _docx as _docx,
-        _file_test_helper as _file_test_helper,
-        _files as _files,
-        _json as _json,
-        _options as _options,
-        _pptx as _pptx,
-        _tables as _tables,
-        _toml as _toml,
-        _xlsx as _xlsx,
-        _yaml as _yaml,
-    )
     from flext_cli._utilities._docx import (
         FlextCliUtilitiesDocxReader,
         FlextCliUtilitiesDocxRenderer,
     )
     from flext_cli._utilities._file_test_helper import (
-        FlextCliUtilitiesFileTestHelpersMixinPart02,
-        FlextCliUtilitiesFileTestHelpersMixinPart04,
+        FlextCliUtilitiesFileTestHelpersAssertions,
+        FlextCliUtilitiesFileTestHelpersParsing,
     )
     from flext_cli._utilities._files import (
         FlextCliUtilitiesFilesPart01,
@@ -47,8 +35,8 @@ if TYPE_CHECKING:
     )
     from flext_cli._utilities._options import (
         FlextCliUtilitiesOptionBuilder,
-        FlextCliUtilitiesOptionsPart01,
-        FlextCliUtilitiesOptionsPart02,
+        FlextCliUtilitiesOptionsAnnotations,
+        FlextCliUtilitiesOptionsFields,
     )
     from flext_cli._utilities._pptx import (
         FlextCliUtilitiesPptxReader,
@@ -320,9 +308,9 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesDocxRenderer",
     "FlextCliUtilitiesEnv",
     "FlextCliUtilitiesFileChanges",
+    "FlextCliUtilitiesFileTestHelpersAssertions",
     "FlextCliUtilitiesFileTestHelpersMixin",
-    "FlextCliUtilitiesFileTestHelpersMixinPart02",
-    "FlextCliUtilitiesFileTestHelpersMixinPart04",
+    "FlextCliUtilitiesFileTestHelpersParsing",
     "FlextCliUtilitiesFiles",
     "FlextCliUtilitiesFilesPart01",
     "FlextCliUtilitiesFilesPart02",
@@ -338,8 +326,8 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesMarkdown",
     "FlextCliUtilitiesMatching",
     "FlextCliUtilitiesOptionBuilder",
-    "FlextCliUtilitiesOptionsPart01",
-    "FlextCliUtilitiesOptionsPart02",
+    "FlextCliUtilitiesOptionsAnnotations",
+    "FlextCliUtilitiesOptionsFields",
     "FlextCliUtilitiesOutput",
     "FlextCliUtilitiesOutputPayloads",
     "FlextCliUtilitiesParams",
@@ -414,16 +402,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlEngineMixin",
     "RuntimeSpawnOptions",
     "TimeoutExpired",
-    "_docx",
-    "_file_test_helper",
-    "_files",
-    "_json",
-    "_options",
-    "_pptx",
-    "_tables",
-    "_toml",
-    "_xlsx",
-    "_yaml",
     "spawn_streamed_process",
     "streamed_creation_flags",
 )
@@ -477,18 +455,14 @@ install_lazy_exports(
         "FlextCliUtilitiesDocxRenderer": "._docx._renderer",
         "FlextCliUtilitiesEnv": ".env",
         "FlextCliUtilitiesFileChanges": ".file_changes",
+        "FlextCliUtilitiesFileTestHelpersAssertions": "._file_test_helper.assertions",
         "FlextCliUtilitiesFileTestHelpersMixin": ".file_test_helpers",
-        "FlextCliUtilitiesFileTestHelpersMixinPart02": (
-            "._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_02"
-        ),
-        "FlextCliUtilitiesFileTestHelpersMixinPart04": (
-            "._file_test_helper.flextcliutilitiesfiletesthelpersmixin_part_04"
-        ),
+        "FlextCliUtilitiesFileTestHelpersParsing": "._file_test_helper.parsing",
         "FlextCliUtilitiesFiles": ".files",
-        "FlextCliUtilitiesFilesPart01": "._files.flextcliutilitiesfiles_part_01",
-        "FlextCliUtilitiesFilesPart02": "._files.flextcliutilitiesfiles_part_02",
-        "FlextCliUtilitiesFilesPart03": "._files.flextcliutilitiesfiles_part_03",
-        "FlextCliUtilitiesFilesPart04": "._files.flextcliutilitiesfiles_part_04",
+        "FlextCliUtilitiesFilesPart01": "._files.text_formats",
+        "FlextCliUtilitiesFilesPart02": "._files.writes",
+        "FlextCliUtilitiesFilesPart03": "._files.binary_reads",
+        "FlextCliUtilitiesFilesPart04": "._files.formats",
         "FlextCliUtilitiesFilesPart05": "._files.flextcliutilitiesfiles_part_05",
         "FlextCliUtilitiesFilesPart06": "._files.flextcliutilitiesfiles_part_06",
         "FlextCliUtilitiesFormatters": ".formatters",
@@ -498,11 +472,9 @@ install_lazy_exports(
         "FlextCliUtilitiesJsonNavigateMixin": "._json._navigate",
         "FlextCliUtilitiesMarkdown": ".markdown",
         "FlextCliUtilitiesMatching": ".matching",
-        "FlextCliUtilitiesOptionBuilder": (
-            "._options.flextcliutilitiesoptionbuilder_part_01"
-        ),
-        "FlextCliUtilitiesOptionsPart01": "._options.flextcliutilitiesoptions_part_01",
-        "FlextCliUtilitiesOptionsPart02": "._options.flextcliutilitiesoptions_part_02",
+        "FlextCliUtilitiesOptionBuilder": "._options.option_builder",
+        "FlextCliUtilitiesOptionsAnnotations": "._options.annotations",
+        "FlextCliUtilitiesOptionsFields": "._options.fields",
         "FlextCliUtilitiesOutput": ".output",
         "FlextCliUtilitiesOutputPayloads": ".output_payloads",
         "FlextCliUtilitiesParams": ".params",
@@ -536,9 +508,7 @@ install_lazy_exports(
         "FlextCliUtilitiesRuntimeWindowsJobStateMixin": "._runtime_windows_job_state",
         "FlextCliUtilitiesSettings": ".settings",
         "FlextCliUtilitiesTables": ".tables",
-        "FlextCliUtilitiesTablesRenderer": (
-            "._tables.flextcliutilitiestablesrenderer_part_01"
-        ),
+        "FlextCliUtilitiesTablesRenderer": "._tables.renderer",
         "FlextCliUtilitiesTemplate": ".template",
         "FlextCliUtilitiesToml": ".toml",
         "FlextCliUtilitiesTomlPart01": "._toml.flextcliutilitiestoml_part_01",
@@ -581,16 +551,6 @@ install_lazy_exports(
         "FlextCliUtilitiesYamlEngineMixin": "._yaml._engine",
         "RuntimeSpawnOptions": ".native_runtime",
         "TimeoutExpired": ".native_runtime",
-        "_docx": "._docx",
-        "_file_test_helper": "._file_test_helper",
-        "_files": "._files",
-        "_json": "._json",
-        "_options": "._options",
-        "_pptx": "._pptx",
-        "_tables": "._tables",
-        "_toml": "._toml",
-        "_xlsx": "._xlsx",
-        "_yaml": "._yaml",
         "spawn_streamed_process": ".native_runtime",
         "streamed_creation_flags": ".native_runtime",
     }),

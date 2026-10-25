@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TypeAlias
+
 from flext_core import FlextUtilities
 
 from flext_cli._utilities import FlextCliUtilitiesCli
@@ -27,9 +29,8 @@ class FlextCliUtilities(FlextUtilities):
     # ``u.Cli`` stays valid in type expressions; pydantic still ignores the
     # class-typed attribute through ``ignored_types`` (runtime identical to the
     # former ``ClassVar`` form).
-    Cli = FlextCliUtilitiesCli
+    Cli: TypeAlias = FlextCliUtilitiesCli
 
 
 u = FlextCliUtilities
-
 __all__: list[str] = ["FlextCliUtilities", "FlextCliUtilitiesCli", "u"]

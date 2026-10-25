@@ -23,8 +23,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class FlextCliUtilitiesFileTestHelpersMixinPart04:
-    """Implementation part for FlextCliUtilitiesFileTestHelpersMixinPart04."""
+class FlextCliUtilitiesFileTestHelpersParsing:
+    """Implementation part for FlextCliUtilitiesFileTestHelpersParsing."""
 
     @staticmethod
     def files_parse_content(path: Path, fmt: str) -> p.Result[t.JsonMapping]:
@@ -46,4 +46,4 @@ class FlextCliUtilitiesFileTestHelpersMixinPart04:
         return result
 
 
-__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixinPart04"]
+__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersParsing"]

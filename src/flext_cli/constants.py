@@ -7,8 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_core import FlextConstants
 
 from flext_cli._constants import (
@@ -26,9 +24,6 @@ from flext_cli._constants import (
     FlextCliConstantsXlsx,
     FlextCliConstantsXlsxFutureFunctions,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliConstants(FlextConstants):
@@ -53,5 +48,4 @@ class FlextCliConstants(FlextConstants):
 
 
 c = FlextCliConstants
-
-__all__: t.StrSequence = ("FlextCliConstants", "c")
+__all__: list[str] = ["FlextCliConstants", "c"]

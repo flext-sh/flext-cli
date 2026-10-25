@@ -20,8 +20,8 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class FlextCliUtilitiesFileTestHelpersMixinPart02:
-    """Implementation part for FlextCliUtilitiesFileTestHelpersMixinPart02."""
+class FlextCliUtilitiesFileTestHelpersAssertions:
+    """Implementation part for FlextCliUtilitiesFileTestHelpersAssertions."""
 
     FileAssertionOptions = FlextCliModelsFiles.FileAssertionOptions
 
@@ -78,4 +78,4 @@ class FlextCliUtilitiesFileTestHelpersMixinPart02:
         return path
 
 
-__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixinPart02"]
+__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersAssertions"]

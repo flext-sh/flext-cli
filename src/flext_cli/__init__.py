@@ -15,7 +15,6 @@ from flext_core.lazy import install_lazy_exports
 if TYPE_CHECKING:
     from flext_core import d, e, h, r, x
 
-    from flext_cli import services as services, vendor as vendor
     from flext_cli.__version__ import (
         FlextCliVersion,
         __author__,
@@ -70,11 +69,9 @@ __all__: tuple[str, ...] = (
     "p",
     "r",
     "s",
-    "services",
     "settings",
     "t",
     "u",
-    "vendor",
     "x",
 )
 
@@ -111,11 +108,9 @@ install_lazy_exports(
         "p": ".protocols",
         "r": "flext_core",
         "s": ".base",
-        "services": ".services",
         "settings": "._settings",
         "t": ".typings",
         "u": ".utilities",
-        "vendor": ".vendor",
         "x": "flext_core",
     }),
     public_exports=__all__,

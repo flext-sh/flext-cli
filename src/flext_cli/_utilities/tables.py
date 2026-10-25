@@ -13,9 +13,7 @@ from flext_core import FlextRuntime, u
 from typing_extensions import TypeForm
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._tables.flextcliutilitiestablesrenderer_part_01 import (
-    FlextCliUtilitiesTablesRenderer,
-)
+from flext_cli._utilities._tables.renderer import FlextCliUtilitiesTablesRenderer
 
 
 class FlextCliUtilitiesTables:

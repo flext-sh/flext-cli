@@ -30,6 +30,8 @@ class FlextCliConstantsMarkdown:
         HARDBREAK = "hardbreak"
 
     MARKDOWN_PARSER_PRESET: ClassVar[str] = "commonmark"
+    MARKDOWN_INLINE_CORE_RULE: ClassVar[str] = "inline"
+    """markdown-it core stage that parses inline content; fences never need it."""
     "CommonMark core shared by MkDocs and pytest-markdown-docs."
     MARKDOWN_PARSER_RULES: ClassVar[t.StrSequence] = ("table",)
     "GFM table rule enabled to match the generated MkDocs ``tables`` extension."

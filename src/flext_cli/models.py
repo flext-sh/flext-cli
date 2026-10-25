@@ -7,8 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_core import FlextModels
 
 from flext_cli._models import (
@@ -31,9 +29,6 @@ from flext_cli._models import (
     FlextCliModelsTemplate,
     FlextCliModelsXlsx,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliModels(FlextModels):
@@ -64,5 +59,4 @@ class FlextCliModels(FlextModels):
 
 # mro-j47u (codex): canonical facade rebinding is intentionally unannotated.
 m = FlextCliModels
-
-__all__: t.MutableSequenceOf[str] = ["FlextCliModels", "m"]
+__all__: list[str] = ["FlextCliModels", "m"]

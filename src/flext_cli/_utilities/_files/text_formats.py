@@ -10,14 +10,11 @@ import csv
 import shutil
 from pathlib import Path
 
-import flext_core
 from flext_core import u
 
-import flext_cli
 from flext_cli import c, p, r, t
-from flext_cli._utilities._files.flextcliutilitiesfiles_part_02 import (
-    FlextCliUtilitiesFilesPart02,
-)
+from flext_cli._utilities import FlextCliUtilitiesConversion
+from flext_cli._utilities._files import FlextCliUtilitiesFilesPart02
 
 
 class FlextCliUtilitiesFilesPart01:
@@ -89,7 +86,7 @@ class FlextCliUtilitiesFilesPart01:
 
         def _load() -> t.JsonValue:
             raw = Path(file_path).read_text(encoding=c.DEFAULT_ENCODING)
-            return flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
+            return FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return FlextCliUtilitiesFilesPart02.files_execute(
             _load,
@@ -128,7 +125,7 @@ class FlextCliUtilitiesFilesPart01:
 
         """
         return u.Yaml.yaml_safe_load(Path(file_path)).map(
-            flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python,
+            FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python,
         )
 
     @staticmethod
@@ -166,7 +163,7 @@ class FlextCliUtilitiesFilesPart01:
             loaded = u.Yaml.yaml_safe_load(source)
             if loaded.failure:
                 return loaded.map(model_type.model_validate)
-            merged = flext_core.u.config_merge(merged, loaded.value)
+            merged = u.config_merge(merged, loaded.value)
         return r[t.JsonMapping].ok(merged).map(model_type.model_validate)
 
     @staticmethod

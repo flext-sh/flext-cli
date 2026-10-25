@@ -10,7 +10,10 @@ import os
 import signal
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Generator
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager, nullcontext
+from contextvars import copy_context
 from functools import partial
 from types import FrameType
 
@@ -27,14 +30,133 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
 ):
     """Forward signals, kill descendants, reap root, and drain output."""
 
+    class SignalWave:
+        """One wave of worker-thread lifecycles sharing main-thread signal forwarding.
+
+        The owner installs the operator-signal handlers on the main thread
+        and broadcasts each received signal; every worker lifecycle started
+        with this wave subscribes its own signal record and wake event, and
+        its monitor forwards the signal to the process group it owns.
+        """
+
+        def __init__(self) -> None:
+            """Start the wave with no subscribed lifecycle."""
+            self._lock = threading.Lock()
+            self._subscribers: t.MutableMappingKV[
+                int, t.Pair[t.MutableSequenceOf[int], threading.Event]
+            ] = {}
+
+        def subscribe(
+            self,
+            received_signals: t.MutableSequenceOf[int],
+            wake: threading.Event,
+        ) -> Callable[[], None]:
+            """Deliver each received signal to one lifecycle until unsubscribed.
+
+            Returns:
+                The callback that removes the subscription at lifecycle cleanup.
+
+            """
+            key = id(received_signals)
+            with self._lock:
+                self._subscribers[key] = (received_signals, wake)
+            return partial(self._unsubscribe, key)
+
+        def broadcast(self, signal_number: int) -> None:
+            """Deliver one operator signal to every subscribed lifecycle."""
+            with self._lock:
+                subscribers = tuple(self._subscribers.values())
+            for received_signals, wake in subscribers:
+                received_signals.append(signal_number)
+                wake.set()
+
+        def _unsubscribe(self, key: int) -> None:
+            """Remove one lifecycle from the wave."""
+            with self._lock:
+                self._subscribers.pop(key, None)
+
+    @classmethod
+    @contextmanager
+    def process_signal_wave(cls) -> Generator[p.Cli.SignalWave]:
+        """Own operator-signal forwarding for lifecycles run in worker threads.
+
+        Signal handlers install only on the main interpreter thread, so the
+        main thread installs them once and yields the wave every worker
+        lifecycle receives explicitly. Timeout and cleanup semantics stay per
+        lifecycle.
+
+        Yields:
+            The wave to pass to the worker-thread lifecycles.
+
+        Raises:
+            RuntimeError: If entered off the main interpreter thread.
+
+        """
+        if threading.current_thread() is not threading.main_thread():
+            msg = "a process signal wave must be owned by the main interpreter thread"
+            raise RuntimeError(msg)
+        wave = cls.SignalWave()
+        received: t.MutableSequenceOf[int] = []
+        forwarded: t.MutableSequenceOf[int] = []
+        restore_handlers = cls._install_forwarding_handlers(
+            received,
+            forwarded,
+            threading.Event(),
+            on_signal=wave.broadcast,
+        )
+        try:
+            yield wave
+        finally:
+            failures = cls._restore_forwarding_handlers(restore_handlers)
+            if failures:
+                msg = "; ".join(failures)
+                raise RuntimeError(msg)
+
+    @classmethod
+    def run_in_signal_wave[T](
+        cls,
+        tasks: t.SequenceOf[Callable[[p.Cli.SignalWave], T]],
+        *,
+        max_workers: int,
+        signal_wave: p.Cli.SignalWave | None = None,
+    ) -> t.VariadicTuple[T]:
+        """Run independent tasks concurrently, each receiving its signal wave.
+
+        Without ``signal_wave`` the call owns a new wave on the main thread;
+        a task of an outer wave passes that wave to run nested tasks in it.
+        Each task runs with a copy of the caller's context. The first task
+        exception escapes in task order.
+
+        Returns:
+            Every task's result, in task order.
+
+        """
+        with (
+            (
+                cls.process_signal_wave()
+                if signal_wave is None
+                else nullcontext(signal_wave)
+            ) as wave,
+            ThreadPoolExecutor(max_workers=max_workers) as pool,
+        ):
+            futures = tuple(
+                pool.submit(copy_context().run, task, wave) for task in tasks
+            )
+            return tuple(future.result() for future in futures)
+
     @classmethod
     def _install_forwarding_handlers(
         cls,
         received_signals: t.MutableSequenceOf[int],
         forwarded_signals: t.MutableSequenceOf[int],
         wake: threading.Event,
+        *,
+        on_signal: Callable[[int], None] | None = None,
     ) -> t.MutableSequenceOf[Callable[[], None]]:
         """Capture operator signals before opening the containment window.
+
+        ``on_signal`` additionally delivers each signal to the subscribers of
+        a signal wave.
 
         Returns:
             The callbacks that restore the original parent signal handlers.
@@ -53,6 +175,8 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         ) -> None:
             received_signals.append(signal_number)
             wake.set()
+            if on_signal is not None:
+                on_signal(signal_number)
             if isinstance(previous, p.Cli.ParentSignalObserver):
                 previous.on_operator_signal(signal_number, frame)
 

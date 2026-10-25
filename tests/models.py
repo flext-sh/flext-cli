@@ -29,7 +29,6 @@ class TestsFlextCliModels(
     """Test model facade composed from canonical FLEXT model owners."""
 
     class Tests(
-        TestsFlextCliModelsPart01,
         TestsFlextCliModelsPart01.Tests,
         TestsFlextCliModelsRuntime,
         TestsFlextCliModelsCli,
@@ -120,5 +119,4 @@ class TestsFlextCliModels(
 
 
 m = TestsFlextCliModels
-
 __all__: list[str] = ["TestsFlextCliModels", "m"]

@@ -25,7 +25,7 @@
 - Public symbol exports: `FlextCli`, `FlextCliConfig`, `FlextCliConstants`,
   `FlextCliModels`, `FlextCliProtocols`, `FlextCliServiceBase`, `FlextCliSettings`,
   `FlextCliTypes`, `FlextCliUtilities`, `FlextCliUtilitiesCli` (+5 more)
-- Exported module shortcuts: `services`, `vendor`
+- Exported module shortcuts: _none_
 - Generated module pages: `8`
 
 ## Next Pages

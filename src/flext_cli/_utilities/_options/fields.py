@@ -8,18 +8,16 @@ from __future__ import annotations
 
 from flext_core import u
 
-import flext_cli
 from flext_cli import c, m, t
-from flext_cli._utilities._options.flextcliutilitiesoptionbuilder_part_01 import (
+from flext_cli._utilities import FlextCliUtilitiesConversion
+from flext_cli._utilities._options import (
     FlextCliUtilitiesOptionBuilder,
-)
-from flext_cli._utilities._options.flextcliutilitiesoptions_part_01 import (
-    FlextCliUtilitiesOptionsPart01,
+    FlextCliUtilitiesOptionsAnnotations,
 )
 
 
-class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
-    """Implementation part for FlextCliUtilitiesOptionsPart02."""
+class FlextCliUtilitiesOptionsFields(FlextCliUtilitiesOptionsAnnotations):
+    """Implementation part for FlextCliUtilitiesOptionsFields."""
 
     @staticmethod
     def field_annotation(
@@ -79,7 +77,9 @@ class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
                 c.DEFAULT_ENCODING,
             )
         normalized_atom = cls.normalize_cli_atom(
-            flext_cli.u.Cli.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(source_value),
+            FlextCliUtilitiesConversion.CLI_DEFAULT_SOURCE_ADAPTER.validate_python(
+                source_value
+            ),
         )
         if normalized_atom is None:
             raise TypeError(
@@ -145,4 +145,4 @@ class FlextCliUtilitiesOptionsPart02(FlextCliUtilitiesOptionsPart01):
         return list(args)
 
 
-__all__: list[str] = ["FlextCliUtilitiesOptionsPart02"]
+__all__: list[str] = ["FlextCliUtilitiesOptionsFields"]

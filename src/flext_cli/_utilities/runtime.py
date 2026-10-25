@@ -228,6 +228,7 @@ class FlextCliUtilitiesRuntime(
                 pass_fds=launch.pass_fds,
                 stderr_file=launch.stderr_file,
                 isolation=launch.isolation,
+                signal_wave=launch.signal_wave,
             )
         return cls._execute_streamed_process(
             m.Cli.RuntimeProcessRequest(
@@ -246,6 +247,7 @@ class FlextCliUtilitiesRuntime(
                 heartbeat_seconds=launch.heartbeat_seconds,
                 isolation=launch.isolation,
                 pass_fds=tuple(launch.pass_fds),
+                signal_wave=launch.signal_wave,
             ),
         ).flat_map(decode_output)
 
@@ -282,6 +284,7 @@ class FlextCliUtilitiesRuntime(
                 heartbeat_seconds=launch.heartbeat_seconds,
                 isolation=launch.isolation,
                 pass_fds=tuple(launch.pass_fds),
+                signal_wave=launch.signal_wave,
             ),
         )
 
