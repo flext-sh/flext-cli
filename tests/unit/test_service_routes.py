@@ -262,7 +262,7 @@ class TestsFlextCliServiceRoutes:
             success_formatter=render,
         )
 
-        with pytest.raises(ValueError) as captured:
+        with pytest.raises(ValueError, match=f"^{origin} rejected execution$") as captured:
             route.handler(m.Tests.ServiceGreeting(name="ana"))
 
         tm.ok(captured.value is cause)
