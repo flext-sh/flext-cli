@@ -11,6 +11,7 @@ from typing import Annotated, Literal
 from flext_core import m
 
 from flext_cli import t
+from flext_cli._models import FlextCliModelsColor
 
 
 class FlextCliModelsDocxStyles:
@@ -19,16 +20,8 @@ class FlextCliModelsDocxStyles:
     # NOTE (multi-agent, mro-j2yt.1): style primitives are data-only and
     # carry no document-specific or customer policy.
 
-    class DocxRgbColor(m.FrozenModel):
-        kind: Literal["rgb"] = m.Field(default="rgb", description="Color kind.")
-        value: Annotated[
-            str,
-            m.Field(
-                pattern=r"^(?:[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$",
-                description="RGB or ARGB value.",
-            ),
-        ]
-        tint: Annotated[float, m.Field(ge=-1, le=1, description="Color tint.")] = 0
+    class DocxRgbColor(FlextCliModelsColor.RgbColor):
+        """RGB value in a Word document color union."""
 
     class DocxThemeColor(m.FrozenModel):
         kind: Literal["theme"] = m.Field(default="theme", description="Color kind.")

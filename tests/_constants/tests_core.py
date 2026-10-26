@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
-from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import ClassVar
 
@@ -33,15 +32,6 @@ class TestsFlextCliConstantsCore:
     VERSION_VALID_SEMVER: ClassVar[str] = c.Cli.CLI_VERSION
     VERSION_COMPATIBLE: ClassVar[str] = ".".join(VERSION_VALID_SEMVER.split(".")[:2])
     VERSION_VALID_SEMVER_COMPLEX: ClassVar[str] = "1.2.3-alpha.1+build.123"
-
-    @unique
-    class Environment(StrEnum):
-        """Canonical environments used in flext-cli tests."""
-
-        DEVELOPMENT = "development"
-        STAGING = "staging"
-        PRODUCTION = "production"
-        TEST = "test"
 
     MATCH_REGEX_PHONE_RE: ClassVar[t.RegexPattern] = re.compile(r"\d{3}-\d{4}")
     MATCH_REGEX_ALPHA_RE: ClassVar[t.RegexPattern] = re.compile(r"alpha")

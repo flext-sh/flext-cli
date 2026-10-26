@@ -315,7 +315,7 @@ class FlextCliModelsProcess:
             default=None,
             description="Owned root child process handle.",
         )
-        waiter: threading.Thread | None = m.Field(
+        waiter: t.Port[threading.Thread] | None = m.Field(
             default=None,
             description="Thread responsible for reaping the root child.",
         )
@@ -355,39 +355,39 @@ class FlextCliModelsProcess:
             default_factory=list[int],
             description="Root child return codes recorded by the waiter.",
         )
-        stdout_output: bytearray = m.Field(
+        stdout_output: t.Port[bytearray] = m.Field(
             default_factory=bytearray,
             description="Mutable byte-exact captured stdout buffer.",
         )
-        stderr_output: bytearray = m.Field(
+        stderr_output: t.Port[bytearray] = m.Field(
             default_factory=bytearray,
             description="Mutable byte-exact captured stderr buffer.",
         )
         pump_streams: t.MutableSequenceOf[
-            t.Pair[threading.Thread, t.Port[p.Cli.RuntimeClosableStream]]
+            t.Pair[t.Port[threading.Thread], t.Port[p.Cli.RuntimeClosableStream]]
         ] = m.Field(
             default_factory=list[t.Pair[threading.Thread, p.Cli.RuntimeClosableStream]],
             description="Owned output pump threads paired with their source streams.",
         )
         input_pump: (
-            tuple[threading.Thread, t.Port[p.Cli.RuntimeClosableStream]] | None
+            tuple[t.Port[threading.Thread], t.Port[p.Cli.RuntimeClosableStream]] | None
         ) = m.Field(
             default=None,
             description="Owned stdin pump thread paired with its sink stream.",
         )
-        pump_stop: threading.Event = m.Field(
+        pump_stop: t.Port[threading.Event] = m.Field(
             default_factory=threading.Event,
             description="Request for output pumps to stop.",
         )
-        process_done: threading.Event = m.Field(
+        process_done: t.Port[threading.Event] = m.Field(
             default_factory=threading.Event,
             description="Notification that the root was reaped.",
         )
-        wake: threading.Event = m.Field(
+        wake: t.Port[threading.Event] = m.Field(
             default_factory=threading.Event,
             description="Notification of new lifecycle evidence.",
         )
-        stack: contextlib.ExitStack = m.Field(
+        stack: t.Port[contextlib.ExitStack] = m.Field(
             default_factory=contextlib.ExitStack,
             description="Owner of lifecycle resource cleanup.",
         )
@@ -407,7 +407,7 @@ class FlextCliModelsProcess:
             default=False,
             description="Whether child reaping and output draining completed.",
         )
-        primary_error: Exception | None = m.Field(
+        primary_error: t.Port[Exception] | None = m.Field(
             default=None,
             description="Primary exception retaining causal cleanup notes.",
         )

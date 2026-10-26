@@ -11,6 +11,7 @@ from typing import Annotated, Literal
 from flext_core import m
 
 from flext_cli import t
+from flext_cli._models import FlextCliModelsColor
 
 
 class FlextCliModelsXlsxStylePrimitives:
@@ -18,16 +19,8 @@ class FlextCliModelsXlsxStylePrimitives:
 
     # NOTE (multi-agent, mro-j2yt.1): optional values preserve the source
     # OOXML distinction between an absent attribute and an explicit false.
-    class XlsxRgbColor(m.FrozenModel):
-        kind: Literal["rgb"] = m.Field(default="rgb", description="Color kind.")
-        value: Annotated[
-            str,
-            m.Field(
-                pattern=r"^(?:[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$",
-                description="RGB or ARGB value.",
-            ),
-        ]
-        tint: Annotated[float, m.Field(ge=-1, le=1, description="Color tint.")] = 0
+    class XlsxRgbColor(FlextCliModelsColor.RgbColor):
+        """RGB value in a spreadsheet color union."""
 
     class XlsxIndexedColor(m.FrozenModel):
         kind: Literal["indexed"] = m.Field(default="indexed", description="Color kind.")

@@ -171,6 +171,12 @@ class FlextCliFileTools:
 - ✅ Just data **validation and structure**
 - ✅ Configuration or context data
 
+DOCX and XLSX RGB models inherit their shared value declaration from
+`FlextCliModelsColor.RgbColor` in `_models/color.py`. Domain subclasses retain their
+public identities and discriminated unions; neither document domain depends on the
+other. The shared frozen declaration owns the `kind`, `value`, `tint` field order,
+RGB/ARGB constraint and tint bounds without changing defaults or serialization.
+
 ---
 
 ## Architecture Decision Flowchart

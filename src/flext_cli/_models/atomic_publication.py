@@ -34,11 +34,10 @@ class FlextCliModelsAtomicPublication:
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             frozen=True,
             strict=True,
-            arbitrary_types_allowed=True,
         )
 
         path: Path = m.Field(description="Pathname of the observed file entry.")
-        state: os.stat_result = m.Field(
+        state: t.Port[os.stat_result] = m.Field(
             description="Unchanged native stat observation of the file entry.",
         )
 

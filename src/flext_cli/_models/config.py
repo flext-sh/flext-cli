@@ -109,9 +109,7 @@ class FlextCliConfigModels:
             if any(
                 not part
                 or part in {".", ".."}
-                or "/" in part
-                or "\\" in part
-                or "\0" in part
+                or any(character in part for character in "/\\\0")
                 for part in value
             ):
                 msg = (

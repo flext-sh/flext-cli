@@ -117,6 +117,30 @@ class FlextCliUtilitiesTemplate:
                 raise TemplateNotFound(template) from exc
             return content, str(source), None
 
+        def capture_references(self, environment: Environment, template: str) -> None:
+            """Capture a root's static references through this authenticated loader.
+
+            The pending stack retains native discovery and LIFO traversal order.
+            Existing states terminate cycles without reopening authenticated files.
+
+            Raises:
+                ValueError: If a template reference is not statically declared.
+
+            """
+            pending = [template]
+            while pending:
+                name = pending.pop()
+                if self.search_path / name in self.source_states:
+                    continue
+                content, _, _ = self.get_source(environment, name)
+                for dependency in meta.find_referenced_templates(
+                    environment.parse(content),
+                ):
+                    if dependency is None:
+                        msg = f"template input is not statically declared: {name}"
+                        raise ValueError(msg)
+                    pending.append(dependency)
+
     # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): template
     # contexts retain their validated model identity until the Jinja egress.
     # Why: Jinja caches compiled template bytecode on the environment, so a
@@ -179,6 +203,9 @@ class FlextCliUtilitiesTemplate:
     ) -> p.Result[t.VariadicTuple[m.Cli.AtomicFileState]]:
         """Capture declared Jinja imports through the existing native loader.
 
+        Each root retains an independent authenticated dependency traversal;
+        source states are merged in caller order without copying their contents.
+
         Returns:
             Every descriptor-authenticated input of the declared templates.
 
@@ -192,21 +219,7 @@ class FlextCliUtilitiesTemplate:
                 environment = FlextCliUtilitiesTemplate.template_environment(
                     source.parent,
                 )
-                pending = [source.name]
-                while pending:
-                    name = pending.pop()
-                    if source.parent / name in loader.source_states:
-                        continue
-                    content, _, _ = loader.get_source(environment, name)
-                    for dependency in meta.find_referenced_templates(
-                        environment.parse(content),
-                    ):
-                        if dependency is None:
-                            msg = f"template input is not statically declared: {name}"
-                            raise ValueError(
-                                msg,
-                            )
-                        pending.append(dependency)
+                loader.capture_references(environment, source.name)
                 states.update(loader.source_states)
             return tuple(states.values())
 

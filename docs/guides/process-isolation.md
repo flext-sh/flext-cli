@@ -9,6 +9,12 @@
 the isolated child; its deadline, byte streams, signals, cleanup and
 `ProcessOutcome` retain the ordinary runtime contract.
 
+Live lifecycle objects in `RuntimeProcessState` use `t.Port` declarations so the
+model validates their native identities without copying thread, event, stream,
+buffer, cleanup-stack or exception ownership. `ObservedFile.state` likewise keeps
+the original native filesystem observation through its declared port; it does not
+need a model-wide arbitrary-type exception.
+
 While native capture owns interruption, each signal forwarder first records the
 actual signal and wakes cleanup, then calls `p.Cli.ParentSignalObserver.on_operator_signal`
 only when that signal's previous handler implements the method-only observer port.
@@ -64,7 +70,9 @@ and never relies on a handwritten numeric syscall table.
 
 The same config declares `compiler_resource_parts` once. Bootstrap resolves those
 relative parts against the original installed RECORD of `config.Cli.name`;
-it does not infer a Python package name from that distribution name or consume
+each part must be nonempty, differ from `.` and `..`, and contain neither a path
+separator nor a NUL character.
+It does not infer a Python package name from that distribution name or consume
 a checkout path. Exactly one original resource entry with verified bytes is
 required. An editable installation without that resource in its RECORD is not
 packaged-resource proof. The generic resource owner and the actual package

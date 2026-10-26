@@ -32,9 +32,10 @@ class FlextCliModelsAtomicState:
 
         """
         normalized = Path(os.path.normpath(value))
+        disallowed_root = not allow_root and not value.name
         if (
             not value.is_absolute()
-            or (not allow_root and not value.name)
+            or disallowed_root
             or ".." in value.parts
             or normalized != value
         ):

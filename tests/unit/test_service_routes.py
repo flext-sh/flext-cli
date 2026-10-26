@@ -109,9 +109,18 @@ class TestsFlextCliServiceRoutes:
         tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="hello ana hello ana")
 
-    def test_invalid_input_exits_non_zero_with_validation_cause(self) -> None:
-        """Rejected input fails the command with the ValidationError cause."""
-        app = self._app(self.Greeter)
+    @pytest.mark.parametrize(
+        "provider_available",
+        [
+            pytest.param(True, id="configured-provider"),
+            pytest.param(False, id="unavailable-provider-never-constructed"),
+        ],
+    )
+    def test_invalid_input_exits_non_zero_with_validation_cause(
+        self, *, provider_available: bool
+    ) -> None:
+        """Reject invalid input before constructing either provider."""
+        app = self._app(self.Greeter if provider_available else self._unconfigured)
 
         outcome = tm.ok(
             cli.invoke_app(
@@ -146,24 +155,6 @@ class TestsFlextCliServiceRoutes:
         tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="hello ana")
         tm.ok("replacement" not in outcome.stdout)
-
-    def test_invalid_input_never_constructs_the_provider(self) -> None:
-        """Ingress rejects the request before the unavailable provider is called."""
-        app = self._app(self._unconfigured)
-        outcome = tm.ok(
-            cli.invoke_app(
-                app,
-                args=[
-                    "greet-all",
-                    "--name",
-                    "ana",
-                    "--times",
-                    c.ParserBooleanToken.ZERO,
-                ],
-            ),
-        )
-        tm.fail(u.Cli.process_succeeded(outcome.outcome))
-        tm.that(outcome.stderr, has="greater than or equal to 1")
 
     @pytest.mark.parametrize(
         "args",

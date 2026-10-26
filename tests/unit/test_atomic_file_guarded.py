@@ -7,86 +7,27 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import sys
-from typing import TYPE_CHECKING
+from pathlib import Path
 
-from tests import tm, u
+import pytest
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-from tests import m
+from tests import m, tm, u
 
 
 class TestsFlextCliAtomicFileGuarded:
     """Observable guarded-write behavior through public Flext CLI surfaces."""
 
     @staticmethod
-    def test_post_link_unlink_failure_cleans_owned_stage(tmp_path: Path) -> None:
-        """Preserve the unlink failure and remove the published staging alias."""
+    @pytest.mark.parametrize("scenario", ["unlink-failure", "competing-creation"])
+    def test_audit_boundary_preserves_publication_contract(
+        tmp_path: Path, scenario: str
+    ) -> None:
+        """Retain native failure, competing bytes and authenticated stage cleanup."""
+        consumer = Path(__file__).parents[1] / "fixtures" / "atomic_guarded_consumer.py"
         script = tmp_path / "consumer.py"
-        script.write_text(
-            "import errno\n"
-            "import sys\n"
-            "from pathlib import Path\n"
-            "from flext_cli import u\n"
-            "from flext_tests import tm\n"
-            "root = Path(sys.argv[1])\n"
-            "destination = root / 'atomic.txt'\n"
-            "before = u.Cli.atomic_read_binary_file_state(destination).unwrap()\n"
-            "armed = True\n"
-            "def fail_unlink(event, args):\n"
-            "    global armed\n"
-            "    if armed and event == 'os.remove' and destination.exists():\n"
-            "        armed = False\n"
-            "        raise OSError(errno.EIO, 'staged unlink failed')\n"
-            "sys.addaudithook(fail_unlink)\n"
-            "result = u.Cli.atomic_write_binary_file_guarded(\n"
-            "    before, b'published', permission_mode=0o600)\n"
-            "tm.that(armed, eq=False)\n"
-            "tm.fail(result, has='staged unlink failed')\n"
-            "tm.that(destination.read_bytes(), eq=b'published')\n"
-            "tm.that(destination.stat().st_nlink, eq=1)\n"
-            "tm.that({path.name for path in root.iterdir()}, "
-            "eq={'consumer.py', 'atomic.txt'})\n",
-            encoding="utf-8",
-        )
+        script.write_bytes(consumer.read_bytes())
         outcome = tm.ok(
-            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path))),
-        )
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
-        tm.that(outcome.stderr, eq="")
-
-    @staticmethod
-    def test_competing_creation_after_validation_is_preserved(tmp_path: Path) -> None:
-        """Refuse a real competing write at the publication system-call boundary."""
-        script = tmp_path / "consumer.py"
-        script.write_text(
-            "import sys\n"
-            "from pathlib import Path\n"
-            "from flext_cli import u\n"
-            "from flext_tests import tm\n"
-            "root = Path(sys.argv[1])\n"
-            "destination = root / 'atomic.txt'\n"
-            "before = u.Cli.atomic_read_binary_file_state(destination).unwrap()\n"
-            "armed = True\n"
-            "def create_competitor(event, args):\n"
-            "    global armed\n"
-            "    if armed and event in {'os.link', 'os.rename'} "
-            "and args[1] == destination.name:\n"
-            "        armed = False\n"
-            "        destination.write_bytes(b'concurrent')\n"
-            "sys.addaudithook(create_competitor)\n"
-            "result = u.Cli.atomic_write_binary_file_guarded(\n"
-            "    before, b'replacement', permission_mode=0o600)\n"
-            "tm.that(armed, eq=False)\n"
-            "tm.fail(result)\n"
-            "tm.that(destination.read_bytes(), eq=b'concurrent')\n"
-            "tm.that({path.name for path in root.iterdir()}, "
-            "eq={'consumer.py', 'atomic.txt'})\n",
-            encoding="utf-8",
-        )
-        outcome = tm.ok(
-            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path))),
+            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path), scenario)),
         )
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
         tm.that(outcome.stderr, eq="")

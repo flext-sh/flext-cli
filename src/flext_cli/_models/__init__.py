@@ -44,6 +44,7 @@ if TYPE_CHECKING:
     from flext_cli._models.atomic_state import FlextCliModelsAtomicState
     from flext_cli._models.atomic_symlink import FlextCliModelsAtomicSymlink
     from flext_cli._models.base import FlextCliModelsBase
+    from flext_cli._models.color import FlextCliModelsColor
     from flext_cli._models.config import FlextCliConfigModels
     from flext_cli._models.docx import FlextCliModelsDocx
     from flext_cli._models.docx_document import FlextCliModelsDocxDocument
@@ -76,6 +77,7 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsBasePart08",
     "FlextCliModelsBasePart09",
     "FlextCliModelsBasePart10",
+    "FlextCliModelsColor",
     "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
     "FlextCliModelsDocxStyles",
@@ -123,6 +125,7 @@ install_lazy_exports(
         "FlextCliModelsBasePart08": "._base.flextclimodelsbase_part_08",
         "FlextCliModelsBasePart09": "._base.flextclimodelsbase_part_09",
         "FlextCliModelsBasePart10": "._base.flextclimodelsbase_part_10",
+        "FlextCliModelsColor": ".color",
         "FlextCliModelsDocx": ".docx",
         "FlextCliModelsDocxDocument": ".docx_document",
         "FlextCliModelsDocxStyles": ".docx_styles",

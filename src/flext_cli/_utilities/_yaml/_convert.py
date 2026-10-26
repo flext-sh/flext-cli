@@ -118,9 +118,10 @@ class FlextCliUtilitiesYamlConvertMixin:
     ) -> t.Cli.YamlNode:
         """Recursively convert plain dict/list into CommentedMap/CommentedSeq.
 
-        Existing CommentedMap/CommentedSeq nodes are preserved. Multi-line
-        strings become LiteralScalarString; YAML 1.1 implicit string tokens are
-        double-quoted so they survive a round-trip as strings.
+        Existing CommentedMap/CommentedSeq nodes are returned by reference,
+        retaining their comments and aliases. Plain containers retain encounter
+        order. Multi-line strings become LiteralScalarString; YAML 1.1 implicit
+        string tokens are double-quoted so they survive a round-trip as strings.
 
         Returns:
             The resulting ``t.Cli.YamlNode``.
@@ -146,13 +147,13 @@ class FlextCliUtilitiesYamlConvertMixin:
             )
         if isinstance(data, str):
             if "\n" in data:
-                return cast("t.Cli.YamlScalar", LiteralScalarString(data))
-            if (
+                data = cast("t.Cli.YamlScalar", LiteralScalarString(data))
+            elif (
                 data.lower()
                 in FlextCliUtilitiesYamlConvertMixin._YAML_1_1_IMPLICIT_STRING_VALUES
             ):
-                return cast("t.Cli.YamlScalar", DoubleQuotedScalarString(data))
-        if data is not None and not isinstance(data, (str, int, float, bool)):
+                data = cast("t.Cli.YamlScalar", DoubleQuotedScalarString(data))
+        elif data is not None and not isinstance(data, (int, float, bool)):
             msg = f"unsupported YAML value type: {type(data).__name__}"
             raise TypeError(msg)
         return data
