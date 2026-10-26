@@ -318,25 +318,38 @@ class TestsFlextCliAtomicDirectoryQueries:
             u.Cli.atomic_merge_directory_query_receipts((first, second, incoming), ())
 
     @staticmethod
-    def test_query_union_sorts_once_per_directory(tmp_path: Path) -> None:
-        """A growing selector inventory is materialized once, not for every event."""
+    def test_query_union_preserves_order_and_deduplicates_selectors(
+        tmp_path: Path,
+    ) -> None:
+        """Unordered repeated selectors merge into one verifiable ordered union."""
         original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
         queries: tuple[t.Pair[str, Literal["exists", "isfile", "isdir"]], ...] = tuple(
             (f"candidate-{index:03}", "exists") for index in range(128)
         )
         fragments = tuple(
-            original.model_copy(update={"queries": (query,)}) for query in queries
+            m.Cli.AtomicDirectoryInventory(
+                root=original.root,
+                entries=original.entries,
+                queries=(query,),
+                membership_queried=original.membership_queried,
+                membership_queries=original.membership_queries,
+            )
+            for query in reversed(queries)
         )
-        with Profile() as profile:
-            directories, _ = u.Cli.atomic_merge_directory_query_receipts(fragments, ())
+        directories, topology = u.Cli.atomic_merge_directory_query_receipts(
+            (*fragments, *fragments),
+            (),
+        )
+        tm.that(len(directories), eq=1)
+        tm.that(topology, eq=())
         tm.that(directories[0].queries, eq=queries)
         tm.that(
-            Stats(profile)
-            .get_stats_profile()
-            .func_profiles["<built-in method builtins.sorted>"]
-            .ncalls,
-            eq=c.ParserBooleanToken.ONE,
+            tm.ok(u.Cli.atomic_verify_directory_queries(directories, topology)),
+            eq=True,
         )
+        (tmp_path / queries[-1][0]).mkdir()
+        with pytest.raises(ValueError, match="source directory query changed"):
+            u.Cli.atomic_verify_directory_queries(directories, topology)
 
     @staticmethod
     def test_repeated_directory_queries_preserve_the_elected_receipt(
