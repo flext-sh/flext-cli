@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import fnmatch
 import os
+import traceback
 from pathlib import Path
 from typing import Literal
 
@@ -117,7 +118,11 @@ class FlextCliUtilitiesFilesPart06:
                     f"same_model_type={type(observed.value) is type(expected)}; "
                     f"expected={expected.model_dump(exclude={'content'})}; "
                     f"observed={observed.value.model_dump(exclude={'content'})}"
-                    f"{diagnostics}"
+                    f"{diagnostics}; verification_callers="
+                    + " <- ".join(
+                        f"{frame.filename}:{frame.lineno}:{frame.name}"
+                        for frame in traceback.extract_stack(limit=8)[:-1]
+                    )
                 )
         return r[Literal[True]].ok(value=True)
 

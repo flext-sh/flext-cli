@@ -82,6 +82,24 @@ class FlextCliConstantsOutput:
     OUTPUT_TABLE_NORMALIZATION_FAILED: ClassVar[str] = "Table normalization failed"
     OUTPUT_TABLE_ROW_INVALID: ClassVar[str] = "Table row invalid after validation"
 
+    FORMATTER_ANSI_RESET: ClassVar[str] = "\x1b[0m"
+    FORMATTER_ANSI_BY_STYLE: ClassVar[t.StrMapping] = MappingProxyType({
+        FlextCliConstantsEnums.MessageStyles.BLUE: "\x1b[34m",
+        FlextCliConstantsEnums.MessageStyles.GREEN: "\x1b[32m",
+        FlextCliConstantsEnums.MessageStyles.RED: "\x1b[31m",
+        FlextCliConstantsEnums.MessageStyles.YELLOW: "\x1b[33m",
+        FlextCliConstantsEnums.MessageStyles.CYAN: "\x1b[36m",
+        FlextCliConstantsEnums.MessageStyles.WHITE: "\x1b[37m",
+        FlextCliConstantsEnums.MessageStyles.DIM: "\x1b[2m",
+        FlextCliConstantsEnums.MessageStyles.BOLD: "\x1b[1m",
+        FlextCliConstantsEnums.MessageStyles.BOLD_BLUE: "\x1b[1;34m",
+        FlextCliConstantsEnums.MessageStyles.BOLD_GREEN: "\x1b[1;32m",
+        FlextCliConstantsEnums.MessageStyles.BOLD_RED: "\x1b[1;31m",
+        FlextCliConstantsEnums.MessageStyles.BOLD_YELLOW: "\x1b[1;33m",
+    })
+    FORMATTER_RULE_GLYPH_RUN: ClassVar[int] = 4
+    FORMATTER_PANEL_GLYPH: ClassVar[str] = "-"
+
     TABLE_FORMATS: ClassVar[t.StrMapping] = MappingProxyType({
         FlextCliConstantsEnums.TabularFormat.PLAIN: "Minimal formatting, no borders",
         FlextCliConstantsEnums.TabularFormat.SIMPLE: "Simple ASCII borders",

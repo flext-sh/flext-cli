@@ -49,6 +49,8 @@ class FlextCliConstantsBase:
     # adapters and consumers cannot drift into local magic exit codes/messages.
     EXIT_CODE_SUCCESS: ClassVar[int] = 0
     EXIT_CODE_FAILURE: ClassVar[int] = 1
+    STDOUT_DESCRIPTOR: ClassVar[int] = 1
+    STDERR_DESCRIPTOR: ClassVar[int] = 2
     PROCESS_TIMEOUT_EXIT_CODE: ClassVar[int] = 124
     GIT_NOT_A_REPOSITORY_EXIT_CODE: ClassVar[int] = 128
     OP_EXECUTE_APPLICATION: ClassVar[str] = "execute CLI application"

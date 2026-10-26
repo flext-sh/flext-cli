@@ -119,13 +119,12 @@ class FlextCliUtilitiesFramework:
                 result
             )
 
-    _active_execution: ContextVar[bool] = ContextVar(
+    _active_execution: ClassVar[ContextVar[bool]] = ContextVar(
         "flext_cli_active_execution",
         default=False,
     )
-    _active_failure: ContextVar[p.Result[t.Cli.ResultValue] | None] = ContextVar(
-        "flext_cli_active_failure",
-        default=None,
+    _active_failure: ClassVar[ContextVar[p.Result[t.Cli.ResultValue] | None]] = (
+        ContextVar("flext_cli_active_failure", default=None)
     )
 
     @classmethod

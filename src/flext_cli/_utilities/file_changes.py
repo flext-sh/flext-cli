@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 from filelock import FileLock
@@ -16,6 +17,7 @@ from flext_cli._utilities._files.flextcliutilitiesfiles_part_06 import (
     FlextCliUtilitiesFilesPart06,
 )
 from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
+from flext_cli._utilities.output import FlextCliUtilitiesOutput
 
 
 class FlextCliUtilitiesFileChanges:
@@ -62,12 +64,15 @@ class FlextCliUtilitiesFileChanges:
         *,
         lock_path: Path,
         directory_mode: int = c.Cli.FILE_CHANGES_DIRECTORY_MODE,
+        nonsecret_source_paths: t.SequenceOf[Path] = (),
     ) -> p.Result[t.VariadicTuple[Path]]:
         """Verify every observed state, then write or delete each changed file.
 
         No effect happens unless every destination still matches its observed
         state. Unchanged files are skipped; missing parents are created with
-        exactly ``directory_mode``.
+        exactly ``directory_mode``. ``nonsecret_source_paths`` explicitly
+        attests Python sources for content digest diagnostics; all other
+        destinations report only physical metadata and byte counts.
 
         Returns:
             The paths actually written or deleted, or the first failure.
@@ -76,12 +81,57 @@ class FlextCliUtilitiesFileChanges:
         result_type = r[tuple[Path, ...]]
         pending = FlextCliUtilitiesFileChanges.pending_file_changes(changes)
         with FlextCliUtilitiesFileChanges.file_changes_lock(lock_path):
+            FlextCliUtilitiesOutput.debug(
+                f"file_changes: verify pid={os.getpid()} "
+                f"pending={len(pending)} lock={lock_path}"
+            )
             verified = FlextCliUtilitiesFilesPart06.atomic_verify_binary_file_states(
                 tuple(change.before for change in pending),
+                nonsecret_source_paths=nonsecret_source_paths,
             )
             if verified.failure:
                 return result_type.from_failure(verified)
             for change in pending:
+                source_diagnostics = ""
+                if change.path in nonsecret_source_paths and change.path.suffix in {
+                    ".py",
+                    ".pyi",
+                }:
+                    before_digest = (
+                        None
+                        if change.before.content is None
+                        else FlextCliUtilitiesFilesPart03.sha256_bytes(
+                            change.before.content
+                        )
+                    )
+                    desired_digest = (
+                        None
+                        if change.desired_content is None
+                        else FlextCliUtilitiesFilesPart03.sha256_bytes(
+                            change.desired_content
+                        )
+                    )
+                    source_diagnostics = (
+                        f" before_sha256={before_digest}"
+                        f" desired_sha256={desired_digest}"
+                    )
+                before_length = (
+                    None
+                    if change.before.content is None
+                    else len(change.before.content)
+                )
+                desired_length = (
+                    None
+                    if change.desired_content is None
+                    else len(change.desired_content)
+                )
+                FlextCliUtilitiesOutput.debug(
+                    f"file_changes: publish pid={os.getpid()} "
+                    f"path={change.path} before_inode={change.before.inode} "
+                    f"before_bytes={before_length} "
+                    f"desired_bytes={desired_length}"
+                    f"{source_diagnostics}"
+                )
                 published = FlextCliUtilitiesFileChanges._publish(
                     change, directory_mode
                 )
