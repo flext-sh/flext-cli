@@ -607,6 +607,7 @@ runtime-evaluated-base-classes = [
   "flext_cli.FlextCliModels.BaseSettings",
   "flext_cli.FlextCliModels.FrozenModel",
   "flext_cli.FlextCliSettings",
+  "flext_cli._models.FlextCliModelsColor.RgbColor",
   "flext_cli._models._base.flextclimodelsbase_part_01.CommandOutputEnvelope",
   "flext_cli._models._base.flextclimodelsbase_part_02.AtomicFileIdentity",
   "flext_cli._models._xlsx.xlsx_style_catalog.XlsxStyleCatalogRequest",
