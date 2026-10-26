@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from examples import ExamplesFlextCliModels, c
-from flext_tests import FlextTestsModels
+from examples import c, m as examples_m
+from flext_tests import m as flext_tests_m
 
-from flext_cli import FlextCliModels
+from flext_cli import m as flext_cli_m
 from tests._models import (
     TestsFlextCliModelsCli,
     TestsFlextCliModelsPart01,
@@ -22,9 +22,9 @@ from tests._models import (
 
 class TestsFlextCliModels(
     TestsFlextCliModelsPart01,
-    FlextTestsModels,
-    ExamplesFlextCliModels,
-    FlextCliModels,
+    flext_tests_m,
+    examples_m,
+    flext_cli_m,
 ):
     """Test model facade composed from canonical FLEXT model owners."""
 
@@ -32,87 +32,81 @@ class TestsFlextCliModels(
         TestsFlextCliModelsPart01.Tests,
         TestsFlextCliModelsRuntime,
         TestsFlextCliModelsCli,
-        FlextTestsModels.Tests,
+        flext_tests_m.Tests,
     ):
         """Consumer-owned records used to exercise typed YAML ingress."""
 
-        class InheritedSettings(FlextCliModels.BaseSettings):
+        class InheritedSettings(flext_cli_m.BaseSettings):
             """Consumer-owned settings using the inherited native configuration."""
 
-            model_config = FlextCliModels.SettingsConfigDict(
+            model_config = flext_cli_m.SettingsConfigDict(
                 env_prefix="FLEXT_SETTINGS_REGRESSION_",
                 case_sensitive=True,
             )
 
             topic: str = "fixture-default"
 
-        class ServiceGreeting(FlextCliModels.FrozenModel):
+        class ServiceGreeting(flext_cli_m.FrozenModel):
             """Concrete validation model declared once on the greeting operation."""
 
-            name: str = FlextCliModels.Field(description="Name to greet.")
-            times: int = FlextCliModels.Field(
+            name: str = flext_cli_m.Field(description="Name to greet.")
+            times: int = flext_cli_m.Field(
                 default=1,
                 ge=1,
                 description="Number of greetings.",
             )
 
-        class ServiceStatus(FlextCliModels.FrozenModel):
+        class ServiceStatus(flext_cli_m.FrozenModel):
             """Owned result payload rendered by the service CLI."""
 
-            ready: int = FlextCliModels.Field(description="Readiness indicator.")
+            ready: int = flext_cli_m.Field(description="Readiness indicator.")
 
-        class RestrictedDatabaseConfig(
-            ExamplesFlextCliModels.Examples.AdvancedDatabaseConfig
-        ):
+        class RestrictedDatabaseConfig(examples_m.Examples.AdvancedDatabaseConfig):
             """Database consumer that disallows the example's SSL port rewrite."""
 
             port: Annotated[
                 int,
-                FlextCliModels.Field(ge=1, le=5432),
+                flext_cli_m.Field(ge=1, le=5432),
             ] = c.EXAMPLE_DEFAULT_DB_PORT
 
-        class YamlService(FlextCliModels.FrozenModel):
+        class YamlService(flext_cli_m.FrozenModel):
             """Strict service endpoint loaded from external YAML."""
 
-            host: Annotated[str, FlextCliModels.Field(description="Service host name.")]
-            port: Annotated[
-                int, FlextCliModels.Field(description="Service port number.")
-            ]
+            host: Annotated[str, flext_cli_m.Field(description="Service host name.")]
+            port: Annotated[int, flext_cli_m.Field(description="Service port number.")]
 
-        class YamlFeatures(FlextCliModels.FrozenModel):
+        class YamlFeatures(flext_cli_m.FrozenModel):
             """Strict feature configuration loaded from external YAML."""
 
             enabled: Annotated[
-                bool, FlextCliModels.Field(description="Feature activation flag.")
+                bool, flext_cli_m.Field(description="Feature activation flag.")
             ]
 
-        class YamlConsumerConfig(FlextCliModels.FrozenModel):
+        class YamlConsumerConfig(flext_cli_m.FrozenModel):
             """Strict consumer configuration returned by the public loader."""
 
             service: TestsFlextCliModels.Tests.YamlService
             features: TestsFlextCliModels.Tests.YamlFeatures
 
-        class TemplateEmpty(FlextCliModels.FrozenModel):
+        class TemplateEmpty(flext_cli_m.FrozenModel):
             """Empty template render context (no variables provided)."""
 
-        class TemplateValue(FlextCliModels.FrozenModel):
+        class TemplateValue(flext_cli_m.FrozenModel):
             """Template render context exposing a single ``value`` field."""
 
-            value: Annotated[int, FlextCliModels.Field(description="Template value.")]
+            value: Annotated[int, flext_cli_m.Field(description="Template value.")]
 
-        class TemplateServer(FlextCliModels.FrozenModel):
+        class TemplateServer(flext_cli_m.FrozenModel):
             """Template render context nested ``server`` record."""
 
-            port: Annotated[
-                int, FlextCliModels.Field(description="Server port number.")
-            ]
+            port: Annotated[int, flext_cli_m.Field(description="Server port number.")]
 
-        class TemplateWidthContext(FlextCliModels.FrozenModel):
+        class TemplateWidthContext(flext_cli_m.FrozenModel):
             """Template render context exposing a Markdown wrap ``width``."""
 
-            width: Annotated[int, FlextCliModels.Field(description="Wrap width.")]
+            width: Annotated[int, flext_cli_m.Field(description="Wrap width.")]
 
-        class TemplateServerContext(FlextCliModels.FrozenModel):
+        class TemplateServerContext(flext_cli_m.FrozenModel):
             """Template render context exposing a nested ``server`` field."""
 
             server: TestsFlextCliModels.Tests.TemplateServer

@@ -23,6 +23,9 @@ class FlextCliCliPart06(FlextCliCliPart05):
         service_type: type[p.Service[R]],
         *,
         provide: t.Cli.NullaryOperation[p.Service[R]],
+        owner: type | None = None,
+        operation_prefix: str = "",
+        success_formatter: t.Cli.ServiceMessageFormatter | None = None,
     ) -> tuple[p.Cli.ResultCommandRoute, ...]:
         """Derive one result route per operation of a core service class.
 
@@ -38,20 +41,27 @@ class FlextCliCliPart06(FlextCliCliPart05):
         Args:
             service_type: Core service class whose operations become routes.
             provide: Callable building the service instance at execution time.
+            owner: Inherited operation family, or the complete service by default.
+            operation_prefix: Shared API prefix omitted from command names.
+            success_formatter: Optional output formatter receiving the operation name.
 
         Returns:
             The resulting ``tuple[p.Cli.ResultCommandRoute, ...]``.
 
         """
         return tuple(
-            m.Cli.ResultCommandRoute(
-                name=operation.name.replace("_", "-"),
+            cls.result_route(
+                name=operation.name.removeprefix(operation_prefix).replace("_", "-"),
                 help_text=operation.summary,
                 model_cls=operation.request or m.Cli.EmptyRequest,
                 handler=partial(cls._execute_operation, operation, provide),
-                success_formatter=cls._render_result_value,
+                success_formatter=(
+                    cls._render_result_value
+                    if success_formatter is None
+                    else partial(success_formatter, operation.name)
+                ),
             )
-            for operation in u.service_operations(service_type)
+            for operation in u.service_operations(service_type, owner=owner)
         )
 
     @staticmethod

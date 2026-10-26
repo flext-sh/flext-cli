@@ -6,12 +6,53 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, p, r, t, u
+from flext_cli import c, m, p, r, t, u
 from flext_cli.services._cli import FlextCliCliPart04
 
 
 class FlextCliCliPart05(FlextCliCliPart04):
     """Implementation part for FlextCliCliPart05."""
+
+    @staticmethod
+    def result_route[M: t.Cli.ModelLike, TResult](
+        *,
+        name: str,
+        help_text: str,
+        model_cls: t.ModelClass[M],
+        handler: p.Cli.ResultCommandHandler[M, TResult],
+        success_formatter: t.Cli.SuccessMessageFormatter[TResult],
+        success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
+    ) -> m.Cli.ResultCommandRoute:
+        """Bind a typed operation to the existing heterogeneous CLI contract.
+
+        The framework already validated the request. Its original instance and
+        the operation's typed result reach the handler and formatter unchanged.
+        Only the formatted text crosses the heterogeneous transport boundary.
+
+        Returns:
+            A result route retaining the typed handler and output formatter.
+
+        """
+
+        def execute(params: t.Cli.ModelLike) -> p.Result[str]:
+            if not isinstance(params, model_cls):
+                message = (
+                    f"Result route {name!r} requires {model_cls.__name__}, "
+                    f"received {type(params).__name__}"
+                )
+                raise TypeError(message)
+            result = handler(params)
+            if result.failure:
+                return r[str].from_failure(result)
+            return r[str].ok(success_formatter(result.value))
+
+        return m.Cli.ResultCommandRoute(
+            name=name,
+            help_text=help_text,
+            model_cls=model_cls,
+            handler=execute,
+            success_type=success_type,
+        )
 
     @classmethod
     def register_result_command(

@@ -21,7 +21,7 @@ dependencies = [
   "click>=8.5.0",
   "defusedxml>=0.7.1",
   "filelock>=4.2.4",
-  "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
+  "flext-core @ git+https://github.com/flext-sh/flext-core.git@f98efceb2b4d6221e8e6aeaf478ab8ecf1f8e55e",
   "jinja2>=3.1.6",
   "jsonschema>=4.26.0",
   "markdown-it-py>=3.0.0",
@@ -62,13 +62,13 @@ Homepage = "https://github.com/flext-sh/flext-cli"
 [dependency-groups]
 dev = [
   "types-networkx",
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0.12.0-dev",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@ac27fc75942a78e4787a74fc64f8a2b7db2a172d",
   "mkdocstrings-python>=2.0.9",
   "actionlint-py>=1.7.12.24",
   "bandit>=1.9.4",
   "deptry",
   "editables>=0.6",
-  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@0.12.0-dev",
+  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@4ddd702da483f0b03a247e6282916a343c60276a",
   "hypothesis",
   "mkdocs",
   "mkdocs-autorefs",
@@ -124,7 +124,7 @@ dev = [
   "yamlfix>=1.19.1",
 ]
 codegen = [
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0.12.0-dev",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@ac27fc75942a78e4787a74fc64f8a2b7db2a172d",
 ]
 
 [tool.flext.docs]
@@ -181,7 +181,7 @@ optional_dependencies_dev_groups = []
 allow_redefinition = true
 check_untyped_defs = true
 disable_error_code = ["call-arg", "prop-decorator"]
-exclude = "(?s:(?:.+/)?[^/]*\\.bak)\\Z|(?s:(?:.+/)?[^/]*\\.egg\\-info/.*)\\Z|(?s:(?:.+/)?[^/]*\\.orig)\\Z|(?s:(?:.+/)?[^/]*\\.rej)\\Z|(?s:(?:.+/)?[^/]*\\.swp)\\Z|(?s:(?:.+/)?\\.agents\\-sync\\-home/.*)\\Z|(?s:(?:.+/)?\\.agents/.*)\\Z|(?s:(?:.+/)?\\.archive/.*)\\Z|(?s:(?:.+/)?\\.beads/.*)\\Z|(?s:(?:.+/)?\\.benchmarks/.*)\\Z|(?s:(?:.+/)?\\.bkp/.*)\\Z|(?s:(?:.+/)?\\.cache/.*)\\Z|(?s:(?:.+/)?\\.claude/.*)\\Z|(?s:(?:.+/)?\\.codex/.*)\\Z|(?s:(?:.+/)?\\.cursor/.*)\\Z|(?s:(?:.+/)?\\.gemini/.*)\\Z|(?s:(?:.+/)?\\.git/.*)\\Z|(?s:(?:.+/)?\\.hypothesis/.*)\\Z|(?s:(?:.+/)?\\.kilo/.*)\\Z|(?s:(?:.+/)?\\.mypy_cache/.*)\\Z|(?s:(?:.+/)?\\.omo/.*)\\Z|(?s:(?:.+/)?\\.opencode/.*)\\Z|(?s:(?:.+/)?\\.pylance_cache/.*)\\Z|(?s:(?:.+/)?\\.pyrefly_cache/.*)\\Z|(?s:(?:.+/)?\\.pytest_cache/.*)\\Z|(?s:(?:.+/)?\\.reports/.*)\\Z|(?s:(?:.+/)?\\.ruff_cache/.*)\\Z|(?s:(?:.+/)?\\.serena/.*)\\Z|(?s:(?:.+/)?\\.snapshots/.*)\\Z|(?s:(?:.+/)?\\.test\\-tmp/.*)\\Z|(?s:(?:.+/)?\\.tmp/.*)\\Z|(?s:(?:.+/)?\\.tox/.*)\\Z|(?s:(?:.+/)?\\.venv\\.[^/]*/.*)\\Z|(?s:(?:.+/)?\\.venv/.*)\\Z|(?s:(?:.+/)?\\.vscode/.*)\\Z|(?s:(?:.+/)?\\.worktrees/.*)\\Z|(?s:(?:.+/)?__pycache__/.*)\\Z|(?s:(?:.+/)?__pyrefly_virtual__/.*)\\Z|(?s:(?:.+/)?_tmp_[^/]*/.*)\\Z|(?s:(?:.+/)?build/.*)\\Z|(?s:(?:.+/)?dist\\-packages/.*)\\Z|(?s:(?:.+/)?dist/.*)\\Z|(?s:(?:.+/)?htmlcov/.*)\\Z|(?s:(?:.+/)?incoming/.*)\\Z|(?s:(?:.+/)?legado/.*)\\Z|(?s:(?:.+/)?node_modules/.*)\\Z|(?s:(?:.+/)?protos/.*)\\Z|(?s:(?:.+/)?reports/.*)\\Z|(?s:(?:.+/)?site\\-packages/.*)\\Z|(?s:(?:.+/)?site/.*)\\Z|(?s:(?:.+/)?target/.*)\\Z|(?s:(?:.+/)?tests/fixtures/[^/]+/.*)\\Z|(?s:(?:.+/)?venv/.*)\\Z"
+exclude = "(?s:(?:.+/)?[^/]*\\.bak)\\Z|(?s:(?:.+/)?[^/]*\\.egg\\-info/.*)\\Z|(?s:(?:.+/)?[^/]*\\.orig)\\Z|(?s:(?:.+/)?[^/]*\\.rej)\\Z|(?s:(?:.+/)?[^/]*\\.swp)\\Z|(?s:(?:.+/)?\\.agents\\-sync\\-home/.*)\\Z|(?s:(?:.+/)?\\.agents/.*)\\Z|(?s:(?:.+/)?\\.archive/.*)\\Z|(?s:(?:.+/)?\\.beads/.*)\\Z|(?s:(?:.+/)?\\.benchmarks/.*)\\Z|(?s:(?:.+/)?\\.bkp/.*)\\Z|(?s:(?:.+/)?\\.cache/.*)\\Z|(?s:(?:.+/)?\\.claude/.*)\\Z|(?s:(?:.+/)?\\.codex/.*)\\Z|(?s:(?:.+/)?\\.cursor/.*)\\Z|(?s:(?:.+/)?\\.gemini/.*)\\Z|(?s:(?:.+/)?\\.git/.*)\\Z|(?s:(?:.+/)?\\.hypothesis/.*)\\Z|(?s:(?:.+/)?\\.kilo/.*)\\Z|(?s:(?:.+/)?\\.mypy_cache/.*)\\Z|(?s:(?:.+/)?\\.omo/.*)\\Z|(?s:(?:.+/)?\\.opencode/.*)\\Z|(?s:(?:.+/)?\\.pylance_cache/.*)\\Z|(?s:(?:.+/)?\\.pyrefly_cache/.*)\\Z|(?s:(?:.+/)?\\.pytest_cache/.*)\\Z|(?s:(?:.+/)?\\.reports/.*)\\Z|(?s:(?:.+/)?\\.ruff_cache/.*)\\Z|(?s:(?:.+/)?\\.serena/.*)\\Z|(?s:(?:.+/)?\\.snapshots/.*)\\Z|(?s:(?:.+/)?\\.test\\-tmp/.*)\\Z|(?s:(?:.+/)?\\.tmp/.*)\\Z|(?s:(?:.+/)?\\.tox/.*)\\Z|(?s:(?:.+/)?\\.venv\\.[^/]*/.*)\\Z|(?s:(?:.+/)?\\.venv/.*)\\Z|(?s:(?:.+/)?\\.vscode/.*)\\Z|(?s:(?:.+/)?\\.worktrees/.*)\\Z|(?s:(?:.+/)?__pycache__/.*)\\Z|(?s:(?:.+/)?__pyrefly_virtual__/.*)\\Z|(?s:(?:.+/)?_tmp_[^/]*/.*)\\Z|(?s:(?:.+/)?build/.*)\\Z|(?s:(?:.+/)?dist\\-packages/.*)\\Z|(?s:(?:.+/)?dist/.*)\\Z|(?s:(?:.+/)?htmlcov/.*)\\Z|(?s:(?:.+/)?incoming/.*)\\Z|(?s:(?:.+/)?legado/.*)\\Z|(?s:(?:.+/)?node_modules/.*)\\Z|(?s:(?:.+/)?protos/.*)\\Z|(?s:(?:.+/)?reports/.*)\\Z|(?s:(?:.+/)?site\\-packages/.*)\\Z|(?s:(?:.+/)?site/.*)\\Z|(?s:(?:.+/)?target/.*)\\Z|(?s:(?:.+/)?tests/fixtures/.*)\\Z|(?s:(?:.+/)?venv/.*)\\Z"
 explicit_package_bases = true
 extra_checks = true
 follow_imports = "normal"
@@ -262,7 +262,7 @@ project-excludes = [
   "**/site-packages/**",
   "**/site/**",
   "**/target/**",
-  "**/tests/fixtures/*/**",
+  "**/tests/fixtures/**",
   "**/venv/**",
 ]
 project-includes = ["examples/**/*.py*", "src/**/*.py*", "tests/**/*.py*"]
@@ -406,7 +406,7 @@ exclude = [
   "**/site-packages/**",
   "**/site/**",
   "**/target/**",
-  "**/tests/fixtures/*/**",
+  "**/tests/fixtures/**",
   "**/venv/**",
 ]
 extraPaths = ["src", "."]
@@ -452,6 +452,7 @@ addopts = [
   "--strict-markers",
   "--markdown-docs",
   "--durations=10",
+  "--ignore=tests/fixtures",
 ]
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = ["error", "once::pytest.PytestAssertRewriteWarning"]
@@ -535,7 +536,7 @@ extend-exclude = [
   "**/site-packages/**",
   "**/site/**",
   "**/target/**",
-  "**/tests/fixtures/*/**",
+  "**/tests/fixtures/**",
   "**/venv/**",
 ]
 fix = false
@@ -602,10 +603,8 @@ msg = "Use cli.create_app_with_common_params / cli.register_command from flext_c
 
 [tool.ruff.lint.flake8-type-checking]
 runtime-evaluated-base-classes = [
-  "examples.ExamplesFlextCliModels.Examples.AdvancedDatabaseConfig",
+  "examples.m.Examples.AdvancedDatabaseConfig",
   "examples.s",
-  "flext_cli.FlextCliModels.BaseSettings",
-  "flext_cli.FlextCliModels.FrozenModel",
   "flext_cli.FlextCliSettings",
   "flext_cli._models.FlextCliModelsColor.RgbColor",
   "flext_cli._models._base.flextclimodelsbase_part_01.CommandOutputEnvelope",
@@ -613,6 +612,7 @@ runtime-evaluated-base-classes = [
   "flext_cli._models._xlsx.xlsx_style_catalog.XlsxStyleCatalogRequest",
   "flext_cli._models.process.ProcessNativeToolEvidence",
   "flext_cli.m.BaseModel",
+  "flext_cli.m.BaseSettings",
   "flext_cli.m.Cli.ServiceOptions",
   "flext_cli.m.FrozenModel",
   "flext_cli.m.Value",
@@ -709,9 +709,9 @@ environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
 link-mode = "copy"
 override-dependencies = [
   "rope @ git+https://github.com/marlon-costa-dc/rope.git@8414232e12b6328ba812bf49fe465fde65774dfd",
-  "flext-core @ git+https://github.com/flext-sh/flext-core.git@0.12.0-dev",
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@0.12.0-dev",
-  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@0.12.0-dev",
+  "flext-core @ git+https://github.com/flext-sh/flext-core.git@f98efceb2b4d6221e8e6aeaf478ab8ecf1f8e55e",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@ac27fc75942a78e4787a74fc64f8a2b7db2a172d",
+  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@4ddd702da483f0b03a247e6282916a343c60276a",
 ]
 
 [[tool.uv.exclude-dependencies]]

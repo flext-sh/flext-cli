@@ -38,6 +38,7 @@ exclude_patterns = [
   "**/src/flext_cli/services/_cli/__init__.py",
   "**/src/flext_cli/typings.py",
   "**/src/flext_cli/utilities.py",
+  "**/src/flext_cli/vendor/__init__.py",
   "**/src/flext_cli/vendor/pptx/__init__.py",
   "**/tests/__init__.py",
   "**/tests/_constants/__init__.py",

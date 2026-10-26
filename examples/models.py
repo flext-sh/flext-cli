@@ -17,7 +17,7 @@ from examples._models import (
     ExamplesFlextCliModelsExamplesDatabase,
     ExamplesFlextCliModelsPart01,
 )
-from flext_cli import FlextCliModels
+from flext_cli import m as flext_cli_m
 
 
 class ExamplesFlextCliModels(
@@ -25,7 +25,7 @@ class ExamplesFlextCliModels(
     ExamplesFlextCliModelsExamplesCommon,
     ExamplesFlextCliModelsExamplesDatabase,
     ExamplesFlextCliModelsPart01,
-    FlextCliModels,
+    flext_cli_m,
 ):
     """Public facade for ExamplesFlextCliModels."""
 

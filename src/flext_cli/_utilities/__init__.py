@@ -13,36 +13,36 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._utilities._docx import (
-        FlextCliUtilitiesDocxReader,
-        FlextCliUtilitiesDocxRenderer,
-    )
-    from flext_cli._utilities._file_test_helper import (
+    from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
+    from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
+    from flext_cli._utilities._file_test_helper.assertions import (
         FlextCliUtilitiesFileTestHelpersAssertions,
+    )
+    from flext_cli._utilities._file_test_helper.parsing import (
         FlextCliUtilitiesFileTestHelpersParsing,
     )
-    from flext_cli._utilities._files import (
-        FlextCliUtilitiesFilesPart01,
-        FlextCliUtilitiesFilesPart02,
-        FlextCliUtilitiesFilesPart03,
-        FlextCliUtilitiesFilesPart04,
+    from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
+    from flext_cli._utilities._files.flextcliutilitiesfiles_part_05 import (
         FlextCliUtilitiesFilesPart05,
+    )
+    from flext_cli._utilities._files.flextcliutilitiesfiles_part_06 import (
         FlextCliUtilitiesFilesPart06,
     )
-    from flext_cli._utilities._json import (
-        FlextCliUtilitiesJsonCoreMixin,
-        FlextCliUtilitiesJsonNavigateMixin,
-    )
-    from flext_cli._utilities._options import (
-        FlextCliUtilitiesOptionBuilder,
+    from flext_cli._utilities._files.formats import FlextCliUtilitiesFilesPart04
+    from flext_cli._utilities._files.text_formats import FlextCliUtilitiesFilesPart01
+    from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
+    from flext_cli._utilities._json._core import FlextCliUtilitiesJsonCoreMixin
+    from flext_cli._utilities._json._navigate import FlextCliUtilitiesJsonNavigateMixin
+    from flext_cli._utilities._options.annotations import (
         FlextCliUtilitiesOptionsAnnotations,
-        FlextCliUtilitiesOptionsFields,
     )
-    from flext_cli._utilities._pptx import (
-        FlextCliUtilitiesPptxReader,
-        FlextCliUtilitiesPptxRenderer,
-        FlextCliUtilitiesPptxSerializer,
+    from flext_cli._utilities._options.fields import FlextCliUtilitiesOptionsFields
+    from flext_cli._utilities._options.option_builder import (
+        FlextCliUtilitiesOptionBuilder,
     )
+    from flext_cli._utilities._pptx._reader import FlextCliUtilitiesPptxReader
+    from flext_cli._utilities._pptx._renderer import FlextCliUtilitiesPptxRenderer
+    from flext_cli._utilities._pptx._serializer import FlextCliUtilitiesPptxSerializer
     from flext_cli._utilities._runtime_commands import (
         FlextCliUtilitiesRuntimeCommandsMixin,
     )
@@ -94,48 +94,88 @@ if TYPE_CHECKING:
     from flext_cli._utilities._runtime_windows_job_state import (
         FlextCliUtilitiesRuntimeWindowsJobStateMixin,
     )
-    from flext_cli._utilities._tables import FlextCliUtilitiesTablesRenderer
-    from flext_cli._utilities._toml import (
+    from flext_cli._utilities._tables.renderer import FlextCliUtilitiesTablesRenderer
+    from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
         FlextCliUtilitiesTomlPart01,
+    )
+    from flext_cli._utilities._toml.flextcliutilitiestoml_part_02 import (
         FlextCliUtilitiesTomlPart02,
+    )
+    from flext_cli._utilities._toml.flextcliutilitiestoml_part_03 import (
         FlextCliUtilitiesTomlPart03,
+    )
+    from flext_cli._utilities._toml.flextcliutilitiestoml_part_04 import (
         FlextCliUtilitiesTomlPart04,
+    )
+    from flext_cli._utilities._toml.flextcliutilitiestoml_part_05 import (
         FlextCliUtilitiesTomlPart05,
+    )
+    from flext_cli._utilities._toml.flextcliutilitiestoml_part_06 import (
         FlextCliUtilitiesTomlPart06,
+    )
+    from flext_cli._utilities._toml.flextcliutilitiestoml_part_07 import (
         FlextCliUtilitiesTomlPart07,
     )
-    from flext_cli._utilities._xlsx import (
-        FlextCliUtilitiesXlsxAddresses,
-        FlextCliUtilitiesXlsxArchive,
+    from flext_cli._utilities._xlsx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+    from flext_cli._utilities._xlsx.xlsx_archive import FlextCliUtilitiesXlsxArchive
+    from flext_cli._utilities._xlsx.xlsx_archive_checks import (
         FlextCliUtilitiesXlsxArchiveChecks,
-        FlextCliUtilitiesXlsxCells,
+    )
+    from flext_cli._utilities._xlsx.xlsx_cells import FlextCliUtilitiesXlsxCells
+    from flext_cli._utilities._xlsx.xlsx_conditional import (
         FlextCliUtilitiesXlsxConditional,
+    )
+    from flext_cli._utilities._xlsx.xlsx_defined_name_values import (
         FlextCliUtilitiesXlsxDefinedNameValues,
+    )
+    from flext_cli._utilities._xlsx.xlsx_formula_codec import (
         FlextCliUtilitiesXlsxFormulaCodec,
-        FlextCliUtilitiesXlsxLayout,
+    )
+    from flext_cli._utilities._xlsx.xlsx_layout import FlextCliUtilitiesXlsxLayout
+    from flext_cli._utilities._xlsx.xlsx_protection import (
         FlextCliUtilitiesXlsxProtection,
-        FlextCliUtilitiesXlsxRecalc,
+    )
+    from flext_cli._utilities._xlsx.xlsx_recalc import FlextCliUtilitiesXlsxRecalc
+    from flext_cli._utilities._xlsx.xlsx_recalc_evidence import (
         FlextCliUtilitiesXlsxRecalcEvidence,
-        FlextCliUtilitiesXlsxRenderer,
-        FlextCliUtilitiesXlsxRules,
-        FlextCliUtilitiesXlsxSnapshot,
+    )
+    from flext_cli._utilities._xlsx.xlsx_renderer import FlextCliUtilitiesXlsxRenderer
+    from flext_cli._utilities._xlsx.xlsx_rules import FlextCliUtilitiesXlsxRules
+    from flext_cli._utilities._xlsx.xlsx_snapshot import FlextCliUtilitiesXlsxSnapshot
+    from flext_cli._utilities._xlsx.xlsx_snapshot_sheet import (
         FlextCliUtilitiesXlsxSnapshotSheet,
+    )
+    from flext_cli._utilities._xlsx.xlsx_snapshot_structure import (
         FlextCliUtilitiesXlsxSnapshotStructure,
+    )
+    from flext_cli._utilities._xlsx.xlsx_snapshot_values import (
         FlextCliUtilitiesXlsxSnapshotValues,
+    )
+    from flext_cli._utilities._xlsx.xlsx_style_builders import (
         FlextCliUtilitiesXlsxStyleBuilders,
+    )
+    from flext_cli._utilities._xlsx.xlsx_style_catalog import (
         FlextCliUtilitiesXlsxStyleCatalog,
+    )
+    from flext_cli._utilities._xlsx.xlsx_style_codec import (
         FlextCliUtilitiesXlsxStyleCodec,
+    )
+    from flext_cli._utilities._xlsx.xlsx_style_readers import (
         FlextCliUtilitiesXlsxStyleReaders,
-        FlextCliUtilitiesXlsxTables,
+    )
+    from flext_cli._utilities._xlsx.xlsx_tables import FlextCliUtilitiesXlsxTables
+    from flext_cli._utilities._xlsx.xlsx_validations import (
         FlextCliUtilitiesXlsxValidations,
+    )
+    from flext_cli._utilities._xlsx.xlsx_workbook_io import (
         FlextCliUtilitiesXlsxWorkbookIo,
+    )
+    from flext_cli._utilities._xlsx.xlsx_workbook_plan import (
         FlextCliUtilitiesXlsxWorkbookPlan,
     )
-    from flext_cli._utilities._yaml import (
-        FlextCliUtilitiesYamlConvertMixin,
-        FlextCliUtilitiesYamlEditingMixin,
-        FlextCliUtilitiesYamlEngineMixin,
-    )
+    from flext_cli._utilities._yaml._convert import FlextCliUtilitiesYamlConvertMixin
+    from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
+    from flext_cli._utilities._yaml._engine import FlextCliUtilitiesYamlEngineMixin
     from flext_cli._utilities.atomic_directory_chain import (
         FlextCliUtilitiesAtomicDirectoryChain,
     )

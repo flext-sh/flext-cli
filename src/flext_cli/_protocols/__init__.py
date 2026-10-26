@@ -13,11 +13,19 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._protocols._base import (
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_01 import (
         FlextCliProtocolsBasePart01,
+    )
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_02 import (
         FlextCliProtocolsBasePart02,
+    )
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_03 import (
         FlextCliProtocolsBasePart03,
+    )
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_04 import (
         FlextCliProtocolsBasePart04,
+    )
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_05 import (
         FlextCliProtocolsBasePart05,
     )
     from flext_cli._protocols.atomic_file import FlextCliProtocolsAtomicFile

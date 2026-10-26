@@ -79,10 +79,11 @@ class FlextCliTypesDomain:
     type DirFdOperation = Callable[..., None]
     # mro-j47u (codex): one generic alias owns formatter data and call contracts.
     type JsonCommandFn = Callable[..., p.Result[t.JsonPayload]]
-    type SuccessMessageFormatter[TResult: ResultValue = ResultValue] = Callable[
+    type SuccessMessageFormatter[TResult = ResultValue] = Callable[
         [TResult],
         str,
     ]
+    type ServiceMessageFormatter = Callable[[str, ResultValue], str]
     type TomlMappingSource = (
         t.JsonPayload | t.JsonMapping | t.ScalarMapping | Item | TOMLDocument
     )
