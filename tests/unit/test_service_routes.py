@@ -156,6 +156,117 @@ class TestsFlextCliServiceRoutes:
         tm.that(outcome.stdout, has="hello ana")
         tm.ok("replacement" not in outcome.stdout)
 
+    def test_inherited_family_uses_the_shared_operation_contract(self) -> None:
+        """Family selection and CLI naming preserve the elected MRO callable."""
+        app = cli.create_app_with_common_params(name="greeter", help_text="Greeter")
+        cli.register_result_routes(
+            app,
+            cli.service_routes(
+                self.AlternateGreeter,
+                provide=self.AlternateGreeter,
+                owner=self.Greeter,
+                operation_prefix="greet_",
+            ),
+        )
+
+        outcome = tm.ok(cli.invoke_app(app, args=["all", "--name", "ana"]))
+
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
+        expected = tm.ok(
+            self.AlternateGreeter().greet_all(m.Tests.ServiceGreeting(name="ana"))
+        )
+        tm.that(outcome.stdout, has=expected)
+
+    @staticmethod
+    def test_result_route_preserves_validated_request_and_receipt_identity() -> None:
+        """Only formatted text crosses the heterogeneous route boundary."""
+        request = m.Tests.ServiceGreeting(name="ana")
+        receipt = m.Tests.ServiceStatus(ready=1)
+        requests: list[m.Tests.ServiceGreeting] = []
+        receipts: list[m.Tests.ServiceStatus] = []
+
+        def execute(value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+            requests.append(value)
+            return r[m.Tests.ServiceStatus].ok(receipt)
+
+        def render(value: m.Tests.ServiceStatus) -> str:
+            receipts.append(value)
+            return f"ready={value.ready}"
+
+        route = cli.result_route(
+            name="identity",
+            help_text="Retain the typed request and receipt.",
+            model_cls=m.Tests.ServiceGreeting,
+            handler=execute,
+            success_formatter=render,
+        )
+        result = route.handler(request)
+
+        tm.that(tm.ok(result), eq=f"ready={receipt.ready}")
+        tm.ok(requests[0] is request)
+        tm.ok(receipts[0] is receipt)
+
+    @staticmethod
+    def test_result_route_retains_original_failure_metadata() -> None:
+        """A failed typed operation reaches the public failure boundary intact."""
+        request = m.Tests.ServiceGreeting(name="ana")
+        cause = ValueError("operation rejected the input")
+        failure = r[m.Tests.ServiceStatus].fail(
+            str(cause),
+            error_code="operation-rejected",
+            error_data={"name": request.name},
+            exception=cause,
+        )
+
+        def execute(_value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+            return failure
+
+        def render(_value: m.Tests.ServiceStatus) -> str:
+            message = "a failed operation must not format a receipt"
+            raise AssertionError(message)
+
+        route = cli.result_route(
+            name="rejected",
+            help_text="Preserve the operation failure.",
+            model_cls=m.Tests.ServiceGreeting,
+            handler=execute,
+            success_formatter=render,
+        )
+        result = route.handler(request)
+
+        tm.fail(result)
+        tm.that(result.error, eq=failure.error)
+        tm.that(result.error_code, eq=failure.error_code)
+        tm.that(result.error_data, eq=failure.error_data)
+        tm.ok(result.exception is cause)
+
+    @staticmethod
+    @pytest.mark.parametrize("origin", ["handler", "formatter"])
+    def test_result_route_leaves_native_exceptions_unchanged(origin: str) -> None:
+        """Neither execution nor output formatting normalizes the first cause."""
+        cause = ValueError(f"{origin} rejected execution")
+
+        def execute(_value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+            if origin == "handler":
+                raise cause
+            return r[m.Tests.ServiceStatus].ok(m.Tests.ServiceStatus(ready=1))
+
+        def render(_value: m.Tests.ServiceStatus) -> str:
+            raise cause
+
+        route = cli.result_route(
+            name="native-error",
+            help_text="Leave the first exception unchanged.",
+            model_cls=m.Tests.ServiceGreeting,
+            handler=execute,
+            success_formatter=render,
+        )
+
+        with pytest.raises(ValueError) as captured:
+            route.handler(m.Tests.ServiceGreeting(name="ana"))
+
+        tm.ok(captured.value is cause)
+
     @pytest.mark.parametrize(
         "args",
         [["--help"], ["greet-all", "--help"], ["report", "--help"]],
