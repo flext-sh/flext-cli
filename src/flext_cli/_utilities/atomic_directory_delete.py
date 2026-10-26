@@ -45,15 +45,21 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
 
         """
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(state.path)
-        FlextCliUtilitiesAtomicDirectoryModel.require_existing(state, purpose="deleted")
+        FlextCliUtilitiesAtomicDirectoryModel.require_directory_existing(
+            state, purpose="deleted"
+        )
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_delete_capabilities(path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            FlextCliUtilitiesAtomicDirectoryModel.require_parent(state, parent.state)
+            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
+                state, parent.state
+            )
             observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
                 path,
                 parent=parent,
             )
-            FlextCliUtilitiesAtomicDirectoryModel.require_observed(state, observed)
+            FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
+                state, observed
+            )
             if observed is None:
                 message = f"atomic directory disappeared before delete: {path}"
                 raise OSError(errno.ESTALE, message, path)
@@ -62,12 +68,16 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
                 path,
                 observed,
             )
-            FlextCliUtilitiesAtomicDirectoryModel.require_observed(state, authenticated)
+            FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
+                state, authenticated
+            )
             current = FlextCliUtilitiesAtomicDirectoryState.destination_state(
                 path,
                 parent=parent,
             )
-            FlextCliUtilitiesAtomicDirectoryModel.require_observed(state, current)
+            FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
+                state, current
+            )
             if current is None or FlextCliUtilitiesAtomicFileRead.state_key(
                 current,
             ) != FlextCliUtilitiesAtomicFileRead.state_key(

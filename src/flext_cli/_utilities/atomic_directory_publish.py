@@ -58,7 +58,9 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
             destination_before,
             purpose="published",
         )
-        FlextCliUtilitiesAtomicDirectoryModel.require_existing(staged, purpose="staged")
+        FlextCliUtilitiesAtomicDirectoryModel.require_directory_existing(
+            staged, purpose="staged"
+        )
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_publish_capabilities(
             staged_path,
             destination,
@@ -71,11 +73,11 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
                 staged_path,
             ) as staged_parent,
         ):
-            FlextCliUtilitiesAtomicDirectoryModel.require_parent(
+            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
                 destination_before,
                 destination_parent.state,
             )
-            FlextCliUtilitiesAtomicDirectoryModel.require_parent(
+            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
                 staged,
                 staged_parent.state,
             )
@@ -147,7 +149,9 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
             path,
             parent=parent,
         )
-        FlextCliUtilitiesAtomicDirectoryModel.require_observed(planned, observed)
+        FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
+            planned, observed
+        )
         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
 
     @staticmethod
@@ -160,7 +164,9 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
             path,
             parent=parent,
         )
-        FlextCliUtilitiesAtomicDirectoryModel.require_observed(planned, observed)
+        FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
+            planned, observed
+        )
         if observed is None:
             message = f"atomic staged directory disappeared: {path}"
             raise OSError(errno.ESTALE, message, path)
@@ -169,7 +175,9 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
             path,
             observed,
         )
-        FlextCliUtilitiesAtomicDirectoryModel.require_observed(planned, authenticated)
+        FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
+            planned, authenticated
+        )
         return authenticated
 
     @staticmethod
@@ -213,7 +221,9 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
             destination,
             observed,
         )
-        FlextCliUtilitiesAtomicDirectoryModel.require_observed(staged, authenticated)
+        FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
+            staged, authenticated
+        )
         return FlextCliUtilitiesAtomicDirectoryModel.from_observed(
             destination,
             destination_parent.state,

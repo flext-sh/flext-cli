@@ -412,14 +412,14 @@ Key phases:
 
 1. **Follow the Architecture**:
 
-   - Services only for state
-   - Simple classes for utilities
-   - Value objects for data
+    - Services only for state
+    - Simple classes for utilities
+    - Value objects for data
 
 1. **Use Direct Access**:
 
-   - No wrapper methods
-   - Clear ownership
+    - No wrapper methods
+    - Clear ownership
    1. **Quality Gates (MANDATORY)**:
 
       ```bash
@@ -428,9 +428,9 @@ Key phases:
 
 1. **Test Organization**:
 
-   - Tests in appropriate directories
-   - No file > 30K lines
-   - Feature-based organization
+    - Tests in appropriate directories
+    - No file > 30K lines
+    - Feature-based organization
 
 ---
 

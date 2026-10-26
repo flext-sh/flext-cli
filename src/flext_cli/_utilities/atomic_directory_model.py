@@ -62,7 +62,9 @@ class FlextCliUtilitiesAtomicDirectoryModel:
             raise FileExistsError(errno.EEXIST, message, state.path)
 
     @staticmethod
-    def require_existing(state: m.Cli.AtomicDirectoryState, *, purpose: str) -> None:
+    def require_directory_existing(
+        state: m.Cli.AtomicDirectoryState, *, purpose: str
+    ) -> None:
         """Require the caller state to authorize an existing empty directory.
 
         Raises:
@@ -74,7 +76,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
             raise FileNotFoundError(errno.ENOENT, message, state.path)
 
     @staticmethod
-    def require_observed(
+    def require_directory_observed(
         planned: m.Cli.AtomicDirectoryState,
         observed: os.stat_result | None,
     ) -> None:
@@ -82,7 +84,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
 
         Raises:
             OSError: If ``observed is None``; or if ``_planned_state(planned) !=
-                physical_state(observed)``; or if ``observed is not None``.
+                directory_physical_state(observed)``; or if ``observed is not None``.
 
         """
         if not planned.exists:
@@ -97,12 +99,12 @@ class FlextCliUtilitiesAtomicDirectoryModel:
             raise OSError(errno.ESTALE, message, planned.path)
         if FlextCliUtilitiesAtomicDirectoryModel._planned_state(
             planned,
-        ) != FlextCliUtilitiesAtomicDirectoryModel.physical_state(observed):
+        ) != FlextCliUtilitiesAtomicDirectoryModel.directory_physical_state(observed):
             message = f"atomic directory physical state changed: {planned.path}"
             raise OSError(errno.ESTALE, message, planned.path)
 
     @staticmethod
-    def require_parent(
+    def require_directory_parent(
         planned: m.Cli.AtomicDirectoryState,
         observed: os.stat_result,
     ) -> None:
@@ -128,7 +130,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
             raise OSError(errno.ESTALE, message, planned.path.parent)
 
     @staticmethod
-    def physical_state(state: os.stat_result) -> DirectoryPhysicalState:
+    def directory_physical_state(state: os.stat_result) -> DirectoryPhysicalState:
         """Return every caller-visible directory identity field.
 
         Returns:

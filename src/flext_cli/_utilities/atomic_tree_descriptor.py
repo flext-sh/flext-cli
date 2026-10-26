@@ -77,7 +77,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
                 UnicodeError)`` is caught.
 
         """
-        platform_name = FlextCliUtilitiesAtomicTreeDescriptor._runtime_platform()
+        platform_name = FlextCliUtilitiesAtomicTreeDescriptor._tree_runtime_platform()
         if platform_name == "darwin":
             return FlextCliAtomicTreeDarwin.mount_id(
                 descriptor,
@@ -164,7 +164,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
             FlextCliUtilitiesAtomicTreeDescriptor._raise_changed(path)
 
     @staticmethod
-    def _runtime_platform() -> str:
+    def _tree_runtime_platform() -> str:
         """Read the platform at invocation time for typed portable dispatch.
 
         Returns:

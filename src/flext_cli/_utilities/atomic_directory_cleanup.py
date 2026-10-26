@@ -44,7 +44,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
         if cleanup_errors:
-            FlextCliUtilitiesAtomicDirectoryCleanup._raise_cleanup_failure(
+            FlextCliUtilitiesAtomicDirectoryCleanup._raise_directory_cleanup_failure(
                 path,
                 operation_error,
                 cleanup_errors,
@@ -120,7 +120,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
             raise OSError(errno.ESTALE, message, path)
 
     @staticmethod
-    def _raise_cleanup_failure(
+    def _raise_directory_cleanup_failure(
         path: Path,
         operation_error: BaseException,
         cleanup_errors: list[OSError],
