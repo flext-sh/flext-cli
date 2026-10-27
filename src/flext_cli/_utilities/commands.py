@@ -123,6 +123,12 @@ class FlextCliUtilitiesCommands:
             ),
             error=True,
         )
+        # Native exception notes carry the causal annotations (owner, index,
+        # inferred kind) that producers attach; dropping them hides the
+        # violation site and turns a precise diagnosis into a bare message.
+        notes = getattr(result.exception, "__notes__", ())
+        for note in tuple(notes)[-4:]:
+            FlextCliUtilitiesOutput.emit_raw(f"   note: {note}\n", error=True)
         if result.error_code:
             FlextCliUtilitiesOutput.emit_raw(f"   [{result.error_code}]\n", error=True)
 
