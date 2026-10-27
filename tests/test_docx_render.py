@@ -283,7 +283,7 @@ class TestsFlextCliDocxRender:
     def test_docx_read_rejects_invalid_bytes() -> None:
         """Reading invalid bytes returns a failure result."""
         result = u.Cli.docx_read(b"not a docx")
-        tm.that(result.success, eq=False)
+        tm.fail(result.success)
         tm.that(result.error, has=str(c.Cli.DocxError.DOCUMENT_LOAD_FAILED))
 
 

@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Annotated, ClassVar
 
-from flext_core import m, u
+from flext_core import m
 
 from flext_cli import c, t
 
@@ -124,7 +124,7 @@ class FlextCliModelsBasePart01:
             ),
         ] = m.Field(default_factory=lambda: c.Cli.EMPTY_JSON_MAPPING)
 
-        @u.model_serializer
+        @m.model_serializer
         def _serialize(self) -> t.JsonMapping:
             """Serialize the wrapper as its display payload.
 

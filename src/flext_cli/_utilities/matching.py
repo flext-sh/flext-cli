@@ -34,19 +34,6 @@ class FlextCliUtilitiesMatching:
         return any(pattern.search(msg) is not None for pattern in patterns)
 
     @staticmethod
-    def file_not_found_error(error_msg: str) -> bool:
-        """Match error messages that indicate a missing file (RFC-grade regex).
-
-        Returns:
-            The resulting ``bool``.
-
-        """
-        return FlextCliUtilitiesMatching.matches_regex(
-            error_msg,
-            *c.Cli.FILE_NOT_FOUND_REGEXES,
-        )
-
-    @staticmethod
     def cli_usage_error(error_msg: str) -> bool:
         """Match error messages that indicate CLI usage/input failure.
 

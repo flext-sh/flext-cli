@@ -6,10 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from io import BytesIO
 from typing import TYPE_CHECKING
 
-from flext_cli import c, p, r
+from flext_cli import c, p
+from flext_cli._utilities import FlextCliUtilitiesFiles
 
 if TYPE_CHECKING:
     from pptx.presentation import Presentation as PresentationType
@@ -31,16 +31,9 @@ class FlextCliUtilitiesPptxSerializer:
             The resulting ``p.Result[bytes]``.
 
         """
-        target = BytesIO()
-        try:
-            presentation.save(target)
-        except (OSError, TypeError, ValueError) as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
-            return r[bytes].fail(f"{c.Cli.PptxError.SERIALIZE_FAILED}: {detail}")
-        content = target.getvalue()
-        if not content:
-            return r[bytes].fail(str(c.Cli.PptxError.SERIALIZE_FAILED))
-        return r[bytes].ok(content)
+        return FlextCliUtilitiesFiles.files_save_bytes(
+            presentation.save, str(c.Cli.PptxError.SERIALIZE_FAILED)
+        )
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesPptxSerializer",)

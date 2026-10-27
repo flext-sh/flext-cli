@@ -22,12 +22,12 @@ from typing import ClassVar
 
 from flext_core import FlextRuntime, u
 
-import flext_cli
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities.atomic_file import FlextCliUtilitiesAtomicFile
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_parent_descriptor import (
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFile,
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicParentDescriptor,
+    FlextCliUtilitiesConversion,
 )
 
 
@@ -56,7 +56,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             FlextCliUtilitiesJsonCoreMixin.json_sort_keys(value) if sort_keys else value
         )
         return u.try_(
-            lambda: flext_cli.u.Cli.JSON_VALUE_ADAPTER.dump_json(
+            lambda: FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.dump_json(
                 normalized,
                 indent=indent,
             ).decode(c.DEFAULT_ENCODING),
@@ -102,7 +102,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         def _parse() -> t.JsonValue:
             if reject_duplicate_keys:
                 FlextCliUtilitiesJsonCoreMixin._reject_duplicate_json_keys(raw)
-            return flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_json(raw)
+            return FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_json(raw)
 
         return u.try_(_parse, catch=c.EXC_VALIDATION_VALUE, op_name=op_name)
 
@@ -157,25 +157,31 @@ class FlextCliUtilitiesJsonCoreMixin:
 
         """
         if isinstance(data, Mapping):
-            validated = flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(data)
+            validated = (
+                FlextCliUtilitiesConversion.JSON_MAPPING_ADAPTER.validate_python(data)
+            )
             return {
                 key: FlextCliUtilitiesJsonCoreMixin.json_sort_keys(
-                    flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(value),
+                    FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python(
+                        value
+                    ),
                 )
                 for key, value in sorted(validated.items())
             }
         if isinstance(data, list):
-            items = flext_cli.u.Cli.JSON_LIST_ADAPTER.validate_python(data)
+            items = FlextCliUtilitiesConversion.JSON_LIST_ADAPTER.validate_python(data)
             return [
                 FlextCliUtilitiesJsonCoreMixin.json_sort_keys(
-                    flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(item),
+                    FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python(
+                        item
+                    ),
                 )
                 for item in items
             ]
         return data
 
     @staticmethod
-    def normalize_json_value(item: t.JsonValue | t.JsonPayload) -> t.JsonValue:
+    def normalize_json_value(item: t.Cli.JsonWriteData) -> t.JsonValue:
         """Normalize any runtime value to JSON-compatible output (Pydantic-native).
 
         Returns:
@@ -186,7 +192,7 @@ class FlextCliUtilitiesJsonCoreMixin:
 
     @staticmethod
     def _json_write_content(
-        payload: t.JsonValue | t.JsonPayload,
+        payload: t.JsonValue | t.JsonPayload | t.JsonMapping,
         options: m.Cli.JsonWriteOptions,
     ) -> str:
         """Serialize a JSON payload using canonical write options.
@@ -201,7 +207,7 @@ class FlextCliUtilitiesJsonCoreMixin:
             if options.sort_keys
             else validated
         )
-        payload_bytes: bytes = flext_cli.u.Cli.JSON_VALUE_ADAPTER.dump_json(
+        payload_bytes: bytes = FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.dump_json(
             normalized,
             indent=options.indent,
             ensure_ascii=options.ensure_ascii,
@@ -221,7 +227,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         if not path.exists():
             return r[t.JsonMapping].fail(f"json_read: file not found: {path}")
         loaded = u.try_(
-            lambda: flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_json(
+            lambda: FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_json(
                 path.read_text(encoding=c.DEFAULT_ENCODING),
             ),
             catch=(c.ValidationError, OSError),
@@ -232,13 +238,15 @@ class FlextCliUtilitiesJsonCoreMixin:
         if not isinstance(loaded.value, Mapping):
             return r[t.JsonMapping].fail("json_read: root must be an object")
         return r[t.JsonMapping].ok(
-            flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(loaded.value),
+            FlextCliUtilitiesConversion.JSON_MAPPING_ADAPTER.validate_python(
+                loaded.value
+            ),
         )
 
     @staticmethod
     def json_write(
         path: Path,
-        payload: t.JsonValue | t.JsonPayload,
+        payload: t.JsonValue | t.JsonPayload | t.JsonMapping,
         options: m.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
         """Atomically publish a Pydantic-serializable payload as a JSON file.
@@ -294,7 +302,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         )
 
     @staticmethod
-    def json_as_mapping(value: t.JsonValue | t.JsonPayload | None) -> t.JsonMapping:
+    def json_as_mapping(value: t.Cli.JsonWriteData) -> t.JsonMapping:
         """Normalize any JSON-compatible value into a mapping.
 
         Returns:
@@ -306,7 +314,9 @@ class FlextCliUtilitiesJsonCoreMixin:
         normalized: t.JsonValue = FlextRuntime.normalize_to_json_value(value)
         if not isinstance(normalized, Mapping):
             return FlextCliUtilitiesJsonCoreMixin._EMPTY_JSON_MAPPING
-        return flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(normalized)
+        return FlextCliUtilitiesConversion.JSON_MAPPING_ADAPTER.validate_python(
+            normalized
+        )
 
     @staticmethod
     def json_as_sequence(
@@ -323,7 +333,7 @@ class FlextCliUtilitiesJsonCoreMixin:
         normalized: t.JsonValue = FlextRuntime.normalize_to_json_value(value)
         if not isinstance(normalized, Sequence) or isinstance(normalized, str | bytes):
             return FlextCliUtilitiesJsonCoreMixin._EMPTY_JSON_SEQUENCE
-        return flext_cli.u.Cli.JSON_LIST_ADAPTER.validate_python(normalized)
+        return FlextCliUtilitiesConversion.JSON_LIST_ADAPTER.validate_python(normalized)
 
 
 __all__: list[str] = ["FlextCliUtilitiesJsonCoreMixin"]

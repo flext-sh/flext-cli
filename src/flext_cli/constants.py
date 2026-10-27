@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Flext CLI constants — flat MRO facade.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -6,9 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from flext_core import FlextConstants
+from flext_core import c as flext_core_c
 
 from flext_cli._constants import (
     FlextCliConstantsBase,
@@ -18,6 +17,7 @@ from flext_cli._constants import (
     FlextCliConstantsEnums,
     FlextCliConstantsErrors,
     FlextCliConstantsFiles,
+    FlextCliConstantsMarkdown,
     FlextCliConstantsOutput,
     FlextCliConstantsPptx,
     FlextCliConstantsSettings,
@@ -25,23 +25,21 @@ from flext_cli._constants import (
     FlextCliConstantsXlsxFutureFunctions,
 )
 
-if TYPE_CHECKING:
-    from flext_cli import t
 
-
-class FlextCliConstants(FlextConstants):
+class FlextCliConstants(flext_core_c):
     """Constants for Flext CLI."""
 
     class Cli(
         FlextCliConstantsBase,
         FlextCliConstantsConfig,
         FlextCliConstantsDefaults,
+        FlextCliConstantsDocx,
         FlextCliConstantsEnums,
         FlextCliConstantsErrors,
-        FlextCliConstantsDocx,
-        FlextCliConstantsPptx,
         FlextCliConstantsFiles,
+        FlextCliConstantsMarkdown,
         FlextCliConstantsOutput,
+        FlextCliConstantsPptx,
         FlextCliConstantsSettings,
         FlextCliConstantsXlsx,
         FlextCliConstantsXlsxFutureFunctions,
@@ -50,5 +48,4 @@ class FlextCliConstants(FlextConstants):
 
 
 c = FlextCliConstants
-
-__all__: t.StrSequence = ("FlextCliConstants", "c")
+__all__: list[str] = ["FlextCliConstants", "c"]

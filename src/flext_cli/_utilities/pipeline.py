@@ -1,4 +1,4 @@
-"""DAG pipeline execution engine backed by graphlib.TopologicalSorter.
+"""DAG pipeline execution engine backed by ``u.Cli.dag_waves``.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -8,12 +8,12 @@ from __future__ import annotations
 
 import time
 from concurrent.futures import ThreadPoolExecutor
-from graphlib import CycleError, TopologicalSorter
 from typing import ClassVar
 
 from flext_core import u
 
 from flext_cli import c, m, p, r, settings, t
+from flext_cli._utilities import FlextCliUtilitiesDag
 
 
 class FlextCliUtilitiesPipeline:
@@ -30,8 +30,9 @@ class FlextCliUtilitiesPipeline:
     ) -> p.Result[m.Cli.PipelineResult]:
         """Execute pipeline stages in topological order.
 
-        Uses graphlib.TopologicalSorter for dependency resolution.
-        Stages share state via context.shared mutable mapping.
+        Dependencies resolve through ``u.Cli.dag_waves``: a cycle or a
+        dependency on an undeclared stage fails the pipeline before any stage
+        runs. Stages share state via context.shared mutable mapping.
 
         Returns:
             The resulting ``p.Result[m.Cli.PipelineResult]``.
@@ -46,57 +47,37 @@ class FlextCliUtilitiesPipeline:
                 m.Cli.PipelineResult(stages=[], total_duration_ms=0.0),
             )
 
-        # Build stage lookup and dependency graph.
-        stage_map: t.MutableMappingKV[str, m.Cli.PipelineStageSpec] = {
-            s.stage_id: s for s in stages
+        stage_map: t.MappingKV[str, m.Cli.PipelineStageSpec] = {
+            spec.stage_id: spec for spec in stages
         }
-
-        # Build TopologicalSorter graph.
-        sorter: TopologicalSorter[str] = TopologicalSorter()
-        for spec in stages:
-            sorter.add(spec.stage_id, *spec.depends_on)
-
-        try:
-            sorter.prepare()
-        except CycleError as exc:
+        waves = FlextCliUtilitiesDag.dag_waves({
+            spec.stage_id: spec.depends_on for spec in stages
+        })
+        if waves.failure:
             return r[m.Cli.PipelineResult].fail(
-                f"pipeline cycle detected: {exc}",
-                exception=exc,
+                f"pipeline graph invalid: {waves.error}"
             )
 
-        # Walk the graph one READY WAVE at a time instead of flattening it to a
-        # single serial order. Stages inside a wave share no dependency edge by
-        # construction, so they run concurrently; a stage still starts only
-        # after every dependency completed. A strictly linear pipeline yields
-        # waves of width one and therefore behaves exactly as before.
+        # Stages inside a wave share no dependency edge by construction, so they
+        # run concurrently; a stage still starts only after every dependency
+        # completed. A strictly linear pipeline yields waves of width one.
         failed = False
         completed: t.MutableMappingKV[str, m.Cli.PipelineStageResult] = {}
-        while sorter.is_active():
-            wave = tuple(sorter.get_ready())
-            if not wave:
-                break
-            known = FlextCliUtilitiesPipeline._retire_unknown_stages(
-                wave,
-                stage_map,
-                sorter,
-            )
+        for wave in waves.value:
             if failed:
-                FlextCliUtilitiesPipeline._skip_failed_wave(known, completed, sorter)
+                FlextCliUtilitiesPipeline._skip_failed_wave(wave, completed)
                 continue
             FlextCliUtilitiesPipeline._execute_ready_wave(
-                known,
+                wave,
                 stage_map,
                 context,
                 log,
                 completed,
             )
-            for stage_id in known:
-                sorter.done(stage_id)
-            if any(
+            failed = any(
                 completed[stage_id].status == c.Cli.PipelineStageStatus.FAILED
-                for stage_id in known
-            ):
-                failed = True
+                for stage_id in wave
+            )
 
         # Report in DECLARED stage order: consumers select "the" failure with
         # next(...) over this sequence, so completion order must never leak in.
@@ -123,41 +104,21 @@ class FlextCliUtilitiesPipeline:
         return r[m.Cli.PipelineResult].ok(pipeline_result)
 
     @staticmethod
-    def _retire_unknown_stages(
-        wave: t.VariadicTuple[str],
-        stage_map: t.MappingKV[str, m.Cli.PipelineStageSpec],
-        sorter: TopologicalSorter[str],
-    ) -> t.VariadicTuple[str]:
-        """Retire undeclared dependencies while retaining ready-stage order.
-
-        Returns:
-            Declared stage IDs in their ready-wave order.
-
-        """
-        known = tuple(stage_id for stage_id in wave if stage_id in stage_map)
-        for stage_id in wave:
-            if stage_id not in stage_map:
-                sorter.done(stage_id)
-        return known
-
-    @staticmethod
     def _skip_failed_wave(
-        known: t.VariadicTuple[str],
+        wave: t.StrSequence,
         completed: t.MutableMappingKV[str, m.Cli.PipelineStageResult],
-        sorter: TopologicalSorter[str],
     ) -> None:
-        """Record skipped stages and advance the graph after a prior failure."""
-        for stage_id in known:
+        """Record every stage of a wave as skipped after a prior failure."""
+        for stage_id in wave:
             completed[stage_id] = m.Cli.PipelineStageResult(
                 stage_id=stage_id,
                 status=c.Cli.PipelineStageStatus.SKIPPED,
                 error="skipped due to prior failure",
             )
-            sorter.done(stage_id)
 
     @staticmethod
     def _execute_ready_wave(
-        known: t.VariadicTuple[str],
+        known: t.StrSequence,
         stage_map: t.MappingKV[str, m.Cli.PipelineStageSpec],
         context: m.Cli.PipelineStageContext,
         log: p.Logger,

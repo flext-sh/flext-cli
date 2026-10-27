@@ -7,18 +7,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from flext_core import FlextModels
+from flext_core import m as flext_core_m
 
 from flext_cli._models import (
     FlextCliConfigModels,
+    FlextCliModelsAtomicPublication,
     FlextCliModelsAtomicState,
     FlextCliModelsAtomicSymlink,
     FlextCliModelsBase,
+    FlextCliModelsColor,
     FlextCliModelsDocx,
     FlextCliModelsDocxDocument,
     FlextCliModelsDocxStyles,
+    FlextCliModelsFileChange,
+    FlextCliModelsFiles,
+    FlextCliModelsMarkdown,
     FlextCliModelsPipeline,
     FlextCliModelsPptx,
     FlextCliModelsPptxPresentation,
@@ -28,21 +31,23 @@ from flext_cli._models import (
     FlextCliModelsXlsx,
 )
 
-if TYPE_CHECKING:
-    from flext_cli import t
 
-
-class FlextCliModels(FlextModels):
+class FlextCliModels(flext_core_m):
     """FlextCli models extending FlextModels."""
 
     class Cli(
         FlextCliModelsAtomicState,
         FlextCliModelsBase,
+        FlextCliModelsAtomicPublication,
         FlextCliModelsAtomicSymlink,
+        FlextCliModelsColor,
         FlextCliConfigModels,
         FlextCliModelsDocx,
         FlextCliModelsDocxDocument,
         FlextCliModelsDocxStyles,
+        FlextCliModelsFileChange,
+        FlextCliModelsFiles,
+        FlextCliModelsMarkdown,
         FlextCliModelsPipeline,
         FlextCliModelsPptx,
         FlextCliModelsPptxPresentation,
@@ -56,5 +61,4 @@ class FlextCliModels(FlextModels):
 
 # mro-j47u (codex): canonical facade rebinding is intentionally unannotated.
 m = FlextCliModels
-
-__all__: t.MutableSequenceOf[str] = ["FlextCliModels", "m"]
+__all__: list[str] = ["FlextCliModels", "m"]

@@ -31,21 +31,3 @@ class TestsFlextCliDataReport:
         """An empty report renders deterministically without failing."""
         rendered = u.Cli.report_render(m.Cli.DataReportRequest(columns=(), rows=()))
         tm.that(rendered.success, truth=True)
-
-    @staticmethod
-    def test_report_emit_json_returns_success() -> None:
-        """Emitting the typed report as JSON returns the success boundary."""
-        emitted = u.Cli.report_emit(
-            m.Cli.DataReportRequest(columns=("a",), rows=[["b"]]),
-            json_output=True,
-        )
-        tm.that(emitted.success, truth=True)
-
-    @staticmethod
-    def test_report_emit_table_returns_success() -> None:
-        """Emitting the typed report as a table returns the success boundary."""
-        emitted = u.Cli.report_emit(
-            m.Cli.DataReportRequest(columns=("a",), rows=[["b"]], message="verdict"),
-            json_output=False,
-        )
-        tm.that(emitted.success, truth=True)

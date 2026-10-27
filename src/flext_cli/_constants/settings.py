@@ -45,10 +45,6 @@ class FlextCliConstantsSettings:
     CLI_JSON_OPTION_HELP: ClassVar[str] = (
         "Format: JSON text, validated into the option's declared type."
     )
-    CLI_SCALAR_TYPES_TUPLE: ClassVar[
-        tuple[type[str], type[int], type[float], type[bool]]
-    ] = c.PRIMITIVES_TYPES
-
     CLI_PARAM_SHORT_FLAG_VERBOSE: ClassVar[str] = "v"
     CLI_PARAM_SHORT_FLAG_QUIET: ClassVar[str] = "q"
     CLI_PARAM_SHORT_FLAG_DEBUG: ClassVar[str] = "d"

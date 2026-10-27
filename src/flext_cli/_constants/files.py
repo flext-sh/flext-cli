@@ -9,12 +9,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import os
 from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import ClassVar
 
 from flext_core import t
+
+from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
 
 
 class FlextCliConstantsFiles:
@@ -23,13 +24,14 @@ class FlextCliConstantsFiles:
     IDENTITY_COMPONENT_COUNT: ClassVar[int] = 2
     "A strict file identity is one non-negative device and inode pair."
 
-    READ_FLAGS: ClassVar[int] = (
-        os.O_RDONLY
-        | getattr(os, "O_NONBLOCK", 0)
-        | getattr(os, "O_CLOEXEC", 0)
-        | getattr(os, "O_BINARY", 0)
-    )
+    READ_FLAGS: ClassVar[int] = FlextCliUtilitiesAtomicFileRead.READ_FLAGS
     "Open flags for authenticated read-only descriptors of atomic files."
+
+    FILE_CHANGES_LOCK_TIMEOUT_SECONDS: ClassVar[float] = 1800.0
+    "Bounded wait for the exclusive lock serializing one file-change publication."
+
+    FILE_CHANGES_DIRECTORY_MODE: ClassVar[int] = 0o755
+    "Exact mode of parent directories a file-change publication creates."
 
     @unique
     class WriteDurability(StrEnum):

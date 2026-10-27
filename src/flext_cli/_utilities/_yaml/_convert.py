@@ -2,6 +2,7 @@
 
 Plain<->commented conversions and ruamel scalar normalization. Composed into
 ``FlextCliUtilitiesYaml`` via MRO in ``yaml.py``.
+Boolean token reuse depends on the public upstream Core constants owner.
 
 NOTE (multi-agent): mro-i6nq.13 — extracted from the removed
 ``_yaml_roundtrip_parts/..._part_01`` (conversion half). The engine +
@@ -24,6 +25,7 @@ from typing import (
     overload,
 )
 
+from flext_core import c
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.scalarstring import DoubleQuotedScalarString, LiteralScalarString
 
@@ -41,13 +43,13 @@ class FlextCliUtilitiesYamlConvertMixin:
 
     _YAML_1_1_IMPLICIT_STRING_VALUES = frozenset({
         "y",
-        "yes",
+        c.ParserBooleanToken.YES,
         "n",
-        "no",
-        "true",
-        "false",
-        "on",
-        "off",
+        c.ParserBooleanToken.NO,
+        c.ParserBooleanToken.TRUE,
+        c.ParserBooleanToken.FALSE,
+        c.ParserBooleanToken.ON,
+        c.ParserBooleanToken.OFF,
         "null",
         "~",
     })
@@ -116,9 +118,10 @@ class FlextCliUtilitiesYamlConvertMixin:
     ) -> t.Cli.YamlNode:
         """Recursively convert plain dict/list into CommentedMap/CommentedSeq.
 
-        Existing CommentedMap/CommentedSeq nodes are preserved. Multi-line
-        strings become LiteralScalarString; YAML 1.1 implicit string tokens are
-        double-quoted so they survive a round-trip as strings.
+        Existing CommentedMap/CommentedSeq nodes are returned by reference,
+        retaining their comments and aliases. Plain containers retain encounter
+        order. Multi-line strings become LiteralScalarString; YAML 1.1 implicit
+        string tokens are double-quoted so they survive a round-trip as strings.
 
         Returns:
             The resulting ``t.Cli.YamlNode``.
@@ -144,13 +147,13 @@ class FlextCliUtilitiesYamlConvertMixin:
             )
         if isinstance(data, str):
             if "\n" in data:
-                return cast("t.Cli.YamlScalar", LiteralScalarString(data))
-            if (
+                data = cast("t.Cli.YamlScalar", LiteralScalarString(data))
+            elif (
                 data.lower()
                 in FlextCliUtilitiesYamlConvertMixin._YAML_1_1_IMPLICIT_STRING_VALUES
             ):
-                return cast("t.Cli.YamlScalar", DoubleQuotedScalarString(data))
-        if data is not None and not isinstance(data, (str, int, float, bool)):
+                data = cast("t.Cli.YamlScalar", DoubleQuotedScalarString(data))
+        elif data is not None and not isinstance(data, (int, float, bool)):
             msg = f"unsupported YAML value type: {type(data).__name__}"
             raise TypeError(msg)
         return data
@@ -171,24 +174,6 @@ class FlextCliUtilitiesYamlConvertMixin:
 
         """
         return isinstance(value, (CommentedSeq, list))
-
-    @staticmethod
-    def yaml_normalize_scalar(value: t.Cli.YamlValue) -> t.Cli.YamlValue:
-        """Normalize ruamel scalar wrappers to plain Python scalars.
-
-        Returns:
-            The resulting ``t.Cli.YamlValue``.
-
-        """
-        if isinstance(value, str):
-            return FlextCliUtilitiesYamlConvertMixin.yaml_plain_str(value)
-        if isinstance(value, bool):
-            return FlextCliUtilitiesYamlConvertMixin.yaml_plain_bool(value)
-        if isinstance(value, int):
-            return FlextCliUtilitiesYamlConvertMixin.yaml_plain_int(value)
-        if isinstance(value, float):
-            return FlextCliUtilitiesYamlConvertMixin.yaml_plain_float(value)
-        return value
 
     @staticmethod
     def yaml_plain_str(value: t.Cli.YamlScalar) -> str:

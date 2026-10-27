@@ -12,12 +12,10 @@ from flext_core import u
 from tomlkit.items import Table
 from tomlkit.toml_document import TOMLDocument
 
-import flext_cli
 from flext_cli import t
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
+from flext_cli._utilities import FlextCliUtilitiesConversion
+from flext_cli._utilities._toml import (
     FlextCliUtilitiesTomlPart01,
-)
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_02 import (
     FlextCliUtilitiesTomlPart02,
 )
 
@@ -80,7 +78,7 @@ class FlextCliUtilitiesTomlPart03:
         value = container.get(key, None)
         if not u.mapping(value):
             return None
-        return flext_cli.u.Cli.JSON_MAPPING_ADAPTER.validate_python(value)
+        return FlextCliUtilitiesConversion.JSON_MAPPING_ADAPTER.validate_python(value)
 
     @staticmethod
     def toml_mapping_ensure_table(parent: t.MutableJsonMapping, key: str) -> t.JsonDict:
@@ -88,6 +86,9 @@ class FlextCliUtilitiesTomlPart03:
 
         Returns:
             One mutable plain mapping child, creating it when missing.
+
+        Raises:
+            TypeError: If ``key`` already holds a non-mapping value.
 
         """
         existing = parent.get(key, None)
@@ -98,6 +99,9 @@ class FlextCliUtilitiesTomlPart03:
             normalized_table: t.JsonDict = dict(normalized_mapping)
             parent[key] = normalized_table
             return normalized_table
+        if key in parent:
+            msg = f"TOML table collides with a non-mapping value: {key}"
+            raise TypeError(msg)
         # NOTE (multi-agent): TOML mutation requires this explicitly typed table.
         table: t.JsonDict = {}
         parent[key] = table

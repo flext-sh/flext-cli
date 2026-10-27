@@ -8,12 +8,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from tests import c, m, r, t, tm, u
+from tests import c, m, p, r, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    from tests import p
 
 
 class TestsFlextCliPublicContractsCoveragePart02:
@@ -32,14 +30,14 @@ class TestsFlextCliPublicContractsCoveragePart02:
             ),
             duration=0.25,
         )
-        display = m.Cli.DisplayData(data={"name": "flext", "count": 1})
+        display = m.Cli.DisplayData(data={"name": "flext", c.Aggregation.COUNT: 1})
         loaded = m.Cli.LoadedConfig(content={"debug": True})
         normalized = m.Cli.CliNormalizedJson({"name": "flext"})
         summary = m.Cli.SuccessSummaryDetails({"status": "ok"})
         prompt_state = m.Cli.PromptRuntimeState(quiet=True)
         auth = m.Cli.AuthCredentialsPayload(token=c.Tests.AUTH_VALUE_SAMPLE)
         environment = m.Cli.ProcessEnvironmentSpec(
-            base_env={"KEEP": "1", "DROP": "2"},
+            base_env={"KEEP": c.ParserBooleanToken.ONE, "DROP": "2"},
             overrides={"ADD": "3"},
             remove_keys=("DROP",),
         )
@@ -75,7 +73,7 @@ class TestsFlextCliPublicContractsCoveragePart02:
             abs(output.duration - 0.25) < c.Tests.COMMAND_DURATION_TOLERANCE,
             eq=True,
         )
-        expected_display: t.JsonMapping = {"name": "flext", "count": 1}
+        expected_display: t.JsonMapping = {"name": "flext", c.Aggregation.COUNT: 1}
         tm.that(display.model_dump(), eq=expected_display)
         tm.that(loaded.content, eq={"debug": True})
         tm.that(normalized.model_dump(), eq={"name": "flext"})
@@ -83,53 +81,27 @@ class TestsFlextCliPublicContractsCoveragePart02:
         tm.that(
             m.Cli.NormalizedJsonList(
                 value="plain-text",
-                default={"fallback": "yes"},
+                default={"fallback": c.ParserBooleanToken.YES},
             ).resolved,
-            eq={"fallback": "yes"},
+            eq={"fallback": c.ParserBooleanToken.YES},
         )
         tm.that(summary.root, eq={"status": "ok"})
-        tm.that(prompt_state.interactive, eq=True)
-        tm.that(prompt_state.quiet, eq=True)
+        tm.ok(prompt_state.interactive)
+        tm.ok(prompt_state.quiet)
         tm.that(auth.token, eq=c.Tests.AUTH_VALUE_SAMPLE)
-        tm.that(environment.resolve(), eq={"KEEP": "1", "ADD": "3"})
-        tm.that(environment.resolved, eq={"KEEP": "1", "ADD": "3"})
+        tm.that(
+            environment.resolve(), eq={"KEEP": c.ParserBooleanToken.ONE, "ADD": "3"}
+        )
+        tm.that(environment.resolved, eq={"KEEP": c.ParserBooleanToken.ONE, "ADD": "3"})
         tm.that(entry.name, eq="inspect")
         tm.that(route.success_type, eq=c.Cli.MessageTypes.SUCCESS)
         tm.that(table.table_backend_format, eq=c.Cli.TabularFormat.SIMPLE)
-        tm.that(snapshot.settings_exists, eq=True)
+        tm.ok(snapshot.settings_exists)
         tm.that(option.default, eq=True)
         tm.that(
             u.resolve_logging_settings(log_level=" debug ").log_level,
             eq=c.LogLevel.DEBUG,
         )
-        tm.that(
-            u.Cli.resolve_typed_extract(
-                type_kind=c.Cli.TypeKind.STR,
-                value="  name  ",
-                default="fallback",
-            )
-            == "name",
-            eq=True,
-        )
-        tm.that(
-            u.Cli.resolve_typed_extract(type_kind=c.Cli.TypeKind.BOOL, value=1) is True,
-            eq=True,
-        )
-        tm.that(
-            u.Cli.resolve_typed_extract(
-                type_kind=c.Cli.TypeKind.DICT,
-                value={"count": 1},
-            ),
-            eq={"count": 1},
-        )
-        tm.that(
-            u.Cli.resolve_typed_extract(
-                type_kind=c.Cli.TypeKind.DICT,
-                value=None,
-                default={"fallback": 2},
-            ),
-            eq={"fallback": 2},
-        )
         tm.that(write_options.indent, eq=4)
-        tm.that(write_options.sort_keys, eq=True)
-        tm.that(write_options.ensure_ascii, eq=True)
+        tm.ok(write_options.sort_keys)
+        tm.ok(write_options.ensure_ascii)

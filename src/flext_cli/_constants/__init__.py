@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from flext_cli._constants.enums import FlextCliConstantsEnums
     from flext_cli._constants.errors import FlextCliConstantsErrors
     from flext_cli._constants.files import FlextCliConstantsFiles
+    from flext_cli._constants.markdown import FlextCliConstantsMarkdown
     from flext_cli._constants.output import FlextCliConstantsOutput
     from flext_cli._constants.pptx import FlextCliConstantsPptx
     from flext_cli._constants.settings import FlextCliConstantsSettings
@@ -37,6 +38,7 @@ __all__: tuple[str, ...] = (
     "FlextCliConstantsEnums",
     "FlextCliConstantsErrors",
     "FlextCliConstantsFiles",
+    "FlextCliConstantsMarkdown",
     "FlextCliConstantsOutput",
     "FlextCliConstantsPptx",
     "FlextCliConstantsSettings",
@@ -55,6 +57,7 @@ install_lazy_exports(
         "FlextCliConstantsEnums": ".enums",
         "FlextCliConstantsErrors": ".errors",
         "FlextCliConstantsFiles": ".files",
+        "FlextCliConstantsMarkdown": ".markdown",
         "FlextCliConstantsOutput": ".output",
         "FlextCliConstantsPptx": ".pptx",
         "FlextCliConstantsSettings": ".settings",

@@ -52,12 +52,16 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
             raise OSError(errno.EINVAL, message, path)
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_create_capabilities(path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            FlextCliUtilitiesAtomicDirectoryModel.require_parent(before, parent.state)
+            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
+                before, parent.state
+            )
             observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
                 path,
                 parent=parent,
             )
-            FlextCliUtilitiesAtomicDirectoryModel.require_observed(before, observed)
+            FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
+                before, observed
+            )
             created = False
             identity: t.Pair[int, int] | None = None
             try:

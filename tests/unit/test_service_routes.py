@@ -10,30 +10,17 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Iterator
 from typing import override
 
 import pytest
 
 from flext_cli import cli
-from tests import h, m, p, r, s, t, tm, u
+from tests import c, h, m, p, r, s, t, tm, u
 
 
+@pytest.mark.usefixtures("preserve_logging")
 class TestsFlextCliServiceRoutes:
     """Behavioral contract of service-derived CLI routes."""
-
-    @pytest.fixture(autouse=True)
-    def preserve_logging(self) -> Iterator[None]:
-        """Restore the actual application composition after each real route."""
-        original_settings = u.logging_settings()
-        original_options = u.logging_options()
-        try:
-            yield
-        finally:
-            u.configure_structlog(
-                settings=original_options,
-                runtime_settings=original_settings,
-            )
 
     class Greeter(s[p.Tests.ServiceStatus]):
         """Service whose public operations are the CLI.
@@ -44,9 +31,9 @@ class TestsFlextCliServiceRoutes:
         conforming services outside the CLI base.
         """
 
-        # Operations are plain public instance methods below FlextService:
-        # the discovery scanner counts instance functions only, so these
-        # deliberately keep ``self`` even where a staticmethod would do.
+        greeting: str = "hello"
+        ready: int = 1
+
         def greet_default(self) -> p.Result[p.Tests.ServiceStatus]:
             """Run the default service action.
 
@@ -67,7 +54,9 @@ class TestsFlextCliServiceRoutes:
                 The resulting ``p.Result[str]``.
 
             """
-            return r[str].ok(" ".join([f"hello {request.name}"] * request.times))
+            return r[str].ok(
+                " ".join([f"{self.greeting} {request.name}"] * request.times)
+            )
 
         def report(self) -> p.Result[p.Tests.ServiceStatus]:
             """Report the service status.
@@ -77,7 +66,7 @@ class TestsFlextCliServiceRoutes:
 
             """
             return r[p.Tests.ServiceStatus].ok(
-                m.Tests.ServiceStatus(ready=1),
+                m.Tests.ServiceStatus(ready=self.ready),
             )
 
     class AlternateGreeter(Greeter):
@@ -117,18 +106,36 @@ class TestsFlextCliServiceRoutes:
             cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "2"]),
         )
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="hello ana hello ana")
 
-    def test_invalid_input_exits_non_zero_with_validation_cause(self) -> None:
-        """Rejected input fails the command with the ValidationError cause."""
-        app = self._app(self.Greeter)
+    @pytest.mark.parametrize(
+        "provider_available",
+        [
+            pytest.param(True, id="configured-provider"),
+            pytest.param(False, id="unavailable-provider-never-constructed"),
+        ],
+    )
+    def test_invalid_input_exits_non_zero_with_validation_cause(
+        self, *, provider_available: bool
+    ) -> None:
+        """Reject invalid input before constructing either provider."""
+        app = self._app(self.Greeter if provider_available else self._unconfigured)
 
         outcome = tm.ok(
-            cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "0"]),
+            cli.invoke_app(
+                app,
+                args=[
+                    "greet-all",
+                    "--name",
+                    "ana",
+                    "--times",
+                    c.ParserBooleanToken.ZERO,
+                ],
+            ),
         )
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=False)
+        tm.fail(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, eq="")
         tm.that(outcome.stderr, has=["ServiceGreeting", "greater than or equal to 1"])
 
@@ -138,25 +145,127 @@ class TestsFlextCliServiceRoutes:
 
         outcome = tm.ok(cli.invoke_app(app, args=["report"]))
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has='{"ready":1}')
 
     def test_execution_uses_catalogued_function_identity(self) -> None:
         """The provider supplies self, not a late replacement for the operation."""
         app = self._app(self.AlternateGreeter)
         outcome = tm.ok(cli.invoke_app(app, args=["greet-all", "--name", "ana"]))
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="hello ana")
-        tm.that("replacement" not in outcome.stdout, eq=True)
+        tm.ok("replacement" not in outcome.stdout)
 
-    def test_invalid_input_never_constructs_the_provider(self) -> None:
-        """Ingress rejects the request before the unavailable provider is called."""
-        app = self._app(self._unconfigured)
-        outcome = tm.ok(
-            cli.invoke_app(app, args=["greet-all", "--name", "ana", "--times", "0"]),
+    def test_inherited_family_uses_the_shared_operation_contract(self) -> None:
+        """Family selection and CLI naming preserve the elected MRO callable."""
+        app = cli.create_app_with_common_params(name="greeter", help_text="Greeter")
+        cli.register_result_routes(
+            app,
+            cli.service_routes(
+                self.AlternateGreeter,
+                provide=self.AlternateGreeter,
+                owner=self.Greeter,
+                operation_prefix="greet_",
+            ),
         )
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=False)
-        tm.that(outcome.stderr, has="greater than or equal to 1")
+
+        outcome = tm.ok(cli.invoke_app(app, args=["all", "--name", "ana"]))
+
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
+        expected = tm.ok(
+            self.AlternateGreeter().greet_all(m.Tests.ServiceGreeting(name="ana"))
+        )
+        tm.that(outcome.stdout, has=expected)
+
+    @staticmethod
+    def test_result_route_preserves_validated_request_and_receipt_identity() -> None:
+        """Only formatted text crosses the heterogeneous route boundary."""
+        request = m.Tests.ServiceGreeting(name="ana")
+        receipt = m.Tests.ServiceStatus(ready=1)
+        requests: list[m.Tests.ServiceGreeting] = []
+        receipts: list[m.Tests.ServiceStatus] = []
+
+        def execute(value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+            requests.append(value)
+            return r[m.Tests.ServiceStatus].ok(receipt)
+
+        def render(value: m.Tests.ServiceStatus) -> str:
+            receipts.append(value)
+            return f"ready={value.ready}"
+
+        route = cli.result_route(
+            name="identity",
+            help_text="Retain the typed request and receipt.",
+            model_cls=m.Tests.ServiceGreeting,
+            handler=execute,
+            success_formatter=render,
+        )
+        result = route.handler(request)
+
+        tm.that(tm.ok(result), eq=f"ready={receipt.ready}")
+        tm.ok(requests[0] is request)
+        tm.ok(receipts[0] is receipt)
+
+    @staticmethod
+    def test_result_route_retains_original_failure_metadata() -> None:
+        """A failed typed operation reaches the public failure boundary intact."""
+        request = m.Tests.ServiceGreeting(name="ana")
+        cause = ValueError("operation rejected the input")
+        failure = r[m.Tests.ServiceStatus].fail(
+            str(cause),
+            error_code="operation-rejected",
+            error_data={"name": request.name},
+            exception=cause,
+        )
+
+        def execute(_value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+            return failure
+
+        def render(_value: m.Tests.ServiceStatus) -> str:
+            message = "a failed operation must not format a receipt"
+            raise AssertionError(message)
+
+        route = cli.result_route(
+            name="rejected",
+            help_text="Preserve the operation failure.",
+            model_cls=m.Tests.ServiceGreeting,
+            handler=execute,
+            success_formatter=render,
+        )
+        result = route.handler(request)
+
+        tm.fail(result)
+        tm.that(result.error, eq=failure.error)
+        tm.that(result.error_code, eq=failure.error_code)
+        tm.that(result.error_data, eq=failure.error_data)
+        tm.ok(result.exception is cause)
+
+    @staticmethod
+    @pytest.mark.parametrize("origin", ["handler", "formatter"])
+    def test_result_route_leaves_native_exceptions_unchanged(origin: str) -> None:
+        """Neither execution nor output formatting normalizes the first cause."""
+        cause = ValueError(f"{origin} rejected execution")
+
+        def execute(_value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+            if origin == "handler":
+                raise cause
+            return r[m.Tests.ServiceStatus].ok(m.Tests.ServiceStatus(ready=1))
+
+        def render(_value: m.Tests.ServiceStatus) -> str:
+            raise cause
+
+        route = cli.result_route(
+            name="native-error",
+            help_text="Leave the first exception unchanged.",
+            model_cls=m.Tests.ServiceGreeting,
+            handler=execute,
+            success_formatter=render,
+        )
+
+        with pytest.raises(ValueError, match=f"^{origin} rejected execution$") as captured:
+            route.handler(m.Tests.ServiceGreeting(name="ana"))
+
+        tm.ok(captured.value is cause)
 
     @pytest.mark.parametrize(
         "args",
@@ -168,7 +277,7 @@ class TestsFlextCliServiceRoutes:
 
         outcome = tm.ok(cli.invoke_app(app, args=args))
 
-        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="Usage")
 
     def test_execution_reaches_the_provider(self) -> None:

@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from flext_cli import m
 from flext_cli._utilities import (
     FlextCliUtilitiesAuth,
@@ -13,13 +15,16 @@ from flext_cli._utilities import (
     FlextCliUtilitiesCommands,
     FlextCliUtilitiesConfig,
     FlextCliUtilitiesConversion,
+    FlextCliUtilitiesDag,
     FlextCliUtilitiesDocx,
     FlextCliUtilitiesEnv,
+    FlextCliUtilitiesFileChanges,
     FlextCliUtilitiesFiles,
     FlextCliUtilitiesFileTestHelpersMixin,
     FlextCliUtilitiesFormatters,
     FlextCliUtilitiesFramework,
     FlextCliUtilitiesJson,
+    FlextCliUtilitiesMarkdown,
     FlextCliUtilitiesMatching,
     FlextCliUtilitiesOutput,
     FlextCliUtilitiesParams,
@@ -28,7 +33,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesProcesses,
     FlextCliUtilitiesPrompts,
     FlextCliUtilitiesReport,
-    FlextCliUtilitiesRules,
     FlextCliUtilitiesRuntime,
     FlextCliUtilitiesSettings,
     FlextCliUtilitiesTables,
@@ -37,17 +41,8 @@ from flext_cli._utilities import (
     FlextCliUtilitiesValidation,
     FlextCliUtilitiesXlsx,
     FlextCliUtilitiesYaml,
-    FlextCliUtilitiesYamlModel,
 )
-from flext_cli._utilities._options.flextcliutilitiesoptions_part_02 import (
-    FlextCliUtilitiesOptionsPart02,
-)
-
-
-class FlextCliUtilitiesModelConfig:
-    """Native configuration owned beside the namespace it protects."""
-
-    model_config = m.ConfigDict(ignored_types=(type,))
+from flext_cli._utilities._options.fields import FlextCliUtilitiesOptionsFields
 
 
 class FlextCliUtilitiesCli(
@@ -56,22 +51,24 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesCommands,
     FlextCliUtilitiesConfig,
     FlextCliUtilitiesConversion,
+    FlextCliUtilitiesDag,
     FlextCliUtilitiesEnv,
     FlextCliUtilitiesTemplate,
     FlextCliUtilitiesFileTestHelpersMixin,
+    FlextCliUtilitiesFileChanges,
     FlextCliUtilitiesFiles,
     FlextCliUtilitiesFormatters,
     FlextCliUtilitiesFramework,
     FlextCliUtilitiesJson,
+    FlextCliUtilitiesMarkdown,
     FlextCliUtilitiesMatching,
-    FlextCliUtilitiesOptionsPart02,
+    FlextCliUtilitiesOptionsFields,
     FlextCliUtilitiesOutput,
     FlextCliUtilitiesParams,
     FlextCliUtilitiesPipeline,
     FlextCliUtilitiesPrompts,
     FlextCliUtilitiesReport,
     FlextCliUtilitiesProcesses,
-    FlextCliUtilitiesRules,
     FlextCliUtilitiesRuntime,
     FlextCliUtilitiesSettings,
     FlextCliUtilitiesTables,
@@ -81,9 +78,10 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesDocx,
     FlextCliUtilitiesPptx,
     FlextCliUtilitiesYaml,
-    FlextCliUtilitiesYamlModel,
 ):
     """Compose utilities; document adapters load only during their operation."""
 
+    model_config: ClassVar[m.ConfigDict] = m.ConfigDict(ignored_types=(type,))
 
-__all__: tuple[str, ...] = ("FlextCliUtilitiesCli", "FlextCliUtilitiesModelConfig")
+
+__all__: tuple[str, ...] = ("FlextCliUtilitiesCli",)

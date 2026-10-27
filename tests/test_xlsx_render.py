@@ -15,8 +15,7 @@ from openpyxl.styles import Font
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import cli
-from tests import m, tm
+from tests import c, m, tm, u
 
 
 def _defined_name_workbook() -> bytes:
@@ -41,7 +40,7 @@ class TestsFlextCliXlsxRender:
         """Test xlsx defined name values resolves cached scalar."""
         source = _defined_name_workbook()
 
-        result = cli.xlsx_defined_name_values(
+        result = u.Cli.xlsx_defined_name_values(
             m.Cli.XlsxDefinedNameValuesRequest(source=source, name="ScalarValue"),
         )
 
@@ -61,7 +60,7 @@ class TestsFlextCliXlsxRender:
         """Test xlsx defined name values resolves cached range."""
         source = _defined_name_workbook()
 
-        result = cli.xlsx_defined_name_values(
+        result = u.Cli.xlsx_defined_name_values(
             m.Cli.XlsxDefinedNameValuesRequest(source=source, name="RangeValues"),
         )
 
@@ -76,11 +75,11 @@ class TestsFlextCliXlsxRender:
         """Test xlsx defined name values fails when name is missing."""
         source = _defined_name_workbook()
 
-        result = cli.xlsx_defined_name_values(
+        result = u.Cli.xlsx_defined_name_values(
             m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MissingValue"),
         )
 
-        tm.that(result.success, eq=False)
+        tm.fail(result.success)
         tm.that(result.error, has="xlsx_defined_name_missing")
 
     @staticmethod
@@ -88,11 +87,11 @@ class TestsFlextCliXlsxRender:
         """Test xlsx defined name values fails for non range name."""
         source = _defined_name_workbook()
 
-        result = cli.xlsx_defined_name_values(
+        result = u.Cli.xlsx_defined_name_values(
             m.Cli.XlsxDefinedNameValuesRequest(source=source, name="MalformedValue"),
         )
 
-        tm.that(result.success, eq=False)
+        tm.fail(result.success)
         tm.that(result.error, has="xlsx_defined_name_invalid")
 
     @staticmethod
@@ -107,11 +106,11 @@ class TestsFlextCliXlsxRender:
         template = _styled_template()
         style_name = template.style_map[0].style_name
         plan = _typed_runtime_plan(style_name)
-        result = cli.xlsx_render(
+        result = u.Cli.xlsx_render(
             m.Cli.XlsxRenderRequest(template=template.content, plan=plan),
         )
-        tm.that(result.success, eq=True)
-        tm.that(result.value.plan is plan, eq=True)
+        tm.ok(result.success)
+        tm.ok(result.value.plan is plan)
         data = _assert_rendered_workbook(result.value.content, style_name)
         _assert_xlsx_snapshot(
             result.value.content, style_name, data.protection.password
@@ -131,13 +130,13 @@ def _styled_template() -> m.Cli.XlsxStyleTemplateResult:
     source_cell.font = Font(name="Aptos", bold=True, color="FFFFFFFF")
     source = BytesIO()
     source_workbook.save(source)
-    template_result = cli.xlsx_style_template(
+    template_result = u.Cli.xlsx_style_template(
         m.Cli.XlsxStyleTemplateRequest(
             source=source.getvalue(),
             style_name_prefix="runtime",
         ),
     )
-    tm.that(template_result.success, eq=True)
+    tm.ok(template_result.success)
     return template_result.value
 
 
@@ -201,7 +200,9 @@ def _typed_runtime_plan(style_name: str) -> m.Cli.XlsxWorkbookPlan:
                     validations=(
                         m.Cli.XlsxListValidationPlan(
                             area=value_area,
-                            source=m.Cli.XlsxInlineListSource(values=("1", "2")),
+                            source=m.Cli.XlsxInlineListSource(
+                                values=(c.ParserBooleanToken.ONE, "2")
+                            ),
                             messages=m.Cli.XlsxValidationMessages(),
                         ),
                     ),
@@ -261,14 +262,14 @@ def _assert_rendered_workbook(content: bytes, style_name: str) -> Worksheet:
     data = rendered.worksheets[0]
     tm.that(data["B2"].value, eq="=1+1")
     tm.that(data["B2"].style, eq=style_name)
-    tm.that(data["B2"].protection.locked, eq=True)
-    tm.that(data["B2"].protection.hidden, eq=True)
-    tm.that(data.protection.sheet, eq=True)
-    tm.that("DataTable" in data.tables, eq=True)
+    tm.ok(data["B2"].protection.locked)
+    tm.ok(data["B2"].protection.hidden)
+    tm.ok(data.protection.sheet)
+    tm.ok("DataTable" in data.tables)
     tm.that(len(data.data_validations.dataValidation), eq=1)
     tm.that(len(data.conditional_formatting), eq=1)
-    tm.that("DataRange" in rendered.defined_names, eq=True)
-    tm.that(rendered.calculation.fullCalcOnLoad, eq=True)
+    tm.ok("DataRange" in rendered.defined_names)
+    tm.ok(rendered.calculation.fullCalcOnLoad)
     return data
 
 
@@ -278,10 +279,10 @@ def _assert_xlsx_snapshot(
     legacy_password: str,
 ) -> None:
     """Assert typed and cached snapshots agree with the rendered workbook."""
-    snapshot = cli.xlsx_snapshot(
+    snapshot = u.Cli.xlsx_snapshot(
         m.Cli.XlsxSnapshotRequest(source=content, data_only=False),
     )
-    cached = cli.xlsx_snapshot(
+    cached = u.Cli.xlsx_snapshot(
         m.Cli.XlsxSnapshotRequest(source=content, data_only=True),
     )
     tm.that(snapshot.success, eq=True, msg=snapshot.error)
@@ -302,7 +303,7 @@ def _assert_xlsx_snapshot(
     tm.that(cached.value.formula_count, eq=1)
     tm.that(data_snapshot.data_validation_count, eq=1)
     tm.that(data_snapshot.conditional_format_count, eq=1)
-    tm.that(data_snapshot.protection.enabled, eq=True)
+    tm.ok(data_snapshot.protection.enabled)
     tm.that(data_snapshot.protection.legacy_password_hash, eq=legacy_password)
     tm.that(data_snapshot.tables[0].reference, eq="A1:B2")
     tm.that(snapshot.value.defined_names[0].name, eq="DataRange")

@@ -13,12 +13,19 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._protocols import _base_parts as _base_parts
-    from flext_cli._protocols._base_parts import (
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_01 import (
         FlextCliProtocolsBasePart01,
+    )
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_02 import (
         FlextCliProtocolsBasePart02,
+    )
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_03 import (
         FlextCliProtocolsBasePart03,
+    )
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_04 import (
         FlextCliProtocolsBasePart04,
+    )
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_05 import (
         FlextCliProtocolsBasePart05,
     )
     from flext_cli._protocols.atomic_file import FlextCliProtocolsAtomicFile
@@ -59,7 +66,6 @@ __all__: tuple[str, ...] = (
     "FlextCliProtocolsXlsxSnapshot",
     "FlextCliProtocolsXlsxSnapshotStructure",
     "FlextCliProtocolsXlsxWorkbook",
-    "_base_parts",
 )
 
 install_lazy_exports(
@@ -68,11 +74,11 @@ install_lazy_exports(
     MappingProxyType({
         "FlextCliProtocolsAtomicFile": ".atomic_file",
         "FlextCliProtocolsBase": ".base",
-        "FlextCliProtocolsBasePart01": "._base_parts.flextcliprotocolsbase_part_01",
-        "FlextCliProtocolsBasePart02": "._base_parts.flextcliprotocolsbase_part_02",
-        "FlextCliProtocolsBasePart03": "._base_parts.flextcliprotocolsbase_part_03",
-        "FlextCliProtocolsBasePart04": "._base_parts.flextcliprotocolsbase_part_04",
-        "FlextCliProtocolsBasePart05": "._base_parts.flextcliprotocolsbase_part_05",
+        "FlextCliProtocolsBasePart01": "._base.flextcliprotocolsbase_part_01",
+        "FlextCliProtocolsBasePart02": "._base.flextcliprotocolsbase_part_02",
+        "FlextCliProtocolsBasePart03": "._base.flextcliprotocolsbase_part_03",
+        "FlextCliProtocolsBasePart04": "._base.flextcliprotocolsbase_part_04",
+        "FlextCliProtocolsBasePart05": "._base.flextcliprotocolsbase_part_05",
         "FlextCliProtocolsConfig": ".config",
         "FlextCliProtocolsDocx": ".docx",
         "FlextCliProtocolsDomain": ".domain",
@@ -85,7 +91,6 @@ install_lazy_exports(
         "FlextCliProtocolsXlsxSnapshot": ".xlsx_snapshot",
         "FlextCliProtocolsXlsxSnapshotStructure": ".xlsx_snapshot_structure",
         "FlextCliProtocolsXlsxWorkbook": ".xlsx_workbook",
-        "_base_parts": "._base_parts",
     }),
     public_exports=__all__,
 )

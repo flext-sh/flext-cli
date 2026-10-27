@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import m, t, tm, u
+from tests import c, m, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -25,6 +25,27 @@ class TestsFlextCliJsonCov:
     def test_normalize_json_value_preserves_mapping() -> None:
         """Verify that normalize json value preserves mapping."""
         tm.that(u.Cli.normalize_json_value({"key": "value"}), eq={"key": "value"})
+
+    @staticmethod
+    def test_json_dict_adapter_preserves_validated_nested_payload() -> None:
+        """Concrete object admission preserves the mapping adapter's JSON values."""
+        source: t.JsonDict = {"active": True, "values": [None, {"name": "native"}]}
+        mapping = u.Cli.JSON_MAPPING_ADAPTER.validate_python(source)
+        concrete: t.JsonDict = u.json_dict_adapter().validate_python(source)
+        tm.that(concrete, eq=mapping)
+        tm.that(
+            u.normalize_to_json_value({"metadata": concrete}),
+            eq={"metadata": source},
+        )
+
+    @staticmethod
+    @pytest.mark.parametrize("source", [None, "invalid", ["not", "an object"]])
+    def test_json_object_adapters_reject_non_mapping_input(source: t.JsonValue) -> None:
+        """Object admission does not widen into an arbitrary JSON value schema."""
+        with pytest.raises(m.ValidationError):
+            u.Cli.JSON_MAPPING_ADAPTER.validate_python(source)
+        with pytest.raises(m.ValidationError):
+            u.json_dict_adapter().validate_python(source)
 
     # ----- json_read (fallible, r[JsonMapping]) ----------------------------
 
@@ -43,8 +64,7 @@ class TestsFlextCliJsonCov:
         path = tmp_path / "data.json"
         path.write_text('{"key": "value"}', encoding="utf-8")
         result = u.Cli.json_read(path)
-        tm.ok(result)
-        tm.that(result.value, eq={"key": "value"})
+        tm.ok(result, eq={"key": "value"})
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -118,8 +138,8 @@ class TestsFlextCliJsonCov:
         """Verify that json write sort keys orders nested keys."""
         path = tmp_path / "sorted.json"
         payload: t.JsonPayload = {
-            "z": u.Cli.JSON_MAPPING_ADAPTER.validate_python({"b": 2, "a": 1}),
-            "a": u.Cli.JSON_LIST_ADAPTER.validate_python([{"y": 1, "x": 0}]),
+            "z": {"b": 2, "a": 1},
+            "a": [{"y": 1, "x": 0}],
         }
         result = u.Cli.json_write(
             path,
@@ -164,7 +184,7 @@ class TestsFlextCliJsonCov:
         sibling.hardlink_to(path)
         before = path.stat()
         tm.ok(u.Cli.json_write(path, {"version": 2}))
-        tm.that(path.stat().st_ino == before.st_ino, eq=False)
+        tm.fail(path.stat().st_ino == before.st_ino)
         tm.that(path.stat().st_mode, eq=before.st_mode)
         tm.that(u.Cli.json_read(path).value, eq={"version": 2})
         tm.that(u.Cli.json_read(sibling).value, eq={"version": 1})
@@ -238,7 +258,9 @@ class TestsFlextCliJsonCov:
         expected: t.JsonValue = {"x": 1}
         tm.that(result.value, eq=expected)
 
-    # ----- coercion helpers: mapping / sequence ----------------------------
+
+class TestsFlextCliJsonNavigation:
+    """Coercion, navigation and scalar extraction through the public JSON facade."""
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -375,20 +397,31 @@ class TestsFlextCliJsonCov:
         expected: bool,
     ) -> None:
         """Verify that json pick bool coerces truthy variants."""
+        source: t.JsonDict = {
+            "t": True,
+            "f": False,
+            "s_true": c.ParserBooleanToken.TRUE,
+            "s_false": c.ParserBooleanToken.FALSE,
+            "s_yes": c.ParserBooleanToken.YES,
+            "s_no": c.ParserBooleanToken.NO,
+            "s_1": c.ParserBooleanToken.ONE,
+            "s_0": c.ParserBooleanToken.ZERO,
+            "s_on": c.ParserBooleanToken.ON,
+            "s_off": c.ParserBooleanToken.OFF,
+            "n": 1,
+            "n0": 0,
+            "missing": None,
+        }
         data = u.Cli.json_as_mapping(
-            u.Cli.json_loads(
-                '{"t": true, "f": false, "s_true": "true", "s_false": "false",'
-                ' "s_yes": "yes", "s_no": "no", "s_1": "1", "s_0": "0",'
-                ' "s_on": "on", "s_off": "off", "n": 1, "n0": 0, "missing": null}',
-            ).value,
+            u.Cli.json_loads(u.Cli.json_dumps(source).value).value,
         )
-        tm.that(u.Cli.json_pick_bool(data, key) is expected, eq=True)
+        tm.ok(u.Cli.json_pick_bool(data, key) is expected)
 
     @staticmethod
     def test_json_pick_bool_uses_default_for_missing_key() -> None:
         """Verify that json pick bool uses default for missing key."""
         data = u.Cli.json_as_mapping(u.Cli.json_loads('{"missing": null}').value)
-        tm.that(u.Cli.json_pick_bool(data, "missing", default=True), eq=True)
+        tm.ok(u.Cli.json_pick_bool(data, "missing", default=True))
 
     @staticmethod
     def test_json_nested_int_reads_nested_value_or_default() -> None:

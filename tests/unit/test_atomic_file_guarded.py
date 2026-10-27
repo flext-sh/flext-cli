@@ -6,18 +6,31 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import sys
+from pathlib import Path
 
-from tests import tm, u
+import pytest
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from tests import m
+from tests import m, tm, u
 
 
 class TestsFlextCliAtomicFileGuarded:
     """Observable guarded-write behavior through public Flext CLI surfaces."""
+
+    @staticmethod
+    @pytest.mark.parametrize("scenario", ["unlink-failure", "competing-creation"])
+    def test_audit_boundary_preserves_publication_contract(
+        tmp_path: Path, scenario: str
+    ) -> None:
+        """Retain native failure, competing bytes and authenticated stage cleanup."""
+        consumer = Path(__file__).parents[1] / "fixtures" / "atomic_guarded_consumer.py"
+        script = tmp_path / "consumer.py"
+        script.write_bytes(consumer.read_bytes())
+        outcome = tm.ok(
+            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path), scenario)),
+        )
+        tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
+        tm.that(outcome.stderr, eq="")
 
     def test_matching_content_is_replaced(self, tmp_path: Path) -> None:
         """Publish when the complete physical version matches."""
@@ -95,7 +108,7 @@ class TestsFlextCliAtomicFileGuarded:
         result = u.Cli.atomic_write_text_file_guarded(before, "replacement")
 
         tm.fail(result)
-        tm.that(path.exists(), eq=False)
+        tm.fail(path.exists())
 
     def test_missing_parent_is_not_created(self, tmp_path: Path) -> None:
         """Leave no partial directory tree for a guarded-write failure."""
@@ -108,7 +121,7 @@ class TestsFlextCliAtomicFileGuarded:
         result = u.Cli.atomic_write_text_file_guarded(before, "replacement")
 
         tm.fail(result)
-        tm.that(parent.exists(), eq=False)
+        tm.fail(parent.exists())
 
     def test_absent_snapshot_rejects_replaced_parent(self, tmp_path: Path) -> None:
         """Never create a file under a new parent that reused the planned path."""
@@ -123,8 +136,8 @@ class TestsFlextCliAtomicFileGuarded:
         result = u.Cli.atomic_write_text_file_guarded(before, "replacement")
 
         tm.fail(result)
-        tm.that(path.exists(), eq=False)
-        tm.that((original / path.name).exists(), eq=False)
+        tm.fail(path.exists())
+        tm.fail((original / path.name).exists())
 
     def test_aliased_parent_is_rejected(self, tmp_path: Path) -> None:
         """Do not publish through a parent directory alias."""

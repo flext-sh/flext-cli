@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from flext_core import m, u
+from flext_core import m
 
 from flext_cli import c, t
 
@@ -48,7 +48,7 @@ class FlextCliModelsBasePart04:
             m.Field(description="Table format enum-derived literal authority"),
         ] = c.Cli.TabularFormat.SIMPLE
 
-        @u.computed_field
+        @m.computed_field
         @property
         def table_backend_format(self) -> c.Cli.TabularFormat:
             """Canonical backend format used by table rendering."""

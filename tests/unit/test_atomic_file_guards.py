@@ -6,14 +6,97 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import errno
 import os
+import sys
 from pathlib import Path
+from types import FrameType
 
-from tests import tm, u
+import pytest
+
+from tests import t, tm, u
 
 
 class TestsFlextCliAtomicFileGuards:
     """Guards reject foreign owners and oversized content before effects."""
+
+    @staticmethod
+    def test_whole_file_read_does_not_inherit_duplicate_offset(tmp_path: Path) -> None:
+        """An EOF cursor shared by dup must not authenticate an empty payload."""
+        path = tmp_path / "offset.bin"
+        payload = b"authenticated payload"
+        path.write_bytes(payload)
+        observed: list[int] = []
+
+        def observe_open(
+            frame: FrameType, event: str, returned: t.Scalar | bytes | None
+        ) -> None:
+            if (
+                event == "return"
+                and frame.f_code.co_name == "open_entry"
+                and frame.f_locals.get("path") == path
+                and isinstance(returned, int)
+            ):
+                descriptor = os.dup(returned)
+                try:
+                    observed.append(os.lseek(descriptor, 0, os.SEEK_END))
+                finally:
+                    os.close(descriptor)
+
+        previous = sys.getprofile()
+        sys.setprofile(observe_open)
+        try:
+            states = [
+                tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True))
+                for _ in range(2)
+            ]
+        finally:
+            sys.setprofile(previous)
+        tm.that(observed, eq=[len(payload), len(payload)])
+        for state in states:
+            tm.that(state.content, eq=payload)
+
+    @staticmethod
+    def test_whole_file_read_rejects_short_payload_with_unchanged_stat(
+        tmp_path: Path,
+    ) -> None:
+        """A cursor moved by another holder cannot authenticate a short read."""
+        path = tmp_path / "short.bin"
+        path.write_bytes(b"x" * (1024 * 1024 + 1))
+        descriptors: list[int] = []
+
+        def observe_chunks(
+            frame: FrameType, event: str, _returned: t.Scalar | bytes | None
+        ) -> None:
+            if (
+                event == "return"
+                and frame.f_code.co_name == "descriptor_chunks"
+                and frame.f_locals.get("path") == path
+            ):
+                descriptor = frame.f_locals.get("descriptor")
+                if isinstance(descriptor, int):
+                    descriptors.append(descriptor)
+
+        chunks = iter(u.Cli.atomic_iter_binary_file(path))
+        previous = sys.getprofile()
+        sys.setprofile(observe_chunks)
+        try:
+            first = next(chunks)
+        finally:
+            sys.setprofile(previous)
+        tm.that(len(first), eq=1024 * 1024)
+        descriptor = descriptors[-1]
+        expected = os.fstat(descriptor)
+        os.lseek(descriptor, 0, os.SEEK_END)
+        with pytest.raises(
+            OSError, match="atomic destination changed during authenticated read"
+        ) as rejected:
+            next(chunks)
+        tm.that(rejected.value.errno, eq=errno.ESTALE)
+        observed = path.stat()
+        tm.that(observed, eq=expected)
+        tm.that(observed.st_mtime_ns, eq=expected.st_mtime_ns)
+        tm.that(observed.st_ctime_ns, eq=expected.st_ctime_ns)
 
     @staticmethod
     def test_read_accepts_current_owner_within_bound(tmp_path: Path) -> None:
@@ -70,7 +153,7 @@ class TestsFlextCliAtomicFileGuards:
             ),
         )
 
-        tm.that(path.exists(), eq=False)
+        tm.fail(path.exists())
 
     @staticmethod
     def test_create_rejects_foreign_parent_owner_before_effect(
@@ -88,7 +171,7 @@ class TestsFlextCliAtomicFileGuards:
             ),
         )
 
-        tm.that(path.exists(), eq=False)
+        tm.fail(path.exists())
 
     @staticmethod
     def test_create_publishes_under_satisfied_guards(tmp_path: Path) -> None:

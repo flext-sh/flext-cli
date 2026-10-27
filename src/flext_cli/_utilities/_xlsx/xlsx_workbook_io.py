@@ -13,6 +13,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesFiles
 from flext_cli._utilities._xlsx import FlextCliUtilitiesXlsxArchive
 
 
@@ -75,16 +76,11 @@ class FlextCliUtilitiesXlsxWorkbookIo(FlextCliUtilitiesXlsxArchive):
             The resulting ``p.Result[bytes]``.
 
         """
-        target = BytesIO()
-        try:
-            workbook.save(target)
-        except (KeyError, OSError, TypeError, ValueError) as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
-            return r[bytes].fail(f"{c.Cli.XlsxError.SERIALIZE_FAILED}: {detail}")
-        content = target.getvalue()
-        if not content:
-            return r[bytes].fail(str(c.Cli.XlsxError.SERIALIZE_FAILED))
-        return r[bytes].ok(content)
+        return FlextCliUtilitiesFiles.files_save_bytes(
+            workbook.save,
+            str(c.Cli.XlsxError.SERIALIZE_FAILED),
+            catch=(KeyError, OSError, TypeError, ValueError),
+        )
 
 
 __all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxWorkbookIo",)

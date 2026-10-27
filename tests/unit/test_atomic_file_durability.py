@@ -73,4 +73,4 @@ class TestsFlextCliAtomicFileDurability:
         )
 
         tm.that(target.read_text(encoding="utf-8"), eq="kept")
-        tm.that(link.is_symlink(), eq=True)
+        tm.ok(link.is_symlink())

@@ -80,8 +80,8 @@ class TestsFlextCliAtomicDirectoryChain:
         )
 
         tm.fail(result)
-        tm.that(target.exists(), eq=False)
-        tm.that((original / target.name).exists(), eq=False)
+        tm.fail(target.exists())
+        tm.fail((original / target.name).exists())
 
     @staticmethod
     def test_existing_target_is_verified_without_effect(tmp_path: Path) -> None:

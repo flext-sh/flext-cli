@@ -6,12 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from flext_cli import cli
-
-if TYPE_CHECKING:
-    from tests import m, p
+from tests import m, p
 
 
 class TestsFlextCliPipelineHandlers:

@@ -1,7 +1,7 @@
 """Behavior contract for the ADR-005 flext-cli universal engine.
 
 Covers ``u.Cli.template_render`` (Jinja2, StrictUndefined, sandboxed),
-``u.Cli.config_load`` / ``config_load_dir`` (multi-format, reuses core
+``u.Cli.config_load`` (multi-format, reuses core
 ``u.config_env_override``), and ``u.Cli.schema_validate`` (JSON Schema).
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -12,11 +12,12 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from types import MappingProxyType
 
 import pytest
 
 from flext_cli import config
-from tests import c, m, tm, u
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliConfigEngine:
@@ -63,9 +64,9 @@ class TestsFlextCliConfigEngine:
         tm.ok(u.Cli.template_render(tpl, context))
         first = u.Cli.template_environment(tmp_path)
         second = u.Cli.template_environment(tmp_path)
-        tm.that(first is second, eq=True)
+        tm.ok(first is second)
         other = u.Cli.template_environment(tmp_path / "nested")
-        tm.that(first is other, eq=False)
+        tm.fail(first is other)
 
     @staticmethod
     @pytest.mark.parametrize("included", [False, True])
@@ -143,6 +144,26 @@ class TestsFlextCliConfigEngine:
         tm.that(rendered.value.rendered, eq="port=42\n")
 
     @staticmethod
+    def test_template_markdown_wrap_filter_wraps_to_context_width(
+        tmp_path: Path,
+    ) -> None:
+        """The template owner exposes ``markdown_wrap`` bound to a context width."""
+        template = tmp_path / "page.md.j2"
+        template.write_text(
+            "{% filter markdown_wrap(width) -%}\n"
+            "- one two three four five six\n"
+            "{% endfilter -%}",
+            encoding="utf-8",
+        )
+
+        rendered = u.Cli.template_render_authenticated(
+            template, m.Tests.TemplateWidthContext(width=16)
+        )
+
+        tm.ok(rendered)
+        tm.that(rendered.value.rendered, eq="- one two three\n  four five six\n")
+
+    @staticmethod
     def test_captured_template_render_rejects_missing_dependency(
         tmp_path: Path,
     ) -> None:
@@ -163,7 +184,7 @@ class TestsFlextCliConfigEngine:
         )
 
         tm.fail(rendered)
-        tm.that(rendered.exception is not None, eq=True)
+        tm.ok(rendered.exception is not None)
 
     @staticmethod
     def test_template_render_strict_undefined_fails(tmp_path: Path) -> None:
@@ -226,7 +247,10 @@ class TestsFlextCliConfigEngine:
         tm.that((result.error or ""), has=c.Cli.ERR_CONFIG_UNSUPPORTED_FORMAT)
 
     @staticmethod
-    def test_schema_validate_valid_and_invalid(tmp_path: Path) -> None:
+    @pytest.mark.parametrize("read_only", [False, True])
+    def test_schema_validate_valid_and_invalid(
+        tmp_path: Path, *, read_only: bool
+    ) -> None:
         """Verify that schema validate valid and invalid."""
         schema = tmp_path / "s.schema.json"
         schema.write_text(
@@ -234,8 +258,15 @@ class TestsFlextCliConfigEngine:
             '"properties":{"port":{"type":"integer"}}}',
             encoding="utf-8",
         )
-        tm.ok(u.Cli.schema_validate({"port": 8080}, schema))
-        tm.fail(u.Cli.schema_validate({"port": "x"}, schema))
+        valid: t.JsonMapping = {"port": 8080}
+        invalid: t.JsonMapping = {"port": "x"}
+        if read_only:
+            valid = MappingProxyType(valid)
+            invalid = MappingProxyType(invalid)
+        tm.ok(u.Cli.schema_validate(valid, schema))
+        tm.fail(u.Cli.schema_validate(invalid, schema))
+        tm.that(valid["port"], eq=8080)
+        tm.that(invalid["port"], eq="x")
 
     @staticmethod
     def test_config_load_with_schema_pairs(tmp_path: Path) -> None:
@@ -247,26 +278,6 @@ class TestsFlextCliConfigEngine:
         ok = u.Cli.config_load(source, schema_path=schema)
         tm.ok(ok)
         tm.that(ok.unwrap().schema_ref, eq=str(schema))
-
-    @staticmethod
-    def test_config_load_dir_auto_pairs_schemas(tmp_path: Path) -> None:
-        """Verify that config load dir auto pairs schemas."""
-        cfg = tmp_path / "config"
-        cfg.mkdir()
-        schemas = tmp_path / "schemas"
-        schemas.mkdir()
-        (cfg / "mcp.yaml").write_text("enabled: true\n", encoding="utf-8")
-        (cfg / "agents.yaml").write_text("count: 3\n", encoding="utf-8")
-        (schemas / "mcp.schema.json").write_text(
-            '{"type":"object","required":["enabled"]}',
-            encoding="utf-8",
-        )
-        result = u.Cli.config_load_dir(cfg)
-        tm.ok(result)
-        docs = result.unwrap()
-        tm.that(set(docs.keys()), eq={"agents", "mcp"})
-        tm.that(docs["mcp"].schema_ref, eq=str(schemas / "mcp.schema.json"))
-        tm.that(docs["agents"].schema_ref, none=True)
 
 
 class TestsFlextCliTemplateRenderDir:
@@ -325,7 +336,7 @@ class TestsFlextCliTemplateRenderDir:
         ).unwrap()
         tm.that(len(report.skipped), eq=1)
         tm.that(report.created, empty=True)
-        tm.that((out / "a").exists(), eq=False)
+        tm.fail((out / "a").exists())
 
     @staticmethod
     def test_render_dir_overwrite_policy(tmp_path: Path) -> None:
@@ -387,7 +398,7 @@ class TestsFlextCliTemplateRenderDir:
         ).unwrap()
         tm.that(report.failed, empty=False)
         tm.that(report.failed[0][1], has=c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE)
-        tm.that((tmp_path / "escape").exists(), eq=False)
+        tm.fail((tmp_path / "escape").exists())
 
     @staticmethod
     def test_render_dir_missing_root_fails(tmp_path: Path) -> None:

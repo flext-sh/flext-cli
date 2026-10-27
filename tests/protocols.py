@@ -6,14 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import Protocol
 
 from flext_tests import FlextTestsProtocols
 
 from flext_cli import FlextCliProtocols
-
-if TYPE_CHECKING:
-    from tests import t
 
 
 class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
@@ -73,32 +70,12 @@ class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
                 """Define the confirm test contract."""
                 ...
 
-            def prompt_choice(
-                self,
-                choices: t.StrSequence,
-                default: str | None = None,
-            ) -> p.Result[str]:
-                """Define the prompt choice test contract."""
-                ...
-
             def prompt_password(
                 self,
                 message: str,
                 min_length: int = 8,
             ) -> p.Result[str]:
                 """Define the prompt password test contract."""
-                ...
-
-            def print_success(self, message: str) -> p.Result[bool]:
-                """Define the print success test contract."""
-                ...
-
-            def print_error(self, message: str) -> p.Result[bool]:
-                """Define the print error test contract."""
-                ...
-
-            def print_warning(self, message: str) -> p.Result[bool]:
-                """Define the print warning test contract."""
                 ...
 
 

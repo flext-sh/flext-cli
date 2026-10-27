@@ -1,0 +1,298 @@
+"""Generic filesystem helpers shared through ``u.Cli``.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+import shutil
+from collections.abc import Callable
+from io import BytesIO
+from pathlib import Path
+
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities.atomic_file import FlextCliUtilitiesAtomicFile
+from flext_cli._utilities.atomic_file_delete import FlextCliUtilitiesAtomicFileDelete
+from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+
+
+class FlextCliUtilitiesFilesPart02:
+    """Atomic file operations and directory helpers.
+
+    Guarded atomic operations retain the native filesystem exception as the
+    result's cause when physical identity validation rejects a write or deletion.
+    """
+
+    @staticmethod
+    def files_save_bytes(
+        save: Callable[[BytesIO], None],
+        error: str,
+        *,
+        catch: tuple[type[Exception], ...] = (OSError, TypeError, ValueError),
+    ) -> p.Result[bytes]:
+        """Serialize a native document into nonempty bytes without copying it.
+
+        Returns:
+            Serialized bytes or the caller's format-specific failure.
+
+        """
+        target = BytesIO()
+        try:
+            save(target)
+        except catch as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[bytes].fail(f"{error}: {detail}")
+        content = target.getvalue()
+        return r[bytes].ok(content) if content else r[bytes].fail(error)
+
+    @staticmethod
+    def files_write_binary(
+        file_path: t.Cli.TextPath,
+        data: bytes,
+        *,
+        durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
+    ) -> p.Result[bool]:
+        """Write one binary file atomically in its destination directory.
+
+        ``durability`` is the caller's declaration; ``SCRATCH`` skips fsync.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
+        return FlextCliUtilitiesFilesPart02._validated_atomic_write(
+            file_path,
+            data,
+            c.Cli.ERR_BINARY_WRITE_FAILED,
+            durability=durability,
+        )
+
+    @staticmethod
+    def atomic_write_text_file(
+        file_path: t.Cli.TextPath,
+        content: str,
+        *,
+        durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
+    ) -> p.Result[bool]:
+        """Write a text file atomically via the shared byte primitive.
+
+        ``durability`` is the caller's declaration; ``SCRATCH`` skips fsync.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
+        return FlextCliUtilitiesFilesPart02._validated_atomic_write(
+            file_path,
+            content.encode(c.DEFAULT_ENCODING),
+            c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED,
+            durability=durability,
+        )
+
+    @staticmethod
+    def _validated_atomic_write(
+        file_path: t.Cli.TextPath,
+        data: bytes,
+        error_template: str,
+        *,
+        durability: c.Cli.WriteDurability,
+    ) -> p.Result[bool]:
+        """Validate one write target and publish its bytes atomically.
+
+        Args:
+            file_path: The target file path for the atomic write.
+            data: The byte content to write.
+            error_template: Template for error messages.
+            durability: Write durability declaration.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
+        path = Path(file_path)
+        try:
+            FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
+        except OSError as exc:
+            return r[bool].fail(error_template.format(error=exc), exception=exc)
+        ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(path.parent)
+        if ensure_result.failure:
+            return r[bool].from_failure(ensure_result)
+        try:
+            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+                path,
+                data,
+                durability=durability,
+            )
+        except OSError as exc:
+            return r[bool].fail(error_template.format(error=exc), exception=exc)
+        return r[bool].ok(value=True)
+
+    @staticmethod
+    def atomic_write_text_file_guarded(
+        before: m.Cli.AtomicFileState,
+        content: str,
+    ) -> p.Result[bool]:
+        """Publish under a lock after one complete physical-state precondition.
+
+        Cooperative writers must hold one exclusive lock from planning through
+        this call. This operation is not compare-and-swap against actors that
+        ignore that lock. The immediate parent must exist as a real directory.
+        Publication syncs the staged inode and containing directory before success.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
+        try:
+            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+                before.path,
+                content.encode(c.DEFAULT_ENCODING),
+                expected_state=before,
+            )
+        except OSError as exc:
+            return r[bool].fail(
+                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
+                exception=exc,
+            )
+        return r[bool].ok(value=True)
+
+    @staticmethod
+    def atomic_write_binary_file_guarded(
+        before: m.Cli.AtomicFileState,
+        data: bytes,
+        *,
+        permission_mode: int | None,
+    ) -> p.Result[bool]:
+        """Publish bytes and mode from one complete physical-state precondition.
+
+        Cooperative writers must hold the same lock through planning and this
+        call. This is not CAS against an actor that ignores that lock. The
+        immediate real parent must exist and is never created here. Publication
+        syncs the staged inode and containing directory before success.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
+        try:
+            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+                before.path,
+                data,
+                expected_state=before,
+                permission_mode=permission_mode,
+            )
+        except OSError as exc:
+            return r[bool].fail(
+                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc),
+                exception=exc,
+            )
+        return r[bool].ok(value=True)
+
+    @staticmethod
+    def atomic_delete_binary_file_guarded(
+        state: m.Cli.AtomicFileState,
+    ) -> p.Result[bool]:
+        """Delete one complete physical file version under the caller's lock.
+
+        The descriptor-bound unlink depends on every writer sharing that lock; it
+        is not CAS against an actor that ignores it. The containing directory is
+        synced after unlink before success.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
+        try:
+            FlextCliUtilitiesAtomicFileDelete.remove_guarded_file(state)
+        except OSError as exc:
+            return r[bool].fail(
+                c.Cli.ERR_FILE_DELETION_FAILED.format(error=exc),
+                exception=exc,
+            )
+        return r[bool].ok(value=True)
+
+    @staticmethod
+    def files_copy(
+        source_path: t.Cli.TextPath,
+        destination_path: t.Cli.TextPath,
+    ) -> p.Result[bool]:
+        """Copy one file preserving metadata.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
+
+        def _copy() -> bool:
+            shutil.copy2(source_path, destination_path)
+            return True
+
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            _copy,
+            c.Cli.ERR_FILE_COPY_FAILED,
+        )
+
+    @staticmethod
+    def files_execute[T](
+        operation_func: t.Cli.NullaryOperation[T],
+        error_template: str,
+        **format_kwargs: t.Scalar,
+    ) -> p.Result[T]:
+        """Execute one operation and map common runtime errors to ``r``.
+
+        Returns:
+            The resulting ``p.Result[T]``.
+
+        """
+        try:
+            return r[T].ok(operation_func())
+        except c.EXC_BROAD_RUNTIME_OS as exc:
+            return r[T].fail(
+                error_template.format(error=exc, **format_kwargs),
+                exception=exc,
+            )
+
+    @staticmethod
+    def files_execute_bool[T](
+        operation_func: t.Cli.NullaryOperation[T],
+        error_template: str,
+        **format_kwargs: t.Scalar,
+    ) -> p.Result[bool]:
+        """Execute one operation that should return a success boolean.
+
+        Returns:
+            The resulting ``p.Result[bool]``.
+
+        """
+
+        def _run() -> bool:
+            _ = operation_func()
+            return True
+
+        return FlextCliUtilitiesFilesPart02.files_execute(
+            _run,
+            error_template,
+            **format_kwargs,
+        )
+
+    @staticmethod
+    def ensure_dir(path: t.Cli.TextPath) -> p.Result[Path]:
+        """Create a directory tree when missing and return the resolved path.
+
+        Returns:
+            The resulting ``p.Result[Path]``.
+
+        """
+        target = Path(path)
+        try:
+            target.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            return r[Path].fail(
+                c.Cli.ERR_ENSURE_DIR_FAILED.format(error=exc),
+                exception=exc,
+            )
+        return r[Path].ok(target)
+
+
+__all__: list[str] = ["FlextCliUtilitiesFilesPart02"]

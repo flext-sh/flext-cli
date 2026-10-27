@@ -17,8 +17,8 @@ from collections.abc import Mapping
 
 from flext_core import u
 
-import flext_cli
 from flext_cli import t
+from flext_cli._utilities import FlextCliUtilitiesConversion
 from flext_cli._utilities._json import FlextCliUtilitiesJsonCoreMixin
 
 
@@ -61,7 +61,7 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
         return (
             None
             if leaf is None
-            else flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(leaf)
+            else FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python(leaf)
         )
 
     @staticmethod

@@ -51,7 +51,7 @@ class TestsFlextCliConstants:
         tm.that(table_formats, is_=Mapping)
         tm.that(table_formats, empty=False)
         for key, description in table_formats.items():
-            tm.that(key in c.Cli.TabularFormat, eq=True)
+            tm.ok(key in c.Cli.TabularFormat)
             tm.that(description, is_=str)
             tm.that(description, empty=False)
 
@@ -92,23 +92,7 @@ class TestsFlextCliConstants:
     def test_success_and_failure_symbols_differ() -> None:
         """Success and failure marks are different observable symbols."""
         tm.that(c.Cli.SYMBOL_SUCCESS_MARK, empty=False)
-        tm.that(c.Cli.SYMBOL_SUCCESS_MARK != c.Cli.SYMBOL_FAILURE_MARK, eq=True)
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        ("message", "expected"),
-        [
-            ("No such file or directory", True),
-            ("config.yml not found", True),
-            ("path does not exist", True),
-            ("[Errno 2] cannot open", True),
-            ("everything is fine", False),
-            ("permission denied", False),
-        ],
-    )
-    def test_file_not_found_classifier(message: str, *, expected: bool) -> None:
-        """u.Cli.file_not_found_error flags file-absence diagnostics only."""
-        tm.that(u.Cli.file_not_found_error(message), eq=expected)
+        tm.ok(c.Cli.SYMBOL_SUCCESS_MARK != c.Cli.SYMBOL_FAILURE_MARK)
 
     @staticmethod
     @pytest.mark.parametrize(

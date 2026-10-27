@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
+from types import MappingProxyType
 from typing import Literal
 
 from flext_cli import c, m, p, r, t
@@ -18,9 +19,6 @@ from flext_cli._utilities.atomic_directory_create import (
 )
 from flext_cli._utilities.atomic_directory_delete import (
     FlextCliUtilitiesAtomicDirectoryDelete,
-)
-from flext_cli._utilities.atomic_directory_publish import (
-    FlextCliUtilitiesAtomicDirectoryPublish,
 )
 from flext_cli._utilities.atomic_directory_snapshot import (
     FlextCliUtilitiesAtomicDirectorySnapshot,
@@ -162,47 +160,44 @@ class FlextCliUtilitiesFilesPart05:
         return r[bool].ok(value=True)
 
     @staticmethod
-    def atomic_publish_staged_empty_directory_guarded(
-        destination_before: m.Cli.AtomicDirectoryState,
-        staged: m.Cli.AtomicDirectoryState,
-    ) -> p.Result[m.Cli.AtomicDirectoryState]:
-        """Publish one staged empty directory without clobbering a destination.
-
-        The destination must be an authenticated absent state. Linux uses
-        ``renameat2(RENAME_NOREPLACE)``; unsupported hosts fail before effects.
-
-        Returns:
-            The resulting ``p.Result[m.Cli.AtomicDirectoryState]``.
-
-        """
-        try:
-            publish = FlextCliUtilitiesAtomicDirectoryPublish
-            published = publish.publish_guarded_staged_empty_directory(
-                destination_before,
-                staged,
-            )
-        except OSError as exc:
-            return r[m.Cli.AtomicDirectoryState].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_PUBLISH_FAILED.format(error=exc),
-            )
-        return r[m.Cli.AtomicDirectoryState].ok(published)
-
-    @staticmethod
     def atomic_merge_directory_query_receipts(
         inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
         topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        *,
+        queries: t.MappingKV[
+            int, set[t.Pair[str, Literal["exists", "isfile", "isdir"]]]
+        ] = MappingProxyType({}),
+        membership_queries: t.MappingKV[int, set[t.StrTuple]] = MappingProxyType({}),
     ) -> t.Pair[
         t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
         t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
     ]:
-        """Keep original native query epochs while uniting consumed selectors.
+        """Forward original epochs and working selectors to their sole merge owner.
 
         Returns:
             The directory inventories and ancestry plans with united selectors.
 
         """
         return FlextCliUtilitiesAtomicTreeInventory.merge_directory_query_receipts(
-            inventories, topology
+            inventories,
+            topology,
+            queries=queries,
+            membership_queries=membership_queries,
+        )
+
+    @staticmethod
+    def atomic_directory_membership_value(
+        inventory: m.Cli.AtomicDirectoryInventory,
+        excluded_names: t.StrTuple,
+    ) -> t.MappingKV[str, Literal["directory", "file", "symlink", "other"]]:
+        """Evaluate a declared membership selection on its physical receipt.
+
+        Returns:
+            Selected child names and physical kinds.
+
+        """
+        return FlextCliUtilitiesAtomicTreeInventory.directory_membership_value(
+            inventory, excluded_names
         )
 
     @staticmethod
@@ -228,17 +223,17 @@ class FlextCliUtilitiesFilesPart05:
         *,
         publications: t.VariadicTuple[
             t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
-        ] = (),
+        ]
+        | m.Cli.AtomicDirectoryQueryEffects = (),
         directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
-        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory]
-        | None = None,
+        observations: m.Cli.AtomicDirectoryObservations | None = None,
     ) -> p.Result[bool]:
         """Verify native source queries without authorizing publication effects.
 
-        One verification boundary may share one native observation per physical
-        directory through ``observations``. The boundary captures each directory
-        exactly once, and the store never outlives the boundary, so no receipt is
-        replayed across boundaries.
+        One verification boundary shares its directory and ancestry observations
+        through one ``observations`` instance passed by reference. Successful
+        observations are shared only within that boundary; a failed capture
+        remains a native exception, never an empty substitute.
 
         Returns:
             A successful result when all consumed native queries still agree.

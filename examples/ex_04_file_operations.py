@@ -24,7 +24,7 @@ class ExamplesFlextCliFileOperations:
 
     @staticmethod
     def save_user_preferences(
-        preferences: t.MappingKV[str, t.JsonPayloadCollectionValue],
+        preferences: t.JsonMapping,
         config_dir: Path,
     ) -> p.Result[bool]:
         """Save user preferences to JSON in YOUR app.
@@ -83,7 +83,7 @@ class ExamplesFlextCliFileOperations:
 
     @staticmethod
     def save_deployment_config(
-        settings: t.MappingKV[str, t.JsonPayloadCollectionValue],
+        settings: t.JsonMapping,
         config_file: Path,
     ) -> p.Result[bool]:
         """Save deployment settings to YAML in YOUR tool.

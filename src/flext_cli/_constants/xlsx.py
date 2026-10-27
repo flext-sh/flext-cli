@@ -1,5 +1,8 @@
 """Stable constants for the generic XLSX boundary.
 
+Shared parser tokens come from the upstream Core constants owner, not the CLI
+constants facade that is still being assembled during import.
+
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -8,6 +11,8 @@ from __future__ import annotations
 
 from enum import StrEnum, unique
 from typing import TYPE_CHECKING, ClassVar
+
+from flext_core import c
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -34,15 +39,15 @@ class FlextCliConstantsXlsx:
     ))
     XLSX_TRUE_TOKENS: ClassVar[frozenset[str | None]] = frozenset((
         None,
-        "1",
-        "on",
-        "true",
+        c.ParserBooleanToken.ONE,
+        c.ParserBooleanToken.ON,
+        c.ParserBooleanToken.TRUE,
     ))
     XLSX_FALSE_TOKENS: ClassVar[frozenset[str | None]] = frozenset((
         None,
-        "0",
-        "false",
-        "off",
+        c.ParserBooleanToken.ZERO,
+        c.ParserBooleanToken.FALSE,
+        c.ParserBooleanToken.OFF,
     ))
     XLSX_ERROR_CELL_PREFIX: ClassVar[str] = "#"
     XLSX_PACKAGE_PREFIX: ClassVar[str] = "xl/"

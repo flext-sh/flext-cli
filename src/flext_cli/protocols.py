@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import FlextProtocols
+from flext_core import p as flext_core_p
 
 from flext_cli._protocols import (
     FlextCliProtocolsAtomicFile,
@@ -22,7 +22,7 @@ from flext_cli._protocols import (
 )
 
 
-class FlextCliProtocols(FlextProtocols):
+class FlextCliProtocols(flext_core_p):
     """CLI protocol definitions extending FlextProtocols.
 
     CLI protocol refinements take precedence in MRO while ``Result`` and the
@@ -44,5 +44,4 @@ class FlextCliProtocols(FlextProtocols):
 
 
 p = FlextCliProtocols
-
 __all__: list[str] = ["FlextCliProtocols", "p"]

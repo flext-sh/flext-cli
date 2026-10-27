@@ -9,8 +9,7 @@ from __future__ import annotations
 import zipfile
 from io import BytesIO
 
-from flext_cli import cli
-from tests import m, tm
+from tests import m, tm, u
 
 
 def _render_formula(formula: str) -> str:
@@ -32,7 +31,7 @@ def _render_formula(formula: str) -> str:
         ),
         defined_names=(),
     )
-    result = cli.xlsx_render(m.Cli.XlsxRenderRequest(template=None, plan=plan))
+    result = u.Cli.xlsx_render(m.Cli.XlsxRenderRequest(template=None, plan=plan))
     tm.that(result.success, eq=True, msg=result.error)
     archive = zipfile.ZipFile(BytesIO(result.value.content))
     return archive.read("xl/worksheets/sheet1.xml").decode("utf-8")
@@ -45,20 +44,20 @@ class TestsFlextCliXlsxFormulaCodec:
     def test_xlsx_future_function_stored_with_xlfn_prefix() -> None:
         """OOXML storage prefixes post-2007 functions so readers resolve them."""
         sheet_xml = _render_formula("=XLOOKUP(A1,B1:B5,C1:C5)+SUM(D1:D5)")
-        tm.that("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml, eq=True)
-        tm.that("SUM(D1:D5)" in sheet_xml, eq=True)
-        tm.that("_xlfn.SUM" not in sheet_xml, eq=True)
+        tm.ok("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml)
+        tm.ok("SUM(D1:D5)" in sheet_xml)
+        tm.ok("_xlfn.SUM" not in sheet_xml)
 
     @staticmethod
     def test_xlsx_future_function_skips_string_literals() -> None:
         """Text inside formula string literals is never rewritten."""
         sheet_xml = _render_formula('=IF(A1="","XLOOKUP(",XLOOKUP(A1,B1:B5,C1:C5))')
-        tm.that('"XLOOKUP("' in sheet_xml, eq=True)
-        tm.that("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml, eq=True)
+        tm.ok('"XLOOKUP("' in sheet_xml)
+        tm.ok("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml)
 
     @staticmethod
     def test_xlsx_prefixed_function_not_double_prefixed() -> None:
         """Storage-safe input passes through without a second prefix."""
         sheet_xml = _render_formula("=_xlfn.XLOOKUP(A1,B1:B5,C1:C5)")
-        tm.that("_xlfn._xlfn" not in sheet_xml, eq=True)
-        tm.that("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml, eq=True)
+        tm.ok("_xlfn._xlfn" not in sheet_xml)
+        tm.ok("_xlfn.XLOOKUP(A1,B1:B5,C1:C5)" in sheet_xml)

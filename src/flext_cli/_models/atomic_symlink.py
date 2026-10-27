@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
-from flext_core import m, t, u
+from flext_core import m, t
 
 from flext_cli._models import FlextCliModelsAtomicState
 
@@ -65,7 +65,7 @@ class FlextCliModelsAtomicSymlink:
             ),
         ]
 
-        @u.field_validator("path")
+        @m.field_validator("path")
         @classmethod
         def _absolute_path(cls, value: Path) -> Path:
             """Reject relative or traversing identities at the boundary.
@@ -79,7 +79,7 @@ class FlextCliModelsAtomicSymlink:
                 label="atomic symlink state",
             )
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _complete_presence(self) -> Self:
             """Require target text and identity together, including broken links.
 

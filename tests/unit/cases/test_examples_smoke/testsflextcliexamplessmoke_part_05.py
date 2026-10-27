@@ -24,7 +24,7 @@ class TestsFlextCliExamplesSmokePart05:
             host="db.example.com",
             port=5432,
             name="prod",
-            username="user",
+            username=c.ContextScope.USER,
             password="p" + "3" * 10,
             ssl_enabled=True,
             connection_pool=10,
@@ -49,7 +49,7 @@ class TestsFlextCliExamplesSmokePart05:
             accepted.value,
         )
         tm.ok(unchanged)
-        tm.that(unchanged.value is accepted.value, eq=True)
+        tm.ok(unchanged.value is accepted.value)
 
     @staticmethod
     def test_settings_and_pydantic_examples_validate_production_flow(
@@ -69,14 +69,14 @@ class TestsFlextCliExamplesSmokePart05:
         tm.that(settings_result.value["max_workers"], eq=20)
         tm.that(settings_result.value["enable_metrics"], eq=True)
         tm.that(settings_result.value["services_initialized"], eq=True)
-        tm.that(Path(str(settings_result.value["temp_dir"])).exists(), eq=True)
+        tm.ok(Path(str(settings_result.value["temp_dir"])).exists())
 
         database_result = (
             ExamplesFlextCliPydanticDrivenCli.create_database_config_from_cli()
         )
         tm.ok(database_result)
         tm.that(database_result.value.port, eq=5433)
-        tm.that(database_result.value.ssl_enabled, eq=True)
+        tm.ok(database_result.value.ssl_enabled)
         tm.that(database_result.value.connection_pool, eq=20)
 
     @staticmethod
@@ -95,7 +95,7 @@ class TestsFlextCliExamplesSmokePart05:
                     "host": "db.example.com",
                     "port": "bad-port",
                     "name": "prod",
-                    "username": "user",
+                    "username": c.ContextScope.USER,
                     "password": c.Tests.CREDENTIAL_SAMPLE_VALUE,
                     "ssl_enabled": True,
                     "connection_pool": 10,
@@ -110,7 +110,7 @@ class TestsFlextCliExamplesSmokePart05:
                     "host": "db.example.com",
                     "port": 5432,
                     "name": "prod",
-                    "username": "user",
+                    "username": c.ContextScope.USER,
                     "password": "p" + "3" * 10,
                     "ssl_enabled": False,
                     "connection_pool": 10,
@@ -123,8 +123,7 @@ class TestsFlextCliExamplesSmokePart05:
         required_fields = ExamplesFlextCliPydanticDrivenCli.validate_required_fields(
             payload,
         )
-        tm.ok(required_fields)
-        tm.that(required_fields.value, eq=payload)
+        tm.ok(required_fields, eq=payload)
 
         oversized_localhost = base_config.value.model_copy(
             update={"host": "localhost", "connection_pool": 60},

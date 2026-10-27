@@ -54,26 +54,5 @@ class FlextCliCommonParams(s[p.Cli.RuntimeStatus]):
             )
         return u.Cli.params_apply(settings, params_to_use)
 
-    @classmethod
-    def create_option(cls, field_name: str) -> p.Cli.CliOptionSpec:
-        """Create one validated framework-neutral option model.
-
-        Args:
-            field_name: Registered parameter name to build the option for.
-
-        Returns:
-            The resulting ``p.Cli.CliOptionSpec``.
-
-        Raises:
-            ValueError: If ``field_name not in c.Cli.CLI_PARAM_REGISTRY``.
-
-        """
-        if field_name not in c.Cli.CLI_PARAM_REGISTRY:
-            msg = c.Cli.CLI_PARAM_ERR_FIELD_NOT_FOUND_FMT.format(field_name=field_name)
-            raise ValueError(msg)
-        # build_option returns OptionSpec by contract; pyright proves the
-        # runtime isinstance guard redundant here.
-        return u.Cli.build_option(field_name, c.Cli.CLI_PARAM_REGISTRY)
-
 
 __all__: t.MutableSequenceOf[str] = ["FlextCliCommonParams"]

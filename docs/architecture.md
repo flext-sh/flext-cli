@@ -2,108 +2,110 @@
 
 <!-- TOC START -->
 
-- [Princípios](#principios)
-- [Mapa dos módulos](#mapa-dos-modulos)
-- [Fluxo em tempo de execução](#fluxo-em-tempo-de-execucao)
-- [Integração com flext-core](#integracao-com-flext-core)
-- [Exemplo mínimo](#exemplo-minimo)
-- [Referências rápidas](#referencias-rapidas)
+- [Principles](#principles)
+- [Module map](#module-map)
+- [Runtime flow](#runtime-flow)
+- [Integration with flext-core](#integration-with-flext-core)
+- [Minimal example](#minimal-example)
+- [Quick references](#quick-references)
 - [Related Documentation](#related-documentation)
 
 <!-- TOC END -->
 
-Panorama da arquitetura implementada no **flext-cli** 0.12.0, conforme o código-fonte.
+Overview of the architecture implemented in **flext-cli** 0.12.0, as found in the
+source.
 
-## Princípios
+## Principles
 
-- **Facade única**: `FlextCli` (exposta como `cli`) compõe 16 serviços via MRO — `Cli`,
-  `Cmd`, `Auth`, `FileTools`, `Formatters`, `Output`, `Prompts`, `Tables`, `Pipeline`,
-  `Rules`, `Runtime`, `Docx`, `Pptx`, `Xlsx`, `YamlModel`, `CliParams` — e utilidades
-  (`FlextCliUtilities`).
-- **Fronteiras claras de framework**: Typer/Click vivem em `services/cli.py`;
-  Rich/Tabulate são usados apenas em `services/formatters.py` e `services/tables.py`.
-- **Contratos explícitos**: `m` (`models.py` + `_models/`) e `p` (`protocols.py`)
-  definem os tipos de entrada/saída validados com Pydantic v2.
-- **Retornos com `r[T]`**: erros e sucessos são encadeáveis em autenticação,
-  orquestração e I/O.
+- **One facade**: `FlextCli` (exposed as `cli`, in `api.py`) composes 13 services
+  through MRO — `Auth`, `Cli`, `CommonParams`, `Docx`, `FileTools`, `Formatters`,
+  `Output`, `Pipeline`, `Prompts`, `Pptx`, `Runtime`, `Tables`, `Xlsx` — plus the
+  utilities facade (`FlextCliUtilities`).
+- **Framework boundary**: Typer and Click are imported only by
+  `_utilities/framework.py`. Consumers never import them. Several public surfaces still
+  expose them (`p.Cli.Application.add_typer`, `p.Cli.ExternalCommand`,
+  `t.Cli.CommandParameter`, `u.Cli.framework_*`); the single transport contract
+  (ADR-019 Decision 5, epic `flext-itpd1.11.8`) makes them private behind
+  `cli.run(source)` / `cli.entry(source)`, with the old surfaces kept as deprecated
+  pass-throughs until their census reaches zero.
+- **Explicit contracts**: `m` (`models.py` + `_models/`) and `p` (`protocols.py`) define
+  the input and output types, validated with Pydantic v2.
+- **Results with `r[T]`**: failures and successes chain through authentication,
+  orchestration and I/O.
 
-## Mapa dos módulos
+## Module map
 
 ```text
 src/flext_cli/
-├── api.py                # Facade FlextCli (composição MRO) + singleton `cli`
-├── base.py               # FlextCliServiceBase (base de serviços)
-├── services/             # 16 serviços que compõem a facade via MRO
-│   ├── auth.py           # FlextCliAuth — auth via keyring
-│   ├── cli.py            # FlextCliCli — fronteira Typer/Click
-│   ├── cli_params.py     # FlextCliCommonParams — parâmetros reutilizáveis
-│   ├── cmd.py            # FlextCliCmd — configuração persistida e comandos
-│   ├── docx.py           # FlextCliDocx — manipulação de documentos Word
+├── api.py                # FlextCli facade (MRO composition) + `cli` singleton
+├── base.py               # FlextCliServiceBase (service base)
+├── cli.py                # console entry point
+├── services/             # 13 services composed into the facade via MRO
+│   ├── auth.py           # FlextCliAuth
+│   ├── cli.py            # FlextCliCli — command registration and execution
+│   ├── cli_params.py     # FlextCliCommonParams — reusable parameters
+│   ├── docx.py           # FlextCliDocx — Word documents
 │   ├── file_tools.py     # FlextCliFileTools — file I/O (text, JSON, YAML, CSV, zip)
-│   ├── formatters.py     # FlextCliFormatters — saída Rich, print, render_table
-│   ├── output.py         # FlextCliOutput — saída JSON/YAML/CSV sem expor Rich
-│   ├── pipeline.py       # FlextCliPipeline — orquestração de workflows
-│   ├── prompts.py        # FlextCliPrompts — interação com usuário (prompt/confirm/select)
-│   ├── pptx.py           # FlextCliPptx — manipulação de apresentações PowerPoint
-│   ├── rules.py          # FlextCliRules — validação de regras de negócio
-│   ├── runtime.py        # FlextCliRuntime — status e monitoramento de runtime
-│   ├── tables.py         # FlextCliTables — geração de tabelas ASCII via Tabulate
-│   ├── xlsx.py           # FlextCliXlsx — manipulação de planilhas Excel
-│   └── yaml_model.py     # FlextCliYamlModel — validação de YAML contra schemas
-├── _utilities/           # Engenhos de domínio (toml/yaml/template/xlsx/…)
-├── _constants/           # Família de declarações: constantes validadas
-├── _models/              # Família de declarações: modelos Pydantic validados
-├── config.py             # Configuração validada (ADR-005)
-├── _config.py            # Singleton de configuração
-├── _settings.py          # Singleton de settings validados
-├── constants.py          # Facade de constantes (c.Cli.*) via MRO
-├── typings.py            # Aliases de tipagem (t.Cli.*) via MRO
-├── protocols.py          # Protocolos estruturais (p.Cli.*) via MRO
+│   ├── formatters.py     # FlextCliFormatters — Rich output, print, render_table
+│   ├── output.py         # FlextCliOutput — JSON/YAML/CSV output without exposing Rich
+│   ├── pipeline.py       # FlextCliPipeline — workflow orchestration
+│   ├── prompts.py        # FlextCliPrompts — user interaction (prompt/confirm/select)
+│   ├── pptx.py           # FlextCliPptx — PowerPoint presentations
+│   ├── runtime.py        # FlextCliRuntime — runtime status
+│   ├── tables.py         # FlextCliTables — ASCII tables via Tabulate
+│   └── xlsx.py           # FlextCliXlsx — Excel workbooks
+├── _utilities/           # domain engines; framework.py is the only Typer/Click import
+├── _constants/           # declaration family: validated constants
+├── _models/              # declaration family: validated Pydantic models
+├── _config.py            # validated configuration (ADR-005)
+├── _settings.py          # validated settings singleton
+├── constants.py          # constants facade (c.Cli.*) via MRO
+├── typings.py            # typing aliases (t.Cli.*) via MRO
+├── protocols.py          # structural protocols (p.Cli.*) via MRO
 ├── models.py             # FlextCliModels (m.Cli.*) via MRO
 ├── utilities.py          # FlextCliUtilities (u.Cli.*) via MRO
-└── __init__.py           # Importa api.py, reforça isolamento de frameworks
+└── __init__.py           # generated lazy exports
 ```
 
-## Fluxo em tempo de execução
+## Runtime flow
 
-1. **Bootstrap**: `cli` (singleton `FlextCli`) é carregado via `fetch_global()`; todos
-   os 16 serviços estão disponíveis via MRO.
-1. **Entrada do usuário**: `services/cli.py` (`FlextCliCli`) é a única fronteira com
-   Typer/Click; despacha para comandos registrados.
-1. **Execução**: `FlextCli.execute()` relata o status do runtime via
-   `u.Cli.cmd_status()`. Comandos específicos (`FlextCliCmd`) operam sobre configuração
-   persistida.
-1. **Entrada/Saída**: `services/prompts.py` coleta entrada; `services/output.py`,
-   `services/formatters.py` e `services/tables.py` geram saídas em
-   Rich/ASCII/JSON/YAML/CSV sem expor o Rich diretamente.
-1. **Configuração**: `_settings.py` gerencia configuração imutável; `_config.py` valida
-   contra esquemas.
+1. **Bootstrap**: `cli` (the `FlextCli` singleton) is loaded through `fetch_global()`;
+   all 13 services are available through MRO.
+1. **User input**: `services/cli.py` (`FlextCliCli`) registers commands and dispatches
+   them over the framework adapter in `_utilities/framework.py`.
+1. **Execution**: `FlextCli.execute()` reports runtime status through
+   `u.Cli.cmd_status()`.
+1. **Input/output**: `services/prompts.py` collects input; `services/output.py`,
+   `services/formatters.py` and `services/tables.py` render Rich/ASCII/JSON/YAML/CSV
+   output without exposing Rich directly.
+1. **Configuration**: `_settings.py` holds immutable settings; `_config.py` validates
+   them against their schemas.
 
-## Integração com flext-core
+## Integration with flext-core
 
-- `r`: envelope de sucesso/falha usado por todas as operações públicas.
-- `s` (FlextService de flext-core): base para logging, contexto e ciclo de vida — todos
-  os 16 serviços herdam de `s` via MRO.
-- `c/t/p/m/u`: constantes, tipagens, protocolos, modelos e utilitários — acessados via
-  MRO como `c.Cli.*`, `t.Cli.*`, `p.Cli.*`, `m.Cli.*`, `u.Cli.*`.
+- `r`: success/failure envelope used by every public operation.
+- `s` (flext-core `FlextService`): base for logging, context and lifecycle — all 13
+  services inherit from `s` via MRO.
+- `c/t/p/m/u`: constants, typings, protocols, models and utilities — reached through
+  MRO as `c.Cli.*`, `t.Cli.*`, `p.Cli.*`, `m.Cli.*`, `u.Cli.*`.
 
-## Exemplo mínimo
+## Minimal example
 
 ```python
 from flext_cli import cli
 
-# Execução via facade
+# Execution through the facade
 runtime_status = cli.execute()
 
-# Renderização de tabela via MRO
+# Table rendering through MRO
 cli.render_table(columns=["name", "age"], rows=[["Alice", "30"]])
 cli.print("Done", style="green")
 ```
 
-## Referências rápidas
+## Quick references
 
 - **API**: `docs/api-reference/README.md`
-- **Guia de desenvolvimento**: `docs/development.md`
+- **Development guide**: `docs/development.md`
 
 ## Related Documentation
 

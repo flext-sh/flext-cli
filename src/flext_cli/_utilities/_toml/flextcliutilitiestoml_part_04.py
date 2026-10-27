@@ -83,27 +83,6 @@ class FlextCliUtilitiesTomlPart04:
         return True
 
     @staticmethod
-    def toml_merge_string_list(
-        container: TOMLDocument | Table,
-        key: str,
-        required: t.StrSequence,
-    ) -> bool:
-        """Merge required values into a TOML string-array; return True if mutated.
-
-        Returns:
-            The resulting ``bool``.
-
-        """
-        current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            FlextCliUtilitiesTomlPart03.toml_value(container, key),
-        )
-        merged = sorted({*current, *required})
-        if list(current) == merged:
-            return False
-        container[key] = FlextCliUtilitiesTomlPart01.toml_array(merged)
-        return True
-
-    @staticmethod
     def toml_mapping_remove_key_if_present(
         container: t.MutableJsonMapping,
         key: str,

@@ -14,7 +14,7 @@ import re
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_core import t
+from flext_core import c, t
 
 
 class FlextCliConstantsBase:
@@ -49,6 +49,8 @@ class FlextCliConstantsBase:
     # adapters and consumers cannot drift into local magic exit codes/messages.
     EXIT_CODE_SUCCESS: ClassVar[int] = 0
     EXIT_CODE_FAILURE: ClassVar[int] = 1
+    STDOUT_DESCRIPTOR: ClassVar[int] = 1
+    STDERR_DESCRIPTOR: ClassVar[int] = 2
     PROCESS_TIMEOUT_EXIT_CODE: ClassVar[int] = 124
     GIT_NOT_A_REPOSITORY_EXIT_CODE: ClassVar[int] = 128
     OP_EXECUTE_APPLICATION: ClassVar[str] = "execute CLI application"
@@ -62,7 +64,7 @@ class FlextCliConstantsBase:
     PATH_FLEXT_DIR_NAME: ClassVar[str] = ".flext"
 
     DICT_KEY_STATUS: ClassVar[str] = "status"
-    DICT_KEY_COMMAND: ClassVar[str] = "command"
+    DICT_KEY_COMMAND: ClassVar[str] = c.HandlerType.COMMAND
     DICT_KEY_MESSAGE: ClassVar[str] = "message"
     DICT_KEY_APP_NAME: ClassVar[str] = "app_name"
     DICT_KEY_INITIALIZED: ClassVar[str] = "initialized"

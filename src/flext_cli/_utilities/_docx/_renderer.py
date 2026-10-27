@@ -18,6 +18,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX, WD_UNDERLINE
 from docx.shared import Inches, Pt, RGBColor
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesFiles
 
 if TYPE_CHECKING:
     from docx.text.font import Font
@@ -139,18 +140,12 @@ class FlextCliUtilitiesDocxRenderer:
         *,
         source_date_epoch: int | None = None,
     ) -> p.Result[bytes]:
-        target = BytesIO()
-        try:
-            document.save(target)
-        except (OSError, TypeError, ValueError) as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
-            return r[bytes].fail(f"{c.Cli.DocxError.SERIALIZE_FAILED}: {detail}")
-        content = target.getvalue()
-        if not content:
-            return r[bytes].fail(str(c.Cli.DocxError.SERIALIZE_FAILED))
-        if source_date_epoch is None:
-            return r[bytes].ok(content)
-        return cls._normalize_archive(content, source_date_epoch)
+        serialized = FlextCliUtilitiesFiles.files_save_bytes(
+            document.save, str(c.Cli.DocxError.SERIALIZE_FAILED)
+        )
+        if serialized.failure or source_date_epoch is None:
+            return serialized
+        return cls._normalize_archive(serialized.value, source_date_epoch)
 
     @classmethod
     def _normalize_archive(
@@ -159,16 +154,11 @@ class FlextCliUtilitiesDocxRenderer:
         source_date_epoch: int,
     ) -> p.Result[bytes]:
         member_date = cls._stable_member_date(source_date_epoch)
-        target = BytesIO()
-        try:
-            cls._rewrite_members(content, target, member_date)
-        except (OSError, ValueError) as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
-            return r[bytes].fail(f"{c.Cli.DocxError.SERIALIZE_FAILED}: {detail}")
-        normalized_content = target.getvalue()
-        if not normalized_content:
-            return r[bytes].fail(str(c.Cli.DocxError.SERIALIZE_FAILED))
-        return r[bytes].ok(normalized_content)
+        return FlextCliUtilitiesFiles.files_save_bytes(
+            lambda target: cls._rewrite_members(content, target, member_date),
+            str(c.Cli.DocxError.SERIALIZE_FAILED),
+            catch=(OSError, ValueError),
+        )
 
     @staticmethod
     def _stable_member_date(

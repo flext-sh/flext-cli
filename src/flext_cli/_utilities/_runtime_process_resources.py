@@ -9,17 +9,13 @@ from __future__ import annotations
 import contextlib
 import os
 import time
-from typing import BinaryIO, Final
+from typing import BinaryIO
 
 from flext_cli import c, p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessResourcesMixin:
     """Prepare stdin/live descriptors and finalize durable resources."""
-
-    _STDOUT_DESCRIPTOR: Final[int] = 1
-
-    _STDERR_DESCRIPTOR: Final[int] = 2
 
     @staticmethod
     def _prepare_streamed_stdin(
@@ -93,11 +89,11 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         try:
             live_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
                 stack,
-                FlextCliUtilitiesRuntimeProcessResourcesMixin._STDOUT_DESCRIPTOR,
+                c.Cli.STDOUT_DESCRIPTOR,
             )
             progress_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
                 stack,
-                FlextCliUtilitiesRuntimeProcessResourcesMixin._STDERR_DESCRIPTOR,
+                c.Cli.STDERR_DESCRIPTOR,
             )
         except c.EXC_OS_VALUE as exc:
             return r[tuple[int | None, int | None]].fail(

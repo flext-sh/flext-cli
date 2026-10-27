@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import m
-from tests import t
+from tests import c, t
 
 
 class TestsFlextCliModelsRuntime:
@@ -107,64 +107,64 @@ class TestsFlextCliModelsRuntime:
             return (
                 cls.model_validate({
                     "case_id": "echo",
-                    "command": ("echo", "hello"),
+                    c.HandlerMode.COMMAND: ("echo", "hello"),
                     "exit_code": 0,
                     "stdout_has": "hello",
                 }),
                 cls.model_validate({
                     "case_id": "stderr",
-                    "command": ("sh", "-c", "echo error >&2"),
+                    c.HandlerMode.COMMAND: ("sh", "-c", "echo error >&2"),
                     "exit_code": 0,
                     "stderr_has": "error",
                 }),
                 cls.model_validate({
                     "case_id": "nonzero-exit",
-                    "command": ("sh", "-c", "exit 42"),
+                    c.HandlerMode.COMMAND: ("sh", "-c", "exit 42"),
                     "exit_code": 42,
                 }),
                 cls.model_validate({
                     "case_id": "cwd",
-                    "command": ("pwd",),
+                    c.HandlerMode.COMMAND: ("pwd",),
                     "exit_code": 0,
                     "use_tmp_path": True,
                 }),
                 cls.model_validate({
                     "case_id": "env",
-                    "command": ("sh", "-c", "echo $TEST_VAR"),
+                    c.HandlerMode.COMMAND: ("sh", "-c", "echo $TEST_VAR"),
                     "env": {"TEST_VAR": "raw_value"},
                     "exit_code": 0,
                     "stdout_has": "raw_value",
                 }),
                 cls.model_validate({
                     "case_id": "input",
-                    "command": ("cat",),
+                    c.HandlerMode.COMMAND: ("cat",),
                     "exit_code": 0,
                     "input_data": b'{"type":"RECORD"}',
                     "stdout_has": '{"type":"RECORD"}',
                 }),
                 cls.model_validate({
                     "case_id": "input-str",
-                    "command": ("cat",),
+                    c.HandlerMode.COMMAND: ("cat",),
                     "exit_code": 0,
                     "input_data": "text-stdin-payload",
                     "stdout_has": "text-stdin-payload",
                 }),
                 cls.model_validate({
                     "case_id": "non-utf8-output",
-                    "command": ("sh", "-c", "printf '\\377\\376'"),
+                    c.HandlerMode.COMMAND: ("sh", "-c", "printf '\\377\\376'"),
                     "error_has": "non-UTF-8",
                     "expect_success": False,
                 }),
                 cls.model_validate({
                     "case_id": "timeout",
-                    "command": ("sleep", "10"),
+                    c.HandlerMode.COMMAND: ("sleep", "10"),
                     "expect_success": True,
                     "timed_out": True,
                     "timeout": 1,
                 }),
                 cls.model_validate({
                     "case_id": "invalid-command",
-                    "command": ("nonexistent_command_xyz",),
+                    c.HandlerMode.COMMAND: ("nonexistent_command_xyz",),
                     "error_has": "execution error",
                     "expect_success": False,
                 }),
@@ -181,38 +181,38 @@ class TestsFlextCliModelsRuntime:
             return (
                 cls.model_validate({
                     "case_id": "success",
-                    "command": ("echo", "hello"),
+                    c.HandlerMode.COMMAND: ("echo", "hello"),
                     "expected": "hello",
                     "stdout_has": "hello",
                 }),
                 cls.model_validate({
                     "case_id": "input-str",
-                    "command": ("cat",),
+                    c.HandlerMode.COMMAND: ("cat",),
                     "expected": "piped-through-facade",
                     "input_data": "piped-through-facade",
                     "stdout_has": "piped-through-facade",
                 }),
                 cls.model_validate({
                     "case_id": "cwd",
-                    "command": ("pwd",),
+                    c.HandlerMode.COMMAND: ("pwd",),
                     "use_tmp_path": True,
                 }),
                 cls.model_validate({
                     "case_id": "env",
-                    "command": ("sh", "-c", "echo $TEST_VAR"),
+                    c.HandlerMode.COMMAND: ("sh", "-c", "echo $TEST_VAR"),
                     "env": {"TEST_VAR": "test_value"},
                     "expected": "test_value",
                     "stdout_has": "test_value",
                 }),
                 cls.model_validate({
                     "case_id": "nonzero-failure",
-                    "command": ("sh", "-c", "exit 1"),
+                    c.HandlerMode.COMMAND: ("sh", "-c", "exit 1"),
                     "error_has": "failed",
                     "expect_success": False,
                 }),
                 cls.model_validate({
                     "case_id": "timeout",
-                    "command": ("sleep", "10"),
+                    c.HandlerMode.COMMAND: ("sleep", "10"),
                     "expect_success": False,
                     "error_has": "timed_out=True",
                     "timed_out": True,

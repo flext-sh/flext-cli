@@ -1,5 +1,5 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Tests.constants Parts package.
+"""Tests. Constants package.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT

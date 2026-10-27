@@ -13,20 +13,16 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli.services import _cli_parts as _cli_parts
-    from flext_cli.services._cli_parts import (
-        FlextCliCliPart01,
-        FlextCliCliPart02,
-        FlextCliCliPart03,
-        FlextCliCliPart04,
-        FlextCliCliPart05,
-        FlextCliCliPart06,
-    )
+    from flext_cli.services._cli.flextclicli_part_01 import FlextCliCliPart01
+    from flext_cli.services._cli.flextclicli_part_02 import FlextCliCliPart02
+    from flext_cli.services._cli.flextclicli_part_03 import FlextCliCliPart03
+    from flext_cli.services._cli.flextclicli_part_04 import FlextCliCliPart04
+    from flext_cli.services._cli.flextclicli_part_05 import FlextCliCliPart05
+    from flext_cli.services._cli.flextclicli_part_06 import FlextCliCliPart06
     from flext_cli.services._prompts_support import FlextCliPromptsSupport
     from flext_cli.services.auth import FlextCliAuth
     from flext_cli.services.cli import FlextCliCli
     from flext_cli.services.cli_params import FlextCliCommonParams
-    from flext_cli.services.cmd import FlextCliCmd
     from flext_cli.services.docx import FlextCliDocx
     from flext_cli.services.file_tools import FlextCliFileTools
     from flext_cli.services.formatters import FlextCliFormatters
@@ -34,11 +30,9 @@ if TYPE_CHECKING:
     from flext_cli.services.pipeline import FlextCliPipeline
     from flext_cli.services.pptx import FlextCliPptx
     from flext_cli.services.prompts import FlextCliPrompts
-    from flext_cli.services.rules import FlextCliRules
     from flext_cli.services.runtime import FlextCliRuntime
     from flext_cli.services.tables import FlextCliTables
     from flext_cli.services.xlsx import FlextCliXlsx
-    from flext_cli.services.yaml_model import FlextCliYamlModel
 
 
 __all__: tuple[str, ...] = (
@@ -50,7 +44,6 @@ __all__: tuple[str, ...] = (
     "FlextCliCliPart04",
     "FlextCliCliPart05",
     "FlextCliCliPart06",
-    "FlextCliCmd",
     "FlextCliCommonParams",
     "FlextCliDocx",
     "FlextCliFileTools",
@@ -60,12 +53,9 @@ __all__: tuple[str, ...] = (
     "FlextCliPptx",
     "FlextCliPrompts",
     "FlextCliPromptsSupport",
-    "FlextCliRules",
     "FlextCliRuntime",
     "FlextCliTables",
     "FlextCliXlsx",
-    "FlextCliYamlModel",
-    "_cli_parts",
 )
 
 install_lazy_exports(
@@ -74,13 +64,12 @@ install_lazy_exports(
     MappingProxyType({
         "FlextCliAuth": ".auth",
         "FlextCliCli": ".cli",
-        "FlextCliCliPart01": "._cli_parts.flextclicli_part_01",
-        "FlextCliCliPart02": "._cli_parts.flextclicli_part_02",
-        "FlextCliCliPart03": "._cli_parts.flextclicli_part_03",
-        "FlextCliCliPart04": "._cli_parts.flextclicli_part_04",
-        "FlextCliCliPart05": "._cli_parts.flextclicli_part_05",
-        "FlextCliCliPart06": "._cli_parts.flextclicli_part_06",
-        "FlextCliCmd": ".cmd",
+        "FlextCliCliPart01": "._cli.flextclicli_part_01",
+        "FlextCliCliPart02": "._cli.flextclicli_part_02",
+        "FlextCliCliPart03": "._cli.flextclicli_part_03",
+        "FlextCliCliPart04": "._cli.flextclicli_part_04",
+        "FlextCliCliPart05": "._cli.flextclicli_part_05",
+        "FlextCliCliPart06": "._cli.flextclicli_part_06",
         "FlextCliCommonParams": ".cli_params",
         "FlextCliDocx": ".docx",
         "FlextCliFileTools": ".file_tools",
@@ -90,12 +79,9 @@ install_lazy_exports(
         "FlextCliPptx": ".pptx",
         "FlextCliPrompts": ".prompts",
         "FlextCliPromptsSupport": "._prompts_support",
-        "FlextCliRules": ".rules",
         "FlextCliRuntime": ".runtime",
         "FlextCliTables": ".tables",
         "FlextCliXlsx": ".xlsx",
-        "FlextCliYamlModel": ".yaml_model",
-        "_cli_parts": "._cli_parts",
     }),
     public_exports=__all__,
 )

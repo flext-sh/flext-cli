@@ -1,9 +1,29 @@
 # Read-only native process isolation
 
+<!-- TOC START -->
+
+<!-- TOC END -->
+
 `u.Cli.run_raw`, `run_bytes` and `run_to_file` accept an optional
 `m.Cli.ProcessOptions.isolation`. The existing process owner prepares and starts
 the isolated child; its deadline, byte streams, signals, cleanup and
 `ProcessOutcome` retain the ordinary runtime contract.
+
+Live lifecycle objects in `RuntimeProcessState` use `t.Port` declarations so the
+model validates their native identities without copying thread, event, stream,
+buffer, cleanup-stack or exception ownership. `ObservedFile.state` likewise keeps
+the original native filesystem observation through its declared port; it does not
+need a model-wide arbitrary-type exception.
+
+While native capture owns interruption, each signal forwarder first records the
+actual signal and wakes cleanup, then calls `p.Cli.ParentSignalObserver.on_operator_signal`
+only when that signal's previous handler implements the method-only observer port.
+It never invokes the previous handler's terminating action before owned children
+are reaped. Non-observing, default and ignored handlers retain the same forwarding
+and restoration behavior, and interruption reasons and negative-signal metadata
+are unchanged. A profiler observer captures at most once per registration and
+defers publication failures to its existing teardown after child cleanup, without
+masking the original command failure.
 
 `m.Cli.ProcessReadOnlyIsolation` is an immutable request. The caller supplies the
 qualified Linux platform and filter architecture, the bootstrap-qualified static
@@ -50,7 +70,9 @@ and never relies on a handwritten numeric syscall table.
 
 The same config declares `compiler_resource_parts` once. Bootstrap resolves those
 relative parts against the original installed RECORD of `config.Cli.name`;
-it does not infer a Python package name from that distribution name or consume
+each part must be nonempty, differ from `.` and `..`, and contain neither a path
+separator nor a NUL character.
+It does not infer a Python package name from that distribution name or consume
 a checkout path. Exactly one original resource entry with verified bytes is
 required. An editable installation without that resource in its RECORD is not
 packaged-resource proof. The generic resource owner and the actual package

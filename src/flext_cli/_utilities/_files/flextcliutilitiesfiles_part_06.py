@@ -8,35 +8,18 @@ from __future__ import annotations
 
 import fnmatch
 import os
+import traceback
 from pathlib import Path
+from typing import Literal
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._files.flextcliutilitiesfiles_part_02 import (
-    FlextCliUtilitiesFilesPart02,
-)
-from flext_cli._utilities._files.flextcliutilitiesfiles_part_03 import (
-    FlextCliUtilitiesFilesPart03,
-)
+from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
+from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
 from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
 
 class FlextCliUtilitiesFilesPart06:
     """Implementation part for FlextCliUtilitiesFilesPart06."""
-
-    @staticmethod
-    def atomic_file_publication_is_unchanged(
-        publication: m.Cli.AtomicFilePublication,
-    ) -> bool:
-        """Return whether staged bytes and permissions equal the live state.
-
-        Returns:
-            Whether staged bytes and permissions equal the live state.
-
-        """
-        return (
-            publication.before.content == publication.replacement.content
-            and publication.before.mode == publication.replacement.mode
-        )
 
     @staticmethod
     def atomic_create_binary_file_guarded(
@@ -87,53 +70,81 @@ class FlextCliUtilitiesFilesPart06:
         )
 
     @staticmethod
-    def atomic_apply_file_publication_guarded(
-        publication: m.Cli.AtomicFilePublication,
-    ) -> p.Result[m.Cli.AtomicFileState]:
-        """Apply one exact staged replacement or tombstone under caller lock.
-
-        Returns:
-            The resulting ``p.Result[m.Cli.AtomicFileState]``.
-
-        """
-        before = publication.before
-        replacement = publication.replacement
-        if replacement.content is None:
-            if before.content is None:
-                return r[m.Cli.AtomicFileState].ok(before)
-            removed = FlextCliUtilitiesFilesPart02.atomic_delete_binary_file_guarded(
-                before,
-            )
-            if removed.failure:
-                return r[m.Cli.AtomicFileState].from_failure(removed)
-            return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-                before.path,
-                required=False,
-            )
-        return FlextCliUtilitiesFilesPart03.atomic_publish_staged_binary_file_guarded(
-            before,
-            replacement,
-        )
-
-    @staticmethod
     def atomic_verify_binary_file_states(
         expected_states: t.SequenceOf[m.Cli.AtomicFileState],
-    ) -> p.Result[bool]:
+        *,
+        nonsecret_source_paths: t.SequenceOf[Path] = (),
+    ) -> p.Result[Literal[True]]:
         """Verify one coherent set of physical file states without reread fallback.
 
+        Callers may explicitly attest nonsecret Python source paths for byte
+        type, length and SHA256 failure diagnostics. Other files never expose
+        payloads or digests, even if included in that allowlist.
+
         Returns:
-            The resulting ``p.Result[bool]``.
+            Exactly ``True`` on successful verification, otherwise a failed result.
 
         """
         by_path: t.MutableMappingKV[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
         for expected in expected_states:
             existing = by_path.get(expected.path)
             if existing is not None and existing != expected:
-                return r[bool].fail(
+                return r[Literal[True]].fail(
                     f"atomic source has conflicting snapshots: {expected.path}",
                 )
             by_path[expected.path] = expected
-        return r[bool].ok(value=True)
+        for expected in by_path.values():
+            observed = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
+                expected.path,
+            )
+            if observed.failure:
+                return r[Literal[True]].from_failure(observed)
+            if observed.value != expected:
+                source_path = Path(expected.path)
+                diagnostics = (
+                    FlextCliUtilitiesFilesPart06._content_diagnostic(
+                        "expected", expected.content
+                    )
+                    + FlextCliUtilitiesFilesPart06._content_diagnostic(
+                        "observed", observed.value.content
+                    )
+                    if source_path in nonsecret_source_paths
+                    and source_path.suffix in {".py", ".pyi"}
+                    else ""
+                )
+                return r[Literal[True]].fail(
+                    f"atomic source changed: {expected.path}; "
+                    f"content_changed={observed.value.content != expected.content}; "
+                    f"same_model_type={type(observed.value) is type(expected)}; "
+                    f"expected={expected.model_dump(exclude={'content'})}; "
+                    f"observed={observed.value.model_dump(exclude={'content'})}"
+                    f"{diagnostics}; verification_callers="
+                    + " <- ".join(
+                        f"{frame.filename}:{frame.lineno}:{frame.name}"
+                        for frame in traceback.extract_stack(limit=8)[:-1]
+                    )
+                )
+        return r[Literal[True]].ok(value=True)
+
+    @staticmethod
+    def _content_diagnostic(label: str, content: bytes | None) -> str:
+        """Describe one attested source payload by type, length and digest only.
+
+        Returns:
+            The diagnostic suffix for ``label``.
+
+        """
+        digest = (
+            FlextCliUtilitiesFilesPart03.sha256_bytes(content)
+            if content is not None
+            else None
+        )
+        length = len(content) if content is not None else None
+        return (
+            f"; {label}_content_type={type(content).__name__}"
+            f"; {label}_content_length={length}"
+            f"; {label}_content_sha256={digest}"
+        )
 
     @staticmethod
     def files_matching(

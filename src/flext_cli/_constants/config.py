@@ -23,6 +23,8 @@ class FlextCliConstantsConfig:
     TEMPLATE_TRIM_BLOCKS: ClassVar[bool] = False
     TEMPLATE_LSTRIP_BLOCKS: ClassVar[bool] = False
     TEMPLATE_KEEP_TRAILING_NEWLINE: ClassVar[bool] = True
+    TEMPLATE_FILTER_MARKDOWN_WRAP: ClassVar[str] = "markdown_wrap"
+    "Jinja filter name wrapping Markdown prose to a width."
     ERR_TEMPLATE_RENDER_FAILED: ClassVar[str] = "template: render failed"
     ERR_TEMPLATE_NOT_FOUND: ClassVar[str] = "template: source not found"
     ERR_TEMPLATE_OUTPUT_ESCAPE: ClassVar[str] = (

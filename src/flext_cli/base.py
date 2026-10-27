@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, override
 
-from flext_core import s
+from flext_core import FlextService
 
 from flext_cli import FlextCliSettings, m, p
 from flext_cli._utilities import FlextCliUtilitiesCli
@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 class FlextCliServiceBase[TDomainResult: p.Base](
-    s[TDomainResult],
+    FlextService[TDomainResult],
     m.Cli.ServiceOptions,
     FlextCliUtilitiesCli,
 ):

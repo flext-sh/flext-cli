@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import gc
 import sys
 from collections.abc import Callable
 from contextvars import ContextVar
@@ -19,9 +20,8 @@ from flext_core import u
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
-import flext_cli
 from flext_cli import c, e, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesCommands
+from flext_cli._utilities import FlextCliUtilitiesCommands, FlextCliUtilitiesConversion
 
 
 class FlextCliUtilitiesFramework:
@@ -115,15 +115,16 @@ class FlextCliUtilitiesFramework:
                 prog_name=prog_name,
                 standalone_mode=standalone_mode,
             )
-            return flext_cli.u.Cli.JSON_VALUE_ADAPTER.validate_python(result)
+            return FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python(
+                result
+            )
 
-    _active_execution: ContextVar[bool] = ContextVar(
+    _active_execution: ClassVar[ContextVar[bool]] = ContextVar(
         "flext_cli_active_execution",
         default=False,
     )
-    _active_failure: ContextVar[p.Result[t.Cli.ResultValue] | None] = ContextVar(
-        "flext_cli_active_failure",
-        default=None,
+    _active_failure: ClassVar[ContextVar[p.Result[t.Cli.ResultValue] | None]] = (
+        ContextVar("flext_cli_active_failure", default=None)
     )
 
     @classmethod
@@ -465,7 +466,7 @@ class FlextCliUtilitiesFramework:
 
         """
         runner_env: t.MutableMappingKV[str, str | None] = {
-            "NO_COLOR": "1",
+            "NO_COLOR": c.ParserBooleanToken.ONE,
             "GITHUB_ACTIONS": "",
             "FORCE_COLOR": "",
             "PY_COLORS": "",
@@ -501,6 +502,20 @@ class FlextCliUtilitiesFramework:
         if cls._active_execution.get():
             raise typer.Exit(code=code)
         raise SystemExit(code)
+
+    @classmethod
+    def process_main(cls, entry: Callable[[], int]) -> Never:
+        """Run one CLI entry as the whole process and exit with its code.
+
+        The single process-only owner: in-process callers (tests, embedding
+        applications) call the entry itself, never this. After the entry
+        returns, its heap moves to the permanent generation, which
+        interpreter finalization does not traverse; ``framework_exit`` then
+        ends the process with the entry's exit code.
+        """
+        code = entry()
+        gc.freeze()
+        cls.framework_exit(code)
 
 
 __all__: list[str] = ["FlextCliUtilitiesFramework"]

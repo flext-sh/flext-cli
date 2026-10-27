@@ -28,7 +28,7 @@ class TestsFlextCliVersion:
         """``flext_cli.__version__`` is a non-empty, whitespace-trimmed string."""
         version = flext_cli.__version__
         tm.that(version, is_=str)
-        tm.that(bool(version), eq=True)
+        tm.ok(bool(version))
         tm.that(version, eq=version.strip())
 
     @staticmethod
@@ -49,7 +49,7 @@ class TestsFlextCliVersion:
         info = flext_cli.__version_info__
         for part in info[:3]:
             tm.that(part, is_=int)
-            tm.that(isinstance(part, bool), eq=False)
+            tm.fail(isinstance(part, bool))
             tm.that(part, gte=0)
 
     @staticmethod
@@ -60,7 +60,7 @@ class TestsFlextCliVersion:
         both public attributes describe the same release.
         """
         release = ".".join(str(part) for part in flext_cli.__version_info__)
-        tm.that(flext_cli.__version__.startswith(release), eq=True)
+        tm.ok(flext_cli.__version__.startswith(release))
 
     @staticmethod
     def test_facade_class_and_module_version_agree() -> None:

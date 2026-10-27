@@ -29,7 +29,7 @@ class TestsFlextCliExamplesSmokePart04:
 
         workflow_result = app.run_workflow()
         tm.ok(workflow_result)
-        tm.that(app.data_file.exists(), eq=True)
+        tm.ok(app.data_file.exists())
 
         load_result = app.load_data()
         tm.ok(load_result)

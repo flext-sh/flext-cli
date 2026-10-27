@@ -77,6 +77,7 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
                 deadline=launch.deadline,
                 isolation=launch.isolation,
                 pass_fds=tuple(launch.pass_fds),
+                signal_wave=launch.signal_wave,
             ),
         ).map(lambda output: output.outcome)
 

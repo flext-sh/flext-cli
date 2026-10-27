@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
-from flext_core import m, u
+from flext_core import m
 
 from flext_cli import c, p, t
 from flext_cli._models import FlextCliModelsAtomicState
@@ -72,7 +72,7 @@ class FlextCliModelsBasePart03:
             m.Field(ge=0, strict=True, description="Host reparse tag"),
         ] = None
 
-        @u.field_validator("path")
+        @m.field_validator("path")
         @classmethod
         def _validate_absolute_path(cls, value: Path) -> Path:
             return FlextCliModelsAtomicState.validate_atomic_state_path(
@@ -80,7 +80,7 @@ class FlextCliModelsBasePart03:
                 label="atomic directory state",
             )
 
-        @u.model_validator(mode="after")
+        @m.model_validator(mode="after")
         def _validate_presence_tuple(self) -> Self:
             physical = (self.mode, self.device, self.inode, self.link_count)
             if (self.exists and not all(value is not None for value in physical)) or (
@@ -142,7 +142,7 @@ class FlextCliModelsBasePart03:
             m.Field(..., description="Pydantic input model class"),
         ]
         handler: Annotated[
-            p.Cli.ResultRouteHandler,
+            t.Port[p.Cli.ResultRouteHandler],
             m.Field(..., description="Command handler returning r[...]"),
         ]
         success_message: Annotated[

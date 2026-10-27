@@ -10,10 +10,10 @@ Curated operational guides live here. Keep API behavior in generated reference p
 sourced from code and docstrings.
 
 - [Atomic file interruption](atomic-file-interruption.md)
+- [Codemod rules](codemod-rules.md)
 - [Configuration](configuration.md)
 - [Development](development.md)
 - [Getting started](getting-started.md)
-- [Guarded symlinks](guarded-symlinks.md)
 - [Make commands](make-commands.md)
 - [Migration to v0.13.0](migration-to-v0.13.0.md)
 - [Onboarding](onboarding.md)
@@ -25,5 +25,6 @@ sourced from code and docstrings.
 - [Using flext cli](using-flext-cli.md)
 - [Using flext core](using-flext-core.md)
 - [Using flext tests](using-flext-tests.md)
+- [Using pydantic](using-pydantic.md)
 - [Back to project docs](../index.md)
 - [API Reference](../api-reference/README.md)

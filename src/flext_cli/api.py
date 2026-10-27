@@ -10,7 +10,6 @@ from flext_cli import t
 from flext_cli.services import (
     FlextCliAuth,
     FlextCliCli,
-    FlextCliCmd,
     FlextCliCommonParams,
     FlextCliDocx,
     FlextCliFileTools,
@@ -19,18 +18,15 @@ from flext_cli.services import (
     FlextCliPipeline,
     FlextCliPptx,
     FlextCliPrompts,
-    FlextCliRules,
     FlextCliRuntime,
     FlextCliTables,
     FlextCliXlsx,
-    FlextCliYamlModel,
 )
 
 
 class FlextCli(
     FlextCliAuth,
     FlextCliCli,
-    FlextCliCmd,
     FlextCliCommonParams,
     FlextCliDocx,
     FlextCliFileTools,
@@ -39,11 +35,9 @@ class FlextCli(
     FlextCliPipeline,
     FlextCliPrompts,
     FlextCliPptx,
-    FlextCliRules,
     FlextCliRuntime,
     FlextCliTables,
     FlextCliXlsx,
-    FlextCliYamlModel,
 ):
     """Coordinate CLI operations through one explicit service composition root."""
 

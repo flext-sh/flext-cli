@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFilePublishChecks,
     FlextCliUtilitiesAtomicFileState,
 )
 
@@ -23,6 +24,37 @@ if TYPE_CHECKING:
 
 class FlextCliUtilitiesAtomicFileCleanup:
     """Canonical namespace owner."""
+
+    @staticmethod
+    def remove_linked_temporary(
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        temporary: Path,
+        identity: t.Pair[int, int],
+        operation_error: BaseException,
+    ) -> None:
+        """Remove authenticated post-link staging, never the published destination."""
+        cleanup_errors: list[OSError] = []
+        try:
+            # Publication adds a second link to this authenticated staging inode.
+            FlextCliUtilitiesAtomicFilePublishChecks.require_identity(
+                temporary,
+                FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, temporary),
+                identity,
+            )
+            FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
+            FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, temporary)
+        except OSError as cleanup_error:
+            cleanup_errors.append(cleanup_error)
+        try:
+            FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
+        except OSError as cleanup_error:
+            cleanup_errors.append(cleanup_error)
+        if cleanup_errors:
+            FlextCliUtilitiesAtomicFileCleanup._raise_cleanup_failure(
+                temporary,
+                operation_error,
+                cleanup_errors,
+            )
 
     @staticmethod
     def remove_failed_temporary(

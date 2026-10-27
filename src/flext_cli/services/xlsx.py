@@ -6,44 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, override
-
-from flext_cli import m, p, s
-
-if TYPE_CHECKING:
-    from flext_cli import t
+from flext_cli import p, s, t
 
 
 class FlextCliXlsx(s[p.Cli.RuntimeStatus]):
     """Expose byte-only XLSX operations for later public API composition."""
-
-    if TYPE_CHECKING:
-
-        @staticmethod
-        @override
-        def xlsx_recalc(
-            request: m.Cli.XlsxRecalcRequest,
-        ) -> p.Result[m.Cli.XlsxRecalcResult]:
-            """Recalculate workbook bytes through the inherited XLSX owner.
-
-            Args:
-                request: Recalculation request holding the workbook bytes.
-
-            """
-            ...
-
-        @staticmethod
-        @override
-        def xlsx_recalc_parity(
-            request: m.Cli.XlsxRecalcParityRequest,
-        ) -> p.Result[m.Cli.XlsxRecalcParityReport]:
-            """Validate recalculation parity through the inherited XLSX owner.
-
-            Args:
-                request: Parity request holding the compared workbook inputs.
-
-            """
-            ...
 
     # NOTE (multi-agent, mro-j2yt.1): this service contains no document or
     # customer rules; consumers provide immutable plans and receive bytes/models.

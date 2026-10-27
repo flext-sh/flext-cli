@@ -1,7 +1,7 @@
 """Behavioral contract tests for the prompts service public API.
 
 Every assertion targets observable public behavior: the ``r[T]`` outcome of
-``prompt`` / ``confirm`` / ``prompt_choice`` / ``prompt_password`` (success value
+``prompt`` / ``confirm`` / ``prompt_password`` (success value
 or failure error), never internal logging side-effects or private state. Input
 enters through the public ``input_reader`` / ``password_reader`` ports.
 
@@ -15,12 +15,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, tm
+from tests import c, p, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-    from tests import p
 
 
 class TestsFlextCliPromptsCov:
@@ -45,8 +43,7 @@ class TestsFlextCliPromptsCov:
         """Verify that prompt normalizes input and falls back to default."""
         prompts = make_prompts(inputs=[raw_input])
         result = prompts.prompt("message", default=default)
-        tm.ok(result)
-        tm.that(result.value, eq=expected)
+        tm.ok(result, eq=expected)
 
     @staticmethod
     @pytest.mark.parametrize("quiet", [True, False])
@@ -58,8 +55,7 @@ class TestsFlextCliPromptsCov:
         """Verify that prompt returns default when non interactive."""
         prompts = make_prompts(interactive_mode=False, quiet=quiet)
         result = prompts.prompt("message", default="fallback")
-        tm.ok(result)
-        tm.that(result.value, eq="fallback")
+        tm.ok(result, eq="fallback")
 
     @staticmethod
     def test_prompt_propagates_input_reader_failure(
@@ -75,9 +71,9 @@ class TestsFlextCliPromptsCov:
         ("answer", "default", "expected"),
         [
             ("y", False, True),
-            ("yes", False, True),
+            (c.ParserBooleanToken.YES, False, True),
             ("n", True, False),
-            ("no", True, False),
+            (c.ParserBooleanToken.NO, True, False),
             ("", True, True),
             ("", False, False),
         ],
@@ -92,8 +88,7 @@ class TestsFlextCliPromptsCov:
         """Verify that confirm parses yes no and default."""
         prompts = make_prompts(inputs=[answer])
         result = prompts.confirm("message", default=default)
-        tm.ok(result)
-        tm.that(result.value, eq=expected)
+        tm.ok(result, eq=expected, is_=bool)
 
     @staticmethod
     def test_confirm_retries_past_invalid_input_until_valid(
@@ -102,8 +97,7 @@ class TestsFlextCliPromptsCov:
         """Verify that confirm retries past invalid input until valid."""
         prompts = make_prompts(inputs=["maybe", "huh", "y"])
         result = prompts.confirm("message", default=False)
-        tm.ok(result)
-        tm.that(result.value, eq=True)
+        tm.ok(result, eq=True, is_=bool)
 
     @staticmethod
     @pytest.mark.parametrize("default", [True, False])
@@ -115,8 +109,7 @@ class TestsFlextCliPromptsCov:
         """Verify that confirm returns default when non interactive."""
         prompts = make_prompts(interactive_mode=False)
         result = prompts.confirm("message", default=default)
-        tm.ok(result)
-        tm.that(result.value, eq=default)
+        tm.ok(result, eq=default, is_=bool)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -135,7 +128,7 @@ class TestsFlextCliPromptsCov:
         prompts = make_prompts(error=error)
         result = prompts.confirm("message", default=False)
         tm.fail(result, has=expected)
-        tm.that(result.exception is error, eq=True)
+        tm.that(result.exception is error, truth=True)
 
     @staticmethod
     def test_confirm_propagates_input_reader_failure(
@@ -147,43 +140,6 @@ class TestsFlextCliPromptsCov:
             prompts.confirm("message", default=False)
 
     @staticmethod
-    def test_prompt_choice_returns_default_when_present(
-        make_prompts: Callable[..., p.Tests.Prompts],
-    ) -> None:
-        """Verify that prompt choice returns default when present."""
-        prompts = make_prompts()
-        result = prompts.prompt_choice(choices=("a", "b"), default="a")
-        tm.ok(result)
-        tm.that(result.value, eq="a")
-
-    @staticmethod
-    def test_prompt_choice_fails_with_empty_choices(
-        make_prompts: Callable[..., p.Tests.Prompts],
-    ) -> None:
-        """Verify that prompt choice fails with empty choices."""
-        prompts = make_prompts()
-        result = prompts.prompt_choice(choices=(), default=None)
-        tm.fail(result, has=c.Cli.ERR_NO_CHOICES)
-
-    @staticmethod
-    def test_prompt_choice_fails_when_default_not_in_choices(
-        make_prompts: Callable[..., p.Tests.Prompts],
-    ) -> None:
-        """Verify that prompt choice fails when default not in choices."""
-        prompts = make_prompts()
-        result = prompts.prompt_choice(choices=("a", "b"), default="z")
-        tm.fail(result, has="z")
-
-    @staticmethod
-    def test_prompt_choice_fails_when_default_required(
-        make_prompts: Callable[..., p.Tests.Prompts],
-    ) -> None:
-        """Verify that prompt choice fails when default required."""
-        prompts = make_prompts()
-        result = prompts.prompt_choice(choices=("a", "b"), default=None)
-        tm.fail(result)
-
-    @staticmethod
     def test_prompt_password_returns_value_meeting_min_length(
         make_prompts: Callable[..., p.Tests.Prompts],
         scripted_password_pair: Callable[[], tuple[str, str]],
@@ -192,8 +148,7 @@ class TestsFlextCliPromptsCov:
         _, secret = scripted_password_pair()
         prompts = make_prompts(password=secret)
         result = prompts.prompt_password("Password:", min_length=len(secret))
-        tm.ok(result)
-        tm.that(result.value, eq=secret)
+        tm.ok(result, eq=secret)
 
     @staticmethod
     def test_prompt_password_fails_when_too_short(

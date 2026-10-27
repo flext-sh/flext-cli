@@ -19,7 +19,7 @@ from tests.unit.cases.test_pipeline.testsflextclipipelinehandlers import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from tests import p
+from tests import p
 
 
 class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
@@ -32,7 +32,23 @@ class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
             cli.stage("b", depends_on=frozenset({"a"}), handler=self._ok_handler("b")),
         ]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
-        tm.fail(result)
+        tm.fail(result, has="cyclic dependency graph: a -> b -> a")
+
+    def test_unknown_dependency_fails_before_any_stage(self, tmp_path: Path) -> None:
+        """A dependency on an undeclared stage fails loud; no stage runs."""
+        call_count = 0
+
+        def counting(
+            ctx: p.Cli.PipelineStageContext,
+        ) -> p.Result[m.Cli.PipelineStageResult]:
+            nonlocal call_count
+            call_count += 1
+            return self._ok_handler("a")(ctx)
+
+        stages = [cli.stage("a", depends_on=frozenset({"ghost"}), handler=counting)]
+        result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
+        tm.fail(result, has="outside the graph: ghost")
+        tm.that(call_count, eq=0)
 
     @staticmethod
     def test_failure_result_runs_stage_once(tmp_path: Path) -> None:
@@ -78,7 +94,7 @@ class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
         """Empty pipeline returns ok with no stages."""
         result = cli.pipeline([], context=cli.stage_context(tmp_path))
         tm.ok(result)
-        tm.that(result.value.success, eq=True)
+        tm.ok(result.value.success)
         tm.that(len(result.value.stages), eq=0)
 
     def test_total_duration_tracked(self, tmp_path: Path) -> None:

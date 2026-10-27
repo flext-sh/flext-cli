@@ -15,10 +15,12 @@ from typing import ClassVar
 
 from flext_core import u
 
-import flext_cli
 from flext_cli import c, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesJson
-from flext_cli._utilities._yaml import FlextCliUtilitiesYamlEditingMixin
+from flext_cli._utilities import (
+    FlextCliUtilitiesConversion,
+    FlextCliUtilitiesJson,
+    FlextCliUtilitiesYamlEditingMixin,
+)
 
 
 class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
@@ -87,28 +89,31 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             )
         parsed = FlextCliUtilitiesYaml.yaml_to_plain(loaded.value)
         try:
-            validated = flext_cli.u.Cli.YAML_DICT_ADAPTER.validate_python(parsed)
+            validated = FlextCliUtilitiesConversion.YAML_DICT_ADAPTER.validate_python(
+                parsed
+            )
         except c.ValidationError as exc:
             return r[t.JsonMapping].fail(f"YAML validation error: {exc}", exception=exc)
         return r[t.JsonMapping].ok(validated)
 
     @staticmethod
     def yaml_parse_documents(text: str) -> p.Result[t.SequenceOf[t.JsonMapping]]:
-        """Parse all mapping documents without replacing the YAML engine.
+        """Parse all mapping documents through the one-way strict reader.
+
+        Read-only callers need no formatting round trip: the flext-core strict
+        loader (libyaml, YAML 1.2 scalars, unique keys) owns the read path.
 
         Returns:
             Every validated document in stream order, or the first failure.
 
         """
-        loaded = FlextCliUtilitiesYaml.yaml_roundtrip_load_all_text(text)
+        loaded = u.Yaml.unique_key_load_all(text)
         if loaded.failure:
             return r[t.SequenceOf[t.JsonMapping]].from_failure(loaded)
         try:
             documents = tuple(
-                flext_cli.u.Cli.YAML_DICT_ADAPTER.validate_python(
-                    FlextCliUtilitiesYaml.yaml_to_plain(node)
-                )
-                for node in loaded.value
+                FlextCliUtilitiesConversion.YAML_DICT_ADAPTER.validate_python(value)
+                for value in loaded.value
             )
         except c.ValidationError as exc:
             return r[t.SequenceOf[t.JsonMapping]].fail(
@@ -153,7 +158,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
             msg = f"YAML content is not a list: {type(parsed).__name__}"
             raise TypeError(msg)
         validated: t.SequenceOf[t.JsonValue] = (
-            flext_cli.u.Cli.YAML_SEQ_ADAPTER.validate_python(parsed)
+            FlextCliUtilitiesConversion.YAML_SEQ_ADAPTER.validate_python(parsed)
         )
         return validated
 
@@ -184,7 +189,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
     @staticmethod
     def yaml_dump(
         path: Path,
-        data: t.JsonValue | t.JsonPayload,
+        data: t.JsonMapping | t.JsonValue | t.JsonPayload,
         *,
         sort_keys: bool = False,
         indent: int = 2,
@@ -202,7 +207,6 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
         """
         try:
-            path.parent.mkdir(parents=True, exist_ok=True)
             validated = FlextCliUtilitiesJson.normalize_json_value(data)
             serialized: str = u.Yaml.safe_dump(
                 validated,
@@ -211,6 +215,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
                 allow_unicode=True,
                 indent=indent,
             )
+            path.parent.mkdir(parents=True, exist_ok=True)
             with path.open("w", encoding=c.DEFAULT_ENCODING) as fh:
                 fh.write(serialized)
             return r[bool].ok(value=True)
@@ -219,7 +224,7 @@ class FlextCliUtilitiesYaml(FlextCliUtilitiesYamlEditingMixin):
 
     @staticmethod
     def yaml_dump_str(
-        data: t.JsonValue | t.JsonPayload,
+        data: t.Cli.JsonWriteData,
         *,
         sort_keys: bool = False,
         indent: int = 2,

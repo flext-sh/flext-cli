@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from flext_cli import c, m, p, r, s, t, u
 from flext_cli.services import FlextCliCommonParams
-from flext_cli.services._cli_parts import FlextCliCliPart06
+from flext_cli.services._cli import FlextCliCliPart06
 
 
 class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):

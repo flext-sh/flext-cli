@@ -7,49 +7,14 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, m, tm, u
-
-if TYPE_CHECKING:
-    from tests import t
+from tests import c, t, tm, u
 
 
 class TestsFlextCliConversion:
     """Behavioral contract of ``u.Cli`` conversion helpers."""
-
-    @staticmethod
-    @pytest.mark.parametrize(
-        ("kind", "value", "default", "expected"),
-        [
-            (c.Cli.TypeKind.STR, "  name  ", "fallback", "name"),
-            (c.Cli.TypeKind.STR, "  ", " fallback ", " fallback "),
-            (c.Cli.TypeKind.STR, 0, "fallback", "fallback"),
-            (c.Cli.TypeKind.STR, 7, None, "7"),
-            (c.Cli.TypeKind.STR, None, 7, ""),
-            (c.Cli.TypeKind.BOOL, 1, False, True),
-            (c.Cli.TypeKind.BOOL, "false", False, True),
-            (c.Cli.TypeKind.BOOL, [], True, False),
-            (c.Cli.TypeKind.BOOL, None, 1, False),
-            (c.Cli.TypeKind.BOOL, None, True, True),
-            (c.Cli.TypeKind.DICT, {"count": 1}, {"fallback": 2}, {"count": 1}),
-            (c.Cli.TypeKind.DICT, {}, {"fallback": 2}, {}),
-            (c.Cli.TypeKind.DICT, "invalid", {"fallback": 2}, {"fallback": 2}),
-            (c.Cli.TypeKind.DICT, None, {"nested": [1, None]}, {"nested": [1, None]}),
-            (c.Cli.TypeKind.DICT, None, "invalid", {}),
-            (c.Cli.TypeKind.DICT, [], None, {}),
-        ],
-    )
-    def test_resolve_typed_extract_preserves_conversion_semantics(
-        kind: t.Cli.TypeKind,
-        value: t.JsonValue | None,
-        default: t.JsonValue | None,
-        expected: t.Cli.TypedExtractValue,
-    ) -> None:
-        """Conversion and kind-specific defaults belong to the utility surface."""
-        tm.that(u.Cli.resolve_typed_extract(kind, value, default), eq=expected)
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -92,32 +57,6 @@ class TestsFlextCliConversion:
         """Verify that default for type kind dict."""
         result = u.Cli.default_for_type_kind(kind, default)
         tm.that(result, eq=expected)
-
-    @staticmethod
-    def test_cli_args_to_model_success_binds_all_fields() -> None:
-        """Verify that cli args to model success binds all fields."""
-        result = u.Cli.cli_args_to_model(
-            m.Tests.SampleInput,
-            {"name": "alice", "count": 2, "dry_run": False, "output_format": "json"},
-        )
-        model: m.Tests.SampleInput = tm.ok(result)
-        tm.that(model.name, eq="alice")
-        tm.that(model.count, eq=2)
-
-    @staticmethod
-    def test_cli_args_to_model_applies_declared_defaults() -> None:
-        """Verify that cli args to model applies declared defaults."""
-        result = u.Cli.cli_args_to_model(m.Tests.SampleInput, {"name": "bob"})
-        model: m.Tests.SampleInput = tm.ok(result)
-        tm.that(model.count, eq=1)
-        tm.that(model.dry_run, eq=False)
-
-    @staticmethod
-    def test_cli_args_to_model_validation_failure_reports_model() -> None:
-        """Verify that cli args to model validation failure reports model."""
-        result = u.Cli.cli_args_to_model(m.Tests.SampleInput, {"name": 123})
-        error = tm.fail(result)
-        tm.that(error, has="SampleInput")
 
     @staticmethod
     def test_resolve_optional_path_with_path(tmp_path: Path) -> None:

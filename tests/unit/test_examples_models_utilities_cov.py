@@ -42,13 +42,13 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         """Explicit values cross the model boundary without ambient overrides."""
         settings = m.Examples.MyAppSettings(
             app_name="explicit-tool",
-            api_key="k" + "0" * 14,
+            api_key="k" + c.ParserBooleanToken.ZERO * 14,
             max_workers=9,
             timeout=45,
         )
 
         tm.that(settings.app_name, eq="explicit-tool")
-        tm.that(settings.api_key, eq="k" + "0" * 14)
+        tm.that(settings.api_key, eq="k" + c.ParserBooleanToken.ZERO * 14)
         tm.that(settings.max_workers, eq=9)
         tm.that(settings.timeout, eq=45)
 
@@ -76,7 +76,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         bad_temp_dir = tmp_path / "not-a-dir"
         bad_temp_dir.write_text("broken", encoding="utf-8")
         outcome = m.Examples.AppSettingsAdvanced(
-            api_key="k" + "1" * 14,
+            api_key="k" + c.ParserBooleanToken.ONE * 14,
             temp_dir=bad_temp_dir,
         ).validate_to_mapping()
 
@@ -97,7 +97,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         # Success payload masks the secret and creates the temp directory.
         tm.that(mapping["api_key"], eq="***")
         tm.that(mapping["temp_dir"], eq=str(good_temp_dir))
-        tm.that(good_temp_dir.is_dir(), eq=True)
+        tm.ok(good_temp_dir.is_dir())
 
     # ------------------------------------------------------------------
     # Field validation raises from the model boundary
@@ -170,7 +170,7 @@ class TestsFlextCliExampleModelsUtilitiesCov:
         """Verify that to json dict preserves values."""
         display = u.to_json_dict(payload)
 
-        tm.that(display.data[key] == expected, eq=True)
+        tm.ok(display.data[key] == expected)
 
     @staticmethod
     def test_public_renderers_do_not_raise() -> None:
