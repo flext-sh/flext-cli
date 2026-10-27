@@ -16,8 +16,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
     @staticmethod
     def result_route[M: t.Cli.ModelLike, TResult](
         *,
-        name: str,
-        help_text: str,
+        metadata: p.Cli.CommandMetadata,
         model_cls: t.ModelClass[M],
         handler: p.Cli.ResultCommandHandler[M, TResult],
         success_formatter: t.Cli.SuccessMessageFormatter[TResult],
@@ -28,11 +27,13 @@ class FlextCliCliPart05(FlextCliCliPart04):
         The framework already validated the request. Its original instance and
         the operation's typed result reach the handler and formatter unchanged.
         Only the formatted text crosses the heterogeneous transport boundary.
+        Metadata supplies only command identity and help; output fields stay flat.
 
         Returns:
             A result route retaining the typed handler and output formatter.
 
         """
+        name = metadata.name
 
         def execute(params: t.Cli.ModelLike) -> p.Result[str]:
             if not isinstance(params, model_cls):
@@ -48,7 +49,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
 
         return m.Cli.ResultCommandRoute(
             name=name,
-            help_text=help_text,
+            help_text=metadata.help_text,
             model_cls=model_cls,
             handler=execute,
             success_type=success_type,

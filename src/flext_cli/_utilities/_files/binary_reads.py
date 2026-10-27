@@ -179,7 +179,7 @@ class FlextCliUtilitiesFilesPart03:
         path = Path(file_path)
         try:
             parent, state, content = (
-                FlextCliUtilitiesAtomicFileSnapshot.read_authenticated_state(
+                FlextCliUtilitiesAtomicFileState.read_authenticated_state(
                     path,
                     required=required,
                     owner_uid=owner_uid,

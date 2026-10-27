@@ -78,6 +78,28 @@ FLEXT-CLI v0.12.0-dev follows a simplified architecture with clear guidelines fo
 to use services vs simple classes. This guide helps you make the right architectural
 decisions.
 
+`m.Cli.CommandMetadata` owns the immutable command `name` and `help_text`
+declarations. `m.Cli.ResultCommandRoute` inherits those fields without nesting a
+metadata payload: its constructor and serialized fields remain flat, with the
+same field constraints, model configuration and success-output defaults.
+The `cli.result_route` factory accepts five keyword-only parameters: `metadata`,
+`model_cls`, `handler`, `success_formatter` and optional `success_type`. Its
+`metadata` input consumes only the read-only `name` and `help_text` properties of
+`p.Cli.CommandMetadata`; callers can supply `m.Cli.CommandMetadata`.
+`p.Cli.ResultCommandRoute` inherits that same metadata protocol. The output route
+remains flat, and `success_type` retains its keyword and success-style default.
+
+This authored API boundary groups only command identity and help to satisfy the
+argument-count contract without suppressions, signature mirrors or a second
+execution path. The coordinated source cutover updates the service-operation
+factory and all three direct behavioral-test callers. These four call sites are
+the direct factory consumers found by the workspace-wide `result_route` census;
+registration APIs are unchanged. Surgical source edits keep this unique boundary
+and its callers together without running generation or semantic publication in
+the separately serialized infrastructure lane. The former `name`/`help_text`
+factory keywords are removed, not retained as a compatibility wrapper; external
+clients using that old signature must migrate and are not claimed compatible.
+
 ---
 
 ## When to Use Each Pattern

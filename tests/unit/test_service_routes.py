@@ -194,8 +194,10 @@ class TestsFlextCliServiceRoutes:
             return f"ready={value.ready}"
 
         route = cli.result_route(
-            name="identity",
-            help_text="Retain the typed request and receipt.",
+            metadata=m.Cli.CommandMetadata(
+                name="identity",
+                help_text="Retain the typed request and receipt.",
+            ),
             model_cls=m.Tests.ServiceGreeting,
             handler=execute,
             success_formatter=render,
@@ -226,8 +228,10 @@ class TestsFlextCliServiceRoutes:
             raise AssertionError(message)
 
         route = cli.result_route(
-            name="rejected",
-            help_text="Preserve the operation failure.",
+            metadata=m.Cli.CommandMetadata(
+                name="rejected",
+                help_text="Preserve the operation failure.",
+            ),
             model_cls=m.Tests.ServiceGreeting,
             handler=execute,
             success_formatter=render,
@@ -255,14 +259,18 @@ class TestsFlextCliServiceRoutes:
             raise cause
 
         route = cli.result_route(
-            name="native-error",
-            help_text="Leave the first exception unchanged.",
+            metadata=m.Cli.CommandMetadata(
+                name="native-error",
+                help_text="Leave the first exception unchanged.",
+            ),
             model_cls=m.Tests.ServiceGreeting,
             handler=execute,
             success_formatter=render,
         )
 
-        with pytest.raises(ValueError, match=f"^{origin} rejected execution$") as captured:
+        with pytest.raises(
+            ValueError, match=f"^{origin} rejected execution$"
+        ) as captured:
             route.handler(m.Tests.ServiceGreeting(name="ana"))
 
         tm.ok(captured.value is cause)

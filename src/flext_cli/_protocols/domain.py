@@ -228,8 +228,8 @@ class FlextCliProtocolsDomain:
         handler: FlextCliProtocolsBase.CliCommandWrapper
 
     @runtime_checkable
-    class ResultCommandRoute(Protocol):
-        """Protocol for declarative result-route registration."""
+    class CommandMetadata(Protocol):
+        """Read-only command identity and user-facing help."""
 
         # mro-j47u (codex): read-only properties preserve frozen-model covariance.
         @property
@@ -241,6 +241,10 @@ class FlextCliProtocolsDomain:
         def help_text(self) -> str:
             """The user-facing help text."""
             ...
+
+    @runtime_checkable
+    class ResultCommandRoute(CommandMetadata, Protocol):
+        """Protocol for declarative result-route registration."""
 
         @property
         def model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:

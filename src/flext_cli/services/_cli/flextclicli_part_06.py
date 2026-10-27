@@ -51,8 +51,12 @@ class FlextCliCliPart06(FlextCliCliPart05):
         """
         return tuple(
             cls.result_route(
-                name=operation.name.removeprefix(operation_prefix).replace("_", "-"),
-                help_text=operation.summary,
+                metadata=m.Cli.CommandMetadata(
+                    name=(
+                        operation.name.removeprefix(operation_prefix).replace("_", "-")
+                    ),
+                    help_text=operation.summary,
+                ),
                 model_cls=operation.request or m.Cli.EmptyRequest,
                 handler=partial(cls._execute_operation, operation, provide),
                 success_formatter=(
