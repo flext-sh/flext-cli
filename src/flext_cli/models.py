@@ -59,6 +59,6 @@ class FlextCliModels(flext_core_m):
         """CLI project namespace."""
 
 
-# mro-j47u (codex): canonical facade rebinding is intentionally unannotated.
 m = FlextCliModels
+
 __all__: list[str] = ["FlextCliModels", "m"]
