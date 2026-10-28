@@ -8,17 +8,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core import FlextRuntime
+from flext_core import u
 from tomlkit.items import Array
 
 from flext_cli import t
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
+from flext_cli._utilities._toml import (
     FlextCliUtilitiesTomlPart01,
-)
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_02 import (
     FlextCliUtilitiesTomlPart02,
-)
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_03 import (
     FlextCliUtilitiesTomlPart03,
 )
 
@@ -110,12 +106,8 @@ class FlextCliUtilitiesTomlPart04:
             The resulting ``bool``.
 
         """
-        current: t.JsonValue = FlextRuntime.normalize_to_json_value(
-            container.get(key, None)
-        )
-        normalized_expected: t.JsonValue = FlextRuntime.normalize_to_json_value(
-            expected
-        )
+        current: t.JsonValue = u.normalize_to_json_value(container.get(key, None))
+        normalized_expected: t.JsonValue = u.normalize_to_json_value(expected)
         if current == normalized_expected:
             return False
         container[key] = normalized_expected

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from functools import partial
 
-from flext_core import FlextRuntime
+from flext_core import u
 
 from flext_cli import m, p, t, u
 from flext_cli.services._cli import FlextCliCliPart05
@@ -95,7 +95,7 @@ class FlextCliCliPart06(FlextCliCliPart05):
             The resulting ``str``.
 
         """
-        normalized = FlextRuntime.normalize_to_json_value(value)
+        normalized = u.normalize_to_json_value(value)
         if isinstance(normalized, str):
             return normalized
         return u.to_json(normalized).decode()

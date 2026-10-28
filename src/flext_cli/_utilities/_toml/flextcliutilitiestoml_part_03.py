@@ -13,8 +13,8 @@ from tomlkit.items import Table
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import t
-from flext_cli._utilities import (
-    FlextCliUtilitiesConversion,
+from flext_cli._utilities import FlextCliUtilitiesConversion
+from flext_cli._utilities._toml import (
     FlextCliUtilitiesTomlPart01,
     FlextCliUtilitiesTomlPart02,
 )

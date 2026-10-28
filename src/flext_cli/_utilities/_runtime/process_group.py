@@ -11,7 +11,7 @@ import platform
 import signal
 
 from flext_cli import p, r
-from flext_cli._utilities import (
+from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeDarwinProcessGroup,
     FlextCliUtilitiesRuntimeWindowsJobStart,
     FlextCliUtilitiesRuntimeWindowsJobState,

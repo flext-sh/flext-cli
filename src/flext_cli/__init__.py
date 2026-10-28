@@ -118,7 +118,7 @@ install_lazy_exports(
         "FlextCliSettings": "._settings",
         "FlextCliTypes": ".typings",
         "FlextCliUtilities": ".utilities",
-        "FlextCliUtilitiesCli": ".utilities",
+        "FlextCliUtilitiesCli": "._utilities.cli_namespace",
         "FlextCliVersion": ".__version__",
         "__author__": ".__version__",
         "__author_email__": ".__version__",
