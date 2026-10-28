@@ -8,8 +8,6 @@ from __future__ import annotations
 
 from functools import partial
 
-from flext_core import u
-
 from flext_cli import m, p, t, u
 from flext_cli.services._cli import FlextCliCliPart05
 

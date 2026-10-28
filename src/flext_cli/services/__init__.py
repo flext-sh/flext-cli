@@ -64,7 +64,6 @@ install_lazy_exports(
     MappingProxyType({
         "FlextCliAuth": ".auth",
         "FlextCliCli": ".cli",
-        "FlextCliCli": ".cli",
         "FlextCliCliPart01": "._cli.flextcliservicecli_part_01",
         "FlextCliCliPart02": "._cli.flextcliservicecli_part_02",
         "FlextCliCliPart03": "._cli.flextcliservicecli_part_03",

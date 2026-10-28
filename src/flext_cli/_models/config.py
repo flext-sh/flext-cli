@@ -42,7 +42,7 @@ Names such as ``listen`` are syscall identifiers, not CQRS action prefixes.
 """
 
 
-class FlextCliConfigModels:
+class FlextCliModelsConfig:
     """Native owner of the typed ``config/*.yaml`` models for flext-cli."""
 
     class Cli(m.FrozenModel):
@@ -145,4 +145,4 @@ class FlextCliConfigModels:
             return value
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliConfigModels",)
+__all__: t.VariadicTuple[str] = ("FlextCliModelsConfig",)

@@ -23,7 +23,7 @@ from tomlkit.exceptions import ParseError
 from tests import c, m, t, tm, u
 
 
-class TestsFlextCliTomlUtilities:
+class TestsFlextCliUtilitiesToml:
     """Public contract of the ``u.Cli.toml_*`` helper family."""
 
     @staticmethod

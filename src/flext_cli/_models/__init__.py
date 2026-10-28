@@ -65,7 +65,7 @@ if TYPE_CHECKING:
     from flext_cli._models.atomic_symlink import FlextCliModelsAtomicSymlink
     from flext_cli._models.base import FlextCliModelsBase
     from flext_cli._models.color import FlextCliModelsColor
-    from flext_cli._models.config import FlextCliConfigModels
+    from flext_cli._models.config import FlextCliModelsConfig
     from flext_cli._models.docx import FlextCliModelsDocx
     from flext_cli._models.docx_document import FlextCliModelsDocxDocument
     from flext_cli._models.docx_styles import FlextCliModelsDocxStyles
@@ -82,7 +82,6 @@ if TYPE_CHECKING:
 
 
 __all__: tuple[str, ...] = (
-    "FlextCliConfigModels",
     "FlextCliModelsAtomicPublication",
     "FlextCliModelsAtomicState",
     "FlextCliModelsAtomicSymlink",
@@ -98,6 +97,7 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsBasePart09",
     "FlextCliModelsBasePart10",
     "FlextCliModelsColor",
+    "FlextCliModelsConfig",
     "FlextCliModelsDocx",
     "FlextCliModelsDocxDocument",
     "FlextCliModelsDocxStyles",
@@ -130,7 +130,7 @@ install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "FlextCliConfigModels": ".config",
+        "FlextCliModelsConfig": ".config",
         "FlextCliModelsAtomicPublication": ".atomic_publication",
         "FlextCliModelsAtomicState": ".atomic_state",
         "FlextCliModelsAtomicSymlink": ".atomic_symlink",

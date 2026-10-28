@@ -88,6 +88,4 @@ class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):
         return app
 
 
-FlextCliCli = FlextCliCli
-
 __all__: list[str] = ["FlextCliCli"]

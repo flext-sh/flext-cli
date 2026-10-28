@@ -185,11 +185,11 @@ class FlextCliUtilitiesFilesPart03:
                 )
             )
         except OSError as exc:
-            return r[m.Cli.AtomicFileState].fail(
+            return r.fail(
                 c.Cli.ERR_BINARY_READ_FAILED.format(error=exc),
                 exception=exc,
             )
-        return r[m.Cli.AtomicFileState].ok(
+        return r.ok(
             m.Cli.AtomicFileState(
                 path=path,
                 parent_device=None if parent is None else parent.st_dev,

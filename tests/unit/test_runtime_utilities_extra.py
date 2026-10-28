@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-class TestsFlextCliRuntimeUtilitiesExtra:
+class TestsFlextCliUtilitiesRuntimeExtra:
     """Public-contract behavior for ``u.Cli`` runtime helpers and output model."""
 
     @staticmethod

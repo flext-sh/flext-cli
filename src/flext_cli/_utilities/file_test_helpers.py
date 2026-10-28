@@ -17,11 +17,11 @@ from flext_cli._utilities import (
 )
 
 
-class FlextCliUtilitiesFileTestHelpersMixin(
+class FlextCliUtilitiesFileTestHelpers(
     FlextCliUtilitiesFileTestHelpersAssertions,
     FlextCliUtilitiesFileTestHelpersParsing,
 ):
-    """Public facade for FlextCliUtilitiesFileTestHelpersMixin."""
+    """Public facade for FlextCliUtilitiesFileTestHelpers."""
 
 
-__all__: list[str] = ["FlextCliUtilitiesFileTestHelpersMixin"]
+__all__: list[str] = ["FlextCliUtilitiesFileTestHelpers"]

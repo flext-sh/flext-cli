@@ -89,6 +89,46 @@ class FlextCliUtilitiesAtomicTreeInventory:
         )
 
     @classmethod
+    def _require_directory_witness_agreement(
+        cls,
+        previous: m.Cli.AtomicDirectoryInventory,
+        originals: t.SequenceOf[m.Cli.AtomicDirectoryInventory],
+        path: Path,
+        selected_queries: t.VariadicTuple[
+            t.Pair[str, Literal["exists", "isfile", "isdir"]],
+        ],
+        selections: tuple[str, ...],
+    ) -> None:
+        """Require distinct directory witnesses to answer every query alike.
+
+        Raises:
+            ValueError: If witness identity, query, or membership epochs disagree.
+
+        """
+        for incoming in {id(item.entries): item for item in originals}.values():
+            if incoming.entries is previous.entries:
+                continue
+            cls._require_directory_identity(
+                previous.root,
+                incoming.root,
+                f"source directory query epochs disagree: {path}",
+            )
+            if any(
+                cls.directory_query_value(previous, name, predicate)
+                != cls.directory_query_value(incoming, name, predicate)
+                for name, predicate in selected_queries
+            ):
+                msg = f"source directory query epochs disagree: {path}"
+                raise ValueError(msg)
+            if any(
+                cls.directory_membership_value(previous, selection)
+                != cls.directory_membership_value(incoming, selection)
+                for selection in selections
+            ):
+                msg = f"source directory membership epochs disagree: {path}"
+                raise ValueError(msg)
+
+    @classmethod
     def merge_directory_query_receipts(
         cls,
         inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
@@ -147,28 +187,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 cls.directory_query_value(previous, name, predicate)
             # Witnesses sharing one physical entry tuple answer every query
             # identically; only distinct observations need comparison.
-            for incoming in {id(item.entries): item for item in originals}.values():
-                if incoming.entries is previous.entries:
-                    continue
-                cls._require_directory_identity(
-                    previous.root,
-                    incoming.root,
-                    f"source directory query epochs disagree: {path}",
-                )
-                if any(
-                    cls.directory_query_value(previous, name, predicate)
-                    != cls.directory_query_value(incoming, name, predicate)
-                    for name, predicate in selected_queries
-                ):
-                    msg = f"source directory query epochs disagree: {path}"
-                    raise ValueError(msg)
-                if any(
-                    cls.directory_membership_value(previous, selection)
-                    != cls.directory_membership_value(incoming, selection)
-                    for selection in selections
-                ):
-                    msg = f"source directory membership epochs disagree: {path}"
-                    raise ValueError(msg)
+            cls._require_directory_witness_agreement(
+                previous,
+                originals,
+                path,
+                selected_queries,
+                selections,
+            )
             directory_receipts.append(
                 previous
                 if selected_queries == previous.queries

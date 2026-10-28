@@ -89,7 +89,7 @@ def runner() -> FlextCliUtilitiesCli:
     return FlextCliUtilitiesCli()
 
 
-class TestsFlextCliRuntimeUtilitiesCore:
+class TestsFlextCliUtilitiesRuntimeCore:
     """Synchronous run and capture behavior through the public process facade."""
 
     @staticmethod
@@ -144,7 +144,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             options=m.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
         )
         if case.expect_success:
-            output = TestsFlextCliRuntimeUtilitiesCore._case_output(result, case)
+            output = TestsFlextCliUtilitiesRuntimeCore._case_output(result, case)
             if case.stderr_has:
                 tm.that(output.stderr, has=case.stderr_has)
             if case.use_tmp_path:
@@ -178,7 +178,7 @@ class TestsFlextCliRuntimeUtilitiesCore:
             options=m.Cli.ProcessOptions(env=case.env, input_data=case.input_data),
         )
         if case.expect_success:
-            output = TestsFlextCliRuntimeUtilitiesCore._case_output(result, case)
+            output = TestsFlextCliUtilitiesRuntimeCore._case_output(result, case)
             if case.use_tmp_path:
                 tm.that(output.stdout.strip(), eq=str(tmp_path))
             tm.that(output.outcome.timed_out, eq=case.timed_out)

@@ -21,7 +21,7 @@ from flext_cli import cli
 from tests import c, m, t, tm, u
 
 
-class TestsFlextCliExampleModelsUtilitiesCov:
+class TestsFlextCliUtilitiesExampleModelsCov:
     """Exercise the public examples model and utility contracts."""
 
     # ------------------------------------------------------------------
