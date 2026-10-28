@@ -31,8 +31,8 @@ class TestsFlextCliCommands:
     """Behavioral contract for the ``u.Cli`` command messaging helpers."""
 
     @pytest.fixture
-    @staticmethod
     def synchronous_logging(
+        self,
         capsys: pytest.CaptureFixture[str],
     ) -> Iterator[None]:
         """Restore the elected provider and composition after each test."""

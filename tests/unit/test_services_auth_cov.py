@@ -31,8 +31,7 @@ class TestsFlextCliServicesAuthCov:
     """Behavioral tests for the FlextCliAuth authentication service."""
 
     @pytest.fixture
-    @staticmethod
-    def token_file(tmp_path: Path) -> Iterator[Path]:
+    def token_file(self, tmp_path: Path) -> Iterator[Path]:
         """Isolate the auth token file inside the test's tmp dir.
 
         Yields:
@@ -52,8 +51,7 @@ class TestsFlextCliServicesAuthCov:
             settings.cli_token_file = original_token_file
 
     @pytest.fixture
-    @staticmethod
-    def auth(token_file: Path) -> FlextCliAuth:
+    def auth(self, token_file: Path) -> FlextCliAuth:
         """Fresh auth service bound to the isolated token file.
 
         Returns:

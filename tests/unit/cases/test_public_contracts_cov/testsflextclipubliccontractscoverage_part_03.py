@@ -34,6 +34,7 @@ class TestsFlextCliPublicContractsCoveragePart03:
                 }),
             )
 
+        fetch_spec = cli.stage("fetch", handler=stage_handler)
         spec = cli.stage("build", handler=stage_handler, depends_on=("fetch",))
         pipeline = m.Cli.PipelineResult(
             stages=[
@@ -49,7 +50,7 @@ class TestsFlextCliPublicContractsCoveragePart03:
         )
         stage_result = spec.handler(context)
         pipeline_run = cli.pipeline(
-            (spec,),
+            (fetch_spec, spec),
             context=cli.stage_context(tmp_path, settings={"mode": "test"}),
         )
 

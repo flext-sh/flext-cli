@@ -30,8 +30,7 @@ class TestsFlextCliServicesAuth:
     """Public authentication behavior of the FlextCli facade."""
 
     @pytest.fixture
-    @staticmethod
-    def service() -> Iterator[FlextCli]:
+    def service(self) -> Iterator[FlextCli]:
         """Fresh facade whose global token_file is restored after each test.
 
         Yields:

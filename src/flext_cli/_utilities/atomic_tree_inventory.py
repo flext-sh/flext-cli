@@ -143,6 +143,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 })
             )
             selections = (*(((),) if membership_queried else ()), *selected_membership)
+            for name, predicate in selected_queries:
+                cls.directory_query_value(previous, name, predicate)
             # Witnesses sharing one physical entry tuple answer every query
             # identically; only distinct observations need comparison.
             for incoming in {id(item.entries): item for item in originals}.values():

@@ -21,8 +21,7 @@ class TestsFlextCliCliParams:
     """Behavioral tests for FlextCliCommonParams public contract."""
 
     @pytest.fixture
-    @staticmethod
-    def settings() -> p.Cli.Settings:
+    def settings(self) -> p.Cli.Settings:
         """Fresh CLI settings instance built through the public factory.
 
         Returns:
