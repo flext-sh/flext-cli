@@ -6,6 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 from tests.unit.cases.test_public_contracts_cov import (
     testsflextclipubliccontractscoverage_part_01 as settings_contracts,
     testsflextclipubliccontractscoverage_part_02 as model_contracts,

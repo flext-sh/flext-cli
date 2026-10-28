@@ -113,21 +113,36 @@ def _timed_out_failure(result: p.Result[p.Cli.CommandOutput]) -> None:
 def _execute_raw_with_deadline(
     command: tuple[str, ...],
 ) -> p.Result[p.Cli.CommandOutput]:
-    """Run the raw text runner against a one-second deadline."""
+    """Run the raw text runner against a one-second deadline.
+
+    Returns:
+        The resulting ``p.Result[p.Cli.CommandOutput]``.
+
+    """
     return u.Cli().run_raw(command, timeout=1)
 
 
 def _execute_checked_with_deadline(
     command: tuple[str, ...],
 ) -> p.Result[p.Cli.CommandOutput]:
-    """Run the checked text runner against a one-second deadline."""
+    """Run the checked text runner against a one-second deadline.
+
+    Returns:
+        The resulting ``p.Result[p.Cli.CommandOutput]``.
+
+    """
     return u.Cli().run(command, timeout=1)
 
 
 def _execute_bytes_with_deadline(
     command: tuple[str, ...],
 ) -> p.Result[p.Cli.CommandBytesOutput]:
-    """Run the byte runner against a one-second deadline."""
+    """Run the byte runner against a one-second deadline.
+
+    Returns:
+        The resulting ``p.Result[p.Cli.CommandBytesOutput]``.
+
+    """
     return u.Cli().run_bytes(command, timeout=1)
 
 

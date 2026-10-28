@@ -18,6 +18,15 @@ from collections.abc import (
     Sequence,
 )
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 import re
 from collections.abc import (
     Iterable,
