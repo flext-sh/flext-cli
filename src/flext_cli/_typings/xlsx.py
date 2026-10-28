@@ -13,8 +13,6 @@ from decimal import Decimal
 from io import BytesIO
 from typing import Literal
 
-from flext_core import t
-
 
 class FlextCliTypesXlsx:
     """XLSX primitives that do not depend on workbook implementations."""
@@ -25,7 +23,7 @@ class FlextCliTypesXlsx:
         str | int | float | bool | Decimal | dt.date | dt.datetime | None
     )
     type XlsxBinaryStream = BytesIO
-    type XlsxMemberNames = t.VariadicTuple[str]
+    type XlsxMemberNames = tuple[str, ...]
     type XlsxCalcMode = Literal["auto", "autoNoTable", "manual", "none"]
     type XlsxXmlTokens = frozenset[str | None]
     type XlsxComparisonOperator = Literal[
@@ -62,4 +60,4 @@ class FlextCliTypesXlsx:
     ]
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliTypesXlsx",)
+__all__: tuple[str, ...] = ("FlextCliTypesXlsx",)

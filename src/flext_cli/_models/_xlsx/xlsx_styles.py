@@ -10,7 +10,6 @@ from typing import Annotated, Literal
 
 from flext_core import m
 
-from flext_cli import t
 from flext_cli._models._xlsx import (
     FlextCliModelsXlsxStyleFills,
     FlextCliModelsXlsxStylePrimitives,
@@ -155,4 +154,4 @@ class FlextCliModelsXlsxStyles(
         )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsXlsxStyles",)
+__all__: tuple[str, ...] = ("FlextCliModelsXlsxStyles",)

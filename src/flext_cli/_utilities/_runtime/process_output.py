@@ -29,7 +29,7 @@ class FlextCliUtilitiesRuntimeProcessOutput(
         live_fds: t.Pair[int | None, int | None],
         *,
         capture_output: bool,
-    ) -> t.VariadicTuple[t.Pair[threading.Thread, IO[bytes]]]:
+    ) -> tuple[t.Pair[threading.Thread, IO[bytes]], ...]:
         combine_output = state.durable_log is not None and state.durable_stderr is None
         pump_streams: list[tuple[threading.Thread, IO[bytes]]] = []
         for source, sink, captured, live_fd, channel in (

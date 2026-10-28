@@ -10,7 +10,6 @@ from typing import Annotated, Literal
 
 from flext_core import m
 
-from flext_cli import t
 from flext_cli._models._xlsx import FlextCliModelsXlsxCells
 
 
@@ -112,23 +111,23 @@ class FlextCliModelsXlsxLayout:
         ) = None
 
     class XlsxSheetLayoutPlan(m.FrozenModel):
-        merges: t.VariadicTuple[FlextCliModelsXlsxLayout.XlsxMergePlan] = m.Field(
+        merges: tuple[FlextCliModelsXlsxLayout.XlsxMergePlan, ...] = m.Field(
             default=(),
             strict=False,
             description="Merged ranges.",
         )
-        comments: t.VariadicTuple[FlextCliModelsXlsxLayout.XlsxCommentPlan] = m.Field(
+        comments: tuple[FlextCliModelsXlsxLayout.XlsxCommentPlan, ...] = m.Field(
             default=(),
             strict=False,
             description="Cell comments.",
         )
-        hyperlinks: t.VariadicTuple[FlextCliModelsXlsxLayout.XlsxHyperlinkPlan] = (
-            m.Field(default=(), strict=False, description="Cell hyperlinks.")
+        hyperlinks: tuple[FlextCliModelsXlsxLayout.XlsxHyperlinkPlan, ...] = m.Field(
+            default=(), strict=False, description="Cell hyperlinks."
         )
-        dimensions: t.VariadicTuple[FlextCliModelsXlsxLayout.XlsxDimensionPlan] = (
-            m.Field(default=(), strict=False, description="Row and column dimensions.")
+        dimensions: tuple[FlextCliModelsXlsxLayout.XlsxDimensionPlan, ...] = m.Field(
+            default=(), strict=False, description="Row and column dimensions."
         )
-        groups: t.VariadicTuple[FlextCliModelsXlsxLayout.XlsxGroupPlan] = m.Field(
+        groups: tuple[FlextCliModelsXlsxLayout.XlsxGroupPlan, ...] = m.Field(
             default=(),
             strict=False,
             description="Row and column groups.",
@@ -147,4 +146,4 @@ class FlextCliModelsXlsxLayout:
         )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsXlsxLayout",)
+__all__: tuple[str, ...] = ("FlextCliModelsXlsxLayout",)

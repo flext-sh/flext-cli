@@ -14,8 +14,6 @@ from flext_cli._utilities import FlextCliUtilitiesFiles
 if TYPE_CHECKING:
     from pptx.presentation import Presentation as PresentationType
 
-    from flext_cli import t
-
 
 class FlextCliUtilitiesPptxSerializer:
     """Serialize and deserialize PPTX presentation objects."""
@@ -36,4 +34,4 @@ class FlextCliUtilitiesPptxSerializer:
         )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesPptxSerializer",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesPptxSerializer",)

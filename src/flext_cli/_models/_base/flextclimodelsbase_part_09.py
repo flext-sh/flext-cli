@@ -150,7 +150,7 @@ class FlextCliModelsBasePart09:
         kind: Literal["directory", "file", "symlink", "other"] = m.Field(
             description="Native physical entry kind"
         )
-        version_key: t.VariadicTuple[int] = m.Field(
+        version_key: tuple[int, ...] = m.Field(
             description="Descriptor-authenticated native entry version"
         )
         link_target: str | None = m.Field(
@@ -173,19 +173,17 @@ class FlextCliModelsBasePart09:
         root: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry = m.Field(
             description="Descriptor-authenticated physical directory identity"
         )
-        entries: t.VariadicTuple[FlextCliModelsBasePart09.AtomicDirectoryName] = (
-            m.Field(
-                default=(), description="Complete ordered immediate physical children"
-            )
+        entries: tuple[FlextCliModelsBasePart09.AtomicDirectoryName, ...] = m.Field(
+            default=(), description="Complete ordered immediate physical children"
         )
-        queries: t.VariadicTuple[t.Pair[str, Literal["exists", "isfile", "isdir"]]] = (
-            m.Field(default=(), description="Consumed native candidate predicates")
+        queries: tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...] = m.Field(
+            default=(), description="Consumed native candidate predicates"
         )
         membership_queried: bool = m.Field(
             default=False,
             description="Whether native planning consumed direct membership",
         )
-        membership_queries: t.VariadicTuple[t.StrTuple] = m.Field(
+        membership_queries: tuple[t.StrTuple, ...] = m.Field(
             default=(),
             description="Consumed membership selections, each excluding named children",
         )
@@ -223,7 +221,7 @@ class FlextCliModelsBasePart09:
             m.Field(description="Physical tree root"),
         ]
         entries: Annotated[
-            t.VariadicTuple[FlextCliModelsBasePart09.AtomicPhysicalTreeEntry],
+            tuple[FlextCliModelsBasePart09.AtomicPhysicalTreeEntry, ...],
             m.Field(description="Lexically ordered descendants"),
         ] = ()
 

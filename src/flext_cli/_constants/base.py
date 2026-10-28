@@ -96,14 +96,14 @@ class FlextCliConstantsBase:
     SYMBOL_SUCCESS_MARK: ClassVar[str] = "✓"
     SYMBOL_FAILURE_MARK: ClassVar[str] = "✗"
 
-    FILE_NOT_FOUND_PATTERN_ORDER: ClassVar[t.VariadicTuple[str]] = (
+    FILE_NOT_FOUND_PATTERN_ORDER: ClassVar[tuple[str, ...]] = (
         "no such file",
         "not found",
         "does not exist",
         "errno 2",
         "cannot open",
     )
-    CLI_USAGE_ERROR_PATTERN_ORDER: ClassVar[t.VariadicTuple[str]] = (
+    CLI_USAGE_ERROR_PATTERN_ORDER: ClassVar[tuple[str, ...]] = (
         "no such option",
         "no such command",
         "missing option",
@@ -112,11 +112,11 @@ class FlextCliConstantsBase:
         "unrecognized arguments",
         "cli exited with code 2",
     )
-    FILE_NOT_FOUND_REGEXES: ClassVar[t.VariadicTuple[t.RegexPattern]] = tuple(
+    FILE_NOT_FOUND_REGEXES: ClassVar[tuple[t.RegexPattern, ...]] = tuple(
         re.compile(pattern, flags=re.IGNORECASE)
         for pattern in FILE_NOT_FOUND_PATTERN_ORDER
     )
-    CLI_USAGE_ERROR_REGEXES: ClassVar[t.VariadicTuple[t.RegexPattern]] = tuple(
+    CLI_USAGE_ERROR_REGEXES: ClassVar[tuple[t.RegexPattern, ...]] = tuple(
         re.compile(pattern, flags=re.IGNORECASE)
         for pattern in CLI_USAGE_ERROR_PATTERN_ORDER
     )

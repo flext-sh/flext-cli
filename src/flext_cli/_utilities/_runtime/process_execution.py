@@ -1094,8 +1094,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
         process: p.Cli.ProcessHandle,
         request: m.Cli.RuntimeProcessRequest,
         state: m.Cli.RuntimeProcessState,
-        stdin: t.Triple[BinaryIO | None, BinaryIO | None, bytes],
-        live_fds: t.Pair[int | None, int | None],
+        stdin: tuple[BinaryIO | None, BinaryIO | None, bytes],
+        live_fds: tuple[int | None, int | None],
     ) -> threading.Thread:
         """Attach child I/O without losing ownership on a partial failure.
 

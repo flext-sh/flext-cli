@@ -274,7 +274,7 @@ class TestsFlextCliTomlValues:
         resolved = tm.not_none(resolved)
         tm.that(
             list(u.Cli.toml_as_string_list(u.Cli.toml_item_child(resolved, "select"))),
-            eq=["E", "F"],
+            eq=["E", ...],
         )
         tm.that(u.Cli.toml_table_path(doc, ("tool", "mypy")), none=True)
 

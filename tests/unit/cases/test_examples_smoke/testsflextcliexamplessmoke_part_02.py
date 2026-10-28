@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING
 
 import examples
@@ -18,7 +18,6 @@ from flext_cli import cli, settings
 from tests import c, p, tm
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
     from pathlib import Path
 
 

@@ -182,7 +182,7 @@ class FlextCliUtilitiesDocxRenderer:
     def _rewrite_members(
         content: bytes,
         target: BytesIO,
-        member_date: tuple[int, int, int, int, int, int],
+        member_date: tuple[int, int, int, int, int, ...],
     ) -> None:
         with (
             ZipFile(BytesIO(content)) as source,
@@ -358,7 +358,7 @@ class FlextCliUtilitiesDocxRenderer:
     def _apply_sections(
         cls,
         document: DocumentType,
-        sections: t.VariadicTuple[m.Cli.DocxSectionPlan],
+        sections: tuple[m.Cli.DocxSectionPlan, ...],
     ) -> None:
         for section_plan in sections:
             section = document.add_section()
@@ -393,4 +393,4 @@ class FlextCliUtilitiesDocxRenderer:
         return RGBColor(0x00, 0x00, 0x00)
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesDocxRenderer",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesDocxRenderer",)

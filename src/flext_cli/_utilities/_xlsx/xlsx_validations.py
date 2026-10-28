@@ -58,7 +58,7 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
                 raise ValueError(msg)
 
     @staticmethod
-    def _inline_formula(values: t.VariadicTuple[str]) -> str:
+    def _inline_formula(values: tuple[str, ...]) -> str:
         if any("," in value or "\n" in value or "\r" in value for value in values):
             msg = "Inline validation values cannot contain commas or newlines"
             raise ValueError(msg)
@@ -121,7 +121,7 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
     def _apply_validations(
         cls,
         worksheet: Worksheet,
-        plans: t.VariadicTuple[m.Cli.XlsxDataValidationPlan],
+        plans: tuple[m.Cli.XlsxDataValidationPlan, ...],
     ) -> p.Result[bool]:
         try:
             for plan in plans:
@@ -136,4 +136,4 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
         return r[bool].ok(value=True)
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxValidations",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxValidations",)

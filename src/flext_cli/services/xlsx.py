@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import p, s, t
+from flext_cli import p, s
 
 
 class FlextCliXlsx(s[p.Cli.RuntimeStatus]):
@@ -16,4 +16,4 @@ class FlextCliXlsx(s[p.Cli.RuntimeStatus]):
     # customer rules; consumers provide immutable plans and receive bytes/models.
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliXlsx",)
+__all__: tuple[str, ...] = ("FlextCliXlsx",)

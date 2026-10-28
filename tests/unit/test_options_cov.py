@@ -181,9 +181,7 @@ class TestsFlextCliOptionsUtilsCov:
             )
         )
 
-    _INVOCATION_CASES: ClassVar[
-        t.VariadicTuple[t.Pair[t.StrSequence, t.Cli.ModelLike]]
-    ] = (
+    _INVOCATION_CASES: ClassVar[tuple[t.Pair[t.StrSequence, t.Cli.ModelLike], ...],] = (
         (("--value", "x"), StringAnnotationModel(value="x")),
         (("--value", "x"), OptionalStringAnnotationModel(value="x")),
         (("--value", "7"), UnionAnnotationModel(value="7")),

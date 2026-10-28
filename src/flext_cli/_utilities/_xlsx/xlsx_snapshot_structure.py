@@ -14,7 +14,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
 
 # Why: tier-whitelist forbids bare pydantic imports outside flext-core;
 # route through the c facade re-export (matches conversion.py/tables.py/yaml.py).
@@ -68,8 +68,8 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_tables(
         worksheet: Worksheet,
-    ) -> p.Result[t.VariadicTuple[m.Cli.XlsxTableSnapshot]]:
-        tables: t.VariadicTuple[m.Cli.XlsxTableSnapshot] = ()
+    ) -> p.Result[tuple[m.Cli.XlsxTableSnapshot], ...]:
+        tables: tuple[m.Cli.XlsxTableSnapshot, ...] = ()
         try:
             for item in worksheet.tables.values():
                 if not isinstance(item, Table):
@@ -107,8 +107,8 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_rows(
         worksheet: Worksheet,
-    ) -> p.Result[t.VariadicTuple[m.Cli.XlsxRowDimensionSnapshot]]:
-        rows: t.VariadicTuple[m.Cli.XlsxRowDimensionSnapshot] = ()
+    ) -> p.Result[tuple[m.Cli.XlsxRowDimensionSnapshot], ...]:
+        rows: tuple[m.Cli.XlsxRowDimensionSnapshot, ...] = ()
         try:
             for item in worksheet.row_dimensions.values():
                 rows = (
@@ -137,8 +137,8 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_columns(
         worksheet: Worksheet,
-    ) -> p.Result[t.VariadicTuple[m.Cli.XlsxColumnDimensionSnapshot]]:
-        columns: t.VariadicTuple[m.Cli.XlsxColumnDimensionSnapshot] = ()
+    ) -> p.Result[tuple[m.Cli.XlsxColumnDimensionSnapshot], ...]:
+        columns: tuple[m.Cli.XlsxColumnDimensionSnapshot, ...] = ()
         try:
             for item in worksheet.column_dimensions.values():
                 anchor = column_index_from_string(item.index)
@@ -170,8 +170,8 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_names(
         workbook: Workbook,
-    ) -> p.Result[t.VariadicTuple[m.Cli.XlsxDefinedNameSnapshot]]:
-        names: t.VariadicTuple[m.Cli.XlsxDefinedNameSnapshot] = ()
+    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameSnapshot], ...]:
+        names: tuple[m.Cli.XlsxDefinedNameSnapshot, ...] = ()
         try:
             for item in workbook.defined_names.values():
                 if not isinstance(item, DefinedName):
@@ -204,4 +204,4 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
         )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxSnapshotStructure",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxSnapshotStructure",)

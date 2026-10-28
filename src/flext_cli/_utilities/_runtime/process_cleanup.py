@@ -119,7 +119,7 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
         *,
         max_workers: int,
         signal_wave: p.Cli.SignalWave | None = None,
-    ) -> t.VariadicTuple[T]:
+    ) -> tuple[T, ...]:
         """Run independent tasks concurrently, each receiving its signal wave.
 
         Without ``signal_wave`` the call owns a new wave on the main thread;
@@ -208,11 +208,11 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
     @staticmethod
     def _restore_forwarding_handlers(
         restore_handlers: t.SequenceOf[Callable[[], None]],
-    ) -> t.VariadicTuple[str]:
+    ) -> tuple[str, ...]:
         """Restore parent handlers after child lifecycle completion.
 
         Returns:
-            The resulting ``t.VariadicTuple[str]``.
+            The resulting ``tuple[str, ...],``.
 
         """
         failures: t.MutableSequenceOf[str] = []

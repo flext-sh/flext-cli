@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 class ExamplesFlextCliFileOperations:
     """Public file-operations example for flext-cli consumers."""
 
-    _EXAMPLE_REQUIRED_DATA_FIELDS: t.VariadicTuple[str] = ("id", "name", "value")
+    _EXAMPLE_REQUIRED_DATA_FIELDS: tuple[str, ...] = ("id", "name", "value")
 
     @staticmethod
     def save_user_preferences(

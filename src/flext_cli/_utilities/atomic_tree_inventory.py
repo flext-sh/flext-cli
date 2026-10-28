@@ -97,7 +97,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         selected_queries: t.VariadicTuple[
             t.Pair[str, Literal["exists", "isfile", "isdir"]],
         ],
-        selections: tuple[str, ...],
+        selections: tuple[t.StrTuple, ...],
     ) -> None:
         """Require distinct directory witnesses to answer every query alike.
 
@@ -131,16 +131,16 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @classmethod
     def merge_directory_query_receipts(
         cls,
-        inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
-        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
+        topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
         *,
         queries: t.MappingKV[
             int, set[t.Pair[str, Literal["exists", "isfile", "isdir"]]]
         ] = MappingProxyType({}),
         membership_queries: t.MappingKV[int, set[t.StrTuple]] = MappingProxyType({}),
     ) -> t.Pair[
-        t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
-        t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        tuple[m.Cli.AtomicDirectoryInventory, ...],
+        tuple[m.Cli.AtomicDirectoryChainPlan, ...],
     ]:
         """Finalize working selectors once over agreeing original native witnesses.
 
@@ -279,13 +279,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @classmethod
     def verify_directory_queries(
         cls,
-        inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
-        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
+        topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
         publications: t.VariadicTuple[
             t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
         ]
         | m.Cli.AtomicDirectoryQueryEffects = (),
-        directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
+        directory_publications: tuple[m.Cli.AtomicDirectoryState, ...] = (),
         observations: m.Cli.AtomicDirectoryObservations | None = None,
     ) -> bool:
         """Reprove consumed elections, allowing only supplied physical own effects.
@@ -401,13 +401,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
     @staticmethod
     def _require_membership_policy(
-        inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
-        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
+        topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
         publications: t.VariadicTuple[
             t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
         ]
         | m.Cli.AtomicDirectoryQueryEffects,
-    ) -> t.VariadicTuple[t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]]:
+    ) -> tuple[t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]:
         """Reject receipt-selected authority before observing native dependencies.
 
         Returns:
@@ -441,7 +441,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @classmethod
     def _verify_query_topology(
         cls,
-        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
         published: t.MappingKV[
             Path, t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
         ],
@@ -992,11 +992,11 @@ class FlextCliUtilitiesAtomicTreeInventory:
         )
 
     @staticmethod
-    def _directory_names(descriptor: int) -> t.VariadicTuple[str]:
+    def _directory_names(descriptor: int) -> tuple[str, ...]:
         """Enumerate names through the authenticated directory descriptor.
 
         Returns:
-            The resulting ``t.VariadicTuple[str]``.
+            The resulting ``tuple[str, ...],``.
 
         """
         with os.scandir(descriptor) as entries:

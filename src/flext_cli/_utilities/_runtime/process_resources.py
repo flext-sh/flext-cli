@@ -115,7 +115,7 @@ class FlextCliUtilitiesRuntimeProcessResources:
     @staticmethod
     def _flush_durable_log(
         durable_log: p.Cli.RuntimeBinaryStream,
-    ) -> t.VariadicTuple[str]:
+    ) -> tuple[str, ...]:
         """Finalize the durable log after reaping; only I/O errors are failures.
 
         The flush runs post-reaping, after bounded cleanup has deliberately
@@ -123,7 +123,7 @@ class FlextCliUtilitiesRuntimeProcessResources:
         child deadline is not a failure condition.
 
         Returns:
-            The resulting ``t.VariadicTuple[str]``.
+            The resulting ``tuple[str, ...],``.
 
         """
         errors: list[str] = []
@@ -135,7 +135,7 @@ class FlextCliUtilitiesRuntimeProcessResources:
         return tuple(errors)
 
     @staticmethod
-    def _close_process_resources(stack: contextlib.ExitStack) -> t.VariadicTuple[str]:
+    def _close_process_resources(stack: contextlib.ExitStack) -> tuple[str, ...]:
         try:
             stack.close()
         except c.EXC_OS_VALUE as exc:

@@ -22,8 +22,6 @@ from tests import m, p, tm, u
 if TYPE_CHECKING:
     from pathlib import Path
 
-from tests import t
-
 
 def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
     return m.Cli.ProcessDeadline(
@@ -62,7 +60,7 @@ def _assert_timeout_empties_descendants[
     Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput),
 ](
     tmp_path: Path,
-    execute: Callable[[t.VariadicTuple[str]], p.Result[Output]],
+    execute: Callable[[tuple[str]], p.Result[Output], ...],
     assert_timeout: Callable[[p.Result[Output]], None],
 ) -> None:
     process_info = tmp_path / "captured-process-info"

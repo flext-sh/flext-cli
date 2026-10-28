@@ -34,7 +34,7 @@ class FlextCliUtilitiesXlsxCells:
     def _apply_cells(
         cls,
         worksheet: Worksheet,
-        plans: t.VariadicTuple[m.Cli.XlsxCellPlan],
+        plans: tuple[m.Cli.XlsxCellPlan, ...],
         named_styles: frozenset[str],
     ) -> p.Result[bool]:
         try:
@@ -57,4 +57,4 @@ class FlextCliUtilitiesXlsxCells:
         return r[bool].ok(value=True)
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxCells",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxCells",)

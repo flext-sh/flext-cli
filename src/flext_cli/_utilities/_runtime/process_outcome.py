@@ -30,7 +30,7 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
     def _process_exit_result(
         return_code: int | None,
         received_signals: t.SequenceOf[int],
-        diagnostics: t.VariadicTuple[str],
+        diagnostics: tuple[str, ...],
         *,
         timed_out: bool,
     ) -> p.Result[m.Cli.ProcessOutcome]:

@@ -153,16 +153,16 @@ class FlextCliUtilitiesFilesPart05:
 
     @staticmethod
     def atomic_merge_directory_query_receipts(
-        inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
-        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
+        topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
         *,
         queries: t.MappingKV[
             int, set[t.Pair[str, Literal["exists", "isfile", "isdir"]]]
         ] = MappingProxyType({}),
         membership_queries: t.MappingKV[int, set[t.StrTuple]] = MappingProxyType({}),
     ) -> t.Pair[
-        t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
-        t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        tuple[m.Cli.AtomicDirectoryInventory, ...],
+        tuple[m.Cli.AtomicDirectoryChainPlan, ...],
     ]:
         """Forward original epochs and working selectors to their sole merge owner.
 
@@ -210,14 +210,14 @@ class FlextCliUtilitiesFilesPart05:
 
     @staticmethod
     def atomic_verify_directory_queries(
-        inventories: t.VariadicTuple[m.Cli.AtomicDirectoryInventory],
-        topology: t.VariadicTuple[m.Cli.AtomicDirectoryChainPlan],
+        inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
+        topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
         *,
         publications: t.VariadicTuple[
             t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
         ]
         | m.Cli.AtomicDirectoryQueryEffects = (),
-        directory_publications: t.VariadicTuple[m.Cli.AtomicDirectoryState] = (),
+        directory_publications: tuple[m.Cli.AtomicDirectoryState, ...] = (),
         observations: m.Cli.AtomicDirectoryObservations | None = None,
     ) -> p.Result[bool]:
         """Verify native source queries without authorizing publication effects.

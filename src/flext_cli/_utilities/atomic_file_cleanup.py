@@ -9,7 +9,6 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -17,9 +16,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFilePublishChecks,
     FlextCliUtilitiesAtomicFileState,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicFileCleanup:
@@ -29,7 +25,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
     def remove_linked_temporary(
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         temporary: Path,
-        identity: t.Pair[int, int],
+        identity: tuple[int, int],
         operation_error: BaseException,
     ) -> None:
         """Remove authenticated post-link staging, never the published destination."""
@@ -60,7 +56,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
     def remove_failed_temporary(
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         temporary: Path,
-        identity: t.Pair[int, int] | None,
+        identity: tuple[int, int] | None,
         descriptor: int | None,
         operation_error: BaseException,
     ) -> None:

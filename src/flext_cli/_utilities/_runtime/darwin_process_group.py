@@ -9,17 +9,13 @@ from __future__ import annotations
 import ctypes
 import errno
 import os
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliUtilitiesRuntimeDarwinProcessGroup:
     """Read libproc rather than treating killpg permission as membership."""
 
     @staticmethod
-    def _darwin_process_group_members(process_group_id: int) -> t.VariadicTuple[int]:
+    def _darwin_process_group_members(process_group_id: int) -> tuple[int, ...]:
         library = ctypes.CDLL("/usr/lib/libproc.dylib", use_errno=True)
         list_pids = library.proc_listpgrppids
         list_pids.argtypes = (ctypes.c_int, ctypes.c_void_p, ctypes.c_int)

@@ -25,8 +25,6 @@ from flext_cli._utilities import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from flext_cli import t
-
 
 class FlextCliUtilitiesAtomicFilePublish:
     """Canonical namespace owner."""
@@ -185,7 +183,7 @@ class FlextCliUtilitiesAtomicFilePublish:
     def _validated_paths(
         destination_before: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
         staged: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
-    ) -> t.Pair[Path, Path]:
+    ) -> tuple[Path, Path]:
         """Validate both atomic paths and require a distinct staged destination.
 
         Returns:
@@ -208,10 +206,10 @@ class FlextCliUtilitiesAtomicFilePublish:
     def _resolve_staged(
         staged_path: Path,
         staged: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
-    ) -> t.Quad[
+    ) -> tuple[
         bytes | m.Cli.AtomicFileReceipt,
         int,
-        t.Pair[int, int],
+        tuple[int, int],
         m.Cli.StagedFile | m.Cli.AtomicFileReceipt,
     ]:
         """Resolve the staged payload, mode, identity, and publication proof.

@@ -190,7 +190,7 @@ class FlextCliModelsBasePart02:
             ),
         ] = None
         version_key: Annotated[
-            t.VariadicTuple[int] | None,
+            tuple[int, ...] | None,
             m.Field(description="Native descriptor version used for guarded reads"),
         ] = None
 

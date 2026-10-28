@@ -111,7 +111,7 @@ class TestsFlextCliTomlCov:
         ],
     )
     def test_dot_path_joins_non_empty_segments(
-        parts: t.VariadicTuple[str],
+        parts: tuple[str, ...],
         expected: str,
     ) -> None:
         """Verify that dot path joins non empty segments."""

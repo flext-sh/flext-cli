@@ -23,7 +23,7 @@ class FlextCliModelsPptxPresentation:
         title: str = m.Field(default="", description="Slide title.")
 
     class PptxPresentationPlan(m.FrozenModel):
-        slides: t.VariadicTuple[FlextCliModelsPptxPresentation.PptxSlidePlan] = m.Field(
+        slides: tuple[FlextCliModelsPptxPresentation.PptxSlidePlan, ...] = m.Field(
             default=(),
             strict=False,
             description="Presentation slides.",
@@ -55,4 +55,4 @@ class FlextCliModelsPptxPresentation:
         )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsPptxPresentation",)
+__all__: tuple[str, ...] = ("FlextCliModelsPptxPresentation",)

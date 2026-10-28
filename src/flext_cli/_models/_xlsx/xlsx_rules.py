@@ -10,7 +10,6 @@ from typing import Annotated, Literal
 
 from flext_core import m
 
-from flext_cli import t
 from flext_cli._models._xlsx import (
     FlextCliModelsXlsxCells,
     FlextCliModelsXlsxValidation,
@@ -53,7 +52,7 @@ class FlextCliModelsXlsxRules:
         area: FlextCliModelsXlsxCells.XlsxCellRange = m.Field(
             description="Formatted range.",
         )
-        expressions: t.VariadicTuple[str] = m.Field(
+        expressions: tuple[str, ...] = m.Field(
             min_length=1,
             strict=False,
             description="Conditional formulas.",
@@ -156,16 +155,16 @@ class FlextCliModelsXlsxRules:
         permissions: FlextCliModelsXlsxRules.XlsxProtectionPermissions = m.Field(
             description="Allowed worksheet operations.",
         )
-        cells: t.VariadicTuple[FlextCliModelsXlsxRules.XlsxCellProtectionPlan] = (
-            m.Field(default=(), strict=False, description="Explicit cell protection.")
+        cells: tuple[FlextCliModelsXlsxRules.XlsxCellProtectionPlan, ...] = m.Field(
+            default=(), strict=False, description="Explicit cell protection."
         )
 
     class XlsxSheetRulesPlan(m.FrozenModel):
-        validations: t.VariadicTuple[
-            FlextCliModelsXlsxValidation.XlsxDataValidationPlan
-        ] = m.Field(default=(), strict=False, description="Data validations.")
-        conditional_formats: t.VariadicTuple[
-            FlextCliModelsXlsxRules.XlsxConditionalFormatPlan
+        validations: tuple[FlextCliModelsXlsxValidation.XlsxDataValidationPlan, ...] = (
+            m.Field(default=(), strict=False, description="Data validations.")
+        )
+        conditional_formats: tuple[
+            FlextCliModelsXlsxRules.XlsxConditionalFormatPlan, ...
         ] = m.Field(default=(), strict=False, description="Conditional formats.")
         protection: FlextCliModelsXlsxRules.XlsxSheetProtectionPlan | None = m.Field(
             default=None,
@@ -173,4 +172,4 @@ class FlextCliModelsXlsxRules:
         )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsXlsxRules",)
+__all__: tuple[str, ...] = ("FlextCliModelsXlsxRules",)

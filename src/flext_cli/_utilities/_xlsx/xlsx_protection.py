@@ -9,7 +9,7 @@ from __future__ import annotations
 from openpyxl.styles import Protection
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
 
 
 class FlextCliUtilitiesXlsxProtection:
@@ -75,4 +75,4 @@ class FlextCliUtilitiesXlsxProtection:
         return r[bool].ok(value=True)
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxProtection",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxProtection",)

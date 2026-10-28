@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, p, t
+from flext_cli import m, p
 from flext_cli._utilities import _xlsx
 
 
@@ -136,4 +136,4 @@ class FlextCliUtilitiesXlsx:
         return _xlsx.FlextCliUtilitiesXlsxAddresses.format_cell_reference(request)
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsx",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsx",)

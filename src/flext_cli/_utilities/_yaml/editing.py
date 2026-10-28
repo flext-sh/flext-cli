@@ -143,7 +143,7 @@ class FlextCliUtilitiesYamlEditing(FlextCliUtilitiesYamlEngine):
         node: CommentedMap,
         key: str,
         text: str,
-        path: t.VariadicTuple[str] = (),
+        path: tuple[str, ...] = (),
     ) -> None:
         """Insert one pre-key comment for a key. Idempotent for any input form."""
         if FlextCliUtilitiesYamlEditing.yaml_has_key_comment(node, key, text):

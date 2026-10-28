@@ -12,7 +12,6 @@ from typing import Annotated, Literal
 
 from flext_core import m
 
-from flext_cli import t
 from flext_cli._models._xlsx import FlextCliModelsXlsxCells
 
 
@@ -37,7 +36,7 @@ class FlextCliModelsXlsxValidation:
 
     class XlsxInlineListSource(m.FrozenModel):
         kind: Literal["values"] = m.Field(default="values", description="Source kind.")
-        values: t.VariadicTuple[str] = m.Field(
+        values: tuple[str, ...] = m.Field(
             min_length=1,
             strict=False,
             description="Allowed literal values.",
@@ -137,4 +136,4 @@ class FlextCliModelsXlsxValidation:
     ]
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsXlsxValidation",)
+__all__: tuple[str, ...] = ("FlextCliModelsXlsxValidation",)

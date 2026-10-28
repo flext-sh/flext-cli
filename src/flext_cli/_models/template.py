@@ -71,16 +71,16 @@ class FlextCliModelsTemplate:
         # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): callers
         # consume the declared failure field directly; models remain behavior-free.
         created: Annotated[
-            t.VariadicTuple[Path], m.Field(description="Destination paths written")
+            tuple[Path, ...], m.Field(description="Destination paths written")
         ] = m.Field(default_factory=tuple)
         skipped: Annotated[
-            t.VariadicTuple[Path],
+            tuple[Path, ...],
             m.Field(
                 description="Destinations skipped (exists or disabled)",
             ),
         ] = m.Field(default_factory=tuple)
         failed: Annotated[
-            t.VariadicTuple[t.Pair[Path, str]],
+            tuple[t.Pair[Path, str], ...],
             m.Field(
                 description="(destination, error) pairs that failed to render",
             ),
@@ -94,7 +94,7 @@ class FlextCliModelsTemplate:
             m.Field(description="Text rendered from authenticated template bytes"),
         ]
         source_states: Annotated[
-            t.VariadicTuple[FlextCliModelsBase.AtomicFileState],
+            tuple[FlextCliModelsBase.AtomicFileState, ...],
             m.Field(
                 min_length=1,
                 description="Ordered physical states of the template and its imports",

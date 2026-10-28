@@ -117,9 +117,7 @@ class TestsFlextCliCliParams:
         ],
     )
     def test_apply_to_config_rejects_invalid_enum_value(
-        settings: p.Cli.Settings,
-        field_name: str,
-        expected_fragments: t.Pair[str, str],
+        settings: p.Cli.Settings, field_name: str, expected_fragments: t.Pair[str, ...]
     ) -> None:
         """Each choice-bound field rejects an out-of-domain value with a clear error."""
         match field_name:

@@ -58,14 +58,14 @@ class TestsFlextCliConstantsCore:
     })
 
     CONVERSION_STR_CASES: ClassVar[
-        t.VariadicTuple[t.Triple[t.Cli.TypeKind, t.JsonValue | None, t.JsonValue]]
+        tuple[t.Triple[t.Cli.TypeKind, t.JsonValue | None, t.JsonValue], ...]
     ] = (
         (c.Cli.TypeKind.STR, "hello", "hello"),
         (c.Cli.TypeKind.STR, None, ""),
         (c.Cli.TypeKind.STR, 42, ""),
     )
     CONVERSION_BOOL_CASES: ClassVar[
-        t.VariadicTuple[t.Triple[t.Cli.TypeKind, t.JsonValue | None, t.JsonValue]]
+        tuple[t.Triple[t.Cli.TypeKind, t.JsonValue | None, t.JsonValue], ...]
     ] = (
         (c.Cli.TypeKind.BOOL, True, True),
         (c.Cli.TypeKind.BOOL, False, False),
@@ -73,14 +73,14 @@ class TestsFlextCliConstantsCore:
         (c.Cli.TypeKind.BOOL, "x", False),
     )
     CONVERSION_DICT_CASES: ClassVar[
-        t.VariadicTuple[t.Triple[t.Cli.TypeKind, t.JsonValue | None, t.JsonValue]]
+        tuple[t.Triple[t.Cli.TypeKind, t.JsonValue | None, t.JsonValue], ...]
     ] = (
         (c.Cli.TypeKind.DICT, {"k": "v"}, {"k": "v"}),
         (c.Cli.TypeKind.DICT, None, {}),
         (c.Cli.TypeKind.DICT, "str", {}),
     )
 
-    FILES_DETECT_FORMAT_CASES: ClassVar[t.VariadicTuple[t.Pair[str, str]]] = (
+    FILES_DETECT_FORMAT_CASES: ClassVar[tuple[t.Pair[str, str]], ...] = (
         ("data.json", c.Cli.OutputFormats.JSON),
         ("data.yaml", c.Cli.OutputFormats.YAML),
         ("data.yml", c.Cli.OutputFormats.YAML),

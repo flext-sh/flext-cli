@@ -19,7 +19,7 @@ class TestsFlextCliOptions:
     def test_tuple_field_becomes_repeated_typer_input() -> None:
         """Canonical tuple fields accept repeated CLI values through a list."""
         resolved = u.Cli.resolve_typer_annotation(
-            cast("t.Cli.RuntimeAnnotation", t.VariadicTuple[Path]),
+            cast("t.Cli.RuntimeAnnotation", tuple[Path, ...]),
         )
 
         tm.that(resolved, eq=list[Path])

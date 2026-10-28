@@ -317,7 +317,7 @@ class TestsFlextCliJsonNavigation:
         ],
     )
     def test_json_walk_path_returns_none_when_unreachable(
-        keys: t.VariadicTuple[str],
+        keys: tuple[str, ...],
         raw: str,
     ) -> None:
         """Verify that json walk path returns none when unreachable."""

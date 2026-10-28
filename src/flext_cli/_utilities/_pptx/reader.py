@@ -70,4 +70,4 @@ class FlextCliUtilitiesPptxReader:
         )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesPptxReader",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesPptxReader",)

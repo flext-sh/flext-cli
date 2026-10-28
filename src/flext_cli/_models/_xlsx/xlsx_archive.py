@@ -37,7 +37,7 @@ class FlextCliModelsXlsxArchive:
             default_factory=frozenset[str],
             description="Exact archive members that are forbidden.",
         )
-        forbidden_prefixes: t.VariadicTuple[str] = m.Field(
+        forbidden_prefixes: tuple[str, ...] = m.Field(
             default=(),
             strict=False,
             description="Forbidden member prefixes.",
@@ -76,7 +76,7 @@ class FlextCliModelsXlsxArchive:
         detail: Annotated[str, m.Field(min_length=1, description="Violation evidence.")]
 
     class XlsxArchiveInventory(m.FrozenModel):
-        members: t.VariadicTuple[str] = m.Field(
+        members: tuple[str, ...] = m.Field(
             default=(),
             strict=False,
             description="Ordered archive members.",
@@ -89,7 +89,7 @@ class FlextCliModelsXlsxArchive:
             int,
             m.Field(ge=0, description="Declared total uncompressed bytes."),
         ]
-        violations: t.VariadicTuple[FlextCliModelsXlsxArchive.XlsxArchiveViolation] = (
+        violations: tuple[FlextCliModelsXlsxArchive.XlsxArchiveViolation, ...] = (
             m.Field(default=(), strict=False, description="Inventory violations.")
         )
 
@@ -106,7 +106,7 @@ class FlextCliModelsXlsxArchive:
             int,
             m.Field(ge=0, description="Declared total uncompressed bytes."),
         ]
-        violations: t.VariadicTuple[FlextCliModelsXlsxArchive.XlsxArchiveViolation] = (
+        violations: tuple[FlextCliModelsXlsxArchive.XlsxArchiveViolation, ...] = (
             m.Field(default=(), strict=False, description="Policy violations.")
         )
         clean: bool = m.Field(description="Whether no violation was found.")
@@ -121,4 +121,4 @@ class FlextCliModelsXlsxArchive:
         )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsXlsxArchive",)
+__all__: tuple[str, ...] = ("FlextCliModelsXlsxArchive",)

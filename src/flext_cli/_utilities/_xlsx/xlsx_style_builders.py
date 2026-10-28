@@ -13,7 +13,7 @@ from openpyxl.styles.borders import Side
 from openpyxl.styles.fills import PatternFill, Stop
 
 if TYPE_CHECKING:
-    from flext_cli import m, t
+    from flext_cli import m
 
 
 class FlextCliUtilitiesXlsxStyleBuilders:
@@ -127,4 +127,4 @@ class FlextCliUtilitiesXlsxStyleBuilders:
         )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxStyleBuilders",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxStyleBuilders",)

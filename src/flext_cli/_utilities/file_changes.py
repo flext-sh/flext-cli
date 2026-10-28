@@ -41,7 +41,7 @@ class FlextCliUtilitiesFileChanges:
     @staticmethod
     def pending_file_changes(
         changes: t.SequenceOf[m.Cli.FileChange],
-    ) -> t.VariadicTuple[m.Cli.FileChange]:
+    ) -> tuple[m.Cli.FileChange, ...]:
         """Select the changes whose bytes or mode differ from the observed state.
 
         Returns:
@@ -65,7 +65,7 @@ class FlextCliUtilitiesFileChanges:
         lock_path: Path,
         directory_mode: int = c.Cli.FILE_CHANGES_DIRECTORY_MODE,
         nonsecret_source_paths: t.SequenceOf[Path] = (),
-    ) -> p.Result[t.VariadicTuple[Path]]:
+    ) -> p.Result[tuple[Path, ...]]:
         """Verify every observed state, then write or delete each changed file.
 
         No effect happens unless every destination still matches its observed

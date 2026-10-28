@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from tests import m, t, tm, u
+from tests import m, tm, u
 
 
 class TestsFlextCliXlsxRange:
@@ -107,4 +107,4 @@ class TestsFlextCliXlsxRange:
         tm.ok("xlsx_range_invalid" in (invalid.error or ""))
 
 
-__all__: t.VariadicTuple[str] = ()
+__all__: tuple[str, ...] = ()

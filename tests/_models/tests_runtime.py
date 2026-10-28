@@ -97,11 +97,11 @@ class TestsFlextCliModelsRuntime:
             return case.case_id
 
         @classmethod
-        def run_raw_cases(cls) -> t.VariadicTuple[Self]:
+        def run_raw_cases(cls) -> tuple[Self, ...]:
             """Cases for raw command execution.
 
             Returns:
-                The resulting ``t.VariadicTuple[Self]``.
+                The resulting ``tuple[Self, ...],``.
 
             """
             return (
@@ -171,11 +171,11 @@ class TestsFlextCliModelsRuntime:
             )
 
         @classmethod
-        def output_cases(cls) -> t.VariadicTuple[Self]:
+        def output_cases(cls) -> tuple[Self, ...]:
             """Cases shared by run and capture.
 
             Returns:
-                The resulting ``t.VariadicTuple[Self]``.
+                The resulting ``tuple[Self, ...],``.
 
             """
             return (

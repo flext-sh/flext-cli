@@ -200,7 +200,7 @@ class FlextCliUtilitiesTemplate:
     @staticmethod
     def template_capture_sources(
         paths: t.SequenceOf[Path],
-    ) -> p.Result[t.VariadicTuple[m.Cli.AtomicFileState]]:
+    ) -> p.Result[tuple[m.Cli.AtomicFileState, ...]]:
         """Capture declared Jinja imports through the existing native loader.
 
         Each root retains an independent authenticated dependency traversal;
@@ -211,7 +211,7 @@ class FlextCliUtilitiesTemplate:
 
         """
 
-        def capture() -> t.VariadicTuple[m.Cli.AtomicFileState]:
+        def capture() -> tuple[m.Cli.AtomicFileState, ...]:
             states: t.MutableMappingKV[Path, m.Cli.AtomicFileState] = {}
             for path in paths:
                 source = path.expanduser().absolute()
