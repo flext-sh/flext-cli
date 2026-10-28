@@ -30,8 +30,8 @@ from tests import t
 class TestsFlextCliServicesAuthCov:
     """Behavioral tests for the FlextCliAuth authentication service."""
 
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def token_file(tmp_path: Path) -> Iterator[Path]:
         """Isolate the auth token file inside the test's tmp dir.
 
@@ -51,8 +51,8 @@ class TestsFlextCliServicesAuthCov:
         finally:
             settings.cli_token_file = original_token_file
 
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def auth(token_file: Path) -> FlextCliAuth:
         """Fresh auth service bound to the isolated token file.
 

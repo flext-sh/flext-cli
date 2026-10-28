@@ -20,8 +20,8 @@ from tests import c, p, t, tm, u
 class TestsFlextCliCliParams:
     """Behavioral tests for FlextCliCommonParams public contract."""
 
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def settings() -> p.Cli.Settings:
         """Fresh CLI settings instance built through the public factory.
 
