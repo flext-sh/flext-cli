@@ -365,7 +365,7 @@ class FlextCliUtilitiesAtomicFile:
         temporary: Path,
         content: bytes,
         mode: int,
-        identity: t.Pair[int, ...],
+        identity: t.Pair[int, int],
     ) -> os.stat_result:
         state = FlextCliUtilitiesAtomicFileState.destination_state(
             temporary,

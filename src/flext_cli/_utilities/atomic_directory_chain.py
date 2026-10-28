@@ -140,7 +140,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def _require_planned_parent(
-        path: Path, state: m.Cli.AtomicDirectoryState, expected: t.Pair[int, ...]
+        path: Path, state: m.Cli.AtomicDirectoryState, expected: t.Pair[int, int]
     ) -> None:
         if (state.parent_device, state.parent_inode) != expected:
             message = f"atomic directory-chain parent changed: {path}"

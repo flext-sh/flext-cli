@@ -68,7 +68,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_tables(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxTableSnapshot], ...]:
+    ) -> p.Result[tuple[m.Cli.XlsxTableSnapshot, ...]]:
         tables: tuple[m.Cli.XlsxTableSnapshot, ...] = ()
         try:
             for item in worksheet.tables.values():
@@ -107,7 +107,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_rows(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxRowDimensionSnapshot], ...]:
+    ) -> p.Result[tuple[m.Cli.XlsxRowDimensionSnapshot, ...]]:
         rows: tuple[m.Cli.XlsxRowDimensionSnapshot, ...] = ()
         try:
             for item in worksheet.row_dimensions.values():
@@ -137,7 +137,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_columns(
         worksheet: Worksheet,
-    ) -> p.Result[tuple[m.Cli.XlsxColumnDimensionSnapshot], ...]:
+    ) -> p.Result[tuple[m.Cli.XlsxColumnDimensionSnapshot, ...]]:
         columns: tuple[m.Cli.XlsxColumnDimensionSnapshot, ...] = ()
         try:
             for item in worksheet.column_dimensions.values():
@@ -170,7 +170,7 @@ class FlextCliUtilitiesXlsxSnapshotStructure:
     @staticmethod
     def _snapshot_names(
         workbook: Workbook,
-    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameSnapshot], ...]:
+    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameSnapshot, ...]]:
         names: tuple[m.Cli.XlsxDefinedNameSnapshot, ...] = ()
         try:
             for item in workbook.defined_names.values():

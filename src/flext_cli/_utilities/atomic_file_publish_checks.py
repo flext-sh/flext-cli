@@ -68,7 +68,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     def require_distinct_inode(
         destination: Path,
         destination_state: os.stat_result | None,
-        staged_identity: t.Pair[int, ...],
+        staged_identity: t.Pair[int, int],
     ) -> None:
         """Reject lexical aliases that identify the same physical file.
 

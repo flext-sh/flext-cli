@@ -42,7 +42,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
     def _source_visuals(
         cls,
         source: bytes,
-    ) -> p.Result[tuple[m.Cli.XlsxSourceVisualStyle], ...]:
+    ) -> p.Result[tuple[m.Cli.XlsxSourceVisualStyle, ...]]:
         workbook_result = cls._load_workbook(source)
         if workbook_result.failure:
             return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].from_failure(
