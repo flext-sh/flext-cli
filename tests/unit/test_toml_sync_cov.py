@@ -27,8 +27,9 @@ from tests import t, tm, u
 class TestsFlextCliTomlSyncCoverage:
     """Public-contract behavior of the ``u.Cli.toml_*`` synchronizers."""
 
+    @staticmethod
     @pytest.fixture
-    def project_table(self) -> Table:
+    def project_table() -> Table:
         """Fresh ``[project]`` table inside an empty document.
 
         Returns:
@@ -145,8 +146,9 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- plain-mapping helpers ------------------------------------------
 
+    @staticmethod
     @pytest.fixture
-    def payload(self) -> t.JsonDict:
+    def payload() -> t.JsonDict:
         """Fresh plain pyproject-style mapping.
 
         Returns:

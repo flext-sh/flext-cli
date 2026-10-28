@@ -25,8 +25,9 @@ if TYPE_CHECKING:
 class TestsFlextCliExamplesSmokePart02:
     """Implementation part for TestsFlextCliExamplesSmokePart02."""
 
+    @staticmethod
     @pytest.fixture
-    def restore_token_file(self) -> Iterator[None]:
+    def restore_token_file() -> Iterator[None]:
         """Restore the canonical token file setting after an example mutates it."""
         original_token_file = settings.cli_token_file
         try:

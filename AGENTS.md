@@ -49,6 +49,13 @@ top-level dirs.
   SSOT.
 - Do not create parallel domain APIs; `vendor/` stays a separate vendored surface.
 - Config/settings canonical pattern: ADR-005 (SSOT) and ADR-024 (DI config contract).
+- CLI logging consumes Core's elected options model through `u.logging_options()`;
+  a bound accessor is not a logging configuration value.
+- Runtime composition retains the concrete environment, spawn, wait and output
+  adapters that connect its process components to the single native runtime.
+  Type-checking declarations do not supply executable implementations.
+- YAML extraction preserves strict parse/read/write methods alongside round-trip
+  editing; missing files and invalid content remain failures.
 - Codemod governance (ast-grep + make mod): ADR-014.
 
 ## Commands

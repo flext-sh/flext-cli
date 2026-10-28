@@ -41,14 +41,27 @@ def main(args: t.StrSequence | None = None) -> int:
 
 
 def __getattr__(name: str) -> object:
-    """Delegate attribute access to the FlextCli facade instance."""
+    """Delegate attribute access to the FlextCli facade instance.
+
+    Returns:
+        The resulting ``object``.
+
+    Raises:
+        AttributeError: If ``name.startswith(('_', 'model_'))``.
+
+    """
     if name.startswith(("_", "model_")):
         raise AttributeError(name)
     return getattr(api.cli, name)
 
 
 def __dir__() -> list[str]:
-    """Include facade attributes in directory listing."""
+    """Include facade attributes in directory listing.
+
+    Returns:
+        The resulting ``list[str]``.
+
+    """
     return sorted({*dir(api.cli), "main"})
 
 
