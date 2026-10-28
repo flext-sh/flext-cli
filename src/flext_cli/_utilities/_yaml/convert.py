@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 #: second consumer appears. NOTE (multi-agent): domain data, not a lint token.
 
 
-class FlextCliUtilitiesYamlConvertMixin:
+class FlextCliUtilitiesYamlConvert:
     """Plain<->commented conversion and scalar normalization for YAML trees."""
 
     _YAML_1_1_IMPLICIT_STRING_VALUES = frozenset({
@@ -67,7 +67,7 @@ class FlextCliUtilitiesYamlConvertMixin:
             return cast(
                 "t.Cli.YamlValue",
                 {
-                    key: FlextCliUtilitiesYamlConvertMixin.yaml_to_plain(value)
+                    key: FlextCliUtilitiesYamlConvert.yaml_to_plain(value)
                     for key, value in items
                 },
             )
@@ -75,10 +75,7 @@ class FlextCliUtilitiesYamlConvertMixin:
             values = cast("t.SequenceOf[t.Cli.YamlValue]", data)
             return cast(
                 "t.Cli.YamlValue",
-                [
-                    FlextCliUtilitiesYamlConvertMixin.yaml_to_plain(item)
-                    for item in values
-                ],
+                [FlextCliUtilitiesYamlConvert.yaml_to_plain(item) for item in values],
             )
         return data
 
@@ -135,14 +132,14 @@ class FlextCliUtilitiesYamlConvertMixin:
         if isinstance(data, Mapping):
             node = CommentedMap()
             for key, value in data.items():
-                node[key] = FlextCliUtilitiesYamlConvertMixin.yaml_deep_to_commented(
+                node[key] = FlextCliUtilitiesYamlConvert.yaml_deep_to_commented(
                     value,
                 )
             return node
-        if FlextCliUtilitiesYamlConvertMixin.yaml_is_sequence(data):
+        if FlextCliUtilitiesYamlConvert.yaml_is_sequence(data):
             values = cast("t.SequenceOf[t.Cli.YamlValue]", data)
             return CommentedSeq(
-                FlextCliUtilitiesYamlConvertMixin.yaml_deep_to_commented(item)
+                FlextCliUtilitiesYamlConvert.yaml_deep_to_commented(item)
                 for item in values
             )
         if isinstance(data, str):
@@ -150,7 +147,7 @@ class FlextCliUtilitiesYamlConvertMixin:
                 data = cast("t.Cli.YamlScalar", LiteralScalarString(data))
             elif (
                 data.lower()
-                in FlextCliUtilitiesYamlConvertMixin._YAML_1_1_IMPLICIT_STRING_VALUES
+                in FlextCliUtilitiesYamlConvert._YAML_1_1_IMPLICIT_STRING_VALUES
             ):
                 data = cast("t.Cli.YamlScalar", DoubleQuotedScalarString(data))
         elif data is not None and not isinstance(data, (int, float, bool)):
@@ -241,10 +238,10 @@ class FlextCliUtilitiesYamlConvertMixin:
         if isinstance(
             value,
             Mapping,
-        ) or FlextCliUtilitiesYamlConvertMixin.yaml_is_sequence(value):
-            return FlextCliUtilitiesYamlConvertMixin.yaml_deep_to_commented(value)
+        ) or FlextCliUtilitiesYamlConvert.yaml_is_sequence(value):
+            return FlextCliUtilitiesYamlConvert.yaml_deep_to_commented(value)
         msg = f"unsupported YAML root type: {type(value).__name__}"
         raise TypeError(msg)
 
 
-__all__: list[str] = ["FlextCliUtilitiesYamlConvertMixin"]
+__all__: list[str] = ["FlextCliUtilitiesYamlConvert"]

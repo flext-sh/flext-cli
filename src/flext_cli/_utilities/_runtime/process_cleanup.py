@@ -19,14 +19,14 @@ from types import FrameType
 
 from flext_cli import m, p, r, t
 from flext_cli._utilities import (
-    FlextCliUtilitiesRuntimeProcessMonitorMixin,
-    FlextCliUtilitiesRuntimeProcessThreadsMixin,
+    FlextCliUtilitiesRuntimeProcessMonitor,
+    FlextCliUtilitiesRuntimeProcessThreads,
 )
 
 
-class FlextCliUtilitiesRuntimeProcessCleanupMixin(
-    FlextCliUtilitiesRuntimeProcessMonitorMixin,
-    FlextCliUtilitiesRuntimeProcessThreadsMixin,
+class FlextCliUtilitiesRuntimeProcessCleanup(
+    FlextCliUtilitiesRuntimeProcessMonitor,
+    FlextCliUtilitiesRuntimeProcessThreads,
 ):
     """Forward signals, kill descendants, reap root, and drain output."""
 
@@ -366,4 +366,4 @@ class FlextCliUtilitiesRuntimeProcessCleanupMixin(
         return max(0.0, absolute_deadline - time.monotonic())
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessCleanupMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessCleanup"]

@@ -10,11 +10,11 @@ import shlex
 from typing import TYPE_CHECKING
 
 from flext_cli import p, r, t
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessOutcomeMixin
+from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessOutcome
 
 
-class FlextCliUtilitiesRuntimeCommandsMixin(
-    FlextCliUtilitiesRuntimeProcessOutcomeMixin,
+class FlextCliUtilitiesRuntimeCommands(
+    FlextCliUtilitiesRuntimeProcessOutcome,
 ):
     """Compose captured command primitives without owning subprocess creation."""
 
@@ -139,4 +139,4 @@ class FlextCliUtilitiesRuntimeCommandsMixin(
         ).map(lambda output: output.stdout.strip())
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeCommandsMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeCommands"]

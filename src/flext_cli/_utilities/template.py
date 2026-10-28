@@ -22,8 +22,8 @@ from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesMarkdown
 from flext_cli._utilities._files import FlextCliUtilitiesFilesPart03
-from flext_cli._utilities.markdown import FlextCliUtilitiesMarkdown
 
 
 class FlextCliUtilitiesTemplate:

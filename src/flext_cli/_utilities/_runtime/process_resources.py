@@ -14,7 +14,7 @@ from typing import BinaryIO
 from flext_cli import c, p, r, t
 
 
-class FlextCliUtilitiesRuntimeProcessResourcesMixin:
+class FlextCliUtilitiesRuntimeProcessResources:
     """Prepare stdin/live descriptors and finalize durable resources."""
 
     @staticmethod
@@ -33,7 +33,7 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         )
         try:
             reader, writer = (
-                FlextCliUtilitiesRuntimeProcessResourcesMixin._anonymous_stdin_pipe(
+                FlextCliUtilitiesRuntimeProcessResources._anonymous_stdin_pipe(
                     stack,
                 )
             )
@@ -87,11 +87,11 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         if not live:
             return r[tuple[int | None, int | None]].ok((None, None))
         try:
-            live_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
+            live_fd = FlextCliUtilitiesRuntimeProcessResources._open_stream_fd(
                 stack,
                 c.Cli.STDOUT_DESCRIPTOR,
             )
-            progress_fd = FlextCliUtilitiesRuntimeProcessResourcesMixin._open_stream_fd(
+            progress_fd = FlextCliUtilitiesRuntimeProcessResources._open_stream_fd(
                 stack,
                 c.Cli.STDERR_DESCRIPTOR,
             )
@@ -153,4 +153,4 @@ class FlextCliUtilitiesRuntimeProcessResourcesMixin:
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessResourcesMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessResources"]

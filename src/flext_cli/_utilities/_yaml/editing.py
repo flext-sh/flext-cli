@@ -23,10 +23,10 @@ from ruamel.yaml.comments import CommentedMap, CommentedSeq
 from ruamel.yaml.tokens import CommentToken as RuamelCommentToken
 
 from flext_cli import p, t
-from flext_cli._utilities._yaml import FlextCliUtilitiesYamlEngineMixin
+from flext_cli._utilities._yaml import FlextCliUtilitiesYamlEngine
 
 
-class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
+class FlextCliUtilitiesYamlEditing(FlextCliUtilitiesYamlEngine):
     """Comment/anchor-aware editing operations on parsed YAML trees."""
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
@@ -46,15 +46,15 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
         """Clear ruamel anchors recursively from a YAML value."""
         if node is None:
             return
-        if FlextCliUtilitiesYamlEditingMixin._yaml_has_anchor(node):
+        if FlextCliUtilitiesYamlEditing._yaml_has_anchor(node):
             cast("p.Cli.YamlAnchorNode", node).yaml_set_anchor(None)
         if isinstance(node, Mapping):
             for value in node.values():
-                FlextCliUtilitiesYamlEditingMixin.yaml_clear_anchors(value)
-        elif FlextCliUtilitiesYamlEditingMixin.yaml_is_sequence(node):
+                FlextCliUtilitiesYamlEditing.yaml_clear_anchors(value)
+        elif FlextCliUtilitiesYamlEditing.yaml_is_sequence(node):
             items = cast("t.SequenceOf[t.Cli.YamlValue]", node)
             for item in items:
-                FlextCliUtilitiesYamlEditingMixin.yaml_clear_anchors(item)
+                FlextCliUtilitiesYamlEditing.yaml_clear_anchors(item)
 
     @staticmethod
     def yaml_deep_copy_comments(src: t.Cli.YamlNode, dst: t.Cli.YamlNode) -> None:
@@ -67,7 +67,7 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             dst_map = cast("t.MappingKV[str, t.Cli.YamlNode]", dst)
             for key in src_map:
                 if key in dst_map:
-                    FlextCliUtilitiesYamlEditingMixin.yaml_deep_copy_comments(
+                    FlextCliUtilitiesYamlEditing.yaml_deep_copy_comments(
                         src_map[key],
                         dst_map[key],
                     )
@@ -79,7 +79,7 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             dst_seq = cast("t.SequenceOf[t.Cli.YamlNode]", dst)
             for index, item in enumerate(src_seq):
                 if index < len(dst_seq):
-                    FlextCliUtilitiesYamlEditingMixin.yaml_deep_copy_comments(
+                    FlextCliUtilitiesYamlEditing.yaml_deep_copy_comments(
                         item,
                         dst_seq[index],
                     )
@@ -129,10 +129,10 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             True when a pre-key comment with the same core text exists.
 
         """
-        wanted = FlextCliUtilitiesYamlEditingMixin._yaml_comment_core(text)
+        wanted = FlextCliUtilitiesYamlEditing._yaml_comment_core(text)
         return any(
-            FlextCliUtilitiesYamlEditingMixin._yaml_comment_core(token.value) == wanted
-            for token in FlextCliUtilitiesYamlEditingMixin.yaml_pre_key_tokens(
+            FlextCliUtilitiesYamlEditing._yaml_comment_core(token.value) == wanted
+            for token in FlextCliUtilitiesYamlEditing.yaml_pre_key_tokens(
                 node,
                 key,
             )
@@ -146,9 +146,9 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
         path: t.VariadicTuple[str] = (),
     ) -> None:
         """Insert one pre-key comment for a key. Idempotent for any input form."""
-        if FlextCliUtilitiesYamlEditingMixin.yaml_has_key_comment(node, key, text):
+        if FlextCliUtilitiesYamlEditing.yaml_has_key_comment(node, key, text):
             return
-        comment_text = FlextCliUtilitiesYamlEditingMixin._yaml_comment_core(text)
+        comment_text = FlextCliUtilitiesYamlEditing._yaml_comment_core(text)
         indent = max(len(path) - 1, 0) * 2
         setter = cast("p.Cli.YamlCommentKeySetter", node)
         setter.yaml_set_comment_before_after_key(
@@ -166,14 +166,14 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             cast("p.Cli.YamlFlowStyleCarrier", node).fa.set_block_style()
             values = cast("t.MappingKV[str, t.Cli.YamlNode]", node).values()
             for value in values:
-                FlextCliUtilitiesYamlEditingMixin.yaml_force_block_style(value)
+                FlextCliUtilitiesYamlEditing.yaml_force_block_style(value)
         elif isinstance(node, CommentedSeq):
             if not node:
                 return
             cast("p.Cli.YamlFlowStyleCarrier", node).fa.set_block_style()
             items = cast("t.SequenceOf[t.Cli.YamlNode]", node)
             for item in items:
-                FlextCliUtilitiesYamlEditingMixin.yaml_force_block_style(item)
+                FlextCliUtilitiesYamlEditing.yaml_force_block_style(item)
 
     @staticmethod
     def yaml_update_value_inplace(
@@ -183,7 +183,7 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
     ) -> None:
         """Update one key value, preserving its existing pre-key comments."""
         if isinstance(value, (dict, list)):
-            node[key] = FlextCliUtilitiesYamlEditingMixin.yaml_deep_to_commented(value)
+            node[key] = FlextCliUtilitiesYamlEditing.yaml_deep_to_commented(value)
         else:
             node[key] = value
 
@@ -204,12 +204,12 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             if key in base_map:
                 current = base_map[key]
                 if isinstance(current, CommentedMap) and isinstance(value, dict):
-                    FlextCliUtilitiesYamlEditingMixin.yaml_overlay_preserving_order(
+                    FlextCliUtilitiesYamlEditing.yaml_overlay_preserving_order(
                         current,
                         value,
                     )
                 else:
-                    FlextCliUtilitiesYamlEditingMixin.yaml_update_value_inplace(
+                    FlextCliUtilitiesYamlEditing.yaml_update_value_inplace(
                         base,
                         key,
                         value,
@@ -217,10 +217,10 @@ class FlextCliUtilitiesYamlEditingMixin(FlextCliUtilitiesYamlEngineMixin):
             else:
                 new_keys.append((
                     key,
-                    FlextCliUtilitiesYamlEditingMixin.yaml_deep_to_commented(value),
+                    FlextCliUtilitiesYamlEditing.yaml_deep_to_commented(value),
                 ))
         for key, value in new_keys:
             base[key] = value
 
 
-__all__: list[str] = ["FlextCliUtilitiesYamlEditingMixin"]
+__all__: list[str] = ["FlextCliUtilitiesYamlEditing"]

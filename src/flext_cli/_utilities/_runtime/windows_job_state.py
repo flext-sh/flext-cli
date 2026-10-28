@@ -13,7 +13,7 @@ from ctypes import wintypes
 from flext_cli import p, r
 
 
-class FlextCliUtilitiesRuntimeWindowsJobStateMixin:
+class FlextCliUtilitiesRuntimeWindowsJobState:
     """Query and close one owned Windows Job Object."""
 
     @classmethod
@@ -132,4 +132,4 @@ class FlextCliUtilitiesRuntimeWindowsJobStateMixin:
         return None
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeWindowsJobStateMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeWindowsJobState"]

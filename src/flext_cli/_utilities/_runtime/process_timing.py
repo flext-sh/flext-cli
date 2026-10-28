@@ -11,7 +11,7 @@ import shlex
 from flext_cli import c, m, p, r, t
 
 
-class FlextCliUtilitiesRuntimeProcessTimingMixin:
+class FlextCliUtilitiesRuntimeProcessTiming:
     """Resolve relative and absolute deadlines through one policy owner."""
 
     @staticmethod
@@ -27,7 +27,7 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
                 "timeout and deadline are mutually exclusive",
             )
         output_error = (
-            FlextCliUtilitiesRuntimeProcessTimingMixin._process_output_policy_error(
+            FlextCliUtilitiesRuntimeProcessTiming._process_output_policy_error(
                 request,
                 on_main_thread=on_main_thread,
             )
@@ -98,7 +98,7 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
             error = "captured and durable output are mutually exclusive"
         elif request.stderr_path is not None and request.output_path is None:
             error = "Separate stderr requires a durable stdout destination"
-        elif FlextCliUtilitiesRuntimeProcessTimingMixin._shares_output_destination(
+        elif FlextCliUtilitiesRuntimeProcessTiming._shares_output_destination(
             request,
         ):
             error = "Process stdout and stderr destinations must be distinct"
@@ -112,4 +112,4 @@ class FlextCliUtilitiesRuntimeProcessTimingMixin:
         return error
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessTimingMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessTiming"]

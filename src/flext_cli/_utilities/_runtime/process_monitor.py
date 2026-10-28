@@ -11,11 +11,11 @@ import signal
 import time
 
 from flext_cli import c, m, p, t
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessGroupMixin
+from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessGroup
 
 
-class FlextCliUtilitiesRuntimeProcessMonitorMixin(
-    FlextCliUtilitiesRuntimeProcessGroupMixin,
+class FlextCliUtilitiesRuntimeProcessMonitor(
+    FlextCliUtilitiesRuntimeProcessGroup,
 ):
     """Monitor one process group through events and one absolute deadline."""
 
@@ -239,4 +239,4 @@ class FlextCliUtilitiesRuntimeProcessMonitorMixin(
         return min(pending) if pending else None
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessMonitorMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessMonitor"]

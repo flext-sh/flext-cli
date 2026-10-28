@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     from flext_cli import t
 
 
-class FlextCliUtilitiesRuntimeDarwinProcessGroupMixin:
+class FlextCliUtilitiesRuntimeDarwinProcessGroup:
     """Read libproc rather than treating killpg permission as membership."""
 
     @staticmethod
@@ -98,4 +98,4 @@ class FlextCliUtilitiesRuntimeDarwinProcessGroupMixin:
         return True
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeDarwinProcessGroupMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeDarwinProcessGroup"]

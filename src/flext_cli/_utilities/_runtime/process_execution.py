@@ -26,43 +26,31 @@ from flext_core import u
 
 from flext_cli import c, m, p, r, t
 from flext_cli._config import config
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileSnapshot,
+    FlextCliUtilitiesAtomicParentDescriptor,
+)
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_05 import (
     FlextCliUtilitiesFilesPart05,
 )
-from flext_cli._utilities._runtime_process_cleanup import (
-    FlextCliUtilitiesRuntimeProcessCleanupMixin,
-)
-from flext_cli._utilities._runtime_process_outcome import (
-    FlextCliUtilitiesRuntimeProcessOutcomeMixin,
-)
-from flext_cli._utilities._runtime_process_output import (
-    FlextCliUtilitiesRuntimeProcessOutputMixin,
-)
-from flext_cli._utilities._runtime_process_resources import (
-    FlextCliUtilitiesRuntimeProcessResourcesMixin,
-)
-from flext_cli._utilities._runtime_process_start import (
-    FlextCliUtilitiesRuntimeProcessStartMixin,
-)
-from flext_cli._utilities._runtime_process_timing import (
-    FlextCliUtilitiesRuntimeProcessTimingMixin,
-)
-from flext_cli._utilities.atomic_file_snapshot import (
-    FlextCliUtilitiesAtomicFileSnapshot,
-)
-from flext_cli._utilities.atomic_parent_descriptor import (
-    FlextCliUtilitiesAtomicParentDescriptor,
+from flext_cli._utilities._runtime import (
+    FlextCliUtilitiesRuntimeProcessCleanup,
+    FlextCliUtilitiesRuntimeProcessOutcome,
+    FlextCliUtilitiesRuntimeProcessOutput,
+    FlextCliUtilitiesRuntimeProcessResources,
+    FlextCliUtilitiesRuntimeProcessStart,
+    FlextCliUtilitiesRuntimeProcessTiming,
 )
 
 
-class FlextCliUtilitiesRuntimeProcessExecutionMixin(
-    FlextCliUtilitiesRuntimeProcessCleanupMixin,
-    FlextCliUtilitiesRuntimeProcessOutcomeMixin,
-    FlextCliUtilitiesRuntimeProcessOutputMixin,
-    FlextCliUtilitiesRuntimeProcessResourcesMixin,
-    FlextCliUtilitiesRuntimeProcessStartMixin,
-    FlextCliUtilitiesRuntimeProcessTimingMixin,
+class FlextCliUtilitiesRuntimeProcessExecution(
+    FlextCliUtilitiesRuntimeProcessCleanup,
+    FlextCliUtilitiesRuntimeProcessOutcome,
+    FlextCliUtilitiesRuntimeProcessOutput,
+    FlextCliUtilitiesRuntimeProcessResources,
+    FlextCliUtilitiesRuntimeProcessStart,
+    FlextCliUtilitiesRuntimeProcessTiming,
 ):
     """Own one child process and its streaming resources."""
 
@@ -865,7 +853,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
             vector.
 
         """
-        mixin = FlextCliUtilitiesRuntimeProcessExecutionMixin
+        mixin = FlextCliUtilitiesRuntimeProcessExecution
         arguments = mixin.native_process_policy_arguments()
         content = b"\0".join(name.encode("ascii") for name in arguments) + b"\0"
         return hashlib.sha256(content).hexdigest()
@@ -1060,7 +1048,7 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
         if captured.content is None or captured.mode is None:
             msg = f"isolated process input has no captured bytes: {captured.path}"
             raise ValueError(msg)
-        return FlextCliUtilitiesRuntimeProcessExecutionMixin._sealed_process_bytes(
+        return FlextCliUtilitiesRuntimeProcessExecution._sealed_process_bytes(
             state, captured.path.name, captured.content, captured.mode
         )
 
@@ -1188,4 +1176,4 @@ class FlextCliUtilitiesRuntimeProcessExecutionMixin(
                 primary_error.add_note(diagnostic)
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessExecutionMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessExecution"]

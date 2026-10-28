@@ -12,16 +12,16 @@ import signal
 
 from flext_cli import p, r
 from flext_cli._utilities import (
-    FlextCliUtilitiesRuntimeDarwinProcessGroupMixin,
-    FlextCliUtilitiesRuntimeWindowsJobStartMixin,
-    FlextCliUtilitiesRuntimeWindowsJobStateMixin,
+    FlextCliUtilitiesRuntimeDarwinProcessGroup,
+    FlextCliUtilitiesRuntimeWindowsJobStart,
+    FlextCliUtilitiesRuntimeWindowsJobState,
 )
 
 
-class FlextCliUtilitiesRuntimeProcessGroupMixin(
-    FlextCliUtilitiesRuntimeDarwinProcessGroupMixin,
-    FlextCliUtilitiesRuntimeWindowsJobStartMixin,
-    FlextCliUtilitiesRuntimeWindowsJobStateMixin,
+class FlextCliUtilitiesRuntimeProcessGroup(
+    FlextCliUtilitiesRuntimeDarwinProcessGroup,
+    FlextCliUtilitiesRuntimeWindowsJobStart,
+    FlextCliUtilitiesRuntimeWindowsJobState,
 ):
     """Own POSIX process groups and Windows kill-on-close Job Objects."""
 
@@ -137,4 +137,4 @@ class FlextCliUtilitiesRuntimeProcessGroupMixin(
         return r[bool].ok(value=True)
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessGroupMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessGroup"]

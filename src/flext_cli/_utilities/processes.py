@@ -22,15 +22,14 @@ from types import MappingProxyType
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities import FlextCliUtilitiesRuntime
-from flext_cli._utilities._runtime_process_group import (
-    FlextCliUtilitiesRuntimeProcessGroupMixin,
-)
 
 
 class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
     """Runtime helpers for managed external processes."""
 
-    class ManagedProcess(FlextCliUtilitiesRuntimeProcessGroupMixin):
+    class ManagedProcess(
+        FlextCliUtilitiesRuntime,
+    ):
         """Typed handle for a long-running child process.
 
         Session leaders own their POSIX process group: ``terminate`` and ``kill``

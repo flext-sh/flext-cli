@@ -14,10 +14,10 @@ from tomlkit.exceptions import ParseError
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c, e, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesRuntime
 from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesTomlPart01,
 )
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
 if TYPE_CHECKING:
     from pathlib import Path

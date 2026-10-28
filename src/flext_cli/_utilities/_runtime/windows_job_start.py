@@ -14,7 +14,7 @@ from typing import ClassVar
 from flext_cli import p, r
 
 
-class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
+class FlextCliUtilitiesRuntimeWindowsJobStart:
     """Contain a suspended Windows process before any child code executes."""
 
     _RESUME_THREAD_FAILED: ClassVar[int] = 0xFFFFFFFF
@@ -205,4 +205,4 @@ class FlextCliUtilitiesRuntimeWindowsJobStartMixin:
         return None
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeWindowsJobStartMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeWindowsJobStart"]

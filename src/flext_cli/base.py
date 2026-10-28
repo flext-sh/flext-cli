@@ -13,8 +13,7 @@ from typing import TYPE_CHECKING, override
 
 from flext_core import FlextService
 
-from flext_cli import FlextCliSettings, m, p
-from flext_cli._utilities import FlextCliUtilitiesCli
+from flext_cli import FlextCliSettings, FlextCliUtilities, m, p
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
 class FlextCliServiceBase[TDomainResult: p.Base](
     FlextService[TDomainResult],
     m.Cli.ServiceOptions,
-    FlextCliUtilitiesCli,
+    FlextCliUtilities,
 ):
     """Base class for flext-cli services with typed configuration access.
 

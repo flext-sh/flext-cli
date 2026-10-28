@@ -50,12 +50,14 @@ if TYPE_CHECKING:
     from flext_cli.constants import FlextCliConstants, c
     from flext_cli.models import FlextCliModels, m
     from flext_cli.protocols import FlextCliProtocols, p
+    from flext_cli.services.cli import FlextCliCli
     from flext_cli.typings import FlextCliTypes, t
     from flext_cli.utilities import FlextCliUtilities, FlextCliUtilitiesCli, u
 
 
 __all__: tuple[str, ...] = (
     "FlextCli",
+    "FlextCliCli",
     "FlextCliConfig",
     "FlextCliConstants",
     "FlextCliModels",
@@ -106,11 +108,13 @@ install_lazy_exports(
     globals(),
     MappingProxyType({
         "FlextCli": ".api",
+        "FlextCliCli": ".services.cli",
         "FlextCliConfig": "._config",
         "FlextCliConstants": ".constants",
         "FlextCliModels": ".models",
         "FlextCliProtocols": ".protocols",
         "FlextCliServiceBase": ".base",
+        "FlextCliCli": ".services.cli",
         "FlextCliSettings": "._settings",
         "FlextCliTypes": ".typings",
         "FlextCliUtilities": ".utilities",

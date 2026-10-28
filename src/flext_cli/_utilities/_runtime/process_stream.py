@@ -13,7 +13,7 @@ from typing import IO, BinaryIO, ClassVar
 from flext_cli import m, p, r, t
 
 
-class FlextCliUtilitiesRuntimeProcessStreamMixin:
+class FlextCliUtilitiesRuntimeProcessStream:
     """Route child bytes to captured, durable, and live output owners."""
 
     _STREAM_CHUNK_BYTES: ClassVar[int] = 64 * 1024
@@ -153,4 +153,4 @@ class FlextCliUtilitiesRuntimeProcessStreamMixin:
         return True
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessStreamMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessStream"]

@@ -10,11 +10,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli import m, p, settings, t
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessExecutionMixin
+from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessExecution
 
 
-class FlextCliUtilitiesRuntimeRunToFileMixin(
-    FlextCliUtilitiesRuntimeProcessExecutionMixin,
+class FlextCliUtilitiesRuntimeRunToFile(
+    FlextCliUtilitiesRuntimeProcessExecution,
 ):
     """Validate and dispatch one portable streamed process lifecycle."""
 
@@ -82,4 +82,4 @@ class FlextCliUtilitiesRuntimeRunToFileMixin(
         ).map(lambda output: output.outcome)
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeRunToFileMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeRunToFile"]

@@ -12,9 +12,7 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
+from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
 
 
 class FlextCliUtilitiesAtomicFileRead:

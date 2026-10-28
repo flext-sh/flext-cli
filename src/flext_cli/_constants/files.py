@@ -15,7 +15,7 @@ from typing import ClassVar
 
 from flext_core import t
 
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
+from flext_cli._utilities import FlextCliUtilitiesAtomicFileRead
 
 
 class FlextCliConstantsFiles:

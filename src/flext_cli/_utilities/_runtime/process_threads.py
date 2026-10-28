@@ -10,17 +10,17 @@ import threading
 from typing import IO, TYPE_CHECKING, BinaryIO
 
 from flext_cli._utilities import (
-    FlextCliUtilitiesRuntimeProcessStreamMixin,
-    FlextCliUtilitiesRuntimeProcessWaitMixin,
+    FlextCliUtilitiesRuntimeProcessStream,
+    FlextCliUtilitiesRuntimeProcessWait,
 )
 
 if TYPE_CHECKING:
     from flext_cli import m, p, t
 
 
-class FlextCliUtilitiesRuntimeProcessThreadsMixin(
-    FlextCliUtilitiesRuntimeProcessStreamMixin,
-    FlextCliUtilitiesRuntimeProcessWaitMixin,
+class FlextCliUtilitiesRuntimeProcessThreads(
+    FlextCliUtilitiesRuntimeProcessStream,
+    FlextCliUtilitiesRuntimeProcessWait,
 ):
     """Start bounded lifecycle threads at their canonical owner."""
 
@@ -84,4 +84,4 @@ class FlextCliUtilitiesRuntimeProcessThreadsMixin(
         return pump
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessThreadsMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessThreads"]

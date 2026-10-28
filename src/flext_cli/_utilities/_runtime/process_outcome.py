@@ -9,7 +9,7 @@ from __future__ import annotations
 from flext_cli import c, m, p, r, t
 
 
-class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
+class FlextCliUtilitiesRuntimeProcessOutcome:
     """Map one completed lifecycle to its public result contract."""
 
     @staticmethod
@@ -89,4 +89,4 @@ class FlextCliUtilitiesRuntimeProcessOutcomeMixin:
         )
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessOutcomeMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessOutcome"]

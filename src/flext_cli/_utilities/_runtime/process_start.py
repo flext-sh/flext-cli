@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, BinaryIO
 from flext_cli import m, p, r, t
 
 
-class FlextCliUtilitiesRuntimeProcessStartMixin:
+class FlextCliUtilitiesRuntimeProcessStart:
     """Start one root process and contain it before child code can run."""
 
     if TYPE_CHECKING:
@@ -92,4 +92,4 @@ class FlextCliUtilitiesRuntimeProcessStartMixin:
         _ = cls._windows_job_close(job_handle)
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessStartMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessStart"]

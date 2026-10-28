@@ -11,7 +11,7 @@ import threading
 from flext_cli import c, p, t
 
 
-class FlextCliUtilitiesRuntimeProcessWaitMixin:
+class FlextCliUtilitiesRuntimeProcessWait:
     """Reap a root process once and wake event-driven lifecycle monitoring."""
 
     @staticmethod
@@ -31,4 +31,4 @@ class FlextCliUtilitiesRuntimeProcessWaitMixin:
             wake.set()
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessWaitMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessWait"]

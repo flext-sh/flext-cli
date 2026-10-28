@@ -19,10 +19,10 @@ from flext_core import u
 
 from flext_cli import t
 from flext_cli._utilities import FlextCliUtilitiesConversion
-from flext_cli._utilities._json import FlextCliUtilitiesJsonCoreMixin
+from flext_cli._utilities._json import FlextCliUtilitiesJsonCore
 
 
-class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
+class FlextCliUtilitiesJsonNavigate(FlextCliUtilitiesJsonCore):
     """Navigate nested JSON mappings and extract typed scalar values."""
 
     @staticmethod
@@ -37,8 +37,8 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
         """
         return [
             mapping
-            for item in FlextCliUtilitiesJsonNavigateMixin.json_as_sequence(value)
-            if (mapping := FlextCliUtilitiesJsonNavigateMixin.json_as_mapping(item))
+            for item in FlextCliUtilitiesJsonNavigate.json_as_sequence(value)
+            if (mapping := FlextCliUtilitiesJsonNavigate.json_as_mapping(item))
         ]
 
     @staticmethod
@@ -73,9 +73,9 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
 
         """
         if not keys:
-            return FlextCliUtilitiesJsonNavigateMixin.json_as_mapping(data)
-        raw = FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys)
-        return FlextCliUtilitiesJsonNavigateMixin.json_as_mapping(raw)
+            return FlextCliUtilitiesJsonNavigate.json_as_mapping(data)
+        raw = FlextCliUtilitiesJsonNavigate.json_walk_path(data, keys)
+        return FlextCliUtilitiesJsonNavigate.json_as_mapping(raw)
 
     @staticmethod
     def json_deep_mapping_list(
@@ -88,8 +88,8 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
             The resulting ``t.SequenceOf[t.JsonMapping]``.
 
         """
-        raw = FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys)
-        return FlextCliUtilitiesJsonNavigateMixin.json_as_mapping_list(raw)
+        raw = FlextCliUtilitiesJsonNavigate.json_walk_path(data, keys)
+        return FlextCliUtilitiesJsonNavigate.json_as_mapping_list(raw)
 
     @staticmethod
     def json_pick_str(data: t.JsonMapping, key: str, default: str = "") -> str:
@@ -136,7 +136,7 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
 
         """
         parsed = u.parse(
-            FlextCliUtilitiesJsonNavigateMixin.json_walk_path(data, keys),
+            FlextCliUtilitiesJsonNavigate.json_walk_path(data, keys),
             int,
             default=default,
         ).unwrap_or(default)
@@ -156,8 +156,8 @@ class FlextCliUtilitiesJsonNavigateMixin(FlextCliUtilitiesJsonCoreMixin):
             The resulting ``str``.
 
         """
-        raw = FlextCliUtilitiesJsonNavigateMixin.json_pick_str(mapping, key, default)
+        raw = FlextCliUtilitiesJsonNavigate.json_pick_str(mapping, key, default)
         return u.normalize(raw, case=case)
 
 
-__all__: list[str] = ["FlextCliUtilitiesJsonNavigateMixin"]
+__all__: list[str] = ["FlextCliUtilitiesJsonNavigate"]

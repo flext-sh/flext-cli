@@ -10,14 +10,14 @@ import threading
 from typing import IO, TYPE_CHECKING
 
 from flext_cli import m
-from flext_cli._utilities import FlextCliUtilitiesRuntimeProcessThreadsMixin
+from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessThreads
 
 if TYPE_CHECKING:
     from flext_cli import p, t
 
 
-class FlextCliUtilitiesRuntimeProcessOutputMixin(
-    FlextCliUtilitiesRuntimeProcessThreadsMixin,
+class FlextCliUtilitiesRuntimeProcessOutput(
+    FlextCliUtilitiesRuntimeProcessThreads,
 ):
     """Attach every requested child pipe to exactly one bounded pump."""
 
@@ -73,4 +73,4 @@ class FlextCliUtilitiesRuntimeProcessOutputMixin(
         return tuple(pump_streams)
 
 
-__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessOutputMixin"]
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessOutput"]

@@ -30,13 +30,13 @@ from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml.error import YAMLError
 
 from flext_cli import c, p, r, t
-from flext_cli._utilities._yaml import FlextCliUtilitiesYamlConvertMixin
+from flext_cli._utilities._yaml import FlextCliUtilitiesYamlConvert
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 
-class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
+class FlextCliUtilitiesYamlEngine(FlextCliUtilitiesYamlConvert):
     """Round-trip (comment/quote-preserving) YAML load/dump surface.
 
     Loading and dumping return ``r[T]`` so parse and validation failures
@@ -75,10 +75,10 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
 
         def produce() -> t.Cli.YamlValue:
             with path.open("r", encoding=c.DEFAULT_ENCODING) as fh:
-                return FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml().load(fh)
+                return FlextCliUtilitiesYamlEngine._roundtrip_yaml().load(fh)
 
         try:
-            return FlextCliUtilitiesYamlEngineMixin._load_node(produce)
+            return FlextCliUtilitiesYamlEngine._load_node(produce)
         except OSError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML read error: {exc}", exception=exc)
 
@@ -91,7 +91,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
 
         """
         try:
-            node = FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(produce())
+            node = FlextCliUtilitiesYamlEngine._yaml_coerce_node(produce())
         except YAMLError as exc:
             return r[t.Cli.YamlNode].fail(f"YAML parse error: {exc}", exception=exc)
         except TypeError as exc:
@@ -108,8 +108,8 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             The resulting ``p.Result[t.Cli.YamlNode]``.
 
         """
-        return FlextCliUtilitiesYamlEngineMixin._load_node(
-            lambda: FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml().load(text),
+        return FlextCliUtilitiesYamlEngine._load_node(
+            lambda: FlextCliUtilitiesYamlEngine._roundtrip_yaml().load(text),
         )
 
     @staticmethod
@@ -123,9 +123,9 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
 
         """
         try:
-            engine = FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml()
+            engine = FlextCliUtilitiesYamlEngine._roundtrip_yaml()
             nodes = tuple(
-                FlextCliUtilitiesYamlEngineMixin._yaml_coerce_node(value)
+                FlextCliUtilitiesYamlEngine._yaml_coerce_node(value)
                 for value in engine.load_all(text)
             )
         except YAMLError as exc:
@@ -146,7 +146,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
             The resulting ``p.Result[CommentedMap]``.
 
         """
-        loaded = FlextCliUtilitiesYamlEngineMixin.yaml_roundtrip_load_text(text)
+        loaded = FlextCliUtilitiesYamlEngine.yaml_roundtrip_load_text(text)
         if not loaded.success:
             message = (
                 loaded.error if loaded.error is not None else "YAML text parse error"
@@ -166,7 +166,7 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
 
         """
         try:
-            FlextCliUtilitiesYamlEngineMixin._roundtrip_yaml().dump(data, stream)
+            FlextCliUtilitiesYamlEngine._roundtrip_yaml().dump(data, stream)
         except (OSError, YAMLError, TypeError, ValueError) as exc:
             return r[bool].fail(f"YAML dump error: {exc}", exception=exc)
         return r[bool].ok(value=True)
@@ -180,11 +180,11 @@ class FlextCliUtilitiesYamlEngineMixin(FlextCliUtilitiesYamlConvertMixin):
 
         """
         buffer = io.StringIO()
-        dumped = FlextCliUtilitiesYamlEngineMixin.yaml_roundtrip_dump(data, buffer)
+        dumped = FlextCliUtilitiesYamlEngine.yaml_roundtrip_dump(data, buffer)
         if not dumped.success:
             message = dumped.error if dumped.error is not None else "YAML dump error"
             return r[str].fail(message)
         return r[str].ok(buffer.getvalue())
 
 
-__all__: list[str] = ["FlextCliUtilitiesYamlEngineMixin"]
+__all__: list[str] = ["FlextCliUtilitiesYamlEngine"]

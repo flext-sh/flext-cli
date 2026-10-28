@@ -14,13 +14,13 @@ from pathlib import Path
 from typing import Never
 
 from flext_cli import c, t
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
+    FlextCliAtomicTreeDarwin,
     FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileRead,
+    FlextCliUtilitiesAtomicFileState,
 )
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
-from flext_cli._utilities.atomic_tree_darwin import FlextCliAtomicTreeDarwin
 
 
 class FlextCliUtilitiesAtomicTreeDescriptor:

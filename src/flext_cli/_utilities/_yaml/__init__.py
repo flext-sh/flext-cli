@@ -1,5 +1,5 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Utilities. Yaml package.
+"""Internal package for yaml.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,24 +13,23 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._utilities._yaml._convert import FlextCliUtilitiesYamlConvertMixin
-    from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
-    from flext_cli._utilities._yaml._engine import FlextCliUtilitiesYamlEngineMixin
-
+    from flext_cli._utilities._yaml.convert import FlextCliUtilitiesYamlConvert
+    from flext_cli._utilities._yaml.editing import FlextCliUtilitiesYamlEditing
+    from flext_cli._utilities._yaml.engine import FlextCliUtilitiesYamlEngine
 
 __all__: tuple[str, ...] = (
-    "FlextCliUtilitiesYamlConvertMixin",
-    "FlextCliUtilitiesYamlEditingMixin",
-    "FlextCliUtilitiesYamlEngineMixin",
+    "FlextCliUtilitiesYamlConvert",
+    "FlextCliUtilitiesYamlEditing",
+    "FlextCliUtilitiesYamlEngine",
 )
 
 install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "FlextCliUtilitiesYamlConvertMixin": "._convert",
-        "FlextCliUtilitiesYamlEditingMixin": "._editing",
-        "FlextCliUtilitiesYamlEngineMixin": "._engine",
+        "FlextCliUtilitiesYamlConvert": ".convert",
+        "FlextCliUtilitiesYamlEditing": ".editing",
+        "FlextCliUtilitiesYamlEngine": ".engine",
     }),
     public_exports=__all__,
 )
