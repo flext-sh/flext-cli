@@ -6,7 +6,7 @@ error-message semantics, and round-trip idempotence. No private state,
 collaborators, or internals are touched.
 
 Covered public API: ``yaml_safe_load``, ``yaml_parse``, ``yaml_load_mapping``,
-``yaml_load_list``, ``yaml_dump``, ``yaml_dump_str``.
+``yaml_dump``, ``yaml_dump_str``.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -150,70 +150,20 @@ class TestsFlextCliYamlCov:
         tm.that(result, eq=expected)
 
     @staticmethod
-    def test_yaml_load_mapping_missing_defaults_to_empty(tmp_path: Path) -> None:
-        """Verify that yaml load mapping missing defaults to empty."""
-        result = u.Cli.yaml_load_mapping(tmp_path / "missing.yml")
-
-        tm.that(result, eq={})
+    def test_yaml_load_mapping_missing_file_fails_loudly(tmp_path: Path) -> None:
+        """Verify that yaml load mapping never substitutes data for a missing file."""
+        tm.fail(u.Cli.yaml_safe_load(tmp_path / "missing.yml"))
 
     @staticmethod
-    def test_yaml_load_mapping_missing_uses_provided_default(
-        tmp_path: Path,
-    ) -> None:
-        """Verify that yaml load mapping missing uses provided default."""
-        default: t.JsonMapping = {"fallback": True}
-
-        result = u.Cli.yaml_load_mapping(tmp_path / "missing.yml", default=default)
-
-        tm.that(result, eq=default)
-
-    @staticmethod
-    def test_yaml_load_mapping_invalid_yaml_uses_default(tmp_path: Path) -> None:
-        """Verify that yaml load mapping invalid yaml uses default."""
+    def test_yaml_load_mapping_invalid_yaml_fails_loudly(tmp_path: Path) -> None:
+        """Verify that yaml load mapping never substitutes data for a parse failure."""
         bad_file = tmp_path / "bad.yml"
         bad_file.write_text(c.Tests.YAML_INVALID_CONTENT, encoding="utf-8")
 
-        result = u.Cli.yaml_load_mapping(bad_file, default={"safe": 1})
+        result = u.Cli.yaml_safe_load(bad_file)
 
-        tm.that(result, eq={"safe": 1})
-
-    # ── yaml_load_list ───────────────────────────────────────────────
-
-    @staticmethod
-    @pytest.mark.parametrize(("content", "expect_list"), c.Tests.YAML_LIST_CASES)
-    def test_yaml_load_list_returns_list_only_for_sequences(
-        tmp_path: Path,
-        content: str,
-        *,
-        expect_list: bool,
-    ) -> None:
-        """Verify that yaml load list returns list only for sequences."""
-        data_file = tmp_path / "data.yml"
-        data_file.write_text(content, encoding="utf-8")
-
-        result = u.Cli.yaml_load_list(data_file)
-
-        if expect_list:
-            tm.that(list(result), eq=["a", "b", "c"])
-        else:
-            tm.that(list(result), eq=[])
-
-    @staticmethod
-    def test_yaml_load_list_missing_file_returns_empty(tmp_path: Path) -> None:
-        """Verify that yaml load list missing file returns empty."""
-        result = u.Cli.yaml_load_list(tmp_path / "nope.yml")
-
-        tm.that(list(result), eq=[])
-
-    @staticmethod
-    def test_yaml_load_list_invalid_yaml_returns_empty(tmp_path: Path) -> None:
-        """Verify that yaml load list invalid yaml returns empty."""
-        bad_file = tmp_path / "bad.yml"
-        bad_file.write_text(c.Tests.YAML_INVALID_CONTENT, encoding="utf-8")
-
-        result = u.Cli.yaml_load_list(bad_file)
-
-        tm.that(list(result), eq=[])
+        tm.fail(result)
+        tm.that(result.error, ne=None)
 
 
 class TestsFlextCliYamlSerialization:

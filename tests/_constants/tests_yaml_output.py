@@ -36,13 +36,6 @@ class TestsFlextCliConstantsYamlOutput:
         ({}, False, True),
     )
 
-    # yaml_load_list: content yields non-list when invalid
-    YAML_LIST_CASES: ClassVar[t.VariadicTuple[t.Pair[str, bool]]] = (
-        ("- a\n- b\n- c\n", True),
-        ("", False),
-        (YAML_VALID_CONTENT, False),  # mapping not a list
-    )
-
     # ── MATCHING ───────────────────────────────────────────────────
     # matches(msg, *patterns) → (msg, patterns, expected)
     MATCH_SIMPLE_CASES: ClassVar[

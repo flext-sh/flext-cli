@@ -340,12 +340,13 @@ class TestsFlextCliAtomicFileIdentity:
         )
         tm.ok(snapshot_result)
         snapshot = snapshot_result.value
-        if snapshot.content is None or snapshot.mode is None:
-            message = "required atomic snapshot was absent"
-            tm.reject(message)
+        content = tm.not_none(
+            snapshot.content, msg="required atomic snapshot was absent"
+        )
+        mode = tm.not_none(snapshot.mode, msg="required atomic snapshot was absent")
         replacement = tmp_path / "replacement.bin"
-        replacement.write_bytes(snapshot.content)
-        replacement.chmod(snapshot.mode)
+        replacement.write_bytes(content)
+        replacement.chmod(mode)
         Path(replacement).replace(destination)
 
         result = u.Cli.atomic_delete_binary_file_guarded(snapshot)

@@ -16,7 +16,7 @@ from typing import cast
 
 import pytest
 
-from flext_cli import FlextCliUtilitiesCli, cli
+from flext_cli import FlextCliUtilitiesCli
 from tests import c, m, p, tm, u
 
 _OUTPUT_CASES = pytest.mark.parametrize(
@@ -360,7 +360,7 @@ class TestsFlextCliManagedProcesses:
             "print(child.stdout, end=''); sys.exit(status)"
         )
         output = tm.ok(
-            cli.run_raw(
+            u.Cli.run_raw(
                 [sys.executable, "-c", script, str(inherit_environment)],
                 options=m.Cli.ProcessOptions(env={"FLEXT_PARENT_ONLY": "parent"}),
             ),

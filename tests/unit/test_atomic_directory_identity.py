@@ -98,10 +98,11 @@ class TestsFlextCliAtomicDirectoryIdentity:
         old = tmp_path / "old"
         target.rename(old)
         target.mkdir()
-        if before.mode is None:
-            message = "required directory snapshot unexpectedly absent"
-            tm.reject(message)
-        target.chmod(before.mode)
+        target.chmod(
+            tm.not_none(
+                before.mode, msg="required directory snapshot unexpectedly absent"
+            ),
+        )
 
         result = u.Cli.atomic_delete_empty_directory_guarded(before)
 
