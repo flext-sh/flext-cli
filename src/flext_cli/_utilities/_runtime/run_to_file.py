@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -22,16 +23,16 @@ class FlextCliUtilitiesRuntimeRunToFile(
 
         @staticmethod
         def _resolved_env(
-            env: t.StrMapping | None,
-            remove_env_keys: t.StrSequence = (),
+            env: Mapping[str, str] | None,
+            remove_env_keys: Sequence[str] = (),
             *,
             inherit_environment: bool = True,
-        ) -> t.StrDict | None: ...
+        ) -> dict[str, str] | None: ...
 
     @classmethod
     def run_to_file(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         output_file: t.Cli.TextPath,
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,

@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import TYPE_CHECKING
 
 import pytest
@@ -20,10 +21,7 @@ from flext_cli import FlextCli, cli, settings
 from tests import c, tm
 
 if TYPE_CHECKING:
-    from collections.abc import Iterator
     from pathlib import Path
-
-from tests import t
 
 
 class TestsFlextCliServicesAuth:
@@ -106,7 +104,7 @@ class TestsFlextCliServicesAuth:
         self,
         service: FlextCli,
         tmp_path: Path,
-        credentials: t.MappingKV[str, str],
+        credentials: Mapping[str, str],
     ) -> None:
         # Arrange
         """Verify that authenticate rejects malformed credentials payload."""
@@ -140,7 +138,7 @@ class TestsFlextCliServicesAuth:
         self,
         service: FlextCli,
         tmp_path: Path,
-        credentials: t.MappingKV[str, str],
+        credentials: Mapping[str, str],
         missing_field: str,
     ) -> None:
         # Arrange
@@ -175,7 +173,7 @@ class TestsFlextCliServicesAuth:
         self,
         service: FlextCli,
         tmp_path: Path,
-        credentials: t.MappingKV[str, str],
+        credentials: Mapping[str, str],
     ) -> None:
         # Arrange: point token_file at a directory so the write cannot succeed.
         """Verify that authenticate fails when token cannot be persisted."""

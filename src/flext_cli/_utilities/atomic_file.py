@@ -11,7 +11,7 @@ import os
 import signal
 from pathlib import Path
 
-from flext_cli import c, m, t
+from flext_cli import c, m
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileCleanup,
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -166,7 +166,7 @@ class FlextCliUtilitiesAtomicFile:
             self.durable = durable
             self.temporary = FlextCliUtilitiesAtomicFileTemporary.temporary_path(parent)
             self.descriptor: int | None = None
-            self.identity: t.Pair[int, int] | None = None
+            self.identity: tuple[int, int] | None = None
             self.mode: int | None = None
             self.replacement_completed = False
             self.linked_temporary = False
@@ -365,7 +365,7 @@ class FlextCliUtilitiesAtomicFile:
         temporary: Path,
         content: bytes,
         mode: int,
-        identity: t.Pair[int, int],
+        identity: tuple[int, int],
     ) -> os.stat_result:
         state = FlextCliUtilitiesAtomicFileState.destination_state(
             temporary,

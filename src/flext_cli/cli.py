@@ -6,15 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
 
 from flext_cli import api
 
-if TYPE_CHECKING:
-    from flext_cli import t
 
-
-def main(args: t.StrSequence | None = None) -> int:
+def main(args: Sequence[str] | None = None) -> int:
     """Execute the API-declared handlers through the adapter framework.
 
     Declared routes register through the API service; with none declared the

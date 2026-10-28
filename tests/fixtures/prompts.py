@@ -6,6 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 import re
 from collections.abc import (
     Iterable,
@@ -30,7 +39,7 @@ from tests import p, t
 
 
 def _scripted_reader(
-    values: t.StrSequence,
+    values: Sequence[str],
     error: Exception | None,
 ) -> Callable[[str], str]:
     """Build an input port that replays ``values`` or raises ``error``.
@@ -65,7 +74,7 @@ def make_prompts() -> Callable[..., p.Tests.Prompts]:
         *,
         interactive_mode: bool = True,
         quiet: bool = False,
-        inputs: t.StrSequence = (),
+        inputs: Sequence[str] = (),
         password: str = "",
         error: Exception | None = None,
     ) -> p.Tests.Prompts:

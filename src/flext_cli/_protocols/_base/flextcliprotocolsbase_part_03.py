@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli._protocols._base import FlextCliProtocolsBasePart02
@@ -26,7 +27,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
 
         def run(
             self,
-            cmd: t.StrSequence,
+            cmd: Sequence[str],
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
@@ -38,7 +39,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
 
         def capture(
             self,
-            cmd: t.StrSequence,
+            cmd: Sequence[str],
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
@@ -49,7 +50,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
 
         def run_raw(
             self,
-            cmd: t.StrSequence,
+            cmd: Sequence[str],
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
@@ -62,7 +63,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
         # mro-zf1s: binary execution shares the runner contract through p.Cli.
         def run_bytes(
             self,
-            cmd: t.StrSequence,
+            cmd: Sequence[str],
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
@@ -73,7 +74,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
 
         def run_checked(
             self,
-            cmd: t.StrSequence,
+            cmd: Sequence[str],
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
@@ -85,7 +86,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
 
         def run_live(
             self,
-            cmd: t.StrSequence,
+            cmd: Sequence[str],
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
@@ -96,7 +97,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
 
         def run_to_file(
             self,
-            cmd: t.StrSequence,
+            cmd: Sequence[str],
             output_file: t.Cli.TextPath,
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,

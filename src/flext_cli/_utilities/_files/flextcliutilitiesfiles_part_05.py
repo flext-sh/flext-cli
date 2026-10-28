@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import MappingProxyType
 from typing import Literal
@@ -53,7 +54,7 @@ class FlextCliUtilitiesFilesPart05:
         plan: m.Cli.AtomicDirectoryChainPlan,
         *,
         permission_mode: int,
-    ) -> p.Result[t.SequenceOf[m.Cli.AtomicDirectoryState]]:
+    ) -> p.Result[Sequence[m.Cli.AtomicDirectoryState]]:
         """Materialize a planned chain under the caller's exclusive lock.
 
         Each level uses the nonrecursive guarded primitive and successful levels
@@ -61,7 +62,7 @@ class FlextCliUtilitiesFilesPart05:
         ignore the lock. Snapshot any destination file only after this succeeds.
 
         Returns:
-            The resulting ``p.Result[t.SequenceOf[m.Cli.AtomicDirectoryState]]``.
+            The resulting ``p.Result[Sequence[m.Cli.AtomicDirectoryState]]``.
 
         """
         try:
@@ -72,10 +73,10 @@ class FlextCliUtilitiesFilesPart05:
                 )
             )
         except OSError as exc:
-            return r[t.SequenceOf[m.Cli.AtomicDirectoryState]].fail(
+            return r[Sequence[m.Cli.AtomicDirectoryState]].fail(
                 c.Cli.ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED.format(error=exc),
             )
-        return r[t.SequenceOf[m.Cli.AtomicDirectoryState]].ok(created)
+        return r[Sequence[m.Cli.AtomicDirectoryState]].ok(created)
 
     @staticmethod
     def atomic_read_empty_directory_state(
@@ -156,11 +157,11 @@ class FlextCliUtilitiesFilesPart05:
         inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
         topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
         *,
-        queries: t.MappingKV[
-            int, set[t.Pair[str, Literal["exists", "isfile", "isdir"]]]
+        queries: Mapping[
+            int, set[tuple[str, Literal["exists", "isfile", "isdir"]]]
         ] = MappingProxyType({}),
-        membership_queries: t.MappingKV[int, set[t.StrTuple]] = MappingProxyType({}),
-    ) -> t.Pair[
+        membership_queries: Mapping[int, set[t.StrTuple]] = MappingProxyType({}),
+    ) -> tuple[
         tuple[m.Cli.AtomicDirectoryInventory, ...],
         tuple[m.Cli.AtomicDirectoryChainPlan, ...],
     ]:
@@ -181,7 +182,7 @@ class FlextCliUtilitiesFilesPart05:
     def atomic_directory_membership_value(
         inventory: m.Cli.AtomicDirectoryInventory,
         excluded_names: t.StrTuple,
-    ) -> t.MappingKV[str, Literal["directory", "file", "symlink", "other"]]:
+    ) -> Mapping[str, Literal["directory", "file", "symlink", "other"]]:
         """Evaluate a declared membership selection on its physical receipt.
 
         Returns:
@@ -213,9 +214,7 @@ class FlextCliUtilitiesFilesPart05:
         inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
         topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
         *,
-        publications: t.VariadicTuple[
-            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
-        ]
+        publications: tuple[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]
         | m.Cli.AtomicDirectoryQueryEffects = (),
         directory_publications: tuple[m.Cli.AtomicDirectoryState, ...] = (),
         observations: m.Cli.AtomicDirectoryObservations | None = None,

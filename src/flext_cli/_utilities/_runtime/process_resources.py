@@ -11,7 +11,7 @@ import os
 import time
 from typing import BinaryIO
 
-from flext_cli import c, p, r, t
+from flext_cli import c, p, r
 
 
 class FlextCliUtilitiesRuntimeProcessResources:
@@ -21,7 +21,7 @@ class FlextCliUtilitiesRuntimeProcessResources:
     def _prepare_streamed_stdin(
         stack: contextlib.ExitStack,
         input_data: str | bytes | None,
-    ) -> p.Result[t.Triple[BinaryIO | None, BinaryIO | None, bytes]]:
+    ) -> p.Result[tuple[BinaryIO | None, BinaryIO | None, bytes]]:
         if input_data is None:
             return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok((
                 None,
@@ -51,11 +51,11 @@ class FlextCliUtilitiesRuntimeProcessResources:
     @staticmethod
     def _anonymous_stdin_pipe(
         stack: contextlib.ExitStack,
-    ) -> t.Pair[BinaryIO, BinaryIO]:
+    ) -> tuple[BinaryIO, BinaryIO]:
         """Open one memory-only parent-writer/child-reader pipe pair.
 
         Returns:
-            The resulting ``t.Pair[BinaryIO, BinaryIO]``.
+            The resulting ``tuple[BinaryIO, BinaryIO]``.
 
         Raises:
             EXC_OS_VALUE: If a ``c.EXC_OS_VALUE`` is caught.
@@ -83,7 +83,7 @@ class FlextCliUtilitiesRuntimeProcessResources:
         stack: contextlib.ExitStack,
         *,
         live: bool,
-    ) -> p.Result[t.Pair[int | None, int | None]]:
+    ) -> p.Result[tuple[int | None, int | None]]:
         if not live:
             return r[tuple[int | None, int | None]].ok((None, None))
         try:

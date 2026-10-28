@@ -6,7 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import t
+from collections.abc import MutableSequence
+
 from flext_cli.services import (
     FlextCliAuth,
     FlextCliCli,
@@ -46,4 +47,4 @@ cli: FlextCli = FlextCli.fetch_global()
 """Process-wide ``FlextCli`` facade singleton exposing every CLI service via MRO."""
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCli", "cli"]
+__all__: MutableSequence[str] = ["FlextCli", "cli"]

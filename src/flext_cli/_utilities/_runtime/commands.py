@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import shlex
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from flext_cli import p, r, t
@@ -23,7 +24,7 @@ class FlextCliUtilitiesRuntimeCommands(
         @classmethod
         def run_raw(
             cls,
-            cmd: t.StrSequence,
+            cmd: Sequence[str],
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
@@ -34,7 +35,7 @@ class FlextCliUtilitiesRuntimeCommands(
     @classmethod
     def run(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
@@ -72,7 +73,7 @@ class FlextCliUtilitiesRuntimeCommands(
     @classmethod
     def run_checked(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
@@ -96,7 +97,7 @@ class FlextCliUtilitiesRuntimeCommands(
     @classmethod
     def run_live(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
@@ -119,7 +120,7 @@ class FlextCliUtilitiesRuntimeCommands(
     @classmethod
     def capture(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,

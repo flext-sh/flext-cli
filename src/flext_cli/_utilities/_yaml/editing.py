@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import ClassVar, cast
 
 from flext_core import u
@@ -52,7 +52,7 @@ class FlextCliUtilitiesYamlEditing(FlextCliUtilitiesYamlEngine):
             for value in node.values():
                 FlextCliUtilitiesYamlEditing.yaml_clear_anchors(value)
         elif FlextCliUtilitiesYamlEditing.yaml_is_sequence(node):
-            items = cast("t.SequenceOf[t.Cli.YamlValue]", node)
+            items = cast("Sequence[t.Cli.YamlValue]", node)
             for item in items:
                 FlextCliUtilitiesYamlEditing.yaml_clear_anchors(item)
 
@@ -63,8 +63,8 @@ class FlextCliUtilitiesYamlEditing(FlextCliUtilitiesYamlEngine):
             src_ca = cast("p.Cli.YamlCommentCarrier", src).ca
             dst_ca = cast("p.Cli.YamlCommentCarrier", dst).ca
             dst_ca.comment = src_ca.comment
-            src_map = cast("t.MappingKV[str, t.Cli.YamlNode]", src)
-            dst_map = cast("t.MappingKV[str, t.Cli.YamlNode]", dst)
+            src_map = cast("Mapping[str, t.Cli.YamlNode]", src)
+            dst_map = cast("Mapping[str, t.Cli.YamlNode]", dst)
             for key in src_map:
                 if key in dst_map:
                     FlextCliUtilitiesYamlEditing.yaml_deep_copy_comments(
@@ -75,8 +75,8 @@ class FlextCliUtilitiesYamlEditing(FlextCliUtilitiesYamlEngine):
             src_ca = cast("p.Cli.YamlCommentCarrier", src).ca
             dst_ca = cast("p.Cli.YamlCommentCarrier", dst).ca
             dst_ca.comment = src_ca.comment
-            src_seq = cast("t.SequenceOf[t.Cli.YamlNode]", src)
-            dst_seq = cast("t.SequenceOf[t.Cli.YamlNode]", dst)
+            src_seq = cast("Sequence[t.Cli.YamlNode]", src)
+            dst_seq = cast("Sequence[t.Cli.YamlNode]", dst)
             for index, item in enumerate(src_seq):
                 if index < len(dst_seq):
                     FlextCliUtilitiesYamlEditing.yaml_deep_copy_comments(
@@ -99,7 +99,7 @@ class FlextCliUtilitiesYamlEditing(FlextCliUtilitiesYamlEngine):
         if isinstance(post, RuamelCommentToken):
             return [post]
         if isinstance(post, list):
-            tokens = cast("t.SequenceOf[object]", post)
+            tokens = cast("Sequence[object]", post)
             return [token for token in tokens if isinstance(token, RuamelCommentToken)]
         return []
 
@@ -164,14 +164,14 @@ class FlextCliUtilitiesYamlEditing(FlextCliUtilitiesYamlEngine):
             if not node:
                 return
             cast("p.Cli.YamlFlowStyleCarrier", node).fa.set_block_style()
-            values = cast("t.MappingKV[str, t.Cli.YamlNode]", node).values()
+            values = cast("Mapping[str, t.Cli.YamlNode]", node).values()
             for value in values:
                 FlextCliUtilitiesYamlEditing.yaml_force_block_style(value)
         elif isinstance(node, CommentedSeq):
             if not node:
                 return
             cast("p.Cli.YamlFlowStyleCarrier", node).fa.set_block_style()
-            items = cast("t.SequenceOf[t.Cli.YamlNode]", node)
+            items = cast("Sequence[t.Cli.YamlNode]", node)
             for item in items:
                 FlextCliUtilitiesYamlEditing.yaml_force_block_style(item)
 
@@ -198,8 +198,8 @@ class FlextCliUtilitiesYamlEditing(FlextCliUtilitiesYamlEngine):
         of existing keys keep their position.
         """
         new_keys: list[tuple[str, t.Cli.YamlValue]] = []
-        overlay_map = cast("t.MappingKV[str, t.Cli.YamlValue]", overlay)
-        base_map = cast("t.MappingKV[str, t.Cli.YamlValue]", base)
+        overlay_map = cast("Mapping[str, t.Cli.YamlValue]", overlay)
+        base_map = cast("Mapping[str, t.Cli.YamlValue]", base)
         for key, value in overlay_map.items():
             if key in base_map:
                 current = base_map[key]

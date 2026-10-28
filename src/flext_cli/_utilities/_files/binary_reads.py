@@ -10,7 +10,7 @@ import csv
 import errno
 import hashlib
 import stat
-from collections.abc import Generator
+from collections.abc import Generator, Mapping, Sequence
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -118,15 +118,15 @@ class FlextCliUtilitiesFilesPart03:
     @staticmethod
     def files_read_csv_with_headers(
         file_path: t.Cli.TextPath,
-    ) -> p.Result[t.SequenceOf[t.StrMapping]]:
+    ) -> p.Result[Sequence[Mapping[str, str]]]:
         """Read one CSV file into mapping rows using header row.
 
         Returns:
-            The resulting ``p.Result[t.SequenceOf[t.StrMapping]]``.
+            The resulting ``p.Result[Sequence[Mapping[str, str]]]``.
 
         """
 
-        def _load() -> t.SequenceOf[t.StrMapping]:
+        def _load() -> Sequence[Mapping[str, str]]:
             with Path(file_path).open(
                 encoding=c.DEFAULT_ENCODING,
                 newline="",
@@ -282,7 +282,7 @@ class FlextCliUtilitiesFilesPart03:
     @staticmethod
     def files_list_directory_names(
         file_path: t.Cli.TextPath,
-    ) -> p.Result[t.SequenceOf[str]]:
+    ) -> p.Result[Sequence[str]]:
         """Return sorted child directory names for one path.
 
         Returns:
@@ -291,9 +291,9 @@ class FlextCliUtilitiesFilesPart03:
         """
         path = Path(file_path)
         if not path.exists():
-            return r[t.SequenceOf[str]].ok(())
+            return r[Sequence[str]].ok(())
 
-        def _list() -> t.SequenceOf[str]:
+        def _list() -> Sequence[str]:
             names = sorted(entry.name for entry in path.iterdir() if entry.is_dir())
             return tuple(names)
 

@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from flext_cli import p, t, u
 from flext_cli.services._cli import FlextCliCliPart03
 
@@ -18,7 +20,7 @@ class FlextCliCliPart04(FlextCliCliPart03):
         app: p.Cli.Application,
         *,
         prog_name: str,
-        args: t.StrSequence | None = None,
+        args: Sequence[str] | None = None,
     ) -> p.Result[bool]:
         """Execute an application through the private framework boundary.
 
@@ -38,7 +40,7 @@ class FlextCliCliPart04(FlextCliCliPart03):
         command: p.Cli.ExternalCommand,
         *,
         prog_name: str,
-        args: t.StrSequence | None = None,
+        args: Sequence[str] | None = None,
     ) -> p.Result[bool]:
         """Execute a foreign command through the private framework boundary.
 

@@ -16,7 +16,7 @@ import select
 import shlex
 import signal
 import time
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from types import MappingProxyType
 
@@ -41,7 +41,7 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
             process: p.Cli.ProcessHandle,
             *,
             cwd: t.Cli.TextPath | None,
-            env: t.StrMapping | None,
+            env: Mapping[str, str] | None,
             session_leader: bool = False,
         ) -> None:
             self._process = process
@@ -207,7 +207,7 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
     @classmethod
     def process_start(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None = None,
         *,
         options: p.Cli.ProcessOptions | None = None,

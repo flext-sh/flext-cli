@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 from typing import Annotated
 
@@ -25,7 +26,7 @@ class FlextCliModelsRules:
             m.Field(description="Directory containing packaged default rule YAMLs"),
         ]
         rule_filters: Annotated[
-            t.StrSequence,
+            Sequence[str],
             m.Field(description="Glob/substring filters limiting loaded rules"),
         ]
         rule_catalog: Annotated[
@@ -66,4 +67,4 @@ class FlextCliModelsRules:
         ] = c.Cli.RULES_DIR_NAME
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliModelsRules"]
+__all__: MutableSequence[str] = ["FlextCliModelsRules"]

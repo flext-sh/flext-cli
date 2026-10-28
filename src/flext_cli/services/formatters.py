@@ -8,7 +8,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, p, s, t, u
+from collections.abc import MutableSequence, Sequence
+
+from flext_cli import m, p, s, u
 
 
 class FlextCliFormatters(s[p.Cli.RuntimeStatus]):
@@ -56,8 +58,8 @@ class FlextCliFormatters(s[p.Cli.RuntimeStatus]):
     @classmethod
     def render_table(
         cls,
-        columns: t.StrSequence,
-        rows: t.SequenceOf[t.StrSequence],
+        columns: Sequence[str],
+        rows: Sequence[Sequence[str]],
         *,
         title: str = "",
     ) -> None:
@@ -74,4 +76,4 @@ class FlextCliFormatters(s[p.Cli.RuntimeStatus]):
         )
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliFormatters"]
+__all__: MutableSequence[str] = ["FlextCliFormatters"]

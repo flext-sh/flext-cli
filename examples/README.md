@@ -28,6 +28,15 @@ local examples runtime aliases.
 ```python
 from __future__ import annotations
 
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
+
 from examples import c, m, p, r, s, t
 from flext_cli import cli
 
@@ -63,6 +72,15 @@ documenting an internal type.
 
 ```python notest
 from __future__ import annotations
+
+from collections.abc import (
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 
 from examples import p, r, s, t
 

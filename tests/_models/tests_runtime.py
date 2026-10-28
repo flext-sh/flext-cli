@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import m
@@ -48,13 +49,13 @@ class TestsFlextCliModelsRuntime:
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
 
         case_id: Annotated[str, m.Field(description="Pytest case id")]
-        command: Annotated[t.StrSequence, m.Field(description="Command argv")]
+        command: Annotated[Sequence[str], m.Field(description="Command argv")]
         timeout: Annotated[
             int | None,
             m.Field(description="Optional timeout in seconds"),
         ] = None
         env: Annotated[
-            t.StrMapping | None,
+            Mapping[str, str] | None,
             m.Field(description="Optional child environment overrides"),
         ] = None
         use_tmp_path: Annotated[

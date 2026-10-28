@@ -9,16 +9,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
+from collections.abc import Sequence
 
-from tests import t
+import pytest
 
 pytest_plugins = ["tests.fixtures.logging_policy", "tests.fixtures.prompts"]
 
 
 def pytest_collection_modifyitems(
     config: pytest.Config,
-    items: t.SequenceOf[pytest.Item],
+    items: Sequence[pytest.Item],
 ) -> None:
     """Modify test collection to add markers based on test names."""
     _ = config

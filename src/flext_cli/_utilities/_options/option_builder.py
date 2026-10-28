@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence
+
 from flext_cli import c, m, t
 
 
@@ -38,7 +40,7 @@ class FlextCliUtilitiesOptionBuilder:
             else field_name
         )
 
-        option_args: t.MutableSequenceOf[str] = [
+        option_args: MutableSequence[str] = [
             f"--{cli_param_name.replace('_', '-')}",
         ]
         if cli_param_name == "project":

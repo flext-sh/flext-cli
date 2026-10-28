@@ -10,7 +10,7 @@ import csv
 import io
 import shutil
 import tempfile
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from flext_core import u
@@ -47,7 +47,7 @@ class FlextCliUtilitiesFilesPart04:
         | m.Dict
         | p.Model
         | t.JsonMapping
-        | t.SequenceOf[t.StrSequence],
+        | Sequence[Sequence[str]],
         name: str,
         fmt: str = c.Cli.FILE_FORMAT_AUTO,
     ) -> str:

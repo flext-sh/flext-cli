@@ -12,6 +12,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import pytest
 
 from flext_cli import cli
@@ -37,7 +39,7 @@ class TestsFlextCliModelCommandJsonOptions:
     class JsonDefaultsModel(m.BaseModel):
         """Request whose JSON options all carry defaults."""
 
-        labels: t.MappingKV[str, int] = m.Field(
+        labels: Mapping[str, int] = m.Field(
             default_factory=lambda: {"seed": 1},
             description="Label weights.",
         )
@@ -51,7 +53,7 @@ class TestsFlextCliModelCommandJsonOptions:
     class OptionalSequenceModel(m.BaseModel):
         """Request whose optional string sequence is a repeated option."""
 
-        projects: t.StrSequence | None = None
+        projects: Sequence[str] | None = None
 
     @staticmethod
     def _app[M: t.Cli.ModelLike](
@@ -83,7 +85,7 @@ class TestsFlextCliModelCommandJsonOptions:
     def _invoke[M: t.Cli.ModelLike](
         self,
         model_cls: t.ModelClass[M],
-        args: t.StrSequence,
+        args: Sequence[str],
         *,
         settings: t.Cli.ModelLike | None = None,
     ) -> tuple[m.Cli.InvocationResult, list[M]]:
@@ -95,7 +97,7 @@ class TestsFlextCliModelCommandJsonOptions:
 
     @staticmethod
     def _json(
-        value: t.JsonMapping | t.Cli.ModelLike | t.SequenceOf[t.Cli.ModelLike],
+        value: t.JsonMapping | t.Cli.ModelLike | Sequence[t.Cli.ModelLike],
     ) -> str:
         return u.to_json(value).decode()
 
@@ -164,7 +166,7 @@ class TestsFlextCliModelCommandJsonOptions:
         executed: list[TestsFlextCliModelCommandJsonOptions.MappingModel] = []
         app = self._app(self.MappingModel, executed)
         result = cli.execute_app(
-            app, prog_name="json-app", args=["run", "--labels", ...]
+            app, prog_name="json-app", args=["run", "--labels", raw]
         )
         tm.fail(result, has=error_type)
         tm.that(executed, empty=True)
@@ -180,7 +182,7 @@ class TestsFlextCliModelCommandJsonOptions:
     def test_optional_sequence_option_accepts_single_value(self) -> None:
         """An optional string sequence given once validates as a one-item sequence."""
         invocation, received = self._invoke(
-            self.OptionalSequenceModel, ["--projects", ...]
+            self.OptionalSequenceModel, ["--projects", "."]
         )
         tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[self.OptionalSequenceModel(projects=["."])])
@@ -188,7 +190,7 @@ class TestsFlextCliModelCommandJsonOptions:
     def test_optional_sequence_option_repeats(self) -> None:
         """An optional string sequence collects every repeated value in order."""
         invocation, received = self._invoke(
-            self.OptionalSequenceModel, ["--projects", "a", "--projects", ...]
+            self.OptionalSequenceModel, ["--projects", "a", "--projects", "b"]
         )
         tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[self.OptionalSequenceModel(projects=["a", "b"])])

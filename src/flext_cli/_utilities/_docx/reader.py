@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from io import BytesIO
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Literal, cast
@@ -138,7 +139,7 @@ class FlextCliUtilitiesDocxReader:
     def _snapshot_alignment(alignment: WD_ALIGN_PARAGRAPH | None) -> str | None:
         if alignment is None:
             return None
-        mapping: t.MappingKV[WD_ALIGN_PARAGRAPH, str] = {
+        mapping: Mapping[WD_ALIGN_PARAGRAPH, str] = {
             WD_ALIGN_PARAGRAPH.LEFT: "left",
             WD_ALIGN_PARAGRAPH.CENTER: "center",
             WD_ALIGN_PARAGRAPH.RIGHT: "right",
@@ -154,7 +155,7 @@ class FlextCliUtilitiesDocxReader:
     ) -> _DOCX_UNDERLINE_VALUE | None:
         if underline is None or underline is False:
             return None
-        mapping: t.MappingKV[WD_UNDERLINE | int, _DOCX_UNDERLINE_VALUE] = {
+        mapping: Mapping[WD_UNDERLINE | int, _DOCX_UNDERLINE_VALUE] = {
             WD_UNDERLINE.SINGLE: "single",
             WD_UNDERLINE.DOUBLE: "double",
             9: "singleAccounting",

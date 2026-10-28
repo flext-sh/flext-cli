@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections.abc import MutableSequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -117,4 +118,4 @@ class FlextCliUtilitiesConfig:
         return True
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesConfig"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesConfig"]

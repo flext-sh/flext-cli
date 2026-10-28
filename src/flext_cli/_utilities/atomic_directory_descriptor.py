@@ -136,7 +136,7 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
     @staticmethod
     def _require_dir_fd(
         path: Path,
-        operations: tuple[t.Pair[str, t.Cli.DirFdOperation], ...],
+        operations: tuple[tuple[str, t.Cli.DirFdOperation], ...],
     ) -> None:
         missing = [
             name

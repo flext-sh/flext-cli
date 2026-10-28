@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence
 from typing import TYPE_CHECKING
 
 from flext_core import u
@@ -131,4 +132,4 @@ class FlextCliUtilitiesCommands:
             FlextCliUtilitiesOutput.emit_raw(f"   [{result.error_code}]\n", error=True)
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesCommands"]

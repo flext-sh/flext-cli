@@ -11,7 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence
+from collections.abc import Mapping, MutableSequence, Sequence
 
 from examples import c, m, t
 from flext_cli import FlextCliUtilities, cli
@@ -33,7 +33,7 @@ class ExamplesFlextCliUtilities(FlextCliUtilities):
     @staticmethod
     def print_demo_completion(
         demo_name: str,
-        features: t.StrSequence,
+        features: Sequence[str],
         *,
         style: c.Cli.MessageStyles = c.Cli.MessageStyles.GREEN,
         bold_style: c.Cli.MessageStyles = c.Cli.MessageStyles.BOLD_GREEN,
@@ -52,12 +52,12 @@ class ExamplesFlextCliUtilities(FlextCliUtilities):
     @staticmethod
     def display_config_table(
         config_data: m.Cli.DisplayData | m.Value,
-        headers: t.StrSequence | None = None,
+        headers: Sequence[str] | None = None,
     ) -> None:
         """Display configuration as a table using canonical example models."""
         if headers is None:
             headers = ["Setting", "Value"]
-        rows: MutableSequence[t.StrMapping] = []
+        rows: MutableSequence[Mapping[str, str]] = []
         if isinstance(config_data, m.Cli.DisplayData):
             for key, value in config_data.data.items():
                 rows.append({"Setting": key, "Value": str(value)})
@@ -84,4 +84,4 @@ class ExamplesFlextCliUtilities(FlextCliUtilities):
 
 u = ExamplesFlextCliUtilities
 
-__all__: t.MutableSequenceOf[str] = ["ExamplesFlextCliUtilities", "u"]
+__all__: MutableSequence[str] = ["ExamplesFlextCliUtilities", "u"]

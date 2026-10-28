@@ -9,14 +9,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, override
+from collections.abc import MutableSequence
+from typing import override
 
 from flext_core import FlextService
 
 from flext_cli import FlextCliSettings, FlextCliUtilities, m, p
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliServiceBase[TDomainResult: p.Base](
@@ -53,4 +51,4 @@ class FlextCliServiceBase[TDomainResult: p.Base](
 
 s = FlextCliServiceBase
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliServiceBase", "s"]
+__all__: MutableSequence[str] = ["FlextCliServiceBase", "s"]

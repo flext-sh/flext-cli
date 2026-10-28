@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import (
     TYPE_CHECKING,
     SupportsFloat,
@@ -63,7 +63,7 @@ class FlextCliUtilitiesYamlConvert:
 
         """
         if isinstance(data, dict):
-            items = cast("t.MappingKV[str, t.Cli.YamlValue]", data).items()
+            items = cast("Mapping[str, t.Cli.YamlValue]", data).items()
             return cast(
                 "t.Cli.YamlValue",
                 {
@@ -72,7 +72,7 @@ class FlextCliUtilitiesYamlConvert:
                 },
             )
         if isinstance(data, list):
-            values = cast("t.SequenceOf[t.Cli.YamlValue]", data)
+            values = cast("Sequence[t.Cli.YamlValue]", data)
             return cast(
                 "t.Cli.YamlValue",
                 [FlextCliUtilitiesYamlConvert.yaml_to_plain(item) for item in values],
@@ -103,14 +103,14 @@ class FlextCliUtilitiesYamlConvert:
     @staticmethod
     def yaml_deep_to_commented(
         data: Mapping[str, t.Cli.YamlValue]
-        | t.SequenceOf[t.Cli.YamlValue]
+        | Sequence[t.Cli.YamlValue]
         | t.Cli.YamlScalar,
     ) -> t.Cli.YamlNode: ...
 
     @staticmethod
     def yaml_deep_to_commented(
         data: Mapping[str, t.Cli.YamlValue]
-        | t.SequenceOf[t.Cli.YamlValue]
+        | Sequence[t.Cli.YamlValue]
         | t.Cli.YamlScalar,
     ) -> t.Cli.YamlNode:
         """Recursively convert plain dict/list into CommentedMap/CommentedSeq.
@@ -137,7 +137,7 @@ class FlextCliUtilitiesYamlConvert:
                 )
             return node
         if FlextCliUtilitiesYamlConvert.yaml_is_sequence(data):
-            values = cast("t.SequenceOf[t.Cli.YamlValue]", data)
+            values = cast("Sequence[t.Cli.YamlValue]", data)
             return CommentedSeq(
                 FlextCliUtilitiesYamlConvert.yaml_deep_to_commented(item)
                 for item in values
@@ -157,7 +157,7 @@ class FlextCliUtilitiesYamlConvert:
 
     @staticmethod
     def yaml_is_sequence(
-        value: t.Cli.YamlNode | t.SequenceOf[t.Cli.YamlValue],
+        value: t.Cli.YamlNode | Sequence[t.Cli.YamlValue],
     ) -> TypeGuard[t.Cli.YamlSequence]:
         """Return True for YAML sequence nodes while keeping strings scalar.
 

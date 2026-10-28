@@ -9,11 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import ClassVar
-
-from flext_core import t
 
 from flext_cli._utilities import FlextCliUtilitiesAtomicFileRead
 
@@ -77,7 +76,7 @@ class FlextCliConstantsFiles:
         FileFormat.CSV,
     })
 
-    EXT_TO_FMT: ClassVar[t.StrMapping] = MappingProxyType({
+    EXT_TO_FMT: ClassVar[Mapping[str, str]] = MappingProxyType({
         ".txt": FileFormat.TEXT,
         ".log": FileFormat.TEXT,
         ".md": FileFormat.TEXT,
@@ -96,7 +95,7 @@ class FlextCliConstantsFiles:
     DEFAULT_JSON_INDENT: ClassVar[int] = 2
     DEFAULT_CSV_DELIMITER: ClassVar[str] = ","
 
-    SIZE_UNITS: ClassVar[t.StrSequence] = ("B", "KB", "MB", "GB", "TB", "PB")
+    SIZE_UNITS: ClassVar[Sequence[str]] = ("B", "KB", "MB", "GB", "TB", "PB")
     SIZE_THRESHOLD: ClassVar[int] = 1024
 
     @classmethod

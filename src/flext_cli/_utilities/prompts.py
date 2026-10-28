@@ -6,7 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, p, r, t
+from collections.abc import MutableSequence, Sequence
+
+from flext_cli import c, p, r
 
 
 class FlextCliUtilitiesPrompts:
@@ -70,7 +72,7 @@ class FlextCliUtilitiesPrompts:
     def prompts_choice_result(
         *,
         interactive: bool,
-        choices: t.StrSequence,
+        choices: Sequence[str],
         default: str | None,
     ) -> p.Result[str]:
         """Validate one choice prompt contract and return one canonical result.
@@ -112,4 +114,4 @@ class FlextCliUtilitiesPrompts:
         return r[str].ok(password)
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesPrompts"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesPrompts"]

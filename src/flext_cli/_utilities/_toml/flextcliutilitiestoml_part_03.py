@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableMapping
+from collections.abc import MutableMapping, Sequence
 
 from flext_core import u
 from tomlkit.items import Table
@@ -26,7 +26,7 @@ class FlextCliUtilitiesTomlPart03:
     @staticmethod
     def toml_table_path(
         parent: TOMLDocument | Table,
-        path: t.StrSequence,
+        path: Sequence[str],
     ) -> Table | None:
         """Return a nested table path without creating missing tables.
 
@@ -110,7 +110,7 @@ class FlextCliUtilitiesTomlPart03:
     @staticmethod
     def toml_mapping_ensure_path(
         parent: t.MutableJsonMapping,
-        path: t.StrSequence,
+        path: Sequence[str],
     ) -> t.MutableJsonMapping:
         """Return one nested mutable mapping path, creating tables as needed.
 
@@ -129,7 +129,7 @@ class FlextCliUtilitiesTomlPart03:
     @staticmethod
     def toml_mapping_path(
         parent: t.JsonMapping,
-        path: t.StrSequence,
+        path: Sequence[str],
     ) -> t.MutableJsonMapping | None:
         """Return one nested mutable mapping path without creating missing tables.
 

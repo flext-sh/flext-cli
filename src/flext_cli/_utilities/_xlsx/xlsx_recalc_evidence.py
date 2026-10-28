@@ -78,8 +78,8 @@ class FlextCliUtilitiesXlsxRecalcEvidence(FlextCliUtilitiesXlsxArchiveChecks):
         """Classify formula cells as uncached or empty-string cached.
 
         Returns:
-            The resulting ``p.Result[t.Pair[t.VariadicTuple[str],
-                t.VariadicTuple[str]]]``.
+            The resulting ``p.Result[tuple[tuple[str, ...],
+                tuple[str, ...]]]``.
 
         """
         try:

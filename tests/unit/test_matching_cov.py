@@ -12,9 +12,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import pytest
 
-from tests import c, t, tm, u
+from tests import c, tm, u
 
 
 class TestsFlextCliMatchingCov:
@@ -29,7 +31,7 @@ class TestsFlextCliMatchingCov:
     )
     def test_matches_returns_expected_for_case_table(
         msg: str,
-        patterns: t.StrSequence,
+        patterns: Sequence[str],
         *,
         expected: bool,
     ) -> None:

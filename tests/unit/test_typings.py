@@ -34,7 +34,7 @@ class TestsFlextCliTypings:
     )
     def test_str_sequence_adapter_accepts_string_sequences(
         payload: Sequence[str],
-        expected: t.SequenceOf[str],
+        expected: Sequence[str],
     ) -> None:
         """STR_SEQUENCE_ADAPTER validates string sequences to a list."""
         result = u.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
@@ -58,7 +58,7 @@ class TestsFlextCliTypings:
         [{"id": 1}, {"nested": {"a": [1, 2]}}, {}, {"flag": True, "name": "x"}],
     )
     def test_json_mapping_adapter_accepts_json_objects(
-        payload: t.MappingKV[str, t.JsonValue],
+        payload: Mapping[str, t.JsonValue],
     ) -> None:
         """JSON_MAPPING_ADAPTER validates JSON object mappings unchanged."""
         result = u.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
@@ -79,7 +79,7 @@ class TestsFlextCliTypings:
         [[1, 2, 3], ["a", "b"], [], [{"k": "v"}, [1, 2]]],
     )
     def test_json_list_adapter_accepts_json_arrays(
-        payload: t.SequenceOf[t.JsonValue],
+        payload: Sequence[t.JsonValue],
     ) -> None:
         """JSON_LIST_ADAPTER validates JSON arrays unchanged."""
         result = u.Cli.JSON_LIST_ADAPTER.validate_python(payload)
@@ -147,21 +147,21 @@ class TestsFlextCliTypings:
 
     @staticmethod
     def test_optional_str_sequence_alias_accepts_value_and_none() -> None:
-        """A ``StrSequence | None`` alias accepts both a sequence and None."""
-        adapter: t.ValueAdapter[t.StrSequence | None] = u.type_adapter(
-            TypeForm(t.StrSequence | None),
+        """A ``Sequence[str] | None`` alias accepts both a sequence and None."""
+        adapter: t.ValueAdapter[Sequence[str] | None] = u.type_adapter(
+            TypeForm(Sequence[str] | None),
         )
         tm.that(adapter.validate_python(["alpha", "beta"]), eq=["alpha", "beta"])
         tm.that(adapter.validate_python(None), none=True)
 
     @staticmethod
     def test_mapping_alias_validates_sequence_of_typed_mappings() -> None:
-        """MappingKV composes into a validatable sequence-of-mappings alias."""
-        adapter: t.ValueAdapter[Sequence[t.MappingKV[str, str | int]]] = u.type_adapter(
-            Sequence[t.MappingKV[str, str | int]],
+        """Mapping composes into a validatable sequence-of-mappings alias."""
+        adapter: t.ValueAdapter[Sequence[Mapping[str, str | int]]] = u.type_adapter(
+            Sequence[Mapping[str, str | int]],
         )
         validated = adapter.validate_python([{"name": "entry", c.Aggregation.COUNT: 1}])
-        expected: list[t.MappingKV[str, str | int]] = [
+        expected: list[Mapping[str, str | int]] = [
             {"name": "entry", c.Aggregation.COUNT: 1}
         ]
         tm.that(validated, eq=expected)

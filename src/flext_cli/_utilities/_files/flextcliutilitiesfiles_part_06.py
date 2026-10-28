@@ -9,6 +9,7 @@ from __future__ import annotations
 import fnmatch
 import os
 import traceback
+from collections.abc import MutableMapping, Sequence
 from pathlib import Path
 from typing import Literal
 
@@ -71,9 +72,9 @@ class FlextCliUtilitiesFilesPart06:
 
     @staticmethod
     def atomic_verify_binary_file_states(
-        expected_states: t.SequenceOf[m.Cli.AtomicFileState],
+        expected_states: Sequence[m.Cli.AtomicFileState],
         *,
-        nonsecret_source_paths: t.SequenceOf[Path] = (),
+        nonsecret_source_paths: Sequence[Path] = (),
     ) -> p.Result[Literal[True]]:
         """Verify one coherent set of physical file states without reread fallback.
 
@@ -85,7 +86,7 @@ class FlextCliUtilitiesFilesPart06:
             Exactly ``True`` on successful verification, otherwise a failed result.
 
         """
-        by_path: t.MutableMappingKV[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
+        by_path: MutableMapping[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
         for expected in expected_states:
             existing = by_path.get(expected.path)
             if existing is not None and existing != expected:
@@ -150,19 +151,19 @@ class FlextCliUtilitiesFilesPart06:
     def files_matching(
         root: Path,
         *,
-        includes: t.StrSequence,
-        excludes: t.StrSequence = (),
-    ) -> p.Result[t.SequenceOf[Path]]:
+        includes: Sequence[str],
+        excludes: Sequence[str] = (),
+    ) -> p.Result[Sequence[Path]]:
         """Select Git-visible files under ``root``: tracked, untracked, never ignored.
 
         Outside a Git worktree every file on disk is a candidate. Patterns match the
         POSIX path relative to ``root``; an empty ``includes`` selects every file.
 
         Returns:
-            The resulting ``p.Result[t.SequenceOf[Path]]``.
+            The resulting ``p.Result[Sequence[Path]]``.
 
         """
-        result = r[t.SequenceOf[Path]]
+        result = r[Sequence[Path]]
         if not root.is_dir():
             return result.fail(f"file selection root is not a directory: {root}")
         scope = root.resolve()
@@ -219,14 +220,14 @@ class FlextCliUtilitiesFilesPart06:
         scope: Path,
         *,
         worktree_status: bytes,
-    ) -> p.Result[t.SequenceOf[Path]]:
+    ) -> p.Result[Sequence[Path]]:
         """Read Git-visible candidates after a successful worktree probe.
 
         Returns:
             Git-visible paths or the original probe/listing failure.
 
         """
-        result = r[t.SequenceOf[Path]]
+        result = r[Sequence[Path]]
         if worktree_status.strip() != b"true":
             return result.fail(f"file selection root is not in a worktree: {scope}")
         listed = FlextCliUtilitiesRuntime.run_bytes(

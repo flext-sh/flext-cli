@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import signal
+from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, BinaryIO
 
 from flext_cli import m, p, r, t
@@ -19,9 +20,9 @@ class FlextCliUtilitiesRuntimeProcessStart:
 
         @staticmethod
         def _spawn_streamed_process(
-            cmd: t.StrSequence,
+            cmd: Sequence[str],
             cwd: t.Cli.TextPath | None,
-            env: t.MappingKV[str, str] | None,
+            env: Mapping[str, str] | None,
             stdin_handle: BinaryIO | None,
             *,
             options: m.Cli.RuntimeSpawnOptions,
@@ -52,13 +53,13 @@ class FlextCliUtilitiesRuntimeProcessStart:
     @classmethod
     def _start_contained_process(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None,
-        env: t.MappingKV[str, str] | None,
+        env: Mapping[str, str] | None,
         stdin_handle: BinaryIO | None,
         *,
         options: m.Cli.RuntimeSpawnOptions,
-    ) -> p.Result[t.Pair[p.Cli.ProcessHandle, int]]:
+    ) -> p.Result[tuple[p.Cli.ProcessHandle, int]]:
         process = cls._spawn_streamed_process(
             cmd,
             cwd,
@@ -73,13 +74,13 @@ class FlextCliUtilitiesRuntimeProcessStart:
         job_result = cls._windows_job_create(process.pid)
         if job_result.failure:
             cls._discard_uncontained_process(process, 0)
-            return r[t.Pair[p.Cli.ProcessHandle, int]].from_failure(job_result)
+            return r[tuple[p.Cli.ProcessHandle, int]].from_failure(job_result)
         job_handle = job_result.value
         resume_error = cls._windows_process_resume(process.pid)
         if resume_error is not None:
             cls._discard_uncontained_process(process, job_handle)
-            return r[t.Pair[p.Cli.ProcessHandle, int]].fail(resume_error)
-        return r[t.Pair[p.Cli.ProcessHandle, int]].ok((process, job_handle))
+            return r[tuple[p.Cli.ProcessHandle, int]].fail(resume_error)
+        return r[tuple[p.Cli.ProcessHandle, int]].ok((process, job_handle))
 
     @classmethod
     def _discard_uncontained_process(

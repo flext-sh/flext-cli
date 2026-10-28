@@ -22,7 +22,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import io
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, TextIO
 
 import ruamel.yaml
@@ -115,7 +115,7 @@ class FlextCliUtilitiesYamlEngine(FlextCliUtilitiesYamlConvert):
     @staticmethod
     def yaml_roundtrip_load_all_text(
         text: str,
-    ) -> p.Result[t.SequenceOf[t.Cli.YamlNode]]:
+    ) -> p.Result[Sequence[t.Cli.YamlNode]]:
         """Parse every YAML document with one fresh canonical engine.
 
         Returns:
@@ -129,14 +129,14 @@ class FlextCliUtilitiesYamlEngine(FlextCliUtilitiesYamlConvert):
                 for value in engine.load_all(text)
             )
         except YAMLError as exc:
-            return r[t.SequenceOf[t.Cli.YamlNode]].fail(
+            return r[Sequence[t.Cli.YamlNode]].fail(
                 f"YAML parse error: {exc}", exception=exc
             )
         except TypeError as exc:
-            return r[t.SequenceOf[t.Cli.YamlNode]].fail(
+            return r[Sequence[t.Cli.YamlNode]].fail(
                 f"YAML content error: {exc}", exception=exc
             )
-        return r[t.SequenceOf[t.Cli.YamlNode]].ok(nodes)
+        return r[Sequence[t.Cli.YamlNode]].ok(nodes)
 
     @staticmethod
     def yaml_roundtrip_load_map_text(text: str) -> p.Result[CommentedMap]:

@@ -10,10 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
-
-if TYPE_CHECKING:
-    from flext_core import t
+from collections.abc import Sequence
+from typing import ClassVar
 
 
 class FlextCliConstantsConfig:
@@ -37,4 +35,4 @@ class FlextCliConstantsConfig:
     "Strict expansion passes allowed before a value must reach a fixed point."
 
 
-__all__: t.StrSequence = ("FlextCliConstantsConfig",)
+__all__: Sequence[str] = ("FlextCliConstantsConfig",)

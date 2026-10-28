@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, MutableMapping
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from pathlib import Path
 from types import FrameType, GenericAlias
 
@@ -21,22 +21,22 @@ from typing_extensions import TypeForm
 class FlextCliTypesBase:
     """Base CLI aliases shared across services and models."""
 
-    type TableMappingRow = t.MappingKV[str, t.JsonPayload]
-    type TableSequenceRow = t.SequenceOf[t.JsonPayload]
-    type DefaultMapping = t.MappingKV[str, t.Scalar | t.StrSequence]
+    type TableMappingRow = Mapping[str, t.JsonPayload]
+    type TableSequenceRow = Sequence[t.JsonPayload]
+    type DefaultMapping = Mapping[str, t.Scalar | Sequence[str]]
     type TableRow = TableMappingRow | TableSequenceRow
     type TableConfigValue = (
-        t.JsonValue | t.StrSequence | t.SequenceOf[int] | t.SequenceOf[str | int] | None
+        t.JsonValue | Sequence[str] | Sequence[int] | Sequence[str | int] | None
     )
-    type TabularData = TableMappingRow | t.SequenceOf[TableRow]
-    type TableRows = t.SequenceOf[TableRow]
+    type TabularData = TableMappingRow | Sequence[TableRow]
+    type TableRows = Sequence[TableRow]
     type TableIndexValue = str | int
-    type TableIndexSelection = t.SequenceOf[TableIndexValue]
+    type TableIndexSelection = Sequence[TableIndexValue]
     type TableShowIndex = bool | TableIndexSelection
-    type TableDisableNumparse = bool | t.SequenceOf[int]
-    type TableColAlign = t.StrSequence | None
-    type CliValue = t.Scalar | t.StrSequence | DefaultMapping
-    type CliDefaultSource = CliValue | t.SequenceOf[str | int] | Path
+    type TableDisableNumparse = bool | Sequence[int]
+    type TableColAlign = Sequence[str] | None
+    type CliValue = t.Scalar | Sequence[str] | DefaultMapping
+    type CliDefaultSource = CliValue | Sequence[str | int] | Path
     type CliAnnotations = MutableMapping[str, type | GenericAlias]
     type TomlDocument = TOMLDocument
     type TomlTable = Table

@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 
 import pytest
@@ -25,8 +26,8 @@ class TestsFlextCliOptions:
         """Settings model used to exercise public default normalization."""
 
         output_path: Path = Path("reports/output.json")
-        tags: t.StrSequence = ("lint", "typecheck")
-        flags: t.MappingKV[str, bool] = m.Field(default_factory=lambda: {"debug": True})
+        tags: Sequence[str] = ("lint", "typecheck")
+        flags: Mapping[str, bool] = m.Field(default_factory=lambda: {"debug": True})
 
     @staticmethod
     @pytest.mark.parametrize(
@@ -41,7 +42,7 @@ class TestsFlextCliOptions:
         tm.ok(u.Cli.resolve_typer_annotation(annotation) is expected)
 
     @staticmethod
-    @pytest.mark.parametrize("annotation", [t.StrSequence, set[str], frozenset[str]])
+    @pytest.mark.parametrize("annotation", [Sequence[str], set[str], frozenset[str]])
     def test_resolve_typer_annotation_maps_string_collections_to_list_of_str(
         annotation: t.Cli.RuntimeAnnotation,
     ) -> None:
@@ -176,7 +177,7 @@ class TestsFlextCliOptions:
     @staticmethod
     @pytest.mark.parametrize("args", [["check", "--all"], []])
     def test_reorder_prefixed_options_is_identity_without_leading_prefixes(
-        args: t.SequenceOf[str],
+        args: Sequence[str],
     ) -> None:
         """Verify that reorder prefixed options is identity without leading prefixes."""
         tm.that(

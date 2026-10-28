@@ -13,7 +13,6 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli import t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileMode,
@@ -167,7 +166,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
     def require_identity(
         path: Path,
         state: os.stat_result | None,
-        expected: t.Pair[int, int] | None,
+        expected: tuple[int, int] | None,
     ) -> None:
         """Require one directory entry to retain a caller-owned inode.
 

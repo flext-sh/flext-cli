@@ -36,7 +36,7 @@ class FlextCliCliPart01:
             *,
             handler: p.Cli.ModelCommandHandler[M, TResult],
             model_cls: t.ModelClass[M],
-            parameters: t.SequenceOf[Parameter],
+            parameters: Sequence[Parameter],
             result_border: bool,
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
@@ -96,7 +96,7 @@ class FlextCliCliPart01:
         field_name: str,
         field_info: t.FieldInfo,
         settings: t.Cli.ModelLike | None,
-    ) -> t.Pair[m.Cli.OptionSpec, type | GenericAlias]:
+    ) -> tuple[m.Cli.OptionSpec, type | GenericAlias]:
         """Build the public CLI option specification of a Pydantic field.
 
         Args:
@@ -105,7 +105,7 @@ class FlextCliCliPart01:
             settings: Optional model instance supplying current field values.
 
         Returns:
-            The resulting ``t.Pair[m.Cli.OptionSpec, type | GenericAlias]``.
+            The resulting ``tuple[m.Cli.OptionSpec, type | GenericAlias]``.
 
         """
         alias = getattr(field_info, "alias", None)
@@ -190,11 +190,11 @@ class FlextCliCliPart01:
         field_name: str,
         field_info: t.FieldInfo,
         settings: t.Cli.ModelLike | None,
-    ) -> t.Pair[Parameter, type | GenericAlias]:
+    ) -> tuple[Parameter, type | GenericAlias]:
         """Build a keyword-only Typer option from its public specification.
 
         Returns:
-            The resulting ``t.Pair[Parameter, type | GenericAlias]``.
+            The resulting ``tuple[Parameter, type | GenericAlias]``.
 
         """
         spec, annotation = cls.model_option_spec(field_name, field_info, settings)

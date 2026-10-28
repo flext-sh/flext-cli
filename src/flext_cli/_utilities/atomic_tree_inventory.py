@@ -10,7 +10,7 @@ import errno
 import os
 import stat
 from bisect import bisect_left
-from collections.abc import Generator, Iterable
+from collections.abc import Generator, Iterable, Mapping, MutableMapping, Sequence
 from contextlib import contextmanager
 from itertools import chain
 from pathlib import Path
@@ -45,7 +45,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def directory_membership_value(
         inventory: m.Cli.AtomicDirectoryInventory,
         excluded_names: t.StrTuple,
-    ) -> t.MutableMappingKV[str, Literal["directory", "file", "symlink", "other"]]:
+    ) -> MutableMapping[str, Literal["directory", "file", "symlink", "other"]]:
         """Evaluate the declared direct-child selection on a physical receipt.
 
         Returns:
@@ -92,10 +92,11 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def _require_directory_witness_agreement(
         cls,
         previous: m.Cli.AtomicDirectoryInventory,
-        originals: t.SequenceOf[m.Cli.AtomicDirectoryInventory],
+        originals: Sequence[m.Cli.AtomicDirectoryInventory],
         path: Path,
-        selected_queries: t.VariadicTuple[
-            t.Pair[str, Literal["exists", "isfile", "isdir"]],
+        selected_queries: tuple[
+            tuple[str, Literal["exists", "isfile", "isdir"]],
+            ...,
         ],
         selections: tuple[t.StrTuple, ...],
     ) -> None:
@@ -134,11 +135,11 @@ class FlextCliUtilitiesAtomicTreeInventory:
         inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
         topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
         *,
-        queries: t.MappingKV[
-            int, set[t.Pair[str, Literal["exists", "isfile", "isdir"]]]
+        queries: Mapping[
+            int, set[tuple[str, Literal["exists", "isfile", "isdir"]]]
         ] = MappingProxyType({}),
-        membership_queries: t.MappingKV[int, set[t.StrTuple]] = MappingProxyType({}),
-    ) -> t.Pair[
+        membership_queries: Mapping[int, set[t.StrTuple]] = MappingProxyType({}),
+    ) -> tuple[
         tuple[m.Cli.AtomicDirectoryInventory, ...],
         tuple[m.Cli.AtomicDirectoryChainPlan, ...],
     ]:
@@ -156,8 +157,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ValueError: If original identity, query, or membership epochs disagree.
 
         """
-        directories: t.MutableMappingKV[Path, list[m.Cli.AtomicDirectoryInventory]] = {}
-        chains: t.MutableMappingKV[Path, list[m.Cli.AtomicDirectoryChainPlan]] = {}
+        directories: MutableMapping[Path, list[m.Cli.AtomicDirectoryInventory]] = {}
+        chains: MutableMapping[Path, list[m.Cli.AtomicDirectoryChainPlan]] = {}
         for incoming in inventories:
             directories.setdefault(incoming.root.path, []).append(incoming)
         for incoming in topology:
@@ -281,9 +282,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         cls,
         inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
         topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
-        publications: t.VariadicTuple[
-            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
-        ]
+        publications: tuple[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]
         | m.Cli.AtomicDirectoryQueryEffects = (),
         directory_publications: tuple[m.Cli.AtomicDirectoryState, ...] = (),
         observations: m.Cli.AtomicDirectoryObservations | None = None,
@@ -384,8 +383,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
     @staticmethod
     def _published_ancestors(
-        publications: Iterable[t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]],
-    ) -> t.MappingKV[Path, None]:
+        publications: Iterable[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState]],
+    ) -> Mapping[Path, None]:
         """Return every ancestor path already held by a published file.
 
         Returns:
@@ -403,11 +402,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def _require_membership_policy(
         inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
         topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
-        publications: t.VariadicTuple[
-            t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
-        ]
+        publications: tuple[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]
         | m.Cli.AtomicDirectoryQueryEffects,
-    ) -> tuple[t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]:
+    ) -> tuple[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]:
         """Reject receipt-selected authority before observing native dependencies.
 
         Returns:
@@ -442,12 +439,10 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def _verify_query_topology(
         cls,
         topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
-        published: t.MappingKV[
-            Path, t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]
-        ],
-        created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
-        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory],
-        topology_observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryChainPlan],
+        published: Mapping[Path, tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState]],
+        created: Mapping[Path, m.Cli.AtomicDirectoryState],
+        observations: MutableMapping[Path, m.Cli.AtomicDirectoryInventory],
+        topology_observations: MutableMapping[Path, m.Cli.AtomicDirectoryChainPlan],
     ) -> None:
         """Reprove absent-parent elections against the original native ancestry.
 
@@ -535,11 +530,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def _verify_query_membership(
         cls,
         observed: m.Cli.AtomicDirectoryInventory,
-        members: t.MutableMappingKV[
-            str, Literal["directory", "file", "symlink", "other"]
-        ],
-        publications: Iterable[t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]],
-        created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
+        members: MutableMapping[str, Literal["directory", "file", "symlink", "other"]],
+        publications: Iterable[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState]],
+        created: Mapping[Path, m.Cli.AtomicDirectoryState],
         excluded_names: t.StrTuple = (),
     ) -> None:
         """Reprove direct membership with only original native publication effects.
@@ -588,7 +581,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @staticmethod
     def _published_directory_current(
         path: Path,
-        created: t.MappingKV[Path, m.Cli.AtomicDirectoryState],
+        created: Mapping[Path, m.Cli.AtomicDirectoryState],
     ) -> None:
         """Bind an elected own directory to the publisher's original inode.
 
@@ -613,7 +606,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @classmethod
     def _observe_physical_directory(
         cls,
-        observations: t.MutableMappingKV[Path, m.Cli.AtomicDirectoryInventory],
+        observations: MutableMapping[Path, m.Cli.AtomicDirectoryInventory],
         root_path: Path,
     ) -> m.Cli.AtomicDirectoryInventory:
         """Return one boundary-scoped native observation of a physical directory.
@@ -721,7 +714,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def _opened_root(
         root_path: Path,
     ) -> Generator[
-        t.Pair[
+        tuple[
             m.Cli.AtomicPhysicalTreeEntry,
             FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         ]
@@ -792,7 +785,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         parent_mount_id: int,
         entries: list[m.Cli.AtomicPhysicalTreeEntry],
-        directory_identities: set[t.Pair[int, int]],
+        directory_identities: set[tuple[int, int]],
     ) -> None:
         FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
             parent.descriptor,

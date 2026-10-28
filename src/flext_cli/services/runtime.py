@@ -6,11 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import p, s, t
+from collections.abc import MutableSequence
+
+from flext_cli import p, s
 
 
 class FlextCliRuntime(s[p.Cli.RuntimeStatus]):
     """Expose process execution helpers through ``cli`` and ``FlextCli``."""
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliRuntime"]
+__all__: MutableSequence[str] = ["FlextCliRuntime"]

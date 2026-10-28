@@ -14,7 +14,7 @@ from typing import Literal
 
 import pytest
 
-from tests import c, m, t, tm, u
+from tests import c, m, tm, u
 
 
 class TestsFlextCliAtomicDirectoryQueries:
@@ -215,7 +215,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         fragment: m.Cli.AtomicDirectoryInventory,
         *,
         shared: bool,
-    ) -> t.Pair[str, str]:
+    ) -> tuple[str, str]:
         """Return the verification outcome kind and its diagnostic message.
 
         Returns:
@@ -323,7 +323,7 @@ class TestsFlextCliAtomicDirectoryQueries:
     ) -> None:
         """Unordered repeated selectors merge into one verifiable ordered union."""
         original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
-        queries: tuple[t.Pair[str, Literal["exists", "isfile", "isdir"]], ...] = tuple(
+        queries: tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...] = tuple(
             (f"candidate-{index:03}", "exists") for index in range(128)
         )
         fragments = tuple(
@@ -608,7 +608,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
     @staticmethod
     def _publish(
         path: Path,
-    ) -> t.Pair[m.Cli.AtomicFileState, m.Cli.AtomicFileState]:
+    ) -> tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState]:
         """Publish one new file and return its before/after physical states.
 
         Returns:

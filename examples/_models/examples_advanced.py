@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence
+from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 from typing import Annotated, ClassVar
 
@@ -68,17 +68,17 @@ class ExamplesFlextCliModelsExamplesAdvanced:
         @m.field_validator("log_level")
         @classmethod
         def _validate_log_level(cls, v: str) -> str:
-            valid: t.StrSequence = c.Cli.LOG_LEVELS
+            valid: Sequence[str] = c.Cli.LOG_LEVELS
             if v.upper() not in valid:
                 msg = f"LOG_LEVEL must be one of: {', '.join(valid)}"
                 raise ValueError(msg)
             return v.upper()
 
-        def validate_to_mapping(self) -> p.Result[t.MappingKV[str, t.JsonValue]]:
+        def validate_to_mapping(self) -> p.Result[Mapping[str, t.JsonValue]]:
             """Validate configuration and return as mapping or failure.
 
             Returns:
-                The resulting ``p.Result[t.MappingKV[str, t.JsonValue]]``.
+                The resulting ``p.Result[Mapping[str, t.JsonValue]]``.
 
             """
             errors: MutableSequence[str] = []
@@ -95,8 +95,8 @@ class ExamplesFlextCliModelsExamplesAdvanced:
             elif not self.temp_dir.is_dir():
                 errors.append("TEMP_DIR must be a directory")
             if errors:
-                return r[t.MappingKV[str, t.JsonValue]].fail("; ".join(errors))
-            return r[t.MappingKV[str, t.JsonValue]].ok({
+                return r[Mapping[str, t.JsonValue]].fail("; ".join(errors))
+            return r[Mapping[str, t.JsonValue]].ok({
                 "database_url": self.database_url,
                 "redis_url": self.redis_url,
                 "api_key": "***" if self.api_key else "",

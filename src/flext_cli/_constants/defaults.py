@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from types import MappingProxyType
 from typing import TYPE_CHECKING, ClassVar
 
@@ -18,7 +19,7 @@ class FlextCliConstantsDefaults:
 
     EMPTY_JSON_MAPPING: ClassVar[t.JsonMapping] = MappingProxyType({})
 
-    EMPTY_STR_MAPPING: ClassVar[t.StrMapping] = MappingProxyType({})
+    EMPTY_STR_MAPPING: ClassVar[Mapping[str, str]] = MappingProxyType({})
 
 
 __all__: list[str] = ["FlextCliConstantsDefaults"]

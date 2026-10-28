@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 from flext_cli.typings import PhysicalState
 
 if TYPE_CHECKING:
-    from flext_cli import m, t
+    from flext_cli import m
 
 
 class FlextCliUtilitiesAtomicFileModel:
@@ -25,7 +25,7 @@ class FlextCliUtilitiesAtomicFileModel:
         state: m.Cli.AtomicFileState,
         *,
         purpose: str,
-    ) -> t.Triple[bytes, int, t.Pair[int, int]]:
+    ) -> tuple[bytes, int, tuple[int, int]]:
         """Return required content, mode, and inode identity from an existing state.
 
         Returns:

@@ -10,7 +10,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, MutableMapping, MutableSequence, Sequence
 from pathlib import Path
 from typing import ClassVar, cast, override
 
@@ -37,7 +37,7 @@ class FlextCliUtilitiesTemplate:
             self,
             environment: Environment,
             template: str,
-        ) -> t.Triple[str, str, Callable[[], bool]]:
+        ) -> tuple[str, str, Callable[[], bool]]:
             content, filename, _ = super().get_source(environment, template)
             # Timestamp precision (or preserved mtimes) cannot prove freshness.
             return (
@@ -52,10 +52,10 @@ class FlextCliUtilitiesTemplate:
         def __init__(
             self,
             search_path: Path,
-            source_states: t.SequenceOf[m.Cli.AtomicFileState] | None = None,
+            source_states: Sequence[m.Cli.AtomicFileState] | None = None,
         ) -> None:
             self.search_path = search_path
-            self.source_states: t.MutableMappingKV[Path, m.Cli.AtomicFileState] = {
+            self.source_states: MutableMapping[Path, m.Cli.AtomicFileState] = {
                 state.path: state for state in source_states or ()
             }
             self.captured = source_states is not None
@@ -66,7 +66,7 @@ class FlextCliUtilitiesTemplate:
             self,
             environment: Environment,
             template: str,
-        ) -> t.Triple[str, str, None]:
+        ) -> tuple[str, str, None]:
             """Return immutable captured text for one root-contained template.
 
             Returns:
@@ -199,7 +199,7 @@ class FlextCliUtilitiesTemplate:
 
     @staticmethod
     def template_capture_sources(
-        paths: t.SequenceOf[Path],
+        paths: Sequence[Path],
     ) -> p.Result[tuple[m.Cli.AtomicFileState, ...]]:
         """Capture declared Jinja imports through the existing native loader.
 
@@ -212,7 +212,7 @@ class FlextCliUtilitiesTemplate:
         """
 
         def capture() -> tuple[m.Cli.AtomicFileState, ...]:
-            states: t.MutableMappingKV[Path, m.Cli.AtomicFileState] = {}
+            states: MutableMapping[Path, m.Cli.AtomicFileState] = {}
             for path in paths:
                 source = path.expanduser().absolute()
                 loader = FlextCliUtilitiesTemplate._AuthenticatedLoader(source.parent)
@@ -234,7 +234,7 @@ class FlextCliUtilitiesTemplate:
         path: Path,
         context: p.Model,
         *,
-        source_states: t.SequenceOf[m.Cli.AtomicFileState] | None = None,
+        source_states: Sequence[m.Cli.AtomicFileState] | None = None,
     ) -> p.Result[m.Cli.AuthenticatedTemplateRender]:
         """Render only descriptor-authenticated bytes and return all source states.
 
@@ -305,7 +305,7 @@ class FlextCliUtilitiesTemplate:
         templates_root: Path,
         output_root: Path,
         context: p.Model,
-        entries: t.SequenceOf[m.Cli.TemplateRenderEntry],
+        entries: Sequence[m.Cli.TemplateRenderEntry],
         *,
         options: m.Cli.TemplateRenderOptions | None = None,
     ) -> p.Result[m.Cli.TemplateRenderReport]:
@@ -387,4 +387,4 @@ class FlextCliUtilitiesTemplate:
         return True
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesTemplate"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesTemplate"]

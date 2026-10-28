@@ -186,10 +186,10 @@ class FlextCliModelsBasePart01:
                 return self.value
             return self.default
 
-    class SuccessSummaryDetails(m.RootModel[t.MappingKV[str, str]]):
+    class SuccessSummaryDetails(m.RootModel[Mapping[str, str]]):
         """Key-value success summary details. Use m.Cli.SuccessSummaryDetails."""
 
-        root: t.MappingKV[str, str]
+        root: Mapping[str, str]
 
 
 __all__: list[str] = ["FlextCliModelsBasePart01"]

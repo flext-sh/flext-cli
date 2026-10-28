@@ -51,6 +51,6 @@ type DirectoryChainInspection = tuple[
     Path,
     os.stat_result,
     tuple[tuple[int, int], ...],
-    flext_core_t.VariadicTuple[Path],
+    flext_core_tuple[Path, ...],
 ]
 __all__: list[str] = ["FlextCliTypes", "t"]

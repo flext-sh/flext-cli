@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
@@ -81,7 +82,7 @@ class FlextCliProtocolsPipeline:
             stage_id: str,
             *,
             handler: FlextCliProtocolsPipeline.PipelineStage,
-            depends_on: t.SequenceOf[str] | frozenset[str] = (),
+            depends_on: Sequence[str] | frozenset[str] = (),
             skip_if: FlextCliProtocolsPipeline.PipelineSkipPredicate | None = None,
         ) -> m.Cli.PipelineStageSpec:
             """Build one declarative pipeline stage spec."""
@@ -111,7 +112,7 @@ class FlextCliProtocolsPipeline:
 
         def pipeline(
             self,
-            stages: t.SequenceOf[m.Cli.PipelineStageSpec],
+            stages: Sequence[m.Cli.PipelineStageSpec],
             *,
             context: m.Cli.PipelineStageContext,
             logger: p.Logger | None = None,
@@ -121,15 +122,15 @@ class FlextCliProtocolsPipeline:
 
         def linear_pipeline(
             self,
-            stage_order: t.StrSequence,
-            handlers: t.MappingKV[str, FlextCliProtocolsPipeline.PipelineStage],
+            stage_order: Sequence[str],
+            handlers: Mapping[str, FlextCliProtocolsPipeline.PipelineStage],
             *,
-            skip_by_stage: t.MappingKV[
+            skip_by_stage: Mapping[
                 str,
                 FlextCliProtocolsPipeline.PipelineSkipPredicate,
             ]
             | None = None,
-        ) -> t.SequenceOf[m.Cli.PipelineStageSpec]:
+        ) -> Sequence[m.Cli.PipelineStageSpec]:
             """Build a linear dependency chain with canonical previous-stage deps."""
             ...
 

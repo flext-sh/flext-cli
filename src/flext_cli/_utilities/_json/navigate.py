@@ -13,7 +13,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 
 from flext_core import u
 
@@ -28,11 +28,11 @@ class FlextCliUtilitiesJsonNavigate(FlextCliUtilitiesJsonCore):
     @staticmethod
     def json_as_mapping_list(
         value: t.JsonPayload | None,
-    ) -> t.SequenceOf[t.JsonMapping]:
+    ) -> Sequence[t.JsonMapping]:
         """Normalize any JSON-compatible value into a list of mappings.
 
         Returns:
-            The resulting ``t.SequenceOf[t.JsonMapping]``.
+            The resulting ``Sequence[t.JsonMapping]``.
 
         """
         return [
@@ -42,7 +42,7 @@ class FlextCliUtilitiesJsonNavigate(FlextCliUtilitiesJsonCore):
         ]
 
     @staticmethod
-    def json_walk_path(data: t.JsonMapping, keys: t.StrSequence) -> t.JsonValue | None:
+    def json_walk_path(data: t.JsonMapping, keys: Sequence[str]) -> t.JsonValue | None:
         """Walk validated JSON mappings and validate only the selected leaf.
 
         Returns:
@@ -81,11 +81,11 @@ class FlextCliUtilitiesJsonNavigate(FlextCliUtilitiesJsonCore):
     def json_deep_mapping_list(
         data: t.JsonMapping,
         *keys: str,
-    ) -> t.SequenceOf[t.JsonMapping]:
+    ) -> Sequence[t.JsonMapping]:
         """Navigate nested mappings and normalize the final node as mapping list.
 
         Returns:
-            The resulting ``t.SequenceOf[t.JsonMapping]``.
+            The resulting ``Sequence[t.JsonMapping]``.
 
         """
         raw = FlextCliUtilitiesJsonNavigate.json_walk_path(data, keys)

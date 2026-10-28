@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import networkx as nx
 
 from flext_cli import p, r, t
@@ -58,7 +60,7 @@ class FlextCliUtilitiesDag:
         return r[t.Cli.DagGraph].ok(FlextCliUtilitiesDag._dag_graph(edges))
 
     @staticmethod
-    def dag_waves(edges: t.Cli.DagEdges) -> p.Result[t.SequenceOf[t.StrSequence]]:
+    def dag_waves(edges: t.Cli.DagEdges) -> p.Result[Sequence[Sequence[str]]]:
         """Split a closed dependency graph into dependency-first waves.
 
         Wave ``n`` holds only nodes whose dependencies all live in earlier
@@ -71,7 +73,7 @@ class FlextCliUtilitiesDag:
         """
         built = FlextCliUtilitiesDag._dag_closed_graph(edges)
         if built.failure:
-            return r[t.SequenceOf[t.StrSequence]].from_failure(built)
+            return r[Sequence[Sequence[str]]].from_failure(built)
         graph = built.value
         for component in FlextCliUtilitiesDag._dag_components(graph):
             start = min(component)
@@ -86,10 +88,10 @@ class FlextCliUtilitiesDag:
                 path = [start]
                 while path[-1] != successor:
                     path.append(parents[path[-1]])
-                return r[t.SequenceOf[t.StrSequence]].fail(
+                return r[Sequence[Sequence[str]]].fail(
                     "cyclic dependency graph: " + " -> ".join((start, *reversed(path))),
                 )
-        return r[t.SequenceOf[t.StrSequence]].ok(
+        return r[Sequence[Sequence[str]]].ok(
             tuple(
                 tuple(sorted(wave))
                 for wave in nx.topological_generations(graph.reverse(copy=False))
@@ -97,7 +99,7 @@ class FlextCliUtilitiesDag:
         )
 
     @staticmethod
-    def dag_order(edges: t.Cli.DagEdges) -> p.Result[t.StrSequence]:
+    def dag_order(edges: t.Cli.DagEdges) -> p.Result[Sequence[str]]:
         """Return the closed graph's nodes dependencies-first, wave by wave.
 
         Returns:
@@ -135,7 +137,7 @@ class FlextCliUtilitiesDag:
         )
 
     @staticmethod
-    def _dag_components(graph: t.Cli.DagGraph) -> t.SequenceOf[frozenset[str]]:
+    def _dag_components(graph: t.Cli.DagGraph) -> Sequence[frozenset[str]]:
         """Return the graph's strongly connected components in sorted order.
 
         Returns:
@@ -155,7 +157,7 @@ class FlextCliUtilitiesDag:
     @staticmethod
     def dag_strongly_connected(
         edges: t.Cli.DagEdges,
-    ) -> t.SequenceOf[frozenset[str]]:
+    ) -> Sequence[frozenset[str]]:
         """Return every strongly connected component, deterministically sorted.
 
         This query inspects arbitrary graphs: a reference outside the keys

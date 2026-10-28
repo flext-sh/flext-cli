@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import shutil
+from collections.abc import Sequence
 from pathlib import Path
 
 from flext_core import u
@@ -143,7 +144,7 @@ class FlextCliUtilitiesFilesPart01:
 
     @staticmethod
     def files_read_yaml_model_chain[M: t.Cli.ModelLike](
-        file_paths: t.SequenceOf[t.Cli.TextPath],
+        file_paths: Sequence[t.Cli.TextPath],
         model_type: t.ModelClass[M],
     ) -> p.Result[M]:
         """Merge ordered YAML sources and validate the final payload once.
@@ -169,7 +170,7 @@ class FlextCliUtilitiesFilesPart01:
     @staticmethod
     def files_write_csv(
         file_path: t.Cli.TextPath,
-        rows: t.SequenceOf[t.StrSequence],
+        rows: Sequence[Sequence[str]],
     ) -> p.Result[bool]:
         """Write one CSV file from row sequence.
 

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import os
 import shlex
+from collections.abc import Mapping, Sequence
 from typing import BinaryIO, ClassVar, override
 
 from flext_core import u
@@ -35,13 +36,13 @@ class FlextCliUtilitiesRuntime(
     @staticmethod
     def process_env(
         *,
-        overrides: t.StrMapping | None = None,
-        remove_keys: t.StrSequence = (),
-    ) -> t.StrDict:
+        overrides: Mapping[str, str] | None = None,
+        remove_keys: Sequence[str] = (),
+    ) -> dict[str, str]:
         """Resolve inherited process inputs through the environment model.
 
         Returns:
-            The resulting ``t.StrDict``.
+            The resulting ``dict[str, str]``.
 
         """
         return m.Cli.ProcessEnvironmentSpec.model_validate({
@@ -53,15 +54,15 @@ class FlextCliUtilitiesRuntime(
     @staticmethod
     @override
     def _resolved_env(
-        env: t.StrMapping | None,
-        remove_env_keys: t.StrSequence = (),
+        env: Mapping[str, str] | None,
+        remove_env_keys: Sequence[str] = (),
         *,
         inherit_environment: bool = True,
-    ) -> t.StrDict | None:
+    ) -> dict[str, str] | None:
         """Apply overlays and explicit removals without borrowing environments.
 
         Returns:
-            The resulting ``t.StrDict | None``.
+            The resulting ``dict[str, str] | None``.
 
         """
         if not inherit_environment:
@@ -79,9 +80,9 @@ class FlextCliUtilitiesRuntime(
     @staticmethod
     @override
     def _spawn_streamed_process(
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None,
-        env: t.MappingKV[str, str] | None,
+        env: Mapping[str, str] | None,
         stdin_handle: BinaryIO | None,
         *,
         options: m.Cli.RuntimeSpawnOptions,
@@ -105,11 +106,11 @@ class FlextCliUtilitiesRuntime(
         process: p.Cli.ProcessHandle,
         *,
         timeout: float | None,
-    ) -> p.Result[t.Pair[bytes, bytes]]:
+    ) -> p.Result[tuple[bytes, bytes]]:
         """Drain process pipes through the declared timeout result boundary.
 
         Returns:
-            The resulting ``p.Result[t.Pair[bytes, bytes]]``.
+            The resulting ``p.Result[tuple[bytes, bytes]]``.
 
         """
         try:
@@ -139,14 +140,14 @@ class FlextCliUtilitiesRuntime(
     @override
     def run_raw(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
         options: p.Cli.ProcessOptions | None = None,
         capture: bool = True,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence | None = None,
+        env: Mapping[str, str] | None = None,
+        remove_env_keys: Sequence[str] | None = None,
     ) -> p.Result[p.Cli.CommandOutput]:
         """Execute a command and preserve its actual exit outcome.
 
@@ -219,7 +220,7 @@ class FlextCliUtilitiesRuntime(
     @override
     def run_bytes(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,

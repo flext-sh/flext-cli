@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import os
 import threading
+from collections.abc import MutableSequence
 from typing import IO, BinaryIO, ClassVar
 
-from flext_cli import m, p, r, t
+from flext_cli import m, p, r
 
 
 class FlextCliUtilitiesRuntimeProcessStream:
@@ -23,7 +24,7 @@ class FlextCliUtilitiesRuntimeProcessStream:
     def _pump_process_input(
         sink: BinaryIO,
         payload: bytes,
-        failures: t.MutableSequenceOf[str],
+        failures: MutableSequence[str],
         wake: threading.Event,
     ) -> None:
         """Write every input byte to the child pipe, then publish EOF."""
@@ -90,7 +91,7 @@ class FlextCliUtilitiesRuntimeProcessStream:
     def _read_process_chunk(
         cls,
         source: IO[bytes],
-        failures: t.MutableSequenceOf[str],
+        failures: MutableSequence[str],
     ) -> bytes | None:
         try:
             chunk = source.read(cls._STREAM_CHUNK_BYTES)
@@ -128,7 +129,7 @@ class FlextCliUtilitiesRuntimeProcessStream:
         live_fd: int,
         chunk: bytes,
         stop: threading.Event,
-        diagnostics: t.MutableSequenceOf[str],
+        diagnostics: MutableSequence[str],
     ) -> bool:
         remaining = memoryview(chunk)
         while remaining and not stop.is_set():

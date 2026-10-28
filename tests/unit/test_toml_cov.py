@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING, ClassVar
 
 import pytest
@@ -26,8 +27,8 @@ class TestsFlextCliTomlCov:
     """Observable-behavior tests for the ``u.Cli.toml_*`` helpers."""
 
     _VALID_TOML = c.Tests.TOML_VALID_CONTENT
-    _INVALID_TOML = c.Tests.TOML_INVALID_CONTENT
-    _EXPECTED_MAPPING: ClassVar[t.MappingKV[str, t.MappingKV[str, t.StrMapping]]] = {
+    _INVALID_TOML = c.Tests.TOML_INVALID_CONTENTMapping[str, str]
+    _EXPECTED_MAPPING: ClassVar[Mapping[str, Mapping[str, Mapping[str, str]]]] = {
         "tool": {
             "flext": {"project": "my-project", "version": c.Tests.VERSION_VALID_SEMVER},
         },
@@ -86,8 +87,8 @@ class TestsFlextCliTomlCov:
         [(["x", "y"], ["x", "y"]), ([], []), (["solo"], ["solo"])],
     )
     def test_as_string_list_preserves_array_contents(
-        items: t.SequenceOf[str],
-        expected: t.SequenceOf[str],
+        items: Sequence[str],
+        expected: Sequence[str],
     ) -> None:
         """Verify that as string list preserves array contents."""
         arr = u.Cli.toml_array(items)

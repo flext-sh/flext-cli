@@ -13,8 +13,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import secrets
+from collections.abc import Mapping, MutableSequence
 
-from flext_cli import c, m, p, r, s, settings, t, u
+from flext_cli import c, m, p, r, s, settings, u
 from flext_cli.services import FlextCliFileTools
 
 
@@ -72,7 +73,7 @@ class FlextCliAuth(s[p.Cli.RuntimeStatus]):
             u.Cli.auth_extract_token,
         )
 
-    def authenticate(self, credentials: t.StrMapping) -> p.Result[str]:
+    def authenticate(self, credentials: Mapping[str, str]) -> p.Result[str]:
         """Authenticate with a token or username/password and persist the token.
 
         Args:
@@ -112,4 +113,4 @@ class FlextCliAuth(s[p.Cli.RuntimeStatus]):
         )
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliAuth"]
+__all__: MutableSequence[str] = ["FlextCliAuth"]

@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from typing import ClassVar
 
 from flext_core import u
@@ -104,7 +104,7 @@ class FlextCliUtilitiesTables:
                 for key, value in validated_mapping.items()
             ])
 
-        normalized_rows: t.MutableSequenceOf[t.Cli.TableRow] = []
+        normalized_rows: MutableSequence[t.Cli.TableRow] = []
         for row in validated_data:
             if isinstance(row, Mapping):
                 normalized_rows.append(
@@ -122,7 +122,7 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_render(
-        rows: t.SequenceOf[t.Cli.TableRow],
+        rows: Sequence[t.Cli.TableRow],
         settings: m.Cli.TableConfig,
     ) -> p.Result[str]:
         """Render normalized rows to a plain-text table string.
@@ -131,7 +131,7 @@ class FlextCliUtilitiesTables:
             The resulting ``p.Result[str]``.
 
         """
-        headers: str | t.StrSequence
+        headers: str | Sequence[str]
         if not settings.show_header:
             # NOTE (multi-agent): Empty headers use the immutable sequence contract.
             headers = ()
@@ -163,4 +163,4 @@ class FlextCliUtilitiesTables:
         return r[str].ok(rendered_table)
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesTables"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesTables"]

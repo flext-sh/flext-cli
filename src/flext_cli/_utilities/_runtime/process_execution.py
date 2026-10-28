@@ -15,6 +15,7 @@ import struct
 import sys
 import threading
 import time
+from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, BinaryIO, ClassVar, Literal
 
@@ -64,7 +65,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
         @classmethod
         def run_bytes(
             cls,
-            cmd: t.StrSequence,
+            cmd: Sequence[str],
             cwd: t.Cli.TextPath | None = None,
             timeout: int | None = None,
             *,
@@ -236,7 +237,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
         state: m.Cli.RuntimeProcessState,
         command: tuple[str, ...],
         grace_seconds: float,
-    ) -> tuple[tuple[str, ...], t.StrMapping | None, tuple[int, ...]] | None:
+    ) -> tuple[tuple[str, ...], Mapping[str, str] | None, tuple[int, ...]] | None:
         """Prepare explicit native confinement inside the existing lifecycle.
 
         Returns:
@@ -373,7 +374,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
             *isolation.sources,
             *isolation.runtime_files,
         )
-        captured_by_path: t.MutableMappingKV[Path, m.Cli.AtomicFileState] = {}
+        captured_by_path: MutableMapping[Path, m.Cli.AtomicFileState] = {}
         for captured in files:
             if captured_by_path.setdefault(captured.path, captured) != captured:
                 msg = f"isolated input has competing physical states: {captured.path}"

@@ -14,7 +14,7 @@ from pptx import Presentation
 from pptx.exc import PackageNotFoundError
 from pptx.presentation import Presentation as PresentationType
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
 
 
 class FlextCliUtilitiesPptxReader:
@@ -58,7 +58,7 @@ class FlextCliUtilitiesPptxReader:
             )
             for slide in presentation.slides
         )
-        properties: t.StrDict = {}
+        properties: dict[str, str] = {}
         core_props = presentation.core_properties
         for key in ("author", "title", "subject", "keywords", "comments", "category"):
             value = getattr(core_props, key, None)

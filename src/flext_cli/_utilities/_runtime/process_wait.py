@@ -7,8 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import threading
+from collections.abc import MutableSequence
 
-from flext_cli import c, p, t
+from flext_cli import c, p
 
 
 class FlextCliUtilitiesRuntimeProcessWait:
@@ -17,8 +18,8 @@ class FlextCliUtilitiesRuntimeProcessWait:
     @staticmethod
     def _wait_for_root_process(
         process: p.Cli.ProcessHandle,
-        return_codes: t.MutableSequenceOf[int],
-        failures: t.MutableSequenceOf[str],
+        return_codes: MutableSequence[int],
+        failures: MutableSequence[str],
         process_done: threading.Event,
         wake: threading.Event,
     ) -> None:

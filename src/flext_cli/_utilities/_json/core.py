@@ -15,7 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
@@ -35,7 +35,7 @@ class FlextCliUtilitiesJsonCore:
     """Core JSON serialization, file read/write, and value normalization."""
 
     _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
-    _EMPTY_JSON_SEQUENCE: t.SequenceOf[t.JsonValue] = ()
+    _EMPTY_JSON_SEQUENCE: Sequence[t.JsonValue] = ()
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
@@ -120,7 +120,7 @@ class FlextCliUtilitiesJsonCore:
         violations: list[tuple[int, str]] = []
 
         def _object_pairs_hook(
-            pairs: t.SequenceOf[t.Pair[str, t.JsonValue]],
+            pairs: Sequence[tuple[str, t.JsonValue]],
         ) -> t.JsonDict:
             obj = dict(pairs)
             seen: set[str] = set()
@@ -132,7 +132,7 @@ class FlextCliUtilitiesJsonCore:
             return obj
 
         root: t.JsonValue = json.loads(raw, object_pairs_hook=_object_pairs_hook)
-        paths: t.MutableMappingKV[int, str] = {}
+        paths: MutableMapping[int, str] = {}
         stack: list[tuple[t.JsonValue, str]] = [(root, "$")]
         while stack:
             node, path = stack.pop()
@@ -321,11 +321,11 @@ class FlextCliUtilitiesJsonCore:
     @staticmethod
     def json_as_sequence(
         value: t.JsonValue | t.JsonPayload | None,
-    ) -> t.SequenceOf[t.JsonValue]:
+    ) -> Sequence[t.JsonValue]:
         """Normalize any JSON-compatible value into a JSON sequence.
 
         Returns:
-            The resulting ``t.SequenceOf[t.JsonValue]``.
+            The resulting ``Sequence[t.JsonValue]``.
 
         """
         if value is None:

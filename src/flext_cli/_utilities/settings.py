@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, overload
 
@@ -51,14 +52,14 @@ class FlextCliUtilitiesSettings:
     @staticmethod
     def project_names_from_values(
         *values: t.Cli.ProjectNamesValue | None,
-    ) -> t.MutableSequenceOf[str] | None:
+    ) -> MutableSequence[str] | None:
         """Normalize repeated or comma-separated CLI selector values.
 
         Returns:
-            The resulting ``t.MutableSequenceOf[str] | None``.
+            The resulting ``MutableSequence[str] | None``.
 
         """
-        names: t.MutableSequenceOf[str] = []
+        names: MutableSequence[str] = []
         for value in values:
             if value is None:
                 continue
@@ -74,25 +75,25 @@ class FlextCliUtilitiesSettings:
     @staticmethod
     def project_numbers_from_values(
         *values: t.Cli.ProjectNamesValue | None,
-        default: t.SequenceOf[int],
-    ) -> t.MutableSequenceOf[int]: ...
+        default: Sequence[int],
+    ) -> MutableSequence[int]: ...
 
     @overload
     @staticmethod
     def project_numbers_from_values(
         *values: t.Cli.ProjectNamesValue | None,
         default: None = None,
-    ) -> t.MutableSequenceOf[int] | None: ...
+    ) -> MutableSequence[int] | None: ...
 
     @staticmethod
     def project_numbers_from_values(
         *values: t.Cli.ProjectNamesValue | None,
-        default: t.SequenceOf[int] | None = None,
-    ) -> t.MutableSequenceOf[int] | None:
+        default: Sequence[int] | None = None,
+    ) -> MutableSequence[int] | None:
         """Normalize selector values into integers with optional default fallback.
 
         Returns:
-            The resulting ``t.MutableSequenceOf[int] | None``.
+            The resulting ``MutableSequence[int] | None``.
 
         """
         names = FlextCliUtilitiesSettings.project_names_from_values(*values)
@@ -119,11 +120,11 @@ class FlextCliUtilitiesSettings:
         )
 
     @staticmethod
-    def validate_settings_structure() -> t.StrSequence:
+    def validate_settings_structure() -> Sequence[str]:
         """Validate the canonical CLI settings directory structure.
 
         Returns:
-            The resulting ``t.StrSequence``.
+            The resulting ``Sequence[str]``.
 
         """
         base = Path.home() / c.Cli.PATH_FLEXT_DIR_NAME
@@ -144,4 +145,4 @@ class FlextCliUtilitiesSettings:
         return lines
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesSettings"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesSettings"]

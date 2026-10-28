@@ -9,8 +9,9 @@ from __future__ import annotations
 import os
 import signal
 import time
+from collections.abc import MutableSequence
 
-from flext_cli import c, m, p, t
+from flext_cli import c, m, p
 from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessGroup
 
 
@@ -27,12 +28,12 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         absolute_deadline: float | None,
         grace_seconds: float,
         *,
-        progress: t.Pair[int | None, float | None],
-    ) -> t.Pair[bool, float | None]:
+        progress: tuple[int | None, float | None],
+    ) -> tuple[bool, float | None]:
         """Forward signals and advance TERM/KILL phases without polling.
 
         Returns:
-            The resulting ``t.Pair[bool, float | None]``.
+            The resulting ``tuple[bool, float | None]``.
 
         """
         lifecycle_deadline = absolute_deadline
@@ -199,7 +200,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         *,
         term_sent: bool,
         kill_sent: bool,
-    ) -> t.Triple[int, bool, bool]:
+    ) -> tuple[int, bool, bool]:
         force_after_signals = 2
         while forwarded_count < len(state.received_signals):
             signal_number = state.received_signals[forwarded_count]
@@ -227,7 +228,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
 
     @staticmethod
     def _record_signal_error(
-        failures: t.MutableSequenceOf[str],
+        failures: MutableSequence[str],
         signal_result: p.Result[bool],
     ) -> None:
         if signal_result.failure:

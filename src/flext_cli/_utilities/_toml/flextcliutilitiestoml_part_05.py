@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from flext_cli import t
 from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesTomlPart01,
@@ -19,7 +21,7 @@ class FlextCliUtilitiesTomlPart05:
     def toml_mapping_sync_string_list(
         container: t.MutableJsonMapping,
         key: str,
-        expected: t.StrSequence,
+        expected: Sequence[str],
         *,
         sort_values: bool = False,
     ) -> bool:

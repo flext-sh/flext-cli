@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableSequence, Sequence
 from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
@@ -22,8 +22,8 @@ class FlextCliUtilitiesConversion:
 
     _EMPTY_JSON_MAPPING: ClassVar[t.JsonMapping] = MappingProxyType({})
 
-    STR_SEQUENCE_ADAPTER: ClassVar[t.ValueAdapter[t.StrSequence]] = u.type_adapter(
-        TypeForm(t.StrSequence)
+    STR_SEQUENCE_ADAPTER: ClassVar[t.ValueAdapter[Sequence[str]]] = u.type_adapter(
+        TypeForm(Sequence[str])
     )
     JSON_VALUE_ADAPTER: ClassVar[t.ValueAdapter[t.JsonValue]] = u.type_adapter(
         TypeForm(t.JsonValue)
@@ -110,4 +110,4 @@ class FlextCliUtilitiesConversion:
         return normalized if normalized is not None else default
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesConversion"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesConversion"]

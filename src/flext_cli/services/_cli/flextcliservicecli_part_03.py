@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, MutableSequence, Sequence
 from inspect import Parameter
 
 from flext_cli import c, m, p, r, t, u
@@ -45,7 +46,7 @@ class FlextCliCliPart03(FlextCliCliPart02):
             TypeError: If ``field_info.is_required()``.
 
         """
-        parameters: t.MutableSequenceOf[Parameter] = []
+        parameters: MutableSequence[Parameter] = []
         annotations: t.Cli.CliAnnotations = {"return": type(None)}
         fields = model_cls.model_fields
         for field_name, field_info in fields.items():
@@ -78,9 +79,9 @@ class FlextCliCliPart03(FlextCliCliPart02):
     def invoke_app(
         app: p.Cli.Application,
         *,
-        args: t.StrSequence | None = None,
+        args: Sequence[str] | None = None,
         charset: str = c.DEFAULT_ENCODING,
-        env: t.StrMapping | None = None,
+        env: Mapping[str, str] | None = None,
     ) -> p.Result[m.Cli.InvocationResult]:
         """Invoke an application through the private real-framework boundary.
 

@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from pathlib import Path
 
 from flext_core import u
@@ -47,7 +48,7 @@ class FlextCliUtilitiesYaml(
         )
 
     @staticmethod
-    def yaml_parse_documents(text: str) -> p.Result[t.SequenceOf[t.JsonMapping]]:
+    def yaml_parse_documents(text: str) -> p.Result[Sequence[t.JsonMapping]]:
         """Read every mapping in a strict YAML document stream.
 
         Returns:

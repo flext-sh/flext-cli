@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Annotated, ClassVar
 
 from flext_core import FlextSettings, m
@@ -106,7 +107,7 @@ class FlextCliModelsBasePart06:
         """Framework-neutral command option consumed by the private adapter."""
 
         declarations: Annotated[
-            t.StrSequence,
+            Sequence[str],
             m.Field(description="Ordered long and short option declarations"),
         ]
         help_text: Annotated[str, m.Field(description="Human-readable option help")]

@@ -13,10 +13,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import pytest
 
 from flext_cli import cli
-from tests import c, t, tm
+from tests import c, tm
 
 
 class TestsFlextCliFormattersCov:
@@ -89,8 +91,8 @@ class TestsFlextCliFormattersCov:
     )
     def test_render_table_renders_columns_and_cells(
         capsys: pytest.CaptureFixture[str],
-        columns: t.StrSequence,
-        rows: tuple[t.StrSequence, ...],
+        columns: Sequence[str],
+        rows: tuple[Sequence[str], ...],
         title: str,
     ) -> None:
         """Verify that render table renders columns and cells."""

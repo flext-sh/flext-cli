@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 from flext_core import u
@@ -48,7 +49,7 @@ class FlextCliUtilitiesTomlPart04:
     def toml_sync_string_list(
         container: TOMLDocument | Table,
         key: str,
-        expected: t.StrSequence,
+        expected: Sequence[str],
         *,
         sort_values: bool = False,
     ) -> bool:
@@ -117,7 +118,7 @@ class FlextCliUtilitiesTomlPart04:
     def toml_mapping_merge_string_list(
         container: t.MutableJsonMapping,
         key: str,
-        required: t.StrSequence,
+        required: Sequence[str],
     ) -> bool:
         """Merge required values into a plain string-list; return True if mutated.
 

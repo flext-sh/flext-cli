@@ -7,11 +7,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections.abc import Sequence
 from pathlib import Path
 
 from filelock import FileLock
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
 from flext_cli._utilities import FlextCliUtilitiesOutput
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_06 import (
@@ -40,7 +41,7 @@ class FlextCliUtilitiesFileChanges:
 
     @staticmethod
     def pending_file_changes(
-        changes: t.SequenceOf[m.Cli.FileChange],
+        changes: Sequence[m.Cli.FileChange],
     ) -> tuple[m.Cli.FileChange, ...]:
         """Select the changes whose bytes or mode differ from the observed state.
 
@@ -60,11 +61,11 @@ class FlextCliUtilitiesFileChanges:
 
     @staticmethod
     def publish_file_changes(
-        changes: t.SequenceOf[m.Cli.FileChange],
+        changes: Sequence[m.Cli.FileChange],
         *,
         lock_path: Path,
         directory_mode: int = c.Cli.FILE_CHANGES_DIRECTORY_MODE,
-        nonsecret_source_paths: t.SequenceOf[Path] = (),
+        nonsecret_source_paths: Sequence[Path] = (),
     ) -> p.Result[tuple[Path, ...]]:
         """Verify every observed state, then write or delete each changed file.
 

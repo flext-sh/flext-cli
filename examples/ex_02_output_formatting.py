@@ -18,6 +18,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from examples import c, p, t
 from flext_cli import cli
 
@@ -27,7 +29,7 @@ class ExamplesFlextCliOutputFormatting:
 
     @staticmethod
     def export_report(
-        data: t.SequenceOf[t.Cli.TableMappingRow],
+        data: Sequence[t.Cli.TableMappingRow],
         format_type: c.Cli.TabularFormat = c.Cli.TabularFormat.TABLE,
     ) -> p.Result[str]:
         """Create ASCII tables for logs/reports in your app.

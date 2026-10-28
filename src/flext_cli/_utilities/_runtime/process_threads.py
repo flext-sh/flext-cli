@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import threading
+from collections.abc import MutableSequence
 from typing import IO, TYPE_CHECKING, BinaryIO
 
 from flext_cli._utilities._runtime import (
@@ -15,7 +16,7 @@ from flext_cli._utilities._runtime import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli import m, p, t
+    from flext_cli import m, p
 
 
 class FlextCliUtilitiesRuntimeProcessThreads(
@@ -29,7 +30,7 @@ class FlextCliUtilitiesRuntimeProcessThreads(
         cls,
         sink: BinaryIO,
         payload: bytes,
-        failures: t.MutableSequenceOf[str],
+        failures: MutableSequence[str],
         wake: threading.Event,
     ) -> threading.Thread:
         """Start the sole non-daemon writer for one anonymous stdin pipe.
@@ -51,8 +52,8 @@ class FlextCliUtilitiesRuntimeProcessThreads(
     def _start_root_waiter(
         cls,
         process: p.Cli.ProcessHandle,
-        return_codes: t.MutableSequenceOf[int],
-        failures: t.MutableSequenceOf[str],
+        return_codes: MutableSequence[int],
+        failures: MutableSequence[str],
         process_done: threading.Event,
         wake: threading.Event,
     ) -> threading.Thread:

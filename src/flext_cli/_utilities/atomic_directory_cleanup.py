@@ -9,7 +9,6 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -19,9 +18,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileRead,
 )
 
-if TYPE_CHECKING:
-    from flext_cli import t
-
 
 class FlextCliUtilitiesAtomicDirectoryCleanup:
     """Canonical namespace owner."""
@@ -30,7 +26,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
     def remove_created_directory(
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
-        identity: t.Pair[int, int] | None,
+        identity: tuple[int, int] | None,
         operation_error: BaseException,
     ) -> None:
         """Remove only the still-empty inode created by the failed operation."""
@@ -54,7 +50,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
     def _remove_created_directory(
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
-        identity: t.Pair[int, int] | None,
+        identity: tuple[int, int] | None,
     ) -> None:
         state = FlextCliUtilitiesAtomicDirectoryState.destination_state(
             path,
@@ -96,8 +92,8 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
     def _require_cleanup_identity(
         path: Path,
         state: os.stat_result,
-        identity: t.Pair[int, int] | None,
-    ) -> t.Pair[int, int]:
+        identity: tuple[int, int] | None,
+    ) -> tuple[int, int]:
         if identity is None:
             message = f"refusing unauthenticated directory cleanup: {path}"
             raise OSError(errno.ESTALE, message, path)

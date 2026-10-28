@@ -11,12 +11,9 @@ import errno
 import os
 import sys
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, cast
+from typing import ClassVar, cast
 
 from flext_cli.typings import RenameAt2
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicDirectoryNoreplace:
@@ -112,11 +109,11 @@ class FlextCliUtilitiesAtomicDirectoryNoreplace:
         raise OSError(errno.ENOTSUP, message, path)
 
     @staticmethod
-    def _runtime_platform() -> t.Pair[str, str]:
+    def _runtime_platform() -> tuple[str, str]:
         """Read host selectors at invocation time for portable typed dispatch.
 
         Returns:
-            The resulting ``t.Pair[str, str]``.
+            The resulting ``tuple[str, str]``.
 
         """
         return sys.platform, os.name

@@ -6,12 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_core import m
 
-from flext_cli import c, t
+from flext_cli import c
 from flext_cli._models import FlextCliModelsAtomicState
 
 
@@ -263,19 +264,19 @@ class FlextCliModelsBasePart02:
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         base_env: Annotated[
-            t.StrMapping,
+            Mapping[str, str],
             m.Field(
                 description="Base environment inherited from the current process",
             ),
         ] = m.Field(default_factory=lambda: c.Cli.EMPTY_STR_MAPPING)
         overrides: Annotated[
-            t.StrMapping,
+            Mapping[str, str],
             m.Field(
                 description="Explicit environment overrides for the child process",
             ),
         ] = m.Field(default_factory=lambda: c.Cli.EMPTY_STR_MAPPING)
         remove_keys: Annotated[
-            t.StrSequence,
+            Sequence[str],
             m.Field(
                 description="Environment keys removed before applying overrides",
             ),
@@ -283,15 +284,15 @@ class FlextCliModelsBasePart02:
 
         @m.computed_field
         @property
-        def resolved(self) -> t.StrDict:
+        def resolved(self) -> dict[str, str]:
             """Resolved environment mapping after removals and overrides."""
             return self.resolve()
 
-        def resolve(self) -> t.StrDict:
+        def resolve(self) -> dict[str, str]:
             """Type-safe accessor for the computed environment mapping.
 
             Returns:
-                The resulting ``t.StrDict``.
+                The resulting ``dict[str, str]``.
 
             """
             remove_keys = frozenset(self.remove_keys)

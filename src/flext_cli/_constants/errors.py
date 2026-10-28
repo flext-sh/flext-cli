@@ -6,10 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, ClassVar
-
-if TYPE_CHECKING:
-    from flext_cli import t
+from collections.abc import MutableSequence
+from typing import ClassVar
 
 
 class FlextCliConstantsErrors:
@@ -130,4 +128,4 @@ class FlextCliConstantsErrors:
     )
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliConstantsErrors"]
+__all__: MutableSequence[str] = ["FlextCliConstantsErrors"]

@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, t
+from flext_cli import c
 
 
 class FlextCliUtilitiesOutputPayloads:
@@ -42,11 +42,11 @@ class FlextCliUtilitiesOutputPayloads:
     def output_message_payload(
         message: str,
         message_type: c.Cli.MessageTypes | None,
-    ) -> t.Pair[str, str]:
+    ) -> tuple[str, str]:
         """Build one canonical display payload and style from message type.
 
         Returns:
-            The resulting ``t.Pair[str, str]``.
+            The resulting ``tuple[str, str]``.
 
         """
         final_type = FlextCliUtilitiesOutputPayloads.output_resolve_message_type(
@@ -100,21 +100,21 @@ class FlextCliUtilitiesOutputPayloads:
         )
 
     @staticmethod
-    def output_debug_line(message: str) -> t.Pair[str, str]:
+    def output_debug_line(message: str) -> tuple[str, str]:
         """Build one canonical debug line and style.
 
         Returns:
-            The resulting ``t.Pair[str, str]``.
+            The resulting ``tuple[str, str]``.
 
         """
         return f"[{c.Cli.OUTPUT_LOG_LEVEL_DEBUG}] {message}", c.Cli.MessageStyles.DIM
 
     @staticmethod
-    def output_table_error(error_message: str | None) -> t.Pair[str, str]:
+    def output_table_error(error_message: str | None) -> tuple[str, str]:
         """Build one canonical table error line and style.
 
         Returns:
-            The resulting ``t.Pair[str, str]``.
+            The resulting ``tuple[str, str]``.
 
         """
         error = error_message or c.Cli.ERR_UNKNOWN_ERROR
@@ -127,11 +127,11 @@ class FlextCliUtilitiesOutputPayloads:
         *,
         success: bool,
         elapsed: float | None,
-    ) -> t.Pair[str, str]:
+    ) -> tuple[str, str]:
         """Build one canonical status line and style.
 
         Returns:
-            The resulting ``t.Pair[str, str]``.
+            The resulting ``tuple[str, str]``.
 
         """
         symbol = c.Cli.SYMBOL_SUCCESS_MARK if success else c.Cli.SYMBOL_FAILURE_MARK
@@ -143,11 +143,11 @@ class FlextCliUtilitiesOutputPayloads:
         return line, style
 
     @staticmethod
-    def output_gate_line(name: str, *, passed: bool, message: str) -> t.Pair[str, str]:
+    def output_gate_line(name: str, *, passed: bool, message: str) -> tuple[str, str]:
         """Build one canonical gate line and style.
 
         Returns:
-            The resulting ``t.Pair[str, str]``.
+            The resulting ``tuple[str, str]``.
 
         """
         symbol = c.Cli.SYMBOL_SUCCESS_MARK if passed else c.Cli.SYMBOL_FAILURE_MARK

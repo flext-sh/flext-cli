@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import shlex
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
 
 
 class FlextCliUtilitiesRuntimeProcessTiming:
@@ -20,7 +20,7 @@ class FlextCliUtilitiesRuntimeProcessTiming:
         started: float,
         *,
         on_main_thread: bool,
-    ) -> p.Result[t.Pair[float | None, float]]:
+    ) -> p.Result[tuple[float | None, float]]:
         timeout, deadline = request.timeout, request.deadline
         if timeout is not None and deadline is not None:
             return r[tuple[float | None, float]].fail(

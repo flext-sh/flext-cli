@@ -12,7 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING
 
 import pytest
@@ -23,8 +23,6 @@ from tests import c, tm
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-from tests import t
 
 
 class TestsFlextCliServicesAuthCov:
@@ -211,7 +209,7 @@ class TestsFlextCliServicesAuthCov:
         ],
     )
     def test_authenticate_rejects_incomplete_credentials(
-        auth: FlextCliAuth, credentials: t.MappingKV[str, ...]
+        auth: FlextCliAuth, credentials: Mapping[str, str]
     ) -> None:
         """Verify that authenticate rejects incomplete credentials."""
         result = auth.authenticate(credentials)

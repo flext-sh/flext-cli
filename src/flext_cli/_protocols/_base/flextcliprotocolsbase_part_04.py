@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Protocol, runtime_checkable
 
 from flext_core import p
@@ -22,7 +23,7 @@ class FlextCliProtocolsBasePart04(FlextCliProtocolsBasePart03):
         """Framework-neutral option model contract returned by the CLI DSL."""
 
         @property
-        def declarations(self) -> t.StrSequence:
+        def declarations(self) -> Sequence[str]:
             """Ordered option flag declarations."""
             ...
 

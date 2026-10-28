@@ -22,7 +22,7 @@ class FlextCliUtilitiesEnv:
     _ANY_PLACEHOLDER = re.compile(r"\$\{[^{}]*\}")
 
     @staticmethod
-    def env_read(name: str, environment: t.StrMapping) -> p.Result[str]:
+    def env_read(name: str, environment: Mapping[str, str]) -> p.Result[str]:
         """Read one environment variable by ``name`` from an injected mapping.
 
         Returns the variable's value, or an empty string when it is unset. Callers
@@ -39,7 +39,7 @@ class FlextCliUtilitiesEnv:
     @staticmethod
     def env_expand(
         template: str,
-        environment: t.StrMapping,
+        environment: Mapping[str, str],
         *,
         strict: bool = False,
     ) -> p.Result[str]:
@@ -75,7 +75,7 @@ class FlextCliUtilitiesEnv:
     @staticmethod
     def env_expand_document(
         document: t.JsonValue,
-        environment: t.StrMapping,
+        environment: Mapping[str, str],
         *,
         skip_keys: frozenset[str] = frozenset(),
     ) -> p.Result[t.JsonValue]:
@@ -104,7 +104,7 @@ class FlextCliUtilitiesEnv:
     @staticmethod
     def _expand_mapping(
         value: t.JsonMapping,
-        environment: t.StrMapping,
+        environment: Mapping[str, str],
         skip_keys: frozenset[str],
     ) -> p.Result[t.JsonValue]:
         """Expand every non-skipped entry of one mapping, stopping at a failure.
@@ -130,8 +130,8 @@ class FlextCliUtilitiesEnv:
 
     @staticmethod
     def _expand_sequence(
-        value: t.SequenceOf[t.JsonValue],
-        environment: t.StrMapping,
+        value: Sequence[t.JsonValue],
+        environment: Mapping[str, str],
         skip_keys: frozenset[str],
     ) -> p.Result[t.JsonValue]:
         """Expand every item of one sequence, stopping at a failure.
@@ -153,7 +153,7 @@ class FlextCliUtilitiesEnv:
         return r[t.JsonValue].ok(items)
 
     @staticmethod
-    def _expand_strict(template: str, environment: t.StrMapping) -> p.Result[str]:
+    def _expand_strict(template: str, environment: Mapping[str, str]) -> p.Result[str]:
         """Expand one value to its fixed point under the closed braced grammar.
 
         Returns:

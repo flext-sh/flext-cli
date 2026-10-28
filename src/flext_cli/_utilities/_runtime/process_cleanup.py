@@ -10,7 +10,13 @@ import os
 import signal
 import threading
 import time
-from collections.abc import Callable, Generator
+from collections.abc import (
+    Callable,
+    Generator,
+    MutableMapping,
+    MutableSequence,
+    Sequence,
+)
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager, nullcontext
 from contextvars import copy_context
@@ -42,13 +48,13 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
         def __init__(self) -> None:
             """Start the wave with no subscribed lifecycle."""
             self._lock = threading.Lock()
-            self._subscribers: t.MutableMappingKV[
-                int, t.Pair[t.MutableSequenceOf[int], threading.Event]
+            self._subscribers: MutableMapping[
+                int, tuple[MutableSequence[int], threading.Event]
             ] = {}
 
         def subscribe(
             self,
-            received_signals: t.MutableSequenceOf[int],
+            received_signals: MutableSequence[int],
             wake: threading.Event,
         ) -> Callable[[], None]:
             """Deliver each received signal to one lifecycle until unsubscribed.
@@ -96,8 +102,8 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
             msg = "a process signal wave must be owned by the main interpreter thread"
             raise RuntimeError(msg)
         wave = cls.SignalWave()
-        received: t.MutableSequenceOf[int] = []
-        forwarded: t.MutableSequenceOf[int] = []
+        received: MutableSequence[int] = []
+        forwarded: MutableSequence[int] = []
         restore_handlers = cls._install_forwarding_handlers(
             received,
             forwarded,
@@ -115,7 +121,7 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
     @classmethod
     def run_in_signal_wave[T](
         cls,
-        tasks: t.SequenceOf[Callable[[p.Cli.SignalWave], T]],
+        tasks: Sequence[Callable[[p.Cli.SignalWave], T]],
         *,
         max_workers: int,
         signal_wave: p.Cli.SignalWave | None = None,
@@ -147,12 +153,12 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
     @classmethod
     def _install_forwarding_handlers(
         cls,
-        received_signals: t.MutableSequenceOf[int],
-        forwarded_signals: t.MutableSequenceOf[int],
+        received_signals: MutableSequence[int],
+        forwarded_signals: MutableSequence[int],
         wake: threading.Event,
         *,
         on_signal: Callable[[int], None] | None = None,
-    ) -> t.MutableSequenceOf[Callable[[], None]]:
+    ) -> MutableSequence[Callable[[], None]]:
         """Capture operator signals before opening the containment window.
 
         ``on_signal`` additionally delivers each signal to the subscribers of
@@ -166,7 +172,7 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
             ValueError: If a ``(OSError, ValueError)`` is caught.
 
         """
-        restore_handlers: t.MutableSequenceOf[Callable[[], None]] = []
+        restore_handlers: MutableSequence[Callable[[], None]] = []
 
         def forward(
             previous: t.Cli.SignalHandler | p.Cli.ParentSignalObserver,
@@ -207,7 +213,7 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
 
     @staticmethod
     def _restore_forwarding_handlers(
-        restore_handlers: t.SequenceOf[Callable[[], None]],
+        restore_handlers: Sequence[Callable[[], None]],
     ) -> tuple[str, ...]:
         """Restore parent handlers after child lifecycle completion.
 
@@ -215,7 +221,7 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
             The resulting ``tuple[str, ...],``.
 
         """
-        failures: t.MutableSequenceOf[str] = []
+        failures: MutableSequence[str] = []
         for restore in reversed(restore_handlers):
             try:
                 restore()
@@ -355,7 +361,7 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
 
     @staticmethod
     def _append_signal_error(
-        errors: t.MutableSequenceOf[str],
+        errors: MutableSequence[str],
         signal_result: p.Result[bool],
     ) -> None:
         if signal_result.failure:

@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from flext_cli import c, m, p, r, t, u
 from flext_cli.services._cli import FlextCliCliPart04
 
@@ -161,7 +163,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
     def register_result_routes(
         cls,
         app: p.Cli.Application,
-        routes: t.SequenceOf[p.Cli.ResultCommandRoute],
+        routes: Sequence[p.Cli.ResultCommandRoute],
     ) -> None:
         """Register multiple heterogeneous result routes in one call.
 

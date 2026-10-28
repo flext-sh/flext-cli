@@ -13,7 +13,7 @@ from flext_cli import m
 from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessThreads
 
 if TYPE_CHECKING:
-    from flext_cli import p, t
+    from flext_cli import p
 
 
 class FlextCliUtilitiesRuntimeProcessOutput(
@@ -26,10 +26,10 @@ class FlextCliUtilitiesRuntimeProcessOutput(
         cls,
         process: p.Cli.ProcessHandle,
         state: m.Cli.RuntimeProcessState,
-        live_fds: t.Pair[int | None, int | None],
+        live_fds: tuple[int | None, int | None],
         *,
         capture_output: bool,
-    ) -> tuple[t.Pair[threading.Thread, IO[bytes]], ...]:
+    ) -> tuple[tuple[threading.Thread, IO[bytes]], ...]:
         combine_output = state.durable_log is not None and state.durable_stderr is None
         pump_streams: list[tuple[threading.Thread, IO[bytes]]] = []
         for source, sink, captured, live_fd, channel in (

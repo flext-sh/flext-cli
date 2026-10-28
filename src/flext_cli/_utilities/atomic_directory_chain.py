@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import errno
+from collections.abc import Sequence
 from pathlib import Path
 
 from flext_cli import m, t
@@ -51,11 +52,11 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         plan: m.Cli.AtomicDirectoryChainPlan,
         *,
         permission_mode: int,
-    ) -> t.SequenceOf[m.Cli.AtomicDirectoryState]:
+    ) -> Sequence[m.Cli.AtomicDirectoryState]:
         """Create every planned level, rolling back successful levels on failure.
 
         Returns:
-            The resulting ``t.SequenceOf[m.Cli.AtomicDirectoryState]``.
+            The resulting ``Sequence[m.Cli.AtomicDirectoryState]``.
 
         Raises:
             OSError: If ``mode is None``.
@@ -94,7 +95,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         plan: m.Cli.AtomicDirectoryChainPlan,
         mode: int,
         created: list[m.Cli.AtomicDirectoryState],
-        expected_parent: tuple[int, ...],
+        expected_parent: tuple[int, int],
     ) -> list[m.Cli.AtomicDirectoryState]:
         """Create each planned directory, advancing the expected identity.
 
@@ -140,7 +141,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def _require_planned_parent(
-        path: Path, state: m.Cli.AtomicDirectoryState, expected: t.Pair[int, int]
+        path: Path, state: m.Cli.AtomicDirectoryState, expected: tuple[int, int]
     ) -> None:
         if (state.parent_device, state.parent_inode) != expected:
             message = f"atomic directory-chain parent changed: {path}"
@@ -149,7 +150,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
     @staticmethod
     def _require_created_identity(
         state: m.Cli.AtomicDirectoryState,
-    ) -> t.Pair[int, int]:
+    ) -> tuple[int, int]:
         if state.device is None or state.inode is None:
             message = f"created directory has no physical identity: {state.path}"
             raise OSError(errno.EINVAL, message, state.path)

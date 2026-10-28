@@ -6,7 +6,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, m, p, r, t
+from collections.abc import Sequence
+
+from flext_cli import c, m, p, r
 
 
 class FlextCliUtilitiesRuntimeProcessOutcome:
@@ -29,7 +31,7 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
     @staticmethod
     def _process_exit_result(
         return_code: int | None,
-        received_signals: t.SequenceOf[int],
+        received_signals: Sequence[int],
         diagnostics: tuple[str, ...],
         *,
         timed_out: bool,

@@ -15,7 +15,7 @@ from typing import Annotated
 
 from flext_core import m
 
-from flext_cli import c, t
+from flext_cli import c
 from flext_cli._models import FlextCliModelsBase
 
 
@@ -80,7 +80,7 @@ class FlextCliModelsTemplate:
             ),
         ] = m.Field(default_factory=tuple)
         failed: Annotated[
-            tuple[t.Pair[Path, str], ...],
+            tuple[tuple[Path, str], ...],
             m.Field(
                 description="(destination, error) pairs that failed to render",
             ),

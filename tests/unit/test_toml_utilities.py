@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import stat
 import tomllib
+from collections.abc import Mapping
 from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
@@ -301,7 +302,7 @@ class TestsFlextCliTomlValues:
     @staticmethod
     def test_as_mapping_accepts_mappings_and_rejects_scalars() -> None:
         """Verify that as mapping accepts mappings and rejects scalars."""
-        mapping: t.MappingKV[str, t.Scalar] = {"key": "value"}
+        mapping: Mapping[str, t.Scalar] = {"key": "value"}
 
         tm.that(u.Cli.toml_as_mapping(mapping), eq=mapping)
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
@@ -401,7 +402,7 @@ class TestsFlextCliTomlValues:
         [{"payload": b"value"}, {"stamp": datetime(2026, 1, 1, tzinfo=UTC)}],
     )
     def test_json_projection_rejects_non_json_scalar_mappings(
-        value: t.ScalarMapping,
+        value: Mapping[str, t.Scalar],
     ) -> None:
         """Unsupported scalars cannot become strings at the JSON boundary."""
         with pytest.raises(m.ValidationError):
