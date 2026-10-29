@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import errno
 import fnmatch
 import os
 import traceback
@@ -14,9 +15,8 @@ from pathlib import Path
 from typing import Literal
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesRuntime
+from flext_cli._utilities import FlextCliUtilitiesAtomicFile, FlextCliUtilitiesRuntime
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
-from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
 
 
 class FlextCliUtilitiesFilesPart06:
@@ -34,8 +34,8 @@ class FlextCliUtilitiesFilesPart06:
         """Create one absent file and return its authenticated published state.
 
         ``max_bytes`` rejects oversized ``data`` and ``owner_uid`` rejects a
-        parent owned by another uid, both before any effect; the published leaf
-        is re-read under the same guards.
+        parent owned by another uid, both before any effect. The returned state
+        retains the original publication proof under those same guards.
 
         Returns:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
@@ -56,19 +56,24 @@ class FlextCliUtilitiesFilesPart06:
             return r[m.Cli.AtomicFileState].fail(
                 f"atomic create destination already exists: {before.value.path}",
             )
-        written = FlextCliUtilitiesFilesPart02.atomic_write_binary_file_guarded(
-            before.value,
-            data,
-            permission_mode=permission_mode,
-        )
-        if written.failure:
-            return r[m.Cli.AtomicFileState].from_failure(written)
-        return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-            before.value.path,
-            required=True,
-            owner_uid=owner_uid,
-            max_bytes=max_bytes,
-        )
+        try:
+            if not isinstance(data, bytes):
+                message = "atomic file content must be bytes"
+                raise OSError(errno.EINVAL, message, before.value.path)
+            # Return this publication's proof, never a later path observation.
+            published = FlextCliUtilitiesAtomicFile._write_atomic_state(
+                before.value.path,
+                data,
+                expected_state=before.value,
+                permission_mode=permission_mode,
+                durability=c.Cli.WriteDurability.DURABLE,
+                owner_uid=owner_uid,
+            )
+        except OSError as exc:
+            return r[m.Cli.AtomicFileState].fail(
+                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc), exception=exc
+            )
+        return r.ok(published)
 
     @staticmethod
     def atomic_verify_binary_file_states(

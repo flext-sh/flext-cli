@@ -27,7 +27,7 @@ class TestsFlextCliTomlCov:
     """Observable-behavior tests for the ``u.Cli.toml_*`` helpers."""
 
     _VALID_TOML = c.Tests.TOML_VALID_CONTENT
-    _INVALID_TOML = c.Tests.TOML_INVALID_CONTENTMapping[str, str]
+    _INVALID_TOML = c.Tests.TOML_INVALID_CONTENT
     _EXPECTED_MAPPING: ClassVar[Mapping[str, Mapping[str, Mapping[str, str]]]] = {
         "tool": {
             "flext": {"project": "my-project", "version": c.Tests.VERSION_VALID_SEMVER},

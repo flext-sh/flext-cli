@@ -9,6 +9,7 @@ from __future__ import annotations
 import csv
 import errno
 import hashlib
+import operator
 import stat
 from collections.abc import Generator, Mapping, Sequence
 from contextlib import contextmanager
@@ -174,6 +175,33 @@ class FlextCliUtilitiesFilesPart03:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
 
         """
+        return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_capture(
+            file_path,
+            required=required,
+            owner_uid=owner_uid,
+            max_bytes=max_bytes,
+        ).map(operator.itemgetter(0))
+
+    @staticmethod
+    def atomic_read_binary_file_capture(
+        file_path: t.Cli.TextPath,
+        *,
+        required: bool = False,
+        owner_uid: int | None = None,
+        max_bytes: int | None = None,
+    ) -> p.Result[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileReceipt]]:
+        """Capture buffered bytes and their receipt from one authenticated read.
+
+        The receipt carries the same leaf and parent observation without copying
+        the payload. Absence, owner, size and descriptor guards stay with the
+        native reader; no second read can authorize a changed preimage.
+        The generic result factory preserves the typed payload without creating
+        a specialized Pydantic result class for each capture.
+
+        Returns:
+            The original state and payload-free receipt for the same version.
+
+        """
         path = Path(file_path)
         try:
             parent, state, content = (
@@ -189,26 +217,48 @@ class FlextCliUtilitiesFilesPart03:
                 c.Cli.ERR_BINARY_READ_FAILED.format(error=exc),
                 exception=exc,
             )
-        return r.ok(
-            m.Cli.AtomicFileState(
-                path=path,
-                parent_device=None if parent is None else parent.st_dev,
-                parent_inode=None if parent is None else parent.st_ino,
-                content=content,
-                mode=None if state is None else stat.S_IMODE(state.st_mode),
-                device=None if state is None else state.st_dev,
-                inode=None if state is None else state.st_ino,
-                link_count=None if state is None else state.st_nlink,
-                file_attributes=(
-                    None
-                    if state is None
-                    else getattr(state, "st_file_attributes", None)
-                ),
-                reparse_tag=(
-                    None if state is None else getattr(state, "st_reparse_tag", None)
-                ),
+        snapshot = m.Cli.AtomicFileState(
+            path=path,
+            parent_device=None if parent is None else parent.st_dev,
+            parent_inode=None if parent is None else parent.st_ino,
+            content=content,
+            mode=None if state is None else stat.S_IMODE(state.st_mode),
+            device=None if state is None else state.st_dev,
+            inode=None if state is None else state.st_ino,
+            link_count=None if state is None else state.st_nlink,
+            file_attributes=(
+                None if state is None else getattr(state, "st_file_attributes", None)
+            ),
+            reparse_tag=(
+                None if state is None else getattr(state, "st_reparse_tag", None)
             ),
         )
+        receipt = m.Cli.AtomicFileReceipt(
+            path=snapshot.path,
+            parent_device=snapshot.parent_device,
+            parent_inode=snapshot.parent_inode,
+            mode=snapshot.mode,
+            device=snapshot.device,
+            inode=snapshot.inode,
+            link_count=snapshot.link_count,
+            file_attributes=snapshot.file_attributes,
+            reparse_tag=snapshot.reparse_tag,
+            size=None if content is None else len(content),
+            sha256=(
+                None
+                if content is None
+                else FlextCliUtilitiesFilesPart03.sha256_bytes(content)
+            ),
+            version_key=(
+                None
+                if state is None
+                else FlextCliUtilitiesAtomicFileRead.state_key(state)
+            ),
+        )
+        return r.ok((
+            snapshot,
+            receipt,
+        ))
 
     @staticmethod
     def atomic_iter_binary_file(

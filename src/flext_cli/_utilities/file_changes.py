@@ -70,7 +70,8 @@ class FlextCliUtilitiesFileChanges:
         """Verify every observed state, then write or delete each changed file.
 
         No effect happens unless every destination still matches its observed
-        state. Unchanged files are skipped; missing parents are created with
+        state, including destinations whose desired bytes and mode are unchanged.
+        Unchanged files are skipped; missing parents are created with
         exactly ``directory_mode``. ``nonsecret_source_paths`` explicitly
         attests Python sources for content digest diagnostics; all other
         destinations report only physical metadata and byte counts.
@@ -80,18 +81,18 @@ class FlextCliUtilitiesFileChanges:
 
         """
         result_type = r[tuple[Path, ...]]
-        pending = FlextCliUtilitiesFileChanges.pending_file_changes(changes)
         with FlextCliUtilitiesFileChanges.file_changes_lock(lock_path):
             FlextCliUtilitiesOutput.debug(
                 f"file_changes: verify pid={os.getpid()} "
-                f"pending={len(pending)} lock={lock_path}"
+                f"observed={len(changes)} lock={lock_path}"
             )
             verified = FlextCliUtilitiesFilesPart06.atomic_verify_binary_file_states(
-                tuple(change.before for change in pending),
+                tuple(change.before for change in changes),
                 nonsecret_source_paths=nonsecret_source_paths,
             )
             if verified.failure:
                 return result_type.from_failure(verified)
+            pending = FlextCliUtilitiesFileChanges.pending_file_changes(changes)
             for change in pending:
                 source_diagnostics = ""
                 if change.path in nonsecret_source_paths and change.path.suffix in {

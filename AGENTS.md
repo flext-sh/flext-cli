@@ -57,6 +57,11 @@ top-level dirs.
 - Runtime composition retains the concrete environment, spawn, wait and output
   adapters that connect its process components to the single native runtime.
   Type-checking declarations do not supply executable implementations.
+- Binary capture returns its validated state and receipt through the generic
+  `r.ok` factory and the declared `p.Result` payload contract. It does not
+  specialize a Pydantic result class for every read or copy the captured bytes.
+  Physical authentication, receipt identity and failure propagation stay with
+  the existing reader.
 - YAML extraction preserves strict parse/read/write methods alongside round-trip
   editing; missing files and invalid content remain failures.
 - Codemod governance (ast-grep + make mod): ADR-014.

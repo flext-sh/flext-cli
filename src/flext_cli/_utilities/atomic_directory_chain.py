@@ -48,6 +48,38 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         )
 
     @staticmethod
+    def verify_guarded_directory_chain(
+        plan: m.Cli.AtomicDirectoryChainPlan,
+        created: Sequence[m.Cli.AtomicDirectoryState],
+    ) -> None:
+        """Verify original ancestry and the exact ordered creation receipts.
+
+        Raises:
+            OSError: If receipts differ from the plan or physical ancestry changed.
+
+        """
+        # Consumers retain the original plan; a fresh snapshot grants no authority.
+        owner = FlextCliUtilitiesAtomicDirectoryChain
+        if tuple(state.path for state in created) != plan.directories:
+            message = "directory-chain receipts differ from the original plan"
+            raise OSError(errno.EINVAL, message, plan.target)
+        owner._require_anchor(plan)
+        parent = (plan.anchor_device, plan.anchor_inode)
+        identities: list[tuple[int, int]] = []
+        for state in created:
+            owner._require_planned_parent(state.path, state, parent)
+            parent = owner._require_created_identity(state)
+            identities.append(parent)
+        observed = owner.plan_directory_chain(plan.target)
+        if (
+            observed.anchor_path != plan.target
+            or observed.directories
+            or observed.anchor_ancestry != (*plan.anchor_ancestry, *identities)
+        ):
+            message = "provisioned directory-chain ancestry changed"
+            raise OSError(errno.ESTALE, message, plan.target)
+
+    @staticmethod
     def create_guarded_directory_chain(
         plan: m.Cli.AtomicDirectoryChainPlan,
         *,
