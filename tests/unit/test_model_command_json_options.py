@@ -26,7 +26,7 @@ class TestsFlextCliModelCommandJsonOptions:
     class MappingModel(m.BaseModel):
         """Request whose only field is a required mapping."""
 
-        labels: t.IntDict
+        labels: dict[str, int]
 
     class NestedModel(m.BaseModel):
         """Request carrying a nested model and a sequence of nested models."""

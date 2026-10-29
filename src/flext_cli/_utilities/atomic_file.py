@@ -60,7 +60,7 @@ class FlextCliUtilitiesAtomicFile:
         if not isinstance(content, bytes):
             message = "atomic file content must be bytes"
             raise OSError(errno.EINVAL, message, path)
-        FlextCliUtilitiesAtomicFile._write_atomic_state(
+        FlextCliUtilitiesAtomicFile.write_atomic_state(
             path,
             content,
             expected_state=expected_state,
@@ -69,7 +69,7 @@ class FlextCliUtilitiesAtomicFile:
         )
 
     @staticmethod
-    def _write_atomic_state(
+    def write_atomic_state(
         path: Path,
         content: bytes,
         *,

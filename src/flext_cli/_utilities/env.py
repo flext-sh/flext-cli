@@ -63,7 +63,7 @@ class FlextCliUtilitiesEnv:
         if strict:
             return FlextCliUtilitiesEnv._expand_strict(template, environment)
 
-        def _replace(match: re.Match[str]) -> str:
+        def _replace(match: t.RegexMatch) -> str:
             token = (
                 match.group(1) if match.group(1) is not None else (match.group(2) or "")
             )

@@ -64,7 +64,7 @@ class FlextCliUtilitiesFilesPart06:
                 message = "atomic file content must be bytes"
                 raise OSError(errno.EINVAL, message, before.value.path)
             # Return this publication's proof, never a later path observation.
-            published = FlextCliUtilitiesAtomicFile._write_atomic_state(
+            published = FlextCliUtilitiesAtomicFile.write_atomic_state(
                 before.value.path,
                 data,
                 expected_state=before.value,
