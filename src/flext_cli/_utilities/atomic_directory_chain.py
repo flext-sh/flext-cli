@@ -63,12 +63,12 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         if tuple(state.path for state in created) != plan.directories:
             message = "directory-chain receipts differ from the original plan"
             raise OSError(errno.EINVAL, message, plan.target)
-        owner._require_anchor(plan)
+        owner.require_anchor(plan)
         parent = (plan.anchor_device, plan.anchor_inode)
         identities: list[tuple[int, int]] = []
         for state in created:
-            owner._require_planned_parent(state.path, state, parent)
-            parent = owner._require_created_identity(state)
+            owner.require_planned_parent(state.path, state, parent)
+            parent = owner.require_created_identity(state)
             identities.append(parent)
         observed = owner.plan_directory_chain(plan.target)
         if (
@@ -104,7 +104,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_create_capabilities(
             plan.target,
         )
-        FlextCliUtilitiesAtomicDirectoryChain._require_anchor(plan)
+        FlextCliUtilitiesAtomicDirectoryChain.require_anchor(plan)
         created: list[m.Cli.AtomicDirectoryState] = []
         expected_parent = (plan.anchor_device, plan.anchor_inode)
         try:
@@ -141,7 +141,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
                 directory,
                 required=False,
             )
-            FlextCliUtilitiesAtomicDirectoryChain._require_planned_parent(
+            FlextCliUtilitiesAtomicDirectoryChain.require_planned_parent(
                 directory,
                 before,
                 expected_parent,
@@ -153,14 +153,14 @@ class FlextCliUtilitiesAtomicDirectoryChain:
             )
             created.append(state)
             expected_parent = (
-                FlextCliUtilitiesAtomicDirectoryChain._require_created_identity(
+                FlextCliUtilitiesAtomicDirectoryChain.require_created_identity(
                     state,
                 )
             )
         return created
 
     @staticmethod
-    def _require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
+    def require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
         with FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
             plan.anchor_path,
         ) as current:
@@ -172,7 +172,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
                 raise OSError(errno.ESTALE, message, plan.anchor_path)
 
     @staticmethod
-    def _require_planned_parent(
+    def require_planned_parent(
         path: Path, state: m.Cli.AtomicDirectoryState, expected: tuple[int, int]
     ) -> None:
         if (state.parent_device, state.parent_inode) != expected:
@@ -180,7 +180,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
             raise OSError(errno.ESTALE, message, path)
 
     @staticmethod
-    def _require_created_identity(
+    def require_created_identity(
         state: m.Cli.AtomicDirectoryState,
     ) -> tuple[int, int]:
         if state.device is None or state.inode is None:

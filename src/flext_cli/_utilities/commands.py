@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import traceback
 from collections.abc import MutableSequence
 from typing import TYPE_CHECKING
 
@@ -122,6 +123,14 @@ class FlextCliUtilitiesCommands:
             ),
             error=True,
         )
+        # A exceção carregada pelo Result mantém seu traceback original: sem
+        # ele aqui, a mensagem nua esconde o sítio da violação que as notas
+        # tentam preservar.
+        if result.exception is not None:
+            FlextCliUtilitiesOutput.emit_raw(
+                "".join(traceback.format_exception(result.exception)),
+                error=True,
+            )
         # Native exception notes carry the causal annotations (owner, index,
         # inferred kind) that producers attach; dropping them hides the
         # violation site and turns a precise diagnosis into a bare message.

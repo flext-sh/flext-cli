@@ -40,6 +40,9 @@ class FlextCliUtilitiesFilesPart06:
         Returns:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
 
+        Raises:
+            OSError: If the file cannot be created under the specified guards.
+
         """
         if max_bytes is not None and len(data) > max_bytes:
             return r[m.Cli.AtomicFileState].fail(

@@ -138,10 +138,10 @@ class FlextCliUtilitiesAtomicFile:
                 target_mode,
             )
             if owner_uid is not None:
-                FlextCliUtilitiesAtomicFileState._require_owner(
+                FlextCliUtilitiesAtomicFileState.require_owner(
                     path.parent, os.fstat(parent.descriptor), owner_uid
                 )
-                FlextCliUtilitiesAtomicFileState._require_owner(
+                FlextCliUtilitiesAtomicFileState.require_owner(
                     path, published, owner_uid
                 )
             return m.Cli.AtomicFileState(
