@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence
+
 from flext_cli import c, p, r, s, t, u
 
 
@@ -55,4 +57,4 @@ class FlextCliCommonParams(s[p.Cli.RuntimeStatus]):
         return u.Cli.params_apply(settings, params_to_use)
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliCommonParams"]
+__all__: MutableSequence[str] = ["FlextCliCommonParams"]

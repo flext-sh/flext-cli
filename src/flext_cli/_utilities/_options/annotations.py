@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import Annotated, TypeAliasType, get_args, get_origin
@@ -92,10 +92,10 @@ class FlextCliUtilitiesOptionsAnnotations:
                         get_origin(Sequence[str]),
                         get_origin(list[str]),
                         # mro-j2yt (codex): Typer repeats canonical tuple model fields.
-                        get_origin(t.VariadicTuple[str]),
-                        get_origin(t.StrSequence),
-                        t.SequenceOf,
-                        t.MutableSequenceOf,
+                        get_origin(tuple[str, ...]),
+                        get_origin(Sequence[str]),
+                        Sequence,
+                        MutableSequence,
                         # Typer has no set type: sets are repeated options whose
                         # list the request model validates into set/frozenset.
                         get_origin(set[str]),
@@ -109,7 +109,7 @@ class FlextCliUtilitiesOptionsAnnotations:
 
         # ``X | None`` is a runtime ``UnionType`` the static ``TypeForm``
         # contract cannot narrow to: an optional field resolves to its single
-        # carried type, so ``t.StrSequence | None`` stays a repeated option.
+        # carried type, so ``Sequence[str] | None`` stays a repeated option.
         if origin is UnionType:
             resolved_args = tuple(
                 cls.resolve_typer_annotation(arg)

@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, MutableSequence, Sequence
 from pathlib import Path
 
 from flext_cli import c, m, p, r, s, t, u
@@ -43,7 +44,7 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
         stage_id: str,
         *,
         handler: p.Cli.PipelineStage,
-        depends_on: t.SequenceOf[str] | frozenset[str] = (),
+        depends_on: Sequence[str] | frozenset[str] = (),
         skip_if: p.Cli.PipelineSkipPredicate | None = None,
     ) -> m.Cli.PipelineStageSpec:
         """Build one declarative stage spec from the public DSL.
@@ -127,11 +128,11 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
     @classmethod
     def linear_pipeline(
         cls,
-        stage_order: t.StrSequence,
-        handlers: t.MappingKV[str, p.Cli.PipelineStage],
+        stage_order: Sequence[str],
+        handlers: Mapping[str, p.Cli.PipelineStage],
         *,
-        skip_by_stage: t.MappingKV[str, p.Cli.PipelineSkipPredicate] | None = None,
-    ) -> t.SequenceOf[m.Cli.PipelineStageSpec]:
+        skip_by_stage: Mapping[str, p.Cli.PipelineSkipPredicate] | None = None,
+    ) -> Sequence[m.Cli.PipelineStageSpec]:
         """Build a linear dependency chain from ordered stage handlers.
 
         Args:
@@ -141,11 +142,11 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
                 predicate.
 
         Returns:
-            The resulting ``t.SequenceOf[m.Cli.PipelineStageSpec]``.
+            The resulting ``Sequence[m.Cli.PipelineStageSpec]``.
 
         """
         skips = skip_by_stage or {}
-        stage_list: t.MutableSequenceOf[m.Cli.PipelineStageSpec] = []
+        stage_list: MutableSequence[m.Cli.PipelineStageSpec] = []
         previous_stage_id: str | None = None
         for stage_id in stage_order:
             stage_list.append(
@@ -163,7 +164,7 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
 
     def pipeline(
         self,
-        stages: t.SequenceOf[m.Cli.PipelineStageSpec],
+        stages: Sequence[m.Cli.PipelineStageSpec],
         *,
         context: m.Cli.PipelineStageContext,
         logger: p.Logger | None = None,
@@ -182,4 +183,4 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
         return u.Cli.execute_pipeline(stages, context, logger=logger or self.logger)
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliPipeline"]
+__all__: MutableSequence[str] = ["FlextCliPipeline"]

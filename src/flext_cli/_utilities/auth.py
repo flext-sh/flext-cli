@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableSequence
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
@@ -60,4 +60,4 @@ class FlextCliUtilitiesAuth:
         return r[str].ok(token_payload.token)
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesAuth"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesAuth"]

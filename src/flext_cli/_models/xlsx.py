@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import t
 from flext_cli._models._xlsx import (
     FlextCliModelsXlsxArchive,
     FlextCliModelsXlsxCells,
@@ -41,4 +40,4 @@ class FlextCliModelsXlsx(
     # XLSX namespace without a parallel public model surface.
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsXlsx",)
+__all__: tuple[str, ...] = ("FlextCliModelsXlsx",)

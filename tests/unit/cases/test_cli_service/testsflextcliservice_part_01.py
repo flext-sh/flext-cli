@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence
+from collections.abc import MutableSequence, Sequence
 
 from flext_cli import FlextCli, cli
 from tests import c, m, p, t, tm, u
@@ -33,7 +33,7 @@ class TestsFlextCliServicePart01:
         tm.ok(result)
 
     @staticmethod
-    def _invoke_common_app(args: t.StrSequence) -> p.Result[m.Cli.InvocationResult]:
+    def _invoke_common_app(args: Sequence[str]) -> p.Result[m.Cli.InvocationResult]:
         """Register one inspect command and invoke the shared application.
 
         Returns:

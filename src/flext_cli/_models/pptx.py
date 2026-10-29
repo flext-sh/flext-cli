@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import t
 from flext_cli._models import FlextCliModelsPptxPresentation
 
 
@@ -14,4 +13,4 @@ class FlextCliModelsPptx(FlextCliModelsPptxPresentation):
     """Canonical private PPTX model namespace."""
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsPptx",)
+__all__: tuple[str, ...] = ("FlextCliModelsPptx",)

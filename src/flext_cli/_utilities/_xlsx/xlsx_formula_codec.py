@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import c, t
+from flext_cli import c
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
 
@@ -60,4 +60,4 @@ class FlextCliUtilitiesXlsxFormulaCodec:
         return "".join(parts)
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxFormulaCodec",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxFormulaCodec",)

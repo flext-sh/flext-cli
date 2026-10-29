@@ -6,10 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
-
-if TYPE_CHECKING:
-    from flext_core import t
+from typing import Protocol, runtime_checkable
 
 
 class FlextCliProtocolsXlsxSnapshotStructure:
@@ -53,4 +50,4 @@ class FlextCliProtocolsXlsxSnapshotStructure:
         def last(self) -> int: ...
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsxSnapshotStructure",)
+__all__: tuple[str, ...] = ("FlextCliProtocolsXlsxSnapshotStructure",)

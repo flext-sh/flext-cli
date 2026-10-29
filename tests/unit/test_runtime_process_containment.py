@@ -22,8 +22,6 @@ from tests import m, p, tm, u
 if TYPE_CHECKING:
     from pathlib import Path
 
-from tests import t
-
 
 def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
     return m.Cli.ProcessDeadline(
@@ -62,7 +60,7 @@ def _assert_timeout_empties_descendants[
     Output: (p.Cli.CommandOutput | p.Cli.CommandBytesOutput),
 ](
     tmp_path: Path,
-    execute: Callable[[t.VariadicTuple[str]], p.Result[Output]],
+    execute: Callable[[tuple[str, ...]], p.Result[Output]],
     assert_timeout: Callable[[p.Result[Output]], None],
 ) -> None:
     process_info = tmp_path / "captured-process-info"
@@ -112,6 +110,42 @@ def _timed_out_failure(result: p.Result[p.Cli.CommandOutput]) -> None:
     tm.fail(result, has="timed_out=True")
 
 
+def _execute_raw_with_deadline(
+    command: tuple[str, ...],
+) -> p.Result[p.Cli.CommandOutput]:
+    """Run the raw text runner against a one-second deadline.
+
+    Returns:
+        The resulting ``p.Result[p.Cli.CommandOutput]``.
+
+    """
+    return u.Cli().run_raw(command, timeout=1)
+
+
+def _execute_checked_with_deadline(
+    command: tuple[str, ...],
+) -> p.Result[p.Cli.CommandOutput]:
+    """Run the checked text runner against a one-second deadline.
+
+    Returns:
+        The resulting ``p.Result[p.Cli.CommandOutput]``.
+
+    """
+    return u.Cli().run(command, timeout=1)
+
+
+def _execute_bytes_with_deadline(
+    command: tuple[str, ...],
+) -> p.Result[p.Cli.CommandBytesOutput]:
+    """Run the byte runner against a one-second deadline.
+
+    Returns:
+        The resulting ``p.Result[p.Cli.CommandBytesOutput]``.
+
+    """
+    return u.Cli().run_bytes(command, timeout=1)
+
+
 class TestsFlextCliRuntimeProcessContainment:
     """Prove pre-spawn signals, deadline escalation, and empty boundaries."""
 
@@ -128,7 +162,7 @@ class TestsFlextCliRuntimeProcessContainment:
         """Return only after the captured text runner empties its owned boundary."""
         _assert_timeout_empties_descendants(
             tmp_path,
-            lambda command: u.Cli().run_raw(command, timeout=1),
+            _execute_raw_with_deadline,
             _timed_out_outcome,
         )
 
@@ -137,7 +171,7 @@ class TestsFlextCliRuntimeProcessContainment:
         """Fail on timeout only after the checked runner empties its owned boundary."""
         _assert_timeout_empties_descendants(
             tmp_path,
-            lambda command: u.Cli().run(command, timeout=1),
+            _execute_checked_with_deadline,
             _timed_out_failure,
         )
 
@@ -146,7 +180,7 @@ class TestsFlextCliRuntimeProcessContainment:
         """Return only after the byte runner empties its owned boundary."""
         _assert_timeout_empties_descendants(
             tmp_path,
-            lambda command: u.Cli().run_bytes(command, timeout=1),
+            _execute_bytes_with_deadline,
             _timed_out_outcome,
         )
 

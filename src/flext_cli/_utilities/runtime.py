@@ -1,9 +1,4 @@
-"""Generic external process runtime shared through ``u.Cli``.
-
-Typed frontend for the single stdlib-only native spawn owner in
-``native_runtime.py``. This module delegates child creation and retains native
-timeout translation; every public process family consumes the same engine
-through injected ports and adapts its contract at its own boundary.
+"""Extracted facade class for runtime.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,14 +8,15 @@ from __future__ import annotations
 
 import os
 import shlex
+from collections.abc import Mapping, Sequence
 from typing import BinaryIO, ClassVar, override
 
 from flext_core import u
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._runtime_commands import FlextCliUtilitiesRuntimeCommandsMixin
-from flext_cli._utilities._runtime_run_to_file import (
-    FlextCliUtilitiesRuntimeRunToFileMixin,
+from flext_cli._utilities._runtime import (
+    FlextCliUtilitiesRuntimeCommands,
+    FlextCliUtilitiesRuntimeRunToFile,
 )
 from flext_cli._utilities.native_runtime import (
     TimeoutExpired,
@@ -30,23 +26,23 @@ from flext_cli._utilities.native_runtime import (
 
 
 class FlextCliUtilitiesRuntime(
-    FlextCliUtilitiesRuntimeRunToFileMixin,
-    FlextCliUtilitiesRuntimeCommandsMixin,
+    FlextCliUtilitiesRuntimeCommands,
+    FlextCliUtilitiesRuntimeRunToFile,
 ):
-    """Runtime helpers for external command execution."""
+    """Connect typed process components to the native subprocess owner."""
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
     @staticmethod
     def process_env(
         *,
-        overrides: t.StrMapping | None = None,
-        remove_keys: t.StrSequence = (),
-    ) -> t.StrDict:
-        """Return one inherited process environment with optional overrides.
+        overrides: Mapping[str, str] | None = None,
+        remove_keys: Sequence[str] = (),
+    ) -> dict[str, str]:
+        """Resolve inherited process inputs through the environment model.
 
         Returns:
-            One inherited process environment with optional overrides.
+            The resulting ``dict[str, str]``.
 
         """
         return m.Cli.ProcessEnvironmentSpec.model_validate({
@@ -58,24 +54,15 @@ class FlextCliUtilitiesRuntime(
     @staticmethod
     @override
     def _resolved_env(
-        env: t.StrMapping | None,
-        remove_env_keys: t.StrSequence = (),
+        env: Mapping[str, str] | None,
+        remove_env_keys: Sequence[str] = (),
         *,
         inherit_environment: bool = True,
-    ) -> t.StrDict | None:
-        """Resolve the child environment from overrides and removals.
-
-        ``env`` is an OVERLAY applied on top of the current process environment,
-        never a complete replacement: callers pass a single key (a marker, a
-        token) and rely on PATH and the rest of the environment surviving.
-
-        Because it is an overlay, ``env`` can only ADD or REPLACE keys - it can
-        never REMOVE one. A caller that builds a cleaned mapping and omits a key
-        would silently get it back from the parent environment; removal is
-        expressed exclusively through ``remove_env_keys`` (mro-wt8qp).
+    ) -> dict[str, str] | None:
+        """Apply overlays and explicit removals without borrowing environments.
 
         Returns:
-            The resulting ``t.StrDict | None``.
+            The resulting ``dict[str, str] | None``.
 
         """
         if not inherit_environment:
@@ -87,31 +74,23 @@ class FlextCliUtilitiesRuntime(
         if env is None and not remove_env_keys:
             return None
         return FlextCliUtilitiesRuntime.process_env(
-            overrides=env,
-            remove_keys=remove_env_keys,
+            overrides=env, remove_keys=remove_env_keys
         )
 
     @staticmethod
     @override
     def _spawn_streamed_process(
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None,
-        env: t.MappingKV[str, str] | None,
+        env: Mapping[str, str] | None,
         stdin_handle: BinaryIO | None,
         *,
         options: m.Cli.RuntimeSpawnOptions,
     ) -> p.Cli.ProcessHandle:
-        """Create the package's single raw child through the audited engine port.
-
-        The engine owns the strictest superset of every public spawn family:
-        explicit stdin policy (an explicit handle wins, otherwise the declared
-        ``stdin_mode``), session ownership falling back to the platform
-        containment default, platform creation flags, and inherited
-        descriptors. Facades adapt their public contracts at their own
-        boundaries and never construct a native child themselves.
+        """Delegate child creation to the single native process engine.
 
         Returns:
-            The native binary child through ``p.Cli.ProcessHandle``.
+            The resulting ``p.Cli.ProcessHandle``.
 
         """
         return spawn_streamed_process(
@@ -127,11 +106,11 @@ class FlextCliUtilitiesRuntime(
         process: p.Cli.ProcessHandle,
         *,
         timeout: float | None,
-    ) -> p.Result[t.Pair[bytes, bytes]]:
-        """Drain the raw child pipes once, owning the native timeout translation.
+    ) -> p.Result[tuple[bytes, bytes]]:
+        """Drain process pipes through the declared timeout result boundary.
 
         Returns:
-            The remaining child stdout and stderr bytes exactly once.
+            The resulting ``p.Result[tuple[bytes, bytes]]``.
 
         """
         try:
@@ -142,18 +121,17 @@ class FlextCliUtilitiesRuntime(
             )
         except c.EXC_OS_VALUE as exc:
             return r[tuple[bytes, bytes]].fail(
-                f"process wait error: {exc}",
-                exception=exc,
+                f"process wait error: {exc}", exception=exc
             )
         return r[tuple[bytes, bytes]].ok((stdout or b"", stderr or b""))
 
     @staticmethod
     @override
     def _streamed_creation_flags() -> int:
-        """Return platform creation flags for pre-execution containment.
+        """Read native platform containment flags.
 
         Returns:
-            Platform creation flags for pre-execution containment.
+            The resulting ``int``.
 
         """
         return streamed_creation_flags()
@@ -162,29 +140,16 @@ class FlextCliUtilitiesRuntime(
     @override
     def run_raw(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
         options: p.Cli.ProcessOptions | None = None,
         capture: bool = True,
-        env: t.StrMapping | None = None,
-        remove_env_keys: t.StrSequence | None = None,
+        env: Mapping[str, str] | None = None,
+        remove_env_keys: Sequence[str] | None = None,
     ) -> p.Result[p.Cli.CommandOutput]:
-        """Run a command without enforcing a zero exit code.
-
-        Accepts text or binary stdin (text is UTF-8 encoded). When ``capture``
-        is True (default) stdout/stderr are captured and returned as text
-        (UTF-8); non-UTF-8 output fails closed with a typed error instead of
-        crashing or surfacing a generic error. When ``capture`` is False the
-        child inherits the parent's stdout/stderr so its output streams live
-        (for long-running makes/rollouts); the returned stdout/stderr are then
-        empty and only the exit code is meaningful.
-
-        ``env`` and ``remove_env_keys`` are convenience projections onto
-        ``p.Cli.ProcessOptions``: ``env`` overlays keys on top of the parent
-        environment and ``remove_env_keys`` removes keys before child
-        execution. Values passed here override the same fields on ``options``.
+        """Execute a command and preserve its actual exit outcome.
 
         Returns:
             The resulting ``p.Result[p.Cli.CommandOutput]``.
@@ -213,13 +178,13 @@ class FlextCliUtilitiesRuntime(
 
         launch = options if options is not None else m.Cli.ProcessOptions()
         if env is not None or remove_env_keys is not None:
-            resolved_env = env if env is not None else launch.env
-            resolved_remove = launch.remove_env_keys
-            if remove_env_keys is not None:
-                resolved_remove = remove_env_keys
             launch = m.Cli.ProcessOptions(
-                env=resolved_env,
-                remove_env_keys=resolved_remove,
+                env=env if env is not None else launch.env,
+                remove_env_keys=(
+                    remove_env_keys
+                    if remove_env_keys is not None
+                    else launch.remove_env_keys
+                ),
                 inherit_environment=launch.inherit_environment,
                 input_data=launch.input_data,
                 live=launch.live,
@@ -255,13 +220,13 @@ class FlextCliUtilitiesRuntime(
     @override
     def run_bytes(
         cls,
-        cmd: t.StrSequence,
+        cmd: Sequence[str],
         cwd: t.Cli.TextPath | None = None,
         timeout: int | None = None,
         *,
         options: p.Cli.ProcessOptions | None = None,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
-        """Run a command capturing byte-exact stdout/stderr (no text decoding).
+        """Execute a command while preserving byte-exact output.
 
         Returns:
             The resulting ``p.Result[p.Cli.CommandBytesOutput]``.

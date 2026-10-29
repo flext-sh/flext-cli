@@ -9,9 +9,10 @@ from __future__ import annotations
 import errno
 import os
 import signal
+import stat
 from pathlib import Path
 
-from flext_cli import c, m, t
+from flext_cli import c, m
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileCleanup,
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -59,6 +60,31 @@ class FlextCliUtilitiesAtomicFile:
         if not isinstance(content, bytes):
             message = "atomic file content must be bytes"
             raise OSError(errno.EINVAL, message, path)
+        FlextCliUtilitiesAtomicFile.write_atomic_state(
+            path,
+            content,
+            expected_state=expected_state,
+            permission_mode=permission_mode,
+            durability=durability,
+        )
+
+    @staticmethod
+    def write_atomic_state(
+        path: Path,
+        content: bytes,
+        *,
+        expected_state: m.Cli.AtomicFileState | _NoPrecondition,
+        permission_mode: int | None,
+        durability: c.Cli.WriteDurability,
+        owner_uid: int | None = None,
+    ) -> m.Cli.AtomicFileState:
+        """Retain the original publication proof for the existing writer APIs.
+
+        Returns:
+            The original bytes and descriptor-authenticated published state.
+
+        """
+        path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
         planned = FlextCliUtilitiesAtomicFile._parse_precondition(path, expected_state)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
             path,
@@ -101,7 +127,7 @@ class FlextCliUtilitiesAtomicFile:
                 path,
                 target_mode,
             )
-            FlextCliUtilitiesAtomicFile._stage_and_publish(
+            published = FlextCliUtilitiesAtomicFile._stage_and_publish(
                 FlextCliUtilitiesAtomicFile._AtomicStage(
                     parent,
                     durable=durability is c.Cli.WriteDurability.DURABLE,
@@ -110,6 +136,25 @@ class FlextCliUtilitiesAtomicFile:
                 content,
                 expected,
                 target_mode,
+            )
+            if owner_uid is not None:
+                FlextCliUtilitiesAtomicFileState.require_owner(
+                    path.parent, os.fstat(parent.descriptor), owner_uid
+                )
+                FlextCliUtilitiesAtomicFileState.require_owner(
+                    path, published, owner_uid
+                )
+            return m.Cli.AtomicFileState(
+                path=path,
+                content=content,
+                parent_device=parent.state.st_dev,
+                parent_inode=parent.state.st_ino,
+                mode=stat.S_IMODE(published.st_mode),
+                device=published.st_dev,
+                inode=published.st_ino,
+                link_count=published.st_nlink,
+                file_attributes=getattr(published, "st_file_attributes", None),
+                reparse_tag=getattr(published, "st_reparse_tag", None),
             )
 
     @staticmethod
@@ -139,8 +184,13 @@ class FlextCliUtilitiesAtomicFile:
         content: bytes,
         expected: os.stat_result | None,
         target_mode: int | None,
-    ) -> None:
-        """Retain the staging owner through acquisition, publication and cleanup."""
+    ) -> os.stat_result:
+        """Retain staging ownership through publication and its original proof.
+
+        Returns:
+            The stat authenticated by native publication validation.
+
+        """
         if expected is None:
             FlextCliUtilitiesAtomicFileDescriptor.require_create_capabilities(
                 destination
@@ -148,7 +198,7 @@ class FlextCliUtilitiesAtomicFile:
         try:
             stage.acquire()
             stage.write(content, target_mode)
-            stage.publish(destination, expected, content)
+            return stage.publish(destination, expected, content)
         except BaseException as operation_error:
             stage.cleanup(operation_error)
             raise
@@ -166,7 +216,7 @@ class FlextCliUtilitiesAtomicFile:
             self.durable = durable
             self.temporary = FlextCliUtilitiesAtomicFileTemporary.temporary_path(parent)
             self.descriptor: int | None = None
-            self.identity: t.Pair[int, int] | None = None
+            self.identity: tuple[int, int] | None = None
             self.mode: int | None = None
             self.replacement_completed = False
             self.linked_temporary = False
@@ -227,8 +277,11 @@ class FlextCliUtilitiesAtomicFile:
             destination: Path,
             expected: os.stat_result | None,
             content: bytes,
-        ) -> None:
+        ) -> os.stat_result:
             """Publish the authenticated bytes and retain completion before proof.
+
+            Returns:
+                The stat authenticated against the original staging inode.
 
             Raises:
                 RuntimeError: If atomic staging must be written before publication.
@@ -297,7 +350,7 @@ class FlextCliUtilitiesAtomicFile:
                     self.parent,
                     self.parent,
                 )
-            FlextCliUtilitiesAtomicFilePublishChecks.validate_publication(
+            return FlextCliUtilitiesAtomicFilePublishChecks.validate_publication(
                 self.parent,
                 destination,
                 self.parent,
@@ -365,7 +418,7 @@ class FlextCliUtilitiesAtomicFile:
         temporary: Path,
         content: bytes,
         mode: int,
-        identity: t.Pair[int, int],
+        identity: tuple[int, int],
     ) -> os.stat_result:
         state = FlextCliUtilitiesAtomicFileState.destination_state(
             temporary,

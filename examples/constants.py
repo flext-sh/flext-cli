@@ -12,7 +12,7 @@ from enum import StrEnum, unique
 from types import MappingProxyType
 from typing import Final
 
-from flext_cli import FlextCliConstants
+from flext_cli import FlextCliConstants, t
 
 
 class ExamplesFlextCliConstants(FlextCliConstants):
@@ -64,10 +64,10 @@ class ExamplesFlextCliConstants(FlextCliConstants):
     EXAMPLE_TABLE_HEADERS_FIELD_VALUE: Final[tuple[str, str]] = ("Field", "Value")
     EXAMPLE_TABLE_HEADERS_SETTING_VALUE: Final[tuple[str, str]] = ("Setting", "Value")
 
-    EXAMPLE_REGEX_EMAIL: Final[re.Pattern[str]] = re.compile(
+    EXAMPLE_REGEX_EMAIL: Final[t.RegexPattern] = re.compile(
         r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
     )
-    EXAMPLE_REGEX_DOT: Final[re.Pattern[str]] = re.compile(r"\.")
+    EXAMPLE_REGEX_DOT: Final[t.RegexPattern] = re.compile(r"\.")
 
     EXAMPLE_DEFAULT_HOST: Final[str] = "localhost"
     EXAMPLE_DEFAULT_DB_PORT: Final[int] = 5432

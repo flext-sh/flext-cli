@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import pytest
@@ -281,7 +282,7 @@ class TestsFlextCliJsonNavigation:
     )
     def test_json_as_sequence_coerces_to_list_or_empty(
         value: t.JsonValue | None,
-        expected: t.SequenceOf[t.JsonValue],
+        expected: Sequence[t.JsonValue],
     ) -> None:
         """Verify that json as sequence coerces to list or empty."""
         tm.that(list(u.Cli.json_as_sequence(value)), eq=expected)
@@ -317,7 +318,7 @@ class TestsFlextCliJsonNavigation:
         ],
     )
     def test_json_walk_path_returns_none_when_unreachable(
-        keys: t.VariadicTuple[str],
+        keys: tuple[str, ...],
         raw: str,
     ) -> None:
         """Verify that json walk path returns none when unreachable."""

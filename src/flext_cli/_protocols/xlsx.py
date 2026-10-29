@@ -17,7 +17,7 @@ from flext_cli._protocols import (
 
 if TYPE_CHECKING:
     # mro-j47u (codex): p -> m stays type-only through the canonical facade.
-    from flext_core import p, t
+    from flext_core import p
 
     from flext_cli import m
 
@@ -222,4 +222,4 @@ class FlextCliProtocolsXlsx(
             ...
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliProtocolsXlsx",)
+__all__: tuple[str, ...] = ("FlextCliProtocolsXlsx",)

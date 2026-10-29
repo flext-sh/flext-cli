@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 
 from flext_cli import FlextCli, FlextCliTypes
 
@@ -15,12 +15,12 @@ class ExamplesFlextCliTypes(FlextCliTypes):
     """Public examples type facade extending flext-cli types."""
 
     type EnvValue = FlextCliTypes.JsonValue
-    type EnvInput = FlextCliTypes.MappingKV[str, EnvValue] | EnvValue | None
-    type ExampleModelInput = FlextCliTypes.MappingKV[str, EnvValue] | EnvValue | None
+    type EnvInput = Mapping[str, EnvValue] | EnvValue | None
+    type ExampleModelInput = Mapping[str, EnvValue] | EnvValue | None
     type CliApi = FlextCli
 
     type DataProcessor = Callable[[str], str]
-    type ProcessorRegistry = FlextCliTypes.MappingKV[str, DataProcessor]
+    type ProcessorRegistry = Mapping[str, DataProcessor]
     type JsonDictAdapter = FlextCliTypes.ValueAdapter[FlextCliTypes.JsonMapping]
 
 

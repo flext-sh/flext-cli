@@ -6,7 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator, Mapping, MutableMapping, Sequence
+from collections.abc import (
+    Callable,
+    Iterable,
+    Iterator,
+    Mapping,
+    MutableMapping,
+    Sequence,
+)
 from pathlib import Path
 from typing import Protocol, TextIO, runtime_checkable
 
@@ -102,7 +109,7 @@ class FlextCliProtocolsDomain:
             """Parse one YAML document from a stream or text."""
             ...
 
-        def load_all(self, stream: TextIO | str) -> t.IterableOf[t.Cli.YamlNode]:
+        def load_all(self, stream: TextIO | str) -> Iterable[t.Cli.YamlNode]:
             """Parse every document in a YAML stream."""
             ...
 
@@ -228,8 +235,8 @@ class FlextCliProtocolsDomain:
         handler: FlextCliProtocolsBase.CliCommandWrapper
 
     @runtime_checkable
-    class ResultCommandRoute(Protocol):
-        """Protocol for declarative result-route registration."""
+    class CommandMetadata(Protocol):
+        """Read-only command identity and user-facing help."""
 
         # mro-j47u (codex): read-only properties preserve frozen-model covariance.
         @property
@@ -241,6 +248,10 @@ class FlextCliProtocolsDomain:
         def help_text(self) -> str:
             """The user-facing help text."""
             ...
+
+    @runtime_checkable
+    class ResultCommandRoute(CommandMetadata, Protocol):
+        """Protocol for declarative result-route registration."""
 
         @property
         def model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
@@ -353,7 +364,7 @@ class FlextCliProtocolsDomain:
             ...
 
         @property
-        def errors(self) -> t.SequenceOf[str]:
+        def errors(self) -> Sequence[str]:
             """Rendered error excerpt lines."""
             ...
 

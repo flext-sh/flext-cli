@@ -16,12 +16,12 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli import m
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFileModel,
+    FlextCliUtilitiesAtomicFileRead,
+    FlextCliUtilitiesAtomicFileState,
 )
-from flext_cli._utilities.atomic_file_model import FlextCliUtilitiesAtomicFileModel
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
 
 if TYPE_CHECKING:
     from flext_cli import p
@@ -45,7 +45,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
             identity when the read resolves to exact absence.
 
         """
-        with FlextCliUtilitiesAtomicFileSnapshot.authenticated_entry(
+        with FlextCliUtilitiesAtomicFileState.authenticated_entry(
             path, required=required, owner_uid=owner_uid, max_bytes=max_bytes
         ) as (parent, state):
             if parent is None or state is None:
@@ -94,7 +94,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
             FileNotFoundError: If the receipt file is absent.
 
         """
-        with FlextCliUtilitiesAtomicFileSnapshot.authenticated_entry(
+        with FlextCliUtilitiesAtomicFileState.authenticated_entry(
             receipt.path, required=True
         ) as (parent, state):
             if parent is None or state is None:
@@ -129,13 +129,6 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                         FlextCliUtilitiesAtomicFileRead.raise_changed(receipt.path)
                 finally:
                     reader.descriptor = -1
-
-    read_authenticated_state = staticmethod(
-        FlextCliUtilitiesAtomicFileState.read_authenticated_state
-    )
-    authenticated_entry = staticmethod(
-        FlextCliUtilitiesAtomicFileState.authenticated_entry
-    )
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicFileSnapshot"]

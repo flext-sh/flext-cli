@@ -15,19 +15,19 @@ from typing import Annotated
 
 from flext_core import FlextConfig, m
 
-from flext_cli._models.config import FlextCliConfigModels
+from flext_cli._models.config import FlextCliModelsConfig
 
 
 class FlextCliConfig(FlextConfig):
     """Cli config auto-loaded from ``config/*.yaml`` and validated via models."""
 
     Cli: Annotated[
-        FlextCliConfigModels.Cli,
+        FlextCliModelsConfig.Cli,
         m.Field(description="CLI identity metadata from ``config/cli.yaml``."),
     ]
 
     ProcessIsolation: Annotated[
-        FlextCliConfigModels.ProcessIsolation,
+        FlextCliModelsConfig.ProcessIsolation,
         m.Field(description="Native read-only reference import policy."),
     ]
 

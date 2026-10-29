@@ -6,10 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, MutableSequence
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_core import c, t
+from flext_core import c
 
 from flext_cli._constants import FlextCliConstantsEnums
 
@@ -83,7 +84,7 @@ class FlextCliConstantsOutput:
     OUTPUT_TABLE_ROW_INVALID: ClassVar[str] = "Table row invalid after validation"
 
     FORMATTER_ANSI_RESET: ClassVar[str] = "\x1b[0m"
-    FORMATTER_ANSI_BY_STYLE: ClassVar[t.StrMapping] = MappingProxyType({
+    FORMATTER_ANSI_BY_STYLE: ClassVar[Mapping[str, str]] = MappingProxyType({
         FlextCliConstantsEnums.MessageStyles.BLUE: "\x1b[34m",
         FlextCliConstantsEnums.MessageStyles.GREEN: "\x1b[32m",
         FlextCliConstantsEnums.MessageStyles.RED: "\x1b[31m",
@@ -100,7 +101,7 @@ class FlextCliConstantsOutput:
     FORMATTER_RULE_GLYPH_RUN: ClassVar[int] = 4
     FORMATTER_PANEL_GLYPH: ClassVar[str] = "-"
 
-    TABLE_FORMATS: ClassVar[t.StrMapping] = MappingProxyType({
+    TABLE_FORMATS: ClassVar[Mapping[str, str]] = MappingProxyType({
         FlextCliConstantsEnums.TabularFormat.PLAIN: "Minimal formatting, no borders",
         FlextCliConstantsEnums.TabularFormat.SIMPLE: "Simple ASCII borders",
         FlextCliConstantsEnums.TabularFormat.GRID: "Grid-style ASCII table",
@@ -126,7 +127,7 @@ class FlextCliConstantsOutput:
     })
 
     MESSAGE_STYLE_MAP: ClassVar[
-        t.MappingKV[
+        Mapping[
             FlextCliConstantsEnums.MessageTypes,
             FlextCliConstantsEnums.MessageStyles,
         ]
@@ -148,15 +149,15 @@ class FlextCliConstantsOutput:
         ): FlextCliConstantsEnums.MessageStyles.DIM,
     })
 
-    MESSAGE_EMOJI_MAP: ClassVar[
-        t.MappingKV[FlextCliConstantsEnums.MessageTypes, str]
-    ] = MappingProxyType({
-        FlextCliConstantsEnums.MessageTypes.INFO: EMOJI_INFO,
-        FlextCliConstantsEnums.MessageTypes.SUCCESS: EMOJI_SUCCESS,
-        FlextCliConstantsEnums.MessageTypes.ERROR: EMOJI_ERROR,
-        FlextCliConstantsEnums.MessageTypes.WARNING: EMOJI_WARNING,
-        FlextCliConstantsEnums.MessageTypes.DEBUG: EMOJI_DEBUG,
-    })
+    MESSAGE_EMOJI_MAP: ClassVar[Mapping[FlextCliConstantsEnums.MessageTypes, str]] = (
+        MappingProxyType({
+            FlextCliConstantsEnums.MessageTypes.INFO: EMOJI_INFO,
+            FlextCliConstantsEnums.MessageTypes.SUCCESS: EMOJI_SUCCESS,
+            FlextCliConstantsEnums.MessageTypes.ERROR: EMOJI_ERROR,
+            FlextCliConstantsEnums.MessageTypes.WARNING: EMOJI_WARNING,
+            FlextCliConstantsEnums.MessageTypes.DEBUG: EMOJI_DEBUG,
+        })
+    )
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliConstantsOutput"]
+__all__: MutableSequence[str] = ["FlextCliConstantsOutput"]

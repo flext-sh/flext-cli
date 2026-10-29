@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence, Sequence
 from io import StringIO
 
 import pytest
@@ -35,9 +36,9 @@ class TestsFlextCliServiceSettingsContract:
 
     @staticmethod
     def _elected_native_composition(
-        streams: t.Pair[StringIO, StringIO],
-        records: t.MutableSequenceOf[p.LoggingRecord],
-        stages: t.MutableSequenceOf[str],
+        streams: tuple[StringIO, StringIO],
+        records: MutableSequence[p.LoggingRecord],
+        stages: MutableSequence[str],
         exception: BaseException,
         initial_context: p.Context | None = None,
     ) -> tuple[m.StructlogOptions, FlextCli, p.Cli.Application]:
@@ -105,8 +106,8 @@ class TestsFlextCliServiceSettingsContract:
         """Severity updates keep both native sinks fed by one shared stage."""
         native_json = StringIO()
         native_console = StringIO()
-        records: t.MutableSequenceOf[p.LoggingRecord] = []
-        stages: t.MutableSequenceOf[str] = []
+        records: MutableSequence[p.LoggingRecord] = []
+        stages: MutableSequence[str] = []
         original_exception = ValueError("selected cause")
         _options, service, app = self._elected_native_composition(
             (native_json, native_console),
@@ -156,8 +157,8 @@ class TestsFlextCliServiceSettingsContract:
         singleton_before = settings.model_dump()
         native_json = StringIO()
         native_console = StringIO()
-        records: t.MutableSequenceOf[p.LoggingRecord] = []
-        stages: t.MutableSequenceOf[str] = []
+        records: MutableSequence[p.LoggingRecord] = []
+        stages: MutableSequence[str] = []
         original_exception = ValueError("selected cause")
         original_context = FlextContext.create()
         options, service, app = self._elected_native_composition(
@@ -229,7 +230,7 @@ class TestsFlextCliServiceSettingsContract:
         ],
     )
     def test_cli_flags_control_actual_emission_and_keep_original_failure(
-        flags: t.StrSequence,
+        flags: Sequence[str],
         initial_level: t.LogLevel,
         expected_level: t.LogLevel,
         capsys: pytest.CaptureFixture[str],
@@ -245,7 +246,7 @@ class TestsFlextCliServiceSettingsContract:
                 cli_verbose=False,
             ),
         )
-        records: t.MutableSequenceOf[p.LoggingRecord] = []
+        records: MutableSequence[p.LoggingRecord] = []
 
         def observe(event: p.LoggingRecord) -> None:
             records.append(event)
@@ -318,7 +319,7 @@ class TestsFlextCliServiceSettingsContract:
         before = provider.model_dump()
         options = m.StructlogOptions(async_logging=False)
         u.configure_structlog(settings=options, runtime_settings=provider)
-        calls: t.MutableSequenceOf[str] = []
+        calls: MutableSequence[str] = []
         app = service.create_app_with_common_params(name="invalid", help_text="Invalid")
 
         def execute() -> bool:

@@ -14,10 +14,10 @@ from tomlkit.exceptions import ParseError
 from tomlkit.toml_document import TOMLDocument
 
 from flext_cli import c, e, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesRuntime
 from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesTomlPart01,
 )
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -42,10 +42,13 @@ class FlextCliUtilitiesTomlPart06:
         return tomlkit.parse(path.read_text(encoding=c.DEFAULT_ENCODING))
 
     @staticmethod
-    def toml_read_document(path: Path) -> p.Result[TOMLDocument]:
+    def toml_read_document(
+        path: Path, *, source: str | None = None
+    ) -> p.Result[TOMLDocument]:
         """Read a TOML document at the typed ``r`` boundary.
 
-        ``toml_read`` owns reading and parsing. This boundary carries its
+        ``source`` retains an already captured source without reading it again.
+        Otherwise ``toml_read`` owns reading and parsing. This boundary carries its
         outcomes as typed failures that retain the native exception: a missing
         file fails as not found, an ``OSError`` as a failed read operation, and
         a ``tomlkit`` ``ParseError`` as a validation failure. Any other
@@ -56,7 +59,11 @@ class FlextCliUtilitiesTomlPart06:
 
         """
         try:
-            doc = FlextCliUtilitiesTomlPart06.toml_read(path)
+            doc = (
+                FlextCliUtilitiesTomlPart06.toml_read(path)
+                if source is None
+                else tomlkit.parse(source)
+            )
         except OSError as exc:
             return e.fail_operation("read TOML", exc, result_type=r[TOMLDocument])
         except ParseError as exc:

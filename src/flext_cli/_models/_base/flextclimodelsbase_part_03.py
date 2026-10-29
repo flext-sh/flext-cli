@@ -127,8 +127,8 @@ class FlextCliModelsBasePart03:
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
 
-    class ResultCommandRoute(m.BaseModel):
-        """Type-erased route contract for heterogeneous batch registration."""
+    class CommandMetadata(m.BaseModel):
+        """Immutable command identity and user-facing help."""
 
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True,
@@ -137,6 +137,10 @@ class FlextCliModelsBasePart03:
         )
         name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]
         help_text: Annotated[str, m.Field(..., description="User-facing help text")]
+
+    class ResultCommandRoute(CommandMetadata):
+        """Type-erased route contract with inherited, flat command metadata."""
+
         model_cls: Annotated[
             t.ModelClass[t.Cli.ModelLike],
             m.Field(..., description="Pydantic input model class"),

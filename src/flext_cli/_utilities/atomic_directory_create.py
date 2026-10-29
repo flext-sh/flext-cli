@@ -10,7 +10,7 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import m, t
+from flext_cli import m
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryCleanup,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -63,7 +63,7 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
                 before, observed
             )
             created = False
-            identity: t.Pair[int, int] | None = None
+            identity: tuple[int, int] | None = None
             try:
                 FlextCliUtilitiesAtomicDirectoryDescriptor.create_entry(parent, path)
                 created = True
@@ -115,7 +115,7 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
         initial: os.stat_result,
-        identity: t.Pair[int, int],
+        identity: tuple[int, int],
         mode: int,
     ) -> os.stat_result:
         final = FlextCliUtilitiesAtomicDirectoryState.initialize_empty_state(

@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableMapping
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
@@ -27,7 +28,7 @@ class FlextCliModelsBasePart10:
         one instance and discards it when the boundary ends.
         """
 
-        directories: t.MutableMappingKV[
+        directories: MutableMapping[
             Path, FlextCliModelsBasePart09.AtomicDirectoryInventory
         ] = m.Field(
             default_factory=dict[
@@ -35,7 +36,7 @@ class FlextCliModelsBasePart10:
             ],
             description="One physical directory inventory per observed path",
         )
-        topology: t.MutableMappingKV[
+        topology: MutableMapping[
             Path, FlextCliModelsBasePart08.AtomicDirectoryChainPlan
         ] = m.Field(
             default_factory=dict[
@@ -47,11 +48,12 @@ class FlextCliModelsBasePart10:
     class AtomicDirectoryQueryEffects(m.BaseModel):
         """Caller-elected query authority and authenticated publication effects."""
 
-        files: t.VariadicTuple[
-            t.Pair[
+        files: tuple[
+            tuple[
                 FlextCliModelsBasePart02.AtomicFileState,
                 FlextCliModelsBasePart02.AtomicFileState,
-            ]
+            ],
+            ...,
         ] = m.Field(
             default=(), description="Authenticated file effects in this boundary"
         )

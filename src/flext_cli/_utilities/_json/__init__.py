@@ -1,5 +1,5 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Utilities. Json package.
+"""Internal package for json.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,21 +13,20 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._utilities._json._core import FlextCliUtilitiesJsonCoreMixin
-    from flext_cli._utilities._json._navigate import FlextCliUtilitiesJsonNavigateMixin
-
+    from flext_cli._utilities._json.core import FlextCliUtilitiesJsonCore
+    from flext_cli._utilities._json.navigate import FlextCliUtilitiesJsonNavigate
 
 __all__: tuple[str, ...] = (
-    "FlextCliUtilitiesJsonCoreMixin",
-    "FlextCliUtilitiesJsonNavigateMixin",
+    "FlextCliUtilitiesJsonCore",
+    "FlextCliUtilitiesJsonNavigate",
 )
 
 install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "FlextCliUtilitiesJsonCoreMixin": "._core",
-        "FlextCliUtilitiesJsonNavigateMixin": "._navigate",
+        "FlextCliUtilitiesJsonCore": ".core",
+        "FlextCliUtilitiesJsonNavigate": ".navigate",
     }),
     public_exports=__all__,
 )

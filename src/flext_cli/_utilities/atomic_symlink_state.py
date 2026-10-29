@@ -12,9 +12,7 @@ import stat
 from pathlib import Path
 
 from flext_cli import m
-from flext_cli._utilities.atomic_file_descriptor import (
-    FlextCliUtilitiesAtomicFileDescriptor,
-)
+from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
 
 
 class FlextCliUtilitiesAtomicSymlinkState:

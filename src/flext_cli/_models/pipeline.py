@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, MutableSequence, Sequence
 from pathlib import Path
 from typing import Annotated, ClassVar
 
@@ -112,7 +112,7 @@ class FlextCliModelsPipeline:
         model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
 
         stages: Annotated[
-            t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult],
+            Sequence[FlextCliModelsPipeline.PipelineStageResult],
             m.Field(
                 description="Results from all executed stages",
             ),
@@ -134,7 +134,7 @@ class FlextCliModelsPipeline:
         @property
         def failed_stages(
             self,
-        ) -> t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult]:
+        ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Only the failed stage results."""
             return [
                 s for s in self.stages if s.status == c.Cli.PipelineStageStatus.FAILED
@@ -144,11 +144,11 @@ class FlextCliModelsPipeline:
         @property
         def skipped_stages(
             self,
-        ) -> t.SequenceOf[FlextCliModelsPipeline.PipelineStageResult]:
+        ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Only the skipped stage results."""
             return [
                 s for s in self.stages if s.status == c.Cli.PipelineStageStatus.SKIPPED
             ]
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliModelsPipeline"]
+__all__: MutableSequence[str] = ["FlextCliModelsPipeline"]

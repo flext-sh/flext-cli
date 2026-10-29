@@ -22,13 +22,13 @@ class FlextCliUtilitiesTablesRenderer:
     _ROW_EDGE: ClassVar[str] = "+"
     _COLUMN_EDGE: ClassVar[str] = "|"
     _INDEX_HEADER: ClassVar[str] = ""
-    _PAD_METHODS: ClassVar[t.MappingKV[str, Callable[[str, int], str]]] = {
+    _PAD_METHODS: ClassVar[Mapping[str, Callable[[str, int], str]]] = {
         "left": str.ljust,
         "right": str.rjust,
         "center": str.center,
     }
     _DECIMAL_ALIASES: ClassVar[frozenset[str]] = frozenset({"decimal", "right"})
-    _SHAPES: ClassVar[t.StrMapping] = {
+    _SHAPES: ClassVar[Mapping[str, str]] = {
         c.Cli.TabularFormat.PLAIN: "plain",
         c.Cli.TabularFormat.TSV: "tsv",
         c.Cli.TabularFormat.GRID: "grid",
@@ -67,7 +67,7 @@ class FlextCliUtilitiesTablesRenderer:
     def _header_labels(
         cls,
         rows: Sequence[t.Cli.TableRow],
-        headers: str | t.StrSequence,
+        headers: str | Sequence[str],
     ) -> list[str]:
         if headers == "firstrow" and rows:
             return [str(cell) for cell in rows[0]]
@@ -83,7 +83,7 @@ class FlextCliUtilitiesTablesRenderer:
         column_count: int,
         numeric_columns: set[int],
         *,
-        colalign: t.SequenceOf[str],
+        colalign: Sequence[str],
         settings: m.Cli.TableConfig,
     ) -> list[str]:
         alignments: list[str] = []
@@ -143,7 +143,7 @@ class FlextCliUtilitiesTablesRenderer:
     @classmethod
     def _numeric_columns(
         cls,
-        cells: t.SequenceOf[t.SequenceOf[str]],
+        cells: Sequence[Sequence[str]],
         *,
         settings: m.Cli.TableConfig,
     ) -> set[int]:
@@ -168,9 +168,9 @@ class FlextCliUtilitiesTablesRenderer:
     def render(
         cls,
         rows: Sequence[t.Cli.TableRow],
-        headers: str | t.StrSequence,
+        headers: str | Sequence[str],
         *,
-        colalign: t.SequenceOf[str],
+        colalign: Sequence[str],
         settings: m.Cli.TableConfig,
     ) -> str:
         """Render normalized rows with the configured tabular format shape.
@@ -229,9 +229,9 @@ class FlextCliUtilitiesTablesRenderer:
     @classmethod
     def _compose_pipe(
         cls,
-        cells: t.SequenceOf[t.SequenceOf[str]],
-        header_labels: t.SequenceOf[str],
-        widths: t.SequenceOf[int],
+        cells: Sequence[Sequence[str]],
+        header_labels: Sequence[str],
+        widths: Sequence[int],
         alignments: list[str],
         *,
         settings: m.Cli.TableConfig,
@@ -271,8 +271,8 @@ class FlextCliUtilitiesTablesRenderer:
 
     @staticmethod
     def _compose_tsv(
-        cells: t.SequenceOf[t.SequenceOf[str]],
-        header_labels: t.SequenceOf[str],
+        cells: Sequence[Sequence[str]],
+        header_labels: Sequence[str],
         *,
         settings: m.Cli.TableConfig,
     ) -> str:
@@ -293,9 +293,9 @@ class FlextCliUtilitiesTablesRenderer:
     @classmethod
     def _compose(
         cls,
-        cells: t.SequenceOf[t.SequenceOf[str]],
-        header_labels: t.SequenceOf[str],
-        widths: t.SequenceOf[int],
+        cells: Sequence[Sequence[str]],
+        header_labels: Sequence[str],
+        widths: Sequence[int],
         alignments: list[str],
         *,
         settings: m.Cli.TableConfig,

@@ -9,21 +9,18 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, override
+from collections.abc import MutableSequence
+from typing import override
 
 from flext_core import FlextService
 
-from flext_cli import FlextCliSettings, m, p
-from flext_cli._utilities import FlextCliUtilitiesCli
-
-if TYPE_CHECKING:
-    from flext_cli import t
+from flext_cli import FlextCliSettings, FlextCliUtilities, m, p
 
 
 class FlextCliServiceBase[TDomainResult: p.Base](
     FlextService[TDomainResult],
     m.Cli.ServiceOptions,
-    FlextCliUtilitiesCli,
+    FlextCliUtilities,
 ):
     """Base class for flext-cli services with typed configuration access.
 
@@ -54,4 +51,4 @@ class FlextCliServiceBase[TDomainResult: p.Base](
 
 s = FlextCliServiceBase
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliServiceBase", "s"]
+__all__: MutableSequence[str] = ["FlextCliServiceBase", "s"]

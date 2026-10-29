@@ -129,4 +129,4 @@ class FlextCliModelsXlsxCells:
         style: Annotated[str, m.Field(min_length=1, description="Named visual style.")]
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsXlsxCells",)
+__all__: tuple[str, ...] = ("FlextCliModelsXlsxCells",)

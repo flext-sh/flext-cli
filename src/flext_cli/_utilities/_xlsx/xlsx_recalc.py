@@ -9,12 +9,12 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
+from flext_cli._utilities import FlextCliUtilitiesProcesses
 from flext_cli._utilities._xlsx import (
     FlextCliUtilitiesXlsxRecalcEvidence,
     FlextCliUtilitiesXlsxSnapshot,
 )
-from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
 
 
 class FlextCliUtilitiesXlsxRecalc(
@@ -136,7 +136,7 @@ class FlextCliUtilitiesXlsxRecalc(
                 f"{c.Cli.XlsxError.PARITY_FAILED}: {cache_evidence.error}",
             )
         uncached_cells, empty_result_cells = cache_evidence.value
-        error_cells: t.VariadicTuple[str] = ()
+        error_cells: tuple[str, ...] = ()
         for sheet in value_snapshot.value.sheets:
             for cell in sheet.cells:
                 if cell.formula is None:
@@ -163,4 +163,4 @@ class FlextCliUtilitiesXlsxRecalc(
         return r[m.Cli.XlsxRecalcParityReport].ok(report)
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxRecalc",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxRecalc",)

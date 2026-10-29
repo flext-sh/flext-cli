@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Annotated, ClassVar
 
 from flext_core import m, p
@@ -19,7 +20,7 @@ class FlextCliModelsBasePart07:
     class ServiceOptions(m.ArbitraryTypesModel):
         """Caller-selected native collaborators shared by CLI service instances."""
 
-        logging_options: t.Port[p.StructlogOptions] | None = m.Field(
+        structlog_options: t.Port[p.StructlogOptions] | None = m.Field(
             default=None,
             exclude=True,
             description=(
@@ -64,11 +65,11 @@ class FlextCliModelsBasePart07:
         """Validated table-rendering request for the formatter boundary."""
 
         columns: Annotated[
-            t.StrSequence,
+            Sequence[str],
             m.Field(description="Ordered table column labels"),
         ]
         rows: Annotated[
-            t.SequenceOf[t.StrSequence],
+            Sequence[Sequence[str]],
             m.Field(description="Ordered table row values"),
         ]
         title: Annotated[str, m.Field(description="Optional table title")] = ""
@@ -77,11 +78,11 @@ class FlextCliModelsBasePart07:
         """Validated generic data-report payload shared by every CLI domain."""
 
         columns: Annotated[
-            t.StrSequence,
+            Sequence[str],
             m.Field(description="Ordered report column labels"),
         ]
         rows: Annotated[
-            t.SequenceOf[t.StrSequence],
+            Sequence[Sequence[str]],
             m.Field(description="Ordered report row values"),
         ]
         title: Annotated[str, m.Field(description="Optional report title")] = ""

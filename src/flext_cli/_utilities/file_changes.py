@@ -7,17 +7,18 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections.abc import Sequence
 from pathlib import Path
 
 from filelock import FileLock
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
+from flext_cli._utilities import FlextCliUtilitiesOutput
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_06 import (
     FlextCliUtilitiesFilesPart06,
 )
 from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
-from flext_cli._utilities.output import FlextCliUtilitiesOutput
 
 
 class FlextCliUtilitiesFileChanges:
@@ -40,8 +41,8 @@ class FlextCliUtilitiesFileChanges:
 
     @staticmethod
     def pending_file_changes(
-        changes: t.SequenceOf[m.Cli.FileChange],
-    ) -> t.VariadicTuple[m.Cli.FileChange]:
+        changes: Sequence[m.Cli.FileChange],
+    ) -> tuple[m.Cli.FileChange, ...]:
         """Select the changes whose bytes or mode differ from the observed state.
 
         Returns:
@@ -60,16 +61,17 @@ class FlextCliUtilitiesFileChanges:
 
     @staticmethod
     def publish_file_changes(
-        changes: t.SequenceOf[m.Cli.FileChange],
+        changes: Sequence[m.Cli.FileChange],
         *,
         lock_path: Path,
         directory_mode: int = c.Cli.FILE_CHANGES_DIRECTORY_MODE,
-        nonsecret_source_paths: t.SequenceOf[Path] = (),
-    ) -> p.Result[t.VariadicTuple[Path]]:
+        nonsecret_source_paths: Sequence[Path] = (),
+    ) -> p.Result[tuple[Path, ...]]:
         """Verify every observed state, then write or delete each changed file.
 
         No effect happens unless every destination still matches its observed
-        state. Unchanged files are skipped; missing parents are created with
+        state, including destinations whose desired bytes and mode are unchanged.
+        Unchanged files are skipped; missing parents are created with
         exactly ``directory_mode``. ``nonsecret_source_paths`` explicitly
         attests Python sources for content digest diagnostics; all other
         destinations report only physical metadata and byte counts.
@@ -79,18 +81,18 @@ class FlextCliUtilitiesFileChanges:
 
         """
         result_type = r[tuple[Path, ...]]
-        pending = FlextCliUtilitiesFileChanges.pending_file_changes(changes)
         with FlextCliUtilitiesFileChanges.file_changes_lock(lock_path):
             FlextCliUtilitiesOutput.debug(
                 f"file_changes: verify pid={os.getpid()} "
-                f"pending={len(pending)} lock={lock_path}"
+                f"observed={len(changes)} lock={lock_path}"
             )
             verified = FlextCliUtilitiesFilesPart06.atomic_verify_binary_file_states(
-                tuple(change.before for change in pending),
+                tuple(change.before for change in changes),
                 nonsecret_source_paths=nonsecret_source_paths,
             )
             if verified.failure:
                 return result_type.from_failure(verified)
+            pending = FlextCliUtilitiesFileChanges.pending_file_changes(changes)
             for change in pending:
                 source_diagnostics = ""
                 if change.path in nonsecret_source_paths and change.path.suffix in {

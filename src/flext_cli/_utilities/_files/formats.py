@@ -10,15 +10,14 @@ import csv
 import io
 import shutil
 import tempfile
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-from flext_core import FlextRuntime
+from flext_core import u
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesJson, FlextCliUtilitiesYaml
 from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
-from flext_cli._utilities.json import FlextCliUtilitiesJson
-from flext_cli._utilities.yaml import FlextCliUtilitiesYaml
 
 
 class FlextCliUtilitiesFilesPart04:
@@ -48,7 +47,7 @@ class FlextCliUtilitiesFilesPart04:
         | m.Dict
         | p.Model
         | t.JsonMapping
-        | t.SequenceOf[t.StrSequence],
+        | Sequence[Sequence[str]],
         name: str,
         fmt: str = c.Cli.FILE_FORMAT_AUTO,
     ) -> str:
@@ -116,8 +115,7 @@ class FlextCliUtilitiesFilesPart04:
         # json_read declares a mapping result; normalize every leaf value.
         payload: t.JsonMapping = loaded.value
         normalized_payload: t.JsonMapping = {
-            key: FlextRuntime.normalize_to_json_value(value)
-            for key, value in payload.items()
+            key: u.normalize_to_json_value(value) for key, value in payload.items()
         }
         return r[t.JsonMapping].ok(normalized_payload)
 

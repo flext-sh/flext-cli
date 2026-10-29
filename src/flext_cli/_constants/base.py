@@ -11,6 +11,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import ClassVar
 
@@ -37,7 +38,7 @@ class FlextCliConstantsBase:
     )
 
     # Suffix→output-format owner (files helpers consume it through ``c.Cli``).
-    FORMAT_BY_SUFFIX: ClassVar[t.MappingKV[str, str]] = MappingProxyType({
+    FORMAT_BY_SUFFIX: ClassVar[Mapping[str, str]] = MappingProxyType({
         ".json": "json",
         ".yaml": "yaml",
         ".yml": "yaml",
@@ -91,19 +92,19 @@ class FlextCliConstantsBase:
 
     SUBDIR_CACHE: ClassVar[str] = "cache"
     SUBDIR_LOGS: ClassVar[str] = "logs"
-    STANDARD_SUBDIRS: ClassVar[t.StrSequence] = (SUBDIR_CACHE, SUBDIR_LOGS)
+    STANDARD_SUBDIRS: ClassVar[Sequence[str]] = (SUBDIR_CACHE, SUBDIR_LOGS)
 
     SYMBOL_SUCCESS_MARK: ClassVar[str] = "✓"
     SYMBOL_FAILURE_MARK: ClassVar[str] = "✗"
 
-    FILE_NOT_FOUND_PATTERN_ORDER: ClassVar[t.VariadicTuple[str]] = (
+    FILE_NOT_FOUND_PATTERN_ORDER: ClassVar[tuple[str, ...]] = (
         "no such file",
         "not found",
         "does not exist",
         "errno 2",
         "cannot open",
     )
-    CLI_USAGE_ERROR_PATTERN_ORDER: ClassVar[t.VariadicTuple[str]] = (
+    CLI_USAGE_ERROR_PATTERN_ORDER: ClassVar[tuple[str, ...]] = (
         "no such option",
         "no such command",
         "missing option",
@@ -112,11 +113,11 @@ class FlextCliConstantsBase:
         "unrecognized arguments",
         "cli exited with code 2",
     )
-    FILE_NOT_FOUND_REGEXES: ClassVar[t.VariadicTuple[t.RegexPattern]] = tuple(
+    FILE_NOT_FOUND_REGEXES: ClassVar[tuple[t.RegexPattern, ...]] = tuple(
         re.compile(pattern, flags=re.IGNORECASE)
         for pattern in FILE_NOT_FOUND_PATTERN_ORDER
     )
-    CLI_USAGE_ERROR_REGEXES: ClassVar[t.VariadicTuple[t.RegexPattern]] = tuple(
+    CLI_USAGE_ERROR_REGEXES: ClassVar[tuple[t.RegexPattern, ...]] = tuple(
         re.compile(pattern, flags=re.IGNORECASE)
         for pattern in CLI_USAGE_ERROR_PATTERN_ORDER
     )

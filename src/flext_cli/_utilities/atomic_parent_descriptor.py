@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
 
 if TYPE_CHECKING:
     from flext_cli.typings import DirectoryChainInspection

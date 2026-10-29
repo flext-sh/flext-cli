@@ -13,13 +13,12 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import ClassVar
 
-from flext_cli import t
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileRead,
 )
-from flext_cli._utilities.atomic_file_mode import FlextCliUtilitiesAtomicFileMode
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
 
 
 class FlextCliUtilitiesAtomicDirectoryState:
@@ -31,7 +30,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
     def destination_state(
         path: Path,
         *,
-        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor | None = None,
     ) -> os.stat_result | None:
         """Read one final directory entry without following it or crossing devices.
 
@@ -42,6 +41,16 @@ class FlextCliUtilitiesAtomicDirectoryState:
             OSError: If ``state.st_dev != parent.state.st_dev``.
 
         """
+        if parent is None:
+            with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+                path,
+            ) as opened:
+                state = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+                    path,
+                    parent=opened,
+                )
+                FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(opened)
+                return state
         state: os.stat_result | None
         try:
             state = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
@@ -156,17 +165,20 @@ class FlextCliUtilitiesAtomicDirectoryState:
     @staticmethod
     def require_identity(
         path: Path,
-        state: os.stat_result,
-        expected: t.Pair[int, int],
+        state: os.stat_result | None,
+        expected: tuple[int, int] | None,
     ) -> None:
         """Require one directory entry to retain a caller-owned inode.
 
         Raises:
-            OSError: If ``file_path.identity(state) != expected``.
+            OSError: If ``observed != expected``.
 
         """
-        if FlextCliUtilitiesAtomicFilePath.identity(state) != expected:
-            message = f"atomic directory identity changed: {path}"
+        observed = (
+            None if state is None else FlextCliUtilitiesAtomicFilePath.identity(state)
+        )
+        if observed != expected:
+            message = f"atomic directory physical identity changed: {path}"
             raise OSError(errno.ESTALE, message, path)
 
     @staticmethod

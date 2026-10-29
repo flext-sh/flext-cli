@@ -6,9 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence
+
 from flext_core import u
 
-from flext_cli import c, m, p, t
+from flext_cli import c, m, p
 
 
 class FlextCliUtilitiesCmd:
@@ -36,4 +38,4 @@ class FlextCliUtilitiesCmd:
         )
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCmd"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesCmd"]

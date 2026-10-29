@@ -13,7 +13,7 @@ from openpyxl.utils.cell import (
     range_boundaries,
 )
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
 
 
 class FlextCliUtilitiesXlsxAddresses:
@@ -127,4 +127,4 @@ class FlextCliUtilitiesXlsxAddresses:
         return r[m.Cli.XlsxReference].ok(m.Cli.XlsxReference(reference=reference))
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxAddresses",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxAddresses",)

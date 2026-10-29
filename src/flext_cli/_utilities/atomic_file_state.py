@@ -13,11 +13,11 @@ from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
 
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileRead,
 )
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
 
 
 class FlextCliUtilitiesAtomicFileState:
@@ -88,7 +88,7 @@ class FlextCliUtilitiesAtomicFileState:
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
             validated,
         ) as parent:
-            FlextCliUtilitiesAtomicFileState._require_owner(
+            FlextCliUtilitiesAtomicFileState.require_owner(
                 validated.parent,
                 parent.state,
                 owner_uid,
@@ -102,7 +102,7 @@ class FlextCliUtilitiesAtomicFileState:
                     message = f"required atomic file is missing: {validated}"
                     raise FileNotFoundError(errno.ENOENT, message, validated)
             else:
-                FlextCliUtilitiesAtomicFileState._require_owner(
+                FlextCliUtilitiesAtomicFileState.require_owner(
                     validated, state, owner_uid
                 )
                 FlextCliUtilitiesAtomicFileState._require_size(
@@ -131,7 +131,7 @@ class FlextCliUtilitiesAtomicFileState:
                     )
 
     @staticmethod
-    def _require_owner(
+    def require_owner(
         path: Path,
         state: os.stat_result,
         owner_uid: int | None,

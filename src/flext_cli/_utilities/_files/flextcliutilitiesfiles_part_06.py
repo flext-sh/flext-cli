@@ -6,16 +6,17 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import errno
 import fnmatch
 import os
 import traceback
+from collections.abc import MutableMapping, Sequence
 from pathlib import Path
 from typing import Literal
 
 from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesAtomicFile, FlextCliUtilitiesRuntime
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
-from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
-from flext_cli._utilities.runtime import FlextCliUtilitiesRuntime
 
 
 class FlextCliUtilitiesFilesPart06:
@@ -33,11 +34,14 @@ class FlextCliUtilitiesFilesPart06:
         """Create one absent file and return its authenticated published state.
 
         ``max_bytes`` rejects oversized ``data`` and ``owner_uid`` rejects a
-        parent owned by another uid, both before any effect; the published leaf
-        is re-read under the same guards.
+        parent owned by another uid, both before any effect. The returned state
+        retains the original publication proof under those same guards.
 
         Returns:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
+
+        Raises:
+            OSError: If the file cannot be created under the specified guards.
 
         """
         if max_bytes is not None and len(data) > max_bytes:
@@ -55,25 +59,30 @@ class FlextCliUtilitiesFilesPart06:
             return r[m.Cli.AtomicFileState].fail(
                 f"atomic create destination already exists: {before.value.path}",
             )
-        written = FlextCliUtilitiesFilesPart02.atomic_write_binary_file_guarded(
-            before.value,
-            data,
-            permission_mode=permission_mode,
-        )
-        if written.failure:
-            return r[m.Cli.AtomicFileState].from_failure(written)
-        return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
-            before.value.path,
-            required=True,
-            owner_uid=owner_uid,
-            max_bytes=max_bytes,
-        )
+        try:
+            if not isinstance(data, bytes):
+                message = "atomic file content must be bytes"
+                raise OSError(errno.EINVAL, message, before.value.path)
+            # Return this publication's proof, never a later path observation.
+            published = FlextCliUtilitiesAtomicFile.write_atomic_state(
+                before.value.path,
+                data,
+                expected_state=before.value,
+                permission_mode=permission_mode,
+                durability=c.Cli.WriteDurability.DURABLE,
+                owner_uid=owner_uid,
+            )
+        except OSError as exc:
+            return r[m.Cli.AtomicFileState].fail(
+                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc), exception=exc
+            )
+        return r.ok(published)
 
     @staticmethod
     def atomic_verify_binary_file_states(
-        expected_states: t.SequenceOf[m.Cli.AtomicFileState],
+        expected_states: Sequence[m.Cli.AtomicFileState],
         *,
-        nonsecret_source_paths: t.SequenceOf[Path] = (),
+        nonsecret_source_paths: Sequence[Path] = (),
     ) -> p.Result[Literal[True]]:
         """Verify one coherent set of physical file states without reread fallback.
 
@@ -85,7 +94,7 @@ class FlextCliUtilitiesFilesPart06:
             Exactly ``True`` on successful verification, otherwise a failed result.
 
         """
-        by_path: t.MutableMappingKV[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
+        by_path: MutableMapping[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
         for expected in expected_states:
             existing = by_path.get(expected.path)
             if existing is not None and existing != expected:
@@ -150,19 +159,19 @@ class FlextCliUtilitiesFilesPart06:
     def files_matching(
         root: Path,
         *,
-        includes: t.StrSequence,
-        excludes: t.StrSequence = (),
-    ) -> p.Result[t.SequenceOf[Path]]:
+        includes: Sequence[str],
+        excludes: Sequence[str] = (),
+    ) -> p.Result[Sequence[Path]]:
         """Select Git-visible files under ``root``: tracked, untracked, never ignored.
 
         Outside a Git worktree every file on disk is a candidate. Patterns match the
         POSIX path relative to ``root``; an empty ``includes`` selects every file.
 
         Returns:
-            The resulting ``p.Result[t.SequenceOf[Path]]``.
+            The resulting ``p.Result[Sequence[Path]]``.
 
         """
-        result = r[t.SequenceOf[Path]]
+        result = r[Sequence[Path]]
         if not root.is_dir():
             return result.fail(f"file selection root is not a directory: {root}")
         scope = root.resolve()
@@ -219,14 +228,14 @@ class FlextCliUtilitiesFilesPart06:
         scope: Path,
         *,
         worktree_status: bytes,
-    ) -> p.Result[t.SequenceOf[Path]]:
+    ) -> p.Result[Sequence[Path]]:
         """Read Git-visible candidates after a successful worktree probe.
 
         Returns:
             Git-visible paths or the original probe/listing failure.
 
         """
-        result = r[t.SequenceOf[Path]]
+        result = r[Sequence[Path]]
         if worktree_status.strip() != b"true":
             return result.fail(f"file selection root is not in a worktree: {scope}")
         listed = FlextCliUtilitiesRuntime.run_bytes(

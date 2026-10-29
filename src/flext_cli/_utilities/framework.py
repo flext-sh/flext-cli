@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import gc
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from contextvars import ContextVar
 from inspect import Parameter
 from types import EllipsisType, GenericAlias
@@ -330,7 +330,7 @@ class FlextCliUtilitiesFramework:
         application: p.Cli.Application,
         *,
         prog_name: str,
-        args: t.StrSequence | None = None,
+        args: Sequence[str] | None = None,
     ) -> p.Result[bool]:
         """Execute one application and normalize every framework exit path.
 
@@ -395,7 +395,7 @@ class FlextCliUtilitiesFramework:
         command: p.Cli.ExternalCommand,
         *,
         prog_name: str,
-        args: t.StrSequence | None = None,
+        args: Sequence[str] | None = None,
     ) -> p.Result[bool]:
         """Execute a foreign Click-compatible command inside the boundary.
 
@@ -449,9 +449,9 @@ class FlextCliUtilitiesFramework:
         cls,
         application: p.Cli.Application,
         *,
-        args: t.StrSequence | None = None,
+        args: Sequence[str] | None = None,
         charset: str = c.DEFAULT_ENCODING,
-        env: t.StrMapping | None = None,
+        env: Mapping[str, str] | None = None,
     ) -> m.Cli.InvocationResult:
         """Invoke one application through the real framework test runner.
 
@@ -465,7 +465,7 @@ class FlextCliUtilitiesFramework:
             The resulting ``m.Cli.InvocationResult``.
 
         """
-        runner_env: t.MutableMappingKV[str, str | None] = {
+        runner_env: MutableMapping[str, str | None] = {
             "NO_COLOR": c.ParserBooleanToken.ONE,
             "GITHUB_ACTIONS": "",
             "FORCE_COLOR": "",

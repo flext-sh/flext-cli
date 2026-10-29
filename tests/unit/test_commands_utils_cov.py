@@ -18,7 +18,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, MutableSequence
 from io import StringIO
 
 import pytest
@@ -212,7 +212,7 @@ class TestsFlextCliCommands:
             raise exception
         original_exception = caught.value
         native_stream = StringIO()
-        records: t.MutableSequenceOf[p.LoggingRecord] = []
+        records: MutableSequence[p.LoggingRecord] = []
 
         def observe(event: p.LoggingRecord) -> None:
             records.append(event)

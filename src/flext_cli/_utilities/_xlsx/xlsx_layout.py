@@ -10,7 +10,7 @@ from openpyxl.cell.cell import Cell
 from openpyxl.comments import Comment
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
 from flext_cli._utilities._xlsx import FlextCliUtilitiesXlsxAddresses
 
 
@@ -126,4 +126,4 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
                 )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxLayout",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxLayout",)

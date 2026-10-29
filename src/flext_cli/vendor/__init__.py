@@ -67,7 +67,7 @@ install_lazy_exports(
         "WD_TAB_ALIGNMENT": ".docx",
         "BaseOxmlElement": ".docx",
         "Cm": ".docx",
-        "Document": ".docx",
+        "Document": ".docx.document",
         "Length": ".docx",
         "OxmlElement": ".docx",
         "Paragraph": ".docx",

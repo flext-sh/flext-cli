@@ -6,10 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing_extensions import TypeForm
-
 from flext_cli import FlextCliModels, FlextCliSettings, cli, settings
-from tests import c, m, p, tm, u
+from tests import c, m, p, t, tm, u
 
 
 class TestsFlextCliPublicContractsCoveragePart01:
@@ -19,7 +17,7 @@ class TestsFlextCliPublicContractsCoveragePart01:
     def test_inherited_settings_preset_validates_and_round_trips() -> None:
         """The CLI model facade inherits a functioning settings preset."""
         instance = FlextCliModels.BaseSettings()
-        adapter = u.type_adapter(TypeForm(FlextCliModels.PydanticBaseSettings))
+        adapter = u.type_adapter(t.TypeForm(FlextCliModels.PydanticBaseSettings))
         tm.ok(adapter.validate_python(instance) is instance)
         restored = FlextCliModels.BaseSettings.model_validate_json(
             instance.model_dump_json()

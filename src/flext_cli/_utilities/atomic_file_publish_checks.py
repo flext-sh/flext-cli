@@ -10,7 +10,6 @@ import errno
 import hashlib
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_cli import c, m
 from flext_cli._utilities import (
@@ -20,15 +19,12 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileState,
 )
 
-if TYPE_CHECKING:
-    from flext_cli import t
-
 
 class FlextCliUtilitiesAtomicFilePublishChecks:
     """Canonical namespace owner."""
 
     @staticmethod
-    def validate_identity(path: Path, value: t.Pair[int, int], *, label: str) -> None:
+    def validate_identity(path: Path, value: tuple[int, int], *, label: str) -> None:
         """Require one strict non-negative device and inode pair.
 
         Raises:
@@ -49,7 +45,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     def require_identity(
         path: Path,
         state: os.stat_result | None,
-        expected: t.Pair[int, int] | None,
+        expected: tuple[int, int] | None,
     ) -> None:
         """Require an observed physical identity to match its caller snapshot.
 
@@ -68,7 +64,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     def require_distinct_inode(
         destination: Path,
         destination_state: os.stat_result | None,
-        staged_identity: t.Pair[int, int],
+        staged_identity: tuple[int, int],
     ) -> None:
         """Reject lexical aliases that identify the same physical file.
 

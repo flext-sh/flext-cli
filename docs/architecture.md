@@ -33,6 +33,23 @@ source.
 - **Results with `r[T]`**: failures and successes chain through authentication,
   orchestration and I/O.
 
+Guarded directory provisioning retains the original
+`m.Cli.AtomicDirectoryChainPlan` and the ordered receipts returned by
+`u.Cli.create_guarded_directory_chain`. Before dependent effects,
+`u.Cli.verify_guarded_directory_chain` checks receipt count, paths, parent
+identities and the complete original ancestry. An existing directory requires
+the original warm plan and an empty receipt sequence. Replanning the current
+path cannot replace the original authorization. AI Hub maintenance and durable
+JavaScript preparation consume this same native owner; source implementation,
+consumer rewiring and runtime qualification require separate evidence.
+
+Atomic creation returns the state authenticated by the publication itself:
+the retained parent descriptor, original content and the stat returned by native
+publication validation. A later path read is readback, never the authority for
+the created inode. The existing void and Boolean writer interfaces retain their
+contracts and share the same publication implementation with state-returning
+creation; no second publisher or callback cache participates.
+
 ## Module map
 
 ```text

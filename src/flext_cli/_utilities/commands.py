@@ -6,9 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import traceback
+from collections.abc import MutableSequence
 from typing import TYPE_CHECKING
 
-from flext_core import FlextRuntime, u
+from flext_core import u
 
 from flext_cli import c, r, t
 from flext_cli._utilities import FlextCliUtilitiesOutput
@@ -44,9 +46,7 @@ class FlextCliUtilitiesCommands:
         if success_formatter is not None:
             formatted: str = success_formatter(result_value)
             return formatted
-        normalized_value: t.JsonValue = FlextRuntime.normalize_to_json_value(
-            result_value
-        )
+        normalized_value: t.JsonValue = u.normalize_to_json_value(result_value)
         match normalized_value:
             case {c.Cli.DICT_KEY_MESSAGE: str() as candidate} if candidate:
                 return candidate
@@ -123,8 +123,22 @@ class FlextCliUtilitiesCommands:
             ),
             error=True,
         )
+        # A exceção carregada pelo Result mantém seu traceback original: sem
+        # ele aqui, a mensagem nua esconde o sítio da violação que as notas
+        # tentam preservar.
+        if result.exception is not None:
+            FlextCliUtilitiesOutput.emit_raw(
+                "".join(traceback.format_exception(result.exception)),
+                error=True,
+            )
+        # Native exception notes carry the causal annotations (owner, index,
+        # inferred kind) that producers attach; dropping them hides the
+        # violation site and turns a precise diagnosis into a bare message.
+        notes = getattr(result.exception, "__notes__", ())
+        for note in tuple(notes)[-4:]:
+            FlextCliUtilitiesOutput.emit_raw(f"   note: {note}\n", error=True)
         if result.error_code:
             FlextCliUtilitiesOutput.emit_raw(f"   [{result.error_code}]\n", error=True)
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesCommands"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesCommands"]

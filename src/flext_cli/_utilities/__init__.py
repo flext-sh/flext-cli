@@ -1,5 +1,5 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Flext Cli. Utilities package.
+"""Internal package for utilities.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -13,8 +13,8 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._utilities._docx._reader import FlextCliUtilitiesDocxReader
-    from flext_cli._utilities._docx._renderer import FlextCliUtilitiesDocxRenderer
+    from flext_cli._utilities._docx.reader import FlextCliUtilitiesDocxReader
+    from flext_cli._utilities._docx.renderer import FlextCliUtilitiesDocxRenderer
     from flext_cli._utilities._file_test_helper.assertions import (
         FlextCliUtilitiesFileTestHelpersAssertions,
     )
@@ -31,8 +31,8 @@ if TYPE_CHECKING:
     from flext_cli._utilities._files.formats import FlextCliUtilitiesFilesPart04
     from flext_cli._utilities._files.text_formats import FlextCliUtilitiesFilesPart01
     from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
-    from flext_cli._utilities._json._core import FlextCliUtilitiesJsonCoreMixin
-    from flext_cli._utilities._json._navigate import FlextCliUtilitiesJsonNavigateMixin
+    from flext_cli._utilities._json.core import FlextCliUtilitiesJsonCore
+    from flext_cli._utilities._json.navigate import FlextCliUtilitiesJsonNavigate
     from flext_cli._utilities._options.annotations import (
         FlextCliUtilitiesOptionsAnnotations,
     )
@@ -40,59 +40,57 @@ if TYPE_CHECKING:
     from flext_cli._utilities._options.option_builder import (
         FlextCliUtilitiesOptionBuilder,
     )
-    from flext_cli._utilities._pptx._reader import FlextCliUtilitiesPptxReader
-    from flext_cli._utilities._pptx._renderer import FlextCliUtilitiesPptxRenderer
-    from flext_cli._utilities._pptx._serializer import FlextCliUtilitiesPptxSerializer
-    from flext_cli._utilities._runtime_commands import (
-        FlextCliUtilitiesRuntimeCommandsMixin,
+    from flext_cli._utilities._pptx.reader import FlextCliUtilitiesPptxReader
+    from flext_cli._utilities._pptx.renderer import FlextCliUtilitiesPptxRenderer
+    from flext_cli._utilities._pptx.serializer import FlextCliUtilitiesPptxSerializer
+    from flext_cli._utilities._runtime.commands import FlextCliUtilitiesRuntimeCommands
+    from flext_cli._utilities._runtime.darwin_process_group import (
+        FlextCliUtilitiesRuntimeDarwinProcessGroup,
     )
-    from flext_cli._utilities._runtime_darwin_process_group import (
-        FlextCliUtilitiesRuntimeDarwinProcessGroupMixin,
+    from flext_cli._utilities._runtime.process_cleanup import (
+        FlextCliUtilitiesRuntimeProcessCleanup,
     )
-    from flext_cli._utilities._runtime_process_cleanup import (
-        FlextCliUtilitiesRuntimeProcessCleanupMixin,
+    from flext_cli._utilities._runtime.process_execution import (
+        FlextCliUtilitiesRuntimeProcessExecution,
     )
-    from flext_cli._utilities._runtime_process_execution import (
-        FlextCliUtilitiesRuntimeProcessExecutionMixin,
+    from flext_cli._utilities._runtime.process_group import (
+        FlextCliUtilitiesRuntimeProcessGroup,
     )
-    from flext_cli._utilities._runtime_process_group import (
-        FlextCliUtilitiesRuntimeProcessGroupMixin,
+    from flext_cli._utilities._runtime.process_monitor import (
+        FlextCliUtilitiesRuntimeProcessMonitor,
     )
-    from flext_cli._utilities._runtime_process_monitor import (
-        FlextCliUtilitiesRuntimeProcessMonitorMixin,
+    from flext_cli._utilities._runtime.process_outcome import (
+        FlextCliUtilitiesRuntimeProcessOutcome,
     )
-    from flext_cli._utilities._runtime_process_outcome import (
-        FlextCliUtilitiesRuntimeProcessOutcomeMixin,
+    from flext_cli._utilities._runtime.process_output import (
+        FlextCliUtilitiesRuntimeProcessOutput,
     )
-    from flext_cli._utilities._runtime_process_output import (
-        FlextCliUtilitiesRuntimeProcessOutputMixin,
+    from flext_cli._utilities._runtime.process_resources import (
+        FlextCliUtilitiesRuntimeProcessResources,
     )
-    from flext_cli._utilities._runtime_process_resources import (
-        FlextCliUtilitiesRuntimeProcessResourcesMixin,
+    from flext_cli._utilities._runtime.process_start import (
+        FlextCliUtilitiesRuntimeProcessStart,
     )
-    from flext_cli._utilities._runtime_process_start import (
-        FlextCliUtilitiesRuntimeProcessStartMixin,
+    from flext_cli._utilities._runtime.process_stream import (
+        FlextCliUtilitiesRuntimeProcessStream,
     )
-    from flext_cli._utilities._runtime_process_stream import (
-        FlextCliUtilitiesRuntimeProcessStreamMixin,
+    from flext_cli._utilities._runtime.process_threads import (
+        FlextCliUtilitiesRuntimeProcessThreads,
     )
-    from flext_cli._utilities._runtime_process_threads import (
-        FlextCliUtilitiesRuntimeProcessThreadsMixin,
+    from flext_cli._utilities._runtime.process_timing import (
+        FlextCliUtilitiesRuntimeProcessTiming,
     )
-    from flext_cli._utilities._runtime_process_timing import (
-        FlextCliUtilitiesRuntimeProcessTimingMixin,
+    from flext_cli._utilities._runtime.process_wait import (
+        FlextCliUtilitiesRuntimeProcessWait,
     )
-    from flext_cli._utilities._runtime_process_wait import (
-        FlextCliUtilitiesRuntimeProcessWaitMixin,
+    from flext_cli._utilities._runtime.run_to_file import (
+        FlextCliUtilitiesRuntimeRunToFile,
     )
-    from flext_cli._utilities._runtime_run_to_file import (
-        FlextCliUtilitiesRuntimeRunToFileMixin,
+    from flext_cli._utilities._runtime.windows_job_start import (
+        FlextCliUtilitiesRuntimeWindowsJobStart,
     )
-    from flext_cli._utilities._runtime_windows_job_start import (
-        FlextCliUtilitiesRuntimeWindowsJobStartMixin,
-    )
-    from flext_cli._utilities._runtime_windows_job_state import (
-        FlextCliUtilitiesRuntimeWindowsJobStateMixin,
+    from flext_cli._utilities._runtime.windows_job_state import (
+        FlextCliUtilitiesRuntimeWindowsJobState,
     )
     from flext_cli._utilities._tables.renderer import FlextCliUtilitiesTablesRenderer
     from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
@@ -173,9 +171,9 @@ if TYPE_CHECKING:
     from flext_cli._utilities._xlsx.xlsx_workbook_plan import (
         FlextCliUtilitiesXlsxWorkbookPlan,
     )
-    from flext_cli._utilities._yaml._convert import FlextCliUtilitiesYamlConvertMixin
-    from flext_cli._utilities._yaml._editing import FlextCliUtilitiesYamlEditingMixin
-    from flext_cli._utilities._yaml._engine import FlextCliUtilitiesYamlEngineMixin
+    from flext_cli._utilities._yaml.convert import FlextCliUtilitiesYamlConvert
+    from flext_cli._utilities._yaml.editing import FlextCliUtilitiesYamlEditing
+    from flext_cli._utilities._yaml.engine import FlextCliUtilitiesYamlEngine
     from flext_cli._utilities.atomic_directory_chain import (
         FlextCliUtilitiesAtomicDirectoryChain,
     )
@@ -269,9 +267,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities.docx import FlextCliUtilitiesDocx
     from flext_cli._utilities.env import FlextCliUtilitiesEnv
     from flext_cli._utilities.file_changes import FlextCliUtilitiesFileChanges
-    from flext_cli._utilities.file_test_helpers import (
-        FlextCliUtilitiesFileTestHelpersMixin,
-    )
+    from flext_cli._utilities.file_test_helpers import FlextCliUtilitiesFileTestHelpers
     from flext_cli._utilities.files import FlextCliUtilitiesFiles
     from flext_cli._utilities.formatters import FlextCliUtilitiesFormatters
     from flext_cli._utilities.framework import FlextCliUtilitiesFramework
@@ -348,8 +344,8 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesDocxRenderer",
     "FlextCliUtilitiesEnv",
     "FlextCliUtilitiesFileChanges",
+    "FlextCliUtilitiesFileTestHelpers",
     "FlextCliUtilitiesFileTestHelpersAssertions",
-    "FlextCliUtilitiesFileTestHelpersMixin",
     "FlextCliUtilitiesFileTestHelpersParsing",
     "FlextCliUtilitiesFiles",
     "FlextCliUtilitiesFilesPart01",
@@ -361,8 +357,8 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesFormatters",
     "FlextCliUtilitiesFramework",
     "FlextCliUtilitiesJson",
-    "FlextCliUtilitiesJsonCoreMixin",
-    "FlextCliUtilitiesJsonNavigateMixin",
+    "FlextCliUtilitiesJsonCore",
+    "FlextCliUtilitiesJsonNavigate",
     "FlextCliUtilitiesMarkdown",
     "FlextCliUtilitiesMatching",
     "FlextCliUtilitiesOptionBuilder",
@@ -380,23 +376,23 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesPrompts",
     "FlextCliUtilitiesReport",
     "FlextCliUtilitiesRuntime",
-    "FlextCliUtilitiesRuntimeCommandsMixin",
-    "FlextCliUtilitiesRuntimeDarwinProcessGroupMixin",
-    "FlextCliUtilitiesRuntimeProcessCleanupMixin",
-    "FlextCliUtilitiesRuntimeProcessExecutionMixin",
-    "FlextCliUtilitiesRuntimeProcessGroupMixin",
-    "FlextCliUtilitiesRuntimeProcessMonitorMixin",
-    "FlextCliUtilitiesRuntimeProcessOutcomeMixin",
-    "FlextCliUtilitiesRuntimeProcessOutputMixin",
-    "FlextCliUtilitiesRuntimeProcessResourcesMixin",
-    "FlextCliUtilitiesRuntimeProcessStartMixin",
-    "FlextCliUtilitiesRuntimeProcessStreamMixin",
-    "FlextCliUtilitiesRuntimeProcessThreadsMixin",
-    "FlextCliUtilitiesRuntimeProcessTimingMixin",
-    "FlextCliUtilitiesRuntimeProcessWaitMixin",
-    "FlextCliUtilitiesRuntimeRunToFileMixin",
-    "FlextCliUtilitiesRuntimeWindowsJobStartMixin",
-    "FlextCliUtilitiesRuntimeWindowsJobStateMixin",
+    "FlextCliUtilitiesRuntimeCommands",
+    "FlextCliUtilitiesRuntimeDarwinProcessGroup",
+    "FlextCliUtilitiesRuntimeProcessCleanup",
+    "FlextCliUtilitiesRuntimeProcessExecution",
+    "FlextCliUtilitiesRuntimeProcessGroup",
+    "FlextCliUtilitiesRuntimeProcessMonitor",
+    "FlextCliUtilitiesRuntimeProcessOutcome",
+    "FlextCliUtilitiesRuntimeProcessOutput",
+    "FlextCliUtilitiesRuntimeProcessResources",
+    "FlextCliUtilitiesRuntimeProcessStart",
+    "FlextCliUtilitiesRuntimeProcessStream",
+    "FlextCliUtilitiesRuntimeProcessThreads",
+    "FlextCliUtilitiesRuntimeProcessTiming",
+    "FlextCliUtilitiesRuntimeProcessWait",
+    "FlextCliUtilitiesRuntimeRunToFile",
+    "FlextCliUtilitiesRuntimeWindowsJobStart",
+    "FlextCliUtilitiesRuntimeWindowsJobState",
     "FlextCliUtilitiesSettings",
     "FlextCliUtilitiesTables",
     "FlextCliUtilitiesTablesRenderer",
@@ -437,9 +433,9 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesXlsxWorkbookIo",
     "FlextCliUtilitiesXlsxWorkbookPlan",
     "FlextCliUtilitiesYaml",
-    "FlextCliUtilitiesYamlConvertMixin",
-    "FlextCliUtilitiesYamlEditingMixin",
-    "FlextCliUtilitiesYamlEngineMixin",
+    "FlextCliUtilitiesYamlConvert",
+    "FlextCliUtilitiesYamlEditing",
+    "FlextCliUtilitiesYamlEngine",
     "RuntimeSpawnOptions",
     "TimeoutExpired",
     "spawn_streamed_process",
@@ -491,12 +487,12 @@ install_lazy_exports(
         "FlextCliUtilitiesConversion": ".conversion",
         "FlextCliUtilitiesDag": ".dag",
         "FlextCliUtilitiesDocx": ".docx",
-        "FlextCliUtilitiesDocxReader": "._docx._reader",
-        "FlextCliUtilitiesDocxRenderer": "._docx._renderer",
+        "FlextCliUtilitiesDocxReader": "._docx.reader",
+        "FlextCliUtilitiesDocxRenderer": "._docx.renderer",
         "FlextCliUtilitiesEnv": ".env",
         "FlextCliUtilitiesFileChanges": ".file_changes",
         "FlextCliUtilitiesFileTestHelpersAssertions": "._file_test_helper.assertions",
-        "FlextCliUtilitiesFileTestHelpersMixin": ".file_test_helpers",
+        "FlextCliUtilitiesFileTestHelpers": ".file_test_helpers",
         "FlextCliUtilitiesFileTestHelpersParsing": "._file_test_helper.parsing",
         "FlextCliUtilitiesFiles": ".files",
         "FlextCliUtilitiesFilesPart01": "._files.text_formats",
@@ -508,8 +504,8 @@ install_lazy_exports(
         "FlextCliUtilitiesFormatters": ".formatters",
         "FlextCliUtilitiesFramework": ".framework",
         "FlextCliUtilitiesJson": ".json",
-        "FlextCliUtilitiesJsonCoreMixin": "._json._core",
-        "FlextCliUtilitiesJsonNavigateMixin": "._json._navigate",
+        "FlextCliUtilitiesJsonCore": "._json.core",
+        "FlextCliUtilitiesJsonNavigate": "._json.navigate",
         "FlextCliUtilitiesMarkdown": ".markdown",
         "FlextCliUtilitiesMatching": ".matching",
         "FlextCliUtilitiesOptionBuilder": "._options.option_builder",
@@ -520,32 +516,30 @@ install_lazy_exports(
         "FlextCliUtilitiesParams": ".params",
         "FlextCliUtilitiesPipeline": ".pipeline",
         "FlextCliUtilitiesPptx": ".pptx",
-        "FlextCliUtilitiesPptxReader": "._pptx._reader",
-        "FlextCliUtilitiesPptxRenderer": "._pptx._renderer",
-        "FlextCliUtilitiesPptxSerializer": "._pptx._serializer",
+        "FlextCliUtilitiesPptxReader": "._pptx.reader",
+        "FlextCliUtilitiesPptxRenderer": "._pptx.renderer",
+        "FlextCliUtilitiesPptxSerializer": "._pptx.serializer",
         "FlextCliUtilitiesProcesses": ".processes",
         "FlextCliUtilitiesPrompts": ".prompts",
         "FlextCliUtilitiesReport": ".report",
         "FlextCliUtilitiesRuntime": ".runtime",
-        "FlextCliUtilitiesRuntimeCommandsMixin": "._runtime_commands",
-        "FlextCliUtilitiesRuntimeDarwinProcessGroupMixin": (
-            "._runtime_darwin_process_group"
-        ),
-        "FlextCliUtilitiesRuntimeProcessCleanupMixin": "._runtime_process_cleanup",
-        "FlextCliUtilitiesRuntimeProcessExecutionMixin": "._runtime_process_execution",
-        "FlextCliUtilitiesRuntimeProcessGroupMixin": "._runtime_process_group",
-        "FlextCliUtilitiesRuntimeProcessMonitorMixin": "._runtime_process_monitor",
-        "FlextCliUtilitiesRuntimeProcessOutcomeMixin": "._runtime_process_outcome",
-        "FlextCliUtilitiesRuntimeProcessOutputMixin": "._runtime_process_output",
-        "FlextCliUtilitiesRuntimeProcessResourcesMixin": "._runtime_process_resources",
-        "FlextCliUtilitiesRuntimeProcessStartMixin": "._runtime_process_start",
-        "FlextCliUtilitiesRuntimeProcessStreamMixin": "._runtime_process_stream",
-        "FlextCliUtilitiesRuntimeProcessThreadsMixin": "._runtime_process_threads",
-        "FlextCliUtilitiesRuntimeProcessTimingMixin": "._runtime_process_timing",
-        "FlextCliUtilitiesRuntimeProcessWaitMixin": "._runtime_process_wait",
-        "FlextCliUtilitiesRuntimeRunToFileMixin": "._runtime_run_to_file",
-        "FlextCliUtilitiesRuntimeWindowsJobStartMixin": "._runtime_windows_job_start",
-        "FlextCliUtilitiesRuntimeWindowsJobStateMixin": "._runtime_windows_job_state",
+        "FlextCliUtilitiesRuntimeCommands": "._runtime.commands",
+        "FlextCliUtilitiesRuntimeDarwinProcessGroup": "._runtime.darwin_process_group",
+        "FlextCliUtilitiesRuntimeProcessCleanup": "._runtime.process_cleanup",
+        "FlextCliUtilitiesRuntimeProcessExecution": "._runtime.process_execution",
+        "FlextCliUtilitiesRuntimeProcessGroup": "._runtime.process_group",
+        "FlextCliUtilitiesRuntimeProcessMonitor": "._runtime.process_monitor",
+        "FlextCliUtilitiesRuntimeProcessOutcome": "._runtime.process_outcome",
+        "FlextCliUtilitiesRuntimeProcessOutput": "._runtime.process_output",
+        "FlextCliUtilitiesRuntimeProcessResources": "._runtime.process_resources",
+        "FlextCliUtilitiesRuntimeProcessStart": "._runtime.process_start",
+        "FlextCliUtilitiesRuntimeProcessStream": "._runtime.process_stream",
+        "FlextCliUtilitiesRuntimeProcessThreads": "._runtime.process_threads",
+        "FlextCliUtilitiesRuntimeProcessTiming": "._runtime.process_timing",
+        "FlextCliUtilitiesRuntimeProcessWait": "._runtime.process_wait",
+        "FlextCliUtilitiesRuntimeRunToFile": "._runtime.run_to_file",
+        "FlextCliUtilitiesRuntimeWindowsJobStart": "._runtime.windows_job_start",
+        "FlextCliUtilitiesRuntimeWindowsJobState": "._runtime.windows_job_state",
         "FlextCliUtilitiesSettings": ".settings",
         "FlextCliUtilitiesTables": ".tables",
         "FlextCliUtilitiesTablesRenderer": "._tables.renderer",
@@ -586,9 +580,9 @@ install_lazy_exports(
         "FlextCliUtilitiesXlsxWorkbookIo": "._xlsx.xlsx_workbook_io",
         "FlextCliUtilitiesXlsxWorkbookPlan": "._xlsx.xlsx_workbook_plan",
         "FlextCliUtilitiesYaml": ".yaml",
-        "FlextCliUtilitiesYamlConvertMixin": "._yaml._convert",
-        "FlextCliUtilitiesYamlEditingMixin": "._yaml._editing",
-        "FlextCliUtilitiesYamlEngineMixin": "._yaml._engine",
+        "FlextCliUtilitiesYamlConvert": "._yaml.convert",
+        "FlextCliUtilitiesYamlEditing": "._yaml.editing",
+        "FlextCliUtilitiesYamlEngine": "._yaml.engine",
         "RuntimeSpawnOptions": ".native_runtime",
         "TimeoutExpired": ".native_runtime",
         "spawn_streamed_process": ".native_runtime",

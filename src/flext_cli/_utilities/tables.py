@@ -6,11 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from typing import ClassVar
 
-from flext_core import FlextRuntime, u
-from typing_extensions import TypeForm
+from flext_core import u
 
 from flext_cli import c, m, p, r, t
 from flext_cli._utilities._tables.renderer import FlextCliUtilitiesTablesRenderer
@@ -20,7 +19,7 @@ class FlextCliUtilitiesTables:
     """Table helpers exposed through ``u.Cli.tables_*``."""
 
     TABLE_DATA_ADAPTER: ClassVar[t.ValueAdapter[t.Cli.TableDataSource]] = (
-        u.type_adapter(TypeForm(t.Cli.TableDataSource))
+        u.type_adapter(t.TypeForm(t.Cli.TableDataSource))
     )
 
     @staticmethod
@@ -33,10 +32,7 @@ class FlextCliUtilitiesTables:
             The resulting ``t.Cli.TableMappingRow``.
 
         """
-        return {
-            key: FlextRuntime.normalize_to_json_value(value)
-            for key, value in row.items()
-        }
+        return {key: u.normalize_to_json_value(value) for key, value in row.items()}
 
     @staticmethod
     def tables_normalize_sequence_row(
@@ -48,7 +44,7 @@ class FlextCliUtilitiesTables:
             The resulting ``t.Cli.TableSequenceRow``.
 
         """
-        return [FlextRuntime.normalize_to_json_value(value) for value in row]
+        return [u.normalize_to_json_value(value) for value in row]
 
     @staticmethod
     def tables_resolve_config(
@@ -103,11 +99,11 @@ class FlextCliUtilitiesTables:
         if isinstance(validated_data, Mapping):
             validated_mapping = validated_data
             return r[Sequence[t.Cli.TableRow]].ok([
-                {"Key": key, "Value": FlextRuntime.normalize_to_json_value(value)}
+                {"Key": key, "Value": u.normalize_to_json_value(value)}
                 for key, value in validated_mapping.items()
             ])
 
-        normalized_rows: t.MutableSequenceOf[t.Cli.TableRow] = []
+        normalized_rows: MutableSequence[t.Cli.TableRow] = []
         for row in validated_data:
             if isinstance(row, Mapping):
                 normalized_rows.append(
@@ -125,7 +121,7 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_render(
-        rows: t.SequenceOf[t.Cli.TableRow],
+        rows: Sequence[t.Cli.TableRow],
         settings: m.Cli.TableConfig,
     ) -> p.Result[str]:
         """Render normalized rows to a plain-text table string.
@@ -134,7 +130,7 @@ class FlextCliUtilitiesTables:
             The resulting ``p.Result[str]``.
 
         """
-        headers: str | t.StrSequence
+        headers: str | Sequence[str]
         if not settings.show_header:
             # NOTE (multi-agent): Empty headers use the immutable sequence contract.
             headers = ()
@@ -166,4 +162,4 @@ class FlextCliUtilitiesTables:
         return r[str].ok(rendered_table)
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesTables"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesTables"]

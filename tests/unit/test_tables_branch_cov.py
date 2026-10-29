@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import pytest
 
 from tests import c, m, t, tm, u
@@ -128,7 +130,7 @@ class TestsFlextCliTablesBranchCov:
         two_column_config: m.Cli.TableConfig,
     ) -> None:
         """Verify that render is idempotent for same input."""
-        rows: t.SequenceOf[t.Cli.TableRow] = [{"Key": "a", "Value": 1}]
+        rows: Sequence[t.Cli.TableRow] = [{"Key": "a", "Value": 1}]
 
         first = u.Cli.tables_render(rows, two_column_config)
         second = u.Cli.tables_render(rows, two_column_config)

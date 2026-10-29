@@ -6,19 +6,16 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from flext_core import FlextRuntime
+from flext_core import u
 from tomlkit.items import Array
 
 from flext_cli import t
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
+from flext_cli._utilities._toml import (
     FlextCliUtilitiesTomlPart01,
-)
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_02 import (
     FlextCliUtilitiesTomlPart02,
-)
-from flext_cli._utilities._toml.flextcliutilitiestoml_part_03 import (
     FlextCliUtilitiesTomlPart03,
 )
 
@@ -52,7 +49,7 @@ class FlextCliUtilitiesTomlPart04:
     def toml_sync_string_list(
         container: TOMLDocument | Table,
         key: str,
-        expected: t.StrSequence,
+        expected: Sequence[str],
         *,
         sort_values: bool = False,
     ) -> bool:
@@ -110,12 +107,8 @@ class FlextCliUtilitiesTomlPart04:
             The resulting ``bool``.
 
         """
-        current: t.JsonValue = FlextRuntime.normalize_to_json_value(
-            container.get(key, None)
-        )
-        normalized_expected: t.JsonValue = FlextRuntime.normalize_to_json_value(
-            expected
-        )
+        current: t.JsonValue = u.normalize_to_json_value(container.get(key, None))
+        normalized_expected: t.JsonValue = u.normalize_to_json_value(expected)
         if current == normalized_expected:
             return False
         container[key] = normalized_expected
@@ -125,7 +118,7 @@ class FlextCliUtilitiesTomlPart04:
     def toml_mapping_merge_string_list(
         container: t.MutableJsonMapping,
         key: str,
-        required: t.StrSequence,
+        required: Sequence[str],
     ) -> bool:
         """Merge required values into a plain string-list; return True if mutated.
 

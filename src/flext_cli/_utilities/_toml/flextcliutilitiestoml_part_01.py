@@ -57,11 +57,11 @@ class FlextCliUtilitiesTomlPart01:
         )
 
     @staticmethod
-    def toml_as_string_list(value: t.Cli.TomlStringListSource | None) -> t.StrSequence:
+    def toml_as_string_list(value: t.Cli.TomlStringListSource | None) -> Sequence[str]:
         """Normalize a TOML array into a string sequence.
 
         Returns:
-            The resulting ``t.StrSequence``.
+            The resulting ``Sequence[str]``.
 
         """
         normalized: t.Cli.TomlStringListSource | None = (
@@ -75,7 +75,7 @@ class FlextCliUtilitiesTomlPart01:
         return tuple(str(item) for item in normalized)
 
     @staticmethod
-    def toml_array(items: t.StrSequence) -> Array:
+    def toml_array(items: Sequence[str]) -> Array:
         """Create a multiline TOML array.
 
         Returns:

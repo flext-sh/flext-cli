@@ -6,10 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
-
-if TYPE_CHECKING:
-    from flext_core import t
+from typing import Protocol, runtime_checkable
 
 
 class FlextCliProtocolsAtomicFile:
@@ -22,4 +19,4 @@ class FlextCliProtocolsAtomicFile:
         def read_range(self, offset: int, length: int) -> bytes: ...
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliProtocolsAtomicFile",)
+__all__: tuple[str, ...] = ("FlextCliProtocolsAtomicFile",)

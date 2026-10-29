@@ -51,7 +51,7 @@ class FlextCliConstantsXlsx:
     ))
     XLSX_ERROR_CELL_PREFIX: ClassVar[str] = "#"
     XLSX_PACKAGE_PREFIX: ClassVar[str] = "xl/"
-    XLSX_RECALC_COMMAND: ClassVar[t.VariadicTuple[str]] = (
+    XLSX_RECALC_COMMAND: ClassVar[tuple[str, ...]] = (
         "soffice",
         "--headless",
         "--convert-to",
@@ -91,4 +91,4 @@ class FlextCliConstantsXlsx:
         WORKBOOK_LOAD_FAILED = "xlsx_workbook_load_failed"
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliConstantsXlsx",)
+__all__: tuple[str, ...] = ("FlextCliConstantsXlsx",)

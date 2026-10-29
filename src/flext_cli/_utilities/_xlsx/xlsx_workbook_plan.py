@@ -10,8 +10,8 @@ from openpyxl import Workbook
 from openpyxl.workbook.properties import CalcProperties
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities._xlsx import (
+from flext_cli import c, m, p, r
+from flext_cli._utilities import (
     FlextCliUtilitiesXlsxStyleCodec,
     FlextCliUtilitiesXlsxWorkbookIo,
 )
@@ -104,4 +104,4 @@ class FlextCliUtilitiesXlsxWorkbookPlan(
         return r[Workbook].ok(workbook)
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxWorkbookPlan",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxWorkbookPlan",)

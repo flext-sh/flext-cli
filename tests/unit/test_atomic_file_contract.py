@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import t, tm, u
+from tests import tm, u
 
 
 class TestsFlextCliAtomicFileContract:
@@ -471,11 +471,11 @@ raise SystemExit(6)
         tm.fail(result)
 
     @staticmethod
-    def _linked_destination(tmp_path: Path, link_kind: str) -> t.Pair[Path, Path]:
+    def _linked_destination(tmp_path: Path, link_kind: str) -> tuple[Path, Path]:
         """Create one real linked pathname for public behavior tests.
 
         Returns:
-            The resulting ``t.Pair[Path, Path]``.
+            The resulting ``tuple[Path, Path]``.
 
         """
         owner = tmp_path / "owner.txt"

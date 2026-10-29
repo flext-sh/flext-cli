@@ -20,6 +20,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, MutableMapping, Sequence
 from types import MappingProxyType
 from typing import Annotated, ClassVar
 
@@ -85,7 +86,7 @@ class TestsFlextCliOptionsUtilsCov:
     class TupleAnnotationModel(m.BaseModel):
         """Group the TupleAnnotationModel test behavior."""
 
-        value: t.StrSequence
+        value: Sequence[str]
 
     class SetAnnotationModel(m.BaseModel):
         """Group the SetAnnotationModel test behavior."""
@@ -143,30 +144,30 @@ class TestsFlextCliOptionsUtilsCov:
         """Model used to exercise field-default normalization paths."""
 
         name: str = "default-name"
-        tags: t.StrSequence = ("a", "b")
-        generated: t.StrSequence = m.Field(
+        tags: Sequence[str] = ("a", "b")
+        generated: Sequence[str] = m.Field(
             default=("gen", "value"), validate_default=True
         )
 
     class IntSequenceDefaultModel(m.BaseModel):
         """Model whose validated default has no CLI option form."""
 
-        counts: t.SequenceOf[int] = (1, 2)
+        counts: Sequence[int] = (1, 2)
 
     class NestedListSettings(m.BaseModel):
         """Settings whose value is not a CLI default source at all."""
 
-        value: t.SequenceOf[t.SequenceOf[int]] = ((1,),)
+        value: Sequence[Sequence[int]] = ((1,),)
 
     class StrSequenceDefaultModel(m.BaseModel):
         """Model seeded by ``NestedListSettings``."""
 
-        value: t.StrSequence = ("a",)
+        value: Sequence[str] = ("a",)
 
     class ImmutableMappingDefaultModel(m.BaseModel):
         """An immutable default retains the field's declared mapping contract."""
 
-        bindings: t.MappingKV[str, tuple[str, ...]] = m.Field(
+        bindings: Mapping[str, tuple[str, ...]] = m.Field(
             default_factory=lambda: MappingProxyType({"owner": ("first", "second")}),
             description="Declared symbol owner bindings.",
         )
@@ -174,16 +175,14 @@ class TestsFlextCliOptionsUtilsCov:
     class InvalidMappingDefaultModel(m.BaseModel):
         """Field constraints apply before a structured default becomes JSON."""
 
-        bindings: Annotated[t.MappingKV[str, t.StrSequence], m.Field(min_length=1)] = (
+        bindings: Annotated[Mapping[str, Sequence[str]], m.Field(min_length=1)] = (
             m.Field(
-                default_factory=lambda: MappingProxyType[str, t.StrSequence]({}),
+                default_factory=lambda: MappingProxyType[str, Sequence[str]]({}),
                 description="A nonempty mapping with an invalid empty default.",
             )
         )
 
-    _INVOCATION_CASES: ClassVar[
-        t.VariadicTuple[t.Pair[t.StrSequence, t.Cli.ModelLike]]
-    ] = (
+    _INVOCATION_CASES: ClassVar[tuple[tuple[Sequence[str], t.Cli.ModelLike], ...],] = (
         (("--value", "x"), StringAnnotationModel(value="x")),
         (("--value", "x"), OptionalStringAnnotationModel(value="x")),
         (("--value", "7"), UnionAnnotationModel(value="7")),
@@ -205,7 +204,7 @@ class TestsFlextCliOptionsUtilsCov:
     @staticmethod
     def _run[M: t.Cli.ModelLike](
         model_cls: t.ModelClass[M],
-        args: t.StrSequence,
+        args: Sequence[str],
         *,
         settings: t.Cli.ModelLike | None = None,
     ) -> tuple[m.Cli.InvocationResult, list[M]]:
@@ -307,7 +306,7 @@ class TestsFlextCliOptionsUtilsCov:
     @pytest.mark.parametrize(("args", "expected"), _INVOCATION_CASES)
     def test_model_command_parses_values_for_each_annotation(
         self,
-        args: t.StrSequence,
+        args: Sequence[str],
         expected: t.Cli.ModelLike,
     ) -> None:
         """Command-line values build the same model as direct construction."""
@@ -360,7 +359,7 @@ class TestsFlextCliOptionsUtilsCov:
 
     def test_invoking_command_passes_validated_model_to_handler(self) -> None:
         """Verify that invoking command passes validated model to handler."""
-        received: t.MutableMappingKV[str, TestsFlextCliOptionsUtilsCov.GreetModel] = {}
+        received: MutableMapping[str, TestsFlextCliOptionsUtilsCov.GreetModel] = {}
 
         def _capture(params: TestsFlextCliOptionsUtilsCov.GreetModel) -> str:
             received["model"] = params
@@ -398,7 +397,7 @@ class TestsFlextCliOptionsUtilsCov:
         # through the validated model and the settings instance stays intact.
         """Verify that invoking command uses parsed values without mutating settings."""
         settings = self.OptionsDefaultsModel(name="start-name")
-        received: t.MutableMappingKV[
+        received: MutableMapping[
             str, TestsFlextCliOptionsUtilsCov.OptionsDefaultsModel
         ] = {}
 

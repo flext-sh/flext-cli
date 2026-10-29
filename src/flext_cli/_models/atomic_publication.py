@@ -24,7 +24,7 @@ class FlextCliModelsAtomicPublication:
         path: Path = m.Field(description="Exact pathname of the staged file.")
         content: bytes = m.Field(description="Authenticated staged file bytes.")
         mode: int = m.Field(description="Native permission mode of the staged file.")
-        identity: t.Pair[int, int] = m.Field(
+        identity: tuple[int, int] = m.Field(
             description="Captured device and inode identity of the staged file.",
         )
 

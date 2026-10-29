@@ -6,15 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
 
 from flext_cli import api
 
-if TYPE_CHECKING:
-    from flext_cli import t
 
-
-def main(args: t.StrSequence | None = None) -> int:
+def main(args: Sequence[str] | None = None) -> int:
     """Execute the API-declared handlers through the adapter framework.
 
     Declared routes register through the API service; with none declared the
@@ -38,6 +35,31 @@ def main(args: t.StrSequence | None = None) -> int:
         args=args,
     )
     return api.cli.finalize_result(executed)
+
+
+def __getattr__(name: str) -> object:
+    """Delegate attribute access to the FlextCli facade instance.
+
+    Returns:
+        The resulting ``object``.
+
+    Raises:
+        AttributeError: If ``name.startswith(('_', 'model_'))``.
+
+    """
+    if name.startswith(("_", "model_")):
+        raise AttributeError(name)
+    return getattr(api.cli, name)
+
+
+def __dir__() -> list[str]:
+    """Include facade attributes in directory listing.
+
+    Returns:
+        The resulting ``list[str]``.
+
+    """
+    return sorted({*dir(api.cli), "main"})
 
 
 __all__: list[str] = ["main"]

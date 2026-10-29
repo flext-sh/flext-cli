@@ -35,18 +35,16 @@ class FlextCliModelsBasePart08:
             m.Field(ge=0, strict=True, description="Anchor inode"),
         ]
         anchor_ancestry: Annotated[
-            t.VariadicTuple[t.Pair[int, int]],
+            tuple[tuple[int, int], ...],
             m.Field(min_length=1, description="Root-to-anchor physical identities"),
         ]
         directories: Annotated[
-            t.VariadicTuple[Path],
+            tuple[Path, ...],
             m.Field(description="Ordered contiguous paths observed absent"),
         ] = ()
-        queries: t.VariadicTuple[t.Pair[str, Literal["exists", "isfile", "isdir"]]] = (
-            m.Field(
-                default=(),
-                description="Native candidate queries beneath an absent parent",
-            )
+        queries: tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...] = m.Field(
+            default=(),
+            description="Native candidate queries beneath an absent parent",
         )
         membership_queried: bool = m.Field(
             default=False,
@@ -55,7 +53,7 @@ class FlextCliModelsBasePart08:
                 "Whether native planning consumed the absent parent's membership"
             ),
         )
-        membership_queries: t.VariadicTuple[t.StrTuple] = m.Field(
+        membership_queries: tuple[t.StrTuple, ...] = m.Field(
             default=(),
             description="Consumed absent-parent membership selections",
         )
@@ -73,8 +71,8 @@ class FlextCliModelsBasePart08:
         @classmethod
         def _validate_directories(
             cls,
-            value: t.VariadicTuple[Path],
-        ) -> t.VariadicTuple[Path]:
+            value: tuple[Path, ...],
+        ) -> tuple[Path, ...]:
             return tuple(
                 FlextCliModelsAtomicState.validate_atomic_state_path(
                     path,

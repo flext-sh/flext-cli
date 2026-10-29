@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence
+
 from flext_cli import c, m, p, s, t, u
 from flext_cli.services import FlextCliFormatters
 
@@ -77,4 +79,4 @@ class FlextCliTables(s[p.Cli.RuntimeStatus]):
         )
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliTables"]
+__all__: MutableSequence[str] = ["FlextCliTables"]

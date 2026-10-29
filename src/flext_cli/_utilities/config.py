@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
+from collections.abc import MutableSequence
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -30,6 +31,39 @@ if TYPE_CHECKING:
 
 class FlextCliUtilitiesConfig:
     """Universal multi-format config load + schema validation (ADR-005)."""
+
+    @staticmethod
+    def config_decode[ModelT: m.BaseModel](
+        data: t.JsonMapping,
+        model: type[ModelT],
+        *,
+        source_path: Path | None = None,
+        metadata: m.BaseModel | None = None,
+    ) -> ModelT:
+        """Materialize a captured document through its native source grammar.
+
+        Parsing remains with the elected YAML/JSON/TOML owner. This method
+        performs no I/O, serialization or per-field conversion. DocumentInput
+        annotations decode their representation before strict domain validation;
+        ordinary Python model constructors retain their original contract.
+
+        Returns:
+            The validated domain model retaining enum members.
+
+        Raises:
+            ValidationError: Native validation failed; its source note is retained.
+
+        """
+        context: t.DocumentInputContext[m.BaseModel | None] = {
+            "kind": c.ValidationInputKind.DOCUMENT,
+            "metadata": metadata,
+        }
+        try:
+            return model.model_validate(data, context=context)
+        except m.ValidationError as exc:
+            if source_path is not None:
+                exc.add_note(f"Document source: {source_path}")
+            raise
 
     @staticmethod
     def _read_by_suffix(path: Path) -> p.Result[t.JsonMapping]:
@@ -117,4 +151,4 @@ class FlextCliUtilitiesConfig:
         return True
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliUtilitiesConfig"]
+__all__: MutableSequence[str] = ["FlextCliUtilitiesConfig"]

@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableMapping
 from typing import TYPE_CHECKING
 
 from flext_cli import cli
@@ -82,7 +83,7 @@ class TestsFlextCliPipelinePart01(TestsFlextCliPipelineHandlers):
     @staticmethod
     def test_shared_state_propagation(tmp_path: Path) -> None:
         """Stage B can read what stage A wrote to shared."""
-        received: t.MutableMappingKV[str, t.JsonValue | None] = {}
+        received: MutableMapping[str, t.JsonValue | None] = {}
 
         def reader(
             ctx: p.Cli.PipelineStageContext,

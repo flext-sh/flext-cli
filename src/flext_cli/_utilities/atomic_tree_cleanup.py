@@ -9,12 +9,12 @@ from __future__ import annotations
 import errno
 import os
 import stat
-from collections.abc import Generator
+from collections.abc import Generator, MutableMapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Never
 
-from flext_cli import m, t
+from flext_cli import m
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryDelete,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -82,7 +82,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
         if not hasattr(os, "fsync"):
             message = "physical-tree cleanup durability sync is unsupported"
             raise OSError(errno.ENOTSUP, message, root.path)
-        bindings: t.MutableMappingKV[Path, tuple[int, int, int]] = {}
+        bindings: MutableMapping[Path, tuple[int, int, int]] = {}
         for entry in (root, *manifest.entries):
             expected = (entry.parent_device, entry.parent_inode, entry.parent_mount_id)
             prior = bindings.setdefault(entry.path.parent, expected)
@@ -300,11 +300,11 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path.parent)
 
     @staticmethod
-    def _deletion_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> t.Pair[int, str]:
+    def _deletion_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> tuple[int, str]:
         return (len(entry.path.parts), entry.path.as_posix())
 
     @staticmethod
-    def _binding_path_key(item: t.Pair[Path, t.Triple[int, int, int]]) -> str:
+    def _binding_path_key(item: tuple[Path, tuple[int, int, int]]) -> str:
         """Return the lexical key for one authenticated parent binding.
 
         Returns:

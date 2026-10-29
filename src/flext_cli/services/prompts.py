@@ -9,10 +9,10 @@ from __future__ import annotations
 from typing import override
 
 from flext_cli import c, p, r, u
-from flext_cli.services import FlextCliPromptsSupport
+from flext_cli.services import FlextCliServicesPromptsSupport
 
 
-class FlextCliPrompts(FlextCliPromptsSupport):
+class FlextCliPrompts(FlextCliServicesPromptsSupport):
     """Interactive CLI prompt surface exposed through the CLI service runtime."""
 
     @override

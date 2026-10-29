@@ -6,11 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 from flext_core import u
 
 from flext_cli import c, m, t
-from flext_cli._utilities import FlextCliUtilitiesConversion
-from flext_cli._utilities._options import (
+from flext_cli._utilities import (
+    FlextCliUtilitiesConversion,
     FlextCliUtilitiesOptionBuilder,
     FlextCliUtilitiesOptionsAnnotations,
 )
@@ -105,10 +107,10 @@ class FlextCliUtilitiesOptionsFields(FlextCliUtilitiesOptionsAnnotations):
 
     @staticmethod
     def reorder_prefixed_options(
-        args: t.StrSequence,
+        args: Sequence[str],
         *,
-        bool_options: t.StrSequence,
-        value_options: t.StrSequence,
+        bool_options: Sequence[str],
+        value_options: Sequence[str],
     ) -> list[str]:
         """Move shared options before subcommand to right after the subcommand.
 

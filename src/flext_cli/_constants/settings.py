@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import ClassVar
 
@@ -22,11 +23,11 @@ class FlextCliConstantsSettings:
     lineage and ENFORCE-042 does not target it.
     """
 
-    OUTPUT_FORMATS: ClassVar[t.StrSequence] = tuple(
+    OUTPUT_FORMATS: ClassVar[Sequence[str]] = tuple(
         output_format.value for output_format in FlextCliConstantsEnums.OutputFormats
     )
-    LOG_LEVELS: ClassVar[t.StrSequence] = tuple(item.value for item in c.LogLevel)
-    MESSAGE_TYPES: ClassVar[t.StrSequence] = tuple(
+    LOG_LEVELS: ClassVar[Sequence[str]] = tuple(item.value for item in c.LogLevel)
+    MESSAGE_TYPES: ClassVar[Sequence[str]] = tuple(
         item.value for item in FlextCliConstantsEnums.MessageTypes
     )
 
@@ -69,7 +70,7 @@ class FlextCliConstantsSettings:
     CLI_PARAM_KEY_FIELD_NAME_OVERRIDE: ClassVar[str] = "field_name_override"
     CLI_PARAM_LOG_FORMAT_OVERRIDE: ClassVar[str] = "log-format"
     CLI_PARAM_CASE_INSENSITIVE: ClassVar[bool] = False
-    CLI_VALID_LOG_FORMATS: ClassVar[t.StrSequence] = tuple(
+    CLI_VALID_LOG_FORMATS: ClassVar[Sequence[str]] = tuple(
         item.value for item in FlextCliConstantsEnums.LogVerbosity
     )
 
@@ -77,7 +78,7 @@ class FlextCliConstantsSettings:
     COMMANDS_DEFAULT_DESCRIPTION: ClassVar[str] = "FLEXT CLI"
 
     CLI_PARAM_REGISTRY: ClassVar[
-        t.MappingKV[str, t.MappingKV[str, t.Scalar | t.StrSequence]]
+        Mapping[str, Mapping[str, t.Scalar | Sequence[str]]]
     ] = MappingProxyType({
         "verbose": {
             CLI_PARAM_KEY_SHORT: CLI_PARAM_SHORT_FLAG_VERBOSE,
@@ -121,4 +122,4 @@ class FlextCliConstantsSettings:
     })
 
 
-__all__: t.StrSequence = ("FlextCliConstantsSettings",)
+__all__: Sequence[str] = ("FlextCliConstantsSettings",)

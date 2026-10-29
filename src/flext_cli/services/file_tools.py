@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 
 from flext_cli import m, p, s, t, u
@@ -151,4 +151,4 @@ class FlextCliFileTools(s[p.Cli.RuntimeStatus]):
         return u.Cli.files_load_auto_mapping(Path(file_path))
 
 
-__all__: t.MutableSequenceOf[str] = ["FlextCliFileTools"]
+__all__: MutableSequence[str] = ["FlextCliFileTools"]

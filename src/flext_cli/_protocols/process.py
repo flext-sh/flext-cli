@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping, MutableSequence, Sequence
 from types import FrameType
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
@@ -52,7 +53,7 @@ class FlextCliProtocolsProcess:
             ...
 
         @property
-        def env(self) -> t.StrMapping | None:
+        def env(self) -> Mapping[str, str] | None:
             """Read-only child environment overrides."""
             ...
 
@@ -121,7 +122,7 @@ class FlextCliProtocolsProcess:
 
         def subscribe(
             self,
-            received_signals: t.MutableSequenceOf[int],
+            received_signals: MutableSequence[int],
             wake: threading.Event,
         ) -> Callable[[], None]:
             """Deliver each received signal to one lifecycle until unsubscribed."""
@@ -132,12 +133,12 @@ class FlextCliProtocolsProcess:
         """Read-only child input, environment, and durable-output options."""
 
         @property
-        def env(self) -> t.StrMapping | None:
+        def env(self) -> Mapping[str, str] | None:
             """Environment overrides for the child process."""
             ...
 
         @property
-        def remove_env_keys(self) -> t.StrSequence:
+        def remove_env_keys(self) -> Sequence[str]:
             """Environment keys to remove before child execution."""
             ...
 
@@ -167,7 +168,7 @@ class FlextCliProtocolsProcess:
             ...
 
         @property
-        def pass_fds(self) -> t.SequenceOf[int]:
+        def pass_fds(self) -> Sequence[int]:
             """File descriptors inherited by the child process."""
             ...
 

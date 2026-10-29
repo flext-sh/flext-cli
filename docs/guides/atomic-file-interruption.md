@@ -19,9 +19,28 @@ itself the native failure. The active work item owns acceptance of this correcti
 For `flext-2e7wy.1` phase 1, the existing `atomic_file_state` owner also owns
 `read_authenticated_state` and the retained `authenticated_entry` context. Its
 native capture is the original parent stat, leaf stat and bytes, not a model
-reconstructed by reopening the path. The shipped `atomic_file_snapshot` methods
-remain typed SDK wrappers; file and process consumers retain their public APIs.
+reconstructed by reopening the path. Receipt operations in `atomic_file_snapshot`
+consume that owner directly, without wrapping its descriptors in callable aliases;
+file and process consumers retain their public APIs through `u.Cli`.
 Receipt construction likewise uses the original retained native state and stream.
+
+The public byte-state reader returns `p.Result[m.Cli.AtomicFileState]` through
+Core's generic `r.ok` and covariant failure factory. It constructs and validates
+the state model once from the retained native observation; the result carries
+that instance by reference. Specializing the result class at each read solely
+to call those already-generic factories adds schema construction without another
+payload-validation contract. Removing that specialization does not change the
+authenticated read, optional absence, original exception or physical witnesses.
+Performance acceptance requires the same real consumer and attributable profile;
+the factory change alone proves no completed generation or transaction budget.
+
+File and empty-directory state checks are distinct capabilities, not interchangeable
+MRO overrides. A directory check requires a retained parent descriptor, a physical
+directory on its parent's device, and a present caller-owned identity. A file check
+accepts exact absence, validates a regular file when present, and may acquire its
+own parent descriptor. Preserve these contracts when assigning capability-specific
+names through the native refactoring route; changing facade base order or widening
+the directory inputs does not resolve their semantic collision.
 
 The cold source closure is `atomic_file_state`, `atomic_file_read`,
 `atomic_file_descriptor`, `atomic_parent_descriptor`, `atomic_parent_failure` and

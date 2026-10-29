@@ -12,7 +12,6 @@ from typing import cast
 import pytest
 from docx import Document
 
-from flext_cli import cli
 from tests import c, m, p, tm, u
 
 
@@ -29,8 +28,8 @@ class TestsFlextCliDocxRender:
         )
         request = m.Cli.DocxRenderRequest(plan=plan, source_date_epoch=0)
 
-        first = cli.docx_render(request)
-        second = cli.docx_render(request)
+        first = u.Cli.docx_render(request)
+        second = u.Cli.docx_render(request)
 
         tm.that(first.success, eq=True, msg=first.error)
         tm.that(second.success, eq=True, msg=second.error)
@@ -40,7 +39,7 @@ class TestsFlextCliDocxRender:
     def test_docx_render_empty_document() -> None:
         """Rendering an empty plan produces a valid DOCX."""
         plan = m.Cli.DocxDocumentPlan()
-        result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
+        result = u.Cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
         tm.that(result.success, eq=True, msg=result.error)
         tm.that(result.value.content[:2], eq=b"PK")
         document = Document(BytesIO(result.value.content))
@@ -55,7 +54,7 @@ class TestsFlextCliDocxRender:
                 m.Cli.DocxParagraphPlan(runs=(m.Cli.DocxRunPlan(text="World"),)),
             ),
         )
-        result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
+        result = u.Cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
         tm.that(result.success, eq=True, msg=result.error)
         document = Document(BytesIO(result.value.content))
         tm.that([p.text for p in document.paragraphs], eq=["Hello", "World"])
@@ -82,7 +81,7 @@ class TestsFlextCliDocxRender:
                 ),
             ),
         )
-        result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
+        result = u.Cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
         tm.that(result.success, eq=True, msg=result.error)
         document = Document(BytesIO(result.value.content))
         paragraph = document.paragraphs[0]
@@ -134,7 +133,7 @@ class TestsFlextCliDocxRender:
             ),
         )
         result = tm.ok(
-            cli.docx_render(m.Cli.DocxRenderRequest(plan=plan, template=None))
+            u.Cli.docx_render(m.Cli.DocxRenderRequest(plan=plan, template=None))
         )
         document = Document(BytesIO(result.content))
         font = document.paragraphs[0].runs[0].font
@@ -208,7 +207,7 @@ class TestsFlextCliDocxRender:
                 ),
             ),
         )
-        result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
+        result = u.Cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
         tm.that(result.success, eq=True, msg=result.error)
         document = Document(BytesIO(result.value.content))
         tm.that(len(document.tables), eq=1)
@@ -227,7 +226,7 @@ class TestsFlextCliDocxRender:
             ),
             core_properties={"title": "Test Title", "author": "Test Author"},
         )
-        result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
+        result = u.Cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
         tm.that(result.success, eq=True, msg=result.error)
         document = Document(BytesIO(result.value.content))
         tm.that(document.core_properties.title, eq="Test Title")
@@ -250,9 +249,9 @@ class TestsFlextCliDocxRender:
                 ),
             ),
         )
-        result = cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
+        result = u.Cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
         tm.that(result.success, eq=True, msg=result.error)
-        read_result = cli.docx_read(result.value.content)
+        read_result = u.Cli.docx_read(result.value.content)
         tm.that(read_result.success, eq=True, msg=read_result.error)
         font = read_result.value.paragraphs[0].runs[0].style.font
         tm.that(font, ne=None)

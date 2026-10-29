@@ -9,23 +9,22 @@ from __future__ import annotations
 import csv
 import errno
 import hashlib
+import operator
 import stat
-from collections.abc import Generator
+from collections.abc import Generator, Mapping, Sequence
 from contextlib import contextmanager
 from pathlib import Path
 
 from flext_cli import c, m, p, r, t
-from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
-)
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_publish import FlextCliUtilitiesAtomicFilePublish
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
-from flext_cli._utilities.atomic_file_snapshot import (
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFilePublish,
+    FlextCliUtilitiesAtomicFileRead,
     FlextCliUtilitiesAtomicFileSnapshot,
+    FlextCliUtilitiesAtomicFileState,
 )
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
+from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
 
 
 class FlextCliUtilitiesFilesPart03:
@@ -120,15 +119,15 @@ class FlextCliUtilitiesFilesPart03:
     @staticmethod
     def files_read_csv_with_headers(
         file_path: t.Cli.TextPath,
-    ) -> p.Result[t.SequenceOf[t.StrMapping]]:
+    ) -> p.Result[Sequence[Mapping[str, str]]]:
         """Read one CSV file into mapping rows using header row.
 
         Returns:
-            The resulting ``p.Result[t.SequenceOf[t.StrMapping]]``.
+            The resulting ``p.Result[Sequence[Mapping[str, str]]]``.
 
         """
 
-        def _load() -> t.SequenceOf[t.StrMapping]:
+        def _load() -> Sequence[Mapping[str, str]]:
             with Path(file_path).open(
                 encoding=c.DEFAULT_ENCODING,
                 newline="",
@@ -176,10 +175,37 @@ class FlextCliUtilitiesFilesPart03:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
 
         """
+        return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_capture(
+            file_path,
+            required=required,
+            owner_uid=owner_uid,
+            max_bytes=max_bytes,
+        ).map(operator.itemgetter(0))
+
+    @staticmethod
+    def atomic_read_binary_file_capture(
+        file_path: t.Cli.TextPath,
+        *,
+        required: bool = False,
+        owner_uid: int | None = None,
+        max_bytes: int | None = None,
+    ) -> p.Result[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileReceipt]]:
+        """Capture buffered bytes and their receipt from one authenticated read.
+
+        The receipt carries the same leaf and parent observation without copying
+        the payload. Absence, owner, size and descriptor guards stay with the
+        native reader; no second read can authorize a changed preimage.
+        The generic result factory preserves the typed payload without creating
+        a specialized Pydantic result class for each capture.
+
+        Returns:
+            The original state and payload-free receipt for the same version.
+
+        """
         path = Path(file_path)
         try:
             parent, state, content = (
-                FlextCliUtilitiesAtomicFileSnapshot.read_authenticated_state(
+                FlextCliUtilitiesAtomicFileState.read_authenticated_state(
                     path,
                     required=required,
                     owner_uid=owner_uid,
@@ -187,30 +213,52 @@ class FlextCliUtilitiesFilesPart03:
                 )
             )
         except OSError as exc:
-            return r[m.Cli.AtomicFileState].fail(
+            return r.fail(
                 c.Cli.ERR_BINARY_READ_FAILED.format(error=exc),
                 exception=exc,
             )
-        return r[m.Cli.AtomicFileState].ok(
-            m.Cli.AtomicFileState(
-                path=path,
-                parent_device=None if parent is None else parent.st_dev,
-                parent_inode=None if parent is None else parent.st_ino,
-                content=content,
-                mode=None if state is None else stat.S_IMODE(state.st_mode),
-                device=None if state is None else state.st_dev,
-                inode=None if state is None else state.st_ino,
-                link_count=None if state is None else state.st_nlink,
-                file_attributes=(
-                    None
-                    if state is None
-                    else getattr(state, "st_file_attributes", None)
-                ),
-                reparse_tag=(
-                    None if state is None else getattr(state, "st_reparse_tag", None)
-                ),
+        snapshot = m.Cli.AtomicFileState(
+            path=path,
+            parent_device=None if parent is None else parent.st_dev,
+            parent_inode=None if parent is None else parent.st_ino,
+            content=content,
+            mode=None if state is None else stat.S_IMODE(state.st_mode),
+            device=None if state is None else state.st_dev,
+            inode=None if state is None else state.st_ino,
+            link_count=None if state is None else state.st_nlink,
+            file_attributes=(
+                None if state is None else getattr(state, "st_file_attributes", None)
+            ),
+            reparse_tag=(
+                None if state is None else getattr(state, "st_reparse_tag", None)
             ),
         )
+        receipt = m.Cli.AtomicFileReceipt(
+            path=snapshot.path,
+            parent_device=snapshot.parent_device,
+            parent_inode=snapshot.parent_inode,
+            mode=snapshot.mode,
+            device=snapshot.device,
+            inode=snapshot.inode,
+            link_count=snapshot.link_count,
+            file_attributes=snapshot.file_attributes,
+            reparse_tag=snapshot.reparse_tag,
+            size=None if content is None else len(content),
+            sha256=(
+                None
+                if content is None
+                else FlextCliUtilitiesFilesPart03.sha256_bytes(content)
+            ),
+            version_key=(
+                None
+                if state is None
+                else FlextCliUtilitiesAtomicFileRead.state_key(state)
+            ),
+        )
+        return r.ok((
+            snapshot,
+            receipt,
+        ))
 
     @staticmethod
     def atomic_iter_binary_file(
@@ -284,7 +332,7 @@ class FlextCliUtilitiesFilesPart03:
     @staticmethod
     def files_list_directory_names(
         file_path: t.Cli.TextPath,
-    ) -> p.Result[t.SequenceOf[str]]:
+    ) -> p.Result[Sequence[str]]:
         """Return sorted child directory names for one path.
 
         Returns:
@@ -293,9 +341,9 @@ class FlextCliUtilitiesFilesPart03:
         """
         path = Path(file_path)
         if not path.exists():
-            return r[t.SequenceOf[str]].ok(())
+            return r[Sequence[str]].ok(())
 
-        def _list() -> t.SequenceOf[str]:
+        def _list() -> Sequence[str]:
             names = sorted(entry.name for entry in path.iterdir() if entry.is_dir())
             return tuple(names)
 

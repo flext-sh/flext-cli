@@ -10,8 +10,6 @@ from typing import Annotated
 
 from flext_core import m
 
-from flext_cli import t
-
 
 class FlextCliModelsXlsxRecalc:
     """Immutable recalculation requests, results, and parity evidence."""
@@ -60,17 +58,17 @@ class FlextCliModelsXlsxRecalc:
             int,
             m.Field(ge=0, description="Source workbook formula cell count."),
         ]
-        error_cells: t.VariadicTuple[str] = m.Field(
+        error_cells: tuple[str, ...] = m.Field(
             default=(),
             strict=False,
             description="Formula cells whose cached value is an error literal.",
         )
-        uncached_cells: t.VariadicTuple[str] = m.Field(
+        uncached_cells: tuple[str, ...] = m.Field(
             default=(),
             strict=False,
             description="Formula cells without any cached value element.",
         )
-        empty_result_cells: t.VariadicTuple[str] = m.Field(
+        empty_result_cells: tuple[str, ...] = m.Field(
             default=(),
             strict=False,
             description="Formula cells cached as an empty string result.",
@@ -82,4 +80,4 @@ class FlextCliModelsXlsxRecalc:
         )
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsXlsxRecalc",)
+__all__: tuple[str, ...] = ("FlextCliModelsXlsxRecalc",)

@@ -13,14 +13,14 @@ import sys
 from pathlib import Path
 from typing import Never
 
-from flext_cli import c, t
-from flext_cli._utilities.atomic_file_descriptor import (
+from flext_cli import c
+from flext_cli._utilities import (
+    FlextCliAtomicTreeDarwin,
     FlextCliUtilitiesAtomicFileDescriptor,
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicFileRead,
+    FlextCliUtilitiesAtomicFileState,
 )
-from flext_cli._utilities.atomic_file_path import FlextCliUtilitiesAtomicFilePath
-from flext_cli._utilities.atomic_file_read import FlextCliUtilitiesAtomicFileRead
-from flext_cli._utilities.atomic_file_state import FlextCliUtilitiesAtomicFileState
-from flext_cli._utilities.atomic_tree_darwin import FlextCliAtomicTreeDarwin
 
 
 class FlextCliUtilitiesAtomicTreeDescriptor:
@@ -33,11 +33,11 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         expected: os.stat_result,
         *,
         required_mount_id: int,
-    ) -> t.Pair[int, str]:
+    ) -> tuple[int, str]:
         """Hash one stable regular file without materializing it in memory.
 
         Returns:
-            The resulting ``t.Pair[int, str]``.
+            The resulting ``tuple[int, str]``.
 
         """
         digest = hashlib.sha256()

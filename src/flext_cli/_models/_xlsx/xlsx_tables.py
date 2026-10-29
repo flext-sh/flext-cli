@@ -10,7 +10,6 @@ from typing import Annotated, Literal
 
 from flext_core import m
 
-from flext_cli import t
 from flext_cli._models._xlsx import FlextCliModelsXlsxCells
 
 
@@ -67,4 +66,4 @@ class FlextCliModelsXlsxTables:
     ]
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliModelsXlsxTables",)
+__all__: tuple[str, ...] = ("FlextCliModelsXlsxTables",)

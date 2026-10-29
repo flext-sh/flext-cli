@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import contextlib
 import threading
-from collections.abc import Callable
+from collections.abc import Callable, Mapping, MutableSequence, Sequence
 from pathlib import Path
 from typing import ClassVar, Literal
 
@@ -202,11 +202,11 @@ class FlextCliModelsProcess:
     class ProcessOptions(m.ArbitraryTypesModel):
         """Child input, environment, and durable-output execution options."""
 
-        env: t.StrMapping | None = m.Field(
+        env: Mapping[str, str] | None = m.Field(
             default=None,
             description="Environment overrides for the child process.",
         )
-        remove_env_keys: t.StrSequence = m.Field(
+        remove_env_keys: Sequence[str] = m.Field(
             default=(),
             description="Environment keys to remove before child execution.",
         )
@@ -264,7 +264,7 @@ class FlextCliModelsProcess:
             default=None,
             description="Working directory for child execution.",
         )
-        env: t.StrMapping | None = m.Field(
+        env: Mapping[str, str] | None = m.Field(
             default=None,
             description="Resolved environment for child execution.",
         )
@@ -331,27 +331,27 @@ class FlextCliModelsProcess:
             default=0,
             description="Windows job handle owning the child boundary.",
         )
-        failures: t.MutableSequenceOf[str] = m.Field(
+        failures: MutableSequence[str] = m.Field(
             default_factory=list[str],
             description="Causal failures collected during execution.",
         )
-        cleanup_errors: t.MutableSequenceOf[str] = m.Field(
+        cleanup_errors: MutableSequence[str] = m.Field(
             default_factory=list[str],
             description="Failures collected while releasing resources.",
         )
-        restore_handlers: t.MutableSequenceOf[Callable[[], None]] = m.Field(
+        restore_handlers: MutableSequence[Callable[[], None]] = m.Field(
             default_factory=list[Callable[[], None]],
             description="Callbacks restoring the parent signal handlers.",
         )
-        forwarded_signals: t.MutableSequenceOf[int] = m.Field(
+        forwarded_signals: MutableSequence[int] = m.Field(
             default_factory=list[int],
             description="Signal numbers registered for forwarding.",
         )
-        received_signals: t.MutableSequenceOf[int] = m.Field(
+        received_signals: MutableSequence[int] = m.Field(
             default_factory=list[int],
             description="Parent signals received during this lifecycle.",
         )
-        return_codes: t.MutableSequenceOf[int] = m.Field(
+        return_codes: MutableSequence[int] = m.Field(
             default_factory=list[int],
             description="Root child return codes recorded by the waiter.",
         )
@@ -363,10 +363,10 @@ class FlextCliModelsProcess:
             default_factory=bytearray,
             description="Mutable byte-exact captured stderr buffer.",
         )
-        pump_streams: t.MutableSequenceOf[
-            t.Pair[t.Port[threading.Thread], t.Port[p.Cli.RuntimeClosableStream]]
+        pump_streams: MutableSequence[
+            tuple[t.Port[threading.Thread], t.Port[p.Cli.RuntimeClosableStream]]
         ] = m.Field(
-            default_factory=list[t.Pair[threading.Thread, p.Cli.RuntimeClosableStream]],
+            default_factory=list[tuple[threading.Thread, p.Cli.RuntimeClosableStream]],
             description="Owned output pump threads paired with their source streams.",
         )
         input_pump: (

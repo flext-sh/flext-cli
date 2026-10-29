@@ -25,6 +25,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 
 from examples import c, m, p, r, t, u
@@ -123,11 +124,11 @@ class ExamplesFlextCliSettings:
     def load_application_settings(
         cls,
         settings_obj: m.Examples.AppSettingsAdvanced,
-    ) -> p.Result[t.MappingKV[str, t.JsonValue]]:
+    ) -> p.Result[Mapping[str, t.JsonValue]]:
         """Load, validate, and derive application settings from the canonical model.
 
         Returns:
-            The resulting ``p.Result[t.MappingKV[str, t.JsonValue]]``.
+            The resulting ``p.Result[Mapping[str, t.JsonValue]]``.
 
         """
         cli.print(
@@ -137,7 +138,7 @@ class ExamplesFlextCliSettings:
         cli.print("✅ Settings model created", style=c.Cli.MessageStyles.GREEN)
         validate_result = settings_obj.validate_to_mapping()
         if validate_result.failure:
-            return r[t.MappingKV[str, t.JsonValue]].from_failure(validate_result)
+            return r[Mapping[str, t.JsonValue]].from_failure(validate_result)
         cli.print("✅ Settings validated", style=c.Cli.MessageStyles.GREEN)
         try:
             overridden_data = cls.apply_environment_overrides(
@@ -145,7 +146,7 @@ class ExamplesFlextCliSettings:
                 settings_obj.environment,
             )
         except (TypeError, ValueError) as exc:
-            return r[t.MappingKV[str, t.JsonValue]].fail(str(exc), exception=exc)
+            return r[Mapping[str, t.JsonValue]].fail(str(exc), exception=exc)
         cli.print("✅ Environment overrides applied", style=c.Cli.MessageStyles.GREEN)
         final_data = cls.initialize_services(overridden_data)
         cli.print("✅ Services initialized", style=c.Cli.MessageStyles.GREEN)
@@ -153,17 +154,17 @@ class ExamplesFlextCliSettings:
             "🎉 Application settings loaded successfully!",
             style=c.Cli.MessageStyles.BOLD_GREEN,
         )
-        return r[t.MappingKV[str, t.JsonValue]].ok(final_data)
+        return r[Mapping[str, t.JsonValue]].ok(final_data)
 
     @staticmethod
     def apply_environment_overrides(
-        settings: t.MappingKV[str, t.JsonValue],
+        settings: Mapping[str, t.JsonValue],
         environment: c.DeploymentEnvironment,
-    ) -> t.MappingKV[str, t.JsonValue]:
+    ) -> Mapping[str, t.JsonValue]:
         """Apply environment-specific settings overrides.
 
         Returns:
-            The resulting ``t.MappingKV[str, t.JsonValue]``.
+            The resulting ``Mapping[str, t.JsonValue]``.
 
         Raises:
             TypeError: If ``isinstance(max_workers_value, bool) or not
@@ -196,12 +197,12 @@ class ExamplesFlextCliSettings:
 
     @staticmethod
     def initialize_services(
-        settings: t.MappingKV[str, t.JsonValue],
-    ) -> t.MappingKV[str, t.JsonValue]:
+        settings: Mapping[str, t.JsonValue],
+    ) -> Mapping[str, t.JsonValue]:
         """Initialize services based on validated settings.
 
         Returns:
-            The resulting ``t.MappingKV[str, t.JsonValue]``.
+            The resulting ``Mapping[str, t.JsonValue]``.
 
         """
         result = dict(settings)

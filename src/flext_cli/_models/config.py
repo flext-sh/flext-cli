@@ -42,7 +42,7 @@ Names such as ``listen`` are syscall identifiers, not CQRS action prefixes.
 """
 
 
-class FlextCliConfigModels:
+class FlextCliModelsConfig:
     """Native owner of the typed ``config/*.yaml`` models for flext-cli."""
 
     class Cli(m.FrozenModel):
@@ -76,7 +76,7 @@ class FlextCliConfigModels:
         @classmethod
         def _coerce_yaml_sequences(
             cls, value: t.JsonValue | t.StrTuple
-        ) -> t.JsonValue | t.VariadicTuple[t.JsonValue]:
+        ) -> t.JsonValue | tuple[t.JsonValue, ...]:
             """Coerce declared YAML sequences into the strict tuple form.
 
             Args:
@@ -90,10 +90,7 @@ class FlextCliConfigModels:
 
         @m.field_validator("compiler_resource_parts")
         @classmethod
-        def _validate_resource_parts(
-            cls,
-            value: tuple[str, ...],
-        ) -> tuple[str, ...]:
+        def _validate_resource_parts(cls, value: tuple[str, ...]) -> tuple[str, ...]:
             """Reject any part escaping one lexical relative component.
 
             Args:
@@ -121,8 +118,7 @@ class FlextCliConfigModels:
         @m.field_validator("denied_syscalls")
         @classmethod
         def _validate_policy_floor(
-            cls,
-            value: tuple[DeniedSyscallName, ...],
+            cls, value: tuple[DeniedSyscallName, ...]
         ) -> tuple[DeniedSyscallName, ...]:
             """Require every native syscall obligation exactly once.
 
@@ -145,4 +141,4 @@ class FlextCliConfigModels:
             return value
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliConfigModels",)
+__all__: tuple[str, ...] = ("FlextCliModelsConfig",)

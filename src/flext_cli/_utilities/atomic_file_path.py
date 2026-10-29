@@ -10,10 +10,6 @@ import errno
 import os
 import stat
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliUtilitiesAtomicFilePath:
@@ -55,7 +51,7 @@ class FlextCliUtilitiesAtomicFilePath:
         return path
 
     @staticmethod
-    def resolve_parent_path(parent: Path) -> t.Pair[os.stat_result | None, Path]:
+    def resolve_parent_path(parent: Path) -> tuple[os.stat_result | None, Path]:
         """Return one physical parent state, or the first missing path component.
 
         Every present component is still required to be a non-aliased physical
@@ -93,7 +89,7 @@ class FlextCliUtilitiesAtomicFilePath:
             raise NotADirectoryError(errno.ENOTDIR, message, path)
 
     @staticmethod
-    def identity(state: os.stat_result) -> t.Pair[int, int]:
+    def identity(state: os.stat_result) -> tuple[int, int]:
         """Return the physical device and inode identity of one filesystem object.
 
         Returns:

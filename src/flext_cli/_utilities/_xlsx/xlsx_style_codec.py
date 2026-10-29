@@ -6,15 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-from flext_cli._utilities._xlsx import (
+from flext_cli._utilities import (
     FlextCliUtilitiesXlsxStyleBuilders,
     FlextCliUtilitiesXlsxStyleReaders,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import t
 
 
 class FlextCliUtilitiesXlsxStyleCodec(
@@ -24,4 +19,4 @@ class FlextCliUtilitiesXlsxStyleCodec(
     """Compose vendor-to-model and model-to-vendor style translation once."""
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxStyleCodec",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxStyleCodec",)

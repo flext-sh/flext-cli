@@ -1,0 +1,156 @@
+"""Pre-spawn and durable-resource ownership for streamed processes.
+
+Copyright (c) 2026 FLEXT Team. All rights reserved.
+SPDX-License-Identifier: MIT
+"""
+
+from __future__ import annotations
+
+import contextlib
+import os
+import time
+from typing import BinaryIO
+
+from flext_cli import c, p, r
+
+
+class FlextCliUtilitiesRuntimeProcessResources:
+    """Prepare stdin/live descriptors and finalize durable resources."""
+
+    @staticmethod
+    def _prepare_streamed_stdin(
+        stack: contextlib.ExitStack,
+        input_data: str | bytes | None,
+    ) -> p.Result[tuple[BinaryIO | None, BinaryIO | None, bytes]]:
+        if input_data is None:
+            return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok((
+                None,
+                None,
+                b"",
+            ))
+        payload = (
+            input_data.encode("utf-8") if isinstance(input_data, str) else input_data
+        )
+        try:
+            reader, writer = (
+                FlextCliUtilitiesRuntimeProcessResources._anonymous_stdin_pipe(
+                    stack,
+                )
+            )
+        except c.EXC_OS_VALUE as exc:
+            return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].fail(
+                f"stdin preparation error: {exc}",
+                exception=exc,
+            )
+        return r[tuple[BinaryIO | None, BinaryIO | None, bytes]].ok((
+            reader,
+            writer,
+            payload,
+        ))
+
+    @staticmethod
+    def _anonymous_stdin_pipe(
+        stack: contextlib.ExitStack,
+    ) -> tuple[BinaryIO, BinaryIO]:
+        """Open one memory-only parent-writer/child-reader pipe pair.
+
+        Returns:
+            The resulting ``tuple[BinaryIO, BinaryIO]``.
+
+        Raises:
+            EXC_OS_VALUE: If a ``c.EXC_OS_VALUE`` is caught.
+
+        """
+        read_fd, write_fd = os.pipe()
+        try:
+            reader = os.fdopen(read_fd, "rb", buffering=0)
+        except c.EXC_OS_VALUE:
+            os.close(read_fd)
+            os.close(write_fd)
+            raise
+        try:
+            writer = os.fdopen(write_fd, "wb", buffering=0)
+        except c.EXC_OS_VALUE:
+            reader.close()
+            os.close(write_fd)
+            raise
+        stack.callback(writer.close)
+        stack.callback(reader.close)
+        return reader, writer
+
+    @staticmethod
+    def _prepare_live_descriptor(
+        stack: contextlib.ExitStack,
+        *,
+        live: bool,
+    ) -> p.Result[tuple[int | None, int | None]]:
+        if not live:
+            return r[tuple[int | None, int | None]].ok((None, None))
+        try:
+            live_fd = FlextCliUtilitiesRuntimeProcessResources._open_stream_fd(
+                stack,
+                c.Cli.STDOUT_DESCRIPTOR,
+            )
+            progress_fd = FlextCliUtilitiesRuntimeProcessResources._open_stream_fd(
+                stack,
+                c.Cli.STDERR_DESCRIPTOR,
+            )
+        except c.EXC_OS_VALUE as exc:
+            return r[tuple[int | None, int | None]].fail(
+                f"live output preparation error: {exc}",
+                exception=exc,
+            )
+        return r[tuple[int | None, int | None]].ok((live_fd, progress_fd))
+
+    @staticmethod
+    def _open_stream_fd(stack: contextlib.ExitStack, descriptor: int) -> int:
+        mirrored = os.dup(descriptor)
+        stack.callback(os.close, mirrored)
+        if os.name != "nt" or not os.isatty(mirrored):
+            was_blocking = os.get_blocking(mirrored)
+            os.set_blocking(mirrored, False)
+            stack.callback(os.set_blocking, mirrored, was_blocking)
+        return mirrored
+
+    @staticmethod
+    def _flush_durable_log(
+        durable_log: p.Cli.RuntimeBinaryStream,
+    ) -> tuple[str, ...]:
+        """Finalize the durable log after reaping; only I/O errors are failures.
+
+        The flush runs post-reaping, after bounded cleanup has deliberately
+        consumed its deadline window, so wall-clock position relative to the
+        child deadline is not a failure condition.
+
+        Returns:
+            The resulting ``tuple[str, ...],``.
+
+        """
+        errors: list[str] = []
+        try:
+            durable_log.flush()
+            os.fsync(durable_log.fileno())
+        except c.EXC_OS_VALUE as exc:
+            errors.append(f"durable log flush error: {exc}")
+        return tuple(errors)
+
+    @staticmethod
+    def _close_process_resources(stack: contextlib.ExitStack) -> tuple[str, ...]:
+        try:
+            stack.close()
+        except c.EXC_OS_VALUE as exc:
+            return (f"process resource close error: {exc}",)
+        return ()
+
+    @staticmethod
+    def _spawn_deadline_exhausted(
+        absolute_deadline: float | None,
+        grace_seconds: float,
+    ) -> bool:
+        return (
+            absolute_deadline is not None
+            and time.monotonic() >= absolute_deadline - grace_seconds
+        )
+
+
+__all__: list[str] = ["FlextCliUtilitiesRuntimeProcessResources"]

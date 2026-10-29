@@ -13,7 +13,7 @@ from openpyxl.cell.cell import Cell
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, r
 from flext_cli._utilities._xlsx import (
     FlextCliUtilitiesXlsxSnapshotValues,
     FlextCliUtilitiesXlsxWorkbookIo,
@@ -61,7 +61,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
             return r[m.Cli.XlsxDefinedNameValuesResult].fail(
                 f"{c.Cli.XlsxError.DEFINED_NAME_MISSING}: {request.name}",
             )
-        cells: t.VariadicTuple[m.Cli.XlsxDefinedNameCell] = ()
+        cells: tuple[m.Cli.XlsxDefinedNameCell, ...] = ()
         for sheet_title, coordinate in defined_name.destinations:
             resolved = cls._destination_cells(workbook[sheet_title], coordinate)
             if resolved.failure:
@@ -81,8 +81,8 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
         cls,
         worksheet: Worksheet,
         coordinate: str,
-    ) -> p.Result[t.VariadicTuple[m.Cli.XlsxDefinedNameCell]]:
-        cells: t.VariadicTuple[m.Cli.XlsxDefinedNameCell] = ()
+    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameCell, ...]]:
+        cells: tuple[m.Cli.XlsxDefinedNameCell, ...] = ()
         selection = worksheet[coordinate]
         for cell in cls._flatten_cells(selection):
             cell_value = cell.value
@@ -109,11 +109,11 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
 
     @staticmethod
     def _flatten_cells(
-        selection: Cell | t.VariadicTuple[Cell | t.VariadicTuple[Cell]],
-    ) -> t.VariadicTuple[Cell]:
+        selection: Cell | tuple[Cell | tuple[Cell, ...], ...],
+    ) -> tuple[Cell, ...]:
         if isinstance(selection, Cell):
             return (selection,)
-        flattened: t.VariadicTuple[Cell] = ()
+        flattened: tuple[Cell, ...] = ()
         for item in selection:
             flattened = (
                 *flattened,
@@ -122,4 +122,4 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
         return flattened
 
 
-__all__: t.VariadicTuple[str] = ("FlextCliUtilitiesXlsxDefinedNameValues",)
+__all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxDefinedNameValues",)
