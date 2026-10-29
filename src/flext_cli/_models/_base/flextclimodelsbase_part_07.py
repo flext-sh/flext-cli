@@ -20,7 +20,7 @@ class FlextCliModelsBasePart07:
     class ServiceOptions(m.ArbitraryTypesModel):
         """Caller-selected native collaborators shared by CLI service instances."""
 
-        logging_options: t.Port[p.StructlogOptions] | None = m.Field(
+        structlog_options: t.Port[p.StructlogOptions] | None = m.Field(
             default=None,
             exclude=True,
             description=(

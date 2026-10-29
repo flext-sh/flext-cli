@@ -23,7 +23,7 @@ class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):
             self._exit_failure(r[bool].from_failure(applied))
         self._apply_updated_settings(applied.value)
         u.configure_structlog(
-            settings=u.logging_options(),
+            settings=self.structlog_options,
             runtime_settings=self.settings,
         )
 

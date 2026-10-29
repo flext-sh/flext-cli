@@ -50,7 +50,10 @@ top-level dirs.
 - Do not create parallel domain APIs; `vendor/` stays a separate vendored surface.
 - Config/settings canonical pattern: ADR-005 (SSOT) and ADR-024 (DI config contract).
 - CLI logging consumes Core's elected options model through `u.logging_options()`;
-  a bound accessor is not a logging configuration value.
+  the injected `structlog_options` port carries `p.StructlogOptions` directly.
+  Model fields must not shadow utility accessors in the service MRO: Pydantic
+  reads inherited attributes when electing field defaults. A bound accessor is
+  not a logging configuration value.
 - Runtime composition retains the concrete environment, spawn, wait and output
   adapters that connect its process components to the single native runtime.
   Type-checking declarations do not supply executable implementations.
