@@ -180,7 +180,11 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
             try:
                 descriptor = stream.fileno()
             except c.EXC_OS_VALUE as exc:
-                return r[int].fail(str(exc), exception=exc)
+                return r[int].fail(
+                    str(exc),
+                    exception=exc,
+                    error_data={"pid": self.pid, "written_bytes": 0},
+                )
             deadline = time.monotonic() + timeout
             remaining = memoryview(data)
             written_bytes = 0
