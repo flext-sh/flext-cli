@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import errno
+from collections.abc import MutableSequence
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from flext_cli._utilities import (
@@ -26,8 +28,15 @@ class FlextCliUtilitiesAtomicFileDelete:
     """Canonical namespace owner."""
 
     @staticmethod
-    def remove_guarded_file(state: m.Cli.AtomicFileState) -> None:
+    def remove_guarded_file(
+        state: m.Cli.AtomicFileState,
+        *,
+        published_paths: MutableSequence[Path] | None = None,
+    ) -> None:
         """Unlink the complete physical file version authorized by the caller.
+
+        The receipt records the native unlink before durability and final proof;
+        those later failures retain the original exception and the physical effect.
 
         Raises:
             OSError: If ``file_state.destination_state(path, parent=parent) is not
@@ -67,6 +76,8 @@ class FlextCliUtilitiesAtomicFileDelete:
                 parent=parent,
             )
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, path)
+            if published_paths is not None:
+                published_paths.append(path)
             FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             if (
                 FlextCliUtilitiesAtomicFileState.destination_state(path, parent=parent)

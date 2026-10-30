@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import Sequence
+from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 
 from filelock import FileLock
@@ -77,7 +77,7 @@ class FlextCliUtilitiesFileChanges:
         destinations report only physical metadata and byte counts.
 
         Returns:
-            The paths actually written or deleted, or the first failure.
+            The completed paths, or the first failure with its completed-path receipt.
 
         """
         result_type = r[tuple[Path, ...]]
@@ -93,6 +93,7 @@ class FlextCliUtilitiesFileChanges:
             if verified.failure:
                 return result_type.from_failure(verified)
             pending = FlextCliUtilitiesFileChanges.pending_file_changes(changes)
+            written: list[Path] = []
             for change in pending:
                 source_diagnostics = ""
                 if change.path in nonsecret_source_paths and change.path.suffix in {
@@ -135,17 +136,31 @@ class FlextCliUtilitiesFileChanges:
                     f"{source_diagnostics}"
                 )
                 published = FlextCliUtilitiesFileChanges._publish(
-                    change, directory_mode
+                    change, directory_mode, written
                 )
                 if published.failure:
-                    return result_type.from_failure(published)
-        return result_type.ok(tuple(change.path for change in pending))
+                    return result_type.fail(
+                        published.error or "file publication failed",
+                        error_code=published.error_code,
+                        error_data={
+                            **(published.error_data or {}),
+                            "written_files": [str(path) for path in written],
+                            "failed_paths": [str(change.path)],
+                        },
+                        exception=published.exception,
+                    )
+        return result_type.ok(tuple(written))
 
     @staticmethod
-    def _publish(change: m.Cli.FileChange, directory_mode: int) -> p.Result[bool]:
+    def _publish(
+        change: m.Cli.FileChange,
+        directory_mode: int,
+        published_paths: MutableSequence[Path],
+    ) -> p.Result[bool]:
         if change.desired_content is None:
             return FlextCliUtilitiesFilesPart02.atomic_delete_binary_file_guarded(
                 change.before,
+                published_paths=published_paths,
             )
         before = change.before
         if before.parent_device is None:
@@ -172,6 +187,7 @@ class FlextCliUtilitiesFileChanges:
             before,
             change.desired_content,
             permission_mode=change.desired_mode,
+            published_paths=published_paths,
         )
 
 

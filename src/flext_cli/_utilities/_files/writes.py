@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import shutil
-from collections.abc import Callable
+from collections.abc import Callable, MutableSequence
 from io import BytesIO
 from pathlib import Path
 
@@ -165,6 +165,7 @@ class FlextCliUtilitiesFilesPart02:
         data: bytes,
         *,
         permission_mode: int | None,
+        published_paths: MutableSequence[Path] | None = None,
     ) -> p.Result[bool]:
         """Publish bytes and mode from one complete physical-state precondition.
 
@@ -183,6 +184,7 @@ class FlextCliUtilitiesFilesPart02:
                 data,
                 expected_state=before,
                 permission_mode=permission_mode,
+                published_paths=published_paths,
             )
         except OSError as exc:
             return r[bool].fail(
@@ -194,6 +196,8 @@ class FlextCliUtilitiesFilesPart02:
     @staticmethod
     def atomic_delete_binary_file_guarded(
         state: m.Cli.AtomicFileState,
+        *,
+        published_paths: MutableSequence[Path] | None = None,
     ) -> p.Result[bool]:
         """Delete one complete physical file version under the caller's lock.
 
@@ -206,7 +210,9 @@ class FlextCliUtilitiesFilesPart02:
 
         """
         try:
-            FlextCliUtilitiesAtomicFileDelete.remove_guarded_file(state)
+            FlextCliUtilitiesAtomicFileDelete.remove_guarded_file(
+                state, published_paths=published_paths
+            )
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_FILE_DELETION_FAILED.format(error=exc),

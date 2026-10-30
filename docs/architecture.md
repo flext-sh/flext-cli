@@ -50,6 +50,17 @@ the created inode. The existing void and Boolean writer interfaces retain their
 contracts and share the same publication implementation with state-returning
 creation; no second publisher or callback cache participates.
 
+Batch publication retains physical publication paths in the existing Result
+metadata, including when a later operation fails. The request-owned typed receipt
+is shared with the native writer, which records immediately after link, replace
+or unlink succeeds, before durability or final proof can fail. It never derives
+an effect from a later filesystem scan. A path receipt proves the physical effect,
+not successful durability or final validation of that operation.
+Consumers preserve the original failure and its metadata and carry those paths
+through post-publication failures. Per-file atomic writes and a failure receipt
+do not attest coherent batch visibility, crash recovery or compensation; those
+remain the transaction owner's separately validated responsibilities.
+
 ## Module map
 
 ```text

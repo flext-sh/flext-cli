@@ -10,6 +10,7 @@ import errno
 import os
 import signal
 import stat
+from collections.abc import MutableSequence
 from pathlib import Path
 
 from flext_cli import c, m
@@ -42,6 +43,7 @@ class FlextCliUtilitiesAtomicFile:
         expected_state: m.Cli.AtomicFileState | _NoPrecondition = _NO_PRECONDITION,
         permission_mode: int | None = None,
         durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
+        published_paths: MutableSequence[Path] | None = None,
     ) -> None:
         """Replace bytes and mode for a uniquely owned regular destination.
 
@@ -66,6 +68,7 @@ class FlextCliUtilitiesAtomicFile:
             expected_state=expected_state,
             permission_mode=permission_mode,
             durability=durability,
+            published_paths=published_paths,
         )
 
     @staticmethod
@@ -77,8 +80,12 @@ class FlextCliUtilitiesAtomicFile:
         permission_mode: int | None,
         durability: c.Cli.WriteDurability,
         owner_uid: int | None = None,
+        published_paths: MutableSequence[Path] | None = None,
     ) -> m.Cli.AtomicFileState:
         """Retain the original publication proof for the existing writer APIs.
+
+        ``published_paths`` receives the native physical effect before a later
+        durability or validation failure; it never attests successful completion.
 
         Returns:
             The original bytes and descriptor-authenticated published state.
@@ -131,6 +138,7 @@ class FlextCliUtilitiesAtomicFile:
                 FlextCliUtilitiesAtomicFile._AtomicStage(
                     parent,
                     durable=durability is c.Cli.WriteDurability.DURABLE,
+                    published_paths=published_paths,
                 ),
                 path,
                 content,
@@ -211,6 +219,7 @@ class FlextCliUtilitiesAtomicFile:
             parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
             *,
             durable: bool,
+            published_paths: MutableSequence[Path] | None = None,
         ) -> None:
             self.parent = parent
             self.durable = durable
@@ -219,6 +228,7 @@ class FlextCliUtilitiesAtomicFile:
             self.identity: tuple[int, int] | None = None
             self.mode: int | None = None
             self.replacement_completed = False
+            self.published_paths = published_paths
             self.linked_temporary = False
 
         def acquire(self) -> None:
@@ -327,7 +337,7 @@ class FlextCliUtilitiesAtomicFile:
                         self.parent,
                         destination,
                     )
-                    self.replacement_completed = True
+                    self.record_publication(destination)
                     self.linked_temporary = True
                     FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(
                         self.parent,
@@ -344,7 +354,7 @@ class FlextCliUtilitiesAtomicFile:
                     self.parent,
                     destination,
                 )
-            self.replacement_completed = True
+                self.record_publication(destination)
             if self.durable:
                 FlextCliUtilitiesAtomicFileDurability.sync_replacement(
                     self.parent,
@@ -356,6 +366,12 @@ class FlextCliUtilitiesAtomicFile:
                 self.parent,
                 staged,
             )
+
+        def record_publication(self, destination: Path) -> None:
+            """Retain the native completion witness before any later failure."""
+            self.replacement_completed = True
+            if self.published_paths is not None:
+                self.published_paths.append(destination)
 
         def cleanup(self, operation_error: BaseException) -> None:
             """Remove only authenticated staging while preserving the first cause."""
