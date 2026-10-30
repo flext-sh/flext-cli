@@ -34,8 +34,8 @@ from flext_cli._utilities import (
 class FlextCliUtilitiesJsonCore:
     """Core JSON serialization, file read/write, and value normalization."""
 
-    _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
-    _EMPTY_JSON_SEQUENCE: Sequence[t.JsonValue] = ()
+    _EMPTY_JSON_MAPPING: ClassVar[t.JsonMapping] = MappingProxyType({})
+    _EMPTY_JSON_SEQUENCE: ClassVar[Sequence[t.JsonValue]] = ()
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
