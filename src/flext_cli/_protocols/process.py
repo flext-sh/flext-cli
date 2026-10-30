@@ -10,6 +10,8 @@ from collections.abc import Mapping, MutableSequence, Sequence
 from types import FrameType
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from flext_core import c
+
 if TYPE_CHECKING:
     import threading
     from collections.abc import Buffer, Callable
@@ -81,6 +83,15 @@ class FlextCliProtocolsProcess:
 
         def wait(self, timeout: float | None = None) -> p.Result[int]:
             """Reap the child and preserve its output and exit code."""
+            ...
+
+        def stdin_write(
+            self,
+            data: bytes,
+            *,
+            timeout: float = c.DEFAULT_TIMEOUT_SECONDS,
+        ) -> p.Result[int]:
+            """Send every byte before the deadline without closing input."""
             ...
 
         def stdout_read_until(

@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from pathlib import Path
 from types import MappingProxyType
 from typing import Literal
@@ -54,29 +54,43 @@ class FlextCliUtilitiesFilesPart05:
         plan: m.Cli.AtomicDirectoryChainPlan,
         *,
         permission_mode: int,
+        created: MutableSequence[m.Cli.AtomicDirectoryState] | None = None,
     ) -> p.Result[Sequence[m.Cli.AtomicDirectoryState]]:
         """Materialize a planned chain under the caller's exclusive lock.
 
-        Each level uses the nonrecursive guarded primitive and successful levels
-        roll back in reverse after failure. This is not CAS against actors that
-        ignore the lock. Snapshot any destination file only after this succeeds.
+        Each level uses the nonrecursive guarded primitive. Preserve the original
+        file observation and directory plan before these effects; a later read
+        can validate them but never replace their publication authority. This is
+        not CAS against actors that ignore the caller's exclusive lock.
 
         Returns:
             The resulting ``p.Result[Sequence[m.Cli.AtomicDirectoryState]]``.
 
         """
+        progress: MutableSequence[m.Cli.AtomicDirectoryState] = (
+            [] if created is None else created
+        )
+        initial_count = len(progress)
         try:
-            created = (
+            completed = (
                 FlextCliUtilitiesAtomicDirectoryChain.create_guarded_directory_chain(
                     plan,
                     permission_mode=permission_mode,
+                    created=progress,
                 )
             )
         except OSError as exc:
             return r[Sequence[m.Cli.AtomicDirectoryState]].fail(
                 c.Cli.ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED.format(error=exc),
+                exception=exc,
+                error_data={
+                    "created_directories": [
+                        state.model_dump(mode="json")
+                        for state in progress[initial_count:]
+                    ],
+                },
             )
-        return r[Sequence[m.Cli.AtomicDirectoryState]].ok(created)
+        return r[Sequence[m.Cli.AtomicDirectoryState]].ok(completed)
 
     @staticmethod
     def atomic_read_empty_directory_state(

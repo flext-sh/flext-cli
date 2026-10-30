@@ -17,6 +17,7 @@ import shlex
 import signal
 import time
 from collections.abc import Mapping, Sequence
+from math import isfinite
 from pathlib import Path
 from types import MappingProxyType
 
@@ -152,6 +153,88 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
             self._stdout_buffer.clear()
             self._communicated = True
             return r[int].ok(self._process.poll() or 0)
+
+        def stdin_write(
+            self,
+            data: bytes,
+            *,
+            timeout: float = c.DEFAULT_TIMEOUT_SECONDS,
+        ) -> p.Result[int]:
+            """Send one byte message on the existing pipe without publishing EOF.
+
+            Returns:
+                The byte count, or the original bounded communication failure.
+
+            """
+            if isinstance(timeout, bool) or not isfinite(timeout) or timeout <= 0:
+                return r[int].fail("process stdin timeout must be finite and positive")
+            stream = self._process.stdin
+            if stream is None:
+                return r[int].fail(f"process stdin is unavailable: pid {self.pid}")
+            returncode = self.poll()
+            if returncode is not None:
+                return r[int].fail(
+                    f"process exited before stdin delivery: pid {self.pid}",
+                    error_data={"native_exit_code": returncode, "written_bytes": 0},
+                )
+            try:
+                descriptor = stream.fileno()
+            except c.EXC_OS_VALUE as exc:
+                return r[int].fail(str(exc), exception=exc)
+            deadline = time.monotonic() + timeout
+            remaining = memoryview(data)
+            written_bytes = 0
+            while remaining:
+                written = self._write_stdin_chunk(
+                    descriptor,
+                    remaining,
+                    deadline,
+                    written_bytes,
+                )
+                if written.failure:
+                    return r[int].from_failure(written)
+                written_bytes += written.value
+                remaining = remaining[written.value :]
+            return r[int].ok(written_bytes)
+
+        def _write_stdin_chunk(
+            self,
+            descriptor: int,
+            data: memoryview,
+            deadline: float,
+            written_bytes: int,
+        ) -> p.Result[int]:
+            """Use the existing managed pipe and preserve partial-delivery evidence.
+
+            Returns:
+                One native write count or its causal failure.
+
+            """
+            remaining = deadline - time.monotonic()
+            context = {"pid": self.pid, "written_bytes": written_bytes}
+            if remaining <= 0:
+                return r[int].fail("process stdin deadline expired", error_data=context)
+            try:
+                _readable, writable, _exceptional = select.select(
+                    (),
+                    (descriptor,),
+                    (),
+                    remaining,
+                )
+                if not writable:
+                    return r[int].fail(
+                        "process stdin deadline expired",
+                        error_data=context,
+                    )
+                written = os.write(descriptor, data[: select.PIPE_BUF])
+            except c.EXC_OS_VALUE as exc:
+                return r[int].fail(str(exc), exception=exc, error_data=context)
+            if written <= 0:
+                return r[int].fail(
+                    "process stdin write made no progress",
+                    error_data=context,
+                )
+            return r[int].ok(written)
 
         def stdout_read_until(
             self,
