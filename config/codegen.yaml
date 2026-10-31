@@ -1,6 +1,7 @@
 Infra:
   codegen:
     repository:
+      kind: internal_flext
       candidate_dependencies:
       - distribution: flext-core
         url: https://github.com/flext-sh/flext-core.git

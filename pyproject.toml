@@ -703,7 +703,7 @@ constraint-dependencies = [
 environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
 link-mode = "copy"
 override-dependencies = [
-  "rope @ git+https://github.com/marlon-costa-dc/rope.git@becece05c27c3189b12a06f3fbfa28ad62a98a96",
+  "rope @ git+https://github.com/marlon-costa-dc/rope.git@41dd74bf11b11f874bac008cc82bea71e5f4b863",
   "flext-core @ git+https://github.com/flext-sh/flext-core.git@f98efceb2b4d6221e8e6aeaf478ab8ecf1f8e55e",
   "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@ac27fc75942a78e4787a74fc64f8a2b7db2a172d",
   "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@4ddd702da483f0b03a247e6282916a343c60276a",
