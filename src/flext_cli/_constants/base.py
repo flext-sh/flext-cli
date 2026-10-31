@@ -54,6 +54,11 @@ class FlextCliConstantsBase:
     STDERR_DESCRIPTOR: ClassVar[int] = 2
     PROCESS_TIMEOUT_EXIT_CODE: ClassVar[int] = 124
     GIT_NOT_A_REPOSITORY_EXIT_CODE: ClassVar[int] = 128
+    # ``error_data`` keys of a failed ``u.Cli.run``: the typed process outcome
+    # travels with the failure, so callers never parse the message text.
+    PROCESS_EXIT_CODE_KEY: ClassVar[str] = "exit_code"
+    PROCESS_TIMED_OUT_KEY: ClassVar[str] = "timed_out"
+    PROCESS_FORWARDED_SIGNAL_KEY: ClassVar[str] = "forwarded_signal"
     OP_EXECUTE_APPLICATION: ClassVar[str] = "execute CLI application"
     ERR_EXIT_WITH_CODE: ClassVar[str] = "CLI exited with code {exit_code}"
 

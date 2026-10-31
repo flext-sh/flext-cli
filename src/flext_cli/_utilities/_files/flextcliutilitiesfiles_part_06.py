@@ -40,9 +40,6 @@ class FlextCliUtilitiesFilesPart06:
         Returns:
             The resulting ``p.Result[m.Cli.AtomicFileState]``.
 
-        Raises:
-            OSError: If the file cannot be created under the specified guards.
-
         """
         if max_bytes is not None and len(data) > max_bytes:
             return r[m.Cli.AtomicFileState].fail(
@@ -59,10 +56,14 @@ class FlextCliUtilitiesFilesPart06:
             return r[m.Cli.AtomicFileState].fail(
                 f"atomic create destination already exists: {before.value.path}",
             )
+        if not isinstance(data, bytes):
+            error = OSError(
+                errno.EINVAL, "atomic file content must be bytes", before.value.path
+            )
+            return r[m.Cli.AtomicFileState].fail(
+                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=error), exception=error
+            )
         try:
-            if not isinstance(data, bytes):
-                message = "atomic file content must be bytes"
-                raise OSError(errno.EINVAL, message, before.value.path)
             # Return this publication's proof, never a later path observation.
             published = FlextCliUtilitiesAtomicFile.write_atomic_state(
                 before.value.path,
