@@ -247,9 +247,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
     @staticmethod
     def _require_capabilities(path: Path, *, replace: bool, unlink: bool) -> None:
         FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(path)
-        operations: list[
-            tuple[str, object]  # ast-grep-ignore: ban-broad-annotation
-        ] = []
+        operations: list[tuple[str, object]] = []
         if replace:
             # CPython exposes ``src_dir_fd``/``dst_dir_fd`` on ``os.replace`` via
             # the same renameat primitive as ``os.rename``, but records only

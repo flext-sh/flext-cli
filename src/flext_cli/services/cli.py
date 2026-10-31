@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence
 
+from flext_core import FlextContainer
+
 from flext_cli import c, m, p, r, s, t, u
 from flext_cli.services import FlextCliCommonParams
 from flext_cli.services._cli import FlextCliCliPart06
@@ -32,7 +34,7 @@ class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):
         if updated_settings.model_dump() == self.settings.model_dump():
             return
         current = self._get_runtime()
-        self._runtime = u.build_service_runtime(
+        self._runtime = FlextContainer.build_service_runtime(
             m.RuntimeBootstrapOptions(
                 settings=updated_settings,
                 container=current.container,
