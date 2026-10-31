@@ -67,6 +67,7 @@ class FlextCliUtilitiesRuntimeRunToFile(
                     inherit_environment=launch.inherit_environment,
                 ),
                 input_data=launch.input_data,
+                inherit_stdin=launch.inherit_stdin,
                 capture_output=False,
                 live=launch.live,
                 heartbeat_seconds=(

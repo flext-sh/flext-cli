@@ -164,6 +164,11 @@ class FlextCliProtocolsProcess:
             ...
 
         @property
+        def inherit_stdin(self) -> bool:
+            """Whether the child reads the caller's stdin instead of the null device."""
+            ...
+
+        @property
         def live(self) -> bool:
             """Whether child output is mirrored to live sinks."""
             ...

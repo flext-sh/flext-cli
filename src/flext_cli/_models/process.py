@@ -10,7 +10,7 @@ import contextlib
 import threading
 from collections.abc import Callable, Mapping, MutableSequence, Sequence
 from pathlib import Path
-from typing import ClassVar, Literal
+from typing import ClassVar, Literal, Self
 
 from flext_core import m
 
@@ -217,6 +217,14 @@ class FlextCliModelsProcess:
             default=None,
             description="Text or byte payload supplied to child stdin.",
         )
+        inherit_stdin: bool = m.Field(
+            default=False,
+            description=(
+                "Hand the caller's stdin (terminal or pipe) to the child instead"
+                " of the null device; the child stays inside the owned process"
+                " group and receives forwarded operator signals."
+            ),
+        )
         live: bool = m.Field(
             default=False,
             description="Mirror child output to live sinks.",
@@ -245,6 +253,13 @@ class FlextCliModelsProcess:
             description="Signal wave a worker-thread lifecycle subscribes to.",
         )
 
+        @m.model_validator(mode="after")
+        def _validate_stdin_source(self) -> Self:
+            if self.inherit_stdin and self.input_data is not None:
+                msg = "child stdin has one source: inherit_stdin or input_data"
+                raise ValueError(msg)
+            return self
+
     class RuntimeProcessRequest(m.ArbitraryTypesModel):
         """Resolved launch inputs shared by preparation and process creation."""
 
@@ -271,6 +286,10 @@ class FlextCliModelsProcess:
         input_data: str | bytes | None = m.Field(
             default=None,
             description="Text or byte payload supplied to child stdin.",
+        )
+        inherit_stdin: bool = m.Field(
+            default=False,
+            description="Child reads the caller's stdin instead of the null device.",
         )
         capture_output: bool = m.Field(
             default=True,

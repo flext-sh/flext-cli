@@ -190,6 +190,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
                         request.output_path is not None and request.stderr_path is None
                     ),
                     pass_fds=inherited,
+                    stdin_mode="inherit" if request.inherit_stdin else "devnull",
                 ),
             )
             if start_result.failure:
