@@ -266,7 +266,7 @@ class FlextCliUtilitiesJsonCore:
                 destination.parent,
             )
             destination.parent.mkdir(parents=True, exist_ok=True)
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+            FlextCliUtilitiesAtomicFile.write_atomic_state(
                 destination, content.encode(c.DEFAULT_ENCODING)
             )
             return True

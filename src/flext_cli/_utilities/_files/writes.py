@@ -121,10 +121,10 @@ class FlextCliUtilitiesFilesPart02:
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
         try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+            FlextCliUtilitiesAtomicFile.write_atomic_state(
                 path,
                 data,
-                durability=durability,
+                m.Cli.AtomicWriteOptions(durability=durability),
             )
         except OSError as exc:
             return r[bool].fail(error_template.format(error=exc), exception=exc)
@@ -147,10 +147,10 @@ class FlextCliUtilitiesFilesPart02:
 
         """
         try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+            FlextCliUtilitiesAtomicFile.write_atomic_state(
                 before.path,
                 content.encode(c.DEFAULT_ENCODING),
-                expected_state=before,
+                m.Cli.AtomicWriteOptions(expected_state=before),
             )
         except OSError as exc:
             return r[bool].fail(
@@ -179,11 +179,13 @@ class FlextCliUtilitiesFilesPart02:
 
         """
         try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+            FlextCliUtilitiesAtomicFile.write_atomic_state(
                 before.path,
                 data,
-                expected_state=before,
-                permission_mode=permission_mode,
+                m.Cli.AtomicWriteOptions(
+                    expected_state=before,
+                    permission_mode=permission_mode,
+                ),
                 published_paths=published_paths,
             )
         except OSError as exc:

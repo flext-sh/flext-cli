@@ -98,10 +98,7 @@ class FlextCliUtilitiesYamlEditing(FlextCliUtilitiesYamlEngine):
         post = existing[1]
         if isinstance(post, RuamelCommentToken):
             return [post]
-        if isinstance(post, list):
-            tokens = cast("Sequence[object]", post)
-            return [token for token in tokens if isinstance(token, RuamelCommentToken)]
-        return []
+        return post
 
     @staticmethod
     def _yaml_comment_core(text: str) -> str:

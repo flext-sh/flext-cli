@@ -158,7 +158,10 @@ class TestsFlextCliDocxRender:
         tm.that(font.all_caps, eq=expected_font.all_caps)
         tm.that(font.small_caps, eq=expected_font.small_caps)
         tm.that(subscript.subscript, eq=expected_subscript.subscript)
-        assert_pagination_flags_match(pagination, expected_pagination)
+        assert_pagination_flags_match(
+            cast("p.Cli.DocxParagraphFormatSurface", pagination),
+            cast("p.Cli.DocxParagraphFormatSurface", expected_pagination),
+        )
 
     @staticmethod
     def test_docx_render_with_table() -> None:
@@ -287,25 +290,11 @@ class TestsFlextCliDocxRender:
 
 
 def assert_pagination_flags_match(
-    pagination: object,  # ast-grep-ignore: ban-broad-annotation
-    expected_pagination: object,  # ast-grep-ignore: ban-broad-annotation
+    pagination: p.Cli.DocxParagraphFormatSurface,
+    expected_pagination: p.Cli.DocxParagraphFormatSurface,
 ) -> None:
     """Assert the four paragraph pagination flags match one expected set."""
-    pagination_fmt = cast("p.Cli.DocxParagraphFormatSurface", pagination)
-    expected_fmt = cast("p.Cli.DocxParagraphFormatSurface", expected_pagination)
-    tm.that(
-        cast("bool | None", pagination_fmt.keep_together),
-        eq=cast("bool | None", expected_fmt.keep_together),
-    )
-    tm.that(
-        cast("bool | None", pagination_fmt.keep_with_next),
-        eq=cast("bool | None", expected_fmt.keep_with_next),
-    )
-    tm.that(
-        cast("bool | None", pagination_fmt.page_break_before),
-        eq=cast("bool | None", expected_fmt.page_break_before),
-    )
-    tm.that(
-        cast("bool | None", pagination_fmt.widow_control),
-        eq=cast("bool | None", expected_fmt.widow_control),
-    )
+    tm.that(pagination.keep_together, eq=expected_pagination.keep_together)
+    tm.that(pagination.keep_with_next, eq=expected_pagination.keep_with_next)
+    tm.that(pagination.page_break_before, eq=expected_pagination.page_break_before)
+    tm.that(pagination.widow_control, eq=expected_pagination.widow_control)

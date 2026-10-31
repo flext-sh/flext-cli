@@ -12,6 +12,9 @@ from typing import ClassVar, Literal
 
 from flext_core import m, t
 
+from flext_cli import c
+from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
+
 
 class FlextCliModelsAtomicPublication:
     """Value-only payloads; live descriptor ownership stays with the utilities."""
@@ -39,6 +42,35 @@ class FlextCliModelsAtomicPublication:
         path: Path = m.Field(description="Pathname of the observed file entry.")
         state: t.Port[os.stat_result] = m.Field(
             description="Unchanged native stat observation of the file entry.",
+        )
+
+    class AtomicWriteOptions(m.ImmutableValueModel):
+        """Precondition, mode, durability and owner policy for one atomic write.
+
+        ``expected_state`` is a complete physical precondition for a caller that
+        holds the same exclusive cooperative lock from planning through
+        publication; ``None`` publishes without a precondition. ``DURABLE`` syncs
+        the staged inode and containing directory; ``SCRATCH`` keeps every atomic
+        and physical check but skips both syncs for throwaway trees.
+        """
+
+        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True, strict=True)
+
+        expected_state: FlextCliModelsBasePart02.AtomicFileState | None = m.Field(
+            default=None,
+            description="Complete physical precondition, or None for none.",
+        )
+        permission_mode: int | None = m.Field(
+            default=None,
+            description="Permission mode to publish, or None to keep the current one.",
+        )
+        durability: c.Cli.WriteDurability = m.Field(
+            default=c.Cli.WriteDurability.DURABLE,
+            description="Whether staged inode and parent directory are synced.",
+        )
+        owner_uid: int | None = m.Field(
+            default=None,
+            description="Required owner uid of the parent and published file.",
         )
 
     class TreeEntryDetails(m.ImmutableValueModel):

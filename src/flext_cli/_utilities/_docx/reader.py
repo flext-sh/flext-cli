@@ -78,12 +78,9 @@ class FlextCliUtilitiesDocxReader:
         runs = tuple(cls._snapshot_run(run) for run in paragraph.runs)
         alignment = cls._snapshot_alignment(
             cast(
-                "WD_ALIGN_PARAGRAPH | None",
-                cast(
-                    "p.Cli.DocxParagraphFormatSurface",
-                    paragraph.paragraph_format,
-                ).alignment,
-            ),
+                "p.Cli.DocxParagraphFormatSurface",
+                paragraph.paragraph_format,
+            ).alignment,
         )
         return m.Cli.DocxParagraphPlan(
             runs=runs,

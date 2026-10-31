@@ -6,7 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import errno
 import fnmatch
 import os
 import traceback
@@ -56,22 +55,16 @@ class FlextCliUtilitiesFilesPart06:
             return r[m.Cli.AtomicFileState].fail(
                 f"atomic create destination already exists: {before.value.path}",
             )
-        if not isinstance(data, bytes):
-            error = OSError(
-                errno.EINVAL, "atomic file content must be bytes", before.value.path
-            )
-            return r[m.Cli.AtomicFileState].fail(
-                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=error), exception=error
-            )
         try:
             # Return this publication's proof, never a later path observation.
             published = FlextCliUtilitiesAtomicFile.write_atomic_state(
                 before.value.path,
                 data,
-                expected_state=before.value,
-                permission_mode=permission_mode,
-                durability=c.Cli.WriteDurability.DURABLE,
-                owner_uid=owner_uid,
+                m.Cli.AtomicWriteOptions(
+                    expected_state=before.value,
+                    permission_mode=permission_mode,
+                    owner_uid=owner_uid,
+                ),
             )
         except OSError as exc:
             return r[m.Cli.AtomicFileState].fail(

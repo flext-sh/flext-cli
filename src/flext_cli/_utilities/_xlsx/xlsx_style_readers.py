@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from copy import copy
-from typing import Literal, cast
+from typing import cast
 
 from openpyxl.styles import Alignment, Border, Color, Font, GradientFill
 from openpyxl.styles.borders import Side
@@ -15,13 +15,6 @@ from openpyxl.styles.fills import Fill, PatternFill, Stop
 from openpyxl.styles.styleable import StyleableObject
 
 from flext_cli import m, p, r
-
-type _XlsxUnderlineStyle = Literal[
-    "single",
-    "double",
-    "singleAccounting",
-    "doubleAccounting",
-]
 
 
 class FlextCliUtilitiesXlsxStyleReaders:
@@ -49,20 +42,20 @@ class FlextCliUtilitiesXlsxStyleReaders:
     def _font_spec(cls, font: Font) -> m.Cli.XlsxFontSpec:
         # NOTE (multi-agent): openpyxl-stubs types size/bold/italic/underline as
         # unparameterized ``Alias`` descriptors (Unknown); the pinned
-        # ``p.Cli.XlsxFontStyleSurface`` view plus value casts restore the real
-        # runtime value types consumed by the model.
+        # ``p.Cli.XlsxFontStyleSurface`` view carries the real runtime value
+        # types (``t.Cli.XlsxUnderlineStyle`` for underline) consumed by the model.
         font_surface = cast("p.Cli.XlsxFontStyleSurface", font)
         return m.Cli.XlsxFontSpec(
             name=font.name,
-            size=cast("float | None", font_surface.size),
-            bold=cast("bool | None", font_surface.bold),
-            italic=cast("bool | None", font_surface.italic),
+            size=font_surface.size,
+            bold=font_surface.bold,
+            italic=font_surface.italic,
             strike=font.strike,
             outline=font.outline,
             shadow=font.shadow,
             condense=font.condense,
             extend=font.extend,
-            underline=cast("_XlsxUnderlineStyle | None", font_surface.underline),
+            underline=font_surface.underline,
             vertical_align=font.vertAlign,
             color=cls._color_spec(font.color),
             charset=font.charset,

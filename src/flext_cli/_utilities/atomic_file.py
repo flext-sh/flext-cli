@@ -30,60 +30,19 @@ from flext_cli._utilities import (
 class FlextCliUtilitiesAtomicFile:
     """Canonical namespace owner."""
 
-    class _NoPrecondition:
-        """Marker for callers that do not supply an expected version."""
-
-    _NO_PRECONDITION = _NoPrecondition()
-
-    @staticmethod
-    def write_atomic_bytes(
-        path: Path,
-        content: object,
-        *,
-        expected_state: m.Cli.AtomicFileState | _NoPrecondition = _NO_PRECONDITION,
-        permission_mode: int | None = None,
-        durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
-        published_paths: MutableSequence[Path] | None = None,
-    ) -> None:
-        """Replace bytes and mode for a uniquely owned regular destination.
-
-        ``expected_state`` is a complete physical precondition for a caller that
-        holds the same exclusive cooperative lock from planning through publication.
-        The descriptor-bound replace is not compare-and-swap against actors that
-        ignore that lock. ``DURABLE`` syncs the staged inode and containing
-        directory; ``SCRATCH`` keeps every atomic and physical check but skips
-        both syncs for throwaway trees.
-
-        Raises:
-            OSError: If ``not isinstance(content, bytes)``.
-
-        """
-        path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
-        if not isinstance(content, bytes):
-            message = "atomic file content must be bytes"
-            raise OSError(errno.EINVAL, message, path)
-        FlextCliUtilitiesAtomicFile.write_atomic_state(
-            path,
-            content,
-            expected_state=expected_state,
-            permission_mode=permission_mode,
-            durability=durability,
-            published_paths=published_paths,
-        )
-
     @staticmethod
     def write_atomic_state(
         path: Path,
         content: bytes,
+        options: m.Cli.AtomicWriteOptions | None = None,
         *,
-        expected_state: m.Cli.AtomicFileState | _NoPrecondition,
-        permission_mode: int | None,
-        durability: c.Cli.WriteDurability,
-        owner_uid: int | None = None,
         published_paths: MutableSequence[Path] | None = None,
     ) -> m.Cli.AtomicFileState:
-        """Retain the original publication proof for the existing writer APIs.
+        """Replace bytes and mode for a uniquely owned regular destination.
 
+        ``options`` carries the precondition, mode, durability and owner policy
+        declared by ``m.Cli.AtomicWriteOptions``. The descriptor-bound replace is
+        not compare-and-swap against actors that ignore the cooperative lock.
         ``published_paths`` receives the native physical effect before a later
         durability or validation failure; it never attests successful completion.
 
@@ -91,8 +50,11 @@ class FlextCliUtilitiesAtomicFile:
             The original bytes and descriptor-authenticated published state.
 
         """
+        opts = options or m.Cli.AtomicWriteOptions()
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
-        planned = FlextCliUtilitiesAtomicFile._parse_precondition(path, expected_state)
+        planned = FlextCliUtilitiesAtomicFile._parse_precondition(
+            path, opts.expected_state
+        )
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
             path,
             replace=True,
@@ -128,7 +90,7 @@ class FlextCliUtilitiesAtomicFile:
             )
             target_mode = FlextCliUtilitiesAtomicFileMode.publication_mode(
                 expected,
-                permission_mode,
+                opts.permission_mode,
             )
             FlextCliUtilitiesAtomicFileTemporary.require_mode_capability(
                 path,
@@ -137,7 +99,7 @@ class FlextCliUtilitiesAtomicFile:
             published = FlextCliUtilitiesAtomicFile._stage_and_publish(
                 FlextCliUtilitiesAtomicFile._AtomicStage(
                     parent,
-                    durable=durability is c.Cli.WriteDurability.DURABLE,
+                    durable=opts.durability is c.Cli.WriteDurability.DURABLE,
                     published_paths=published_paths,
                 ),
                 path,
@@ -145,12 +107,12 @@ class FlextCliUtilitiesAtomicFile:
                 expected,
                 target_mode,
             )
-            if owner_uid is not None:
+            if opts.owner_uid is not None:
                 FlextCliUtilitiesAtomicFileState.require_owner(
-                    path.parent, os.fstat(parent.descriptor), owner_uid
+                    path.parent, os.fstat(parent.descriptor), opts.owner_uid
                 )
                 FlextCliUtilitiesAtomicFileState.require_owner(
-                    path, published, owner_uid
+                    path, published, opts.owner_uid
                 )
             return m.Cli.AtomicFileState(
                 path=path,
@@ -168,13 +130,10 @@ class FlextCliUtilitiesAtomicFile:
     @staticmethod
     def _parse_precondition(
         path: Path,
-        expected_state: m.Cli.AtomicFileState | _NoPrecondition,
+        expected_state: m.Cli.AtomicFileState | None,
     ) -> m.Cli.AtomicFileState | None:
-        if expected_state is FlextCliUtilitiesAtomicFile._NO_PRECONDITION:
+        if expected_state is None:
             return None
-        if isinstance(expected_state, FlextCliUtilitiesAtomicFile._NoPrecondition):
-            message = "expected_state sentinel must be the canonical singleton"
-            raise OSError(errno.EINVAL, message, path)
         if expected_state.path != path:
             message = "expected_state path differs from atomic destination"
             raise OSError(errno.EINVAL, message, path)

@@ -174,16 +174,13 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                 style_id=formula_cell.style_id,
                 number_format=formula_cell.number_format,
                 locked=cast(
-                    "bool",
-                    cast("p.Cli.XlsxProtectionSurface", formula_cell.protection).locked,
-                ),
+                    "p.Cli.XlsxProtectionSurface",
+                    formula_cell.protection,
+                ).locked,
                 hidden=cast(
-                    "bool",
-                    cast(
-                        "p.Cli.XlsxProtectionSurface",
-                        formula_cell.protection,
-                    ).hidden,
-                ),
+                    "p.Cli.XlsxProtectionSurface",
+                    formula_cell.protection,
+                ).hidden,
             ),
         )
 
