@@ -38,11 +38,8 @@ class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):
                 container=current.container,
                 context=current.context,
                 dispatcher=current.dispatcher,
-                logger=u.create_module_logger(
-                    f"{type(self).__module__}.{type(self).__qualname__}",
-                    runtime_settings=updated_settings,
-                    options=self.structlog_options,
-                ),
+                logger=current.logger if current.logger_injected else None,
+                logging_options=self.structlog_options,
             ),
         )
 
