@@ -61,9 +61,7 @@ class TestsFlextCliConstants:
         [c.Cli.MESSAGE_STYLE_MAP, c.Cli.MESSAGE_EMOJI_MAP],
     )
     def test_message_maps_cover_every_message_type(
-        message_map: Mapping[
-            c.Cli.MessageTypes, object  # ast-grep-ignore: ban-broad-annotation
-        ],
+        message_map: Mapping[c.Cli.MessageTypes, object],
     ) -> None:
         """Style/emoji maps expose an entry for every MessageTypes member."""
         tm.that(set(message_map), eq=set(c.Cli.MessageTypes))

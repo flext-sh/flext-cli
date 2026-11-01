@@ -47,13 +47,13 @@ def _descendant(sentinel: Path, mode: str) -> None:
         os.dup2(devnull, stream)
     if mode == "terminate":
 
-        def record(*_: object) -> None:  # ast-grep-ignore: ban-broad-annotation
+        def record(*_: object) -> None:
             sentinel.write_bytes(b"terminated")
-            os._exit(0)  # ast-grep-ignore: ban-test-private-access
+            os._exit(0)
 
         signal.signal(signal.SIGTERM, record)
     time.sleep(30)
-    os._exit(0)  # ast-grep-ignore: ban-test-private-access
+    os._exit(0)
 
 
 def main() -> None:
