@@ -23,16 +23,14 @@ class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):
         applied = FlextCliCommonParams.apply_to_config(self.settings, params=params)
         if applied.failure:
             self._exit_failure(r[bool].from_failure(applied))
-        self._apply_updated_settings(applied.value)
         u.configure_structlog(
             settings=self.structlog_options,
-            runtime_settings=self.settings,
+            runtime_settings=applied.value,
         )
+        self._apply_updated_settings(applied.value)
 
     def _apply_updated_settings(self, updated_settings: p.Cli.Settings) -> None:
         """Rebind the existing DI scope without replacing settings singletons."""
-        if updated_settings.model_dump() == self.settings.model_dump():
-            return
         current = self._get_runtime()
         self._runtime = FlextContainer.build_service_runtime(
             m.RuntimeBootstrapOptions(
@@ -40,6 +38,11 @@ class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):
                 container=current.container,
                 context=current.context,
                 dispatcher=current.dispatcher,
+                logger=u.create_module_logger(
+                    f"{type(self).__module__}.{type(self).__qualname__}",
+                    runtime_settings=updated_settings,
+                    options=self.structlog_options,
+                ),
             ),
         )
 
