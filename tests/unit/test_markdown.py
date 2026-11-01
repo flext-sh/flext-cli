@@ -20,7 +20,7 @@ class TestsFlextCliMarkdown:
         "\n"
         "- item\n"
         "\n"
-        "  ```python notest\n"
+        "  ```python\n"
         "  value = 1\n"
         "  ```\n"
         "\n"
