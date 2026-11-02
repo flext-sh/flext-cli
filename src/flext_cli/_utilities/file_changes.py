@@ -14,11 +14,11 @@ from filelock import FileLock
 
 from flext_cli import c, p, r
 from flext_cli._utilities import FlextCliUtilitiesOutput
+from flext_cli._utilities._files import FlextCliUtilitiesFilesPart02
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_06 import (
     FlextCliUtilitiesFilesPart06,
 )
-from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
 
 
 class FlextCliUtilitiesFileChanges:

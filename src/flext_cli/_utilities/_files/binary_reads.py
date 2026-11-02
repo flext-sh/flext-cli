@@ -24,7 +24,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileSnapshot,
     FlextCliUtilitiesAtomicFileState,
 )
-from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
+from flext_cli._utilities._files import FlextCliUtilitiesFilesPart02
 
 
 class FlextCliUtilitiesFilesPart03:
