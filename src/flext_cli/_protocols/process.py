@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableSequence, Sequence
 from types import FrameType
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
 from flext_core import c
 
@@ -21,7 +21,10 @@ if TYPE_CHECKING:
 
     from flext_cli import t
     from flext_cli._models.process import FlextCliModelsProcess
-    from flext_cli._protocols._base import FlextCliProtocolsBasePart02
+    from flext_cli._protocols._base import (
+        FlextCliProtocolsBasePart01,
+        FlextCliProtocolsBasePart02,
+    )
 
 
 class FlextCliProtocolsProcess:
@@ -137,6 +140,89 @@ class FlextCliProtocolsProcess:
             wake: threading.Event,
         ) -> Callable[[], None]:
             """Deliver each received signal to one lifecycle until unsubscribed."""
+            ...
+
+    @runtime_checkable
+    class ProcessNativeToolEvidence(Protocol):
+        """Read-only native tool evidence serialized in a bootstrap receipt."""
+
+        @property
+        def role(self) -> Literal["isolation-launcher", "policy-compiler"]:
+            """Declared native capability qualified by this bootstrap row."""
+            ...
+
+        @property
+        def artifact_receipt(self) -> FlextCliProtocolsBasePart01.AtomicFileReceipt:
+            """Immutable receipt for the qualified native executable."""
+            ...
+
+        @property
+        def declaration_inputs(
+            self,
+        ) -> tuple[FlextCliProtocolsBasePart01.AtomicFileReceipt, ...]:
+            """Captured qualification declarations."""
+            ...
+
+        @property
+        def installation_inputs(
+            self,
+        ) -> tuple[FlextCliProtocolsBasePart01.AtomicFileReceipt, ...]:
+            """Captured native installation inputs."""
+            ...
+
+        @property
+        def source_inputs(
+            self,
+        ) -> tuple[FlextCliProtocolsBasePart01.AtomicFileReceipt, ...]:
+            """Captured source inputs for native qualification."""
+            ...
+
+        @property
+        def native_build_outcome(self) -> FlextCliProtocolsBasePart02.ProcessOutcome:
+            """Causal outcome of the native compiler build."""
+            ...
+
+        @property
+        def native_abi_probe_outcome(
+            self,
+        ) -> FlextCliProtocolsBasePart02.ProcessOutcome:
+            """Causal outcome of the native ABI qualification probe."""
+            ...
+
+        @property
+        def native_policy_probe_outcome(
+            self,
+        ) -> FlextCliProtocolsBasePart02.ProcessOutcome:
+            """Original native socket and io_uring denial probe outcome."""
+            ...
+
+        @property
+        def policy_sha256(self) -> str:
+            """Exact process-owner policy request proven by native probes."""
+            ...
+
+        @property
+        def native_policy_probes(
+            self,
+        ) -> tuple[FlextCliModelsProcess.ProcessNativePolicyProbe, ...]:
+            """Original attempted syscall observations, never inferred."""
+            ...
+
+        @property
+        def probe_compiler_receipt(
+            self,
+        ) -> FlextCliProtocolsBasePart01.AtomicFileReceipt:
+            """Exact compiler whose filter supplied the native denial probes."""
+            ...
+
+        @property
+        def abi_reference(self) -> FlextCliProtocolsBasePart01.AtomicFileReceipt:
+            """Captured independently elected native ABI reference."""
+            ...
+
+        @property
+        def architecture(self) -> str:
+            """Qualified native executable architecture."""
             ...
 
     @runtime_checkable
