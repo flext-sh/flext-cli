@@ -29,7 +29,7 @@ class FlextCliUtilitiesFilesPart06:
         permission_mode: int,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> p.Result[m.Cli.AtomicFileState]:
+    ) -> p.Result[p.Cli.AtomicFileState]:
         """Create one absent file and return its authenticated published state.
 
         ``max_bytes`` rejects oversized ``data`` and ``owner_uid`` rejects a
@@ -37,11 +37,11 @@ class FlextCliUtilitiesFilesPart06:
         retains the original publication proof under those same guards.
 
         Returns:
-            The resulting ``p.Result[m.Cli.AtomicFileState]``.
+            The resulting ``p.Result[p.Cli.AtomicFileState]``.
 
         """
         if max_bytes is not None and len(data) > max_bytes:
-            return r[m.Cli.AtomicFileState].fail(
+            return r[p.Cli.AtomicFileState].fail(
                 f"atomic create content exceeds {max_bytes} bytes: {file_path}",
             )
         before = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
@@ -50,9 +50,9 @@ class FlextCliUtilitiesFilesPart06:
             owner_uid=owner_uid,
         )
         if before.failure:
-            return r[m.Cli.AtomicFileState].from_failure(before)
+            return r[p.Cli.AtomicFileState].from_failure(before)
         if before.value.content is not None:
-            return r[m.Cli.AtomicFileState].fail(
+            return r[p.Cli.AtomicFileState].fail(
                 f"atomic create destination already exists: {before.value.path}",
             )
         try:
@@ -67,14 +67,14 @@ class FlextCliUtilitiesFilesPart06:
                 ),
             )
         except OSError as exc:
-            return r[m.Cli.AtomicFileState].fail(
+            return r[p.Cli.AtomicFileState].fail(
                 c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc), exception=exc
             )
         return r.ok(published)
 
     @staticmethod
     def atomic_verify_binary_file_states(
-        expected_states: Sequence[m.Cli.AtomicFileState],
+        expected_states: Sequence[p.Cli.AtomicFileState],
         *,
         nonsecret_source_paths: Sequence[Path] = (),
     ) -> p.Result[Literal[True]]:

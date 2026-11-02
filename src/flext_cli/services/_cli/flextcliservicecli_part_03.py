@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableSequence, Sequence
 from inspect import Parameter
 
-from flext_cli import c, m, p, r, t, u
+from flext_cli import c, p, r, t, u
 from flext_cli.services._cli import FlextCliCliPart01, FlextCliCliPart02
 
 
@@ -82,7 +82,7 @@ class FlextCliCliPart03(FlextCliCliPart02):
         args: Sequence[str] | None = None,
         charset: str = c.DEFAULT_ENCODING,
         env: Mapping[str, str] | None = None,
-    ) -> p.Result[m.Cli.InvocationResult]:
+    ) -> p.Result[p.Cli.InvocationResult]:
         """Invoke an application through the private real-framework boundary.
 
         A foreign application or an invalid runner argument is a caller defect
@@ -95,10 +95,10 @@ class FlextCliCliPart03(FlextCliCliPart02):
             env: Optional environment mapping for the invocation.
 
         Returns:
-            The resulting ``p.Result[m.Cli.InvocationResult]``.
+            The resulting ``p.Result[p.Cli.InvocationResult]``.
 
         """
-        return r[m.Cli.InvocationResult].ok(
+        return r[p.Cli.InvocationResult].ok(
             u.Cli.framework_invoke(app, args=args, charset=charset, env=env),
         )
 

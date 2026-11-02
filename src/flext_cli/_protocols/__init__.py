@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from flext_cli._protocols.config import FlextCliProtocolsConfig
     from flext_cli._protocols.docx import FlextCliProtocolsDocx
     from flext_cli._protocols.domain import FlextCliProtocolsDomain
+    from flext_cli._protocols.file_change import FlextCliProtocolsFileChange
     from flext_cli._protocols.framework import FlextCliProtocolsFramework
     from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
     from flext_cli._protocols.process import FlextCliProtocolsProcess
@@ -37,6 +38,7 @@ __all__: tuple[str, ...] = (
     "FlextCliProtocolsConfig",
     "FlextCliProtocolsDocx",
     "FlextCliProtocolsDomain",
+    "FlextCliProtocolsFileChange",
     "FlextCliProtocolsFramework",
     "FlextCliProtocolsPipeline",
     "FlextCliProtocolsProcess",
@@ -57,6 +59,7 @@ install_lazy_exports(
         "FlextCliProtocolsConfig": ".config",
         "FlextCliProtocolsDocx": ".docx",
         "FlextCliProtocolsDomain": ".domain",
+        "FlextCliProtocolsFileChange": ".file_change",
         "FlextCliProtocolsFramework": ".framework",
         "FlextCliProtocolsPipeline": ".pipeline",
         "FlextCliProtocolsProcess": ".process",

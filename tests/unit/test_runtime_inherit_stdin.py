@@ -21,7 +21,7 @@ from tests import c, m, tm, u
 _READER = "import sys; sys.stdout.write(sys.stdin.read())"
 _PARENT = (
     "import sys\n"
-    "from flext_cli import m, u\n"
+    "from flext_cli import m, p, u\n"
     "out = u.Cli.run_raw(\n"
     "    [sys.executable, '-c', sys.argv[1]],\n"
     "    options=m.Cli.ProcessOptions(inherit_stdin=sys.argv[2] == 'inherit'),\n"

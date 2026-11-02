@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from typing import ClassVar
 
-from flext_cli import c, m, t
+from flext_cli import c, p, t
 
 
 class FlextCliUtilitiesTablesRenderer:
@@ -84,7 +84,7 @@ class FlextCliUtilitiesTablesRenderer:
         numeric_columns: set[int],
         *,
         colalign: Sequence[str],
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> list[str]:
         alignments: list[str] = []
         for index in range(column_count):
@@ -127,7 +127,7 @@ class FlextCliUtilitiesTablesRenderer:
         data_rows: Sequence[t.Cli.TableRow],
         column_count: int,
         *,
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> list[list[str]]:
         return [
             [
@@ -145,7 +145,7 @@ class FlextCliUtilitiesTablesRenderer:
         cls,
         cells: Sequence[Sequence[str]],
         *,
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> set[int]:
         if settings.disable_numparse is True or not cells:
             return set()
@@ -171,7 +171,7 @@ class FlextCliUtilitiesTablesRenderer:
         headers: str | Sequence[str],
         *,
         colalign: Sequence[str],
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> str:
         """Render normalized rows with the configured tabular format shape.
 
@@ -209,7 +209,7 @@ class FlextCliUtilitiesTablesRenderer:
     @staticmethod
     def _apply_index(
         data_rows: Sequence[t.Cli.TableRow],
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> tuple[list[str] | None, Sequence[t.Cli.TableRow]]:
         if settings.showindex is True:
             return (
@@ -234,7 +234,7 @@ class FlextCliUtilitiesTablesRenderer:
         widths: Sequence[int],
         alignments: list[str],
         *,
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> str:
         """Compose the header, separator, and rows of a pipe table.
 
@@ -274,7 +274,7 @@ class FlextCliUtilitiesTablesRenderer:
         cells: Sequence[Sequence[str]],
         header_labels: Sequence[str],
         *,
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> str:
         """Compose an unpadded tab-separated header and rows.
 
@@ -298,7 +298,7 @@ class FlextCliUtilitiesTablesRenderer:
         widths: Sequence[int],
         alignments: list[str],
         *,
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> str:
         shape = FlextCliUtilitiesTablesRenderer._SHAPES.get(
             settings.table_format, FlextCliUtilitiesTablesRenderer._SHAPE_SIMPLE

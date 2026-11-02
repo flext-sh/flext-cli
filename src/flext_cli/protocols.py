@@ -15,6 +15,7 @@ from flext_cli._protocols import (
     FlextCliProtocolsConfig,
     FlextCliProtocolsDocx,
     FlextCliProtocolsDomain,
+    FlextCliProtocolsFileChange,
     FlextCliProtocolsFramework,
     FlextCliProtocolsPipeline,
     FlextCliProtocolsProcess,
@@ -32,6 +33,7 @@ class FlextCliProtocols(flext_core_p):
     class Cli(
         FlextCliProtocolsPipeline,
         FlextCliProtocolsDomain,
+        FlextCliProtocolsFileChange,
         FlextCliProtocolsFramework,
         FlextCliProtocolsBase,
         FlextCliProtocolsConfig,

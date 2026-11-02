@@ -20,7 +20,7 @@ class FlextCliModelsAtomicSymlink:
     class AtomicSymlinkIdentity(m.StrictModel):
         """Complete lstat identity, without following the symbolic link."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
         mode: Annotated[int, m.Field(ge=0, description="Exact link permission bits.")]
         device: Annotated[int, m.Field(ge=0, description="Link filesystem device.")]
         inode: Annotated[int, m.Field(ge=0, description="Link inode number.")]
@@ -41,7 +41,7 @@ class FlextCliModelsAtomicSymlink:
     class AtomicSymlinkState(m.StrictModel):
         """Exact link text and physical identities, or authenticated absence."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
         path: Annotated[
             Path,
             m.Field(description="Absolute lexical symbolic-link path."),

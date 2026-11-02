@@ -10,7 +10,7 @@ from collections.abc import Sequence
 
 import pytest
 
-from tests import c, m, t, tm, u
+from tests import c, m, p, t, tm, u
 
 
 class TestsFlextCliTablesBranchCov:
@@ -18,7 +18,7 @@ class TestsFlextCliTablesBranchCov:
 
     @pytest.fixture
     @staticmethod
-    def two_column_config() -> m.Cli.TableConfig:
+    def two_column_config() -> p.Cli.TableConfig:
         """Return a minimal two-column table configuration.
 
         Returns:
@@ -78,7 +78,7 @@ class TestsFlextCliTablesBranchCov:
 
     @staticmethod
     def test_render_returns_string_containing_cell_values(
-        two_column_config: m.Cli.TableConfig,
+        two_column_config: p.Cli.TableConfig,
     ) -> None:
         """Verify that render returns string containing cell values."""
         result = u.Cli.tables_render([{"Key": "a", "Value": 1}], two_column_config)
@@ -117,7 +117,7 @@ class TestsFlextCliTablesBranchCov:
 
     @staticmethod
     def test_render_empty_rows_still_succeeds(
-        two_column_config: m.Cli.TableConfig,
+        two_column_config: p.Cli.TableConfig,
     ) -> None:
         """Verify that render empty rows still succeeds."""
         result = u.Cli.tables_render([], two_column_config)
@@ -127,7 +127,7 @@ class TestsFlextCliTablesBranchCov:
 
     @staticmethod
     def test_render_is_idempotent_for_same_input(
-        two_column_config: m.Cli.TableConfig,
+        two_column_config: p.Cli.TableConfig,
     ) -> None:
         """Verify that render is idempotent for same input."""
         rows: Sequence[t.Cli.TableRow] = [{"Key": "a", "Value": 1}]
@@ -141,7 +141,7 @@ class TestsFlextCliTablesBranchCov:
 
     @staticmethod
     def test_resolve_config_returns_provided_settings_unchanged(
-        two_column_config: m.Cli.TableConfig,
+        two_column_config: p.Cli.TableConfig,
     ) -> None:
         """Verify that resolve config returns provided settings unchanged."""
         result = u.Cli.tables_resolve_config(two_column_config)
@@ -151,7 +151,7 @@ class TestsFlextCliTablesBranchCov:
 
     @staticmethod
     def test_resolve_config_reports_invalid_override_as_failure(
-        two_column_config: m.Cli.TableConfig,
+        two_column_config: p.Cli.TableConfig,
     ) -> None:
         """Verify that resolve config reports invalid override as failure."""
         result = u.Cli.tables_resolve_config(two_column_config, show_header="nope")
@@ -161,7 +161,7 @@ class TestsFlextCliTablesBranchCov:
 
     @staticmethod
     def test_normalize_then_render_round_trips_mapping_source(
-        two_column_config: m.Cli.TableConfig,
+        two_column_config: p.Cli.TableConfig,
     ) -> None:
         """Verify that normalize then render round trips mapping source."""
         normalized = u.Cli.tables_normalize_data({"alpha": 1})

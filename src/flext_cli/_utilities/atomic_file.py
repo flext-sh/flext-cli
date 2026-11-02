@@ -34,10 +34,10 @@ class FlextCliUtilitiesAtomicFile:
     def write_atomic_state(
         path: Path,
         content: bytes,
-        options: m.Cli.AtomicWriteOptions | None = None,
+        options: p.Cli.AtomicWriteOptions | None = None,
         *,
         published_paths: MutableSequence[Path] | None = None,
-    ) -> m.Cli.AtomicFileState:
+    ) -> p.Cli.AtomicFileState:
         """Replace bytes and mode for a uniquely owned regular destination.
 
         ``options`` carries the precondition, mode, durability and owner policy
@@ -130,8 +130,8 @@ class FlextCliUtilitiesAtomicFile:
     @staticmethod
     def _parse_precondition(
         path: Path,
-        expected_state: m.Cli.AtomicFileState | None,
-    ) -> m.Cli.AtomicFileState | None:
+        expected_state: p.Cli.AtomicFileState | None,
+    ) -> p.Cli.AtomicFileState | None:
         if expected_state is None:
             return None
         if expected_state.path != path:
@@ -355,7 +355,7 @@ class FlextCliUtilitiesAtomicFile:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         destination: Path,
         expected: os.stat_result | None,
-        staged: m.Cli.StagedFile,
+        staged: p.Cli.StagedFile,
     ) -> None:
         staged_state = FlextCliUtilitiesAtomicFile._validate_staged(
             parent,

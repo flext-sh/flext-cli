@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import IO, TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import p
@@ -105,6 +106,30 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
         @property
         def stdout(self) -> bytes:
             """Command standard output as raw bytes."""
+            ...
+
+    @runtime_checkable
+    class AtomicFileState(Protocol):
+        """Immutable physical and content identity of one file version."""
+
+        @property
+        def path(self) -> Path:
+            """Authenticated file path."""
+            ...
+
+        @property
+        def content(self) -> bytes | None:
+            """Exact bytes when the file exists."""
+            ...
+
+        @property
+        def device(self) -> int | None:
+            """Physical device identifier."""
+            ...
+
+        @property
+        def inode(self) -> int | None:
+            """Physical inode identifier."""
             ...
 
     @runtime_checkable

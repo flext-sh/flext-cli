@@ -75,24 +75,24 @@ class FlextCliUtilitiesDocxRenderer:
     @classmethod
     def docx_render(
         cls,
-        request: m.Cli.DocxRenderRequest,
-    ) -> p.Result[m.Cli.DocxRenderResult]:
+        request: p.Cli.DocxRenderRequest,
+    ) -> p.Result[p.Cli.DocxRenderResult]:
         """Render typed paragraphs, tables, and sections into document bytes.
 
         Returns:
-            The resulting ``p.Result[m.Cli.DocxRenderResult]``.
+            The resulting ``p.Result[p.Cli.DocxRenderResult]``.
 
         """
         document_result = cls._document_for_request(request)
         if document_result.failure:
-            return r[m.Cli.DocxRenderResult].from_failure(document_result)
+            return r[p.Cli.DocxRenderResult].from_failure(document_result)
         document = document_result.value
         try:
             cls._apply_document(document, request.plan)
             cls._apply_source_date(document, request.source_date_epoch)
         except (KeyError, TypeError, ValueError, AttributeError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.DocxRenderResult].fail(
+            return r[p.Cli.DocxRenderResult].fail(
                 f"{c.Cli.DocxError.RENDER_FAILED}: {detail}",
             )
         content = cls._serialize_document(
@@ -100,15 +100,15 @@ class FlextCliUtilitiesDocxRenderer:
             source_date_epoch=request.source_date_epoch,
         )
         if content.failure:
-            return r[m.Cli.DocxRenderResult].from_failure(content)
-        return r[m.Cli.DocxRenderResult].ok(
+            return r[p.Cli.DocxRenderResult].from_failure(content)
+        return r[p.Cli.DocxRenderResult].ok(
             m.Cli.DocxRenderResult(content=content.value, plan=request.plan),
         )
 
     @classmethod
     def _document_for_request(
         cls,
-        request: m.Cli.DocxRenderRequest,
+        request: p.Cli.DocxRenderRequest,
     ) -> p.Result[DocumentType]:
         if request.template is None:
             return r[DocumentType].ok(Document())
@@ -201,7 +201,7 @@ class FlextCliUtilitiesDocxRenderer:
     def _apply_document(
         cls,
         document: DocumentType,
-        plan: m.Cli.DocxDocumentPlan,
+        plan: p.Cli.DocxDocumentPlan,
     ) -> None:
         cls._apply_core_properties(document, plan.core_properties)
         for paragraph in plan.paragraphs:
@@ -225,7 +225,7 @@ class FlextCliUtilitiesDocxRenderer:
     def _apply_paragraph(
         cls,
         container: DocumentType | p.Cli.DocxParagraphContainer,
-        plan: m.Cli.DocxParagraphPlan,
+        plan: p.Cli.DocxParagraphPlan,
         paragraph: Paragraph | None = None,
     ) -> Paragraph:
         if paragraph is None:
@@ -244,7 +244,7 @@ class FlextCliUtilitiesDocxRenderer:
     def _apply_paragraph_style(
         cls,
         paragraph: Paragraph,
-        spec: m.Cli.DocxParagraphStyleSpec,
+        spec: p.Cli.DocxParagraphStyleSpec,
     ) -> None:
         if spec.font:
             if not paragraph.runs:
@@ -257,13 +257,13 @@ class FlextCliUtilitiesDocxRenderer:
             )
 
     @classmethod
-    def _apply_run(cls, paragraph: Paragraph, plan: m.Cli.DocxRunPlan) -> None:
+    def _apply_run(cls, paragraph: Paragraph, plan: p.Cli.DocxRunPlan) -> None:
         run = paragraph.add_run(plan.text)
         if plan.style and plan.style.font:
             cls._apply_font(run.font, plan.style.font)
 
     @classmethod
-    def _apply_font(cls, font: Font, spec: m.Cli.DocxFontSpec) -> None:
+    def _apply_font(cls, font: Font, spec: p.Cli.DocxFontSpec) -> None:
         if spec.name is not None:
             font.name = spec.name
         if spec.size is not None:
@@ -286,7 +286,7 @@ class FlextCliUtilitiesDocxRenderer:
     def _apply_font_variants(
         cls,
         font: p.Cli.DocxFontVariants,
-        spec: m.Cli.DocxFontSpec,
+        spec: p.Cli.DocxFontSpec,
     ) -> None:
         if spec.superscript is not None:
             font.superscript = spec.superscript
@@ -301,7 +301,7 @@ class FlextCliUtilitiesDocxRenderer:
     def _apply_paragraph_format(
         cls,
         fmt: ParagraphFormat,
-        spec: m.Cli.DocxParagraphFormatSpec,
+        spec: p.Cli.DocxParagraphFormatSpec,
     ) -> None:
         if spec.alignment is not None:
             fmt.alignment = cls._ALIGNMENT_MAP[spec.alignment]
@@ -323,7 +323,7 @@ class FlextCliUtilitiesDocxRenderer:
     def _apply_paragraph_pagination(
         cls,
         fmt: p.Cli.DocxParagraphPagination,
-        spec: m.Cli.DocxParagraphFormatSpec,
+        spec: p.Cli.DocxParagraphFormatSpec,
     ) -> None:
         if spec.keep_together is not None:
             fmt.keep_together = spec.keep_together
@@ -335,7 +335,7 @@ class FlextCliUtilitiesDocxRenderer:
             fmt.widow_control = spec.widow_control
 
     @classmethod
-    def _apply_table(cls, document: DocumentType, plan: m.Cli.DocxTablePlan) -> None:
+    def _apply_table(cls, document: DocumentType, plan: p.Cli.DocxTablePlan) -> None:
         table = document.add_table(rows=len(plan.rows), cols=cls._table_columns(plan))
         if plan.style:
             table.style = plan.style
@@ -350,7 +350,7 @@ class FlextCliUtilitiesDocxRenderer:
                         cls._apply_paragraph(cell, paragraph)
 
     @classmethod
-    def _table_columns(cls, plan: m.Cli.DocxTablePlan) -> int:
+    def _table_columns(cls, plan: p.Cli.DocxTablePlan) -> int:
         if not plan.rows:
             return 0
         return max(len(row.cells) for row in plan.rows) if plan.rows else 0
@@ -359,7 +359,7 @@ class FlextCliUtilitiesDocxRenderer:
     def _apply_sections(
         cls,
         document: DocumentType,
-        sections: tuple[m.Cli.DocxSectionPlan, ...],
+        sections: tuple[p.Cli.DocxSectionPlan, ...],
     ) -> None:
         for section_plan in sections:
             section = document.add_section()
@@ -381,7 +381,7 @@ class FlextCliUtilitiesDocxRenderer:
                 section.bottom_margin = Inches(section_plan.bottom_margin / 914400)
 
     @classmethod
-    def _color_value(cls, color: m.Cli.DocxColor) -> RGBColor:
+    def _color_value(cls, color: p.Cli.DocxColor) -> RGBColor:
         if color.kind == "rgb":
             value = color.value
             if len(value) == cls._HEX_COLOR_WITH_ALPHA_LENGTH:

@@ -10,7 +10,6 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import m
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryCleanup,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -28,10 +27,10 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
 
     @staticmethod
     def create_guarded_empty_directory(
-        before: m.Cli.AtomicDirectoryState,
+        before: p.Cli.AtomicDirectoryState,
         *,
         permission_mode: int,
-    ) -> m.Cli.AtomicDirectoryState:
+    ) -> p.Cli.AtomicDirectoryState:
         """Create one directory only from an exact absent state under caller lock.
 
         Returns:

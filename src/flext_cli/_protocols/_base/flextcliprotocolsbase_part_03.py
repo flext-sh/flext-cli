@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli._protocols._base import FlextCliProtocolsBasePart02
@@ -20,6 +21,30 @@ if TYPE_CHECKING:
 
 class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
     """Implementation part for FlextCliProtocolsBasePart03."""
+
+    @runtime_checkable
+    class AtomicDirectoryState(Protocol):
+        """Immutable physical identity of one directory state."""
+
+        @property
+        def path(self) -> Path:
+            """Authenticated directory path."""
+            ...
+
+        @property
+        def exists(self) -> bool:
+            """Whether the directory exists."""
+            ...
+
+        @property
+        def device(self) -> int | None:
+            """Physical device identifier."""
+            ...
+
+        @property
+        def inode(self) -> int | None:
+            """Physical inode identifier."""
+            ...
 
     @runtime_checkable
     class CommandRunner(Protocol):

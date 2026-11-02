@@ -29,26 +29,26 @@ class FlextCliUtilitiesXlsxRecalc(
     @classmethod
     def recalculate_workbook(
         cls,
-        request: m.Cli.XlsxRecalcRequest,
-    ) -> p.Result[m.Cli.XlsxRecalcResult]:
+        request: p.Cli.XlsxRecalcRequest,
+    ) -> p.Result[p.Cli.XlsxRecalcResult]:
         """Recalculate every formula cache through the headless office engine.
 
         Returns:
-            The resulting ``p.Result[m.Cli.XlsxRecalcResult]``.
+            The resulting ``p.Result[p.Cli.XlsxRecalcResult]``.
 
         """
         try:
             return cls._xlsx_recalc_unchecked(request)
         except (OSError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxRecalcResult].fail(
+            return r[p.Cli.XlsxRecalcResult].fail(
                 f"{c.Cli.XlsxError.RECALC_FAILED}: {detail}",
             )
 
     @staticmethod
     def _xlsx_recalc_unchecked(
-        request: m.Cli.XlsxRecalcRequest,
-    ) -> p.Result[m.Cli.XlsxRecalcResult]:
+        request: p.Cli.XlsxRecalcRequest,
+    ) -> p.Result[p.Cli.XlsxRecalcResult]:
         with tempfile.TemporaryDirectory(
             prefix=c.Cli.XLSX_RECALC_TEMP_PREFIX,
         ) as workspace:
@@ -73,7 +73,7 @@ class FlextCliUtilitiesXlsxRecalc(
                 cwd=workdir,
             )
             if started.failure:
-                return r[m.Cli.XlsxRecalcResult].fail(
+                return r[p.Cli.XlsxRecalcResult].fail(
                     f"{c.Cli.XlsxError.RECALC_FAILED}: {started.error}",
                 )
             process = started.value
@@ -83,41 +83,41 @@ class FlextCliUtilitiesXlsxRecalc(
                 detail = completed.error or "process wait failed"
                 if killed.failure:
                     detail = f"{detail}; kill failed: {killed.error}"
-                return r[m.Cli.XlsxRecalcResult].fail(
+                return r[p.Cli.XlsxRecalcResult].fail(
                     f"{c.Cli.XlsxError.RECALC_FAILED}: {detail}",
                 )
             if completed.value != 0:
                 detail = process.stderr.strip() or process.stdout.strip()
-                return r[m.Cli.XlsxRecalcResult].fail(
+                return r[p.Cli.XlsxRecalcResult].fail(
                     f"{c.Cli.XlsxError.RECALC_FAILED}: exit={completed.value}:"
                     f" {detail}",
                 )
             content = (output_dir / c.Cli.XLSX_RECALC_SOURCE_NAME).read_bytes()
-        return r[m.Cli.XlsxRecalcResult].ok(m.Cli.XlsxRecalcResult(content=content))
+        return r[p.Cli.XlsxRecalcResult].ok(m.Cli.XlsxRecalcResult(content=content))
 
     @classmethod
     def verify_recalculation_parity(
         cls,
-        request: m.Cli.XlsxRecalcParityRequest,
-    ) -> p.Result[m.Cli.XlsxRecalcParityReport]:
+        request: p.Cli.XlsxRecalcParityRequest,
+    ) -> p.Result[p.Cli.XlsxRecalcParityReport]:
         """Recalculate and compare cached values against source formulas.
 
         Returns:
-            The resulting ``p.Result[m.Cli.XlsxRecalcParityReport]``.
+            The resulting ``p.Result[p.Cli.XlsxRecalcParityReport]``.
 
         """
         formula_snapshot = cls.snapshot_workbook(
             m.Cli.XlsxSnapshotRequest(source=request.source, data_only=False),
         )
         if formula_snapshot.failure:
-            return r[m.Cli.XlsxRecalcParityReport].fail(
+            return r[p.Cli.XlsxRecalcParityReport].fail(
                 f"{c.Cli.XlsxError.PARITY_FAILED}: {formula_snapshot.error}",
             )
         recalculated = cls.recalculate_workbook(
             m.Cli.XlsxRecalcRequest(source=request.source),
         )
         if recalculated.failure:
-            return r[m.Cli.XlsxRecalcParityReport].fail(
+            return r[p.Cli.XlsxRecalcParityReport].fail(
                 f"{c.Cli.XlsxError.PARITY_FAILED}: {recalculated.error}",
             )
         value_snapshot = cls.snapshot_workbook(
@@ -127,12 +127,12 @@ class FlextCliUtilitiesXlsxRecalc(
             ),
         )
         if value_snapshot.failure:
-            return r[m.Cli.XlsxRecalcParityReport].fail(
+            return r[p.Cli.XlsxRecalcParityReport].fail(
                 f"{c.Cli.XlsxError.PARITY_FAILED}: {value_snapshot.error}",
             )
         cache_evidence = cls._formula_cache_evidence(recalculated.value.content)
         if cache_evidence.failure:
-            return r[m.Cli.XlsxRecalcParityReport].fail(
+            return r[p.Cli.XlsxRecalcParityReport].fail(
                 f"{c.Cli.XlsxError.PARITY_FAILED}: {cache_evidence.error}",
             )
         uncached_cells, empty_result_cells = cache_evidence.value
@@ -160,7 +160,7 @@ class FlextCliUtilitiesXlsxRecalc(
             empty_result_cells=empty_result_cells,
             ok=not error_cells and not uncached_cells and count_matches,
         )
-        return r[m.Cli.XlsxRecalcParityReport].ok(report)
+        return r[p.Cli.XlsxRecalcParityReport].ok(report)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxRecalc",)

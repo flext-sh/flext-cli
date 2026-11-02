@@ -8,14 +8,14 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from tests import m, tm, u
+from tests import m, p, tm, u
 
 
 class TestsFlextCliFileChanges:
     """Observe publication through the public ``u.Cli``/``m.Cli`` surface."""
 
     @staticmethod
-    def _change(path: Path, content: bytes | None) -> m.Cli.FileChange:
+    def _change(path: Path, content: bytes | None) -> p.Cli.FileChange:
         return m.Cli.FileChange(
             path=path,
             before=tm.ok(u.Cli.atomic_read_binary_file_state(path)),

@@ -37,7 +37,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
         required: bool,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> m.Cli.AtomicFileReceipt:
+    ) -> p.Cli.AtomicFileReceipt:
         """Measure exact bytes once while retaining descriptor and parent identity.
 
         Returns:
@@ -82,7 +82,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
     @staticmethod
     @contextmanager
     def receipt_reader(
-        receipt: m.Cli.AtomicFileReceipt,
+        receipt: p.Cli.AtomicFileReceipt,
     ) -> Generator[p.Cli.AtomicFileReader]:
         """Authenticate a receipt once and retain one descriptor for all ranges.
 

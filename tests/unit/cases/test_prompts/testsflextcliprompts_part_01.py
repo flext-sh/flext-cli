@@ -10,12 +10,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, tm
+from tests import c, p, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-from tests import p
 
 
 class TestsFlextCliPromptsPart01:

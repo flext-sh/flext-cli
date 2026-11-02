@@ -35,7 +35,7 @@ class FlextCliUtilitiesXlsxRenderer(
     def _render_sheet(
         cls,
         workbook: Workbook,
-        plan: m.Cli.XlsxSheetPlan,
+        plan: p.Cli.XlsxSheetPlan,
         table_names: frozenset[str],
     ) -> p.Result[frozenset[str]]:
         if plan.name not in workbook.sheetnames:
@@ -65,31 +65,31 @@ class FlextCliUtilitiesXlsxRenderer(
     @classmethod
     def render_workbook(
         cls,
-        request: m.Cli.XlsxRenderRequest,
-    ) -> p.Result[m.Cli.XlsxRenderResult]:
+        request: p.Cli.XlsxRenderRequest,
+    ) -> p.Result[p.Cli.XlsxRenderResult]:
         """Render typed sheets, names, styles, and rules into workbook bytes.
 
         Returns:
-            The resulting ``p.Result[m.Cli.XlsxRenderResult]``.
+            The resulting ``p.Result[p.Cli.XlsxRenderResult]``.
 
         """
         workbook_result = cls._workbook_for_request(request)
         if workbook_result.failure:
-            return r[m.Cli.XlsxRenderResult].from_failure(workbook_result)
+            return r[p.Cli.XlsxRenderResult].from_failure(workbook_result)
         workbook = workbook_result.value
         table_names: frozenset[str] = frozenset()
         for sheet in request.plan.sheets:
             rendered = cls._render_sheet(workbook, sheet, table_names)
             if rendered.failure:
-                return r[m.Cli.XlsxRenderResult].from_failure(rendered)
+                return r[p.Cli.XlsxRenderResult].from_failure(rendered)
             table_names = rendered.value
         names = cls._apply_defined_names(workbook, request.plan.defined_names)
         if names.failure:
-            return r[m.Cli.XlsxRenderResult].from_failure(names)
+            return r[p.Cli.XlsxRenderResult].from_failure(names)
         content = cls._serialize_workbook(workbook)
         if content.failure:
-            return r[m.Cli.XlsxRenderResult].from_failure(content)
-        return r[m.Cli.XlsxRenderResult].ok(
+            return r[p.Cli.XlsxRenderResult].from_failure(content)
+        return r[p.Cli.XlsxRenderResult].ok(
             m.Cli.XlsxRenderResult(content=content.value, plan=request.plan),
         )
 

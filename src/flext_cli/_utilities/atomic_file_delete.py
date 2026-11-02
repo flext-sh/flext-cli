@@ -9,7 +9,6 @@ from __future__ import annotations
 import errno
 from collections.abc import MutableSequence
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -20,16 +19,13 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileState,
 )
 
-if TYPE_CHECKING:
-    from flext_cli import m
-
 
 class FlextCliUtilitiesAtomicFileDelete:
     """Canonical namespace owner."""
 
     @staticmethod
     def remove_guarded_file(
-        state: m.Cli.AtomicFileState,
+        state: p.Cli.AtomicFileState,
         *,
         published_paths: MutableSequence[Path] | None = None,
     ) -> None:

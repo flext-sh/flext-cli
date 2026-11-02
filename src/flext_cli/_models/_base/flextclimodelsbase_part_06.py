@@ -76,7 +76,7 @@ class FlextCliModelsBasePart06:
     class OptionMetadata(m.BaseModel):
         """Validated option-registry metadata for Typer option generation."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="ignore", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="ignore", frozen=True)
 
         help: Annotated[
             str,

@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
-from flext_core import m
+from flext_core import m, t
 
 from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
 
@@ -24,7 +24,7 @@ class FlextCliModelsFileChange:
         when the destination no longer matches ``before``.
         """
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
 
         path: Annotated[Path, m.Field(description="Absolute destination path")]
         before: Annotated[

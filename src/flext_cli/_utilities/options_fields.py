@@ -10,7 +10,7 @@ from collections.abc import Sequence
 
 from flext_core import u
 
-from flext_cli import c, m, t
+from flext_cli import c, p, t
 from flext_cli._utilities import FlextCliUtilitiesConversion
 from flext_cli._utilities.option_builder import FlextCliUtilitiesOptionBuilder
 from flext_cli._utilities.options_annotations import FlextCliUtilitiesOptionsAnnotations
@@ -94,7 +94,7 @@ class FlextCliUtilitiesOptionsFields(FlextCliUtilitiesOptionsAnnotations):
     def build_option(
         field_name: str,
         registry: t.Cli.OptionRegistry,
-    ) -> m.Cli.OptionSpec:
+    ) -> p.Cli.OptionSpec:
         """Build one CLI option spec from the canonical registry.
 
         Returns:

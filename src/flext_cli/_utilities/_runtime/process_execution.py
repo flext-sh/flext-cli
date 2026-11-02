@@ -75,7 +75,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _execute_streamed_process(
         cls,
-        request: m.Cli.RuntimeProcessRequest,
+        request: p.Cli.RuntimeProcessRequest,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Own resources and complete one streamed child lifecycle.
 
@@ -138,8 +138,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _execute_lifecycle(
         cls,
-        request: m.Cli.RuntimeProcessRequest,
-        state: m.Cli.RuntimeProcessState,
+        request: p.Cli.RuntimeProcessRequest,
+        state: p.Cli.RuntimeProcessState,
         absolute_deadline: float | None,
         grace_seconds: float,
     ) -> None:
@@ -217,7 +217,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _open_durable_log_destinations(
-        cls, state: m.Cli.RuntimeProcessState, request: m.Cli.RuntimeProcessRequest
+        cls, state: p.Cli.RuntimeProcessState, request: p.Cli.RuntimeProcessRequest
     ) -> None:
         """Create and retain unbuffered durable sinks on the lifecycle stack."""
         destinations = (request.output_path, request.stderr_path)
@@ -234,8 +234,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _prepare_process_isolation(
         cls,
-        request: m.Cli.RuntimeProcessRequest,
-        state: m.Cli.RuntimeProcessState,
+        request: p.Cli.RuntimeProcessRequest,
+        state: p.Cli.RuntimeProcessState,
         command: tuple[str, ...],
         grace_seconds: float,
     ) -> tuple[tuple[str, ...], Mapping[str, str] | None, tuple[int, ...]] | None:
@@ -278,8 +278,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _ensure_isolation_platform_qualified(
         cls,
-        isolation: m.Cli.ProcessReadOnlyIsolation,
-        request: m.Cli.RuntimeProcessRequest,
+        isolation: p.Cli.ProcessReadOnlyIsolation,
+        request: p.Cli.RuntimeProcessRequest,
     ) -> None:
         """Require a natively qualified host for the read-only isolation.
 
@@ -304,7 +304,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _ensure_isolation_environment_qualified(
-        cls, isolation: m.Cli.ProcessReadOnlyIsolation
+        cls, isolation: p.Cli.ProcessReadOnlyIsolation
     ) -> None:
         """Require complete, unique, and valid child environment names.
 
@@ -323,7 +323,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _ensure_isolation_targets_absolute(
-        cls, request: m.Cli.RuntimeProcessRequest, command: tuple[str, ...]
+        cls, request: p.Cli.RuntimeProcessRequest, command: tuple[str, ...]
     ) -> Path:
         """Require an absolute executable and working directory declaration.
 
@@ -345,11 +345,11 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _ensure_isolation_inputs_unique(
-        cls, isolation: m.Cli.ProcessReadOnlyIsolation
+        cls, isolation: p.Cli.ProcessReadOnlyIsolation
     ) -> tuple[
         tuple[Path, ...],
         tuple[Path, ...],
-        tuple[m.Cli.AtomicFileState, ...],
+        tuple[p.Cli.AtomicFileState, ...],
         m.Cli.AtomicFileState,
     ]:
         """Deduplicate declared isolation inputs and require unique owners.
@@ -410,7 +410,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _ensure_isolation_launcher_qualified(
-        cls, launcher_artifact: m.Cli.AtomicFileState
+        cls, launcher_artifact: p.Cli.AtomicFileState
     ) -> None:
         """Require an executable, unprivileged isolated launcher.
 
@@ -428,7 +428,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _ensure_isolation_inputs_unchanged(
-        cls, files: tuple[m.Cli.AtomicFileState, ...]
+        cls, files: tuple[p.Cli.AtomicFileState, ...]
     ) -> None:
         """Require every declared input to match its captured state.
 
@@ -447,8 +447,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _retain_isolation_runtime_descriptors(
         cls,
-        state: m.Cli.RuntimeProcessState,
-        isolation: m.Cli.ProcessReadOnlyIsolation,
+        state: p.Cli.RuntimeProcessState,
+        isolation: p.Cli.ProcessReadOnlyIsolation,
         roots: tuple[Path, ...],
         paths: tuple[Path, ...],
     ) -> list[tuple[int, Path]]:
@@ -492,7 +492,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _ensure_runtime_link_captured(
         cls,
-        entry: m.Cli.AtomicPhysicalTreeEntry,
+        entry: p.Cli.AtomicPhysicalTreeEntry,
         roots: tuple[Path, ...],
         paths: tuple[Path, ...],
     ) -> None:
@@ -522,7 +522,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     def _ensure_isolation_closure_qualified(
         cls,
         working: Path,
-        isolation: m.Cli.ProcessReadOnlyIsolation,
+        isolation: p.Cli.ProcessReadOnlyIsolation,
         roots: tuple[Path, ...],
         command: tuple[str, ...],
     ) -> None:
@@ -553,7 +553,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _qualify_isolation_native_tools(
-        cls, isolation: m.Cli.ProcessReadOnlyIsolation
+        cls, isolation: p.Cli.ProcessReadOnlyIsolation
     ) -> None:
         """Qualify the launcher and policy compiler bootstrap evidence rows."""
         cls._qualify_native_tool(
@@ -574,9 +574,9 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _seal_isolation_executors(
         cls,
-        request: m.Cli.RuntimeProcessRequest,
-        state: m.Cli.RuntimeProcessState,
-        isolation: m.Cli.ProcessReadOnlyIsolation,
+        request: p.Cli.RuntimeProcessRequest,
+        state: p.Cli.RuntimeProcessState,
+        isolation: p.Cli.ProcessReadOnlyIsolation,
         grace_seconds: float,
     ) -> tuple[int, int] | None:
         """Seal the launcher and compile the read-only policy descriptor.
@@ -595,8 +595,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _build_isolation_arguments(
         cls,
-        state: m.Cli.RuntimeProcessState,
-        isolation: m.Cli.ProcessReadOnlyIsolation,
+        state: p.Cli.RuntimeProcessState,
+        isolation: p.Cli.ProcessReadOnlyIsolation,
         sealed: tuple[int, int],
         *,
         runtime_descriptors: list[tuple[int, Path]],
@@ -665,11 +665,11 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _qualify_native_tool(
         cls,
-        qualification: m.Cli.ProcessNativeToolQualification,
-        declaration: m.Cli.AtomicFileState,
+        qualification: p.Cli.ProcessNativeToolQualification,
+        declaration: p.Cli.AtomicFileState,
         architecture: str,
         role: Literal["isolation-launcher", "policy-compiler"],
-        compiler_receipt: m.Cli.AtomicFileReceipt,
+        compiler_receipt: p.Cli.AtomicFileReceipt,
     ) -> None:
         """Bind one native tool to an actual current bootstrap evidence row."""
         cls._ensure_native_tool_evidence(qualification, role, compiler_receipt)
@@ -680,9 +680,9 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _ensure_native_tool_evidence(
         cls,
-        qualification: m.Cli.ProcessNativeToolQualification,
+        qualification: p.Cli.ProcessNativeToolQualification,
         role: Literal["isolation-launcher", "policy-compiler"],
-        compiler_receipt: m.Cli.AtomicFileReceipt,
+        compiler_receipt: p.Cli.AtomicFileReceipt,
     ) -> None:
         """Require one original bootstrap qualification row for the tool.
 
@@ -722,7 +722,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _ensure_native_tool_denials(
-        cls, qualification: m.Cli.ProcessNativeToolQualification, architecture: str
+        cls, qualification: p.Cli.ProcessNativeToolQualification, architecture: str
     ) -> None:
         """Require complete denial qualification for the declared ABI.
 
@@ -768,8 +768,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _ensure_native_tool_declaration(
         cls,
-        qualification: m.Cli.ProcessNativeToolQualification,
-        declaration: m.Cli.AtomicFileState,
+        qualification: p.Cli.ProcessNativeToolQualification,
+        declaration: p.Cli.AtomicFileState,
     ) -> None:
         """Require the elected declaration and unchanged qualification inputs.
 
@@ -807,7 +807,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _ensure_native_tool_artifact(
-        cls, qualification: m.Cli.ProcessNativeToolQualification
+        cls, qualification: p.Cli.ProcessNativeToolQualification
     ) -> None:
         """Require artifact bytes matching the receipt and declared ABI.
 
@@ -981,8 +981,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _compile_process_policy(
         cls,
-        request: m.Cli.RuntimeProcessRequest,
-        state: m.Cli.RuntimeProcessState,
+        request: p.Cli.RuntimeProcessRequest,
+        state: p.Cli.RuntimeProcessState,
         grace_seconds: float,
     ) -> int | None:
         """Run the qualified static SDK compiler through the same public process port.
@@ -1032,8 +1032,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @staticmethod
     def _sealed_process_input(
-        state: m.Cli.RuntimeProcessState,
-        captured: m.Cli.AtomicFileState,
+        state: p.Cli.RuntimeProcessState,
+        captured: p.Cli.AtomicFileState,
     ) -> int:
         """Retain exact captured bytes in an immutable anonymous native file.
 
@@ -1056,7 +1056,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @staticmethod
     def _sealed_process_bytes(
-        state: m.Cli.RuntimeProcessState, name: str, content: bytes, mode: int
+        state: p.Cli.RuntimeProcessState, name: str, content: bytes, mode: int
     ) -> int:
         """Seal exact process-owner bytes in an anonymous descriptor.
 
@@ -1094,8 +1094,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     def _attach_process_streams(
         cls,
         process: p.Cli.ProcessHandle,
-        request: m.Cli.RuntimeProcessRequest,
-        state: m.Cli.RuntimeProcessState,
+        request: p.Cli.RuntimeProcessRequest,
+        state: p.Cli.RuntimeProcessState,
         stdin: tuple[BinaryIO | None, BinaryIO | None, bytes],
         live_fds: tuple[int | None, int | None],
     ) -> threading.Thread:
@@ -1148,7 +1148,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _finalize_lifecycle(
         cls,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         *,
         interrupted: BaseException | None = None,
     ) -> None:

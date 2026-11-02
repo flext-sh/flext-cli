@@ -14,7 +14,6 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Never
 
-from flext_cli import m
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryDelete,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -33,7 +32,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
 
     @staticmethod
     def cleanup_physical_tree_guarded(
-        manifest: m.Cli.AtomicPhysicalTreeManifest,
+        manifest: p.Cli.AtomicPhysicalTreeManifest,
     ) -> None:
         """Delete only the exact manifested tree under the caller's exclusive lock."""
         FlextCliUtilitiesAtomicTreeCleanup._require_cleanup_capabilities(manifest)
@@ -69,7 +68,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
 
     @staticmethod
     def _require_cleanup_capabilities(
-        manifest: m.Cli.AtomicPhysicalTreeManifest,
+        manifest: p.Cli.AtomicPhysicalTreeManifest,
     ) -> None:
         root = manifest.root
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_delete_capabilities(
@@ -117,7 +116,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
     @staticmethod
     @contextmanager
     def _authenticated_parent(
-        entry: m.Cli.AtomicPhysicalTreeEntry,
+        entry: p.Cli.AtomicPhysicalTreeEntry,
     ) -> Generator[FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor]:
         """Open the unlink parent and authenticate it against one manifest entry.
 
@@ -143,7 +142,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             yield parent
 
     @staticmethod
-    def _delete_file(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
+    def _delete_file(entry: p.Cli.AtomicPhysicalTreeEntry) -> None:
         with FlextCliUtilitiesAtomicTreeCleanup._authenticated_parent(entry) as parent:
             observed = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 entry.path,
@@ -182,7 +181,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
                 raise OSError(errno.ESTALE, message, entry.path)
 
     @staticmethod
-    def _delete_symlink(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
+    def _delete_symlink(entry: p.Cli.AtomicPhysicalTreeEntry) -> None:
         with FlextCliUtilitiesAtomicTreeCleanup._authenticated_parent(entry) as parent:
             observed = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(
                 parent,
@@ -227,7 +226,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
                 FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path)
 
     @staticmethod
-    def _delete_directory(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
+    def _delete_directory(entry: p.Cli.AtomicPhysicalTreeEntry) -> None:
         current = (
             FlextCliUtilitiesAtomicDirectorySnapshot.read_authenticated_empty_directory(
                 entry.path,
@@ -264,7 +263,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
 
     @staticmethod
     def _require_file_state(
-        entry: m.Cli.AtomicPhysicalTreeEntry,
+        entry: p.Cli.AtomicPhysicalTreeEntry,
         observed: os.stat_result,
     ) -> None:
         if (
@@ -296,7 +295,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
 
     @staticmethod
     def _require_parent(
-        entry: m.Cli.AtomicPhysicalTreeEntry,
+        entry: p.Cli.AtomicPhysicalTreeEntry,
         device: int | None,
         inode: int | None,
     ) -> None:
@@ -304,7 +303,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path.parent)
 
     @staticmethod
-    def _deletion_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> tuple[int, str]:
+    def _deletion_key(entry: p.Cli.AtomicPhysicalTreeEntry) -> tuple[int, str]:
         return (len(entry.path.parts), entry.path.as_posix())
 
     @staticmethod

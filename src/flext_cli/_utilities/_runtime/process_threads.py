@@ -16,7 +16,7 @@ from flext_cli._utilities._runtime import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli import m, p
+    from flext_cli import p
 
 
 class FlextCliUtilitiesRuntimeProcessThreads(
@@ -70,8 +70,8 @@ class FlextCliUtilitiesRuntimeProcessThreads(
     def _start_output_pump(
         cls,
         source: IO[bytes],
-        target: m.Cli.RuntimeOutputTarget,
-        state: m.Cli.RuntimeProcessState,
+        target: p.Cli.RuntimeOutputTarget,
+        state: p.Cli.RuntimeProcessState,
         *,
         thread_name: str,
     ) -> threading.Thread:

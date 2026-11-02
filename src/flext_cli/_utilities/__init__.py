@@ -88,7 +88,9 @@ if TYPE_CHECKING:
     from flext_cli._utilities.atomic_tree_cleanup import (
         FlextCliUtilitiesAtomicTreeCleanup,
     )
-    from flext_cli._utilities.atomic_tree_darwin import FlextCliAtomicTreeDarwin
+    from flext_cli._utilities.atomic_tree_darwin import (
+        FlextCliUtilitiesAtomicTreeDarwin,
+    )
     from flext_cli._utilities.atomic_tree_descriptor import (
         FlextCliUtilitiesAtomicTreeDescriptor,
     )
@@ -143,7 +145,6 @@ if TYPE_CHECKING:
 
 
 __all__: tuple[str, ...] = (
-    "FlextCliAtomicTreeDarwin",
     "FlextCliUtilitiesAtomicDirectoryChain",
     "FlextCliUtilitiesAtomicDirectoryCleanup",
     "FlextCliUtilitiesAtomicDirectoryCreate",
@@ -173,6 +174,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesAtomicSymlinkPublish",
     "FlextCliUtilitiesAtomicSymlinkState",
     "FlextCliUtilitiesAtomicTreeCleanup",
+    "FlextCliUtilitiesAtomicTreeDarwin",
     "FlextCliUtilitiesAtomicTreeDescriptor",
     "FlextCliUtilitiesAtomicTreeInventory",
     "FlextCliUtilitiesAuth",
@@ -222,7 +224,7 @@ install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "FlextCliAtomicTreeDarwin": ".atomic_tree_darwin",
+        "FlextCliUtilitiesAtomicTreeDarwin": ".atomic_tree_darwin",
         "FlextCliUtilitiesAtomicDirectoryChain": ".atomic_directory_chain",
         "FlextCliUtilitiesAtomicDirectoryCleanup": ".atomic_directory_cleanup",
         "FlextCliUtilitiesAtomicDirectoryCreate": ".atomic_directory_create",

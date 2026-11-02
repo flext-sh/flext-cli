@@ -193,7 +193,7 @@ class FlextCliUtilitiesJsonCore:
     @staticmethod
     def _json_write_content(
         payload: t.JsonValue | t.JsonPayload | t.JsonMapping,
-        options: m.Cli.JsonWriteOptions,
+        options: p.Cli.JsonWriteOptions,
     ) -> str:
         """Serialize a JSON payload using canonical write options.
 
@@ -247,7 +247,7 @@ class FlextCliUtilitiesJsonCore:
     def json_write(
         path: Path,
         payload: t.JsonValue | t.JsonPayload | t.JsonMapping,
-        options: m.Cli.JsonWriteOptions | None = None,
+        options: p.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
         """Atomically publish a Pydantic-serializable payload as a JSON file.
 

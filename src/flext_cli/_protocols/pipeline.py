@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     # mro-j47u (codex): p -> m is a reverse facade edge; keep it type-only.
     from flext_core import p
 
-    from flext_cli import m, t
+    from flext_cli import t
 
 
 class FlextCliProtocolsPipeline:
@@ -47,7 +47,7 @@ class FlextCliProtocolsPipeline:
             self,
             ctx: FlextCliProtocolsPipeline.PipelineStageContext,
             /,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             """Execute stage and return typed result."""
             ...
 
@@ -73,7 +73,7 @@ class FlextCliProtocolsPipeline:
             *,
             shared: t.MutableJsonMapping | None = None,
             settings: t.JsonMapping | None = None,
-        ) -> m.Cli.PipelineStageContext:
+        ) -> p.Cli.PipelineStageContext:
             """Build the canonical pipeline execution context."""
             ...
 
@@ -84,7 +84,7 @@ class FlextCliProtocolsPipeline:
             handler: FlextCliProtocolsPipeline.PipelineStage,
             depends_on: Sequence[str] | frozenset[str] = (),
             skip_if: FlextCliProtocolsPipeline.PipelineSkipPredicate | None = None,
-        ) -> m.Cli.PipelineStageSpec:
+        ) -> p.Cli.PipelineStageSpec:
             """Build one declarative pipeline stage spec."""
             ...
 
@@ -96,7 +96,7 @@ class FlextCliProtocolsPipeline:
             output: t.JsonMapping | None = None,
             duration_ms: float = 0.0,
             error: str | None = None,
-        ) -> m.Cli.PipelineStageResult:
+        ) -> p.Cli.PipelineStageResult:
             """Build one typed pipeline stage result payload."""
             ...
 
@@ -106,17 +106,17 @@ class FlextCliProtocolsPipeline:
             *,
             output: t.JsonMapping | None = None,
             duration_ms: float = 0.0,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             """Return a successful typed stage result via ``r``."""
             ...
 
         def pipeline(
             self,
-            stages: Sequence[m.Cli.PipelineStageSpec],
+            stages: Sequence[p.Cli.PipelineStageSpec],
             *,
-            context: m.Cli.PipelineStageContext,
+            context: p.Cli.PipelineStageContext,
             logger: p.Logger | None = None,
-        ) -> p.Result[m.Cli.PipelineResult]:
+        ) -> p.Result[p.Cli.PipelineResult]:
             """Execute a pipeline from the public service DSL."""
             ...
 
@@ -130,7 +130,7 @@ class FlextCliProtocolsPipeline:
                 FlextCliProtocolsPipeline.PipelineSkipPredicate,
             ]
             | None = None,
-        ) -> Sequence[m.Cli.PipelineStageSpec]:
+        ) -> Sequence[p.Cli.PipelineStageSpec]:
             """Build a linear dependency chain with canonical previous-stage deps."""
             ...
 

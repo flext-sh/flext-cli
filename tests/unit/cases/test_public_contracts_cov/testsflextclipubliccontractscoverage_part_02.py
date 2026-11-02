@@ -46,7 +46,7 @@ class TestsFlextCliPublicContractsCoveragePart02:
             handler=lambda: r[t.JsonPayload].ok(value=True),
         )
 
-        def route_handler(_params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
+        def route_handler(_params: p.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return r[t.JsonPayload].ok(m.Tests.SampleOutput(message="ok"))
 
         route = m.Cli.ResultCommandRoute(

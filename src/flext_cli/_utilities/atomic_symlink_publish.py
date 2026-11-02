@@ -50,7 +50,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
 
     @staticmethod
     def _stage_verified_link(
-        before: m.Cli.AtomicSymlinkState,
+        before: p.Cli.AtomicSymlinkState,
         target: str,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
     ) -> tuple[Path, m.Cli.AtomicSymlinkState]:
@@ -78,7 +78,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
 
     @staticmethod
     def _discard_staged(
-        staged: m.Cli.AtomicSymlinkState,
+        staged: p.Cli.AtomicSymlinkState,
         staged_path: Path,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
     ) -> None:
@@ -89,7 +89,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
 
     @staticmethod
     def _swap_staged_link(
-        before: m.Cli.AtomicSymlinkState,
+        before: p.Cli.AtomicSymlinkState,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         staged_path: Path,
     ) -> None:
@@ -117,7 +117,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
         path: Path,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         target: str,
-        staged: m.Cli.AtomicSymlinkState,
+        staged: p.Cli.AtomicSymlinkState,
     ) -> None:
         """Prove the published link kept its target and its staged identity.
 
@@ -143,7 +143,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
             raise OSError(errno.ESTALE, msg, path)
 
     @staticmethod
-    def write_guarded_symlink(before: m.Cli.AtomicSymlinkState, target: str) -> None:
+    def write_guarded_symlink(before: p.Cli.AtomicSymlinkState, target: str) -> None:
         """Replace one authenticated link, or create at authenticated absence.
 
         All cooperative writers must hold the same lease from snapshot to effect.
@@ -211,7 +211,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
                 raise
 
     @staticmethod
-    def delete_guarded_symlink(before: m.Cli.AtomicSymlinkState) -> None:
+    def delete_guarded_symlink(before: p.Cli.AtomicSymlinkState) -> None:
         """Delete exactly one authenticated link, never its target.
 
         Raises:

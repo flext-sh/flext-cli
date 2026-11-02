@@ -23,7 +23,7 @@ from contextvars import copy_context
 from functools import partial
 from types import FrameType
 
-from flext_cli import m, p, r, t
+from flext_cli import p, r, t
 from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeProcessMonitor,
     FlextCliUtilitiesRuntimeProcessThreads,
@@ -242,7 +242,7 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
         cls,
         process: p.Cli.ProcessHandle,
         waiter: threading.Thread,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
     ) -> int | None:
         """Kill the owned boundary, reap root, drain output, and prove empty.
 
@@ -286,7 +286,7 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
         cls,
         pump: threading.Thread,
         stream: p.Cli.RuntimeClosableStream,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         cleanup_deadline: float,
         *,
         direction: str,
@@ -315,7 +315,7 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
     def _empty_owned_boundary(
         cls,
         process: p.Cli.ProcessHandle,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         cleanup_deadline: float,
     ) -> None:
         boundary = cls._process_boundary_empty(process.pid, state.job_handle)

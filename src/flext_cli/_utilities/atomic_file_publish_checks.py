@@ -88,7 +88,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         destination: Path,
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged: m.Cli.ObservedFile,
+        staged: p.Cli.ObservedFile,
     ) -> None:
         """Require the pinned rename parents to occupy one filesystem.
 
@@ -111,7 +111,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged: m.Cli.StagedFile | m.Cli.AtomicFileReceipt,
+        staged: p.Cli.StagedFile | m.Cli.AtomicFileReceipt,
     ) -> os.stat_result:
         """Prove replacement consumed the staged name and retained its exact state.
 

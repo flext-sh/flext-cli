@@ -72,7 +72,7 @@ class FlextCliUtilitiesFormatters:
         FlextCliUtilitiesOutput.emit_raw(f"{border}\n")
 
     @classmethod
-    def formatters_render_table(cls, request: m.Cli.TableRenderRequest) -> None:
+    def formatters_render_table(cls, request: p.Cli.TableRenderRequest) -> None:
         """Render one table from the validated render request.
 
         Args:

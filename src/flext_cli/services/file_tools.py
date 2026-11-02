@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 
-from flext_cli import m, p, s, t, u
+from flext_cli import p, s, t, u
 
 
 class FlextCliFileTools(s[p.Cli.RuntimeStatus]):
@@ -62,7 +62,7 @@ class FlextCliFileTools(s[p.Cli.RuntimeStatus]):
     def write_json_file(
         file_path: t.Cli.TextPath,
         data: t.Cli.JsonWriteData,
-        options: m.Cli.JsonWriteOptions | None = None,
+        options: p.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
         """Write JSON data using the canonical serialization options.
 

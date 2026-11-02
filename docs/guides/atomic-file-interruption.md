@@ -33,7 +33,7 @@ consume that owner directly, without wrapping its descriptors in callable aliase
 file and process consumers retain their public APIs through `u.Cli`.
 Receipt construction likewise uses the original retained native state and stream.
 
-The public byte-state reader returns `p.Result[m.Cli.AtomicFileState]` through
+The public byte-state reader returns `p.Result[p.Cli.AtomicFileState]` through
 Core's generic `r.ok` and covariant failure factory. It constructs and validates
 the state model once from the retained native observation; the result carries
 that instance by reference. Specializing the result class at each read solely

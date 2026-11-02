@@ -15,11 +15,11 @@ from typing import Never
 
 from flext_cli import c
 from flext_cli._utilities import (
-    FlextCliAtomicTreeDarwin,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileRead,
     FlextCliUtilitiesAtomicFileState,
+    FlextCliUtilitiesAtomicTreeDarwin,
 )
 
 
@@ -79,7 +79,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         """
         platform_name = FlextCliUtilitiesAtomicTreeDescriptor._tree_runtime_platform()
         if platform_name == "darwin":
-            return FlextCliAtomicTreeDarwin.darwin_mount_id(
+            return FlextCliUtilitiesAtomicTreeDarwin.darwin_mount_id(
                 descriptor,
                 path,
             )

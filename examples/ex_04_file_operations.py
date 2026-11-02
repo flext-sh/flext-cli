@@ -53,11 +53,11 @@ class ExamplesFlextCliFileOperations:
         return r[bool].ok(value=True)
 
     @staticmethod
-    def load_user_preferences(config_dir: Path) -> p.Result[m.Cli.LoadedConfig]:
+    def load_user_preferences(config_dir: Path) -> p.Result[p.Cli.LoadedConfig]:
         """Load user preferences from JSON in YOUR app: r[LoadedConfig], no None.
 
         Returns:
-            The resulting ``p.Result[m.Cli.LoadedConfig]``.
+            The resulting ``p.Result[p.Cli.LoadedConfig]``.
 
         """
         config_file = config_dir / "preferences.json"
@@ -69,15 +69,15 @@ class ExamplesFlextCliFileOperations:
                 f"⚠️  Could not load: {read_result.error}",
                 style=c.Cli.MessageStyles.YELLOW,
             )
-            return r[m.Cli.LoadedConfig].from_failure(read_result)
+            return r[p.Cli.LoadedConfig].from_failure(read_result)
         if not isinstance(read_result.value, Mapping):
-            return r[m.Cli.LoadedConfig].fail("Preferences content must be a mapping")
+            return r[p.Cli.LoadedConfig].fail("Preferences content must be a mapping")
 
         cli.print(
             f"✅ Loaded preferences from {config_file.name}",
             style=c.Cli.MessageStyles.GREEN,
         )
-        return r[m.Cli.LoadedConfig].ok(
+        return r[p.Cli.LoadedConfig].ok(
             m.Cli.LoadedConfig(content=dict(read_result.value)),
         )
 
@@ -107,13 +107,13 @@ class ExamplesFlextCliFileOperations:
         return r[bool].ok(value=True)
 
     @staticmethod
-    def load_deployment_config(config_file: Path) -> p.Result[m.Cli.LoadedConfig]:
+    def load_deployment_config(config_file: Path) -> p.Result[p.Cli.LoadedConfig]:
         """Load deployment settings from YAML in YOUR tool.
 
         Returns r[LoadedConfig]; no None.
 
         Returns:
-            The resulting ``p.Result[m.Cli.LoadedConfig]``.
+            The resulting ``p.Result[p.Cli.LoadedConfig]``.
 
         """
         load_result = cli.load_file_auto_dict(config_file)
@@ -123,17 +123,17 @@ class ExamplesFlextCliFileOperations:
                 f"❌ Config load failed: {load_result.error}",
                 style=c.Cli.MessageStyles.BOLD_RED,
             )
-            return r[m.Cli.LoadedConfig].from_failure(load_result)
+            return r[p.Cli.LoadedConfig].from_failure(load_result)
 
         cli.print("✅ Loaded deployment settings", style=c.Cli.MessageStyles.GREEN)
-        return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=load_result.value))
+        return r[p.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=load_result.value))
 
     @staticmethod
-    def validate_and_import_data(input_file: Path) -> p.Result[m.Cli.LoadedConfig]:
+    def validate_and_import_data(input_file: Path) -> p.Result[p.Cli.LoadedConfig]:
         """Validate and import data in YOUR ETL pipeline: r[LoadedConfig], no None.
 
         Returns:
-            The resulting ``p.Result[m.Cli.LoadedConfig]``.
+            The resulting ``p.Result[p.Cli.LoadedConfig]``.
 
         """
         read_result = cli.read_json_file(input_file)
@@ -143,18 +143,18 @@ class ExamplesFlextCliFileOperations:
                 f"❌ Read failed: {read_result.error}",
                 style=c.Cli.MessageStyles.BOLD_RED,
             )
-            return r[m.Cli.LoadedConfig].from_failure(read_result)
+            return r[p.Cli.LoadedConfig].from_failure(read_result)
 
         data = read_result.value
         if not isinstance(data, Mapping):
-            return r[m.Cli.LoadedConfig].fail("Input data must be a mapping")
+            return r[p.Cli.LoadedConfig].fail("Input data must be a mapping")
 
         for field in ExamplesFlextCliFileOperations._EXAMPLE_REQUIRED_DATA_FIELDS:
             if field not in data:
-                return r[m.Cli.LoadedConfig].fail(f"Missing required field: {field}")
+                return r[p.Cli.LoadedConfig].fail(f"Missing required field: {field}")
 
         cli.print("✅ Data validated successfully", style=c.Cli.MessageStyles.GREEN)
-        return r[m.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=data))
+        return r[p.Cli.LoadedConfig].ok(m.Cli.LoadedConfig(content=data))
 
 
 __all__: list[str] = ["ExamplesFlextCliFileOperations"]

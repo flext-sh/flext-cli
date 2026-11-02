@@ -27,7 +27,7 @@ from typing import Annotated, ClassVar
 import pytest
 
 from flext_cli import cli
-from tests import c, m, t, tm, u
+from tests import c, m, p, t, tm, u
 
 
 class TestsFlextCliOptionsUtilsCov:
@@ -207,11 +207,11 @@ class TestsFlextCliOptionsUtilsCov:
         args: Sequence[str],
         *,
         settings: t.Cli.ModelLike | None = None,
-    ) -> tuple[m.Cli.InvocationResult, list[M]]:
+    ) -> tuple[p.Cli.InvocationResult, list[M]]:
         """Invoke the generated command through a real app; return what it received.
 
         Returns:
-            The resulting ``tuple[m.Cli.InvocationResult, list[M]]``.
+            The resulting ``tuple[p.Cli.InvocationResult, list[M]]``.
 
         """
         received: list[M] = []

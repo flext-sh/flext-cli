@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import errno
-from typing import TYPE_CHECKING
 
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -19,15 +18,12 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileRead,
 )
 
-if TYPE_CHECKING:
-    from flext_cli import m
-
 
 class FlextCliUtilitiesAtomicDirectoryDelete:
     """Canonical namespace owner."""
 
     @staticmethod
-    def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:
+    def remove_guarded_empty_directory(state: p.Cli.AtomicDirectoryState) -> None:
         """Remove the exact empty-directory version authorized by the caller.
 
         Raises:

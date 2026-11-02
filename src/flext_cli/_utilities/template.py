@@ -52,7 +52,7 @@ class FlextCliUtilitiesTemplate:
         def __init__(
             self,
             search_path: Path,
-            source_states: Sequence[m.Cli.AtomicFileState] | None = None,
+            source_states: Sequence[p.Cli.AtomicFileState] | None = None,
         ) -> None:
             self.search_path = search_path
             self.source_states: MutableMapping[Path, m.Cli.AtomicFileState] = {
@@ -200,7 +200,7 @@ class FlextCliUtilitiesTemplate:
     @staticmethod
     def template_capture_sources(
         paths: Sequence[Path],
-    ) -> p.Result[tuple[m.Cli.AtomicFileState, ...]]:
+    ) -> p.Result[tuple[p.Cli.AtomicFileState, ...]]:
         """Capture declared Jinja imports through the existing native loader.
 
         Each root retains an independent authenticated dependency traversal;
@@ -211,7 +211,7 @@ class FlextCliUtilitiesTemplate:
 
         """
 
-        def capture() -> tuple[m.Cli.AtomicFileState, ...]:
+        def capture() -> tuple[p.Cli.AtomicFileState, ...]:
             states: MutableMapping[Path, m.Cli.AtomicFileState] = {}
             for path in paths:
                 source = path.expanduser().absolute()
@@ -234,12 +234,12 @@ class FlextCliUtilitiesTemplate:
         path: Path,
         context: p.Model,
         *,
-        source_states: Sequence[m.Cli.AtomicFileState] | None = None,
-    ) -> p.Result[m.Cli.AuthenticatedTemplateRender]:
+        source_states: Sequence[p.Cli.AtomicFileState] | None = None,
+    ) -> p.Result[p.Cli.AuthenticatedTemplateRender]:
         """Render only descriptor-authenticated bytes and return all source states.
 
         Returns:
-            The resulting ``p.Result[m.Cli.AuthenticatedTemplateRender]``.
+            The resulting ``p.Result[p.Cli.AuthenticatedTemplateRender]``.
 
         """
         source = path.expanduser().absolute()
@@ -268,7 +268,7 @@ class FlextCliUtilitiesTemplate:
             op_name="template_render_authenticated",
         )
         if rendered.failure:
-            return r[m.Cli.AuthenticatedTemplateRender].fail(
+            return r[p.Cli.AuthenticatedTemplateRender].fail(
                 loader.failure
                 or rendered.error
                 or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {source}",
@@ -276,7 +276,7 @@ class FlextCliUtilitiesTemplate:
                 error_code=rendered.error_code,
                 error_data=rendered.error_data,
             )
-        return r[m.Cli.AuthenticatedTemplateRender].ok(
+        return r[p.Cli.AuthenticatedTemplateRender].ok(
             m.Cli.AuthenticatedTemplateRender(
                 rendered=rendered.value,
                 source_states=tuple(loader.source_states.values()),
@@ -305,10 +305,10 @@ class FlextCliUtilitiesTemplate:
         templates_root: Path,
         output_root: Path,
         context: p.Model,
-        entries: Sequence[m.Cli.TemplateRenderEntry],
+        entries: Sequence[p.Cli.TemplateRenderEntry],
         *,
-        options: m.Cli.TemplateRenderOptions | None = None,
-    ) -> p.Result[m.Cli.TemplateRenderReport]:
+        options: p.Cli.TemplateRenderOptions | None = None,
+    ) -> p.Result[p.Cli.TemplateRenderReport]:
         """Render every entry from ``templates_root`` into ``output_root``.
 
         Generic, folder-parameterized engine (ADR-005): the caller supplies the
@@ -325,11 +325,11 @@ class FlextCliUtilitiesTemplate:
         the caller decides the fail policy (the report is always returned).
 
         Returns:
-            The resulting ``p.Result[m.Cli.TemplateRenderReport]``.
+            The resulting ``p.Result[p.Cli.TemplateRenderReport]``.
 
         """
         if not templates_root.is_dir():
-            return r[m.Cli.TemplateRenderReport].fail(
+            return r[p.Cli.TemplateRenderReport].fail(
                 f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}",
             )
         render_options = options or m.Cli.TemplateRenderOptions()
@@ -372,7 +372,7 @@ class FlextCliUtilitiesTemplate:
             skipped=tuple(skipped),
             failed=tuple(failed),
         )
-        return r[m.Cli.TemplateRenderReport].ok(report)
+        return r[p.Cli.TemplateRenderReport].ok(report)
 
     @staticmethod
     def _write(dest: Path, content: str) -> bool:

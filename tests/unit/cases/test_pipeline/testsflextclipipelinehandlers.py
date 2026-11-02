@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from flext_cli import cli
-from tests import m, p
+from tests import p
 
 
 class TestsFlextCliPipelineHandlers:
@@ -24,7 +24,7 @@ class TestsFlextCliPipelineHandlers:
 
         def handler(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             ctx.shared[output_key] = stage_id
             return cli.ok_stage(
                 stage_id,

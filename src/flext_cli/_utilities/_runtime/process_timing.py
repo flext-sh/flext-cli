@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import shlex
 
-from flext_cli import c, m, p, r
+from flext_cli import c, p, r
 
 
 class FlextCliUtilitiesRuntimeProcessTiming:
@@ -16,7 +16,7 @@ class FlextCliUtilitiesRuntimeProcessTiming:
 
     @staticmethod
     def _resolve_process_timing(
-        request: m.Cli.RuntimeProcessRequest,
+        request: p.Cli.RuntimeProcessRequest,
         started: float,
         *,
         on_main_thread: bool,
@@ -58,7 +58,7 @@ class FlextCliUtilitiesRuntimeProcessTiming:
 
     @staticmethod
     def _shares_output_destination(
-        request: m.Cli.RuntimeProcessRequest,
+        request: p.Cli.RuntimeProcessRequest,
     ) -> bool:
         """Report whether stdout and stderr resolve to one filesystem leaf.
 
@@ -78,7 +78,7 @@ class FlextCliUtilitiesRuntimeProcessTiming:
 
     @staticmethod
     def _process_output_policy_error(
-        request: m.Cli.RuntimeProcessRequest,
+        request: p.Cli.RuntimeProcessRequest,
         *,
         on_main_thread: bool,
     ) -> str | None:

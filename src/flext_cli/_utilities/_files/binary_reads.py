@@ -37,7 +37,7 @@ class FlextCliUtilitiesFilesPart03:
         required: bool = False,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> p.Result[m.Cli.AtomicFileReceipt]:
+    ) -> p.Result[p.Cli.AtomicFileReceipt]:
         """Return the authenticated identity and digest without buffering payload."""
         try:
             receipt = FlextCliUtilitiesAtomicFileSnapshot.read_receipt(
@@ -47,15 +47,15 @@ class FlextCliUtilitiesFilesPart03:
                 max_bytes=max_bytes,
             )
         except OSError as exc:
-            return r[m.Cli.AtomicFileReceipt].fail(
+            return r[p.Cli.AtomicFileReceipt].fail(
                 c.Cli.ERR_BINARY_READ_FAILED.format(error=exc), exception=exc
             )
-        return r[m.Cli.AtomicFileReceipt].ok(receipt)
+        return r[p.Cli.AtomicFileReceipt].ok(receipt)
 
     @staticmethod
     @contextmanager
     def atomic_binary_file_reader(
-        receipt: m.Cli.AtomicFileReceipt,
+        receipt: p.Cli.AtomicFileReceipt,
     ) -> Generator[p.Cli.AtomicFileReader]:
         """Retain one authenticated descriptor for repeated exact range reads.
 
@@ -68,7 +68,7 @@ class FlextCliUtilitiesFilesPart03:
 
     @staticmethod
     def atomic_read_binary_file_range(
-        receipt: m.Cli.AtomicFileReceipt, offset: int, length: int
+        receipt: p.Cli.AtomicFileReceipt, offset: int, length: int
     ) -> p.Result[bytes]:
         """Read an exact range through the canonical scoped descriptor owner.
 
@@ -87,13 +87,13 @@ class FlextCliUtilitiesFilesPart03:
 
     @staticmethod
     def atomic_publish_staged_binary_file_receipt_guarded(
-        destination_before: m.Cli.AtomicFileReceipt,
-        staged: m.Cli.AtomicFileReceipt,
-    ) -> p.Result[m.Cli.AtomicFileReceipt]:
+        destination_before: p.Cli.AtomicFileReceipt,
+        staged: p.Cli.AtomicFileReceipt,
+    ) -> p.Result[p.Cli.AtomicFileReceipt]:
         """Consume a streamed staged artifact under exact destination ownership.
 
         Returns:
-            The resulting ``p.Result[m.Cli.AtomicFileReceipt]``.
+            The resulting ``p.Result[p.Cli.AtomicFileReceipt]``.
 
         """
         try:
@@ -101,10 +101,10 @@ class FlextCliUtilitiesFilesPart03:
                 destination_before, staged
             )
         except OSError as exc:
-            return r[m.Cli.AtomicFileReceipt].fail(
+            return r[p.Cli.AtomicFileReceipt].fail(
                 c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc), exception=exc
             )
-        return r[m.Cli.AtomicFileReceipt].ok(
+        return r[p.Cli.AtomicFileReceipt].ok(
             m.Cli.AtomicFileReceipt(
                 **staged.model_dump(
                     exclude={"path", "parent_device", "parent_inode", "version_key"}
@@ -159,7 +159,7 @@ class FlextCliUtilitiesFilesPart03:
         required: bool = False,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> p.Result[m.Cli.AtomicFileState]:
+    ) -> p.Result[p.Cli.AtomicFileState]:
         """Read exact bytes plus leaf and immediate-parent physical identities.
 
         ``owner_uid`` fails the read when the authenticated parent or the leaf
@@ -172,7 +172,7 @@ class FlextCliUtilitiesFilesPart03:
         planned directory chain and read again before publishing into it.
 
         Returns:
-            The resulting ``p.Result[m.Cli.AtomicFileState]``.
+            The resulting ``p.Result[p.Cli.AtomicFileState]``.
 
         """
         return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_capture(
@@ -189,7 +189,7 @@ class FlextCliUtilitiesFilesPart03:
         required: bool = False,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> p.Result[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileReceipt]]:
+    ) -> p.Result[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileReceipt]]:
         """Capture buffered bytes and their receipt from one authenticated read.
 
         The receipt carries the same leaf and parent observation without copying
@@ -296,13 +296,13 @@ class FlextCliUtilitiesFilesPart03:
 
     @staticmethod
     def atomic_publish_staged_binary_file_guarded(
-        destination_before: m.Cli.AtomicFileState,
-        staged: m.Cli.AtomicFileState,
-    ) -> p.Result[m.Cli.AtomicFileState]:
+        destination_before: p.Cli.AtomicFileState,
+        staged: p.Cli.AtomicFileState,
+    ) -> p.Result[p.Cli.AtomicFileState]:
         """Consume one authenticated staged file under the caller's lock.
 
         Returns:
-            The resulting ``p.Result[m.Cli.AtomicFileState]``.
+            The resulting ``p.Result[p.Cli.AtomicFileState]``.
 
         """
         try:
@@ -311,10 +311,10 @@ class FlextCliUtilitiesFilesPart03:
                 staged,
             )
         except OSError as exc:
-            return r[m.Cli.AtomicFileState].fail(
+            return r[p.Cli.AtomicFileState].fail(
                 c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc),
             )
-        return r[m.Cli.AtomicFileState].ok(
+        return r[p.Cli.AtomicFileState].ok(
             m.Cli.AtomicFileState(
                 path=destination_before.path,
                 parent_device=destination_before.parent_device,

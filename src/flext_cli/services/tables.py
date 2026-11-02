@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence
 
-from flext_cli import c, m, p, s, t, u
+from flext_cli import c, p, s, t, u
 from flext_cli.services import FlextCliFormatters
 
 
@@ -22,7 +22,7 @@ class FlextCliTables(s[p.Cli.RuntimeStatus]):
     @staticmethod
     def format_table(
         data: t.Cli.TableDataSource,
-        settings: m.Cli.TableConfig | None = None,
+        settings: p.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> p.Result[str]:
         """Format table data to a string using the public CLI API.
@@ -45,7 +45,7 @@ class FlextCliTables(s[p.Cli.RuntimeStatus]):
     @staticmethod
     def show_table(
         data: t.Cli.TableDataSource,
-        settings: m.Cli.TableConfig | None = None,
+        settings: p.Cli.TableConfig | None = None,
         **config_kwargs: t.Cli.TableConfigValue,
     ) -> None:
         """Render and display a formatted table on the console.

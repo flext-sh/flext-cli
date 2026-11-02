@@ -22,7 +22,7 @@ from flext_cli._constants import FlextCliConstantsSettings
 class FlextCliSettings(FlextSettings):
     """CLI settings: flat scalars under the ``FLEXT_CLI_`` env prefix."""
 
-    model_config: ClassVar[m.SettingsConfigDict] = m.SettingsConfigDict(
+    model_config: ClassVar[p.SettingsConfigDict] = m.SettingsConfigDict(
         env_prefix="FLEXT_CLI_",
         extra="ignore",
     )

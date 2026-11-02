@@ -8,14 +8,14 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence
 
-from flext_cli import c, m, t
+from flext_cli import c, m, p, t
 
 
 class FlextCliUtilitiesOptionBuilder:
     """Build CLI option declarations from the existing typed models."""
 
     @staticmethod
-    def build(field_name: str, registry: t.Cli.OptionRegistry) -> m.Cli.OptionSpec:
+    def build(field_name: str, registry: t.Cli.OptionRegistry) -> p.Cli.OptionSpec:
         """Build one CLI option spec from field metadata.
 
         Returns:

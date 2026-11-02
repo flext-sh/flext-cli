@@ -41,7 +41,7 @@ class TestsFlextCliServiceSettingsContract:
         stages: MutableSequence[str],
         exception: BaseException,
         initial_context: p.Context | None = None,
-    ) -> tuple[m.StructlogOptions, FlextCli, p.Cli.Application]:
+    ) -> tuple[p.StructlogOptions, FlextCli, p.Cli.Application]:
         """Build a real service electing two native sinks sharing one stage.
 
         Returns:
@@ -265,7 +265,7 @@ class TestsFlextCliServiceSettingsContract:
             error_data={"source": "cli"},
         )
 
-        def fail(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
+        def fail(params: p.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             u.debug("cli-debug-event", input_name=params.name)
             return failed
 

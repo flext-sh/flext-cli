@@ -57,7 +57,7 @@ class FlextCliServicesPromptsSupport(s[p.Cli.RuntimeStatus]):
         ),
     ] = m.Field(default_factory=PromptPasswordReaderDefault, validate_default=True)
 
-    def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
+    def configure(self, state: p.Cli.PromptRuntimeState) -> Self:
         """Replace prompt runtime state using the canonical CLI model.
 
         Returns:

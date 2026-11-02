@@ -23,7 +23,7 @@ class FlextCliUtilitiesXlsxStyleReaders:
     # NOTE (multi-agent, mro-j2yt.1): copy() is the documented openpyxl proxy
     # boundary; each copied component is runtime-checked before model ingress.
     @staticmethod
-    def _color_spec(color: Color | None) -> m.Cli.XlsxColor | None:
+    def _color_spec(color: Color | None) -> p.Cli.XlsxColor | None:
         if color is None:
             return None
         value = color.value
@@ -39,7 +39,7 @@ class FlextCliUtilitiesXlsxStyleReaders:
         raise ValueError(msg)
 
     @classmethod
-    def _font_spec(cls, font: Font) -> m.Cli.XlsxFontSpec:
+    def _font_spec(cls, font: Font) -> p.Cli.XlsxFontSpec:
         # NOTE (multi-agent): openpyxl-stubs types size/bold/italic/underline as
         # unparameterized ``Alias`` descriptors (Unknown); the pinned
         # ``p.Cli.XlsxFontStyleSurface`` view carries the real runtime value
@@ -64,7 +64,7 @@ class FlextCliUtilitiesXlsxStyleReaders:
         )
 
     @classmethod
-    def _fill_spec(cls, fill: Fill) -> m.Cli.XlsxFillSpec:
+    def _fill_spec(cls, fill: Fill) -> p.Cli.XlsxFillSpec:
         if isinstance(fill, PatternFill):
             return m.Cli.XlsxPatternFillSpec(
                 pattern=fill.patternType,
@@ -93,7 +93,7 @@ class FlextCliUtilitiesXlsxStyleReaders:
         raise TypeError(msg)
 
     @classmethod
-    def _side_spec(cls, side: Side | None) -> m.Cli.XlsxBorderSideSpec | None:
+    def _side_spec(cls, side: Side | None) -> p.Cli.XlsxBorderSideSpec | None:
         if side is None:
             return None
         return m.Cli.XlsxBorderSideSpec(
@@ -102,7 +102,7 @@ class FlextCliUtilitiesXlsxStyleReaders:
         )
 
     @classmethod
-    def _border_spec(cls, border: Border) -> m.Cli.XlsxBorderSpec:
+    def _border_spec(cls, border: Border) -> p.Cli.XlsxBorderSpec:
         return m.Cli.XlsxBorderSpec(
             left=cls._side_spec(border.left),
             right=cls._side_spec(border.right),
@@ -119,7 +119,7 @@ class FlextCliUtilitiesXlsxStyleReaders:
         )
 
     @staticmethod
-    def _alignment_spec(alignment: Alignment) -> m.Cli.XlsxAlignmentSpec:
+    def _alignment_spec(alignment: Alignment) -> p.Cli.XlsxAlignmentSpec:
         return m.Cli.XlsxAlignmentSpec(
             horizontal=alignment.horizontal,
             vertical=alignment.vertical,
@@ -136,19 +136,19 @@ class FlextCliUtilitiesXlsxStyleReaders:
     def _visual_from_styleable(
         cls,
         value: StyleableObject,
-    ) -> p.Result[m.Cli.XlsxVisualStyleSpec]:
+    ) -> p.Result[p.Cli.XlsxVisualStyleSpec]:
         try:
             visual = cls._visual_from_styleable_unchecked(value)
         except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxVisualStyleSpec].fail(detail)
-        return r[m.Cli.XlsxVisualStyleSpec].ok(visual)
+            return r[p.Cli.XlsxVisualStyleSpec].fail(detail)
+        return r[p.Cli.XlsxVisualStyleSpec].ok(visual)
 
     @classmethod
     def _visual_from_styleable_unchecked(
         cls,
         value: StyleableObject,
-    ) -> m.Cli.XlsxVisualStyleSpec:
+    ) -> p.Cli.XlsxVisualStyleSpec:
         font = copy(value.font)
         fill = copy(value.fill)
         border = copy(value.border)

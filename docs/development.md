@@ -121,10 +121,10 @@ from flext_cli import m, p, s
 class FlextCliPromptsSupport(s[p.Cli.RuntimeStatus]):
     """Prompt runtime state plus injected input ports."""
 
-    state: m.Cli.PromptRuntimeState                # MANAGED STATE
+    state: p.Cli.PromptRuntimeState                # MANAGED STATE
     input_reader: t.Cli.PromptTextReader           # INJECTED PORT
 
-    def configure(self, state: m.Cli.PromptRuntimeState) -> Self:
+    def configure(self, state: p.Cli.PromptRuntimeState) -> Self:
         """Replace prompt runtime state - modifies internal state."""
         self.state = state
         return self

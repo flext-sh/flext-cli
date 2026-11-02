@@ -182,14 +182,14 @@ class TestsFlextCliServiceRoutes:
         """Only formatted text crosses the heterogeneous route boundary."""
         request = m.Tests.ServiceGreeting(name="ana")
         receipt = m.Tests.ServiceStatus(ready=1)
-        requests: list[m.Tests.ServiceGreeting] = []
-        receipts: list[m.Tests.ServiceStatus] = []
+        requests: list[p.Tests.ServiceGreeting] = []
+        receipts: list[p.Tests.ServiceStatus] = []
 
-        def execute(value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+        def execute(value: p.Tests.ServiceGreeting) -> p.Result[p.Tests.ServiceStatus]:
             requests.append(value)
-            return r[m.Tests.ServiceStatus].ok(receipt)
+            return r[p.Tests.ServiceStatus].ok(receipt)
 
-        def render(value: m.Tests.ServiceStatus) -> str:
+        def render(value: p.Tests.ServiceStatus) -> str:
             receipts.append(value)
             return f"ready={value.ready}"
 
@@ -213,17 +213,17 @@ class TestsFlextCliServiceRoutes:
         """A failed typed operation reaches the public failure boundary intact."""
         request = m.Tests.ServiceGreeting(name="ana")
         cause = ValueError("operation rejected the input")
-        failure = r[m.Tests.ServiceStatus].fail(
+        failure = r[p.Tests.ServiceStatus].fail(
             str(cause),
             error_code="operation-rejected",
             error_data={"name": request.name},
             exception=cause,
         )
 
-        def execute(_value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+        def execute(_value: p.Tests.ServiceGreeting) -> p.Result[p.Tests.ServiceStatus]:
             return failure
 
-        def render(_value: m.Tests.ServiceStatus) -> str:
+        def render(_value: p.Tests.ServiceStatus) -> str:
             message = "a failed operation must not format a receipt"
             raise AssertionError(message)
 
@@ -250,12 +250,12 @@ class TestsFlextCliServiceRoutes:
         """Neither execution nor output formatting normalizes the first cause."""
         cause = ValueError(f"{origin} rejected execution")
 
-        def execute(_value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+        def execute(_value: p.Tests.ServiceGreeting) -> p.Result[p.Tests.ServiceStatus]:
             if origin == "handler":
                 raise cause
-            return r[m.Tests.ServiceStatus].ok(m.Tests.ServiceStatus(ready=1))
+            return r[p.Tests.ServiceStatus].ok(m.Tests.ServiceStatus(ready=1))
 
-        def render(_value: m.Tests.ServiceStatus) -> str:
+        def render(_value: p.Tests.ServiceStatus) -> str:
             raise cause
 
         route = cli.result_route(

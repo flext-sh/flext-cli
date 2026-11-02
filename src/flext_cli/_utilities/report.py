@@ -19,7 +19,7 @@ class FlextCliUtilitiesReport:
     """Canonical generic data report exposed through ``u.Cli.report_*``."""
 
     @staticmethod
-    def report_render(request: m.Cli.DataReportRequest) -> p.Result[str]:
+    def report_render(request: p.Cli.DataReportRequest) -> p.Result[str]:
         """Render one data report as a deterministic plain-text table.
 
         Returns:

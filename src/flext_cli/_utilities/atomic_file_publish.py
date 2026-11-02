@@ -31,8 +31,8 @@ class FlextCliUtilitiesAtomicFilePublish:
 
     @staticmethod
     def publish_guarded_staged_file(
-        destination_before: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
-        staged: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
+        destination_before: p.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
+        staged: p.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
     ) -> os.stat_result:
         """Move one exact caller-owned staged file over an exact destination state.
 
@@ -180,8 +180,8 @@ class FlextCliUtilitiesAtomicFilePublish:
 
     @staticmethod
     def _validated_paths(
-        destination_before: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
-        staged: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
+        destination_before: p.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
+        staged: p.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
     ) -> tuple[Path, Path]:
         """Validate both atomic paths and require a distinct staged destination.
 
@@ -204,7 +204,7 @@ class FlextCliUtilitiesAtomicFilePublish:
     @staticmethod
     def _resolve_staged(
         staged_path: Path,
-        staged: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
+        staged: p.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
     ) -> tuple[
         bytes | m.Cli.AtomicFileReceipt,
         int,
@@ -246,7 +246,7 @@ class FlextCliUtilitiesAtomicFilePublish:
 
     @staticmethod
     def _resolve_destination_payload(
-        destination_before: m.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
+        destination_before: p.Cli.AtomicFileState | m.Cli.AtomicFileReceipt,
     ) -> bytes | m.Cli.AtomicFileReceipt | None:
         """Resolve the guarded destination payload from the before-state.
 

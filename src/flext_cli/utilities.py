@@ -7,12 +7,9 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TypeAlias
-
 from flext_core import u as flext_core_u
 
 from flext_cli._utilities import (
-    FlextCliAtomicTreeDarwin,
     FlextCliUtilitiesAtomicDirectoryChain,
     FlextCliUtilitiesAtomicDirectoryCleanup,
     FlextCliUtilitiesAtomicDirectoryCreate,
@@ -42,12 +39,12 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicSymlinkPublish,
     FlextCliUtilitiesAtomicSymlinkState,
     FlextCliUtilitiesAtomicTreeCleanup,
+    FlextCliUtilitiesAtomicTreeDarwin,
     FlextCliUtilitiesAtomicTreeDescriptor,
     FlextCliUtilitiesAtomicTreeInventory,
     FlextCliUtilitiesBase,
     FlextCliUtilitiesCli,
     FlextCliUtilitiesOptionBuilder,
-    RuntimeSpawnOptions,
 )
 
 
@@ -84,7 +81,7 @@ class FlextCliUtilities(flext_core_u):
         FlextCliUtilitiesAtomicSymlinkPublish,
         FlextCliUtilitiesAtomicSymlinkState,
         FlextCliUtilitiesAtomicTreeCleanup,
-        FlextCliAtomicTreeDarwin,
+        FlextCliUtilitiesAtomicTreeDarwin,
         FlextCliUtilitiesAtomicTreeDescriptor,
         FlextCliUtilitiesAtomicTreeInventory,
         FlextCliUtilitiesBase,
@@ -92,8 +89,6 @@ class FlextCliUtilities(flext_core_u):
         FlextCliUtilitiesOptionBuilder,
     ):
         """CLI utility namespace."""
-
-        RuntimeSpawnOptions: TypeAlias = RuntimeSpawnOptions
 
 
 u = FlextCliUtilities

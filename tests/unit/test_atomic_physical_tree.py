@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import m, tm, u
+from tests import m, p, tm, u
 
 
 class TestsFlextCliAtomicPhysicalTree:
@@ -249,7 +249,7 @@ class TestsFlextCliAtomicPhysicalTree:
         tm.that(payload.read_text(encoding="utf-8"), eq="payload")
 
     @staticmethod
-    def _inventory(root: Path) -> m.Cli.AtomicPhysicalTreeManifest:
+    def _inventory(root: Path) -> p.Cli.AtomicPhysicalTreeManifest:
         result = u.Cli.atomic_inventory_physical_tree(root)
         tm.ok(result)
         return result.value

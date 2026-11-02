@@ -89,7 +89,7 @@ class FlextCliAuth(s[p.Cli.RuntimeStatus]):
             return r[str].fail(c.Cli.ERR_INVALID_CREDENTIALS)
         return self._resolve_token(payload).flat_map(self._persist_token)
 
-    def _resolve_token(self, payload: m.Cli.AuthCredentialsPayload) -> p.Result[str]:
+    def _resolve_token(self, payload: p.Cli.AuthCredentialsPayload) -> p.Result[str]:
         if payload.token:
             return r[str].ok(payload.token)
         return (

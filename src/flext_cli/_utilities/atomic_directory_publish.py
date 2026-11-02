@@ -9,7 +9,7 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Never
+from typing import Never
 
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -20,18 +20,15 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFilePath,
 )
 
-if TYPE_CHECKING:
-    from flext_cli import m
-
 
 class FlextCliUtilitiesAtomicDirectoryPublish:
     """Canonical namespace owner."""
 
     @staticmethod
     def publish_guarded_staged_empty_directory(
-        destination_before: m.Cli.AtomicDirectoryState,
-        staged: m.Cli.AtomicDirectoryState,
-    ) -> m.Cli.AtomicDirectoryState:
+        destination_before: p.Cli.AtomicDirectoryState,
+        staged: p.Cli.AtomicDirectoryState,
+    ) -> p.Cli.AtomicDirectoryState:
         """Move one exact empty directory into an exact absent destination.
 
         Linux uses ``renameat2(RENAME_NOREPLACE)`` so a concurrent destination can
@@ -141,7 +138,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
 
     @staticmethod
     def _require_destination_absent(
-        planned: m.Cli.AtomicDirectoryState,
+        planned: p.Cli.AtomicDirectoryState,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> None:
@@ -156,7 +153,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
 
     @staticmethod
     def _authenticated_staged(
-        planned: m.Cli.AtomicDirectoryState,
+        planned: p.Cli.AtomicDirectoryState,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> os.stat_result:
@@ -198,8 +195,8 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         destination: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         staged_path: Path,
-        staged: m.Cli.AtomicDirectoryState,
-    ) -> m.Cli.AtomicDirectoryState:
+        staged: p.Cli.AtomicDirectoryState,
+    ) -> p.Cli.AtomicDirectoryState:
         if (
             FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
                 staged_path,

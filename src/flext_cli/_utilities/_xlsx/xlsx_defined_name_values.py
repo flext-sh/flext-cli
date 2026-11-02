@@ -32,47 +32,47 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
     @classmethod
     def resolve_defined_name_values(
         cls,
-        request: m.Cli.XlsxDefinedNameValuesRequest,
-    ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]:
+        request: p.Cli.XlsxDefinedNameValuesRequest,
+    ) -> p.Result[p.Cli.XlsxDefinedNameValuesResult]:
         """Read cached values for a defined name from data-only workbook bytes.
 
         Returns:
-            The resulting ``p.Result[m.Cli.XlsxDefinedNameValuesResult]``.
+            The resulting ``p.Result[p.Cli.XlsxDefinedNameValuesResult]``.
 
         """
         try:
             return cls._defined_name_values_unchecked(request)
         except (TypeError, m.ValidationError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxDefinedNameValuesResult].fail(
+            return r[p.Cli.XlsxDefinedNameValuesResult].fail(
                 f"{c.Cli.XlsxError.DEFINED_NAME_INVALID}: {detail}",
             )
 
     @classmethod
     def _defined_name_values_unchecked(
         cls,
-        request: m.Cli.XlsxDefinedNameValuesRequest,
-    ) -> p.Result[m.Cli.XlsxDefinedNameValuesResult]:
+        request: p.Cli.XlsxDefinedNameValuesRequest,
+    ) -> p.Result[p.Cli.XlsxDefinedNameValuesResult]:
         workbook = cls._require_success(
             cls._load_workbook(request.source, data_only=True),
         )
         defined_name = workbook.defined_names.get(request.name)
         if not isinstance(defined_name, DefinedName):
-            return r[m.Cli.XlsxDefinedNameValuesResult].fail(
+            return r[p.Cli.XlsxDefinedNameValuesResult].fail(
                 f"{c.Cli.XlsxError.DEFINED_NAME_MISSING}: {request.name}",
             )
-        cells: tuple[m.Cli.XlsxDefinedNameCell, ...] = ()
+        cells: tuple[p.Cli.XlsxDefinedNameCell, ...] = ()
         for sheet_title, coordinate in defined_name.destinations:
             resolved = cls._destination_cells(workbook[sheet_title], coordinate)
             if resolved.failure:
-                return r[m.Cli.XlsxDefinedNameValuesResult].from_failure(resolved)
+                return r[p.Cli.XlsxDefinedNameValuesResult].from_failure(resolved)
             cells = (*cells, *resolved.value)
         if not cells:
-            return r[m.Cli.XlsxDefinedNameValuesResult].fail(
+            return r[p.Cli.XlsxDefinedNameValuesResult].fail(
                 f"{c.Cli.XlsxError.DEFINED_NAME_INVALID}: "
                 f"{request.name} resolves to no worksheet cells",
             )
-        return r[m.Cli.XlsxDefinedNameValuesResult].ok(
+        return r[p.Cli.XlsxDefinedNameValuesResult].ok(
             m.Cli.XlsxDefinedNameValuesResult(name=request.name, cells=cells),
         )
 
@@ -81,8 +81,8 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
         cls,
         worksheet: Worksheet,
         coordinate: str,
-    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameCell, ...]]:
-        cells: tuple[m.Cli.XlsxDefinedNameCell, ...] = ()
+    ) -> p.Result[tuple[p.Cli.XlsxDefinedNameCell, ...]]:
+        cells: tuple[p.Cli.XlsxDefinedNameCell, ...] = ()
         selection = worksheet[coordinate]
         for cell in cls._flatten_cells(selection):
             cell_value = cell.value
@@ -90,7 +90,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
                 cell_value,
                 (str, int, float, bool, Decimal, date, datetime),
             ):
-                return r[tuple[m.Cli.XlsxDefinedNameCell, ...]].fail(
+                return r[tuple[p.Cli.XlsxDefinedNameCell, ...]].fail(
                     f"{c.Cli.XlsxError.DEFINED_NAME_INVALID}: "
                     f"{cell_value.__class__.__name__} at {cell.coordinate}",
                 )
@@ -105,7 +105,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
                     value=value,
                 ),
             )
-        return r[tuple[m.Cli.XlsxDefinedNameCell, ...]].ok(cells)
+        return r[tuple[p.Cli.XlsxDefinedNameCell, ...]].ok(cells)
 
     @staticmethod
     def _flatten_cells(

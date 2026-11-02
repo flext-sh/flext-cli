@@ -24,7 +24,7 @@ class TestsFlextCliServicePart01:
 
         settings = RuntimeSettings()
 
-        def handle(params: m.Cli.CliParamsConfig) -> bool:
+        def handle(params: p.Cli.CliParamsConfig) -> bool:
             return params.debug is True
 
         command = cli.model_command(m.Cli.CliParamsConfig, handle, settings=settings)
@@ -33,11 +33,11 @@ class TestsFlextCliServicePart01:
         tm.ok(result)
 
     @staticmethod
-    def _invoke_common_app(args: Sequence[str]) -> p.Result[m.Cli.InvocationResult]:
+    def _invoke_common_app(args: Sequence[str]) -> p.Result[p.Cli.InvocationResult]:
         """Register one inspect command and invoke the shared application.
 
         Returns:
-            The resulting ``p.Result[m.Cli.InvocationResult]``.
+            The resulting ``p.Result[p.Cli.InvocationResult]``.
 
         """
         service = FlextCli.with_settings(cli.settings.clone())
@@ -74,14 +74,14 @@ class TestsFlextCliServicePart01:
     @staticmethod
     def test_model_command_generates_real_typer_options() -> None:
         """Generate and execute real options from a canonical request model."""
-        captured: MutableSequence[m.Tests.SampleInput] = []
+        captured: MutableSequence[p.Tests.SampleInput] = []
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: m.Tests.SampleInput) -> t.JsonValue:
+        def handle(params: p.Tests.SampleInput) -> t.JsonValue:
             captured.append(params)
             return True
 

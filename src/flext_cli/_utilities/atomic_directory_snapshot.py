@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import errno
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -17,9 +16,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFilePath,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import m
 
 
 class FlextCliUtilitiesAtomicDirectorySnapshot:
@@ -30,7 +26,7 @@ class FlextCliUtilitiesAtomicDirectorySnapshot:
         path: Path,
         *,
         required: bool,
-    ) -> m.Cli.AtomicDirectoryState:
+    ) -> p.Cli.AtomicDirectoryState:
         """Return exact absence or one stable, physical, empty directory state.
 
         An optional read of a path whose directory chain is not materialized is

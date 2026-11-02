@@ -11,7 +11,7 @@ import signal
 import time
 from collections.abc import MutableSequence
 
-from flext_cli import c, m, p
+from flext_cli import c, p
 from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessGroup
 
 
@@ -24,7 +24,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
     def _monitor_process(
         cls,
         process: p.Cli.ProcessHandle,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         absolute_deadline: float | None,
         grace_seconds: float,
         *,
@@ -195,7 +195,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
     def _forward_received(
         cls,
         process: p.Cli.ProcessHandle,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         forwarded_count: int,
         *,
         term_sent: bool,

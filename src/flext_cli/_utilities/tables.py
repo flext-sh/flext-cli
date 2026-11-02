@@ -48,20 +48,20 @@ class FlextCliUtilitiesTables:
 
     @staticmethod
     def tables_resolve_config(
-        settings: m.Cli.TableConfig | None = None,
+        settings: p.Cli.TableConfig | None = None,
         **settings_kwargs: t.Cli.TableConfigValue,
-    ) -> p.Result[m.Cli.TableConfig]:
+    ) -> p.Result[p.Cli.TableConfig]:
         """Resolve table config via canonical Pydantic model contract.
 
         An override the model rejects is the declared failure outcome and the
         result carries the ``ValidationError``; every other exception escapes.
 
         Returns:
-            The resulting ``p.Result[m.Cli.TableConfig]``.
+            The resulting ``p.Result[p.Cli.TableConfig]``.
 
         """
         if settings is not None and not settings_kwargs:
-            return r[m.Cli.TableConfig].ok(settings)
+            return r[p.Cli.TableConfig].ok(settings)
         base_data = (
             settings.model_dump(exclude_computed_fields=True)
             if settings is not None
@@ -71,11 +71,11 @@ class FlextCliUtilitiesTables:
         try:
             resolved = m.Cli.TableConfig.model_validate(settings_data)
         except c.ValidationError as exc:
-            return r[m.Cli.TableConfig].fail(
+            return r[p.Cli.TableConfig].fail(
                 c.Cli.OUTPUT_TABLE_CONFIG_INVALID_FMT.format(error=exc),
                 exception=exc,
             )
-        return r[m.Cli.TableConfig].ok(resolved)
+        return r[p.Cli.TableConfig].ok(resolved)
 
     @staticmethod
     def tables_normalize_data(
@@ -122,7 +122,7 @@ class FlextCliUtilitiesTables:
     @staticmethod
     def tables_render(
         rows: Sequence[t.Cli.TableRow],
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> p.Result[str]:
         """Render normalized rows to a plain-text table string.
 

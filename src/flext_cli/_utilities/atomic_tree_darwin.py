@@ -13,7 +13,7 @@ import platform
 from pathlib import Path
 
 
-class FlextCliAtomicTreeDarwin:
+class FlextCliUtilitiesAtomicTreeDarwin:
     """Own the Darwin descriptor-bound filesystem identity contract."""
 
     class Statfs(ctypes.Structure):
@@ -40,8 +40,8 @@ class FlextCliAtomicTreeDarwin:
         )
         f_fsid: ctypes.Array[ctypes.c_int32]
 
-    @staticmethod
-    def darwin_mount_id(descriptor: int, path: Path) -> int:
+    @classmethod
+    def darwin_mount_id(cls, descriptor: int, path: Path) -> int:
         """Read both fsid words from the open FD, without resolving its pathname.
 
         Returns:
@@ -69,10 +69,10 @@ class FlextCliAtomicTreeDarwin:
             raise OSError(errno.ENOTSUP, message, path) from exc
         operation.argtypes = (
             ctypes.c_int,
-            ctypes.POINTER(FlextCliAtomicTreeDarwin.Statfs),
+            ctypes.POINTER(cls.Statfs),
         )
         operation.restype = ctypes.c_int
-        state = FlextCliAtomicTreeDarwin.Statfs()
+        state = cls.Statfs()
         ctypes.set_errno(0)
         if operation(descriptor, ctypes.byref(state)) != 0:
             error_number = ctypes.get_errno() or errno.EIO
@@ -87,4 +87,4 @@ class FlextCliAtomicTreeDarwin:
         return value
 
 
-__all__: list[str] = ["FlextCliAtomicTreeDarwin"]
+__all__: list[str] = ["FlextCliUtilitiesAtomicTreeDarwin"]

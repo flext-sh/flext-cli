@@ -24,7 +24,7 @@ class FlextCliUtilitiesAtomicSymlinkState:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         *,
         required: bool = False,
-    ) -> m.Cli.AtomicSymlinkState:
+    ) -> p.Cli.AtomicSymlinkState:
         """Read link text through the same pinned parent as its lstat identity.
 
         Returns:
@@ -70,7 +70,7 @@ class FlextCliUtilitiesAtomicSymlinkState:
         )
 
     @staticmethod
-    def symlink_identity(observed: os.stat_result) -> m.Cli.AtomicSymlinkIdentity:
+    def symlink_identity(observed: os.stat_result) -> p.Cli.AtomicSymlinkIdentity:
         """Bind mutation-relevant identity without read-induced access time.
 
         Returns:
@@ -92,7 +92,7 @@ class FlextCliUtilitiesAtomicSymlinkState:
 
     @staticmethod
     def require_symlink_state(
-        before: m.Cli.AtomicSymlinkState,
+        before: p.Cli.AtomicSymlinkState,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
     ) -> None:
         """Reject any parent, leaf identity or link-text drift before mutation.

@@ -78,7 +78,7 @@ class FlextCliUtilitiesMarkdown:
         return parser
 
     @staticmethod
-    def markdown_fences(text: str) -> Sequence[m.Cli.MarkdownFence]:
+    def markdown_fences(text: str) -> Sequence[p.Cli.MarkdownFence]:
         """Return every fenced code block in document order.
 
         Only the block structure is parsed; inline content plays no part in
@@ -125,14 +125,14 @@ class FlextCliUtilitiesMarkdown:
                 prefix += child.content
 
     @staticmethod
-    def markdown_links(text: str) -> Sequence[m.Cli.MarkdownLink]:
+    def markdown_links(text: str) -> Sequence[p.Cli.MarkdownLink]:
         """Return inline, reference, and image destinations; autolinks excluded.
 
         Returns:
             The located link destinations.
 
         """
-        links: MutableSequence[m.Cli.MarkdownLink] = []
+        links: MutableSequence[p.Cli.MarkdownLink] = []
 
         def collect(child: Token, line: int, _prefix: str) -> None:
             if child.type == c.Cli.MarkdownTokenType.LINK_OPEN and child.markup not in {
@@ -157,8 +157,8 @@ class FlextCliUtilitiesMarkdown:
     @staticmethod
     def _markdown_link_spans(
         lines: Sequence[str],
-        links: Sequence[m.Cli.MarkdownLink],
-    ) -> Sequence[tuple[m.Cli.MarkdownLink, tuple[int, int, int, int]]]:
+        links: Sequence[p.Cli.MarkdownLink],
+    ) -> Sequence[tuple[p.Cli.MarkdownLink, tuple[int, int, int, int]]]:
         """Locate inline link spans as ``(label_start, target_start, target_end, end)``.
 
         Reference-style links carry no inline destination and are not located.
@@ -168,7 +168,7 @@ class FlextCliUtilitiesMarkdown:
 
         """
         located: MutableSequence[
-            tuple[m.Cli.MarkdownLink, tuple[int, int, int, int]]
+            tuple[p.Cli.MarkdownLink, tuple[int, int, int, int]]
         ] = []
         cursors: MutableMapping[int, int] = {}
         for link in links:
@@ -214,7 +214,7 @@ class FlextCliUtilitiesMarkdown:
     @staticmethod
     def markdown_rewrite_link_targets(
         text: str,
-        rewrite: Callable[[m.Cli.MarkdownLink], str | None],
+        rewrite: Callable[[p.Cli.MarkdownLink], str | None],
     ) -> tuple[str, int]:
         """Replace inline link destinations in place; labels stay byte-identical.
 
@@ -242,7 +242,7 @@ class FlextCliUtilitiesMarkdown:
     @staticmethod
     def markdown_unlink(
         text: str,
-        unlink: Callable[[m.Cli.MarkdownLink], bool],
+        unlink: Callable[[p.Cli.MarkdownLink], bool],
     ) -> str:
         """Replace selected inline links with their authored label text.
 
@@ -268,14 +268,14 @@ class FlextCliUtilitiesMarkdown:
         return "".join(lines)
 
     @staticmethod
-    def markdown_code_spans(text: str) -> Sequence[m.Cli.MarkdownCodeSpan]:
+    def markdown_code_spans(text: str) -> Sequence[p.Cli.MarkdownCodeSpan]:
         """Return inline code spans with the prose preceding them on their line.
 
         Returns:
             The located code spans.
 
         """
-        spans: MutableSequence[m.Cli.MarkdownCodeSpan] = []
+        spans: MutableSequence[p.Cli.MarkdownCodeSpan] = []
 
         def collect(child: Token, line: int, prefix: str) -> None:
             if child.type == c.Cli.MarkdownTokenType.CODE_INLINE:
@@ -291,7 +291,7 @@ class FlextCliUtilitiesMarkdown:
         return tuple(spans)
 
     @staticmethod
-    def markdown_headings(text: str) -> Sequence[m.Cli.MarkdownHeading]:
+    def markdown_headings(text: str) -> Sequence[p.Cli.MarkdownHeading]:
         """Return headings with their source text in document order.
 
         Returns:
@@ -379,7 +379,7 @@ class FlextCliUtilitiesMarkdown:
     @staticmethod
     def markdown_rewrite_fences(
         text: str,
-        replacements: Mapping[m.Cli.MarkdownFence, tuple[str, str]],
+        replacements: Mapping[p.Cli.MarkdownFence, tuple[str, str]],
     ) -> str:
         """Splice ``(info, code)`` replacements for fences parsed from ``text``.
 

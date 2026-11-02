@@ -28,7 +28,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 
-from examples import c, m, p, r, t, u
+from examples import c, p, r, t, u
 from flext_cli import cli, settings
 
 
@@ -60,7 +60,7 @@ class ExamplesFlextCliSettings:
         return settings
 
     @staticmethod
-    def show_settings_locations() -> m.Cli.DisplayData:
+    def show_settings_locations() -> p.Cli.DisplayData:
         """Display settings file locations for YOUR application.
 
         Returns:
@@ -123,7 +123,7 @@ class ExamplesFlextCliSettings:
     @classmethod
     def load_application_settings(
         cls,
-        settings_obj: m.Examples.AppSettingsAdvanced,
+        settings_obj: p.Examples.AppSettingsAdvanced,
     ) -> p.Result[Mapping[str, t.JsonValue]]:
         """Load, validate, and derive application settings from the canonical model.
 

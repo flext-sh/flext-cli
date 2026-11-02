@@ -10,7 +10,7 @@ import signal
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, BinaryIO
 
-from flext_cli import m, p, r, t
+from flext_cli import p, r, t
 
 
 class FlextCliUtilitiesRuntimeProcessStart:
@@ -25,7 +25,7 @@ class FlextCliUtilitiesRuntimeProcessStart:
             env: Mapping[str, str] | None,
             stdin_handle: BinaryIO | None,
             *,
-            options: m.Cli.RuntimeSpawnOptions,
+            options: p.Cli.RuntimeSpawnOptions,
         ) -> p.Cli.ProcessHandle: ...
 
         @staticmethod
@@ -58,7 +58,7 @@ class FlextCliUtilitiesRuntimeProcessStart:
         env: Mapping[str, str] | None,
         stdin_handle: BinaryIO | None,
         *,
-        options: m.Cli.RuntimeSpawnOptions,
+        options: p.Cli.RuntimeSpawnOptions,
     ) -> p.Result[tuple[p.Cli.ProcessHandle, int]]:
         process = cls._spawn_streamed_process(
             cmd,

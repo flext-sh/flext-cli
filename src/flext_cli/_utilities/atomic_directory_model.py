@@ -23,7 +23,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
         path: Path,
         parent: os.stat_result | None,
         observed: os.stat_result | None,
-    ) -> m.Cli.AtomicDirectoryState:
+    ) -> p.Cli.AtomicDirectoryState:
         """Build the caller-owned state from one authenticated observation.
 
         Returns:
@@ -50,7 +50,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
         )
 
     @staticmethod
-    def require_absent(state: m.Cli.AtomicDirectoryState, *, purpose: str) -> None:
+    def require_absent(state: p.Cli.AtomicDirectoryState, *, purpose: str) -> None:
         """Require the caller state to authorize creation from exact absence.
 
         Raises:
@@ -63,7 +63,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
 
     @staticmethod
     def require_directory_existing(
-        state: m.Cli.AtomicDirectoryState, *, purpose: str
+        state: p.Cli.AtomicDirectoryState, *, purpose: str
     ) -> None:
         """Require the caller state to authorize an existing empty directory.
 
@@ -77,7 +77,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
 
     @staticmethod
     def require_directory_observed(
-        planned: m.Cli.AtomicDirectoryState,
+        planned: p.Cli.AtomicDirectoryState,
         observed: os.stat_result | None,
     ) -> None:
         """Require presence, mode, and every physical field to match the snapshot.
@@ -105,7 +105,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
 
     @staticmethod
     def require_directory_parent(
-        planned: m.Cli.AtomicDirectoryState,
+        planned: p.Cli.AtomicDirectoryState,
         observed: os.stat_result,
     ) -> None:
         """Require the authenticated parent to equal the snapshot parent identity.
@@ -147,7 +147,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
         )
 
     @staticmethod
-    def _planned_state(state: m.Cli.AtomicDirectoryState) -> DirectoryPhysicalState:
+    def _planned_state(state: p.Cli.AtomicDirectoryState) -> DirectoryPhysicalState:
         mode, device, inode, link_count = (
             state.mode,
             state.device,

@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, m, tm, u
+from tests import c, m, p, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -25,7 +25,7 @@ class TestsFlextCliRuntimeStreamedProcess:
     """Prove streaming, deadlines, exact exits, and descendant cleanup."""
 
     @staticmethod
-    def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
+    def _deadline(*, seconds: float, grace: float) -> p.Cli.ProcessDeadline:
         """Build an absolute deadline with a bounded cleanup reserve.
 
         Returns:

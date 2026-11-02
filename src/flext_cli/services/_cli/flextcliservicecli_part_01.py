@@ -96,7 +96,7 @@ class FlextCliCliPart01:
         field_name: str,
         field_info: t.FieldInfo,
         settings: t.Cli.ModelLike | None,
-    ) -> tuple[m.Cli.OptionSpec, type | GenericAlias]:
+    ) -> tuple[p.Cli.OptionSpec, type | GenericAlias]:
         """Build the public CLI option specification of a Pydantic field.
 
         Args:
@@ -105,7 +105,7 @@ class FlextCliCliPart01:
             settings: Optional model instance supplying current field values.
 
         Returns:
-            The resulting ``tuple[m.Cli.OptionSpec, type | GenericAlias]``.
+            The resulting ``tuple[p.Cli.OptionSpec, type | GenericAlias]``.
 
         """
         alias = getattr(field_info, "alias", None)

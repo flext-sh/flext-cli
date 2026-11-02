@@ -326,7 +326,7 @@ class FlextCliModelsProcess:
     class RuntimeProcessState(m.ArbitraryTypesModel):
         """Mutable ownership and causal evidence for exactly one lifecycle."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True,
             validate_assignment=False,
         )

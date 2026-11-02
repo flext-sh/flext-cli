@@ -10,7 +10,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
-from flext_core import m
+from flext_core import m, t
 
 from flext_cli import c
 from flext_cli._models import FlextCliModelsAtomicState
@@ -22,7 +22,7 @@ class FlextCliModelsBasePart02:
     class AtomicFileIdentity(m.BaseModel):
         """Shared physical identity of an existing or absent regular file."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             frozen=True,
             arbitrary_types_allowed=True,
@@ -221,7 +221,7 @@ class FlextCliModelsBasePart02:
     class PromptRuntimeState(m.FlexibleInternalModel):
         """Centralized runtime state for CLI prompt behavior."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -242,7 +242,7 @@ class FlextCliModelsBasePart02:
     class AuthCredentialsPayload(m.BaseModel):
         """Validated auth payload for token or username/password flows."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -262,7 +262,7 @@ class FlextCliModelsBasePart02:
     class ProcessEnvironmentSpec(m.BaseModel):
         """Validated process environment contract for runtime command execution."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         base_env: Annotated[
             Mapping[str, str],
             m.Field(

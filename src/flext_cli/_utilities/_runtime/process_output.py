@@ -25,7 +25,7 @@ class FlextCliUtilitiesRuntimeProcessOutput(
     def _start_process_output(
         cls,
         process: p.Cli.ProcessHandle,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         live_fds: tuple[int | None, int | None],
         *,
         capture_output: bool,

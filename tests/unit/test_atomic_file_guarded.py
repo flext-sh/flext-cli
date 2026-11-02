@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import m, tm, u
+from tests import p, tm, u
 
 
 class TestsFlextCliAtomicFileGuarded:
@@ -196,7 +196,7 @@ class TestsFlextCliAtomicFileGuarded:
         )
 
     @staticmethod
-    def _snapshot(path: Path, *, required: bool = False) -> m.Cli.AtomicFileState:
+    def _snapshot(path: Path, *, required: bool = False) -> p.Cli.AtomicFileState:
         result = u.Cli.atomic_read_binary_file_state(path, required=required)
         tm.ok(result)
         return result.value

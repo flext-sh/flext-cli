@@ -58,8 +58,8 @@ class ExamplesFlextCliPydanticDrivenCli:
 
     @staticmethod
     def _finish_database_config(
-        settings: m.Examples.AdvancedDatabaseConfig,
-    ) -> m.Examples.AdvancedDatabaseConfig:
+        settings: p.Examples.AdvancedDatabaseConfig,
+    ) -> p.Examples.AdvancedDatabaseConfig:
         """Emit the final success summary and preserve the validated settings.
 
         Returns:
@@ -76,7 +76,7 @@ class ExamplesFlextCliPydanticDrivenCli:
         """Create validated DatabaseConfig using Railway Pattern with Pydantic.
 
         Returns:
-            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+            The resulting ``p.Result[p.Examples.AdvancedDatabaseConfig]``.
 
         """
         cli.print(
@@ -93,7 +93,7 @@ class ExamplesFlextCliPydanticDrivenCli:
             connection_pool=20,
         )
         return (
-            r[m.Examples.AdvancedDatabaseConfig]
+            r[p.Examples.AdvancedDatabaseConfig]
             .ok(cli_args)
             .map(
                 lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
@@ -146,31 +146,31 @@ class ExamplesFlextCliPydanticDrivenCli:
     @staticmethod
     def convert_and_validate_with_pydantic(
         data: t.JsonMapping,
-    ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+    ) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
         """Convert raw data to validated Pydantic model.
 
         Returns:
-            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+            The resulting ``p.Result[p.Examples.AdvancedDatabaseConfig]``.
 
         """
         try:
-            return r[m.Examples.AdvancedDatabaseConfig].ok(
+            return r[p.Examples.AdvancedDatabaseConfig].ok(
                 m.Examples.AdvancedDatabaseConfig.model_validate(data),
             )
         except c.ValidationError as error:
-            return r[m.Examples.AdvancedDatabaseConfig].fail(
+            return r[p.Examples.AdvancedDatabaseConfig].fail(
                 f"Pydantic validation failed: {error}",
                 exception=error,
             )
 
     @staticmethod
     def validate_business_rules(
-        settings: m.Examples.AdvancedDatabaseConfig,
-    ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+        settings: p.Examples.AdvancedDatabaseConfig,
+    ) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
         """Apply custom business rules to validated database configuration.
 
         Returns:
-            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+            The resulting ``p.Result[p.Examples.AdvancedDatabaseConfig]``.
 
         """
         default_port = ExamplesFlextCliPydanticDrivenCli._DEFAULT_POSTGRES_PORT
@@ -181,7 +181,7 @@ class ExamplesFlextCliPydanticDrivenCli:
                     | {"port": ExamplesFlextCliPydanticDrivenCli._SSL_POSTGRES_PORT},
                 )
             except c.ValidationError as error:
-                return r[m.Examples.AdvancedDatabaseConfig].fail(
+                return r[p.Examples.AdvancedDatabaseConfig].fail(
                     f"Business rule validation failed: {error}",
                     exception=error,
                 )
@@ -190,24 +190,24 @@ class ExamplesFlextCliPydanticDrivenCli:
             > ExamplesFlextCliPydanticDrivenCli._MAX_LOCALHOST_CONNECTION_POOL
             and settings.host == "localhost"
         ):
-            return r[m.Examples.AdvancedDatabaseConfig].fail(
+            return r[p.Examples.AdvancedDatabaseConfig].fail(
                 "Localhost cannot handle large connection pools",
             )
-        return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
+        return r[p.Examples.AdvancedDatabaseConfig].ok(settings)
 
     @staticmethod
     def perform_connection_test(
-        settings: m.Examples.AdvancedDatabaseConfig,
-    ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+        settings: p.Examples.AdvancedDatabaseConfig,
+    ) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
         """Simulate database connection test.
 
         Returns:
-            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+            The resulting ``p.Result[p.Examples.AdvancedDatabaseConfig]``.
 
         """
         if "fail" in settings.host:
-            return r[m.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
-        return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
+            return r[p.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
+        return r[p.Examples.AdvancedDatabaseConfig].ok(settings)
 
 
 __all__: list[str] = ["ExamplesFlextCliPydanticDrivenCli"]

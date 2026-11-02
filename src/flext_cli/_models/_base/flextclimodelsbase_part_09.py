@@ -24,7 +24,7 @@ class FlextCliModelsBasePart09:
     class AtomicPhysicalTreeEntry(m.ArbitraryTypesModel):
         """One exact regular file, symlink leaf, or physical directory."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
 
         path: Annotated[Path, m.Field(description="Absolute entry path")]
         kind: Annotated[
@@ -214,7 +214,7 @@ class FlextCliModelsBasePart09:
     class AtomicPhysicalTreeManifest(m.ArbitraryTypesModel):
         """Exact root identity plus its ordered descriptor-authenticated entries."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
 
         root: Annotated[
             FlextCliModelsBasePart09.AtomicPhysicalTreeEntry,

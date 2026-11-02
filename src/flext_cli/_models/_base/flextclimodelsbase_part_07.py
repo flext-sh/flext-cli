@@ -11,7 +11,7 @@ from typing import Annotated, ClassVar
 
 from flext_core import m, p
 
-from flext_cli import c, t
+from flext_cli import c, p, t
 
 
 class FlextCliModelsBasePart07:
@@ -31,7 +31,7 @@ class FlextCliModelsBasePart07:
     class TypedExtract(m.BaseModel):
         """Single contract for typed value extraction (str | bool | dict)."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid")
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid")
         type_kind: Annotated[t.Cli.TypeKind, m.Field(description="Requested type")]
         value: Annotated[
             t.JsonValue | None,

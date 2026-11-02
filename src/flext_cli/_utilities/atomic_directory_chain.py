@@ -10,7 +10,7 @@ import errno
 from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 
-from flext_cli import m, t
+from flext_cli import m, p, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryCreate,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -24,7 +24,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
     """Canonical namespace owner."""
 
     @staticmethod
-    def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPlan:
+    def plan_directory_chain(target: t.Cli.TextPath) -> p.Cli.AtomicDirectoryChainPlan:
         """Snapshot one physical anchor and every descendant observed absent.
 
         Returns:
@@ -48,8 +48,8 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def verify_guarded_directory_chain(
-        plan: m.Cli.AtomicDirectoryChainPlan,
-        created: Sequence[m.Cli.AtomicDirectoryState],
+        plan: p.Cli.AtomicDirectoryChainPlan,
+        created: Sequence[p.Cli.AtomicDirectoryState],
     ) -> None:
         """Verify original ancestry and the exact ordered creation receipts.
 
@@ -80,18 +80,18 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def create_guarded_directory_chain(
-        plan: m.Cli.AtomicDirectoryChainPlan,
+        plan: p.Cli.AtomicDirectoryChainPlan,
         *,
         permission_mode: int,
-        created: MutableSequence[m.Cli.AtomicDirectoryState] | None = None,
-    ) -> Sequence[m.Cli.AtomicDirectoryState]:
+        created: MutableSequence[p.Cli.AtomicDirectoryState] | None = None,
+    ) -> Sequence[p.Cli.AtomicDirectoryState]:
         """Create planned levels while retaining every completed effect.
 
         The optional caller-owned collection records progress before the next
         native operation. A failure never removes a successfully created level.
 
         Returns:
-            The resulting ``Sequence[m.Cli.AtomicDirectoryState]``.
+            The resulting ``Sequence[p.Cli.AtomicDirectoryState]``.
 
         Raises:
             OSError: If ``mode is None``.
@@ -108,7 +108,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
             plan.target,
         )
         FlextCliUtilitiesAtomicDirectoryChain.require_anchor(plan)
-        progress: MutableSequence[m.Cli.AtomicDirectoryState] = (
+        progress: MutableSequence[p.Cli.AtomicDirectoryState] = (
             [] if created is None else created
         )
         initial_count = len(progress)
@@ -130,11 +130,11 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def _create_chained_directories(
-        plan: m.Cli.AtomicDirectoryChainPlan,
+        plan: p.Cli.AtomicDirectoryChainPlan,
         mode: int,
-        created: MutableSequence[m.Cli.AtomicDirectoryState],
+        created: MutableSequence[p.Cli.AtomicDirectoryState],
         expected_parent: tuple[int, int],
-    ) -> MutableSequence[m.Cli.AtomicDirectoryState]:
+    ) -> MutableSequence[p.Cli.AtomicDirectoryState]:
         """Create each planned directory, advancing the expected identity.
 
         Returns:
@@ -166,7 +166,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         return created
 
     @staticmethod
-    def require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
+    def require_anchor(plan: p.Cli.AtomicDirectoryChainPlan) -> None:
         with FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
             plan.anchor_path,
         ) as current:
@@ -179,7 +179,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def require_planned_parent(
-        path: Path, state: m.Cli.AtomicDirectoryState, expected: tuple[int, int]
+        path: Path, state: p.Cli.AtomicDirectoryState, expected: tuple[int, int]
     ) -> None:
         if (state.parent_device, state.parent_inode) != expected:
             message = f"atomic directory-chain parent changed: {path}"
@@ -187,7 +187,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def require_created_identity(
-        state: m.Cli.AtomicDirectoryState,
+        state: p.Cli.AtomicDirectoryState,
     ) -> tuple[int, int]:
         if state.device is None or state.inode is None:
             message = f"created directory has no physical identity: {state.path}"

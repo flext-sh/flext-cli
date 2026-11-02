@@ -132,7 +132,7 @@ class FlextCliUtilitiesFilesPart02:
 
     @staticmethod
     def atomic_write_text_file_guarded(
-        before: m.Cli.AtomicFileState,
+        before: p.Cli.AtomicFileState,
         content: str,
     ) -> p.Result[bool]:
         """Publish under a lock after one complete physical-state precondition.
@@ -161,7 +161,7 @@ class FlextCliUtilitiesFilesPart02:
 
     @staticmethod
     def atomic_write_binary_file_guarded(
-        before: m.Cli.AtomicFileState,
+        before: p.Cli.AtomicFileState,
         data: bytes,
         *,
         permission_mode: int | None,
@@ -197,7 +197,7 @@ class FlextCliUtilitiesFilesPart02:
 
     @staticmethod
     def atomic_delete_binary_file_guarded(
-        state: m.Cli.AtomicFileState,
+        state: p.Cli.AtomicFileState,
         *,
         published_paths: MutableSequence[Path] | None = None,
     ) -> p.Result[bool]:

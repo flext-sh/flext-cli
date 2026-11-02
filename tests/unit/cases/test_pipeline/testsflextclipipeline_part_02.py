@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from flext_cli import cli
-from tests import m, r, tm
+from tests import r, tm
 from tests.unit.cases.test_pipeline.testsflextclipipelinehandlers import (
     TestsFlextCliPipelineHandlers,
 )
@@ -40,7 +40,7 @@ class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
 
         def counting(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             nonlocal call_count
             call_count += 1
             return self._ok_handler("a")(ctx)
@@ -57,11 +57,11 @@ class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
 
         def failing(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             nonlocal call_count
             _ = ctx
             call_count += 1
-            return r[m.Cli.PipelineStageResult].fail("stage failed")
+            return r[p.Cli.PipelineStageResult].fail("stage failed")
 
         stages = [cli.stage("failure", handler=failing)]
         result = cli.pipeline(stages, context=cli.stage_context(tmp_path))
@@ -76,7 +76,7 @@ class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
 
         def exploding(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             nonlocal call_count
             _ = ctx
             call_count += 1
@@ -113,7 +113,7 @@ class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
 
         def exploding(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             _ = ctx
             raise ValueError(error_message)
 

@@ -452,7 +452,7 @@ class FlextCliUtilitiesFramework:
         args: Sequence[str] | None = None,
         charset: str = c.DEFAULT_ENCODING,
         env: Mapping[str, str] | None = None,
-    ) -> m.Cli.InvocationResult:
+    ) -> p.Cli.InvocationResult:
         """Invoke one application through the real framework test runner.
 
         Captured output renders unstyled so text assertions stay

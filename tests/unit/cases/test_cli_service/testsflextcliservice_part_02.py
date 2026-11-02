@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import MutableSequence
 
 from flext_cli import cli
-from tests import c, m, t, tm, u
+from tests import c, m, p, t, tm, u
 
 
 class TestsFlextCliServicePart02:
@@ -21,14 +21,14 @@ class TestsFlextCliServicePart02:
 
         facade.
         """
-        captured: MutableSequence[m.Tests.RepeatableInput] = []
+        captured: MutableSequence[p.Tests.RepeatableInput] = []
         app = cli.create_app_with_common_params(
             name="root",
             help_text="Root application",
         )
         group = cli.create_group(help_text="Sample group", name="sample")
 
-        def handle(params: m.Tests.RepeatableInput) -> t.JsonValue:
+        def handle(params: p.Tests.RepeatableInput) -> t.JsonValue:
             captured.append(params)
             return True
 
@@ -61,7 +61,7 @@ class TestsFlextCliServicePart02:
     def test_model_command_returns_handler_value() -> None:
         """Return the observable value produced by a model command handler."""
 
-        def handle(params: m.Tests.SampleInput) -> t.JsonValue:
+        def handle(params: p.Tests.SampleInput) -> t.JsonValue:
             return {
                 "name": params.name,
                 c.Aggregation.COUNT: params.count,

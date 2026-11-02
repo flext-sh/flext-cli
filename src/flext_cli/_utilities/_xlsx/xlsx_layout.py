@@ -10,7 +10,7 @@ from openpyxl.cell.cell import Cell
 from openpyxl.comments import Comment
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r
+from flext_cli import c, p, r
 from flext_cli._utilities._xlsx import FlextCliUtilitiesXlsxAddresses
 
 
@@ -23,7 +23,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
     def _apply_layout(
         cls,
         worksheet: Worksheet,
-        plan: m.Cli.XlsxSheetLayoutPlan,
+        plan: p.Cli.XlsxSheetLayoutPlan,
     ) -> p.Result[bool]:
         try:
             return cls._apply_layout_unchecked(worksheet, plan)
@@ -35,7 +35,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
     def _apply_layout_unchecked(
         cls,
         worksheet: Worksheet,
-        plan: m.Cli.XlsxSheetLayoutPlan,
+        plan: p.Cli.XlsxSheetLayoutPlan,
     ) -> p.Result[bool]:
         annotations = cls._apply_cell_annotations(worksheet, plan)
         if annotations.failure:
@@ -56,7 +56,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
     def _apply_cell_annotations(
         cls,
         worksheet: Worksheet,
-        plan: m.Cli.XlsxSheetLayoutPlan,
+        plan: p.Cli.XlsxSheetLayoutPlan,
     ) -> p.Result[bool]:
         """Apply comments before links, rejecting merged cells at the same step.
 
@@ -96,7 +96,7 @@ class FlextCliUtilitiesXlsxLayout(FlextCliUtilitiesXlsxAddresses):
     def _apply_dimensions_and_groups(
         cls,
         worksheet: Worksheet,
-        plan: m.Cli.XlsxSheetLayoutPlan,
+        plan: p.Cli.XlsxSheetLayoutPlan,
     ) -> None:
         """Apply explicit dimensions before outline groups."""
         for item in plan.dimensions:

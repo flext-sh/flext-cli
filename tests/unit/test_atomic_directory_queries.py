@@ -14,7 +14,7 @@ from typing import Literal
 
 import pytest
 
-from tests import c, m, tm, u
+from tests import c, m, p, tm, u
 
 
 class TestsFlextCliAtomicDirectoryQueries:
@@ -33,7 +33,7 @@ class TestsFlextCliAtomicDirectoryQueries:
             "isfile",
             "isdir",
         )
-        fragments: list[m.Cli.AtomicDirectoryInventory] = []
+        fragments: list[p.Cli.AtomicDirectoryInventory] = []
         for root in roots:
             root.mkdir()
             (root / names[0]).mkdir()
@@ -82,7 +82,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         """One verification boundary lists every physical directory exactly once."""
         roots = tuple(tmp_path / f"root-{index}" for index in range(2))
         names = ("alpha", "beta", "gamma")
-        fragments: list[m.Cli.AtomicDirectoryInventory] = []
+        fragments: list[p.Cli.AtomicDirectoryInventory] = []
         for root in roots:
             root.mkdir()
             for name in names:
@@ -212,7 +212,7 @@ class TestsFlextCliAtomicDirectoryQueries:
 
     @staticmethod
     def _verification_outcome(
-        fragment: m.Cli.AtomicDirectoryInventory,
+        fragment: p.Cli.AtomicDirectoryInventory,
         *,
         shared: bool,
     ) -> tuple[str, str]:
@@ -594,7 +594,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
             u.Cli.atomic_verify_directory_queries(merged, (), publications=authority)
 
     @staticmethod
-    def _queried(root: Path, name: str) -> m.Cli.AtomicDirectoryInventory:
+    def _queried(root: Path, name: str) -> p.Cli.AtomicDirectoryInventory:
         """Capture ``root`` with one consumed ``isdir`` query and its membership.
 
         Returns:
@@ -608,7 +608,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
     @staticmethod
     def _publish(
         path: Path,
-    ) -> tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState]:
+    ) -> tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState]:
         """Publish one new file and return its before/after physical states.
 
         Returns:

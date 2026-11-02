@@ -39,23 +39,23 @@ class FlextCliUtilitiesXlsxConditional(
         cls,
         worksheet: Worksheet,
         name: str,
-    ) -> p.Result[m.Cli.XlsxNamedStyleSpec]:
+    ) -> p.Result[p.Cli.XlsxNamedStyleSpec]:
         try:
             probe = Cell(worksheet, row=1, column=1)
             probe.style = name
         except (KeyError, ValueError):
-            return r[m.Cli.XlsxNamedStyleSpec].fail(
+            return r[p.Cli.XlsxNamedStyleSpec].fail(
                 f"{c.Cli.XlsxError.NAMED_STYLE_MISSING}: {name}",
             )
         visual = cls._visual_from_styleable(probe)
         if visual.failure:
-            return r[m.Cli.XlsxNamedStyleSpec].from_failure(visual)
-        return r[m.Cli.XlsxNamedStyleSpec].ok(
+            return r[p.Cli.XlsxNamedStyleSpec].from_failure(visual)
+        return r[p.Cli.XlsxNamedStyleSpec].ok(
             m.Cli.XlsxNamedStyleSpec(name=name, visual=visual.value),
         )
 
     @classmethod
-    def _differential_style(cls, spec: m.Cli.XlsxNamedStyleSpec) -> DifferentialStyle:
+    def _differential_style(cls, spec: p.Cli.XlsxNamedStyleSpec) -> DifferentialStyle:
         visual = spec.visual
         number_format_id = builtin_format_id(visual.number_format) or 0
         return DifferentialStyle(
@@ -72,8 +72,8 @@ class FlextCliUtilitiesXlsxConditional(
     @classmethod
     def _rule(
         cls,
-        plan: m.Cli.XlsxConditionalFormatPlan,
-        style: m.Cli.XlsxNamedStyleSpec,
+        plan: p.Cli.XlsxConditionalFormatPlan,
+        style: p.Cli.XlsxNamedStyleSpec,
     ) -> Rule:
         differential = cls._differential_style(style)
         if plan.kind == "contains_text":
@@ -115,7 +115,7 @@ class FlextCliUtilitiesXlsxConditional(
     def _apply_conditional_formats(
         cls,
         worksheet: Worksheet,
-        plans: tuple[m.Cli.XlsxConditionalFormatPlan, ...],
+        plans: tuple[p.Cli.XlsxConditionalFormatPlan, ...],
     ) -> p.Result[bool]:
         try:
             for plan in plans:

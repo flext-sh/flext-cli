@@ -85,7 +85,7 @@ class FlextCliUtilitiesRuntime(
         env: Mapping[str, str] | None,
         stdin_handle: BinaryIO | None,
         *,
-        options: m.Cli.RuntimeSpawnOptions,
+        options: p.Cli.RuntimeSpawnOptions,
     ) -> p.Cli.ProcessHandle:
         """Delegate child creation to the single native process engine.
 

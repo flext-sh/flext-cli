@@ -15,7 +15,7 @@ from openpyxl.styles import Font
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.worksheet import Worksheet
 
-from tests import c, m, tm, u
+from tests import c, m, p, tm, u
 
 
 def _defined_name_workbook() -> bytes:
@@ -117,7 +117,7 @@ class TestsFlextCliXlsxRender:
         )
 
 
-def _styled_template() -> m.Cli.XlsxStyleTemplateResult:
+def _styled_template() -> p.Cli.XlsxStyleTemplateResult:
     """Build a workbook with a styled cell and extract its style template.
 
     Returns:
@@ -140,7 +140,7 @@ def _styled_template() -> m.Cli.XlsxStyleTemplateResult:
     return template_result.value
 
 
-def _typed_runtime_plan(style_name: str) -> m.Cli.XlsxWorkbookPlan:
+def _typed_runtime_plan(style_name: str) -> p.Cli.XlsxWorkbookPlan:
     """Build the immutable runtime plan owning formulas, rules, and protection.
 
     Args:

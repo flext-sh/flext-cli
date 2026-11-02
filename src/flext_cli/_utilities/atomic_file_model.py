@@ -9,12 +9,8 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_cli.typings import PhysicalState
-
-if TYPE_CHECKING:
-    from flext_cli import m
 
 
 class FlextCliUtilitiesAtomicFileModel:
@@ -22,7 +18,7 @@ class FlextCliUtilitiesAtomicFileModel:
 
     @staticmethod
     def require_existing(
-        state: m.Cli.AtomicFileState,
+        state: p.Cli.AtomicFileState,
         *,
         purpose: str,
     ) -> tuple[bytes, int, tuple[int, int]]:
@@ -50,7 +46,7 @@ class FlextCliUtilitiesAtomicFileModel:
 
     @staticmethod
     def require_observed(
-        planned: m.Cli.AtomicFileIdentity,
+        planned: p.Cli.AtomicFileIdentity,
         observed: os.stat_result | None,
         *,
         path: Path | None = None,
@@ -78,7 +74,7 @@ class FlextCliUtilitiesAtomicFileModel:
 
     @staticmethod
     def require_parent(
-        state: m.Cli.AtomicFileIdentity, observed: os.stat_result
+        state: p.Cli.AtomicFileIdentity, observed: os.stat_result
     ) -> None:
         """Require the authenticated parent to equal the snapshot parent identity.
 
@@ -116,7 +112,7 @@ class FlextCliUtilitiesAtomicFileModel:
         )
 
     @staticmethod
-    def _planned_physical_state(state: m.Cli.AtomicFileIdentity) -> PhysicalState:
+    def _planned_physical_state(state: p.Cli.AtomicFileIdentity) -> PhysicalState:
         if state.device is None or state.inode is None or state.link_count is None:
             message = (
                 f"existing atomic file state lacks physical identity: {state.path}"

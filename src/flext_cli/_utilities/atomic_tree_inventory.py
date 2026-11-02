@@ -17,7 +17,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Literal, Never
 
-from flext_cli import m, t
+from flext_cli import m, p, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryChain,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -43,7 +43,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
     @staticmethod
     def directory_membership_value(
-        inventory: m.Cli.AtomicDirectoryInventory,
+        inventory: p.Cli.AtomicDirectoryInventory,
         excluded_names: t.StrTuple,
     ) -> MutableMapping[str, Literal["directory", "file", "symlink", "other"]]:
         """Evaluate the declared direct-child selection on a physical receipt.
@@ -60,7 +60,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
     @staticmethod
     def directory_query_value(
-        inventory: m.Cli.AtomicDirectoryInventory,
+        inventory: p.Cli.AtomicDirectoryInventory,
         name: str,
         predicate: Literal["exists", "isfile", "isdir"],
     ) -> bool:
@@ -91,8 +91,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @classmethod
     def _require_directory_witness_agreement(
         cls,
-        previous: m.Cli.AtomicDirectoryInventory,
-        originals: Sequence[m.Cli.AtomicDirectoryInventory],
+        previous: p.Cli.AtomicDirectoryInventory,
+        originals: Sequence[p.Cli.AtomicDirectoryInventory],
         path: Path,
         selected_queries: tuple[
             tuple[str, Literal["exists", "isfile", "isdir"]],
@@ -132,16 +132,16 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @classmethod
     def merge_directory_query_receipts(
         cls,
-        inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
-        topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
+        inventories: tuple[p.Cli.AtomicDirectoryInventory, ...],
+        topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
         *,
         queries: Mapping[
             int, set[tuple[str, Literal["exists", "isfile", "isdir"]]]
         ] = MappingProxyType({}),
         membership_queries: Mapping[int, set[t.StrTuple]] = MappingProxyType({}),
     ) -> tuple[
-        tuple[m.Cli.AtomicDirectoryInventory, ...],
-        tuple[m.Cli.AtomicDirectoryChainPlan, ...],
+        tuple[p.Cli.AtomicDirectoryInventory, ...],
+        tuple[p.Cli.AtomicDirectoryChainPlan, ...],
     ]:
         """Finalize working selectors once over agreeing original native witnesses.
 
@@ -157,13 +157,13 @@ class FlextCliUtilitiesAtomicTreeInventory:
             ValueError: If original identity, query, or membership epochs disagree.
 
         """
-        directories: MutableMapping[Path, list[m.Cli.AtomicDirectoryInventory]] = {}
-        chains: MutableMapping[Path, list[m.Cli.AtomicDirectoryChainPlan]] = {}
+        directories: MutableMapping[Path, list[p.Cli.AtomicDirectoryInventory]] = {}
+        chains: MutableMapping[Path, list[p.Cli.AtomicDirectoryChainPlan]] = {}
         for incoming in inventories:
             directories.setdefault(incoming.root.path, []).append(incoming)
         for incoming in topology:
             chains.setdefault(incoming.target, []).append(incoming)
-        directory_receipts: list[m.Cli.AtomicDirectoryInventory] = []
+        directory_receipts: list[p.Cli.AtomicDirectoryInventory] = []
         for path, originals in directories.items():
             previous = originals[0]
             selected_queries = tuple(
@@ -208,7 +208,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     membership_queries=selected_membership,
                 )
             )
-        topology_receipts: list[m.Cli.AtomicDirectoryChainPlan] = []
+        topology_receipts: list[p.Cli.AtomicDirectoryChainPlan] = []
         for target, witnesses in chains.items():
             previous = witnesses[0]
             if any(
@@ -260,8 +260,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
     @staticmethod
     def _require_directory_identity(
-        expected: m.Cli.AtomicPhysicalTreeEntry,
-        observed: m.Cli.AtomicPhysicalTreeEntry,
+        expected: p.Cli.AtomicPhysicalTreeEntry,
+        observed: p.Cli.AtomicPhysicalTreeEntry,
         diagnostic: str,
     ) -> None:
         """Reject changed physical identity without freezing child membership.
@@ -280,12 +280,12 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @classmethod
     def verify_directory_queries(
         cls,
-        inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
-        topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
-        publications: tuple[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]
+        inventories: tuple[p.Cli.AtomicDirectoryInventory, ...],
+        topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
+        publications: tuple[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]
         | m.Cli.AtomicDirectoryQueryEffects = (),
-        directory_publications: tuple[m.Cli.AtomicDirectoryState, ...] = (),
-        observations: m.Cli.AtomicDirectoryObservations | None = None,
+        directory_publications: tuple[p.Cli.AtomicDirectoryState, ...] = (),
+        observations: p.Cli.AtomicDirectoryObservations | None = None,
     ) -> bool:
         """Reprove consumed elections, allowing only supplied physical own effects.
 
@@ -383,7 +383,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
     @staticmethod
     def _published_ancestors(
-        publications: Iterable[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState]],
+        publications: Iterable[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState]],
     ) -> Mapping[Path, None]:
         """Return every ancestor path already held by a published file.
 
@@ -400,11 +400,11 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
     @staticmethod
     def _require_membership_policy(
-        inventories: tuple[m.Cli.AtomicDirectoryInventory, ...],
-        topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
-        publications: tuple[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]
+        inventories: tuple[p.Cli.AtomicDirectoryInventory, ...],
+        topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
+        publications: tuple[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]
         | m.Cli.AtomicDirectoryQueryEffects,
-    ) -> tuple[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]:
+    ) -> tuple[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]:
         """Reject receipt-selected authority before observing native dependencies.
 
         Returns:
@@ -438,8 +438,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @classmethod
     def _verify_query_topology(
         cls,
-        topology: tuple[m.Cli.AtomicDirectoryChainPlan, ...],
-        published: Mapping[Path, tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState]],
+        topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
+        published: Mapping[Path, tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState]],
         created: Mapping[Path, m.Cli.AtomicDirectoryState],
         observations: MutableMapping[Path, m.Cli.AtomicDirectoryInventory],
         topology_observations: MutableMapping[Path, m.Cli.AtomicDirectoryChainPlan],
@@ -529,9 +529,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @classmethod
     def _verify_query_membership(
         cls,
-        observed: m.Cli.AtomicDirectoryInventory,
+        observed: p.Cli.AtomicDirectoryInventory,
         members: MutableMapping[str, Literal["directory", "file", "symlink", "other"]],
-        publications: Iterable[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileState]],
+        publications: Iterable[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState]],
         created: Mapping[Path, m.Cli.AtomicDirectoryState],
         excluded_names: t.StrTuple = (),
     ) -> None:
@@ -608,7 +608,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         cls,
         observations: MutableMapping[Path, m.Cli.AtomicDirectoryInventory],
         root_path: Path,
-    ) -> m.Cli.AtomicDirectoryInventory:
+    ) -> p.Cli.AtomicDirectoryInventory:
         """Return one boundary-scoped native observation of a physical directory.
 
         The first request inside a verification boundary takes the fresh native
@@ -627,7 +627,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         return observed
 
     @staticmethod
-    def inventory_physical_directory(root_path: Path) -> m.Cli.AtomicDirectoryInventory:
+    def inventory_physical_directory(root_path: Path) -> p.Cli.AtomicDirectoryInventory:
         """Capture immediate elections without descending or hashing child payloads.
 
         Returns:
@@ -642,7 +642,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             names = FlextCliUtilitiesAtomicTreeInventory._directory_names(
                 parent.descriptor
             )
-            entries: list[m.Cli.AtomicDirectoryName] = []
+            entries: list[p.Cli.AtomicDirectoryName] = []
             for name in names:
                 path = root.path / name
                 child = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
@@ -675,7 +675,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         return m.Cli.AtomicDirectoryInventory(root=root, entries=tuple(entries))
 
     @staticmethod
-    def inventory_physical_tree(root_path: Path) -> m.Cli.AtomicPhysicalTreeManifest:
+    def inventory_physical_tree(root_path: Path) -> p.Cli.AtomicPhysicalTreeManifest:
         """Inventory one exact tree through non-aliased directory descriptors.
 
         The shared root acquisition rejects a missing physical-tree root with
@@ -686,7 +686,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
         """
         root_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(root_path)
-        entries: list[m.Cli.AtomicPhysicalTreeEntry] = []
+        entries: list[p.Cli.AtomicPhysicalTreeEntry] = []
         with FlextCliUtilitiesAtomicTreeInventory._opened_root(root_path) as (
             root,
             parent,
@@ -784,7 +784,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def _inventory_directory(
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         parent_mount_id: int,
-        entries: list[m.Cli.AtomicPhysicalTreeEntry],
+        entries: list[p.Cli.AtomicPhysicalTreeEntry],
         directory_identities: set[tuple[int, int]],
     ) -> None:
         FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
@@ -949,8 +949,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
         path: Path,
         parent: os.stat_result,
         observed: os.stat_result,
-        details: m.Cli.TreeEntryDetails,
-    ) -> m.Cli.AtomicPhysicalTreeEntry:
+        details: p.Cli.TreeEntryDetails,
+    ) -> p.Cli.AtomicPhysicalTreeEntry:
         if details.kind == "file" and observed.st_nlink > 1:
             # Cleanup authority is per pathname; a second physical name sharing
             # the inode means pruning this tree must not silently claim the
@@ -996,7 +996,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             return tuple(sorted(entry.name for entry in entries))
 
     @staticmethod
-    def _entry_path_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> str:
+    def _entry_path_key(entry: p.Cli.AtomicPhysicalTreeEntry) -> str:
         """Return the deterministic lexical manifest key.
 
         Returns:

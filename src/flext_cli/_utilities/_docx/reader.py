@@ -39,31 +39,31 @@ class FlextCliUtilitiesDocxReader:
     # module; consumers receive only validated plans.
 
     @classmethod
-    def docx_read(cls, source: bytes) -> p.Result[m.Cli.DocxDocumentPlan]:
+    def docx_read(cls, source: bytes) -> p.Result[p.Cli.DocxDocumentPlan]:
         """Read document bytes into a validated plan.
 
         Returns:
-            The resulting ``p.Result[m.Cli.DocxDocumentPlan]``.
+            The resulting ``p.Result[p.Cli.DocxDocumentPlan]``.
 
         """
         try:
             document = Document(BytesIO(source))
         except (OSError, ValueError, KeyError, BadZipFile) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.DocxDocumentPlan].fail(
+            return r[p.Cli.DocxDocumentPlan].fail(
                 f"{c.Cli.DocxError.DOCUMENT_LOAD_FAILED}: {detail}",
             )
         try:
             plan = cls._snapshot_document(document)
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.DocxDocumentPlan].fail(
+            return r[p.Cli.DocxDocumentPlan].fail(
                 f"{c.Cli.DocxError.RENDER_FAILED}: {detail}",
             )
-        return r[m.Cli.DocxDocumentPlan].ok(plan)
+        return r[p.Cli.DocxDocumentPlan].ok(plan)
 
     @classmethod
-    def _snapshot_document(cls, document: DocumentType) -> m.Cli.DocxDocumentPlan:
+    def _snapshot_document(cls, document: DocumentType) -> p.Cli.DocxDocumentPlan:
         paragraphs = tuple(cls._snapshot_paragraph(p) for p in document.paragraphs)
         tables = tuple(cls._snapshot_table(t) for t in document.tables)
         return m.Cli.DocxDocumentPlan(
@@ -74,7 +74,7 @@ class FlextCliUtilitiesDocxReader:
         )
 
     @classmethod
-    def _snapshot_paragraph(cls, paragraph: Paragraph) -> m.Cli.DocxParagraphPlan:
+    def _snapshot_paragraph(cls, paragraph: Paragraph) -> p.Cli.DocxParagraphPlan:
         runs = tuple(cls._snapshot_run(run) for run in paragraph.runs)
         alignment = cls._snapshot_alignment(
             cast(
@@ -89,7 +89,7 @@ class FlextCliUtilitiesDocxReader:
         )
 
     @classmethod
-    def _snapshot_run(cls, run: Run) -> m.Cli.DocxRunPlan:
+    def _snapshot_run(cls, run: Run) -> p.Cli.DocxRunPlan:
         font = run.font
         color = None
         if font.color and font.color.rgb:
@@ -108,8 +108,8 @@ class FlextCliUtilitiesDocxReader:
         return m.Cli.DocxRunPlan(text=run.text, style=style)
 
     @classmethod
-    def _snapshot_table(cls, table: Table) -> m.Cli.DocxTablePlan:
-        rows: tuple[m.Cli.DocxTableRowPlan, ...] = ()
+    def _snapshot_table(cls, table: Table) -> p.Cli.DocxTablePlan:
+        rows: tuple[p.Cli.DocxTableRowPlan, ...] = ()
         for row in table.rows:
             cells = tuple(
                 m.Cli.DocxTableCellPlan(

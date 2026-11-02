@@ -9,7 +9,7 @@ from __future__ import annotations
 from openpyxl.styles import Protection
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r
+from flext_cli import c, p, r
 
 
 class FlextCliUtilitiesXlsxProtection:
@@ -21,7 +21,7 @@ class FlextCliUtilitiesXlsxProtection:
     def _apply_protection(
         cls,
         worksheet: Worksheet,
-        plan: m.Cli.XlsxSheetProtectionPlan | None,
+        plan: p.Cli.XlsxSheetProtectionPlan | None,
     ) -> p.Result[bool]:
         if plan is None:
             return r[bool].ok(value=True)
@@ -35,7 +35,7 @@ class FlextCliUtilitiesXlsxProtection:
     def _apply_protection_unchecked(
         cls,
         worksheet: Worksheet,
-        plan: m.Cli.XlsxSheetProtectionPlan,
+        plan: p.Cli.XlsxSheetProtectionPlan,
     ) -> p.Result[bool]:
         for item in plan.cells:
             if (

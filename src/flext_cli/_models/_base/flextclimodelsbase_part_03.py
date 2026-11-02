@@ -21,7 +21,7 @@ class FlextCliModelsBasePart03:
     class AtomicDirectoryState(m.BaseModel):
         """Exact empty-directory presence and physical identity."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             frozen=True,
             arbitrary_types_allowed=True,
@@ -112,7 +112,7 @@ class FlextCliModelsBasePart03:
     class CommandEntryModel(m.BaseModel):
         """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True,
             extra="forbid",
         )
@@ -125,12 +125,12 @@ class FlextCliModelsBasePart03:
     class EmptyRequest(m.BaseModel):
         """Shared request model of a service operation that takes no input."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
 
     class CommandMetadata(m.BaseModel):
         """Immutable command identity and user-facing help."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True,
             extra="forbid",
             frozen=True,

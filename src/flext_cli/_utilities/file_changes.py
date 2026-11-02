@@ -12,7 +12,7 @@ from pathlib import Path
 
 from filelock import FileLock
 
-from flext_cli import c, m, p, r
+from flext_cli import c, p, r
 from flext_cli._utilities import FlextCliUtilitiesOutput
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_06 import (
@@ -41,8 +41,8 @@ class FlextCliUtilitiesFileChanges:
 
     @staticmethod
     def pending_file_changes(
-        changes: Sequence[m.Cli.FileChange],
-    ) -> tuple[m.Cli.FileChange, ...]:
+        changes: Sequence[p.Cli.FileChange],
+    ) -> tuple[p.Cli.FileChange, ...]:
         """Select the changes whose bytes or mode differ from the observed state.
 
         Returns:
@@ -61,7 +61,7 @@ class FlextCliUtilitiesFileChanges:
 
     @staticmethod
     def publish_file_changes(
-        changes: Sequence[m.Cli.FileChange],
+        changes: Sequence[p.Cli.FileChange],
         *,
         lock_path: Path,
         directory_mode: int = c.Cli.FILE_CHANGES_DIRECTORY_MODE,
@@ -153,7 +153,7 @@ class FlextCliUtilitiesFileChanges:
 
     @staticmethod
     def _publish(
-        change: m.Cli.FileChange,
+        change: p.Cli.FileChange,
         directory_mode: int,
         published_paths: MutableSequence[Path],
     ) -> p.Result[bool]:

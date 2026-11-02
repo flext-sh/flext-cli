@@ -15,7 +15,7 @@ from examples import ExamplesFlextCliUtilities
 from flext_tests import FlextTestsUtilities
 
 from flext_cli import FlextCliUtilities, cli
-from tests import TestsFlextCliSettings, m, p, r, tm
+from tests import TestsFlextCliSettings, p, r, tm
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -33,7 +33,7 @@ class TestsFlextCliUtilities(
         path: Path,
         *,
         required: bool = False,
-    ) -> m.Cli.AtomicDirectoryState:
+    ) -> p.Cli.AtomicDirectoryState:
         """Read one authenticated empty-directory state through the facade.
 
         Returns:

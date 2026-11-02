@@ -20,11 +20,11 @@ class FlextCliUtilitiesPipeline:
 
     @staticmethod
     def execute_pipeline(
-        stages: Sequence[m.Cli.PipelineStageSpec],
-        context: m.Cli.PipelineStageContext,
+        stages: Sequence[p.Cli.PipelineStageSpec],
+        context: p.Cli.PipelineStageContext,
         *,
         logger: p.Logger,
-    ) -> p.Result[m.Cli.PipelineResult]:
+    ) -> p.Result[p.Cli.PipelineResult]:
         """Execute pipeline stages in topological order.
 
         Dependencies resolve through ``u.Cli.dag_waves``: a cycle or a
@@ -32,14 +32,14 @@ class FlextCliUtilitiesPipeline:
         runs. Stages share state via context.shared mutable mapping.
 
         Returns:
-            The resulting ``p.Result[m.Cli.PipelineResult]``.
+            The resulting ``p.Result[p.Cli.PipelineResult]``.
 
         """
         pipeline_start = time.monotonic()
-        results: MutableSequence[m.Cli.PipelineStageResult] = []
+        results: MutableSequence[p.Cli.PipelineStageResult] = []
 
         if not stages:
-            return r[m.Cli.PipelineResult].ok(
+            return r[p.Cli.PipelineResult].ok(
                 m.Cli.PipelineResult(stages=[], total_duration_ms=0.0),
             )
 
@@ -50,7 +50,7 @@ class FlextCliUtilitiesPipeline:
             spec.stage_id: spec.depends_on for spec in stages
         })
         if waves.failure:
-            return r[m.Cli.PipelineResult].fail(
+            return r[p.Cli.PipelineResult].fail(
                 f"pipeline graph invalid: {waves.error}"
             )
 
@@ -96,8 +96,8 @@ class FlextCliUtilitiesPipeline:
         )
 
         if pipeline_result.failed_stages:
-            return r[m.Cli.PipelineResult].fail("one or more pipeline stages failed")
-        return r[m.Cli.PipelineResult].ok(pipeline_result)
+            return r[p.Cli.PipelineResult].fail("one or more pipeline stages failed")
+        return r[p.Cli.PipelineResult].ok(pipeline_result)
 
     @staticmethod
     def _skip_failed_wave(
@@ -116,7 +116,7 @@ class FlextCliUtilitiesPipeline:
     def _execute_ready_wave(
         known: Sequence[str],
         stage_map: Mapping[str, m.Cli.PipelineStageSpec],
-        context: m.Cli.PipelineStageContext,
+        context: p.Cli.PipelineStageContext,
         log: p.Logger,
         completed: MutableMapping[str, m.Cli.PipelineStageResult],
     ) -> None:
@@ -148,10 +148,10 @@ class FlextCliUtilitiesPipeline:
 
     @staticmethod
     def _run_stage(
-        spec: m.Cli.PipelineStageSpec,
-        context: m.Cli.PipelineStageContext,
+        spec: p.Cli.PipelineStageSpec,
+        context: p.Cli.PipelineStageContext,
         log: p.Logger,
-    ) -> m.Cli.PipelineStageResult:
+    ) -> p.Cli.PipelineStageResult:
         """Execute a single stage and preserve its first failure.
 
         Returns:

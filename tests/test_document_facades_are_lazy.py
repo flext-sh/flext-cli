@@ -61,7 +61,7 @@ class TestsFlextCliDocumentFacadesAreLazy:
     @staticmethod
     def test_xlsx_operation_still_resolves_through_the_utility_facade() -> None:
         loaded = _loaded_heavy_modules(
-            "from flext_cli import m, u\n"
+            "from flext_cli import m, p, u\n"
             "u.Cli.xlsx_parse_range(m.Cli.XlsxParseRangeRequest(reference='A1'))",
         )
         tm.ok("openpyxl" in loaded)

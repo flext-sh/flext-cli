@@ -23,7 +23,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
         handler: p.Cli.ResultCommandHandler[M, TResult],
         success_formatter: t.Cli.SuccessMessageFormatter[TResult],
         success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
-    ) -> m.Cli.ResultCommandRoute:
+    ) -> p.Cli.ResultCommandRoute:
         """Bind a typed operation to the existing heterogeneous CLI contract.
 
         The framework already validated the request. Its original instance and

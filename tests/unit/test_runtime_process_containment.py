@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 
-def _deadline(*, seconds: float, grace: float) -> m.Cli.ProcessDeadline:
+def _deadline(*, seconds: float, grace: float) -> p.Cli.ProcessDeadline:
     return m.Cli.ProcessDeadline(
         expires_at_monotonic=time.monotonic() + seconds,
         termination_grace_seconds=grace,

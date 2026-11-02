@@ -19,8 +19,6 @@ if TYPE_CHECKING:
     # mro-j47u (codex): p -> m stays type-only through the canonical facade.
     from flext_core import p
 
-    from flext_cli import m
-
 
 class FlextCliProtocolsXlsx(
     FlextCliProtocolsXlsxArchive,
@@ -42,7 +40,7 @@ class FlextCliProtocolsXlsx(
     @runtime_checkable
     class XlsxWorkbookPlan(Protocol):
         @property
-        def sheets(self) -> tuple[m.Cli.XlsxSheetPlan, ...]:
+        def sheets(self) -> tuple[p.Cli.XlsxSheetPlan, ...]:
             """Ordered sheet plans composing the workbook."""
             ...
 
@@ -59,7 +57,7 @@ class FlextCliProtocolsXlsx(
             ...
 
         @property
-        def plan(self) -> m.Cli.XlsxWorkbookPlan:
+        def plan(self) -> p.Cli.XlsxWorkbookPlan:
             """Workbook plan describing the render target."""
             ...
 
@@ -71,7 +69,7 @@ class FlextCliProtocolsXlsx(
             ...
 
         @property
-        def plan(self) -> m.Cli.XlsxWorkbookPlan:
+        def plan(self) -> p.Cli.XlsxWorkbookPlan:
             """Workbook plan the render produced."""
             ...
 
@@ -86,7 +84,7 @@ class FlextCliProtocolsXlsx(
     @runtime_checkable
     class XlsxFormatReferenceRequest(Protocol):
         @property
-        def area(self) -> m.Cli.XlsxCellRange:
+        def area(self) -> p.Cli.XlsxCellRange:
             """Cell range the reference formats."""
             ...
 
@@ -120,7 +118,7 @@ class FlextCliProtocolsXlsx(
             ...
 
         @property
-        def policy(self) -> m.Cli.XlsxArchivePolicy:
+        def policy(self) -> p.Cli.XlsxArchivePolicy:
             """Archive inspection policy applied to the source bytes."""
             ...
 
@@ -159,7 +157,7 @@ class FlextCliProtocolsXlsx(
             ...
 
         @property
-        def style_map(self) -> tuple[m.Cli.XlsxStyleMapEntry, ...]:
+        def style_map(self) -> tuple[p.Cli.XlsxStyleMapEntry, ...]:
             """Mapping of source style identifiers to generated style names."""
             ...
 
@@ -168,56 +166,56 @@ class FlextCliProtocolsXlsx(
         def xlsx_parse_range(
             self,
             request: FlextCliProtocolsXlsx.XlsxParseRangeRequest,
-        ) -> p.Result[m.Cli.XlsxCellRange]:
+        ) -> p.Result[p.Cli.XlsxCellRange]:
             """Parse one cell range reference from the request."""
             ...
 
         def xlsx_format_reference(
             self,
             request: FlextCliProtocolsXlsx.XlsxFormatReferenceRequest,
-        ) -> p.Result[m.Cli.XlsxReference]:
+        ) -> p.Result[p.Cli.XlsxReference]:
             """Format one cell range reference from the request."""
             ...
 
         def xlsx_render(
             self,
             request: FlextCliProtocolsXlsx.XlsxRenderRequest,
-        ) -> p.Result[m.Cli.XlsxRenderResult]:
+        ) -> p.Result[p.Cli.XlsxRenderResult]:
             """Render workbook bytes according to the request plan."""
             ...
 
         def xlsx_inspect(
             self,
             request: FlextCliProtocolsXlsx.XlsxArchiveInspectionRequest,
-        ) -> p.Result[m.Cli.XlsxArchiveInspection]:
+        ) -> p.Result[p.Cli.XlsxArchiveInspection]:
             """Inspect the workbook archive described by the request."""
             ...
 
         def xlsx_style_catalog(
             self,
             request: FlextCliProtocolsXlsx.XlsxStyleCatalogRequest,
-        ) -> p.Result[m.Cli.XlsxStyleCatalog]:
+        ) -> p.Result[p.Cli.XlsxStyleCatalog]:
             """Extract the style catalog from the request workbook bytes."""
             ...
 
         def xlsx_style_template(
             self,
             request: FlextCliProtocolsXlsx.XlsxStyleTemplateRequest,
-        ) -> p.Result[m.Cli.XlsxStyleTemplateResult]:
+        ) -> p.Result[p.Cli.XlsxStyleTemplateResult]:
             """Render a styled template from the request catalog."""
             ...
 
         def xlsx_recalc(
             self,
-            request: m.Cli.XlsxRecalcRequest,
-        ) -> p.Result[m.Cli.XlsxRecalcResult]:
+            request: p.Cli.XlsxRecalcRequest,
+        ) -> p.Result[p.Cli.XlsxRecalcResult]:
             """Recalculate workbook bytes through the request contract."""
             ...
 
         def xlsx_recalc_parity(
             self,
-            request: m.Cli.XlsxRecalcParityRequest,
-        ) -> p.Result[m.Cli.XlsxRecalcParityReport]:
+            request: p.Cli.XlsxRecalcParityRequest,
+        ) -> p.Result[p.Cli.XlsxRecalcParityReport]:
             """Validate recalculation parity for the request inputs."""
             ...
 

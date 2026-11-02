@@ -61,7 +61,7 @@ def _render_workbook() -> bytes:
         ),
         defined_names=(),
     )
-    result: p.Result[m.Cli.XlsxRenderResult] = u.Cli.xlsx_render(
+    result: p.Result[p.Cli.XlsxRenderResult] = u.Cli.xlsx_render(
         m.Cli.XlsxRenderRequest(template=None, plan=plan),
     )
     tm.that(result.success, eq=True, msg=result.error)
@@ -73,7 +73,7 @@ def _numeric_cell_value(
     source: bytes,
     sheet_name: str,
     coordinate: str,
-) -> m.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
+) -> p.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
     snapshot = u.Cli.xlsx_snapshot(
         m.Cli.XlsxSnapshotRequest(source=source, data_only=True),
     )

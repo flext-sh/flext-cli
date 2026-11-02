@@ -51,7 +51,7 @@ class TestsFlextPipelineLoggingContext:
         def stage(stage_id: str) -> p.Cli.PipelineStage:
             def run(
                 context: p.Cli.PipelineStageContext,
-            ) -> p.Result[m.Cli.PipelineStageResult]:
+            ) -> p.Result[p.Cli.PipelineStageResult]:
                 _ = context
                 logger.info("stage correlation", stage_id=stage_id)
                 return cli.ok_stage(stage_id)
