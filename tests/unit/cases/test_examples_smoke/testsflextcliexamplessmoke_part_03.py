@@ -19,8 +19,8 @@ from tests import c, tm
 class TestsFlextCliExamplesSmokePart03:
     """Implementation part for TestsFlextCliExamplesSmokePart03."""
 
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def restore_token_file() -> Iterator[None]:
         """Restore the canonical token file setting after an example mutates it."""
         original_token_file = settings.cli_token_file

@@ -12,7 +12,7 @@ from flext_cli import c, m, t
 
 
 class FlextCliUtilitiesOptionBuilder:
-    """Implementation part for FlextCliUtilitiesOptionBuilder."""
+    """Build CLI option declarations from the existing typed models."""
 
     @staticmethod
     def build(field_name: str, registry: t.Cli.OptionRegistry) -> m.Cli.OptionSpec:

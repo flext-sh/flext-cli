@@ -1,5 +1,5 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Internal package for yaml.
+"""Flext Cli. Utilities. Yaml package.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities._yaml.convert import FlextCliUtilitiesYamlConvert
     from flext_cli._utilities._yaml.editing import FlextCliUtilitiesYamlEditing
     from flext_cli._utilities._yaml.engine import FlextCliUtilitiesYamlEngine
+
 
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesYamlConvert",

@@ -87,7 +87,7 @@ class FlextCliUtilitiesAtomicFilePublish:
                 destination_parent.state,
             )
             FlextCliUtilitiesAtomicFileModel.require_parent(staged, staged_parent.state)
-            destination_state = FlextCliUtilitiesAtomicFileState.destination_state(
+            destination_state = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 destination,
                 parent=destination_parent,
             )
@@ -103,7 +103,7 @@ class FlextCliUtilitiesAtomicFilePublish:
                 destination_state,
                 destination_before.mode,
             )
-            staged_state = FlextCliUtilitiesAtomicFileState.destination_state(
+            staged_state = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 staged_path,
                 parent=staged_parent,
             )
@@ -134,7 +134,6 @@ class FlextCliUtilitiesAtomicFilePublish:
             FlextCliUtilitiesAtomicFilePublishChecks.validate_devices(
                 destination,
                 destination_parent,
-                destination_state,
                 staged_parent,
                 m.Cli.ObservedFile(path=staged_path, state=staged_state),
             )

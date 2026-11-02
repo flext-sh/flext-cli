@@ -32,7 +32,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
         cleanup_errors: list[OSError] = []
         try:
             # Publication adds a second link to this authenticated staging inode.
-            FlextCliUtilitiesAtomicFilePublishChecks.require_identity(
+            FlextCliUtilitiesAtomicFilePublishChecks.require_file_identity(
                 temporary,
                 FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, temporary),
                 identity,
@@ -64,7 +64,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
         cleanup_errors: list[OSError] = []
         if identity is None and descriptor is not None:
             try:
-                identity = FlextCliUtilitiesAtomicFileState.identity(
+                identity = FlextCliUtilitiesAtomicFileState.file_state_identity(
                     os.fstat(descriptor),
                 )
             except OSError as cleanup_error:

@@ -27,7 +27,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
     _MAX_EMPTY_DIRECTORY_LINK_COUNT: ClassVar[int] = 2
 
     @staticmethod
-    def destination_state(
+    def directory_destination_state(
         path: Path,
         *,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor | None = None,
@@ -45,9 +45,11 @@ class FlextCliUtilitiesAtomicDirectoryState:
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
                 path,
             ) as opened:
-                state = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                    path,
-                    parent=opened,
+                state = (
+                    FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
+                        path,
+                        parent=opened,
+                    )
                 )
                 FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(opened)
                 return state
@@ -163,7 +165,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
         )
 
     @staticmethod
-    def require_identity(
+    def require_directory_identity(
         path: Path,
         state: os.stat_result | None,
         expected: tuple[int, int] | None,
@@ -175,7 +177,9 @@ class FlextCliUtilitiesAtomicDirectoryState:
 
         """
         observed = (
-            None if state is None else FlextCliUtilitiesAtomicFilePath.identity(state)
+            None
+            if state is None
+            else FlextCliUtilitiesAtomicFilePath.path_identity(state)
         )
         if observed != expected:
             message = f"atomic directory physical identity changed: {path}"
@@ -215,7 +219,7 @@ class FlextCliUtilitiesAtomicDirectoryState:
         path: Path,
         expected: os.stat_result,
     ) -> os.stat_result:
-        current = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        current = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
             parent=parent,
         )

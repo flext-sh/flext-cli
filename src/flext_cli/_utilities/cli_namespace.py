@@ -42,7 +42,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesXlsx,
     FlextCliUtilitiesYaml,
 )
-from flext_cli._utilities._options.fields import FlextCliUtilitiesOptionsFields
+from flext_cli._utilities.options_fields import FlextCliUtilitiesOptionsFields
 
 
 class FlextCliUtilitiesCli(

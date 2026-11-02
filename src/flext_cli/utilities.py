@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TypeAlias
+
 from flext_core import u as flext_core_u
 
 from flext_cli._utilities import (
@@ -42,40 +44,10 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicTreeCleanup,
     FlextCliUtilitiesAtomicTreeDescriptor,
     FlextCliUtilitiesAtomicTreeInventory,
-    FlextCliUtilitiesAuth,
     FlextCliUtilitiesBase,
     FlextCliUtilitiesCli,
-    FlextCliUtilitiesCmd,
-    FlextCliUtilitiesCommands,
-    FlextCliUtilitiesConfig,
-    FlextCliUtilitiesConversion,
-    FlextCliUtilitiesDag,
-    FlextCliUtilitiesDocx,
-    FlextCliUtilitiesEnv,
-    FlextCliUtilitiesFileChanges,
-    FlextCliUtilitiesFiles,
-    FlextCliUtilitiesFileTestHelpers,
-    FlextCliUtilitiesFormatters,
-    FlextCliUtilitiesFramework,
-    FlextCliUtilitiesJson,
-    FlextCliUtilitiesMarkdown,
-    FlextCliUtilitiesMatching,
-    FlextCliUtilitiesOutput,
-    FlextCliUtilitiesOutputPayloads,
-    FlextCliUtilitiesParams,
-    FlextCliUtilitiesPipeline,
-    FlextCliUtilitiesPptx,
-    FlextCliUtilitiesProcesses,
-    FlextCliUtilitiesPrompts,
-    FlextCliUtilitiesReport,
-    FlextCliUtilitiesRuntime,
-    FlextCliUtilitiesSettings,
-    FlextCliUtilitiesTables,
-    FlextCliUtilitiesTemplate,
-    FlextCliUtilitiesToml,
-    FlextCliUtilitiesValidation,
-    FlextCliUtilitiesXlsx,
-    FlextCliUtilitiesYaml,
+    FlextCliUtilitiesOptionBuilder,
+    RuntimeSpawnOptions,
 )
 
 
@@ -117,40 +89,11 @@ class FlextCliUtilities(flext_core_u):
         FlextCliUtilitiesAtomicTreeInventory,
         FlextCliUtilitiesBase,
         FlextCliUtilitiesCli,
-        FlextCliUtilitiesAuth,
-        FlextCliUtilitiesCmd,
-        FlextCliUtilitiesCommands,
-        FlextCliUtilitiesConfig,
-        FlextCliUtilitiesConversion,
-        FlextCliUtilitiesDag,
-        FlextCliUtilitiesEnv,
-        FlextCliUtilitiesTemplate,
-        FlextCliUtilitiesFileTestHelpers,
-        FlextCliUtilitiesFileChanges,
-        FlextCliUtilitiesFiles,
-        FlextCliUtilitiesFormatters,
-        FlextCliUtilitiesFramework,
-        FlextCliUtilitiesJson,
-        FlextCliUtilitiesMarkdown,
-        FlextCliUtilitiesMatching,
-        FlextCliUtilitiesOutput,
-        FlextCliUtilitiesOutputPayloads,
-        FlextCliUtilitiesParams,
-        FlextCliUtilitiesPipeline,
-        FlextCliUtilitiesPrompts,
-        FlextCliUtilitiesReport,
-        FlextCliUtilitiesProcesses,
-        FlextCliUtilitiesRuntime,
-        FlextCliUtilitiesSettings,
-        FlextCliUtilitiesTables,
-        FlextCliUtilitiesToml,
-        FlextCliUtilitiesValidation,
-        FlextCliUtilitiesXlsx,
-        FlextCliUtilitiesDocx,
-        FlextCliUtilitiesPptx,
-        FlextCliUtilitiesYaml,
+        FlextCliUtilitiesOptionBuilder,
     ):
         """CLI utility namespace."""
+
+        RuntimeSpawnOptions: TypeAlias = RuntimeSpawnOptions
 
 
 u = FlextCliUtilities

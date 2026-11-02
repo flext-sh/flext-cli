@@ -89,7 +89,7 @@ class FlextCliUtilitiesAtomicFilePath:
             raise NotADirectoryError(errno.ENOTDIR, message, path)
 
     @staticmethod
-    def identity(state: os.stat_result) -> tuple[int, int]:
+    def path_identity(state: os.stat_result) -> tuple[int, int]:
         """Return the physical device and inode identity of one filesystem object.
 
         Returns:

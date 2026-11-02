@@ -9,10 +9,8 @@ from __future__ import annotations
 from hashlib import sha256
 
 from flext_cli import m, p, r
-from flext_cli._utilities import (
-    FlextCliUtilitiesXlsxStyleCodec,
-    FlextCliUtilitiesXlsxWorkbookIo,
-)
+from flext_cli._utilities._xlsx.xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
+from flext_cli._utilities._xlsx.xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
 
 
 class FlextCliUtilitiesXlsxStyleCatalog(

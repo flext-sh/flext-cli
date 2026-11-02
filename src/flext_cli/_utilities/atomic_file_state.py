@@ -93,7 +93,7 @@ class FlextCliUtilitiesAtomicFileState:
                 parent.state,
                 owner_uid,
             )
-            state = FlextCliUtilitiesAtomicFileState.destination_state(
+            state = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 validated,
                 parent=parent,
             )
@@ -159,7 +159,7 @@ class FlextCliUtilitiesAtomicFileState:
             raise OSError(errno.EFBIG, message, path)
 
     @staticmethod
-    def destination_state(
+    def file_destination_state(
         path: Path,
         *,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor | None = None,
@@ -174,7 +174,7 @@ class FlextCliUtilitiesAtomicFileState:
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
                 path,
             ) as opened:
-                state = FlextCliUtilitiesAtomicFileState.destination_state(
+                state = FlextCliUtilitiesAtomicFileState.file_destination_state(
                     path,
                     parent=opened,
                 )
@@ -239,7 +239,7 @@ class FlextCliUtilitiesAtomicFileState:
 
         Raises:
             FileNotFoundError: If a ``FileNotFoundError`` is caught.
-            OSError: If ``identity(state) != expected_identity``.
+            OSError: If ``file_state_identity(state) != expected_identity``.
 
         """
         if parent is None:
@@ -257,7 +257,10 @@ class FlextCliUtilitiesAtomicFileState:
         except FileNotFoundError as exc:
             message = f"atomic temporary disappeared before publication: {temporary}"
             raise FileNotFoundError(errno.ENOENT, message, temporary) from exc
-        if FlextCliUtilitiesAtomicFileState.identity(state) != expected_identity:
+        if (
+            FlextCliUtilitiesAtomicFileState.file_state_identity(state)
+            != expected_identity
+        ):
             message = (
                 f"atomic temporary identity changed before publication: {temporary}"
             )
@@ -291,7 +294,7 @@ class FlextCliUtilitiesAtomicFileState:
                     parent=opened,
                 )
                 return
-        current = FlextCliUtilitiesAtomicFileState.destination_state(
+        current = FlextCliUtilitiesAtomicFileState.file_destination_state(
             path,
             parent=parent,
         )
@@ -309,14 +312,14 @@ class FlextCliUtilitiesAtomicFileState:
         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
 
     @staticmethod
-    def identity(state: os.stat_result) -> tuple[int, int]:
+    def file_state_identity(state: os.stat_result) -> tuple[int, int]:
         """Return the filesystem identity shared by descriptor and pathname stats.
 
         Returns:
             The filesystem identity shared by descriptor and pathname stats.
 
         """
-        return FlextCliUtilitiesAtomicFilePath.identity(state)
+        return FlextCliUtilitiesAtomicFilePath.path_identity(state)
 
     @staticmethod
     def read_authenticated_bytes(

@@ -39,7 +39,7 @@ class FlextCliUtilitiesAtomicFileDelete:
         those later failures retain the original exception and the physical effect.
 
         Raises:
-            OSError: If ``file_state.destination_state(path, parent=parent) is not
+            OSError: If ``file_state.file_destination_state(path, parent=parent) is not
             None``.
 
         """
@@ -53,7 +53,7 @@ class FlextCliUtilitiesAtomicFileDelete:
             unlink=True,
         ) as parent:
             FlextCliUtilitiesAtomicFileModel.require_parent(state, parent.state)
-            expected = FlextCliUtilitiesAtomicFileState.destination_state(
+            expected = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 path,
                 parent=parent,
             )
@@ -80,7 +80,9 @@ class FlextCliUtilitiesAtomicFileDelete:
                 published_paths.append(path)
             FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             if (
-                FlextCliUtilitiesAtomicFileState.destination_state(path, parent=parent)
+                FlextCliUtilitiesAtomicFileState.file_destination_state(
+                    path, parent=parent
+                )
                 is not None
             ):
                 message = f"atomic destination still exists after delete: {path}"

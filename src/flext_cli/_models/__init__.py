@@ -13,53 +13,6 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli._models._base.flextclimodelsbase_part_01 import (
-        FlextCliModelsBasePart01,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_02 import (
-        FlextCliModelsBasePart02,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_03 import (
-        FlextCliModelsBasePart03,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_04 import (
-        FlextCliModelsBasePart04,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_05 import (
-        FlextCliModelsBasePart05,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_06 import (
-        FlextCliModelsBasePart06,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_07 import (
-        FlextCliModelsBasePart07,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_08 import (
-        FlextCliModelsBasePart08,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_09 import (
-        FlextCliModelsBasePart09,
-    )
-    from flext_cli._models._base.flextclimodelsbase_part_10 import (
-        FlextCliModelsBasePart10,
-    )
-    from flext_cli._models._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
-    from flext_cli._models._xlsx.xlsx_cells import FlextCliModelsXlsxCells
-    from flext_cli._models._xlsx.xlsx_layout import FlextCliModelsXlsxLayout
-    from flext_cli._models._xlsx.xlsx_recalc import FlextCliModelsXlsxRecalc
-    from flext_cli._models._xlsx.xlsx_rules import FlextCliModelsXlsxRules
-    from flext_cli._models._xlsx.xlsx_snapshot import FlextCliModelsXlsxSnapshot
-    from flext_cli._models._xlsx.xlsx_style_catalog import (
-        FlextCliModelsXlsxStyleCatalog,
-    )
-    from flext_cli._models._xlsx.xlsx_style_fills import FlextCliModelsXlsxStyleFills
-    from flext_cli._models._xlsx.xlsx_style_primitives import (
-        FlextCliModelsXlsxStylePrimitives,
-    )
-    from flext_cli._models._xlsx.xlsx_styles import FlextCliModelsXlsxStyles
-    from flext_cli._models._xlsx.xlsx_tables import FlextCliModelsXlsxTables
-    from flext_cli._models._xlsx.xlsx_validation import FlextCliModelsXlsxValidation
-    from flext_cli._models._xlsx.xlsx_workbook import FlextCliModelsXlsxWorkbook
     from flext_cli._models.atomic_publication import FlextCliModelsAtomicPublication
     from flext_cli._models.atomic_state import FlextCliModelsAtomicState
     from flext_cli._models.atomic_symlink import FlextCliModelsAtomicSymlink
@@ -86,16 +39,6 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsAtomicState",
     "FlextCliModelsAtomicSymlink",
     "FlextCliModelsBase",
-    "FlextCliModelsBasePart01",
-    "FlextCliModelsBasePart02",
-    "FlextCliModelsBasePart03",
-    "FlextCliModelsBasePart04",
-    "FlextCliModelsBasePart05",
-    "FlextCliModelsBasePart06",
-    "FlextCliModelsBasePart07",
-    "FlextCliModelsBasePart08",
-    "FlextCliModelsBasePart09",
-    "FlextCliModelsBasePart10",
     "FlextCliModelsColor",
     "FlextCliModelsConfig",
     "FlextCliModelsDocx",
@@ -111,41 +54,18 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsRules",
     "FlextCliModelsTemplate",
     "FlextCliModelsXlsx",
-    "FlextCliModelsXlsxArchive",
-    "FlextCliModelsXlsxCells",
-    "FlextCliModelsXlsxLayout",
-    "FlextCliModelsXlsxRecalc",
-    "FlextCliModelsXlsxRules",
-    "FlextCliModelsXlsxSnapshot",
-    "FlextCliModelsXlsxStyleCatalog",
-    "FlextCliModelsXlsxStyleFills",
-    "FlextCliModelsXlsxStylePrimitives",
-    "FlextCliModelsXlsxStyles",
-    "FlextCliModelsXlsxTables",
-    "FlextCliModelsXlsxValidation",
-    "FlextCliModelsXlsxWorkbook",
 )
 
 install_lazy_exports(
     __name__,
     globals(),
     MappingProxyType({
-        "FlextCliModelsConfig": ".config",
         "FlextCliModelsAtomicPublication": ".atomic_publication",
         "FlextCliModelsAtomicState": ".atomic_state",
         "FlextCliModelsAtomicSymlink": ".atomic_symlink",
         "FlextCliModelsBase": ".base",
-        "FlextCliModelsBasePart01": "._base.flextclimodelsbase_part_01",
-        "FlextCliModelsBasePart02": "._base.flextclimodelsbase_part_02",
-        "FlextCliModelsBasePart03": "._base.flextclimodelsbase_part_03",
-        "FlextCliModelsBasePart04": "._base.flextclimodelsbase_part_04",
-        "FlextCliModelsBasePart05": "._base.flextclimodelsbase_part_05",
-        "FlextCliModelsBasePart06": "._base.flextclimodelsbase_part_06",
-        "FlextCliModelsBasePart07": "._base.flextclimodelsbase_part_07",
-        "FlextCliModelsBasePart08": "._base.flextclimodelsbase_part_08",
-        "FlextCliModelsBasePart09": "._base.flextclimodelsbase_part_09",
-        "FlextCliModelsBasePart10": "._base.flextclimodelsbase_part_10",
         "FlextCliModelsColor": ".color",
+        "FlextCliModelsConfig": ".config",
         "FlextCliModelsDocx": ".docx",
         "FlextCliModelsDocxDocument": ".docx_document",
         "FlextCliModelsDocxStyles": ".docx_styles",
@@ -159,19 +79,6 @@ install_lazy_exports(
         "FlextCliModelsRules": ".rules",
         "FlextCliModelsTemplate": ".template",
         "FlextCliModelsXlsx": ".xlsx",
-        "FlextCliModelsXlsxArchive": "._xlsx.xlsx_archive",
-        "FlextCliModelsXlsxCells": "._xlsx.xlsx_cells",
-        "FlextCliModelsXlsxLayout": "._xlsx.xlsx_layout",
-        "FlextCliModelsXlsxRecalc": "._xlsx.xlsx_recalc",
-        "FlextCliModelsXlsxRules": "._xlsx.xlsx_rules",
-        "FlextCliModelsXlsxSnapshot": "._xlsx.xlsx_snapshot",
-        "FlextCliModelsXlsxStyleCatalog": "._xlsx.xlsx_style_catalog",
-        "FlextCliModelsXlsxStyleFills": "._xlsx.xlsx_style_fills",
-        "FlextCliModelsXlsxStylePrimitives": "._xlsx.xlsx_style_primitives",
-        "FlextCliModelsXlsxStyles": "._xlsx.xlsx_styles",
-        "FlextCliModelsXlsxTables": "._xlsx.xlsx_tables",
-        "FlextCliModelsXlsxValidation": "._xlsx.xlsx_validation",
-        "FlextCliModelsXlsxWorkbook": "._xlsx.xlsx_workbook",
     }),
     public_exports=__all__,
 )

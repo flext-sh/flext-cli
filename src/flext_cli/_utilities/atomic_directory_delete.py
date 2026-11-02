@@ -33,7 +33,8 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
         Raises:
             OSError: If ``observed is None``; or if ``current is None or
             file_read.state_key(current) != file_read.state_key(authenticated)``; or if
-            ``directory_state.destination_state(path, parent=parent) is not None``.
+            ``directory_state.directory_destination_state(path, parent=parent)
+            is not None``.
 
         """
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(state.path)
@@ -45,9 +46,11 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
             FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
                 state, parent.state
             )
-            observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                path,
-                parent=parent,
+            observed = (
+                FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
+                    path,
+                    parent=parent,
+                )
             )
             FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
                 state, observed
@@ -63,7 +66,7 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
             FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
                 state, authenticated
             )
-            current = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+            current = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
                 path,
                 parent=parent,
             )
@@ -80,7 +83,7 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
             FlextCliUtilitiesAtomicDirectoryDescriptor.remove_entry(parent, path)
             FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             if (
-                FlextCliUtilitiesAtomicDirectoryState.destination_state(
+                FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
                     path,
                     parent=parent,
                 )

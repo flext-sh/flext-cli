@@ -15,12 +15,12 @@ from openpyxl.styles.numbers import NumberFormat, builtin_format_id
 from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p, r
-from flext_cli._utilities import (
-    FlextCliUtilitiesXlsxAddresses,
+from flext_cli._utilities._xlsx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from flext_cli._utilities._xlsx.xlsx_formula_codec import (
     FlextCliUtilitiesXlsxFormulaCodec,
-    FlextCliUtilitiesXlsxStyleCodec,
-    FlextCliUtilitiesXlsxValidations,
 )
+from flext_cli._utilities._xlsx.xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
+from flext_cli._utilities._xlsx.xlsx_validations import FlextCliUtilitiesXlsxValidations
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
 

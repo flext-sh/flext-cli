@@ -54,9 +54,11 @@ class FlextCliUtilitiesAtomicDirectorySnapshot:
         ):
             return FlextCliUtilitiesAtomicDirectoryModel.from_observed(path, None, None)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                path,
-                parent=parent,
+            observed = (
+                FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
+                    path,
+                    parent=parent,
+                )
             )
             if observed is None:
                 if required:

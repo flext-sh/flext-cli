@@ -30,8 +30,8 @@ from tests import c, m, p, r, t, tm, u
 class TestsFlextCliCommands:
     """Behavioral contract for the ``u.Cli`` command messaging helpers."""
 
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def synchronous_logging(
         capsys: pytest.CaptureFixture[str],
     ) -> Iterator[None]:

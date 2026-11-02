@@ -26,8 +26,8 @@ from tests import c, p, tm
 class TestsFlextCliBase:
     """Verify base-service public guarantees through the CLI facade."""
 
-    @staticmethod
     @pytest.fixture
+    @staticmethod
     def facade() -> FlextCli:
         """Return a fresh instance of the public CLI facade type.
 

@@ -42,7 +42,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
             raise OSError(errno.EINVAL, message, path)
 
     @staticmethod
-    def require_identity(
+    def require_file_identity(
         path: Path,
         state: os.stat_result | None,
         expected: tuple[int, int] | None,
@@ -54,7 +54,9 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
 
         """
         observed = (
-            None if state is None else FlextCliUtilitiesAtomicFileState.identity(state)
+            None
+            if state is None
+            else FlextCliUtilitiesAtomicFileState.file_state_identity(state)
         )
         if observed != expected:
             message = f"atomic file physical identity changed: {path}"
@@ -70,12 +72,12 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
 
         Raises:
             OSError: If ``destination_state is not None and
-                file_state.identity(destination_state) == staged_identity``.
+                file_state.file_state_identity(destination_state) == staged_identity``.
 
         """
         if (
             destination_state is not None
-            and FlextCliUtilitiesAtomicFileState.identity(destination_state)
+            and FlextCliUtilitiesAtomicFileState.file_state_identity(destination_state)
             == staged_identity
         ):
             message = "staged file and atomic destination share one inode"
@@ -85,26 +87,22 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     def validate_devices(
         destination: Path,
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
-        destination_state: os.stat_result | None,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         staged: m.Cli.ObservedFile,
     ) -> None:
-        """Require both entries and parents to occupy one filesystem.
+        """Require the pinned rename parents to occupy one filesystem.
+
+        OverlayFS files may expose backing-layer devices independently of
+        their parent directories. File identities remain separately verified.
 
         Raises:
-            OSError: If ``staged_parent.state.st_dev != device or staged.state.st_dev !=
-                staged_parent.state.st_dev or (destination_state is not None and
-                destination_state.st_dev != device)``.
+            OSError: If the source and destination parent devices differ.
 
         """
         device = destination_parent.state.st_dev
-        if (
-            staged_parent.state.st_dev != device
-            or staged.state.st_dev != staged_parent.state.st_dev
-            or (destination_state is not None and destination_state.st_dev != device)
-        ):
+        if staged_parent.state.st_dev != device:
             message = (
-                f"atomic staged and destination entries span filesystems: {staged.path}"
+                f"atomic staged and destination parents span filesystems: {staged.path}"
             )
             raise OSError(errno.EXDEV, message, destination)
 
@@ -126,7 +124,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
 
         """
         if (
-            FlextCliUtilitiesAtomicFileState.destination_state(
+            FlextCliUtilitiesAtomicFileState.file_destination_state(
                 staged.path,
                 parent=staged_parent,
             )
@@ -136,7 +134,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
                 f"atomic staged file still exists after publication: {staged.path}"
             )
             raise OSError(errno.ESTALE, message, staged.path)
-        published = FlextCliUtilitiesAtomicFileState.destination_state(
+        published = FlextCliUtilitiesAtomicFileState.file_destination_state(
             destination,
             parent=destination_parent,
         )
@@ -147,7 +145,8 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         )
         if (
             published is None
-            or FlextCliUtilitiesAtomicFileState.identity(published) != staged_identity
+            or FlextCliUtilitiesAtomicFileState.file_state_identity(published)
+            != staged_identity
         ):
             message = f"published atomic file has another identity: {destination}"
             raise OSError(errno.ESTALE, message, destination)

@@ -9,9 +9,7 @@ from __future__ import annotations
 import time
 from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from concurrent.futures import ThreadPoolExecutor
-from typing import ClassVar
-
-from flext_core import u
+from contextvars import copy_context
 
 from flext_cli import c, m, p, r, settings
 from flext_cli._utilities import FlextCliUtilitiesDag
@@ -20,14 +18,12 @@ from flext_cli._utilities import FlextCliUtilitiesDag
 class FlextCliUtilitiesPipeline:
     """Pipeline execution utilities — exposed as u.Cli.execute_pipeline()."""
 
-    _pipeline_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
-
     @staticmethod
     def execute_pipeline(
         stages: Sequence[m.Cli.PipelineStageSpec],
         context: m.Cli.PipelineStageContext,
         *,
-        logger: p.Logger | None = None,
+        logger: p.Logger,
     ) -> p.Result[m.Cli.PipelineResult]:
         """Execute pipeline stages in topological order.
 
@@ -39,7 +35,6 @@ class FlextCliUtilitiesPipeline:
             The resulting ``p.Result[m.Cli.PipelineResult]``.
 
         """
-        log = logger or FlextCliUtilitiesPipeline._pipeline_logger
         pipeline_start = time.monotonic()
         results: MutableSequence[m.Cli.PipelineStageResult] = []
 
@@ -72,7 +67,7 @@ class FlextCliUtilitiesPipeline:
                 wave,
                 stage_map,
                 context,
-                log,
+                logger,
                 completed,
             )
             failed = any(
@@ -92,7 +87,7 @@ class FlextCliUtilitiesPipeline:
             total_duration_ms=total_ms,
         )
 
-        log.info(
+        logger.info(
             "pipeline_complete",
             total_stages=len(results),
             failed=len(pipeline_result.failed_stages),
@@ -140,6 +135,7 @@ class FlextCliUtilitiesPipeline:
             ) as executor:
                 futures = {
                     stage_id: executor.submit(
+                        copy_context().run,
                         FlextCliUtilitiesPipeline._run_stage,
                         stage_map[stage_id],
                         context,

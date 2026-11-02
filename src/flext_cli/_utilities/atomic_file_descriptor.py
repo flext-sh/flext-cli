@@ -89,7 +89,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         """Require descriptor and pathname to retain the opened directory identity.
 
         Raises:
-            OSError: If ``file_path.identity(descriptor_state) != expected``; or if
+            OSError: If ``file_path.path_identity(descriptor_state) != expected``; or if
                 ``parent.ancestry[-1] != expected``.
 
         """
@@ -98,8 +98,8 @@ class FlextCliUtilitiesAtomicFileDescriptor:
             parent.path,
             descriptor_state,
         )
-        expected = FlextCliUtilitiesAtomicFilePath.identity(parent.state)
-        if FlextCliUtilitiesAtomicFilePath.identity(descriptor_state) != expected:
+        expected = FlextCliUtilitiesAtomicFilePath.path_identity(parent.state)
+        if FlextCliUtilitiesAtomicFilePath.path_identity(descriptor_state) != expected:
             message = f"atomic file parent identity changed: {parent.path}"
             raise OSError(errno.ESTALE, message, parent.path)
         if parent.ancestry[-1] != expected:
@@ -181,7 +181,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         os.unlink(path.name, dir_fd=parent.descriptor)
 
     @staticmethod
-    def require_create_capabilities(path: Path) -> None:
+    def require_file_create_capabilities(path: Path) -> None:
         """Require descriptor-bound no-clobber links before staging bytes.
 
         Raises:

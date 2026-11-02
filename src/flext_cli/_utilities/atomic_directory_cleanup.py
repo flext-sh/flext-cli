@@ -52,7 +52,7 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         path: Path,
         identity: tuple[int, int] | None,
     ) -> None:
-        state = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        state = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
             parent=parent,
         )
@@ -71,12 +71,12 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
             path,
             state,
         )
-        FlextCliUtilitiesAtomicDirectoryState.require_identity(
+        FlextCliUtilitiesAtomicDirectoryState.require_directory_identity(
             path,
             authenticated,
             owned_identity,
         )
-        current = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        current = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
             parent=parent,
         )
@@ -97,7 +97,9 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         if identity is None:
             message = f"refusing unauthenticated directory cleanup: {path}"
             raise OSError(errno.ESTALE, message, path)
-        FlextCliUtilitiesAtomicDirectoryState.require_identity(path, state, identity)
+        FlextCliUtilitiesAtomicDirectoryState.require_directory_identity(
+            path, state, identity
+        )
         return identity
 
     @staticmethod

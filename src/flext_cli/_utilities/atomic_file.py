@@ -60,7 +60,7 @@ class FlextCliUtilitiesAtomicFile:
             replace=True,
             unlink=True,
         ) as parent:
-            expected = FlextCliUtilitiesAtomicFileState.destination_state(
+            expected = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 path,
                 parent=parent,
             )
@@ -159,7 +159,7 @@ class FlextCliUtilitiesAtomicFile:
 
         """
         if expected is None:
-            FlextCliUtilitiesAtomicFileDescriptor.require_create_capabilities(
+            FlextCliUtilitiesAtomicFileDescriptor.require_file_create_capabilities(
                 destination
             )
         try:
@@ -209,7 +209,7 @@ class FlextCliUtilitiesAtomicFile:
                         self.temporary,
                     )
                 )
-                self.identity = FlextCliUtilitiesAtomicFileState.identity(
+                self.identity = FlextCliUtilitiesAtomicFileState.file_state_identity(
                     os.fstat(self.descriptor),
                 )
             finally:
@@ -372,7 +372,6 @@ class FlextCliUtilitiesAtomicFile:
         FlextCliUtilitiesAtomicFilePublishChecks.validate_devices(
             destination,
             parent,
-            expected,
             parent,
             m.Cli.ObservedFile(path=staged.path, state=staged_state),
         )
@@ -395,14 +394,14 @@ class FlextCliUtilitiesAtomicFile:
         mode: int,
         identity: tuple[int, int],
     ) -> os.stat_result:
-        state = FlextCliUtilitiesAtomicFileState.destination_state(
+        state = FlextCliUtilitiesAtomicFileState.file_destination_state(
             temporary,
             parent=parent,
         )
         if state is None:
             message = f"atomic temporary disappeared before publication: {temporary}"
             raise FileNotFoundError(errno.ENOENT, message, temporary)
-        FlextCliUtilitiesAtomicFilePublishChecks.require_identity(
+        FlextCliUtilitiesAtomicFilePublishChecks.require_file_identity(
             temporary,
             state,
             identity,

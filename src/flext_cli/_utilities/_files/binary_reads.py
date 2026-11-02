@@ -277,7 +277,7 @@ class FlextCliUtilitiesFilesPart03:
         """
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(Path(file_path))
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            state = FlextCliUtilitiesAtomicFileState.destination_state(
+            state = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 path, parent=parent
             )
             if state is None:

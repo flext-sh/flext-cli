@@ -41,7 +41,7 @@ class FlextCliAtomicTreeDarwin:
         f_fsid: ctypes.Array[ctypes.c_int32]
 
     @staticmethod
-    def mount_id(descriptor: int, path: Path) -> int:
+    def darwin_mount_id(descriptor: int, path: Path) -> int:
         """Read both fsid words from the open FD, without resolving its pathname.
 
         Returns:

@@ -11,15 +11,13 @@ from collections.abc import Sequence
 from flext_core import u
 
 from flext_cli import c, m, t
-from flext_cli._utilities import (
-    FlextCliUtilitiesConversion,
-    FlextCliUtilitiesOptionBuilder,
-    FlextCliUtilitiesOptionsAnnotations,
-)
+from flext_cli._utilities import FlextCliUtilitiesConversion
+from flext_cli._utilities.option_builder import FlextCliUtilitiesOptionBuilder
+from flext_cli._utilities.options_annotations import FlextCliUtilitiesOptionsAnnotations
 
 
 class FlextCliUtilitiesOptionsFields(FlextCliUtilitiesOptionsAnnotations):
-    """Implementation part for FlextCliUtilitiesOptionsFields."""
+    """Resolve Pydantic field declarations into CLI parameters."""
 
     @staticmethod
     def field_annotation(

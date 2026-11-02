@@ -16,7 +16,7 @@ from flext_cli._utilities import FlextCliUtilitiesConversion
 
 
 class FlextCliUtilitiesOptionsAnnotations:
-    """Implementation part for FlextCliUtilitiesOptionsAnnotations."""
+    """Interpret declared CLI field annotations at their typed owner."""
 
     @staticmethod
     def unwrap_annotation(

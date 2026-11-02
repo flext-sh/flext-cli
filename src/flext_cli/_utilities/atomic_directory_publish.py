@@ -145,7 +145,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> None:
-        observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        observed = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
             parent=parent,
         )
@@ -160,7 +160,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> os.stat_result:
-        observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        observed = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
             parent=parent,
         )
@@ -201,7 +201,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         staged: m.Cli.AtomicDirectoryState,
     ) -> m.Cli.AtomicDirectoryState:
         if (
-            FlextCliUtilitiesAtomicDirectoryState.destination_state(
+            FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
                 staged_path,
                 parent=staged_parent,
             )
@@ -209,7 +209,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         ):
             message = f"staged directory name exists after publication: {staged_path}"
             raise OSError(errno.ESTALE, message, staged_path)
-        observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        observed = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             destination,
             parent=destination_parent,
         )

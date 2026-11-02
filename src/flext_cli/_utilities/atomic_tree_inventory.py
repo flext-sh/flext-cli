@@ -671,7 +671,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             if names != FlextCliUtilitiesAtomicTreeInventory._directory_names(
                 parent.descriptor
             ):
-                FlextCliUtilitiesAtomicTreeInventory._raise_changed(root.path)
+                FlextCliUtilitiesAtomicTreeInventory._raise_inventory_changed(root.path)
         return m.Cli.AtomicDirectoryInventory(root=root, entries=tuple(entries))
 
     @staticmethod
@@ -735,11 +735,11 @@ class FlextCliUtilitiesAtomicTreeInventory:
                 opened.lineage[-1] if opened.lineage else opened.descriptor
             )
             parent_state = os.fstat(parent_descriptor)
-            parent_mount_id = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
+            parent_mount_id = FlextCliUtilitiesAtomicTreeDescriptor.tree_mount_id(
                 parent_descriptor,
                 root_path.parent,
             )
-            root_mount_id = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
+            root_mount_id = FlextCliUtilitiesAtomicTreeDescriptor.tree_mount_id(
                 opened.descriptor,
                 root_path,
             )
@@ -803,7 +803,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     parent.state,
                     observed,
                 )
-                identity = FlextCliUtilitiesAtomicFilePath.identity(observed)
+                identity = FlextCliUtilitiesAtomicFilePath.path_identity(observed)
                 if identity in directory_identities:
                     message = f"atomic physical-tree directory identity repeats: {path}"
                     raise OSError(errno.ELOOP, message, path)
@@ -817,7 +817,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                         path,
                         observed,
                     )
-                    mount_id = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
+                    mount_id = FlextCliUtilitiesAtomicTreeDescriptor.tree_mount_id(
                         descriptor,
                         path,
                     )
@@ -846,7 +846,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
                             observed,
                             (
                                 *parent.ancestry,
-                                FlextCliUtilitiesAtomicFilePath.identity(observed),
+                                FlextCliUtilitiesAtomicFilePath.path_identity(observed),
                             ),
                             (*parent.lineage, parent.descriptor),
                         )
@@ -868,12 +868,12 @@ class FlextCliUtilitiesAtomicTreeInventory:
                     observed,
                 )
             elif stat.S_ISREG(observed.st_mode):
-                authenticated = FlextCliUtilitiesAtomicFileState.destination_state(
+                authenticated = FlextCliUtilitiesAtomicFileState.file_destination_state(
                     path,
                     parent=parent,
                 )
                 if authenticated is None:
-                    FlextCliUtilitiesAtomicTreeInventory._raise_changed(path)
+                    FlextCliUtilitiesAtomicTreeInventory._raise_inventory_changed(path)
                 FlextCliUtilitiesAtomicTreeDescriptor.require_same_device(
                     path,
                     parent.state,
@@ -904,7 +904,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             elif stat.S_ISLNK(observed.st_mode):
                 target = os.readlink(name, dir_fd=parent.descriptor)
                 if not target:
-                    FlextCliUtilitiesAtomicTreeInventory._raise_changed(path)
+                    FlextCliUtilitiesAtomicTreeInventory._raise_inventory_changed(path)
                 FlextCliUtilitiesAtomicTreeDescriptor.require_entry_state(
                     parent,
                     path,
@@ -937,7 +937,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
             FlextCliUtilitiesAtomicTreeInventory._directory_names(parent.descriptor)
             != names
         ):
-            FlextCliUtilitiesAtomicTreeInventory._raise_changed(parent.path)
+            FlextCliUtilitiesAtomicTreeInventory._raise_inventory_changed(parent.path)
         FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
             parent.descriptor,
             parent.path,
@@ -1006,7 +1006,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         return entry.path.as_posix()
 
     @staticmethod
-    def _raise_changed(path: Path) -> Never:
+    def _raise_inventory_changed(path: Path) -> Never:
         message = f"atomic physical-tree entry changed during inventory: {path}"
         raise OSError(errno.ESTALE, message, path)
 

@@ -50,14 +50,18 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         if mode is None:
             message = "permission_mode is required for atomic directory creation"
             raise OSError(errno.EINVAL, message, path)
-        FlextCliUtilitiesAtomicDirectoryDescriptor.require_create_capabilities(path)
+        FlextCliUtilitiesAtomicDirectoryDescriptor.require_directory_create_capabilities(
+            path
+        )
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
             FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
                 before, parent.state
             )
-            observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                path,
-                parent=parent,
+            observed = (
+                FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
+                    path,
+                    parent=parent,
+                )
             )
             FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
                 before, observed
@@ -101,7 +105,7 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> os.stat_result:
-        initial = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        initial = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
             parent=parent,
         )
@@ -124,7 +128,9 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
             initial,
             mode,
         )
-        FlextCliUtilitiesAtomicDirectoryState.require_identity(path, final, identity)
+        FlextCliUtilitiesAtomicDirectoryState.require_directory_identity(
+            path, final, identity
+        )
         FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
         return FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
             parent,

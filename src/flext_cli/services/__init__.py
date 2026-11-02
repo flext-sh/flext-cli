@@ -13,13 +13,6 @@ from typing import TYPE_CHECKING
 from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
-    from flext_cli.services._cli.flextcliservicecli_part_01 import FlextCliCliPart01
-    from flext_cli.services._cli.flextcliservicecli_part_02 import FlextCliCliPart02
-    from flext_cli.services._cli.flextcliservicecli_part_03 import FlextCliCliPart03
-    from flext_cli.services._cli.flextcliservicecli_part_04 import FlextCliCliPart04
-    from flext_cli.services._cli.flextcliservicecli_part_05 import FlextCliCliPart05
-    from flext_cli.services._cli.flextcliservicecli_part_06 import FlextCliCliPart06
-    from flext_cli.services._prompts.support import FlextCliServicesPromptsSupport
     from flext_cli.services.auth import FlextCliAuth
     from flext_cli.services.cli import FlextCliCli
     from flext_cli.services.cli_params import FlextCliCommonParams
@@ -38,12 +31,6 @@ if TYPE_CHECKING:
 __all__: tuple[str, ...] = (
     "FlextCliAuth",
     "FlextCliCli",
-    "FlextCliCliPart01",
-    "FlextCliCliPart02",
-    "FlextCliCliPart03",
-    "FlextCliCliPart04",
-    "FlextCliCliPart05",
-    "FlextCliCliPart06",
     "FlextCliCommonParams",
     "FlextCliDocx",
     "FlextCliFileTools",
@@ -53,7 +40,6 @@ __all__: tuple[str, ...] = (
     "FlextCliPptx",
     "FlextCliPrompts",
     "FlextCliRuntime",
-    "FlextCliServicesPromptsSupport",
     "FlextCliTables",
     "FlextCliXlsx",
 )
@@ -64,12 +50,6 @@ install_lazy_exports(
     MappingProxyType({
         "FlextCliAuth": ".auth",
         "FlextCliCli": ".cli",
-        "FlextCliCliPart01": "._cli.flextcliservicecli_part_01",
-        "FlextCliCliPart02": "._cli.flextcliservicecli_part_02",
-        "FlextCliCliPart03": "._cli.flextcliservicecli_part_03",
-        "FlextCliCliPart04": "._cli.flextcliservicecli_part_04",
-        "FlextCliCliPart05": "._cli.flextcliservicecli_part_05",
-        "FlextCliCliPart06": "._cli.flextcliservicecli_part_06",
         "FlextCliCommonParams": ".cli_params",
         "FlextCliDocx": ".docx",
         "FlextCliFileTools": ".file_tools",
@@ -78,7 +58,6 @@ install_lazy_exports(
         "FlextCliPipeline": ".pipeline",
         "FlextCliPptx": ".pptx",
         "FlextCliPrompts": ".prompts",
-        "FlextCliServicesPromptsSupport": "._prompts.support",
         "FlextCliRuntime": ".runtime",
         "FlextCliTables": ".tables",
         "FlextCliXlsx": ".xlsx",

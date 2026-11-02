@@ -1,5 +1,5 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Internal package for runtime.
+"""Flext Cli. Utilities. Runtime package.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -62,6 +62,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities._runtime.windows_job_state import (
         FlextCliUtilitiesRuntimeWindowsJobState,
     )
+
 
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesRuntimeCommands",

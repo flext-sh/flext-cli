@@ -9,6 +9,15 @@ staging and publication. An interruption after authentication removes only the m
 staged inode. The original exception escapes with its original traceback. A real cleanup
 failure retains both causes through the existing cleanup error contract.
 
+Atomic replacement authenticates the pinned source and destination parent
+directories as its rename namespace. Their filesystem devices must agree.
+Regular-file devices do not establish that namespace: on
+[OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html#overlay-objects),
+lower and upper files may report backing-layer devices while their directories
+report the same overlay device. Each file retains its own captured identity,
+bytes, mode and ownership checks; those facts are not compared with a directory's
+device. The native rename still refuses an actual cross-filesystem operation.
+
 An authenticated read can fail before its final pathname or parent validation.
 That read failure remains the primary exception with its original traceback and
 errno even if final validation also fails. Retain later validation failures as

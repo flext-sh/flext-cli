@@ -41,7 +41,9 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             manifest.root.path,
         )
         if current != manifest:
-            FlextCliUtilitiesAtomicTreeCleanup._raise_changed(manifest.root.path)
+            FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(
+                manifest.root.path
+            )
         files = (entry for entry in manifest.entries if entry.kind == "file")
         for entry in sorted(
             files,
@@ -87,7 +89,9 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             expected = (entry.parent_device, entry.parent_inode, entry.parent_mount_id)
             prior = bindings.setdefault(entry.path.parent, expected)
             if prior != expected:
-                FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path.parent)
+                FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(
+                    entry.path.parent
+                )
         for path, expected in sorted(
             bindings.items(),
             key=FlextCliUtilitiesAtomicTreeCleanup._binding_path_key,
@@ -95,12 +99,12 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             with FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
                 path,
             ) as opened:
-                mount_id = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
+                mount_id = FlextCliUtilitiesAtomicTreeDescriptor.tree_mount_id(
                     opened.descriptor,
                     path,
                 )
                 if (opened.state.st_dev, opened.state.st_ino, mount_id) != expected:
-                    FlextCliUtilitiesAtomicTreeCleanup._raise_changed(path)
+                    FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(path)
                 authenticated = FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor(
                     path,
                     opened.descriptor,
@@ -130,23 +134,23 @@ class FlextCliUtilitiesAtomicTreeCleanup:
                 parent.state.st_dev,
                 parent.state.st_ino,
             )
-            parent_mount_id = FlextCliUtilitiesAtomicTreeDescriptor.mount_id(
+            parent_mount_id = FlextCliUtilitiesAtomicTreeDescriptor.tree_mount_id(
                 parent.descriptor,
                 parent.path,
             )
             if parent_mount_id != entry.parent_mount_id:
-                FlextCliUtilitiesAtomicTreeCleanup._raise_changed(parent.path)
+                FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(parent.path)
             yield parent
 
     @staticmethod
     def _delete_file(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
         with FlextCliUtilitiesAtomicTreeCleanup._authenticated_parent(entry) as parent:
-            observed = FlextCliUtilitiesAtomicFileState.destination_state(
+            observed = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 entry.path,
                 parent=parent,
             )
             if observed is None:
-                FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path)
+                FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path)
             FlextCliUtilitiesAtomicTreeCleanup._require_file_state(entry, observed)
             size, digest = (
                 FlextCliUtilitiesAtomicTreeDescriptor.measure_authenticated_file(
@@ -157,7 +161,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
                 )
             )
             if (size, digest) != (entry.size, entry.sha256):
-                FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path)
+                FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path)
             FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
                 entry.path,
                 observed,
@@ -166,7 +170,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, entry.path)
             FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             if (
-                FlextCliUtilitiesAtomicFileState.destination_state(
+                FlextCliUtilitiesAtomicFileState.file_destination_state(
                     entry.path,
                     parent=parent,
                 )
@@ -185,7 +189,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
                 entry.path,
             )
             if not stat.S_ISLNK(observed.st_mode):
-                FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path)
+                FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path)
             if (
                 stat.S_IMODE(observed.st_mode),
                 observed.st_dev,
@@ -211,7 +215,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
                 entry.reparse_tag,
                 entry.link_target,
             ):
-                FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path)
+                FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path)
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, entry.path)
             FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             deletion_confirmed = False
@@ -220,7 +224,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             except FileNotFoundError:
                 deletion_confirmed = True
             if not deletion_confirmed:
-                FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path)
+                FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path)
 
     @staticmethod
     def _delete_directory(entry: m.Cli.AtomicPhysicalTreeEntry) -> None:
@@ -236,7 +240,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             or current.device is None
             or current.inode is None
         ):
-            FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path)
+            FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path)
         FlextCliUtilitiesAtomicTreeCleanup._require_parent(
             entry,
             current.parent_device,
@@ -255,7 +259,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             entry.file_attributes,
             entry.reparse_tag,
         ):
-            FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path)
+            FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path)
         FlextCliUtilitiesAtomicDirectoryDelete.remove_guarded_empty_directory(current)
 
     @staticmethod
@@ -288,7 +292,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
             entry.reparse_tag,
             entry.size,
         ):
-            FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path)
+            FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path)
 
     @staticmethod
     def _require_parent(
@@ -297,7 +301,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
         inode: int | None,
     ) -> None:
         if (entry.parent_device, entry.parent_inode) != (device, inode):
-            FlextCliUtilitiesAtomicTreeCleanup._raise_changed(entry.path.parent)
+            FlextCliUtilitiesAtomicTreeCleanup._raise_cleanup_changed(entry.path.parent)
 
     @staticmethod
     def _deletion_key(entry: m.Cli.AtomicPhysicalTreeEntry) -> tuple[int, str]:
@@ -314,7 +318,7 @@ class FlextCliUtilitiesAtomicTreeCleanup:
         return item[0].as_posix()
 
     @staticmethod
-    def _raise_changed(path: Path) -> Never:
+    def _raise_cleanup_changed(path: Path) -> Never:
         message = f"atomic physical-tree changed after manifest: {path}"
         raise OSError(errno.ESTALE, message, path)
 

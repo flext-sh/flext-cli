@@ -104,7 +104,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         if mode is None:
             message = "permission_mode is required for directory-chain creation"
             raise OSError(errno.EINVAL, message, plan.target)
-        FlextCliUtilitiesAtomicDirectoryDescriptor.require_create_capabilities(
+        FlextCliUtilitiesAtomicDirectoryDescriptor.require_directory_create_capabilities(
             plan.target,
         )
         FlextCliUtilitiesAtomicDirectoryChain.require_anchor(plan)
