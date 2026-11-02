@@ -28,6 +28,9 @@ if TYPE_CHECKING:
     from flext_cli._protocols._base.flextcliprotocolsbase_part_05 import (
         FlextCliProtocolsBasePart05,
     )
+    from flext_cli._protocols._base.flextcliprotocolsbase_part_09 import (
+        FlextCliProtocolsBasePart09,
+    )
 
 
 __all__: tuple[str, ...] = (
@@ -36,6 +39,7 @@ __all__: tuple[str, ...] = (
     "FlextCliProtocolsBasePart03",
     "FlextCliProtocolsBasePart04",
     "FlextCliProtocolsBasePart05",
+    "FlextCliProtocolsBasePart09",
 )
 
 install_lazy_exports(
@@ -47,6 +51,7 @@ install_lazy_exports(
         "FlextCliProtocolsBasePart03": ".flextcliprotocolsbase_part_03",
         "FlextCliProtocolsBasePart04": ".flextcliprotocolsbase_part_04",
         "FlextCliProtocolsBasePart05": ".flextcliprotocolsbase_part_05",
+        "FlextCliProtocolsBasePart09": ".flextcliprotocolsbase_part_09",
     }),
     public_exports=__all__,
 )
