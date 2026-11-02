@@ -21,7 +21,7 @@ from flext_cli._utilities import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from flext_cli import m
+    from flext_cli import m, p
 
 
 class FlextCliUtilitiesAtomicSymlinkPublish:

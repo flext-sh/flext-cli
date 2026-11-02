@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Annotated, ClassVar
 
 from examples import c, p, r, t
-from flext_cli import m
+from flext_cli import m, p
 
 
 class ExamplesFlextCliModelsExamplesAdvanced:

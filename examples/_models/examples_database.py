@@ -10,7 +10,7 @@ from ipaddress import ip_address
 from typing import Annotated, ClassVar
 
 from examples import c
-from flext_cli import m
+from flext_cli import m, p
 
 
 class ExamplesFlextCliModelsExamplesDatabase:

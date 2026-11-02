@@ -7,13 +7,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import threading
-from typing import IO, TYPE_CHECKING
+from typing import IO
 
-from flext_cli import m
+from flext_cli import m, p
 from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessThreads
-
-if TYPE_CHECKING:
-    from flext_cli import p
 
 
 class FlextCliUtilitiesRuntimeProcessOutput(

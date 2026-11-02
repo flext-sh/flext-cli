@@ -1,3 +1,5 @@
+# Copyright (c) 2026 FLEXT Team. All rights reserved.
+# SPDX-License-Identifier: MIT
 """Structural contracts mirrored from model base part 09."""
 
 from __future__ import annotations

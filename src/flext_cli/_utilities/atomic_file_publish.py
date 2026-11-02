@@ -10,7 +10,7 @@ import errno
 import os
 from typing import TYPE_CHECKING
 
-from flext_cli import m
+from flext_cli import m, p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,

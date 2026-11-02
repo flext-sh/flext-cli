@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import Annotated, ClassVar
 
-from examples import c, t
+from examples import c, p, t
 from flext_cli import m, settings
 
 

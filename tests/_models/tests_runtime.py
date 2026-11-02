@@ -9,8 +9,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import Annotated, ClassVar, Self
 
-from flext_cli import m
-from tests import c, t
+from flext_cli import m, p
+from tests import c, p, t
 
 
 class TestsFlextCliModelsRuntime:

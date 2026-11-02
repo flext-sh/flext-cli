@@ -83,7 +83,7 @@ from collections.abc import (
     Sequence,
 )
 
-from flext_cli import FlextCli, FlextCliSettings, m, t
+from flext_cli import FlextCli, FlextCliSettings, m, p, t
 
 settings = FlextCliSettings.fetch_global()
 
@@ -180,7 +180,7 @@ the public facade as shown above. A corrected handler consumes its declared inpu
 and returns its value:
 
 ```python
-from flext_cli import m
+from flext_cli import m, p
 
 
 class GreetInput(m.BaseModel):

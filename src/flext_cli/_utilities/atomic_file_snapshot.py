@@ -13,18 +13,14 @@ import stat
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-from flext_cli import m
+from flext_cli import m, p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicFileRead,
     FlextCliUtilitiesAtomicFileState,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import p
 
 
 class FlextCliUtilitiesAtomicFileSnapshot:

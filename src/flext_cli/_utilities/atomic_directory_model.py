@@ -11,7 +11,7 @@ import os
 import stat
 from pathlib import Path
 
-from flext_cli import m
+from flext_cli import m, p
 from flext_cli.typings import DirectoryPhysicalState
 
 

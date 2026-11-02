@@ -12,7 +12,7 @@ from collections.abc import Callable, Mapping, MutableSequence, Sequence
 from pathlib import Path
 from typing import ClassVar, Literal, Self
 
-from flext_core import m
+from flext_core import m, p
 
 from flext_cli import p, t
 from flext_cli._models._base.flextclimodelsbase_part_01 import FlextCliModelsBasePart01
