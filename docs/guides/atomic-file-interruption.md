@@ -75,6 +75,11 @@ descriptor. Each range rejects changed metadata and short reads; completion chec
 the path and parent again. The reader becomes unusable when its context closes.
 `u.Cli.atomic_read_binary_file_range` provides the same contract for one range.
 
+The receipt exposes its validated `pathlib.Path` through the owning protocol.
+`t.Cli.TextPath` describes accepted input; it does not describe the recorded path.
+Protocol projection preserves the model's complete physical identity fields and
+the shared model serialization capability without changing capture or validation.
+
 `u.Cli.atomic_publish_staged_binary_file_receipt_guarded` uses the existing guarded
 replacement and durability owners. It verifies the destination and staged receipts,
 consumes the staged name, streams the published digest, and returns the published

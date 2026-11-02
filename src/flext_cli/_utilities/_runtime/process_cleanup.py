@@ -150,6 +150,19 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
             )
             return tuple(future.result() for future in futures)
 
+    @staticmethod
+    def process_forwarded_signals() -> tuple[signal.Signals, ...]:
+        """Select the operator signals supported by the native process supervisor.
+
+        Returns:
+            The platform-qualified signals forwarded to owned child lifecycles.
+
+        """
+        forwarded = (signal.SIGINT, signal.SIGTERM)
+        if os.name != "nt" and hasattr(signal, "SIGHUP"):
+            forwarded = (*forwarded, signal.SIGHUP)
+        return forwarded
+
     @classmethod
     def _install_forwarding_handlers(
         cls,
@@ -186,11 +199,8 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
             if isinstance(previous, p.Cli.ParentSignalObserver):
                 previous.on_operator_signal(signal_number, frame)
 
-        forwarded = (signal.SIGINT, signal.SIGTERM)
-        if os.name != "nt" and hasattr(signal, "SIGHUP"):
-            forwarded = (*forwarded, signal.SIGHUP)
         try:
-            for signal_number in forwarded:
+            for signal_number in cls.process_forwarded_signals():
                 previous: t.Cli.SignalHandler = signal.getsignal(signal_number)
                 signal.signal(signal_number, partial(forward, previous))
                 forwarded_signals.append(int(signal_number))

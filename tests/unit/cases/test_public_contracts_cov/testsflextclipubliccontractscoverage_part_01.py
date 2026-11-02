@@ -17,7 +17,7 @@ class TestsFlextCliPublicContractsCoveragePart01:
     def test_inherited_settings_preset_validates_and_round_trips() -> None:
         """The CLI model facade inherits a functioning settings preset."""
         instance = FlextCliModels.BaseSettings()
-        adapter = u.type_adapter(t.TypeForm(FlextCliModels.PydanticBaseSettings))
+        adapter = u.type_adapter(t.TypeForm(t.PydanticBaseSettings))
         tm.ok(adapter.validate_python(instance) is instance)
         restored = FlextCliModels.BaseSettings.model_validate_json(
             instance.model_dump_json()

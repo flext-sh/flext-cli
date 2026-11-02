@@ -6,9 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli import p
+
+
 from collections.abc import Mapping, MutableSequence, Sequence
 from types import FrameType
-from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+from typing import Literal, Protocol, runtime_checkable
 
 from flext_core import c
 
@@ -288,6 +294,208 @@ class FlextCliProtocolsProcess:
         def signal_wave(self) -> FlextCliProtocolsProcess.SignalWave | None:
             """Signal wave a worker-thread lifecycle subscribes to."""
             ...
+
+    @runtime_checkable
+    class PythonScriptExecution(Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def module(self) -> str: ...
+        @property
+        def role(self) -> Literal["isolated-stdlib"]: ...
+        @property
+        def python_flags(self) -> tuple[Literal["-I"], Literal["-S"]]: ...
+
+    @runtime_checkable
+    class ProcessNativePolicyProbe(Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def syscall(self) -> str: ...
+        @property
+        def observed_errno(self) -> int: ...
+
+    @runtime_checkable
+    class ProcessNativeToolQualification(Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def role(self) -> Literal["isolation-launcher", "policy-compiler"]: ...
+        @property
+        def artifact_receipt(self) -> p.Cli.AtomicFileReceipt: ...
+        @property
+        def declaration_inputs(self) -> tuple[p.Cli.AtomicFileReceipt, ...]: ...
+        @property
+        def installation_inputs(self) -> tuple[p.Cli.AtomicFileReceipt, ...]: ...
+        @property
+        def source_inputs(self) -> tuple[p.Cli.AtomicFileReceipt, ...]: ...
+        @property
+        def native_build_outcome(self) -> p.Cli.ProcessOutcome: ...
+        @property
+        def native_abi_probe_outcome(self) -> p.Cli.ProcessOutcome: ...
+        @property
+        def native_policy_probe_outcome(self) -> p.Cli.ProcessOutcome: ...
+        @property
+        def policy_sha256(self) -> str: ...
+        @property
+        def native_policy_probes(
+            self,
+        ) -> tuple[p.Cli.ProcessNativePolicyProbe, ...]: ...
+        @property
+        def probe_compiler_receipt(self) -> p.Cli.AtomicFileReceipt: ...
+        @property
+        def abi_reference(self) -> p.Cli.AtomicFileReceipt: ...
+        @property
+        def architecture(self) -> str: ...
+        @property
+        def issuer_receipt(self) -> p.Cli.AtomicFileState: ...
+        @property
+        def artifact(self) -> p.Cli.AtomicFileState: ...
+
+    @runtime_checkable
+    class ProcessNativeQualificationReceipt[ContextT, IssueT, OutcomeT](Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def runtime_context(self) -> ContextT | None: ...
+        @property
+        def root(self) -> Path: ...
+        @property
+        def executed(self) -> bool: ...
+        @property
+        def outcome(self) -> OutcomeT | None: ...
+        @property
+        def native_exit_code(self) -> int | None: ...
+        @property
+        def stage(self) -> t.NonEmptyStr | None: ...
+        @property
+        def completed(self) -> bool | None: ...
+        @property
+        def applicability(self) -> str: ...
+        @property
+        def files(self) -> tuple[Path, ...]: ...
+        @property
+        def issues(self) -> tuple[IssueT, ...]: ...
+        @property
+        def native_tool_qualifications(
+            self,
+        ) -> tuple[p.Cli.ProcessNativeToolEvidence, ...]: ...
+
+    @runtime_checkable
+    class ProcessNativeQualificationReport[ContextT, IssueT, OutcomeT](Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def root(self) -> Path: ...
+        @property
+        def operation(self) -> t.NonEmptyStr: ...
+        @property
+        def scope(self) -> tuple[Path, ...]: ...
+        @property
+        def candidate_sha(self) -> str | None: ...
+        @property
+        def candidate_read_exit_code(self) -> int | None: ...
+        @property
+        def receipts(
+            self,
+        ) -> tuple[
+            p.Cli.ProcessNativeQualificationReceipt[ContextT, IssueT, OutcomeT], ...
+        ]: ...
+
+    @runtime_checkable
+    class ProcessReadOnlyIsolation(Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def platform(self) -> Literal["linux"]: ...
+        @property
+        def architecture(self) -> str: ...
+        @property
+        def launcher(self) -> p.Cli.ProcessNativeToolQualification: ...
+        @property
+        def launcher_declaration(self) -> p.Cli.AtomicFileState: ...
+        @property
+        def policy_compiler(self) -> p.Cli.ProcessNativeToolQualification: ...
+        @property
+        def compiler_declaration(self) -> p.Cli.AtomicFileState: ...
+        @property
+        def sources(self) -> tuple[p.Cli.AtomicFileState, ...]: ...
+        @property
+        def runtime_trees(self) -> tuple[p.Cli.AtomicPhysicalTreeManifest, ...]: ...
+        @property
+        def runtime_files(self) -> tuple[p.Cli.AtomicFileState, ...]: ...
+        @property
+        def environment(self) -> tuple[tuple[str, str], ...]: ...
+
+    @runtime_checkable
+    class RuntimeProcessRequest(Protocol):
+        """Structural data contract projected from the owning model."""
+
+        cmd: t.InstanceOfSequence[str]
+        output_path: Path | None
+        stderr_path: Path | None
+        cwd: t.Cli.TextPath | None
+        env: Mapping[str, str] | None
+        input_data: str | bytes | None
+        inherit_stdin: bool
+        capture_output: bool
+        live: bool
+        heartbeat_seconds: float | None
+        timeout: int | None
+        deadline: p.Cli.ProcessDeadline | None
+        isolation: p.Cli.ProcessReadOnlyIsolation | None
+        pass_fds: tuple[int, ...]
+        signal_wave: p.Cli.SignalWave | None
+
+    @runtime_checkable
+    class RuntimeProcessState(Protocol):
+        """Structural data contract projected from the owning model."""
+
+        process: p.Cli.ProcessHandle | None
+        waiter: threading.Thread | None
+        durable_log: p.Cli.RuntimeBinaryStream | None
+        durable_stderr: p.Cli.RuntimeBinaryStream | None
+        job_handle: int
+        failures: MutableSequence[str]
+        cleanup_errors: MutableSequence[str]
+        restore_handlers: MutableSequence[Callable[[], None]]
+        forwarded_signals: MutableSequence[int]
+        received_signals: MutableSequence[int]
+        return_codes: MutableSequence[int]
+        stdout_output: bytearray
+        stderr_output: bytearray
+        pump_streams: MutableSequence[
+            tuple[threading.Thread, p.Cli.RuntimeClosableStream]
+        ]
+        input_pump: tuple[threading.Thread, p.Cli.RuntimeClosableStream] | None
+        pump_stop: threading.Event
+        process_done: threading.Event
+        wake: threading.Event
+        stack: contextlib.ExitStack
+        return_code: int | None
+        timed_out: bool
+        final_deadline: float | None
+        cleanup_complete: bool
+        primary_error: Exception | None
+
+    @runtime_checkable
+    class RuntimeOutputTarget(Protocol):
+        """Structural data contract projected from the owning model."""
+
+        durable_log: p.Cli.RuntimeBinaryStream | None
+        captured_output: bytearray | None
+        live_fd: int | None
+
+    @runtime_checkable
+    class RuntimeSpawnOptions(Protocol):
+        """Structural data contract projected from the owning model."""
+
+        capture_output: bool
+        combine_output: bool
+        creation_flags: int
+        pass_fds: tuple[int, ...]
+        start_new_session: bool | None
+        stdin_mode: Literal["devnull", "inherit", "pipe"]
 
 
 __all__: list[str] = ["FlextCliProtocolsProcess"]

@@ -15,18 +15,14 @@ from __future__ import annotations
 import os
 from collections.abc import MutableSequence
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from flext_core import u
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
-from flext_cli import c, m, r, t
+from flext_cli import c, m, p, r, t
 from flext_cli._utilities import FlextCliUtilitiesJson
 from flext_cli._utilities._toml import FlextCliUtilitiesTomlPart06
-
-if TYPE_CHECKING:
-    from flext_cli import p
 
 
 class FlextCliUtilitiesConfig:

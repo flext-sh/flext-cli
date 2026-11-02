@@ -11,7 +11,7 @@ from typing import Annotated, ClassVar
 
 from flext_core import m
 
-from flext_cli import c, t
+from flext_cli import c, p, t
 
 
 class FlextCliModelsBasePart01:
@@ -37,7 +37,8 @@ class FlextCliModelsBasePart01:
         """Causal envelope shared by textual and byte-exact command payloads."""
 
         outcome: Annotated[
-            FlextCliModelsBasePart01.ProcessOutcome,
+            p.Cli.ProcessOutcome,
+            m.ValidateAs(FlextCliModelsBasePart01.ProcessOutcome, lambda value: value),
             m.Field(description="Causal process completion state"),
         ]
         duration: Annotated[

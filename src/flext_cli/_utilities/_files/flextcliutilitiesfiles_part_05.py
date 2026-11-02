@@ -47,7 +47,7 @@ class FlextCliUtilitiesFilesPart05:
                 c.Cli.ERR_ATOMIC_DIRECTORY_PLAN_FAILED.format(error=exc),
                 exception=exc,
             )
-        return r[p.Cli.AtomicDirectoryChainPlan].ok(plan)
+        return r.ok(plan)
 
     @staticmethod
     def atomic_create_directory_chain_guarded(

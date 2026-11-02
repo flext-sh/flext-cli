@@ -29,6 +29,27 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
         )
 
     @staticmethod
+    def process_raise_if_interrupted[T](result: p.Result[T]) -> None:
+        """Propagate an operator signal proven by a completed command result.
+
+        Ordinary failures, timeouts and successful results remain untouched.
+        Callers retain the original result and its causal exception.
+
+        Raises:
+            SystemExit: When native failure metadata proves a forwarded signal.
+
+        """
+        if result.failure and result.error_data is not None:
+            signum = result.error_data.get(c.Cli.PROCESS_FORWARDED_SIGNAL_KEY)
+            if (
+                isinstance(signum, int)
+                and signum > 0
+                and result.error_data.get(c.Cli.PROCESS_TIMED_OUT_KEY) is False
+                and result.error_data.get(c.Cli.PROCESS_EXIT_CODE_KEY) == -signum
+            ):
+                raise SystemExit(-signum) from result.exception
+
+    @staticmethod
     def _process_exit_result(
         return_code: int | None,
         received_signals: Sequence[int],

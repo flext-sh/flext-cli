@@ -6,12 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import p
 
 if TYPE_CHECKING:
-    from flext_cli import t
+    from flext_cli import p
 
 
 class FlextCliProtocolsBasePart01:
@@ -22,7 +23,7 @@ class FlextCliProtocolsBasePart01:
         """Read-only source, parent identity and digest of a captured file."""
 
         @property
-        def path(self) -> t.Cli.TextPath: ...
+        def path(self) -> Path: ...
 
         @property
         def version_key(self) -> tuple[int, ...] | None: ...
