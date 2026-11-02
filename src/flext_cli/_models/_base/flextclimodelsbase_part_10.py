@@ -31,17 +31,13 @@ class FlextCliModelsBasePart10:
         directories: MutableMapping[
             Path, FlextCliModelsBasePart09.AtomicDirectoryInventory
         ] = m.Field(
-            default_factory=dict[
-                Path, FlextCliModelsBasePart09.AtomicDirectoryInventory
-            ],
+            default_factory=dict,
             description="One physical directory inventory per observed path",
         )
         topology: MutableMapping[
             Path, FlextCliModelsBasePart08.AtomicDirectoryChainPlan
         ] = m.Field(
-            default_factory=dict[
-                Path, FlextCliModelsBasePart08.AtomicDirectoryChainPlan
-            ],
+            default_factory=dict,
             description="One ancestry plan per observed target",
         )
 

@@ -351,27 +351,27 @@ class FlextCliModelsProcess:
             description="Windows job handle owning the child boundary.",
         )
         failures: MutableSequence[str] = m.Field(
-            default_factory=list[str],
+            default_factory=list,
             description="Causal failures collected during execution.",
         )
         cleanup_errors: MutableSequence[str] = m.Field(
-            default_factory=list[str],
+            default_factory=list,
             description="Failures collected while releasing resources.",
         )
         restore_handlers: MutableSequence[Callable[[], None]] = m.Field(
-            default_factory=list[Callable[[], None]],
+            default_factory=list,
             description="Callbacks restoring the parent signal handlers.",
         )
         forwarded_signals: MutableSequence[int] = m.Field(
-            default_factory=list[int],
+            default_factory=list,
             description="Signal numbers registered for forwarding.",
         )
         received_signals: MutableSequence[int] = m.Field(
-            default_factory=list[int],
+            default_factory=list,
             description="Parent signals received during this lifecycle.",
         )
         return_codes: MutableSequence[int] = m.Field(
-            default_factory=list[int],
+            default_factory=list,
             description="Root child return codes recorded by the waiter.",
         )
         stdout_output: t.Port[bytearray] = m.Field(
@@ -385,7 +385,7 @@ class FlextCliModelsProcess:
         pump_streams: MutableSequence[
             tuple[t.Port[threading.Thread], t.Port[p.Cli.RuntimeClosableStream]]
         ] = m.Field(
-            default_factory=list[tuple[threading.Thread, p.Cli.RuntimeClosableStream]],
+            default_factory=list,
             description="Owned output pump threads paired with their source streams.",
         )
         input_pump: (

@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from flext_core.lazy import install_lazy_exports
@@ -223,8 +222,7 @@ __all__: tuple[str, ...] = (
 install_lazy_exports(
     __name__,
     globals(),
-    MappingProxyType({
-        "FlextCliUtilitiesAtomicTreeDarwin": ".atomic_tree_darwin",
+    {
         "FlextCliUtilitiesAtomicDirectoryChain": ".atomic_directory_chain",
         "FlextCliUtilitiesAtomicDirectoryCleanup": ".atomic_directory_cleanup",
         "FlextCliUtilitiesAtomicDirectoryCreate": ".atomic_directory_create",
@@ -254,6 +252,7 @@ install_lazy_exports(
         "FlextCliUtilitiesAtomicSymlinkPublish": ".atomic_symlink_publish",
         "FlextCliUtilitiesAtomicSymlinkState": ".atomic_symlink_state",
         "FlextCliUtilitiesAtomicTreeCleanup": ".atomic_tree_cleanup",
+        "FlextCliUtilitiesAtomicTreeDarwin": ".atomic_tree_darwin",
         "FlextCliUtilitiesAtomicTreeDescriptor": ".atomic_tree_descriptor",
         "FlextCliUtilitiesAtomicTreeInventory": ".atomic_tree_inventory",
         "FlextCliUtilitiesAuth": ".auth",
@@ -297,6 +296,6 @@ install_lazy_exports(
         "TimeoutExpired": ".native_runtime",
         "spawn_streamed_process": ".native_runtime",
         "streamed_creation_flags": ".native_runtime",
-    }),
+    },
     public_exports=__all__,
 )

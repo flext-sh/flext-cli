@@ -59,7 +59,7 @@ class FlextCliModelsPipeline:
             m.Field(
                 description="Stage IDs this stage depends on",
             ),
-        ] = m.Field(default_factory=frozenset[str])
+        ] = m.Field(default_factory=frozenset)
         # Pydantic owns runtime validation here; public callback contracts live
         # in p.Cli and this model retains the equivalent concrete callable shape.
         handler: Annotated[

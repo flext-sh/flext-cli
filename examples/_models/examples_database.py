@@ -10,7 +10,7 @@ from ipaddress import ip_address
 from typing import Annotated, ClassVar
 
 from examples import c
-from flext_cli import m, p
+from flext_cli import m
 
 
 class ExamplesFlextCliModelsExamplesDatabase:
@@ -19,7 +19,7 @@ class ExamplesFlextCliModelsExamplesDatabase:
     class AdvancedDatabaseConfig(m.Value):
         """Database configuration with advanced validation."""
 
-        model_config: ClassVar[p.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )

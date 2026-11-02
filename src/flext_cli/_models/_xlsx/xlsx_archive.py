@@ -34,7 +34,7 @@ class FlextCliModelsXlsxArchive:
             m.Field(ge=1, description="Maximum total uncompressed bytes."),
         ] = 268_435_456
         forbidden_members: frozenset[str] = m.Field(
-            default_factory=frozenset[str],
+            default_factory=frozenset,
             description="Exact archive members that are forbidden.",
         )
         forbidden_prefixes: tuple[str, ...] = m.Field(
@@ -43,7 +43,7 @@ class FlextCliModelsXlsxArchive:
             description="Forbidden member prefixes.",
         )
         forbidden_worksheet_tags: frozenset[str] = m.Field(
-            default_factory=frozenset[str],
+            default_factory=frozenset,
             description="Forbidden local worksheet XML tags.",
         )
         required_worksheet_count: (
@@ -59,11 +59,11 @@ class FlextCliModelsXlsxArchive:
             description="Reject non-default style protection.",
         )
         allowed_locked_tokens: frozenset[str | None] = m.Field(
-            default_factory=frozenset[str | None],
+            default_factory=frozenset,
             description="Accepted OOXML locked tokens.",
         )
         allowed_hidden_tokens: frozenset[str | None] = m.Field(
-            default_factory=frozenset[str | None],
+            default_factory=frozenset,
             description="Accepted OOXML hidden tokens.",
         )
 
@@ -82,7 +82,7 @@ class FlextCliModelsXlsxArchive:
             description="Ordered archive members.",
         )
         blocked_members: frozenset[str] = m.Field(
-            default_factory=frozenset[str],
+            default_factory=frozenset,
             description="Members skipped because a safety limit was exceeded.",
         )
         total_uncompressed_bytes: Annotated[
