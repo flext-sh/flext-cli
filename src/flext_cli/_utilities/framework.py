@@ -32,6 +32,11 @@ class FlextCliUtilitiesFramework:
     _TYPER_CLICK_EXCEPTION: ClassVar[type[Exception]] = next(
         base for base in typer.BadParameter.__mro__ if base.__name__ == "ClickException"
     )
+    # Typer injects its vendored click context, the base of typer.Context, so an
+    # isinstance check against typer.Context rejects every injected context.
+    _TYPER_CLICK_CONTEXT: ClassVar[type] = next(
+        base for base in typer.Context.__mro__[1:] if base.__name__ == "Context"
+    )
 
     class TyperApplication:
         """Private application implementation hidden behind ``p.Cli.Application``."""
@@ -223,6 +228,45 @@ class FlextCliUtilitiesFramework:
 
         """
         cls._unwrap(application).add_typer(group, name=name)
+
+    @staticmethod
+    def framework_command_context_annotation() -> type:
+        """Return the annotation under which Typer injects the command context.
+
+        Returns:
+            The framework context type a command parameter declares.
+
+        """
+        return typer.Context
+
+    @classmethod
+    def framework_supplied_options(
+        cls,
+        options: MutableMapping[str, t.Cli.CliValue],
+        context_parameter: str,
+    ) -> dict[str, t.Cli.CliValue]:
+        """Pop the injected context and keep only the options the user supplied.
+
+        A value Typer filled from its default stays out, so model validators
+        that tell "given" from "default" keep working.
+
+        Returns:
+            The supplied options keyed by parameter name.
+
+        Raises:
+            TypeError: Typer did not inject the command context.
+
+        """
+        context = options.pop(context_parameter)
+        if not isinstance(context, cls._TYPER_CLICK_CONTEXT):
+            msg = "Typer did not inject the command context"
+            raise TypeError(msg)
+        return {
+            key: value
+            for key, value in options.items()
+            if (source := context.get_parameter_source(key)) is not None
+            and source.name != c.Cli.PARAMETER_SOURCE_DEFAULT
+        }
 
     @classmethod
     def framework_register_callback(

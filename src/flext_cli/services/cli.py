@@ -85,9 +85,9 @@ class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):
             handler=apply_common_params,
             model_cls=m.Cli.CliParamsConfig,
             parameters=parameters,
+            annotations=annotations,
             result_border=True,
         )
-        global_callback.__annotations__ = dict(annotations)
         u.Cli.framework_register_callback(app, global_callback)
         return app
 
