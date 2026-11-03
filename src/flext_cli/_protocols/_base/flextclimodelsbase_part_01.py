@@ -9,18 +9,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
-from flext_cli import t
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart01:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class ProcessOutcome(FlextProtocols.Model, Protocol):
+    class ProcessOutcome(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -39,7 +40,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class CommandOutputEnvelope(FlextProtocols.Model, Protocol):
+    class CommandOutputEnvelope(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -60,20 +61,8 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class CommandOutput(FlextProtocols.Model, Protocol):
+    class CommandOutput(CommandOutputEnvelope, Protocol):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def outcome(
-            self,
-        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart01.ProcessOutcome:
-            """Causal process completion state."""
-            ...
-
-        @property
-        def duration(self) -> t.NonNegativeFloat:
-            """Duration in seconds."""
-            ...
 
         @property
         def stdout(self) -> str:
@@ -85,26 +74,9 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             """Captured standard error."""
             ...
 
-        @property
-        def exit_code(self) -> int:
-            """Expose the process return code without duplicating stored state."""
-            ...
-
     @runtime_checkable
-    class CommandBytesOutput(FlextProtocols.Model, Protocol):
+    class CommandBytesOutput(CommandOutputEnvelope, Protocol):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def outcome(
-            self,
-        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart01.ProcessOutcome:
-            """Causal process completion state."""
-            ...
-
-        @property
-        def duration(self) -> t.NonNegativeFloat:
-            """Duration in seconds."""
-            ...
 
         @property
         def stdout(self) -> bytes:
@@ -116,13 +88,8 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             """Captured standard error as raw bytes."""
             ...
 
-        @property
-        def exit_code(self) -> int:
-            """Expose the process return code without duplicating stored state."""
-            ...
-
     @runtime_checkable
-    class ProcessDeadline(FlextProtocols.Model, Protocol):
+    class ProcessDeadline(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -136,7 +103,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class RuntimeComponents(FlextProtocols.Model, Protocol):
+    class RuntimeComponents(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -160,7 +127,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class RuntimeStatus(FlextProtocols.Model, Protocol):
+    class RuntimeStatus(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -191,25 +158,19 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class DisplayData(FlextProtocols.Model, Protocol):
+    class DisplayData(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def data(self) -> t.JsonMapping:
-            """Field-value pairs for display."""
-            ...
+        data: t.JsonMapping
 
     @runtime_checkable
-    class LoadedConfig(FlextProtocols.Model, Protocol):
+    class LoadedConfig(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def content(self) -> t.JsonMapping:
-            """Loaded configuration content (dict or other JSON value)."""
-            ...
+        content: t.JsonMapping
 
     @runtime_checkable
-    class CliNormalizedJson(FlextProtocols.Model, Protocol):
+    class CliNormalizedJson(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -218,18 +179,11 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class NormalizedJsonList(FlextProtocols.Model, Protocol):
+    class NormalizedJsonList(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def value(self) -> t.JsonValue:
-            """The normalized JSON value."""
-            ...
-
-        @property
-        def default(self) -> t.JsonMapping:
-            """Default mapping if value is not a dict."""
-            ...
+        value: t.JsonValue
+        default: t.JsonMapping
 
         @property
         def resolved(self) -> t.JsonMapping:
@@ -237,7 +191,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class SuccessSummaryDetails(FlextProtocols.Model, Protocol):
+    class SuccessSummaryDetails(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         root: Mapping[str, str]

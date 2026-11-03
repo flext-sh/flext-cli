@@ -23,19 +23,12 @@ class FlextCliProtocolsRules:
 
     @runtime_checkable
     class LocalDefinitionsOptions[TRuleKind, TFileRuleKind](
-        FlextProtocols.Model, Protocol
+        FlextProtocols.BaseModel, Protocol
     ):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def package_rules_dir(self) -> Path:
-            """Directory containing packaged default rule YAMLs."""
-            ...
-
-        @property
-        def rule_filters(self) -> Sequence[str]:
-            """Glob/substring filters limiting loaded rules."""
-            ...
+        package_rules_dir: Path
+        rule_filters: Sequence[str]
 
         @property
         def rule_catalog(self) -> FlextCliTypesDomain.RuleCatalog[TRuleKind]:
@@ -49,40 +42,13 @@ class FlextCliProtocolsRules:
             """Optional catalog of file-rule kinds and matchers."""
             ...
 
-        @property
-        def registry_filename(self) -> str:
-            """Name of the YAML registry file inside the rules dir."""
-            ...
-
-        @property
-        def rules_key(self) -> str:
-            """Top-level key under which rules are nested in YAMLs."""
-            ...
-
-        @property
-        def rule_id_key(self) -> str:
-            """Per-rule key holding the unique rule identifier."""
-            ...
-
-        @property
-        def enabled_key(self) -> str:
-            """Per-rule key controlling whether the rule is active."""
-            ...
-
-        @property
-        def action_key(self) -> str:
-            """Per-rule key naming the fix action to dispatch."""
-            ...
-
-        @property
-        def check_key(self) -> str:
-            """Per-rule key naming the check predicate to dispatch."""
-            ...
-
-        @property
-        def rules_dir_name(self) -> str:
-            """Name of the rules subdirectory inside config_path."""
-            ...
+        registry_filename: str
+        rules_key: str
+        rule_id_key: str
+        enabled_key: str
+        action_key: str
+        check_key: str
+        rules_dir_name: str
 
 
 __all__: list[str] = [

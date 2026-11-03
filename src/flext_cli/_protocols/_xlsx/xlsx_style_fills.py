@@ -20,7 +20,7 @@ class FlextCliProtocolsXlsxXlsxStyleFills:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxPatternFillSpec(FlextProtocols.Model, Protocol):
+    class XlsxPatternFillSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -84,7 +84,7 @@ class FlextCliProtocolsXlsxXlsxStyleFills:
             ...
 
     @runtime_checkable
-    class XlsxGradientStop(FlextProtocols.Model, Protocol):
+    class XlsxGradientStop(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -105,7 +105,7 @@ class FlextCliProtocolsXlsxXlsxStyleFills:
             ...
 
     @runtime_checkable
-    class XlsxGradientFillSpec(FlextProtocols.Model, Protocol):
+    class XlsxGradientFillSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

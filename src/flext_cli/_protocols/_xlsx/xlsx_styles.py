@@ -23,7 +23,7 @@ class FlextCliProtocolsXlsxXlsxStyles:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxBorderSideSpec(FlextProtocols.Model, Protocol):
+    class XlsxBorderSideSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -64,7 +64,7 @@ class FlextCliProtocolsXlsxXlsxStyles:
             ...
 
     @runtime_checkable
-    class XlsxBorderSpec(FlextProtocols.Model, Protocol):
+    class XlsxBorderSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -130,7 +130,7 @@ class FlextCliProtocolsXlsxXlsxStyles:
             ...
 
     @runtime_checkable
-    class XlsxAlignmentSpec(FlextProtocols.Model, Protocol):
+    class XlsxAlignmentSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -195,7 +195,7 @@ class FlextCliProtocolsXlsxXlsxStyles:
             ...
 
     @runtime_checkable
-    class XlsxVisualStyleSpec(FlextProtocols.Model, Protocol):
+    class XlsxVisualStyleSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -229,7 +229,7 @@ class FlextCliProtocolsXlsxXlsxStyles:
             ...
 
     @runtime_checkable
-    class XlsxNamedStyleSpec(FlextProtocols.Model, Protocol):
+    class XlsxNamedStyleSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

@@ -20,7 +20,7 @@ class FlextCliProtocolsXlsxXlsxStyleCatalog:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxStyleMapEntry(FlextProtocols.Model, Protocol):
+    class XlsxStyleMapEntry(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -34,7 +34,7 @@ class FlextCliProtocolsXlsxXlsxStyleCatalog:
             ...
 
     @runtime_checkable
-    class XlsxSourceVisualStyle(FlextProtocols.Model, Protocol):
+    class XlsxSourceVisualStyle(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -48,7 +48,7 @@ class FlextCliProtocolsXlsxXlsxStyleCatalog:
             ...
 
     @runtime_checkable
-    class XlsxStyleCatalog(FlextProtocols.Model, Protocol):
+    class XlsxStyleCatalog(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -66,7 +66,7 @@ class FlextCliProtocolsXlsxXlsxStyleCatalog:
             ...
 
     @runtime_checkable
-    class XlsxStyleCatalogRequest(FlextProtocols.Model, Protocol):
+    class XlsxStyleCatalogRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -80,21 +80,11 @@ class FlextCliProtocolsXlsxXlsxStyleCatalog:
             ...
 
     @runtime_checkable
-    class XlsxStyleTemplateRequest(FlextProtocols.Model, Protocol):
+    class XlsxStyleTemplateRequest(XlsxStyleCatalogRequest, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def source(self) -> bytes:
-            """Source workbook bytes."""
-            ...
-
-        @property
-        def style_name_prefix(self) -> str:
-            """Generated style-name prefix."""
-            ...
-
     @runtime_checkable
-    class XlsxStyleTemplateResult(FlextProtocols.Model, Protocol):
+    class XlsxStyleTemplateResult(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

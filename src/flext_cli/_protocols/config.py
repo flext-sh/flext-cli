@@ -22,7 +22,7 @@ class FlextCliProtocolsConfig:
     """Config-domain protocol namespace (structural types; no project imports)."""
 
     @runtime_checkable
-    class Cli(FlextProtocols.Model, Protocol):
+    class Cli(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -36,7 +36,7 @@ class FlextCliProtocolsConfig:
             ...
 
     @runtime_checkable
-    class ProcessIsolation(FlextProtocols.Model, Protocol):
+    class ProcessIsolation(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

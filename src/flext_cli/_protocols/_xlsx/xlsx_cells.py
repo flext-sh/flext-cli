@@ -14,17 +14,15 @@ from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
-from flext_cli import t
-
 if TYPE_CHECKING:
-    pass
+    from flext_cli import t
 
 
 class FlextCliProtocolsXlsxXlsxCells:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxCellAddress(FlextProtocols.Model, Protocol):
+    class XlsxCellAddress(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -38,7 +36,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxCellRange(FlextProtocols.Model, Protocol):
+    class XlsxCellRange(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -52,7 +50,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxParseRangeRequest(FlextProtocols.Model, Protocol):
+    class XlsxParseRangeRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -61,7 +59,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxFormatReferenceRequest(FlextProtocols.Model, Protocol):
+    class XlsxFormatReferenceRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -85,7 +83,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxReference(FlextProtocols.Model, Protocol):
+    class XlsxReference(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -94,7 +92,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxBlankValue(FlextProtocols.Model, Protocol):
+    class XlsxBlankValue(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -103,7 +101,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxTextValue(FlextProtocols.Model, Protocol):
+    class XlsxTextValue(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -117,7 +115,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxIntegerValue(FlextProtocols.Model, Protocol):
+    class XlsxIntegerValue(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -131,7 +129,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxDecimalValue(FlextProtocols.Model, Protocol):
+    class XlsxDecimalValue(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -145,7 +143,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxBooleanValue(FlextProtocols.Model, Protocol):
+    class XlsxBooleanValue(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -159,7 +157,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxDateValue(FlextProtocols.Model, Protocol):
+    class XlsxDateValue(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -173,7 +171,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxDateTimeValue(FlextProtocols.Model, Protocol):
+    class XlsxDateTimeValue(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -187,7 +185,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxFormulaValue(FlextProtocols.Model, Protocol):
+    class XlsxFormulaValue(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -201,7 +199,7 @@ class FlextCliProtocolsXlsxXlsxCells:
             ...
 
     @runtime_checkable
-    class XlsxCellPlan(FlextProtocols.Model, Protocol):
+    class XlsxCellPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

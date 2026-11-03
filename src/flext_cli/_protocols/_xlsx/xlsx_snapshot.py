@@ -20,7 +20,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxSnapshotRequest(FlextProtocols.Model, Protocol):
+    class XlsxSnapshotRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -34,7 +34,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxCellSnapshot(FlextProtocols.Model, Protocol):
+    class XlsxCellSnapshot(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -94,7 +94,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxTableSnapshot(FlextProtocols.Model, Protocol):
+    class XlsxTableSnapshot(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -113,7 +113,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxDefinedNameSnapshot(FlextProtocols.Model, Protocol):
+    class XlsxDefinedNameSnapshot(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -142,7 +142,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxDefinedNameValuesRequest(FlextProtocols.Model, Protocol):
+    class XlsxDefinedNameValuesRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -156,7 +156,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxDefinedNameCell(FlextProtocols.Model, Protocol):
+    class XlsxDefinedNameCell(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -186,7 +186,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxDefinedNameValuesResult(FlextProtocols.Model, Protocol):
+    class XlsxDefinedNameValuesResult(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -202,7 +202,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxRowDimensionSnapshot(FlextProtocols.Model, Protocol):
+    class XlsxRowDimensionSnapshot(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -226,7 +226,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxColumnDimensionSnapshot(FlextProtocols.Model, Protocol):
+    class XlsxColumnDimensionSnapshot(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -260,7 +260,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxSheetProtectionSnapshot(FlextProtocols.Model, Protocol):
+    class XlsxSheetProtectionSnapshot(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -274,7 +274,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxSheetSnapshot(FlextProtocols.Model, Protocol):
+    class XlsxSheetSnapshot(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -378,7 +378,7 @@ class FlextCliProtocolsXlsxXlsxSnapshot:
             ...
 
     @runtime_checkable
-    class XlsxWorkbookSnapshot(FlextProtocols.Model, Protocol):
+    class XlsxWorkbookSnapshot(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

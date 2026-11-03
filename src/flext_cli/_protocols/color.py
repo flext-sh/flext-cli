@@ -17,7 +17,7 @@ class FlextCliProtocolsColor:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class RgbColor(FlextProtocols.Model, Protocol):
+    class RgbColor(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

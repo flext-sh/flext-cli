@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
+from flext_cli._protocols import FlextCliProtocolsColor
+
 if TYPE_CHECKING:
     pass
 
@@ -20,26 +22,11 @@ class FlextCliProtocolsDocxStyles:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class DocxRgbColor(FlextProtocols.Model, Protocol):
+    class DocxRgbColor(FlextCliProtocolsColor.RgbColor, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def kind(self) -> Literal["rgb"]:
-            """Color kind."""
-            ...
-
-        @property
-        def value(self) -> str:
-            """RGB or ARGB value."""
-            ...
-
-        @property
-        def tint(self) -> float:
-            """Color tint."""
-            ...
-
     @runtime_checkable
-    class DocxThemeColor(FlextProtocols.Model, Protocol):
+    class DocxThemeColor(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -58,7 +45,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxAutomaticColor(FlextProtocols.Model, Protocol):
+    class DocxAutomaticColor(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -72,7 +59,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxFontSpec(FlextProtocols.Model, Protocol):
+    class DocxFontSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -166,7 +153,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxParagraphFormatSpec(FlextProtocols.Model, Protocol):
+    class DocxParagraphFormatSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -227,7 +214,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxRunStyleSpec(FlextProtocols.Model, Protocol):
+    class DocxRunStyleSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -236,7 +223,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxParagraphStyleSpec(FlextProtocols.Model, Protocol):
+    class DocxParagraphStyleSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

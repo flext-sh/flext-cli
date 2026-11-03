@@ -20,7 +20,7 @@ class FlextCliProtocolsXlsxXlsxValidation:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxValidationMessages(FlextProtocols.Model, Protocol):
+    class XlsxValidationMessages(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -69,7 +69,7 @@ class FlextCliProtocolsXlsxXlsxValidation:
             ...
 
     @runtime_checkable
-    class XlsxInlineListSource(FlextProtocols.Model, Protocol):
+    class XlsxInlineListSource(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -83,7 +83,7 @@ class FlextCliProtocolsXlsxXlsxValidation:
             ...
 
     @runtime_checkable
-    class XlsxFormulaListSource(FlextProtocols.Model, Protocol):
+    class XlsxFormulaListSource(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -97,7 +97,7 @@ class FlextCliProtocolsXlsxXlsxValidation:
             ...
 
     @runtime_checkable
-    class XlsxUnaryComparison(FlextProtocols.Model, Protocol):
+    class XlsxUnaryComparison(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -120,7 +120,7 @@ class FlextCliProtocolsXlsxXlsxValidation:
             ...
 
     @runtime_checkable
-    class XlsxRangeComparison(FlextProtocols.Model, Protocol):
+    class XlsxRangeComparison(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -139,7 +139,7 @@ class FlextCliProtocolsXlsxXlsxValidation:
             ...
 
     @runtime_checkable
-    class XlsxListValidationPlan(FlextProtocols.Model, Protocol):
+    class XlsxListValidationPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -170,7 +170,7 @@ class FlextCliProtocolsXlsxXlsxValidation:
             ...
 
     @runtime_checkable
-    class XlsxComparisonValidationPlan(FlextProtocols.Model, Protocol):
+    class XlsxComparisonValidationPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -201,7 +201,7 @@ class FlextCliProtocolsXlsxXlsxValidation:
             ...
 
     @runtime_checkable
-    class XlsxCustomValidationPlan(FlextProtocols.Model, Protocol):
+    class XlsxCustomValidationPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

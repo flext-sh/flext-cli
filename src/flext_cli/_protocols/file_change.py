@@ -19,7 +19,7 @@ class FlextCliProtocolsFileChange:
     """Protocols mirrored from the file-change model module."""
 
     @runtime_checkable
-    class FileChange(FlextProtocols.Model, Protocol):
+    class FileChange(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

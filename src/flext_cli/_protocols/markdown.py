@@ -17,7 +17,7 @@ class FlextCliProtocolsMarkdown:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class MarkdownFence(FlextProtocols.Model, Protocol):
+    class MarkdownFence(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -51,7 +51,7 @@ class FlextCliProtocolsMarkdown:
             ...
 
     @runtime_checkable
-    class MarkdownLink(FlextProtocols.Model, Protocol):
+    class MarkdownLink(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -70,7 +70,7 @@ class FlextCliProtocolsMarkdown:
             ...
 
     @runtime_checkable
-    class MarkdownHeading(FlextProtocols.Model, Protocol):
+    class MarkdownHeading(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -89,7 +89,7 @@ class FlextCliProtocolsMarkdown:
             ...
 
     @runtime_checkable
-    class MarkdownCodeSpan(FlextProtocols.Model, Protocol):
+    class MarkdownCodeSpan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

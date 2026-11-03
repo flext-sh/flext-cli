@@ -13,11 +13,10 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
-from flext_cli import t
-
 if TYPE_CHECKING:
     from flext_core import p
 
+    from flext_cli import t
     from flext_cli._constants import FlextCliConstantsEnums
     from flext_cli._typings import FlextCliTypesDomain
 
@@ -26,7 +25,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class ServiceOptions(FlextProtocols.Model, Protocol):
+    class ServiceOptions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -35,7 +34,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
             ...
 
     @runtime_checkable
-    class TypedExtract(FlextProtocols.Model, Protocol):
+    class TypedExtract(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -43,18 +42,11 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
             """Requested type."""
             ...
 
-        @property
-        def value(self) -> t.JsonValue | None:
-            """Value to extract and coerce."""
-            ...
-
-        @property
-        def default(self) -> t.JsonValue | None:
-            """Fallback value when extraction fails."""
-            ...
+        value: t.JsonValue | None
+        default: t.JsonValue | None
 
     @runtime_checkable
-    class JsonWriteOptions(FlextProtocols.Model, Protocol):
+    class JsonWriteOptions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         indent: int
@@ -62,7 +54,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
         ensure_ascii: bool
 
     @runtime_checkable
-    class TableRenderRequest(FlextProtocols.Model, Protocol):
+    class TableRenderRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -81,7 +73,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
             ...
 
     @runtime_checkable
-    class DataReportRequest(FlextProtocols.Model, Protocol):
+    class DataReportRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

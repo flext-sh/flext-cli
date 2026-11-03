@@ -9,126 +9,70 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_tests import FlextTestsProtocols
 
-from tests import c
+if TYPE_CHECKING:
+    from tests import c
 
 
 class TestsFlextCliProtocolsTestsCli:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class SampleInput(FlextTestsProtocols.Model, Protocol):
+    class SampleInput(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def name(self) -> str:
-            """Target name."""
-            ...
-
-        @property
-        def count(self) -> int:
-            """How many times."""
-            ...
-
-        @property
-        def dry_run(self) -> bool:
-            """Dry-run mode."""
-            ...
-
-        @property
-        def output_format(self) -> c.Cli.OutputFormats:
-            """Output format."""
-            ...
+        name: str
+        count: int
+        dry_run: bool
+        output_format: c.Cli.OutputFormats
 
     @runtime_checkable
-    class SampleOutput(FlextTestsProtocols.Model, Protocol):
+    class SampleOutput(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def message(self) -> str:
-            """User-facing success message."""
-            ...
+        message: str
 
     @runtime_checkable
-    class RepeatableInput(FlextTestsProtocols.Model, Protocol):
+    class RepeatableInput(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def make_arg(self) -> list[str]:
-            """Repeatable make-style arg."""
-            ...
+        make_arg: list[str]
 
     @runtime_checkable
-    class ReportRow(FlextTestsProtocols.Model, Protocol):
+    class ReportRow(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def id(self) -> int:
-            """Row identifier."""
-            ...
-
-        @property
-        def name(self) -> str:
-            """Row display name."""
-            ...
-
-        @property
-        def status(self) -> str:
-            """Row status label."""
-            ...
+        id: int
+        name: str
+        status: str
 
     @runtime_checkable
-    class UserPreferences(FlextTestsProtocols.Model, Protocol):
+    class UserPreferences(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def theme(self) -> str:
-            """UI theme name."""
-            ...
-
-        @property
-        def notifications(self) -> bool:
-            """Notification toggle."""
-            ...
+        theme: str
+        notifications: bool
 
     @runtime_checkable
-    class DeploymentConfig(FlextTestsProtocols.Model, Protocol):
+    class DeploymentConfig(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def environment(self) -> str:
-            """Target environment."""
-            ...
-
-        @property
-        def replicas(self) -> int:
-            """Replica count."""
-            ...
+        environment: str
+        replicas: int
 
     @runtime_checkable
-    class ImportRecord(FlextTestsProtocols.Model, Protocol):
+    class ImportRecord(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def id(self) -> int:
-            """Record identifier."""
-            ...
-
-        @property
-        def name(self) -> str:
-            """Record name."""
-            ...
-
-        @property
-        def value(self) -> str:
-            """Record value."""
-            ...
+        id: int
+        name: str
+        value: str
 
     @runtime_checkable
-    class SummaryStats(FlextTestsProtocols.Model, Protocol):
+    class SummaryStats(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -162,7 +106,7 @@ class TestsFlextCliProtocolsTestsCli:
             ...
 
     @runtime_checkable
-    class ProjectFailureInfo(FlextTestsProtocols.Model, Protocol):
+    class ProjectFailureInfo(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

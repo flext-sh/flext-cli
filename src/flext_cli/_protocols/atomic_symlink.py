@@ -18,7 +18,7 @@ class FlextCliProtocolsAtomicSymlink:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicSymlinkIdentity(FlextProtocols.Model, Protocol):
+    class AtomicSymlinkIdentity(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -72,7 +72,7 @@ class FlextCliProtocolsAtomicSymlink:
             ...
 
     @runtime_checkable
-    class AtomicSymlinkState(FlextProtocols.Model, Protocol):
+    class AtomicSymlinkState(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

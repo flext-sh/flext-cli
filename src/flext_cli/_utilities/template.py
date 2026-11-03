@@ -177,7 +177,7 @@ class FlextCliUtilitiesTemplate:
         return environment
 
     @staticmethod
-    def template_render(path: Path, context: p.Model) -> p.Result[str]:
+    def template_render(path: Path, context: p.BaseModel) -> p.Result[str]:
         """Render a ``templates/*.j2`` file with ``context`` → ``r[str]``.
 
         Fail-closed: a missing template or any Jinja error (including undefined
@@ -232,7 +232,7 @@ class FlextCliUtilitiesTemplate:
     @staticmethod
     def template_render_authenticated(
         path: Path,
-        context: p.Model,
+        context: p.BaseModel,
         *,
         source_states: Sequence[p.Cli.AtomicFileState] | None = None,
     ) -> p.Result[p.Cli.AuthenticatedTemplateRender]:
@@ -284,7 +284,7 @@ class FlextCliUtilitiesTemplate:
         )
 
     @staticmethod
-    def template_render_to(path: Path, dest: Path, context: p.Model) -> p.Result[bool]:
+    def template_render_to(path: Path, dest: Path, context: p.BaseModel) -> p.Result[bool]:
         """Render ``path`` with ``context`` and write it to ``dest`` → ``r[bool]``.
 
         Returns:
@@ -304,7 +304,7 @@ class FlextCliUtilitiesTemplate:
     def template_render_dir(
         templates_root: Path,
         output_root: Path,
-        context: p.Model,
+        context: p.BaseModel,
         entries: Sequence[p.Cli.TemplateRenderEntry],
         *,
         options: p.Cli.TemplateRenderOptions | None = None,

@@ -21,61 +21,34 @@ class FlextCliProtocolsTemplate:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class TemplateRenderOptions(FlextProtocols.Model, Protocol):
+    class TemplateRenderOptions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         strip_suffix: str
         overwrite: bool
 
     @runtime_checkable
-    class TemplateRenderEntry(FlextProtocols.Model, Protocol):
+    class TemplateRenderEntry(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def relpath_template(self) -> Path:
-            """Template path relative to templates_root (ends with .j2)."""
-            ...
-
-        @property
-        def output_relpath(self) -> Path:
-            """Structural member projected from the owning model.
-
-            Output path relative to output_root; a trailing template suffix is
-            stripped by the engine. Path tokens are resolved by the caller before
-            invocation.
-            """
-            ...
-
+        relpath_template: Path
+        output_relpath: Path
         when: bool
         overwrite: bool
 
     @runtime_checkable
-    class TemplateRenderReport(FlextProtocols.Model, Protocol):
+    class TemplateRenderReport(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def created(self) -> tuple[Path, ...]:
-            """Destination paths written."""
-            ...
-
-        @property
-        def skipped(self) -> tuple[Path, ...]:
-            """Destinations skipped (exists or disabled)."""
-            ...
-
-        @property
-        def failed(self) -> tuple[tuple[Path, str], ...]:
-            """(destination, error) pairs that failed to render."""
-            ...
+        created: tuple[Path, ...]
+        skipped: tuple[Path, ...]
+        failed: tuple[tuple[Path, str], ...]
 
     @runtime_checkable
-    class AuthenticatedTemplateRender(FlextProtocols.Model, Protocol):
+    class AuthenticatedTemplateRender(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def rendered(self) -> str:
-            """Text rendered from authenticated template bytes."""
-            ...
+        rendered: str
 
         @property
         def source_states(

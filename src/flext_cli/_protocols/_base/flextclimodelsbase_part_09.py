@@ -9,18 +9,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
-from flext_cli import t
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart09:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicPhysicalTreeEntry(FlextProtocols.Model, Protocol):
+    class AtomicPhysicalTreeEntry(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -119,7 +120,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart09:
             ...
 
     @runtime_checkable
-    class AtomicDirectoryName(FlextProtocols.Model, Protocol):
+    class AtomicDirectoryName(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -143,7 +144,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart09:
             ...
 
     @runtime_checkable
-    class AtomicDirectoryInventory(FlextProtocols.Model, Protocol):
+    class AtomicDirectoryInventory(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -180,7 +181,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart09:
             ...
 
     @runtime_checkable
-    class AtomicPhysicalTreeManifest(FlextProtocols.Model, Protocol):
+    class AtomicPhysicalTreeManifest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

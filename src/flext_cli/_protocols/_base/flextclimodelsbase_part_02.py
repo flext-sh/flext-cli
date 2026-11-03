@@ -19,7 +19,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicFileIdentity(FlextProtocols.Model, Protocol):
+    class AtomicFileIdentity(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -68,53 +68,8 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
             ...
 
     @runtime_checkable
-    class AtomicFileState(FlextProtocols.Model, Protocol):
+    class AtomicFileState(AtomicFileIdentity, Protocol):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def path(self) -> Path:
-            """Absolute file path."""
-            ...
-
-        @property
-        def parent_device(self) -> int | None:
-            """Physical parent device, or None when the chain is absent."""
-            ...
-
-        @property
-        def parent_inode(self) -> int | None:
-            """Physical parent inode, or None when the chain is absent."""
-            ...
-
-        @property
-        def mode(self) -> int | None:
-            """Exact permission bits, or None when absent."""
-            ...
-
-        @property
-        def device(self) -> int | None:
-            """Physical device, or None when absent."""
-            ...
-
-        @property
-        def inode(self) -> int | None:
-            """Physical inode, or None when absent."""
-            ...
-
-        @property
-        def link_count(self) -> int | None:
-            """Observed link count (>= 1), or None when absent."""
-            ...
-
-        @property
-        def file_attributes(self) -> int | None:
-            """Host file attributes when available."""
-            ...
-
-        @property
-        def reparse_tag(self) -> int | None:
-            """Host reparse tag when available."""
-            ...
 
         @property
         def content(self) -> bytes | None:
@@ -122,53 +77,8 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
             ...
 
     @runtime_checkable
-    class AtomicFileReceipt(FlextProtocols.Model, Protocol):
+    class AtomicFileReceipt(AtomicFileIdentity, Protocol):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def path(self) -> Path:
-            """Absolute file path."""
-            ...
-
-        @property
-        def parent_device(self) -> int | None:
-            """Physical parent device, or None when the chain is absent."""
-            ...
-
-        @property
-        def parent_inode(self) -> int | None:
-            """Physical parent inode, or None when the chain is absent."""
-            ...
-
-        @property
-        def mode(self) -> int | None:
-            """Exact permission bits, or None when absent."""
-            ...
-
-        @property
-        def device(self) -> int | None:
-            """Physical device, or None when absent."""
-            ...
-
-        @property
-        def inode(self) -> int | None:
-            """Physical inode, or None when absent."""
-            ...
-
-        @property
-        def link_count(self) -> int | None:
-            """Observed link count (>= 1), or None when absent."""
-            ...
-
-        @property
-        def file_attributes(self) -> int | None:
-            """Host file attributes when available."""
-            ...
-
-        @property
-        def reparse_tag(self) -> int | None:
-            """Host reparse tag when available."""
-            ...
 
         @property
         def size(self) -> int | None:
@@ -186,38 +96,23 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
             ...
 
     @runtime_checkable
-    class PromptRuntimeState(FlextProtocols.Model, Protocol):
+    class PromptRuntimeState(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         interactive: bool
         quiet: bool
-
-        @property
-        def default_timeout(self) -> int:
-            """Default prompt timeout in seconds."""
-            ...
+        default_timeout: int
 
     @runtime_checkable
-    class AuthCredentialsPayload(FlextProtocols.Model, Protocol):
+    class AuthCredentialsPayload(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def token(self) -> str | None:
-            """Direct authentication token."""
-            ...
-
-        @property
-        def username(self) -> str:
-            """Authentication username."""
-            ...
-
-        @property
-        def password(self) -> str:
-            """Authentication password."""
-            ...
+        token: str | None
+        username: str
+        password: str
 
     @runtime_checkable
-    class ProcessEnvironmentSpec(FlextProtocols.Model, Protocol):
+    class ProcessEnvironmentSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

@@ -23,7 +23,7 @@ class FlextCliProtocolsXlsxXlsxRules:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxContainsTextFormatPlan(FlextProtocols.Model, Protocol):
+    class XlsxContainsTextFormatPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -52,7 +52,7 @@ class FlextCliProtocolsXlsxXlsxRules:
             ...
 
     @runtime_checkable
-    class XlsxCellFormatPlan(FlextProtocols.Model, Protocol):
+    class XlsxCellFormatPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -86,7 +86,7 @@ class FlextCliProtocolsXlsxXlsxRules:
             ...
 
     @runtime_checkable
-    class XlsxFormulaFormatPlan(FlextProtocols.Model, Protocol):
+    class XlsxFormulaFormatPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -115,7 +115,7 @@ class FlextCliProtocolsXlsxXlsxRules:
             ...
 
     @runtime_checkable
-    class XlsxCellProtectionPlan(FlextProtocols.Model, Protocol):
+    class XlsxCellProtectionPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -134,7 +134,7 @@ class FlextCliProtocolsXlsxXlsxRules:
             ...
 
     @runtime_checkable
-    class XlsxPlainProtectionCredential(FlextProtocols.Model, Protocol):
+    class XlsxPlainProtectionCredential(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -148,7 +148,7 @@ class FlextCliProtocolsXlsxXlsxRules:
             ...
 
     @runtime_checkable
-    class XlsxLegacyProtectionCredential(FlextProtocols.Model, Protocol):
+    class XlsxLegacyProtectionCredential(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -162,7 +162,7 @@ class FlextCliProtocolsXlsxXlsxRules:
             ...
 
     @runtime_checkable
-    class XlsxProtectionPermissions(FlextProtocols.Model, Protocol):
+    class XlsxProtectionPermissions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -241,7 +241,7 @@ class FlextCliProtocolsXlsxXlsxRules:
             ...
 
     @runtime_checkable
-    class XlsxSheetProtectionPlan(FlextProtocols.Model, Protocol):
+    class XlsxSheetProtectionPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -270,7 +270,7 @@ class FlextCliProtocolsXlsxXlsxRules:
             ...
 
     @runtime_checkable
-    class XlsxSheetRulesPlan(FlextProtocols.Model, Protocol):
+    class XlsxSheetRulesPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

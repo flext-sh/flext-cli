@@ -32,7 +32,7 @@ class FlextCliProtocolsPipeline:
     """Pipeline protocol namespace."""
 
     @runtime_checkable
-    class PipelineStageContext(FlextProtocols.Model, Protocol):
+    class PipelineStageContext(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -146,7 +146,7 @@ class FlextCliProtocolsPipeline:
             ...
 
     @runtime_checkable
-    class PipelineStageSpec(FlextProtocols.Model, Protocol):
+    class PipelineStageSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -182,7 +182,7 @@ class FlextCliProtocolsPipeline:
             ...
 
     @runtime_checkable
-    class PipelineStageResult(FlextProtocols.Model, Protocol):
+    class PipelineStageResult(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -211,7 +211,7 @@ class FlextCliProtocolsPipeline:
             ...
 
     @runtime_checkable
-    class PipelineResult(FlextProtocols.Model, Protocol):
+    class PipelineResult(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

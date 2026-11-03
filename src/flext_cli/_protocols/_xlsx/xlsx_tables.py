@@ -20,7 +20,7 @@ class FlextCliProtocolsXlsxXlsxTables:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxTablePlan(FlextProtocols.Model, Protocol):
+    class XlsxTablePlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -59,7 +59,7 @@ class FlextCliProtocolsXlsxXlsxTables:
             ...
 
     @runtime_checkable
-    class XlsxRangeDefinedNamePlan(FlextProtocols.Model, Protocol):
+    class XlsxRangeDefinedNamePlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -83,7 +83,7 @@ class FlextCliProtocolsXlsxXlsxTables:
             ...
 
     @runtime_checkable
-    class XlsxFormulaDefinedNamePlan(FlextProtocols.Model, Protocol):
+    class XlsxFormulaDefinedNamePlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

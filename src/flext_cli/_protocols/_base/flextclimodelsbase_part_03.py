@@ -13,9 +13,8 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
-from flext_cli import t
-
 if TYPE_CHECKING:
+    from flext_cli import t
     from flext_cli._constants import FlextCliConstantsEnums
     from flext_cli._protocols import FlextCliProtocolsDomain
     from flext_cli._typings import FlextCliTypesDomain
@@ -25,7 +24,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart03:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicDirectoryState(FlextProtocols.Model, Protocol):
+    class AtomicDirectoryState(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -79,13 +78,10 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart03:
             ...
 
     @runtime_checkable
-    class CommandEntryModel(FlextProtocols.Model, Protocol):
+    class CommandEntryModel(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def name(self) -> t.NonEmptyStr:
-            """Command name."""
-            ...
+        name: t.NonEmptyStr
 
         @property
         def handler(self) -> FlextCliTypesDomain.JsonCommandFn:
@@ -93,11 +89,11 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart03:
             ...
 
     @runtime_checkable
-    class EmptyRequest(FlextProtocols.Model, Protocol):
+    class EmptyRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
     @runtime_checkable
-    class CommandMetadata(FlextProtocols.Model, Protocol):
+    class CommandMetadata(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -111,18 +107,8 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart03:
             ...
 
     @runtime_checkable
-    class ResultCommandRoute(FlextProtocols.Model, Protocol):
+    class ResultCommandRoute(CommandMetadata, Protocol):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def name(self) -> t.NonEmptyStr:
-            """Command name."""
-            ...
-
-        @property
-        def help_text(self) -> str:
-            """User-facing help text."""
-            ...
 
         @property
         def model_cls(self) -> t.ModelClass[FlextCliTypesDomain.ModelLike]:

@@ -12,9 +12,8 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
-from flext_cli import t
-
 if TYPE_CHECKING:
+    from flext_cli import t
     from flext_cli._protocols import FlextCliProtocolsDocxStyles
 
 
@@ -22,7 +21,7 @@ class FlextCliProtocolsDocxDocument:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class DocxRunPlan(FlextProtocols.Model, Protocol):
+    class DocxRunPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -36,7 +35,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxParagraphPlan(FlextProtocols.Model, Protocol):
+    class DocxParagraphPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -62,7 +61,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxTableCellPlan(FlextProtocols.Model, Protocol):
+    class DocxTableCellPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -73,7 +72,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxTableRowPlan(FlextProtocols.Model, Protocol):
+    class DocxTableRowPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -82,7 +81,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxTablePlan(FlextProtocols.Model, Protocol):
+    class DocxTablePlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -96,7 +95,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxSectionPlan(FlextProtocols.Model, Protocol):
+    class DocxSectionPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -135,7 +134,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxDocumentPlan(FlextProtocols.Model, Protocol):
+    class DocxDocumentPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -161,7 +160,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxRenderRequest(FlextProtocols.Model, Protocol):
+    class DocxRenderRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -180,7 +179,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxRenderResult(FlextProtocols.Model, Protocol):
+    class DocxRenderResult(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

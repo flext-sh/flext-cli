@@ -17,7 +17,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart05:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class SettingsSnapshot(FlextProtocols.Model, Protocol):
+    class SettingsSnapshot(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

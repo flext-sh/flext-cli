@@ -20,7 +20,7 @@ class FlextCliProtocolsXlsxXlsxArchive:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxArchivePolicy(FlextProtocols.Model, Protocol):
+    class XlsxArchivePolicy(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -79,7 +79,7 @@ class FlextCliProtocolsXlsxXlsxArchive:
             ...
 
     @runtime_checkable
-    class XlsxArchiveViolation(FlextProtocols.Model, Protocol):
+    class XlsxArchiveViolation(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -98,7 +98,7 @@ class FlextCliProtocolsXlsxXlsxArchive:
             ...
 
     @runtime_checkable
-    class XlsxArchiveInventory(FlextProtocols.Model, Protocol):
+    class XlsxArchiveInventory(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -124,7 +124,7 @@ class FlextCliProtocolsXlsxXlsxArchive:
             ...
 
     @runtime_checkable
-    class XlsxArchiveInspection(FlextProtocols.Model, Protocol):
+    class XlsxArchiveInspection(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -155,7 +155,7 @@ class FlextCliProtocolsXlsxXlsxArchive:
             ...
 
     @runtime_checkable
-    class XlsxArchiveInspectionRequest(FlextProtocols.Model, Protocol):
+    class XlsxArchiveInspectionRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

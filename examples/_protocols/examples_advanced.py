@@ -12,10 +12,10 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from examples import c, t
 from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
+    from examples import c, t
     from flext_cli import p
 
 
@@ -23,7 +23,7 @@ class ExamplesFlextCliProtocolsExamplesAdvanced:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AppSettingsAdvanced(FlextCliProtocols.Model, Protocol):
+    class AppSettingsAdvanced(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

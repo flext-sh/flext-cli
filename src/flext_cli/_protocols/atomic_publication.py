@@ -23,7 +23,7 @@ class FlextCliProtocolsAtomicPublication:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class StagedFile(FlextProtocols.Model, Protocol):
+    class StagedFile(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -47,7 +47,7 @@ class FlextCliProtocolsAtomicPublication:
             ...
 
     @runtime_checkable
-    class ObservedFile(FlextProtocols.Model, Protocol):
+    class ObservedFile(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -61,7 +61,7 @@ class FlextCliProtocolsAtomicPublication:
             ...
 
     @runtime_checkable
-    class AtomicWriteOptions(FlextProtocols.Model, Protocol):
+    class AtomicWriteOptions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -87,7 +87,7 @@ class FlextCliProtocolsAtomicPublication:
             ...
 
     @runtime_checkable
-    class TreeEntryDetails(FlextProtocols.Model, Protocol):
+    class TreeEntryDetails(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

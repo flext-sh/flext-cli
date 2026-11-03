@@ -45,7 +45,7 @@ class FlextCliUtilitiesFilesPart04:
         | bytes
         | m.ConfigMap
         | m.Dict
-        | p.Model
+        | p.BaseModel
         | t.JsonMapping
         | Sequence[Sequence[str]],
         name: str,

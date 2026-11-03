@@ -9,18 +9,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
-from flext_cli import t
+if TYPE_CHECKING:
+    from flext_cli import t
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart08:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicDirectoryChainPlan(FlextProtocols.Model, Protocol):
+    class AtomicDirectoryChainPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

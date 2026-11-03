@@ -17,7 +17,7 @@ class ExamplesFlextCliProtocolsExamplesDatabase:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AdvancedDatabaseConfig(FlextCliProtocols.Model, Protocol):
+    class AdvancedDatabaseConfig(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

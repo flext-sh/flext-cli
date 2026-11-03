@@ -9,84 +9,49 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_tests import FlextTestsProtocols
 
-from tests import t
+if TYPE_CHECKING:
+    from tests import t
 
 
 class TestsFlextCliProtocolsTestsRuntime:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class ApiResponse(FlextTestsProtocols.Model, Protocol):
+    class ApiResponse(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def status(self) -> str:
-            """Status."""
-            ...
-
-        @property
-        def data(self) -> t.JsonMapping | None:
-            """Payload."""
-            ...
-
-        @property
-        def message(self) -> str:
-            """Message."""
-            ...
-
-        @property
-        def error(self) -> str | None:
-            """Error."""
-            ...
+        status: str
+        data: t.JsonMapping | None
+        message: str
+        error: str | None
 
     @runtime_checkable
-    class ModelCommandSample(FlextTestsProtocols.Model, Protocol):
+    class ModelCommandSample(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def name(self) -> str:
-            """Required command name."""
-            ...
-
-        @property
-        def value(self) -> int:
-            """Command value with default."""
-            ...
+        name: str
+        value: int
 
     @runtime_checkable
-    class ModelCommandNullable(FlextTestsProtocols.Model, Protocol):
+    class ModelCommandNullable(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def name(self) -> str:
-            """Required command name."""
-            ...
-
-        @property
-        def optional(self) -> str | None:
-            """Optional value."""
-            ...
+        name: str
+        optional: str | None
 
     @runtime_checkable
-    class ModelCommandRequired(FlextTestsProtocols.Model, Protocol):
+    class ModelCommandRequired(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def key(self) -> str:
-            """Required key."""
-            ...
-
-        @property
-        def count(self) -> int:
-            """Required count."""
-            ...
+        key: str
+        count: int
 
     @runtime_checkable
-    class RuntimeCommandCase(FlextTestsProtocols.Model, Protocol):
+    class RuntimeCommandCase(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

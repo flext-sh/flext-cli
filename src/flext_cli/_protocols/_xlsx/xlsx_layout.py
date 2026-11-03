@@ -20,7 +20,7 @@ class FlextCliProtocolsXlsxXlsxLayout:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxMergePlan(FlextProtocols.Model, Protocol):
+    class XlsxMergePlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -29,7 +29,7 @@ class FlextCliProtocolsXlsxXlsxLayout:
             ...
 
     @runtime_checkable
-    class XlsxCommentPlan(FlextProtocols.Model, Protocol):
+    class XlsxCommentPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -58,7 +58,7 @@ class FlextCliProtocolsXlsxXlsxLayout:
             ...
 
     @runtime_checkable
-    class XlsxExternalHyperlinkPlan(FlextProtocols.Model, Protocol):
+    class XlsxExternalHyperlinkPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -77,7 +77,7 @@ class FlextCliProtocolsXlsxXlsxLayout:
             ...
 
     @runtime_checkable
-    class XlsxNavigationHyperlinkPlan(FlextProtocols.Model, Protocol):
+    class XlsxNavigationHyperlinkPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -101,7 +101,7 @@ class FlextCliProtocolsXlsxXlsxLayout:
             ...
 
     @runtime_checkable
-    class XlsxDimensionPlan(FlextProtocols.Model, Protocol):
+    class XlsxDimensionPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -130,7 +130,7 @@ class FlextCliProtocolsXlsxXlsxLayout:
             ...
 
     @runtime_checkable
-    class XlsxGroupPlan(FlextProtocols.Model, Protocol):
+    class XlsxGroupPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -159,7 +159,7 @@ class FlextCliProtocolsXlsxXlsxLayout:
             ...
 
     @runtime_checkable
-    class XlsxFreezePanePlan(FlextProtocols.Model, Protocol):
+    class XlsxFreezePanePlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -168,7 +168,7 @@ class FlextCliProtocolsXlsxXlsxLayout:
             ...
 
     @runtime_checkable
-    class XlsxAutoFilterPlan(FlextProtocols.Model, Protocol):
+    class XlsxAutoFilterPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -177,7 +177,7 @@ class FlextCliProtocolsXlsxXlsxLayout:
             ...
 
     @runtime_checkable
-    class XlsxViewPlan(FlextProtocols.Model, Protocol):
+    class XlsxViewPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -191,7 +191,7 @@ class FlextCliProtocolsXlsxXlsxLayout:
             ...
 
     @runtime_checkable
-    class XlsxSheetLayoutPlan(FlextProtocols.Model, Protocol):
+    class XlsxSheetLayoutPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

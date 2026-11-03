@@ -17,7 +17,7 @@ class FlextCliProtocolsXlsxXlsxRecalc:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxRecalcRequest(FlextProtocols.Model, Protocol):
+    class XlsxRecalcRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -26,7 +26,7 @@ class FlextCliProtocolsXlsxXlsxRecalc:
             ...
 
     @runtime_checkable
-    class XlsxRecalcResult(FlextProtocols.Model, Protocol):
+    class XlsxRecalcResult(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -35,7 +35,7 @@ class FlextCliProtocolsXlsxXlsxRecalc:
             ...
 
     @runtime_checkable
-    class XlsxRecalcParityRequest(FlextProtocols.Model, Protocol):
+    class XlsxRecalcParityRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -49,7 +49,7 @@ class FlextCliProtocolsXlsxXlsxRecalc:
             ...
 
     @runtime_checkable
-    class XlsxRecalcParityReport(FlextProtocols.Model, Protocol):
+    class XlsxRecalcParityReport(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

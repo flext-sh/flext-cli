@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
+from flext_cli._protocols import FlextCliProtocolsColor
+
 if TYPE_CHECKING:
     pass
 
@@ -20,26 +22,11 @@ class FlextCliProtocolsXlsxXlsxStylePrimitives:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxRgbColor(FlextProtocols.Model, Protocol):
+    class XlsxRgbColor(FlextCliProtocolsColor.RgbColor, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def kind(self) -> Literal["rgb"]:
-            """Color kind."""
-            ...
-
-        @property
-        def value(self) -> str:
-            """RGB or ARGB value."""
-            ...
-
-        @property
-        def tint(self) -> float:
-            """Color tint."""
-            ...
-
     @runtime_checkable
-    class XlsxIndexedColor(FlextProtocols.Model, Protocol):
+    class XlsxIndexedColor(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -58,7 +45,7 @@ class FlextCliProtocolsXlsxXlsxStylePrimitives:
             ...
 
     @runtime_checkable
-    class XlsxThemeColor(FlextProtocols.Model, Protocol):
+    class XlsxThemeColor(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -77,7 +64,7 @@ class FlextCliProtocolsXlsxXlsxStylePrimitives:
             ...
 
     @runtime_checkable
-    class XlsxAutomaticColor(FlextProtocols.Model, Protocol):
+    class XlsxAutomaticColor(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -91,7 +78,7 @@ class FlextCliProtocolsXlsxXlsxStylePrimitives:
             ...
 
     @runtime_checkable
-    class XlsxFontSpec(FlextProtocols.Model, Protocol):
+    class XlsxFontSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
