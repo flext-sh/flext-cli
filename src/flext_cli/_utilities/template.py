@@ -284,7 +284,9 @@ class FlextCliUtilitiesTemplate:
         )
 
     @staticmethod
-    def template_render_to(path: Path, dest: Path, context: p.BaseModel) -> p.Result[bool]:
+    def template_render_to(
+        path: Path, dest: Path, context: p.BaseModel
+    ) -> p.Result[bool]:
         """Render ``path`` with ``context`` and write it to ``dest`` → ``r[bool]``.
 
         Returns:
