@@ -11,6 +11,8 @@ from inspect import Parameter, Signature
 from types import GenericAlias
 from typing import Never, cast, get_origin
 
+import typer
+
 from flext_cli import c, e, m, p, r, t, u
 
 
@@ -40,7 +42,16 @@ class FlextCliCliPart01:
             result_border: bool,
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
-            self.__signature__ = Signature(parameters)
+            # Typer injects its click context into a parameter annotated
+            # typer.Context; __call__ reads each option's source through it.
+            self.__signature__ = Signature((
+                *parameters,
+                Parameter(
+                    c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER,
+                    Parameter.KEYWORD_ONLY,
+                    annotation=typer.Context,
+                ),
+            ))
             self._handler = handler
             self._model_cls = model_cls
             self._result_border = result_border
@@ -55,11 +66,18 @@ class FlextCliCliPart01:
             value = getattr(origin, "__value__", None)
             return value is not None and get_origin(value) is tuple
 
-        def __call__(self, **kwargs: t.Cli.CliValue) -> TResult:
+        def __call__(self, **kwargs: t.Cli.CliValue | typer.Context) -> TResult:
             # Typer passes each option under its parameter (field) name, so an
             # aliased field must validate by name as well as by alias. A result
             # border turns rejected input into ``e.fail_validation`` carrying
             # the ValidationError and exits non-zero; a plain command raises it.
+            # Only options the user actually supplied reach the model: a value
+            # Typer filled from its default must stay out of model_fields_set,
+            # so validators that tell "given" from "default" keep working.
+            context = kwargs.pop(c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER)
+            if not isinstance(context, typer.Context):
+                msg = "Typer did not inject the command context"
+                raise TypeError(msg)
             fields = self._model_cls.model_fields
             values = {
                 key: tuple(value)
@@ -68,6 +86,9 @@ class FlextCliCliPart01:
                 and self._tuple_annotated(u.Cli.field_annotation(key, field))
                 else value
                 for key, value in kwargs.items()
+                if not isinstance(value, typer.Context)
+                and (source := context.get_parameter_source(key)) is not None
+                and source.name != c.Cli.PARAMETER_SOURCE_DEFAULT
             }
             try:
                 model = self._model_cls.model_validate(values, by_name=True)
