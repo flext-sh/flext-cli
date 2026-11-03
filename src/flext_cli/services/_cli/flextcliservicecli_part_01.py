@@ -11,8 +11,6 @@ from inspect import Parameter, Signature
 from types import GenericAlias
 from typing import Never, cast, get_origin
 
-import typer
-
 from flext_cli import c, e, m, p, r, t, u
 
 
@@ -39,19 +37,27 @@ class FlextCliCliPart01:
             handler: p.Cli.ModelCommandHandler[M, TResult],
             model_cls: t.ModelClass[M],
             parameters: Sequence[Parameter],
+            annotations: t.Cli.CliAnnotations,
             result_border: bool,
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
-            # Typer injects its click context into a parameter annotated
-            # typer.Context; __call__ reads each option's source through it.
+            # Typer injects its click context into a parameter annotated with
+            # the framework context; __call__ reads each option's source.
+            context_annotation = u.Cli.framework_command_context_annotation()
             self.__signature__ = Signature((
                 *parameters,
                 Parameter(
                     c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER,
                     Parameter.KEYWORD_ONLY,
-                    annotation=typer.Context,
+                    annotation=context_annotation,
                 ),
             ))
+            # Typer reads the injected context through __annotations__ as well
+            # as the signature; the command owns both so no caller drops it.
+            self.__annotations__ = {
+                **annotations,
+                c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER: context_annotation,
+            }
             self._handler = handler
             self._model_cls = model_cls
             self._result_border = result_border
@@ -66,7 +72,7 @@ class FlextCliCliPart01:
             value = getattr(origin, "__value__", None)
             return value is not None and get_origin(value) is tuple
 
-        def __call__(self, **kwargs: t.Cli.CliValue | typer.Context) -> TResult:
+        def __call__(self, **kwargs: t.Cli.CliValue) -> TResult:
             # Typer passes each option under its parameter (field) name, so an
             # aliased field must validate by name as well as by alias. A result
             # border turns rejected input into ``e.fail_validation`` carrying
@@ -74,10 +80,9 @@ class FlextCliCliPart01:
             # Only options the user actually supplied reach the model: a value
             # Typer filled from its default must stay out of model_fields_set,
             # so validators that tell "given" from "default" keep working.
-            context = kwargs.pop(c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER)
-            if not isinstance(context, typer.Context):
-                msg = "Typer did not inject the command context"
-                raise TypeError(msg)
+            supplied = u.Cli.framework_supplied_options(
+                kwargs, c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER
+            )
             fields = self._model_cls.model_fields
             values = {
                 key: tuple(value)
@@ -85,10 +90,7 @@ class FlextCliCliPart01:
                 and (field := fields.get(key)) is not None
                 and self._tuple_annotated(u.Cli.field_annotation(key, field))
                 else value
-                for key, value in kwargs.items()
-                if not isinstance(value, typer.Context)
-                and (source := context.get_parameter_source(key)) is not None
-                and source.name != c.Cli.PARAMETER_SOURCE_DEFAULT
+                for key, value in supplied.items()
             }
             try:
                 model = self._model_cls.model_validate(values, by_name=True)
