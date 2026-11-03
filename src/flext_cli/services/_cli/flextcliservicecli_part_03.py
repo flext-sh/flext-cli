@@ -9,6 +9,8 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableSequence, Sequence
 from inspect import Parameter
 
+import typer
+
 from flext_cli import c, p, r, t, u
 from flext_cli.services._cli import FlextCliCliPart01, FlextCliCliPart02
 
@@ -72,6 +74,10 @@ class FlextCliCliPart03(FlextCliCliPart02):
             parameters=parameters,
             result_border=result_border,
         )
+        # Typer recognizes the injected context through __annotations__ as
+        # well as the signature; declaring it only in the signature leaves
+        # every model command without its context.
+        annotations[c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER] = typer.Context
         command.__annotations__ = dict(annotations)
         return command
 
