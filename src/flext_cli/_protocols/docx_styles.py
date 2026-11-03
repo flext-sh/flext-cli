@@ -8,78 +8,117 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_core import m
-
-    from flext_cli.protocols import p
+    pass
 
 
 class FlextCliProtocolsDocxStyles:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class DocxRgbColor(Protocol):
+    class DocxRgbColor(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["rgb"]: ...
+        def kind(self) -> Literal["rgb"]:
+            """Color kind."""
+            ...
+
         @property
-        def value(self) -> str: ...
+        def value(self) -> str:
+            """RGB or ARGB value."""
+            ...
+
         @property
-        def tint(self) -> float: ...
+        def tint(self) -> float:
+            """Color tint."""
+            ...
 
     @runtime_checkable
-    class DocxThemeColor(Protocol):
+    class DocxThemeColor(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["theme"]: ...
+        def kind(self) -> Literal["theme"]:
+            """Color kind."""
+            ...
+
         @property
-        def value(self) -> int: ...
+        def value(self) -> int:
+            """Theme color value."""
+            ...
+
         @property
-        def tint(self) -> float: ...
+        def tint(self) -> float:
+            """Color tint."""
+            ...
 
     @runtime_checkable
-    class DocxAutomaticColor(Protocol):
+    class DocxAutomaticColor(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["auto"]: ...
+        def kind(self) -> Literal["auto"]:
+            """Color kind."""
+            ...
+
         @property
-        def tint(self) -> float: ...
+        def tint(self) -> float:
+            """Color tint."""
+            ...
 
     @runtime_checkable
-    class DocxFontSpec(Protocol):
+    class DocxFontSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def name(self) -> str | None: ...
+        def name(self) -> str | None:
+            """Font family."""
+            ...
+
         @property
-        def size(self) -> float | None: ...
+        def size(self) -> float | None:
+            """Font size."""
+            ...
+
         @property
-        def bold(self) -> bool | None: ...
+        def bold(self) -> bool | None:
+            """Bold font state."""
+            ...
+
         @property
-        def italic(self) -> bool | None: ...
+        def italic(self) -> bool | None:
+            """Italic font state."""
+            ...
+
         @property
         def underline(
             self,
-        ) -> (
-            Literal["single", "double", "singleAccounting", "doubleAccounting"] | None
-        ): ...
+        ) -> Literal["single", "double", "singleAccounting", "doubleAccounting"] | None:
+            """Underline style."""
+            ...
+
         @property
-        def strike(self) -> bool | None: ...
+        def strike(self) -> bool | None:
+            """Strike font state."""
+            ...
+
         @property
         def color(
             self,
         ) -> (
-            Annotated[
-                p.Cli.DocxRgbColor | p.Cli.DocxThemeColor | p.Cli.DocxAutomaticColor,
-                m.Field(discriminator="kind"),
-            ]
+            FlextCliProtocolsDocxStyles.DocxRgbColor
+            | FlextCliProtocolsDocxStyles.DocxThemeColor
+            | FlextCliProtocolsDocxStyles.DocxAutomaticColor
             | None
-        ): ...
+        ):
+            """Optional font color."""
+            ...
+
         @property
         def highlight(
             self,
@@ -102,60 +141,117 @@ class FlextCliProtocolsDocxStyles:
                 "black",
             ]
             | None
-        ): ...
+        ):
+            """Optional highlight color."""
+            ...
+
         @property
-        def superscript(self) -> bool | None: ...
+        def superscript(self) -> bool | None:
+            """Superscript."""
+            ...
+
         @property
-        def subscript(self) -> bool | None: ...
+        def subscript(self) -> bool | None:
+            """Subscript."""
+            ...
+
         @property
-        def all_caps(self) -> bool | None: ...
+        def all_caps(self) -> bool | None:
+            """All caps."""
+            ...
+
         @property
-        def small_caps(self) -> bool | None: ...
+        def small_caps(self) -> bool | None:
+            """Small caps."""
+            ...
 
     @runtime_checkable
-    class DocxParagraphFormatSpec(Protocol):
+    class DocxParagraphFormatSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
         def alignment(
             self,
-        ) -> Literal["left", "center", "right", "justify", "distribute"] | None: ...
+        ) -> Literal["left", "center", "right", "justify", "distribute"] | None:
+            """Paragraph alignment."""
+            ...
+
         @property
-        def space_before(self) -> float | None: ...
+        def space_before(self) -> float | None:
+            """Space before."""
+            ...
+
         @property
-        def space_after(self) -> float | None: ...
+        def space_after(self) -> float | None:
+            """Space after."""
+            ...
+
         @property
-        def line_spacing(self) -> float | None: ...
+        def line_spacing(self) -> float | None:
+            """Line spacing multiplier."""
+            ...
+
         @property
-        def first_line_indent(self) -> float | None: ...
+        def first_line_indent(self) -> float | None:
+            """First line indent."""
+            ...
+
         @property
-        def left_indent(self) -> float | None: ...
+        def left_indent(self) -> float | None:
+            """Left indent."""
+            ...
+
         @property
-        def right_indent(self) -> float | None: ...
+        def right_indent(self) -> float | None:
+            """Right indent."""
+            ...
+
         @property
-        def keep_together(self) -> bool | None: ...
+        def keep_together(self) -> bool | None:
+            """Keep together."""
+            ...
+
         @property
-        def keep_with_next(self) -> bool | None: ...
+        def keep_with_next(self) -> bool | None:
+            """Keep with next paragraph."""
+            ...
+
         @property
-        def page_break_before(self) -> bool | None: ...
+        def page_break_before(self) -> bool | None:
+            """Page break before paragraph."""
+            ...
+
         @property
-        def widow_control(self) -> bool | None: ...
+        def widow_control(self) -> bool | None:
+            """Widow control."""
+            ...
 
     @runtime_checkable
-    class DocxRunStyleSpec(Protocol):
+    class DocxRunStyleSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def font(self) -> p.Cli.DocxFontSpec | None: ...
+        def font(self) -> FlextCliProtocolsDocxStyles.DocxFontSpec | None:
+            """Optional run font specification."""
+            ...
 
     @runtime_checkable
-    class DocxParagraphStyleSpec(Protocol):
+    class DocxParagraphStyleSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def font(self) -> p.Cli.DocxFontSpec | None: ...
+        def font(self) -> FlextCliProtocolsDocxStyles.DocxFontSpec | None:
+            """Optional paragraph font specification."""
+            ...
+
         @property
-        def paragraph_format(self) -> p.Cli.DocxParagraphFormatSpec | None: ...
+        def paragraph_format(
+            self,
+        ) -> FlextCliProtocolsDocxStyles.DocxParagraphFormatSpec | None:
+            """Optional paragraph format specification."""
+            ...
+
+    type DocxColor = DocxRgbColor | DocxThemeColor | DocxAutomaticColor
 
 
 __all__: list[str] = [

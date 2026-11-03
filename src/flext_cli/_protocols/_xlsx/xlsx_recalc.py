@@ -10,51 +10,85 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from flext_core import FlextProtocols
+
 
 class FlextCliProtocolsXlsxXlsxRecalc:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxRecalcRequest(Protocol):
+    class XlsxRecalcRequest(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def source(self) -> bytes: ...
+        def source(self) -> bytes:
+            """Source workbook bytes."""
+            ...
 
     @runtime_checkable
-    class XlsxRecalcResult(Protocol):
+    class XlsxRecalcResult(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def content(self) -> bytes: ...
+        def content(self) -> bytes:
+            """Recalculated workbook bytes."""
+            ...
 
     @runtime_checkable
-    class XlsxRecalcParityRequest(Protocol):
+    class XlsxRecalcParityRequest(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def source(self) -> bytes: ...
+        def source(self) -> bytes:
+            """Source workbook bytes."""
+            ...
+
         @property
-        def expected_formula_count(self) -> int | None: ...
+        def expected_formula_count(self) -> int | None:
+            """Expected source formula cell count."""
+            ...
 
     @runtime_checkable
-    class XlsxRecalcParityReport(Protocol):
+    class XlsxRecalcParityReport(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def content(self) -> bytes: ...
+        def content(self) -> bytes:
+            """Exact recalculated workbook bytes validated by this report."""
+            ...
+
         @property
-        def recalculated(self) -> bool: ...
+        def recalculated(self) -> bool:
+            """Whether the engine produced recalculated bytes."""
+            ...
+
         @property
-        def formula_count(self) -> int: ...
+        def formula_count(self) -> int:
+            """Source workbook formula cell count."""
+            ...
+
         @property
-        def error_cells(self) -> tuple[str, ...]: ...
+        def error_cells(self) -> tuple[str, ...]:
+            """Formula cells whose cached value is an error literal."""
+            ...
+
         @property
-        def uncached_cells(self) -> tuple[str, ...]: ...
+        def uncached_cells(self) -> tuple[str, ...]:
+            """Formula cells without any cached value element."""
+            ...
+
         @property
-        def empty_result_cells(self) -> tuple[str, ...]: ...
+        def empty_result_cells(self) -> tuple[str, ...]:
+            """Formula cells cached as an empty string result."""
+            ...
+
         @property
-        def ok(self) -> bool: ...
+        def ok(self) -> bool:
+            """Structural member projected from the owning model.
+
+            Producer-stored verdict: caches complete, no errors, count matches.
+            """
+            ...
 
 
 __all__: list[str] = [

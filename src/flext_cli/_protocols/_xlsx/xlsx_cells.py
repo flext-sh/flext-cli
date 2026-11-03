@@ -10,156 +10,236 @@ from __future__ import annotations
 
 import datetime as dt
 from decimal import Decimal
-from typing import TYPE_CHECKING, Annotated, Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 from flext_cli import t
 
 if TYPE_CHECKING:
-    from flext_core import m
-
-    from flext_cli.protocols import p
+    pass
 
 
 class FlextCliProtocolsXlsxXlsxCells:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxCellAddress(Protocol):
+    class XlsxCellAddress(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def row(self) -> int: ...
+        def row(self) -> int:
+            """One-based row index."""
+            ...
+
         @property
-        def column(self) -> int: ...
+        def column(self) -> int:
+            """One-based column index."""
+            ...
 
     @runtime_checkable
-    class XlsxCellRange(Protocol):
+    class XlsxCellRange(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def first(self) -> p.Cli.XlsxCellAddress: ...
+        def first(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellAddress:
+            """Top-left range address."""
+            ...
+
         @property
-        def last(self) -> p.Cli.XlsxCellAddress: ...
+        def last(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellAddress:
+            """Bottom-right range address."""
+            ...
 
     @runtime_checkable
-    class XlsxParseRangeRequest(Protocol):
+    class XlsxParseRangeRequest(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def reference(self) -> str: ...
+        def reference(self) -> str:
+            """Concrete A1 cell or range reference."""
+            ...
 
     @runtime_checkable
-    class XlsxFormatReferenceRequest(Protocol):
+    class XlsxFormatReferenceRequest(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def area(self) -> p.Cli.XlsxCellRange: ...
+        def area(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellRange:
+            """Validated cell range to format."""
+            ...
+
         @property
-        def sheet(self) -> str | None: ...
+        def sheet(self) -> str | None:
+            """Optional worksheet qualifier."""
+            ...
+
         @property
-        def absolute(self) -> bool: ...
+        def absolute(self) -> bool:
+            """Render absolute row and column markers."""
+            ...
+
         @property
-        def collapse_single_cell(self) -> bool: ...
+        def collapse_single_cell(self) -> bool:
+            """Render equal bounds as one cell instead of a range."""
+            ...
 
     @runtime_checkable
-    class XlsxReference(Protocol):
+    class XlsxReference(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def reference(self) -> str: ...
+        def reference(self) -> str:
+            """Formatted Excel reference."""
+            ...
 
     @runtime_checkable
-    class XlsxBlankValue(Protocol):
+    class XlsxBlankValue(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["blank"]: ...
+        def kind(self) -> Literal["blank"]:
+            """Value kind."""
+            ...
 
     @runtime_checkable
-    class XlsxTextValue(Protocol):
+    class XlsxTextValue(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["text"]: ...
+        def kind(self) -> Literal["text"]:
+            """Value kind."""
+            ...
+
         @property
-        def value(self) -> str: ...
+        def value(self) -> str:
+            """Cell text."""
+            ...
 
     @runtime_checkable
-    class XlsxIntegerValue(Protocol):
+    class XlsxIntegerValue(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["integer"]: ...
+        def kind(self) -> Literal["integer"]:
+            """Value kind."""
+            ...
+
         @property
-        def value(self) -> int: ...
+        def value(self) -> int:
+            """Cell integer."""
+            ...
 
     @runtime_checkable
-    class XlsxDecimalValue(Protocol):
+    class XlsxDecimalValue(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["decimal"]: ...
+        def kind(self) -> Literal["decimal"]:
+            """Value kind."""
+            ...
+
         @property
-        def value(self) -> Decimal: ...
+        def value(self) -> Decimal:
+            """Cell decimal value."""
+            ...
 
     @runtime_checkable
-    class XlsxBooleanValue(Protocol):
+    class XlsxBooleanValue(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["boolean"]: ...
+        def kind(self) -> Literal["boolean"]:
+            """Value kind."""
+            ...
+
         @property
-        def value(self) -> bool: ...
+        def value(self) -> bool:
+            """Cell boolean."""
+            ...
 
     @runtime_checkable
-    class XlsxDateValue(Protocol):
+    class XlsxDateValue(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["date"]: ...
+        def kind(self) -> Literal["date"]:
+            """Value kind."""
+            ...
+
         @property
-        def value(self) -> dt.date: ...
+        def value(self) -> dt.date:
+            """Cell calendar date."""
+            ...
 
     @runtime_checkable
-    class XlsxDateTimeValue(Protocol):
+    class XlsxDateTimeValue(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["datetime"]: ...
+        def kind(self) -> Literal["datetime"]:
+            """Value kind."""
+            ...
+
         @property
-        def value(self) -> t.NaiveDatetime: ...
+        def value(self) -> t.NaiveDatetime:
+            """Timezone-naive cell date and time."""
+            ...
 
     @runtime_checkable
-    class XlsxFormulaValue(Protocol):
+    class XlsxFormulaValue(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["formula"]: ...
+        def kind(self) -> Literal["formula"]:
+            """Value kind."""
+            ...
+
         @property
-        def value(self) -> str: ...
+        def value(self) -> str:
+            """Excel formula."""
+            ...
 
     @runtime_checkable
-    class XlsxCellPlan(Protocol):
+    class XlsxCellPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def at(self) -> p.Cli.XlsxCellAddress: ...
+        def at(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellAddress:
+            """Destination address."""
+            ...
+
         @property
         def value(
             self,
-        ) -> Annotated[
-            p.Cli.XlsxBlankValue
-            | p.Cli.XlsxTextValue
-            | p.Cli.XlsxIntegerValue
-            | p.Cli.XlsxDecimalValue
-            | p.Cli.XlsxBooleanValue
-            | p.Cli.XlsxDateValue
-            | p.Cli.XlsxDateTimeValue
-            | p.Cli.XlsxFormulaValue,
-            m.Field(discriminator="kind"),
-        ]: ...
+        ) -> (
+            FlextCliProtocolsXlsxXlsxCells.XlsxBlankValue
+            | FlextCliProtocolsXlsxXlsxCells.XlsxTextValue
+            | FlextCliProtocolsXlsxXlsxCells.XlsxIntegerValue
+            | FlextCliProtocolsXlsxXlsxCells.XlsxDecimalValue
+            | FlextCliProtocolsXlsxXlsxCells.XlsxBooleanValue
+            | FlextCliProtocolsXlsxXlsxCells.XlsxDateValue
+            | FlextCliProtocolsXlsxXlsxCells.XlsxDateTimeValue
+            | FlextCliProtocolsXlsxXlsxCells.XlsxFormulaValue
+        ):
+            """Typed destination value."""
+            ...
+
         @property
-        def style(self) -> str: ...
+        def style(self) -> str:
+            """Named visual style."""
+            ...
+
+    type XlsxCellValue = (
+        XlsxBlankValue
+        | XlsxTextValue
+        | XlsxIntegerValue
+        | XlsxDecimalValue
+        | XlsxBooleanValue
+        | XlsxDateValue
+        | XlsxDateTimeValue
+        | XlsxFormulaValue
+    )
 
 
 __all__: list[str] = [

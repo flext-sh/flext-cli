@@ -6,11 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import r
 from openpyxl.cell.cell import Cell
 from openpyxl.comments import Comment
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, p, r
+from flext_cli import c, p
 from flext_cli._utilities._xlsx import FlextCliUtilitiesXlsxAddresses
 
 

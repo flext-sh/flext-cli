@@ -69,7 +69,9 @@ class TestsFlextCliUtilitiesCov:
     @staticmethod
     def test_process_predicate_excludes_items_before_processing() -> None:
         """Verify that process predicate excludes items before processing."""
-        result = u.process([1, 0, 5], _raise_on_zero, predicate=lambda x: x != 0)
+        result = u.process(
+            [1, 0, 5], _raise_on_zero, predicate=lambda value: value != 0
+        )
         tm.ok(result)
         tm.that(list(result.unwrap()), eq=[10, 2])
 

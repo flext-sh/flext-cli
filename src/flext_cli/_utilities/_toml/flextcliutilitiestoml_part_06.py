@@ -9,11 +9,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import tomlkit
-from flext_core import u
+from flext_core import e, r, u
 from tomlkit.exceptions import ParseError
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c, e, p, r, t
+from flext_cli import c, p, t
 from flext_cli._utilities import FlextCliUtilitiesRuntime
 from flext_cli._utilities._toml.flextcliutilitiestoml_part_01 import (
     FlextCliUtilitiesTomlPart01,

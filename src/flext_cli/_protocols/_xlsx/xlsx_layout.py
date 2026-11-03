@@ -8,144 +8,247 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_core import m
-
-    from flext_cli.protocols import p
+    from flext_cli._protocols._xlsx import FlextCliProtocolsXlsxXlsxCells
 
 
 class FlextCliProtocolsXlsxXlsxLayout:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxMergePlan(Protocol):
+    class XlsxMergePlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def area(self) -> p.Cli.XlsxCellRange: ...
+        def area(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellRange:
+            """Merged cell range."""
+            ...
 
     @runtime_checkable
-    class XlsxCommentPlan(Protocol):
+    class XlsxCommentPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def at(self) -> p.Cli.XlsxCellAddress: ...
+        def at(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellAddress:
+            """Comment cell."""
+            ...
+
         @property
-        def text(self) -> str: ...
+        def text(self) -> str:
+            """Comment text."""
+            ...
+
         @property
-        def author(self) -> str: ...
+        def author(self) -> str:
+            """Comment author."""
+            ...
+
         @property
-        def width(self) -> int | None: ...
+        def width(self) -> int | None:
+            """Comment width."""
+            ...
+
         @property
-        def height(self) -> int | None: ...
+        def height(self) -> int | None:
+            """Comment height."""
+            ...
 
     @runtime_checkable
-    class XlsxExternalHyperlinkPlan(Protocol):
+    class XlsxExternalHyperlinkPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["external"]: ...
+        def kind(self) -> Literal["external"]:
+            """Hyperlink kind."""
+            ...
+
         @property
-        def at(self) -> p.Cli.XlsxCellAddress: ...
+        def at(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellAddress:
+            """Hyperlink cell."""
+            ...
+
         @property
-        def target(self) -> str: ...
+        def target(self) -> str:
+            """External hyperlink target."""
+            ...
 
     @runtime_checkable
-    class XlsxNavigationHyperlinkPlan(Protocol):
+    class XlsxNavigationHyperlinkPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["navigation"]: ...
+        def kind(self) -> Literal["navigation"]:
+            """Hyperlink kind."""
+            ...
+
         @property
-        def at(self) -> p.Cli.XlsxCellAddress: ...
+        def at(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellAddress:
+            """Hyperlink cell."""
+            ...
+
         @property
-        def destination_sheet(self) -> str: ...
+        def destination_sheet(self) -> str:
+            """Destination worksheet."""
+            ...
+
         @property
-        def destination(self) -> p.Cli.XlsxCellAddress: ...
+        def destination(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellAddress:
+            """Destination address."""
+            ...
 
     @runtime_checkable
-    class XlsxDimensionPlan(Protocol):
+    class XlsxDimensionPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def axis(self) -> Literal["row", "column"]: ...
+        def axis(self) -> Literal["row", "column"]:
+            """Dimension axis."""
+            ...
+
         @property
-        def first(self) -> int: ...
+        def first(self) -> int:
+            """First index."""
+            ...
+
         @property
-        def last(self) -> int: ...
+        def last(self) -> int:
+            """Last index."""
+            ...
+
         @property
-        def size(self) -> float | None: ...
+        def size(self) -> float | None:
+            """Explicit size."""
+            ...
+
         @property
-        def hidden(self) -> bool: ...
+        def hidden(self) -> bool:
+            """Hidden state."""
+            ...
 
     @runtime_checkable
-    class XlsxGroupPlan(Protocol):
+    class XlsxGroupPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def axis(self) -> Literal["row", "column"]: ...
+        def axis(self) -> Literal["row", "column"]:
+            """Grouped axis."""
+            ...
+
         @property
-        def first(self) -> int: ...
+        def first(self) -> int:
+            """First index."""
+            ...
+
         @property
-        def last(self) -> int: ...
+        def last(self) -> int:
+            """Last index."""
+            ...
+
         @property
-        def outline_level(self) -> int: ...
+        def outline_level(self) -> int:
+            """Outline level."""
+            ...
+
         @property
-        def hidden(self) -> bool: ...
+        def hidden(self) -> bool:
+            """Hidden state."""
+            ...
 
     @runtime_checkable
-    class XlsxFreezePanePlan(Protocol):
+    class XlsxFreezePanePlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def at(self) -> p.Cli.XlsxCellAddress: ...
+        def at(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellAddress:
+            """First scrolling cell."""
+            ...
 
     @runtime_checkable
-    class XlsxAutoFilterPlan(Protocol):
+    class XlsxAutoFilterPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def area(self) -> p.Cli.XlsxCellRange: ...
+        def area(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellRange:
+            """Auto-filter range."""
+            ...
 
     @runtime_checkable
-    class XlsxViewPlan(Protocol):
+    class XlsxViewPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def visibility(self) -> Literal["visible", "hidden", "veryHidden"]: ...
+        def visibility(self) -> Literal["visible", "hidden", "veryHidden"]:
+            """Worksheet visibility."""
+            ...
+
         @property
-        def tab_color(self) -> str | None: ...
+        def tab_color(self) -> str | None:
+            """RGB or ARGB tab color."""
+            ...
 
     @runtime_checkable
-    class XlsxSheetLayoutPlan(Protocol):
+    class XlsxSheetLayoutPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def merges(self) -> tuple[p.Cli.XlsxMergePlan, ...]: ...
+        def merges(self) -> tuple[FlextCliProtocolsXlsxXlsxLayout.XlsxMergePlan, ...]:
+            """Merged ranges."""
+            ...
+
         @property
-        def comments(self) -> tuple[p.Cli.XlsxCommentPlan, ...]: ...
+        def comments(
+            self,
+        ) -> tuple[FlextCliProtocolsXlsxXlsxLayout.XlsxCommentPlan, ...]:
+            """Cell comments."""
+            ...
+
         @property
         def hyperlinks(
             self,
         ) -> tuple[
-            Annotated[
-                p.Cli.XlsxExternalHyperlinkPlan | p.Cli.XlsxNavigationHyperlinkPlan,
-                m.Field(discriminator="kind"),
-            ],
+            FlextCliProtocolsXlsxXlsxLayout.XlsxExternalHyperlinkPlan
+            | FlextCliProtocolsXlsxXlsxLayout.XlsxNavigationHyperlinkPlan,
             ...,
-        ]: ...
+        ]:
+            """Cell hyperlinks."""
+            ...
+
         @property
-        def dimensions(self) -> tuple[p.Cli.XlsxDimensionPlan, ...]: ...
+        def dimensions(
+            self,
+        ) -> tuple[FlextCliProtocolsXlsxXlsxLayout.XlsxDimensionPlan, ...]:
+            """Row and column dimensions."""
+            ...
+
         @property
-        def groups(self) -> tuple[p.Cli.XlsxGroupPlan, ...]: ...
+        def groups(self) -> tuple[FlextCliProtocolsXlsxXlsxLayout.XlsxGroupPlan, ...]:
+            """Row and column groups."""
+            ...
+
         @property
-        def freeze_pane(self) -> p.Cli.XlsxFreezePanePlan | None: ...
+        def freeze_pane(
+            self,
+        ) -> FlextCliProtocolsXlsxXlsxLayout.XlsxFreezePanePlan | None:
+            """Optional freeze pane."""
+            ...
+
         @property
-        def auto_filter(self) -> p.Cli.XlsxAutoFilterPlan | None: ...
+        def auto_filter(
+            self,
+        ) -> FlextCliProtocolsXlsxXlsxLayout.XlsxAutoFilterPlan | None:
+            """Optional auto-filter."""
+            ...
+
         @property
-        def view(self) -> p.Cli.XlsxViewPlan | None: ...
+        def view(self) -> FlextCliProtocolsXlsxXlsxLayout.XlsxViewPlan | None:
+            """Optional worksheet view."""
+            ...
+
+    type XlsxHyperlinkPlan = XlsxExternalHyperlinkPlan | XlsxNavigationHyperlinkPlan
 
 
 __all__: list[str] = [

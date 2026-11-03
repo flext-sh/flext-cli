@@ -16,11 +16,11 @@ import os
 from collections.abc import MutableSequence
 from pathlib import Path
 
-from flext_core import u
+from flext_core import r, u
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesJson
 from flext_cli._utilities._toml import FlextCliUtilitiesTomlPart06
 

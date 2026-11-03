@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import errno
 
+from flext_cli import p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectoryModel,

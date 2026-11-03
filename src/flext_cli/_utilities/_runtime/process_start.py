@@ -10,7 +10,9 @@ import signal
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, BinaryIO
 
-from flext_cli import p, r, t
+from flext_core import r
+
+from flext_cli import p, t
 
 
 class FlextCliUtilitiesRuntimeProcessStart:

@@ -11,79 +11,145 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-if TYPE_CHECKING:
-    from flext_core import p
+from flext_core import FlextProtocols
 
-    from flext_cli import c, p, t
-    from flext_cli.protocols import p
+from flext_cli import t
+
+if TYPE_CHECKING:
+    from flext_cli._constants import FlextCliConstantsEnums
+    from flext_cli._protocols import FlextCliProtocolsDomain
+    from flext_cli._typings import FlextCliTypesDomain
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart03:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicDirectoryState(Protocol):
+    class AtomicDirectoryState(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def path(self) -> Path: ...
+        def path(self) -> Path:
+            """Absolute directory path."""
+            ...
+
         @property
-        def exists(self) -> bool: ...
+        def exists(self) -> bool:
+            """Whether the directory exists."""
+            ...
+
         @property
-        def parent_device(self) -> int | None: ...
+        def parent_device(self) -> int | None:
+            """Physical parent device, or None when the chain is absent."""
+            ...
+
         @property
-        def parent_inode(self) -> int | None: ...
+        def parent_inode(self) -> int | None:
+            """Physical parent inode, or None when the chain is absent."""
+            ...
+
         @property
-        def mode(self) -> int | None: ...
+        def mode(self) -> int | None:
+            """Permission bits."""
+            ...
+
         @property
-        def device(self) -> int | None: ...
+        def device(self) -> int | None:
+            """Physical device."""
+            ...
+
         @property
-        def inode(self) -> int | None: ...
+        def inode(self) -> int | None:
+            """Physical inode."""
+            ...
+
         @property
-        def link_count(self) -> int | None: ...
+        def link_count(self) -> int | None:
+            """Exact link count."""
+            ...
+
         @property
-        def file_attributes(self) -> int | None: ...
+        def file_attributes(self) -> int | None:
+            """Host attributes."""
+            ...
+
         @property
-        def reparse_tag(self) -> int | None: ...
+        def reparse_tag(self) -> int | None:
+            """Host reparse tag."""
+            ...
 
     @runtime_checkable
-    class CommandEntryModel(Protocol):
+    class CommandEntryModel(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
-        name: t.NonEmptyStr
-        handler: t.Cli.JsonCommandFn
+        @property
+        def name(self) -> t.NonEmptyStr:
+            """Command name."""
+            ...
+
+        @property
+        def handler(self) -> FlextCliTypesDomain.JsonCommandFn:
+            """Command handler callable."""
+            ...
 
     @runtime_checkable
-    class EmptyRequest(Protocol):
+    class EmptyRequest(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
     @runtime_checkable
-    class CommandMetadata(Protocol):
+    class CommandMetadata(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def name(self) -> t.NonEmptyStr: ...
+        def name(self) -> t.NonEmptyStr:
+            """Command name."""
+            ...
+
         @property
-        def help_text(self) -> str: ...
+        def help_text(self) -> str:
+            """User-facing help text."""
+            ...
 
     @runtime_checkable
-    class ResultCommandRoute(Protocol):
+    class ResultCommandRoute(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def name(self) -> t.NonEmptyStr: ...
+        def name(self) -> t.NonEmptyStr:
+            """Command name."""
+            ...
+
         @property
-        def help_text(self) -> str: ...
+        def help_text(self) -> str:
+            """User-facing help text."""
+            ...
+
         @property
-        def model_cls(self) -> t.ModelClass[t.Cli.ModelLike]: ...
+        def model_cls(self) -> t.ModelClass[FlextCliTypesDomain.ModelLike]:
+            """Pydantic input model class."""
+            ...
+
         @property
-        def handler(self) -> p.Cli.ResultRouteHandler: ...
+        def handler(self) -> FlextCliProtocolsDomain.ResultRouteHandler:
+            """Command handler returning r[...]."""
+            ...
+
         @property
-        def success_message(self) -> str | None: ...
+        def success_message(self) -> str | None:
+            """Static success message."""
+            ...
+
         @property
-        def success_formatter(self) -> t.Cli.SuccessMessageFormatter | None: ...
+        def success_formatter(
+            self,
+        ) -> FlextCliTypesDomain.SuccessMessageFormatter | None:
+            """Dynamic success formatter."""
+            ...
+
         @property
-        def success_type(self) -> c.Cli.MessageTypes: ...
+        def success_type(self) -> FlextCliConstantsEnums.MessageTypes:
+            """CLI output style on success."""
+            ...
 
 
 __all__: list[str] = [

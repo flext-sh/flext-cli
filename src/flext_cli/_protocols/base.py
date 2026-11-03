@@ -9,6 +9,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_cli._protocols import (
+    FlextCliProtocolsAtomicPublication,
+    FlextCliProtocolsAtomicSymlink,
+)
 from flext_cli._protocols._base import FlextCliProtocolsBasePart05
 from flext_cli._protocols._base.flextclimodelsbase_part_01 import (
     FlextCliProtocolsBaseFlextclimodelsbasePart01,
@@ -43,7 +47,8 @@ from flext_cli._protocols._base.flextclimodelsbase_part_10 import (
 
 
 class FlextCliProtocolsBase(
-    FlextCliProtocolsBasePart05,
+    FlextCliProtocolsAtomicPublication,
+    FlextCliProtocolsAtomicSymlink,
     FlextCliProtocolsBaseFlextclimodelsbasePart01,
     FlextCliProtocolsBaseFlextclimodelsbasePart02,
     FlextCliProtocolsBaseFlextclimodelsbasePart03,
@@ -54,6 +59,7 @@ class FlextCliProtocolsBase(
     FlextCliProtocolsBaseFlextclimodelsbasePart08,
     FlextCliProtocolsBaseFlextclimodelsbasePart09,
     FlextCliProtocolsBaseFlextclimodelsbasePart10,
+    FlextCliProtocolsBasePart05,
 ):
     """Public facade for FlextCliProtocolsBase."""
 

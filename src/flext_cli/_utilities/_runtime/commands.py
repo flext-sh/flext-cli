@@ -10,7 +10,9 @@ import shlex
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from flext_cli import c, p, r, t
+from flext_core import r
+
+from flext_cli import c, p, t
 from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessOutcome
 
 

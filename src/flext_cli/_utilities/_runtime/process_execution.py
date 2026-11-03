@@ -19,13 +19,15 @@ from collections.abc import Mapping, MutableMapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, BinaryIO, ClassVar, Literal
 
+from flext_core import r
+
 if sys.platform == "linux":
     import fcntl
 
 
 from flext_core import u
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, t
 from flext_cli._config import config
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileSnapshot,

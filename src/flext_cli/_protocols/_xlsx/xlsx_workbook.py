@@ -8,70 +8,111 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_core import m
-
-    from flext_cli.protocols import p
+    from flext_cli._protocols._xlsx import (
+        FlextCliProtocolsXlsxXlsxCells,
+        FlextCliProtocolsXlsxXlsxLayout,
+        FlextCliProtocolsXlsxXlsxRules,
+        FlextCliProtocolsXlsxXlsxStyles,
+        FlextCliProtocolsXlsxXlsxTables,
+    )
 
 
 class FlextCliProtocolsXlsxXlsxWorkbook:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxSheetPlan(Protocol):
+    class XlsxSheetPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def name(self) -> str: ...
+        def name(self) -> str:
+            """Worksheet name."""
+            ...
+
         @property
-        def cells(self) -> tuple[p.Cli.XlsxCellPlan, ...]: ...
+        def cells(self) -> tuple[FlextCliProtocolsXlsxXlsxCells.XlsxCellPlan, ...]:
+            """Concrete cell writes."""
+            ...
+
         @property
-        def tables(self) -> tuple[p.Cli.XlsxTablePlan, ...]: ...
+        def tables(self) -> tuple[FlextCliProtocolsXlsxXlsxTables.XlsxTablePlan, ...]:
+            """Concrete worksheet tables."""
+            ...
+
         @property
-        def layout(self) -> p.Cli.XlsxSheetLayoutPlan: ...
+        def layout(self) -> FlextCliProtocolsXlsxXlsxLayout.XlsxSheetLayoutPlan:
+            """Worksheet layout operations."""
+            ...
+
         @property
-        def rules(self) -> p.Cli.XlsxSheetRulesPlan: ...
+        def rules(self) -> FlextCliProtocolsXlsxXlsxRules.XlsxSheetRulesPlan:
+            """Worksheet validation and protection operations."""
+            ...
 
     @runtime_checkable
-    class XlsxWorkbookPlan(Protocol):
+    class XlsxWorkbookPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def sheets(self) -> tuple[p.Cli.XlsxSheetPlan, ...]: ...
+        def sheets(self) -> tuple[FlextCliProtocolsXlsxXlsxWorkbook.XlsxSheetPlan, ...]:
+            """Exact worksheet order."""
+            ...
+
         @property
         def defined_names(
             self,
         ) -> tuple[
-            Annotated[
-                p.Cli.XlsxRangeDefinedNamePlan | p.Cli.XlsxFormulaDefinedNamePlan,
-                m.Field(discriminator="kind"),
-            ],
+            FlextCliProtocolsXlsxXlsxTables.XlsxRangeDefinedNamePlan
+            | FlextCliProtocolsXlsxXlsxTables.XlsxFormulaDefinedNamePlan,
             ...,
-        ]: ...
+        ]:
+            """Workbook defined names."""
+            ...
+
         @property
-        def named_styles(self) -> tuple[p.Cli.XlsxNamedStyleSpec, ...]: ...
+        def named_styles(
+            self,
+        ) -> tuple[FlextCliProtocolsXlsxXlsxStyles.XlsxNamedStyleSpec, ...]:
+            """Visual styles to register."""
+            ...
+
         @property
-        def full_calculation_on_load(self) -> bool: ...
+        def full_calculation_on_load(self) -> bool:
+            """Require complete formula recalculation."""
+            ...
 
     @runtime_checkable
-    class XlsxRenderRequest(Protocol):
+    class XlsxRenderRequest(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def template(self) -> bytes | None: ...
+        def template(self) -> bytes | None:
+            """Formatting template bytes."""
+            ...
+
         @property
-        def plan(self) -> p.Cli.XlsxWorkbookPlan: ...
+        def plan(self) -> FlextCliProtocolsXlsxXlsxWorkbook.XlsxWorkbookPlan:
+            """Validated workbook plan."""
+            ...
 
     @runtime_checkable
-    class XlsxRenderResult(Protocol):
+    class XlsxRenderResult(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def content(self) -> bytes: ...
+        def content(self) -> bytes:
+            """Rendered workbook bytes."""
+            ...
+
         @property
-        def plan(self) -> p.Cli.XlsxWorkbookPlan: ...
+        def plan(self) -> FlextCliProtocolsXlsxXlsxWorkbook.XlsxWorkbookPlan:
+            """Exact source plan."""
+            ...
 
 
 __all__: list[str] = [

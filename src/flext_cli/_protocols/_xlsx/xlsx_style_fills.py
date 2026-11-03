@@ -8,23 +8,26 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_core import m
-
-    from flext_cli.protocols import p
+    from flext_cli._protocols._xlsx import FlextCliProtocolsXlsxXlsxStylePrimitives
 
 
 class FlextCliProtocolsXlsxXlsxStyleFills:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxPatternFillSpec(Protocol):
+    class XlsxPatternFillSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["pattern"]: ...
+        def kind(self) -> Literal["pattern"]:
+            """Fill kind."""
+            ...
+
         @property
         def pattern(
             self,
@@ -50,71 +53,104 @@ class FlextCliProtocolsXlsxXlsxStyleFills:
                 "mediumGray",
             ]
             | None
-        ): ...
+        ):
+            """Fill pattern."""
+            ...
+
         @property
         def foreground(
             self,
         ) -> (
-            Annotated[
-                p.Cli.XlsxRgbColor
-                | p.Cli.XlsxIndexedColor
-                | p.Cli.XlsxThemeColor
-                | p.Cli.XlsxAutomaticColor,
-                m.Field(discriminator="kind"),
-            ]
+            FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxRgbColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxIndexedColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxThemeColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxAutomaticColor
             | None
-        ): ...
+        ):
+            """Optional foreground color."""
+            ...
+
         @property
         def background(
             self,
         ) -> (
-            Annotated[
-                p.Cli.XlsxRgbColor
-                | p.Cli.XlsxIndexedColor
-                | p.Cli.XlsxThemeColor
-                | p.Cli.XlsxAutomaticColor,
-                m.Field(discriminator="kind"),
-            ]
+            FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxRgbColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxIndexedColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxThemeColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxAutomaticColor
             | None
-        ): ...
+        ):
+            """Optional background color."""
+            ...
 
     @runtime_checkable
-    class XlsxGradientStop(Protocol):
+    class XlsxGradientStop(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
         def color(
             self,
-        ) -> Annotated[
-            p.Cli.XlsxRgbColor
-            | p.Cli.XlsxIndexedColor
-            | p.Cli.XlsxThemeColor
-            | p.Cli.XlsxAutomaticColor,
-            m.Field(discriminator="kind"),
-        ]: ...
+        ) -> (
+            FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxRgbColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxIndexedColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxThemeColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxAutomaticColor
+        ):
+            """Gradient stop color."""
+            ...
+
         @property
-        def position(self) -> float: ...
+        def position(self) -> float:
+            """Gradient stop position."""
+            ...
 
     @runtime_checkable
-    class XlsxGradientFillSpec(Protocol):
+    class XlsxGradientFillSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["gradient"]: ...
+        def kind(self) -> Literal["gradient"]:
+            """Fill kind."""
+            ...
+
         @property
-        def mode(self) -> Literal["linear", "path"]: ...
+        def mode(self) -> Literal["linear", "path"]:
+            """Gradient mode."""
+            ...
+
         @property
-        def degree(self) -> float: ...
+        def degree(self) -> float:
+            """Linear gradient angle."""
+            ...
+
         @property
-        def left(self) -> float: ...
+        def left(self) -> float:
+            """Path left extent."""
+            ...
+
         @property
-        def right(self) -> float: ...
+        def right(self) -> float:
+            """Path right extent."""
+            ...
+
         @property
-        def top(self) -> float: ...
+        def top(self) -> float:
+            """Path top extent."""
+            ...
+
         @property
-        def bottom(self) -> float: ...
+        def bottom(self) -> float:
+            """Path bottom extent."""
+            ...
+
         @property
-        def stops(self) -> tuple[p.Cli.XlsxGradientStop, ...]: ...
+        def stops(
+            self,
+        ) -> tuple[FlextCliProtocolsXlsxXlsxStyleFills.XlsxGradientStop, ...]:
+            """Ordered gradient stops."""
+            ...
+
+    type XlsxFillSpec = XlsxPatternFillSpec | XlsxGradientFillSpec
 
 
 __all__: list[str] = [

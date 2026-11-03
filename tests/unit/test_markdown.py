@@ -81,7 +81,7 @@ class TestsFlextCliMarkdown:
         """ATX and setext headings are inventoried with level and line."""
         headings = u.Cli.markdown_headings("Top\n===\n\n## Next `x`\n")
         tm.that(
-            [(h.level, h.text, h.line) for h in headings],
+            [(heading.level, heading.text, heading.line) for heading in headings],
             eq=[(1, "Top", 1), (2, "Next `x`", 4)],
         )
 

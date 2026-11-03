@@ -115,7 +115,9 @@ class FlextCliModelsBasePart06:
             t.Cli.CliValue | None,
             m.Field(None, description="Validated optional default value"),
         ] = None
-        required: bool = m.Field(False, description="Require an explicit option value")
+        required: bool = m.Field(
+            default=False, description="Require an explicit option value"
+        )
 
     class InvocationResult(m.Value):
         """Framework-neutral result of one real CLI invocation."""

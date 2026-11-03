@@ -15,8 +15,9 @@ from zipfile import BadZipFile
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_UNDERLINE
 from docx.table import Table
+from flext_core import r
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, t
 
 if TYPE_CHECKING:
     from docx.document import Document as DocumentType
@@ -64,8 +65,10 @@ class FlextCliUtilitiesDocxReader:
 
     @classmethod
     def _snapshot_document(cls, document: DocumentType) -> p.Cli.DocxDocumentPlan:
-        paragraphs = tuple(cls._snapshot_paragraph(p) for p in document.paragraphs)
-        tables = tuple(cls._snapshot_table(t) for t in document.tables)
+        paragraphs = tuple(
+            cls._snapshot_paragraph(paragraph) for paragraph in document.paragraphs
+        )
+        tables = tuple(cls._snapshot_table(table) for table in document.tables)
         return m.Cli.DocxDocumentPlan(
             paragraphs=paragraphs,
             tables=tables,
@@ -114,7 +117,8 @@ class FlextCliUtilitiesDocxReader:
             cells = tuple(
                 m.Cli.DocxTableCellPlan(
                     paragraphs=tuple(
-                        cls._snapshot_paragraph(p) for p in cell.paragraphs
+                        cls._snapshot_paragraph(paragraph)
+                        for paragraph in cell.paragraphs
                     ),
                 )
                 for cell in row.cells

@@ -10,7 +10,7 @@ from collections.abc import Callable, MutableSequence, Sequence
 from pathlib import Path
 from typing import Annotated, ClassVar
 
-from flext_core import m, p
+from flext_core import m
 
 from flext_cli import c, p, t
 
@@ -60,17 +60,17 @@ class FlextCliModelsPipeline:
                 description="Stage IDs this stage depends on",
             ),
         ] = m.Field(default_factory=frozenset)
-        # Pydantic owns runtime validation here; public callback contracts live
-        # in p.Cli and this model retains the equivalent concrete callable shape.
+        # A stage callback receives the structural contexts (contravariant
+        # parameters): any conforming context, the concrete model included.
         handler: Annotated[
             Callable[
-                [FlextCliModelsPipeline.PipelineStageContext],
-                p.Result[FlextCliModelsPipeline.PipelineStageResult],
+                [p.Cli.PipelineStageContext],
+                p.Result[p.Cli.PipelineStageResult],
             ],
             m.Field(description="Callable that executes the stage"),
         ]
         skip_if: Annotated[
-            Callable[[FlextCliModelsPipeline.PipelineStageContext], bool] | None,
+            Callable[[p.Cli.PipelineStageContext], bool] | None,
             m.Field(description="Predicate — skip stage if returns True"),
         ] = None
         retry: Annotated[
@@ -127,7 +127,8 @@ class FlextCliModelsPipeline:
         def success(self) -> bool:
             """True if no stage failed."""
             return all(
-                s.status != c.Cli.PipelineStageStatus.FAILED for s in self.stages
+                stage.status != c.Cli.PipelineStageStatus.FAILED
+                for stage in self.stages
             )
 
         @m.computed_field
@@ -137,7 +138,9 @@ class FlextCliModelsPipeline:
         ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Only the failed stage results."""
             return [
-                s for s in self.stages if s.status == c.Cli.PipelineStageStatus.FAILED
+                stage
+                for stage in self.stages
+                if stage.status == c.Cli.PipelineStageStatus.FAILED
             ]
 
         @m.computed_field
@@ -147,7 +150,9 @@ class FlextCliModelsPipeline:
         ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Only the skipped stage results."""
             return [
-                s for s in self.stages if s.status == c.Cli.PipelineStageStatus.SKIPPED
+                stage
+                for stage in self.stages
+                if stage.status == c.Cli.PipelineStageStatus.SKIPPED
             ]
 
 

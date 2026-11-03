@@ -8,181 +8,309 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_core import m
-
-    from flext_cli.protocols import p
+    from flext_cli._protocols._xlsx import (
+        FlextCliProtocolsXlsxXlsxCells,
+        FlextCliProtocolsXlsxXlsxValidation,
+    )
 
 
 class FlextCliProtocolsXlsxXlsxRules:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxContainsTextFormatPlan(Protocol):
+    class XlsxContainsTextFormatPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["contains_text"]: ...
+        def kind(self) -> Literal["contains_text"]:
+            """Format kind."""
+            ...
+
         @property
-        def area(self) -> p.Cli.XlsxCellRange: ...
+        def area(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellRange:
+            """Formatted range."""
+            ...
+
         @property
-        def text(self) -> str: ...
+        def text(self) -> str:
+            """Searched text."""
+            ...
+
         @property
-        def style(self) -> str: ...
+        def style(self) -> str:
+            """Named style."""
+            ...
+
         @property
-        def stop_if_true(self) -> bool: ...
+        def stop_if_true(self) -> bool:
+            """Stop later rules."""
+            ...
 
     @runtime_checkable
-    class XlsxCellFormatPlan(Protocol):
+    class XlsxCellFormatPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["cell"]: ...
+        def kind(self) -> Literal["cell"]:
+            """Format kind."""
+            ...
+
         @property
-        def area(self) -> p.Cli.XlsxCellRange: ...
+        def area(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellRange:
+            """Formatted range."""
+            ...
+
         @property
         def comparison(
             self,
-        ) -> Annotated[
-            p.Cli.XlsxUnaryComparison | p.Cli.XlsxRangeComparison,
-            m.Field(discriminator="mode"),
-        ]: ...
+        ) -> (
+            FlextCliProtocolsXlsxXlsxValidation.XlsxUnaryComparison
+            | FlextCliProtocolsXlsxXlsxValidation.XlsxRangeComparison
+        ):
+            """Cell comparison."""
+            ...
+
         @property
-        def style(self) -> str: ...
+        def style(self) -> str:
+            """Named style."""
+            ...
+
         @property
-        def stop_if_true(self) -> bool: ...
+        def stop_if_true(self) -> bool:
+            """Stop later rules."""
+            ...
 
     @runtime_checkable
-    class XlsxFormulaFormatPlan(Protocol):
+    class XlsxFormulaFormatPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["formula"]: ...
+        def kind(self) -> Literal["formula"]:
+            """Format kind."""
+            ...
+
         @property
-        def area(self) -> p.Cli.XlsxCellRange: ...
+        def area(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellRange:
+            """Formatted range."""
+            ...
+
         @property
-        def expressions(self) -> tuple[str, ...]: ...
+        def expressions(self) -> tuple[str, ...]:
+            """Conditional formulas."""
+            ...
+
         @property
-        def style(self) -> str: ...
+        def style(self) -> str:
+            """Named style."""
+            ...
+
         @property
-        def stop_if_true(self) -> bool: ...
+        def stop_if_true(self) -> bool:
+            """Stop later rules."""
+            ...
 
     @runtime_checkable
-    class XlsxCellProtectionPlan(Protocol):
+    class XlsxCellProtectionPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def area(self) -> p.Cli.XlsxCellRange: ...
+        def area(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellRange:
+            """Protected cell range."""
+            ...
+
         @property
-        def locked(self) -> bool: ...
+        def locked(self) -> bool:
+            """Locked state."""
+            ...
+
         @property
-        def hidden(self) -> bool: ...
+        def hidden(self) -> bool:
+            """Formula-hidden state."""
+            ...
 
     @runtime_checkable
-    class XlsxPlainProtectionCredential(Protocol):
+    class XlsxPlainProtectionCredential(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["plain"]: ...
+        def kind(self) -> Literal["plain"]:
+            """Secret kind."""
+            ...
+
         @property
-        def value(self) -> str: ...
+        def value(self) -> str:
+            """Resolved secret."""
+            ...
 
     @runtime_checkable
-    class XlsxLegacyProtectionCredential(Protocol):
+    class XlsxLegacyProtectionCredential(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["legacy_hash"]: ...
+        def kind(self) -> Literal["legacy_hash"]:
+            """Secret kind."""
+            ...
+
         @property
-        def value(self) -> str: ...
+        def value(self) -> str:
+            """Legacy worksheet hash."""
+            ...
 
     @runtime_checkable
-    class XlsxProtectionPermissions(Protocol):
+    class XlsxProtectionPermissions(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def allow_select_locked(self) -> bool: ...
+        def allow_select_locked(self) -> bool:
+            """Allow selecting locked cells."""
+            ...
+
         @property
-        def allow_select_unlocked(self) -> bool: ...
+        def allow_select_unlocked(self) -> bool:
+            """Allow selecting unlocked cells."""
+            ...
+
         @property
-        def allow_format_cells(self) -> bool: ...
+        def allow_format_cells(self) -> bool:
+            """Allow formatting cells."""
+            ...
+
         @property
-        def allow_format_columns(self) -> bool: ...
+        def allow_format_columns(self) -> bool:
+            """Allow formatting columns."""
+            ...
+
         @property
-        def allow_format_rows(self) -> bool: ...
+        def allow_format_rows(self) -> bool:
+            """Allow formatting rows."""
+            ...
+
         @property
-        def allow_insert_columns(self) -> bool: ...
+        def allow_insert_columns(self) -> bool:
+            """Allow inserting columns."""
+            ...
+
         @property
-        def allow_insert_rows(self) -> bool: ...
+        def allow_insert_rows(self) -> bool:
+            """Allow inserting rows."""
+            ...
+
         @property
-        def allow_insert_hyperlinks(self) -> bool: ...
+        def allow_insert_hyperlinks(self) -> bool:
+            """Allow inserting hyperlinks."""
+            ...
+
         @property
-        def allow_delete_columns(self) -> bool: ...
+        def allow_delete_columns(self) -> bool:
+            """Allow deleting columns."""
+            ...
+
         @property
-        def allow_delete_rows(self) -> bool: ...
+        def allow_delete_rows(self) -> bool:
+            """Allow deleting rows."""
+            ...
+
         @property
-        def allow_sort(self) -> bool: ...
+        def allow_sort(self) -> bool:
+            """Allow sorting."""
+            ...
+
         @property
-        def allow_auto_filter(self) -> bool: ...
+        def allow_auto_filter(self) -> bool:
+            """Allow filtering."""
+            ...
+
         @property
-        def allow_pivot_tables(self) -> bool: ...
+        def allow_pivot_tables(self) -> bool:
+            """Allow pivot tables."""
+            ...
+
         @property
-        def allow_edit_objects(self) -> bool: ...
+        def allow_edit_objects(self) -> bool:
+            """Allow editing objects."""
+            ...
+
         @property
-        def allow_edit_scenarios(self) -> bool: ...
+        def allow_edit_scenarios(self) -> bool:
+            """Allow editing scenarios."""
+            ...
 
     @runtime_checkable
-    class XlsxSheetProtectionPlan(Protocol):
+    class XlsxSheetProtectionPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
         def credential(
             self,
         ) -> (
-            Annotated[
-                p.Cli.XlsxPlainProtectionCredential
-                | p.Cli.XlsxLegacyProtectionCredential,
-                m.Field(discriminator="kind"),
-            ]
+            FlextCliProtocolsXlsxXlsxRules.XlsxPlainProtectionCredential
+            | FlextCliProtocolsXlsxXlsxRules.XlsxLegacyProtectionCredential
             | None
-        ): ...
+        ):
+            """Optional resolved protection credential."""
+            ...
+
         @property
-        def permissions(self) -> p.Cli.XlsxProtectionPermissions: ...
+        def permissions(
+            self,
+        ) -> FlextCliProtocolsXlsxXlsxRules.XlsxProtectionPermissions:
+            """Allowed worksheet operations."""
+            ...
+
         @property
-        def cells(self) -> tuple[p.Cli.XlsxCellProtectionPlan, ...]: ...
+        def cells(
+            self,
+        ) -> tuple[FlextCliProtocolsXlsxXlsxRules.XlsxCellProtectionPlan, ...]:
+            """Explicit cell protection."""
+            ...
 
     @runtime_checkable
-    class XlsxSheetRulesPlan(Protocol):
+    class XlsxSheetRulesPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
         def validations(
             self,
         ) -> tuple[
-            Annotated[
-                p.Cli.XlsxListValidationPlan
-                | p.Cli.XlsxComparisonValidationPlan
-                | p.Cli.XlsxCustomValidationPlan,
-                m.Field(discriminator="kind"),
-            ],
+            FlextCliProtocolsXlsxXlsxValidation.XlsxListValidationPlan
+            | FlextCliProtocolsXlsxXlsxValidation.XlsxComparisonValidationPlan
+            | FlextCliProtocolsXlsxXlsxValidation.XlsxCustomValidationPlan,
             ...,
-        ]: ...
+        ]:
+            """Data validations."""
+            ...
+
         @property
         def conditional_formats(
             self,
         ) -> tuple[
-            Annotated[
-                p.Cli.XlsxContainsTextFormatPlan
-                | p.Cli.XlsxCellFormatPlan
-                | p.Cli.XlsxFormulaFormatPlan,
-                m.Field(discriminator="kind"),
-            ],
+            FlextCliProtocolsXlsxXlsxRules.XlsxContainsTextFormatPlan
+            | FlextCliProtocolsXlsxXlsxRules.XlsxCellFormatPlan
+            | FlextCliProtocolsXlsxXlsxRules.XlsxFormulaFormatPlan,
             ...,
-        ]: ...
+        ]:
+            """Conditional formats."""
+            ...
+
         @property
-        def protection(self) -> p.Cli.XlsxSheetProtectionPlan | None: ...
+        def protection(
+            self,
+        ) -> FlextCliProtocolsXlsxXlsxRules.XlsxSheetProtectionPlan | None:
+            """Optional worksheet protection."""
+            ...
+
+    type XlsxConditionalFormatPlan = (
+        XlsxContainsTextFormatPlan | XlsxCellFormatPlan | XlsxFormulaFormatPlan
+    )
+
+    type XlsxProtectionCredential = (
+        XlsxPlainProtectionCredential | XlsxLegacyProtectionCredential
+    )
 
 
 __all__: list[str] = [

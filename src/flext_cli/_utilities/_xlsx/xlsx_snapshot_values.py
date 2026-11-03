@@ -10,10 +10,11 @@ import datetime as dt
 from decimal import Decimal, InvalidOperation
 from typing import cast
 
+from flext_core import r
 from openpyxl.cell.cell import Cell, MergedCell
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, t
 
 
 class FlextCliUtilitiesXlsxSnapshotValues:

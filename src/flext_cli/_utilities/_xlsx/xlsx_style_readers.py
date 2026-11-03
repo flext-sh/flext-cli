@@ -9,12 +9,13 @@ from __future__ import annotations
 from copy import copy
 from typing import cast
 
+from flext_core import r
 from openpyxl.styles import Alignment, Border, Color, Font, GradientFill
 from openpyxl.styles.borders import Side
 from openpyxl.styles.fills import Fill, PatternFill, Stop
 from openpyxl.styles.styleable import StyleableObject
 
-from flext_cli import m, p, r
+from flext_cli import m, p
 
 
 class FlextCliUtilitiesXlsxStyleReaders:

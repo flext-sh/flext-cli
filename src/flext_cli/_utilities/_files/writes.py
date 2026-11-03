@@ -11,7 +11,9 @@ from collections.abc import Callable, MutableSequence
 from io import BytesIO
 from pathlib import Path
 
-from flext_cli import c, m, p, r, t
+from flext_core import r
+
+from flext_cli import c, m, p, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFile,
     FlextCliUtilitiesAtomicFileDelete,

@@ -21,7 +21,9 @@ from math import isfinite
 from pathlib import Path
 from types import MappingProxyType
 
-from flext_cli import c, m, p, r, t
+from flext_core import r
+
+from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesRuntime
 
 

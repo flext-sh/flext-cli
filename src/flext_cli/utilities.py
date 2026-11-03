@@ -42,7 +42,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicTreeDarwin,
     FlextCliUtilitiesAtomicTreeDescriptor,
     FlextCliUtilitiesAtomicTreeInventory,
-    FlextCliUtilitiesBase,
     FlextCliUtilitiesCli,
     FlextCliUtilitiesOptionBuilder,
 )
@@ -84,7 +83,6 @@ class FlextCliUtilities(flext_core_u):
         FlextCliUtilitiesAtomicTreeDarwin,
         FlextCliUtilitiesAtomicTreeDescriptor,
         FlextCliUtilitiesAtomicTreeInventory,
-        FlextCliUtilitiesBase,
         FlextCliUtilitiesCli,
         FlextCliUtilitiesOptionBuilder,
     ):

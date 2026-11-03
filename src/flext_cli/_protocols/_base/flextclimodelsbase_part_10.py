@@ -8,41 +8,83 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableMapping
+from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 from flext_cli import t
 
 if TYPE_CHECKING:
-    from flext_cli.protocols import p
+    from flext_cli._protocols._base import (
+        FlextCliProtocolsBaseFlextclimodelsbasePart02,
+        FlextCliProtocolsBaseFlextclimodelsbasePart08,
+        FlextCliProtocolsBaseFlextclimodelsbasePart09,
+    )
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart10:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicDirectoryObservations(Protocol):
+    class AtomicDirectoryObservations(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
-        directories: MutableMapping[Path, p.Cli.AtomicDirectoryInventory]
-        topology: MutableMapping[Path, p.Cli.AtomicDirectoryChainPlan]
+        @property
+        def directories(
+            self,
+        ) -> Mapping[
+            Path, FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryInventory
+        ]:
+            """One physical directory inventory per observed path."""
+            ...
+
+        @property
+        def topology(
+            self,
+        ) -> Mapping[
+            Path, FlextCliProtocolsBaseFlextclimodelsbasePart08.AtomicDirectoryChainPlan
+        ]:
+            """One ancestry plan per observed target."""
+            ...
 
     @runtime_checkable
-    class AtomicDirectoryQueryEffects(Protocol):
+    class AtomicDirectoryQueryEffects(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
-        files: tuple[tuple[p.Cli.AtomicFileState, p.Cli.AtomicFileState], ...]
+        @property
+        def files(
+            self,
+        ) -> tuple[
+            tuple[
+                FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicFileState,
+                FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicFileState,
+            ],
+            ...,
+        ]:
+            """Authenticated file effects in this boundary."""
+            ...
+
         membership_policy: t.StrTuple
 
     @runtime_checkable
-    class AtomicFilePublication(Protocol):
+    class AtomicFilePublication(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def before(self) -> p.Cli.AtomicFileState: ...
+        def before(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicFileState:
+            """Exact destination state observed during preflight."""
+            ...
+
         @property
-        def replacement(self) -> p.Cli.AtomicFileState: ...
+        def replacement(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicFileState:
+            """Exact caller-owned staged replacement state."""
+            ...
 
 
 __all__: list[str] = [

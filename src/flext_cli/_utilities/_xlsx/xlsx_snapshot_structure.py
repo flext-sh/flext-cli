@@ -8,13 +8,14 @@ from __future__ import annotations
 
 from typing import cast
 
+from flext_core import r
 from openpyxl import Workbook
 from openpyxl.utils.cell import column_index_from_string
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p
 
 # Why: tier-whitelist forbids bare pydantic imports outside flext-core;
 # route through the c facade re-export (matches conversion.py/tables.py/yaml.py).

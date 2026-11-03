@@ -114,7 +114,6 @@ def streamed_creation_flags() -> int:
 
 
 __all__ = [
-    "RuntimeSpawnOptions",
     "TimeoutExpired",
     "spawn_streamed_process",
     "streamed_creation_flags",

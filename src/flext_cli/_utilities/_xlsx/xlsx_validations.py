@@ -8,10 +8,11 @@ from __future__ import annotations
 
 from typing import cast
 
+from flext_core import r
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities._xlsx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
 from flext_cli._utilities._xlsx.xlsx_formula_codec import (
     FlextCliUtilitiesXlsxFormulaCodec,

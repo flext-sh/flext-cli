@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import r
 from openpyxl.utils.cell import (
     absolute_coordinate,
     get_column_letter,
@@ -13,7 +14,7 @@ from openpyxl.utils.cell import (
     range_boundaries,
 )
 
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p
 
 
 class FlextCliUtilitiesXlsxAddresses:

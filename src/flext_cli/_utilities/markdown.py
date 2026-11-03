@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, override
 
 from markdown_it import MarkdownIt
 
-from flext_cli import c, m
+from flext_cli import c, m, p
 
 if TYPE_CHECKING:
     from markdown_it.token import Token

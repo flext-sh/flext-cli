@@ -11,7 +11,9 @@ import os
 import time
 from typing import BinaryIO
 
-from flext_cli import c, p, r
+from flext_core import r
+
+from flext_cli import c, p
 
 
 class FlextCliUtilitiesRuntimeProcessResources:

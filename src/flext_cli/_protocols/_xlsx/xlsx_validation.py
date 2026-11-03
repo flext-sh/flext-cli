@@ -8,60 +8,96 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_core import m
-
-    from flext_cli.protocols import p
+    from flext_cli._protocols._xlsx import FlextCliProtocolsXlsxXlsxCells
 
 
 class FlextCliProtocolsXlsxXlsxValidation:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxValidationMessages(Protocol):
+    class XlsxValidationMessages(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def allow_blank(self) -> bool: ...
+        def allow_blank(self) -> bool:
+            """Allow blank cells."""
+            ...
+
         @property
-        def show_dropdown(self) -> bool: ...
+        def show_dropdown(self) -> bool:
+            """Show list selector."""
+            ...
+
         @property
-        def show_input(self) -> bool: ...
+        def show_input(self) -> bool:
+            """Show input guidance."""
+            ...
+
         @property
-        def input_title(self) -> str | None: ...
+        def input_title(self) -> str | None:
+            """Input title."""
+            ...
+
         @property
-        def input_message(self) -> str | None: ...
+        def input_message(self) -> str | None:
+            """Input message."""
+            ...
+
         @property
-        def show_error(self) -> bool: ...
+        def show_error(self) -> bool:
+            """Show validation error."""
+            ...
+
         @property
-        def error_style(self) -> Literal["stop", "warning", "information"] | None: ...
+        def error_style(self) -> Literal["stop", "warning", "information"] | None:
+            """Error behavior."""
+            ...
+
         @property
-        def error_title(self) -> str | None: ...
+        def error_title(self) -> str | None:
+            """Error title."""
+            ...
+
         @property
-        def error_message(self) -> str | None: ...
+        def error_message(self) -> str | None:
+            """Error message."""
+            ...
 
     @runtime_checkable
-    class XlsxInlineListSource(Protocol):
+    class XlsxInlineListSource(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["values"]: ...
+        def kind(self) -> Literal["values"]:
+            """Source kind."""
+            ...
+
         @property
-        def values(self) -> tuple[str, ...]: ...
+        def values(self) -> tuple[str, ...]:
+            """Allowed literal values."""
+            ...
 
     @runtime_checkable
-    class XlsxFormulaListSource(Protocol):
+    class XlsxFormulaListSource(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["formula"]: ...
+        def kind(self) -> Literal["formula"]:
+            """Source kind."""
+            ...
+
         @property
-        def expression(self) -> str: ...
+        def expression(self) -> str:
+            """List formula or name."""
+            ...
 
     @runtime_checkable
-    class XlsxUnaryComparison(Protocol):
+    class XlsxUnaryComparison(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -74,71 +110,129 @@ class FlextCliProtocolsXlsxXlsxValidation:
             "less_or_equal",
             "greater_than",
             "greater_or_equal",
-        ]: ...
+        ]:
+            """Unary comparison operator."""
+            ...
+
         @property
-        def expression(self) -> str: ...
+        def expression(self) -> str:
+            """Comparison operand."""
+            ...
 
     @runtime_checkable
-    class XlsxRangeComparison(Protocol):
+    class XlsxRangeComparison(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def mode(self) -> Literal["between", "not_between"]: ...
+        def mode(self) -> Literal["between", "not_between"]:
+            """Range comparison operator."""
+            ...
+
         @property
-        def minimum(self) -> str: ...
+        def minimum(self) -> str:
+            """Lower comparison operand."""
+            ...
+
         @property
-        def maximum(self) -> str: ...
+        def maximum(self) -> str:
+            """Upper comparison operand."""
+            ...
 
     @runtime_checkable
-    class XlsxListValidationPlan(Protocol):
+    class XlsxListValidationPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["list"]: ...
+        def kind(self) -> Literal["list"]:
+            """Rule kind."""
+            ...
+
         @property
-        def area(self) -> p.Cli.XlsxCellRange: ...
+        def area(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellRange:
+            """Validated cell range."""
+            ...
+
         @property
         def source(
             self,
-        ) -> Annotated[
-            p.Cli.XlsxInlineListSource | p.Cli.XlsxFormulaListSource,
-            m.Field(discriminator="kind"),
-        ]: ...
+        ) -> (
+            FlextCliProtocolsXlsxXlsxValidation.XlsxInlineListSource
+            | FlextCliProtocolsXlsxXlsxValidation.XlsxFormulaListSource
+        ):
+            """Allowed-value source."""
+            ...
+
         @property
-        def messages(self) -> p.Cli.XlsxValidationMessages: ...
+        def messages(
+            self,
+        ) -> FlextCliProtocolsXlsxXlsxValidation.XlsxValidationMessages:
+            """Validation UI behavior."""
+            ...
 
     @runtime_checkable
-    class XlsxComparisonValidationPlan(Protocol):
+    class XlsxComparisonValidationPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(
-            self,
-        ) -> Literal["whole", "decimal", "date", "time", "text_length"]: ...
+        def kind(self) -> Literal["whole", "decimal", "date", "time", "text_length"]:
+            """Rule kind."""
+            ...
+
         @property
-        def area(self) -> p.Cli.XlsxCellRange: ...
+        def area(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellRange:
+            """Validated cell range."""
+            ...
+
         @property
         def comparison(
             self,
-        ) -> Annotated[
-            p.Cli.XlsxUnaryComparison | p.Cli.XlsxRangeComparison,
-            m.Field(discriminator="mode"),
-        ]: ...
+        ) -> (
+            FlextCliProtocolsXlsxXlsxValidation.XlsxUnaryComparison
+            | FlextCliProtocolsXlsxXlsxValidation.XlsxRangeComparison
+        ):
+            """Typed comparison."""
+            ...
+
         @property
-        def messages(self) -> p.Cli.XlsxValidationMessages: ...
+        def messages(
+            self,
+        ) -> FlextCliProtocolsXlsxXlsxValidation.XlsxValidationMessages:
+            """Validation UI behavior."""
+            ...
 
     @runtime_checkable
-    class XlsxCustomValidationPlan(Protocol):
+    class XlsxCustomValidationPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["custom"]: ...
+        def kind(self) -> Literal["custom"]:
+            """Rule kind."""
+            ...
+
         @property
-        def area(self) -> p.Cli.XlsxCellRange: ...
+        def area(self) -> FlextCliProtocolsXlsxXlsxCells.XlsxCellRange:
+            """Validated cell range."""
+            ...
+
         @property
-        def expression(self) -> str: ...
+        def expression(self) -> str:
+            """Custom validation formula."""
+            ...
+
         @property
-        def messages(self) -> p.Cli.XlsxValidationMessages: ...
+        def messages(
+            self,
+        ) -> FlextCliProtocolsXlsxXlsxValidation.XlsxValidationMessages:
+            """Validation UI behavior."""
+            ...
+
+    type XlsxListSource = XlsxInlineListSource | XlsxFormulaListSource
+
+    type XlsxComparison = XlsxUnaryComparison | XlsxRangeComparison
+
+    type XlsxDataValidationPlan = (
+        XlsxListValidationPlan | XlsxComparisonValidationPlan | XlsxCustomValidationPlan
+    )
 
 
 __all__: list[str] = [

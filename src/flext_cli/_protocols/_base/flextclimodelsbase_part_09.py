@@ -9,98 +9,195 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+from typing import Literal, Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 from flext_cli import t
 
-if TYPE_CHECKING:
-    from flext_cli.protocols import p
-
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart09:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicPhysicalTreeEntry(Protocol):
+    class AtomicPhysicalTreeEntry(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def path(self) -> Path: ...
+        def path(self) -> Path:
+            """Absolute entry path."""
+            ...
+
         @property
-        def kind(self) -> Literal["directory", "file", "symlink"]: ...
+        def kind(self) -> Literal["directory", "file", "symlink"]:
+            """Physical entry kind."""
+            ...
+
         @property
-        def parent_device(self) -> int: ...
+        def parent_device(self) -> int:
+            """Physical parent device."""
+            ...
+
         @property
-        def parent_inode(self) -> int: ...
+        def parent_inode(self) -> int:
+            """Physical parent inode."""
+            ...
+
         @property
-        def parent_mount_id(self) -> int: ...
+        def parent_mount_id(self) -> int:
+            """Physical parent mount ID."""
+            ...
+
         @property
-        def mode(self) -> int: ...
+        def mode(self) -> int:
+            """Permission bits."""
+            ...
+
         @property
-        def device(self) -> int: ...
+        def device(self) -> int:
+            """Physical device."""
+            ...
+
         @property
-        def inode(self) -> int: ...
+        def inode(self) -> int:
+            """Physical inode."""
+            ...
+
         @property
-        def mount_id(self) -> int: ...
+        def mount_id(self) -> int:
+            """Physical mount ID."""
+            ...
+
         @property
-        def link_count(self) -> int: ...
+        def link_count(self) -> int:
+            """Exact link count."""
+            ...
+
         @property
-        def uid(self) -> int: ...
+        def uid(self) -> int:
+            """Owner user ID."""
+            ...
+
         @property
-        def gid(self) -> int: ...
+        def gid(self) -> int:
+            """Owner group ID."""
+            ...
+
         @property
-        def mtime_ns(self) -> int: ...
+        def mtime_ns(self) -> int:
+            """Modification timestamp in ns."""
+            ...
+
         @property
-        def ctime_ns(self) -> int: ...
+        def ctime_ns(self) -> int:
+            """Metadata-change timestamp in ns."""
+            ...
+
         @property
-        def file_attributes(self) -> int | None: ...
+        def file_attributes(self) -> int | None:
+            """Host attributes."""
+            ...
+
         @property
-        def link_target(self) -> str | None: ...
+        def link_target(self) -> str | None:
+            """Exact symlink target text."""
+            ...
+
         @property
-        def reparse_tag(self) -> int | None: ...
+        def reparse_tag(self) -> int | None:
+            """Host reparse tag."""
+            ...
+
         @property
-        def size(self) -> int | None: ...
+        def size(self) -> int | None:
+            """Regular-file size."""
+            ...
+
         @property
-        def sha256(self) -> str | None: ...
+        def sha256(self) -> str | None:
+            """Regular-file SHA-256 digest."""
+            ...
 
     @runtime_checkable
-    class AtomicDirectoryName(Protocol):
+    class AtomicDirectoryName(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def name(self) -> str: ...
+        def name(self) -> str:
+            """Lexical child name."""
+            ...
+
         @property
-        def kind(self) -> Literal["directory", "file", "symlink", "other"]: ...
+        def kind(self) -> Literal["directory", "file", "symlink", "other"]:
+            """Native physical entry kind."""
+            ...
+
         @property
-        def version_key(self) -> tuple[int, ...]: ...
+        def version_key(self) -> tuple[int, ...]:
+            """Descriptor-authenticated native entry version."""
+            ...
+
         @property
-        def link_target(self) -> str | None: ...
+        def link_target(self) -> str | None:
+            """Literal target of a physical symlink."""
+            ...
 
     @runtime_checkable
-    class AtomicDirectoryInventory(Protocol):
+    class AtomicDirectoryInventory(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def root(self) -> p.Cli.AtomicPhysicalTreeEntry: ...
+        def root(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeEntry:
+            """Descriptor-authenticated physical directory identity."""
+            ...
+
         @property
-        def entries(self) -> tuple[p.Cli.AtomicDirectoryName, ...]: ...
+        def entries(
+            self,
+        ) -> tuple[
+            FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryName, ...
+        ]:
+            """Complete ordered immediate physical children."""
+            ...
+
         @property
         def queries(
             self,
-        ) -> tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...]: ...
+        ) -> tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...]:
+            """Consumed native candidate predicates."""
+            ...
+
         @property
-        def membership_queried(self) -> bool: ...
+        def membership_queried(self) -> bool:
+            """Whether native planning consumed direct membership."""
+            ...
+
         @property
-        def membership_queries(self) -> tuple[t.StrTuple, ...]: ...
+        def membership_queries(self) -> tuple[t.StrTuple, ...]:
+            """Consumed membership selections, each excluding named children."""
+            ...
 
     @runtime_checkable
-    class AtomicPhysicalTreeManifest(Protocol):
+    class AtomicPhysicalTreeManifest(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def root(self) -> p.Cli.AtomicPhysicalTreeEntry: ...
+        def root(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeEntry:
+            """Physical tree root."""
+            ...
+
         @property
-        def entries(self) -> tuple[p.Cli.AtomicPhysicalTreeEntry, ...]: ...
+        def entries(
+            self,
+        ) -> tuple[
+            FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeEntry, ...
+        ]:
+            """Lexically ordered descendants."""
+            ...
 
 
 __all__: list[str] = [

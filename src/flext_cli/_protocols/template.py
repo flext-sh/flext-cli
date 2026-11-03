@@ -11,43 +11,78 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from flext_core import FlextProtocols
+
 if TYPE_CHECKING:
-    from flext_cli.protocols import p
+    from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart02
 
 
 class FlextCliProtocolsTemplate:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class TemplateRenderOptions(Protocol):
+    class TemplateRenderOptions(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         strip_suffix: str
         overwrite: bool
 
     @runtime_checkable
-    class TemplateRenderEntry(Protocol):
+    class TemplateRenderEntry(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
-        relpath_template: Path
-        output_relpath: Path
+        @property
+        def relpath_template(self) -> Path:
+            """Template path relative to templates_root (ends with .j2)."""
+            ...
+
+        @property
+        def output_relpath(self) -> Path:
+            """Structural member projected from the owning model.
+
+            Output path relative to output_root; a trailing template suffix is
+            stripped by the engine. Path tokens are resolved by the caller before
+            invocation.
+            """
+            ...
+
         when: bool
         overwrite: bool
 
     @runtime_checkable
-    class TemplateRenderReport(Protocol):
+    class TemplateRenderReport(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
-        created: tuple[Path, ...]
-        skipped: tuple[Path, ...]
-        failed: tuple[tuple[Path, str], ...]
+        @property
+        def created(self) -> tuple[Path, ...]:
+            """Destination paths written."""
+            ...
+
+        @property
+        def skipped(self) -> tuple[Path, ...]:
+            """Destinations skipped (exists or disabled)."""
+            ...
+
+        @property
+        def failed(self) -> tuple[tuple[Path, str], ...]:
+            """(destination, error) pairs that failed to render."""
+            ...
 
     @runtime_checkable
-    class AuthenticatedTemplateRender(Protocol):
+    class AuthenticatedTemplateRender(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
-        rendered: str
-        source_states: tuple[p.Cli.AtomicFileState, ...]
+        @property
+        def rendered(self) -> str:
+            """Text rendered from authenticated template bytes."""
+            ...
+
+        @property
+        def source_states(
+            self,
+        ) -> tuple[FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicFileState, ...]:
+            """Ordered physical states of the template and its imports."""
+            ...
 
 
 __all__: list[str] = [

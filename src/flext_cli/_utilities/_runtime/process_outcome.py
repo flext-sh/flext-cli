@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from flext_cli import c, m, p, r
+from flext_core import r
+
+from flext_cli import c, m, p
 
 
 class FlextCliUtilitiesRuntimeProcessOutcome:

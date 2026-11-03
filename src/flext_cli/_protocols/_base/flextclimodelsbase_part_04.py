@@ -8,44 +8,90 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_cli import c, t
+from flext_core import FlextProtocols
+
+if TYPE_CHECKING:
+    from flext_cli._constants import FlextCliConstantsEnums
+    from flext_cli._typings import FlextCliTypesBase, FlextCliTypesDomain
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart04:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class TableConfig(Protocol):
+    class TableConfig(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def headers(self) -> t.Cli.TableHeaders: ...
+        def headers(self) -> FlextCliTypesDomain.TableHeaders:
+            """Structural member projected from the owning model.
+
+            Table headers (string like 'keys', 'firstrow' or sequence of header
+            names).
+            """
+            ...
+
         @property
-        def title(self) -> str | None: ...
+        def title(self) -> str | None:
+            """Optional title printed before the rendered table."""
+            ...
+
         @property
-        def show_header(self) -> bool: ...
+        def show_header(self) -> bool:
+            """Whether to show table header."""
+            ...
+
         @property
-        def table_format(self) -> c.Cli.TabularFormat: ...
+        def table_format(self) -> FlextCliConstantsEnums.TabularFormat:
+            """Table format enum-derived literal authority."""
+            ...
+
         @property
-        def table_backend_format(self) -> c.Cli.TabularFormat: ...
+        def table_backend_format(self) -> FlextCliConstantsEnums.TabularFormat:
+            """Canonical backend format used by table rendering."""
+            ...
+
         @property
-        def floatfmt(self) -> str: ...
+        def floatfmt(self) -> str:
+            """Float format string."""
+            ...
+
         @property
-        def numalign(self) -> str: ...
+        def numalign(self) -> str:
+            """Number alignment (right, center, left, decimal)."""
+            ...
+
         @property
-        def stralign(self) -> str: ...
+        def stralign(self) -> str:
+            """String alignment (left, center, right)."""
+            ...
+
         @property
-        def align(self) -> str: ...
+        def align(self) -> str:
+            """General alignment (left, center, right, decimal)."""
+            ...
+
         @property
-        def missingval(self) -> str: ...
+        def missingval(self) -> str:
+            """String to use for missing values."""
+            ...
+
         @property
-        def showindex(self) -> t.Cli.TableShowIndex: ...
+        def showindex(self) -> FlextCliTypesBase.TableShowIndex:
+            """Whether to show row indices."""
+            ...
+
         @property
-        def colalign(self) -> t.Cli.TableColAlign: ...
+        def colalign(self) -> FlextCliTypesBase.TableColAlign:
+            """Per-column alignment (left, center, right, decimal)."""
+            ...
+
         @property
-        def disable_numparse(self) -> t.Cli.TableDisableNumparse: ...
+        def disable_numparse(self) -> FlextCliTypesBase.TableDisableNumparse:
+            """Disable number parsing (bool or list of column indices)."""
+            ...
 
 
 __all__: list[str] = [

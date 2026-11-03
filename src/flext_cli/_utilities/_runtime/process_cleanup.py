@@ -23,7 +23,9 @@ from contextvars import copy_context
 from functools import partial
 from types import FrameType
 
-from flext_cli import p, r, t
+from flext_core import r
+
+from flext_cli import p, t
 from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeProcessMonitor,
     FlextCliUtilitiesRuntimeProcessThreads,

@@ -10,6 +10,7 @@ import errno
 import os
 from pathlib import Path
 
+from flext_cli import p
 from flext_cli.typings import PhysicalState
 
 

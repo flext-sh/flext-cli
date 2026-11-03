@@ -11,7 +11,9 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Literal
 
-from flext_cli import c, m, p, r, t
+from flext_core import r
+
+from flext_cli import c, m, p, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryChain,
     FlextCliUtilitiesAtomicDirectoryCreate,

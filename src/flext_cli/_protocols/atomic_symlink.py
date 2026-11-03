@@ -9,54 +9,98 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-if TYPE_CHECKING:
-    from flext_cli.protocols import p
+from flext_core import FlextProtocols
 
 
 class FlextCliProtocolsAtomicSymlink:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicSymlinkIdentity(Protocol):
+    class AtomicSymlinkIdentity(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def mode(self) -> int: ...
+        def mode(self) -> int:
+            """Exact link permission bits."""
+            ...
+
         @property
-        def device(self) -> int: ...
+        def device(self) -> int:
+            """Link filesystem device."""
+            ...
+
         @property
-        def inode(self) -> int: ...
+        def inode(self) -> int:
+            """Link inode number."""
+            ...
+
         @property
-        def link_count(self) -> int: ...
+        def link_count(self) -> int:
+            """Link inode reference count."""
+            ...
+
         @property
-        def uid(self) -> int: ...
+        def uid(self) -> int:
+            """Link owner user identifier."""
+            ...
+
         @property
-        def gid(self) -> int: ...
+        def gid(self) -> int:
+            """Link owner group identifier."""
+            ...
+
         @property
-        def mtime_ns(self) -> int: ...
+        def mtime_ns(self) -> int:
+            """Link modification timestamp."""
+            ...
+
         @property
-        def ctime_ns(self) -> int: ...
+        def ctime_ns(self) -> int:
+            """Link change timestamp."""
+            ...
+
         @property
-        def file_attributes(self) -> int | None: ...
+        def file_attributes(self) -> int | None:
+            """Platform file attributes."""
+            ...
+
         @property
-        def reparse_tag(self) -> int | None: ...
+        def reparse_tag(self) -> int | None:
+            """Platform reparse tag."""
+            ...
 
     @runtime_checkable
-    class AtomicSymlinkState(Protocol):
+    class AtomicSymlinkState(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def path(self) -> Path: ...
+        def path(self) -> Path:
+            """Absolute lexical symbolic-link path."""
+            ...
+
         @property
-        def parent_device(self) -> int: ...
+        def parent_device(self) -> int:
+            """Physical parent device."""
+            ...
+
         @property
-        def parent_inode(self) -> int: ...
+        def parent_inode(self) -> int:
+            """Physical parent inode."""
+            ...
+
         @property
-        def target(self) -> str | None: ...
+        def target(self) -> str | None:
+            """Exact readlink text, or None when absent."""
+            ...
+
         @property
-        def identity(self) -> p.Cli.AtomicSymlinkIdentity | None: ...
+        def identity(
+            self,
+        ) -> FlextCliProtocolsAtomicSymlink.AtomicSymlinkIdentity | None:
+            """Complete physical link identity, or None when absent."""
+            ...
 
 
 __all__: list[str] = [

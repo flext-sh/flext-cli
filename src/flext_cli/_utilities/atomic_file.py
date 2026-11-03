@@ -13,7 +13,7 @@ import stat
 from collections.abc import MutableSequence
 from pathlib import Path
 
-from flext_cli import c, m
+from flext_cli import c, m, p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileCleanup,
     FlextCliUtilitiesAtomicFileDescriptor,

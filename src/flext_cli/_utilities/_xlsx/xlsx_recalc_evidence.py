@@ -9,7 +9,9 @@ from __future__ import annotations
 from io import BytesIO
 from zipfile import BadZipFile, LargeZipFile, ZipFile
 
-from flext_cli import c, p, r
+from flext_core import r
+
+from flext_cli import c, p
 from flext_cli._utilities._xlsx import FlextCliUtilitiesXlsxArchiveChecks
 
 

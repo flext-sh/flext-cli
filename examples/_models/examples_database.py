@@ -9,7 +9,7 @@ from __future__ import annotations
 from ipaddress import ip_address
 from typing import Annotated, ClassVar
 
-from examples import c
+from examples import c, t
 from flext_cli import m
 
 

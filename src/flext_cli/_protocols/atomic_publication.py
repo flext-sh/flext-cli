@@ -12,66 +12,113 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
-from flext_cli import c
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_cli.protocols import p
+    from flext_cli._constants import FlextCliConstantsFiles
+    from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart02
 
 
 class FlextCliProtocolsAtomicPublication:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class StagedFile(Protocol):
+    class StagedFile(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def path(self) -> Path: ...
+        def path(self) -> Path:
+            """Exact pathname of the staged file."""
+            ...
+
         @property
-        def content(self) -> bytes: ...
+        def content(self) -> bytes:
+            """Authenticated staged file bytes."""
+            ...
+
         @property
-        def mode(self) -> int: ...
+        def mode(self) -> int:
+            """Native permission mode of the staged file."""
+            ...
+
         @property
-        def identity(self) -> tuple[int, int]: ...
+        def identity(self) -> tuple[int, int]:
+            """Captured device and inode identity of the staged file."""
+            ...
 
     @runtime_checkable
-    class ObservedFile(Protocol):
+    class ObservedFile(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def path(self) -> Path: ...
+        def path(self) -> Path:
+            """Pathname of the observed file entry."""
+            ...
+
         @property
-        def state(self) -> os.stat_result: ...
+        def state(self) -> os.stat_result:
+            """Unchanged native stat observation of the file entry."""
+            ...
 
     @runtime_checkable
-    class AtomicWriteOptions(Protocol):
+    class AtomicWriteOptions(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def expected_state(self) -> p.Cli.AtomicFileState | None: ...
+        def expected_state(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicFileState | None:
+            """Complete physical precondition, or None for none."""
+            ...
+
         @property
-        def permission_mode(self) -> int | None: ...
+        def permission_mode(self) -> int | None:
+            """Permission mode to publish, or None to keep the current one."""
+            ...
+
         @property
-        def durability(self) -> c.Cli.WriteDurability: ...
+        def durability(self) -> FlextCliConstantsFiles.WriteDurability:
+            """Whether staged inode and parent directory are synced."""
+            ...
+
         @property
-        def owner_uid(self) -> int | None: ...
+        def owner_uid(self) -> int | None:
+            """Required owner uid of the parent and published file."""
+            ...
 
     @runtime_checkable
-    class TreeEntryDetails(Protocol):
+    class TreeEntryDetails(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["directory", "file", "symlink"]: ...
+        def kind(self) -> Literal["directory", "file", "symlink"]:
+            """Measured filesystem kind of the tree entry."""
+            ...
+
         @property
-        def parent_mount_id(self) -> int: ...
+        def parent_mount_id(self) -> int:
+            """Mount identity of the parent entry."""
+            ...
+
         @property
-        def mount_id(self) -> int: ...
+        def mount_id(self) -> int:
+            """Mount identity of the tree entry."""
+            ...
+
         @property
-        def size(self) -> int | None: ...
+        def size(self) -> int | None:
+            """Measured file byte size."""
+            ...
+
         @property
-        def digest(self) -> str | None: ...
+        def digest(self) -> str | None:
+            """Authenticated content digest for a regular file."""
+            ...
+
         @property
-        def link_target(self) -> str | None: ...
+        def link_target(self) -> str | None:
+            """Literal target of a symbolic link entry."""
+            ...
 
 
 __all__: list[str] = [

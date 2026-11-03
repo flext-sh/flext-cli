@@ -10,24 +10,40 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from flext_core import FlextProtocols
+
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart05:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class SettingsSnapshot(Protocol):
+    class SettingsSnapshot(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def settings_dir(self) -> str: ...
+        def settings_dir(self) -> str:
+            """Settings directory path."""
+            ...
+
         @property
-        def settings_exists(self) -> bool: ...
+        def settings_exists(self) -> bool:
+            """Whether settings directory exists."""
+            ...
+
         @property
-        def settings_readable(self) -> bool: ...
+        def settings_readable(self) -> bool:
+            """Whether settings directory is readable."""
+            ...
+
         @property
-        def settings_writable(self) -> bool: ...
+        def settings_writable(self) -> bool:
+            """Whether settings directory is writable."""
+            ...
+
         @property
-        def timestamp(self) -> str: ...
+        def timestamp(self) -> str:
+            """Timestamp of snapshot."""
+            ...
 
 
 __all__: list[str] = [

@@ -11,74 +11,140 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from flext_core import FlextProtocols
+
 from flext_cli import t
 
 if TYPE_CHECKING:
-    from flext_cli.protocols import p
+    from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart01
+    from flext_cli._typings import FlextCliTypesBase
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart06:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class CliParamsConfig(Protocol):
+    class CliParamsConfig(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def verbose(self) -> bool | None: ...
+        def verbose(self) -> bool | None:
+            """Enable verbose output."""
+            ...
+
         @property
-        def quiet(self) -> bool | None: ...
+        def quiet(self) -> bool | None:
+            """Suppress non-essential output."""
+            ...
+
         @property
-        def debug(self) -> bool | None: ...
+        def debug(self) -> bool | None:
+            """Structural member projected from the owning model."""
+            ...
+
         @property
-        def trace(self) -> bool | None: ...
+        def trace(self) -> bool | None:
+            """Structural member projected from the owning model."""
+            ...
+
         @property
-        def log_level(self) -> str | None: ...
+        def log_level(self) -> str | None:
+            """Structural member projected from the owning model."""
+            ...
+
         @property
-        def log_format(self) -> str | None: ...
+        def log_format(self) -> str | None:
+            """Log format (compact, detailed, full)."""
+            ...
+
         @property
-        def output_format(self) -> str | None: ...
+        def output_format(self) -> str | None:
+            """Output format (table, json, yaml, csv)."""
+            ...
+
         @property
-        def no_color(self) -> bool | None: ...
+        def no_color(self) -> bool | None:
+            """Disable colored output."""
+            ...
+
+        @property
+        def params(self) -> t.JsonMapping:
+            """Parameters mapping - required by CliParamsConfig."""
+            ...
 
     @runtime_checkable
-    class OptionMetadata(Protocol):
+    class OptionMetadata(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def help(self) -> str: ...
+        def help(self) -> str:
+            """Option help text."""
+            ...
+
         @property
-        def short(self) -> str: ...
+        def short(self) -> str:
+            """Single-letter short flag without leading dash."""
+            ...
+
         @property
-        def default(self) -> t.Cli.CliValue | None: ...
+        def default(self) -> FlextCliTypesBase.CliValue | None:
+            """Option default value when explicitly provided."""
+            ...
+
         @property
-        def field_name_override(self) -> str | None: ...
+        def field_name_override(self) -> str | None:
+            """Override for the CLI-facing option name."""
+            ...
 
     @runtime_checkable
-    class OptionSpec(Protocol):
+    class OptionSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def declarations(self) -> Sequence[str]: ...
+        def declarations(self) -> Sequence[str]:
+            """Ordered long and short option declarations."""
+            ...
+
         @property
-        def help_text(self) -> str: ...
+        def help_text(self) -> str:
+            """Human-readable option help."""
+            ...
+
         @property
-        def default(self) -> t.Cli.CliValue | None: ...
+        def default(self) -> FlextCliTypesBase.CliValue | None:
+            """Validated optional default value."""
+            ...
+
         @property
-        def required(self) -> bool: ...
+        def required(self) -> bool:
+            """Require an explicit option value."""
+            ...
 
     @runtime_checkable
-    class InvocationResult(Protocol):
+    class InvocationResult(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def exit_code(self) -> int: ...
+        def exit_code(self) -> int:
+            """Process-compatible exit code."""
+            ...
+
         @property
-        def stdout(self) -> str: ...
+        def stdout(self) -> str:
+            """Captured standard output."""
+            ...
+
         @property
-        def stderr(self) -> str: ...
+        def stderr(self) -> str:
+            """Captured standard error."""
+            ...
+
         @property
-        def outcome(self) -> p.Cli.ProcessOutcome: ...
+        def outcome(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart01.ProcessOutcome:
+            """Causal completion state for the invocation."""
+            ...
 
 
 __all__: list[str] = [

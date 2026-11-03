@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import shlex
 
-from flext_cli import c, p, r
+from flext_core import r
+
+from flext_cli import c, p
 
 
 class FlextCliUtilitiesRuntimeProcessTiming:

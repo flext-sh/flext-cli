@@ -21,11 +21,11 @@ from flext_cli import m as flext_cli_m
 
 
 class ExamplesFlextCliModels(
+    flext_cli_m,
     ExamplesFlextCliModelsExamplesAdvanced,
     ExamplesFlextCliModelsExamplesCommon,
     ExamplesFlextCliModelsExamplesDatabase,
     ExamplesFlextCliModelsPart01,
-    flext_cli_m,
 ):
     """Public facade for ExamplesFlextCliModels."""
 

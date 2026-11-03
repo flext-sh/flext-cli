@@ -11,7 +11,9 @@ import os
 from ctypes import wintypes
 from typing import ClassVar
 
-from flext_cli import p, r
+from flext_core import r
+
+from flext_cli import p
 
 
 class FlextCliUtilitiesRuntimeWindowsJobStart:

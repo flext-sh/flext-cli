@@ -10,11 +10,12 @@ from io import BytesIO
 from types import MappingProxyType
 from zipfile import BadZipFile
 
+from flext_core import r
 from pptx import Presentation
 from pptx.exc import PackageNotFoundError
 from pptx.presentation import Presentation as PresentationType
 
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p
 
 
 class FlextCliUtilitiesPptxReader:

@@ -9,9 +9,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from flext_core import u
+from flext_core import r, u
 
-from flext_cli import c, p, r, t
+from flext_cli import c, p, t
 from flext_cli._utilities import FlextCliUtilitiesConversion, FlextCliUtilitiesJson
 from flext_cli._utilities._yaml import FlextCliUtilitiesYamlEditing
 

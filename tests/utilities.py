@@ -14,8 +14,8 @@ from typing import TYPE_CHECKING
 from examples import ExamplesFlextCliUtilities
 from flext_tests import FlextTestsUtilities
 
-from flext_cli import FlextCliUtilities, cli
-from tests import TestsFlextCliSettings, p, r, tm
+from flext_cli import FlextCliUtilities, cli, r
+from tests import TestsFlextCliSettings, p, tm
 
 if TYPE_CHECKING:
     from pathlib import Path

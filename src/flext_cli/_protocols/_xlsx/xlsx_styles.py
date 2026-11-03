@@ -8,19 +8,22 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Annotated, Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_core import m
-
-    from flext_cli.protocols import p
+    from flext_cli._protocols._xlsx import (
+        FlextCliProtocolsXlsxXlsxStyleFills,
+        FlextCliProtocolsXlsxXlsxStylePrimitives,
+    )
 
 
 class FlextCliProtocolsXlsxXlsxStyles:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class XlsxBorderSideSpec(Protocol):
+    class XlsxBorderSideSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -43,52 +46,91 @@ class FlextCliProtocolsXlsxXlsxStyles:
                 "thin",
             ]
             | None
-        ): ...
+        ):
+            """Border style."""
+            ...
+
         @property
         def color(
             self,
         ) -> (
-            Annotated[
-                p.Cli.XlsxRgbColor
-                | p.Cli.XlsxIndexedColor
-                | p.Cli.XlsxThemeColor
-                | p.Cli.XlsxAutomaticColor,
-                m.Field(discriminator="kind"),
-            ]
+            FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxRgbColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxIndexedColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxThemeColor
+            | FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxAutomaticColor
             | None
-        ): ...
+        ):
+            """Optional border color."""
+            ...
 
     @runtime_checkable
-    class XlsxBorderSpec(Protocol):
+    class XlsxBorderSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def left(self) -> p.Cli.XlsxBorderSideSpec | None: ...
+        def left(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxBorderSideSpec | None:
+            """Optional left border."""
+            ...
+
         @property
-        def right(self) -> p.Cli.XlsxBorderSideSpec | None: ...
+        def right(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxBorderSideSpec | None:
+            """Optional right border."""
+            ...
+
         @property
-        def top(self) -> p.Cli.XlsxBorderSideSpec | None: ...
+        def top(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxBorderSideSpec | None:
+            """Optional top border."""
+            ...
+
         @property
-        def bottom(self) -> p.Cli.XlsxBorderSideSpec | None: ...
+        def bottom(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxBorderSideSpec | None:
+            """Optional bottom border."""
+            ...
+
         @property
-        def start(self) -> p.Cli.XlsxBorderSideSpec | None: ...
+        def start(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxBorderSideSpec | None:
+            """Optional logical start border."""
+            ...
+
         @property
-        def end(self) -> p.Cli.XlsxBorderSideSpec | None: ...
+        def end(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxBorderSideSpec | None:
+            """Optional logical end border."""
+            ...
+
         @property
-        def diagonal(self) -> p.Cli.XlsxBorderSideSpec | None: ...
+        def diagonal(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxBorderSideSpec | None:
+            """Optional diagonal border."""
+            ...
+
         @property
-        def vertical(self) -> p.Cli.XlsxBorderSideSpec | None: ...
+        def vertical(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxBorderSideSpec | None:
+            """Optional internal vertical border."""
+            ...
+
         @property
-        def horizontal(self) -> p.Cli.XlsxBorderSideSpec | None: ...
+        def horizontal(
+            self,
+        ) -> FlextCliProtocolsXlsxXlsxStyles.XlsxBorderSideSpec | None:
+            """Optional internal horizontal border."""
+            ...
+
         @property
-        def diagonal_up(self) -> bool: ...
+        def diagonal_up(self) -> bool:
+            """Draw upward diagonal."""
+            ...
+
         @property
-        def diagonal_down(self) -> bool: ...
+        def diagonal_down(self) -> bool:
+            """Draw downward diagonal."""
+            ...
+
         @property
-        def outline(self) -> bool: ...
+        def outline(self) -> bool:
+            """Apply border as outline."""
+            ...
 
     @runtime_checkable
-    class XlsxAlignmentSpec(Protocol):
+    class XlsxAlignmentSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -106,54 +148,99 @@ class FlextCliProtocolsXlsxXlsxStyles:
                 "distributed",
             ]
             | None
-        ): ...
+        ):
+            """Horizontal alignment."""
+            ...
+
         @property
         def vertical(
             self,
-        ) -> Literal["top", "center", "bottom", "justify", "distributed"] | None: ...
+        ) -> Literal["top", "center", "bottom", "justify", "distributed"] | None:
+            """Vertical alignment."""
+            ...
+
         @property
-        def wrap_text(self) -> bool | None: ...
+        def wrap_text(self) -> bool | None:
+            """Wrap cell text."""
+            ...
+
         @property
-        def shrink_to_fit(self) -> bool | None: ...
+        def shrink_to_fit(self) -> bool | None:
+            """Shrink cell text."""
+            ...
+
         @property
-        def text_rotation(self) -> int: ...
+        def text_rotation(self) -> int:
+            """Text rotation."""
+            ...
+
         @property
-        def indent(self) -> float: ...
+        def indent(self) -> float:
+            """Text indent."""
+            ...
+
         @property
-        def relative_indent(self) -> float: ...
+        def relative_indent(self) -> float:
+            """Relative text indent."""
+            ...
+
         @property
-        def justify_last_line(self) -> bool | None: ...
+        def justify_last_line(self) -> bool | None:
+            """Justify the final line."""
+            ...
+
         @property
-        def reading_order(self) -> float: ...
+        def reading_order(self) -> float:
+            """Text reading order."""
+            ...
 
     @runtime_checkable
-    class XlsxVisualStyleSpec(Protocol):
+    class XlsxVisualStyleSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def font(self) -> p.Cli.XlsxFontSpec: ...
+        def font(self) -> FlextCliProtocolsXlsxXlsxStylePrimitives.XlsxFontSpec:
+            """Font specification."""
+            ...
+
         @property
         def fill(
             self,
-        ) -> Annotated[
-            p.Cli.XlsxPatternFillSpec | p.Cli.XlsxGradientFillSpec,
-            m.Field(discriminator="kind"),
-        ]: ...
+        ) -> (
+            FlextCliProtocolsXlsxXlsxStyleFills.XlsxPatternFillSpec
+            | FlextCliProtocolsXlsxXlsxStyleFills.XlsxGradientFillSpec
+        ):
+            """Fill specification."""
+            ...
+
         @property
-        def border(self) -> p.Cli.XlsxBorderSpec: ...
+        def border(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxBorderSpec:
+            """Border specification."""
+            ...
+
         @property
-        def alignment(self) -> p.Cli.XlsxAlignmentSpec: ...
+        def alignment(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxAlignmentSpec:
+            """Alignment specification."""
+            ...
+
         @property
-        def number_format(self) -> str: ...
+        def number_format(self) -> str:
+            """Excel number format."""
+            ...
 
     @runtime_checkable
-    class XlsxNamedStyleSpec(Protocol):
+    class XlsxNamedStyleSpec(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def name(self) -> str: ...
+        def name(self) -> str:
+            """Named style key."""
+            ...
+
         @property
-        def visual(self) -> p.Cli.XlsxVisualStyleSpec: ...
+        def visual(self) -> FlextCliProtocolsXlsxXlsxStyles.XlsxVisualStyleSpec:
+            """Protection-free visual signature."""
+            ...
 
 
 __all__: list[str] = [

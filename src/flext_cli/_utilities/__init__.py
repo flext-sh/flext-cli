@@ -97,7 +97,6 @@ if TYPE_CHECKING:
         FlextCliUtilitiesAtomicTreeInventory,
     )
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth
-    from flext_cli._utilities.base import FlextCliUtilitiesBase
     from flext_cli._utilities.cli_namespace import FlextCliUtilitiesCli
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
     from flext_cli._utilities.commands import FlextCliUtilitiesCommands
@@ -115,7 +114,6 @@ if TYPE_CHECKING:
     from flext_cli._utilities.markdown import FlextCliUtilitiesMarkdown
     from flext_cli._utilities.matching import FlextCliUtilitiesMatching
     from flext_cli._utilities.native_runtime import (
-        RuntimeSpawnOptions,
         TimeoutExpired,
         spawn_streamed_process,
         streamed_creation_flags,
@@ -177,7 +175,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesAtomicTreeDescriptor",
     "FlextCliUtilitiesAtomicTreeInventory",
     "FlextCliUtilitiesAuth",
-    "FlextCliUtilitiesBase",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
     "FlextCliUtilitiesCommands",
@@ -213,7 +210,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesValidation",
     "FlextCliUtilitiesXlsx",
     "FlextCliUtilitiesYaml",
-    "RuntimeSpawnOptions",
     "TimeoutExpired",
     "spawn_streamed_process",
     "streamed_creation_flags",
@@ -256,7 +252,6 @@ install_lazy_exports(
         "FlextCliUtilitiesAtomicTreeDescriptor": ".atomic_tree_descriptor",
         "FlextCliUtilitiesAtomicTreeInventory": ".atomic_tree_inventory",
         "FlextCliUtilitiesAuth": ".auth",
-        "FlextCliUtilitiesBase": ".base",
         "FlextCliUtilitiesCli": ".cli_namespace",
         "FlextCliUtilitiesCmd": ".cmd",
         "FlextCliUtilitiesCommands": ".commands",
@@ -292,7 +287,6 @@ install_lazy_exports(
         "FlextCliUtilitiesValidation": ".validation",
         "FlextCliUtilitiesXlsx": ".xlsx",
         "FlextCliUtilitiesYaml": ".yaml",
-        "RuntimeSpawnOptions": ".native_runtime",
         "TimeoutExpired": ".native_runtime",
         "spawn_streamed_process": ".native_runtime",
         "streamed_creation_flags": ".native_runtime",

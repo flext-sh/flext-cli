@@ -10,6 +10,8 @@ from openpyxl.styles import Alignment, Border, Color, Font, GradientFill, NamedS
 from openpyxl.styles.borders import Side
 from openpyxl.styles.fills import PatternFill, Stop
 
+from flext_cli import p
+
 
 class FlextCliUtilitiesXlsxStyleBuilders:
     """Build external visual styles only from validated model fields."""

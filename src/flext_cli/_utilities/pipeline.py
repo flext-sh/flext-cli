@@ -11,7 +11,9 @@ from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from contextvars import copy_context
 
-from flext_cli import c, m, p, r, settings
+from flext_core import r
+
+from flext_cli import c, m, p, settings
 from flext_cli._utilities import FlextCliUtilitiesDag
 
 

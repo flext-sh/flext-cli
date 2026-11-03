@@ -53,9 +53,11 @@ class FlextCliModelsTemplate:
                 ),
             ),
         ]
-        when: bool = m.Field(True, description="Render only when True (else skipped)")
+        when: bool = m.Field(
+            default=True, description="Render only when True (else skipped)"
+        )
         overwrite: bool = m.Field(
-            False, description="Overwrite an existing destination file"
+            default=False, description="Overwrite an existing destination file"
         )
 
     class TemplateRenderReport(m.ArbitraryTypesModel):

@@ -84,7 +84,9 @@ class FlextCliModelsBasePart04:
 
         # Index display
         showindex: t.Cli.TableShowIndex = m.Field(
-            False, validate_default=True, description="Whether to show row indices"
+            default=False,
+            validate_default=True,
+            description="Whether to show row indices",
         )
 
         # Column alignment

@@ -8,50 +8,66 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
+
+from flext_core import FlextProtocols
 
 from flext_cli import t
 
-if TYPE_CHECKING:
-    from flext_cli.protocols import p
-
 
 class FlextCliProtocolsPptxPresentation:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class PptxSlidePlan(Protocol):
+    class PptxSlidePlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def title(self) -> str: ...
+        def title(self) -> str:
+            """Slide title."""
+            ...
 
     @runtime_checkable
-    class PptxPresentationPlan(Protocol):
+    class PptxPresentationPlan(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def slides(self) -> tuple[p.Cli.PptxSlidePlan, ...]: ...
+        def slides(self) -> tuple[FlextCliProtocolsPptxPresentation.PptxSlidePlan, ...]:
+            """Presentation slides."""
+            ...
+
         @property
-        def core_properties(self) -> t.JsonMapping: ...
+        def core_properties(self) -> t.JsonMapping:
+            """Core document properties."""
+            ...
 
     @runtime_checkable
-    class PptxRenderRequest(Protocol):
+    class PptxRenderRequest(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def template(self) -> bytes | None: ...
+        def template(self) -> bytes | None:
+            """Formatting template bytes."""
+            ...
+
         @property
-        def plan(self) -> p.Cli.PptxPresentationPlan: ...
+        def plan(self) -> FlextCliProtocolsPptxPresentation.PptxPresentationPlan:
+            """Validated presentation plan."""
+            ...
 
     @runtime_checkable
-    class PptxRenderResult(Protocol):
+    class PptxRenderResult(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def content(self) -> bytes: ...
+        def content(self) -> bytes:
+            """Rendered presentation bytes."""
+            ...
+
         @property
-        def plan(self) -> p.Cli.PptxPresentationPlan: ...
+        def plan(self) -> FlextCliProtocolsPptxPresentation.PptxPresentationPlan:
+            """Exact source plan."""
+            ...
 
 
 __all__: list[str] = [

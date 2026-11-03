@@ -226,52 +226,6 @@ class FlextCliProtocolsDomain:
         handler: FlextCliProtocolsBase.CliCommandWrapper
 
     @runtime_checkable
-    class CommandMetadata(Protocol):
-        """Read-only command identity and user-facing help."""
-
-        # mro-j47u (codex): read-only properties preserve frozen-model covariance.
-        @property
-        def name(self) -> str:
-            """The command name."""
-            ...
-
-        @property
-        def help_text(self) -> str:
-            """The user-facing help text."""
-            ...
-
-    @runtime_checkable
-    class ResultCommandRoute(CommandMetadata, Protocol):
-        """Protocol for declarative result-route registration."""
-
-        @property
-        def model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
-            """The validated input model class."""
-            ...
-
-        @property
-        def handler(self) -> FlextCliProtocolsDomain.ResultRouteHandler:
-            """The type-erased result handler."""
-            ...
-
-        @property
-        def success_message(self) -> str | None:
-            """The static success message, when configured."""
-            ...
-
-        @property
-        def success_formatter(
-            self,
-        ) -> t.Cli.SuccessMessageFormatter[t.Cli.ResultValue] | None:
-            """The dynamic success formatter, when configured."""
-            ...
-
-        @property
-        def success_type(self) -> t.Cli.MessageType:
-            """The success output style."""
-            ...
-
-    @runtime_checkable
     class DeclarativeRuleType[TRule](Protocol):
         """Class contract for one settings-backed declarative rule implementation."""
 

@@ -6,11 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import r
 from openpyxl.cell.cell import Cell
 from openpyxl.utils.exceptions import IllegalCharacterError
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, p, r, t
+from flext_cli import c, p, t
 from flext_cli._utilities._xlsx import FlextCliUtilitiesXlsxFormulaCodec
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.

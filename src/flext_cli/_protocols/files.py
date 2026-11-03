@@ -10,24 +10,40 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
+from flext_core import FlextProtocols
+
 
 class FlextCliProtocolsFiles:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class FileAssertionOptions(Protocol):
+    class FileAssertionOptions(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def is_file(self) -> bool | None: ...
+        def is_file(self) -> bool | None:
+            """Require or reject a regular file; None leaves it unchecked."""
+            ...
+
         @property
-        def is_dir(self) -> bool | None: ...
+        def is_dir(self) -> bool | None:
+            """Require or reject a directory; None leaves it unchecked."""
+            ...
+
         @property
-        def not_empty(self) -> bool | None: ...
+        def not_empty(self) -> bool | None:
+            """Require non-empty file or directory contents when True."""
+            ...
+
         @property
-        def readable(self) -> bool | None: ...
+        def readable(self) -> bool | None:
+            """Require read access to the path when True."""
+            ...
+
         @property
-        def writable(self) -> bool | None: ...
+        def writable(self) -> bool | None:
+            """Require write access to the path when True."""
+            ...
 
 
 __all__: list[str] = [

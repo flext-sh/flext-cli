@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING
 
-import examples
 import pytest
 from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings
 from examples.ex_04_file_operations import ExamplesFlextCliFileOperations
@@ -109,13 +108,13 @@ class TestsFlextCliExamplesSmokePart02:
         tm.that(locations.data["Token Exists"], eq="Yes")
 
         profile_result = ExamplesFlextCliSettings.load_profile_settings(
-            examples.c.DeploymentEnvironment.DEVELOPMENT,
+            c.DeploymentEnvironment.DEVELOPMENT,
         )
         tm.ok(profile_result)
         tm.ok(profile_result.value.debug)
         tm.that(
             profile_result.value.cli_output_format,
-            eq=examples.c.Cli.OutputFormats.TABLE,
+            eq=c.Cli.OutputFormats.TABLE,
         )
 
         logout_result = ExamplesFlextCliAuthentication.logout()

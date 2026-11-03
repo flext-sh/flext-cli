@@ -10,20 +10,30 @@ from __future__ import annotations
 
 from typing import Literal, Protocol, runtime_checkable
 
+from flext_core import FlextProtocols
+
 
 class FlextCliProtocolsColor:
-    """Own the structural model contracts declared by this module."""
+    """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class RgbColor(Protocol):
+    class RgbColor(FlextProtocols.Model, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> Literal["rgb"]: ...
+        def kind(self) -> Literal["rgb"]:
+            """Color kind."""
+            ...
+
         @property
-        def value(self) -> str: ...
+        def value(self) -> str:
+            """RGB or ARGB value."""
+            ...
+
         @property
-        def tint(self) -> float: ...
+        def tint(self) -> float:
+            """Color tint."""
+            ...
 
 
 __all__: list[str] = [

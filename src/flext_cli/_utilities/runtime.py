@@ -11,9 +11,9 @@ import shlex
 from collections.abc import Mapping, Sequence
 from typing import BinaryIO, ClassVar, override
 
-from flext_core import u
+from flext_core import r, u
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeCommands,
     FlextCliUtilitiesRuntimeRunToFile,

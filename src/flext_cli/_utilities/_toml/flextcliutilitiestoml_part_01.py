@@ -11,11 +11,11 @@ from collections.abc import Sequence
 from typing import ClassVar
 
 import tomlkit
-from flext_core import u
+from flext_core import r, u
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c, p, r, t
+from flext_cli import c, p, t
 from flext_cli._utilities import FlextCliUtilitiesConversion
 from flext_cli._utilities._toml import FlextCliUtilitiesTomlPart02
 

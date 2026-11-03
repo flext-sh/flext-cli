@@ -19,8 +19,8 @@ from pathlib import Path
 
 import pytest
 
-from flext_cli import FlextCli, cli, settings, u
-from tests import c, p, tm
+from flext_cli import FlextCli, cli, settings
+from tests import c, p, tm, u
 
 
 class TestsFlextCliBase:

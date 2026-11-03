@@ -11,8 +11,7 @@ from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import c
-from tests import t
+from flext_cli import c, t
 
 
 class TestsFlextCliConstantsCore:

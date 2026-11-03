@@ -16,11 +16,11 @@ from typing import ClassVar, Never
 
 import click
 import typer
-from flext_core import u
+from flext_core import e, r, u
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
-from flext_cli import c, e, m, p, r, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesCommands, FlextCliUtilitiesConversion
 
 

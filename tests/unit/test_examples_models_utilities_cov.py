@@ -16,7 +16,6 @@ from pathlib import Path
 
 import pytest
 
-import tests
 from flext_cli import cli
 from tests import c, m, t, tm, u
 
@@ -128,7 +127,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
             host=host,
             name="production",
             username="db-user",
-            password=tests.c.Tests.CREDENTIAL_SAMPLE_VALUE,
+            password=c.Tests.CREDENTIAL_SAMPLE_VALUE,
         )
 
         tm.that(config.host, eq=host)
@@ -141,7 +140,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
                 host="invalid-host",
                 name="production",
                 username="db-user",
-                password=tests.c.Tests.CREDENTIAL_SAMPLE_VALUE,
+                password=c.Tests.CREDENTIAL_SAMPLE_VALUE,
             )
 
     # ------------------------------------------------------------------

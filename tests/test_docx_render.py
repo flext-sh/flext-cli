@@ -57,7 +57,9 @@ class TestsFlextCliDocxRender:
         result = u.Cli.docx_render(m.Cli.DocxRenderRequest(plan=plan))
         tm.that(result.success, eq=True, msg=result.error)
         document = Document(BytesIO(result.value.content))
-        tm.that([p.text for p in document.paragraphs], eq=["Hello", "World"])
+        tm.that(
+            [paragraph.text for paragraph in document.paragraphs], eq=["Hello", "World"]
+        )
 
     @staticmethod
     def test_docx_render_with_styles() -> None:

@@ -10,9 +10,9 @@ import traceback
 from collections.abc import MutableSequence
 from typing import TYPE_CHECKING
 
-from flext_core import u
+from flext_core import r, u
 
-from flext_cli import c, r, t
+from flext_cli import c, t
 from flext_cli._utilities import FlextCliUtilitiesOutput
 
 if TYPE_CHECKING:
