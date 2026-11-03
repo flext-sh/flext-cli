@@ -50,6 +50,10 @@ class FlextCliConstantsBase:
     # adapters and consumers cannot drift into local magic exit codes/messages.
     EXIT_CODE_SUCCESS: ClassVar[int] = 0
     EXIT_CODE_FAILURE: ClassVar[int] = 1
+    # Model command routes: the injected Typer context parameter and the click
+    # parameter source that marks an option Typer filled from its default.
+    MODEL_COMMAND_CONTEXT_PARAMETER: ClassVar[str] = "flext_cli_context"
+    PARAMETER_SOURCE_DEFAULT: ClassVar[str] = "DEFAULT"
     STDOUT_DESCRIPTOR: ClassVar[int] = 1
     STDERR_DESCRIPTOR: ClassVar[int] = 2
     PROCESS_TIMEOUT_EXIT_CODE: ClassVar[int] = 124
