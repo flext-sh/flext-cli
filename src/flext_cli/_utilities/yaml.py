@@ -26,12 +26,25 @@ class FlextCliUtilitiesYaml(
         """Read a YAML mapping through the strict parser.
 
         Returns:
-            The parsed mapping, or the parser's original failure.
+            The parsed mapping, or the parser's failure prefixed by ``path``.
 
         """
         return FlextCliUtilitiesYaml.yaml_parse(
             path.read_text(encoding=c.DEFAULT_ENCODING)
-        )
+        ).map_error(lambda error: f"{path}: {error}")
+
+    @staticmethod
+    def yaml_load_documents(path: Path) -> p.Result[Sequence[t.JsonMapping]]:
+        """Read every mapping of a strict YAML document stream file.
+
+        Returns:
+            The validated documents in their original order, or the parser's
+            failure prefixed by ``path``.
+
+        """
+        return FlextCliUtilitiesYaml.yaml_parse_documents(
+            path.read_text(encoding=c.DEFAULT_ENCODING)
+        ).map_error(lambda error: f"{path}: {error}")
 
     @staticmethod
     def yaml_parse(text: str) -> p.Result[t.JsonMapping]:

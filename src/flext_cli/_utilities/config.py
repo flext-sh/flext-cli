@@ -29,7 +29,7 @@ class FlextCliUtilitiesConfig:
     """Universal multi-format config load + schema validation (ADR-005)."""
 
     @staticmethod
-    def config_decode[ModelT: p.BaseModel](
+    def config_decode[ModelT: t.BaseModelType](
         data: t.JsonMapping,
         model: type[ModelT],
         *,
