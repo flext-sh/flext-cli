@@ -10,10 +10,8 @@ import platform
 import sys
 from pathlib import Path
 
-import pytest
-
 from flext_cli import config
-from tests import m, p, tm, u
+from tests import c, m, p, tm, u
 
 
 class TestsFlextCliRuntimeProcessIsolation:
@@ -186,7 +184,7 @@ class TestsFlextCliRuntimeProcessIsolation:
         """Native reference imports cannot weaken the external syscall contract."""
         policy = config.ProcessIsolation.denied_syscalls
 
-        with pytest.raises(ValueError, match="denied_syscalls"):
+        with u.Tests.raises(ValueError, match="denied_syscalls"):
             m.Cli.ProcessIsolation.model_validate({
                 "compiler_resource_parts": (
                     config.ProcessIsolation.compiler_resource_parts
@@ -195,8 +193,8 @@ class TestsFlextCliRuntimeProcessIsolation:
             })
 
     @staticmethod
-    @pytest.mark.parametrize("field", ["compiler_resource_parts", "denied_syscalls"])
-    @pytest.mark.parametrize("missing", [False, True])
+    @c.Tests.MARK.parametrize("field", ["compiler_resource_parts", "denied_syscalls"])
+    @c.Tests.MARK.parametrize("missing", [False, True])
     def test_native_policy_requires_nonempty_declared_yaml_fields(
         field: str,
         *,
@@ -209,7 +207,7 @@ class TestsFlextCliRuntimeProcessIsolation:
         else:
             payload[field] = ()
 
-        with pytest.raises(ValueError, match=field):
+        with u.Tests.raises(ValueError, match=field):
             m.Cli.ProcessIsolation.model_validate(payload)
 
     @staticmethod
@@ -242,7 +240,7 @@ class TestsFlextCliRuntimeProcessIsolation:
     @staticmethod
     def test_resource_declaration_refuses_parent_escape() -> None:
         """The source locator must remain inside the selected installed package."""
-        with pytest.raises(ValueError, match="compiler_resource_parts"):
+        with u.Tests.raises(ValueError, match="compiler_resource_parts"):
             m.Cli.ProcessIsolation.model_validate({
                 "compiler_resource_parts": ("..",),
                 "denied_syscalls": config.ProcessIsolation.denied_syscalls,
@@ -255,5 +253,5 @@ class TestsFlextCliRuntimeProcessIsolation:
         payload = isolation.model_dump()
         payload["seccomp_filter"] = isolation.sources[0]
 
-        with pytest.raises(ValueError, match="seccomp_filter"):
+        with u.Tests.raises(ValueError, match="seccomp_filter"):
             m.Cli.ProcessReadOnlyIsolation.model_validate(payload)

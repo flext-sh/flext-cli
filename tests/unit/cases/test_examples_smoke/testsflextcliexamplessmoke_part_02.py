@@ -9,12 +9,11 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING
 
-import pytest
 from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings
 from examples.ex_04_file_operations import ExamplesFlextCliFileOperations
 
 from flext_cli import cli, settings
-from tests import c, p, tm
+from tests import c, p, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -23,7 +22,7 @@ if TYPE_CHECKING:
 class TestsFlextCliExamplesSmokePart02:
     """Implementation part for TestsFlextCliExamplesSmokePart02."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def restore_token_file() -> Iterator[None]:
         """Restore the canonical token file setting after an example mutates it."""
@@ -85,7 +84,7 @@ class TestsFlextCliExamplesSmokePart02:
         tm.fail(incomplete_import)
 
     @staticmethod
-    @pytest.mark.usefixtures("restore_token_file")
+    @c.Tests.MARK.usefixtures("restore_token_file")
     def test_authentication_and_settings_examples(tmp_path: Path) -> None:
         """Auth and settings examples must work through settings and cli auth APIs."""
         settings.cli_token_file = str(tmp_path / "auth_token.json")

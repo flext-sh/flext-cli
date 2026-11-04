@@ -24,8 +24,6 @@ from collections.abc import Mapping, MutableMapping, Sequence
 from types import MappingProxyType
 from typing import Annotated, ClassVar
 
-import pytest
-
 from flext_cli import cli
 from tests import c, m, p, t, tm, u
 
@@ -272,7 +270,7 @@ class TestsFlextCliOptionsUtilsCov:
 
     def test_invalid_structured_default_keeps_field_validation_failure(self) -> None:
         """Default rendering cannot bypass the declared minimum mapping length."""
-        with pytest.raises(m.ValidationError, match="at least 1 item"):
+        with u.Tests.raises(m.ValidationError, match="at least 1 item"):
             cli.model_command(self.InvalidMappingDefaultModel, self._noop_handler)
 
     def test_model_command_uses_field_alias_as_option_name(self) -> None:
@@ -281,14 +279,14 @@ class TestsFlextCliOptionsUtilsCov:
         tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received[0].project_name, eq="p1")
 
-    @pytest.mark.parametrize("option", ["--custom-name", "--projects"])
+    @c.Tests.MARK.parametrize("option", ["--custom-name", "--projects"])
     def test_model_command_honors_custom_param_decls(self, option: str) -> None:
         """Every custom declaration is accepted as the field's option."""
         invocation, received = self._run(self.CustomDeclModel, [option, "v"])
         tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received[0].custom_name, eq="v")
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("option", "expected"),
         [("--debug", True), ("--no-debug", False)],
     )
@@ -303,7 +301,7 @@ class TestsFlextCliOptionsUtilsCov:
         tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received[0].debug, eq=expected)
 
-    @pytest.mark.parametrize(("args", "expected"), _INVOCATION_CASES)
+    @c.Tests.MARK.parametrize(("args", "expected"), _INVOCATION_CASES)
     def test_model_command_parses_values_for_each_annotation(
         self,
         args: Sequence[str],
@@ -322,13 +320,13 @@ class TestsFlextCliOptionsUtilsCov:
 
     def test_model_command_rejects_default_without_cli_form_at_build(self) -> None:
         """A validated default no option can carry fails the build, naming it."""
-        with pytest.raises(TypeError, match="counts"):
+        with u.Tests.raises(TypeError, match="counts"):
             cli.model_command(self.IntSequenceDefaultModel, self._noop_handler)
 
     def test_model_command_propagates_invalid_default_source_at_build(self) -> None:
         """A settings value outside the default-source contract escapes unchanged."""
         settings = self.NestedListSettings()
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             cli.model_command(
                 self.StrSequenceDefaultModel,
                 self._noop_handler,
@@ -386,7 +384,7 @@ class TestsFlextCliOptionsUtilsCov:
     def test_invoking_command_rejects_missing_required_field(self) -> None:
         """Verify that invoking command rejects missing required field."""
         command = cli.model_command(self.GreetModel, self._noop_handler)
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             command(shout=True)
 
     def test_invoking_command_uses_parsed_values_without_mutating_settings(

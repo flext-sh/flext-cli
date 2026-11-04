@@ -12,7 +12,7 @@ from pathlib import Path
 
 from flext_tests import tm
 
-from tests import t, u
+from tests import c, t, u
 
 
 class TestsFlextCliAtomicGuardedConsumer:

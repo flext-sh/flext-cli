@@ -14,8 +14,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-import pytest
-
 from tests import c, tm, u
 
 
@@ -25,7 +23,7 @@ class TestsFlextCliMatchingCov:
     # ── matches: case-table contract ─────────────────────────────────
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("msg", "patterns", "expected"),
         c.Tests.MATCH_SIMPLE_CASES,
     )
@@ -131,7 +129,7 @@ class TestsFlextCliMatchingCov:
     # ── cli_usage_error: classifier contract ─────────────────────────
 
     @staticmethod
-    @pytest.mark.parametrize(("msg", "expected"), c.Tests.CLI_USAGE_ERROR_MATCH_CASES)
+    @c.Tests.MARK.parametrize(("msg", "expected"), c.Tests.CLI_USAGE_ERROR_MATCH_CASES)
     def test_cli_usage_error_classifies_case_table(
         msg: str,
         *,

@@ -8,8 +8,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pytest
-
 from tests import c, p, tm
 
 if TYPE_CHECKING:
@@ -84,7 +82,7 @@ class TestsFlextCliPromptsPart01:
         tm.ok(retry_result.value)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("error", "expected"),
         [
             (KeyboardInterrupt(), c.Cli.ERR_USER_CANCELLED_CONFIRMATION),

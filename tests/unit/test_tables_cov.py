@@ -10,8 +10,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
 from tests import c, m, t, tm, u
 
 
@@ -166,7 +164,7 @@ class TestsFlextCliTables:
         tm.that(result.unwrap(), is_=str)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "table_format",
         [
             c.Cli.TabularFormat.PLAIN,

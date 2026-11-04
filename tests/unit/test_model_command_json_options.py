@@ -14,8 +14,6 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
-import pytest
-
 from flext_cli import cli
 from tests import c, m, p, t, tm, u
 
@@ -31,8 +29,8 @@ class TestsFlextCliModelCommandJsonOptions:
     class NestedModel(m.BaseModel):
         """Request carrying a nested model and a sequence of nested models."""
 
-        prefs: p.Tests.UserPreferences
-        others: list[p.Tests.UserPreferences] = m.Field(
+        prefs: m.Tests.UserPreferences
+        others: list[m.Tests.UserPreferences] = m.Field(
             default_factory=list,
         )
 
@@ -43,7 +41,7 @@ class TestsFlextCliModelCommandJsonOptions:
             default_factory=lambda: {"seed": 1},
             description="Label weights.",
         )
-        prefs: p.Tests.UserPreferences = m.Field(
+        prefs: m.Tests.UserPreferences = m.Field(
             default_factory=lambda: m.Tests.UserPreferences(
                 theme="light",
                 notifications=False,
@@ -149,7 +147,7 @@ class TestsFlextCliModelCommandJsonOptions:
         tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[settings])
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("raw", "error_type"),
         [("{not json", "json_invalid"), ('{"alpha": "one"}', "int_parsing")],
     )

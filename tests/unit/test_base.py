@@ -17,8 +17,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from flext_cli import FlextCli, cli, settings
 from tests import c, p, tm, u
 
@@ -26,7 +24,7 @@ from tests import c, p, tm, u
 class TestsFlextCliBase:
     """Verify base-service public guarantees through the CLI facade."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def facade() -> FlextCli:
         """Return a fresh instance of the public CLI facade type.

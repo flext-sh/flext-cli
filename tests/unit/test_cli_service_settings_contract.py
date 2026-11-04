@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections.abc import MutableSequence, Sequence
 from io import StringIO
 
-import pytest
 from flext_core import FlextContext
 from structlog.contextvars import bound_contextvars
 
@@ -17,7 +16,7 @@ from flext_cli import FlextCli, settings
 from tests import c, m, p, r, t, tm, u
 
 
-@pytest.mark.usefixtures("preserve_logging")
+@c.Tests.MARK.usefixtures("preserve_logging")
 class TestsFlextCliServiceSettingsContract:
     """A real CLI elects its injected Core policy without losing DI bindings."""
 
@@ -211,11 +210,11 @@ class TestsFlextCliServiceSettingsContract:
     @staticmethod
     def test_public_constructor_rejects_nonconforming_logging_port() -> None:
         """The model-owned native collaborator is validated at the API boundary."""
-        with pytest.raises(c.ValidationError):
+        with u.Tests.raises(c.ValidationError):
             _ = FlextCli.model_validate({"logging_options": "not a logging port"})
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("flags", "initial_level", "expected_level", "trace"),
         [
             (["--debug"], c.LogLevel.WARNING, c.LogLevel.DEBUG, False),
@@ -233,7 +232,7 @@ class TestsFlextCliServiceSettingsContract:
         flags: Sequence[str],
         initial_level: t.LogLevel,
         expected_level: t.LogLevel,
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         *,
         trace: bool,
     ) -> None:
@@ -256,7 +255,7 @@ class TestsFlextCliServiceSettingsContract:
             runtime_settings=service.settings,
         )
         original_cause = ValueError("original CLI cause")
-        with pytest.raises(ValueError, match="original CLI cause") as caught:
+        with u.Tests.raises(ValueError, match="original CLI cause") as caught:
             raise original_cause
         failed = r[t.JsonPayload].fail(
             "cli-original-failure",
@@ -310,7 +309,7 @@ class TestsFlextCliServiceSettingsContract:
 
     @staticmethod
     def test_invalid_level_leaves_settings_and_business_effects_unchanged(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Rejected policy never rebinds DI or reaches the application command."""
         service = FlextCli.with_settings(settings.clone())
@@ -346,11 +345,11 @@ class TestsFlextCliServiceSettingsContract:
         tm.that(captured.err, has="INVALID")
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "output_format",
         [c.Cli.OutputFormats.JSON, c.Cli.OutputFormats.TABLE],
     )
-    @pytest.mark.parametrize("profile", ["console", "json"])
+    @c.Tests.MARK.parametrize("profile", ["console", "json"])
     def test_result_stdout_remains_clean_with_selected_diagnostic_profile(
         output_format: c.Cli.OutputFormats,
         profile: str,

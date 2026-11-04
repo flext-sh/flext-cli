@@ -15,9 +15,7 @@ from collections import UserList
 from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, override
 
-import pytest
-
-from tests import m, p, tm, u
+from tests import c, m, p, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -225,7 +223,7 @@ class TestsFlextCliRuntimeProcessContainment:
         _assert_owned_descendant_stopped(process_info, survivor_probe, survivor_ack)
 
     @staticmethod
-    @pytest.mark.parametrize("signal_number", [signal.SIGINT, signal.SIGTERM])
+    @c.Tests.MARK.parametrize("signal_number", [signal.SIGINT, signal.SIGTERM])
     def test_manual_signal_is_forwarded_without_exit_normalization(
         tmp_path: Path,
         signal_number: signal.Signals,

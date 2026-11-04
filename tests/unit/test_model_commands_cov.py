@@ -12,10 +12,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
 from flext_cli import cli
-from tests import c, m, p, tm
+from tests import c, m, p, tm, u
 
 # NOTE (multi-agent, mro-wkii.17 / agent: make_ssot_audit): model-command
 # coverage consumes the owning field-only test models directly.
@@ -32,7 +30,7 @@ class TestsFlextCliModelCommandsCov:
             lambda model: model.value,
         )
 
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             command(name="invalid", value="not-an-int")
 
     # ---- model_command --------------------------------------------------
@@ -86,7 +84,7 @@ class TestsFlextCliModelCommandsCov:
 
         cmd = cli.model_command(m.Tests.ModelCommandRequired, handler)
 
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             cmd()
 
     @staticmethod

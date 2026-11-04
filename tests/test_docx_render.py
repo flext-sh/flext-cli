@@ -9,7 +9,6 @@ from __future__ import annotations
 from io import BytesIO
 from typing import cast
 
-import pytest
 from docx import Document
 
 from tests import c, m, p, tm, u
@@ -94,7 +93,7 @@ class TestsFlextCliDocxRender:
         tm.that(str(run.font.color.rgb), eq="FF0000")
 
     @staticmethod
-    @pytest.mark.parametrize("state", [True, False, None])
+    @c.Tests.MARK.parametrize("state", [True, False, None])
     def test_docx_nullable_formatting_matches_real_consumer(
         *, state: bool | None
     ) -> None:

@@ -15,8 +15,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
 from flext_cli import FlextCliSettings, settings
 from tests import c, p, t, tm, u
 
@@ -44,7 +42,7 @@ class TestsFlextCliSettingsUnit:
         )
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("field_name", "expected"),
         [
             ("cli_verbose", False),
@@ -75,7 +73,7 @@ class TestsFlextCliSettingsUnit:
         )
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("pytest_current_test", "shell_command", "ci", "expected"),
         [
             (None, None, False, False),
@@ -103,14 +101,14 @@ class TestsFlextCliSettingsUnit:
         tm.that(u.Cli.cli_test_env(built), eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize("level", list(c.LogLevel))
+    @c.Tests.MARK.parametrize("level", list(c.LogLevel))
     def test_inherited_log_level_preserves_each_level(level: c.LogLevel) -> None:
         """Every level round-trips through the inherited Core setting."""
         built = settings.clone(log_level=level.value)
         tm.that(built.log_level, eq=level.value)
 
     @staticmethod
-    @pytest.mark.parametrize("verbosity", list(c.Cli.LogVerbosity))
+    @c.Tests.MARK.parametrize("verbosity", list(c.Cli.LogVerbosity))
     def test_log_verbosity_preserves_each_mode(
         verbosity: c.Cli.LogVerbosity,
     ) -> None:

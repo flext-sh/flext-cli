@@ -16,8 +16,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from tests import c, t, tm, u
 
 
@@ -30,7 +28,7 @@ class TestsFlextCliAuthUtilsCov:
     def _canonical_default() -> Path:
         return Path.home() / ".flext" / "auth_token.json"
 
-    @pytest.mark.parametrize("token_file", [None, "", "   ", "\t\n"])
+    @c.Tests.MARK.parametrize("token_file", [None, "", "   ", "\t\n"])
     def test_token_file_path_defaults_to_canonical_when_blank(
         self,
         token_file: str | None,
@@ -43,7 +41,7 @@ class TestsFlextCliAuthUtilsCov:
         tm.that(path, eq=self._canonical_default())
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "token_file",
         [
             str(Path.home() / "my_token.json"),
@@ -70,7 +68,7 @@ class TestsFlextCliAuthUtilsCov:
     # ── auth_validate_credentials ─────────────────────────────────────
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("username", "password", "expect_ok"),
         c.Tests.AUTH_CRED_CASES,
     )
@@ -123,7 +121,7 @@ class TestsFlextCliAuthUtilsCov:
         tm.that(result.unwrap(), eq=token)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "payload",
         [{c.ContextScope.USER: "admin"}, {c.Cli.DICT_KEY_LOGIN_FIELD: ""}],
     )
@@ -140,7 +138,9 @@ class TestsFlextCliAuthUtilsCov:
         tm.that(tm.not_none(result.error).lower(), has="token")
 
     @staticmethod
-    @pytest.mark.parametrize("payload", ["not-a-mapping", ["token", "value"], 42, None])
+    @c.Tests.MARK.parametrize(
+        "payload", ["not-a-mapping", ["token", "value"], 42, None]
+    )
     def test_extract_token_rejects_non_mapping_payload(
         payload: t.JsonValue,
     ) -> None:

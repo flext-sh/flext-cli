@@ -18,7 +18,6 @@ from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
 
-import pytest
 from tomlkit.exceptions import ParseError
 
 from tests import c, m, t, tm, u
@@ -47,11 +46,11 @@ class TestsFlextCliUtilitiesToml:
         tm.that(document.as_string(), eq=before)
 
     @staticmethod
-    @pytest.mark.parametrize("source", ['dependencies = "value"\n', "other = []\n"])
+    @c.Tests.MARK.parametrize("source", ['dependencies = "value"\n', "other = []\n"])
     def test_array_item_comments_reject_non_array_fields(source: str) -> None:
         """Missing and scalar fields cannot masquerade as dependency arrays."""
         document = tm.not_none(u.Cli.toml_parse_text(source))
-        with pytest.raises(TypeError, match="must be an array"):
+        with u.Tests.raises(TypeError, match="must be an array"):
             u.Cli.toml_array_item_comments(document, "dependencies")
 
     # ------------------------------------------------------------------ read
@@ -84,13 +83,13 @@ class TestsFlextCliUtilitiesToml:
         toml_file = tmp_path / "invalid.toml"
         toml_file.write_text(c.Tests.TOML_INVALID_CONTENT, encoding="utf-8")
 
-        with pytest.raises(ParseError):
+        with u.Tests.raises(ParseError):
             u.Cli.toml_read(toml_file)
 
     @staticmethod
     def test_read_raises_os_error_for_unreadable_path(tmp_path: Path) -> None:
         """An existing path that cannot be read propagates the native error."""
-        with pytest.raises(IsADirectoryError):
+        with u.Tests.raises(IsADirectoryError):
             u.Cli.toml_read(tmp_path)
 
     @staticmethod
@@ -308,7 +307,7 @@ class TestsFlextCliTomlValues:
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("key", "expected"),
         [("a", 1), ("b", [1, 2]), ("missing", None)],
     )
@@ -385,11 +384,11 @@ class TestsFlextCliTomlValues:
     @staticmethod
     def test_native_item_rejects_null() -> None:
         """A null cannot silently disappear from native TOML output."""
-        with pytest.raises(TypeError, match="TOML does not support null values"):
+        with u.Tests.raises(TypeError, match="TOML does not support null values"):
             u.Cli.toml_item_from_json_value(None)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "value", [None, " value ", [" last ", "first"], {"option": None}]
     )
     def test_json_projection_preserves_exact_json_values(value: t.JsonValue) -> None:
@@ -397,7 +396,7 @@ class TestsFlextCliTomlValues:
         tm.that(u.Cli.toml_unwrap_item(value), eq=value)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "value",
         [{"payload": b"value"}, {"stamp": datetime(2026, 1, 1, tzinfo=UTC)}],
     )
@@ -405,12 +404,12 @@ class TestsFlextCliTomlValues:
         value: Mapping[str, t.Scalar],
     ) -> None:
         """Unsupported scalars cannot become strings at the JSON boundary."""
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.Cli.toml_unwrap_item(value)
 
     @staticmethod
     def test_json_projection_rejects_native_toml_datetime() -> None:
         """A native timestamp remains unsupported by the JSON projection."""
         document = tm.not_none(u.Cli.toml_parse_text("stamp = 2026-01-01T00:00:00\n"))
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.Cli.toml_as_mapping(document)

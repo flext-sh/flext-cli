@@ -15,10 +15,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-import pytest
-
 from flext_cli import cli
-from tests import c, tm
+from tests import c, t, tm
 
 
 class TestsFlextCliFormattersCov:
@@ -27,9 +25,9 @@ class TestsFlextCliFormattersCov:
     # ── print: message rendered to stdout ────────────────────────────
 
     @staticmethod
-    @pytest.mark.parametrize(("msg", "style"), c.Tests.FORMATTERS_PRINT_CASES)
+    @c.Tests.MARK.parametrize(("msg", "style"), c.Tests.FORMATTERS_PRINT_CASES)
     def test_print_renders_message_to_stdout(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         msg: str,
         style: str | None,
     ) -> None:
@@ -44,7 +42,7 @@ class TestsFlextCliFormattersCov:
 
     @staticmethod
     def test_public_cli_print_renders_message_to_stdout(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify the canonical public cli.print endpoint."""
         cli.print("public-cli-print")
@@ -54,9 +52,9 @@ class TestsFlextCliFormattersCov:
     # ── render_rule: label rendered to stdout ────────────────────────
 
     @staticmethod
-    @pytest.mark.parametrize("label", c.Tests.FORMATTER_RULE_LABELS)
+    @c.Tests.MARK.parametrize("label", c.Tests.FORMATTER_RULE_LABELS)
     def test_render_rule_renders_label_to_stdout(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         label: str,
     ) -> None:
         """Verify that render rule renders label to stdout."""
@@ -70,9 +68,9 @@ class TestsFlextCliFormattersCov:
     # ── render_panel: content rendered to stdout ─────────────────────
 
     @staticmethod
-    @pytest.mark.parametrize(("content", "title"), c.Tests.FORMATTER_PANEL_CASES)
+    @c.Tests.MARK.parametrize(("content", "title"), c.Tests.FORMATTER_PANEL_CASES)
     def test_render_panel_renders_content_to_stdout(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         content: str,
         title: str,
     ) -> None:
@@ -85,12 +83,12 @@ class TestsFlextCliFormattersCov:
     # ── render_table: columns and cells rendered to stdout ───────────
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("columns", "rows", "title"),
         c.Tests.FORMATTER_TABLE_CASES,
     )
     def test_render_table_renders_columns_and_cells(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         columns: Sequence[str],
         rows: tuple[Sequence[str], ...],
         title: str,

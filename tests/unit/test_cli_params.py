@@ -10,17 +10,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
 from flext_cli import cli
 from tests import c, p, tm, u
 
 
-@pytest.mark.usefixtures("preserve_logging")
+@c.Tests.MARK.usefixtures("preserve_logging")
 class TestsFlextCliCliParams:
     """Behavioral tests for FlextCliCommonParams public contract."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def settings() -> p.Cli.Settings:
         """Fresh CLI settings instance built through the public factory.
@@ -108,7 +106,7 @@ class TestsFlextCliCliParams:
         tm.that(result.exception, is_=c.ValidationError)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("field_name", "expected_fragments"),
         [
             ("log_level", ("invalid", "log")),

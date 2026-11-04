@@ -14,8 +14,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from flext_cli import cli
 from tests import c, m, t, tm, u
 
@@ -103,7 +101,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
     # ------------------------------------------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("kwargs", "match"),
         [
             ({"log_level": "verbose"}, "LOG_LEVEL must be one of"),
@@ -116,11 +114,11 @@ class TestsFlextCliModelsUtilitiesExampleCov:
         match: str,
     ) -> None:
         """Verify that advanced settings rejects invalid field."""
-        with pytest.raises(ValueError, match=match):
+        with u.Tests.raises(ValueError, match=match):
             m.Examples.AppSettingsAdvanced.model_validate(kwargs)
 
     @staticmethod
-    @pytest.mark.parametrize("host", ["127.0.0.1", "localhost", "db.example.com"])
+    @c.Tests.MARK.parametrize("host", ["127.0.0.1", "localhost", "db.example.com"])
     def test_database_config_accepts_valid_host(host: str) -> None:
         """Verify that database config accepts valid host."""
         config = m.Examples.AdvancedDatabaseConfig(
@@ -135,7 +133,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
     @staticmethod
     def test_database_config_rejects_invalid_host() -> None:
         """Verify that database config rejects invalid host."""
-        with pytest.raises(ValueError, match=c.EXAMPLE_ERR_INVALID_HOST):
+        with u.Tests.raises(ValueError, match=c.EXAMPLE_ERR_INVALID_HOST):
             m.Examples.AdvancedDatabaseConfig(
                 host="invalid-host",
                 name="production",
@@ -148,7 +146,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
     # ------------------------------------------------------------------
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("payload", "key", "expected"),
         [
             ({"workers": 4, "enabled": True}, "workers", 4),

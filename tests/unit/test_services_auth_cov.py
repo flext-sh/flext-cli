@@ -15,11 +15,9 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING
 
-import pytest
-
 from flext_cli import settings
 from flext_cli.services import FlextCliAuth
-from tests import c, tm
+from tests import c, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -28,7 +26,7 @@ if TYPE_CHECKING:
 class TestsFlextCliServicesAuthCov:
     """Behavioral tests for the FlextCliAuth authentication service."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def token_file(tmp_path: Path) -> Iterator[Path]:
         """Isolate the auth token file inside the test's tmp dir.
@@ -49,7 +47,7 @@ class TestsFlextCliServicesAuthCov:
         finally:
             settings.cli_token_file = original_token_file
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def auth(token_file: Path) -> FlextCliAuth:
         """Fresh auth service bound to the isolated token file.
@@ -64,7 +62,7 @@ class TestsFlextCliServicesAuthCov:
     # ── validate_credentials ──────────────────────────────────────────
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("username", "password", "expect_ok"),
         c.Tests.AUTH_CRED_CASES,
     )
@@ -85,7 +83,7 @@ class TestsFlextCliServicesAuthCov:
             tm.that(result.error, empty=False)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("username", "password", "message_fragment"),
         [
             ("", "secret", "Username"),
@@ -130,7 +128,7 @@ class TestsFlextCliServicesAuthCov:
         tm.that(auth.fetch_auth_token().value, eq="second-token")
 
     @staticmethod
-    @pytest.mark.parametrize("token", ["", "   ", "\t\n"])
+    @c.Tests.MARK.parametrize("token", ["", "   ", "\t\n"])
     def test_save_auth_token_rejects_blank_token(
         auth: FlextCliAuth,
         token: str,
@@ -199,7 +197,7 @@ class TestsFlextCliServicesAuthCov:
         tm.that(auth.fetch_auth_token().value, eq=generated)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "credentials",
         [
             {},

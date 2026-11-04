@@ -12,8 +12,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pytest
-
 from tests import c, m, tm, u
 
 if TYPE_CHECKING:
@@ -24,7 +22,7 @@ class TestsFlextCliUtilitiesRuntimeExtra:
     """Public-contract behavior for ``u.Cli`` runtime helpers and output model."""
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("stdout", "stderr", "exit_code"),
         [
             ("out", "err", 0),
@@ -71,7 +69,7 @@ class TestsFlextCliUtilitiesRuntimeExtra:
         tm.ok(result.value)
 
     @staticmethod
-    @pytest.mark.parametrize("exit_code", [1, 2, 42])
+    @c.Tests.MARK.parametrize("exit_code", [1, 2, 42])
     def test_run_checked_fails_with_error_naming_failure(exit_code: int) -> None:
         # Arrange / Act
         """Verify that run checked fails with error naming failure."""

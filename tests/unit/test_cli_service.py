@@ -15,8 +15,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
-
+from tests import c
 from tests.unit.cases.test_cli_service.testsflextcliservice_part_01 import (
     TestsFlextCliServicePart01,
 )
@@ -34,7 +33,7 @@ from tests.unit.cases.test_cli_service.testsflextcliservice_part_05 import (
 )
 
 
-@pytest.mark.usefixtures("preserve_logging")
+@c.Tests.MARK.usefixtures("preserve_logging")
 class TestsFlextCliService(
     TestsFlextCliServicePart01,
     TestsFlextCliServicePart02,

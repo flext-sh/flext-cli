@@ -8,10 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pytest
-
 from flext_cli import cli
-from tests import tm, u
+from tests import c, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -34,7 +32,7 @@ class TestsFlextCliFileDerivedContracts:
         tm.that(u.Cli.sha256_file(path), eq=u.Cli.sha256_content("hello"))
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("filename", "payload"),
         [("data.json", '{"a": 1}'), ("data.yaml", "a: 1\n")],
     )

@@ -17,8 +17,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from enum import StrEnum
 
-import pytest
-
 from tests import c, tm, u
 
 
@@ -26,7 +24,7 @@ class TestsFlextCliConstants:
     """Public-contract behavior of the flext-cli constants facade."""
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "enum_cls",
         [
             c.Cli.MessageTypes,
@@ -56,7 +54,7 @@ class TestsFlextCliConstants:
             tm.that(description, empty=False)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "message_map",
         [c.Cli.MESSAGE_STYLE_MAP, c.Cli.MESSAGE_EMOJI_MAP],
     )
@@ -93,7 +91,7 @@ class TestsFlextCliConstants:
         tm.ok(c.Cli.SYMBOL_SUCCESS_MARK != c.Cli.SYMBOL_FAILURE_MARK)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("message", "expected"),
         [
             ("No such option: --bad", True),

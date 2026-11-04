@@ -9,8 +9,6 @@ from __future__ import annotations
 import stat
 from pathlib import Path
 
-import pytest
-
 from tests import c, tm, u
 
 
@@ -18,7 +16,7 @@ class TestsFlextCliAtomicFileDurability:
     """SCRATCH keeps every publication check while durability stays default."""
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "durability",
         [c.Cli.WriteDurability.DURABLE, c.Cli.WriteDurability.SCRATCH],
     )

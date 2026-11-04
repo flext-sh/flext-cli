@@ -15,10 +15,8 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING
 
-import pytest
-
 from flext_cli import FlextCli, cli, settings
-from tests import c, tm
+from tests import c, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -27,7 +25,7 @@ if TYPE_CHECKING:
 class TestsFlextCliServicesAuth:
     """Public authentication behavior of the FlextCli facade."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def service() -> Iterator[FlextCli]:
         """Fresh facade whose global token_file is restored after each test.
@@ -90,11 +88,11 @@ class TestsFlextCliServicesAuth:
         tm.that(generated, empty=False)
         tm.that(tm.ok(service.fetch_auth_token()), eq=generated)
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "credentials",
         [
-            pytest.param({"unrelated": "value"}, id="unknown-keys"),
-            pytest.param(
+            u.Tests.param({"unrelated": "value"}, id="unknown-keys"),
+            u.Tests.param(
                 {c.Cli.DICT_KEY_LOGIN_FIELD: "tok", "extra": "x"},
                 id="token-plus-unknown-key",
             ),
@@ -118,16 +116,16 @@ class TestsFlextCliServicesAuth:
         tm.fail(result)
         tm.that(result.error, eq=c.Cli.ERR_INVALID_CREDENTIALS)
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("credentials", "missing_field"),
         [
-            pytest.param({}, "username", id="empty-payload"),
-            pytest.param(
+            u.Tests.param({}, "username", id="empty-payload"),
+            u.Tests.param(
                 {c.Cli.DICT_KEY_USERNAME: c.ContextScope.USER},
                 "password",
                 id="username-only",
             ),
-            pytest.param(
+            u.Tests.param(
                 {c.Cli.DICT_KEY_LOGIN_VALUE: "s" + c.ParserBooleanToken.ZERO * 9},
                 "username",
                 id="secret-only",
@@ -153,14 +151,14 @@ class TestsFlextCliServicesAuth:
         tm.that((result.error or "").lower(), has=missing_field)
         tm.that((result.error or "").lower(), has="empty")
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "credentials",
         [
-            pytest.param(
+            u.Tests.param(
                 {c.Cli.DICT_KEY_LOGIN_FIELD: "t" + c.ParserBooleanToken.ZERO * 9},
                 id="token",
             ),
-            pytest.param(
+            u.Tests.param(
                 {
                     c.Cli.DICT_KEY_USERNAME: c.ContextScope.USER,
                     c.Cli.DICT_KEY_LOGIN_VALUE: "s" + c.ParserBooleanToken.ZERO * 9,

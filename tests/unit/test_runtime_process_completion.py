@@ -17,7 +17,7 @@ from types import FrameType
 
 import pytest
 
-from tests import tm, u
+from tests import c, tm, u
 
 
 class TestsFlextCliRuntimeProcessCompletion:
@@ -43,8 +43,8 @@ class TestsFlextCliRuntimeProcessCompletion:
         tm.that((tmp_path / "completion.log").read_text(), eq="complete\n")
 
     @staticmethod
-    @pytest.mark.skipif(os.name == "nt", reason="Requires native POSIX user signals")
-    @pytest.mark.parametrize("durable", [False, True])
+    @c.Tests.MARK.skipif(os.name == "nt", reason="Requires native POSIX user signals")
+    @c.Tests.MARK.parametrize("durable", [False, True])
     def test_cancellation_reaps_owned_children_and_preserves_cleanup_notes(
         tmp_path: Path, *, durable: bool
     ) -> None:
@@ -79,7 +79,7 @@ class TestsFlextCliRuntimeProcessCompletion:
         threads = tuple(threading.enumerate())
         previous = signal.signal(signal.SIGUSR1, interrupt)
         try:
-            with pytest.raises(
+            with u.Tests.raises(
                 pytest.fail.Exception, match="original process"
             ) as raised:
                 u.Cli.run_to_file(command, os.devnull) if durable else u.Cli.run_bytes(
@@ -107,9 +107,9 @@ class TestsFlextCliRuntimeProcessCompletion:
         tm.that(root_pid, eq=group)
         tm.that(group, ne=os.getpgrp())
         for pid in (root_pid, child_pid):
-            with pytest.raises(ProcessLookupError):
+            with u.Tests.raises(ProcessLookupError):
                 os.kill(pid, 0)
-        with pytest.raises(ProcessLookupError):
+        with u.Tests.raises(ProcessLookupError):
             os.killpg(group, 0)
         tm.that(tuple(threading.enumerate()), eq=threads)
         tm.that(

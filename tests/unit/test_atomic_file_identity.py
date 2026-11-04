@@ -42,7 +42,7 @@ class TestsFlextCliAtomicFileIdentity:
             tm.that(reader.read_range(len(payload) - 17, 17), eq=payload[-17:])
 
     @staticmethod
-    @pytest.mark.parametrize("mutation", ["destination", "staged", "digest"])
+    @c.Tests.MARK.parametrize("mutation", ["destination", "staged", "digest"])
     def test_receipt_publication_refuses_drift_before_replacement(
         tmp_path: Path, mutation: str
     ) -> None:
@@ -130,7 +130,7 @@ class TestsFlextCliAtomicFileIdentity:
         )
 
     @staticmethod
-    @pytest.mark.parametrize("mutation", ["content", "identity"])
+    @c.Tests.MARK.parametrize("mutation", ["content", "identity"])
     def test_receipt_reader_rejects_change_during_consumption(
         tmp_path: Path, mutation: str
     ) -> None:
@@ -151,7 +151,7 @@ class TestsFlextCliAtomicFileIdentity:
                     replacement.write_bytes(payload)
                     replacement.replace(path)
 
-        with pytest.raises(OSError, match="changed"):
+        with u.Tests.raises(OSError, match="changed"):
             mutate_during_consumption()
 
     @staticmethod
@@ -173,7 +173,7 @@ class TestsFlextCliAtomicFileIdentity:
         )
 
     @staticmethod
-    @pytest.mark.parametrize("mutation", ["content", "identity"])
+    @c.Tests.MARK.parametrize("mutation", ["content", "identity"])
     def test_authenticated_stream_rejects_change_during_consumption(
         tmp_path: Path, mutation: str
     ) -> None:
@@ -188,26 +188,26 @@ class TestsFlextCliAtomicFileIdentity:
             replacement = tmp_path / "replacement.bin"
             replacement.write_bytes(b"another inode")
             replacement.replace(path)
-        with pytest.raises(OSError, match="changed"):
+        with u.Tests.raises(OSError, match="changed"):
             tuple(stream)
 
     @staticmethod
     def test_authenticated_stream_rejects_absence_and_symlink(tmp_path: Path) -> None:
         """Required streamed input cannot be missing or alias a foreign leaf."""
         path = tmp_path / "stream.bin"
-        with pytest.raises(FileNotFoundError):
+        with u.Tests.raises(FileNotFoundError):
             tuple(u.Cli.atomic_iter_binary_file(path))
         target = tmp_path / "target.bin"
         target.write_bytes(b"foreign input")
         path.symlink_to(target)
-        with pytest.raises(OSError, match="not a regular file") as rejected:
+        with u.Tests.raises(OSError, match="not a regular file") as rejected:
             tuple(u.Cli.atomic_iter_binary_file(path))
         tm.that(rejected.value.errno, eq=errno.EINVAL)
         tm.ok(path.is_symlink())
         tm.that(target.read_bytes(), eq=b"foreign input")
 
     @staticmethod
-    @pytest.mark.parametrize(c.ContextScope.OPERATION, ["write", "delete"])
+    @c.Tests.MARK.parametrize(c.ContextScope.OPERATION, ["write", "delete"])
     def test_guarded_symlink_failure_preserves_original_exception(
         tmp_path: Path,
         operation: str,
@@ -242,7 +242,7 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(target.read_bytes(), eq=original)
         tm.that(target.stat().st_mtime_ns, eq=modified_ns)
         tm.that(result.exception, is_=OSError)
-        with pytest.raises(OSError, match="not a regular file") as raised:
+        with u.Tests.raises(OSError, match="not a regular file") as raised:
             result.unwrap()
         tm.ok(raised.value is result.exception)
 

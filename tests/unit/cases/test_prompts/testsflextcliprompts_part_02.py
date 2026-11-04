@@ -9,8 +9,6 @@ from __future__ import annotations
 import time
 from typing import TYPE_CHECKING
 
-import pytest
-
 from tests import c, p, tm
 
 if TYPE_CHECKING:
@@ -21,7 +19,7 @@ class TestsFlextCliPromptsPart02:
     """Implementation part for TestsFlextCliPromptsPart02."""
 
     @staticmethod
-    @pytest.mark.parametrize("message", c.Tests.PROMPT_EDGE_MESSAGES)
+    @c.Tests.MARK.parametrize("message", c.Tests.PROMPT_EDGE_MESSAGES)
     def test_prompt_accepts_edge_case_messages(
         make_prompts: Callable[..., p.Tests.Prompts],
         message: str,

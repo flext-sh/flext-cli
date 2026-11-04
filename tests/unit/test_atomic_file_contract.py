@@ -12,16 +12,14 @@ import sys
 import tempfile
 from pathlib import Path
 
-import pytest
-
-from tests import tm, u
+from tests import c, tm, u
 
 
 class TestsFlextCliAtomicFileContract:
     """Observable atomic-write behavior shared by text and binary APIs."""
 
     @staticmethod
-    @pytest.mark.parametrize("content", [b"", bytes(range(256))])
+    @c.Tests.MARK.parametrize("content", [b"", bytes(range(256))])
     def test_binary_snapshot_json_roundtrip_preserves_exact_state(
         tmp_path: Path, content: bytes
     ) -> None:
@@ -37,7 +35,7 @@ class TestsFlextCliAtomicFileContract:
         tm.ok(u.Cli.atomic_verify_binary_file_states((restored,)))
 
     @staticmethod
-    @pytest.mark.parametrize("change", ["content", "remove", "create"])
+    @c.Tests.MARK.parametrize("change", ["content", "remove", "create"])
     def test_binary_snapshot_rejects_changed_physical_source(
         tmp_path: Path, change: str
     ) -> None:
@@ -57,8 +55,8 @@ class TestsFlextCliAtomicFileContract:
         )
 
     @staticmethod
-    @pytest.mark.parametrize("suffix", [".py", ".pyi"])
-    @pytest.mark.parametrize("change", ["content", "remove", "create"])
+    @c.Tests.MARK.parametrize("suffix", [".py", ".pyi"])
+    @c.Tests.MARK.parametrize("change", ["content", "remove", "create"])
     def test_source_snapshot_failure_reports_exact_nonsecret_bytes(
         tmp_path: Path, suffix: str, change: str
     ) -> None:
@@ -97,7 +95,7 @@ class TestsFlextCliAtomicFileContract:
         tm.fail("change\\n" in (result.error or ""))
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("name", "attested"),
         [("credentials.env", False), ("credentials.env", True), ("source.py", False)],
     )
@@ -175,7 +173,7 @@ class TestsFlextCliAtomicFileContract:
         tm.that(stat.S_IMODE(path.stat().st_mode), eq=expected_mode)
 
     @staticmethod
-    @pytest.mark.parametrize("requested_mode", [0o640, 0o750])
+    @c.Tests.MARK.parametrize("requested_mode", [0o640, 0o750])
     def test_text_write_preserves_host_permission_mode(
         tmp_path: Path,
         requested_mode: int,
@@ -204,7 +202,7 @@ class TestsFlextCliAtomicFileContract:
         tm.that(path.read_bytes(), eq=b"after")
         tm.that(stat.S_IMODE(path.stat().st_mode), eq=expected_mode)
 
-    @pytest.mark.parametrize("link_kind", ["symbolic"])
+    @c.Tests.MARK.parametrize("link_kind", ["symbolic"])
     def test_unconditional_write_rejects_linked_destination(
         self,
         tmp_path: Path,
@@ -223,7 +221,7 @@ class TestsFlextCliAtomicFileContract:
         tm.that(owner.lstat().st_ino, eq=owner_inode)
         tm.that(destination.lstat().st_ino, eq=destination_inode)
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("link_kind", "error_fragment"),
         [("symbolic", "not a regular file")],
     )
@@ -384,7 +382,7 @@ raise SystemExit(2)
         tm.that(len(tuple(tmp_path.iterdir())), eq=int(completed.value.stdout.strip()))
 
     @staticmethod
-    @pytest.mark.parametrize("phase", ["before-registration", "authenticated"])
+    @c.Tests.MARK.parametrize("phase", ["before-registration", "authenticated"])
     def test_interrupt_cleanup_requires_captured_inode_identity(
         tmp_path: Path,
         phase: str,

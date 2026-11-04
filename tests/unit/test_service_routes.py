@@ -12,13 +12,11 @@ from __future__ import annotations
 
 from typing import override
 
-import pytest
-
 from flext_cli import cli
 from tests import c, h, m, p, r, s, t, tm, u
 
 
-@pytest.mark.usefixtures("preserve_logging")
+@c.Tests.MARK.usefixtures("preserve_logging")
 class TestsFlextCliServiceRoutes:
     """Behavioral contract of service-derived CLI routes."""
 
@@ -109,11 +107,11 @@ class TestsFlextCliServiceRoutes:
         tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="hello ana hello ana")
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "provider_available",
         [
-            pytest.param(True, id="configured-provider"),
-            pytest.param(False, id="unavailable-provider-never-constructed"),
+            u.Tests.param(True, id="configured-provider"),
+            u.Tests.param(False, id="unavailable-provider-never-constructed"),
         ],
     )
     def test_invalid_input_exits_non_zero_with_validation_cause(
@@ -245,7 +243,7 @@ class TestsFlextCliServiceRoutes:
         tm.ok(result.exception is cause)
 
     @staticmethod
-    @pytest.mark.parametrize("origin", ["handler", "formatter"])
+    @c.Tests.MARK.parametrize("origin", ["handler", "formatter"])
     def test_result_route_leaves_native_exceptions_unchanged(origin: str) -> None:
         """Neither execution nor output formatting normalizes the first cause."""
         cause = ValueError(f"{origin} rejected execution")
@@ -268,14 +266,14 @@ class TestsFlextCliServiceRoutes:
             success_formatter=render,
         )
 
-        with pytest.raises(
+        with u.Tests.raises(
             ValueError, match=f"^{origin} rejected execution$"
         ) as captured:
             route.handler(m.Tests.ServiceGreeting(name="ana"))
 
         tm.ok(captured.value is cause)
 
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "args",
         [["--help"], ["greet-all", "--help"], ["report", "--help"]],
     )
@@ -292,7 +290,7 @@ class TestsFlextCliServiceRoutes:
         """Executing a command builds the service through the provider."""
         app = self._app(self._unconfigured)
 
-        with pytest.raises(RuntimeError, match="not configured"):
+        with u.Tests.raises(RuntimeError, match="not configured"):
             cli.execute_app(app, prog_name="greeter", args=["report"])
 
     @staticmethod
@@ -302,5 +300,5 @@ class TestsFlextCliServiceRoutes:
         class Hidden(m.BaseModel):
             token: str = m.Field(exclude=True)
 
-        with pytest.raises(TypeError, match="token"):
+        with u.Tests.raises(TypeError, match="token"):
             cli.model_command(Hidden, lambda _params: True)

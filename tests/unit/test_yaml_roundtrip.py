@@ -16,7 +16,6 @@ from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, cast
 
-import pytest
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from tests import c, t, tm, u
@@ -51,7 +50,7 @@ class TestsFlextCliYamlRoundtripLoad:
         )
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "suffix",
         ["id: second\nid: contradictory\n", "items: [\n"],
     )
@@ -133,7 +132,7 @@ class TestsFlextCliYamlRoundtripLoad:
         tm.that(result.error, none=False)
 
     @staticmethod
-    @pytest.mark.slow
+    @c.Tests.MARK.slow
     def test_roundtrip_load_text_is_thread_safe() -> None:
         """Verify that roundtrip load text is thread safe."""
         documents = [
@@ -262,7 +261,7 @@ class TestsFlextCliYamlScalars:
 
         tm.that(plain_int, eq=3)
         tm.ok(type(plain_int) is int)
-        tm.ok(plain_float == pytest.approx(1.5))
+        tm.ok(plain_float == u.Tests.approx(1.5))
         tm.ok(plain_bool)
 
 

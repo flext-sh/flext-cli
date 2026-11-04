@@ -9,9 +9,7 @@ from __future__ import annotations
 import stat
 from pathlib import Path
 
-import pytest
-
-from tests import m, tm, u
+from tests import c, m, tm, u
 
 
 class TestsFlextCliAtomicDirectoryIdentity:
@@ -111,7 +109,7 @@ class TestsFlextCliAtomicDirectoryIdentity:
         tm.ok(old.is_dir())
 
     @staticmethod
-    @pytest.mark.parametrize("entry_kind", ["file", "directory"])
+    @c.Tests.MARK.parametrize("entry_kind", ["file", "directory"])
     def test_late_content_prevents_delete(
         tmp_path: Path,
         entry_kind: str,
@@ -164,7 +162,7 @@ class TestsFlextCliAtomicDirectoryIdentity:
     def test_state_model_rejects_reparse_identity(tmp_path: Path) -> None:
         """Keep a nonzero host reparse tag outside the public CAS contract."""
         parent_state = tmp_path.lstat()
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             m.Cli.AtomicDirectoryState(
                 path=tmp_path / "reparse",
                 exists=True,

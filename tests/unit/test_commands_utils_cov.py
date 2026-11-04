@@ -21,19 +21,17 @@ from __future__ import annotations
 from collections.abc import Iterator, MutableSequence
 from io import StringIO
 
-import pytest
-
 from tests import c, m, p, r, t, tm, u
 
 
-@pytest.mark.usefixtures("synchronous_logging")
+@c.Tests.MARK.usefixtures("synchronous_logging")
 class TestsFlextCliCommands:
     """Behavioral contract for the ``u.Cli`` command messaging helpers."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def synchronous_logging(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> Iterator[None]:
         """Restore the elected provider and composition after each test."""
         original_settings = u.logging_settings()
@@ -70,29 +68,29 @@ class TestsFlextCliCommands:
         tm.that(resolved, eq="14")
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("result_value", "expected"),
         [
-            pytest.param("direct", "direct", id="string-value-returned"),
-            pytest.param(
+            u.Tests.param("direct", "direct", id="string-value-returned"),
+            u.Tests.param(
                 {c.Cli.DICT_KEY_MESSAGE: "mapped"},
                 "mapped",
                 id="mapping-message-key",
             ),
-            pytest.param(False, "fallback", id="bool-falls-back"),
-            pytest.param("", "fallback", id="empty-string-falls-back"),
-            pytest.param(
+            u.Tests.param(False, "fallback", id="bool-falls-back"),
+            u.Tests.param("", "fallback", id="empty-string-falls-back"),
+            u.Tests.param(
                 {c.Cli.DICT_KEY_MESSAGE: ""},
                 "fallback",
                 id="empty-mapping-message-falls-back",
             ),
-            pytest.param(
+            u.Tests.param(
                 {"other": "x"},
                 "fallback",
                 id="mapping-without-message-key-falls-back",
             ),
-            pytest.param([1, 2, 3], "fallback", id="list-falls-back"),
-            pytest.param(0, "fallback", id="zero-falls-back"),
+            u.Tests.param([1, 2, 3], "fallback", id="list-falls-back"),
+            u.Tests.param(0, "fallback", id="zero-falls-back"),
         ],
     )
     def test_resolve_without_formatter_follows_value_then_fallback_order(
@@ -124,17 +122,17 @@ class TestsFlextCliCommands:
         tm.that(resolved, none=True)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "payload",
         [
-            pytest.param('{"ok": true}', id="json-object"),
-            pytest.param("[1, 2, 3]", id="json-array"),
-            pytest.param('   {"spaced": 1}', id="leading-whitespace-json"),
+            u.Tests.param('{"ok": true}', id="json-object"),
+            u.Tests.param("[1, 2, 3]", id="json-array"),
+            u.Tests.param('   {"spaced": 1}', id="leading-whitespace-json"),
         ],
     )
     def test_structured_payload_is_emitted_verbatim_with_newline(
         payload: str,
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that structured payload is emitted verbatim with newline."""
@@ -145,7 +143,7 @@ class TestsFlextCliCommands:
 
     @staticmethod
     def test_plain_success_text_is_styled_and_newline_terminated(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that plain success text is styled and newline terminated."""
@@ -159,7 +157,7 @@ class TestsFlextCliCommands:
 
     @staticmethod
     def test_error_message_is_styled_and_newline_terminated(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that error message is styled and newline terminated."""
@@ -175,7 +173,7 @@ class TestsFlextCliCommands:
 
     @staticmethod
     def test_error_message_surfaces_code_without_traceback_in_normal_mode(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         # Act
         """Verify that error message surfaces code without traceback in normal mode."""
@@ -196,19 +194,19 @@ class TestsFlextCliCommands:
         tm.that(captured.out, eq="")
 
     @staticmethod
-    @pytest.mark.parametrize("trace", [False, True])
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize("trace", [False, True])
+    @c.Tests.MARK.parametrize(
         "exception",
         [FileNotFoundError("missing source.py"), KeyboardInterrupt("cancelled")],
     )
     def test_error_message_uses_core_detail_and_original_cause(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         exception: BaseException,
         *,
         trace: bool,
     ) -> None:
         """Core renders detail once and observers receive the original cause."""
-        with pytest.raises(type(exception)) as caught:
+        with u.Tests.raises(type(exception)) as caught:
             raise exception
         original_exception = caught.value
         native_stream = StringIO()

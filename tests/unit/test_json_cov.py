@@ -9,8 +9,6 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-import pytest
-
 from tests import c, m, t, tm, u
 
 if TYPE_CHECKING:
@@ -40,12 +38,12 @@ class TestsFlextCliJsonCov:
         )
 
     @staticmethod
-    @pytest.mark.parametrize("source", [None, "invalid", ["not", "an object"]])
+    @c.Tests.MARK.parametrize("source", [None, "invalid", ["not", "an object"]])
     def test_json_object_adapters_reject_non_mapping_input(source: t.JsonValue) -> None:
         """Object admission does not widen into an arbitrary JSON value schema."""
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.Cli.JSON_MAPPING_ADAPTER.validate_python(source)
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.json_dict_adapter().validate_python(source)
 
     # ----- json_read (fallible, r[JsonMapping]) ----------------------------
@@ -68,7 +66,7 @@ class TestsFlextCliJsonCov:
         tm.ok(result, eq={"key": "value"})
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("content", "reason"),
         [("not json!!", "malformed json"), ("[1, 2, 3]", "non-object root")],
     )
@@ -99,7 +97,7 @@ class TestsFlextCliJsonCov:
         tm.that(read_result.value, eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize("path_kind", ["symlink-ancestor", "lexical-traversal"])
+    @c.Tests.MARK.parametrize("path_kind", ["symlink-ancestor", "lexical-traversal"])
     def test_json_write_rejects_path_before_creating_directories(
         tmp_path: Path,
         path_kind: str,
@@ -264,7 +262,7 @@ class TestsFlextCliJsonNavigation:
     """Coercion, navigation and scalar extraction through the public JSON facade."""
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("value", "expected"),
         [(None, {}), ({"a": 1}, {"a": 1}), ([1, 2, 3], {})],
     )
@@ -276,7 +274,7 @@ class TestsFlextCliJsonNavigation:
         tm.that(u.Cli.json_as_mapping(value), eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("value", "expected"),
         [(None, []), ([1, 2, 3], [1, 2, 3]), ({"a": 1}, [])],
     )
@@ -288,7 +286,7 @@ class TestsFlextCliJsonNavigation:
         tm.that(list(u.Cli.json_as_sequence(value)), eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("value", "expected_len"),
         [([{"a": 1}, {"b": 2}], 2), (None, 0), ("string", 0)],
     )
@@ -308,7 +306,7 @@ class TestsFlextCliJsonNavigation:
         tm.that(u.Cli.json_walk_path(data, ("a", "b", "c")), eq=42)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("keys", "raw"),
         [
             (("a", "missing", "c"), '{"a": {}}'),
@@ -358,7 +356,7 @@ class TestsFlextCliJsonNavigation:
         tm.that(u.Cli.json_pick_str({"k": None}, "k", default="fb"), eq="fb")
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("key", "expected"),
         [("n", 5), ("s", 7), ("f", 3), ("b", 1), ("none", 0), ("bad", 0)],
     )
@@ -375,7 +373,7 @@ class TestsFlextCliJsonNavigation:
         tm.that(u.Cli.json_pick_int(data, key), eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("key", "expected"),
         [
             ("t", True),

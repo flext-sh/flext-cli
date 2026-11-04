@@ -14,8 +14,6 @@ import os
 from pathlib import Path
 from types import MappingProxyType
 
-import pytest
-
 from flext_cli import config
 from tests import c, m, t, tm, u
 
@@ -69,7 +67,7 @@ class TestsFlextCliConfigEngine:
         tm.fail(first is other)
 
     @staticmethod
-    @pytest.mark.parametrize("included", [False, True])
+    @c.Tests.MARK.parametrize("included", [False, True])
     def test_template_render_observes_source_edits(
         tmp_path: Path,
         *,
@@ -247,7 +245,7 @@ class TestsFlextCliConfigEngine:
         tm.that((result.error or ""), has=c.Cli.ERR_CONFIG_UNSUPPORTED_FORMAT)
 
     @staticmethod
-    @pytest.mark.parametrize("read_only", [False, True])
+    @c.Tests.MARK.parametrize("read_only", [False, True])
     def test_schema_validate_valid_and_invalid(
         tmp_path: Path, *, read_only: bool
     ) -> None:

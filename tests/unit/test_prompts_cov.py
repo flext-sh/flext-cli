@@ -13,9 +13,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pytest
-
-from tests import c, p, tm
+from tests import c, p, tm, u
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -25,7 +23,7 @@ class TestsFlextCliPromptsCov:
     """Behavior contract for the prompt service public surface."""
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("raw_input", "default", "expected"),
         [
             ("typed", "fallback", "typed"),
@@ -46,7 +44,7 @@ class TestsFlextCliPromptsCov:
         tm.ok(result, eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize("quiet", [True, False])
+    @c.Tests.MARK.parametrize("quiet", [True, False])
     def test_prompt_returns_default_when_non_interactive(
         make_prompts: Callable[..., p.Tests.Prompts],
         *,
@@ -63,11 +61,11 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """An input-port failure escapes ``prompt`` with its original cause."""
         prompts = make_prompts(error=ValueError("boom"))
-        with pytest.raises(ValueError, match="boom"):
+        with u.Tests.raises(ValueError, match="boom"):
             prompts.prompt("message", default="default")
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("answer", "default", "expected"),
         [
             ("y", False, True),
@@ -100,7 +98,7 @@ class TestsFlextCliPromptsCov:
         tm.ok(result, eq=True, is_=bool)
 
     @staticmethod
-    @pytest.mark.parametrize("default", [True, False])
+    @c.Tests.MARK.parametrize("default", [True, False])
     def test_confirm_returns_default_when_non_interactive(
         make_prompts: Callable[..., p.Tests.Prompts],
         *,
@@ -112,7 +110,7 @@ class TestsFlextCliPromptsCov:
         tm.ok(result, eq=default, is_=bool)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("error", "expected"),
         [
             (KeyboardInterrupt(), c.Cli.ERR_USER_CANCELLED_CONFIRMATION),
@@ -136,7 +134,7 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """Any other input-port failure escapes ``confirm`` unchanged."""
         prompts = make_prompts(error=ValueError("bad"))
-        with pytest.raises(ValueError, match="bad"):
+        with u.Tests.raises(ValueError, match="bad"):
             prompts.confirm("message", default=False)
 
     @staticmethod
@@ -176,5 +174,5 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """A password-port failure escapes ``prompt_password`` unchanged."""
         prompts = make_prompts(error=ValueError("no tty"))
-        with pytest.raises(ValueError, match="no tty"):
+        with u.Tests.raises(ValueError, match="no tty"):
             prompts.prompt_password("Password:")

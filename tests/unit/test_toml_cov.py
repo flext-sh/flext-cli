@@ -15,8 +15,6 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, ClassVar
 
-import pytest
-
 from tests import c, t, tm, u
 
 if TYPE_CHECKING:
@@ -82,7 +80,7 @@ class TestsFlextCliTomlCov:
     # ── toml_as_string_list ───────────────────────────────────────────
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("items", "expected"),
         [(["x", "y"], ["x", "y"]), ([], []), (["solo"], ["solo"])],
     )
@@ -102,7 +100,7 @@ class TestsFlextCliTomlCov:
     # ── toml_dot_path ─────────────────────────────────────────────────
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("parts", "expected"),
         [
             (("section",), "section"),

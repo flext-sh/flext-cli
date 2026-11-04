@@ -10,9 +10,7 @@ import hashlib
 import os
 from pathlib import Path
 
-import pytest
-
-from tests import m, p, tm, u
+from tests import c, m, p, tm, u
 
 
 class TestsFlextCliAtomicPhysicalTree:
@@ -106,7 +104,7 @@ class TestsFlextCliAtomicPhysicalTree:
         tm.ok(result)
         tm.fail(root.exists())
 
-    @pytest.mark.parametrize("drift", ["unknown", "missing", "content", "metadata"])
+    @c.Tests.MARK.parametrize("drift", ["unknown", "missing", "content", "metadata"])
     def test_manifest_drift_fails_before_any_effect(
         self,
         tmp_path: Path,
@@ -224,7 +222,7 @@ class TestsFlextCliAtomicPhysicalTree:
             {"device": entry.device + 1},
         ):
             forged = entry.model_copy(update=update)
-            with pytest.raises(m.ValidationError):
+            with u.Tests.raises(m.ValidationError):
                 m.Cli.AtomicPhysicalTreeManifest(root=manifest.root, entries=(forged,))
 
     def test_forged_parent_binding_fails_before_every_delete(

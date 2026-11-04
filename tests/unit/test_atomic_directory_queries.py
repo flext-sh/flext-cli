@@ -12,8 +12,6 @@ from pathlib import Path
 from pstats import Stats
 from typing import Literal
 
-import pytest
-
 from tests import c, m, p, tm, u
 
 
@@ -21,7 +19,7 @@ class TestsFlextCliAtomicDirectoryQueries:
     """Reprove a queried directory only where its existence depends on a receipt."""
 
     @staticmethod
-    @pytest.mark.parametrize("root_count", [1, 2])
+    @c.Tests.MARK.parametrize("root_count", [1, 2])
     def test_fragment_verification_observes_each_root_once_per_invocation(
         tmp_path: Path, root_count: int
     ) -> None:
@@ -64,7 +62,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         (roots[-1] / names[-1]).mkdir()
         with (
             Profile() as second,
-            pytest.raises(ValueError, match="source directory query changed"),
+            u.Tests.raises(ValueError, match="source directory query changed"),
         ):
             u.Cli.atomic_verify_directory_queries(tuple(fragments), ())
         tm.that(
@@ -155,11 +153,11 @@ class TestsFlextCliAtomicDirectoryQueries:
             eq=True,
         )
         fresh = m.Cli.AtomicDirectoryObservations()
-        with pytest.raises(ValueError, match="source directory membership changed"):
+        with u.Tests.raises(ValueError, match="source directory membership changed"):
             u.Cli.atomic_verify_directory_queries((fragment,), (), observations=fresh)
 
     @staticmethod
-    @pytest.mark.parametrize("name", ["extra", ".extra", "__pycache__"])
+    @c.Tests.MARK.parametrize("name", ["extra", ".extra", "__pycache__"])
     def test_shared_boundary_detects_membership_change(
         tmp_path: Path, name: str
     ) -> None:
@@ -171,9 +169,9 @@ class TestsFlextCliAtomicDirectoryQueries:
         )
         (tmp_path / name).mkdir()
         shared = m.Cli.AtomicDirectoryObservations()
-        with pytest.raises(ValueError, match="source directory membership changed"):
+        with u.Tests.raises(ValueError, match="source directory membership changed"):
             u.Cli.atomic_verify_directory_queries((fragment,), (), observations=shared)
-        with pytest.raises(ValueError, match="source directory membership changed"):
+        with u.Tests.raises(ValueError, match="source directory membership changed"):
             u.Cli.atomic_verify_directory_queries((fragment,), ())
 
     @staticmethod
@@ -188,11 +186,11 @@ class TestsFlextCliAtomicDirectoryQueries:
         root.mkdir()
         (root / "candidate").mkdir()
         shared = m.Cli.AtomicDirectoryObservations()
-        with pytest.raises(
+        with u.Tests.raises(
             ValueError, match="source directory physical identity changed"
         ):
             u.Cli.atomic_verify_directory_queries((fragment,), (), observations=shared)
-        with pytest.raises(
+        with u.Tests.raises(
             ValueError, match="source directory physical identity changed"
         ):
             u.Cli.atomic_verify_directory_queries((fragment,), ())
@@ -205,9 +203,9 @@ class TestsFlextCliAtomicDirectoryQueries:
         original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
         fragment = original.model_copy(update={"queries": (("alias", "isdir"),)})
         shared = m.Cli.AtomicDirectoryObservations()
-        with pytest.raises(OSError, match="physical alias"):
+        with u.Tests.raises(OSError, match="physical alias"):
             u.Cli.atomic_verify_directory_queries((fragment,), (), observations=shared)
-        with pytest.raises(OSError, match="physical alias"):
+        with u.Tests.raises(OSError, match="physical alias"):
             u.Cli.atomic_verify_directory_queries((fragment,), ())
 
     @staticmethod
@@ -265,12 +263,12 @@ class TestsFlextCliAtomicDirectoryQueries:
             root=present.root, entries=present.entries, queries=((name, "isdir"),)
         )
 
-        with pytest.raises(ValueError, match="source directory query changed"):
+        with u.Tests.raises(ValueError, match="source directory query changed"):
             u.Cli.atomic_verify_directory_queries((positive, positive, negative), ())
 
     @staticmethod
-    @pytest.mark.parametrize("shared", [False, True])
-    @pytest.mark.parametrize("membership", [False, True])
+    @c.Tests.MARK.parametrize("shared", [False, True])
+    @c.Tests.MARK.parametrize("membership", [False, True])
     def test_merged_queries_preserve_each_original_predicate(
         tmp_path: Path, *, shared: bool, membership: bool
     ) -> None:
@@ -314,7 +312,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         second = original.model_copy(update={"queries": (("later", "isdir"),)})
         (tmp_path / "later").mkdir()
         incoming = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
-        with pytest.raises(ValueError, match="query epochs disagree"):
+        with u.Tests.raises(ValueError, match="query epochs disagree"):
             u.Cli.atomic_merge_directory_query_receipts((first, second, incoming), ())
 
     @staticmethod
@@ -348,7 +346,7 @@ class TestsFlextCliAtomicDirectoryQueries:
             eq=True,
         )
         (tmp_path / queries[-1][0]).mkdir()
-        with pytest.raises(ValueError, match="source directory query changed"):
+        with u.Tests.raises(ValueError, match="source directory query changed"):
             u.Cli.atomic_verify_directory_queries(directories, topology)
 
     @staticmethod
@@ -388,7 +386,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         previous = original.model_copy(update={"membership_queried": True})
         (tmp_path / "new_child").mkdir()
         incoming = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
-        with pytest.raises(ValueError, match="membership epochs disagree"):
+        with u.Tests.raises(ValueError, match="membership epochs disagree"):
             u.Cli.atomic_merge_directory_query_receipts(
                 (previous, previous, incoming),
                 (),
@@ -401,7 +399,7 @@ class TestsFlextCliAtomicDirectoryQueries:
         (tmp_path / "alias").symlink_to(tmp_path / "target", target_is_directory=True)
         original = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
         queried = original.model_copy(update={"queries": (("alias", "isdir"),)})
-        with pytest.raises(OSError, match="physical alias"):
+        with u.Tests.raises(OSError, match="physical alias"):
             u.Cli.atomic_merge_directory_query_receipts((queried, queried), ())
 
 
@@ -428,11 +426,11 @@ class TestsFlextCliAtomicDirectoryPhysicalBoundaries:
             u.Cli.atomic_read_binary_file_state(root, required=True).failure, eq=True
         )
         tm.ok(u.Cli.atomic_inventory_physical_tree(root).failure)
-        with pytest.raises(ValueError, match="manifest root path"):
+        with u.Tests.raises(ValueError, match="manifest root path"):
             m.Cli.AtomicPhysicalTreeManifest(root=inventory.root)
 
     @staticmethod
-    @pytest.mark.parametrize("kind", ["file", "symlink"])
+    @c.Tests.MARK.parametrize("kind", ["file", "symlink"])
     def test_filesystem_anchor_cannot_be_a_leaf(
         tmp_path: Path, kind: Literal["file", "symlink"]
     ) -> None:
@@ -440,7 +438,7 @@ class TestsFlextCliAtomicDirectoryPhysicalBoundaries:
         inventory = tm.ok(
             u.Cli.atomic_inventory_physical_directory(Path(tmp_path.anchor))
         )
-        with pytest.raises(ValueError, match="path must be absolute and normalized"):
+        with u.Tests.raises(ValueError, match="path must be absolute and normalized"):
             m.Cli.AtomicPhysicalTreeEntry.model_validate(
                 inventory.root.model_dump() | {"kind": kind}
             )
@@ -465,7 +463,7 @@ class TestsFlextCliAtomicDirectoryPhysicalBoundaries:
             tm.ok(u.Cli.atomic_inventory_physical_tree(directory).failure)
 
     @staticmethod
-    @pytest.mark.parametrize("boundary", ["device", "mount"])
+    @c.Tests.MARK.parametrize("boundary", ["device", "mount"])
     def test_directory_election_cannot_become_cross_boundary_cleanup(
         tmp_path: Path, boundary: Literal["device", "mount"]
     ) -> None:
@@ -480,11 +478,11 @@ class TestsFlextCliAtomicDirectoryPhysicalBoundaries:
             inventory.root.model_dump() | transition
         )
         tm.that(m.Cli.AtomicDirectoryInventory(root=root).root, eq=root)
-        with pytest.raises(ValueError, match=f"parent {boundary}"):
+        with u.Tests.raises(ValueError, match=f"parent {boundary}"):
             m.Cli.AtomicPhysicalTreeManifest(root=root)
 
     @staticmethod
-    @pytest.mark.parametrize("failure", ["io", "interrupt"])
+    @c.Tests.MARK.parametrize("failure", ["io", "interrupt"])
     def test_inventory_and_lineage_failures_keep_their_causes(
         tmp_path: Path, failure: Literal["io", "interrupt"]
     ) -> None:
@@ -563,9 +561,9 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
         )
         authority = m.Cli.AtomicDirectoryQueryEffects(membership_policy=("outside",))
         tm.ok(u.Cli.atomic_verify_directory_queries(merged, (), publications=authority))
-        with pytest.raises(ValueError, match="differs from admitted policy"):
+        with u.Tests.raises(ValueError, match="differs from admitted policy"):
             u.Cli.atomic_verify_directory_queries(merged, ())
-        with pytest.raises(ValueError, match="differs from admitted policy"):
+        with u.Tests.raises(ValueError, match="differs from admitted policy"):
             u.Cli.atomic_verify_directory_queries(
                 (
                     selected.model_copy(
@@ -575,7 +573,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
                 (),
                 publications=authority,
             )
-        with pytest.raises(ValueError, match="membership epochs disagree"):
+        with u.Tests.raises(ValueError, match="membership epochs disagree"):
             u.Cli.atomic_merge_directory_query_receipts(
                 (
                     physical.model_copy(update={"membership_queried": True}),
@@ -583,14 +581,14 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
                 ),
                 (),
             )
-        with pytest.raises(ValueError, match="membership changed"):
+        with u.Tests.raises(ValueError, match="membership changed"):
             u.Cli.atomic_verify_directory_queries(
                 (selected.model_copy(update={"membership_queried": True}),),
                 (),
                 publications=authority,
             )
         (tmp_path / "admitted.py").write_text("", encoding=c.DEFAULT_ENCODING)
-        with pytest.raises(ValueError, match="membership changed"):
+        with u.Tests.raises(ValueError, match="membership changed"):
             u.Cli.atomic_verify_directory_queries(merged, (), publications=authority)
 
     @staticmethod
@@ -647,7 +645,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
         fresh.mkdir()
         publication = self._publish(fresh / "module.py")
 
-        with pytest.raises(ValueError, match="lacks its original publication"):
+        with u.Tests.raises(ValueError, match="lacks its original publication"):
             u.Cli.atomic_verify_directory_queries(
                 (inventory,),
                 (),
@@ -694,7 +692,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
         fresh.mkdir()
         publication = self._publish(fresh / "module.py")
 
-        with pytest.raises(ValueError, match="lacks its original publication"):
+        with u.Tests.raises(ValueError, match="lacks its original publication"):
             u.Cli.atomic_verify_directory_queries(
                 (inventory,),
                 (),
@@ -713,7 +711,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
         source.rename(tmp_path / "retired")
         source.write_text("replacement\n", encoding="utf-8")
 
-        with pytest.raises(ValueError, match="source directory query changed"):
+        with u.Tests.raises(ValueError, match="source directory query changed"):
             u.Cli.atomic_verify_directory_queries((inventory,), ())
 
     def test_unpublished_child_rejects_consumed_membership(
@@ -725,10 +723,10 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
         inventory = self._queried(tmp_path, "src")
         (tmp_path / "unpublished.py").write_text("VALUE = 1\n", encoding="utf-8")
 
-        with pytest.raises(ValueError, match="source directory membership changed"):
+        with u.Tests.raises(ValueError, match="source directory membership changed"):
             u.Cli.atomic_verify_directory_queries((inventory,), ())
 
-    @pytest.mark.parametrize("predicate", ["exists", "isdir"])
+    @c.Tests.MARK.parametrize("predicate", ["exists", "isdir"])
     def test_neighboring_name_is_not_a_publication_ancestor(
         self,
         tmp_path: Path,
@@ -753,7 +751,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
             eq=True,
         )
 
-    @pytest.mark.parametrize("child_name", ["package", "package-extra"])
+    @c.Tests.MARK.parametrize("child_name", ["package", "package-extra"])
     def test_absent_parent_query_preserves_exact_publication_ancestry(
         self,
         tmp_path: Path,
@@ -788,7 +786,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
             eq=True,
         )
 
-    @pytest.mark.parametrize("replacement", ["root", "parent"])
+    @c.Tests.MARK.parametrize("replacement", ["root", "parent"])
     def test_replaced_physical_identity_rejects_unchanged_membership(
         self,
         tmp_path: Path,
@@ -810,7 +808,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
             parent.mkdir()
             (retired / source.name).rename(source)
 
-        with pytest.raises(
+        with u.Tests.raises(
             ValueError, match="source directory physical identity changed"
         ):
             u.Cli.atomic_verify_directory_queries((inventory,), ())

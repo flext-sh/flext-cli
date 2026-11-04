@@ -8,15 +8,13 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-import pytest
-
 from tests import c, m, p, t, tm, u
 
 
 class TestsFlextCliTablesBranchCov:
     """Assert the observable contract of the ``u.Cli`` table helpers."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def two_column_config() -> p.Cli.TableConfig:
         """Return a minimal two-column table configuration.
@@ -66,7 +64,7 @@ class TestsFlextCliTablesBranchCov:
         tm.that(result.unwrap(), eq=[])
 
     @staticmethod
-    @pytest.mark.parametrize("bad_data", [["abc"], ["x", "y"], [["ok", 1], "bad-row"]])
+    @c.Tests.MARK.parametrize("bad_data", [["abc"], ["x", "y"], [["ok", 1], "bad-row"]])
     def test_normalize_rejects_string_rows_as_data_invalid(
         bad_data: t.Cli.TableDataSource,
     ) -> None:

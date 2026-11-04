@@ -16,8 +16,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pytest
-
 from tests import c, m, t, tm, u
 
 if TYPE_CHECKING:
@@ -30,7 +28,7 @@ class TestsFlextCliYamlCov:
     # ── yaml_parse ──────────────────────────────────────────────────
 
     @staticmethod
-    @pytest.mark.parametrize(("text", "expect_ok"), c.Tests.YAML_PARSE_CASES)
+    @c.Tests.MARK.parametrize(("text", "expect_ok"), c.Tests.YAML_PARSE_CASES)
     def test_yaml_parse_reports_outcome_per_input(
         text: str,
         *,
@@ -198,7 +196,7 @@ class TestsFlextCliYamlSerialization:
     """YAML file and string serialization through the public facade."""
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("data", "sort_keys", "expect_ok"),
         c.Tests.YAML_DUMP_CASES,
     )

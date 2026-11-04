@@ -16,8 +16,6 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
-import pytest
-
 from tests import c, m, t, tm, u
 
 
@@ -27,7 +25,7 @@ class TestsFlextCliTypings:
     # --- Published CLI adapters: accept valid payloads -------------------
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("payload", "expected"),
         [(["alpha", "beta"], ["alpha", "beta"]), ([], []), (("x", "y"), ["x", "y"])],
     )
@@ -40,7 +38,7 @@ class TestsFlextCliTypings:
         tm.that(list(result), eq=expected)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "payload",
         [123, "not-a-sequence-of-str-only", [1, 2, 3], {"k": "v"}],
     )
@@ -48,11 +46,11 @@ class TestsFlextCliTypings:
         payload: t.JsonValue,
     ) -> None:
         """STR_SEQUENCE_ADAPTER raises ValidationError on invalid input."""
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "payload",
         [{"id": 1}, {"nested": {"a": [1, 2]}}, {}, {"flag": True, "name": "x"}],
     )
@@ -64,16 +62,16 @@ class TestsFlextCliTypings:
         tm.ok(result == payload)
 
     @staticmethod
-    @pytest.mark.parametrize("payload", [["a", c.Action.LIST], "string", 42, True])
+    @c.Tests.MARK.parametrize("payload", [["a", c.Action.LIST], "string", 42, True])
     def test_json_mapping_adapter_rejects_non_mappings(
         payload: t.JsonValue,
     ) -> None:
         """JSON_MAPPING_ADAPTER raises ValidationError for non-object input."""
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         "payload",
         [[1, 2, 3], ["a", "b"], [], [{"k": "v"}, [1, 2]]],
     )
@@ -85,7 +83,7 @@ class TestsFlextCliTypings:
         tm.ok(result == payload)
 
     @staticmethod
-    @pytest.mark.parametrize(
+    @c.Tests.MARK.parametrize(
         ("payload", "expected"),
         [
             ("plain", "plain"),
