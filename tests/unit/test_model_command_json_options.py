@@ -44,7 +44,7 @@ class TestsFlextCliModelCommandJsonOptions:
             description="Label weights.",
         )
         prefs: p.Tests.UserPreferences = m.Field(
-            default_factory=lambda: p.Tests.UserPreferences(
+            default_factory=lambda: m.Tests.UserPreferences(
                 theme="light",
                 notifications=False,
             ),
@@ -115,7 +115,7 @@ class TestsFlextCliModelCommandJsonOptions:
         """Nested models and their sequences validate from JSON options."""
         expected = self.NestedModel(
             prefs=m.Tests.UserPreferences(theme="dark", notifications=True),
-            others=[p.Tests.UserPreferences(theme="solar", notifications=False)],
+            others=[m.Tests.UserPreferences(theme="solar", notifications=False)],
         )
         invocation, received = self._invoke(
             self.NestedModel,

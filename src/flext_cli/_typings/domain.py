@@ -84,7 +84,7 @@ class FlextCliTypesDomain:
     type IntTextValue = int | str
     type MessageType = c.Cli.MessageTypes
     type CommandParameter = Parameter
-    type ModelLike = t.BaseModel
+    type ModelLike = p.BaseModel
     type OptionRegistry = Mapping[str, Mapping[str, t.Scalar | Sequence[str]]]
     type NullaryOperation[T] = Callable[[], T]
     type PromptTextReader = Callable[[str], str]

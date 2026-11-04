@@ -26,14 +26,14 @@ class TestsFlextCliServicePart05:
 
         def ok_handler(params: p.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return cli.execute().map(
-                lambda _payload: p.Tests.SampleOutput(
+                lambda _payload: m.Tests.SampleOutput(
                     message=f"processed {params.name}",
                 ),
             )
 
         def fail_handler(params: p.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return cli.validate_credentials("", "password").map(
-                lambda _value: p.Tests.SampleOutput(message=params.name),
+                lambda _value: m.Tests.SampleOutput(message=params.name),
             )
 
         def build_ok_route() -> p.Cli.ResultCommandRoute:
