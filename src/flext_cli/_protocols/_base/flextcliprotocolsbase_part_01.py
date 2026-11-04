@@ -18,7 +18,7 @@ class FlextCliProtocolsBasePart01:
     """Implementation part for FlextCliProtocolsBasePart01."""
 
     @runtime_checkable
-    class AtomicFileReceipt(p.ManagedModel, Protocol):
+    class AtomicFileReceipt(Protocol):
         """Read-only source, parent identity and digest of a captured file."""
 
         @property
