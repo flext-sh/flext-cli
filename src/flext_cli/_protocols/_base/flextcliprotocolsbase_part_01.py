@@ -18,7 +18,7 @@ class FlextCliProtocolsBasePart01:
     """Implementation part for FlextCliProtocolsBasePart01."""
 
     @runtime_checkable
-    class AtomicFileReceipt(p.Model, Protocol):
+    class AtomicFileReceipt(p.ManagedModel, Protocol):
         """Read-only source, parent identity and digest of a captured file."""
 
         @property
@@ -100,7 +100,7 @@ class FlextCliProtocolsBasePart01:
         are flat ``cli_*`` scalars loadable from env/.env. Test-runtime
         detection moved to ``u.Cli.cli_test_env`` (behavior lives in the
         utilities layer, never on settings). Plain ``Protocol`` (not
-        ``p.Model``): pyrefly cannot reconcile pydantic ``model_fields``
+        ``p.ManagedModel``): pyrefly cannot reconcile pydantic ``model_fields``
         metaclass descriptors on this hot path — structural field access is
         the whole contract.
         """
