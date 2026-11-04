@@ -14,16 +14,15 @@ from collections.abc import Callable, MutableMapping, MutableSequence, Sequence
 from pathlib import Path
 from typing import ClassVar, cast, override
 
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities import FlextCliUtilitiesMarkdown
+from flext_cli._utilities._files import FlextCliUtilitiesFilesPart03
 from flext_core import u
 from jinja2 import BaseLoader, Environment, StrictUndefined, meta
 from jinja2.exceptions import TemplateError, TemplateNotFound
 from jinja2.loaders import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
-
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import FlextCliUtilitiesMarkdown
-from flext_cli._utilities._files import FlextCliUtilitiesFilesPart03
 
 
 class FlextCliUtilitiesTemplate:
@@ -177,7 +176,7 @@ class FlextCliUtilitiesTemplate:
         return environment
 
     @staticmethod
-    def template_render(path: Path, context: p.Model) -> p.Result[str]:
+    def template_render(path: Path, context: p.ManagedModel) -> p.Result[str]:
         """Render a ``templates/*.j2`` file with ``context`` → ``r[str]``.
 
         Fail-closed: a missing template or any Jinja error (including undefined
@@ -232,7 +231,7 @@ class FlextCliUtilitiesTemplate:
     @staticmethod
     def template_render_authenticated(
         path: Path,
-        context: p.Model,
+        context: p.ManagedModel,
         *,
         source_states: Sequence[m.Cli.AtomicFileState] | None = None,
     ) -> p.Result[m.Cli.AuthenticatedTemplateRender]:
@@ -284,7 +283,9 @@ class FlextCliUtilitiesTemplate:
         )
 
     @staticmethod
-    def template_render_to(path: Path, dest: Path, context: p.Model) -> p.Result[bool]:
+    def template_render_to(
+        path: Path, dest: Path, context: p.ManagedModel
+    ) -> p.Result[bool]:
         """Render ``path`` with ``context`` and write it to ``dest`` → ``r[bool]``.
 
         Returns:
@@ -304,7 +305,7 @@ class FlextCliUtilitiesTemplate:
     def template_render_dir(
         templates_root: Path,
         output_root: Path,
-        context: p.Model,
+        context: p.ManagedModel,
         entries: Sequence[m.Cli.TemplateRenderEntry],
         *,
         options: m.Cli.TemplateRenderOptions | None = None,
@@ -349,11 +350,15 @@ class FlextCliUtilitiesTemplate:
                     failed.append((dest, c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE))
                     continue
             except (OSError, ValueError) as exc:
-                failed.append((
-                    dest,
-                    r[str].fail(c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE, exception=exc).error
-                    or c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE,
-                ))
+                failed.append(
+                    (
+                        dest,
+                        r[str]
+                        .fail(c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE, exception=exc)
+                        .error
+                        or c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE,
+                    )
+                )
                 continue
             if not entry.when:
                 skipped.append(dest)
