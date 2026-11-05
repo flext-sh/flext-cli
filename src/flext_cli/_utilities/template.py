@@ -14,14 +14,14 @@ from collections.abc import Callable, MutableMapping, MutableSequence, Sequence
 from pathlib import Path
 from typing import ClassVar, cast, override
 
-from flext_core import r, u
+from flext_core import u
 from jinja2 import BaseLoader, Environment, StrictUndefined, meta
 from jinja2.exceptions import TemplateError, TemplateNotFound
 from jinja2.loaders import FileSystemLoader
 from jinja2.sandbox import SandboxedEnvironment
 from jinja2.utils import select_autoescape
 
-from flext_cli import c, m, p, t
+from flext_cli import c, m, p, r, t
 from flext_cli._utilities import FlextCliUtilitiesMarkdown
 from flext_cli._utilities._files import FlextCliUtilitiesFilesPart03
 
