@@ -10,7 +10,6 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, ClassVar
 
 from docx.document import Document as DocumentType
-from docx.enum.section import WD_ORIENT
 from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX, WD_UNDERLINE
 from docx.shared import Inches, Pt, RGBColor
 
@@ -30,6 +29,14 @@ class FlextCliUtilitiesDocxFormatting:
         "subscript",
         "all_caps",
         "small_caps",
+    )
+    _FONT_FLAGS: ClassVar[tuple[str, ...]] = ("name", "bold", "italic", "strike")
+    _POINT_LENGTHS: ClassVar[tuple[str, ...]] = (
+        "space_before",
+        "space_after",
+        "first_line_indent",
+        "left_indent",
+        "right_indent",
     )
     _PAGINATION_FIELDS: ClassVar[tuple[str, ...]] = (
         "keep_together",
@@ -119,18 +126,11 @@ class FlextCliUtilitiesDocxFormatting:
 
     @classmethod
     def _apply_font(cls, font: Font, spec: p.Cli.DocxFontSpec) -> None:
-        if spec.name is not None:
-            font.name = spec.name
+        cls._assign_present(font, spec, cls._FONT_FLAGS)
         if spec.size is not None:
             font.size = Pt(spec.size)
-        if spec.bold is not None:
-            font.bold = spec.bold
-        if spec.italic is not None:
-            font.italic = spec.italic
         if spec.underline is not None:
             font.underline = cls._UNDERLINE_MAP.get(spec.underline, WD_UNDERLINE.SINGLE)
-        if spec.strike is not None:
-            font.strike = spec.strike
         if spec.color is not None:
             font.color.rgb = cls._color_value(spec.color)
         if spec.highlight is not None:
@@ -153,18 +153,11 @@ class FlextCliUtilitiesDocxFormatting:
     ) -> None:
         if spec.alignment is not None:
             fmt.alignment = cls._ALIGNMENT_MAP[spec.alignment]
-        if spec.space_before is not None:
-            fmt.space_before = Inches(spec.space_before / 72)  # approximate points
-        if spec.space_after is not None:
-            fmt.space_after = Inches(spec.space_after / 72)
-        if spec.line_spacing is not None:
-            fmt.line_spacing = spec.line_spacing
-        if spec.first_line_indent is not None:
-            fmt.first_line_indent = Inches(spec.first_line_indent / 72)
-        if spec.left_indent is not None:
-            fmt.left_indent = Inches(spec.left_indent / 72)
-        if spec.right_indent is not None:
-            fmt.right_indent = Inches(spec.right_indent / 72)
+        for name in cls._POINT_LENGTHS:
+            points = getattr(spec, name)
+            if points is not None:
+                setattr(fmt, name, Inches(points / 72))  # approximate points
+        cls._assign_present(fmt, spec, ("line_spacing",))
         cls._apply_paragraph_pagination(fmt, spec)
 
     @classmethod
@@ -190,52 +183,6 @@ class FlextCliUtilitiesDocxFormatting:
             value = getattr(spec, name)
             if value is not None:
                 setattr(target, name, value)
-
-    @classmethod
-    def _apply_table(cls, document: DocumentType, plan: p.Cli.DocxTablePlan) -> None:
-        table = document.add_table(rows=len(plan.rows), cols=cls._table_columns(plan))
-        if plan.style:
-            table.style = plan.style
-        for row_idx, row_plan in enumerate(plan.rows):
-            for cell_idx, cell_plan in enumerate(row_plan.cells):
-                cell = table.rows[row_idx].cells[cell_idx]
-                for idx, paragraph in enumerate(cell_plan.paragraphs):
-                    if idx == 0:
-                        cell.paragraphs[0].text = ""
-                        cls._apply_paragraph(cell, paragraph, cell.paragraphs[0])
-                    else:
-                        cls._apply_paragraph(cell, paragraph)
-
-    @classmethod
-    def _table_columns(cls, plan: p.Cli.DocxTablePlan) -> int:
-        if not plan.rows:
-            return 0
-        return max(len(row.cells) for row in plan.rows) if plan.rows else 0
-
-    @classmethod
-    def _apply_sections(
-        cls,
-        document: DocumentType,
-        sections: tuple[p.Cli.DocxSectionPlan, ...],
-    ) -> None:
-        for section_plan in sections:
-            section = document.add_section()
-            if section_plan.width is not None:
-                section.page_width = Inches(
-                    section_plan.width / 914400,
-                )  # EMU to inches
-            if section_plan.height is not None:
-                section.page_height = Inches(section_plan.height / 914400)
-            if section_plan.orientation == "landscape":
-                section.orientation = WD_ORIENT.LANDSCAPE
-            if section_plan.left_margin is not None:
-                section.left_margin = Inches(section_plan.left_margin / 914400)
-            if section_plan.right_margin is not None:
-                section.right_margin = Inches(section_plan.right_margin / 914400)
-            if section_plan.top_margin is not None:
-                section.top_margin = Inches(section_plan.top_margin / 914400)
-            if section_plan.bottom_margin is not None:
-                section.bottom_margin = Inches(section_plan.bottom_margin / 914400)
 
     @classmethod
     def _color_value(cls, color: p.Cli.DocxColor) -> RGBColor:

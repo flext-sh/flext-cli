@@ -129,8 +129,8 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
             initial,
             mode,
         )
-        FlextCliUtilitiesAtomicDirectoryState.require_directory_identity(
-            path, final, identity
+        FlextCliUtilitiesAtomicFilePath.require_identity(
+            path, final, identity, subject="directory"
         )
         FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
         return FlextCliUtilitiesAtomicDirectoryState.read_empty_state(

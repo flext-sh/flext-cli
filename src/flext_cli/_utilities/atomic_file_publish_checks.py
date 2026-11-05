@@ -15,6 +15,7 @@ from flext_cli import c, m, p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileRead,
     FlextCliUtilitiesAtomicFileState,
 )
@@ -42,27 +43,6 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
             raise OSError(errno.EINVAL, message, path)
 
     @staticmethod
-    def require_file_identity(
-        path: Path,
-        state: os.stat_result | None,
-        expected: tuple[int, int] | None,
-    ) -> None:
-        """Require an observed physical identity to match its caller snapshot.
-
-        Raises:
-            OSError: If ``observed != expected``.
-
-        """
-        observed = (
-            None
-            if state is None
-            else FlextCliUtilitiesAtomicFileState.file_state_identity(state)
-        )
-        if observed != expected:
-            message = f"atomic file physical identity changed: {path}"
-            raise OSError(errno.ESTALE, message, path)
-
-    @staticmethod
     def require_distinct_inode(
         destination: Path,
         destination_state: os.stat_result | None,
@@ -72,12 +52,12 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
 
         Raises:
             OSError: If ``destination_state is not None and
-                file_state.file_state_identity(destination_state) == staged_identity``.
+                file_path.path_identity(destination_state) == staged_identity``.
 
         """
         if (
             destination_state is not None
-            and FlextCliUtilitiesAtomicFileState.file_state_identity(destination_state)
+            and FlextCliUtilitiesAtomicFilePath.path_identity(destination_state)
             == staged_identity
         ):
             message = "staged file and atomic destination share one inode"
@@ -145,23 +125,37 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         )
         if (
             published is None
-            or FlextCliUtilitiesAtomicFileState.file_state_identity(published)
+            or FlextCliUtilitiesAtomicFilePath.path_identity(published)
             != staged_identity
         ):
             message = f"published atomic file has another identity: {destination}"
             raise OSError(errno.ESTALE, message, destination)
-        FlextCliUtilitiesAtomicFilePublishChecks.validate_payload(
+        FlextCliUtilitiesAtomicFilePublishChecks.validate_version(
             destination_parent,
             destination,
             published,
-            staged if isinstance(staged, m.Cli.AtomicFileReceipt) else staged.content,
-        )
-        FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
-            destination,
-            published,
-            staged.mode,
+            (
+                staged
+                if isinstance(staged, m.Cli.AtomicFileReceipt)
+                else staged.content,
+                staged.mode,
+            ),
         )
         return published
+
+    @staticmethod
+    def validate_version(
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        path: Path,
+        state: os.stat_result | None,
+        version: tuple[bytes | m.Cli.AtomicFileReceipt | None, int | None],
+    ) -> None:
+        """Authenticate one entry's exact payload and then its exact mode."""
+        payload, mode = version
+        FlextCliUtilitiesAtomicFilePublishChecks.validate_payload(
+            parent, path, state, payload
+        )
+        FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(path, state, mode)
 
     @staticmethod
     def validate_payload(

@@ -16,13 +16,13 @@ from flext_core import r
 
 from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesFiles
-from flext_cli._utilities._docx.formatting import FlextCliUtilitiesDocxFormatting
+from flext_cli._utilities._docx.layout import FlextCliUtilitiesDocxLayout
 from flext_cli._utilities._files.native_results import (
     FlextCliUtilitiesFilesNativeResults,
 )
 
 
-class FlextCliUtilitiesDocxRenderer(FlextCliUtilitiesDocxFormatting):
+class FlextCliUtilitiesDocxRenderer(FlextCliUtilitiesDocxLayout):
     """Render one immutable document plan into DOCX bytes."""
 
     _ZIP_EPOCH_FLOOR_YEAR = 1980

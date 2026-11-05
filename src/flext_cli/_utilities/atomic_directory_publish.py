@@ -64,20 +64,12 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
             staged_path,
             destination,
         )
-        with (
-            FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                destination,
-            ) as destination_parent,
-            FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                staged_path,
-            ) as staged_parent,
-        ):
-            FlextCliUtilitiesAtomicFileModel.require_parent(
-                destination_before, destination_parent.state, subject="directory"
-            )
-            FlextCliUtilitiesAtomicFileModel.require_parent(
-                staged, staged_parent.state, subject="directory"
-            )
+        with FlextCliUtilitiesAtomicFileModel.publication_parents(
+            (destination, staged_path),
+            (destination_before, staged),
+            subject="directory",
+            replace=False,
+        ) as (destination_parent, staged_parent):
             FlextCliUtilitiesAtomicDirectoryPublish._require_destination_absent(
                 destination_before,
                 destination_parent,

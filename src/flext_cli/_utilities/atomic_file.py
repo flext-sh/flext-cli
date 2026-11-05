@@ -204,7 +204,7 @@ class FlextCliUtilitiesAtomicFile:
                         self.temporary,
                     )
                 )
-                self.identity = FlextCliUtilitiesAtomicFileState.file_state_identity(
+                self.identity = FlextCliUtilitiesAtomicFilePath.path_identity(
                     os.fstat(self.descriptor),
                 )
             finally:
@@ -398,21 +398,11 @@ class FlextCliUtilitiesAtomicFile:
         if state is None:
             message = f"atomic temporary disappeared before publication: {temporary}"
             raise FileNotFoundError(errno.ENOENT, message, temporary)
-        FlextCliUtilitiesAtomicFilePublishChecks.require_file_identity(
-            temporary,
-            state,
-            identity,
+        FlextCliUtilitiesAtomicFilePath.require_identity(
+            temporary, state, identity, subject="file"
         )
-        FlextCliUtilitiesAtomicFileState.validate_precondition(
-            temporary,
-            state,
-            content,
-            parent=parent,
-        )
-        FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
-            temporary,
-            state,
-            mode,
+        FlextCliUtilitiesAtomicFilePublishChecks.validate_version(
+            parent, temporary, state, (content, mode)
         )
         return state
 

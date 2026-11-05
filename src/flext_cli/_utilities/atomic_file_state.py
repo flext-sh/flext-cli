@@ -225,7 +225,7 @@ class FlextCliUtilitiesAtomicFileState:
 
         Raises:
             FileNotFoundError: If a ``FileNotFoundError`` is caught.
-            OSError: If ``file_state_identity(state) != expected_identity``.
+            OSError: If ``path_identity(state) != expected_identity``.
 
         """
         if parent is None:
@@ -243,10 +243,7 @@ class FlextCliUtilitiesAtomicFileState:
         except FileNotFoundError as exc:
             message = f"atomic temporary disappeared before publication: {temporary}"
             raise FileNotFoundError(errno.ENOENT, message, temporary) from exc
-        if (
-            FlextCliUtilitiesAtomicFileState.file_state_identity(state)
-            != expected_identity
-        ):
+        if FlextCliUtilitiesAtomicFilePath.path_identity(state) != expected_identity:
             message = (
                 f"atomic temporary identity changed before publication: {temporary}"
             )
@@ -296,16 +293,6 @@ class FlextCliUtilitiesAtomicFileState:
             message = f"atomic destination changed during write: {path}"
             raise OSError(errno.ESTALE, message, path)
         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
-
-    @staticmethod
-    def file_state_identity(state: os.stat_result) -> tuple[int, int]:
-        """Return the filesystem identity shared by descriptor and pathname stats.
-
-        Returns:
-            The filesystem identity shared by descriptor and pathname stats.
-
-        """
-        return FlextCliUtilitiesAtomicFilePath.path_identity(state)
 
     @staticmethod
     def read_authenticated_bytes(

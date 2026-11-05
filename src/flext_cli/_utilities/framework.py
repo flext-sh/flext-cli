@@ -176,15 +176,16 @@ class FlextCliUtilitiesFramework:
             The resulting ``p.Result[bool]``.
 
         """
-        if (
-            not isinstance(exit_result, int)
-            or isinstance(exit_result, bool)
-            or exit_result == c.Cli.EXIT_CODE_SUCCESS
-        ):
+        exit_code = (
+            exit_result
+            if isinstance(exit_result, int) and not isinstance(exit_result, bool)
+            else c.Cli.EXIT_CODE_SUCCESS
+        )
+        if exit_code == c.Cli.EXIT_CODE_SUCCESS:
             return r[bool].ok(value=True)
         return e.fail_operation(
             c.Cli.OP_EXECUTE_APPLICATION,
-            c.Cli.ERR_EXIT_WITH_CODE.format(exit_code=exit_result),
+            c.Cli.ERR_EXIT_WITH_CODE.format(exit_code=exit_code),
             result_type=r[bool],
         )
 

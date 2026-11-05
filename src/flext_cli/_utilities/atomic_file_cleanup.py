@@ -12,7 +12,7 @@ from pathlib import Path
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
-    FlextCliUtilitiesAtomicFilePublishChecks,
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileState,
     FlextCliUtilitiesAtomicParentFailure,
 )
@@ -32,10 +32,11 @@ class FlextCliUtilitiesAtomicFileCleanup:
         cleanup_errors: list[OSError] = []
         try:
             # Publication adds a second link to this authenticated staging inode.
-            FlextCliUtilitiesAtomicFilePublishChecks.require_file_identity(
+            FlextCliUtilitiesAtomicFilePath.require_identity(
                 temporary,
                 FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, temporary),
                 identity,
+                subject="file",
             )
             FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, temporary)
@@ -65,7 +66,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
         cleanup_errors: list[OSError] = []
         if identity is None and descriptor is not None:
             try:
-                identity = FlextCliUtilitiesAtomicFileState.file_state_identity(
+                identity = FlextCliUtilitiesAtomicFilePath.path_identity(
                     os.fstat(descriptor),
                 )
             except OSError as cleanup_error:

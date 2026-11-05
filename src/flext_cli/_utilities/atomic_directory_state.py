@@ -160,27 +160,6 @@ class FlextCliUtilitiesAtomicDirectoryState:
         )
 
     @staticmethod
-    def require_directory_identity(
-        path: Path,
-        state: os.stat_result | None,
-        expected: tuple[int, int] | None,
-    ) -> None:
-        """Require one directory entry to retain a caller-owned inode.
-
-        Raises:
-            OSError: If ``observed != expected``.
-
-        """
-        observed = (
-            None
-            if state is None
-            else FlextCliUtilitiesAtomicFilePath.path_identity(state)
-        )
-        if observed != expected:
-            message = f"atomic directory physical identity changed: {path}"
-            raise OSError(errno.ESTALE, message, path)
-
-    @staticmethod
     def _require_descriptor_state(
         descriptor: int,
         path: Path,

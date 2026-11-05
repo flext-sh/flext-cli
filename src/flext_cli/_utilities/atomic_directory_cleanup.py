@@ -15,6 +15,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryState,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileRead,
     FlextCliUtilitiesAtomicParentFailure,
 )
@@ -73,10 +74,8 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
             path,
             state,
         )
-        FlextCliUtilitiesAtomicDirectoryState.require_directory_identity(
-            path,
-            authenticated,
-            owned_identity,
+        FlextCliUtilitiesAtomicFilePath.require_identity(
+            path, authenticated, owned_identity, subject="directory"
         )
         current = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
@@ -99,8 +98,8 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         if identity is None:
             message = f"refusing unauthenticated directory cleanup: {path}"
             raise OSError(errno.ESTALE, message, path)
-        FlextCliUtilitiesAtomicDirectoryState.require_directory_identity(
-            path, state, identity
+        FlextCliUtilitiesAtomicFilePath.require_identity(
+            path, state, identity, subject="directory"
         )
         return identity
 

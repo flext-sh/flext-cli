@@ -179,17 +179,13 @@ class FlextCliUtilitiesTomlPart02:
         existing: t.Cli.TomlRuntimeSource | None = None
         if key in parent:
             existing = parent[key]
-        if isinstance(existing, OutOfOrderTableProxy):
-            # A fragmented (out-of-order) table carries real entries spread
-            # across the document. Consolidate them into one explicit table so
-            # subsequent mutation targets a single contiguous section instead of
-            # silently overwriting the fragments with an empty table.
-            return FlextCliUtilitiesTomlPart02._consolidated_table(
-                parent, key, cast("Mapping[str, object]", existing)
-            )
-        if isinstance(existing, Table):
-            if not existing.is_super_table():
-                return existing
+        if isinstance(existing, Table) and not existing.is_super_table():
+            return existing
+        if isinstance(existing, OutOfOrderTableProxy | Table):
+            # A fragmented (out-of-order) or implicit super-table carries real
+            # entries. Consolidate them into one explicit table so subsequent
+            # mutation targets a single contiguous section instead of silently
+            # overwriting them with an empty table.
             return FlextCliUtilitiesTomlPart02._consolidated_table(
                 parent, key, cast("Mapping[str, object]", existing)
             )

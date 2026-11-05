@@ -8,9 +8,12 @@ from __future__ import annotations
 
 import errno
 import os
+from collections.abc import Generator
+from contextlib import contextmanager
 from pathlib import Path
 
 from flext_cli import p
+from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
 from flext_cli.typings import PhysicalState
 
 
@@ -121,6 +124,46 @@ class FlextCliUtilitiesAtomicFileModel:
         ):
             message = f"atomic {subject} parent identity changed: {state.path.parent}"
             raise OSError(errno.ESTALE, message, state.path.parent)
+
+    @staticmethod
+    @contextmanager
+    def publication_parents(
+        paths: tuple[Path, Path],
+        states: tuple[p.Cli.AtomicFileIdentity, p.Cli.AtomicFileIdentity],
+        *,
+        subject: str,
+        replace: bool,
+    ) -> Generator[
+        tuple[
+            FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+            FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        ]
+    ]:
+        """Hold both authenticated publication parents bound to their snapshots.
+
+        ``paths`` and ``states`` name the destination first, then the staged
+        entry; each opened parent must still be the parent its snapshot saw.
+
+        Yields:
+            The destination parent and the staged parent descriptors.
+
+        """
+        destination, staged = paths
+        with (
+            FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+                destination, replace=replace
+            ) as destination_parent,
+            FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+                staged, replace=replace
+            ) as staged_parent,
+        ):
+            FlextCliUtilitiesAtomicFileModel.require_parent(
+                states[0], destination_parent.state, subject=subject
+            )
+            FlextCliUtilitiesAtomicFileModel.require_parent(
+                states[1], staged_parent.state, subject=subject
+            )
+            yield destination_parent, staged_parent
 
     @staticmethod
     def physical_state(state: os.stat_result) -> PhysicalState:

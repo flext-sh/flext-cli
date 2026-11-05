@@ -13,12 +13,14 @@ from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._docx.formatting import FlextCliUtilitiesDocxFormatting
+    from flext_cli._utilities._docx.layout import FlextCliUtilitiesDocxLayout
     from flext_cli._utilities._docx.reader import FlextCliUtilitiesDocxReader
     from flext_cli._utilities._docx.renderer import FlextCliUtilitiesDocxRenderer
 
 
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesDocxFormatting",
+    "FlextCliUtilitiesDocxLayout",
     "FlextCliUtilitiesDocxReader",
     "FlextCliUtilitiesDocxRenderer",
 )
@@ -28,6 +30,7 @@ install_lazy_exports(
     globals(),
     {
         "FlextCliUtilitiesDocxFormatting": ".formatting",
+        "FlextCliUtilitiesDocxLayout": ".layout",
         "FlextCliUtilitiesDocxReader": ".reader",
         "FlextCliUtilitiesDocxRenderer": ".renderer",
     },

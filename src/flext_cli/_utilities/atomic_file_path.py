@@ -89,6 +89,29 @@ class FlextCliUtilitiesAtomicFilePath:
             raise NotADirectoryError(errno.ENOTDIR, message, path)
 
     @staticmethod
+    def require_identity(
+        path: Path,
+        state: os.stat_result | None,
+        expected: tuple[int, int] | None,
+        *,
+        subject: str,
+    ) -> None:
+        """Require one observed entry to retain its caller-owned identity.
+
+        Raises:
+            OSError: If the observed device and inode differ from ``expected``.
+
+        """
+        observed = (
+            None
+            if state is None
+            else FlextCliUtilitiesAtomicFilePath.path_identity(state)
+        )
+        if observed != expected:
+            message = f"atomic {subject} physical identity changed: {path}"
+            raise OSError(errno.ESTALE, message, path)
+
+    @staticmethod
     def path_identity(state: os.stat_result) -> tuple[int, int]:
         """Return the physical device and inode identity of one filesystem object.
 

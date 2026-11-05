@@ -81,14 +81,23 @@ class FlextCliUtilitiesXlsxStyleCatalog(
             for row in worksheet.iter_rows():
                 for cell in row:
                     if cell.style_id in seen or not (
-                        cell.value is not None
-                        or cell.has_style
-                        or cell.comment is not None
-                        or cell.hyperlink is not None
+                        FlextCliUtilitiesXlsxStyleCatalog._cell_in_use(cell)
                     ):
                         continue
                     seen.add(cell.style_id)
                     yield cell
+
+    @staticmethod
+    def _cell_in_use(cell: Cell | MergedCell) -> bool:
+        """Report whether one cell carries a value, style, comment, or link.
+
+        Returns:
+            Whether the cell contributes a source visual style.
+
+        """
+        if cell.value is not None or cell.has_style:
+            return True
+        return cell.comment is not None or cell.hyperlink is not None
 
     @classmethod
     def extract_style_catalog(
