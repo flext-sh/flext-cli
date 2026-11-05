@@ -29,7 +29,6 @@ class TestsFlextCliPipelineHandlers:
             return cli.ok_stage(
                 stage_id,
                 output={output_key: stage_id},
-                duration_ms=1.0,
             )
 
         return handler

@@ -151,6 +151,7 @@ class FlextCliUtilitiesMarkdownLinks(FlextCliUtilitiesMarkdownParsing):
             FlextCliUtilitiesMarkdownLinks.markdown_links(text),
         )
         replaced = 0
+        touched: set[int] = set()
         for link, (_label_start, target_start, target_end, _end) in reversed(spans):
             target = rewrite(link)
             if target is None or target == link.target:
@@ -159,7 +160,9 @@ class FlextCliUtilitiesMarkdownLinks(FlextCliUtilitiesMarkdownParsing):
             lines[index] = (
                 f"{lines[index][:target_start]}{target}{lines[index][target_end:]}"
             )
+            touched.add(index)
             replaced += 1
+        FlextCliUtilitiesMarkdownLinks._markdown_realign_tables(text, lines, touched)
         return ("".join(lines), replaced)
 
     @staticmethod
@@ -168,6 +171,9 @@ class FlextCliUtilitiesMarkdownLinks(FlextCliUtilitiesMarkdownParsing):
         unlink: Callable[[p.Cli.MarkdownLink], bool],
     ) -> str:
         """Replace selected inline links with their authored label text.
+
+        A GFM table whose cells shrink is re-aligned, so an aligned source
+        stays aligned.
 
         Returns:
             The rewritten document.
@@ -178,6 +184,7 @@ class FlextCliUtilitiesMarkdownLinks(FlextCliUtilitiesMarkdownParsing):
             lines,
             FlextCliUtilitiesMarkdownLinks.markdown_links(text),
         )
+        touched: set[int] = set()
         for link, (label_start, target_start, _target_end, end) in reversed(spans):
             if not unlink(link):
                 continue
@@ -188,7 +195,121 @@ class FlextCliUtilitiesMarkdownLinks(FlextCliUtilitiesMarkdownParsing):
             lines[index] = (
                 f"{line[:label_start]}{line[label_open:label_close]}{line[end:]}"
             )
+            touched.add(index)
+        FlextCliUtilitiesMarkdownLinks._markdown_realign_tables(text, lines, touched)
         return "".join(lines)
+
+    @staticmethod
+    def markdown_align_tables(text: str) -> str:
+        """Align every GFM table of ``text`` in the Markdown gate's table style.
+
+        Generators render tables through this owner, so their output is
+        aligned by construction instead of formatted afterwards.
+
+        Returns:
+            ``text`` with each table's columns padded to their widest cell.
+
+        """
+        lines = text.splitlines(keepends=True)
+        FlextCliUtilitiesMarkdownLinks._markdown_realign_tables(text, lines, None)
+        return "".join(lines)
+
+    @staticmethod
+    def _markdown_realign_tables(
+        text: str,
+        lines: MutableSequence[str],
+        touched: set[int] | None,
+    ) -> None:
+        """Re-align in place the GFM tables of ``text`` with a rewritten row.
+
+        Rewrites keep the line count, so the table line ranges of the source
+        address ``lines``. Columns pad to their widest cell, as the aligned
+        table style of the Markdown gate formats them. ``None`` selects every
+        table of ``text``.
+        """
+        if touched is not None and not touched:
+            return
+        for token in FlextCliUtilitiesMarkdownLinks._markdown_tokens(text):
+            if token.type != c.Cli.MarkdownTokenType.TABLE_OPEN or token.map is None:
+                continue
+            start, end = token.map
+            if touched is not None and touched.isdisjoint(range(start, end)):
+                continue
+            lines[start:end] = FlextCliUtilitiesMarkdownLinks._markdown_aligned_rows(
+                lines[start:end],
+            )
+
+    @staticmethod
+    def _markdown_table_cells(row: str) -> Sequence[str]:
+        """Split one table row on its unescaped pipes.
+
+        Returns:
+            The stripped cell texts, outer pipes excluded.
+
+        """
+        body = row.strip().removeprefix("|").removesuffix("|")
+        cells: MutableSequence[str] = []
+        current: MutableSequence[str] = []
+        escaped = False
+        for char in body:
+            if char == "|" and not escaped:
+                cells.append("".join(current).strip())
+                current = []
+            else:
+                current.append(char)
+            escaped = char == "\\" and not escaped
+        cells.append("".join(current).strip())
+        return tuple(cells)
+
+    @staticmethod
+    def _markdown_aligned_rows(rows: Sequence[str]) -> Sequence[str]:
+        """Render table rows with every column padded to its widest cell.
+
+        The delimiter row keeps its alignment colons; rows whose cell count
+        differs from the delimiter are a malformed table and stay as written.
+
+        Returns:
+            The aligned rows, each keeping its original line ending.
+
+        """
+        split = FlextCliUtilitiesMarkdownLinks._markdown_table_cells
+        cells = [split(row) for row in rows]
+        delimiter = cells[1]
+        if any(len(row) != len(delimiter) for row in cells):
+            return rows
+        widths = [
+            max(
+                c.Cli.MARKDOWN_TABLE_DELIMITER_MIN_WIDTH,
+                *(len(row[column]) for index, row in enumerate(cells) if index != 1),
+            )
+            for column in range(len(delimiter))
+        ]
+        indent = rows[0][: len(rows[0]) - len(rows[0].lstrip())]
+        rendered: MutableSequence[str] = []
+        for index, (row, source) in enumerate(zip(cells, rows, strict=True)):
+            ending = source[len(source.rstrip("\r\n")) :]
+            parts = (
+                (
+                    (":" if mark.startswith(":") else "-")
+                    + "-" * (width - 2)
+                    + (":" if mark.endswith(":") else "-")
+                )
+                if index == 1
+                else (
+                    cell.rjust(width)
+                    if delimiter[column].endswith(":")
+                    and not delimiter[column].startswith(":")
+                    else cell.center(width)
+                    if delimiter[column].startswith(":")
+                    and delimiter[column].endswith(":")
+                    else cell.ljust(width)
+                )
+                for column, (cell, mark, width) in enumerate(
+                    zip(row, delimiter, widths, strict=True)
+                )
+            )
+            rendered.append(f"{indent}| {' | '.join(parts)} |{ending}")
+        return tuple(rendered)
 
 
 __all__: list[str] = ["FlextCliUtilitiesMarkdownLinks"]

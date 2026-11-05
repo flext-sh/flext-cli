@@ -97,7 +97,6 @@ class FlextCliProtocolsPipeline:
             *,
             status: t.Cli.PipelineStageStatus,
             output: t.JsonMapping | None = None,
-            duration_ms: float = 0.0,
             error: str | None = None,
         ) -> FlextCliProtocolsPipeline.PipelineStageResult:
             """Build one typed pipeline stage result payload."""
@@ -108,7 +107,6 @@ class FlextCliProtocolsPipeline:
             stage_id: str,
             *,
             output: t.JsonMapping | None = None,
-            duration_ms: float = 0.0,
         ) -> p.Result[FlextCliProtocolsPipeline.PipelineStageResult]:
             """Return a successful typed stage result via ``r``."""
             ...

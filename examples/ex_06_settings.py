@@ -44,19 +44,13 @@ class ExamplesFlextCliSettings:
 
         """
         cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
-        cli.print(f"   Debug Mode: {settings.debug}", style=c.Cli.MessageStyles.CYAN)
-        cli.print(
-            f"   Log Level: {settings.log_level}",
-            style=c.Cli.MessageStyles.CYAN,
-        )
-        cli.print(
-            f"   Output Format: {settings.cli_output_format}",
-            style=c.Cli.MessageStyles.CYAN,
-        )
-        cli.print(
-            f"   App Name: {settings.cli_app_name}",
-            style=c.Cli.MessageStyles.CYAN,
-        )
+        for label, value in (
+            ("Debug Mode", settings.debug),
+            ("Log Level", settings.log_level),
+            ("Output Format", settings.cli_output_format),
+            ("App Name", settings.cli_app_name),
+        ):
+            cli.print(f"   {label}: {value}", style=c.Cli.MessageStyles.CYAN)
         return settings
 
     @staticmethod

@@ -6,10 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence, Sequence
+from collections.abc import Sequence
 
 from flext_cli import FlextCli, cli
-from tests import c, m, p, t, tm, u
+from tests import c, m, p, tm, u
 
 
 class TestsFlextCliServicePart01:
@@ -74,25 +74,9 @@ class TestsFlextCliServicePart01:
     @staticmethod
     def test_model_command_generates_real_typer_options() -> None:
         """Generate and execute real options from a canonical request model."""
-        captured: MutableSequence[p.Tests.SampleInput] = []
-        app = cli.create_app_with_common_params(
-            name="root",
-            help_text="Root application",
+        app, captured = u.Tests.sample_group_app(
+            m.Tests.SampleInput, command_name="run"
         )
-        group = cli.create_group(help_text="Sample group", name="sample")
-
-        def handle(params: p.Tests.SampleInput) -> t.JsonValue:
-            captured.append(params)
-            return True
-
-        command = cli.model_command(m.Tests.SampleInput, handle)
-        cli.register_command(
-            group,
-            name="run",
-            help_text="Run sample command",
-            command=command,
-        )
-        cli.add_group(app, name="sample", group=group)
         help_result = cli.invoke_app(app, args=["sample", "run", "--help"])
         exec_result = cli.invoke_app(
             app,

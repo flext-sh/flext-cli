@@ -16,6 +16,7 @@ from flext_core import m
 
 from flext_cli import p, t
 from flext_cli._models import FlextCliModelsAtomicState
+from flext_cli._models._base.flextclimodelsbase_part_08 import FlextCliModelsBasePart08
 
 
 class FlextCliModelsBasePart09:
@@ -167,8 +168,12 @@ class FlextCliModelsBasePart09:
                 raise ValueError(msg)
             return self
 
-    class AtomicDirectoryInventory(m.ContractModel):
+    class AtomicDirectoryInventory(FlextCliModelsBasePart08.AtomicNativeSelections):
         """One physical directory and its complete immediate child elections."""
+
+        atomic_queries_message: ClassVar[str] = (
+            "atomic directory queries require ordered lexical child names"
+        )
 
         root: Annotated[
             p.Cli.AtomicPhysicalTreeEntry,
@@ -187,38 +192,12 @@ class FlextCliModelsBasePart09:
         ] = m.Field(
             default=(), description="Complete ordered immediate physical children"
         )
-        queries: tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...] = m.Field(
-            default=(), description="Consumed native candidate predicates"
-        )
-        membership_queried: bool = m.Field(
-            default=False,
-            description="Whether native planning consumed direct membership",
-        )
-        membership_queries: tuple[t.StrTuple, ...] = m.Field(
-            default=(),
-            description="Consumed membership selections, each excluding named children",
-        )
 
         @m.model_validator(mode="after")
         def _validate_names(self) -> Self:
-            if self.membership_queries != tuple(
-                sorted(set(self.membership_queries))
-            ) or any(
-                selection != tuple(sorted(set(selection)))
-                or any(name in {"", ".", ".."} or "/" in name for name in selection)
-                for selection in self.membership_queries
-            ):
-                msg = "atomic membership selections require ordered lexical exclusions"
-                raise ValueError(msg)
             names = tuple(entry.name for entry in self.entries)
             if self.root.kind != "directory" or names != tuple(sorted(set(names))):
                 msg = "atomic directory inventory requires ordered unique children"
-                raise ValueError(msg)
-            if self.queries != tuple(sorted(set(self.queries))) or any(
-                name in {"", ".", ".."} or "/" in name
-                for name, _predicate in self.queries
-            ):
-                msg = "atomic directory queries require ordered lexical child names"
                 raise ValueError(msg)
             return self
 
@@ -228,11 +207,22 @@ class FlextCliModelsBasePart09:
         model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
 
         root: Annotated[
-            FlextCliModelsBasePart09.AtomicPhysicalTreeEntry,
+            p.Cli.AtomicPhysicalTreeEntry,
+            t.schema_for_model(
+                lambda: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry
+            ),
             m.Field(description="Physical tree root"),
         ]
         entries: Annotated[
-            tuple[FlextCliModelsBasePart09.AtomicPhysicalTreeEntry, ...],
+            tuple[
+                Annotated[
+                    p.Cli.AtomicPhysicalTreeEntry,
+                    t.schema_for_model(
+                        lambda: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry
+                    ),
+                ],
+                ...,
+            ],
             m.Field(description="Lexically ordered descendants"),
         ] = ()
 

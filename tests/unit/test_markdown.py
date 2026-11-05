@@ -143,6 +143,53 @@ class TestsFlextCliMarkdown:
         tm.that(rewritten, eq="See the `guide`, [web](https://x.io) ![i](a.png)\n")
 
     @staticmethod
+    def test_unlink_realigns_the_table_it_shortens() -> None:
+        """A table aligned before unlinking stays aligned; other tables are kept."""
+        rewritten = u.Cli.markdown_unlink(
+            "| Guide             | Rule |\n"
+            "| ----------------- | ---- |\n"
+            "| [setup](setup.md) | D8   |\n"
+            "\n"
+            "| kept |\n"
+            "| --- |\n",
+            lambda link: not link.image,
+        )
+        tm.that(
+            rewritten,
+            eq=(
+                "| Guide | Rule |\n"
+                "| ----- | ---- |\n"
+                "| setup | D8   |\n"
+                "\n"
+                "| kept |\n"
+                "| --- |\n"
+            ),
+        )
+
+    @staticmethod
+    def test_align_tables_pads_every_table_and_keeps_prose() -> None:
+        """Every table is aligned to its widest cell; text around it is kept."""
+        aligned = u.Cli.markdown_align_tables(
+            "Intro.\n"
+            "\n"
+            "| Verb | Inputs |\n"
+            "| --- | ---: |\n"
+            "| `setup` | FLEXT, RECREATE |\n"
+            "| `gen` | — |\n"
+        )
+        tm.that(
+            aligned,
+            eq=(
+                "Intro.\n"
+                "\n"
+                "| Verb    |          Inputs |\n"
+                "| ------- | --------------: |\n"
+                "| `setup` | FLEXT, RECREATE |\n"
+                "| `gen`   |               — |\n"
+            ),
+        )
+
+    @staticmethod
     def test_wrap_reflows_prose_and_keeps_structure_and_fences() -> None:
         """Long prose wraps with hanging indents; headings, tables and fences stay."""
         long_line = "alpha beta gamma delta epsilon zeta eta theta iota kappa"

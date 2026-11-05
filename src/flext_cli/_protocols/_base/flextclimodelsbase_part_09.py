@@ -13,8 +13,10 @@ from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
+from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart08
+
 if TYPE_CHECKING:
-    from flext_cli import t
+    pass
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart09:
@@ -144,7 +146,9 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart09:
             ...
 
     @runtime_checkable
-    class AtomicDirectoryInventory(FlextProtocols.BaseModel, Protocol):
+    class AtomicDirectoryInventory(
+        FlextCliProtocolsBaseFlextclimodelsbasePart08.AtomicNativeSelections, Protocol
+    ):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -161,23 +165,6 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart09:
             FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryName, ...
         ]:
             """Complete ordered immediate physical children."""
-            ...
-
-        @property
-        def queries(
-            self,
-        ) -> tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...]:
-            """Consumed native candidate predicates."""
-            ...
-
-        @property
-        def membership_queried(self) -> bool:
-            """Whether native planning consumed direct membership."""
-            ...
-
-        @property
-        def membership_queries(self) -> tuple[t.StrTuple, ...]:
-            """Consumed membership selections, each excluding named children."""
             ...
 
     @runtime_checkable

@@ -73,16 +73,17 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
         *,
         status: t.Cli.PipelineStageStatus = c.Cli.PipelineStageStatus.OK,
         output: t.JsonMapping | None = None,
-        duration_ms: float = 0.0,
         error: str | None = None,
     ) -> m.Cli.PipelineStageResult:
         """Build one typed stage result payload.
+
+        The stage duration is not a DSL input: the pipeline executor measures
+        each stage and stamps ``duration_ms`` on the result it returns.
 
         Args:
             stage_id: Identifier of the stage that produced the result.
             status: Stage outcome status; defaults to the OK status.
             output: Optional JSON mapping produced by the stage.
-            duration_ms: Stage execution duration in milliseconds.
             error: Optional error message when the stage failed.
 
         Returns:
@@ -93,7 +94,6 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
             "stage_id": stage_id,
             "status": status,
             "output": {} if output is None else output,
-            "duration_ms": duration_ms,
             "error": error,
         })
 
@@ -103,14 +103,12 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
         stage_id: str,
         *,
         output: t.JsonMapping | None = None,
-        duration_ms: float = 0.0,
     ) -> p.Result[p.Cli.PipelineStageResult]:
         """Return one successful stage result via the canonical ``r`` API.
 
         Args:
             stage_id: Identifier of the successful stage.
             output: Optional JSON mapping produced by the stage.
-            duration_ms: Stage execution duration in milliseconds.
 
         Returns:
             One successful stage result via the canonical ``r`` API.
@@ -121,7 +119,6 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
                 stage_id,
                 status=c.Cli.PipelineStageStatus.OK,
                 output=output,
-                duration_ms=duration_ms,
             ),
         )
 
