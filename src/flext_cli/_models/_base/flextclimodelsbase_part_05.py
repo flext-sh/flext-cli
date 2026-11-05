@@ -40,5 +40,24 @@ class FlextCliModelsBasePart05:
 
         timestamp: Annotated[str, m.Field(description="Timestamp of snapshot")] = ""
 
+    class OfficeRenderRequest(m.FrozenModel):
+        """Shared request shape of every office-document renderer."""
+
+        template: (
+            Annotated[
+                bytes,
+                m.Field(min_length=1, description="Formatting template bytes."),
+            ]
+            | None
+        ) = m.Field(default=None, description="Optional source office document.")
+
+    class OfficeRenderResult(m.FrozenModel):
+        """Shared result shape of every office-document renderer."""
+
+        content: Annotated[
+            bytes,
+            m.Field(min_length=1, description="Rendered office document bytes."),
+        ]
+
 
 __all__: list[str] = ["FlextCliModelsBasePart05"]

@@ -11,9 +11,11 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
+    from flext_core import p
+
     from flext_cli import c, t
 
 
@@ -21,7 +23,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class ServiceOptions(p.BaseModel, Protocol):
+    class ServiceOptions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -30,19 +32,15 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
             ...
 
     @runtime_checkable
-    class TypedExtract(p.BaseModel, Protocol):
+    class TypedExtract(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def type_kind(self) -> t.Cli.TypeKind:
-            """Requested type."""
-            ...
-
+        type_kind: t.Cli.TypeKind
         value: t.JsonValue | None
         default: t.JsonValue | None
 
     @runtime_checkable
-    class JsonWriteOptions(p.BaseModel, Protocol):
+    class JsonWriteOptions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         indent: int
@@ -50,7 +48,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
         ensure_ascii: bool
 
     @runtime_checkable
-    class TableRenderRequest(p.BaseModel, Protocol):
+    class TableRenderRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -69,7 +67,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
             ...
 
     @runtime_checkable
-    class DataReportRequest(p.BaseModel, Protocol):
+    class DataReportRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

@@ -10,7 +10,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
+
+from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart05
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -21,7 +23,7 @@ class FlextCliProtocolsDocxDocument:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class DocxRunPlan(p.BaseModel, Protocol):
+    class DocxRunPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -35,7 +37,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxParagraphPlan(p.BaseModel, Protocol):
+    class DocxParagraphPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -61,7 +63,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxTableCellPlan(p.BaseModel, Protocol):
+    class DocxTableCellPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -72,7 +74,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxTableRowPlan(p.BaseModel, Protocol):
+    class DocxTableRowPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -81,7 +83,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxTablePlan(p.BaseModel, Protocol):
+    class DocxTablePlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -95,7 +97,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxSectionPlan(p.BaseModel, Protocol):
+    class DocxSectionPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -134,7 +136,7 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxDocumentPlan(p.BaseModel, Protocol):
+    class DocxDocumentPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -160,13 +162,10 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxRenderRequest(p.BaseModel, Protocol):
+    class DocxRenderRequest(
+        FlextCliProtocolsBaseFlextclimodelsbasePart05.OfficeRenderRequest, Protocol
+    ):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def template(self) -> bytes | None:
-            """Formatting template bytes."""
-            ...
 
         @property
         def plan(self) -> FlextCliProtocolsDocxDocument.DocxDocumentPlan:
@@ -179,13 +178,10 @@ class FlextCliProtocolsDocxDocument:
             ...
 
     @runtime_checkable
-    class DocxRenderResult(p.BaseModel, Protocol):
+    class DocxRenderResult(
+        FlextCliProtocolsBaseFlextclimodelsbasePart05.OfficeRenderResult, Protocol
+    ):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def content(self) -> bytes:
-            """Rendered document bytes."""
-            ...
 
         @property
         def plan(self) -> FlextCliProtocolsDocxDocument.DocxDocumentPlan:

@@ -81,8 +81,7 @@ def make_prompts() -> Callable[..., p.Tests.Prompts]:
 
     def _make(
         *,
-        interactive_mode: bool = True,
-        quiet: bool = False,
+        state: p.Cli.PromptRuntimeState | None = None,
         inputs: Sequence[str] = (),
         password: str = "",
         error: Exception | None = None,
@@ -92,7 +91,7 @@ def make_prompts() -> Callable[..., p.Tests.Prompts]:
             password_reader=_scripted_reader((password,), error),
         )
         return prompts.configure(
-            m.Cli.PromptRuntimeState(interactive=interactive_mode, quiet=quiet),
+            m.Cli.PromptRuntimeState() if state is None else state,
         )
 
     return _make

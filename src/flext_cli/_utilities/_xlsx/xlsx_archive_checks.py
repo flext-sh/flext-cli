@@ -23,7 +23,7 @@ class FlextCliUtilitiesXlsxArchiveChecks:
         kind: t.Cli.XlsxArchiveViolationKind,
         location: str,
         detail: str,
-    ) -> p.Cli.XlsxArchiveViolation:
+    ) -> m.Cli.XlsxArchiveViolation:
         return m.Cli.XlsxArchiveViolation(kind=kind, location=location, detail=detail)
 
     @staticmethod
@@ -69,8 +69,8 @@ class FlextCliUtilitiesXlsxArchiveChecks:
         root: p.Cli.XlsxXmlElement,
         member: str,
         policy: p.Cli.XlsxArchivePolicy,
-    ) -> tuple[p.Cli.XlsxArchiveViolation, ...]:
-        violations: tuple[p.Cli.XlsxArchiveViolation, ...] = ()
+    ) -> tuple[m.Cli.XlsxArchiveViolation, ...]:
+        violations: tuple[m.Cli.XlsxArchiveViolation, ...] = ()
         for element in root.iter():
             tag = cls._local_name(element.tag)
             if tag in policy.forbidden_worksheet_tags:
@@ -83,7 +83,7 @@ class FlextCliUtilitiesXlsxArchiveChecks:
         root: p.Cli.XlsxXmlElement,
         member: str,
         policy: p.Cli.XlsxArchivePolicy,
-    ) -> tuple[p.Cli.XlsxArchiveViolation, ...]:
+    ) -> tuple[m.Cli.XlsxArchiveViolation, ...]:
         if not policy.reject_defined_names:
             return ()
         return tuple(
@@ -98,10 +98,10 @@ class FlextCliUtilitiesXlsxArchiveChecks:
         root: p.Cli.XlsxXmlElement,
         member: str,
         policy: p.Cli.XlsxArchivePolicy,
-    ) -> tuple[p.Cli.XlsxArchiveViolation, ...]:
+    ) -> tuple[m.Cli.XlsxArchiveViolation, ...]:
         if not policy.reject_style_protection:
             return ()
-        violations: tuple[p.Cli.XlsxArchiveViolation, ...] = ()
+        violations: tuple[m.Cli.XlsxArchiveViolation, ...] = ()
         for group in root.iter():
             if (
                 cls._local_name(group.tag)

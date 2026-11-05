@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
+from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart05
+
 if TYPE_CHECKING:
     from flext_cli._protocols._xlsx import (
         FlextCliProtocolsXlsxXlsxCells,
@@ -87,13 +89,10 @@ class FlextCliProtocolsXlsxXlsxWorkbook:
             ...
 
     @runtime_checkable
-    class XlsxRenderRequest(FlextProtocols.BaseModel, Protocol):
+    class XlsxRenderRequest(
+        FlextCliProtocolsBaseFlextclimodelsbasePart05.OfficeRenderRequest, Protocol
+    ):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def template(self) -> bytes | None:
-            """Formatting template bytes."""
-            ...
 
         @property
         def plan(self) -> FlextCliProtocolsXlsxXlsxWorkbook.XlsxWorkbookPlan:
@@ -101,13 +100,10 @@ class FlextCliProtocolsXlsxXlsxWorkbook:
             ...
 
     @runtime_checkable
-    class XlsxRenderResult(FlextProtocols.BaseModel, Protocol):
+    class XlsxRenderResult(
+        FlextCliProtocolsBaseFlextclimodelsbasePart05.OfficeRenderResult, Protocol
+    ):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def content(self) -> bytes:
-            """Rendered workbook bytes."""
-            ...
 
         @property
         def plan(self) -> FlextCliProtocolsXlsxXlsxWorkbook.XlsxWorkbookPlan:

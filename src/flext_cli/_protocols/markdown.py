@@ -10,14 +10,14 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 
 class FlextCliProtocolsMarkdown:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class MarkdownFence(p.BaseModel, Protocol):
+    class MarkdownFence(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -51,7 +51,7 @@ class FlextCliProtocolsMarkdown:
             ...
 
     @runtime_checkable
-    class MarkdownLink(p.BaseModel, Protocol):
+    class MarkdownLink(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -70,7 +70,7 @@ class FlextCliProtocolsMarkdown:
             ...
 
     @runtime_checkable
-    class MarkdownHeading(p.BaseModel, Protocol):
+    class MarkdownHeading(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -89,7 +89,7 @@ class FlextCliProtocolsMarkdown:
             ...
 
     @runtime_checkable
-    class MarkdownCodeSpan(p.BaseModel, Protocol):
+    class MarkdownCodeSpan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

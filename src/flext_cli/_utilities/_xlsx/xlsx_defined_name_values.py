@@ -62,7 +62,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
             return r[p.Cli.XlsxDefinedNameValuesResult].fail(
                 f"{c.Cli.XlsxError.DEFINED_NAME_MISSING}: {request.name}",
             )
-        cells: tuple[p.Cli.XlsxDefinedNameCell, ...] = ()
+        cells: tuple[m.Cli.XlsxDefinedNameCell, ...] = ()
         for sheet_title, coordinate in defined_name.destinations:
             resolved = cls._destination_cells(workbook[sheet_title], coordinate)
             if resolved.failure:
@@ -82,8 +82,8 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
         cls,
         worksheet: Worksheet,
         coordinate: str,
-    ) -> p.Result[tuple[p.Cli.XlsxDefinedNameCell, ...]]:
-        cells: tuple[p.Cli.XlsxDefinedNameCell, ...] = ()
+    ) -> p.Result[tuple[m.Cli.XlsxDefinedNameCell, ...]]:
+        cells: tuple[m.Cli.XlsxDefinedNameCell, ...] = ()
         selection = worksheet[coordinate]
         for cell in cls._flatten_cells(selection):
             cell_value = cell.value
@@ -91,7 +91,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
                 cell_value,
                 (str, int, float, bool, Decimal, date, datetime),
             ):
-                return r[tuple[p.Cli.XlsxDefinedNameCell, ...]].fail(
+                return r[tuple[m.Cli.XlsxDefinedNameCell, ...]].fail(
                     f"{c.Cli.XlsxError.DEFINED_NAME_INVALID}: "
                     f"{cell_value.__class__.__name__} at {cell.coordinate}",
                 )
@@ -106,7 +106,7 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
                     value=value,
                 ),
             )
-        return r[tuple[p.Cli.XlsxDefinedNameCell, ...]].ok(cells)
+        return r[tuple[m.Cli.XlsxDefinedNameCell, ...]].ok(cells)
 
     @staticmethod
     def _flatten_cells(

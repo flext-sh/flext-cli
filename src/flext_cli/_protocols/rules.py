@@ -12,34 +12,25 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_cli._typings import FlextCliTypesDomain
+    from flext_cli import t
 
 
 class FlextCliProtocolsRules:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class LocalDefinitionsOptions[TRuleKind, TFileRuleKind](p.BaseModel, Protocol):
+    class LocalDefinitionsOptions[TRuleKind, TFileRuleKind](
+        FlextProtocols.BaseModel, Protocol
+    ):
         """Structural data contract projected from the owning model."""
 
         package_rules_dir: Path
         rule_filters: Sequence[str]
-
-        @property
-        def rule_catalog(self) -> FlextCliTypesDomain.RuleCatalog[TRuleKind]:
-            """Catalog mapping rule kinds to their matchers."""
-            ...
-
-        @property
-        def file_rule_catalog(
-            self,
-        ) -> FlextCliTypesDomain.RuleCatalog[TFileRuleKind] | None:
-            """Optional catalog of file-rule kinds and matchers."""
-            ...
-
+        rule_catalog: t.Cli.RuleCatalog[TRuleKind]
+        file_rule_catalog: t.Cli.RuleCatalog[TFileRuleKind] | None
         registry_filename: str
         rules_key: str
         rule_id_key: str

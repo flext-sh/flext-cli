@@ -90,11 +90,18 @@ class FlextCliUtilitiesXlsxStyleCatalog(
             The resulting ``p.Result[p.Cli.XlsxStyleCatalog]``.
 
         """
+        return cls._style_catalog(request)
+
+    @classmethod
+    def _style_catalog(
+        cls,
+        request: p.Cli.XlsxStyleCatalogRequest,
+    ) -> p.Result[m.Cli.XlsxStyleCatalog]:
         source_result = cls._source_visuals(request.source)
         if source_result.failure:
-            return r[p.Cli.XlsxStyleCatalog].from_failure(source_result)
-        styles: tuple[p.Cli.XlsxNamedStyleSpec, ...] = ()
-        style_map: tuple[p.Cli.XlsxStyleMapEntry, ...] = ()
+            return r[m.Cli.XlsxStyleCatalog].from_failure(source_result)
+        styles: tuple[m.Cli.XlsxNamedStyleSpec, ...] = ()
+        style_map: tuple[m.Cli.XlsxStyleMapEntry, ...] = ()
         for source in source_result.value:
             existing = next(
                 (style for style in styles if style.visual == source.visual),
@@ -106,7 +113,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                     visual=source.visual,
                 )
                 if any(style.name == existing.name for style in styles):
-                    return r[p.Cli.XlsxStyleCatalog].fail(
+                    return r[m.Cli.XlsxStyleCatalog].fail(
                         f"Deterministic style-name collision: {existing.name}",
                     )
                 styles = (*styles, existing)
@@ -117,7 +124,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                     style_name=existing.name,
                 ),
             )
-        return r[p.Cli.XlsxStyleCatalog].ok(
+        return r[m.Cli.XlsxStyleCatalog].ok(
             m.Cli.XlsxStyleCatalog(style_map=style_map, styles=styles),
         )
 
@@ -132,7 +139,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
             The resulting ``p.Result[p.Cli.XlsxStyleTemplateResult]``.
 
         """
-        catalog_result = cls.extract_style_catalog(
+        catalog_result = cls._style_catalog(
             m.Cli.XlsxStyleCatalogRequest(
                 source=request.source,
                 style_name_prefix=request.style_name_prefix,

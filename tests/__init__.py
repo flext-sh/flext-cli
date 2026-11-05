@@ -31,7 +31,7 @@ if TYPE_CHECKING:
         settings,
     )
     from flext_core import d, e, h, r, x
-    from flext_tests import api, td, tf, tk, tm
+    from flext_tests import td, tf, tk, tm
 
     from flext_cli import (
         FlextCli,
@@ -128,7 +128,6 @@ __all__: tuple[str, ...] = (
     "__url__",
     "__version__",
     "__version_info__",
-    "api",
     "c",
     "cli",
     "config",
@@ -202,7 +201,6 @@ install_lazy_exports(
         "__url__": "flext_cli",
         "__version__": "flext_cli",
         "__version_info__": "flext_cli",
-        "api": "flext_tests",
         "c": ".constants",
         "cli": "examples",
         "config": "examples",

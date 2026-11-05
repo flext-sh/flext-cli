@@ -176,7 +176,11 @@ class FlextCliUtilitiesRuntime(
                 ),
             )
 
-        launch = options if options is not None else m.Cli.ProcessOptions()
+        launch = (
+            m.Cli.ProcessOptions.model_validate(options, from_attributes=True)
+            if options is not None
+            else m.Cli.ProcessOptions()
+        )
         if env is not None or remove_env_keys is not None:
             launch = m.Cli.ProcessOptions(
                 env=env if env is not None else launch.env,
@@ -234,7 +238,11 @@ class FlextCliUtilitiesRuntime(
             The resulting ``p.Result[p.Cli.CommandBytesOutput]``.
 
         """
-        launch = options if options is not None else m.Cli.ProcessOptions()
+        launch = (
+            m.Cli.ProcessOptions.model_validate(options, from_attributes=True)
+            if options is not None
+            else m.Cli.ProcessOptions()
+        )
         return cls._execute_streamed_process(
             m.Cli.RuntimeProcessRequest(
                 cmd=cmd,

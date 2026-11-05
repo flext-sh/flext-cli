@@ -690,7 +690,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
         """
         root_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(root_path)
-        entries: list[p.Cli.AtomicPhysicalTreeEntry] = []
+        entries: list[m.Cli.AtomicPhysicalTreeEntry] = []
         with FlextCliUtilitiesAtomicTreeInventory._opened_root(root_path) as (
             root,
             parent,
@@ -719,7 +719,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         root_path: Path,
     ) -> Generator[
         tuple[
-            p.Cli.AtomicPhysicalTreeEntry,
+            m.Cli.AtomicPhysicalTreeEntry,
             FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         ]
     ]:
@@ -788,7 +788,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def _inventory_directory(
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         parent_mount_id: int,
-        entries: list[p.Cli.AtomicPhysicalTreeEntry],
+        entries: list[m.Cli.AtomicPhysicalTreeEntry],
         directory_identities: set[tuple[int, int]],
     ) -> None:
         FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
@@ -954,7 +954,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         parent: os.stat_result,
         observed: os.stat_result,
         details: p.Cli.TreeEntryDetails,
-    ) -> p.Cli.AtomicPhysicalTreeEntry:
+    ) -> m.Cli.AtomicPhysicalTreeEntry:
         if details.kind == "file" and observed.st_nlink > 1:
             # Cleanup authority is per pathname; a second physical name sharing
             # the inode means pruning this tree must not silently claim the

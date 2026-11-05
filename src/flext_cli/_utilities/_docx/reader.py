@@ -77,7 +77,7 @@ class FlextCliUtilitiesDocxReader:
         )
 
     @classmethod
-    def _snapshot_paragraph(cls, paragraph: Paragraph) -> p.Cli.DocxParagraphPlan:
+    def _snapshot_paragraph(cls, paragraph: Paragraph) -> m.Cli.DocxParagraphPlan:
         runs = tuple(cls._snapshot_run(run) for run in paragraph.runs)
         alignment = cls._snapshot_alignment(
             cast(
@@ -92,7 +92,7 @@ class FlextCliUtilitiesDocxReader:
         )
 
     @classmethod
-    def _snapshot_run(cls, run: Run) -> p.Cli.DocxRunPlan:
+    def _snapshot_run(cls, run: Run) -> m.Cli.DocxRunPlan:
         font = run.font
         color = None
         if font.color and font.color.rgb:
@@ -111,8 +111,8 @@ class FlextCliUtilitiesDocxReader:
         return m.Cli.DocxRunPlan(text=run.text, style=style)
 
     @classmethod
-    def _snapshot_table(cls, table: Table) -> p.Cli.DocxTablePlan:
-        rows: tuple[p.Cli.DocxTableRowPlan, ...] = ()
+    def _snapshot_table(cls, table: Table) -> m.Cli.DocxTablePlan:
+        rows: tuple[m.Cli.DocxTableRowPlan, ...] = ()
         for row in table.rows:
             cells = tuple(
                 m.Cli.DocxTableCellPlan(

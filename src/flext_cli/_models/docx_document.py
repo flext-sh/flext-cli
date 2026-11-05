@@ -12,6 +12,7 @@ from flext_core import m
 
 from flext_cli import c, p, t
 from flext_cli._models import FlextCliModelsDocxStyles
+from flext_cli._models._base.flextclimodelsbase_part_05 import FlextCliModelsBasePart05
 
 
 class FlextCliModelsDocxDocument:
@@ -118,17 +119,10 @@ class FlextCliModelsDocxDocument:
             description="Core document properties.",
         )
 
-    class DocxRenderRequest(m.FrozenModel):
-        template: (
-            Annotated[
-                bytes,
-                m.Field(min_length=1, description="Formatting template bytes."),
-            ]
-            | None
-        ) = m.Field(default=None, description="Optional source document.")
+    class DocxRenderRequest(FlextCliModelsBasePart05.OfficeRenderRequest):
         plan: Annotated[
             p.Cli.DocxDocumentPlan,
-            t.schema_for_model(FlextCliModelsDocxDocument.DocxDocumentPlan),
+            t.schema_for_model(lambda: FlextCliModelsDocxDocument.DocxDocumentPlan),
         ] = m.Field(
             description="Validated document plan.",
         )
@@ -146,14 +140,10 @@ class FlextCliModelsDocxDocument:
             description="Fix core-property and archive timestamps for reproducibility.",
         )
 
-    class DocxRenderResult(m.FrozenModel):
-        content: Annotated[
-            bytes,
-            m.Field(min_length=1, description="Rendered document bytes."),
-        ]
+    class DocxRenderResult(FlextCliModelsBasePart05.OfficeRenderResult):
         plan: Annotated[
             p.Cli.DocxDocumentPlan,
-            t.schema_for_model(FlextCliModelsDocxDocument.DocxDocumentPlan),
+            t.schema_for_model(lambda: FlextCliModelsDocxDocument.DocxDocumentPlan),
         ] = m.Field(
             description="Exact source plan.",
         )

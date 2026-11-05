@@ -11,19 +11,18 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
     from flext_cli import t
     from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart01
-    from flext_cli._typings import FlextCliTypesBase
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart06:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class CliParamsConfig(p.BaseModel, Protocol):
+    class CliParamsConfig(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -72,7 +71,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart06:
             ...
 
     @runtime_checkable
-    class OptionMetadata(p.BaseModel, Protocol):
+    class OptionMetadata(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -86,7 +85,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart06:
             ...
 
         @property
-        def default(self) -> FlextCliTypesBase.CliValue | None:
+        def default(self) -> t.Cli.CliValue | None:
             """Option default value when explicitly provided."""
             ...
 
@@ -96,7 +95,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart06:
             ...
 
     @runtime_checkable
-    class OptionSpec(p.BaseModel, Protocol):
+    class OptionSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -110,7 +109,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart06:
             ...
 
         @property
-        def default(self) -> FlextCliTypesBase.CliValue | None:
+        def default(self) -> t.Cli.CliValue | None:
             """Validated optional default value."""
             ...
 
@@ -120,7 +119,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart06:
             ...
 
     @runtime_checkable
-    class InvocationResult(p.BaseModel, Protocol):
+    class InvocationResult(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

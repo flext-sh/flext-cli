@@ -12,7 +12,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -27,7 +27,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart10:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicDirectoryObservations(p.BaseModel, Protocol):
+    class AtomicDirectoryObservations(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -49,7 +49,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart10:
             ...
 
     @runtime_checkable
-    class AtomicDirectoryQueryEffects(p.BaseModel, Protocol):
+    class AtomicDirectoryQueryEffects(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -68,7 +68,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart10:
         membership_policy: t.StrTuple
 
     @runtime_checkable
-    class AtomicFilePublication(p.BaseModel, Protocol):
+    class AtomicFilePublication(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
