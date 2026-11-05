@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from flext_cli._protocols.atomic_publication import (
         FlextCliProtocolsAtomicPublication,
     )
+    from flext_cli._protocols.atomic_queries import FlextCliProtocolsAtomicQueries
     from flext_cli._protocols.atomic_symlink import FlextCliProtocolsAtomicSymlink
     from flext_cli._protocols.base import FlextCliProtocolsBase
     from flext_cli._protocols.color import FlextCliProtocolsColor
@@ -47,6 +48,7 @@ if TYPE_CHECKING:
 __all__: tuple[str, ...] = (
     "FlextCliProtocolsAtomicFile",
     "FlextCliProtocolsAtomicPublication",
+    "FlextCliProtocolsAtomicQueries",
     "FlextCliProtocolsAtomicSymlink",
     "FlextCliProtocolsBase",
     "FlextCliProtocolsColor",
@@ -79,6 +81,7 @@ install_lazy_exports(
     {
         "FlextCliProtocolsAtomicFile": ".atomic_file",
         "FlextCliProtocolsAtomicPublication": ".atomic_publication",
+        "FlextCliProtocolsAtomicQueries": ".atomic_queries",
         "FlextCliProtocolsAtomicSymlink": ".atomic_symlink",
         "FlextCliProtocolsBase": ".base",
         "FlextCliProtocolsColor": ".color",

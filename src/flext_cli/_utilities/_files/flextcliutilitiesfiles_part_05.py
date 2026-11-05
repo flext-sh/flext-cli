@@ -190,8 +190,9 @@ class FlextCliUtilitiesFilesPart05:
         return FlextCliUtilitiesAtomicTreeInventory.merge_directory_query_receipts(
             inventories,
             topology,
-            queries=queries,
-            membership_queries=membership_queries,
+            m.Cli.AtomicDirectoryWorkingSelectors(
+                queries=queries, membership_queries=membership_queries
+            ),
         )
 
     @staticmethod
@@ -246,13 +247,23 @@ class FlextCliUtilitiesFilesPart05:
             A successful result when all consumed native queries still agree.
 
         """
+        effects = (
+            publications
+            if isinstance(publications, m.Cli.AtomicDirectoryQueryEffects)
+            else None
+        )
         return r[bool].ok(
             FlextCliUtilitiesAtomicTreeInventory.verify_directory_queries(
                 inventories,
                 topology,
-                publications,
-                directory_publications,
-                observations,
+                m.Cli.AtomicDirectoryQueryProof(
+                    files=publications if effects is None else effects.files,
+                    membership_policy=(
+                        None if effects is None else effects.membership_policy
+                    ),
+                    directories=directory_publications,
+                    observations=observations,
+                ),
             )
         )
 

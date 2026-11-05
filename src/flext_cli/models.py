@@ -10,6 +10,7 @@ from __future__ import annotations
 from flext_core import m as flext_core_m
 
 from flext_cli._models import (
+    FlextCliModelsAtomicQueries,
     FlextCliModelsAtomicState,
     FlextCliModelsBase,
     FlextCliModelsColor,
@@ -32,6 +33,7 @@ class FlextCliModels(flext_core_m):
     """FlextCli models extending FlextModels."""
 
     class Cli(
+        FlextCliModelsAtomicQueries,
         FlextCliModelsAtomicState,
         FlextCliModelsBase,
         FlextCliModelsColor,

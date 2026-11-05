@@ -96,6 +96,12 @@ if TYPE_CHECKING:
     from flext_cli._utilities.atomic_tree_inventory import (
         FlextCliUtilitiesAtomicTreeInventory,
     )
+    from flext_cli._utilities.atomic_tree_physical import (
+        FlextCliUtilitiesAtomicTreePhysical,
+    )
+    from flext_cli._utilities.atomic_tree_query_receipts import (
+        FlextCliUtilitiesAtomicTreeQueryReceipts,
+    )
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth
     from flext_cli._utilities.cli_namespace import FlextCliUtilitiesCli
     from flext_cli._utilities.cmd import FlextCliUtilitiesCmd
@@ -174,6 +180,8 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesAtomicTreeDarwin",
     "FlextCliUtilitiesAtomicTreeDescriptor",
     "FlextCliUtilitiesAtomicTreeInventory",
+    "FlextCliUtilitiesAtomicTreePhysical",
+    "FlextCliUtilitiesAtomicTreeQueryReceipts",
     "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
@@ -251,6 +259,8 @@ install_lazy_exports(
         "FlextCliUtilitiesAtomicTreeDarwin": ".atomic_tree_darwin",
         "FlextCliUtilitiesAtomicTreeDescriptor": ".atomic_tree_descriptor",
         "FlextCliUtilitiesAtomicTreeInventory": ".atomic_tree_inventory",
+        "FlextCliUtilitiesAtomicTreePhysical": ".atomic_tree_physical",
+        "FlextCliUtilitiesAtomicTreeQueryReceipts": ".atomic_tree_query_receipts",
         "FlextCliUtilitiesAuth": ".auth",
         "FlextCliUtilitiesCli": ".cli_namespace",
         "FlextCliUtilitiesCmd": ".cmd",

@@ -25,8 +25,17 @@ if TYPE_CHECKING:
     from flext_cli._utilities._runtime.process_group import (
         FlextCliUtilitiesRuntimeProcessGroup,
     )
+    from flext_cli._utilities._runtime.process_isolation import (
+        FlextCliUtilitiesRuntimeProcessIsolation,
+    )
+    from flext_cli._utilities._runtime.process_isolation_inputs import (
+        FlextCliUtilitiesRuntimeProcessIsolationInputs,
+    )
     from flext_cli._utilities._runtime.process_monitor import (
         FlextCliUtilitiesRuntimeProcessMonitor,
+    )
+    from flext_cli._utilities._runtime.process_native_tools import (
+        FlextCliUtilitiesRuntimeProcessNativeTools,
     )
     from flext_cli._utilities._runtime.process_outcome import (
         FlextCliUtilitiesRuntimeProcessOutcome,
@@ -69,7 +78,10 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesRuntimeProcessCleanup",
     "FlextCliUtilitiesRuntimeProcessExecution",
     "FlextCliUtilitiesRuntimeProcessGroup",
+    "FlextCliUtilitiesRuntimeProcessIsolation",
+    "FlextCliUtilitiesRuntimeProcessIsolationInputs",
     "FlextCliUtilitiesRuntimeProcessMonitor",
+    "FlextCliUtilitiesRuntimeProcessNativeTools",
     "FlextCliUtilitiesRuntimeProcessOutcome",
     "FlextCliUtilitiesRuntimeProcessOutput",
     "FlextCliUtilitiesRuntimeProcessResources",
@@ -92,7 +104,10 @@ install_lazy_exports(
         "FlextCliUtilitiesRuntimeProcessCleanup": ".process_cleanup",
         "FlextCliUtilitiesRuntimeProcessExecution": ".process_execution",
         "FlextCliUtilitiesRuntimeProcessGroup": ".process_group",
+        "FlextCliUtilitiesRuntimeProcessIsolation": ".process_isolation",
+        "FlextCliUtilitiesRuntimeProcessIsolationInputs": ".process_isolation_inputs",
         "FlextCliUtilitiesRuntimeProcessMonitor": ".process_monitor",
+        "FlextCliUtilitiesRuntimeProcessNativeTools": ".process_native_tools",
         "FlextCliUtilitiesRuntimeProcessOutcome": ".process_outcome",
         "FlextCliUtilitiesRuntimeProcessOutput": ".process_output",
         "FlextCliUtilitiesRuntimeProcessResources": ".process_resources",

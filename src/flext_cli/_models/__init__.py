@@ -13,6 +13,7 @@ from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._models.atomic_publication import FlextCliModelsAtomicPublication
+    from flext_cli._models.atomic_queries import FlextCliModelsAtomicQueries
     from flext_cli._models.atomic_state import FlextCliModelsAtomicState
     from flext_cli._models.atomic_symlink import FlextCliModelsAtomicSymlink
     from flext_cli._models.base import FlextCliModelsBase
@@ -36,6 +37,7 @@ if TYPE_CHECKING:
 
 __all__: tuple[str, ...] = (
     "FlextCliModelsAtomicPublication",
+    "FlextCliModelsAtomicQueries",
     "FlextCliModelsAtomicState",
     "FlextCliModelsAtomicSymlink",
     "FlextCliModelsBase",
@@ -62,6 +64,7 @@ install_lazy_exports(
     globals(),
     {
         "FlextCliModelsAtomicPublication": ".atomic_publication",
+        "FlextCliModelsAtomicQueries": ".atomic_queries",
         "FlextCliModelsAtomicState": ".atomic_state",
         "FlextCliModelsAtomicSymlink": ".atomic_symlink",
         "FlextCliModelsBase": ".base",

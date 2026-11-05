@@ -69,6 +69,16 @@ class FlextCliProtocolsProcessRuntime:
     class RuntimeMonitorPhase(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
+        @property
+        def timing(self) -> FlextCliProtocolsProcessRuntime.RuntimeProcessTiming:
+            """Declared lifecycle deadline and termination reserve."""
+            ...
+
+        @property
+        def heartbeat(self) -> FlextCliProtocolsProcessRuntime.RuntimeHeartbeat:
+            """Live progress heartbeat emitted while waiting."""
+            ...
+
         lifecycle_deadline: float | None
         soft_at: float | None
         term_at: float | None

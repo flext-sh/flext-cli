@@ -43,26 +43,10 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
             if state.process_done.is_set():
                 break
             now = time.monotonic()
-            if state.received_signals and not phase.interrupt_mode:
-                cls._enter_interrupt_mode(phase, now, timing.absolute_deadline)
-            cls._forward_received(process, state, phase)
-            cls._advance_heartbeat(phase, heartbeat, now)
-            cls._advance_escalation(process, state, phase, now)
+            cls._advance_monitor_phase(process, state, phase, now)
             if phase.cleanup_at is not None and now >= phase.cleanup_at:
                 break
-            next_boundary = cls._next_boundary(
-                now,
-                phase.soft_at if not phase.timeout_interrupt_sent else None,
-                phase.term_at if not phase.term_sent else None,
-                phase.kill_at if not phase.kill_sent else None,
-                phase.cleanup_at,
-                phase.heartbeat_at,
-            )
-            state.wake.wait(
-                None
-                if next_boundary is None
-                else max(0.0, next_boundary - time.monotonic()),
-            )
+            cls._wait_next_boundary(state, phase, now)
         return phase.timed_out, phase.lifecycle_deadline
 
     @classmethod
@@ -80,6 +64,8 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         grace = timing.grace_seconds
         soft_at = cls._soft_boundary(timing.absolute_deadline, grace)
         return m.Cli.RuntimeMonitorPhase(
+            timing=timing,
+            heartbeat=heartbeat,
             lifecycle_deadline=timing.absolute_deadline,
             soft_at=soft_at,
             term_at=cls._phase_boundary(soft_at, grace, numerator=1),
@@ -94,15 +80,53 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         )
 
     @classmethod
+    def _advance_monitor_phase(
+        cls,
+        process: p.Cli.ProcessHandle,
+        state: p.Cli.RuntimeProcessState,
+        phase: m.Cli.RuntimeMonitorPhase,
+        now: float,
+    ) -> None:
+        """Apply every interrupt, forward, heartbeat, and escalation now due."""
+        if state.received_signals and not phase.interrupt_mode:
+            cls._enter_interrupt_mode(phase, now)
+        cls._forward_received(process, state, phase)
+        cls._advance_heartbeat(phase, now)
+        cls._advance_escalation(process, state, phase, now)
+
+    @classmethod
+    def _wait_next_boundary(
+        cls,
+        state: p.Cli.RuntimeProcessState,
+        phase: m.Cli.RuntimeMonitorPhase,
+        now: float,
+    ) -> None:
+        """Block until new lifecycle evidence or the next unsent boundary."""
+        next_boundary = cls._next_boundary(
+            now,
+            phase.soft_at if not phase.timeout_interrupt_sent else None,
+            phase.term_at if not phase.term_sent else None,
+            phase.kill_at if not phase.kill_sent else None,
+            phase.cleanup_at,
+            phase.heartbeat_at,
+        )
+        state.wake.wait(
+            None
+            if next_boundary is None
+            else max(0.0, next_boundary - time.monotonic()),
+        )
+
+    @classmethod
     def _enter_interrupt_mode(
         cls,
         phase: m.Cli.RuntimeMonitorPhase,
         now: float,
-        absolute_deadline: float | None,
     ) -> None:
         """Reschedule every phase inside the local operator-interrupt reserve."""
         phase.interrupt_mode = True
-        phase.lifecycle_deadline = cls._interrupt_deadline(now, absolute_deadline)
+        phase.lifecycle_deadline = cls._interrupt_deadline(
+            now, phase.timing.absolute_deadline
+        )
         reserve = max(0.0, phase.lifecycle_deadline - now)
         phase.soft_at = now
         phase.term_at = cls._phase_boundary(now, reserve, numerator=1)
@@ -113,14 +137,13 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
     def _advance_heartbeat(
         cls,
         phase: m.Cli.RuntimeMonitorPhase,
-        heartbeat: m.Cli.RuntimeHeartbeat,
         now: float,
     ) -> None:
         """Emit one due heartbeat line and schedule the next one."""
-        interval = heartbeat.interval_seconds
+        interval = phase.heartbeat.interval_seconds
         if phase.heartbeat_at is None or interval is None or now < phase.heartbeat_at:
             return
-        cls._write_heartbeat(heartbeat.descriptor)
+        cls._write_heartbeat(phase.heartbeat.descriptor)
         phase.heartbeat_at = now + interval
 
     @classmethod

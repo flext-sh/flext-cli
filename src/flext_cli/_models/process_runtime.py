@@ -56,6 +56,12 @@ class FlextCliModelsProcessRuntime:
         model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             validate_assignment=False,
         )
+        timing: FlextCliModelsProcessRuntime.RuntimeProcessTiming = m.Field(
+            description="Declared lifecycle deadline and termination reserve.",
+        )
+        heartbeat: FlextCliModelsProcessRuntime.RuntimeHeartbeat = m.Field(
+            description="Live progress heartbeat emitted while waiting.",
+        )
         lifecycle_deadline: float | None = m.Field(
             description="Deadline reported to cleanup once monitoring stops.",
         )
