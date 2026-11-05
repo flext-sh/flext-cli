@@ -20,6 +20,7 @@ from collections.abc import Mapping, Sequence
 from math import isfinite
 from pathlib import Path
 from types import MappingProxyType
+from typing import IO
 
 from flext_core import r
 
@@ -113,9 +114,8 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
             if self._session_leader:
                 return self._signal_process_tree(
                     self._process,
-                    signal_number,
                     0,
-                    force=force,
+                    m.Cli.ProcessTreeSignal(signal_number=signal_number, force=force),
                 )
             if self.poll() is not None:
                 return r[bool].ok(value=True)
@@ -170,6 +170,33 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
             """
             if isinstance(timeout, bool) or not isfinite(timeout) or timeout <= 0:
                 return r[int].fail("process stdin timeout must be finite and positive")
+            opened = self._open_stdin_descriptor()
+            if opened.failure:
+                return r[int].from_failure(opened)
+            descriptor = opened.value
+            deadline = time.monotonic() + timeout
+            remaining = memoryview(data)
+            written_bytes = 0
+            while remaining:
+                written = self._write_stdin_chunk(
+                    descriptor,
+                    remaining,
+                    deadline,
+                    written_bytes,
+                )
+                if written.failure:
+                    return r[int].from_failure(written)
+                written_bytes += written.value
+                remaining = remaining[written.value :]
+            return r[int].ok(written_bytes)
+
+        def _open_stdin_descriptor(self) -> p.Result[int]:
+            """Resolve the live stdin pipe descriptor before any delivery.
+
+            Returns:
+                The pipe descriptor, or why no byte can be delivered.
+
+            """
             stream = self._process.stdin
             if stream is None:
                 return r[int].fail(f"process stdin is unavailable: pid {self.pid}")
@@ -187,21 +214,7 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
                     exception=exc,
                     error_data={"pid": self.pid, "written_bytes": 0},
                 )
-            deadline = time.monotonic() + timeout
-            remaining = memoryview(data)
-            written_bytes = 0
-            while remaining:
-                written = self._write_stdin_chunk(
-                    descriptor,
-                    remaining,
-                    deadline,
-                    written_bytes,
-                )
-                if written.failure:
-                    return r[int].from_failure(written)
-                written_bytes += written.value
-                remaining = remaining[written.value :]
-            return r[int].ok(written_bytes)
+            return r[int].ok(descriptor)
 
         def _write_stdin_chunk(
             self,
@@ -278,20 +291,36 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
             stream = self._process.stdout
             if stream is None:
                 return r[bool].fail(f"process stdout is unavailable: pid {self.pid}")
+            read = self._read_stdout_chunk(stream, deadline)
+            if read.failure:
+                return r[bool].from_failure(read)
+            if not read.value:
+                return r[bool].fail(f"process stdout closed: pid {self.pid}")
+            self._stdout_buffer.extend(read.value)
+            return r[bool].ok(value=True)
+
+        def _read_stdout_chunk(
+            self,
+            stream: IO[bytes],
+            deadline: float,
+        ) -> p.Result[bytes]:
+            """Read one available stdout chunk, empty at end of stream.
+
+            Returns:
+                The chunk read before ``deadline``, or its causal failure.
+
+            """
             remaining = deadline - time.monotonic()
             if remaining <= 0:
-                return r[bool].fail(f"process stdout timeout: pid {self.pid}")
+                return r[bytes].fail(f"process stdout timeout: pid {self.pid}")
             try:
                 ready, _, _ = select.select((stream.fileno(),), (), (), remaining)
                 if not ready:
-                    return r[bool].fail(f"process stdout timeout: pid {self.pid}")
+                    return r[bytes].fail(f"process stdout timeout: pid {self.pid}")
                 content = os.read(stream.fileno(), 65536)
             except c.EXC_OS_VALUE as exc:
-                return r[bool].fail(f"process stdout read error: {exc}", exception=exc)
-            if not content:
-                return r[bool].fail(f"process stdout closed: pid {self.pid}")
-            self._stdout_buffer.extend(content)
-            return r[bool].ok(value=True)
+                return r[bytes].fail(f"process stdout read error: {exc}", exception=exc)
+            return r[bytes].ok(content)
 
     @classmethod
     def process_start(
@@ -338,9 +367,7 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
         )
         try:
             process = cls._spawn_streamed_process(
-                list(cmd),
-                cwd,
-                resolved_env,
+                m.Cli.RuntimeSpawnCommand(cmd=tuple(cmd), cwd=cwd, env=resolved_env),
                 None,
                 options=m.Cli.RuntimeSpawnOptions(
                     capture_output=capture,

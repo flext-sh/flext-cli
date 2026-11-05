@@ -22,6 +22,9 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicTreeCleanup,
     FlextCliUtilitiesAtomicTreeInventory,
 )
+from flext_cli._utilities._files.native_results import (
+    FlextCliUtilitiesFilesNativeResults,
+)
 
 
 class FlextCliUtilitiesFilesPart05:
@@ -40,16 +43,10 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[p.Cli.AtomicDirectoryChainPlan]``.
 
         """
-        try:
-            plan = FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain(
-                Path(directory_path),
-            )
-        except OSError as exc:
-            return r[p.Cli.AtomicDirectoryChainPlan].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_PLAN_FAILED.format(error=exc),
-                exception=exc,
-            )
-        return r.ok(plan)
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicDirectoryChain.plan_directory_chain,
+            c.Cli.ERR_ATOMIC_DIRECTORY_PLAN_FAILED,
+        )(Path(directory_path))
 
     @staticmethod
     def atomic_create_directory_chain_guarded(
@@ -63,36 +60,22 @@ class FlextCliUtilitiesFilesPart05:
         Each level uses the nonrecursive guarded primitive. Preserve the original
         file observation and directory plan before these effects; a later read
         can validate them but never replace their publication authority. This is
-        not CAS against actors that ignore the caller's exclusive lock.
+        not CAS against actors that ignore the caller's exclusive lock. Every
+        level created before a failure stays recorded in ``created`` and in the
+        failure's exception notes.
 
         Returns:
             The resulting ``p.Result[Sequence[p.Cli.AtomicDirectoryState]]``.
 
         """
-        progress: MutableSequence[p.Cli.AtomicDirectoryState] = (
-            [] if created is None else created
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicDirectoryChain.create_guarded_directory_chain,
+            c.Cli.ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED,
+        )(
+            plan,
+            permission_mode=permission_mode,
+            created=[] if created is None else created,
         )
-        initial_count = len(progress)
-        try:
-            completed = (
-                FlextCliUtilitiesAtomicDirectoryChain.create_guarded_directory_chain(
-                    plan,
-                    permission_mode=permission_mode,
-                    created=progress,
-                )
-            )
-        except OSError as exc:
-            return r[Sequence[p.Cli.AtomicDirectoryState]].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED.format(error=exc),
-                exception=exc,
-                error_data={
-                    "created_directories": [
-                        state.model_dump(mode="json")
-                        for state in progress[initial_count:]
-                    ],
-                },
-            )
-        return r[Sequence[p.Cli.AtomicDirectoryState]].ok(completed)
 
     @staticmethod
     def atomic_read_empty_directory_state(
@@ -106,17 +89,10 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[p.Cli.AtomicDirectoryState]``.
 
         """
-        try:
-            snapshot = FlextCliUtilitiesAtomicDirectorySnapshot
-            state = snapshot.read_authenticated_empty_directory(
-                Path(directory_path),
-                required=required,
-            )
-        except OSError as exc:
-            return r[p.Cli.AtomicDirectoryState].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_READ_FAILED.format(error=exc),
-            )
-        return r[p.Cli.AtomicDirectoryState].ok(state)
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicDirectorySnapshot.read_authenticated_empty_directory,
+            c.Cli.ERR_ATOMIC_DIRECTORY_READ_FAILED,
+        )(Path(directory_path), required=required)
 
     @staticmethod
     def atomic_create_empty_directory_guarded(
@@ -133,18 +109,10 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[p.Cli.AtomicDirectoryState]``.
 
         """
-        try:
-            state = (
-                FlextCliUtilitiesAtomicDirectoryCreate.create_guarded_empty_directory(
-                    before,
-                    permission_mode=permission_mode,
-                )
-            )
-        except OSError as exc:
-            return r[p.Cli.AtomicDirectoryState].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_CREATE_FAILED.format(error=exc),
-            )
-        return r[p.Cli.AtomicDirectoryState].ok(state)
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicDirectoryCreate.create_guarded_empty_directory,
+            c.Cli.ERR_ATOMIC_DIRECTORY_CREATE_FAILED,
+        )(before, permission_mode=permission_mode)
 
     @staticmethod
     def atomic_delete_empty_directory_guarded(
@@ -190,8 +158,9 @@ class FlextCliUtilitiesFilesPart05:
         return FlextCliUtilitiesAtomicTreeInventory.merge_directory_query_receipts(
             inventories,
             topology,
-            queries=queries,
-            membership_queries=membership_queries,
+            m.Cli.AtomicDirectoryWorkingSelectors(
+                queries=queries, membership_queries=membership_queries
+            ),
         )
 
     @staticmethod
@@ -246,13 +215,26 @@ class FlextCliUtilitiesFilesPart05:
             A successful result when all consumed native queries still agree.
 
         """
+        if isinstance(publications, m.Cli.AtomicDirectoryQueryEffects):
+            files, policy = publications.files, publications.membership_policy
+        else:
+            files, policy = publications, None
+        shared = (
+            observations
+            if isinstance(observations, m.Cli.AtomicDirectoryObservations)
+            else m.Cli.AtomicDirectoryObservations()
+        )
         return r[bool].ok(
             FlextCliUtilitiesAtomicTreeInventory.verify_directory_queries(
                 inventories,
                 topology,
-                publications,
-                directory_publications,
-                observations,
+                m.Cli.AtomicDirectoryQueryProof(
+                    files=files,
+                    membership_policy=policy,
+                    directories=directory_publications,
+                    directory_observations=shared.directories,
+                    topology_observations=shared.topology,
+                ),
             )
         )
 
@@ -266,18 +248,10 @@ class FlextCliUtilitiesFilesPart05:
             The resulting ``p.Result[p.Cli.AtomicDirectoryInventory]``.
 
         """
-        try:
-            inventory = (
-                FlextCliUtilitiesAtomicTreeInventory.inventory_physical_directory(
-                    Path(root_path)
-                )
-            )
-        except OSError as exc:
-            return r[p.Cli.AtomicDirectoryInventory].fail(
-                c.Cli.ERR_ATOMIC_PHYSICAL_TREE_INVENTORY_FAILED.format(error=exc),
-                exception=exc,
-            )
-        return r[p.Cli.AtomicDirectoryInventory].ok(inventory)
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicTreeInventory.inventory_physical_directory,
+            c.Cli.ERR_ATOMIC_PHYSICAL_TREE_INVENTORY_FAILED,
+        )(Path(root_path))
 
     @staticmethod
     def atomic_inventory_physical_tree(
@@ -295,16 +269,10 @@ class FlextCliUtilitiesFilesPart05:
             An exact descriptor-authenticated tree manifest.
 
         """
-        try:
-            manifest = FlextCliUtilitiesAtomicTreeInventory.inventory_physical_tree(
-                Path(root_path),
-            )
-        except OSError as exc:
-            return r[p.Cli.AtomicPhysicalTreeManifest].fail(
-                c.Cli.ERR_ATOMIC_PHYSICAL_TREE_INVENTORY_FAILED.format(error=exc),
-                exception=exc,
-            )
-        return r[p.Cli.AtomicPhysicalTreeManifest].ok(manifest)
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicTreeInventory.inventory_physical_tree,
+            c.Cli.ERR_ATOMIC_PHYSICAL_TREE_INVENTORY_FAILED,
+        )(Path(root_path))
 
     @staticmethod
     def atomic_cleanup_physical_tree_guarded(

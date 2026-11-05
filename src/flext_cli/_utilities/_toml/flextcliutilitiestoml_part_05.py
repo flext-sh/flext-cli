@@ -31,12 +31,12 @@ class FlextCliUtilitiesTomlPart05:
             The resulting ``bool``.
 
         """
-        current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            container.get(key, None),
+        normalized_expected = FlextCliUtilitiesTomlPart01.toml_string_list_change(
+            FlextCliUtilitiesTomlPart01.toml_as_string_list(container.get(key, None)),
+            expected,
+            sort_values=sort_values,
         )
-        normalized_expected = sorted(expected) if sort_values else [*expected]
-        normalized_current = sorted(current) if sort_values else [*current]
-        if normalized_current == normalized_expected:
+        if normalized_expected is None:
             return False
         normalized_list: t.JsonValueList = list(normalized_expected)
         container[key] = normalized_list

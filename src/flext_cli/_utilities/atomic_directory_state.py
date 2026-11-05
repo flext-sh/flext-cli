@@ -37,34 +37,29 @@ class FlextCliUtilitiesAtomicDirectoryState:
         Returns:
             The resulting ``os.stat_result | None``.
 
+        """
+        return FlextCliUtilitiesAtomicFileDescriptor.destination_state(
+            path,
+            FlextCliUtilitiesAtomicDirectoryState._validate_destination,
+            parent=parent,
+        )
+
+    @staticmethod
+    def _validate_destination(
+        path: Path,
+        state: os.stat_result,
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+    ) -> None:
+        """Require one directory entry on its physical parent device.
+
         Raises:
-            OSError: If ``state.st_dev != parent.state.st_dev``.
+            OSError: If the entry is not a directory or crosses devices.
 
         """
-        if parent is None:
-            with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                path,
-            ) as opened:
-                opened_state = (
-                    FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
-                        path,
-                        parent=opened,
-                    )
-                )
-                FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(opened)
-                return opened_state
-        state: os.stat_result | None
-        try:
-            state = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
-        except FileNotFoundError:
-            state = None
-        if state is None:
-            return None
         FlextCliUtilitiesAtomicFilePath.validate_directory_state(path, state)
         if state.st_dev != parent.state.st_dev:
             message = f"atomic directory crosses its physical parent device: {path}"
             raise OSError(errno.EXDEV, message, path)
-        return state
 
     @staticmethod
     @contextmanager
@@ -163,27 +158,6 @@ class FlextCliUtilitiesAtomicDirectoryState:
             path,
             final,
         )
-
-    @staticmethod
-    def require_directory_identity(
-        path: Path,
-        state: os.stat_result | None,
-        expected: tuple[int, int] | None,
-    ) -> None:
-        """Require one directory entry to retain a caller-owned inode.
-
-        Raises:
-            OSError: If ``observed != expected``.
-
-        """
-        observed = (
-            None
-            if state is None
-            else FlextCliUtilitiesAtomicFilePath.path_identity(state)
-        )
-        if observed != expected:
-            message = f"atomic directory physical identity changed: {path}"
-            raise OSError(errno.ESTALE, message, path)
 
     @staticmethod
     def _require_descriptor_state(

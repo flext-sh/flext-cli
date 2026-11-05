@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from io import BytesIO
+from typing import Literal
 from zipfile import BadZipFile, LargeZipFile, ZipFile
 
 from flext_core import r
@@ -39,38 +40,57 @@ class FlextCliUtilitiesXlsxRecalcEvidence(FlextCliUtilitiesXlsxArchiveChecks):
         workbook_root: p.Cli.XlsxXmlElement,
         rels_root: p.Cli.XlsxXmlElement,
     ) -> tuple[tuple[str, str], ...]:
-        relationships: tuple[tuple[str, str], ...] = ()
-        for relationship in rels_root.iter():
-            if cls._local_name(relationship.tag) != "Relationship":
-                continue
-            rel_id = relationship.get("Id")
-            target = relationship.get("Target")
-            if rel_id is None or target is None:
-                continue
-            relationships = (*relationships, (rel_id, target))
-        targets: tuple[tuple[str, str], ...] = ()
+        """Resolve every declared sheet to its worksheet package member.
+
+        Returns:
+            The sheet names paired with their package members, in order.
+
+        """
+        relationships = cls._relationship_targets(rels_root)
+        targets: list[tuple[str, str]] = []
         for sheet in workbook_root.iter():
             if cls._local_name(sheet.tag) != "sheet":
                 continue
             name = sheet.get("name")
             rel_id = sheet.get(c.Cli.XLSX_RELATIONSHIPS_ID_ATTRIBUTE)
-            if name is None or rel_id is None:
+            target = relationships.get(rel_id) if rel_id is not None else None
+            if name is not None and target is not None:
+                targets.append((name, cls._package_member(target)))
+        return tuple(targets)
+
+    @classmethod
+    def _relationship_targets(
+        cls,
+        rels_root: p.Cli.XlsxXmlElement,
+    ) -> dict[str, str]:
+        """Index relationship targets by identifier, keeping the first one.
+
+        Returns:
+            The first declared target of every relationship identifier.
+
+        """
+        relationships: dict[str, str] = {}
+        for relationship in rels_root.iter():
+            if cls._local_name(relationship.tag) != "Relationship":
                 continue
-            target = next(
-                (
-                    candidate
-                    for candidate_id, candidate in relationships
-                    if candidate_id == rel_id
-                ),
-                None,
-            )
-            if target is None:
-                continue
-            member = target.lstrip("/")
-            if not member.startswith(c.Cli.XLSX_PACKAGE_PREFIX):
-                member = f"{c.Cli.XLSX_PACKAGE_PREFIX}{member}"
-            targets = (*targets, (name, member))
-        return targets
+            rel_id = relationship.get("Id")
+            target = relationship.get("Target")
+            if rel_id is not None and target is not None:
+                relationships.setdefault(rel_id, target)
+        return relationships
+
+    @staticmethod
+    def _package_member(target: str) -> str:
+        """Return the package member name of one relationship target.
+
+        Returns:
+            The target rooted under the workbook package prefix.
+
+        """
+        member = target.lstrip("/")
+        if member.startswith(c.Cli.XLSX_PACKAGE_PREFIX):
+            return member
+        return f"{c.Cli.XLSX_PACKAGE_PREFIX}{member}"
 
     @classmethod
     def _formula_cache_evidence(
@@ -113,28 +133,48 @@ class FlextCliUtilitiesXlsxRecalcEvidence(FlextCliUtilitiesXlsxArchiveChecks):
         cls,
         source: bytes,
     ) -> tuple[tuple[str, ...], tuple[str, ...]]:
+        uncached: list[str] = []
+        empty: list[str] = []
         with ZipFile(BytesIO(source)) as archive:
             workbook_root = cls._require_xml(archive, c.Cli.XLSX_WORKBOOK_MEMBER)
             rels_root = cls._require_xml(archive, c.Cli.XLSX_WORKBOOK_RELS_MEMBER)
-            uncached: tuple[str, ...] = ()
-            empty: tuple[str, ...] = ()
             for sheet_name, member in cls._worksheet_targets(workbook_root, rels_root):
                 root = cls._require_xml(archive, member)
                 for element in root.iter():
-                    if cls._local_name(element.tag) != "c":
+                    state = cls._formula_cache_state(element, member)
+                    if state is None:
                         continue
-                    has_formula, value_element = cls._formula_cache_parts(element)
-                    if not has_formula:
-                        continue
-                    coordinate = element.get("r")
-                    if coordinate is None:
-                        msg = f"Formula cell without coordinate in {member}"
-                        raise ValueError(msg)
-                    if value_element is None:
-                        uncached = (*uncached, f"{sheet_name}!{coordinate}")
-                    elif not (value_element.text or "").strip():
-                        empty = (*empty, f"{sheet_name}!{coordinate}")
-        return uncached, empty
+                    (uncached if state == "uncached" else empty).append(
+                        f"{sheet_name}!{element.get('r')}"
+                    )
+        return tuple(uncached), tuple(empty)
+
+    @classmethod
+    def _formula_cache_state(
+        cls,
+        element: p.Cli.XlsxXmlElement,
+        member: str,
+    ) -> Literal["uncached", "empty"] | None:
+        """Classify one worksheet element as an uncached or empty formula cell.
+
+        Returns:
+            ``uncached`` or ``empty`` for such a formula cell, otherwise ``None``.
+
+        Raises:
+            ValueError: If a formula cell has no coordinate.
+
+        """
+        if cls._local_name(element.tag) != "c":
+            return None
+        has_formula, value_element = cls._formula_cache_parts(element)
+        if not has_formula:
+            return None
+        if element.get("r") is None:
+            msg = f"Formula cell without coordinate in {member}"
+            raise ValueError(msg)
+        if value_element is None:
+            return "uncached"
+        return None if (value_element.text or "").strip() else "empty"
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxRecalcEvidence",)

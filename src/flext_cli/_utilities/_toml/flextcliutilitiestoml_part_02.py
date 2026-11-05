@@ -179,30 +179,36 @@ class FlextCliUtilitiesTomlPart02:
         existing: t.Cli.TomlRuntimeSource | None = None
         if key in parent:
             existing = parent[key]
-        if isinstance(existing, OutOfOrderTableProxy):
-            # A fragmented (out-of-order) table carries real entries spread
-            # across the document. Consolidate them into one explicit table so
-            # subsequent mutation targets a single contiguous section instead of
-            # silently overwriting the fragments with an empty table.
-            table = tomlkit.table()
-            proxy_view = cast("Mapping[str, object]", existing)
-            for entry_key in list(proxy_view):
-                table[entry_key] = proxy_view[entry_key]
-            del parent[key]
-            parent[key] = table
-            return table
-        if isinstance(existing, Table):
-            table = existing
-            if not table.is_super_table():
-                return table
-            del parent[key]
-            table = tomlkit.table()
-            table_view = cast("Mapping[str, object]", existing)
-            for entry_key in list(table_view):
-                table[entry_key] = table_view[entry_key]
-            parent[key] = table
-            return table
+        if isinstance(existing, Table) and not existing.is_super_table():
+            return existing
+        if isinstance(existing, OutOfOrderTableProxy | Table):
+            # A fragmented (out-of-order) or implicit super-table carries real
+            # entries. Consolidate them into one explicit table so subsequent
+            # mutation targets a single contiguous section instead of silently
+            # overwriting them with an empty table.
+            return FlextCliUtilitiesTomlPart02._consolidated_table(
+                parent, key, cast("Mapping[str, object]", existing)
+            )
         table = tomlkit.table()
+        parent[key] = table
+        return table
+
+    @staticmethod
+    def _consolidated_table(
+        parent: TOMLDocument | Table,
+        key: str,
+        entries: Mapping[str, object],
+    ) -> Table:
+        """Replace one implicit or fragmented child with one explicit table.
+
+        Returns:
+            The explicit table now holding every original entry under ``key``.
+
+        """
+        table = tomlkit.table()
+        for entry_key in list(entries):
+            table[entry_key] = entries[entry_key]
+        del parent[key]
         parent[key] = table
         return table
 

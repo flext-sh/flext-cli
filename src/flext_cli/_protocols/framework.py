@@ -60,5 +60,24 @@ class FlextCliProtocolsFramework:
             """Execute one command."""
             ...
 
+    class ParameterSource(Protocol):
+        """Origin of one parsed command parameter value."""
+
+        @property
+        def name(self) -> str:
+            """Name of the origin, such as ``COMMANDLINE`` or ``DEFAULT``."""
+            ...
+
+    @runtime_checkable
+    class CommandContext(Protocol):
+        """Command context the framework injects into one invocation."""
+
+        def get_parameter_source(
+            self,
+            name: str,
+        ) -> FlextCliProtocolsFramework.ParameterSource | None:
+            """Return where the named parameter value came from, if parsed."""
+            ...
+
 
 __all__: list[str] = ["FlextCliProtocolsFramework"]

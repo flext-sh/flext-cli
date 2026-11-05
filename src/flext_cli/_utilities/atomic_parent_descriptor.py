@@ -15,7 +15,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicParentFailure,
+)
 
 if TYPE_CHECKING:
     from flext_cli.typings import DirectoryChainInspection
@@ -320,18 +323,12 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                 path,
             )
         except OSError as close_error:
-            message = f"atomic operation failed ({operation_error}); {close_error}"
-            if isinstance(operation_error, Exception):
-                causes = ExceptionGroup(
-                    "atomic operation and descriptor close failed",
-                    [operation_error, close_error],
-                )
-                raise OSError(errno.EIO, message, path) from causes
-            group_message = "atomic operation and descriptor close failed"
-            raise BaseExceptionGroup(
-                group_message,
-                [operation_error, close_error],
-            ) from close_error
+            FlextCliUtilitiesAtomicParentFailure.raise_combined_failure(
+                path,
+                operation_error,
+                (close_error,),
+                ("atomic operation", "descriptor close"),
+            )
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicParentDescriptor"]

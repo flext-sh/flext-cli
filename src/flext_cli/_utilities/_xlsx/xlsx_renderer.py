@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from flext_core import r
 from openpyxl import Workbook
+from openpyxl.worksheet.worksheet import Worksheet
 
 from flext_cli import c, m, p
 from flext_cli._utilities._xlsx import (
@@ -55,13 +56,29 @@ class FlextCliUtilitiesXlsxRenderer(
         tables = cls._apply_tables(worksheet, plan.tables, table_names)
         if tables.failure:
             return r[frozenset[str]].from_failure(tables)
+        return cls._finish_sheet(worksheet, plan, tables.value)
+
+    @classmethod
+    def _finish_sheet(
+        cls,
+        worksheet: Worksheet,
+        plan: p.Cli.XlsxSheetPlan,
+        table_names: frozenset[str],
+    ) -> p.Result[frozenset[str]]:
+        """Apply the layout and then the rules stage of one rendered sheet.
+
+        Returns:
+            The workbook table names after this sheet, or the first stage
+            failure.
+
+        """
         layout = cls._apply_layout(worksheet, plan.layout)
         if layout.failure:
             return r[frozenset[str]].from_failure(layout)
         rules = cls._apply_rules(worksheet, plan.rules)
         if rules.failure:
             return r[frozenset[str]].from_failure(rules)
-        return r[frozenset[str]].ok(tables.value)
+        return r[frozenset[str]].ok(table_names)
 
     @classmethod
     def render_workbook(

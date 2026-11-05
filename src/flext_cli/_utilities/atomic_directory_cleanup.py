@@ -15,7 +15,9 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryState,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileRead,
+    FlextCliUtilitiesAtomicParentFailure,
 )
 
 
@@ -40,10 +42,11 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
         if cleanup_errors:
-            FlextCliUtilitiesAtomicDirectoryCleanup._raise_directory_cleanup_failure(
+            FlextCliUtilitiesAtomicParentFailure.raise_combined_failure(
                 path,
                 operation_error,
                 cleanup_errors,
+                ("atomic directory creation", "cleanup"),
             )
 
     @staticmethod
@@ -71,10 +74,8 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
             path,
             state,
         )
-        FlextCliUtilitiesAtomicDirectoryState.require_directory_identity(
-            path,
-            authenticated,
-            owned_identity,
+        FlextCliUtilitiesAtomicFilePath.require_identity(
+            path, authenticated, owned_identity, subject="directory"
         )
         current = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
@@ -97,8 +98,8 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         if identity is None:
             message = f"refusing unauthenticated directory cleanup: {path}"
             raise OSError(errno.ESTALE, message, path)
-        FlextCliUtilitiesAtomicDirectoryState.require_directory_identity(
-            path, state, identity
+        FlextCliUtilitiesAtomicFilePath.require_identity(
+            path, state, identity, subject="directory"
         )
         return identity
 
@@ -116,29 +117,6 @@ class FlextCliUtilitiesAtomicDirectoryCleanup:
         ) != FlextCliUtilitiesAtomicFileRead.state_key(authenticated):
             message = f"atomic directory changed before cleanup: {path}"
             raise OSError(errno.ESTALE, message, path)
-
-    @staticmethod
-    def _raise_directory_cleanup_failure(
-        path: Path,
-        operation_error: BaseException,
-        cleanup_errors: list[OSError],
-    ) -> None:
-        cleanup_summary = "; ".join(str(error) for error in cleanup_errors)
-        message = (
-            f"atomic directory creation failed ({operation_error}); "
-            f"cleanup failed ({cleanup_summary})"
-        )
-        if isinstance(operation_error, Exception):
-            causes = ExceptionGroup(
-                "atomic directory creation and cleanup failed",
-                [operation_error, *cleanup_errors],
-            )
-            raise OSError(errno.EIO, message, path) from causes
-        group_message = "atomic directory creation and cleanup failed"
-        raise BaseExceptionGroup(
-            group_message,
-            [operation_error, *cleanup_errors],
-        ) from cleanup_errors[-1]
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicDirectoryCleanup"]

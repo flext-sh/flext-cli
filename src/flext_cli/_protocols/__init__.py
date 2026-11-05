@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from flext_cli._protocols.atomic_publication import (
         FlextCliProtocolsAtomicPublication,
     )
+    from flext_cli._protocols.atomic_queries import FlextCliProtocolsAtomicQueries
     from flext_cli._protocols.atomic_symlink import FlextCliProtocolsAtomicSymlink
     from flext_cli._protocols.base import FlextCliProtocolsBase
     from flext_cli._protocols.color import FlextCliProtocolsColor
@@ -31,7 +32,9 @@ if TYPE_CHECKING:
     from flext_cli._protocols.pipeline import FlextCliProtocolsPipeline
     from flext_cli._protocols.pptx_presentation import FlextCliProtocolsPptxPresentation
     from flext_cli._protocols.process import FlextCliProtocolsProcess
+    from flext_cli._protocols.process_runtime import FlextCliProtocolsProcessRuntime
     from flext_cli._protocols.rules import FlextCliProtocolsRules
+    from flext_cli._protocols.table_render import FlextCliProtocolsTableRender
     from flext_cli._protocols.template import FlextCliProtocolsTemplate
     from flext_cli._protocols.xlsx import FlextCliProtocolsXlsx
     from flext_cli._protocols.xlsx_archive import FlextCliProtocolsXlsxArchive
@@ -46,6 +49,7 @@ if TYPE_CHECKING:
 __all__: tuple[str, ...] = (
     "FlextCliProtocolsAtomicFile",
     "FlextCliProtocolsAtomicPublication",
+    "FlextCliProtocolsAtomicQueries",
     "FlextCliProtocolsAtomicSymlink",
     "FlextCliProtocolsBase",
     "FlextCliProtocolsColor",
@@ -61,7 +65,9 @@ __all__: tuple[str, ...] = (
     "FlextCliProtocolsPipeline",
     "FlextCliProtocolsPptxPresentation",
     "FlextCliProtocolsProcess",
+    "FlextCliProtocolsProcessRuntime",
     "FlextCliProtocolsRules",
+    "FlextCliProtocolsTableRender",
     "FlextCliProtocolsTemplate",
     "FlextCliProtocolsXlsx",
     "FlextCliProtocolsXlsxArchive",
@@ -77,6 +83,7 @@ install_lazy_exports(
     {
         "FlextCliProtocolsAtomicFile": ".atomic_file",
         "FlextCliProtocolsAtomicPublication": ".atomic_publication",
+        "FlextCliProtocolsAtomicQueries": ".atomic_queries",
         "FlextCliProtocolsAtomicSymlink": ".atomic_symlink",
         "FlextCliProtocolsBase": ".base",
         "FlextCliProtocolsColor": ".color",
@@ -92,7 +99,9 @@ install_lazy_exports(
         "FlextCliProtocolsPipeline": ".pipeline",
         "FlextCliProtocolsPptxPresentation": ".pptx_presentation",
         "FlextCliProtocolsProcess": ".process",
+        "FlextCliProtocolsProcessRuntime": ".process_runtime",
         "FlextCliProtocolsRules": ".rules",
+        "FlextCliProtocolsTableRender": ".table_render",
         "FlextCliProtocolsTemplate": ".template",
         "FlextCliProtocolsXlsx": ".xlsx",
         "FlextCliProtocolsXlsxArchive": ".xlsx_archive",

@@ -11,6 +11,7 @@ from flext_core import p as flext_core_p
 
 from flext_cli._protocols import (
     FlextCliProtocolsAtomicFile,
+    FlextCliProtocolsAtomicQueries,
     FlextCliProtocolsBase,
     FlextCliProtocolsColor,
     FlextCliProtocolsConfig,
@@ -25,7 +26,9 @@ from flext_cli._protocols import (
     FlextCliProtocolsPipeline,
     FlextCliProtocolsPptxPresentation,
     FlextCliProtocolsProcess,
+    FlextCliProtocolsProcessRuntime,
     FlextCliProtocolsRules,
+    FlextCliProtocolsTableRender,
     FlextCliProtocolsTemplate,
     FlextCliProtocolsXlsx,
 )
@@ -40,6 +43,7 @@ class FlextCliProtocols(flext_core_p):
 
     class Cli(
         FlextCliProtocolsAtomicFile,
+        FlextCliProtocolsAtomicQueries,
         FlextCliProtocolsBase,
         FlextCliProtocolsColor,
         FlextCliProtocolsConfig,
@@ -54,7 +58,9 @@ class FlextCliProtocols(flext_core_p):
         FlextCliProtocolsPipeline,
         FlextCliProtocolsPptxPresentation,
         FlextCliProtocolsProcess,
+        FlextCliProtocolsProcessRuntime,
         FlextCliProtocolsRules,
+        FlextCliProtocolsTableRender,
         FlextCliProtocolsTemplate,
         FlextCliProtocolsXlsx,
     ):

@@ -18,6 +18,9 @@ from flext_core import r
 from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesAtomicFile, FlextCliUtilitiesRuntime
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
+from flext_cli._utilities._files.native_results import (
+    FlextCliUtilitiesFilesNativeResults,
+)
 
 
 class FlextCliUtilitiesFilesPart06:
@@ -57,22 +60,19 @@ class FlextCliUtilitiesFilesPart06:
             return r[p.Cli.AtomicFileState].fail(
                 f"atomic create destination already exists: {before.value.path}",
             )
-        try:
-            # Return this publication's proof, never a later path observation.
-            published = FlextCliUtilitiesAtomicFile.write_atomic_state(
-                before.value.path,
-                data,
-                m.Cli.AtomicWriteOptions(
-                    expected_state=before.value,
-                    permission_mode=permission_mode,
-                    owner_uid=owner_uid,
-                ),
-            )
-        except OSError as exc:
-            return r[p.Cli.AtomicFileState].fail(
-                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc), exception=exc
-            )
-        return r.ok(published)
+        # Return this publication's proof, never a later path observation.
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicFile.write_atomic_state,
+            c.Cli.ERR_BINARY_WRITE_FAILED,
+        )(
+            before.value.path,
+            data,
+            m.Cli.AtomicWriteOptions(
+                expected_state=before.value,
+                permission_mode=permission_mode,
+                owner_uid=owner_uid,
+            ),
+        )
 
     @staticmethod
     def atomic_verify_binary_file_states(
@@ -171,6 +171,32 @@ class FlextCliUtilitiesFilesPart06:
         if not root.is_dir():
             return result.fail(f"file selection root is not a directory: {root}")
         scope = root.resolve()
+        candidates = FlextCliUtilitiesFilesPart06._files_candidates(scope)
+        if candidates.failure:
+            return result.from_failure(candidates)
+
+        def selected(path: Path) -> bool:
+            relative = path.relative_to(scope).as_posix()
+            return (
+                path.is_file()
+                and (
+                    not includes
+                    or any(fnmatch.fnmatchcase(relative, rule) for rule in includes)
+                )
+                and not any(fnmatch.fnmatchcase(relative, rule) for rule in excludes)
+            )
+
+        return result.ok(sorted(path for path in candidates.value if selected(path)))
+
+    @staticmethod
+    def _files_candidates(scope: Path) -> p.Result[Sequence[Path]]:
+        """Read every selection candidate after probing for a Git worktree.
+
+        Returns:
+            Git-visible paths inside a worktree, every path on disk outside
+            one, or the probe failure.
+
+        """
         # Extend, never replace: the caller's git controls (ceiling
         # directories, global config, credential helpers) must survive the
         # probe — replacing the environment silently re-scopes worktree
@@ -184,40 +210,36 @@ class FlextCliUtilitiesFilesPart06:
             ),
         )
         if probe.failure:
-            return result.from_failure(probe)
-        outcome = probe.value.outcome
+            return r[Sequence[Path]].from_failure(probe)
+        return FlextCliUtilitiesFilesPart06._probed_candidates(scope, probe.value)
+
+    @staticmethod
+    def _probed_candidates(
+        scope: Path,
+        probe: p.Cli.CommandBytesOutput,
+    ) -> p.Result[Sequence[Path]]:
+        """Read the candidates selected by one completed worktree probe.
+
+        Returns:
+            The candidates, or why the probe outcome selects none.
+
+        """
+        outcome = probe.outcome
         if outcome.timed_out or outcome.forwarded_signal is not None:
-            return result.fail(f"Git worktree probe interrupted: {scope}")
+            return r[Sequence[Path]].fail(f"Git worktree probe interrupted: {scope}")
         if outcome.raw_return_code == c.Cli.EXIT_CODE_SUCCESS:
-            listed = FlextCliUtilitiesFilesPart06._files_git_candidates(
+            return FlextCliUtilitiesFilesPart06._files_git_candidates(
                 scope,
-                worktree_status=probe.value.stdout,
+                worktree_status=probe.stdout,
             )
-            if listed.failure:
-                return result.from_failure(listed)
-            candidates = listed.value
-        elif (
+        if (
             outcome.raw_return_code == c.Cli.GIT_NOT_A_REPOSITORY_EXIT_CODE
-            and b"not a git repository" in probe.value.stderr
+            and b"not a git repository" in probe.stderr
         ):
-            candidates = list(scope.rglob("*"))
-        else:
-            return result.fail(
-                probe.value.stderr.decode(c.DEFAULT_ENCODING, errors="strict"),
-            )
-
-        def selected(path: Path) -> bool:
-            relative = path.relative_to(scope).as_posix()
-            return (
-                path.is_file()
-                and (
-                    not includes
-                    or any(fnmatch.fnmatchcase(relative, rule) for rule in includes)
-                )
-                and not any(fnmatch.fnmatchcase(relative, rule) for rule in excludes)
-            )
-
-        return result.ok(sorted(path for path in candidates if selected(path)))
+            return r[Sequence[Path]].ok(list(scope.rglob("*")))
+        return r[Sequence[Path]].fail(
+            probe.stderr.decode(c.DEFAULT_ENCODING, errors="strict"),
+        )
 
     @staticmethod
     def _files_git_candidates(

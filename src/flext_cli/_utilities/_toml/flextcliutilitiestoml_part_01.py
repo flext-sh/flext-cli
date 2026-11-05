@@ -75,6 +75,26 @@ class FlextCliUtilitiesTomlPart01:
         return tuple(str(item) for item in normalized)
 
     @staticmethod
+    def toml_string_list_change(
+        current: Sequence[str],
+        expected: Sequence[str],
+        *,
+        sort_values: bool,
+    ) -> list[str] | None:
+        """Return the normalized expected string list when it differs.
+
+        Returns:
+            The normalized expected values, or ``None`` when ``current``
+            already holds them.
+
+        """
+        normalized_expected = sorted(expected) if sort_values else [*expected]
+        normalized_current = sorted(current) if sort_values else [*current]
+        if normalized_current == normalized_expected:
+            return None
+        return normalized_expected
+
+    @staticmethod
     def toml_array(items: Sequence[str]) -> Array:
         """Create a multiline TOML array.
 

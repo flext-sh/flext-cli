@@ -15,6 +15,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryState,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileRead,
 )
@@ -40,8 +41,8 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
         )
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_delete_capabilities(path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
-                state, parent.state
+            FlextCliUtilitiesAtomicFileModel.require_parent(
+                state, parent.state, subject="directory"
             )
             observed = (
                 FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
