@@ -45,14 +45,14 @@ class FlextCliUtilitiesAtomicDirectoryState:
             with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
                 path,
             ) as opened:
-                state = (
+                opened_state = (
                     FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
                         path,
                         parent=opened,
                     )
                 )
                 FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(opened)
-                return state
+                return opened_state
         state: os.stat_result | None
         try:
             state = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)

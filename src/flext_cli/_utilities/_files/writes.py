@@ -152,7 +152,9 @@ class FlextCliUtilitiesFilesPart02:
             FlextCliUtilitiesAtomicFile.write_atomic_state(
                 before.path,
                 content.encode(c.DEFAULT_ENCODING),
-                m.Cli.AtomicWriteOptions(expected_state=before),
+                m.Cli.AtomicWriteOptions(
+                    expected_state=m.Cli.AtomicFileState.model_validate(before),
+                ),
             )
         except OSError as exc:
             return r[bool].fail(
@@ -185,7 +187,7 @@ class FlextCliUtilitiesFilesPart02:
                 before.path,
                 data,
                 m.Cli.AtomicWriteOptions(
-                    expected_state=before,
+                    expected_state=m.Cli.AtomicFileState.model_validate(before),
                     permission_mode=permission_mode,
                 ),
                 published_paths=published_paths,

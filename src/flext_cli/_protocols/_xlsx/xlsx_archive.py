@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_cli._typings import FlextCliTypesXlsx
+    from flext_cli import t
 
 
 class FlextCliProtocolsXlsxXlsxArchive:
@@ -83,7 +83,7 @@ class FlextCliProtocolsXlsxXlsxArchive:
         """Structural data contract projected from the owning model."""
 
         @property
-        def kind(self) -> FlextCliTypesXlsx.XlsxArchiveViolationKind:
+        def kind(self) -> t.Cli.XlsxArchiveViolationKind:
             """Violation kind."""
             ...
 

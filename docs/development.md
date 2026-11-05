@@ -203,7 +203,7 @@ RGB/ARGB constraint and tint bounds without changing defaults or serialization.
 
 ## Architecture Decision Flowchart
 
-```
+```text
 Does the class manage mutable state?
 ├─ YES → Use s
 │        Examples: FlextCliPrompts, cli
@@ -232,7 +232,7 @@ bindings or synthesize aliases to conceal an unresolved source dependency.
 
 Follow the v0.12.0-dev module organization:
 
-```
+```text
 src/flext_cli/
 ├── api.py                # FlextCli facade (MRO composition) + singleton `cli`
 ├── base.py               # FlextCliServiceBase
@@ -367,7 +367,7 @@ rather than freezing configured defaults or assuming boolean XML normalization.
 
 Tests are now organized by feature area:
 
-```
+```text
 tests/
 ├── unit/
 │   ├── core/              # Core functionality tests
@@ -547,7 +547,7 @@ class ProjectCliService:
 
 ### Test Structure
 
-```
+```text
 tests/
 ├── unit/              # Unit tests for individual components
 ├── integration/       # Integration tests
@@ -622,7 +622,7 @@ pytest tests/unit/test_api.py -v
 
 Follow conventional commit format:
 
-```
+```text
 feat: add new CLI command for data export
 fix: resolve authentication timeout issue
 docs: update API documentation

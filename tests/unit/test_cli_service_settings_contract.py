@@ -83,7 +83,7 @@ class TestsFlextCliServiceSettingsContract:
                 trace=False,
             ),
             initial_context=initial_context,
-            logging_options=options,
+            structlog_options=options,
         )
         app = service.create_app_with_common_params(
             name="native",
@@ -190,10 +190,10 @@ class TestsFlextCliServiceSettingsContract:
             eq=True,
         )
         tm.ok(u.logging_options().observers[0] is options.observers[0])
-        tm.ok(service.logging_options is options)
-        tm.fail("logging_options" in service.model_dump())
+        tm.ok(service.structlog_options is options)
+        tm.fail("structlog_options" in service.model_dump())
         tm.that(
-            "logging_options"
+            "structlog_options"
             in service.model_json_schema(mode="serialization")["properties"],
             eq=False,
         )
@@ -212,20 +212,19 @@ class TestsFlextCliServiceSettingsContract:
     def test_public_constructor_rejects_nonconforming_logging_port() -> None:
         """The model-owned native collaborator is validated at the API boundary."""
         with u.Tests.raises(c.ValidationError):
-            _ = FlextCli.model_validate({"logging_options": "not a logging port"})
+            _ = FlextCli.model_validate({"structlog_options": "not a logging port"})
 
     @staticmethod
     @pytest.mark.parametrize(
-        ("flags", "initial_level", "expected_level", "trace"),
+        ("flags", "initial_level", "expected_level"),
         [
-            (["--debug"], c.LogLevel.WARNING, c.LogLevel.DEBUG, False),
-            (["--trace"], c.LogLevel.DEBUG, c.LogLevel.DEBUG, True),
-            (["--verbose"], c.LogLevel.ERROR, c.LogLevel.ERROR, False),
+            (["--debug"], c.LogLevel.WARNING, c.LogLevel.DEBUG),
+            (["--trace"], c.LogLevel.DEBUG, c.LogLevel.DEBUG),
+            (["--verbose"], c.LogLevel.ERROR, c.LogLevel.ERROR),
             (
                 ["--log-level", c.LogLevel.ERROR, "--debug", "--trace"],
                 c.LogLevel.WARNING,
                 c.LogLevel.ERROR,
-                True,
             ),
         ],
     )
@@ -234,10 +233,9 @@ class TestsFlextCliServiceSettingsContract:
         initial_level: t.LogLevel,
         expected_level: t.LogLevel,
         capsys: t.Tests.CaptureFixture[str],
-        *,
-        trace: bool,
     ) -> None:
         """Explicit severity wins shorthand while trace controls failure detail."""
+        trace = "--trace" in flags
         service = FlextCli.with_settings(
             settings.clone(
                 log_level=initial_level,

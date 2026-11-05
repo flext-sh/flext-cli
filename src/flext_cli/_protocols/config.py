@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
     from typing import Literal
@@ -22,7 +22,7 @@ class FlextCliProtocolsConfig:
     """Config-domain protocol namespace (structural types; no project imports)."""
 
     @runtime_checkable
-    class Cli(p.BaseModel, Protocol):
+    class Cli(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -36,7 +36,7 @@ class FlextCliProtocolsConfig:
             ...
 
     @runtime_checkable
-    class ProcessIsolation(p.BaseModel, Protocol):
+    class ProcessIsolation(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

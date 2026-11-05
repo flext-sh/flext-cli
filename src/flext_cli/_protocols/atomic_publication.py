@@ -12,10 +12,10 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_cli._constants import FlextCliConstantsFiles
+    from flext_cli import c
     from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart02
 
 
@@ -23,7 +23,7 @@ class FlextCliProtocolsAtomicPublication:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class StagedFile(p.BaseModel, Protocol):
+    class StagedFile(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -47,7 +47,7 @@ class FlextCliProtocolsAtomicPublication:
             ...
 
     @runtime_checkable
-    class ObservedFile(p.BaseModel, Protocol):
+    class ObservedFile(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -61,7 +61,7 @@ class FlextCliProtocolsAtomicPublication:
             ...
 
     @runtime_checkable
-    class AtomicWriteOptions(p.BaseModel, Protocol):
+    class AtomicWriteOptions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -77,7 +77,7 @@ class FlextCliProtocolsAtomicPublication:
             ...
 
         @property
-        def durability(self) -> FlextCliConstantsFiles.WriteDurability:
+        def durability(self) -> c.Cli.WriteDurability:
             """Whether staged inode and parent directory are synced."""
             ...
 
@@ -87,7 +87,7 @@ class FlextCliProtocolsAtomicPublication:
             ...
 
     @runtime_checkable
-    class TreeEntryDetails(p.BaseModel, Protocol):
+    class TreeEntryDetails(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
