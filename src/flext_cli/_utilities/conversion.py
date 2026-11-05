@@ -15,9 +15,6 @@ from flext_core import u
 
 from flext_cli import c, t
 
-if TYPE_CHECKING:
-    pass
-
 
 class FlextCliUtilitiesConversion:
     """Conversion methods exposed directly on ``u.Cli``."""
