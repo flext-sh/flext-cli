@@ -172,12 +172,16 @@ class FlextCliModelsBasePart09:
 
         root: Annotated[
             p.Cli.AtomicPhysicalTreeEntry,
-            t.schema_for_model(FlextCliModelsBasePart09.AtomicPhysicalTreeEntry),
+            t.schema_for_model(
+                lambda: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry
+            ),
         ] = m.Field(description="Descriptor-authenticated physical directory identity")
         entries: tuple[
             Annotated[
                 p.Cli.AtomicDirectoryName,
-                t.schema_for_model(FlextCliModelsBasePart09.AtomicDirectoryName),
+                t.schema_for_model(
+                    lambda: FlextCliModelsBasePart09.AtomicDirectoryName
+                ),
             ],
             ...,
         ] = m.Field(

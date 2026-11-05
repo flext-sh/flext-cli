@@ -45,6 +45,24 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart05:
             """Timestamp of snapshot."""
             ...
 
+    @runtime_checkable
+    class OfficeRenderRequest(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def template(self) -> bytes | None:
+            """Formatting template bytes."""
+            ...
+
+    @runtime_checkable
+    class OfficeRenderResult(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def content(self) -> bytes:
+            """Rendered office document bytes."""
+            ...
+
 
 __all__: list[str] = [
     "FlextCliProtocolsBaseFlextclimodelsbasePart05",

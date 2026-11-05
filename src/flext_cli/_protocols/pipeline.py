@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
     from flext_core import p
 
-    from flext_cli import t
+    from flext_cli import c, t
 
 
 class FlextCliProtocolsPipeline:
@@ -233,6 +233,12 @@ class FlextCliProtocolsPipeline:
             self,
         ) -> Sequence[FlextCliProtocolsPipeline.PipelineStageResult]:
             """Only the skipped stage results."""
+            ...
+
+        def stages_with_status(
+            self, status: (c.Cli.PipelineStageStatus)
+        ) -> Sequence[FlextCliProtocolsPipeline.PipelineStageResult]:
+            """Stage results whose status equals ``status``, in execution order."""
             ...
 
 

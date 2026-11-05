@@ -38,7 +38,7 @@ class FlextCliModelsBasePart01:
 
         outcome: Annotated[
             p.Cli.ProcessOutcome,
-            m.ValidateAs(FlextCliModelsBasePart01.ProcessOutcome, lambda value: value),
+            t.schema_for_model(lambda: FlextCliModelsBasePart01.ProcessOutcome),
             m.Field(description="Causal process completion state"),
         ]
         duration: Annotated[

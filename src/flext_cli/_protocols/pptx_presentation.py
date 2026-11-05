@@ -12,6 +12,8 @@ from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
 
+from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart05
+
 if TYPE_CHECKING:
     from flext_cli import t
 
@@ -43,13 +45,10 @@ class FlextCliProtocolsPptxPresentation:
             ...
 
     @runtime_checkable
-    class PptxRenderRequest(FlextProtocols.BaseModel, Protocol):
+    class PptxRenderRequest(
+        FlextCliProtocolsBaseFlextclimodelsbasePart05.OfficeRenderRequest, Protocol
+    ):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def template(self) -> bytes | None:
-            """Formatting template bytes."""
-            ...
 
         @property
         def plan(self) -> FlextCliProtocolsPptxPresentation.PptxPresentationPlan:
@@ -57,13 +56,10 @@ class FlextCliProtocolsPptxPresentation:
             ...
 
     @runtime_checkable
-    class PptxRenderResult(FlextProtocols.BaseModel, Protocol):
+    class PptxRenderResult(
+        FlextCliProtocolsBaseFlextclimodelsbasePart05.OfficeRenderResult, Protocol
+    ):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def content(self) -> bytes:
-            """Rendered presentation bytes."""
-            ...
 
         @property
         def plan(self) -> FlextCliProtocolsPptxPresentation.PptxPresentationPlan:
