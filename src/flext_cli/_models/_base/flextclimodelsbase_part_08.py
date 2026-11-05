@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from itertools import pairwise
 from pathlib import Path
 from typing import Annotated, ClassVar, Literal, Self
 
@@ -89,7 +90,13 @@ class FlextCliModelsBasePart08:
             m.Field(ge=0, strict=True, description="Anchor inode"),
         ]
         anchor_ancestry: Annotated[
-            tuple[tuple[int, int], ...],
+            tuple[
+                tuple[
+                    Annotated[int, m.Field(ge=0, strict=True)],
+                    Annotated[int, m.Field(ge=0, strict=True)],
+                ],
+                ...,
+            ],
             m.Field(min_length=1, description="Root-to-anchor physical identities"),
         ]
         directories: Annotated[
@@ -123,23 +130,14 @@ class FlextCliModelsBasePart08:
         @m.model_validator(mode="after")
         def _validate_topology(self) -> Self:
             self.validate_native_selections()
-            if self.anchor_ancestry[-1] != (
-                self.anchor_device,
-                self.anchor_inode,
-            ) or any(
-                isinstance(item, bool) or item < 0
-                for identity in self.anchor_ancestry
-                for item in identity
-            ):
+            if self.anchor_ancestry[-1] != (self.anchor_device, self.anchor_inode):
                 msg = "atomic directory-chain ancestry is inconsistent"
                 raise ValueError(msg)
-            current = self.anchor_path
-            for directory in self.directories:
-                if directory.parent != current:
-                    msg = "atomic directory-chain paths are not contiguous"
-                    raise ValueError(msg)
-                current = directory
-            if current != self.target:
+            chain = (self.anchor_path, *self.directories)
+            if any(child.parent != parent for parent, child in pairwise(chain)):
+                msg = "atomic directory-chain paths are not contiguous"
+                raise ValueError(msg)
+            if chain[-1] != self.target:
                 msg = "atomic directory-chain does not terminate at its target"
                 raise ValueError(msg)
             return self

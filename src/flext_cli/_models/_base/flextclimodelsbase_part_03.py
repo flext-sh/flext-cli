@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Annotated, ClassVar, Self
+from typing import Annotated, ClassVar, override
 
 from flext_core import m
 
@@ -27,19 +27,15 @@ class FlextCliModelsBasePart03:
             m.Field(strict=True, description="Whether the directory exists"),
         ]
 
-        @m.model_validator(mode="after")
-        def _validate_presence_tuple(self) -> Self:
-            physical = (self.mode, self.device, self.inode, self.link_count)
-            if (self.exists and not all(value is not None for value in physical)) or (
-                not self.exists and any(value is not None for value in physical)
-            ):
-                msg = (
-                    "atomic directory state requires mode, device, inode, and link "
-                    "count exactly when it exists"
-                )
-                raise ValueError(msg)
-            self.validate_physical_identity(present=self.exists)
-            return self
+        @override
+        def physically_present(self) -> bool:
+            """Return whether the directory exists.
+
+            Returns:
+                The declared ``exists`` flag.
+
+            """
+            return self.exists
 
     class CommandEntryModel(m.BaseModel):
         """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""

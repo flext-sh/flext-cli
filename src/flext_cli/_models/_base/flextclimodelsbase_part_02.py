@@ -22,9 +22,9 @@ class FlextCliModelsBasePart02:
     class AtomicPhysicalIdentity(m.BaseModel):
         """Physical identity shared by every descriptor-authenticated leaf state.
 
-        Subclasses declare their presence contract and call
-        ``validate_physical_identity`` after it, so each state reports its own
-        presence defect before a parent or reparse defect.
+        A subclass whose presence is not the physical device itself overrides
+        ``physically_present``; the identity validation is shared by every
+        state.
         """
 
         model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
@@ -111,18 +111,37 @@ class FlextCliModelsBasePart02:
                 label=cls.atomic_state_label,
             )
 
-        def validate_physical_identity(self, *, present: bool) -> None:
-            """Validate host metadata, parent identity and reparse exclusion.
+        def physically_present(self) -> bool:
+            """Return whether the leaf physically exists.
 
-            Args:
-                present: Whether the leaf physically exists.
+            Returns:
+                ``True`` when the identity carries a physical device.
+
+            """
+            return self.device is not None
+
+        @m.model_validator(mode="after")
+        def _validate_physical_identity(self) -> Self:
+            """Require one complete, uniquely owned, non-reparse identity.
+
+            Returns:
+                The validated model instance.
 
             Raises:
-                ValueError: If an absent leaf carries host metadata, the parent
-                    identity is incomplete, or the leaf is a reparse point.
+                ValueError: If the physical tuple does not match presence, an
+                    absent leaf carries host metadata, the parent identity is
+                    incomplete, or the leaf is a reparse point.
 
             """
             label = self.atomic_state_label
+            present = self.physically_present()
+            physical = (self.mode, self.device, self.inode, self.link_count)
+            if any((value is not None) != present for value in physical):
+                msg = (
+                    f"{label} requires mode, device, inode, and link count "
+                    "exactly when it exists"
+                )
+                raise ValueError(msg)
             if not present and (
                 self.file_attributes is not None or self.reparse_tag is not None
             ):
@@ -139,6 +158,7 @@ class FlextCliModelsBasePart02:
                 self.reparse_tag,
                 label=label,
             )
+            return self
 
     class AtomicFileIdentity(AtomicPhysicalIdentity):
         """Shared physical identity of an existing or absent regular file."""
@@ -148,36 +168,6 @@ class FlextCliModelsBasePart02:
             val_json_bytes="base64",
         )
         atomic_state_label: ClassVar[str] = "atomic file state"
-
-        @m.model_validator(mode="after")
-        def _validate_presence_tuple(self) -> Self:
-            """Require one complete, uniquely owned, non-reparse state.
-
-            Returns:
-                The resulting ``Self``.
-
-            Raises:
-                ValueError: If atomic file state must contain mode, device, inode,
-                    and link count, or none of them.
-
-            """
-            presence = tuple(
-                value is not None
-                for value in (
-                    self.mode,
-                    self.device,
-                    self.inode,
-                    self.link_count,
-                )
-            )
-            if any(presence) != all(presence):
-                msg = (
-                    "atomic file identity must contain mode, device, inode, and "
-                    "link count, or none of them"
-                )
-                raise ValueError(msg)
-            self.validate_physical_identity(present=self.device is not None)
-            return self
 
     class AtomicFileState(AtomicFileIdentity):
         """Exact content and physical identity for one regular file version."""

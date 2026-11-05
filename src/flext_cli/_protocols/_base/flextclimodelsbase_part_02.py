@@ -67,8 +67,8 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
             """Host reparse tag when available."""
             ...
 
-        def validate_physical_identity(self, *, present: bool) -> None:
-            """Validate host metadata, parent identity and reparse exclusion."""
+        def physically_present(self) -> bool:
+            """Return whether the leaf physically exists."""
             ...
 
     @runtime_checkable
