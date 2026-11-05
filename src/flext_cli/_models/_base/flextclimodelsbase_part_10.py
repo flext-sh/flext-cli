@@ -13,6 +13,7 @@ from typing import Annotated, ClassVar, Self
 from flext_core import m
 
 from flext_cli import p, t
+from flext_cli._models._base import FlextCliModelsBasePart08, FlextCliModelsBasePart09
 from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
 
 
@@ -26,11 +27,27 @@ class FlextCliModelsBasePart10:
         one instance and discards it when the boundary ends.
         """
 
-        directories: MutableMapping[Path, p.Cli.AtomicDirectoryInventory] = m.Field(
+        directories: MutableMapping[
+            Path,
+            Annotated[
+                p.Cli.AtomicDirectoryInventory,
+                t.schema_for_model(
+                    lambda: FlextCliModelsBasePart09.AtomicDirectoryInventory
+                ),
+            ],
+        ] = m.Field(
             default_factory=dict,
             description="One physical directory inventory per observed path",
         )
-        topology: MutableMapping[Path, p.Cli.AtomicDirectoryChainPlan] = m.Field(
+        topology: MutableMapping[
+            Path,
+            Annotated[
+                p.Cli.AtomicDirectoryChainPlan,
+                t.schema_for_model(
+                    lambda: FlextCliModelsBasePart08.AtomicDirectoryChainPlan
+                ),
+            ],
+        ] = m.Field(
             default_factory=dict,
             description="One ancestry plan per observed target",
         )

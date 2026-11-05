@@ -39,7 +39,7 @@ class FlextCliModelsXlsxSnapshot:
         )
         value: Annotated[
             p.Cli.XlsxCellValue,
-            t.schema_for_model(FlextCliModelsXlsxCells.XlsxCellValue),
+            t.schema_for_model(lambda: FlextCliModelsXlsxCells.XlsxCellValue),
         ] = m.Field(description="Typed value from the selected workbook view.")
         formula: (
             Annotated[
@@ -124,7 +124,7 @@ class FlextCliModelsXlsxSnapshot:
         ]
         value: Annotated[
             p.Cli.XlsxCellValue,
-            t.schema_for_model(FlextCliModelsXlsxCells.XlsxCellValue),
+            t.schema_for_model(lambda: FlextCliModelsXlsxCells.XlsxCellValue),
         ] = m.Field(
             description="Typed cached value from the data-only workbook view.",
         )

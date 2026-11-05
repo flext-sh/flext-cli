@@ -128,7 +128,7 @@ class FlextCliModelsDocxDocument:
         ) = m.Field(default=None, description="Optional source document.")
         plan: Annotated[
             p.Cli.DocxDocumentPlan,
-            t.schema_for_model(FlextCliModelsDocxDocument.DocxDocumentPlan),
+            t.schema_for_model(lambda: FlextCliModelsDocxDocument.DocxDocumentPlan),
         ] = m.Field(
             description="Validated document plan.",
         )
@@ -153,7 +153,7 @@ class FlextCliModelsDocxDocument:
         ]
         plan: Annotated[
             p.Cli.DocxDocumentPlan,
-            t.schema_for_model(FlextCliModelsDocxDocument.DocxDocumentPlan),
+            t.schema_for_model(lambda: FlextCliModelsDocxDocument.DocxDocumentPlan),
         ] = m.Field(
             description="Exact source plan.",
         )

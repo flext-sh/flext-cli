@@ -71,7 +71,7 @@ class FlextCliModelsXlsxWorkbook:
         ) = m.Field(default=None, description="Optional source workbook.")
         plan: Annotated[
             p.Cli.XlsxWorkbookPlan,
-            t.schema_for_model(FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan),
+            t.schema_for_model(lambda: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan),
         ] = m.Field(
             description="Validated workbook plan.",
         )
@@ -83,7 +83,7 @@ class FlextCliModelsXlsxWorkbook:
         ]
         plan: Annotated[
             p.Cli.XlsxWorkbookPlan,
-            t.schema_for_model(FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan),
+            t.schema_for_model(lambda: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan),
         ] = m.Field(description="Exact source plan.")
 
 

@@ -43,7 +43,9 @@ class FlextCliModelsPptxPresentation:
         ) = m.Field(default=None, description="Optional source presentation.")
         plan: Annotated[
             p.Cli.PptxPresentationPlan,
-            t.schema_for_model(FlextCliModelsPptxPresentation.PptxPresentationPlan),
+            t.schema_for_model(
+                lambda: FlextCliModelsPptxPresentation.PptxPresentationPlan
+            ),
         ] = m.Field(
             description="Validated presentation plan.",
         )
@@ -55,7 +57,9 @@ class FlextCliModelsPptxPresentation:
         ]
         plan: Annotated[
             p.Cli.PptxPresentationPlan,
-            t.schema_for_model(FlextCliModelsPptxPresentation.PptxPresentationPlan),
+            t.schema_for_model(
+                lambda: FlextCliModelsPptxPresentation.PptxPresentationPlan
+            ),
         ] = m.Field(
             description="Exact source plan.",
         )
