@@ -68,4 +68,5 @@ class FlextCliUtilitiesAtomicParentFailure:
             [operation_error, *secondary_errors],
         ) from secondary_errors[-1]
 
+
 __all__: list[str] = ["FlextCliUtilitiesAtomicParentFailure"]

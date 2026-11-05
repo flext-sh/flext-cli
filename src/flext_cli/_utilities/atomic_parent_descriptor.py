@@ -330,4 +330,5 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                 ("atomic operation", "descriptor close"),
             )
 
+
 __all__: list[str] = ["FlextCliUtilitiesAtomicParentDescriptor"]

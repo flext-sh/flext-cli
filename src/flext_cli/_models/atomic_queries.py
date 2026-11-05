@@ -23,7 +23,9 @@ class FlextCliModelsAtomicQueries:
 
         queries: Mapping[int, set[tuple[str, Literal["exists", "isfile", "isdir"]]]] = (
             m.Field(
-                default_factory=dict,
+                default_factory=dict[
+                    int, set[tuple[str, Literal["exists", "isfile", "isdir"]]]
+                ],
                 description="Native predicates selected per witness identity.",
             )
         )
@@ -102,5 +104,6 @@ class FlextCliModelsAtomicQueries:
             exclude=True,
             description="Ancestry observations shared by reference in the boundary.",
         )
+
 
 __all__: list[str] = ["FlextCliModelsAtomicQueries"]

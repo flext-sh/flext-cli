@@ -12,7 +12,6 @@ from pathlib import Path
 
 from flext_cli import p
 from flext_cli._utilities import (
-    FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicDirectoryCleanup,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectoryModel,
@@ -20,6 +19,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
     FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicFilePath,
 )
 

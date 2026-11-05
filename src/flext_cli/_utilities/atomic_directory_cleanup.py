@@ -11,12 +11,12 @@ import os
 from pathlib import Path
 
 from flext_cli._utilities import (
-    FlextCliUtilitiesAtomicParentFailure,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectoryState,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
     FlextCliUtilitiesAtomicFileRead,
+    FlextCliUtilitiesAtomicParentFailure,
 )
 
 

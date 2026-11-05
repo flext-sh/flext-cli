@@ -6,9 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from hashlib import sha256
 
 from flext_core import r
+from openpyxl import Workbook
+from openpyxl.cell.cell import Cell, MergedCell
 
 from flext_cli import m, p
 from flext_cli._utilities._xlsx.xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
@@ -48,36 +51,44 @@ class FlextCliUtilitiesXlsxStyleCatalog(
             return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].from_failure(
                 workbook_result,
             )
-        seen: frozenset[int] = frozenset()
-        source_styles: tuple[m.Cli.XlsxSourceVisualStyle, ...] = ()
-        for worksheet in workbook_result.value.worksheets:
-            for row in worksheet.iter_rows():
-                for cell in row:
-                    if (
-                        cell.value is None
-                        and not cell.has_style
-                        and cell.comment is None
-                        and cell.hyperlink is None
-                    ):
-                        continue
-                    source_style_id = cell.style_id
-                    if source_style_id in seen:
-                        continue
-                    visual_result = cls._visual_from_styleable(cell)
-                    if visual_result.failure:
-                        return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].from_failure(
-                            visual_result,
-                        )
-                    seen = seen.union((source_style_id,))
-                    source_styles = (
-                        *source_styles,
-                        m.Cli.XlsxSourceVisualStyle(
-                            source_style_id=source_style_id,
-                            visual=visual_result.value,
-                        ),
-                    )
+        source_styles: list[m.Cli.XlsxSourceVisualStyle] = []
+        for cell in cls._distinct_style_cells(workbook_result.value):
+            visual_result = cls._visual_from_styleable(cell)
+            if visual_result.failure:
+                return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].from_failure(
+                    visual_result,
+                )
+            source_styles.append(
+                m.Cli.XlsxSourceVisualStyle(
+                    source_style_id=cell.style_id,
+                    visual=visual_result.value,
+                ),
+            )
         ordered = tuple(sorted(source_styles, key=cls._source_style_id))
         return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].ok(ordered)
+
+    @staticmethod
+    def _distinct_style_cells(workbook: Workbook) -> Iterator[Cell | MergedCell]:
+        """Yield the first used cell of every distinct source style, in order.
+
+        Yields:
+            Each cell carrying content, style, a comment, or a hyperlink whose
+            style identifier was not yielded before.
+
+        """
+        seen: set[int] = set()
+        for worksheet in workbook.worksheets:
+            for row in worksheet.iter_rows():
+                for cell in row:
+                    if cell.style_id in seen or not (
+                        cell.value is not None
+                        or cell.has_style
+                        or cell.comment is not None
+                        or cell.hyperlink is not None
+                    ):
+                        continue
+                    seen.add(cell.style_id)
+                    yield cell
 
     @classmethod
     def extract_style_catalog(

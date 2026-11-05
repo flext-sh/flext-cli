@@ -6,16 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import errno
 import os
 from pathlib import Path
 
 from flext_cli._utilities import (
-    FlextCliUtilitiesAtomicParentFailure,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
     FlextCliUtilitiesAtomicFilePublishChecks,
     FlextCliUtilitiesAtomicFileState,
+    FlextCliUtilitiesAtomicParentFailure,
 )
 
 

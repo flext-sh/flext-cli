@@ -99,8 +99,14 @@ if TYPE_CHECKING:
     from flext_cli._utilities.atomic_tree_physical import (
         FlextCliUtilitiesAtomicTreePhysical,
     )
+    from flext_cli._utilities.atomic_tree_query_membership import (
+        FlextCliUtilitiesAtomicTreeQueryMembership,
+    )
     from flext_cli._utilities.atomic_tree_query_receipts import (
         FlextCliUtilitiesAtomicTreeQueryReceipts,
+    )
+    from flext_cli._utilities.atomic_tree_query_topology import (
+        FlextCliUtilitiesAtomicTreeQueryTopology,
     )
     from flext_cli._utilities.auth import FlextCliUtilitiesAuth
     from flext_cli._utilities.cli_namespace import FlextCliUtilitiesCli
@@ -118,6 +124,8 @@ if TYPE_CHECKING:
     from flext_cli._utilities.framework import FlextCliUtilitiesFramework
     from flext_cli._utilities.json import FlextCliUtilitiesJson
     from flext_cli._utilities.markdown import FlextCliUtilitiesMarkdown
+    from flext_cli._utilities.markdown_links import FlextCliUtilitiesMarkdownLinks
+    from flext_cli._utilities.markdown_parsing import FlextCliUtilitiesMarkdownParsing
     from flext_cli._utilities.matching import FlextCliUtilitiesMatching
     from flext_cli._utilities.native_runtime import (
         TimeoutExpired,
@@ -181,7 +189,9 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesAtomicTreeDescriptor",
     "FlextCliUtilitiesAtomicTreeInventory",
     "FlextCliUtilitiesAtomicTreePhysical",
+    "FlextCliUtilitiesAtomicTreeQueryMembership",
     "FlextCliUtilitiesAtomicTreeQueryReceipts",
+    "FlextCliUtilitiesAtomicTreeQueryTopology",
     "FlextCliUtilitiesAuth",
     "FlextCliUtilitiesCli",
     "FlextCliUtilitiesCmd",
@@ -198,6 +208,8 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesFramework",
     "FlextCliUtilitiesJson",
     "FlextCliUtilitiesMarkdown",
+    "FlextCliUtilitiesMarkdownLinks",
+    "FlextCliUtilitiesMarkdownParsing",
     "FlextCliUtilitiesMatching",
     "FlextCliUtilitiesOptionBuilder",
     "FlextCliUtilitiesOptionsAnnotations",
@@ -260,7 +272,9 @@ install_lazy_exports(
         "FlextCliUtilitiesAtomicTreeDescriptor": ".atomic_tree_descriptor",
         "FlextCliUtilitiesAtomicTreeInventory": ".atomic_tree_inventory",
         "FlextCliUtilitiesAtomicTreePhysical": ".atomic_tree_physical",
+        "FlextCliUtilitiesAtomicTreeQueryMembership": ".atomic_tree_query_membership",
         "FlextCliUtilitiesAtomicTreeQueryReceipts": ".atomic_tree_query_receipts",
+        "FlextCliUtilitiesAtomicTreeQueryTopology": ".atomic_tree_query_topology",
         "FlextCliUtilitiesAuth": ".auth",
         "FlextCliUtilitiesCli": ".cli_namespace",
         "FlextCliUtilitiesCmd": ".cmd",
@@ -277,6 +291,8 @@ install_lazy_exports(
         "FlextCliUtilitiesFramework": ".framework",
         "FlextCliUtilitiesJson": ".json",
         "FlextCliUtilitiesMarkdown": ".markdown",
+        "FlextCliUtilitiesMarkdownLinks": ".markdown_links",
+        "FlextCliUtilitiesMarkdownParsing": ".markdown_parsing",
         "FlextCliUtilitiesMatching": ".matching",
         "FlextCliUtilitiesOptionBuilder": ".option_builder",
         "FlextCliUtilitiesOptionsAnnotations": ".options_annotations",

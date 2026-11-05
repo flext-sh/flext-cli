@@ -111,7 +111,9 @@ class FlextCliUtilitiesTablesRenderer:
             else requested
         )
         return (
-            resolved if resolved in FlextCliUtilitiesTablesRenderer._PAD_METHODS else "left"
+            resolved
+            if resolved in FlextCliUtilitiesTablesRenderer._PAD_METHODS
+            else "left"
         )
 
     @classmethod

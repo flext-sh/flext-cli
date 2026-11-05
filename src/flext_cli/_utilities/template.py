@@ -343,41 +343,67 @@ class FlextCliUtilitiesTemplate:
         skipped: list[Path] = []
         failed: list[tuple[Path, str]] = []
         for entry in entries:
-            out_rel = entry.output_relpath
-            if render_options.strip_suffix and str(out_rel).endswith(
-                render_options.strip_suffix,
+            dest = FlextCliUtilitiesTemplate._entry_destination(
+                entry, output_root, render_options.strip_suffix
+            )
+            escape = FlextCliUtilitiesTemplate._destination_escape(dest, root)
+            if escape is not None:
+                failed.append((dest, escape))
+            elif not entry.when or (
+                dest.exists() and not (entry.overwrite or render_options.overwrite)
             ):
-                out_rel = Path(str(out_rel)[: -len(render_options.strip_suffix)])
-            dest = output_root / out_rel
-            try:
-                if not dest.resolve().is_relative_to(root):
-                    failed.append((dest, c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE))
-                    continue
-            except (OSError, ValueError) as exc:
-                failed.append((
-                    dest,
-                    r[str].fail(c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE, exception=exc).error
-                    or c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE,
-                ))
-                continue
-            if not entry.when:
                 skipped.append(dest)
-                continue
-            if dest.exists() and not (entry.overwrite or render_options.overwrite):
-                skipped.append(dest)
-                continue
-            src = templates_root / entry.relpath_template
-            result = FlextCliUtilitiesTemplate.template_render_to(src, dest, context)
-            if result.failure:
-                failed.append((dest, result.error or c.Cli.ERR_TEMPLATE_RENDER_FAILED))
-                continue
-            created.append(dest)
+            else:
+                result = FlextCliUtilitiesTemplate.template_render_to(
+                    templates_root / entry.relpath_template, dest, context
+                )
+                if result.failure:
+                    failed.append((
+                        dest,
+                        result.error or c.Cli.ERR_TEMPLATE_RENDER_FAILED,
+                    ))
+                else:
+                    created.append(dest)
         report = m.Cli.TemplateRenderReport(
             created=tuple(created),
             skipped=tuple(skipped),
             failed=tuple(failed),
         )
         return r[p.Cli.TemplateRenderReport].ok(report)
+
+    @staticmethod
+    def _entry_destination(
+        entry: p.Cli.TemplateRenderEntry,
+        output_root: Path,
+        strip_suffix: str,
+    ) -> Path:
+        """Return one entry's destination with the template suffix stripped.
+
+        Returns:
+            The destination path under ``output_root``.
+
+        """
+        out_rel = entry.output_relpath
+        if strip_suffix and str(out_rel).endswith(strip_suffix):
+            out_rel = Path(str(out_rel)[: -len(strip_suffix)])
+        return output_root / out_rel
+
+    @staticmethod
+    def _destination_escape(dest: Path, root: Path) -> str | None:
+        """Report whether one destination resolves outside the output root.
+
+        Returns:
+            The escape diagnostic, or ``None`` for a contained destination.
+
+        """
+        try:
+            contained = dest.resolve().is_relative_to(root)
+        except (OSError, ValueError) as exc:
+            return (
+                r[str].fail(c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE, exception=exc).error
+                or c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE
+            )
+        return None if contained else c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE
 
     @staticmethod
     def _write(dest: Path, content: str) -> bool:

@@ -329,4 +329,5 @@ class FlextCliUtilitiesAtomicFileDescriptor:
                 (f"atomic {label}", "descriptor close"),
             )
 
+
 __all__: list[str] = ["FlextCliUtilitiesAtomicFileDescriptor"]

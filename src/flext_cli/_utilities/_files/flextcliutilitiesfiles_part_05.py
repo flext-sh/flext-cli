@@ -22,8 +22,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicTreeCleanup,
     FlextCliUtilitiesAtomicTreeInventory,
 )
-
-
 from flext_cli._utilities._files.native_results import (
     FlextCliUtilitiesFilesNativeResults,
 )

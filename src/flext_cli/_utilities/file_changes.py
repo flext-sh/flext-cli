@@ -96,45 +96,11 @@ class FlextCliUtilitiesFileChanges:
             pending = FlextCliUtilitiesFileChanges.pending_file_changes(changes)
             written: list[Path] = []
             for change in pending:
-                source_diagnostics = ""
-                if change.path in nonsecret_source_paths and change.path.suffix in {
-                    ".py",
-                    ".pyi",
-                }:
-                    before_digest = (
-                        None
-                        if change.before.content is None
-                        else FlextCliUtilitiesFilesPart03.sha256_bytes(
-                            change.before.content
-                        )
-                    )
-                    desired_digest = (
-                        None
-                        if change.desired_content is None
-                        else FlextCliUtilitiesFilesPart03.sha256_bytes(
-                            change.desired_content
-                        )
-                    )
-                    source_diagnostics = (
-                        f" before_sha256={before_digest}"
-                        f" desired_sha256={desired_digest}"
-                    )
-                before_length = (
-                    None
-                    if change.before.content is None
-                    else len(change.before.content)
-                )
-                desired_length = (
-                    None
-                    if change.desired_content is None
-                    else len(change.desired_content)
+                evidence = FlextCliUtilitiesFileChanges._publication_evidence(
+                    change, nonsecret_source_paths
                 )
                 FlextCliUtilitiesOutput.debug(
-                    f"file_changes: publish pid={os.getpid()} "
-                    f"path={change.path} before_inode={change.before.inode} "
-                    f"before_bytes={before_length} "
-                    f"desired_bytes={desired_length}"
-                    f"{source_diagnostics}"
+                    f"file_changes: publish pid={os.getpid()} {evidence}"
                 )
                 published = FlextCliUtilitiesFileChanges._publish(
                     change, directory_mode, written
@@ -151,6 +117,38 @@ class FlextCliUtilitiesFileChanges:
                         exception=published.exception,
                     )
         return result_type.ok(tuple(written))
+
+    @staticmethod
+    def _publication_evidence(
+        change: p.Cli.FileChange,
+        nonsecret_source_paths: Sequence[Path],
+    ) -> str:
+        """Describe one pending publication without exposing secret bytes.
+
+        Content digests are reported only for attested Python sources.
+
+        Returns:
+            The path, physical identity, byte counts, and attested digests.
+
+        """
+        before, desired = change.before.content, change.desired_content
+        evidence = (
+            f"path={change.path} before_inode={change.before.inode} "
+            f"before_bytes={None if before is None else len(before)} "
+            f"desired_bytes={None if desired is None else len(desired)}"
+        )
+        if change.path not in nonsecret_source_paths or change.path.suffix not in {
+            ".py",
+            ".pyi",
+        }:
+            return evidence
+        digests = tuple(
+            None
+            if content is None
+            else FlextCliUtilitiesFilesPart03.sha256_bytes(content)
+            for content in (before, desired)
+        )
+        return f"{evidence} before_sha256={digests[0]} desired_sha256={digests[1]}"
 
     @staticmethod
     def _publish(

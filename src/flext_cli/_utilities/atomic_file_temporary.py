@@ -114,4 +114,5 @@ class FlextCliUtilitiesAtomicFileTemporary:
             os.fsync(descriptor)
         return stat.S_IMODE(os.fstat(descriptor).st_mode)
 
+
 __all__: list[str] = ["FlextCliUtilitiesAtomicFileTemporary"]

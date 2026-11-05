@@ -167,18 +167,24 @@ class FlextCliUtilitiesFramework:
         return application
 
     @staticmethod
-    def _exit_code_result(exit_code: int) -> p.Result[bool]:
-        """Normalize one framework exit code through the exception facade.
+    def _exit_code_result(exit_result: t.JsonPayload) -> p.Result[bool]:
+        """Normalize one framework return value through the exception facade.
+
+        Only a non-boolean integer other than success is an exit failure.
 
         Returns:
             The resulting ``p.Result[bool]``.
 
         """
-        if exit_code == c.Cli.EXIT_CODE_SUCCESS:
+        if (
+            not isinstance(exit_result, int)
+            or isinstance(exit_result, bool)
+            or exit_result == c.Cli.EXIT_CODE_SUCCESS
+        ):
             return r[bool].ok(value=True)
         return e.fail_operation(
             c.Cli.OP_EXECUTE_APPLICATION,
-            c.Cli.ERR_EXIT_WITH_CODE.format(exit_code=exit_code),
+            c.Cli.ERR_EXIT_WITH_CODE.format(exit_code=exit_result),
             result_type=r[bool],
         )
 
@@ -422,13 +428,7 @@ class FlextCliUtilitiesFramework:
             cls._active_execution.reset(token)
         if captured_failure is not None:
             return r[bool].from_failure(captured_failure)
-        if (
-            isinstance(exit_result, int)
-            and not isinstance(exit_result, bool)
-            and exit_result != c.Cli.EXIT_CODE_SUCCESS
-        ):
-            return cls._exit_code_result(exit_result)
-        return r[bool].ok(value=True)
+        return cls._exit_code_result(exit_result)
 
     @classmethod
     def framework_execute_external(
@@ -462,13 +462,7 @@ class FlextCliUtilitiesFramework:
             raise
         except SystemExit:
             raise
-        if (
-            isinstance(exit_result, int)
-            and not isinstance(exit_result, bool)
-            and exit_result != c.Cli.EXIT_CODE_SUCCESS
-        ):
-            return cls._exit_code_result(exit_result)
-        return r[bool].ok(value=True)
+        return cls._exit_code_result(exit_result)
 
     @classmethod
     def framework_external_command(

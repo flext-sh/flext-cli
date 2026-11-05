@@ -13,6 +13,9 @@ from pptx import Presentation
 from pptx.presentation import Presentation as PresentationType
 
 from flext_cli import c, m, p, t
+from flext_cli._utilities._files.native_results import (
+    FlextCliUtilitiesFilesNativeResults,
+)
 from flext_cli._utilities._pptx import FlextCliUtilitiesPptxSerializer
 
 
@@ -58,14 +61,11 @@ class FlextCliUtilitiesPptxRenderer:
     ) -> p.Result[PresentationType]:
         if request.template is None:
             return r[PresentationType].ok(Presentation())
-        try:
-            presentation = Presentation(BytesIO(request.template))
-        except (OSError, ValueError, KeyError) as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
-            return r[PresentationType].fail(
-                f"{c.Cli.PptxError.PRESENTATION_LOAD_FAILED}: {detail}",
-            )
-        return r[PresentationType].ok(presentation)
+        return FlextCliUtilitiesFilesNativeResults.coded_result(
+            Presentation,
+            c.Cli.PptxError.PRESENTATION_LOAD_FAILED,
+            (OSError, ValueError, KeyError),
+        )(BytesIO(request.template))
 
     @classmethod
     def _apply_presentation(
