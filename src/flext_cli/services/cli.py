@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import MutableSequence
+from inspect import Signature
 
 from flext_core import FlextContainer
 
@@ -72,20 +73,17 @@ class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):
             return True
 
         parameters: MutableSequence[t.Cli.CommandParameter] = []
-        annotations: t.Cli.CliAnnotations = {"return": bool}
         for field_name in c.Cli.CLI_GLOBAL_PARAM_FIELDS:
-            parameter, annotation = self._build_model_parameter(
+            parameter = self._build_model_parameter(
                 field_name,
                 m.Cli.CliParamsConfig.model_fields[field_name],
                 None,
             )
             parameters.append(parameter)
-            annotations[field_name] = annotation
         global_callback = self._ModelCommand(
             handler=apply_common_params,
             model_cls=m.Cli.CliParamsConfig,
-            parameters=parameters,
-            annotations=annotations,
+            signature=Signature(parameters, return_annotation=bool),
             result_border=True,
         )
         u.Cli.framework_register_callback(app, global_callback)

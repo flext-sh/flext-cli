@@ -171,43 +171,20 @@ class TestsFlextCliDocxRender:
         plan = m.Cli.DocxDocumentPlan(
             tables=(
                 m.Cli.DocxTablePlan(
-                    rows=(
+                    rows=tuple(
                         m.Cli.DocxTableRowPlan(
-                            cells=(
+                            cells=tuple(
                                 m.Cli.DocxTableCellPlan(
                                     paragraphs=(
                                         m.Cli.DocxParagraphPlan(
-                                            runs=(m.Cli.DocxRunPlan(text="A"),),
+                                            runs=(m.Cli.DocxRunPlan(text=text),),
                                         ),
                                     ),
-                                ),
-                                m.Cli.DocxTableCellPlan(
-                                    paragraphs=(
-                                        m.Cli.DocxParagraphPlan(
-                                            runs=(m.Cli.DocxRunPlan(text="B"),),
-                                        ),
-                                    ),
-                                ),
+                                )
+                                for text in row
                             ),
-                        ),
-                        m.Cli.DocxTableRowPlan(
-                            cells=(
-                                m.Cli.DocxTableCellPlan(
-                                    paragraphs=(
-                                        m.Cli.DocxParagraphPlan(
-                                            runs=(m.Cli.DocxRunPlan(text="C"),),
-                                        ),
-                                    ),
-                                ),
-                                m.Cli.DocxTableCellPlan(
-                                    paragraphs=(
-                                        m.Cli.DocxParagraphPlan(
-                                            runs=(m.Cli.DocxRunPlan(text="D"),),
-                                        ),
-                                    ),
-                                ),
-                            ),
-                        ),
+                        )
+                        for row in (("A", "B"), ("C", "D"))
                     ),
                 ),
             ),

@@ -33,7 +33,7 @@ class TestsFlextCliModelCommandJsonOptions:
 
         prefs: m.Tests.UserPreferences
         others: list[m.Tests.UserPreferences] = m.Field(
-            default_factory=list,
+            default_factory=list[m.Tests.UserPreferences],
         )
 
     class JsonDefaultsModel(m.BaseModel):
