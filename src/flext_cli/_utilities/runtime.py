@@ -91,7 +91,13 @@ class FlextCliUtilitiesRuntime(
             The resulting ``p.Cli.ProcessHandle``.
 
         """
-        return spawn_streamed_process(command, stdin_handle, options=options)
+        return spawn_streamed_process(
+            command.cmd,
+            command.cwd,
+            command.env,
+            stdin_handle,
+            options=options,
+        )
 
     @staticmethod
     def child_communicate(
@@ -193,9 +199,10 @@ class FlextCliUtilitiesRuntime(
                 signal_wave=launch.signal_wave,
             )
         return cls._execute_streamed_process(
-            cls._runtime_request(cmd, cwd, timeout, launch).model_copy(
-                update={"capture_output": capture},
-            ),
+            m.Cli.RuntimeProcessRequest.model_validate({
+                **cls._runtime_request_fields(cmd, cwd, timeout, launch),
+                "capture_output": capture,
+            }),
         ).flat_map(decode_output)
 
     @classmethod
@@ -219,7 +226,9 @@ class FlextCliUtilitiesRuntime(
             else m.Cli.ProcessOptions()
         )
         return cls._execute_streamed_process(
-            cls._runtime_request(cmd, cwd, timeout, launch),
+            m.Cli.RuntimeProcessRequest.model_validate(
+                cls._runtime_request_fields(cmd, cwd, timeout, launch),
+            ),
         )
 
 

@@ -112,6 +112,24 @@ class FlextCliUtilitiesXlsxSnapshotValues:
         return value
 
     @classmethod
+    def _snapshot_cell(
+        cls,
+        formula_cell: Cell,
+        value_sheet: Worksheet,
+        *,
+        data_only: bool,
+    ) -> p.Result[m.Cli.XlsxCellSnapshot]:
+        try:
+            return cls._snapshot_cell_unchecked(
+                formula_cell,
+                value_sheet,
+                data_only=data_only,
+            )
+        except (IndexError, TypeError, m.ValidationError, ValueError) as exc:
+            detail = str(exc).strip() or exc.__class__.__name__
+            return r[m.Cli.XlsxCellSnapshot].fail(detail)
+
+    @classmethod
     def _snapshot_cell_unchecked(
         cls,
         formula_cell: Cell,
@@ -181,9 +199,8 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                 value_sheet,
                 data_only=data_only,
             )
-        except (IndexError, TypeError, m.ValidationError, ValueError) as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
-            return r[tuple[m.Cli.XlsxCellSnapshot, ...]].fail(detail, exception=exc)
+        except ValueError as exc:
+            return r[tuple[m.Cli.XlsxCellSnapshot, ...]].fail(str(exc), exception=exc)
         return r[tuple[m.Cli.XlsxCellSnapshot, ...]].ok(cells)
 
     @classmethod
@@ -202,9 +219,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                 if not cls._has_snapshot_content(formula_cell):
                     continue
                 cell: m.Cli.XlsxCellSnapshot = cls._require_success(
-                    cls._snapshot_cell_unchecked(
-                        formula_cell, value_sheet, data_only=data_only
-                    ),
+                    cls._snapshot_cell(formula_cell, value_sheet, data_only=data_only),
                 )
                 cells = (*cells, cell)
         return cells

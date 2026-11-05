@@ -14,28 +14,8 @@ from __future__ import annotations
 import os
 import subprocess
 from collections.abc import Mapping, Sequence
+from subprocess import TimeoutExpired
 from typing import BinaryIO, Literal, Protocol
-
-TimeoutExpired = subprocess.TimeoutExpired
-
-
-class RuntimeSpawnCommand(Protocol):
-    """Resolved native argv, working directory, and environment of one child."""
-
-    @property
-    def cmd(self) -> Sequence[str]:
-        """Executable and ordered child arguments."""
-        ...
-
-    @property
-    def cwd(self) -> str | os.PathLike[str] | None:
-        """Working directory, or the parent directory when absent."""
-        ...
-
-    @property
-    def env(self) -> Mapping[str, str] | None:
-        """Resolved environment, or the inherited parent environment."""
-        ...
 
 
 class RuntimeSpawnOptions(Protocol):
@@ -73,26 +53,39 @@ class RuntimeSpawnOptions(Protocol):
 
 
 def spawn_streamed_process(
-    command: RuntimeSpawnCommand,
+    cmd: Sequence[str],
+    cwd: str | os.PathLike[str] | None,
+    env: Mapping[str, str] | None,
     stdin_handle: BinaryIO | None,
     *,
     options: RuntimeSpawnOptions,
 ) -> subprocess.Popen[bytes]:
     """Create the single native binary child without waiting or adapting its result.
 
+    An explicit stdin handle wins over the pipe, devnull, or inherit mode;
+    combined output redirects stderr to stdout, otherwise capture pipes it.
+
     Returns:
         The actual native process handle; its caller owns communication and reaping.
 
     """
+    stdin_target: BinaryIO | int | None = stdin_handle
+    if stdin_target is None:
+        stdin_target = {"pipe": subprocess.PIPE, "devnull": subprocess.DEVNULL}.get(
+            options.stdin_mode,
+        )
+    stderr_target: int | None = subprocess.PIPE if options.capture_output else None
+    if options.combine_output:
+        stderr_target = subprocess.STDOUT
     return subprocess.Popen(
-        list(command.cmd),
-        cwd=command.cwd,
-        stdin=_stdin_target(stdin_handle, options),
+        list(cmd),
+        cwd=cwd,
+        stdin=stdin_target,
         stdout=subprocess.PIPE if options.capture_output else None,
-        stderr=_stderr_target(options),
+        stderr=stderr_target,
         text=False,
         bufsize=0,
-        env=command.env,
+        env=env,
         start_new_session=(
             os.name != "nt"
             if options.start_new_session is None
@@ -101,36 +94,6 @@ def spawn_streamed_process(
         creationflags=options.creation_flags,
         pass_fds=options.pass_fds,
     )
-
-
-def _stdin_target(
-    stdin_handle: BinaryIO | None,
-    options: RuntimeSpawnOptions,
-) -> BinaryIO | int | None:
-    """Resolve the child stdin from an explicit handle or the stdin policy.
-
-    Returns:
-        The explicit handle, a native pipe or null-device marker, or ``None``
-        to inherit the parent stdin.
-
-    """
-    if stdin_handle is not None:
-        return stdin_handle
-    return {"pipe": subprocess.PIPE, "devnull": subprocess.DEVNULL}.get(
-        options.stdin_mode
-    )
-
-
-def _stderr_target(options: RuntimeSpawnOptions) -> int | None:
-    """Resolve the child stderr from the combine and capture policy.
-
-    Returns:
-        A native redirect or pipe marker, or ``None`` to inherit stderr.
-
-    """
-    if options.combine_output:
-        return subprocess.STDOUT
-    return subprocess.PIPE if options.capture_output else None
 
 
 def streamed_creation_flags() -> int:
