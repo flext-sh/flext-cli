@@ -14,3 +14,7 @@ Infra:
         commit: ac27fc75942a78e4787a74fc64f8a2b7db2a172d
       namespace_scan_dirs:
       - src
+      deferred_distributions:
+      - openpyxl
+      - python-docx
+      - python-pptx
