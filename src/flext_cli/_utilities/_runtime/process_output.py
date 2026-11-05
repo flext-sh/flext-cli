@@ -23,7 +23,7 @@ class FlextCliUtilitiesRuntimeProcessOutput(
         cls,
         process: p.Cli.ProcessHandle,
         state: p.Cli.RuntimeProcessState,
-        plan: m.Cli.RuntimeOutputPlan,
+        plan: p.Cli.RuntimeOutputPlan,
     ) -> tuple[tuple[threading.Thread, IO[bytes]], ...]:
         capture_output, live_fds = plan.capture_output, plan.live_fds
         combine_output = state.durable_log is not None and state.durable_stderr is None

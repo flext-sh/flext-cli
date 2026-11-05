@@ -293,7 +293,7 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
     @classmethod
     def _drain_stream(
         cls,
-        drain: m.Cli.RuntimePipeDrain,
+        drain: p.Cli.RuntimePipeDrain,
         state: p.Cli.RuntimeProcessState,
         cleanup_deadline: float,
     ) -> None:

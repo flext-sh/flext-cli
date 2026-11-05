@@ -12,7 +12,7 @@ import sys
 from collections.abc import MutableMapping
 from pathlib import Path
 
-from flext_cli import m, p
+from flext_cli import p
 from flext_cli._utilities import FlextCliUtilitiesAtomicParentDescriptor
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_05 import (
@@ -200,7 +200,7 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
     @classmethod
     def _retain_isolation_runtime_descriptors(
         cls,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         isolation: p.Cli.ProcessReadOnlyIsolation,
         roots: tuple[Path, ...],
         paths: tuple[Path, ...],

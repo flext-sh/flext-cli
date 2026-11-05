@@ -166,7 +166,7 @@ class FlextCliUtilitiesFilesPart03:
         required: bool = False,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> p.Result[m.Cli.AtomicFileState]:
+    ) -> p.Result[p.Cli.AtomicFileState]:
         """Read exact bytes plus leaf and immediate-parent physical identities.
 
         ``owner_uid`` fails the read when the authenticated parent or the leaf
@@ -179,7 +179,7 @@ class FlextCliUtilitiesFilesPart03:
         planned directory chain and read again before publishing into it.
 
         Returns:
-            The resulting ``p.Result[m.Cli.AtomicFileState]``.
+            The resulting ``p.Result[p.Cli.AtomicFileState]``.
 
         """
         return FlextCliUtilitiesFilesPart03.atomic_read_binary_file_capture(
@@ -196,7 +196,7 @@ class FlextCliUtilitiesFilesPart03:
         required: bool = False,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> p.Result[tuple[m.Cli.AtomicFileState, m.Cli.AtomicFileReceipt]]:
+    ) -> p.Result[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileReceipt]]:
         """Capture buffered bytes and their receipt from one authenticated read.
 
         The receipt carries the same leaf and parent observation without copying
@@ -303,13 +303,13 @@ class FlextCliUtilitiesFilesPart03:
 
     @staticmethod
     def atomic_publish_staged_binary_file_guarded(
-        destination_before: m.Cli.AtomicFileState,
-        staged: m.Cli.AtomicFileState,
-    ) -> p.Result[m.Cli.AtomicFileState]:
+        destination_before: p.Cli.AtomicFileState,
+        staged: p.Cli.AtomicFileState,
+    ) -> p.Result[p.Cli.AtomicFileState]:
         """Consume one authenticated staged file under the caller's lock.
 
         Returns:
-            The resulting ``p.Result[m.Cli.AtomicFileState]``.
+            The resulting ``p.Result[p.Cli.AtomicFileState]``.
 
         """
         try:
@@ -318,10 +318,10 @@ class FlextCliUtilitiesFilesPart03:
                 staged,
             )
         except OSError as exc:
-            return r[m.Cli.AtomicFileState].fail(
+            return r[p.Cli.AtomicFileState].fail(
                 c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc),
             )
-        return r[m.Cli.AtomicFileState].ok(
+        return r[p.Cli.AtomicFileState].ok(
             m.Cli.AtomicFileState(
                 path=destination_before.path,
                 parent_device=destination_before.parent_device,

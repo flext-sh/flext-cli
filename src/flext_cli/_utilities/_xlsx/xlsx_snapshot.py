@@ -59,7 +59,7 @@ class FlextCliUtilitiesXlsxSnapshot(
         if len(formula_workbook.worksheets) != len(value_workbook.worksheets):
             msg = "Formula and value workbook views have different sheet counts"
             raise ValueError(msg)
-        sheets: tuple[m.Cli.XlsxSheetSnapshot, ...] = ()
+        sheets: tuple[p.Cli.XlsxSheetSnapshot, ...] = ()
         for position, (formula_sheet, value_sheet) in enumerate(
             zip(formula_workbook.worksheets, value_workbook.worksheets, strict=True),
             start=1,

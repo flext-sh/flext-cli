@@ -80,7 +80,7 @@ class FlextCliUtilitiesRuntime(
     @staticmethod
     @override
     def _spawn_streamed_process(
-        command: m.Cli.RuntimeSpawnCommand,
+        command: p.Cli.RuntimeSpawnCommand,
         stdin_handle: BinaryIO | None,
         *,
         options: p.Cli.RuntimeSpawnOptions,

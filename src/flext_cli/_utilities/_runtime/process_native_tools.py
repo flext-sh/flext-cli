@@ -279,7 +279,7 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
 
     @classmethod
     def _reject_native_elf_interpreters(
-        cls, layout: m.Cli.NativeElfLayout, content: bytes
+        cls, layout: p.Cli.NativeElfLayout, content: bytes
     ) -> None:
         """Reject a required-static binary with ambient native interpreters.
 
@@ -314,7 +314,7 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
 
     @classmethod
     def _reject_native_elf_needed(
-        cls, layout: m.Cli.NativeElfLayout, content: bytes, offset: int
+        cls, layout: p.Cli.NativeElfLayout, content: bytes, offset: int
     ) -> None:
         """Reject one dynamic table with ambient shared-library dependencies.
 

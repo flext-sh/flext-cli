@@ -12,7 +12,7 @@ import signal
 
 from flext_core import r
 
-from flext_cli import m, p
+from flext_cli import p
 from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeDarwinProcessGroup,
     FlextCliUtilitiesRuntimeWindowsJobStart,
@@ -60,7 +60,7 @@ class FlextCliUtilitiesRuntimeProcessGroup(
         cls,
         process: p.Cli.ProcessHandle,
         job_handle: int,
-        tree_signal: m.Cli.ProcessTreeSignal,
+        tree_signal: p.Cli.ProcessTreeSignal,
     ) -> p.Result[bool]:
         """Signal one owned process tree through the Windows Job Object.
 
@@ -109,7 +109,7 @@ class FlextCliUtilitiesRuntimeProcessGroup(
         cls,
         process: p.Cli.ProcessHandle,
         job_handle: int,
-        tree_signal: m.Cli.ProcessTreeSignal,
+        tree_signal: p.Cli.ProcessTreeSignal,
     ) -> p.Result[bool]:
         """Signal the complete owned process tree.
 

@@ -74,7 +74,7 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
         status: t.Cli.PipelineStageStatus = c.Cli.PipelineStageStatus.OK,
         output: t.JsonMapping | None = None,
         error: str | None = None,
-    ) -> m.Cli.PipelineStageResult:
+    ) -> p.Cli.PipelineStageResult:
         """Build one typed stage result payload.
 
         The stage duration is not a DSL input: the pipeline executor measures

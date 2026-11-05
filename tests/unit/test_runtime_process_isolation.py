@@ -13,14 +13,14 @@ from pathlib import Path
 import pytest
 
 from flext_cli import config
-from tests import m, tm, u
+from tests import m, p, tm, u
 
 
 class TestsFlextCliRuntimeProcessIsolation:
     """Isolation prerequisites fail before any command can execute."""
 
     @staticmethod
-    def _request(tmp_path: Path) -> m.Cli.ProcessReadOnlyIsolation:
+    def _request(tmp_path: Path) -> p.Cli.ProcessReadOnlyIsolation:
         """Capture real local files for negative pre-execution contracts.
 
         Returns:

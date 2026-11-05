@@ -25,8 +25,8 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         cls,
         process: p.Cli.ProcessHandle,
         state: p.Cli.RuntimeProcessState,
-        timing: m.Cli.RuntimeProcessTiming,
-        heartbeat: m.Cli.RuntimeHeartbeat,
+        timing: p.Cli.RuntimeProcessTiming,
+        heartbeat: p.Cli.RuntimeHeartbeat,
     ) -> tuple[bool, float | None]:
         """Forward signals and advance TERM/KILL phases without polling.
 
@@ -52,9 +52,9 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
     @classmethod
     def _initial_monitor_phase(
         cls,
-        timing: m.Cli.RuntimeProcessTiming,
-        heartbeat: m.Cli.RuntimeHeartbeat,
-    ) -> m.Cli.RuntimeMonitorPhase:
+        timing: p.Cli.RuntimeProcessTiming,
+        heartbeat: p.Cli.RuntimeHeartbeat,
+    ) -> p.Cli.RuntimeMonitorPhase:
         """Schedule the timeout phases inside the declared grace reserve.
 
         Returns:
@@ -84,7 +84,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         cls,
         process: p.Cli.ProcessHandle,
         state: p.Cli.RuntimeProcessState,
-        phase: m.Cli.RuntimeMonitorPhase,
+        phase: p.Cli.RuntimeMonitorPhase,
         now: float,
     ) -> None:
         """Apply every interrupt, forward, heartbeat, and escalation now due."""
@@ -98,7 +98,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
     def _wait_next_boundary(
         cls,
         state: p.Cli.RuntimeProcessState,
-        phase: m.Cli.RuntimeMonitorPhase,
+        phase: p.Cli.RuntimeMonitorPhase,
         now: float,
     ) -> None:
         """Block until new lifecycle evidence or the next unsent boundary."""
@@ -119,7 +119,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
     @classmethod
     def _enter_interrupt_mode(
         cls,
-        phase: m.Cli.RuntimeMonitorPhase,
+        phase: p.Cli.RuntimeMonitorPhase,
         now: float,
     ) -> None:
         """Reschedule every phase inside the local operator-interrupt reserve."""
@@ -136,7 +136,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
     @classmethod
     def _advance_heartbeat(
         cls,
-        phase: m.Cli.RuntimeMonitorPhase,
+        phase: p.Cli.RuntimeMonitorPhase,
         now: float,
     ) -> None:
         """Emit one due heartbeat line and schedule the next one."""
@@ -151,7 +151,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         cls,
         process: p.Cli.ProcessHandle,
         state: p.Cli.RuntimeProcessState,
-        phase: m.Cli.RuntimeMonitorPhase,
+        phase: p.Cli.RuntimeMonitorPhase,
         now: float,
     ) -> None:
         """Deliver every due failure, timeout, TERM, and KILL phase once."""
@@ -195,7 +195,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         cls,
         process: p.Cli.ProcessHandle,
         state: p.Cli.RuntimeProcessState,
-        tree_signal: m.Cli.ProcessTreeSignal,
+        tree_signal: p.Cli.ProcessTreeSignal,
     ) -> None:
         """Signal the owned tree and retain a delivery failure as evidence."""
         cls._record_signal_error(
@@ -251,7 +251,7 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         cls,
         process: p.Cli.ProcessHandle,
         state: p.Cli.RuntimeProcessState,
-        phase: m.Cli.RuntimeMonitorPhase,
+        phase: p.Cli.RuntimeMonitorPhase,
     ) -> None:
         """Forward each newly received operator signal, escalating repeats."""
         force_after_signals = 2

@@ -45,17 +45,17 @@ class FlextCliUtilitiesXlsxStyleCatalog(
     def _source_visuals(
         cls,
         source: bytes,
-    ) -> p.Result[tuple[m.Cli.XlsxSourceVisualStyle, ...]]:
+    ) -> p.Result[tuple[p.Cli.XlsxSourceVisualStyle, ...]]:
         workbook_result = cls._load_workbook(source)
         if workbook_result.failure:
-            return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].from_failure(
+            return r[tuple[p.Cli.XlsxSourceVisualStyle, ...]].from_failure(
                 workbook_result,
             )
-        source_styles: list[m.Cli.XlsxSourceVisualStyle] = []
+        source_styles: list[p.Cli.XlsxSourceVisualStyle] = []
         for cell in cls._distinct_style_cells(workbook_result.value):
             visual_result = cls._visual_from_styleable(cell)
             if visual_result.failure:
-                return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].from_failure(
+                return r[tuple[p.Cli.XlsxSourceVisualStyle, ...]].from_failure(
                     visual_result,
                 )
             source_styles.append(
@@ -65,7 +65,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                 ),
             )
         ordered = tuple(sorted(source_styles, key=cls._source_style_id))
-        return r[tuple[m.Cli.XlsxSourceVisualStyle, ...]].ok(ordered)
+        return r[tuple[p.Cli.XlsxSourceVisualStyle, ...]].ok(ordered)
 
     @staticmethod
     def _distinct_style_cells(workbook: Workbook) -> Iterator[Cell | MergedCell]:
@@ -116,12 +116,12 @@ class FlextCliUtilitiesXlsxStyleCatalog(
     def _style_catalog(
         cls,
         request: p.Cli.XlsxStyleCatalogRequest,
-    ) -> p.Result[m.Cli.XlsxStyleCatalog]:
+    ) -> p.Result[p.Cli.XlsxStyleCatalog]:
         source_result = cls._source_visuals(request.source)
         if source_result.failure:
-            return r[m.Cli.XlsxStyleCatalog].from_failure(source_result)
-        styles: tuple[m.Cli.XlsxNamedStyleSpec, ...] = ()
-        style_map: tuple[m.Cli.XlsxStyleMapEntry, ...] = ()
+            return r[p.Cli.XlsxStyleCatalog].from_failure(source_result)
+        styles: tuple[p.Cli.XlsxNamedStyleSpec, ...] = ()
+        style_map: tuple[p.Cli.XlsxStyleMapEntry, ...] = ()
         for source in source_result.value:
             existing = next(
                 (style for style in styles if style.visual == source.visual),
@@ -133,7 +133,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                     visual=source.visual,
                 )
                 if any(style.name == existing.name for style in styles):
-                    return r[m.Cli.XlsxStyleCatalog].fail(
+                    return r[p.Cli.XlsxStyleCatalog].fail(
                         f"Deterministic style-name collision: {existing.name}",
                     )
                 styles = (*styles, existing)
@@ -144,7 +144,7 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                     style_name=existing.name,
                 ),
             )
-        return r[m.Cli.XlsxStyleCatalog].ok(
+        return r[p.Cli.XlsxStyleCatalog].ok(
             m.Cli.XlsxStyleCatalog(style_map=style_map, styles=styles),
         )
 

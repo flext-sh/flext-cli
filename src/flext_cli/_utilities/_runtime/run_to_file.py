@@ -35,7 +35,7 @@ class FlextCliUtilitiesRuntimeRunToFile(
         cmd: Sequence[str],
         cwd: t.Cli.TextPath | None,
         timeout: int | None,
-        launch: m.Cli.ProcessOptions,
+        launch: p.Cli.ProcessOptions,
     ) -> dict[str, object]:
         """Resolve one launch declaration into the shared lifecycle request fields.
 

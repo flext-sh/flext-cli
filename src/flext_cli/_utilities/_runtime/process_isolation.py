@@ -37,9 +37,9 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
     def _prepare_process_isolation(
         cls,
         request: p.Cli.RuntimeProcessRequest,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         command: tuple[str, ...],
-        timing: m.Cli.RuntimeProcessTiming,
+        timing: p.Cli.RuntimeProcessTiming,
     ) -> tuple[tuple[str, ...], Mapping[str, str] | None, tuple[int, ...]] | None:
         """Prepare explicit native confinement inside the existing lifecycle.
 
@@ -97,7 +97,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
     def _seal_isolation_executors(
         cls,
         request: p.Cli.RuntimeProcessRequest,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         isolation: p.Cli.ProcessReadOnlyIsolation,
         grace_seconds: float,
     ) -> tuple[int, int] | None:
@@ -117,9 +117,9 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
     @classmethod
     def _build_isolation_arguments(
         cls,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         isolation: p.Cli.ProcessReadOnlyIsolation,
-        sealed: m.Cli.ProcessIsolationSeal,
+        sealed: p.Cli.ProcessIsolationSeal,
     ) -> tuple[list[str], list[int]]:
         """Bind sealed inputs and runtime roots into the confined argv.
 
@@ -186,7 +186,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
     def _compile_process_policy(
         cls,
         request: p.Cli.RuntimeProcessRequest,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         grace_seconds: float,
     ) -> int | None:
         """Run the qualified static SDK compiler through the same public process port.
@@ -238,7 +238,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
 
     @staticmethod
     def _sealed_process_input(
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         captured: p.Cli.AtomicFileState,
     ) -> int:
         """Retain exact captured bytes in an immutable anonymous native file.
@@ -262,7 +262,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
 
     @staticmethod
     def _sealed_process_bytes(
-        state: m.Cli.RuntimeProcessState, name: str, content: bytes, mode: int
+        state: p.Cli.RuntimeProcessState, name: str, content: bytes, mode: int
     ) -> int:
         """Seal exact process-owner bytes in an anonymous descriptor.
 

@@ -25,12 +25,12 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
         cls,
         archive: p.Cli.XlsxArchiveReader,
         policy: p.Cli.XlsxArchivePolicy,
-    ) -> m.Cli.XlsxArchiveInventory:
+    ) -> p.Cli.XlsxArchiveInventory:
         members: tuple[str, ...] = ()
         blocked: frozenset[str] = frozenset()
         seen: frozenset[str] = frozenset()
         total_size = 0
-        violations: tuple[m.Cli.XlsxArchiveViolation, ...] = ()
+        violations: tuple[p.Cli.XlsxArchiveViolation, ...] = ()
         for info in archive.infolist():
             member = info.filename
             members = (*members, member)

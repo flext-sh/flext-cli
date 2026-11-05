@@ -169,7 +169,7 @@ class FlextCliUtilitiesTablesRenderer:
     def render(
         cls,
         rows: Sequence[t.Cli.TableRow],
-        policy: m.Cli.TableColumnPolicy,
+        policy: p.Cli.TableColumnPolicy,
         settings: p.Cli.TableConfig,
     ) -> str:
         """Render normalized rows with the configured tabular format shape.
@@ -234,7 +234,7 @@ class FlextCliUtilitiesTablesRenderer:
     @classmethod
     def _compose_pipe(
         cls,
-        layout: m.Cli.TableLayout,
+        layout: p.Cli.TableLayout,
         *,
         settings: p.Cli.TableConfig,
     ) -> str:
@@ -297,7 +297,7 @@ class FlextCliUtilitiesTablesRenderer:
     @classmethod
     def _compose(
         cls,
-        layout: m.Cli.TableLayout,
+        layout: p.Cli.TableLayout,
         *,
         settings: p.Cli.TableConfig,
     ) -> str:

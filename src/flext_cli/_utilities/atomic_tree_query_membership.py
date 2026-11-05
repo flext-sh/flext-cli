@@ -10,7 +10,7 @@ from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Literal, Never
 
-from flext_cli import m, p, t
+from flext_cli import p, t
 from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryChain
 from flext_cli._utilities.atomic_tree_physical import (
     FlextCliUtilitiesAtomicTreePhysical,
@@ -31,7 +31,7 @@ class FlextCliUtilitiesAtomicTreeQueryMembership(
         cls,
         observed: p.Cli.AtomicDirectoryInventory,
         members: MutableMapping[str, Literal["directory", "file", "symlink", "other"]],
-        boundary: m.Cli.AtomicDirectoryQueryBoundary,
+        boundary: p.Cli.AtomicDirectoryQueryBoundary,
         excluded_names: t.StrTuple = (),
     ) -> None:
         """Reprove direct membership with only original native publication effects.
@@ -88,7 +88,7 @@ class FlextCliUtilitiesAtomicTreeQueryMembership(
         cls,
         root: Path,
         members: MutableMapping[str, Literal["directory", "file", "symlink", "other"]],
-        boundary: m.Cli.AtomicDirectoryQueryBoundary,
+        boundary: p.Cli.AtomicDirectoryQueryBoundary,
     ) -> None:
         """Apply every own file effect at or beneath the root to the membership."""
         for _before, after in boundary.published.values():

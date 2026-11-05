@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 
-from flext_cli import m, p
+from flext_cli import p
 from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryChain
 from flext_cli._utilities.atomic_tree_query_membership import (
     FlextCliUtilitiesAtomicTreeQueryMembership,
@@ -25,7 +25,7 @@ class FlextCliUtilitiesAtomicTreeQueryTopology(
     def _verify_query_topology(
         cls,
         topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
-        boundary: m.Cli.AtomicDirectoryQueryBoundary,
+        boundary: p.Cli.AtomicDirectoryQueryBoundary,
     ) -> None:
         """Reprove absent-parent elections against the original native ancestry.
 
@@ -134,7 +134,7 @@ class FlextCliUtilitiesAtomicTreeQueryTopology(
     def _verify_absent_candidate(
         cls,
         witness: p.Cli.AtomicDirectoryChainPlan,
-        boundary: m.Cli.AtomicDirectoryQueryBoundary,
+        boundary: p.Cli.AtomicDirectoryQueryBoundary,
     ) -> None:
         """Reprove the queries consumed on a target that existed at election.
 

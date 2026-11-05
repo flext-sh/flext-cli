@@ -103,8 +103,8 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     def _execute_lifecycle(
         cls,
         request: p.Cli.RuntimeProcessRequest,
-        state: m.Cli.RuntimeProcessState,
-        timing: m.Cli.RuntimeProcessTiming,
+        state: p.Cli.RuntimeProcessState,
+        timing: p.Cli.RuntimeProcessTiming,
     ) -> None:
         if threading.current_thread() is threading.main_thread():
             state.restore_handlers.extend(
@@ -184,7 +184,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _open_durable_log_destinations(
-        cls, state: m.Cli.RuntimeProcessState, request: p.Cli.RuntimeProcessRequest
+        cls, state: p.Cli.RuntimeProcessState, request: p.Cli.RuntimeProcessRequest
     ) -> None:
         """Create and retain unbuffered durable sinks on the lifecycle stack."""
         destinations = (request.output_path, request.stderr_path)
@@ -202,9 +202,9 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     def _attach_process_streams(
         cls,
         process: p.Cli.ProcessHandle,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         stdin: tuple[BinaryIO | None, BinaryIO | None, bytes],
-        output: m.Cli.RuntimeOutputPlan,
+        output: p.Cli.RuntimeOutputPlan,
     ) -> threading.Thread:
         """Attach child I/O without losing ownership on a partial failure.
 
@@ -244,7 +244,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _finalize_lifecycle(
         cls,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         *,
         interrupted: BaseException | None = None,
     ) -> None:

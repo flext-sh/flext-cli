@@ -77,7 +77,7 @@ class FlextCliUtilitiesAtomicTreeQueryReceipts:
         cls,
         inventories: tuple[p.Cli.AtomicDirectoryInventory, ...],
         topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
-        selectors: m.Cli.AtomicDirectoryWorkingSelectors,
+        selectors: p.Cli.AtomicDirectoryWorkingSelectors,
     ) -> tuple[
         tuple[p.Cli.AtomicDirectoryInventory, ...],
         tuple[p.Cli.AtomicDirectoryChainPlan, ...],
@@ -114,7 +114,7 @@ class FlextCliUtilitiesAtomicTreeQueryReceipts:
     def _merge_directory_witnesses(
         cls,
         originals: Sequence[p.Cli.AtomicDirectoryInventory],
-        selectors: m.Cli.AtomicDirectoryWorkingSelectors,
+        selectors: p.Cli.AtomicDirectoryWorkingSelectors,
     ) -> p.Cli.AtomicDirectoryInventory:
         """Merge the witnesses of one physical directory into one receipt.
 
@@ -144,7 +144,7 @@ class FlextCliUtilitiesAtomicTreeQueryReceipts:
     def _merge_topology_witnesses(
         cls,
         witnesses: Sequence[p.Cli.AtomicDirectoryChainPlan],
-        selectors: m.Cli.AtomicDirectoryWorkingSelectors,
+        selectors: p.Cli.AtomicDirectoryWorkingSelectors,
     ) -> p.Cli.AtomicDirectoryChainPlan:
         """Merge the ancestry witnesses of one target into one plan.
 
@@ -184,8 +184,8 @@ class FlextCliUtilitiesAtomicTreeQueryReceipts:
         witnesses: Sequence[
             p.Cli.AtomicDirectoryInventory | p.Cli.AtomicDirectoryChainPlan
         ],
-        selectors: m.Cli.AtomicDirectoryWorkingSelectors,
-    ) -> m.Cli.AtomicDirectorySelection:
+        selectors: p.Cli.AtomicDirectoryWorkingSelectors,
+    ) -> p.Cli.AtomicDirectorySelection:
         """Unite receipt and working selectors across every original witness.
 
         Returns:
@@ -218,7 +218,7 @@ class FlextCliUtilitiesAtomicTreeQueryReceipts:
     @staticmethod
     def _selection_unchanged(
         receipt: p.Cli.AtomicDirectoryInventory | p.Cli.AtomicDirectoryChainPlan,
-        selection: m.Cli.AtomicDirectorySelection,
+        selection: p.Cli.AtomicDirectorySelection,
     ) -> bool:
         """Report whether one receipt already carries the united selection.
 
@@ -241,7 +241,7 @@ class FlextCliUtilitiesAtomicTreeQueryReceipts:
         cls,
         previous: p.Cli.AtomicDirectoryInventory,
         originals: Sequence[p.Cli.AtomicDirectoryInventory],
-        selection: m.Cli.AtomicDirectorySelection,
+        selection: p.Cli.AtomicDirectorySelection,
     ) -> None:
         """Require distinct directory witnesses to answer every query alike.
 

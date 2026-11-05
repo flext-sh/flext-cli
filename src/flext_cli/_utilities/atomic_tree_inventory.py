@@ -27,7 +27,7 @@ class FlextCliUtilitiesAtomicTreeInventory(
         cls,
         inventories: tuple[p.Cli.AtomicDirectoryInventory, ...],
         topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
-        proof: m.Cli.AtomicDirectoryQueryProof,
+        proof: p.Cli.AtomicDirectoryQueryProof,
     ) -> bool:
         """Reprove consumed elections, allowing only supplied physical own effects.
 
@@ -50,8 +50,8 @@ class FlextCliUtilitiesAtomicTreeInventory(
     @classmethod
     def _query_boundary(
         cls,
-        proof: m.Cli.AtomicDirectoryQueryProof,
-    ) -> m.Cli.AtomicDirectoryQueryBoundary:
+        proof: p.Cli.AtomicDirectoryQueryProof,
+    ) -> p.Cli.AtomicDirectoryQueryBoundary:
         """Index the own effects and observations of one verification boundary.
 
         Returns:
@@ -81,7 +81,7 @@ class FlextCliUtilitiesAtomicTreeInventory(
     def _verify_inventory_queries(
         cls,
         expected: p.Cli.AtomicDirectoryInventory,
-        boundary: m.Cli.AtomicDirectoryQueryBoundary,
+        boundary: p.Cli.AtomicDirectoryQueryBoundary,
     ) -> None:
         """Reprove one directory receipt's identity, queries, and membership."""
         observed = cls._observe_physical_directory(
@@ -113,7 +113,7 @@ class FlextCliUtilitiesAtomicTreeInventory(
     def _inventory_unchanged(
         expected: p.Cli.AtomicDirectoryInventory,
         observed: p.Cli.AtomicDirectoryInventory,
-        boundary: m.Cli.AtomicDirectoryQueryBoundary,
+        boundary: p.Cli.AtomicDirectoryQueryBoundary,
     ) -> bool:
         """Report whether a receipt still holds without per-query evaluation.
 
@@ -134,7 +134,7 @@ class FlextCliUtilitiesAtomicTreeInventory(
         expected: p.Cli.AtomicDirectoryInventory,
         observed: p.Cli.AtomicDirectoryInventory,
         query: tuple[str, Literal["exists", "isfile", "isdir"]],
-        boundary: m.Cli.AtomicDirectoryQueryBoundary,
+        boundary: p.Cli.AtomicDirectoryQueryBoundary,
     ) -> None:
         """Reprove one consumed predicate through the boundary's own effects.
 

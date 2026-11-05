@@ -21,7 +21,7 @@ class FlextCliUtilitiesRuntimeProcessStart:
 
         @staticmethod
         def _spawn_streamed_process(
-            command: m.Cli.RuntimeSpawnCommand,
+            command: p.Cli.RuntimeSpawnCommand,
             stdin_handle: BinaryIO | None,
             *,
             options: p.Cli.RuntimeSpawnOptions,
@@ -35,7 +35,7 @@ class FlextCliUtilitiesRuntimeProcessStart:
             cls,
             process: p.Cli.ProcessHandle,
             job_handle: int,
-            tree_signal: m.Cli.ProcessTreeSignal,
+            tree_signal: p.Cli.ProcessTreeSignal,
         ) -> p.Result[bool]: ...
 
         @classmethod
@@ -50,7 +50,7 @@ class FlextCliUtilitiesRuntimeProcessStart:
     @classmethod
     def _start_contained_process(
         cls,
-        command: m.Cli.RuntimeSpawnCommand,
+        command: p.Cli.RuntimeSpawnCommand,
         stdin_handle: BinaryIO | None,
         *,
         options: p.Cli.RuntimeSpawnOptions,
