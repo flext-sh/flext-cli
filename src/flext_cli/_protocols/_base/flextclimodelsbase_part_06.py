@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import p
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -23,7 +23,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart06:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class CliParamsConfig(FlextProtocols.BaseModel, Protocol):
+    class CliParamsConfig(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -72,7 +72,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart06:
             ...
 
     @runtime_checkable
-    class OptionMetadata(FlextProtocols.BaseModel, Protocol):
+    class OptionMetadata(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -96,7 +96,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart06:
             ...
 
     @runtime_checkable
-    class OptionSpec(FlextProtocols.BaseModel, Protocol):
+    class OptionSpec(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -120,7 +120,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart06:
             ...
 
     @runtime_checkable
-    class InvocationResult(FlextProtocols.BaseModel, Protocol):
+    class InvocationResult(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

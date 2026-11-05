@@ -6,33 +6,24 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Mapping, Sequence
+from pathlib import Path
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+from flext_core import p
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-    from flext_core import p
-
-    from flext_cli._typings import FlextCliTypesPipeline
-
-
-from collections.abc import Mapping, Sequence
-from pathlib import Path
-from typing import Protocol, runtime_checkable
-
-from flext_core import FlextProtocols
-
-if TYPE_CHECKING:
-    # mro-j47u (codex): p -> m is a reverse facade edge; keep it type-only.
-
     from flext_cli import t
+    from flext_cli._typings import FlextCliTypesPipeline
 
 
 class FlextCliProtocolsPipeline:
     """Pipeline protocol namespace."""
 
     @runtime_checkable
-    class PipelineStageContext(FlextProtocols.BaseModel, Protocol):
+    class PipelineStageContext(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -146,7 +137,7 @@ class FlextCliProtocolsPipeline:
             ...
 
     @runtime_checkable
-    class PipelineStageSpec(FlextProtocols.BaseModel, Protocol):
+    class PipelineStageSpec(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -182,7 +173,7 @@ class FlextCliProtocolsPipeline:
             ...
 
     @runtime_checkable
-    class PipelineStageResult(FlextProtocols.BaseModel, Protocol):
+    class PipelineStageResult(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -211,7 +202,7 @@ class FlextCliProtocolsPipeline:
             ...
 
     @runtime_checkable
-    class PipelineResult(FlextProtocols.BaseModel, Protocol):
+    class PipelineResult(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

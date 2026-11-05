@@ -11,14 +11,14 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import p
 
 
 class FlextCliProtocolsAtomicSymlink:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicSymlinkIdentity(FlextProtocols.BaseModel, Protocol):
+    class AtomicSymlinkIdentity(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -72,7 +72,7 @@ class FlextCliProtocolsAtomicSymlink:
             ...
 
     @runtime_checkable
-    class AtomicSymlinkState(FlextProtocols.BaseModel, Protocol):
+    class AtomicSymlinkState(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

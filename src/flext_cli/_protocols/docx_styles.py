@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Literal, Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import p
 
 from flext_cli._protocols import FlextCliProtocolsColor
 
@@ -23,7 +23,7 @@ class FlextCliProtocolsDocxStyles:
         """Structural data contract projected from the owning model."""
 
     @runtime_checkable
-    class DocxThemeColor(FlextProtocols.BaseModel, Protocol):
+    class DocxThemeColor(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -42,7 +42,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxAutomaticColor(FlextProtocols.BaseModel, Protocol):
+    class DocxAutomaticColor(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -56,7 +56,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxFontSpec(FlextProtocols.BaseModel, Protocol):
+    class DocxFontSpec(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -150,7 +150,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxParagraphFormatSpec(FlextProtocols.BaseModel, Protocol):
+    class DocxParagraphFormatSpec(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -211,7 +211,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxRunStyleSpec(FlextProtocols.BaseModel, Protocol):
+    class DocxRunStyleSpec(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -220,7 +220,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxParagraphStyleSpec(FlextProtocols.BaseModel, Protocol):
+    class DocxParagraphStyleSpec(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

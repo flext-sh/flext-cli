@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import p
 
 if TYPE_CHECKING:
     from flext_cli._constants import FlextCliConstantsEnums
@@ -21,7 +21,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart04:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class TableConfig(FlextProtocols.BaseModel, Protocol):
+    class TableConfig(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

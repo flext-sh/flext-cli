@@ -9,7 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import p
 
 if TYPE_CHECKING:
     from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart02
@@ -19,7 +19,7 @@ class FlextCliProtocolsFileChange:
     """Protocols mirrored from the file-change model module."""
 
     @runtime_checkable
-    class FileChange(FlextProtocols.BaseModel, Protocol):
+    class FileChange(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

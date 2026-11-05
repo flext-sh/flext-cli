@@ -11,7 +11,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import p
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -21,7 +21,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class ProcessOutcome(FlextProtocols.BaseModel, Protocol):
+    class ProcessOutcome(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -40,7 +40,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class CommandOutputEnvelope(FlextProtocols.BaseModel, Protocol):
+    class CommandOutputEnvelope(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -89,7 +89,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class ProcessDeadline(FlextProtocols.BaseModel, Protocol):
+    class ProcessDeadline(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -103,7 +103,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class RuntimeComponents(FlextProtocols.BaseModel, Protocol):
+    class RuntimeComponents(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -127,7 +127,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class RuntimeStatus(FlextProtocols.BaseModel, Protocol):
+    class RuntimeStatus(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -158,19 +158,19 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class DisplayData(FlextProtocols.BaseModel, Protocol):
+    class DisplayData(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         data: t.JsonMapping
 
     @runtime_checkable
-    class LoadedConfig(FlextProtocols.BaseModel, Protocol):
+    class LoadedConfig(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         content: t.JsonMapping
 
     @runtime_checkable
-    class CliNormalizedJson(FlextProtocols.BaseModel, Protocol):
+    class CliNormalizedJson(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -179,7 +179,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class NormalizedJsonList(FlextProtocols.BaseModel, Protocol):
+    class NormalizedJsonList(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         value: t.JsonValue
@@ -191,7 +191,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
             ...
 
     @runtime_checkable
-    class SuccessSummaryDetails(FlextProtocols.BaseModel, Protocol):
+    class SuccessSummaryDetails(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         root: Mapping[str, str]

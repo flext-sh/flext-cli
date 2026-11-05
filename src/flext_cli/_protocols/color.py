@@ -10,14 +10,14 @@ from __future__ import annotations
 
 from typing import Literal, Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import p
 
 
 class FlextCliProtocolsColor:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class RgbColor(FlextProtocols.BaseModel, Protocol):
+    class RgbColor(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

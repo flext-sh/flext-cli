@@ -12,14 +12,14 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import p
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart02:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicFileIdentity(FlextProtocols.BaseModel, Protocol):
+    class AtomicFileIdentity(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -96,7 +96,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
             ...
 
     @runtime_checkable
-    class PromptRuntimeState(FlextProtocols.BaseModel, Protocol):
+    class PromptRuntimeState(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         interactive: bool
@@ -104,7 +104,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
         default_timeout: int
 
     @runtime_checkable
-    class AuthCredentialsPayload(FlextProtocols.BaseModel, Protocol):
+    class AuthCredentialsPayload(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         token: str | None
@@ -112,7 +112,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
         password: str
 
     @runtime_checkable
-    class ProcessEnvironmentSpec(FlextProtocols.BaseModel, Protocol):
+    class ProcessEnvironmentSpec(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

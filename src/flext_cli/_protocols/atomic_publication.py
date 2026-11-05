@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import p
 
 if TYPE_CHECKING:
     from flext_cli._constants import FlextCliConstantsFiles
@@ -23,7 +23,7 @@ class FlextCliProtocolsAtomicPublication:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class StagedFile(FlextProtocols.BaseModel, Protocol):
+    class StagedFile(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -47,7 +47,7 @@ class FlextCliProtocolsAtomicPublication:
             ...
 
     @runtime_checkable
-    class ObservedFile(FlextProtocols.BaseModel, Protocol):
+    class ObservedFile(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -61,7 +61,7 @@ class FlextCliProtocolsAtomicPublication:
             ...
 
     @runtime_checkable
-    class AtomicWriteOptions(FlextProtocols.BaseModel, Protocol):
+    class AtomicWriteOptions(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -87,7 +87,7 @@ class FlextCliProtocolsAtomicPublication:
             ...
 
     @runtime_checkable
-    class TreeEntryDetails(FlextProtocols.BaseModel, Protocol):
+    class TreeEntryDetails(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
