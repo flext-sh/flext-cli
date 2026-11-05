@@ -19,17 +19,22 @@ from flext_cli._models import FlextCliModelsAtomicState
 class FlextCliModelsBasePart02:
     """Implementation part for FlextCliModelsBasePart02."""
 
-    class AtomicFileIdentity(m.BaseModel):
-        """Shared physical identity of an existing or absent regular file."""
+    class AtomicPhysicalIdentity(m.BaseModel):
+        """Physical identity shared by every descriptor-authenticated leaf state.
+
+        Subclasses declare their presence contract and call
+        ``validate_physical_identity`` after it, so each state reports its own
+        presence defect before a parent or reparse defect.
+        """
 
         model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             frozen=True,
             arbitrary_types_allowed=True,
-            ser_json_bytes="base64",
-            val_json_bytes="base64",
         )
-        path: Annotated[Path, m.Field(description="Absolute file path")]
+        atomic_state_label: ClassVar[str] = "atomic physical state"
+
+        path: Annotated[Path, m.Field(description="Absolute leaf path")]
         parent_device: Annotated[
             int | None,
             m.Field(
@@ -103,8 +108,46 @@ class FlextCliModelsBasePart02:
             """
             return FlextCliModelsAtomicState.validate_atomic_state_path(
                 value,
-                label="atomic file state",
+                label=cls.atomic_state_label,
             )
+
+        def validate_physical_identity(self, *, present: bool) -> None:
+            """Validate host metadata, parent identity and reparse exclusion.
+
+            Args:
+                present: Whether the leaf physically exists.
+
+            Raises:
+                ValueError: If an absent leaf carries host metadata, the parent
+                    identity is incomplete, or the leaf is a reparse point.
+
+            """
+            label = self.atomic_state_label
+            if not present and (
+                self.file_attributes is not None or self.reparse_tag is not None
+            ):
+                msg = f"absent {label} cannot contain host metadata"
+                raise ValueError(msg)
+            FlextCliModelsAtomicState.validate_parent_identity(
+                self.parent_device,
+                self.parent_inode,
+                present=present,
+                label=label,
+            )
+            FlextCliModelsAtomicState.validate_non_reparse_state(
+                self.file_attributes,
+                self.reparse_tag,
+                label=label,
+            )
+
+    class AtomicFileIdentity(AtomicPhysicalIdentity):
+        """Shared physical identity of an existing or absent regular file."""
+
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
+            ser_json_bytes="base64",
+            val_json_bytes="base64",
+        )
+        atomic_state_label: ClassVar[str] = "atomic file state"
 
         @m.model_validator(mode="after")
         def _validate_presence_tuple(self) -> Self:
@@ -114,9 +157,8 @@ class FlextCliModelsBasePart02:
                 The resulting ``Self``.
 
             Raises:
-                ValueError: If atomic file state must contain bytes, mode, device,
-                    inode, and link count, or none of them; or if absent atomic file
-                    state cannot contain host metadata.
+                ValueError: If atomic file state must contain mode, device, inode,
+                    and link count, or none of them.
 
             """
             presence = tuple(
@@ -134,22 +176,7 @@ class FlextCliModelsBasePart02:
                     "link count, or none of them"
                 )
                 raise ValueError(msg)
-            if self.device is None and (
-                self.file_attributes is not None or self.reparse_tag is not None
-            ):
-                msg = "absent atomic file state cannot contain host metadata"
-                raise ValueError(msg)
-            FlextCliModelsAtomicState.validate_parent_identity(
-                self.parent_device,
-                self.parent_inode,
-                present=self.device is not None,
-                label="atomic file state",
-            )
-            FlextCliModelsAtomicState.validate_non_reparse_state(
-                self.file_attributes,
-                self.reparse_tag,
-                label="atomic file state",
-            )
+            self.validate_physical_identity(present=self.device is not None)
             return self
 
     class AtomicFileState(AtomicFileIdentity):

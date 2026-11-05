@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, Literal, Self
+from typing import Annotated, ClassVar, Literal, Self
 
 from flext_core import m
 
@@ -18,8 +18,62 @@ from flext_cli._models import FlextCliModelsAtomicState
 class FlextCliModelsBasePart08:
     """Implementation part for FlextCliModelsBasePart08."""
 
-    class AtomicDirectoryChainPlan(m.ContractModel):
-        """Exact existing anchor plus contiguous directories observed absent."""
+    class AtomicNativeSelections(m.ContractModel):
+        """Native candidate predicates and membership selections of one plan."""
+
+        atomic_selection_label: ClassVar[str] = "atomic native"
+
+        queries: tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...] = m.Field(
+            default=(),
+            description="Consumed native candidate predicates",
+        )
+        membership_queried: bool = m.Field(
+            default=False,
+            strict=True,
+            description="Whether native planning consumed direct membership",
+        )
+        membership_queries: tuple[t.StrTuple, ...] = m.Field(
+            default=(),
+            description="Consumed membership selections, each excluding named children",
+        )
+
+        def validate_native_selections(self) -> None:
+            """Require ordered, unique, lexical child names in every selection.
+
+            Raises:
+                ValueError: If a membership selection or candidate query is
+                    unordered, repeated, or names something other than one child.
+
+            """
+
+            def lexical(name: str) -> bool:
+                return name not in {"", ".", ".."} and "/" not in name
+
+            if self.membership_queries != tuple(
+                sorted(set(self.membership_queries))
+            ) or any(
+                selection != tuple(sorted(set(selection)))
+                or not all(lexical(name) for name in selection)
+                for selection in self.membership_queries
+            ):
+                msg = "atomic membership selections require ordered lexical exclusions"
+                raise ValueError(msg)
+            if self.queries != tuple(sorted(set(self.queries))) or not all(
+                lexical(name) for name, _predicate in self.queries
+            ):
+                msg = (
+                    f"{self.atomic_selection_label} queries require ordered "
+                    "lexical child names"
+                )
+                raise ValueError(msg)
+
+    class AtomicDirectoryChainPlan(AtomicNativeSelections):
+        """Exact existing anchor plus contiguous directories observed absent.
+
+        Its native selections are consumed beneath the absent parent.
+        """
+
+        atomic_selection_label: ClassVar[str] = "atomic directory-chain"
 
         target: Annotated[Path, m.Field(description="Requested directory path")]
         anchor_path: Annotated[
@@ -42,21 +96,6 @@ class FlextCliModelsBasePart08:
             tuple[Path, ...],
             m.Field(description="Ordered contiguous paths observed absent"),
         ] = ()
-        queries: tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...] = m.Field(
-            default=(),
-            description="Native candidate queries beneath an absent parent",
-        )
-        membership_queried: bool = m.Field(
-            default=False,
-            strict=True,
-            description=(
-                "Whether native planning consumed the absent parent's membership"
-            ),
-        )
-        membership_queries: tuple[t.StrTuple, ...] = m.Field(
-            default=(),
-            description="Consumed absent-parent membership selections",
-        )
 
         @m.field_validator("target", "anchor_path")
         @classmethod
@@ -83,24 +122,7 @@ class FlextCliModelsBasePart08:
 
         @m.model_validator(mode="after")
         def _validate_topology(self) -> Self:
-            if self.membership_queries != tuple(
-                sorted(set(self.membership_queries))
-            ) or any(
-                selection != tuple(sorted(set(selection)))
-                or any(
-                    name in {"", ".", ".."} or Path(name).name != name
-                    for name in selection
-                )
-                for selection in self.membership_queries
-            ):
-                msg = "atomic membership selections require ordered lexical exclusions"
-                raise ValueError(msg)
-            if self.queries != tuple(sorted(set(self.queries))) or any(
-                name in {"", ".", ".."} or Path(name).name != name
-                for name, _predicate in self.queries
-            ):
-                msg = "atomic directory-chain queries require lexical unique children"
-                raise ValueError(msg)
+            self.validate_native_selections()
             if self.anchor_ancestry[-1] != (
                 self.anchor_device,
                 self.anchor_inode,

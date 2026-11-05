@@ -19,12 +19,12 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicFileIdentity(FlextProtocols.BaseModel, Protocol):
+    class AtomicPhysicalIdentity(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
         def path(self) -> Path:
-            """Absolute file path."""
+            """Absolute leaf path."""
             ...
 
         @property
@@ -66,6 +66,14 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
         def reparse_tag(self) -> int | None:
             """Host reparse tag when available."""
             ...
+
+        def validate_physical_identity(self, *, present: bool) -> None:
+            """Validate host metadata, parent identity and reparse exclusion."""
+            ...
+
+    @runtime_checkable
+    class AtomicFileIdentity(AtomicPhysicalIdentity, Protocol):
+        """Structural data contract projected from the owning model."""
 
     @runtime_checkable
     class AtomicFileState(AtomicFileIdentity, Protocol):

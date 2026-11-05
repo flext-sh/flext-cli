@@ -8,10 +8,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_core import FlextProtocols
+
+from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart02
 
 if TYPE_CHECKING:
     from flext_cli import c, t
@@ -22,57 +23,14 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart03:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicDirectoryState(FlextProtocols.BaseModel, Protocol):
+    class AtomicDirectoryState(
+        FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicPhysicalIdentity, Protocol
+    ):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def path(self) -> Path:
-            """Absolute directory path."""
-            ...
 
         @property
         def exists(self) -> bool:
             """Whether the directory exists."""
-            ...
-
-        @property
-        def parent_device(self) -> int | None:
-            """Physical parent device, or None when the chain is absent."""
-            ...
-
-        @property
-        def parent_inode(self) -> int | None:
-            """Physical parent inode, or None when the chain is absent."""
-            ...
-
-        @property
-        def mode(self) -> int | None:
-            """Permission bits."""
-            ...
-
-        @property
-        def device(self) -> int | None:
-            """Physical device."""
-            ...
-
-        @property
-        def inode(self) -> int | None:
-            """Physical inode."""
-            ...
-
-        @property
-        def link_count(self) -> int | None:
-            """Exact link count."""
-            ...
-
-        @property
-        def file_attributes(self) -> int | None:
-            """Host attributes."""
-            ...
-
-        @property
-        def reparse_tag(self) -> int | None:
-            """Host reparse tag."""
             ...
 
     @runtime_checkable

@@ -21,7 +21,32 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart08:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicDirectoryChainPlan(FlextProtocols.BaseModel, Protocol):
+    class AtomicNativeSelections(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def queries(
+            self,
+        ) -> tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...]:
+            """Consumed native candidate predicates."""
+            ...
+
+        @property
+        def membership_queried(self) -> bool:
+            """Whether native planning consumed direct membership."""
+            ...
+
+        @property
+        def membership_queries(self) -> tuple[t.StrTuple, ...]:
+            """Consumed membership selections, each excluding named children."""
+            ...
+
+        def validate_native_selections(self) -> None:
+            """Require ordered, unique, lexical child names in every selection."""
+            ...
+
+    @runtime_checkable
+    class AtomicDirectoryChainPlan(AtomicNativeSelections, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -52,23 +77,6 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart08:
         @property
         def directories(self) -> tuple[Path, ...]:
             """Ordered contiguous paths observed absent."""
-            ...
-
-        @property
-        def queries(
-            self,
-        ) -> tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...]:
-            """Native candidate queries beneath an absent parent."""
-            ...
-
-        @property
-        def membership_queried(self) -> bool:
-            """Whether native planning consumed the absent parent's membership."""
-            ...
-
-        @property
-        def membership_queries(self) -> tuple[t.StrTuple, ...]:
-            """Consumed absent-parent membership selections."""
             ...
 
 
