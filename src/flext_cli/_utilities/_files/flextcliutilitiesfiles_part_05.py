@@ -60,36 +60,22 @@ class FlextCliUtilitiesFilesPart05:
         Each level uses the nonrecursive guarded primitive. Preserve the original
         file observation and directory plan before these effects; a later read
         can validate them but never replace their publication authority. This is
-        not CAS against actors that ignore the caller's exclusive lock.
+        not CAS against actors that ignore the caller's exclusive lock. Every
+        level created before a failure stays recorded in ``created`` and in the
+        failure's exception notes.
 
         Returns:
             The resulting ``p.Result[Sequence[p.Cli.AtomicDirectoryState]]``.
 
         """
-        progress: MutableSequence[p.Cli.AtomicDirectoryState] = (
-            [] if created is None else created
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicDirectoryChain.create_guarded_directory_chain,
+            c.Cli.ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED,
+        )(
+            plan,
+            permission_mode=permission_mode,
+            created=[] if created is None else created,
         )
-        initial_count = len(progress)
-        try:
-            completed = (
-                FlextCliUtilitiesAtomicDirectoryChain.create_guarded_directory_chain(
-                    plan,
-                    permission_mode=permission_mode,
-                    created=progress,
-                )
-            )
-        except OSError as exc:
-            return r[Sequence[p.Cli.AtomicDirectoryState]].fail(
-                c.Cli.ERR_ATOMIC_DIRECTORY_CHAIN_CREATE_FAILED.format(error=exc),
-                exception=exc,
-                error_data={
-                    "created_directories": [
-                        state.model_dump(mode="json")
-                        for state in progress[initial_count:]
-                    ],
-                },
-            )
-        return r[Sequence[p.Cli.AtomicDirectoryState]].ok(completed)
 
     @staticmethod
     def atomic_read_empty_directory_state(

@@ -55,15 +55,10 @@ class FlextCliUtilitiesRuntimeProcessStart:
         *,
         options: p.Cli.RuntimeSpawnOptions,
     ) -> p.Result[tuple[p.Cli.ProcessHandle, int]]:
-        process = cls._spawn_streamed_process(
-            command,
-            stdin_handle,
-            options=options.model_copy(
-                update={
-                    "creation_flags": cls._streamed_creation_flags(),
-                },
-            ),
+        contained = options.model_copy(
+            update={"creation_flags": cls._streamed_creation_flags()},
         )
+        process = cls._spawn_streamed_process(command, stdin_handle, options=contained)
         job_result = cls._windows_job_create(process.pid)
         if job_result.failure:
             cls._discard_uncontained_process(process, 0)
