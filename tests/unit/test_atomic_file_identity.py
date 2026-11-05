@@ -42,7 +42,7 @@ class TestsFlextCliAtomicFileIdentity:
             tm.that(reader.read_range(len(payload) - 17, 17), eq=payload[-17:])
 
     @staticmethod
-    @c.Tests.MARK.parametrize("mutation", ["destination", "staged", "digest"])
+    @pytest.mark.parametrize("mutation", ["destination", "staged", "digest"])
     def test_receipt_publication_refuses_drift_before_replacement(
         tmp_path: Path, mutation: str
     ) -> None:
@@ -66,8 +66,9 @@ class TestsFlextCliAtomicFileIdentity:
                 **replacement.model_dump(),
                 "sha256": u.Cli.sha256_bytes(b"foreign"),
             })
+        concrete = m.Cli.AtomicFileReceipt.model_validate(replacement.model_dump())
         tm.fail(
-            u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, replacement)
+            u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, concrete)
         )
         tm.ok(staged.exists())
         tm.that(
@@ -130,7 +131,7 @@ class TestsFlextCliAtomicFileIdentity:
         )
 
     @staticmethod
-    @c.Tests.MARK.parametrize("mutation", ["content", "identity"])
+    @pytest.mark.parametrize("mutation", ["content", "identity"])
     def test_receipt_reader_rejects_change_during_consumption(
         tmp_path: Path, mutation: str
     ) -> None:
@@ -173,7 +174,7 @@ class TestsFlextCliAtomicFileIdentity:
         )
 
     @staticmethod
-    @c.Tests.MARK.parametrize("mutation", ["content", "identity"])
+    @pytest.mark.parametrize("mutation", ["content", "identity"])
     def test_authenticated_stream_rejects_change_during_consumption(
         tmp_path: Path, mutation: str
     ) -> None:
@@ -207,7 +208,7 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(target.read_bytes(), eq=b"foreign input")
 
     @staticmethod
-    @c.Tests.MARK.parametrize(c.ContextScope.OPERATION, ["write", "delete"])
+    @pytest.mark.parametrize(c.ContextScope.OPERATION, ["write", "delete"])
     def test_guarded_symlink_failure_preserves_original_exception(
         tmp_path: Path,
         operation: str,

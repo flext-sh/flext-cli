@@ -9,7 +9,9 @@ from __future__ import annotations
 import stat
 from pathlib import Path
 
-from tests import c, m, tm, u
+import pytest
+
+from tests import m, tm, u
 
 
 class TestsFlextCliAtomicDirectoryIdentity:
@@ -109,7 +111,7 @@ class TestsFlextCliAtomicDirectoryIdentity:
         tm.ok(old.is_dir())
 
     @staticmethod
-    @c.Tests.MARK.parametrize("entry_kind", ["file", "directory"])
+    @pytest.mark.parametrize("entry_kind", ["file", "directory"])
     def test_late_content_prevents_delete(
         tmp_path: Path,
         entry_kind: str,

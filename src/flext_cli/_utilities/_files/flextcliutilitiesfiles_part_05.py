@@ -230,7 +230,7 @@ class FlextCliUtilitiesFilesPart05:
         inventories: tuple[p.Cli.AtomicDirectoryInventory, ...],
         topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
         *,
-        publications: tuple[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]
+        publications: tuple[tuple[p.Cli.AtomicFileState, p.Cli.AtomicFileState], ...]
         | m.Cli.AtomicDirectoryQueryEffects = (),
         directory_publications: tuple[p.Cli.AtomicDirectoryState, ...] = (),
         observations: p.Cli.AtomicDirectoryObservations | None = None,

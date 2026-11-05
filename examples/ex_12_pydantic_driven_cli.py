@@ -71,7 +71,7 @@ class ExamplesFlextCliPydanticDrivenCli:
 
     @staticmethod
     def create_database_config_from_cli() -> p.Result[
-        m.Examples.AdvancedDatabaseConfig
+        p.Examples.AdvancedDatabaseConfig
     ]:
         """Create validated DatabaseConfig using Railway Pattern with Pydantic.
 
@@ -176,7 +176,7 @@ class ExamplesFlextCliPydanticDrivenCli:
         default_port = ExamplesFlextCliPydanticDrivenCli._DEFAULT_POSTGRES_PORT
         if settings.ssl_enabled and settings.port == default_port:
             try:
-                settings = type(settings).model_validate(
+                settings = m.Examples.AdvancedDatabaseConfig.model_validate(
                     settings.model_dump()
                     | {"port": ExamplesFlextCliPydanticDrivenCli._SSL_POSTGRES_PORT},
                 )

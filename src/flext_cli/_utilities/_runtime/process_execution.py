@@ -141,7 +141,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     def _execute_lifecycle(
         cls,
         request: p.Cli.RuntimeProcessRequest,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         absolute_deadline: float | None,
         grace_seconds: float,
     ) -> None:
@@ -219,7 +219,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _open_durable_log_destinations(
-        cls, state: p.Cli.RuntimeProcessState, request: p.Cli.RuntimeProcessRequest
+        cls, state: m.Cli.RuntimeProcessState, request: p.Cli.RuntimeProcessRequest
     ) -> None:
         """Create and retain unbuffered durable sinks on the lifecycle stack."""
         destinations = (request.output_path, request.stderr_path)
@@ -237,7 +237,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     def _prepare_process_isolation(
         cls,
         request: p.Cli.RuntimeProcessRequest,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         command: tuple[str, ...],
         grace_seconds: float,
     ) -> tuple[tuple[str, ...], Mapping[str, str] | None, tuple[int, ...]] | None:
@@ -352,7 +352,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
         tuple[Path, ...],
         tuple[Path, ...],
         tuple[p.Cli.AtomicFileState, ...],
-        m.Cli.AtomicFileState,
+        p.Cli.AtomicFileState,
     ]:
         """Deduplicate declared isolation inputs and require unique owners.
 
@@ -377,7 +377,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
             *isolation.sources,
             *isolation.runtime_files,
         )
-        captured_by_path: MutableMapping[Path, m.Cli.AtomicFileState] = {}
+        captured_by_path: MutableMapping[Path, p.Cli.AtomicFileState] = {}
         for captured in files:
             if captured_by_path.setdefault(captured.path, captured) != captured:
                 msg = f"isolated input has competing physical states: {captured.path}"
@@ -449,7 +449,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _retain_isolation_runtime_descriptors(
         cls,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         isolation: p.Cli.ProcessReadOnlyIsolation,
         roots: tuple[Path, ...],
         paths: tuple[Path, ...],
@@ -577,7 +577,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     def _seal_isolation_executors(
         cls,
         request: p.Cli.RuntimeProcessRequest,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         isolation: p.Cli.ProcessReadOnlyIsolation,
         grace_seconds: float,
     ) -> tuple[int, int] | None:
@@ -597,7 +597,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _build_isolation_arguments(
         cls,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         isolation: p.Cli.ProcessReadOnlyIsolation,
         sealed: tuple[int, int],
         *,
@@ -984,7 +984,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     def _compile_process_policy(
         cls,
         request: p.Cli.RuntimeProcessRequest,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         grace_seconds: float,
     ) -> int | None:
         """Run the qualified static SDK compiler through the same public process port.
@@ -1034,7 +1034,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @staticmethod
     def _sealed_process_input(
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         captured: p.Cli.AtomicFileState,
     ) -> int:
         """Retain exact captured bytes in an immutable anonymous native file.
@@ -1058,7 +1058,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @staticmethod
     def _sealed_process_bytes(
-        state: p.Cli.RuntimeProcessState, name: str, content: bytes, mode: int
+        state: m.Cli.RuntimeProcessState, name: str, content: bytes, mode: int
     ) -> int:
         """Seal exact process-owner bytes in an anonymous descriptor.
 
@@ -1097,7 +1097,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
         cls,
         process: p.Cli.ProcessHandle,
         request: p.Cli.RuntimeProcessRequest,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         stdin: tuple[BinaryIO | None, BinaryIO | None, bytes],
         live_fds: tuple[int | None, int | None],
     ) -> threading.Thread:
@@ -1150,7 +1150,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _finalize_lifecycle(
         cls,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         *,
         interrupted: BaseException | None = None,
     ) -> None:

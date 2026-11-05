@@ -18,7 +18,7 @@ from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c
+from flext_cli._constants.enums import FlextCliConstantsEnums
 from flext_cli._typings import FlextCliTypesBase
 
 if TYPE_CHECKING:
@@ -82,9 +82,9 @@ class FlextCliTypesDomain:
     type ProjectNamesValue = str | Sequence[str]
     type TableHeaders = str | Sequence[str]
     type IntTextValue = int | str
-    type MessageType = c.Cli.MessageTypes
+    type MessageType = FlextCliConstantsEnums.MessageTypes
     type CommandParameter = Parameter
-    type ModelLike = p.BaseModel
+    type ModelLike = t.BaseModelType
     type OptionRegistry = Mapping[str, Mapping[str, t.Scalar | Sequence[str]]]
     type NullaryOperation[T] = Callable[[], T]
     type PromptTextReader = Callable[[str], str]
@@ -114,7 +114,7 @@ class FlextCliTypesDomain:
         | t.JsonMapping
         | t.JsonPayload
     )
-    type TypeKind = c.Cli.TypeKind
+    type TypeKind = FlextCliConstantsEnums.TypeKind
     type TypedExtractValue = str | bool | t.JsonMapping
     type TableDataSource = FlextCliTypesBase.TabularData | Sequence[t.JsonMapping]
     type TextPath = str | Path

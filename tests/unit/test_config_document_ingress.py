@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
 from tests import c, m, t, tm, u
 
 if TYPE_CHECKING:
@@ -25,7 +27,7 @@ class TestsFlextCliConfigDocumentIngress:
         labels: t.DocumentInput[tuple[str, str]] = ("source", "target")
 
     @staticmethod
-    @c.Tests.MARK.parametrize("member", c.HandlerType)
+    @pytest.mark.parametrize("member", c.HandlerType)
     def test_yaml_tokens_materialize_once_before_domain_validation(
         member: c.HandlerType,
     ) -> None:
@@ -60,7 +62,7 @@ class TestsFlextCliConfigDocumentIngress:
         tm.that(payload.labels, eq=("source", "target"))
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "source",
         [
             {"kind": None},

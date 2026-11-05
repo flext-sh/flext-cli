@@ -63,7 +63,9 @@ class FlextCliUtilitiesTables:
         if settings is not None and not settings_kwargs:
             return r[p.Cli.TableConfig].ok(settings)
         base_data = (
-            settings.model_dump(exclude_computed_fields=True)
+            m.Cli.TableConfig.model_validate(settings).model_dump(
+                exclude_computed_fields=True
+            )
             if settings is not None
             else {}
         )

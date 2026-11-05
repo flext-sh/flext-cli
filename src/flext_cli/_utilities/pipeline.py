@@ -45,7 +45,7 @@ class FlextCliUtilitiesPipeline:
                 m.Cli.PipelineResult(stages=[], total_duration_ms=0.0),
             )
 
-        stage_map: Mapping[str, m.Cli.PipelineStageSpec] = {
+        stage_map: Mapping[str, p.Cli.PipelineStageSpec] = {
             spec.stage_id: spec for spec in stages
         }
         waves = FlextCliUtilitiesDag.dag_waves({
@@ -60,7 +60,7 @@ class FlextCliUtilitiesPipeline:
         # run concurrently; a stage still starts only after every dependency
         # completed. A strictly linear pipeline yields waves of width one.
         failed = False
-        completed: MutableMapping[str, m.Cli.PipelineStageResult] = {}
+        completed: MutableMapping[str, p.Cli.PipelineStageResult] = {}
         for wave in waves.value:
             if failed:
                 FlextCliUtilitiesPipeline._skip_failed_wave(wave, completed)
@@ -104,7 +104,7 @@ class FlextCliUtilitiesPipeline:
     @staticmethod
     def _skip_failed_wave(
         wave: Sequence[str],
-        completed: MutableMapping[str, m.Cli.PipelineStageResult],
+        completed: MutableMapping[str, p.Cli.PipelineStageResult],
     ) -> None:
         """Record every stage of a wave as skipped after a prior failure."""
         for stage_id in wave:
@@ -117,10 +117,10 @@ class FlextCliUtilitiesPipeline:
     @staticmethod
     def _execute_ready_wave(
         known: Sequence[str],
-        stage_map: Mapping[str, m.Cli.PipelineStageSpec],
+        stage_map: Mapping[str, p.Cli.PipelineStageSpec],
         context: p.Cli.PipelineStageContext,
         log: p.Logger,
-        completed: MutableMapping[str, m.Cli.PipelineStageResult],
+        completed: MutableMapping[str, p.Cli.PipelineStageResult],
     ) -> None:
         """Run ready stages and collect futures in submission order before retiring."""
         if len(known) == 1:
@@ -157,7 +157,7 @@ class FlextCliUtilitiesPipeline:
         """Execute a single stage and preserve its first failure.
 
         Returns:
-            The resulting ``m.Cli.PipelineStageResult``.
+            The resulting ``p.Cli.PipelineStageResult``.
 
         """
         if spec.skip_if is not None and spec.skip_if(context):

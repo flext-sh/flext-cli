@@ -66,7 +66,10 @@ class FlextCliUtilitiesAtomicSymlinkState:
             parent_device=parent.state.st_dev,
             parent_inode=parent.state.st_ino,
             target=target,
-            identity=FlextCliUtilitiesAtomicSymlinkState.symlink_identity(observed),
+            identity=m.Cli.AtomicSymlinkIdentity.model_validate(
+                FlextCliUtilitiesAtomicSymlinkState.symlink_identity(observed),
+                from_attributes=True,
+            ),
         )
 
     @staticmethod

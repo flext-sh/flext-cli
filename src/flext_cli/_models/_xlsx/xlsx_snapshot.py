@@ -10,6 +10,7 @@ from typing import Annotated, Literal
 
 from flext_core import m
 
+from flext_cli import p, t
 from flext_cli._models._xlsx import FlextCliModelsXlsxCells
 
 
@@ -36,9 +37,10 @@ class FlextCliModelsXlsxSnapshot:
         position: FlextCliModelsXlsxCells.XlsxCellAddress = m.Field(
             description="One-based row and column position.",
         )
-        value: FlextCliModelsXlsxCells.XlsxCellValue = m.Field(
-            description="Typed value from the selected workbook view.",
-        )
+        value: Annotated[
+            p.Cli.XlsxCellValue,
+            t.schema_for_model(FlextCliModelsXlsxCells.XlsxCellValue),
+        ] = m.Field(description="Typed value from the selected workbook view.")
         formula: (
             Annotated[
                 str,
@@ -120,7 +122,10 @@ class FlextCliModelsXlsxSnapshot:
             str,
             m.Field(min_length=2, description="A1 cell coordinate."),
         ]
-        value: FlextCliModelsXlsxCells.XlsxCellValue = m.Field(
+        value: Annotated[
+            p.Cli.XlsxCellValue,
+            t.schema_for_model(FlextCliModelsXlsxCells.XlsxCellValue),
+        ] = m.Field(
             description="Typed cached value from the data-only workbook view.",
         )
 

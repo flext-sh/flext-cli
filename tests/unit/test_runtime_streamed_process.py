@@ -13,6 +13,8 @@ import threading
 import time
 from typing import TYPE_CHECKING
 
+import pytest
+
 from tests import c, m, p, t, tm, u
 
 if TYPE_CHECKING:
@@ -97,7 +99,7 @@ class TestsFlextCliRuntimeStreamedProcess:
             eq=False,
         )
 
-    @c.Tests.MARK.parametrize("live", [False, True])
+    @pytest.mark.parametrize("live", [False, True])
     def test_separate_output_drains_parallel_binary_streams(
         self,
         tmp_path: Path,
@@ -152,7 +154,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(self._live_threads() - threads_before, empty=True)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("alias", ["identical", "relative", "hardlink"])
+    @pytest.mark.parametrize("alias", ["identical", "relative", "hardlink"])
     def test_output_aliases_are_rejected_before_effects(
         tmp_path: Path,
         alias: str,
@@ -311,7 +313,7 @@ class TestsFlextCliRuntimeStreamedProcess:
         tm.that(result.value.raw_return_code, eq=0)
         tm.that(output_file.read_bytes(), eq=payload)
 
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "payload",
         [
             u.Tests.param(b"binary-pipe\x00" * 131_072, id="binary"),

@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import pytest
+
 from flext_cli import settings
 from tests import c, m, p, tm, u
 
@@ -93,7 +95,7 @@ class TestsFlextCliParams:
     # -- params_set_log_level ----------------------------------------------
 
     @staticmethod
-    @c.Tests.MARK.parametrize("level", list(c.LogLevel))
+    @pytest.mark.parametrize("level", list(c.LogLevel))
     def test_set_log_level_applies_valid_level(level: c.LogLevel) -> None:
         """Verify that set log level applies valid level."""
         current = settings.clone()
@@ -124,7 +126,7 @@ class TestsFlextCliParams:
     # -- params_set_format --------------------------------------------------
 
     @staticmethod
-    @c.Tests.MARK.parametrize("log_format", ["compact", "detailed", "full"])
+    @pytest.mark.parametrize("log_format", ["compact", "detailed", "full"])
     def test_set_format_applies_valid_log_format(log_format: str) -> None:
         """Verify that set format applies valid log format."""
         current = settings.clone()
@@ -134,7 +136,7 @@ class TestsFlextCliParams:
         tm.that(result.value.cli_log_verbosity, eq=log_format)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "output_format",
         ["json", "yaml", "csv", "table", "plain", "xml", "text"],
     )

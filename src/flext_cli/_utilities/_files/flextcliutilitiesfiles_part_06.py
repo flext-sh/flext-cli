@@ -9,7 +9,7 @@ from __future__ import annotations
 import fnmatch
 import os
 import traceback
-from collections.abc import MutableMapping, Sequence
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
@@ -90,7 +90,7 @@ class FlextCliUtilitiesFilesPart06:
             Exactly ``True`` on successful verification, otherwise a failed result.
 
         """
-        by_path: MutableMapping[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
+        by_path: dict[t.Cli.TextPath, p.Cli.AtomicFileState] = {}
         for expected in expected_states:
             existing = by_path.get(expected.path)
             if existing is not None and existing != expected:

@@ -12,6 +12,8 @@ from pathlib import Path
 from pstats import Stats
 from typing import Literal
 
+import pytest
+
 from tests import c, m, p, tm, u
 
 
@@ -19,7 +21,7 @@ class TestsFlextCliAtomicDirectoryQueries:
     """Reprove a queried directory only where its existence depends on a receipt."""
 
     @staticmethod
-    @c.Tests.MARK.parametrize("root_count", [1, 2])
+    @pytest.mark.parametrize("root_count", [1, 2])
     def test_fragment_verification_observes_each_root_once_per_invocation(
         tmp_path: Path, root_count: int
     ) -> None:
@@ -157,7 +159,7 @@ class TestsFlextCliAtomicDirectoryQueries:
             u.Cli.atomic_verify_directory_queries((fragment,), (), observations=fresh)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("name", ["extra", ".extra", "__pycache__"])
+    @pytest.mark.parametrize("name", ["extra", ".extra", "__pycache__"])
     def test_shared_boundary_detects_membership_change(
         tmp_path: Path, name: str
     ) -> None:
@@ -267,8 +269,8 @@ class TestsFlextCliAtomicDirectoryQueries:
             u.Cli.atomic_verify_directory_queries((positive, positive, negative), ())
 
     @staticmethod
-    @c.Tests.MARK.parametrize("shared", [False, True])
-    @c.Tests.MARK.parametrize("membership", [False, True])
+    @pytest.mark.parametrize("shared", [False, True])
+    @pytest.mark.parametrize("membership", [False, True])
     def test_merged_queries_preserve_each_original_predicate(
         tmp_path: Path, *, shared: bool, membership: bool
     ) -> None:
@@ -430,7 +432,7 @@ class TestsFlextCliAtomicDirectoryPhysicalBoundaries:
             m.Cli.AtomicPhysicalTreeManifest(root=inventory.root)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("kind", ["file", "symlink"])
+    @pytest.mark.parametrize("kind", ["file", "symlink"])
     def test_filesystem_anchor_cannot_be_a_leaf(
         tmp_path: Path, kind: Literal["file", "symlink"]
     ) -> None:
@@ -463,7 +465,7 @@ class TestsFlextCliAtomicDirectoryPhysicalBoundaries:
             tm.ok(u.Cli.atomic_inventory_physical_tree(directory).failure)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("boundary", ["device", "mount"])
+    @pytest.mark.parametrize("boundary", ["device", "mount"])
     def test_directory_election_cannot_become_cross_boundary_cleanup(
         tmp_path: Path, boundary: Literal["device", "mount"]
     ) -> None:
@@ -482,7 +484,7 @@ class TestsFlextCliAtomicDirectoryPhysicalBoundaries:
             m.Cli.AtomicPhysicalTreeManifest(root=root)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("failure", ["io", "interrupt"])
+    @pytest.mark.parametrize("failure", ["io", "interrupt"])
     def test_inventory_and_lineage_failures_keep_their_causes(
         tmp_path: Path, failure: Literal["io", "interrupt"]
     ) -> None:
@@ -606,7 +608,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
     @staticmethod
     def _publish(
         path: Path,
-    ) -> tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState]:
+    ) -> tuple[p.Cli.AtomicFileState, p.Cli.AtomicFileState]:
         """Publish one new file and return its before/after physical states.
 
         Returns:
@@ -726,7 +728,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
         with u.Tests.raises(ValueError, match="source directory membership changed"):
             u.Cli.atomic_verify_directory_queries((inventory,), ())
 
-    @c.Tests.MARK.parametrize("predicate", ["exists", "isdir"])
+    @pytest.mark.parametrize("predicate", ["exists", "isdir"])
     def test_neighboring_name_is_not_a_publication_ancestor(
         self,
         tmp_path: Path,
@@ -751,7 +753,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
             eq=True,
         )
 
-    @c.Tests.MARK.parametrize("child_name", ["package", "package-extra"])
+    @pytest.mark.parametrize("child_name", ["package", "package-extra"])
     def test_absent_parent_query_preserves_exact_publication_ancestry(
         self,
         tmp_path: Path,
@@ -786,7 +788,7 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
             eq=True,
         )
 
-    @c.Tests.MARK.parametrize("replacement", ["root", "parent"])
+    @pytest.mark.parametrize("replacement", ["root", "parent"])
     def test_replaced_physical_identity_rejects_unchanged_membership(
         self,
         tmp_path: Path,

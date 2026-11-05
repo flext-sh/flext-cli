@@ -14,8 +14,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
 from flext_cli import cli
-from tests import c, m, t, tm, u
+from tests import m, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -66,7 +68,7 @@ class TestsFlextCliFilesCov:
         tm.ok(result.value.sort_keys)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("content", "valid"),
         [
             ('{"host": "localhost", "port": 5432}', True),
@@ -136,7 +138,7 @@ class TestsFlextCliFilesCov:
         tm.ok(target.is_dir())
 
     @staticmethod
-    @c.Tests.MARK.parametrize("inside_git", [True, False], ids=["git", "plain"])
+    @pytest.mark.parametrize("inside_git", [True, False], ids=["git", "plain"])
     def test_files_matching_selects_visible_files_by_pattern(
         tmp_path: Path,
         monkeypatch: t.Tests.MonkeyPatch,

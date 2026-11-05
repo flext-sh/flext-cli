@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from tests import c, t, tm, u
 
 
@@ -15,7 +17,7 @@ class TestsFlextCliConversion:
     """Behavioral contract of ``u.Cli`` conversion helpers."""
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("kind", "default", "expected"),
         c.Tests.CONVERSION_STR_CASES,
     )
@@ -29,7 +31,7 @@ class TestsFlextCliConversion:
         tm.that(result, eq=expected)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("kind", "default", "expected"),
         c.Tests.CONVERSION_BOOL_CASES,
     )
@@ -43,7 +45,7 @@ class TestsFlextCliConversion:
         tm.that(result, eq=expected)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("kind", "default", "expected"),
         c.Tests.CONVERSION_DICT_CASES,
     )

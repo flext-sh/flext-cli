@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from flext_cli import cli
 from tests import c, m, t, tm, u
 
@@ -101,7 +103,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
     # ------------------------------------------------------------------
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("kwargs", "match"),
         [
             ({"log_level": "verbose"}, "LOG_LEVEL must be one of"),
@@ -118,7 +120,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
             m.Examples.AppSettingsAdvanced.model_validate(kwargs)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("host", ["127.0.0.1", "localhost", "db.example.com"])
+    @pytest.mark.parametrize("host", ["127.0.0.1", "localhost", "db.example.com"])
     def test_database_config_accepts_valid_host(host: str) -> None:
         """Verify that database config accepts valid host."""
         config = m.Examples.AdvancedDatabaseConfig(
@@ -146,7 +148,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
     # ------------------------------------------------------------------
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("payload", "key", "expected"),
         [
             ({"workers": 4, "enabled": True}, "workers", 4),

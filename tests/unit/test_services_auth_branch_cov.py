@@ -15,6 +15,8 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING
 
+import pytest
+
 from flext_cli import FlextCli, cli, settings
 from tests import c, tm, u
 
@@ -88,7 +90,7 @@ class TestsFlextCliServicesAuth:
         tm.that(generated, empty=False)
         tm.that(tm.ok(service.fetch_auth_token()), eq=generated)
 
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "credentials",
         [
             u.Tests.param({"unrelated": "value"}, id="unknown-keys"),
@@ -116,7 +118,7 @@ class TestsFlextCliServicesAuth:
         tm.fail(result)
         tm.that(result.error, eq=c.Cli.ERR_INVALID_CREDENTIALS)
 
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("credentials", "missing_field"),
         [
             u.Tests.param({}, "username", id="empty-payload"),
@@ -151,7 +153,7 @@ class TestsFlextCliServicesAuth:
         tm.that((result.error or "").lower(), has=missing_field)
         tm.that((result.error or "").lower(), has="empty")
 
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "credentials",
         [
             u.Tests.param(

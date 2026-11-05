@@ -14,6 +14,8 @@ import time
 from pathlib import Path
 from typing import cast
 
+import pytest
+
 from flext_cli import FlextCliUtilitiesCli
 from tests import c, m, p, tm, u
 
@@ -123,7 +125,7 @@ class TestsFlextCliUtilitiesRuntimeCore:
         return output
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "case",
         m.Tests.RuntimeCommandCase.run_raw_cases(),
         ids=m.Tests.RuntimeCommandCase.id_for,
@@ -340,7 +342,7 @@ class TestsFlextCliManagedProcesses:
         tm.that(output.stderr.strip(), eq="inherited-error")
 
     @staticmethod
-    @c.Tests.MARK.parametrize("inherit_environment", [False, True])
+    @pytest.mark.parametrize("inherit_environment", [False, True])
     def test_process_start_respects_environment_inheritance(
         *, inherit_environment: bool
     ) -> None:
@@ -370,7 +372,7 @@ class TestsFlextCliManagedProcesses:
         )
 
     @staticmethod
-    @c.Tests.MARK.parametrize("start_new_session", [False, True])
+    @pytest.mark.parametrize("start_new_session", [False, True])
     def test_process_start_session_ownership(
         runner: FlextCliUtilitiesCli,
         *,

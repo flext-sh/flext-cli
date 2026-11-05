@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from typing import Literal
 
+import pytest
+
 from flext_cli import cli
 from tests import c, m, t, tm, u
 
@@ -21,7 +23,7 @@ class TestsFlextCliTables:
     """Regression coverage for the public table helpers."""
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("data", "cells"),
         [
             u.Tests.param(
@@ -87,7 +89,7 @@ class TestsFlextCliTables:
         tm.fail("identifier" in table)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "table_format",
         [
             c.Cli.TabularFormat.TABLE,
@@ -125,7 +127,7 @@ class TestsFlextCliTables:
         )
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "empty_data",
         [
             u.Tests.param([], id="table-empty-list"),
@@ -142,7 +144,7 @@ class TestsFlextCliTables:
         tm.that(table, eq="")
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("rows", "table_format"),
         [
             u.Tests.param(
@@ -169,7 +171,7 @@ class TestsFlextCliTables:
         tm.ok(first == second)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("data", "table_format", "marker", "route"),
         [
             u.Tests.param({"a": 1, "b": 2}, c.Cli.TabularFormat.GRID, "+", "settings"),
@@ -228,7 +230,7 @@ class TestsFlextCliTables:
         tm.that(rendered, has=headers)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("bad_format", ["invalid", "not-a-format", ""])
+    @pytest.mark.parametrize("bad_format", ["invalid", "not-a-format", ""])
     def test_format_table_rejects_invalid_format_string(bad_format: str) -> None:
         """Invalid requested formats retain the public configuration diagnostic."""
         result = cli.format_table({"a": 1, "b": 2}, table_format=bad_format)
@@ -264,7 +266,7 @@ class TestsFlextCliTables:
         tm.that(output, has=["bogus_kwarg"])
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("data", "title", "route", "cells"),
         [
             u.Tests.param(

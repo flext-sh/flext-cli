@@ -44,7 +44,7 @@ class TestsFlextCliRuntimeProcessCompletion:
 
     @staticmethod
     @c.Tests.MARK.skipif(os.name == "nt", reason="Requires native POSIX user signals")
-    @c.Tests.MARK.parametrize("durable", [False, True])
+    @pytest.mark.parametrize("durable", [False, True])
     def test_cancellation_reaps_owned_children_and_preserves_cleanup_notes(
         tmp_path: Path, *, durable: bool
     ) -> None:

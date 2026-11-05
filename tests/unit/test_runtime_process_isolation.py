@@ -10,8 +10,10 @@ import platform
 import sys
 from pathlib import Path
 
+import pytest
+
 from flext_cli import config
-from tests import c, m, p, tm, u
+from tests import m, p, tm, u
 
 
 class TestsFlextCliRuntimeProcessIsolation:
@@ -193,8 +195,8 @@ class TestsFlextCliRuntimeProcessIsolation:
             })
 
     @staticmethod
-    @c.Tests.MARK.parametrize("field", ["compiler_resource_parts", "denied_syscalls"])
-    @c.Tests.MARK.parametrize("missing", [False, True])
+    @pytest.mark.parametrize("field", ["compiler_resource_parts", "denied_syscalls"])
+    @pytest.mark.parametrize("missing", [False, True])
     def test_native_policy_requires_nonempty_declared_yaml_fields(
         field: str,
         *,
@@ -250,7 +252,7 @@ class TestsFlextCliRuntimeProcessIsolation:
     def test_raw_filter_is_not_a_qualification_input(tmp_path: Path) -> None:
         """An arbitrary allow-all BPF field has no admission route."""
         isolation = TestsFlextCliRuntimeProcessIsolation._request(tmp_path)
-        payload = isolation.model_dump()
+        payload: dict[str, object] = dict(isolation.model_dump())
         payload["seccomp_filter"] = isolation.sources[0]
 
         with u.Tests.raises(ValueError, match="seccomp_filter"):

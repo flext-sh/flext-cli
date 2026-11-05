@@ -14,6 +14,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
+import pytest
+
 from tests import c, m, t, tm, u
 
 
@@ -28,7 +30,7 @@ class TestsFlextCliOptions:
         flags: Mapping[str, bool] = m.Field(default_factory=lambda: {"debug": True})
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("annotation", "expected"),
         [(str | None, str), (str | int, str), (dict[str, int], str), (int, int)],
     )
@@ -40,7 +42,7 @@ class TestsFlextCliOptions:
         tm.ok(u.Cli.resolve_typer_annotation(annotation) is expected)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("annotation", [Sequence[str], set[str], frozenset[str]])
+    @pytest.mark.parametrize("annotation", [Sequence[str], set[str], frozenset[str]])
     def test_resolve_typer_annotation_maps_string_collections_to_list_of_str(
         annotation: t.Cli.RuntimeAnnotation,
     ) -> None:
@@ -48,7 +50,7 @@ class TestsFlextCliOptions:
         tm.that(u.Cli.resolve_typer_annotation(annotation), eq=list[str])
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("value", "expected"),
         [
             (Path("reports/out.json"), "reports/out.json"),
@@ -69,7 +71,7 @@ class TestsFlextCliOptions:
         tm.that(u.Cli.normalize_cli_atom(value), eq=expected)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("value", "expected"),
         [
             (("lint", "test"), True),
@@ -173,7 +175,7 @@ class TestsFlextCliOptions:
         tm.that(reordered, eq=["check", "--log-level=DEBUG", "--all"])
 
     @staticmethod
-    @c.Tests.MARK.parametrize("args", [["check", "--all"], []])
+    @pytest.mark.parametrize("args", [["check", "--all"], []])
     def test_reorder_prefixed_options_is_identity_without_leading_prefixes(
         args: Sequence[str],
     ) -> None:

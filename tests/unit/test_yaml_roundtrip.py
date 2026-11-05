@@ -16,6 +16,7 @@ from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, cast
 
+import pytest
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
 
 from tests import c, t, tm, u
@@ -50,7 +51,7 @@ class TestsFlextCliYamlRoundtripLoad:
         )
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "suffix",
         ["id: second\nid: contradictory\n", "items: [\n"],
     )

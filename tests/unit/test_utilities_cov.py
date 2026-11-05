@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import pytest
+
 from tests import c, t, tm, u
 
 
@@ -74,7 +76,7 @@ class TestsFlextCliUtilitiesCov:
         tm.that(list(result.unwrap()), eq=[10, 2])
 
     @staticmethod
-    @c.Tests.MARK.parametrize("value", [None, "", "   "])
+    @pytest.mark.parametrize("value", [None, "", "   "])
     def test_validate_not_empty_fails_for_empty_inputs(value: str | None) -> None:
         """Verify that validate not empty fails for empty inputs."""
         result = u.Cli.validate_not_empty(value, name="project")
@@ -82,7 +84,7 @@ class TestsFlextCliUtilitiesCov:
         tm.that(result.error or "", has="project")
 
     @staticmethod
-    @c.Tests.MARK.parametrize("value", ["name", " padded ", 0, 42])
+    @pytest.mark.parametrize("value", ["name", " padded ", 0, 42])
     def test_validate_not_empty_succeeds_for_present_values(
         value: t.Cli.CliValue,
     ) -> None:

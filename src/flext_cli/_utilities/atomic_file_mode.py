@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from flext_cli import m
+    from flext_cli import p
 
 
 class FlextCliUtilitiesAtomicFileMode:
@@ -80,7 +80,7 @@ class FlextCliUtilitiesAtomicFileMode:
     @staticmethod
     def validate_guarded_mode_tuple(
         path: Path,
-        expected_bytes: bytes | m.Cli.AtomicFileReceipt | None,
+        expected_bytes: bytes | p.Cli.AtomicFileReceipt | None,
         expected_mode: int | NoModePrecondition | None,
     ) -> None:
         """Require absence or one complete existing byte-and-mode version.

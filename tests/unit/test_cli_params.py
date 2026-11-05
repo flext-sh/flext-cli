@@ -10,6 +10,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import pytest
+
 from flext_cli import cli
 from tests import c, p, tm, u
 
@@ -106,7 +108,7 @@ class TestsFlextCliCliParams:
         tm.that(result.exception, is_=c.ValidationError)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("field_name", "expected_fragments"),
         [
             ("log_level", ("invalid", "log")),

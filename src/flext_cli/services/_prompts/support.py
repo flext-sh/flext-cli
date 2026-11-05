@@ -31,7 +31,8 @@ class FlextCliServicesPromptsSupport(s[p.Cli.RuntimeStatus]):
             return getpass.getpass(prompt)
 
     state: Annotated[
-        m.Cli.PromptRuntimeState,
+        p.Cli.PromptRuntimeState,
+        t.schema_for_model(m.Cli.PromptRuntimeState),
         m.Field(description="Prompt runtime state for interaction behavior."),
     ] = m.Field(default_factory=m.Cli.PromptRuntimeState, validate_default=True)
 
@@ -64,7 +65,9 @@ class FlextCliServicesPromptsSupport(s[p.Cli.RuntimeStatus]):
             The resulting ``Self``.
 
         """
-        self.state = state
+        self.state = m.Cli.PromptRuntimeState.model_validate(
+            state, from_attributes=True
+        )
         return self
 
     @staticmethod

@@ -16,6 +16,8 @@ from __future__ import annotations
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 
+import pytest
+
 from tests import c, m, t, tm, u
 
 
@@ -25,7 +27,7 @@ class TestsFlextCliTypings:
     # --- Published CLI adapters: accept valid payloads -------------------
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("payload", "expected"),
         [(["alpha", "beta"], ["alpha", "beta"]), ([], []), (("x", "y"), ["x", "y"])],
     )
@@ -38,7 +40,7 @@ class TestsFlextCliTypings:
         tm.that(list(result), eq=expected)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "payload",
         [123, "not-a-sequence-of-str-only", [1, 2, 3], {"k": "v"}],
     )
@@ -50,7 +52,7 @@ class TestsFlextCliTypings:
             u.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "payload",
         [{"id": 1}, {"nested": {"a": [1, 2]}}, {}, {"flag": True, "name": "x"}],
     )
@@ -62,7 +64,7 @@ class TestsFlextCliTypings:
         tm.ok(result == payload)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("payload", [["a", c.Action.LIST], "string", 42, True])
+    @pytest.mark.parametrize("payload", [["a", c.Action.LIST], "string", 42, True])
     def test_json_mapping_adapter_rejects_non_mappings(
         payload: t.JsonValue,
     ) -> None:
@@ -71,7 +73,7 @@ class TestsFlextCliTypings:
             u.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "payload",
         [[1, 2, 3], ["a", "b"], [], [{"k": "v"}, [1, 2]]],
     )
@@ -83,7 +85,7 @@ class TestsFlextCliTypings:
         tm.ok(result == payload)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("payload", "expected"),
         [
             ("plain", "plain"),

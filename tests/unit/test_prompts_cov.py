@@ -13,6 +13,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import pytest
+
 from tests import c, p, tm, u
 
 if TYPE_CHECKING:
@@ -23,7 +25,7 @@ class TestsFlextCliPromptsCov:
     """Behavior contract for the prompt service public surface."""
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("raw_input", "default", "expected"),
         [
             ("typed", "fallback", "typed"),
@@ -44,7 +46,7 @@ class TestsFlextCliPromptsCov:
         tm.ok(result, eq=expected)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("quiet", [True, False])
+    @pytest.mark.parametrize("quiet", [True, False])
     def test_prompt_returns_default_when_non_interactive(
         make_prompts: Callable[..., p.Tests.Prompts],
         *,
@@ -65,7 +67,7 @@ class TestsFlextCliPromptsCov:
             prompts.prompt("message", default="default")
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("answer", "default", "expected"),
         [
             ("y", False, True),
@@ -98,7 +100,7 @@ class TestsFlextCliPromptsCov:
         tm.ok(result, eq=True, is_=bool)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("default", [True, False])
+    @pytest.mark.parametrize("default", [True, False])
     def test_confirm_returns_default_when_non_interactive(
         make_prompts: Callable[..., p.Tests.Prompts],
         *,
@@ -110,7 +112,7 @@ class TestsFlextCliPromptsCov:
         tm.ok(result, eq=default, is_=bool)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("error", "expected"),
         [
             (KeyboardInterrupt(), c.Cli.ERR_USER_CANCELLED_CONFIRMATION),

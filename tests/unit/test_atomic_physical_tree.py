@@ -10,7 +10,9 @@ import hashlib
 import os
 from pathlib import Path
 
-from tests import c, m, p, tm, u
+import pytest
+
+from tests import m, p, tm, u
 
 
 class TestsFlextCliAtomicPhysicalTree:
@@ -104,7 +106,7 @@ class TestsFlextCliAtomicPhysicalTree:
         tm.ok(result)
         tm.fail(root.exists())
 
-    @c.Tests.MARK.parametrize("drift", ["unknown", "missing", "content", "metadata"])
+    @pytest.mark.parametrize("drift", ["unknown", "missing", "content", "metadata"])
     def test_manifest_drift_fails_before_any_effect(
         self,
         tmp_path: Path,

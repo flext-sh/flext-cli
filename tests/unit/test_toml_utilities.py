@@ -18,6 +18,7 @@ from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
 from tomlkit.exceptions import ParseError
 
 from tests import c, m, t, tm, u
@@ -46,7 +47,7 @@ class TestsFlextCliUtilitiesToml:
         tm.that(document.as_string(), eq=before)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("source", ['dependencies = "value"\n', "other = []\n"])
+    @pytest.mark.parametrize("source", ['dependencies = "value"\n', "other = []\n"])
     def test_array_item_comments_reject_non_array_fields(source: str) -> None:
         """Missing and scalar fields cannot masquerade as dependency arrays."""
         document = tm.not_none(u.Cli.toml_parse_text(source))
@@ -307,7 +308,7 @@ class TestsFlextCliTomlValues:
         tm.that(u.Cli.toml_as_mapping("bad"), none=True)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("key", "expected"),
         [("a", 1), ("b", [1, 2]), ("missing", None)],
     )
@@ -388,7 +389,7 @@ class TestsFlextCliTomlValues:
             u.Cli.toml_item_from_json_value(None)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "value", [None, " value ", [" last ", "first"], {"option": None}]
     )
     def test_json_projection_preserves_exact_json_values(value: t.JsonValue) -> None:
@@ -396,7 +397,7 @@ class TestsFlextCliTomlValues:
         tm.that(u.Cli.toml_unwrap_item(value), eq=value)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "value",
         [{"payload": b"value"}, {"stamp": datetime(2026, 1, 1, tzinfo=UTC)}],
     )

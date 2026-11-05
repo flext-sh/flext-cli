@@ -21,6 +21,8 @@ from __future__ import annotations
 from collections.abc import Iterator, MutableSequence
 from io import StringIO
 
+import pytest
+
 from tests import c, m, p, r, t, tm, u
 
 
@@ -68,7 +70,7 @@ class TestsFlextCliCommands:
         tm.that(resolved, eq="14")
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("result_value", "expected"),
         [
             u.Tests.param("direct", "direct", id="string-value-returned"),
@@ -122,7 +124,7 @@ class TestsFlextCliCommands:
         tm.that(resolved, none=True)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "payload",
         [
             u.Tests.param('{"ok": true}', id="json-object"),
@@ -194,8 +196,8 @@ class TestsFlextCliCommands:
         tm.that(captured.out, eq="")
 
     @staticmethod
-    @c.Tests.MARK.parametrize("trace", [False, True])
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize("trace", [False, True])
+    @pytest.mark.parametrize(
         "exception",
         [FileNotFoundError("missing source.py"), KeyboardInterrupt("cancelled")],
     )

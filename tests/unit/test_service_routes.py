@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from typing import override
 
+import pytest
+
 from flext_cli import cli
 from tests import c, h, m, p, r, s, t, tm, u
 
@@ -107,7 +109,7 @@ class TestsFlextCliServiceRoutes:
         tm.ok(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, has="hello ana hello ana")
 
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "provider_available",
         [
             u.Tests.param(True, id="configured-provider"),
@@ -243,7 +245,7 @@ class TestsFlextCliServiceRoutes:
         tm.ok(result.exception is cause)
 
     @staticmethod
-    @c.Tests.MARK.parametrize("origin", ["handler", "formatter"])
+    @pytest.mark.parametrize("origin", ["handler", "formatter"])
     def test_result_route_leaves_native_exceptions_unchanged(origin: str) -> None:
         """Neither execution nor output formatting normalizes the first cause."""
         cause = ValueError(f"{origin} rejected execution")
@@ -273,7 +275,7 @@ class TestsFlextCliServiceRoutes:
 
         tm.ok(captured.value is cause)
 
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "args",
         [["--help"], ["greet-all", "--help"], ["report", "--help"]],
     )

@@ -21,7 +21,7 @@ from flext_cli._utilities import (
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from flext_cli import m, p
+    from flext_cli import p
 
 
 class FlextCliUtilitiesAtomicSymlinkPublish:
@@ -53,7 +53,7 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
         before: p.Cli.AtomicSymlinkState,
         target: str,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-    ) -> tuple[Path, m.Cli.AtomicSymlinkState]:
+    ) -> tuple[Path, p.Cli.AtomicSymlinkState]:
         """Create the staged link and prove it still names the target.
 
         Returns:

@@ -8,6 +8,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from tests import c, m, t, tm, u
 
 
@@ -26,7 +28,7 @@ class TestsFlextCliOutputCov:
         )
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "msg_type",
         [
             c.Cli.MessageTypes.SUCCESS,
@@ -54,7 +56,7 @@ class TestsFlextCliOutputCov:
     # ---- message payload ------------------------------------------------
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "msg_type",
         [
             c.Cli.MessageTypes.SUCCESS,
@@ -250,7 +252,7 @@ class TestsFlextCliOutputEmission:
         tm.that(out, has="build")
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("result", "symbol"),
         [(True, c.Cli.OUTPUT_STATUS_OK), (False, c.Cli.OUTPUT_STATUS_FAIL)],
     )

@@ -15,6 +15,8 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING
 
+import pytest
+
 from flext_cli import settings
 from flext_cli.services import FlextCliAuth
 from tests import c, tm, u
@@ -62,7 +64,7 @@ class TestsFlextCliServicesAuthCov:
     # ── validate_credentials ──────────────────────────────────────────
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("username", "password", "expect_ok"),
         c.Tests.AUTH_CRED_CASES,
     )
@@ -83,7 +85,7 @@ class TestsFlextCliServicesAuthCov:
             tm.that(result.error, empty=False)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("username", "password", "message_fragment"),
         [
             ("", "secret", "Username"),
@@ -128,7 +130,7 @@ class TestsFlextCliServicesAuthCov:
         tm.that(auth.fetch_auth_token().value, eq="second-token")
 
     @staticmethod
-    @c.Tests.MARK.parametrize("token", ["", "   ", "\t\n"])
+    @pytest.mark.parametrize("token", ["", "   ", "\t\n"])
     def test_save_auth_token_rejects_blank_token(
         auth: FlextCliAuth,
         token: str,
@@ -197,7 +199,7 @@ class TestsFlextCliServicesAuthCov:
         tm.that(auth.fetch_auth_token().value, eq=generated)
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "credentials",
         [
             {},

@@ -13,6 +13,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import pytest
+
 from flext_cli import cli
 from tests import c, t, tm
 
@@ -23,7 +25,7 @@ class TestsFlextCliServicesOutputCov:
     # ── display_message ───────────────────────────────────────────────
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("message_type", "expected_marker"),
         [
             (c.Cli.MessageTypes.INFO, "i"),
@@ -54,7 +56,7 @@ class TestsFlextCliServicesOutputCov:
     # ── display_text ──────────────────────────────────────────────────
 
     @staticmethod
-    @c.Tests.MARK.parametrize("style", ["bold red", "dim", None])
+    @pytest.mark.parametrize("style", ["bold red", "dim", None])
     def test_display_text_emits_text_regardless_of_style(
         capsys: t.Tests.CaptureFixture[str],
         style: str | None,
@@ -78,7 +80,7 @@ class TestsFlextCliServicesOutputCov:
     # ── print_message ─────────────────────────────────────────────────
 
     @staticmethod
-    @c.Tests.MARK.parametrize("style", ["bold red", None])
+    @pytest.mark.parametrize("style", ["bold red", None])
     def test_print_message_emits_message_with_or_without_style(
         capsys: t.Tests.CaptureFixture[str],
         style: str | None,
@@ -91,7 +93,7 @@ class TestsFlextCliServicesOutputCov:
     # ── display_progress ──────────────────────────────────────────────
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("current", "total", "expected_counter"),
         [(3, 10, "[03/10]"), (5, 5, "[5/5]"), (1, 100, "[001/100]"), (0, 8, "[0/8]")],
     )

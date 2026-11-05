@@ -14,6 +14,8 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 
+import pytest
+
 from flext_cli import cli
 from tests import c, m, p, t, tm, u
 
@@ -147,7 +149,7 @@ class TestsFlextCliModelCommandJsonOptions:
         tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received, eq=[settings])
 
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("raw", "error_type"),
         [("{not json", "json_invalid"), ('{"alpha": "one"}', "int_parsing")],
     )

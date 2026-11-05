@@ -9,6 +9,7 @@ from __future__ import annotations
 from collections.abc import MutableSequence, Sequence
 from io import StringIO
 
+import pytest
 from flext_core import FlextContext
 from structlog.contextvars import bound_contextvars
 
@@ -214,7 +215,7 @@ class TestsFlextCliServiceSettingsContract:
             _ = FlextCli.model_validate({"logging_options": "not a logging port"})
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("flags", "initial_level", "expected_level", "trace"),
         [
             (["--debug"], c.LogLevel.WARNING, c.LogLevel.DEBUG, False),
@@ -345,11 +346,11 @@ class TestsFlextCliServiceSettingsContract:
         tm.that(captured.err, has="INVALID")
 
     @staticmethod
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         "output_format",
         [c.Cli.OutputFormats.JSON, c.Cli.OutputFormats.TABLE],
     )
-    @c.Tests.MARK.parametrize("profile", ["console", "json"])
+    @pytest.mark.parametrize("profile", ["console", "json"])
     def test_result_stdout_remains_clean_with_selected_diagnostic_profile(
         output_format: c.Cli.OutputFormats,
         profile: str,

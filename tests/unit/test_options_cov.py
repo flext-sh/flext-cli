@@ -24,6 +24,8 @@ from collections.abc import Mapping, MutableMapping, Sequence
 from types import MappingProxyType
 from typing import Annotated, ClassVar
 
+import pytest
+
 from flext_cli import cli
 from tests import c, m, p, t, tm, u
 
@@ -279,14 +281,14 @@ class TestsFlextCliOptionsUtilsCov:
         tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received[0].project_name, eq="p1")
 
-    @c.Tests.MARK.parametrize("option", ["--custom-name", "--projects"])
+    @pytest.mark.parametrize("option", ["--custom-name", "--projects"])
     def test_model_command_honors_custom_param_decls(self, option: str) -> None:
         """Every custom declaration is accepted as the field's option."""
         invocation, received = self._run(self.CustomDeclModel, [option, "v"])
         tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received[0].custom_name, eq="v")
 
-    @c.Tests.MARK.parametrize(
+    @pytest.mark.parametrize(
         ("option", "expected"),
         [("--debug", True), ("--no-debug", False)],
     )
@@ -301,7 +303,7 @@ class TestsFlextCliOptionsUtilsCov:
         tm.ok(u.Cli.process_succeeded(invocation.outcome))
         tm.that(received[0].debug, eq=expected)
 
-    @c.Tests.MARK.parametrize(("args", "expected"), _INVOCATION_CASES)
+    @pytest.mark.parametrize(("args", "expected"), _INVOCATION_CASES)
     def test_model_command_parses_values_for_each_annotation(
         self,
         args: Sequence[str],

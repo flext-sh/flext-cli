@@ -103,7 +103,12 @@ class FlextCliUtilitiesDocxRenderer:
         if content.failure:
             return r[p.Cli.DocxRenderResult].from_failure(content)
         return r[p.Cli.DocxRenderResult].ok(
-            m.Cli.DocxRenderResult(content=content.value, plan=request.plan),
+            m.Cli.DocxRenderResult(
+                content=content.value,
+                plan=m.Cli.DocxDocumentPlan.model_validate(
+                    request.plan, from_attributes=True
+                ),
+            ),
         )
 
     @classmethod

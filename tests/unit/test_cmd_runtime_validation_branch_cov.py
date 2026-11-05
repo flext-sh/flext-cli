@@ -11,6 +11,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import pytest
+
 from tests import c, t, tm, u
 
 
@@ -45,7 +47,7 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
 
     # ---------------------------------------------------------- validation
     @staticmethod
-    @c.Tests.MARK.parametrize("output_format", tuple(c.Cli.OUTPUT_FORMATS))
+    @pytest.mark.parametrize("output_format", tuple(c.Cli.OUTPUT_FORMATS))
     def test_validate_format_accepts_every_supported_format(
         output_format: str,
     ) -> None:
@@ -74,7 +76,7 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
         tm.that((result.error or ""), has="BAD")
 
     @staticmethod
-    @c.Tests.MARK.parametrize("value", ["ok", "  padded  ", 0, 1])
+    @pytest.mark.parametrize("value", ["ok", "  padded  ", 0, 1])
     def test_validate_not_empty_accepts_meaningful_values(
         value: t.Cli.CliValue,
     ) -> None:
@@ -85,7 +87,7 @@ class TestsFlextCliCmdRuntimeValidationBranchCov:
         tm.ok(result.unwrap())
 
     @staticmethod
-    @c.Tests.MARK.parametrize("value", [None, "", "   "])
+    @pytest.mark.parametrize("value", [None, "", "   "])
     def test_validate_not_empty_rejects_empty_and_names_the_field(
         value: t.Cli.CliValue | None,
     ) -> None:
