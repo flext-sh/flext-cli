@@ -91,14 +91,14 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
         else:
             comparison = plan.comparison
             operator = cls._comparison_operator(comparison.mode)
-            if isinstance(comparison, m.Cli.XlsxRangeComparison):
+            if comparison.mode in {"between", "not_between"}:
                 formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
                     comparison.minimum,
                 )
                 formula2 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
                     comparison.maximum,
                 )
-            else:
+            elif isinstance(comparison, m.Cli.XlsxUnaryComparison):
                 formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
                     comparison.expression,
                 )

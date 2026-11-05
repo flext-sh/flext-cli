@@ -14,7 +14,7 @@ from typing import Annotated, ClassVar, Literal, Self
 
 from flext_core import m
 
-from flext_cli import t
+from flext_cli import p, t
 from flext_cli._models import FlextCliModelsAtomicState
 
 
@@ -170,10 +170,17 @@ class FlextCliModelsBasePart09:
     class AtomicDirectoryInventory(m.ContractModel):
         """One physical directory and its complete immediate child elections."""
 
-        root: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry = m.Field(
-            description="Descriptor-authenticated physical directory identity"
-        )
-        entries: tuple[FlextCliModelsBasePart09.AtomicDirectoryName, ...] = m.Field(
+        root: Annotated[
+            p.Cli.AtomicPhysicalTreeEntry,
+            t.schema_for_model(FlextCliModelsBasePart09.AtomicPhysicalTreeEntry),
+        ] = m.Field(description="Descriptor-authenticated physical directory identity")
+        entries: tuple[
+            Annotated[
+                p.Cli.AtomicDirectoryName,
+                t.schema_for_model(FlextCliModelsBasePart09.AtomicDirectoryName),
+            ],
+            ...,
+        ] = m.Field(
             default=(), description="Complete ordered immediate physical children"
         )
         queries: tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...] = m.Field(

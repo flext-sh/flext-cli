@@ -26,12 +26,12 @@ from tests._constants import (
 
 
 class TestsFlextCliConstants(
-    examples_c,
-    flext_tests_c,
+    TestsFlextCliConstantsPart01,
     TestsFlextCliConstantsCore,
     TestsFlextCliConstantsRulesOptions,
     TestsFlextCliConstantsYamlOutput,
-    TestsFlextCliConstantsPart01,
+    flext_tests_c,
+    examples_c,
 ):
     """Public facade for TestsFlextCliConstants."""
 

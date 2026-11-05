@@ -8,10 +8,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-import pytest
-
 from flext_cli import cli
-from tests import r, tm
+from tests import r, tm, u
 from tests.unit.cases.test_pipeline.testsflextclipipelinehandlers import (
     TestsFlextCliPipelineHandlers,
 )
@@ -82,7 +80,7 @@ class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
             call_count += 1
             raise ValueError(error_message)
 
-        with pytest.raises(ValueError, match=error_message):
+        with u.Tests.raises(ValueError, match=error_message):
             cli.pipeline(
                 [cli.stage("boom", handler=exploding)],
                 context=cli.stage_context(tmp_path),
@@ -117,7 +115,7 @@ class TestsFlextCliPipelinePart02(TestsFlextCliPipelineHandlers):
             _ = ctx
             raise ValueError(error_message)
 
-        with pytest.raises(ValueError, match=error_message):
+        with u.Tests.raises(ValueError, match=error_message):
             cli.pipeline(
                 [cli.stage("boom", handler=exploding)],
                 context=cli.stage_context(tmp_path),

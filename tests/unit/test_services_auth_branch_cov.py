@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from flext_cli import FlextCli, cli, settings
-from tests import c, tm
+from tests import c, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 class TestsFlextCliServicesAuth:
     """Public authentication behavior of the FlextCli facade."""
 
-    @pytest.fixture
+    @u.Tests.fixture
     @staticmethod
     def service() -> Iterator[FlextCli]:
         """Fresh facade whose global token_file is restored after each test.
@@ -93,8 +93,8 @@ class TestsFlextCliServicesAuth:
     @pytest.mark.parametrize(
         "credentials",
         [
-            pytest.param({"unrelated": "value"}, id="unknown-keys"),
-            pytest.param(
+            u.Tests.param({"unrelated": "value"}, id="unknown-keys"),
+            u.Tests.param(
                 {c.Cli.DICT_KEY_LOGIN_FIELD: "tok", "extra": "x"},
                 id="token-plus-unknown-key",
             ),
@@ -121,13 +121,13 @@ class TestsFlextCliServicesAuth:
     @pytest.mark.parametrize(
         ("credentials", "missing_field"),
         [
-            pytest.param({}, "username", id="empty-payload"),
-            pytest.param(
+            u.Tests.param({}, "username", id="empty-payload"),
+            u.Tests.param(
                 {c.Cli.DICT_KEY_USERNAME: c.ContextScope.USER},
                 "password",
                 id="username-only",
             ),
-            pytest.param(
+            u.Tests.param(
                 {c.Cli.DICT_KEY_LOGIN_VALUE: "s" + c.ParserBooleanToken.ZERO * 9},
                 "username",
                 id="secret-only",
@@ -156,11 +156,11 @@ class TestsFlextCliServicesAuth:
     @pytest.mark.parametrize(
         "credentials",
         [
-            pytest.param(
+            u.Tests.param(
                 {c.Cli.DICT_KEY_LOGIN_FIELD: "t" + c.ParserBooleanToken.ZERO * 9},
                 id="token",
             ),
-            pytest.param(
+            u.Tests.param(
                 {
                     c.Cli.DICT_KEY_USERNAME: c.ContextScope.USER,
                     c.Cli.DICT_KEY_LOGIN_VALUE: "s" + c.ParserBooleanToken.ZERO * 9,

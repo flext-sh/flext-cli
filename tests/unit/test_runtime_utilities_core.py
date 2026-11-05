@@ -19,7 +19,7 @@ import pytest
 from flext_cli import FlextCliUtilitiesCli
 from tests import c, m, p, tm, u
 
-_OUTPUT_CASES = pytest.mark.parametrize(
+_OUTPUT_CASES = c.Tests.MARK.parametrize(
     "case",
     m.Tests.RuntimeCommandCase.output_cases(),
     ids=m.Tests.RuntimeCommandCase.id_for,
@@ -78,7 +78,7 @@ def _start_session_descendant(
     return process, descendant_pid
 
 
-@pytest.fixture
+@u.Tests.fixture
 def runner() -> FlextCliUtilitiesCli:
     """Provide the public process facade to synchronous and managed consumers.
 

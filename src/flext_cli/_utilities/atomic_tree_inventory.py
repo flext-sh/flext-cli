@@ -282,7 +282,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         cls,
         inventories: tuple[p.Cli.AtomicDirectoryInventory, ...],
         topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
-        publications: tuple[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]
+        publications: tuple[tuple[p.Cli.AtomicFileState, p.Cli.AtomicFileState], ...]
         | m.Cli.AtomicDirectoryQueryEffects = (),
         directory_publications: tuple[p.Cli.AtomicDirectoryState, ...] = (),
         observations: p.Cli.AtomicDirectoryObservations | None = None,
@@ -304,7 +304,11 @@ class FlextCliUtilitiesAtomicTreeInventory:
         publications = cls._require_membership_policy(
             inventories, topology, publications
         )
-        shared = observations or m.Cli.AtomicDirectoryObservations()
+        shared = (
+            observations
+            if isinstance(observations, m.Cli.AtomicDirectoryObservations)
+            else m.Cli.AtomicDirectoryObservations()
+        )
         boundary = shared.directories
         published = {before.path: (before, after) for before, after in publications}
         created = {item.path: item for item in directory_publications}
@@ -383,7 +387,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
 
     @staticmethod
     def _published_ancestors(
-        publications: Iterable[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState]],
+        publications: Iterable[tuple[p.Cli.AtomicFileState, p.Cli.AtomicFileState]],
     ) -> Mapping[Path, None]:
         """Return every ancestor path already held by a published file.
 
@@ -402,9 +406,9 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def _require_membership_policy(
         inventories: tuple[p.Cli.AtomicDirectoryInventory, ...],
         topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
-        publications: tuple[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]
+        publications: tuple[tuple[p.Cli.AtomicFileState, p.Cli.AtomicFileState], ...]
         | m.Cli.AtomicDirectoryQueryEffects,
-    ) -> tuple[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState], ...]:
+    ) -> tuple[tuple[p.Cli.AtomicFileState, p.Cli.AtomicFileState], ...]:
         """Reject receipt-selected authority before observing native dependencies.
 
         Returns:
@@ -439,10 +443,10 @@ class FlextCliUtilitiesAtomicTreeInventory:
     def _verify_query_topology(
         cls,
         topology: tuple[p.Cli.AtomicDirectoryChainPlan, ...],
-        published: Mapping[Path, tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState]],
-        created: Mapping[Path, m.Cli.AtomicDirectoryState],
-        observations: MutableMapping[Path, m.Cli.AtomicDirectoryInventory],
-        topology_observations: MutableMapping[Path, m.Cli.AtomicDirectoryChainPlan],
+        published: Mapping[Path, tuple[p.Cli.AtomicFileState, p.Cli.AtomicFileState]],
+        created: Mapping[Path, p.Cli.AtomicDirectoryState],
+        observations: MutableMapping[Path, p.Cli.AtomicDirectoryInventory],
+        topology_observations: MutableMapping[Path, p.Cli.AtomicDirectoryChainPlan],
     ) -> None:
         """Reprove absent-parent elections against the original native ancestry.
 
@@ -531,8 +535,8 @@ class FlextCliUtilitiesAtomicTreeInventory:
         cls,
         observed: p.Cli.AtomicDirectoryInventory,
         members: MutableMapping[str, Literal["directory", "file", "symlink", "other"]],
-        publications: Iterable[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileState]],
-        created: Mapping[Path, m.Cli.AtomicDirectoryState],
+        publications: Iterable[tuple[p.Cli.AtomicFileState, p.Cli.AtomicFileState]],
+        created: Mapping[Path, p.Cli.AtomicDirectoryState],
         excluded_names: t.StrTuple = (),
     ) -> None:
         """Reprove direct membership with only original native publication effects.
@@ -581,7 +585,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @staticmethod
     def _published_directory_current(
         path: Path,
-        created: Mapping[Path, m.Cli.AtomicDirectoryState],
+        created: Mapping[Path, p.Cli.AtomicDirectoryState],
     ) -> None:
         """Bind an elected own directory to the publisher's original inode.
 
@@ -606,7 +610,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
     @classmethod
     def _observe_physical_directory(
         cls,
-        observations: MutableMapping[Path, m.Cli.AtomicDirectoryInventory],
+        observations: MutableMapping[Path, p.Cli.AtomicDirectoryInventory],
         root_path: Path,
     ) -> p.Cli.AtomicDirectoryInventory:
         """Return one boundary-scoped native observation of a physical directory.
@@ -715,7 +719,7 @@ class FlextCliUtilitiesAtomicTreeInventory:
         root_path: Path,
     ) -> Generator[
         tuple[
-            m.Cli.AtomicPhysicalTreeEntry,
+            p.Cli.AtomicPhysicalTreeEntry,
             FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         ]
     ]:

@@ -100,7 +100,7 @@ class FlextCliUtilitiesXlsxConditional(
                 dxf=differential,
             )
         comparison = plan.comparison
-        if isinstance(comparison, m.Cli.XlsxRangeComparison):
+        if isinstance(comparison, p.Cli.XlsxRangeComparison):
             formulae = (comparison.minimum, comparison.maximum)
         else:
             formulae = (comparison.expression,)

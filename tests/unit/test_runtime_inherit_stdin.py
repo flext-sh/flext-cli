@@ -14,8 +14,6 @@ from __future__ import annotations
 
 import sys
 
-import pytest
-
 from tests import c, m, tm, u
 
 _READER = "import sys; sys.stdout.write(sys.stdin.read())"
@@ -93,5 +91,5 @@ class TestsFlextCliRuntimeInheritStdin:
     @staticmethod
     def test_inherit_stdin_and_input_data_are_one_source() -> None:
         """Declaring both stdin sources is rejected before any effect."""
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             m.Cli.ProcessOptions(inherit_stdin=True, input_data=_PAYLOAD)

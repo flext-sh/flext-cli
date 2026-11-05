@@ -8,8 +8,6 @@ from __future__ import annotations
 
 from typing import Annotated
 
-import pytest
-
 from flext_cli import FlextCli, cli
 from tests import m, tm, u
 
@@ -99,5 +97,5 @@ class TestsFlextCliServicePart03:
             command=lambda: (_ for _ in ()).throw(ValueError("boom")),
         )
 
-        with pytest.raises(ValueError, match="boom"):
+        with u.Tests.raises(ValueError, match="boom"):
             cli.execute_app(app, prog_name="error-app", args=["boom"])

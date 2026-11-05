@@ -2,7 +2,7 @@
 
 Exercises only the observable public surface:
 
-* ``flext_cli.__version__`` / ``flext_cli.__version_info__`` package metadata.
+* ``__version__`` / ``__version_info__`` package metadata.
 * ``FlextCliVersion`` (the MRO-derived version class re-exported publicly).
 * ``c.Cli.CLI_VERSION`` (the runtime version constant).
 * ``cli.execute()`` runtime status payload that publishes the version.
@@ -15,8 +15,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import flext_cli
-from flext_cli import FlextCliVersion, cli
+from flext_cli import FlextCliVersion, __version__, __version_info__, cli
 from tests import c, tm
 
 
@@ -25,28 +24,28 @@ class TestsFlextCliVersion:
 
     @staticmethod
     def test_package_version_is_nonempty_trimmed_string() -> None:
-        """``flext_cli.__version__`` is a non-empty, whitespace-trimmed string."""
-        version = flext_cli.__version__
+        """``__version__`` is a non-empty, whitespace-trimmed string."""
+        version = __version__
         tm.that(version, is_=str)
         tm.ok(bool(version))
         tm.that(version, eq=version.strip())
 
     @staticmethod
     def test_package_version_matches_semver_contract() -> None:
-        """``flext_cli.__version__`` honours the published semver pattern."""
-        tm.that(c.PATTERN_SEMVER_RE.match(flext_cli.__version__), none=False)
+        """``__version__`` honours the published semver pattern."""
+        tm.that(c.PATTERN_SEMVER_RE.match(__version__), none=False)
 
     @staticmethod
     def test_package_version_info_is_tuple_of_at_least_three_parts() -> None:
-        """``flext_cli.__version_info__`` is a tuple carrying major/minor/patch."""
-        info = flext_cli.__version_info__
+        """``__version_info__`` is a tuple carrying major/minor/patch."""
+        info = __version_info__
         tm.that(info, is_=tuple)
         tm.that(len(info), gte=3)
 
     @staticmethod
     def test_package_version_info_core_parts_are_non_negative_ints() -> None:
         """The leading major/minor/patch parts are non-negative integers."""
-        info = flext_cli.__version_info__
+        info = __version_info__
         for part in info[:3]:
             tm.that(part, is_=int)
             tm.fail(isinstance(part, bool))
@@ -59,14 +58,14 @@ class TestsFlextCliVersion:
         This is the core invariant of the MRO-derived version surface:
         both public attributes describe the same release.
         """
-        release = ".".join(str(part) for part in flext_cli.__version_info__)
-        tm.ok(flext_cli.__version__.startswith(release))
+        release = ".".join(str(part) for part in __version_info__)
+        tm.ok(__version__.startswith(release))
 
     @staticmethod
     def test_facade_class_and_module_version_agree() -> None:
         """The public ``FlextCliVersion`` class and module exports match."""
-        tm.that(FlextCliVersion.__version__, eq=flext_cli.__version__)
-        tm.that(FlextCliVersion.__version_info__, eq=flext_cli.__version_info__)
+        tm.that(FlextCliVersion.__version__, eq=__version__)
+        tm.that(FlextCliVersion.__version_info__, eq=__version_info__)
 
     @staticmethod
     def test_cli_version_constant_matches_semver_contract() -> None:

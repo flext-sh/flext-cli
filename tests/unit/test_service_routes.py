@@ -18,7 +18,7 @@ from flext_cli import cli
 from tests import c, h, m, p, r, s, t, tm, u
 
 
-@pytest.mark.usefixtures("preserve_logging")
+@c.Tests.MARK.usefixtures("preserve_logging")
 class TestsFlextCliServiceRoutes:
     """Behavioral contract of service-derived CLI routes."""
 
@@ -112,8 +112,8 @@ class TestsFlextCliServiceRoutes:
     @pytest.mark.parametrize(
         "provider_available",
         [
-            pytest.param(True, id="configured-provider"),
-            pytest.param(False, id="unavailable-provider-never-constructed"),
+            u.Tests.param(True, id="configured-provider"),
+            u.Tests.param(False, id="unavailable-provider-never-constructed"),
         ],
     )
     def test_invalid_input_exits_non_zero_with_validation_cause(
@@ -268,7 +268,7 @@ class TestsFlextCliServiceRoutes:
             success_formatter=render,
         )
 
-        with pytest.raises(
+        with u.Tests.raises(
             ValueError, match=f"^{origin} rejected execution$"
         ) as captured:
             route.handler(m.Tests.ServiceGreeting(name="ana"))
@@ -292,7 +292,7 @@ class TestsFlextCliServiceRoutes:
         """Executing a command builds the service through the provider."""
         app = self._app(self._unconfigured)
 
-        with pytest.raises(RuntimeError, match="not configured"):
+        with u.Tests.raises(RuntimeError, match="not configured"):
             cli.execute_app(app, prog_name="greeter", args=["report"])
 
     @staticmethod
@@ -302,5 +302,5 @@ class TestsFlextCliServiceRoutes:
         class Hidden(m.BaseModel):
             token: str = m.Field(exclude=True)
 
-        with pytest.raises(TypeError, match="token"):
+        with u.Tests.raises(TypeError, match="token"):
             cli.model_command(Hidden, lambda _params: True)

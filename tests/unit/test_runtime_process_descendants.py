@@ -11,10 +11,8 @@ import sys
 import time
 from typing import TYPE_CHECKING, ClassVar, override
 
-import pytest
-
 from flext_cli import FlextCliUtilitiesCli
-from tests import m, p, tm
+from tests import m, p, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -82,7 +80,7 @@ class TestsFlextCliRuntimeProcessDescendants:
         )
         tm.fail(_process_exists(child_pid))
         if os.name != "nt":
-            with pytest.raises(ProcessLookupError):
+            with u.Tests.raises(ProcessLookupError):
                 os.killpg(process_group, 0)
 
     @staticmethod

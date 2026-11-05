@@ -48,7 +48,7 @@ class TestsFlextCliTypings:
         payload: t.JsonValue,
     ) -> None:
         """STR_SEQUENCE_ADAPTER raises ValidationError on invalid input."""
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.Cli.STR_SEQUENCE_ADAPTER.validate_python(payload)
 
     @staticmethod
@@ -69,7 +69,7 @@ class TestsFlextCliTypings:
         payload: t.JsonValue,
     ) -> None:
         """JSON_MAPPING_ADAPTER raises ValidationError for non-object input."""
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.Cli.JSON_MAPPING_ADAPTER.validate_python(payload)
 
     @staticmethod

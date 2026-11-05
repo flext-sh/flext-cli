@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, m, p, tm, u
+from tests import c, m, p, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -66,7 +66,7 @@ class TestsFlextCliRuntimeStreamedProcess:
     @staticmethod
     def test_combined_output_is_byte_exact_and_live(
         tmp_path: Path,
-        capfd: pytest.CaptureFixture[str],
+        capfd: t.Tests.CaptureFixture[str],
     ) -> None:
         """Copy one combined byte stream to the terminal and durable log."""
         output_file = tmp_path / "combined.log"
@@ -103,7 +103,7 @@ class TestsFlextCliRuntimeStreamedProcess:
     def test_separate_output_drains_parallel_binary_streams(
         self,
         tmp_path: Path,
-        capfd: pytest.CaptureFixture[str],
+        capfd: t.Tests.CaptureFixture[str],
         *,
         live: bool,
     ) -> None:
@@ -264,7 +264,7 @@ class TestsFlextCliRuntimeStreamedProcess:
     @staticmethod
     def test_silent_live_process_emits_progress_only_to_stderr(
         tmp_path: Path,
-        capfd: pytest.CaptureFixture[str],
+        capfd: t.Tests.CaptureFixture[str],
     ) -> None:
         """Keep silent children observable without contaminating durable bytes."""
         output_file = tmp_path / "silent.log"
@@ -316,8 +316,8 @@ class TestsFlextCliRuntimeStreamedProcess:
     @pytest.mark.parametrize(
         "payload",
         [
-            pytest.param(b"binary-pipe\x00" * 131_072, id="binary"),
-            pytest.param("texto-pipe-á" * 131_072, id="text"),
+            u.Tests.param(b"binary-pipe\x00" * 131_072, id="binary"),
+            u.Tests.param("texto-pipe-á" * 131_072, id="text"),
         ],
     )
     def test_input_larger_than_pipe_capacity_is_streamed_without_deadlock(

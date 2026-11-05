@@ -44,7 +44,7 @@ from tests import c, m
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-from tests import p, t
+from tests import c, p, t, u
 
 
 def _scripted_reader(

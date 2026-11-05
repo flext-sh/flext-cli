@@ -164,7 +164,7 @@ class TestsFlextCliAtomicDirectoryIdentity:
     def test_state_model_rejects_reparse_identity(tmp_path: Path) -> None:
         """Keep a nonzero host reparse tag outside the public CAS contract."""
         parent_state = tmp_path.lstat()
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             m.Cli.AtomicDirectoryState(
                 path=tmp_path / "reparse",
                 exists=True,

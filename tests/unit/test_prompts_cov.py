@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, p, tm
+from tests import c, p, tm, u
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -63,7 +63,7 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """An input-port failure escapes ``prompt`` with its original cause."""
         prompts = make_prompts(error=ValueError("boom"))
-        with pytest.raises(ValueError, match="boom"):
+        with u.Tests.raises(ValueError, match="boom"):
             prompts.prompt("message", default="default")
 
     @staticmethod
@@ -136,7 +136,7 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """Any other input-port failure escapes ``confirm`` unchanged."""
         prompts = make_prompts(error=ValueError("bad"))
-        with pytest.raises(ValueError, match="bad"):
+        with u.Tests.raises(ValueError, match="bad"):
             prompts.confirm("message", default=False)
 
     @staticmethod
@@ -176,5 +176,5 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """A password-port failure escapes ``prompt_password`` unchanged."""
         prompts = make_prompts(error=ValueError("no tty"))
-        with pytest.raises(ValueError, match="no tty"):
+        with u.Tests.raises(ValueError, match="no tty"):
             prompts.prompt_password("Password:")

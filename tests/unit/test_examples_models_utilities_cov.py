@@ -116,7 +116,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
         match: str,
     ) -> None:
         """Verify that advanced settings rejects invalid field."""
-        with pytest.raises(ValueError, match=match):
+        with u.Tests.raises(ValueError, match=match):
             m.Examples.AppSettingsAdvanced.model_validate(kwargs)
 
     @staticmethod
@@ -135,7 +135,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
     @staticmethod
     def test_database_config_rejects_invalid_host() -> None:
         """Verify that database config rejects invalid host."""
-        with pytest.raises(ValueError, match=c.EXAMPLE_ERR_INVALID_HOST):
+        with u.Tests.raises(ValueError, match=c.EXAMPLE_ERR_INVALID_HOST):
             m.Examples.AdvancedDatabaseConfig(
                 host="invalid-host",
                 name="production",

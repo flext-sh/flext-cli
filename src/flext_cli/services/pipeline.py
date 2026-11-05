@@ -75,7 +75,7 @@ class FlextCliPipeline(s[p.Cli.RuntimeStatus]):
         output: t.JsonMapping | None = None,
         duration_ms: float = 0.0,
         error: str | None = None,
-    ) -> p.Cli.PipelineStageResult:
+    ) -> m.Cli.PipelineStageResult:
         """Build one typed stage result payload.
 
         Args:

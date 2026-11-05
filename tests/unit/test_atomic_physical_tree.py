@@ -224,7 +224,7 @@ class TestsFlextCliAtomicPhysicalTree:
             {"device": entry.device + 1},
         ):
             forged = entry.model_copy(update=update)
-            with pytest.raises(m.ValidationError):
+            with u.Tests.raises(m.ValidationError):
                 m.Cli.AtomicPhysicalTreeManifest(root=manifest.root, entries=(forged,))
 
     def test_forged_parent_binding_fails_before_every_delete(

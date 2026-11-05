@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 
-from flext_cli import p, s, t, u
+from flext_cli import m, p, s, t, u
 
 
 class FlextCliFileTools(s[p.Cli.RuntimeStatus]):
@@ -42,7 +42,7 @@ class FlextCliFileTools(s[p.Cli.RuntimeStatus]):
         return u.Cli.files_read_text(Path(file_path))
 
     @staticmethod
-    def read_json_model[M: t.Cli.ModelLike](
+    def read_json_model[M: m.BaseModel](
         file_path: t.Cli.TextPath,
         model_type: t.ModelClass[M],
     ) -> p.Result[M]:

@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from flext_cli import cli
-from tests import m, tm, u
+from tests import m, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -90,7 +90,7 @@ class TestsFlextCliFilesCov:
             tm.that(result.value, eq=m.Tests.YamlService.model_validate_json(content))
         else:
             tm.that(result.exception, is_=m.ValidationError)
-            with pytest.raises(m.ValidationError) as raised:
+            with u.Tests.raises(m.ValidationError) as raised:
                 _ = result.value
             tm.ok(raised.value is result.exception)
 
@@ -104,7 +104,7 @@ class TestsFlextCliFilesCov:
         tm.that(exception, is_=FileNotFoundError)
         if isinstance(exception, FileNotFoundError):
             tm.that(exception.filename, eq=str(path))
-        with pytest.raises(FileNotFoundError) as raised:
+        with u.Tests.raises(FileNotFoundError) as raised:
             _ = result.value
         tm.ok(raised.value is exception)
 
@@ -141,7 +141,7 @@ class TestsFlextCliFilesCov:
     @pytest.mark.parametrize("inside_git", [True, False], ids=["git", "plain"])
     def test_files_matching_selects_visible_files_by_pattern(
         tmp_path: Path,
-        monkeypatch: pytest.MonkeyPatch,
+        monkeypatch: t.Tests.MonkeyPatch,
         *,
         inside_git: bool,
     ) -> None:

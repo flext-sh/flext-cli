@@ -10,7 +10,7 @@ from typing import Annotated
 
 from flext_core import m
 
-from flext_cli import c, t
+from flext_cli import c, p, t
 
 
 class FlextCliModelsPptxPresentation:
@@ -41,7 +41,10 @@ class FlextCliModelsPptxPresentation:
             ]
             | None
         ) = m.Field(default=None, description="Optional source presentation.")
-        plan: FlextCliModelsPptxPresentation.PptxPresentationPlan = m.Field(
+        plan: Annotated[
+            p.Cli.PptxPresentationPlan,
+            t.schema_for_model(FlextCliModelsPptxPresentation.PptxPresentationPlan),
+        ] = m.Field(
             description="Validated presentation plan.",
         )
 
@@ -50,7 +53,10 @@ class FlextCliModelsPptxPresentation:
             bytes,
             m.Field(min_length=1, description="Rendered presentation bytes."),
         ]
-        plan: FlextCliModelsPptxPresentation.PptxPresentationPlan = m.Field(
+        plan: Annotated[
+            p.Cli.PptxPresentationPlan,
+            t.schema_for_model(FlextCliModelsPptxPresentation.PptxPresentationPlan),
+        ] = m.Field(
             description="Exact source plan.",
         )
 
