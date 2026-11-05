@@ -21,7 +21,7 @@ dependencies = [
   "click>=8.5.0",
   "defusedxml>=0.7.1",
   "filelock>=4.2.4",
-  "flext-core @ git+https://github.com/flext-sh/flext-core.git@96ad199ba1c00e58e14aa25a45a22643c13c4830",
+  "flext-core @ git+https://github.com/flext-sh/flext-core.git@a81c9648da1491d06280fbebaed074ca2fcd4b1a",
   "jinja2>=3.1.6",
   "jsonschema>=4.26.0",
   "markdown-it-py>=3.0.0",
@@ -62,13 +62,13 @@ Homepage = "https://github.com/flext-sh/flext-cli"
 [dependency-groups]
 dev = [
   "types-networkx",
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@798e375c90d7f4dad93987604dc64a87de74cea8",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@6289e135bb66f51ce0bfcaf809bbeed93419e506",
   "mkdocstrings-python>=2.0.9",
   "actionlint-py>=1.7.12.24",
   "bandit>=1.9.4",
   "deptry",
   "editables>=0.6",
-  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@18d8bd4d1a0f1305378b8d38d443fbb51ea92551",
+  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@113511b7918e2149ef332ec84942c4e3345f0913",
   "hypothesis",
   "mkdocs",
   "mkdocs-autorefs",
@@ -124,7 +124,7 @@ dev = [
   "yamlfix>=1.19.1",
 ]
 codegen = [
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@798e375c90d7f4dad93987604dc64a87de74cea8",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@6289e135bb66f51ce0bfcaf809bbeed93419e506",
 ]
 
 [tool.flext.docs]
@@ -651,9 +651,9 @@ environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
 link-mode = "copy"
 override-dependencies = [
   "rope @ git+https://github.com/marlon-costa-dc/rope.git@5ebf6d5c477fbf8fc66191bd991a27ca1b9eed7a",
-  "flext-core @ git+https://github.com/flext-sh/flext-core.git@96ad199ba1c00e58e14aa25a45a22643c13c4830",
-  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@798e375c90d7f4dad93987604dc64a87de74cea8",
-  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@18d8bd4d1a0f1305378b8d38d443fbb51ea92551",
+  "flext-core @ git+https://github.com/flext-sh/flext-core.git@a81c9648da1491d06280fbebaed074ca2fcd4b1a",
+  "flext-infra @ git+https://github.com/flext-sh/flext-infra.git@6289e135bb66f51ce0bfcaf809bbeed93419e506",
+  "flext-tests @ git+https://github.com/flext-sh/flext-tests.git@113511b7918e2149ef332ec84942c4e3345f0913",
 ]
 
 [[tool.uv.exclude-dependencies]]

@@ -5,12 +5,12 @@ Infra:
       candidate_dependencies:
       - distribution: flext-core
         url: https://github.com/flext-sh/flext-core.git
-        commit: 96ad199ba1c00e58e14aa25a45a22643c13c4830
+        commit: a81c9648da1491d06280fbebaed074ca2fcd4b1a
       - distribution: flext-tests
         url: https://github.com/flext-sh/flext-tests.git
-        commit: 18d8bd4d1a0f1305378b8d38d443fbb51ea92551
+        commit: 113511b7918e2149ef332ec84942c4e3345f0913
       - distribution: flext-infra
         url: https://github.com/flext-sh/flext-infra.git
-        commit: 798e375c90d7f4dad93987604dc64a87de74cea8
+        commit: 6289e135bb66f51ce0bfcaf809bbeed93419e506
       namespace_scan_dirs:
       - src
