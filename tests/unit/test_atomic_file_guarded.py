@@ -22,12 +22,26 @@ class TestsFlextCliAtomicFileGuarded:
     def test_audit_boundary_preserves_publication_contract(
         tmp_path: Path, scenario: str
     ) -> None:
-        """Retain native failure, competing bytes and authenticated stage cleanup."""
-        consumer = Path(__file__).parents[1] / "fixtures" / "atomic_guarded_consumer.py"
-        script = tmp_path / "consumer.py"
-        script.write_bytes(consumer.read_bytes())
+        """Retain native failure, competing bytes and authenticated stage cleanup.
+
+        The consumer imports the ``tests`` facade tier (0d1c3e24), so it runs as
+        the ``tests.fixtures.atomic_guarded_consumer`` module from the project
+        root, as ``tests.fixtures.dag_report`` does; ``-E`` keeps ``PYTHON*``
+        variables out of the fresh interpreter.
+        """
+        project = Path(__file__).resolve().parents[2]
         outcome = tm.ok(
-            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path), scenario)),
+            u.Cli.run_raw(
+                (
+                    sys.executable,
+                    "-E",
+                    "-m",
+                    "tests.fixtures.atomic_guarded_consumer",
+                    str(tmp_path),
+                    scenario,
+                ),
+                cwd=project,
+            ),
         )
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
         tm.that(outcome.stderr, eq="")
