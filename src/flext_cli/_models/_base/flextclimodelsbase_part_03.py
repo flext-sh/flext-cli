@@ -21,6 +21,10 @@ class FlextCliModelsBasePart03:
         """Exact empty-directory presence and physical identity."""
 
         atomic_state_label: ClassVar[str] = "atomic directory state"
+        atomic_presence_message: ClassVar[str] = (
+            "atomic directory state requires mode, device, inode, and link "
+            "count exactly when it exists"
+        )
 
         exists: Annotated[
             bool,
@@ -28,7 +32,7 @@ class FlextCliModelsBasePart03:
         ]
 
         @override
-        def physically_present(self) -> bool:
+        def _physically_present(self) -> bool:
             """Return whether the directory exists.
 
             Returns:

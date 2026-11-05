@@ -171,7 +171,9 @@ class FlextCliModelsBasePart09:
     class AtomicDirectoryInventory(FlextCliModelsBasePart08.AtomicNativeSelections):
         """One physical directory and its complete immediate child elections."""
 
-        atomic_selection_label: ClassVar[str] = "atomic directory"
+        atomic_queries_message: ClassVar[str] = (
+            "atomic directory queries require ordered lexical child names"
+        )
 
         root: Annotated[
             p.Cli.AtomicPhysicalTreeEntry,
@@ -193,7 +195,6 @@ class FlextCliModelsBasePart09:
 
         @m.model_validator(mode="after")
         def _validate_names(self) -> Self:
-            self.validate_native_selections()
             names = tuple(entry.name for entry in self.entries)
             if self.root.kind != "directory" or names != tuple(sorted(set(names))):
                 msg = "atomic directory inventory requires ordered unique children"

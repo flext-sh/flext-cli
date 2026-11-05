@@ -23,8 +23,8 @@ class FlextCliModelsBasePart02:
         """Physical identity shared by every descriptor-authenticated leaf state.
 
         A subclass whose presence is not the physical device itself overrides
-        ``physically_present``; the identity validation is shared by every
-        state.
+        ``_physically_present``; the identity validation is shared by every
+        state, and each subclass keeps its own failure wording.
         """
 
         model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
@@ -33,6 +33,10 @@ class FlextCliModelsBasePart02:
             arbitrary_types_allowed=True,
         )
         atomic_state_label: ClassVar[str] = "atomic physical state"
+        atomic_presence_message: ClassVar[str] = (
+            "atomic physical state requires mode, device, inode, and link count "
+            "exactly when it exists"
+        )
 
         path: Annotated[Path, m.Field(description="Absolute leaf path")]
         parent_device: Annotated[
@@ -111,7 +115,7 @@ class FlextCliModelsBasePart02:
                 label=cls.atomic_state_label,
             )
 
-        def physically_present(self) -> bool:
+        def _physically_present(self) -> bool:
             """Return whether the leaf physically exists.
 
             Returns:
@@ -134,14 +138,10 @@ class FlextCliModelsBasePart02:
 
             """
             label = self.atomic_state_label
-            present = self.physically_present()
+            present = self._physically_present()
             physical = (self.mode, self.device, self.inode, self.link_count)
             if any((value is not None) != present for value in physical):
-                msg = (
-                    f"{label} requires mode, device, inode, and link count "
-                    "exactly when it exists"
-                )
-                raise ValueError(msg)
+                raise ValueError(self.atomic_presence_message)
             if not present and (
                 self.file_attributes is not None or self.reparse_tag is not None
             ):
@@ -168,6 +168,10 @@ class FlextCliModelsBasePart02:
             val_json_bytes="base64",
         )
         atomic_state_label: ClassVar[str] = "atomic file state"
+        atomic_presence_message: ClassVar[str] = (
+            "atomic file identity must contain mode, device, inode, and link "
+            "count, or none of them"
+        )
 
     class AtomicFileState(AtomicFileIdentity):
         """Exact content and physical identity for one regular file version."""

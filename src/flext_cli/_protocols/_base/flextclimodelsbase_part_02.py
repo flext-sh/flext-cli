@@ -67,10 +67,6 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart02:
             """Host reparse tag when available."""
             ...
 
-        def physically_present(self) -> bool:
-            """Return whether the leaf physically exists."""
-            ...
-
     @runtime_checkable
     class AtomicFileIdentity(AtomicPhysicalIdentity, Protocol):
         """Structural data contract projected from the owning model."""

@@ -22,7 +22,9 @@ class FlextCliModelsBasePart08:
     class AtomicNativeSelections(m.ContractModel):
         """Native candidate predicates and membership selections of one plan."""
 
-        atomic_selection_label: ClassVar[str] = "atomic native"
+        atomic_queries_message: ClassVar[str] = (
+            "atomic native queries require ordered lexical child names"
+        )
 
         queries: tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...] = m.Field(
             default=(),
@@ -38,8 +40,14 @@ class FlextCliModelsBasePart08:
             description="Consumed membership selections, each excluding named children",
         )
 
-        def validate_native_selections(self) -> None:
+        @m.model_validator(mode="after")
+        def _validate_native_selections(self) -> Self:
             """Require ordered, unique, lexical child names in every selection.
+
+            Inherited by every plan, so no subclass can skip the contract.
+
+            Returns:
+                The validated model instance.
 
             Raises:
                 ValueError: If a membership selection or candidate query is
@@ -48,7 +56,7 @@ class FlextCliModelsBasePart08:
             """
 
             def lexical(name: str) -> bool:
-                return name not in {"", ".", ".."} and "/" not in name
+                return name not in {"", ".", ".."} and Path(name).name == name
 
             if self.membership_queries != tuple(
                 sorted(set(self.membership_queries))
@@ -62,11 +70,8 @@ class FlextCliModelsBasePart08:
             if self.queries != tuple(sorted(set(self.queries))) or not all(
                 lexical(name) for name, _predicate in self.queries
             ):
-                msg = (
-                    f"{self.atomic_selection_label} queries require ordered "
-                    "lexical child names"
-                )
-                raise ValueError(msg)
+                raise ValueError(self.atomic_queries_message)
+            return self
 
     class AtomicDirectoryChainPlan(AtomicNativeSelections):
         """Exact existing anchor plus contiguous directories observed absent.
@@ -74,7 +79,9 @@ class FlextCliModelsBasePart08:
         Its native selections are consumed beneath the absent parent.
         """
 
-        atomic_selection_label: ClassVar[str] = "atomic directory-chain"
+        atomic_queries_message: ClassVar[str] = (
+            "atomic directory-chain queries require lexical unique children"
+        )
 
         target: Annotated[Path, m.Field(description="Requested directory path")]
         anchor_path: Annotated[
@@ -90,13 +97,7 @@ class FlextCliModelsBasePart08:
             m.Field(ge=0, strict=True, description="Anchor inode"),
         ]
         anchor_ancestry: Annotated[
-            tuple[
-                tuple[
-                    Annotated[int, m.Field(ge=0, strict=True)],
-                    Annotated[int, m.Field(ge=0, strict=True)],
-                ],
-                ...,
-            ],
+            tuple[tuple[int, int], ...],
             m.Field(min_length=1, description="Root-to-anchor physical identities"),
         ]
         directories: Annotated[
@@ -129,8 +130,14 @@ class FlextCliModelsBasePart08:
 
         @m.model_validator(mode="after")
         def _validate_topology(self) -> Self:
-            self.validate_native_selections()
-            if self.anchor_ancestry[-1] != (self.anchor_device, self.anchor_inode):
+            if self.anchor_ancestry[-1] != (
+                self.anchor_device,
+                self.anchor_inode,
+            ) or any(
+                isinstance(item, bool) or item < 0
+                for identity in self.anchor_ancestry
+                for item in identity
+            ):
                 msg = "atomic directory-chain ancestry is inconsistent"
                 raise ValueError(msg)
             chain = (self.anchor_path, *self.directories)

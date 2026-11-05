@@ -41,10 +41,6 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart08:
             """Consumed membership selections, each excluding named children."""
             ...
 
-        def validate_native_selections(self) -> None:
-            """Require ordered, unique, lexical child names in every selection."""
-            ...
-
     @runtime_checkable
     class AtomicDirectoryChainPlan(AtomicNativeSelections, Protocol):
         """Structural data contract projected from the owning model."""
