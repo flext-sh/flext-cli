@@ -279,7 +279,10 @@ class FlextCliUtilitiesTemplate:
         return r[p.Cli.AuthenticatedTemplateRender].ok(
             m.Cli.AuthenticatedTemplateRender(
                 rendered=rendered.value,
-                source_states=tuple(loader.source_states.values()),
+                source_states=tuple(
+                    m.Cli.AtomicFileState.model_validate(state)
+                    for state in loader.source_states.values()
+                ),
             ),
         )
 

@@ -50,7 +50,7 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
         value_sheet: Worksheet,
         *,
         position: int,
-    ) -> p.Result[p.Cli.XlsxSheetSnapshot]:
+    ) -> p.Result[m.Cli.XlsxSheetSnapshot]:
         try:
             snapshot = cls._snapshot_sheet_unchecked(
                 formula_sheet,
@@ -58,11 +58,11 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
                 position=position,
             )
         except (TypeError, m.ValidationError, ValueError) as exc:
-            return r[p.Cli.XlsxSheetSnapshot].fail(
+            return r[m.Cli.XlsxSheetSnapshot].fail(
                 f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}",
                 exception=exc,
             )
-        return r[p.Cli.XlsxSheetSnapshot].ok(snapshot)
+        return r[m.Cli.XlsxSheetSnapshot].ok(snapshot)
 
     @classmethod
     def _snapshot_sheet_unchecked(
@@ -71,7 +71,7 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
         value_sheet: Worksheet,
         *,
         position: int,
-    ) -> p.Cli.XlsxSheetSnapshot:
+    ) -> m.Cli.XlsxSheetSnapshot:
         if formula_sheet.title != value_sheet.title:
             msg = (
                 f"Worksheet view mismatch: {formula_sheet.title} != {value_sheet.title}"

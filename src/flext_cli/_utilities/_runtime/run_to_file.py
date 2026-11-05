@@ -52,7 +52,11 @@ class FlextCliUtilitiesRuntimeRunToFile(
             The resulting ``p.Result[p.Cli.ProcessOutcome]``.
 
         """
-        launch = options if options is not None else m.Cli.ProcessOptions()
+        launch = (
+            m.Cli.ProcessOptions.model_validate(options, from_attributes=True)
+            if options is not None
+            else m.Cli.ProcessOptions()
+        )
         return cls._execute_streamed_process(
             m.Cli.RuntimeProcessRequest(
                 cmd=cmd,
