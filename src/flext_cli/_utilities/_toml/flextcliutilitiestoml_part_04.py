@@ -59,12 +59,14 @@ class FlextCliUtilitiesTomlPart04:
             The resulting ``bool``.
 
         """
-        current = FlextCliUtilitiesTomlPart01.toml_as_string_list(
-            FlextCliUtilitiesTomlPart03.toml_value(container, key),
+        normalized_expected = FlextCliUtilitiesTomlPart01.toml_string_list_change(
+            FlextCliUtilitiesTomlPart01.toml_as_string_list(
+                FlextCliUtilitiesTomlPart03.toml_value(container, key),
+            ),
+            expected,
+            sort_values=sort_values,
         )
-        normalized_expected = sorted(expected) if sort_values else [*expected]
-        normalized_current = sorted(current) if sort_values else [*current]
-        if normalized_current == normalized_expected:
+        if normalized_expected is None:
             return False
         original = FlextCliUtilitiesTomlPart02.toml_item_child(container, key)
         if (

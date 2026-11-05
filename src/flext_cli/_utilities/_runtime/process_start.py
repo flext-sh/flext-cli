@@ -82,10 +82,10 @@ class FlextCliUtilitiesRuntimeProcessStart:
         job_handle: int,
     ) -> None:
         _ = cls._signal_process_tree(
-process,
-job_handle,
-m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
-)
+            process,
+            job_handle,
+            m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
+        )
         process.wait()
         _ = cls._windows_job_close(job_handle)
 

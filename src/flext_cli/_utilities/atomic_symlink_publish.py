@@ -97,10 +97,8 @@ class FlextCliUtilitiesAtomicSymlinkPublish:
         if before.target is None:
             FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
             FlextCliUtilitiesAtomicDirectoryNoreplace.rename_noreplace(
-                parent.descriptor,
-                staged_path.name,
-                parent.descriptor,
-                before.path.name,
+                (parent.descriptor, staged_path.name),
+                (parent.descriptor, before.path.name),
                 path=before.path,
             )
         else:

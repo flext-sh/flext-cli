@@ -10,6 +10,7 @@ import errno
 
 from flext_cli import p
 from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectoryModel,
     FlextCliUtilitiesAtomicDirectoryState,
@@ -40,8 +41,8 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
         )
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_delete_capabilities(path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
-                state, parent.state
+            FlextCliUtilitiesAtomicFileModel.require_parent(
+                state, parent.state, subject="directory"
             )
             observed = (
                 FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(

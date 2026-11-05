@@ -34,6 +34,7 @@ if TYPE_CHECKING:
     from flext_cli._protocols.process import FlextCliProtocolsProcess
     from flext_cli._protocols.process_runtime import FlextCliProtocolsProcessRuntime
     from flext_cli._protocols.rules import FlextCliProtocolsRules
+    from flext_cli._protocols.table_render import FlextCliProtocolsTableRender
     from flext_cli._protocols.template import FlextCliProtocolsTemplate
     from flext_cli._protocols.xlsx import FlextCliProtocolsXlsx
     from flext_cli._protocols.xlsx_archive import FlextCliProtocolsXlsxArchive
@@ -66,6 +67,7 @@ __all__: tuple[str, ...] = (
     "FlextCliProtocolsProcess",
     "FlextCliProtocolsProcessRuntime",
     "FlextCliProtocolsRules",
+    "FlextCliProtocolsTableRender",
     "FlextCliProtocolsTemplate",
     "FlextCliProtocolsXlsx",
     "FlextCliProtocolsXlsxArchive",
@@ -99,6 +101,7 @@ install_lazy_exports(
         "FlextCliProtocolsProcess": ".process",
         "FlextCliProtocolsProcessRuntime": ".process_runtime",
         "FlextCliProtocolsRules": ".rules",
+        "FlextCliProtocolsTableRender": ".table_render",
         "FlextCliProtocolsTemplate": ".template",
         "FlextCliProtocolsXlsx": ".xlsx",
         "FlextCliProtocolsXlsxArchive": ".xlsx_archive",

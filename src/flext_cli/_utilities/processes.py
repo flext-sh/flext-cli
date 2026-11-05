@@ -113,10 +113,10 @@ class FlextCliUtilitiesProcesses(FlextCliUtilitiesRuntime):
             """
             if self._session_leader:
                 return self._signal_process_tree(
-self._process,
-0,
-m.Cli.ProcessTreeSignal(signal_number=signal_number, force=force),
-)
+                    self._process,
+                    0,
+                    m.Cli.ProcessTreeSignal(signal_number=signal_number, force=force),
+                )
             if self.poll() is not None:
                 return r[bool].ok(value=True)
             try:

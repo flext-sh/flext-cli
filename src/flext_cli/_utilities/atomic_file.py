@@ -65,24 +65,19 @@ class FlextCliUtilitiesAtomicFile:
                 parent=parent,
             )
             if planned is None:
-                guarded = False
-                expected_content = None
                 expected_mode: (
                     int | FlextCliUtilitiesAtomicFileMode.NoModePrecondition | None
                 ) = FlextCliUtilitiesAtomicFileMode.NO_MODE_PRECONDITION
             else:
-                guarded = True
-                expected_content = planned.content
                 expected_mode = planned.mode
                 FlextCliUtilitiesAtomicFileModel.require_parent(planned, parent.state)
                 FlextCliUtilitiesAtomicFileModel.require_observed(planned, expected)
-            FlextCliUtilitiesAtomicFileState.validate_precondition(
-                path,
-                expected,
-                expected_content,
-                enabled=guarded,
-                parent=parent,
-            )
+                FlextCliUtilitiesAtomicFileState.validate_precondition(
+                    path,
+                    expected,
+                    planned.content,
+                    parent=parent,
+                )
             FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
                 path,
                 expected,
@@ -231,12 +226,14 @@ class FlextCliUtilitiesAtomicFile:
                 self.identity,
                 parent=self.parent,
             )
-            self.mode = FlextCliUtilitiesAtomicFileTemporary.write_and_sync(
+            FlextCliUtilitiesAtomicFileTemporary.write_exact(
                 self.descriptor,
                 self.temporary,
                 content,
                 target_mode,
-                durable=self.durable,
+            )
+            self.mode = FlextCliUtilitiesAtomicFileTemporary.synced_mode(
+                self.descriptor, durable=self.durable
             )
             os.close(self.descriptor)
             self.descriptor = None
@@ -410,7 +407,6 @@ class FlextCliUtilitiesAtomicFile:
             temporary,
             state,
             content,
-            enabled=True,
             parent=parent,
         )
         FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(

@@ -137,9 +137,7 @@ class FlextCliUtilitiesAtomicTreePhysical:
         return m.Cli.AtomicPhysicalTreeManifest(
             root=root,
             entries=tuple(
-                sorted(
-                    entries, key=FlextCliUtilitiesAtomicTreePhysical._entry_path_key
-                )
+                sorted(entries, key=FlextCliUtilitiesAtomicTreePhysical._entry_path_key)
             ),
         )
 

@@ -13,6 +13,7 @@ from typing import Never
 
 from flext_cli import p
 from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectoryModel,
     FlextCliUtilitiesAtomicDirectoryState,
@@ -71,13 +72,11 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
                 staged_path,
             ) as staged_parent,
         ):
-            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
-                destination_before,
-                destination_parent.state,
+            FlextCliUtilitiesAtomicFileModel.require_parent(
+                destination_before, destination_parent.state, subject="directory"
             )
-            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
-                staged,
-                staged_parent.state,
+            FlextCliUtilitiesAtomicFileModel.require_parent(
+                staged, staged_parent.state, subject="directory"
             )
             FlextCliUtilitiesAtomicDirectoryPublish._require_destination_absent(
                 destination_before,

@@ -12,6 +12,7 @@ from pathlib import Path
 
 from flext_cli import p
 from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicDirectoryCleanup,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectoryModel,
@@ -54,8 +55,8 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
             path
         )
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
-                before, parent.state
+            FlextCliUtilitiesAtomicFileModel.require_parent(
+                before, parent.state, subject="directory"
             )
             observed = (
                 FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(

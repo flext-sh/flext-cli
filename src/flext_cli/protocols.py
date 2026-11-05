@@ -28,6 +28,7 @@ from flext_cli._protocols import (
     FlextCliProtocolsProcess,
     FlextCliProtocolsProcessRuntime,
     FlextCliProtocolsRules,
+    FlextCliProtocolsTableRender,
     FlextCliProtocolsTemplate,
     FlextCliProtocolsXlsx,
 )
@@ -59,6 +60,7 @@ class FlextCliProtocols(flext_core_p):
         FlextCliProtocolsProcess,
         FlextCliProtocolsProcessRuntime,
         FlextCliProtocolsRules,
+        FlextCliProtocolsTableRender,
         FlextCliProtocolsTemplate,
         FlextCliProtocolsXlsx,
     ):

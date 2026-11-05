@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Literal
 
@@ -21,22 +21,22 @@ class FlextCliModelsAtomicQueries:
     class AtomicDirectoryWorkingSelectors(m.ArbitraryTypesModel):
         """Invocation-local selectors indexed by original witness identity."""
 
-        queries: Mapping[
-            int, set[tuple[str, Literal["exists", "isfile", "isdir"]]]
-        ] = m.Field(
-            default_factory=dict,
-            description="Native predicates selected per witness identity.",
+        queries: Mapping[int, set[tuple[str, Literal["exists", "isfile", "isdir"]]]] = (
+            m.Field(
+                default_factory=dict,
+                description="Native predicates selected per witness identity.",
+            )
         )
         membership_queries: Mapping[int, set[t.StrTuple]] = m.Field(
-            default_factory=dict,
+            default_factory=dict[int, set[t.StrTuple]],
             description="Membership exclusions selected per witness identity.",
         )
 
     class AtomicDirectorySelection(m.FrozenModel):
         """United query and membership selectors of agreeing witnesses."""
 
-        queries: tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...] = (
-            m.Field(description="Sorted native predicates consumed by the caller.")
+        queries: tuple[tuple[str, Literal["exists", "isfile", "isdir"]], ...] = m.Field(
+            description="Sorted native predicates consumed by the caller."
         )
         membership_queried: bool = m.Field(
             description="Whether the complete direct membership was consumed.",
@@ -62,10 +62,17 @@ class FlextCliModelsAtomicQueries:
             default=(),
             description="Own directory creations published in the boundary.",
         )
-        observations: t.Port[p.Cli.AtomicDirectoryObservations] | None = m.Field(
-            default=None,
+        directory_observations: t.Port[
+            MutableMapping[Path, p.Cli.AtomicDirectoryInventory]
+        ] = m.Field(
             exclude=True,
-            description="Native observations shared by reference, if any.",
+            description="Directory observations shared by reference in the boundary.",
+        )
+        topology_observations: t.Port[
+            MutableMapping[Path, p.Cli.AtomicDirectoryChainPlan]
+        ] = m.Field(
+            exclude=True,
+            description="Ancestry observations shared by reference in the boundary.",
         )
 
     class AtomicDirectoryQueryBoundary(m.ArbitraryTypesModel):
@@ -83,10 +90,17 @@ class FlextCliModelsAtomicQueries:
         ancestors: Mapping[Path, None] = m.Field(
             description="Every ancestor already held by a published file.",
         )
-        observations: t.Port[p.Cli.AtomicDirectoryObservations] = m.Field(
+        directory_observations: t.Port[
+            MutableMapping[Path, p.Cli.AtomicDirectoryInventory]
+        ] = m.Field(
             exclude=True,
-            description="Native observations shared inside the boundary.",
+            description="Directory observations shared by reference in the boundary.",
         )
-
+        topology_observations: t.Port[
+            MutableMapping[Path, p.Cli.AtomicDirectoryChainPlan]
+        ] = m.Field(
+            exclude=True,
+            description="Ancestry observations shared by reference in the boundary.",
+        )
 
 __all__: list[str] = ["FlextCliModelsAtomicQueries"]

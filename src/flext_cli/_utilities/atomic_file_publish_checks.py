@@ -178,7 +178,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         """
         if not isinstance(expected, m.Cli.AtomicFileReceipt):
             FlextCliUtilitiesAtomicFileState.validate_precondition(
-                path, state, expected, enabled=True, parent=parent
+                path, state, expected, parent=parent
             )
             return
         if state is None or state.st_size != expected.size:

@@ -331,10 +331,10 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
         cls._append_signal_error(
             state.cleanup_errors,
             cls._signal_process_tree(
-process,
-state.job_handle,
-m.Cli.ProcessTreeSignal(signal_number=signal.SIGTERM, force=False),
-),
+                process,
+                state.job_handle,
+                m.Cli.ProcessTreeSignal(signal_number=signal.SIGTERM, force=False),
+            ),
         )
         state.process_done.wait(min(0.1, cls._remaining(cleanup_deadline)))
         boundary = cls._process_boundary_empty(process.pid, state.job_handle)
@@ -342,10 +342,10 @@ m.Cli.ProcessTreeSignal(signal_number=signal.SIGTERM, force=False),
             cls._append_signal_error(
                 state.cleanup_errors,
                 cls._signal_process_tree(
-process,
-state.job_handle,
-m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
-),
+                    process,
+                    state.job_handle,
+                    m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
+                ),
             )
         while (
             boundary.success

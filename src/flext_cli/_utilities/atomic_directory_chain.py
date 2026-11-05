@@ -83,12 +83,12 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         plan: p.Cli.AtomicDirectoryChainPlan,
         *,
         permission_mode: int,
-        created: MutableSequence[p.Cli.AtomicDirectoryState] | None = None,
+        created: MutableSequence[p.Cli.AtomicDirectoryState],
     ) -> Sequence[p.Cli.AtomicDirectoryState]:
         """Create planned levels while retaining every completed effect.
 
-        The optional caller-owned collection records progress before the next
-        native operation. A failure never removes a successfully created level.
+        The caller-owned collection records progress before the next native
+        operation. A failure never removes a successfully created level.
 
         Returns:
             The resulting ``Sequence[p.Cli.AtomicDirectoryState]``.
@@ -108,25 +108,21 @@ class FlextCliUtilitiesAtomicDirectoryChain:
             plan.target,
         )
         FlextCliUtilitiesAtomicDirectoryChain.require_anchor(plan)
-        progress: MutableSequence[p.Cli.AtomicDirectoryState] = (
-            [] if created is None else created
-        )
-        initial_count = len(progress)
-        expected_parent = (plan.anchor_device, plan.anchor_inode)
+        initial_count = len(created)
         try:
             FlextCliUtilitiesAtomicDirectoryChain._create_chained_directories(
                 plan,
                 mode,
-                progress,
-                expected_parent,
+                created,
+                (plan.anchor_device, plan.anchor_inode),
             )
         except BaseException as operation_error:
-            for state in progress[initial_count:]:
+            for state in created[initial_count:]:
                 operation_error.add_note(
                     f"created directory receipt: {state.model_dump_json()}",
                 )
             raise
-        return tuple(progress[initial_count:])
+        return tuple(created[initial_count:])
 
     @staticmethod
     def _create_chained_directories(

@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 
 from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicParentFailure,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
     FlextCliUtilitiesAtomicFilePublishChecks,
@@ -46,10 +47,11 @@ class FlextCliUtilitiesAtomicFileCleanup:
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
         if cleanup_errors:
-            FlextCliUtilitiesAtomicFileCleanup._raise_cleanup_failure(
+            FlextCliUtilitiesAtomicParentFailure.raise_combined_failure(
                 temporary,
                 operation_error,
                 cleanup_errors,
+                ("atomic write", "temporary cleanup"),
             )
 
     @staticmethod
@@ -88,31 +90,12 @@ class FlextCliUtilitiesAtomicFileCleanup:
             except OSError as cleanup_error:
                 cleanup_errors.append(cleanup_error)
         if cleanup_errors:
-            FlextCliUtilitiesAtomicFileCleanup._raise_cleanup_failure(
+            FlextCliUtilitiesAtomicParentFailure.raise_combined_failure(
                 temporary,
                 operation_error,
                 cleanup_errors,
+                ("atomic write", "temporary cleanup"),
             )
-
-    @staticmethod
-    def _raise_cleanup_failure(
-        temporary: Path,
-        operation_error: BaseException,
-        cleanup_errors: list[OSError],
-    ) -> None:
-        cleanup_summary = "; ".join(str(error) for error in cleanup_errors)
-        message = (
-            f"atomic write failed ({operation_error}); "
-            f"temporary cleanup failed ({cleanup_summary})"
-        )
-        group_message = "atomic write and temporary cleanup failed"
-        if isinstance(operation_error, Exception):
-            causes = ExceptionGroup(group_message, [operation_error, *cleanup_errors])
-            raise OSError(errno.EIO, message, temporary) from causes
-        raise BaseExceptionGroup(
-            group_message,
-            [operation_error, *cleanup_errors],
-        ) from cleanup_errors[-1]
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicFileCleanup"]

@@ -550,476 +550,486 @@ if TYPE_CHECKING:
         return value
 
     def model_protocol_107(
+        value: (FlextCliModels.Cli.TableColumnPolicy),
+    ) -> FlextCliProtocols.Cli.TableColumnPolicy:
+        return value
+
+    def model_protocol_108(
         value: (FlextCliModels.Cli.TableConfig),
     ) -> FlextCliProtocols.Cli.TableConfig:
         return value
 
-    def model_protocol_108(
+    def model_protocol_109(
+        value: (FlextCliModels.Cli.TableLayout),
+    ) -> FlextCliProtocols.Cli.TableLayout:
+        return value
+
+    def model_protocol_110(
         value: (FlextCliModels.Cli.TableRenderRequest),
     ) -> FlextCliProtocols.Cli.TableRenderRequest:
         return value
 
-    def model_protocol_109(
+    def model_protocol_111(
         value: (FlextCliModels.Cli.TemplateRenderEntry),
     ) -> FlextCliProtocols.Cli.TemplateRenderEntry:
         return value
 
-    def model_protocol_110(
+    def model_protocol_112(
         value: (FlextCliModels.Cli.TemplateRenderOptions),
     ) -> FlextCliProtocols.Cli.TemplateRenderOptions:
         return value
 
-    def model_protocol_111(
+    def model_protocol_113(
         value: (FlextCliModels.Cli.TemplateRenderReport),
     ) -> FlextCliProtocols.Cli.TemplateRenderReport:
         return value
 
-    def model_protocol_112(
+    def model_protocol_114(
         value: (FlextCliModels.Cli.TreeEntryDetails),
     ) -> FlextCliProtocols.Cli.TreeEntryDetails:
         return value
 
-    def model_protocol_113(
+    def model_protocol_115(
         value: (FlextCliModels.Cli.TypedExtract),
     ) -> FlextCliProtocols.Cli.TypedExtract:
         return value
 
-    def model_protocol_114(
+    def model_protocol_116(
         value: (FlextCliModels.Cli.XlsxAlignmentSpec),
     ) -> FlextCliProtocols.Cli.XlsxAlignmentSpec:
         return value
 
-    def model_protocol_115(
+    def model_protocol_117(
         value: (FlextCliModels.Cli.XlsxArchiveInspection),
     ) -> FlextCliProtocols.Cli.XlsxArchiveInspection:
         return value
 
-    def model_protocol_116(
+    def model_protocol_118(
         value: (FlextCliModels.Cli.XlsxArchiveInspectionRequest),
     ) -> FlextCliProtocols.Cli.XlsxArchiveInspectionRequest:
         return value
 
-    def model_protocol_117(
+    def model_protocol_119(
         value: (FlextCliModels.Cli.XlsxArchiveInventory),
     ) -> FlextCliProtocols.Cli.XlsxArchiveInventory:
         return value
 
-    def model_protocol_118(
+    def model_protocol_120(
         value: (FlextCliModels.Cli.XlsxArchivePolicy),
     ) -> FlextCliProtocols.Cli.XlsxArchivePolicy:
         return value
 
-    def model_protocol_119(
+    def model_protocol_121(
         value: (FlextCliModels.Cli.XlsxArchiveViolation),
     ) -> FlextCliProtocols.Cli.XlsxArchiveViolation:
         return value
 
-    def model_protocol_120(
+    def model_protocol_122(
         value: (FlextCliModels.Cli.XlsxAutoFilterPlan),
     ) -> FlextCliProtocols.Cli.XlsxAutoFilterPlan:
         return value
 
-    def model_protocol_121(
+    def model_protocol_123(
         value: (FlextCliModels.Cli.XlsxAutomaticColor),
     ) -> FlextCliProtocols.Cli.XlsxAutomaticColor:
         return value
 
-    def model_protocol_122(
+    def model_protocol_124(
         value: (FlextCliModels.Cli.XlsxBlankValue),
     ) -> FlextCliProtocols.Cli.XlsxBlankValue:
         return value
 
-    def model_protocol_123(
+    def model_protocol_125(
         value: (FlextCliModels.Cli.XlsxBooleanValue),
     ) -> FlextCliProtocols.Cli.XlsxBooleanValue:
         return value
 
-    def model_protocol_124(
+    def model_protocol_126(
         value: (FlextCliModels.Cli.XlsxBorderSideSpec),
     ) -> FlextCliProtocols.Cli.XlsxBorderSideSpec:
         return value
 
-    def model_protocol_125(
+    def model_protocol_127(
         value: (FlextCliModels.Cli.XlsxBorderSpec),
     ) -> FlextCliProtocols.Cli.XlsxBorderSpec:
         return value
 
-    def model_protocol_126(
+    def model_protocol_128(
         value: (FlextCliModels.Cli.XlsxCellAddress),
     ) -> FlextCliProtocols.Cli.XlsxCellAddress:
         return value
 
-    def model_protocol_127(
+    def model_protocol_129(
         value: (FlextCliModels.Cli.XlsxCellFormatPlan),
     ) -> FlextCliProtocols.Cli.XlsxCellFormatPlan:
         return value
 
-    def model_protocol_128(
+    def model_protocol_130(
         value: (FlextCliModels.Cli.XlsxCellPlan),
     ) -> FlextCliProtocols.Cli.XlsxCellPlan:
         return value
 
-    def model_protocol_129(
+    def model_protocol_131(
         value: (FlextCliModels.Cli.XlsxCellProtectionPlan),
     ) -> FlextCliProtocols.Cli.XlsxCellProtectionPlan:
         return value
 
-    def model_protocol_130(
+    def model_protocol_132(
         value: (FlextCliModels.Cli.XlsxCellRange),
     ) -> FlextCliProtocols.Cli.XlsxCellRange:
         return value
 
-    def model_protocol_131(
+    def model_protocol_133(
         value: (FlextCliModels.Cli.XlsxCellSnapshot),
     ) -> FlextCliProtocols.Cli.XlsxCellSnapshot:
         return value
 
-    def model_protocol_132(
+    def model_protocol_134(
         value: (FlextCliModels.Cli.XlsxColumnDimensionSnapshot),
     ) -> FlextCliProtocols.Cli.XlsxColumnDimensionSnapshot:
         return value
 
-    def model_protocol_133(
+    def model_protocol_135(
         value: (FlextCliModels.Cli.XlsxCommentPlan),
     ) -> FlextCliProtocols.Cli.XlsxCommentPlan:
         return value
 
-    def model_protocol_134(
+    def model_protocol_136(
         value: (FlextCliModels.Cli.XlsxComparisonValidationPlan),
     ) -> FlextCliProtocols.Cli.XlsxComparisonValidationPlan:
         return value
 
-    def model_protocol_135(
+    def model_protocol_137(
         value: (FlextCliModels.Cli.XlsxContainsTextFormatPlan),
     ) -> FlextCliProtocols.Cli.XlsxContainsTextFormatPlan:
         return value
 
-    def model_protocol_136(
+    def model_protocol_138(
         value: (FlextCliModels.Cli.XlsxCustomValidationPlan),
     ) -> FlextCliProtocols.Cli.XlsxCustomValidationPlan:
         return value
 
-    def model_protocol_137(
+    def model_protocol_139(
         value: (FlextCliModels.Cli.XlsxDateTimeValue),
     ) -> FlextCliProtocols.Cli.XlsxDateTimeValue:
         return value
 
-    def model_protocol_138(
+    def model_protocol_140(
         value: (FlextCliModels.Cli.XlsxDateValue),
     ) -> FlextCliProtocols.Cli.XlsxDateValue:
         return value
 
-    def model_protocol_139(
+    def model_protocol_141(
         value: (FlextCliModels.Cli.XlsxDecimalValue),
     ) -> FlextCliProtocols.Cli.XlsxDecimalValue:
         return value
 
-    def model_protocol_140(
+    def model_protocol_142(
         value: (FlextCliModels.Cli.XlsxDefinedNameCell),
     ) -> FlextCliProtocols.Cli.XlsxDefinedNameCell:
         return value
 
-    def model_protocol_141(
+    def model_protocol_143(
         value: (FlextCliModels.Cli.XlsxDefinedNameSnapshot),
     ) -> FlextCliProtocols.Cli.XlsxDefinedNameSnapshot:
         return value
 
-    def model_protocol_142(
+    def model_protocol_144(
         value: (FlextCliModels.Cli.XlsxDefinedNameValuesRequest),
     ) -> FlextCliProtocols.Cli.XlsxDefinedNameValuesRequest:
         return value
 
-    def model_protocol_143(
+    def model_protocol_145(
         value: (FlextCliModels.Cli.XlsxDefinedNameValuesResult),
     ) -> FlextCliProtocols.Cli.XlsxDefinedNameValuesResult:
         return value
 
-    def model_protocol_144(
+    def model_protocol_146(
         value: (FlextCliModels.Cli.XlsxDimensionPlan),
     ) -> FlextCliProtocols.Cli.XlsxDimensionPlan:
         return value
 
-    def model_protocol_145(
+    def model_protocol_147(
         value: (FlextCliModels.Cli.XlsxExternalHyperlinkPlan),
     ) -> FlextCliProtocols.Cli.XlsxExternalHyperlinkPlan:
         return value
 
-    def model_protocol_146(
+    def model_protocol_148(
         value: (FlextCliModels.Cli.XlsxFontSpec),
     ) -> FlextCliProtocols.Cli.XlsxFontSpec:
         return value
 
-    def model_protocol_147(
+    def model_protocol_149(
         value: (FlextCliModels.Cli.XlsxFormatReferenceRequest),
     ) -> FlextCliProtocols.Cli.XlsxFormatReferenceRequest:
         return value
 
-    def model_protocol_148(
+    def model_protocol_150(
         value: (FlextCliModels.Cli.XlsxFormulaDefinedNamePlan),
     ) -> FlextCliProtocols.Cli.XlsxFormulaDefinedNamePlan:
         return value
 
-    def model_protocol_149(
+    def model_protocol_151(
         value: (FlextCliModels.Cli.XlsxFormulaFormatPlan),
     ) -> FlextCliProtocols.Cli.XlsxFormulaFormatPlan:
         return value
 
-    def model_protocol_150(
+    def model_protocol_152(
         value: (FlextCliModels.Cli.XlsxFormulaListSource),
     ) -> FlextCliProtocols.Cli.XlsxFormulaListSource:
         return value
 
-    def model_protocol_151(
+    def model_protocol_153(
         value: (FlextCliModels.Cli.XlsxFormulaValue),
     ) -> FlextCliProtocols.Cli.XlsxFormulaValue:
         return value
 
-    def model_protocol_152(
+    def model_protocol_154(
         value: (FlextCliModels.Cli.XlsxFreezePanePlan),
     ) -> FlextCliProtocols.Cli.XlsxFreezePanePlan:
         return value
 
-    def model_protocol_153(
+    def model_protocol_155(
         value: (FlextCliModels.Cli.XlsxGradientFillSpec),
     ) -> FlextCliProtocols.Cli.XlsxGradientFillSpec:
         return value
 
-    def model_protocol_154(
+    def model_protocol_156(
         value: (FlextCliModels.Cli.XlsxGradientStop),
     ) -> FlextCliProtocols.Cli.XlsxGradientStop:
         return value
 
-    def model_protocol_155(
+    def model_protocol_157(
         value: (FlextCliModels.Cli.XlsxGroupPlan),
     ) -> FlextCliProtocols.Cli.XlsxGroupPlan:
         return value
 
-    def model_protocol_156(
+    def model_protocol_158(
         value: (FlextCliModels.Cli.XlsxIndexedColor),
     ) -> FlextCliProtocols.Cli.XlsxIndexedColor:
         return value
 
-    def model_protocol_157(
+    def model_protocol_159(
         value: (FlextCliModels.Cli.XlsxInlineListSource),
     ) -> FlextCliProtocols.Cli.XlsxInlineListSource:
         return value
 
-    def model_protocol_158(
+    def model_protocol_160(
         value: (FlextCliModels.Cli.XlsxIntegerValue),
     ) -> FlextCliProtocols.Cli.XlsxIntegerValue:
         return value
 
-    def model_protocol_159(
+    def model_protocol_161(
         value: (FlextCliModels.Cli.XlsxLegacyProtectionCredential),
     ) -> FlextCliProtocols.Cli.XlsxLegacyProtectionCredential:
         return value
 
-    def model_protocol_160(
+    def model_protocol_162(
         value: (FlextCliModels.Cli.XlsxListValidationPlan),
     ) -> FlextCliProtocols.Cli.XlsxListValidationPlan:
         return value
 
-    def model_protocol_161(
+    def model_protocol_163(
         value: (FlextCliModels.Cli.XlsxMergePlan),
     ) -> FlextCliProtocols.Cli.XlsxMergePlan:
         return value
 
-    def model_protocol_162(
+    def model_protocol_164(
         value: (FlextCliModels.Cli.XlsxNamedStyleSpec),
     ) -> FlextCliProtocols.Cli.XlsxNamedStyleSpec:
         return value
 
-    def model_protocol_163(
+    def model_protocol_165(
         value: (FlextCliModels.Cli.XlsxNavigationHyperlinkPlan),
     ) -> FlextCliProtocols.Cli.XlsxNavigationHyperlinkPlan:
         return value
 
-    def model_protocol_164(
+    def model_protocol_166(
         value: (FlextCliModels.Cli.XlsxParseRangeRequest),
     ) -> FlextCliProtocols.Cli.XlsxParseRangeRequest:
         return value
 
-    def model_protocol_165(
+    def model_protocol_167(
         value: (FlextCliModels.Cli.XlsxPatternFillSpec),
     ) -> FlextCliProtocols.Cli.XlsxPatternFillSpec:
         return value
 
-    def model_protocol_166(
+    def model_protocol_168(
         value: (FlextCliModels.Cli.XlsxPlainProtectionCredential),
     ) -> FlextCliProtocols.Cli.XlsxPlainProtectionCredential:
         return value
 
-    def model_protocol_167(
+    def model_protocol_169(
         value: (FlextCliModels.Cli.XlsxProtectionPermissions),
     ) -> FlextCliProtocols.Cli.XlsxProtectionPermissions:
         return value
 
-    def model_protocol_168(
+    def model_protocol_170(
         value: (FlextCliModels.Cli.XlsxRangeComparison),
     ) -> FlextCliProtocols.Cli.XlsxRangeComparison:
         return value
 
-    def model_protocol_169(
+    def model_protocol_171(
         value: (FlextCliModels.Cli.XlsxRangeDefinedNamePlan),
     ) -> FlextCliProtocols.Cli.XlsxRangeDefinedNamePlan:
         return value
 
-    def model_protocol_170(
+    def model_protocol_172(
         value: (FlextCliModels.Cli.XlsxRecalcParityReport),
     ) -> FlextCliProtocols.Cli.XlsxRecalcParityReport:
         return value
 
-    def model_protocol_171(
+    def model_protocol_173(
         value: (FlextCliModels.Cli.XlsxRecalcParityRequest),
     ) -> FlextCliProtocols.Cli.XlsxRecalcParityRequest:
         return value
 
-    def model_protocol_172(
+    def model_protocol_174(
         value: (FlextCliModels.Cli.XlsxRecalcRequest),
     ) -> FlextCliProtocols.Cli.XlsxRecalcRequest:
         return value
 
-    def model_protocol_173(
+    def model_protocol_175(
         value: (FlextCliModels.Cli.XlsxRecalcResult),
     ) -> FlextCliProtocols.Cli.XlsxRecalcResult:
         return value
 
-    def model_protocol_174(
+    def model_protocol_176(
         value: (FlextCliModels.Cli.XlsxReference),
     ) -> FlextCliProtocols.Cli.XlsxReference:
         return value
 
-    def model_protocol_175(
+    def model_protocol_177(
         value: (FlextCliModels.Cli.XlsxRenderRequest),
     ) -> FlextCliProtocols.Cli.XlsxRenderRequest:
         return value
 
-    def model_protocol_176(
+    def model_protocol_178(
         value: (FlextCliModels.Cli.XlsxRenderResult),
     ) -> FlextCliProtocols.Cli.XlsxRenderResult:
         return value
 
-    def model_protocol_177(
+    def model_protocol_179(
         value: (FlextCliModels.Cli.XlsxRgbColor),
     ) -> FlextCliProtocols.Cli.XlsxRgbColor:
         return value
 
-    def model_protocol_178(
+    def model_protocol_180(
         value: (FlextCliModels.Cli.XlsxRowDimensionSnapshot),
     ) -> FlextCliProtocols.Cli.XlsxRowDimensionSnapshot:
         return value
 
-    def model_protocol_179(
+    def model_protocol_181(
         value: (FlextCliModels.Cli.XlsxSheetLayoutPlan),
     ) -> FlextCliProtocols.Cli.XlsxSheetLayoutPlan:
         return value
 
-    def model_protocol_180(
+    def model_protocol_182(
         value: (FlextCliModels.Cli.XlsxSheetPlan),
     ) -> FlextCliProtocols.Cli.XlsxSheetPlan:
         return value
 
-    def model_protocol_181(
+    def model_protocol_183(
         value: (FlextCliModels.Cli.XlsxSheetProtectionPlan),
     ) -> FlextCliProtocols.Cli.XlsxSheetProtectionPlan:
         return value
 
-    def model_protocol_182(
+    def model_protocol_184(
         value: (FlextCliModels.Cli.XlsxSheetProtectionSnapshot),
     ) -> FlextCliProtocols.Cli.XlsxSheetProtectionSnapshot:
         return value
 
-    def model_protocol_183(
+    def model_protocol_185(
         value: (FlextCliModels.Cli.XlsxSheetRulesPlan),
     ) -> FlextCliProtocols.Cli.XlsxSheetRulesPlan:
         return value
 
-    def model_protocol_184(
+    def model_protocol_186(
         value: (FlextCliModels.Cli.XlsxSheetSnapshot),
     ) -> FlextCliProtocols.Cli.XlsxSheetSnapshot:
         return value
 
-    def model_protocol_185(
+    def model_protocol_187(
         value: (FlextCliModels.Cli.XlsxSnapshotRequest),
     ) -> FlextCliProtocols.Cli.XlsxSnapshotRequest:
         return value
 
-    def model_protocol_186(
+    def model_protocol_188(
         value: (FlextCliModels.Cli.XlsxSourceVisualStyle),
     ) -> FlextCliProtocols.Cli.XlsxSourceVisualStyle:
         return value
 
-    def model_protocol_187(
+    def model_protocol_189(
         value: (FlextCliModels.Cli.XlsxStyleCatalog),
     ) -> FlextCliProtocols.Cli.XlsxStyleCatalog:
         return value
 
-    def model_protocol_188(
+    def model_protocol_190(
         value: (FlextCliModels.Cli.XlsxStyleCatalogRequest),
     ) -> FlextCliProtocols.Cli.XlsxStyleCatalogRequest:
         return value
 
-    def model_protocol_189(
+    def model_protocol_191(
         value: (FlextCliModels.Cli.XlsxStyleMapEntry),
     ) -> FlextCliProtocols.Cli.XlsxStyleMapEntry:
         return value
 
-    def model_protocol_190(
+    def model_protocol_192(
         value: (FlextCliModels.Cli.XlsxStyleTemplateRequest),
     ) -> FlextCliProtocols.Cli.XlsxStyleTemplateRequest:
         return value
 
-    def model_protocol_191(
+    def model_protocol_193(
         value: (FlextCliModels.Cli.XlsxStyleTemplateResult),
     ) -> FlextCliProtocols.Cli.XlsxStyleTemplateResult:
         return value
 
-    def model_protocol_192(
+    def model_protocol_194(
         value: (FlextCliModels.Cli.XlsxTablePlan),
     ) -> FlextCliProtocols.Cli.XlsxTablePlan:
         return value
 
-    def model_protocol_193(
+    def model_protocol_195(
         value: (FlextCliModels.Cli.XlsxTableSnapshot),
     ) -> FlextCliProtocols.Cli.XlsxTableSnapshot:
         return value
 
-    def model_protocol_194(
+    def model_protocol_196(
         value: (FlextCliModels.Cli.XlsxTextValue),
     ) -> FlextCliProtocols.Cli.XlsxTextValue:
         return value
 
-    def model_protocol_195(
+    def model_protocol_197(
         value: (FlextCliModels.Cli.XlsxThemeColor),
     ) -> FlextCliProtocols.Cli.XlsxThemeColor:
         return value
 
-    def model_protocol_196(
+    def model_protocol_198(
         value: (FlextCliModels.Cli.XlsxUnaryComparison),
     ) -> FlextCliProtocols.Cli.XlsxUnaryComparison:
         return value
 
-    def model_protocol_197(
+    def model_protocol_199(
         value: (FlextCliModels.Cli.XlsxValidationMessages),
     ) -> FlextCliProtocols.Cli.XlsxValidationMessages:
         return value
 
-    def model_protocol_198(
+    def model_protocol_200(
         value: (FlextCliModels.Cli.XlsxViewPlan),
     ) -> FlextCliProtocols.Cli.XlsxViewPlan:
         return value
 
-    def model_protocol_199(
+    def model_protocol_201(
         value: (FlextCliModels.Cli.XlsxVisualStyleSpec),
     ) -> FlextCliProtocols.Cli.XlsxVisualStyleSpec:
         return value
 
-    def model_protocol_200(
+    def model_protocol_202(
         value: (FlextCliModels.Cli.XlsxWorkbookPlan),
     ) -> FlextCliProtocols.Cli.XlsxWorkbookPlan:
         return value
 
-    def model_protocol_201(
+    def model_protocol_203(
         value: (FlextCliModels.Cli.XlsxWorkbookSnapshot),
     ) -> FlextCliProtocols.Cli.XlsxWorkbookSnapshot:
         return value

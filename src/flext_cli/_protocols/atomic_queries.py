@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
@@ -19,7 +19,8 @@ if TYPE_CHECKING:
     from flext_cli._protocols._base import (
         FlextCliProtocolsBaseFlextclimodelsbasePart02,
         FlextCliProtocolsBaseFlextclimodelsbasePart03,
-        FlextCliProtocolsBaseFlextclimodelsbasePart10,
+        FlextCliProtocolsBaseFlextclimodelsbasePart08,
+        FlextCliProtocolsBaseFlextclimodelsbasePart09,
     )
 
 
@@ -83,13 +84,21 @@ class FlextCliProtocolsAtomicQueries:
             ...
 
         @property
-        def observations(
+        def directory_observations(
             self,
-        ) -> (
-            FlextCliProtocolsBaseFlextclimodelsbasePart10.AtomicDirectoryObservations
-            | None
-        ):
-            """Native observations shared by reference, if any."""
+        ) -> MutableMapping[
+            Path, FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryInventory
+        ]:
+            """Directory observations shared by reference in the boundary."""
+            ...
+
+        @property
+        def topology_observations(
+            self,
+        ) -> MutableMapping[
+            Path, FlextCliProtocolsBaseFlextclimodelsbasePart08.AtomicDirectoryChainPlan
+        ]:
+            """Ancestry observations shared by reference in the boundary."""
             ...
 
     @runtime_checkable
@@ -121,10 +130,21 @@ class FlextCliProtocolsAtomicQueries:
         ancestors: Mapping[Path, None]
 
         @property
-        def observations(
+        def directory_observations(
             self,
-        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart10.AtomicDirectoryObservations:
-            """Native observations shared inside the boundary."""
+        ) -> MutableMapping[
+            Path, FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryInventory
+        ]:
+            """Directory observations shared by reference in the boundary."""
+            ...
+
+        @property
+        def topology_observations(
+            self,
+        ) -> MutableMapping[
+            Path, FlextCliProtocolsBaseFlextclimodelsbasePart08.AtomicDirectoryChainPlan
+        ]:
+            """Ancestry observations shared by reference in the boundary."""
             ...
 
 

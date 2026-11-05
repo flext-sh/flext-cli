@@ -170,24 +170,13 @@ class FlextCliUtilitiesAtomicFileState:
             An authorized destination snapshot without following links.
 
         """
-        if parent is None:
-            with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                path,
-            ) as opened:
-                state = FlextCliUtilitiesAtomicFileState.file_destination_state(
-                    path,
-                    parent=opened,
-                )
-                FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(opened)
-                return state
-        try:
-            state = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
-        except FileNotFoundError:
-            state = None
-        if state is None:
-            return None
-        FlextCliUtilitiesAtomicFileState._validate_regular_state(path, state)
-        return state
+        return FlextCliUtilitiesAtomicFileDescriptor.destination_state(
+            path,
+            lambda entry, state, _parent: (
+                FlextCliUtilitiesAtomicFileState._validate_regular_state(entry, state)
+            ),
+            parent=parent,
+        )
 
     @staticmethod
     def validate_precondition(
@@ -195,7 +184,6 @@ class FlextCliUtilitiesAtomicFileState:
         state: os.stat_result | None,
         expected_bytes: bytes | None,
         *,
-        enabled: bool,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor | None = None,
     ) -> None:
         """Authenticate an explicit raw-byte version before staging.
@@ -207,8 +195,6 @@ class FlextCliUtilitiesAtomicFileState:
                 expected_bytes``.
 
         """
-        if not enabled:
-            return
         if expected_bytes is None:
             if state is not None:
                 message = f"atomic destination exists but absence was required: {path}"

@@ -9,7 +9,7 @@ from __future__ import annotations
 import signal
 import threading
 import time
-from typing import BinaryIO
+from typing import BinaryIO, override
 
 from flext_core import r
 
@@ -37,6 +37,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     """Own one child process and its streaming resources."""
 
     @classmethod
+    @override
     def _execute_streamed_process(
         cls,
         request: p.Cli.RuntimeProcessRequest,
@@ -68,10 +69,10 @@ class FlextCliUtilitiesRuntimeProcessExecution(
             state.primary_error = exc
             if state.process is not None:
                 signal_result = cls._signal_process_tree(
-state.process,
-state.job_handle,
-m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
-)
+                    state.process,
+                    state.job_handle,
+                    m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
+                )
                 if signal_result.failure:
                     exc.add_note(signal_result.error or "process signal failed")
         except BaseException as exc:
@@ -110,8 +111,7 @@ m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
                 cls._install_forwarding_handlers(state.received_signals, state.wake),
             )
             state.forwarded_signals.extend(
-                int(signal_number)
-                for signal_number in cls.process_forwarded_signals()
+                int(signal_number) for signal_number in cls.process_forwarded_signals()
             )
         elif request.signal_wave is not None:
             state.restore_handlers.append(
@@ -197,34 +197,6 @@ m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
             else None
             for destination in destinations
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     @classmethod
     def _attach_process_streams(

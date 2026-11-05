@@ -157,9 +157,8 @@ class FlextCliUtilitiesTables:
 
         rendered_table = FlextCliUtilitiesTablesRenderer.render(
             rows,
-            headers,
-            colalign=colalign or (),
-            settings=settings,
+            m.Cli.TableColumnPolicy(headers=headers, colalign=tuple(colalign or ())),
+            settings,
         )
         return r[str].ok(rendered_table)
 

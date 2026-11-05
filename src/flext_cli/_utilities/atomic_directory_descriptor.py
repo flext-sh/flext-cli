@@ -126,10 +126,8 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
             destination_parent,
         )
         FlextCliUtilitiesAtomicDirectoryNoreplace.rename_noreplace(
-            source_parent.descriptor,
-            source.name,
-            destination_parent.descriptor,
-            destination.name,
+            (source_parent.descriptor, source.name),
+            (destination_parent.descriptor, destination.name),
             path=destination,
         )
 

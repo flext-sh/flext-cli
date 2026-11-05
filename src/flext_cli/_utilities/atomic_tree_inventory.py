@@ -38,7 +38,7 @@ class FlextCliUtilitiesAtomicTreeInventory(
 
         One verification boundary shares one native observation per physical
         directory and one ancestry observation per target through
-        ``proof.observations``, passed by reference. It never outlives that
+        ``proof``, passed by reference. It never outlives that
         boundary. Every original receipt is compared, including shared targets.
 
         Returns:
@@ -78,11 +78,8 @@ class FlextCliUtilitiesAtomicTreeInventory(
             published=published,
             created={item.path: item for item in proof.directories},
             ancestors=cls._published_ancestors(proof.files),
-            observations=(
-                proof.observations
-                if proof.observations is not None
-                else m.Cli.AtomicDirectoryObservations()
-            ),
+            directory_observations=proof.directory_observations,
+            topology_observations=proof.topology_observations,
         )
 
     @classmethod
@@ -91,15 +88,9 @@ class FlextCliUtilitiesAtomicTreeInventory(
         expected: p.Cli.AtomicDirectoryInventory,
         boundary: m.Cli.AtomicDirectoryQueryBoundary,
     ) -> None:
-        """Reprove one directory receipt's identity, queries, and membership.
-
-        Raises:
-            ValueError: If the physical identity, a consumed query, or a
-                consumed membership changed outside the own effects.
-
-        """
+        """Reprove one directory receipt's identity, queries, and membership."""
         observed = cls._observe_physical_directory(
-            boundary.observations.directories, expected.root.path
+            boundary.directory_observations, expected.root.path
         )
         cls._require_directory_identity(
             expected.root,
@@ -255,7 +246,7 @@ class FlextCliUtilitiesAtomicTreeInventory(
         ancestors; no parallel transport of the same effects is needed.
 
         """
-        observations = boundary.observations.topology
+        observations = boundary.topology_observations
         for witness in topology:
             observed = observations.get(witness.target)
             if observed is None:
@@ -365,7 +356,7 @@ class FlextCliUtilitiesAtomicTreeInventory(
 
         """
         inventory = cls._observe_physical_directory(
-            boundary.observations.directories, witness.target
+            boundary.directory_observations, witness.target
         )
         for name, predicate in witness.queries:
             path = witness.target / name

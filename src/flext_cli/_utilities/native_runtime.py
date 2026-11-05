@@ -87,23 +87,9 @@ def spawn_streamed_process(
     return subprocess.Popen(
         list(command.cmd),
         cwd=command.cwd,
-        stdin=(
-            stdin_handle
-            if stdin_handle is not None
-            else subprocess.PIPE
-            if options.stdin_mode == "pipe"
-            else subprocess.DEVNULL
-            if options.stdin_mode == "devnull"
-            else None
-        ),
+        stdin=_stdin_target(stdin_handle, options),
         stdout=subprocess.PIPE if options.capture_output else None,
-        stderr=(
-            subprocess.STDOUT
-            if options.combine_output
-            else subprocess.PIPE
-            if options.capture_output
-            else None
-        ),
+        stderr=_stderr_target(options),
         text=False,
         bufsize=0,
         env=command.env,
@@ -115,6 +101,36 @@ def spawn_streamed_process(
         creationflags=options.creation_flags,
         pass_fds=options.pass_fds,
     )
+
+
+def _stdin_target(
+    stdin_handle: BinaryIO | None,
+    options: RuntimeSpawnOptions,
+) -> BinaryIO | int | None:
+    """Resolve the child stdin from an explicit handle or the stdin policy.
+
+    Returns:
+        The explicit handle, a native pipe or null-device marker, or ``None``
+        to inherit the parent stdin.
+
+    """
+    if stdin_handle is not None:
+        return stdin_handle
+    return {"pipe": subprocess.PIPE, "devnull": subprocess.DEVNULL}.get(
+        options.stdin_mode
+    )
+
+
+def _stderr_target(options: RuntimeSpawnOptions) -> int | None:
+    """Resolve the child stderr from the combine and capture policy.
+
+    Returns:
+        A native redirect or pipe marker, or ``None`` to inherit stderr.
+
+    """
+    if options.combine_output:
+        return subprocess.STDOUT
+    return subprocess.PIPE if options.capture_output else None
 
 
 def streamed_creation_flags() -> int:

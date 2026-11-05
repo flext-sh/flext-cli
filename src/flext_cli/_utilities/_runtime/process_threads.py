@@ -64,5 +64,4 @@ class FlextCliUtilitiesRuntimeProcessThreads(
         return waiter
 
 
-
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessThreads"]

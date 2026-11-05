@@ -18,6 +18,9 @@ from flext_core import r
 from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesAtomicFile, FlextCliUtilitiesRuntime
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
+from flext_cli._utilities._files.native_results import (
+    FlextCliUtilitiesFilesNativeResults,
+)
 
 
 class FlextCliUtilitiesFilesPart06:
@@ -57,22 +60,19 @@ class FlextCliUtilitiesFilesPart06:
             return r[p.Cli.AtomicFileState].fail(
                 f"atomic create destination already exists: {before.value.path}",
             )
-        try:
-            # Return this publication's proof, never a later path observation.
-            published = FlextCliUtilitiesAtomicFile.write_atomic_state(
-                before.value.path,
-                data,
-                m.Cli.AtomicWriteOptions(
-                    expected_state=before.value,
-                    permission_mode=permission_mode,
-                    owner_uid=owner_uid,
-                ),
-            )
-        except OSError as exc:
-            return r[p.Cli.AtomicFileState].fail(
-                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc), exception=exc
-            )
-        return r.ok(published)
+        # Return this publication's proof, never a later path observation.
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicFile.write_atomic_state,
+            c.Cli.ERR_BINARY_WRITE_FAILED,
+        )(
+            before.value.path,
+            data,
+            m.Cli.AtomicWriteOptions(
+                expected_state=before.value,
+                permission_mode=permission_mode,
+                owner_uid=owner_uid,
+            ),
+        )
 
     @staticmethod
     def atomic_verify_binary_file_states(

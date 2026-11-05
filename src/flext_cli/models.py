@@ -24,6 +24,7 @@ from flext_cli._models import (
     FlextCliModelsProcess,
     FlextCliModelsProcessRuntime,
     FlextCliModelsRules,
+    FlextCliModelsTableRender,
     FlextCliModelsTemplate,
     FlextCliModelsXlsx,
 )
@@ -47,6 +48,7 @@ class FlextCliModels(flext_core_m):
         FlextCliModelsProcess,
         FlextCliModelsProcessRuntime,
         FlextCliModelsRules,
+        FlextCliModelsTableRender,
         FlextCliModelsTemplate,
         FlextCliModelsXlsx,
     ):

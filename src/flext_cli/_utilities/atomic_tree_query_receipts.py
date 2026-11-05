@@ -122,9 +122,6 @@ class FlextCliUtilitiesAtomicTreeQueryReceipts:
             The original receipt when its selectors are already united,
             otherwise one receipt carrying the united selectors.
 
-        Raises:
-            ValueError: If original identity, query, or membership epochs disagree.
-
         """
         previous = originals[0]
         selection = cls._united_selection(originals, selectors)
