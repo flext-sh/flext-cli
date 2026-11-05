@@ -26,6 +26,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from examples import c, m, p, r, t, u
 from flext_cli import cli
 
@@ -46,15 +48,25 @@ class ExamplesFlextCliPydanticDrivenCli:
     _MAX_LOCALHOST_CONNECTION_POOL = 50
 
     @staticmethod
-    def _report_step_success[T](value: T, message: str) -> T:
-        """Emit a success message while preserving the pipeline value.
+    def _step_reporter(
+        message: str,
+    ) -> Callable[
+        [p.Examples.AdvancedDatabaseConfig], p.Examples.AdvancedDatabaseConfig
+    ]:
+        """Build one railway step that announces success and keeps the settings.
 
         Returns:
-            The resulting ``T``.
+            A mapper emitting ``message`` and returning its input unchanged.
 
         """
-        cli.print(message, style=c.Cli.MessageStyles.GREEN)
-        return value
+
+        def report(
+            settings: p.Examples.AdvancedDatabaseConfig,
+        ) -> p.Examples.AdvancedDatabaseConfig:
+            cli.print(message, style=c.Cli.MessageStyles.GREEN)
+            return settings
+
+        return report
 
     @staticmethod
     def _finish_database_config(
@@ -69,10 +81,10 @@ class ExamplesFlextCliPydanticDrivenCli:
         u.display_success_summary("Database configuration")
         return settings
 
-    @staticmethod
-    def create_database_config_from_cli() -> p.Result[
-        p.Examples.AdvancedDatabaseConfig
-    ]:
+    @classmethod
+    def create_database_config_from_cli(
+        cls,
+    ) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
         """Create validated DatabaseConfig using Railway Pattern with Pydantic.
 
         Returns:
@@ -85,43 +97,23 @@ class ExamplesFlextCliPydanticDrivenCli:
         )
         cli_args = m.Examples.AdvancedDatabaseConfig(
             host="db.example.com",
-            port=ExamplesFlextCliPydanticDrivenCli._DEFAULT_POSTGRES_PORT,
+            port=cls._DEFAULT_POSTGRES_PORT,
             name="production_db",
             username="example_user",
-            password=ExamplesFlextCliPydanticDrivenCli._DEMO_DB_PLACEHOLDER,
+            password=cls._DEMO_DB_PLACEHOLDER,
             ssl_enabled=True,
             connection_pool=20,
         )
         return (
             r[p.Examples.AdvancedDatabaseConfig]
             .ok(cli_args)
-            .map(
-                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
-                    settings,
-                    "✅ Required fields validated",
-                ),
-            )
-            .map(
-                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
-                    settings,
-                    "✅ Pydantic validation passed",
-                ),
-            )
-            .flat_map(ExamplesFlextCliPydanticDrivenCli.validate_business_rules)
-            .map(
-                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
-                    settings,
-                    "✅ Business rules validated",
-                ),
-            )
-            .flat_map(ExamplesFlextCliPydanticDrivenCli.perform_connection_test)
-            .map(
-                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
-                    settings,
-                    "✅ Connection test passed",
-                ),
-            )
-            .map(ExamplesFlextCliPydanticDrivenCli._finish_database_config)
+            .map(cls._step_reporter("✅ Required fields validated"))
+            .map(cls._step_reporter("✅ Pydantic validation passed"))
+            .flat_map(cls.validate_business_rules)
+            .map(cls._step_reporter("✅ Business rules validated"))
+            .flat_map(cls.perform_connection_test)
+            .map(cls._step_reporter("✅ Connection test passed"))
+            .map(cls._finish_database_config)
         )
 
     @staticmethod

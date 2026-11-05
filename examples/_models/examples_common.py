@@ -39,7 +39,7 @@ class ExamplesFlextCliModelsExamplesCommon:
 
         def display(self, cli: t.CliApi) -> None:
             """Display app settings; uses the canonical CLI settings singleton."""
-            payload_data: t.JsonMapping = {
+            rows: t.Cli.TableMappingRow = {
                 "App Name": self.app_name,
                 "API Key": f"{self.api_key[:10]}..." if self.api_key else "Not set",
                 "Max Workers": str(self.max_workers),
@@ -47,16 +47,7 @@ class ExamplesFlextCliModelsExamplesCommon:
                 "Debug": str(settings.debug),
                 "App": settings.cli_app_name,
             }
-            payload = m.Cli.DisplayData(data=payload_data)
-            if isinstance(payload.data, dict):
-                safe_data: t.Cli.TableMappingRow = {
-                    k: str(v) for k, v in payload.data.items()
-                }
-                cli.show_table(
-                    safe_data,
-                    show_header=True,
-                    title="⚙️  Application Settings",
-                )
+            cli.show_table(rows, show_header=True, title="⚙️  Application Settings")
 
 
 __all__: list[str] = ["ExamplesFlextCliModelsExamplesCommon"]
