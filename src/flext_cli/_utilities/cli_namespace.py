@@ -79,7 +79,7 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesPptx,
     FlextCliUtilitiesYaml,
 ):
-    """Compose utilities; document adapters load only during their operation."""
+    """Compose utilities; DOCX and PPTX owners load here, XLSX on its operation."""
 
     model_config: ClassVar[t.ConfigDict] = m.ConfigDict(ignored_types=(type,))
 

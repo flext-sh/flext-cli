@@ -22,7 +22,7 @@ constraints = [
 overrides = [
     { name = "flext-core", git = "https://github.com/flext-sh/flext-core.git?rev=96ad199ba1c00e58e14aa25a45a22643c13c4830" },
     { name = "flext-infra", git = "https://github.com/flext-sh/flext-infra.git?rev=798e375c90d7f4dad93987604dc64a87de74cea8" },
-    { name = "flext-tests", git = "https://github.com/flext-sh/flext-tests.git?rev=d0e1818d1ba78441e7b518ba1a25aac88720e3ea" },
+    { name = "flext-tests", git = "https://github.com/flext-sh/flext-tests.git?rev=18d8bd4d1a0f1305378b8d38d443fbb51ea92551" },
     { name = "rope", git = "https://github.com/marlon-costa-dc/rope.git?rev=5ebf6d5c477fbf8fc66191bd991a27ca1b9eed7a" },
 ]
 excludes = [
@@ -526,7 +526,7 @@ dev = [
     { name = "deptry" },
     { name = "editables", specifier = ">=0.6" },
     { name = "flext-infra", git = "https://github.com/flext-sh/flext-infra.git?rev=798e375c90d7f4dad93987604dc64a87de74cea8" },
-    { name = "flext-tests", git = "https://github.com/flext-sh/flext-tests.git?rev=d0e1818d1ba78441e7b518ba1a25aac88720e3ea" },
+    { name = "flext-tests", git = "https://github.com/flext-sh/flext-tests.git?rev=18d8bd4d1a0f1305378b8d38d443fbb51ea92551" },
     { name = "hypothesis" },
     { name = "mkdocs" },
     { name = "mkdocs-autorefs" },
@@ -625,7 +625,7 @@ dependencies = [
 [[package]]
 name = "flext-tests"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-tests.git?rev=d0e1818d1ba78441e7b518ba1a25aac88720e3ea#d0e1818d1ba78441e7b518ba1a25aac88720e3ea" }
+source = { git = "https://github.com/flext-sh/flext-tests.git?rev=18d8bd4d1a0f1305378b8d38d443fbb51ea92551#18d8bd4d1a0f1305378b8d38d443fbb51ea92551" }
 dependencies = [
     { name = "docker" },
     { name = "flext-core" },
