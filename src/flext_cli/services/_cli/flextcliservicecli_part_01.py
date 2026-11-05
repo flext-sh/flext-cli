@@ -36,26 +36,29 @@ class FlextCliCliPart01:
             *,
             handler: p.Cli.ModelCommandHandler[M, TResult],
             model_cls: t.ModelClass[M],
-            parameters: Sequence[Parameter],
-            annotations: t.Cli.CliAnnotations,
+            signature: Signature,
             result_border: bool,
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
             # Typer injects its click context into a parameter annotated with
             # the framework context; __call__ reads each option's source.
             context_annotation = u.Cli.framework_command_context_annotation()
-            self.__signature__ = Signature((
-                *parameters,
-                Parameter(
-                    c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER,
-                    Parameter.KEYWORD_ONLY,
-                    annotation=context_annotation,
+            options = tuple(signature.parameters.values())
+            self.__signature__ = signature.replace(
+                parameters=(
+                    *options,
+                    Parameter(
+                        c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER,
+                        Parameter.KEYWORD_ONLY,
+                        annotation=context_annotation,
+                    ),
                 ),
-            ))
+            )
             # Typer reads the injected context through __annotations__ as well
             # as the signature; the command owns both so no caller drops it.
             self.__annotations__ = {
-                **annotations,
+                **{option.name: option.annotation for option in options},
+                "return": signature.return_annotation,
                 c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER: context_annotation,
             }
             self._handler = handler
@@ -213,11 +216,11 @@ class FlextCliCliPart01:
         field_name: str,
         field_info: t.FieldInfo,
         settings: t.Cli.ModelLike | None,
-    ) -> tuple[Parameter, type | GenericAlias]:
+    ) -> Parameter:
         """Build a keyword-only Typer option from its public specification.
 
         Returns:
-            The resulting ``tuple[Parameter, type | GenericAlias]``.
+            The option parameter carrying its runtime annotation.
 
         """
         spec, annotation = cls.model_option_spec(field_name, field_info, settings)
@@ -225,14 +228,11 @@ class FlextCliCliPart01:
         json_annotation = (
             field_annotation if u.Cli.json_option(field_annotation) else None
         )
-        return (
-            u.Cli.framework_build_parameter(
-                field_name,
-                annotation,
-                spec,
-                json_annotation=json_annotation,
-            ),
+        return u.Cli.framework_build_parameter(
+            field_name,
             annotation,
+            spec,
+            json_annotation=json_annotation,
         )
 
 
