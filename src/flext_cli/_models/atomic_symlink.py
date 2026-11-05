@@ -62,7 +62,9 @@ class FlextCliModelsAtomicSymlink:
         identity: Annotated[
             Annotated[
                 p.Cli.AtomicSymlinkIdentity,
-                t.schema_for_model(FlextCliModelsAtomicSymlink.AtomicSymlinkIdentity),
+                t.schema_for_model(
+                    lambda: FlextCliModelsAtomicSymlink.AtomicSymlinkIdentity
+                ),
             ]
             | None,
             m.Field(

@@ -11,6 +11,7 @@ from typing import Annotated
 from flext_core import m
 
 from flext_cli import p, t
+from flext_cli._models._base.flextclimodelsbase_part_05 import FlextCliModelsBasePart05
 from flext_cli._models._xlsx import (
     FlextCliModelsXlsxCells,
     FlextCliModelsXlsxLayout,
@@ -61,29 +62,18 @@ class FlextCliModelsXlsxWorkbook:
             description="Require complete formula recalculation.",
         )
 
-    class XlsxRenderRequest(m.FrozenModel):
-        template: (
-            Annotated[
-                bytes,
-                m.Field(min_length=1, description="Formatting template bytes."),
-            ]
-            | None
-        ) = m.Field(default=None, description="Optional source workbook.")
+    class XlsxRenderRequest(FlextCliModelsBasePart05.OfficeRenderRequest):
         plan: Annotated[
             p.Cli.XlsxWorkbookPlan,
-            t.schema_for_model(FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan),
+            t.schema_for_model(lambda: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan),
         ] = m.Field(
             description="Validated workbook plan.",
         )
 
-    class XlsxRenderResult(m.FrozenModel):
-        content: Annotated[
-            bytes,
-            m.Field(min_length=1, description="Rendered workbook bytes."),
-        ]
+    class XlsxRenderResult(FlextCliModelsBasePart05.OfficeRenderResult):
         plan: Annotated[
             p.Cli.XlsxWorkbookPlan,
-            t.schema_for_model(FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan),
+            t.schema_for_model(lambda: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan),
         ] = m.Field(description="Exact source plan.")
 
 
