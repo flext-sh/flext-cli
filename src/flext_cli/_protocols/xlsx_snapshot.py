@@ -6,19 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from flext_cli._protocols._xlsx import FlextCliProtocolsXlsxXlsxSnapshot
-
-
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_cli._protocols import FlextCliProtocolsXlsxSnapshotStructure
 
 if TYPE_CHECKING:
-    # mro-j47u (codex): p -> m stays type-only through the canonical facade.
     from flext_core import p
+
+    from flext_cli._protocols._xlsx import FlextCliProtocolsXlsxXlsxSnapshot
 
 
 class FlextCliProtocolsXlsxSnapshot(FlextCliProtocolsXlsxSnapshotStructure):

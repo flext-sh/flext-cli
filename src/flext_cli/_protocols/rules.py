@@ -12,7 +12,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import FlextProtocols
+from flext_core import p
 
 if TYPE_CHECKING:
     from flext_cli._typings import FlextCliTypesDomain
@@ -22,9 +22,7 @@ class FlextCliProtocolsRules:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class LocalDefinitionsOptions[TRuleKind, TFileRuleKind](
-        FlextProtocols.BaseModel, Protocol
-    ):
+    class LocalDefinitionsOptions[TRuleKind, TFileRuleKind](p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         package_rules_dir: Path

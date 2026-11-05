@@ -6,35 +6,27 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Mapping, MutableSequence, Sequence
+from pathlib import Path
+from types import FrameType
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
+
+from flext_core import c, p
+
+from flext_cli import t
 
 if TYPE_CHECKING:
     import contextlib
-
-    from flext_core import p
+    import threading
+    from collections.abc import Buffer
 
     from flext_cli._protocols._base import (
         FlextCliProtocolsBaseFlextclimodelsbasePart01,
         FlextCliProtocolsBaseFlextclimodelsbasePart02,
         FlextCliProtocolsBaseFlextclimodelsbasePart09,
+        FlextCliProtocolsBasePart02,
     )
     from flext_cli._typings import FlextCliTypesDomain
-
-
-from collections.abc import Callable, Mapping, MutableSequence, Sequence
-from pathlib import Path
-from types import FrameType
-from typing import Literal, Protocol, runtime_checkable
-
-from flext_core import FlextProtocols, c
-
-from flext_cli import t
-
-if TYPE_CHECKING:
-    import threading
-    from collections.abc import Buffer
-
-    from flext_cli._protocols._base import FlextCliProtocolsBasePart02
 
 
 class FlextCliProtocolsProcess:
@@ -153,7 +145,7 @@ class FlextCliProtocolsProcess:
             ...
 
     @runtime_checkable
-    class ProcessNativeToolEvidence(FlextProtocols.BaseModel, Protocol):
+    class ProcessNativeToolEvidence(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -248,7 +240,7 @@ class FlextCliProtocolsProcess:
             ...
 
     @runtime_checkable
-    class ProcessOptions(FlextProtocols.BaseModel, Protocol):
+    class ProcessOptions(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         env: Mapping[str, str] | None
@@ -284,7 +276,7 @@ class FlextCliProtocolsProcess:
             ...
 
     @runtime_checkable
-    class PythonScriptExecution(FlextProtocols.BaseModel, Protocol):
+    class PythonScriptExecution(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -303,7 +295,7 @@ class FlextCliProtocolsProcess:
             ...
 
     @runtime_checkable
-    class ProcessNativePolicyProbe(FlextProtocols.BaseModel, Protocol):
+    class ProcessNativePolicyProbe(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -336,7 +328,7 @@ class FlextCliProtocolsProcess:
 
     @runtime_checkable
     class ProcessNativeQualificationReceipt[ContextT, IssueT, OutcomeT](
-        FlextProtocols.BaseModel, Protocol
+        p.BaseModel, Protocol
     ):
         """Structural data contract projected from the owning model."""
 
@@ -399,7 +391,7 @@ class FlextCliProtocolsProcess:
 
     @runtime_checkable
     class ProcessNativeQualificationReport[ContextT, IssueT, OutcomeT](
-        FlextProtocols.BaseModel, Protocol
+        p.BaseModel, Protocol
     ):
         """Structural data contract projected from the owning model."""
 
@@ -441,7 +433,7 @@ class FlextCliProtocolsProcess:
             ...
 
     @runtime_checkable
-    class ProcessReadOnlyIsolation(FlextProtocols.BaseModel, Protocol):
+    class ProcessReadOnlyIsolation(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -510,7 +502,7 @@ class FlextCliProtocolsProcess:
             ...
 
     @runtime_checkable
-    class RuntimeProcessRequest(FlextProtocols.BaseModel, Protocol):
+    class RuntimeProcessRequest(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         cmd: t.InstanceOfSequence[str]
@@ -550,7 +542,7 @@ class FlextCliProtocolsProcess:
             ...
 
     @runtime_checkable
-    class RuntimeProcessState(FlextProtocols.BaseModel, Protocol):
+    class RuntimeProcessState(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -641,7 +633,7 @@ class FlextCliProtocolsProcess:
             ...
 
     @runtime_checkable
-    class RuntimeOutputTarget(FlextProtocols.BaseModel, Protocol):
+    class RuntimeOutputTarget(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -657,7 +649,7 @@ class FlextCliProtocolsProcess:
         live_fd: int | None
 
     @runtime_checkable
-    class RuntimeSpawnOptions(FlextProtocols.BaseModel, Protocol):
+    class RuntimeSpawnOptions(p.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         capture_output: bool
