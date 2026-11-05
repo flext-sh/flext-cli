@@ -19,6 +19,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
     FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicFilePath,
 )
 
@@ -54,8 +55,8 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
             path
         )
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
-                before, parent.state
+            FlextCliUtilitiesAtomicFileModel.require_parent(
+                before, parent.state, subject="directory"
             )
             observed = (
                 FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
@@ -128,8 +129,8 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
             initial,
             mode,
         )
-        FlextCliUtilitiesAtomicDirectoryState.require_directory_identity(
-            path, final, identity
+        FlextCliUtilitiesAtomicFilePath.require_identity(
+            path, final, identity, subject="directory"
         )
         FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
         return FlextCliUtilitiesAtomicDirectoryState.read_empty_state(

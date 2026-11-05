@@ -62,30 +62,27 @@ def spawn_streamed_process(
 ) -> subprocess.Popen[bytes]:
     """Create the single native binary child without waiting or adapting its result.
 
+    An explicit stdin handle wins over the pipe, devnull, or inherit mode;
+    combined output redirects stderr to stdout, otherwise capture pipes it.
+
     Returns:
         The actual native process handle; its caller owns communication and reaping.
 
     """
+    stdin_target: BinaryIO | int | None = stdin_handle
+    if stdin_target is None:
+        stdin_target = {"pipe": subprocess.PIPE, "devnull": subprocess.DEVNULL}.get(
+            options.stdin_mode,
+        )
+    stderr_target: int | None = subprocess.PIPE if options.capture_output else None
+    if options.combine_output:
+        stderr_target = subprocess.STDOUT
     return subprocess.Popen(
         list(cmd),
         cwd=cwd,
-        stdin=(
-            stdin_handle
-            if stdin_handle is not None
-            else subprocess.PIPE
-            if options.stdin_mode == "pipe"
-            else subprocess.DEVNULL
-            if options.stdin_mode == "devnull"
-            else None
-        ),
+        stdin=stdin_target,
         stdout=subprocess.PIPE if options.capture_output else None,
-        stderr=(
-            subprocess.STDOUT
-            if options.combine_output
-            else subprocess.PIPE
-            if options.capture_output
-            else None
-        ),
+        stderr=stderr_target,
         text=False,
         bufsize=0,
         env=env,

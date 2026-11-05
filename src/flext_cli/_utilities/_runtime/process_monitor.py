@@ -11,7 +11,7 @@ import signal
 import time
 from collections.abc import MutableSequence
 
-from flext_cli import c, p
+from flext_cli import c, m, p
 from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessGroup
 
 
@@ -25,33 +25,17 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         cls,
         process: p.Cli.ProcessHandle,
         state: p.Cli.RuntimeProcessState,
-        absolute_deadline: float | None,
-        grace_seconds: float,
-        *,
-        progress: tuple[int | None, float | None],
+        timing: m.Cli.RuntimeProcessTiming,
+        heartbeat: m.Cli.RuntimeHeartbeat,
     ) -> tuple[bool, float | None]:
         """Forward signals and advance TERM/KILL phases without polling.
 
         Returns:
-            The resulting ``tuple[bool, float | None]``.
+            Whether the timeout interrupt ran, and the lifecycle deadline
+            cleanup must honor.
 
         """
-        lifecycle_deadline = absolute_deadline
-        soft_at = cls._soft_boundary(absolute_deadline, grace_seconds)
-        term_at = cls._phase_boundary(soft_at, grace_seconds, numerator=1)
-        kill_at = cls._phase_boundary(soft_at, grace_seconds, numerator=2)
-        cleanup_at = cls._phase_boundary(soft_at, grace_seconds, numerator=5)
-        timed_out = False
-        forwarded_count = 0
-        timeout_interrupt_sent = False
-        term_sent = False
-        kill_sent = False
-        interrupt_mode = False
-        heartbeat_at = (
-            time.monotonic() + progress[1]
-            if progress[0] is not None and progress[1] is not None
-            else None
-        )
+        phase = cls._initial_monitor_phase(timing, heartbeat)
         while True:
             state.wake.clear()
             # Clear before observing completion: a waiter that finishes between
@@ -59,94 +43,165 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
             if state.process_done.is_set():
                 break
             now = time.monotonic()
-            if state.received_signals and not interrupt_mode:
-                interrupt_mode = True
-                lifecycle_deadline = cls._interrupt_deadline(now, absolute_deadline)
-                reserve = max(0.0, lifecycle_deadline - now)
-                soft_at = now
-                term_at = cls._phase_boundary(now, reserve, numerator=1)
-                kill_at = cls._phase_boundary(now, reserve, numerator=2)
-                cleanup_at = cls._phase_boundary(now, reserve, numerator=5)
-            forwarded_count, term_sent, kill_sent = cls._forward_received(
+            cls._advance_monitor_phase(process, state, phase, now)
+            if phase.cleanup_at is not None and now >= phase.cleanup_at:
+                break
+            cls._wait_next_boundary(state, phase, now)
+        return phase.timed_out, phase.lifecycle_deadline
+
+    @classmethod
+    def _initial_monitor_phase(
+        cls,
+        timing: m.Cli.RuntimeProcessTiming,
+        heartbeat: m.Cli.RuntimeHeartbeat,
+    ) -> m.Cli.RuntimeMonitorPhase:
+        """Schedule the timeout phases inside the declared grace reserve.
+
+        Returns:
+            The phase boundaries before any operator signal arrives.
+
+        """
+        grace = timing.grace_seconds
+        soft_at = cls._soft_boundary(timing.absolute_deadline, grace)
+        return m.Cli.RuntimeMonitorPhase(
+            timing=timing,
+            heartbeat=heartbeat,
+            lifecycle_deadline=timing.absolute_deadline,
+            soft_at=soft_at,
+            term_at=cls._phase_boundary(soft_at, grace, numerator=1),
+            kill_at=cls._phase_boundary(soft_at, grace, numerator=2),
+            cleanup_at=cls._phase_boundary(soft_at, grace, numerator=5),
+            heartbeat_at=(
+                time.monotonic() + heartbeat.interval_seconds
+                if heartbeat.descriptor is not None
+                and heartbeat.interval_seconds is not None
+                else None
+            ),
+        )
+
+    @classmethod
+    def _advance_monitor_phase(
+        cls,
+        process: p.Cli.ProcessHandle,
+        state: p.Cli.RuntimeProcessState,
+        phase: m.Cli.RuntimeMonitorPhase,
+        now: float,
+    ) -> None:
+        """Apply every interrupt, forward, heartbeat, and escalation now due."""
+        if state.received_signals and not phase.interrupt_mode:
+            cls._enter_interrupt_mode(phase, now)
+        cls._forward_received(process, state, phase)
+        cls._advance_heartbeat(phase, now)
+        cls._advance_escalation(process, state, phase, now)
+
+    @classmethod
+    def _wait_next_boundary(
+        cls,
+        state: p.Cli.RuntimeProcessState,
+        phase: m.Cli.RuntimeMonitorPhase,
+        now: float,
+    ) -> None:
+        """Block until new lifecycle evidence or the next unsent boundary."""
+        next_boundary = cls._next_boundary(
+            now,
+            phase.soft_at if not phase.timeout_interrupt_sent else None,
+            phase.term_at if not phase.term_sent else None,
+            phase.kill_at if not phase.kill_sent else None,
+            phase.cleanup_at,
+            phase.heartbeat_at,
+        )
+        state.wake.wait(
+            None
+            if next_boundary is None
+            else max(0.0, next_boundary - time.monotonic()),
+        )
+
+    @classmethod
+    def _enter_interrupt_mode(
+        cls,
+        phase: m.Cli.RuntimeMonitorPhase,
+        now: float,
+    ) -> None:
+        """Reschedule every phase inside the local operator-interrupt reserve."""
+        phase.interrupt_mode = True
+        phase.lifecycle_deadline = cls._interrupt_deadline(
+            now, phase.timing.absolute_deadline
+        )
+        reserve = max(0.0, phase.lifecycle_deadline - now)
+        phase.soft_at = now
+        phase.term_at = cls._phase_boundary(now, reserve, numerator=1)
+        phase.kill_at = cls._phase_boundary(now, reserve, numerator=2)
+        phase.cleanup_at = cls._phase_boundary(now, reserve, numerator=5)
+
+    @classmethod
+    def _advance_heartbeat(
+        cls,
+        phase: m.Cli.RuntimeMonitorPhase,
+        now: float,
+    ) -> None:
+        """Emit one due heartbeat line and schedule the next one."""
+        interval = phase.heartbeat.interval_seconds
+        if phase.heartbeat_at is None or interval is None or now < phase.heartbeat_at:
+            return
+        cls._write_heartbeat(phase.heartbeat.descriptor)
+        phase.heartbeat_at = now + interval
+
+    @classmethod
+    def _advance_escalation(
+        cls,
+        process: p.Cli.ProcessHandle,
+        state: p.Cli.RuntimeProcessState,
+        phase: m.Cli.RuntimeMonitorPhase,
+        now: float,
+    ) -> None:
+        """Deliver every due failure, timeout, TERM, and KILL phase once."""
+        kill = m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True)
+        if state.failures and not phase.kill_sent:
+            cls._deliver_tree_signal(process, state, kill)
+            phase.kill_sent = True
+        if not state.received_signals and cls._phase_due(
+            phase.soft_at, now, sent=phase.timeout_interrupt_sent
+        ):
+            phase.timed_out = True
+            cls._deliver_tree_signal(
                 process,
                 state,
-                forwarded_count,
-                term_sent=term_sent,
-                kill_sent=kill_sent,
+                m.Cli.ProcessTreeSignal(signal_number=signal.SIGINT, force=False),
             )
-            if (
-                heartbeat_at is not None
-                and progress[1] is not None
-                and now >= heartbeat_at
-            ):
-                cls._write_heartbeat(progress[0])
-                heartbeat_at = now + progress[1]
-            if state.failures and not kill_sent:
-                cls._record_signal_error(
-                    state.failures,
-                    cls._signal_process_tree(
-                        process,
-                        signal.SIGKILL,
-                        state.job_handle,
-                        force=True,
-                    ),
-                )
-                kill_sent = True
-            if (
-                soft_at is not None
-                and now >= soft_at
-                and not state.received_signals
-                and not timeout_interrupt_sent
-            ):
-                timed_out = True
-                cls._record_signal_error(
-                    state.failures,
-                    cls._signal_process_tree(
-                        process,
-                        signal.SIGINT,
-                        state.job_handle,
-                        force=False,
-                    ),
-                )
-                timeout_interrupt_sent = True
-            if term_at is not None and now >= term_at and not term_sent:
-                cls._record_signal_error(
-                    state.failures,
-                    cls._signal_process_tree(
-                        process,
-                        signal.SIGTERM,
-                        state.job_handle,
-                        force=False,
-                    ),
-                )
-                term_sent = True
-            if kill_at is not None and now >= kill_at and not kill_sent:
-                cls._record_signal_error(
-                    state.failures,
-                    cls._signal_process_tree(
-                        process,
-                        signal.SIGKILL,
-                        state.job_handle,
-                        force=True,
-                    ),
-                )
-                kill_sent = True
-            if cleanup_at is not None and now >= cleanup_at:
-                break
-            next_boundary = cls._next_boundary(
-                now,
-                soft_at if not timeout_interrupt_sent else None,
-                term_at if not term_sent else None,
-                kill_at if not kill_sent else None,
-                cleanup_at,
-                heartbeat_at,
+            phase.timeout_interrupt_sent = True
+        if cls._phase_due(phase.term_at, now, sent=phase.term_sent):
+            cls._deliver_tree_signal(
+                process,
+                state,
+                m.Cli.ProcessTreeSignal(signal_number=signal.SIGTERM, force=False),
             )
-            state.wake.wait(
-                None
-                if next_boundary is None
-                else max(0.0, next_boundary - time.monotonic()),
-            )
-        return timed_out, lifecycle_deadline
+            phase.term_sent = True
+        if cls._phase_due(phase.kill_at, now, sent=phase.kill_sent):
+            cls._deliver_tree_signal(process, state, kill)
+            phase.kill_sent = True
+
+    @staticmethod
+    def _phase_due(boundary: float | None, now: float, *, sent: bool) -> bool:
+        """Report whether one unsent phase boundary has been reached.
+
+        Returns:
+            Whether the phase must be delivered now.
+
+        """
+        return boundary is not None and now >= boundary and not sent
+
+    @classmethod
+    def _deliver_tree_signal(
+        cls,
+        process: p.Cli.ProcessHandle,
+        state: p.Cli.RuntimeProcessState,
+        tree_signal: m.Cli.ProcessTreeSignal,
+    ) -> None:
+        """Signal the owned tree and retain a delivery failure as evidence."""
+        cls._record_signal_error(
+            state.failures,
+            cls._signal_process_tree(process, state.job_handle, tree_signal),
+        )
 
     @staticmethod
     def _write_heartbeat(progress_fd: int | None) -> None:
@@ -196,35 +251,28 @@ class FlextCliUtilitiesRuntimeProcessMonitor(
         cls,
         process: p.Cli.ProcessHandle,
         state: p.Cli.RuntimeProcessState,
-        forwarded_count: int,
-        *,
-        term_sent: bool,
-        kill_sent: bool,
-    ) -> tuple[int, bool, bool]:
+        phase: m.Cli.RuntimeMonitorPhase,
+    ) -> None:
+        """Forward each newly received operator signal, escalating repeats."""
         force_after_signals = 2
-        while forwarded_count < len(state.received_signals):
-            signal_number = state.received_signals[forwarded_count]
-            force = forwarded_count >= force_after_signals
+        while phase.forwarded_count < len(state.received_signals):
+            signal_number = state.received_signals[phase.forwarded_count]
+            force = phase.forwarded_count >= force_after_signals
             forwarded_signal = (
                 signal_number
-                if forwarded_count == 0
+                if phase.forwarded_count == 0
                 else signal.SIGKILL
                 if force
                 else signal.SIGTERM
             )
-            cls._record_signal_error(
-                state.failures,
-                cls._signal_process_tree(
-                    process,
-                    forwarded_signal,
-                    state.job_handle,
-                    force=force,
-                ),
+            cls._deliver_tree_signal(
+                process,
+                state,
+                m.Cli.ProcessTreeSignal(signal_number=forwarded_signal, force=force),
             )
-            forwarded_count += 1
-            term_sent = term_sent or forwarded_signal == signal.SIGTERM
-            kill_sent = kill_sent or force
-        return forwarded_count, term_sent, kill_sent
+            phase.forwarded_count += 1
+            phase.term_sent = phase.term_sent or forwarded_signal == signal.SIGTERM
+            phase.kill_sent = phase.kill_sent or force
 
     @staticmethod
     def _record_signal_error(

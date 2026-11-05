@@ -12,7 +12,7 @@ import signal
 
 from flext_core import r
 
-from flext_cli import p
+from flext_cli import m, p
 from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeDarwinProcessGroup,
     FlextCliUtilitiesRuntimeWindowsJobStart,
@@ -59,10 +59,8 @@ class FlextCliUtilitiesRuntimeProcessGroup(
     def _signal_process_tree_windows(
         cls,
         process: p.Cli.ProcessHandle,
-        signal_number: int,
         job_handle: int,
-        *,
-        force: bool,
+        tree_signal: m.Cli.ProcessTreeSignal,
     ) -> p.Result[bool]:
         """Signal one owned process tree through the Windows Job Object.
 
@@ -70,12 +68,12 @@ class FlextCliUtilitiesRuntimeProcessGroup(
             The resulting ``p.Result[bool]``.
 
         """
-        if not force and signal_number == signal.SIGINT:
+        if not tree_signal.force and tree_signal.signal_number == signal.SIGINT:
             process.send_signal(int(getattr(signal, "CTRL_BREAK_EVENT", signal.SIGINT)))
             return r[bool].ok(value=True)
         terminate_error = cls._windows_job_terminate(
             job_handle,
-            128 + abs(signal_number),
+            128 + abs(tree_signal.signal_number),
         )
         if terminate_error is not None:
             return r[bool].fail(terminate_error)
@@ -110,10 +108,8 @@ class FlextCliUtilitiesRuntimeProcessGroup(
     def _signal_process_tree(
         cls,
         process: p.Cli.ProcessHandle,
-        signal_number: int,
         job_handle: int,
-        *,
-        force: bool,
+        tree_signal: m.Cli.ProcessTreeSignal,
     ) -> p.Result[bool]:
         """Signal the complete owned process tree.
 
@@ -122,14 +118,12 @@ class FlextCliUtilitiesRuntimeProcessGroup(
 
         """
         if os.name == "nt":
-            return cls._signal_process_tree_windows(
-                process,
-                signal_number,
-                job_handle,
-                force=force,
-            )
+            return cls._signal_process_tree_windows(process, job_handle, tree_signal)
         try:
-            os.killpg(process.pid, signal.SIGKILL if force else signal_number)
+            os.killpg(
+                process.pid,
+                signal.SIGKILL if tree_signal.force else tree_signal.signal_number,
+            )
         except ProcessLookupError:
             return r[bool].ok(value=True)
         except PermissionError as exc:

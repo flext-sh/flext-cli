@@ -59,7 +59,6 @@ class FlextCliUtilitiesAtomicFileDelete:
                 path,
                 expected,
                 content,
-                enabled=True,
                 parent=parent,
             )
             FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(

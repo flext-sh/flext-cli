@@ -72,21 +72,12 @@ class FlextCliUtilitiesAtomicFilePublish:
             staged_identity,
             label="staged_identity",
         )
-        with (
-            FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                destination,
-                replace=True,
-            ) as destination_parent,
-            FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                staged_path,
-                replace=True,
-            ) as staged_parent,
-        ):
-            FlextCliUtilitiesAtomicFileModel.require_parent(
-                destination_before,
-                destination_parent.state,
-            )
-            FlextCliUtilitiesAtomicFileModel.require_parent(staged, staged_parent.state)
+        with FlextCliUtilitiesAtomicFileModel.publication_parents(
+            (destination, staged_path),
+            (destination_before, staged),
+            subject="file",
+            replace=True,
+        ) as (destination_parent, staged_parent):
             destination_state = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 destination,
                 parent=destination_parent,
@@ -95,13 +86,11 @@ class FlextCliUtilitiesAtomicFilePublish:
                 destination_before,
                 destination_state,
             )
-            FlextCliUtilitiesAtomicFilePublishChecks.validate_payload(
-                destination_parent, destination, destination_state, destination_payload
-            )
-            FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
+            FlextCliUtilitiesAtomicFilePublishChecks.validate_version(
+                destination_parent,
                 destination,
                 destination_state,
-                destination_before.mode,
+                (destination_payload, destination_before.mode),
             )
             staged_state = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 staged_path,
@@ -137,13 +126,8 @@ class FlextCliUtilitiesAtomicFilePublish:
                 staged_parent,
                 m.Cli.ObservedFile(path=staged_path, state=staged_state),
             )
-            FlextCliUtilitiesAtomicFilePublishChecks.validate_payload(
-                staged_parent, staged_path, staged_state, staged_payload
-            )
-            FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
-                staged_path,
-                staged_state,
-                staged_mode,
+            FlextCliUtilitiesAtomicFilePublishChecks.validate_version(
+                staged_parent, staged_path, staged_state, (staged_payload, staged_mode)
             )
             FlextCliUtilitiesAtomicFileState.assert_destination_unchanged(
                 destination,

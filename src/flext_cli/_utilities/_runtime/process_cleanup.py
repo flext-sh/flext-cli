@@ -25,7 +25,7 @@ from types import FrameType
 
 from flext_core import r
 
-from flext_cli import p, t
+from flext_cli import m, p, t
 from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeProcessMonitor,
     FlextCliUtilitiesRuntimeProcessThreads,
@@ -105,10 +105,8 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
             raise RuntimeError(msg)
         wave = cls.SignalWave()
         received: MutableSequence[int] = []
-        forwarded: MutableSequence[int] = []
         restore_handlers = cls._install_forwarding_handlers(
             received,
-            forwarded,
             threading.Event(),
             on_signal=wave.broadcast,
         )
@@ -169,7 +167,6 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
     def _install_forwarding_handlers(
         cls,
         received_signals: MutableSequence[int],
-        forwarded_signals: MutableSequence[int],
         wake: threading.Event,
         *,
         on_signal: Callable[[int], None] | None = None,
@@ -177,7 +174,8 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
         """Capture operator signals before opening the containment window.
 
         ``on_signal`` additionally delivers each signal to the subscribers of
-        a signal wave.
+        a signal wave. On return every ``process_forwarded_signals`` handler is
+        installed; on failure the partial installation is already restored.
 
         Returns:
             The callbacks that restore the original parent signal handlers.
@@ -205,7 +203,6 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
             for signal_number in cls.process_forwarded_signals():
                 previous: t.Cli.SignalHandler = signal.getsignal(signal_number)
                 signal.signal(signal_number, partial(forward, previous))
-                forwarded_signals.append(int(signal_number))
                 restore_handlers.append(
                     partial(cls._restore_signal_handler, int(signal_number), previous),
                 )
@@ -277,33 +274,31 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
             state.cleanup_errors.append("process deadline expired before root reaping")
         if state.input_pump is not None:
             cls._drain_stream(
-                state.input_pump[0],
-                state.input_pump[1],
+                m.Cli.RuntimePipeDrain(
+                    pump=state.input_pump[0],
+                    stream=state.input_pump[1],
+                    direction="input",
+                ),
                 state,
                 cleanup_deadline,
-                direction="input",
             )
         for pump, source in tuple(state.pump_streams):
             cls._drain_stream(
-                pump,
-                source,
+                m.Cli.RuntimePipeDrain(pump=pump, stream=source, direction="output"),
                 state,
                 cleanup_deadline,
-                direction="output",
             )
         return state.return_codes[0] if state.return_codes else process.poll()
 
     @classmethod
     def _drain_stream(
         cls,
-        pump: threading.Thread,
-        stream: p.Cli.RuntimeClosableStream,
+        drain: m.Cli.RuntimePipeDrain,
         state: p.Cli.RuntimeProcessState,
         cleanup_deadline: float,
-        *,
-        direction: str,
     ) -> None:
         """Join a pipe pump, close a blocked stream, and preserve causal errors."""
+        pump, stream, direction = drain.pump, drain.stream, drain.direction
         pump.join(cls._remaining(cleanup_deadline))
         if pump.is_alive():
             if direction == "output":
@@ -337,9 +332,8 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
             state.cleanup_errors,
             cls._signal_process_tree(
                 process,
-                signal.SIGTERM,
                 state.job_handle,
-                force=False,
+                m.Cli.ProcessTreeSignal(signal_number=signal.SIGTERM, force=False),
             ),
         )
         state.process_done.wait(min(0.1, cls._remaining(cleanup_deadline)))
@@ -349,9 +343,8 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
                 state.cleanup_errors,
                 cls._signal_process_tree(
                     process,
-                    signal.SIGKILL,
                     state.job_handle,
-                    force=True,
+                    m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
                 ),
             )
         while (

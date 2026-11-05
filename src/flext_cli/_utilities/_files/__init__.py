@@ -20,11 +20,15 @@ if TYPE_CHECKING:
         FlextCliUtilitiesFilesPart06,
     )
     from flext_cli._utilities._files.formats import FlextCliUtilitiesFilesPart04
+    from flext_cli._utilities._files.native_results import (
+        FlextCliUtilitiesFilesNativeResults,
+    )
     from flext_cli._utilities._files.text_formats import FlextCliUtilitiesFilesPart01
     from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
 
 
 __all__: tuple[str, ...] = (
+    "FlextCliUtilitiesFilesNativeResults",
     "FlextCliUtilitiesFilesPart01",
     "FlextCliUtilitiesFilesPart02",
     "FlextCliUtilitiesFilesPart03",
@@ -37,6 +41,7 @@ install_lazy_exports(
     __name__,
     globals(),
     {
+        "FlextCliUtilitiesFilesNativeResults": ".native_results",
         "FlextCliUtilitiesFilesPart01": ".text_formats",
         "FlextCliUtilitiesFilesPart02": ".writes",
         "FlextCliUtilitiesFilesPart03": ".binary_reads",

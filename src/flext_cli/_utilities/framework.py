@@ -33,9 +33,13 @@ class FlextCliUtilitiesFramework:
         base for base in typer.BadParameter.__mro__ if base.__name__ == "ClickException"
     )
     # Typer injects its vendored click context, the base of typer.Context, so an
-    # isinstance check against typer.Context rejects every injected context.
-    _TYPER_CLICK_CONTEXT: ClassVar[type] = next(
-        base for base in typer.Context.__mro__[1:] if base.__name__ == "Context"
+    # isinstance check against typer.Context rejects every injected context. The
+    # issubclass filter proves at import time that this exact class satisfies the
+    # structural contract the supplied-options filter reads.
+    _TYPER_CLICK_CONTEXT: ClassVar[type[p.Cli.CommandContext]] = next(
+        base
+        for base in typer.Context.__mro__[1:]
+        if base.__name__ == "Context" and issubclass(base, p.Cli.CommandContext)
     )
 
     class TyperApplication:
@@ -172,13 +176,20 @@ class FlextCliUtilitiesFramework:
         return application
 
     @staticmethod
-    def _exit_code_result(exit_code: int) -> p.Result[bool]:
-        """Normalize one framework exit code through the exception facade.
+    def _exit_code_result(exit_result: t.JsonPayload) -> p.Result[bool]:
+        """Normalize one framework return value through the exception facade.
+
+        Only a non-boolean integer other than success is an exit failure.
 
         Returns:
             The resulting ``p.Result[bool]``.
 
         """
+        exit_code = (
+            exit_result
+            if isinstance(exit_result, int) and not isinstance(exit_result, bool)
+            else c.Cli.EXIT_CODE_SUCCESS
+        )
         if exit_code == c.Cli.EXIT_CODE_SUCCESS:
             return r[bool].ok(value=True)
         return e.fail_operation(
@@ -425,13 +436,7 @@ class FlextCliUtilitiesFramework:
             cls._active_execution.reset(token)
         if captured_failure is not None:
             return r[bool].from_failure(captured_failure)
-        if (
-            isinstance(exit_result, int)
-            and not isinstance(exit_result, bool)
-            and exit_result != c.Cli.EXIT_CODE_SUCCESS
-        ):
-            return cls._exit_code_result(exit_result)
-        return r[bool].ok(value=True)
+        return cls._exit_code_result(exit_result)
 
     @classmethod
     def framework_execute_external(
@@ -465,13 +470,7 @@ class FlextCliUtilitiesFramework:
             raise
         except SystemExit:
             raise
-        if (
-            isinstance(exit_result, int)
-            and not isinstance(exit_result, bool)
-            and exit_result != c.Cli.EXIT_CODE_SUCCESS
-        ):
-            return cls._exit_code_result(exit_result)
-        return r[bool].ok(value=True)
+        return cls._exit_code_result(exit_result)
 
     @classmethod
     def framework_external_command(

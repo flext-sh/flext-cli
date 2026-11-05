@@ -47,19 +47,22 @@ class FlextCliUtilitiesAtomicDirectoryNoreplace:
 
     @staticmethod
     def rename_noreplace(
-        source_descriptor: int,
-        source_name: str,
-        destination_descriptor: int,
-        destination_name: str,
+        source: tuple[int, str],
+        destination: tuple[int, str],
         *,
         path: Path,
     ) -> None:
         """Rename one relative entry without replacing an existing destination.
 
+        ``source`` and ``destination`` are directory descriptors paired with
+        the entry name relative to them.
+
         Raises:
             OSError: Always; or if ``result != 0``.
 
         """
+        source_descriptor, source_name = source
+        destination_descriptor, destination_name = destination
         source_bytes = FlextCliUtilitiesAtomicDirectoryNoreplace._encode_name(
             source_name,
             path,

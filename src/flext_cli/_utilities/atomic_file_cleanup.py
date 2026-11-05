@@ -6,15 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import errno
 import os
 from pathlib import Path
 
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
-    FlextCliUtilitiesAtomicFilePublishChecks,
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileState,
+    FlextCliUtilitiesAtomicParentFailure,
 )
 
 
@@ -32,10 +32,11 @@ class FlextCliUtilitiesAtomicFileCleanup:
         cleanup_errors: list[OSError] = []
         try:
             # Publication adds a second link to this authenticated staging inode.
-            FlextCliUtilitiesAtomicFilePublishChecks.require_file_identity(
+            FlextCliUtilitiesAtomicFilePath.require_identity(
                 temporary,
                 FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, temporary),
                 identity,
+                subject="file",
             )
             FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, temporary)
@@ -46,10 +47,11 @@ class FlextCliUtilitiesAtomicFileCleanup:
         except OSError as cleanup_error:
             cleanup_errors.append(cleanup_error)
         if cleanup_errors:
-            FlextCliUtilitiesAtomicFileCleanup._raise_cleanup_failure(
+            FlextCliUtilitiesAtomicParentFailure.raise_combined_failure(
                 temporary,
                 operation_error,
                 cleanup_errors,
+                ("atomic write", "temporary cleanup"),
             )
 
     @staticmethod
@@ -64,7 +66,7 @@ class FlextCliUtilitiesAtomicFileCleanup:
         cleanup_errors: list[OSError] = []
         if identity is None and descriptor is not None:
             try:
-                identity = FlextCliUtilitiesAtomicFileState.file_state_identity(
+                identity = FlextCliUtilitiesAtomicFilePath.path_identity(
                     os.fstat(descriptor),
                 )
             except OSError as cleanup_error:
@@ -88,31 +90,12 @@ class FlextCliUtilitiesAtomicFileCleanup:
             except OSError as cleanup_error:
                 cleanup_errors.append(cleanup_error)
         if cleanup_errors:
-            FlextCliUtilitiesAtomicFileCleanup._raise_cleanup_failure(
+            FlextCliUtilitiesAtomicParentFailure.raise_combined_failure(
                 temporary,
                 operation_error,
                 cleanup_errors,
+                ("atomic write", "temporary cleanup"),
             )
-
-    @staticmethod
-    def _raise_cleanup_failure(
-        temporary: Path,
-        operation_error: BaseException,
-        cleanup_errors: list[OSError],
-    ) -> None:
-        cleanup_summary = "; ".join(str(error) for error in cleanup_errors)
-        message = (
-            f"atomic write failed ({operation_error}); "
-            f"temporary cleanup failed ({cleanup_summary})"
-        )
-        group_message = "atomic write and temporary cleanup failed"
-        if isinstance(operation_error, Exception):
-            causes = ExceptionGroup(group_message, [operation_error, *cleanup_errors])
-            raise OSError(errno.EIO, message, temporary) from causes
-        raise BaseExceptionGroup(
-            group_message,
-            [operation_error, *cleanup_errors],
-        ) from cleanup_errors[-1]
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicFileCleanup"]

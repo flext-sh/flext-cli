@@ -19,6 +19,9 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDelete,
     FlextCliUtilitiesAtomicFilePath,
 )
+from flext_cli._utilities._files.native_results import (
+    FlextCliUtilitiesFilesNativeResults,
+)
 
 
 class FlextCliUtilitiesFilesPart02:
@@ -122,15 +125,11 @@ class FlextCliUtilitiesFilesPart02:
         ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(path.parent)
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
-        try:
-            FlextCliUtilitiesAtomicFile.write_atomic_state(
-                path,
-                data,
-                m.Cli.AtomicWriteOptions(durability=durability),
-            )
-        except OSError as exc:
-            return r[bool].fail(error_template.format(error=exc), exception=exc)
-        return r[bool].ok(value=True)
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicFile.write_atomic_state, error_template
+        )(path, data, m.Cli.AtomicWriteOptions(durability=durability)).map(
+            lambda _published: True
+        )
 
     @staticmethod
     def atomic_write_text_file_guarded(
@@ -148,20 +147,16 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
-        try:
-            FlextCliUtilitiesAtomicFile.write_atomic_state(
-                before.path,
-                content.encode(c.DEFAULT_ENCODING),
-                m.Cli.AtomicWriteOptions(
-                    expected_state=m.Cli.AtomicFileState.model_validate(before),
-                ),
-            )
-        except OSError as exc:
-            return r[bool].fail(
-                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
-                exception=exc,
-            )
-        return r[bool].ok(value=True)
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicFile.write_atomic_state,
+            c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED,
+        )(
+            before.path,
+            content.encode(c.DEFAULT_ENCODING),
+            m.Cli.AtomicWriteOptions(
+                expected_state=m.Cli.AtomicFileState.model_validate(before),
+            ),
+        ).map(lambda _published: True)
 
     @staticmethod
     def atomic_write_binary_file_guarded(
@@ -182,22 +177,18 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
-        try:
-            FlextCliUtilitiesAtomicFile.write_atomic_state(
-                before.path,
-                data,
-                m.Cli.AtomicWriteOptions(
-                    expected_state=m.Cli.AtomicFileState.model_validate(before),
-                    permission_mode=permission_mode,
-                ),
-                published_paths=published_paths,
-            )
-        except OSError as exc:
-            return r[bool].fail(
-                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc),
-                exception=exc,
-            )
-        return r[bool].ok(value=True)
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicFile.write_atomic_state,
+            c.Cli.ERR_BINARY_WRITE_FAILED,
+        )(
+            before.path,
+            data,
+            m.Cli.AtomicWriteOptions(
+                expected_state=m.Cli.AtomicFileState.model_validate(before),
+                permission_mode=permission_mode,
+            ),
+            published_paths=published_paths,
+        ).map(lambda _published: True)
 
     @staticmethod
     def atomic_delete_binary_file_guarded(
