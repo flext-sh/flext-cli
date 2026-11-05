@@ -28,6 +28,7 @@ if TYPE_CHECKING:
     from flext_cli._models.pptx import FlextCliModelsPptx
     from flext_cli._models.pptx_presentation import FlextCliModelsPptxPresentation
     from flext_cli._models.process import FlextCliModelsProcess
+    from flext_cli._models.process_runtime import FlextCliModelsProcessRuntime
     from flext_cli._models.rules import FlextCliModelsRules
     from flext_cli._models.template import FlextCliModelsTemplate
     from flext_cli._models.xlsx import FlextCliModelsXlsx
@@ -50,6 +51,7 @@ __all__: tuple[str, ...] = (
     "FlextCliModelsPptx",
     "FlextCliModelsPptxPresentation",
     "FlextCliModelsProcess",
+    "FlextCliModelsProcessRuntime",
     "FlextCliModelsRules",
     "FlextCliModelsTemplate",
     "FlextCliModelsXlsx",
@@ -75,6 +77,7 @@ install_lazy_exports(
         "FlextCliModelsPptx": ".pptx",
         "FlextCliModelsPptxPresentation": ".pptx_presentation",
         "FlextCliModelsProcess": ".process",
+        "FlextCliModelsProcessRuntime": ".process_runtime",
         "FlextCliModelsRules": ".rules",
         "FlextCliModelsTemplate": ".template",
         "FlextCliModelsXlsx": ".xlsx",

@@ -80,9 +80,7 @@ class FlextCliUtilitiesRuntime(
     @staticmethod
     @override
     def _spawn_streamed_process(
-        cmd: Sequence[str],
-        cwd: t.Cli.TextPath | None,
-        env: Mapping[str, str] | None,
+        command: m.Cli.RuntimeSpawnCommand,
         stdin_handle: BinaryIO | None,
         *,
         options: p.Cli.RuntimeSpawnOptions,
@@ -93,13 +91,7 @@ class FlextCliUtilitiesRuntime(
             The resulting ``p.Cli.ProcessHandle``.
 
         """
-        return spawn_streamed_process(
-            cmd,
-            cwd=cwd,
-            env=env,
-            stdin_handle=stdin_handle,
-            options=options,
-        )
+        return spawn_streamed_process(command, stdin_handle, options=options)
 
     @staticmethod
     def child_communicate(
@@ -201,24 +193,8 @@ class FlextCliUtilitiesRuntime(
                 signal_wave=launch.signal_wave,
             )
         return cls._execute_streamed_process(
-            m.Cli.RuntimeProcessRequest(
-                cmd=cmd,
-                cwd=cwd,
-                env=cls._resolved_env(
-                    launch.env,
-                    launch.remove_env_keys,
-                    inherit_environment=launch.inherit_environment,
-                ),
-                input_data=launch.input_data,
-                inherit_stdin=launch.inherit_stdin,
-                capture_output=capture,
-                timeout=timeout,
-                deadline=launch.deadline,
-                live=launch.live,
-                heartbeat_seconds=launch.heartbeat_seconds,
-                isolation=launch.isolation,
-                pass_fds=tuple(launch.pass_fds),
-                signal_wave=launch.signal_wave,
+            cls._runtime_request(cmd, cwd, timeout, launch).model_copy(
+                update={"capture_output": capture},
             ),
         ).flat_map(decode_output)
 
@@ -244,24 +220,7 @@ class FlextCliUtilitiesRuntime(
             else m.Cli.ProcessOptions()
         )
         return cls._execute_streamed_process(
-            m.Cli.RuntimeProcessRequest(
-                cmd=cmd,
-                cwd=cwd,
-                env=cls._resolved_env(
-                    launch.env,
-                    launch.remove_env_keys,
-                    inherit_environment=launch.inherit_environment,
-                ),
-                input_data=launch.input_data,
-                inherit_stdin=launch.inherit_stdin,
-                timeout=timeout,
-                deadline=launch.deadline,
-                live=launch.live,
-                heartbeat_seconds=launch.heartbeat_seconds,
-                isolation=launch.isolation,
-                pass_fds=tuple(launch.pass_fds),
-                signal_wave=launch.signal_wave,
-            ),
+            cls._runtime_request(cmd, cwd, timeout, launch),
         )
 
 

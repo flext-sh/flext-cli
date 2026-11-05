@@ -14,8 +14,28 @@ from __future__ import annotations
 import os
 import subprocess
 from collections.abc import Mapping, Sequence
-from subprocess import TimeoutExpired
 from typing import BinaryIO, Literal, Protocol
+
+TimeoutExpired = subprocess.TimeoutExpired
+
+
+class RuntimeSpawnCommand(Protocol):
+    """Resolved native argv, working directory, and environment of one child."""
+
+    @property
+    def cmd(self) -> Sequence[str]:
+        """Executable and ordered child arguments."""
+        ...
+
+    @property
+    def cwd(self) -> str | os.PathLike[str] | None:
+        """Working directory, or the parent directory when absent."""
+        ...
+
+    @property
+    def env(self) -> Mapping[str, str] | None:
+        """Resolved environment, or the inherited parent environment."""
+        ...
 
 
 class RuntimeSpawnOptions(Protocol):
@@ -53,9 +73,7 @@ class RuntimeSpawnOptions(Protocol):
 
 
 def spawn_streamed_process(
-    cmd: Sequence[str],
-    cwd: str | os.PathLike[str] | None,
-    env: Mapping[str, str] | None,
+    command: RuntimeSpawnCommand,
     stdin_handle: BinaryIO | None,
     *,
     options: RuntimeSpawnOptions,
@@ -67,8 +85,8 @@ def spawn_streamed_process(
 
     """
     return subprocess.Popen(
-        list(cmd),
-        cwd=cwd,
+        list(command.cmd),
+        cwd=command.cwd,
         stdin=(
             stdin_handle
             if stdin_handle is not None
@@ -88,7 +106,7 @@ def spawn_streamed_process(
         ),
         text=False,
         bufsize=0,
-        env=env,
+        env=command.env,
         start_new_session=(
             os.name != "nt"
             if options.start_new_session is None

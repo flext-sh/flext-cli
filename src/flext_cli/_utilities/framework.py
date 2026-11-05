@@ -32,11 +32,6 @@ class FlextCliUtilitiesFramework:
     _TYPER_CLICK_EXCEPTION: ClassVar[type[Exception]] = next(
         base for base in typer.BadParameter.__mro__ if base.__name__ == "ClickException"
     )
-    # Typer injects its vendored click context, the base of typer.Context, so an
-    # isinstance check against typer.Context rejects every injected context.
-    _TYPER_CLICK_CONTEXT: ClassVar[type] = next(
-        base for base in typer.Context.__mro__[1:] if base.__name__ == "Context"
-    )
 
     class TyperApplication:
         """Private application implementation hidden behind ``p.Cli.Application``."""
@@ -258,7 +253,9 @@ class FlextCliUtilitiesFramework:
 
         """
         context = options.pop(context_parameter)
-        if not isinstance(context, cls._TYPER_CLICK_CONTEXT):
+        # Typer injects its vendored click context, the base of typer.Context,
+        # so the structural contract accepts it where typer.Context would not.
+        if not isinstance(context, p.Cli.CommandContext):
             msg = "Typer did not inject the command context"
             raise TypeError(msg)
         return {

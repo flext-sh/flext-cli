@@ -30,6 +30,40 @@ class FlextCliUtilitiesRuntimeRunToFile(
         ) -> dict[str, str] | None: ...
 
     @classmethod
+    def _runtime_request(
+        cls,
+        cmd: Sequence[str],
+        cwd: t.Cli.TextPath | None,
+        timeout: int | None,
+        launch: m.Cli.ProcessOptions,
+    ) -> m.Cli.RuntimeProcessRequest:
+        """Resolve one launch declaration into the shared lifecycle request.
+
+        Returns:
+            The request with the resolved child environment and every
+            launch input; callers specialize capture and durable output.
+
+        """
+        return m.Cli.RuntimeProcessRequest(
+            cmd=cmd,
+            cwd=cwd,
+            env=cls._resolved_env(
+                launch.env,
+                launch.remove_env_keys,
+                inherit_environment=launch.inherit_environment,
+            ),
+            input_data=launch.input_data,
+            inherit_stdin=launch.inherit_stdin,
+            timeout=timeout,
+            deadline=launch.deadline,
+            live=launch.live,
+            heartbeat_seconds=launch.heartbeat_seconds,
+            isolation=launch.isolation,
+            pass_fds=tuple(launch.pass_fds),
+            signal_wave=launch.signal_wave,
+        )
+
+    @classmethod
     def run_to_file(
         cls,
         cmd: Sequence[str],
@@ -58,32 +92,21 @@ class FlextCliUtilitiesRuntimeRunToFile(
             else m.Cli.ProcessOptions()
         )
         return cls._execute_streamed_process(
-            m.Cli.RuntimeProcessRequest(
-                cmd=cmd,
-                output_path=Path(output_file),
-                stderr_path=(
-                    Path(launch.stderr_file) if launch.stderr_file is not None else None
-                ),
-                cwd=cwd,
-                env=cls._resolved_env(
-                    launch.env,
-                    launch.remove_env_keys,
-                    inherit_environment=launch.inherit_environment,
-                ),
-                input_data=launch.input_data,
-                inherit_stdin=launch.inherit_stdin,
-                capture_output=False,
-                live=launch.live,
-                heartbeat_seconds=(
-                    settings.cli_process_heartbeat_seconds
-                    if launch.live and launch.heartbeat_seconds is None
-                    else launch.heartbeat_seconds
-                ),
-                timeout=timeout,
-                deadline=launch.deadline,
-                isolation=launch.isolation,
-                pass_fds=tuple(launch.pass_fds),
-                signal_wave=launch.signal_wave,
+            cls._runtime_request(cmd, cwd, timeout, launch).model_copy(
+                update={
+                    "output_path": Path(output_file),
+                    "stderr_path": (
+                        Path(launch.stderr_file)
+                        if launch.stderr_file is not None
+                        else None
+                    ),
+                    "capture_output": False,
+                    "heartbeat_seconds": (
+                        settings.cli_process_heartbeat_seconds
+                        if launch.live and launch.heartbeat_seconds is None
+                        else launch.heartbeat_seconds
+                    ),
+                },
             ),
         ).map(lambda output: output.outcome)
 
