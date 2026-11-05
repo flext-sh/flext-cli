@@ -6,8 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import MutableSequence
-
 from flext_cli import cli
 from tests import c, m, p, t, tm, u
 
@@ -21,25 +19,10 @@ class TestsFlextCliServicePart02:
 
         facade.
         """
-        captured: MutableSequence[p.Tests.RepeatableInput] = []
-        app = cli.create_app_with_common_params(
-            name="root",
-            help_text="Root application",
+        app, captured = u.Tests.sample_group_app(
+            m.Tests.RepeatableInput,
+            command_name="repeat",
         )
-        group = cli.create_group(help_text="Sample group", name="sample")
-
-        def handle(params: p.Tests.RepeatableInput) -> t.JsonValue:
-            captured.append(params)
-            return True
-
-        command = cli.model_command(m.Tests.RepeatableInput, handle)
-        cli.register_command(
-            group,
-            name="repeat",
-            help_text="Run repeatable option command",
-            command=command,
-        )
-        cli.add_group(app, name="sample", group=group)
         exec_result = cli.invoke_app(
             app,
             args=[

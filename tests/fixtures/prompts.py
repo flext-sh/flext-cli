@@ -6,45 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
-
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
-
-import re
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
 import os
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Sequence
 
 import pytest
 
 from flext_cli.services import FlextCliPrompts
-from tests import c, m
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-from tests import c, p, t, u
+from tests import c, m, p
 
 
 def _scripted_reader(
