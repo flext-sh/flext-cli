@@ -51,9 +51,7 @@ class TestsFlextCliAtomicGuardedConsumer:
             tm.that(destination.stat().st_nlink, eq=1)
         else:
             tm.that(destination.read_bytes(), eq=b"concurrent")
-        tm.that(
-            {path.name for path in root.iterdir()}, eq={"consumer.py", "atomic.txt"}
-        )
+        tm.that({path.name for path in root.iterdir()}, eq={"atomic.txt"})
 
 
 if __name__ == "__main__":

@@ -1,8 +1,12 @@
 """Document imports follow their public facade composition contracts.
 
-`openpyxl`, `python-docx`, and `python-pptx` are hard dependencies, but they
-DOCX behavior owners compose directly through MRO and load with the utility
-namespace. The remaining document adapters load when their operations run.
+`openpyxl`, `python-docx`, and `python-pptx` are hard dependencies. The DOCX
+behavior owners compose directly through MRO since 8b979810 (2026-10-10), and
+the PPTX reader, renderer, and serializer joined that composition in 04a2f092
+(2026-10-28), whose public names `read_presentation` and `render_presentation`
+ac53dde0 adopted in the PPTX tests. Both stacks therefore load with the
+utility namespace. The XLSX adapters stay behind `_xlsx` delegation and load
+only when an operation runs.
 
 These probes run in a fresh interpreter because `sys.modules` is global: once
 any earlier test in the session has imported a document module, an in-process
@@ -47,16 +51,16 @@ class TestsFlextCliDocumentFacadesAreLazy:
     """Direct MRO owners load with the namespace; other adapters stay lazy."""
 
     @staticmethod
-    def test_utilities_namespace_loads_its_docx_mro_owners() -> None:
+    def test_utilities_namespace_loads_its_docx_and_pptx_mro_owners() -> None:
         loaded = _loaded_heavy_modules(
             "from flext_cli.utilities import FlextCliUtilities as u\n_ = u.Cli",
         )
-        tm.that(loaded, eq=frozenset({"docx"}))
+        tm.that(loaded, eq=frozenset({"docx", "pptx"}))
 
     @staticmethod
     def test_public_api_import_does_not_load_document_stacks() -> None:
         loaded = _loaded_heavy_modules("from flext_cli import FlextCli\n_ = FlextCli")
-        tm.that(loaded.difference({"docx"}), eq=frozenset[str]())
+        tm.that(loaded.difference({"docx", "pptx"}), eq=frozenset[str]())
 
     @staticmethod
     def test_xlsx_operation_still_resolves_through_the_utility_facade() -> None:
@@ -74,9 +78,9 @@ class TestsFlextCliDocumentFacadesAreLazy:
         tm.ok("docx" in loaded)
 
     @staticmethod
-    def test_pptx_operation_still_resolves_through_the_public_api() -> None:
+    def test_pptx_operation_still_resolves_through_the_utility_facade() -> None:
         loaded = _loaded_heavy_modules(
-            "from flext_cli import cli\ncli.pptx_read(b'not-a-presentation')",
+            "from flext_cli import u\nu.Cli.read_presentation(b'not-a-presentation')",
         )
         tm.ok("pptx" in loaded)
 

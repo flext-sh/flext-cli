@@ -8,7 +8,7 @@ Infra:
         commit: 96ad199ba1c00e58e14aa25a45a22643c13c4830
       - distribution: flext-tests
         url: https://github.com/flext-sh/flext-tests.git
-        commit: d0e1818d1ba78441e7b518ba1a25aac88720e3ea
+        commit: 18d8bd4d1a0f1305378b8d38d443fbb51ea92551
       - distribution: flext-infra
         url: https://github.com/flext-sh/flext-infra.git
         commit: 798e375c90d7f4dad93987604dc64a87de74cea8
