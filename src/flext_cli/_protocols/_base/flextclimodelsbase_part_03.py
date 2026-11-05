@@ -11,20 +11,18 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
-    from flext_cli import t
-    from flext_cli._constants import FlextCliConstantsEnums
+    from flext_cli import c, t
     from flext_cli._protocols import FlextCliProtocolsDomain
-    from flext_cli._typings import FlextCliTypesDomain
 
 
 class FlextCliProtocolsBaseFlextclimodelsbasePart03:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicDirectoryState(p.BaseModel, Protocol):
+    class AtomicDirectoryState(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -78,22 +76,18 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart03:
             ...
 
     @runtime_checkable
-    class CommandEntryModel(p.BaseModel, Protocol):
+    class CommandEntryModel(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         name: t.NonEmptyStr
-
-        @property
-        def handler(self) -> FlextCliTypesDomain.JsonCommandFn:
-            """Command handler callable."""
-            ...
+        handler: t.Cli.JsonCommandFn
 
     @runtime_checkable
-    class EmptyRequest(p.BaseModel, Protocol):
+    class EmptyRequest(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
     @runtime_checkable
-    class CommandMetadata(p.BaseModel, Protocol):
+    class CommandMetadata(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -111,7 +105,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart03:
         """Structural data contract projected from the owning model."""
 
         @property
-        def model_cls(self) -> t.ModelClass[FlextCliTypesDomain.ModelLike]:
+        def model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
             """Pydantic input model class."""
             ...
 
@@ -126,14 +120,12 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart03:
             ...
 
         @property
-        def success_formatter(
-            self,
-        ) -> FlextCliTypesDomain.SuccessMessageFormatter | None:
+        def success_formatter(self) -> t.Cli.SuccessMessageFormatter | None:
             """Dynamic success formatter."""
             ...
 
         @property
-        def success_type(self) -> FlextCliConstantsEnums.MessageTypes:
+        def success_type(self) -> c.Cli.MessageTypes:
             """CLI output style on success."""
             ...
 

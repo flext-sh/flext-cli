@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
     from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart02
@@ -21,14 +21,14 @@ class FlextCliProtocolsTemplate:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class TemplateRenderOptions(p.BaseModel, Protocol):
+    class TemplateRenderOptions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         strip_suffix: str
         overwrite: bool
 
     @runtime_checkable
-    class TemplateRenderEntry(p.BaseModel, Protocol):
+    class TemplateRenderEntry(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         relpath_template: Path
@@ -37,7 +37,7 @@ class FlextCliProtocolsTemplate:
         overwrite: bool
 
     @runtime_checkable
-    class TemplateRenderReport(p.BaseModel, Protocol):
+    class TemplateRenderReport(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         created: tuple[Path, ...]
@@ -45,7 +45,7 @@ class FlextCliProtocolsTemplate:
         failed: tuple[tuple[Path, str], ...]
 
     @runtime_checkable
-    class AuthenticatedTemplateRender(p.BaseModel, Protocol):
+    class AuthenticatedTemplateRender(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         rendered: str

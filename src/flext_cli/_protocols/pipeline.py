@@ -10,20 +10,21 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from flext_core import p
+
     from flext_cli import t
-    from flext_cli._typings import FlextCliTypesPipeline
 
 
 class FlextCliProtocolsPipeline:
     """Pipeline protocol namespace."""
 
     @runtime_checkable
-    class PipelineStageContext(p.BaseModel, Protocol):
+    class PipelineStageContext(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -137,7 +138,7 @@ class FlextCliProtocolsPipeline:
             ...
 
     @runtime_checkable
-    class PipelineStageSpec(p.BaseModel, Protocol):
+    class PipelineStageSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -173,7 +174,7 @@ class FlextCliProtocolsPipeline:
             ...
 
     @runtime_checkable
-    class PipelineStageResult(p.BaseModel, Protocol):
+    class PipelineStageResult(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -182,7 +183,7 @@ class FlextCliProtocolsPipeline:
             ...
 
         @property
-        def status(self) -> FlextCliTypesPipeline.PipelineStageStatus:
+        def status(self) -> t.Cli.PipelineStageStatus:
             """Execution outcome."""
             ...
 
@@ -202,7 +203,7 @@ class FlextCliProtocolsPipeline:
             ...
 
     @runtime_checkable
-    class PipelineResult(p.BaseModel, Protocol):
+    class PipelineResult(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

@@ -10,14 +10,14 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 
 class FlextCliProtocolsFiles:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class FileAssertionOptions(p.BaseModel, Protocol):
+    class FileAssertionOptions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

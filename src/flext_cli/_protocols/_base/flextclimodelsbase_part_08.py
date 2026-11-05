@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 if TYPE_CHECKING:
     from flext_cli import t
@@ -21,7 +21,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart08:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
-    class AtomicDirectoryChainPlan(p.BaseModel, Protocol):
+    class AtomicDirectoryChainPlan(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property

@@ -26,13 +26,17 @@ class FlextCliModelsBasePart10:
         one instance and discards it when the boundary ends.
         """
 
-        directories: MutableMapping[Path, p.Cli.AtomicDirectoryInventory] = m.Field(
-            default_factory=dict,
-            description="One physical directory inventory per observed path",
+        directories: MutableMapping[Path, t.Port[p.Cli.AtomicDirectoryInventory]] = (
+            m.Field(
+                default_factory=dict,
+                description="One physical directory inventory per observed path",
+            )
         )
-        topology: MutableMapping[Path, p.Cli.AtomicDirectoryChainPlan] = m.Field(
-            default_factory=dict,
-            description="One ancestry plan per observed target",
+        topology: MutableMapping[Path, t.Port[p.Cli.AtomicDirectoryChainPlan]] = (
+            m.Field(
+                default_factory=dict,
+                description="One ancestry plan per observed target",
+            )
         )
 
     class AtomicDirectoryQueryEffects(m.BaseModel):

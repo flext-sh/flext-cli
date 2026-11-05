@@ -8,11 +8,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Literal, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 
-from flext_core import p
+from flext_core import FlextProtocols
 
 from flext_cli._protocols import FlextCliProtocolsColor
+
+if TYPE_CHECKING:
+    pass
 
 
 class FlextCliProtocolsDocxStyles:
@@ -23,7 +26,7 @@ class FlextCliProtocolsDocxStyles:
         """Structural data contract projected from the owning model."""
 
     @runtime_checkable
-    class DocxThemeColor(p.BaseModel, Protocol):
+    class DocxThemeColor(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -42,7 +45,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxAutomaticColor(p.BaseModel, Protocol):
+    class DocxAutomaticColor(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -56,7 +59,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxFontSpec(p.BaseModel, Protocol):
+    class DocxFontSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -150,7 +153,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxParagraphFormatSpec(p.BaseModel, Protocol):
+    class DocxParagraphFormatSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -211,7 +214,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxRunStyleSpec(p.BaseModel, Protocol):
+    class DocxRunStyleSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
@@ -220,7 +223,7 @@ class FlextCliProtocolsDocxStyles:
             ...
 
     @runtime_checkable
-    class DocxParagraphStyleSpec(p.BaseModel, Protocol):
+    class DocxParagraphStyleSpec(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
         @property
