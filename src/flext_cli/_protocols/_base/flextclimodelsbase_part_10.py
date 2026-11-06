@@ -8,7 +8,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import MutableMapping
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
@@ -33,7 +33,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart10:
         @property
         def directories(
             self,
-        ) -> Mapping[
+        ) -> MutableMapping[
             Path, FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryInventory
         ]:
             """One physical directory inventory per observed path."""
@@ -42,7 +42,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart10:
         @property
         def topology(
             self,
-        ) -> Mapping[
+        ) -> MutableMapping[
             Path, FlextCliProtocolsBaseFlextclimodelsbasePart08.AtomicDirectoryChainPlan
         ]:
             """One ancestry plan per observed target."""
