@@ -578,7 +578,7 @@ class FlextCliProtocolsProcess:
         @property
         def pump_streams(
             self,
-        ) -> MutableSequence[
+        ) -> Sequence[
             tuple[threading.Thread, FlextCliProtocolsProcess.RuntimeClosableStream]
         ]:
             """Owned output pump threads paired with their source streams."""
