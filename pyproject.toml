@@ -608,6 +608,7 @@ known-first-party = ["flext_cli"]
 split-on-trailing-comma = false
 
 [tool.ruff.lint.per-file-ignores]
+"**/_protocols/pydantic.py" = ["too-many-arguments"]
 "src/flext_cli/_utilities/framework.py" = ["banned-api"]
 "src/flext_cli/_utilities/native_runtime.py" = [
   "suspicious-subprocess-import",
@@ -648,7 +649,7 @@ constraint-dependencies = [
   "uv>=0.13.4",
 ]
 environments = ["sys_platform == 'linux'", "sys_platform == 'darwin'"]
-link-mode = "copy"
+link-mode = "clone"
 override-dependencies = [
   "rope @ git+https://github.com/marlon-costa-dc/rope.git@5ebf6d5c477fbf8fc66191bd991a27ca1b9eed7a",
   "flext-core @ git+https://github.com/flext-sh/flext-core.git@a81c9648da1491d06280fbebaed074ca2fcd4b1a",
